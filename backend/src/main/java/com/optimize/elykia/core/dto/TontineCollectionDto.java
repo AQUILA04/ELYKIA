@@ -27,4 +27,9 @@ public class TontineCollectionDto {
      * Date métier de la collecte (rattrapage). Si absent, la collecte est enregistrée à la date du jour.
      */
     private LocalDate collectionDate;
+
+    /**
+     * V2 uniquement : indique que le surplus doit ouvrir le mois suivant une fois 31 jours atteints.
+     */
+    private Boolean advanceToNextMonth = Boolean.FALSE;
 }

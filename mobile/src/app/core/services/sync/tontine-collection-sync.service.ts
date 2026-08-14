@@ -133,7 +133,17 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
     private async syncSingleTontineCollection(collection: TontineCollection): Promise<TontineCollectionSyncResponse> {
         const syncedCollection = await this.postCreateCollection(collection);
         await this.repository.saveIdMapping(collection.id, syncedCollection.id.toString(), 'tontine-collection');
-        await this.repository.markAsSynced(collection.id, syncedCollection.id.toString());
+        const persisted: TontineCollection = {
+            ...collection,
+            id: syncedCollection.id.toString(),
+            isLocal: false,
+            isSync: true,
+            syncDate: new Date().toISOString(),
+            societyShareAmount: syncedCollection.societyShareAmount ?? collection.societyShareAmount ?? 0,
+            contributionMonth: syncedCollection.contributionMonth || collection.contributionMonth,
+            advanceToNextMonth: syncedCollection.advanceToNextMonth === true
+        };
+        await this.repository.saveAll([persisted], false);
         return syncedCollection;
     }
 
@@ -151,7 +161,9 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
             notes: collection.notes,
             operationConsentCode: collection.operationConsentCode ?? null,
             confirmedAmount: collection.confirmedAmount ?? null,
-            syncConsentCode: this.syncConsentCode ?? null
+            syncConsentCode: this.syncConsentCode ?? null,
+            collectionDate: collection.collectionDate ? String(collection.collectionDate).substring(0, 10) : undefined,
+            advanceToNextMonth: collection.advanceToNextMonth === true
         };
     }
 }

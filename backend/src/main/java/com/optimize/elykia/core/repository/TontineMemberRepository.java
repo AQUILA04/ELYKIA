@@ -94,6 +94,19 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
 
         Page<TontineMember> findByTontineSessionIdAndState(Long sessionId, State state, Pageable pageable);
 
+        @Query("""
+                SELECT tm FROM TontineMember tm
+                WHERE tm.tontineSession.id = :sessionId
+                  AND tm.state = :state
+                  AND tm.id > :lastId
+                ORDER BY tm.id ASC
+                """)
+        Page<TontineMember> findNextEnabledBySessionId(
+                @Param("sessionId") Long sessionId,
+                @Param("state") State state,
+                @Param("lastId") Long lastId,
+                Pageable pageable);
+
         @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
         @Query("UPDATE TontineMember tm SET tm.totalContribution = 0, tm.societyShare = 0, " +
                 "tm.availableContribution = 0, tm.validatedMonths = 0, tm.currentMonthDays = 0 " +
@@ -103,6 +116,13 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
         @Query("SELECT COUNT(tm) FROM TontineMember tm " +
                 "WHERE tm.tontineSession.id = :sessionId AND tm.state = com.optimize.common.entities.enums.State.ENABLED")
         long countEnabledBySessionId(@Param("sessionId") Long sessionId);
+
+        @Query("""
+                SELECT tm FROM TontineMember tm
+                JOIN FETCH tm.client
+                WHERE tm.id = :id
+                """)
+        java.util.Optional<TontineMember> findByIdWithClient(@Param("id") Long id);
 
         Page<TontineMember> findByDeliveryStatus(TontineMemberDeliveryStatus status, Pageable pageable);
 

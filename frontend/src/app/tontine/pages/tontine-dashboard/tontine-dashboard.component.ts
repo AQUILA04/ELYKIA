@@ -53,7 +53,7 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   exportingPdf = false;
 
   constructor(
-    private readonly tontineService: TontineService,
+    public readonly tontineService: TontineService,
     private readonly sessionService: TontineSessionService,
     private readonly router: Router,
     private readonly dialog: MatDialog,

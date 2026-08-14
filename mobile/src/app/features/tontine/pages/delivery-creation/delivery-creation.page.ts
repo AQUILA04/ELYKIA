@@ -41,6 +41,9 @@ interface DeliveryViewModel {
     remainingBudget: number;
     selectedCount: number;
     loading: boolean;
+    allocationVersion: 'V1' | 'V2' | null;
+    isOfflineEstimate: boolean;
+    isExactBudget: boolean;
 }
 
 @Component({
@@ -63,7 +66,10 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         usedBudget: 0,
         remainingBudget: 0,
         selectedCount: 0,
-        loading: false
+        loading: false,
+        allocationVersion: null,
+        isOfflineEstimate: false,
+        isExactBudget: true
     };
 
     private destroy$ = new Subject<void>();
@@ -184,18 +190,20 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 const collections = await this.collectionRepo.getByMemberId(this.memberId!);
                 this.vm.totalBudget = collections.reduce((sum, c) => sum + (c.amount || 0), 0);
 
-                // Use calculation service to get society share and available budget
                 if (this.vm.session) {
                     const status = await this.tontineCalculationService.calculateMemberStatus(
                         this.vm.member,
                         this.vm.session,
-                        this.vm.totalBudget
+                        collections
                     );
                     this.vm.societyShare = status.societyShare;
                     this.vm.availableBudget = status.availableBudget;
+                    this.vm.allocationVersion = status.version;
+                    this.vm.isOfflineEstimate = status.isOfflineEstimate;
+                    this.vm.isExactBudget = status.isExact && !status.isOfflineEstimate;
                 } else {
-                    // Fallback if session is not loaded (should not happen ideally)
                     this.vm.availableBudget = this.vm.totalBudget;
+                    this.vm.isExactBudget = false;
                 }
 
                 this.updateBudgetCalculations();

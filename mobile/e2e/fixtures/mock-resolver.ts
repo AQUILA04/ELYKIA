@@ -123,7 +123,32 @@ export function resolveMockResponse(apiPath: string, method: string): Record<str
       statusCode: 200,
       message: 'default.message.success',
       service: 'MOCK-SERVICE',
-      data: null,
+      data: {
+        id: 1,
+        year: 2026,
+        startDate: '2026-02-01',
+        endDate: '2026-11-30',
+        status: 'ACTIVE',
+        memberCount: 0,
+        totalCollected: 0
+      },
+    };
+  }
+
+  if (pathname === '/api/v1/tontines/collections' && method === 'POST') {
+    return {
+      status: 'OK',
+      statusCode: 200,
+      message: 'default.message.success',
+      service: 'MOCK-SERVICE',
+      data: {
+        id: 501,
+        amount: 5000,
+        collectionDate: '2026-03-15T00:00:00',
+        societyShareAmount: 1000,
+        contributionMonth: '2026-03-01',
+        advanceToNextMonth: false
+      },
     };
   }
 

@@ -38,12 +38,14 @@ describe('OnlineListRefreshService', () => {
     ]);
     databaseService = jasmine.createSpyObj('DatabaseService', [
       'getUnsyncedCollectionsTotals',
+      'getUnsyncedLocalCollectionIds',
       'saveTontineMembers',
       'saveTontineDeliveries',
       'saveTontineCollections',
       'saveTontineStocks'
     ]);
     databaseService.getUnsyncedCollectionsTotals.and.resolveTo([]);
+    databaseService.getUnsyncedLocalCollectionIds.and.resolveTo([]);
     databaseService.saveTontineMembers.and.resolveTo();
     databaseService.saveTontineDeliveries.and.resolveTo();
 

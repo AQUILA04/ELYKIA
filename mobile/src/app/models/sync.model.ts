@@ -393,6 +393,9 @@ export interface TontineCollectionSyncRequest {
   operationConsentCode?: string | null;
   confirmedAmount?: number | null;
   syncConsentCode?: string | null;
+  collectionDate?: string;
+  advanceToNextMonth?: boolean;
+  catchupDailyStake?: number;
 }
 
 export interface TontineDeliverySyncRequest {
@@ -417,13 +420,22 @@ export interface TontineMemberSyncResponse {
   totalContribution: number;
   deliveryStatus: string;
   registrationDate: string;
+  societyShare?: number;
+  availableContribution?: number;
+  validatedMonths?: number;
+  currentMonthDays?: number;
 }
 
 export interface TontineCollectionSyncResponse {
   id: number;
-  memberId: number;
+  memberId?: number;
+  tontineMember?: { id: number };
   amount: number;
   collectionDate: string;
+  reference?: string;
+  societyShareAmount?: number;
+  contributionMonth?: string;
+  advanceToNextMonth?: boolean;
 }
 
 export interface TontineDeliverySyncResponse {

@@ -9,6 +9,37 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.10.2] — 2026-08-14
+
+### Added
+- `TontineCollectionRespDto` expose `societyShareAmount`, `advanceToNextMonth` et `contributionMonth` pour le mobile.
+
+## Backend — [1.10.1] — 2026-08-14
+
+### Changed
+- Validation stricte de `TONTINE_SOCIETY_SHARE_VERSION` : seules les valeurs `V1` et `V2` sont acceptées (normalisation en majuscules).
+
+## Backend — [1.10.0] — 2026-08-14
+
+### Added
+- Part société tontine V1/V2 : paramètre `TONTINE_SOCIETY_SHARE_VERSION` (défaut V1), politiques d’allocation extraites (`V1TontineAllocationPolicy`, `V2TontineAllocationPolicy`).
+- V2 : prélèvement uniquement sur les mois réellement cotisés (y compris rattrapage), capital pouvant dépasser 31 jours/mois, flag API `advanceToNextMonth`.
+- Job async de migration à la bascule : snapshot par membre, recalcul keyset (`id > lastId ORDER BY id`), verrouillage des écritures tontine pendant le job.
+- Endpoints `GET /allocation-migration/status` et `POST /sessions/current/recalculate-allocations`.
+- Migration `V92__tontine_collection_allocation_v2.sql` (champs collecte + tables run/snapshot).
+- `ParameterUpdatedEvent` et `ParameterService.getValue`.
+
+## Frontend — [2.16.15] — 2026-08-14
+
+### Changed
+- Paramètre `TONTINE_SOCIETY_SHARE_VERSION` : sélection V1/V2 (plus de saisie libre).
+- Module `parameters` migré en lazy-loading (`loadChildren`).
+
+## Frontend — [2.16.14] — 2026-08-14
+
+### Added
+- Bandeau d’alerte sur les pages tontine pendant le recalcul des parts société (progression, blocage des actions d’écriture).
+
 ## Backend — [1.9.16] — 2026-08-14
 
 ### Added
@@ -203,6 +234,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Historique des remises : colonnes Dépenses et Net.
 - Liste dépenses : badge « Comptabilisée » + actions éditer/supprimer désactivées si remise `RECEIVED`.
 - Formulaire dépenses : mode lecture seule avec bannière si comptabilisée.
+
+## Mobile — [2.20.0] — 2026-08-14
+
+### Added
+- Calcul local tontine V1/V2 selon le dernier `TONTINE_SOCIETY_SHARE_VERSION` synchronisé, avec replay des collectes hors-ligne.
+- Persistance SQLite des champs d’allocation (`societyShareAmount`, `contributionMonth`, `advanceToNextMonth`) et des totaux membre (`societyShare`, `availableContribution`, `validatedMonths`, `currentMonthDays`).
+- Payload de sync des collectes enrichi (`collectionDate`, `advanceToNextMonth`) et réconciliation online-first avec la réponse serveur.
+- Indication « estimation hors-ligne » sur le reçu et le budget de livraison lorsque des collectes ne sont pas synchronisées.
+- Retry manuel des erreurs de sync `tontine-collection`.
+
+### Changed
+- Chargement des paramètres désormais attendu jusqu’à l’écriture SQLite, et inclus dans `initializeAllData`.
 
 ## Mobile — [2.19.8] — 2026-08-12
 

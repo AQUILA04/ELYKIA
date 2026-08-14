@@ -1,22 +1,21 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, flushMicrotasks } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { provideMockStore, MockStore } from '@ngrx/store/testing';
+import { provideMockStore } from '@ngrx/store/testing';
 import { SequentialSyncManager } from './sequential-sync-manager.service';
 import { DatabaseService } from '../database.service';
 import { LoggerService } from '../logger.service';
 import { environment } from 'src/environments/environment';
+import { selectToken } from '../../../store/auth/auth.selectors';
 import {
   SyncOptions,
   SyncErrorType
 } from '../../models/tontine-sync.models';
-import { of } from 'rxjs';
 
 describe('SequentialSyncManager', () => {
   let service: SequentialSyncManager;
   let httpMock: HttpTestingController;
   let dbService: jasmine.SpyObj<DatabaseService>;
   let logService: jasmine.SpyObj<LoggerService>;
-  let store: MockStore;
 
   const mockToken = 'test-token-123';
   const apiUrl = environment.apiUrl + '/api/v1';
@@ -34,7 +33,8 @@ describe('SequentialSyncManager', () => {
       'saveTontineDeliveries',
       'saveTontineCollections',
       'saveTontineStocks',
-      'getUnsyncedCollectionsTotals'
+      'getUnsyncedCollectionsTotals',
+      'getUnsyncedLocalCollectionIds'
     ]);
 
     const logServiceSpy = jasmine.createSpyObj('LoggerService', ['log']);
@@ -48,7 +48,7 @@ describe('SequentialSyncManager', () => {
         provideMockStore({
           initialState: {},
           selectors: [
-            { selector: 'selectToken', value: mockToken }
+            { selector: selectToken, value: mockToken }
           ]
         })
       ]
@@ -57,16 +57,20 @@ describe('SequentialSyncManager', () => {
     service = TestBed.inject(SequentialSyncManager);
     httpMock = TestBed.inject(HttpTestingController);
     dbService = TestBed.inject(DatabaseService) as jasmine.SpyObj<DatabaseService>;
+    dbService.getUnsyncedCollectionsTotals.and.returnValue(Promise.resolve([]));
+    dbService.getUnsyncedLocalCollectionIds.and.returnValue(Promise.resolve([]));
     logService = TestBed.inject(LoggerService) as jasmine.SpyObj<LoggerService>;
-    store = TestBed.inject(MockStore);
   });
 
   afterEach(() => {
+    (service as any).collectionsSyncLock = false;
+    (service as any).membersSyncLock = false;
+    (service as any).stocksSyncLock = false;
     httpMock.verify();
   });
 
   describe('syncMembers', () => {
-    it('should sync members from a single page successfully', (done) => {
+    it('should sync members from a single page successfully', fakeAsync(() => {
       const sessionId = 'session-123';
       const mockMembers = [
         {
@@ -92,33 +96,34 @@ describe('SequentialSyncManager', () => {
         }
       };
 
-      dbService.getUnsyncedCollectionsTotals.and.returnValue(Promise.resolve([]));
       dbService.saveTontineMembers.and.returnValue(Promise.resolve());
       dbService.saveTontineDeliveries.and.returnValue(Promise.resolve());
 
+      let result: any;
       service.syncMembers(sessionId, defaultOptions).subscribe({
-        next: (result) => {
-          expect(result.sessionId).toBe(sessionId);
-          expect(result.totalPages).toBe(1);
-          expect(result.processedPages).toBe(1);
-          expect(result.totalItems).toBe(1);
-          expect(result.savedItems).toBe(1);
-          expect(result.errors.length).toBe(0);
-          expect(dbService.saveTontineMembers).toHaveBeenCalledTimes(1);
-          done();
-        },
-        error: (err) => done.fail(err)
+        next: (value) => result = value,
+        error: fail
       });
+      flushMicrotasks();
 
       const req = httpMock.expectOne(`${apiUrl}/tontines/members?page=0&size=100`);
       expect(req.request.method).toBe('GET');
       expect(req.request.headers.get('Authorization')).toBe(`Bearer ${mockToken}`);
       req.flush(mockResponse);
-    });
+      flushMicrotasks();
 
-    it('should sync members from multiple pages sequentially', (done) => {
+      expect(result.sessionId).toBe(sessionId);
+      expect(result.totalPages).toBe(1);
+      expect(result.processedPages).toBe(1);
+      expect(result.totalItems).toBe(1);
+      expect(result.savedItems).toBe(1);
+      expect(result.errors.length).toBe(0);
+      expect(dbService.saveTontineMembers).toHaveBeenCalledTimes(1);
+    }));
+
+    it('should sync members from multiple pages sequentially', fakeAsync(() => {
       const sessionId = 'session-123';
-      
+
       const mockPage1 = {
         data: {
           content: [{ id: 1, client: { id: 'c1' }, totalContribution: 100 }],
@@ -140,35 +145,37 @@ describe('SequentialSyncManager', () => {
         }
       };
 
-      dbService.getUnsyncedCollectionsTotals.and.returnValue(Promise.resolve([]));
       dbService.saveTontineMembers.and.returnValue(Promise.resolve());
       dbService.saveTontineDeliveries.and.returnValue(Promise.resolve());
 
+      let result: any;
       service.syncMembers(sessionId, defaultOptions).subscribe({
-        next: (result) => {
-          expect(result.totalPages).toBe(3);
-          expect(result.processedPages).toBe(3);
-          expect(result.totalItems).toBe(3);
-          expect(result.savedItems).toBe(3);
-          expect(result.errors.length).toBe(0);
-          expect(dbService.saveTontineMembers).toHaveBeenCalledTimes(3);
-          done();
-        },
-        error: (err) => done.fail(err)
+        next: (value) => result = value,
+        error: fail
       });
+      flushMicrotasks();
 
-      // Vérifier que les requêtes sont faites séquentiellement
       const req1 = httpMock.expectOne(`${apiUrl}/tontines/members?page=0&size=100`);
       req1.flush(mockPage1);
+      flushMicrotasks();
 
       const req2 = httpMock.expectOne(`${apiUrl}/tontines/members?page=1&size=100`);
       req2.flush(mockPage2);
+      flushMicrotasks();
 
       const req3 = httpMock.expectOne(`${apiUrl}/tontines/members?page=2&size=100`);
       req3.flush(mockPage3);
-    });
+      flushMicrotasks();
 
-    it('should adjust member totals with unsynced collections', (done) => {
+      expect(result.totalPages).toBe(3);
+      expect(result.processedPages).toBe(3);
+      expect(result.totalItems).toBe(3);
+      expect(result.savedItems).toBe(3);
+      expect(result.errors.length).toBe(0);
+      expect(dbService.saveTontineMembers).toHaveBeenCalledTimes(3);
+    }));
+
+    it('should adjust member totals with unsynced collections', fakeAsync(() => {
       const sessionId = 'session-123';
       const mockMembers = [
         { id: 1, client: { id: 'c1' }, totalContribution: 1000 }
@@ -186,39 +193,33 @@ describe('SequentialSyncManager', () => {
       dbService.getUnsyncedCollectionsTotals.and.returnValue(Promise.resolve(unsyncedTotals));
       dbService.saveTontineMembers.and.returnValue(Promise.resolve());
 
-      service.syncMembers(sessionId, defaultOptions).subscribe({
-        next: () => {
-          const savedMembers = dbService.saveTontineMembers.calls.argsFor(0)[0];
-          expect(savedMembers[0].totalContribution).toBe(1500); // 1000 + 500
-          done();
-        },
-        error: (err) => done.fail(err)
-      });
+      service.syncMembers(sessionId, defaultOptions).subscribe({ error: fail });
+      flushMicrotasks();
 
       const req = httpMock.expectOne(`${apiUrl}/tontines/members?page=0&size=100`);
       req.flush(mockResponse);
-    });
+      flushMicrotasks();
 
-    it('should prevent concurrent member synchronizations', (done) => {
+      const savedMembers = dbService.saveTontineMembers.calls.argsFor(0)[0];
+      expect(savedMembers[0].totalContribution).toBe(1500);
+    }));
+
+    it('should prevent concurrent member synchronizations', fakeAsync(() => {
       const sessionId = 'session-123';
 
-      dbService.getUnsyncedCollectionsTotals.and.returnValue(Promise.resolve([]));
       dbService.saveTontineMembers.and.returnValue(Promise.resolve());
 
-      // Démarrer la première synchronisation
+      let concurrentError: any;
       service.syncMembers(sessionId, defaultOptions).subscribe();
-
-      // Tenter une deuxième synchronisation immédiatement
       service.syncMembers(sessionId, defaultOptions).subscribe({
-        next: () => done.fail('Should have thrown an error'),
-        error: (error) => {
-          expect(error.type).toBe(SyncErrorType.VALIDATION);
-          expect(error.message).toContain('déjà en cours');
-          done();
-        }
+        next: () => fail('Should have thrown an error'),
+        error: (error) => concurrentError = error
       });
 
-      // Répondre à la première requête
+      expect(concurrentError.type).toBe(SyncErrorType.VALIDATION);
+      expect(concurrentError.message).toContain('déjà en cours');
+
+      flushMicrotasks();
       const req = httpMock.expectOne(`${apiUrl}/tontines/members?page=0&size=100`);
       req.flush({
         data: {
@@ -226,27 +227,28 @@ describe('SequentialSyncManager', () => {
           page: { number: 0, totalPages: 1, totalElements: 0 }
         }
       });
-    });
+      flushMicrotasks();
+    }));
 
-    it('should handle network errors gracefully', (done) => {
+    it('should handle network errors gracefully', fakeAsync(() => {
       const sessionId = 'session-123';
 
-      dbService.getUnsyncedCollectionsTotals.and.returnValue(Promise.resolve([]));
-
+      let error: any;
       service.syncMembers(sessionId, defaultOptions).subscribe({
-        next: () => done.fail('Should have thrown an error'),
-        error: (error) => {
-          expect(error.type).toBe(SyncErrorType.NETWORK);
-          expect(error.retryable).toBe(true);
-          done();
-        }
+        next: () => fail('Should have thrown an error'),
+        error: (err) => error = err
       });
+      flushMicrotasks();
 
       const req = httpMock.expectOne(`${apiUrl}/tontines/members?page=0&size=100`);
       req.error(new ProgressEvent('Network error'));
-    });
+      flushMicrotasks();
 
-    it('should handle database errors gracefully', (done) => {
+      expect(error.type).toBe(SyncErrorType.NETWORK);
+      expect(error.retryable).toBe(true);
+    }));
+
+    it('should handle database errors gracefully', fakeAsync(() => {
       const sessionId = 'session-123';
       const mockResponse = {
         data: {
@@ -255,23 +257,24 @@ describe('SequentialSyncManager', () => {
         }
       };
 
-      dbService.getUnsyncedCollectionsTotals.and.returnValue(Promise.resolve([]));
-      dbService.saveTontineMembers.and.returnValue(Promise.reject(new Error('DB error')));
+      dbService.saveTontineMembers.and.callFake(() => Promise.reject(new Error('DB error')));
 
+      let error: any;
       service.syncMembers(sessionId, defaultOptions).subscribe({
-        next: () => done.fail('Should have thrown an error'),
-        error: (error) => {
-          expect(error.type).toBe(SyncErrorType.DATABASE);
-          expect(error.retryable).toBe(false);
-          done();
-        }
+        next: () => fail('Should have thrown an error'),
+        error: (err) => error = err
       });
+      flushMicrotasks();
 
       const req = httpMock.expectOne(`${apiUrl}/tontines/members?page=0&size=100`);
       req.flush(mockResponse);
-    });
+      flushMicrotasks();
 
-    it('should save deliveries when present in member data', (done) => {
+      expect(error.type).toBe(SyncErrorType.DATABASE);
+      expect(error.retryable).toBe(false);
+    }));
+
+    it('should save deliveries when present in member data', fakeAsync(() => {
       const sessionId = 'session-123';
       const mockMembers = [
         {
@@ -304,29 +307,26 @@ describe('SequentialSyncManager', () => {
         }
       };
 
-      dbService.getUnsyncedCollectionsTotals.and.returnValue(Promise.resolve([]));
       dbService.saveTontineMembers.and.returnValue(Promise.resolve());
       dbService.saveTontineDeliveries.and.returnValue(Promise.resolve());
 
-      service.syncMembers(sessionId, defaultOptions).subscribe({
-        next: () => {
-          expect(dbService.saveTontineDeliveries).toHaveBeenCalledTimes(1);
-          const savedDeliveries = dbService.saveTontineDeliveries.calls.argsFor(0)[0];
-          expect(savedDeliveries.length).toBe(1);
-          expect(savedDeliveries[0].id).toBe('d1');
-          expect(savedDeliveries[0].items.length).toBe(1);
-          done();
-        },
-        error: (err) => done.fail(err)
-      });
+      service.syncMembers(sessionId, defaultOptions).subscribe({ error: fail });
+      flushMicrotasks();
 
       const req = httpMock.expectOne(`${apiUrl}/tontines/members?page=0&size=100`);
       req.flush(mockResponse);
-    });
+      flushMicrotasks();
+
+      expect(dbService.saveTontineDeliveries).toHaveBeenCalledTimes(1);
+      const savedDeliveries = dbService.saveTontineDeliveries.calls.argsFor(0)[0];
+      expect(savedDeliveries.length).toBe(1);
+      expect(savedDeliveries[0].id).toBe('d1');
+      expect(savedDeliveries[0].items.length).toBe(1);
+    }));
   });
 
   describe('syncCollections', () => {
-    it('should sync collections from a single page successfully', (done) => {
+    it('should sync collections from a single page successfully', fakeAsync(() => {
       const mockCollections = [
         {
           id: 1,
@@ -345,25 +345,57 @@ describe('SequentialSyncManager', () => {
 
       dbService.saveTontineCollections.and.returnValue(Promise.resolve());
 
+      let result: any;
       service.syncCollections(defaultOptions).subscribe({
-        next: (result) => {
-          expect(result.totalPages).toBe(1);
-          expect(result.processedPages).toBe(1);
-          expect(result.totalItems).toBe(1);
-          expect(result.savedItems).toBe(1);
-          expect(result.errors.length).toBe(0);
-          expect(dbService.saveTontineCollections).toHaveBeenCalledTimes(1);
-          done();
-        },
-        error: (err) => done.fail(err)
+        next: (value) => result = value,
+        error: fail
       });
 
       const req = httpMock.expectOne(`${apiUrl}/tontines/collections?page=0&size=100`);
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
-    });
+      flushMicrotasks();
 
-    it('should sync collections from multiple pages sequentially', (done) => {
+      expect(result.totalPages).toBe(1);
+      expect(result.processedPages).toBe(1);
+      expect(result.totalItems).toBe(1);
+      expect(result.savedItems).toBe(1);
+      expect(result.errors.length).toBe(0);
+      expect(dbService.saveTontineCollections).toHaveBeenCalledTimes(1);
+    }));
+
+    it('does not overwrite an unsynced local collection during pull', fakeAsync(() => {
+      dbService.getUnsyncedLocalCollectionIds.and.returnValue(Promise.resolve(['uuid-local']));
+      dbService.saveTontineCollections.and.returnValue(Promise.resolve());
+
+      let result: any;
+      service.syncCollections(defaultOptions).subscribe({
+        next: (value) => result = value,
+        error: fail
+      });
+
+      const req = httpMock.expectOne(`${apiUrl}/tontines/collections?page=0&size=100`);
+      req.flush({
+        data: {
+          content: [{
+            id: 99,
+            reference: 'uuid-local',
+            tontineMemberId: 'member-1',
+            amount: 100,
+            collectionDate: '2026-03-15',
+            societyShareAmount: 1000,
+            contributionMonth: '2026-03-01'
+          }],
+          page: { number: 0, totalPages: 1, totalElements: 1 }
+        }
+      });
+      flushMicrotasks();
+
+      expect(result.savedItems).toBe(0);
+      expect(dbService.saveTontineCollections).not.toHaveBeenCalled();
+    }));
+
+    it('should sync collections from multiple pages sequentially', fakeAsync(() => {
       const mockPage1 = {
         data: {
           content: [{ id: 1, tontineMemberId: 'm1', amount: 100 }],
@@ -380,37 +412,38 @@ describe('SequentialSyncManager', () => {
 
       dbService.saveTontineCollections.and.returnValue(Promise.resolve());
 
+      let result: any;
       service.syncCollections(defaultOptions).subscribe({
-        next: (result) => {
-          expect(result.totalPages).toBe(2);
-          expect(result.processedPages).toBe(2);
-          expect(result.savedItems).toBe(2);
-          expect(dbService.saveTontineCollections).toHaveBeenCalledTimes(2);
-          done();
-        },
-        error: (err) => done.fail(err)
+        next: (value) => result = value,
+        error: fail
       });
 
       const req1 = httpMock.expectOne(`${apiUrl}/tontines/collections?page=0&size=100`);
       req1.flush(mockPage1);
+      flushMicrotasks();
 
       const req2 = httpMock.expectOne(`${apiUrl}/tontines/collections?page=1&size=100`);
       req2.flush(mockPage2);
-    });
+      flushMicrotasks();
 
-    it('should prevent concurrent collection synchronizations', (done) => {
+      expect(result.totalPages).toBe(2);
+      expect(result.processedPages).toBe(2);
+      expect(result.savedItems).toBe(2);
+      expect(dbService.saveTontineCollections).toHaveBeenCalledTimes(2);
+    }));
+
+    it('should prevent concurrent collection synchronizations', fakeAsync(() => {
       dbService.saveTontineCollections.and.returnValue(Promise.resolve());
 
+      let concurrentError: any;
       service.syncCollections(defaultOptions).subscribe();
-
       service.syncCollections(defaultOptions).subscribe({
-        next: () => done.fail('Should have thrown an error'),
-        error: (error) => {
-          expect(error.type).toBe(SyncErrorType.VALIDATION);
-          expect(error.message).toContain('déjà en cours');
-          done();
-        }
+        next: () => fail('Should have thrown an error'),
+        error: (error) => concurrentError = error
       });
+
+      expect(concurrentError.type).toBe(SyncErrorType.VALIDATION);
+      expect(concurrentError.message).toContain('déjà en cours');
 
       const req = httpMock.expectOne(`${apiUrl}/tontines/collections?page=0&size=100`);
       req.flush({
@@ -419,11 +452,12 @@ describe('SequentialSyncManager', () => {
           page: { number: 0, totalPages: 1, totalElements: 0 }
         }
       });
-    });
+      flushMicrotasks();
+    }));
   });
 
   describe('syncStocks', () => {
-    it('should sync stocks successfully', (done) => {
+    it('should sync stocks successfully', fakeAsync(() => {
       const sessionId = 'session-123';
       const mockStocks = [
         {
@@ -447,26 +481,27 @@ describe('SequentialSyncManager', () => {
 
       dbService.saveTontineStocks.and.returnValue(Promise.resolve());
 
+      let result: any;
       service.syncStocks(sessionId, defaultOptions).subscribe({
-        next: (result) => {
-          expect(result.sessionId).toBe(sessionId);
-          expect(result.totalPages).toBe(1);
-          expect(result.processedPages).toBe(1);
-          expect(result.totalItems).toBe(1);
-          expect(result.savedItems).toBe(1);
-          expect(result.errors.length).toBe(0);
-          expect(dbService.saveTontineStocks).toHaveBeenCalledTimes(1);
-          done();
-        },
-        error: (err) => done.fail(err)
+        next: (value) => result = value,
+        error: fail
       });
 
       const req = httpMock.expectOne(`${apiUrl}/tontines/stock`);
       expect(req.request.method).toBe('GET');
       req.flush(mockResponse);
-    });
+      flushMicrotasks();
 
-    it('should handle empty stocks response', (done) => {
+      expect(result.sessionId).toBe(sessionId);
+      expect(result.totalPages).toBe(1);
+      expect(result.processedPages).toBe(1);
+      expect(result.totalItems).toBe(1);
+      expect(result.savedItems).toBe(1);
+      expect(result.errors.length).toBe(0);
+      expect(dbService.saveTontineStocks).toHaveBeenCalledTimes(1);
+    }));
+
+    it('should handle empty stocks response', fakeAsync(() => {
       const sessionId = 'session-123';
       const mockResponse = {
         data: {
@@ -476,35 +511,35 @@ describe('SequentialSyncManager', () => {
 
       dbService.saveTontineStocks.and.returnValue(Promise.resolve());
 
+      let result: any;
       service.syncStocks(sessionId, defaultOptions).subscribe({
-        next: (result) => {
-          expect(result.totalItems).toBe(0);
-          expect(result.savedItems).toBe(0);
-          expect(result.processedPages).toBe(1);
-          done();
-        },
-        error: (err) => done.fail(err)
+        next: (value) => result = value,
+        error: fail
       });
 
       const req = httpMock.expectOne(`${apiUrl}/tontines/stock`);
       req.flush(mockResponse);
-    });
+      flushMicrotasks();
 
-    it('should prevent concurrent stock synchronizations', (done) => {
+      expect(result.totalItems).toBe(0);
+      expect(result.savedItems).toBe(0);
+      expect(result.processedPages).toBe(1);
+    }));
+
+    it('should prevent concurrent stock synchronizations', fakeAsync(() => {
       const sessionId = 'session-123';
 
       dbService.saveTontineStocks.and.returnValue(Promise.resolve());
 
+      let concurrentError: any;
       service.syncStocks(sessionId, defaultOptions).subscribe();
-
       service.syncStocks(sessionId, defaultOptions).subscribe({
-        next: () => done.fail('Should have thrown an error'),
-        error: (error) => {
-          expect(error.type).toBe(SyncErrorType.VALIDATION);
-          expect(error.message).toContain('déjà en cours');
-          done();
-        }
+        next: () => fail('Should have thrown an error'),
+        error: (error) => concurrentError = error
       });
+
+      expect(concurrentError.type).toBe(SyncErrorType.VALIDATION);
+      expect(concurrentError.message).toContain('déjà en cours');
 
       const req = httpMock.expectOne(`${apiUrl}/tontines/stock`);
       req.flush({
@@ -512,6 +547,7 @@ describe('SequentialSyncManager', () => {
           content: []
         }
       });
-    });
+      flushMicrotasks();
+    }));
   });
 });

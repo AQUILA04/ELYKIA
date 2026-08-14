@@ -3,21 +3,25 @@ package com.optimize.elykia.core.dto;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import org.springframework.data.domain.Page;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
 public record TontineCollectionRespDto(Long id, TontineMemberRespDto tontineMember, Double amount,
                                        LocalDateTime collectionDate, String commercialUsername,
                                        Boolean isDeliveryCollection, String reference,
-                                       String operationConsentCode, Double confirmedAmount, String syncConsentCode) {
+                                       String operationConsentCode, Double confirmedAmount, String syncConsentCode,
+                                       Double societyShareAmount, Boolean advanceToNextMonth, LocalDate contributionMonth) {
 
 
     public TontineCollectionRespDto(Long id, Long tontineMemberId, Double amount,
                                     LocalDateTime collectionDate, String commercialUsername,
                                     Boolean isDeliveryCollection, String reference,
-                                    String operationConsentCode, Double confirmedAmount, String syncConsentCode) {
+                                    String operationConsentCode, Double confirmedAmount, String syncConsentCode,
+                                    Double societyShareAmount, Boolean advanceToNextMonth, LocalDate contributionMonth) {
         this(id, TontineMemberRespDto.fromId(tontineMemberId), amount, collectionDate, commercialUsername, isDeliveryCollection,
-                reference, operationConsentCode, confirmedAmount, syncConsentCode);
+                reference, operationConsentCode, confirmedAmount, syncConsentCode,
+                societyShareAmount, advanceToNextMonth, contributionMonth);
     }
 
     public static TontineCollectionRespDto fromId(Long id) {
@@ -25,7 +29,7 @@ public record TontineCollectionRespDto(Long id, TontineMemberRespDto tontineMemb
             return null;
         }
         return new TontineCollectionRespDto(id, TontineMemberRespDto.fromId(0L), null, null, null,
-                null, null, null, null, null);
+                null, null, null, null, null, null, null, null);
     }
 
     public static TontineCollectionRespDto fromTontineCollection(TontineCollection tontineCollection) {
@@ -41,7 +45,10 @@ public record TontineCollectionRespDto(Long id, TontineMemberRespDto tontineMemb
                 tontineCollection.getReference(),
                 tontineCollection.getOperationConsentCode(),
                 tontineCollection.getConfirmedAmount(),
-                tontineCollection.getSyncConsentCode());
+                tontineCollection.getSyncConsentCode(),
+                tontineCollection.getSocietyShareAmount(),
+                tontineCollection.getAdvanceToNextMonth(),
+                tontineCollection.getContributionMonth());
     }
 
     public static List<TontineCollectionRespDto> fromList(List<TontineCollection> tontineCollections) {

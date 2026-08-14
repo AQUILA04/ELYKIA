@@ -10,6 +10,7 @@ import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.*;
+import com.optimize.elykia.core.entity.report.TontineAllocationMigrationRun;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistory;
@@ -24,6 +25,9 @@ import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
+import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicy;
+import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicyResolver;
+import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -53,6 +57,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
     private final ParameterService parameterService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private BusinessMetricsPublisher metricsPublisher;
+    private TontineAllocationPolicyResolver allocationPolicyResolver;
+    private TontineAllocationMigrationService allocationMigrationService;
+    private TontineAmountHistoryHelper amountHistoryHelper;
 
     public TontineService(TontineMemberRepository repository,
                           TontineSessionRepository tontineSessionRepository,
@@ -78,6 +85,34 @@ public class TontineService extends GenericService<TontineMember, Long> {
     @Autowired(required = false)
     public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
         this.metricsPublisher = metricsPublisher;
+    }
+
+    @Autowired
+    public void setAllocationPolicyResolver(TontineAllocationPolicyResolver allocationPolicyResolver) {
+        this.allocationPolicyResolver = allocationPolicyResolver;
+    }
+
+    @Autowired
+    public void setAllocationMigrationService(TontineAllocationMigrationService allocationMigrationService) {
+        this.allocationMigrationService = allocationMigrationService;
+    }
+
+    @Autowired
+    public void setAmountHistoryHelper(TontineAmountHistoryHelper amountHistoryHelper) {
+        this.amountHistoryHelper = amountHistoryHelper;
+    }
+
+    private TontineAllocationPolicy currentPolicy() {
+        if (allocationPolicyResolver == null) {
+            throw new IllegalStateException("TontineAllocationPolicyResolver non configuré");
+        }
+        return allocationPolicyResolver.resolve();
+    }
+
+    private void assertTontineWritesAllowed() {
+        if (allocationMigrationService != null) {
+            allocationMigrationService.assertWritesAllowed();
+        }
     }
 
     public TontineSession getActiveSession() {
@@ -177,6 +212,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     public TontineMemberRespDto registerMember(TontineMemberDto dto) {
+        assertTontineWritesAllowed();
         Client client = clientService.getById(dto.getClientId());
         TontineSession activeSession = getActiveSession();
 
@@ -224,6 +260,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     public TontineMemberRespDto updateMember(Long id, TontineMemberDto dto) {
+        assertTontineWritesAllowed();
         TontineMember member = getById(id);
 
         if (dto.getFrequency() != null) {
@@ -246,9 +283,6 @@ public class TontineService extends GenericService<TontineMember, Long> {
             if (scope == TontineMemberUpdateScope.GLOBAL) {
                 recalculateMemberFromCollections(member);
                 updateSessionRevenue(member.getTontineSession());
-            } else {
-                // Keep derived status coherent with unchanged allocations.
-                calculateMemberStatus(member);
             }
         }
 
@@ -330,6 +364,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     public TontineCollectionRespDto recordCollection(TontineCollectionDto dto) {
+        assertTontineWritesAllowed();
         TontineSession currentSession = getActiveSession();
         if (!TontineSessionStatus.ACTIVE.equals(currentSession.getStatus())) {
             throw new CustomValidationException(
@@ -380,16 +415,18 @@ public class TontineService extends GenericService<TontineMember, Long> {
         collection.setOperationConsentCode(dto.getOperationConsentCode());
         collection.setConfirmedAmount(dto.getConfirmedAmount());
         collection.setSyncConsentCode(dto.getSyncConsentCode());
+        collection.setAdvanceToNextMonth(
+                dto.getAdvanceToNextMonth() != null ? dto.getAdvanceToNextMonth() : Boolean.FALSE);
+        collection.setContributionMonth(allocationDate.withDayOfMonth(1));
 
-        // Process financial logic (Society Share vs Capital)
-        double societyShareAmount = processCollectionAllocation(member, dto.getAmount(), allocationDate);
-        collection.setSocietyShareAmount(societyShareAmount);
+        List<TontineCollection> collectionsForReplay = new ArrayList<>(
+                tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(
+                        member.getId(), State.ENABLED));
+        collectionsForReplay.add(collection);
+        recalculateMemberFromCollections(member, collectionsForReplay);
 
         super.update(member);
-
-        // Update session total revenue
-        TontineSession session = member.getTontineSession();
-        updateSessionRevenue(session);
+        updateSessionRevenue(member.getTontineSession());
 
         TontineCollection savedCollection = tontineCollectionRepository.save(collection);
 
@@ -513,6 +550,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     public TontineCollectionRespDto cancelCollection(Long collectionId) {
+        assertTontineWritesAllowed();
         TontineCollection collection = tontineCollectionRepository.findById(collectionId)
                 .orElseThrow(() -> new ResourceNotFoundException("Collecte introuvable."));
 
@@ -546,19 +584,14 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     private void recalculateMemberFromCollections(TontineMember member) {
-        member.setSocietyShare(0.0);
-        member.setTotalContribution(0.0);
-        member.setValidatedMonths(0);
-        member.setCurrentMonthDays(0);
-        member.setAvailableContribution(0.0);
-
         List<TontineCollection> enabledCollections = tontineCollectionRepository
                 .findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(member.getId(), State.ENABLED);
+        recalculateMemberFromCollections(member, enabledCollections);
+        tontineCollectionRepository.saveAll(enabledCollections);
+    }
 
-        for (TontineCollection enabledCollection : enabledCollections) {
-            LocalDate allocationDate = enabledCollection.getCollectionDate().toLocalDate();
-            processCollectionAllocation(member, enabledCollection.getAmount(), allocationDate);
-        }
+    private void recalculateMemberFromCollections(TontineMember member, List<TontineCollection> collections) {
+        currentPolicy().recalculateMemberFromCollections(member, collections);
     }
 
     private void validateCatchupCollectionDate(TontineMember member, TontineSession session, LocalDate collectionDate) {
@@ -583,6 +616,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     private LocalDate getEffectiveMemberStartDate(TontineMember member) {
+        if (amountHistoryHelper != null) {
+            return amountHistoryHelper.getEffectiveMemberStartDate(member);
+        }
         LocalDate startDate = member.getTontineSession().getStartDate();
         boolean useRegistrationDate = parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE");
         if (useRegistrationDate && member.getRegistrationDate() != null) {
@@ -595,51 +631,13 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     double calculateTargetSocietyShare(TontineMember member, LocalDate upToDateInclusive) {
-        LocalDate startDate = getEffectiveMemberStartDate(member);
-        double targetSocietyShare = 0.0;
-
-        LocalDate iterDate = startDate;
-        int monthsCounted = 0;
-        int maxMonths = 10;
-
-        while (!iterDate.isAfter(upToDateInclusive) && monthsCounted < maxMonths) {
-            Double applicableAmount = getApplicableAmountForDate(member, iterDate, upToDateInclusive);
-            targetSocietyShare += applicableAmount;
-            monthsCounted++;
-            iterDate = iterDate.plusMonths(1);
-        }
-
-        return targetSocietyShare;
+        return currentPolicy().calculateTargetSocietyShare(member, upToDateInclusive);
     }
 
-    private double processCollectionAllocation(TontineMember member, Double amountCollected, LocalDate allocationDate) {
-        Double currentSocietyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
-        Double currentTotalContribution = member.getTotalContribution() != null ? member.getTotalContribution() : 0.0;
-
-        Double targetSocietyShare = calculateTargetSocietyShare(member, allocationDate);
-
-        // 2. Calculate Deficit (What is owed to society up to allocation date)
-        double societyShareDeficit = targetSocietyShare - currentSocietyShare;
-        if (societyShareDeficit < 0)
-            societyShareDeficit = 0.0;
-
-        // 3. Allocate Collection Amount
-        double amountForSociety = 0.0;
-
-        if (societyShareDeficit > 0) {
-            amountForSociety = Math.min(amountCollected, societyShareDeficit);
-        }
-
-        // 4. Update Member State
-        member.setSocietyShare(currentSocietyShare + amountForSociety);
-        member.setTotalContribution(currentTotalContribution + amountCollected);
-
-        // 5. Recalculate derived status (validated months) based on remaining capital
-        calculateMemberStatus(member);
-        return amountForSociety;
-    }
-    
     private Double getApplicableAmountForDate(TontineMember member, LocalDate date, LocalDate referenceDate) {
+        if (amountHistoryHelper != null) {
+            return amountHistoryHelper.getApplicableAmountForDate(member, date, referenceDate);
+        }
         LocalDate lookupDate = date.withDayOfMonth(date.lengthOfMonth());
         if (lookupDate.isAfter(referenceDate)) {
             lookupDate = referenceDate;
@@ -647,47 +645,37 @@ public class TontineService extends GenericService<TontineMember, Long> {
         final LocalDate endOfMonth = lookupDate;
 
         return member.getAmountHistory().stream()
-                .filter(h -> !h.getStartDate().isAfter(endOfMonth)) // started before/on lookup date
-                .filter(h -> h.getEndDate() == null || !h.getEndDate().isBefore(endOfMonth)) // not ended before lookup date
-                .sorted(Comparator.comparing(TontineMemberAmountHistory::getStartDate).reversed()) // Latest first
+                .filter(h -> !h.getStartDate().isAfter(endOfMonth))
+                .filter(h -> h.getEndDate() == null || !h.getEndDate().isBefore(endOfMonth))
+                .sorted(Comparator.comparing(TontineMemberAmountHistory::getStartDate).reversed())
                 .map(TontineMemberAmountHistory::getAmount)
                 .findFirst()
-                .orElse(member.getAmount()); // Fallback to current amount if no history found (shouldn't happen if initialized correctly)
+                .orElse(member.getAmount());
     }
 
-    private void calculateMemberStatus(TontineMember member) {
-        if (member.getAmount() == null || member.getAmount() == 0) {
-            return;
+    public TontineAllocationMigrationStatusDto getAllocationMigrationStatus() {
+        if (allocationMigrationService == null) {
+            return TontineAllocationMigrationStatusDto.idle();
         }
-
-        Double dailyAmount = member.getAmount();
-        Double totalContrib = member.getTotalContribution() != null ? member.getTotalContribution() : 0.0;
-        Double societyShare = member.getSocietyShare() != null ? member.getSocietyShare() : 0.0;
-
-        // Capital available for validation is Total - SocietyShare
-        double availableContribution = totalContrib - societyShare;
-        if (availableContribution < 0)
-            availableContribution = 0.0;
-
-        // Constants for logic
-        int DAYS_PER_MONTH = 31;
-        int MAX_MONTHS = 10;
-
-        // Calculate total days equivalent available in capital
-        int totalDaysAvailable = (int) (availableContribution / dailyAmount);
-
-        int validatedMonths = totalDaysAvailable / DAYS_PER_MONTH;
-        int remainderDays = totalDaysAvailable % DAYS_PER_MONTH;
-
-        // Cap at 10 months
-        if (validatedMonths >= MAX_MONTHS) {
-            validatedMonths = MAX_MONTHS;
-            // If 10 months validated, remainder days are just extra capital
+        TontineAllocationMigrationRun run = allocationMigrationService.getLatestActiveOrRecentRun();
+        if (run == null) {
+            return TontineAllocationMigrationStatusDto.idle();
         }
+        if (run.getStatus() == com.optimize.elykia.core.enumaration.TontineAllocationMigrationRunStatus.PENDING
+                || run.getStatus() == com.optimize.elykia.core.enumaration.TontineAllocationMigrationRunStatus.RUNNING) {
+            return TontineAllocationMigrationStatusDto.from(run);
+        }
+        return TontineAllocationMigrationStatusDto.idle();
+    }
 
-        member.setValidatedMonths(validatedMonths);
-        member.setCurrentMonthDays(remainderDays);
-        member.setAvailableContribution(availableContribution);
+    @Transactional
+    public TontineAllocationMigrationRun triggerAllocationRecalculation(String triggeredBy) {
+        if (allocationMigrationService == null) {
+            throw new CustomValidationException("Service de migration allocation indisponible.");
+        }
+        String currentVersion = parameterService.getValue("TONTINE_SOCIETY_SHARE_VERSION");
+        String version = currentVersion != null ? currentVersion.trim().toUpperCase() : "V1";
+        return allocationMigrationService.startMigration(version, version, triggeredBy);
     }
 
     private void updateSessionRevenue(TontineSession session) {

@@ -48,4 +48,10 @@ public class TontineCollection extends BaseEntity<String> {
 
     @Column(name = "society_share_amount", columnDefinition = "double precision default 0")
     private Double societyShareAmount = 0.0;
+
+    @Column(name = "advance_to_next_month", nullable = false)
+    private Boolean advanceToNextMonth = Boolean.FALSE;
+
+    @Column(name = "contribution_month")
+    private java.time.LocalDate contributionMonth;
 }

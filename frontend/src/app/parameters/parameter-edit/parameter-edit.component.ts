@@ -1,7 +1,11 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { ParameterService } from '../parameter.service';
+import {
+  ParameterService,
+  TONTINE_SOCIETY_SHARE_VERSION_KEY,
+  TONTINE_SOCIETY_SHARE_VERSION_OPTIONS
+} from '../parameter.service';
 import { Parameter } from '../parameter.model';
 import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
@@ -16,6 +20,8 @@ export class ParameterEditComponent implements OnInit {
   mode: 'create' | 'edit' = 'create';
   parameter?: Parameter;
   isBooleanValue = false;
+  isSocietyShareVersion = false;
+  readonly societyShareVersionOptions = TONTINE_SOCIETY_SHARE_VERSION_OPTIONS;
 
   constructor(
     private fb: FormBuilder,
@@ -42,8 +48,28 @@ export class ParameterEditComponent implements OnInit {
         value: this.parameter.value,
         description: this.parameter.description
       });
-      this.checkIfBoolean(this.parameter.value);
+      this.refreshValueEditor(this.parameter.key, this.parameter.value);
     }
+
+    this.form.get('key')?.valueChanges.subscribe((key: string) => {
+      this.refreshValueEditor(key, this.form.get('value')?.value);
+    });
+  }
+
+  private refreshValueEditor(key: string | null | undefined, value: string | null | undefined): void {
+    this.isSocietyShareVersion = key === TONTINE_SOCIETY_SHARE_VERSION_KEY;
+    if (this.isSocietyShareVersion) {
+      this.isBooleanValue = false;
+      const normalized = (value || '').toString().trim().toUpperCase();
+      const nextValue = this.societyShareVersionOptions.includes(normalized as 'V1' | 'V2')
+        ? normalized
+        : 'V1';
+      if (this.form.get('value')?.value !== nextValue) {
+        this.form.patchValue({ value: nextValue }, { emitEvent: false });
+      }
+      return;
+    }
+    this.checkIfBoolean(value || '');
   }
 
   checkIfBoolean(value: string): void {
@@ -64,6 +90,14 @@ export class ParameterEditComponent implements OnInit {
 
     this.spinner.show();
     const formValue = this.form.getRawValue();
+    if (formValue.key === TONTINE_SOCIETY_SHARE_VERSION_KEY) {
+      formValue.value = String(formValue.value || '').trim().toUpperCase();
+      if (!this.societyShareVersionOptions.includes(formValue.value)) {
+        this.spinner.hide();
+        this.toastr.error('La version part société doit être V1 ou V2', 'Erreur');
+        return;
+      }
+    }
 
     if (this.mode === 'create') {
       this.parameterService.create(formValue).subscribe({
@@ -98,4 +132,3 @@ export class ParameterEditComponent implements OnInit {
     this.dialogRef.close();
   }
 }
-

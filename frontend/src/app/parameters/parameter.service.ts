@@ -5,6 +5,8 @@ import { Parameter } from './parameter.model';
 import { environment } from 'src/environments/environment';
 
 export const MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY = 'ENABLED_MOBILE_DEVICE_RESTRICTION';
+export const TONTINE_SOCIETY_SHARE_VERSION_KEY = 'TONTINE_SOCIETY_SHARE_VERSION';
+export const TONTINE_SOCIETY_SHARE_VERSION_OPTIONS = ['V1', 'V2'] as const;
 
 @Injectable({
   providedIn: 'root'

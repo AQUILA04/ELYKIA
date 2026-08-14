@@ -136,6 +136,9 @@ export class MigrationService {
       case 29:
         await this.migrateToV29(db);
         break;
+      case 30:
+        await this.migrateToV30(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -808,6 +811,46 @@ export class MigrationService {
       }
       this.log.log(`Error in migration v29: ${error}`);
       console.error('Error in migration v29', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Tontine V2 allocation fields on members and collections, with backfill of contributionMonth.
+   */
+  private async migrateToV30(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v30: tontine V2 allocation columns...');
+      await this.addColumnIfNotExists(db, 'tontine_members', 'societyShare', 'REAL DEFAULT 0');
+      await this.addColumnIfNotExists(db, 'tontine_members', 'availableContribution', 'REAL DEFAULT 0');
+      await this.addColumnIfNotExists(db, 'tontine_members', 'validatedMonths', 'INTEGER DEFAULT 0');
+      await this.addColumnIfNotExists(db, 'tontine_members', 'currentMonthDays', 'INTEGER DEFAULT 0');
+      await this.addColumnIfNotExists(db, 'tontine_collections', 'societyShareAmount', 'REAL DEFAULT 0');
+      await this.addColumnIfNotExists(db, 'tontine_collections', 'contributionMonth', 'TEXT');
+      await this.addColumnIfNotExists(db, 'tontine_collections', 'advanceToNextMonth', 'BOOLEAN DEFAULT 0');
+
+      await db.execute(`
+        UPDATE tontine_collections
+        SET contributionMonth = substr(collectionDate, 1, 7) || '-01'
+        WHERE (contributionMonth IS NULL OR contributionMonth = '')
+          AND collectionDate IS NOT NULL
+          AND length(collectionDate) >= 7
+      `);
+      await db.execute(`
+        UPDATE tontine_collections
+        SET advanceToNextMonth = 0
+        WHERE advanceToNextMonth IS NULL
+      `);
+      await db.execute(`
+        UPDATE tontine_collections
+        SET societyShareAmount = 0
+        WHERE societyShareAmount IS NULL
+      `);
+
+      this.log.log('Migration to v30 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v30: ${error}`);
+      console.error('Error in migration v30', error);
       throw error;
     }
   }

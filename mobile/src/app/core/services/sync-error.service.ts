@@ -232,6 +232,8 @@ export class SyncErrorService {
           return await this.retryRecoverySync(error);
         case 'account':
           return await this.retryAccountSync(error);
+        case 'tontine-collection':
+          return await this.retryTontineCollectionSync(error);
         default:
           return false;
       }
@@ -298,6 +300,23 @@ export class SyncErrorService {
       return false;
     } catch (err) {
       console.error('Erreur lors du retry compte:', err);
+      return false;
+    }
+  }
+
+  private async retryTontineCollectionSync(error: SyncError): Promise<boolean> {
+    try {
+      const { TontineCollectionSyncService } = await import('./sync/tontine-collection-sync.service');
+      const { TontineCollectionRepository } = await import('../repositories/tontine-collection.repository');
+      const collectionRepo = this.injector.get(TontineCollectionRepository);
+      const collection = await collectionRepo.findById(error.entityId);
+      if (!collection) {
+        return false;
+      }
+      await this.injector.get(TontineCollectionSyncService).syncSingle(collection);
+      return true;
+    } catch (err) {
+      console.error('Erreur lors du retry collecte tontine:', err);
       return false;
     }
   }

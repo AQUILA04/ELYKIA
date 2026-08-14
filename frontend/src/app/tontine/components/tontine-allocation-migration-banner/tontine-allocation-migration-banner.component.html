@@ -1,0 +1,17 @@
+<div class="migration-banner" *ngIf="isRunning" role="status" aria-live="polite">
+  <div class="migration-banner-icon" aria-hidden="true">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 9v4"/><path d="M12 17h.01"/>
+      <circle cx="12" cy="12" r="10"/>
+    </svg>
+  </div>
+  <div class="migration-banner-content">
+    <strong>Recalcul des parts société en cours</strong>
+    <span *ngIf="versionLabel">({{ versionLabel }})</span>
+    <p>
+      Les nouvelles collectes et inscriptions sont temporairement bloquées.
+      Progression : <strong>{{ progressLabel }}</strong>
+      <span *ngIf="status?.failedMembers"> · échecs : {{ status?.failedMembers }}</span>
+    </p>
+  </div>
+</div>

@@ -35,6 +35,7 @@ import {
 import { DatabaseService } from './database.service';
 import { Page } from '../repositories/repository.interface';
 import { LoggerService } from './logger.service';
+import { mapApiCollectionToLocal, mapApiMemberToLocal, shouldSkipPulledCollection } from './tontine-allocation.mapper';
 
 @Injectable({
   providedIn: 'root'
@@ -228,23 +229,8 @@ export class OnlineListRefreshService {
 
       const mappedMembers = members.map((m: any) => {
         const memberIdStr = String(m.id);
-        const serverTotal = m.totalContribution || 0;
         const localUnsynced = unsyncedMap.get(memberIdStr) || 0;
-        return {
-          id: memberIdStr,
-          tontineSessionId: sessionId,
-          clientId: m.client?.id != null ? String(m.client.id) : m.clientId,
-          commercialUsername,
-          totalContribution: serverTotal + localUnsynced,
-          deliveryStatus: m.deliveryStatus,
-          registrationDate: m.registrationDate,
-          frequency: m.frequency,
-          amount: m.amount,
-          notes: m.notes,
-          isLocal: false,
-          isSync: true,
-          updateScope: null
-        };
+        return mapApiMemberToLocal(m, sessionId, commercialUsername, localUnsynced);
       });
 
       const deliveries: any[] = [];
@@ -312,15 +298,11 @@ export class OnlineListRefreshService {
       const pageData = response.data;
       const collections = pageData?.content || [];
 
-      const mappedCollections = collections.map((c: any) => ({
-        id: String(c.id),
-        tontineMemberId: String(c.tontineMemberId || c.tontineMember?.id || c.member?.id),
-        amount: c.amount,
-        collectionDate: c.collectionDate,
-        commercialUsername,
-        isLocal: false,
-        isSync: true
-      })).filter((c: any) => !!c.tontineMemberId && c.tontineMemberId !== 'undefined');
+      const unsyncedIds = new Set(await this.databaseService.getUnsyncedLocalCollectionIds());
+      const mappedCollections = collections
+        .filter((c: any) => !shouldSkipPulledCollection(c, unsyncedIds))
+        .map((c: any) => mapApiCollectionToLocal(c, commercialUsername))
+        .filter((c: any) => !!c.tontineMemberId && c.tontineMemberId !== 'undefined');
 
       if (mappedCollections.length > 0) {
         await this.databaseService.saveTontineCollections(mappedCollections);

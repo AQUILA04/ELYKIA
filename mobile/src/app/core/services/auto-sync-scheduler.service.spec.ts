@@ -56,7 +56,7 @@ describe('AutoSyncSchedulerService', () => {
   });
 
   it('dispatches automatic sync when foreground scheduler ticks', fakeAsync(async () => {
-    hybridSyncPreferenceService.getAutoSyncIntervalMinutes.and.resolveTo(1);
+    hybridSyncPreferenceService.getAutoSyncIntervalMinutes.and.resolveTo(30);
 
     await service.init();
     tick(0);

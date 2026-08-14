@@ -231,7 +231,9 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
                 isDeliveryCollection: returnToDelivery,
                 notes: formValue.notes,
                 operationConsentCode: this.dailyConsentState.getActiveConsentCode() ?? undefined,
-                confirmedAmount
+                confirmedAmount,
+                advanceToNextMonth: false,
+                contributionMonth: `${new Date().toISOString().substring(0, 7)}-01`
             };
 
             await this.persistCollection(newCollection, false, loading);
@@ -305,7 +307,8 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
                 commercial: {
                     name: this.commercialUsername || 'Commercial'
                 },
-                totalToDate: totalToDate
+                totalToDate: totalToDate,
+                isOfflineEstimate: savedCollection.isLocal && !savedCollection.isSync
             };
 
             const modal = await this.modalCtrl.create({

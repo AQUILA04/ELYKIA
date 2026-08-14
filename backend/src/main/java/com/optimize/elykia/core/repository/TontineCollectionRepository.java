@@ -110,7 +110,10 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
            "tc.reference, " +
            "tc.operationConsentCode, " +
            "tc.confirmedAmount, " +
-           "tc.syncConsentCode) " +
+           "tc.syncConsentCode, " +
+           "tc.societyShareAmount, " +
+           "tc.advanceToNextMonth, " +
+           "tc.contributionMonth) " +
            "FROM TontineCollection tc " +
            "JOIN tc.tontineMember tm " +
            "JOIN tm.tontineSession s " +

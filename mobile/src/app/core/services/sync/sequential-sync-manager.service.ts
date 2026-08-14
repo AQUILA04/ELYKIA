@@ -1,12 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, from, throwError, EMPTY } from 'rxjs';
+import { Observable, from, throwError, EMPTY, forkJoin } from 'rxjs';
 import { switchMap, map, catchError, tap, expand, reduce, take } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { selectToken } from '../../../store/auth/auth.selectors';
 import { environment } from 'src/environments/environment';
 import { DatabaseService } from '../database.service';
 import { LoggerService } from '../logger.service';
+import { mapApiCollectionToLocal, mapApiMemberToLocal, shouldSkipPulledCollection } from '../tontine-allocation.mapper';
 import {
   ISequentialSyncManager,
   SyncOptions,
@@ -187,26 +188,9 @@ export class SequentialSyncManager implements ISequentialSyncManager {
 
                   // Mapper les membres avec ajustement des totaux
                   const mappedMembers = members.map((m: any) => {
-                    const serverTotal = m.totalContribution || 0;
                     const memberIdStr = String(m.id);
                     const localUnsynced = unsyncedMap.get(memberIdStr) || 0;
-                    const adjustedTotal = serverTotal + localUnsynced;
-
-                    return {
-                      id: m.id,
-                      tontineSessionId: sessionId,
-                      clientId: m.client?.id,
-                      commercialUsername: options.commercialUsername,
-                      totalContribution: adjustedTotal,
-                      deliveryStatus: m.deliveryStatus,
-                      registrationDate: m.registrationDate,
-                      frequency: m.frequency,
-                      amount: m.amount,
-                      notes: m.notes,
-                      isLocal: false,
-                      isSync: true,
-                      updateScope: null
-                    };
+                    return mapApiMemberToLocal(m, sessionId, options.commercialUsername, localUnsynced);
                   });
 
                   // Mapper les deliveries
@@ -343,10 +327,13 @@ export class SequentialSyncManager implements ISequentialSyncManager {
             page
           );
 
-          return this.http.get<any>(
-            `${this.apiUrl}/tontines/collections?page=${page}&size=${options.batchSize}`,
-            { headers }
-          ).pipe(
+          return forkJoin({
+            response: this.http.get<any>(
+              `${this.apiUrl}/tontines/collections?page=${page}&size=${options.batchSize}`,
+              { headers }
+            ),
+            unsyncedIds: from(this.dbService.getUnsyncedLocalCollectionIds())
+          }).pipe(
             catchError(error => {
               const syncError = this.createSyncError(
                 SyncErrorType.NETWORK,
@@ -358,14 +345,13 @@ export class SequentialSyncManager implements ISequentialSyncManager {
               this.log.log(`SequentialSyncManager: Network error on collections page ${page}: ${error.message}`);
               return throwError(() => syncError);
             }),
-            switchMap(response => {
+            switchMap(({ response, unsyncedIds }) => {
               const pageData = response.data;
               const collections = pageData.content || [];
               const currentPage = pageData.page.number || 0;
               const totalPages = pageData.page.totalPages || 1;
               const totalElements = pageData.page.totalElements || 0;
 
-              // Mise à jour des métadonnées du résultat
               if (result.totalPages === 0) {
                 result.totalPages = totalPages;
                 result.totalItems = totalElements;
@@ -379,28 +365,27 @@ export class SequentialSyncManager implements ISequentialSyncManager {
                 return EMPTY;
               }
 
-              // Mapper les collections
-              const mappedCollections = collections.map((c: any) => ({
-                id: c.id,
-                tontineMemberId: c.tontineMemberId || c.tontineMember?.id || c.member?.id,
-                amount: c.amount,
-                collectionDate: c.collectionDate,
-                commercialUsername: options.commercialUsername,
-                isLocal: false,
-                isSync: true
-              }));
+              const unsyncedSet = new Set(unsyncedIds || []);
+              const mappedCollections = collections
+                .filter((c: any) => !shouldSkipPulledCollection(c, unsyncedSet))
+                .map((c: any) => mapApiCollectionToLocal(c, options.commercialUsername));
 
-              // Sauvegarder les collections
+              if (mappedCollections.length === 0) {
+                result.processedPages++;
+                return from(Promise.resolve({
+                  currentPage,
+                  totalPages,
+                  hasMore: currentPage < totalPages - 1
+                }));
+              }
+
               return from(this.dbService.saveTontineCollections(mappedCollections)).pipe(
                 map(() => {
                   result.processedPages++;
                   result.savedItems += mappedCollections.length;
-                  
                   this.log.log(
                     `SequentialSyncManager: Saved collections page ${currentPage + 1}/${totalPages} - ${mappedCollections.length} collections`
                   );
-
-                  // Exigence 2.3: S'arrêter à la dernière page
                   return {
                     currentPage,
                     totalPages,
@@ -423,9 +408,8 @@ export class SequentialSyncManager implements ISequentialSyncManager {
           );
         };
 
-        // Exigence 2.1 et 2.2: Traitement séquentiel avec expand
         return fetchPage(0).pipe(
-          expand(pageInfo => 
+          expand(pageInfo =>
             pageInfo.hasMore ? fetchPage(pageInfo.currentPage + 1) : EMPTY
           ),
           reduce(() => result, result)

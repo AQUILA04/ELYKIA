@@ -15,6 +15,7 @@ import { TontineDeliveryRepositoryExtensions } from '../repositories/tontine-del
 import { TontineStockRepositoryExtensions } from '../repositories/tontine-stock.repository.extensions';
 import { TontineMemberRepository } from '../repositories/tontine-member.repository';
 import { TontineMemberAmountHistoryRepository } from '../repositories/tontine-member-amount-history.repository';
+import { mapApiCollectionToLocal, mapApiMemberToLocal, shouldSkipPulledCollection } from './tontine-allocation.mapper';
 import { SyncOrchestratorService } from './sync/sync-orchestrator.service';
 import { DataCleanerService } from './sync/data-cleaner.service';
 import { ConnectivityService } from './connectivity.service';
@@ -254,33 +255,9 @@ export class TontineService {
 
                         // Map API response to DB structure
                         const mappedMembers = members.map((m: any) => {
-                            // Add local unsynced total to server total to prevent "dip"
-                            const serverTotal = m.totalContribution || 0;
                             const memberIdStr = String(m.id);
                             const localUnsynced = unsyncedMap.get(memberIdStr) || 0;
-                            const adjustedTotal = serverTotal + localUnsynced;
-
-                            if (serverTotal > 0 && adjustedTotal === 0) {
-                                console.warn(`TontineService: WARNING - Member ${m.id} has serverTotal ${serverTotal} but adjustedTotal is 0! (Local Unsynced: ${localUnsynced})`);
-                            } else if (serverTotal > 0) {
-                                console.log(`TontineService: Member ${m.id} - Server Total: ${serverTotal} + Local Unsynced: ${localUnsynced} = ${adjustedTotal}`);
-                            }
-
-                            return {
-                                id: m.id,
-                                tontineSessionId: sessionId,
-                                clientId: m.client?.id,
-                                commercialUsername: this.commercialUsername,
-                                totalContribution: adjustedTotal,
-                                deliveryStatus: m.deliveryStatus,
-                                registrationDate: m.registrationDate,
-                                frequency: m.frequency,
-                                amount: m.amount,
-                                notes: m.notes,
-                                isLocal: false,
-                                isSync: true,
-                                updateScope: null // Reset updateScope on sync as it's processed by backend
-                            };
+                            return mapApiMemberToLocal(m, sessionId, this.commercialUsername, localUnsynced);
                         });
 
                         const deliveries: any[] = [];
@@ -411,27 +388,26 @@ export class TontineService {
                     return of(null);
                 }
 
-                // Map API response to DB structure
-                const mappedCollections = collections.map((c: any) => ({
-                    id: c.id,
-                    tontineMemberId: memberId,
-                    amount: c.amount,
-                    collectionDate: c.collectionDate,
-                    commercialUsername: this.commercialUsername,
-                    isLocal: false,
-                    isSync: true
-                }));
+                return from(this.collectionRepo.getUnsyncedLocalIds()).pipe(
+                    switchMap(unsyncedIds => {
+                const mappedCollections = collections
+                    .filter((c: any) => !shouldSkipPulledCollection(c, unsyncedIds))
+                    .map((c: any) => mapApiCollectionToLocal(c, this.commercialUsername, memberId));
+
+                if (mappedCollections.length === 0) {
+                    if (currentPage < totalPages - 1) {
+                        return this.fetchAndSaveMemberCollections(memberId, currentPage + 1, size);
+                    }
+                    return of(null);
+                }
 
                 console.log(`TontineService: Saving ${mappedCollections.length} collections for member ${memberId}...`);
 
-                // Save current batch immediately
-                return from(this.dbService.saveTontineCollections(mappedCollections)).pipe(
+                return from(this.collectionRepo.saveAll(mappedCollections, false)).pipe(
                     tap(() => console.log(`TontineService: Collections page ${currentPage + 1}/${totalPages} saved for member ${memberId}.`)),
                     switchMap(() => {
-                        // Check if there are more pages to fetch
                         if (currentPage < totalPages - 1) {
                             console.log(`TontineService: Fetching next collections page (${currentPage + 2}/${totalPages}) for member ${memberId}...`);
-                            // Recursively fetch next page
                             return this.fetchAndSaveMemberCollections(memberId, currentPage + 1, size);
                         } else {
                             console.log(`TontineService: All collections fetched for member ${memberId}.`);
@@ -441,15 +417,70 @@ export class TontineService {
                     catchError(err => {
                         console.error(`TontineService: Error saving collections for member ${memberId}:`, err);
                         this.log.log(`TontineService: Error saving collections for member ${memberId}: ${JSON.stringify(err)}`);
-                        // Don't throw - continue with other members
                         return of(null);
+                    })
+                );
                     })
                 );
             }),
             catchError(error => {
                 console.error(`TontineService: Error fetching collections for member ${memberId}:`, error);
                 this.log.log(`TontineService: Error fetching collections for member ${memberId}: ${JSON.stringify(error)}`);
-                // Don't throw - continue with other members
+                return of(null);
+            })
+        );
+    }
+
+    /**
+     * Rehydrate member, collections and amount history from the server after a successful collection write.
+     */
+    refreshMemberAfterCollection(memberId: string): Observable<any> {
+        if (!memberId || !/^\d+$/.test(memberId)) {
+            return of(null);
+        }
+
+        return this.getHeaders().pipe(
+            switchMap(headers => this.http.get<any>(`${this.apiUrl}/tontines/members/${memberId}`, { headers })),
+            switchMap(response => {
+                const member = response.data;
+                if (!member) {
+                    return of(null);
+                }
+                const sessionId = String(member.tontineSession?.id || member.tontineSessionId || '');
+                const mapped = mapApiMemberToLocal(member, sessionId, this.commercialUsername, 0);
+                return from(this.memberRepo.saveAll([mapped])).pipe(
+                    switchMap(() => this.fetchAndSaveMemberCollections(memberId)),
+                    switchMap(() => this.fetchAndSaveMemberAmountHistory(memberId))
+                );
+            }),
+            catchError(error => {
+                console.warn('TontineService: Could not refresh member after collection.', error);
+                return of(null);
+            })
+        );
+    }
+
+    fetchAndSaveMemberAmountHistory(memberId: string): Observable<any> {
+        return this.getHeaders().pipe(
+            switchMap(headers => this.http.get<any>(`${this.apiUrl}/tontines/members/${memberId}/amount-history`, { headers })),
+            switchMap(response => {
+                const history = Array.isArray(response.data) ? response.data : (response.data?.content || []);
+                if (!history.length) {
+                    return of(null);
+                }
+                const mappedHistory = history.map((h: any) => ({
+                    id: h.id,
+                    tontineMemberId: memberId,
+                    amount: h.amount,
+                    startDate: h.startDate,
+                    endDate: h.endDate,
+                    creationDate: h.creationDate,
+                    isSync: true
+                }));
+                return from(this.historyRepo.saveAll(mappedHistory));
+            }),
+            catchError(error => {
+                console.warn('TontineService: Could not fetch member amount history.', error);
                 return of(null);
             })
         );
@@ -480,15 +511,7 @@ export class TontineService {
                 }
 
                 // Map API response to DB structure
-                const mappedCollections = collections.map((c: any) => ({
-                    id: c.id,
-                    tontineMemberId: c.tontineMemberId || c.tontineMember?.id || c.member?.id,
-                    amount: c.amount,
-                    collectionDate: c.collectionDate,
-                    commercialUsername: this.commercialUsername,
-                    isLocal: false,
-                    isSync: true
-                }));
+                const mappedCollections = collections.map((c: any) => mapApiCollectionToLocal(c, this.commercialUsername));
 
                 console.log(`TontineService: Saving ${mappedCollections.length} collections from page ${currentPage + 1}...`);
 

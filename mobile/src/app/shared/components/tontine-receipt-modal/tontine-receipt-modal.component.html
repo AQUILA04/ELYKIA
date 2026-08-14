@@ -79,6 +79,10 @@
             <div class="total-value">{{data.totalToDate | number}} FCFA</div>
         </div>
 
+        <div class="offline-estimate" *ngIf="data.isOfflineEstimate">
+            Estimation hors-ligne — le serveur recalculera la part société à la synchronisation.
+        </div>
+
         <!-- Footer -->
         <div class="receipt-footer">
             <div class="signature-section">

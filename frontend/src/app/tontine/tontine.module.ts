@@ -66,6 +66,7 @@ import { TontineCollecteFilterComponent } from './collecte/components/tontine-co
 import { TontineCollecteTableComponent } from './collecte/components/tontine-collecte-table/tontine-collecte-table.component';
 import { TontineDeliveryListComponent } from './pages/delivery-list/tontine-delivery-list.component';
 import { TontineCollectionResetComponent } from './pages/tontine-collection-reset/tontine-collection-reset.component';
+import { TontineAllocationMigrationBannerComponent } from './components/tontine-allocation-migration-banner/tontine-allocation-migration-banner.component';
 
 // Services
 import { TontineService } from './services/tontine.service';
@@ -105,7 +106,9 @@ import { TontineSessionService } from './services/tontine-session.service';
     TontineDeliveryListComponent,
 
     // Réinitialisation collectes
-    TontineCollectionResetComponent
+    TontineCollectionResetComponent,
+
+    TontineAllocationMigrationBannerComponent
   ],
   imports: [
     // Modules Angular de base

@@ -107,6 +107,7 @@ export interface PrintableTontineCollection {
     name: string;
   };
   totalToDate: number;
+  isOfflineEstimate?: boolean;
 }
 
 export interface PrintableTontineDelivery {

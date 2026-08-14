@@ -25,6 +25,7 @@ import {
   TontineCatchupPreview,
   TontineMemberContributionByCommercial
 } from '../types/tontine.types';
+import { TontineAllocationMigrationStatus } from '../types/tontine-allocation-migration.types';
 import {AuthService} from "../../auth/service/auth.service";
 import {
   CreateTontineMemberFieldControlPayload,
@@ -49,6 +50,8 @@ export class TontineService {
   });
 
   public state$ = this.stateSubject.asObservable();
+  private allocationMigrationRunningSubject = new BehaviorSubject<boolean>(false);
+  public allocationMigrationRunning$ = this.allocationMigrationRunningSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -471,4 +474,27 @@ export class TontineService {
     this.setError(errorMessage);
     return throwError(() => new Error(errorMessage));
   };
+
+  getAllocationMigrationStatus(): Observable<TontineAllocationMigrationStatus> {
+    return this.http.get<ApiResponse<TontineAllocationMigrationStatus>>(
+      `${this.apiUrl}/allocation-migration/status`,
+      { headers: this.getHeaders() }
+    ).pipe(
+      map(response => response.data ?? { running: false, processedMembers: 0, totalMembers: 0, failedMembers: 0 }),
+      catchError(() => of({
+        running: false,
+        processedMembers: 0,
+        totalMembers: 0,
+        failedMembers: 0
+      }))
+    );
+  }
+
+  setAllocationMigrationRunning(running: boolean): void {
+    this.allocationMigrationRunningSubject.next(running);
+  }
+
+  isAllocationMigrationRunning(): boolean {
+    return this.allocationMigrationRunningSubject.value;
+  }
 }

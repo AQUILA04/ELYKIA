@@ -34,7 +34,6 @@ import { OutPdfListComponent } from './out/out-pdf-list/out-pdf-list.component';
 import { OldReleaseListComponent } from "./out/old-release-list/old-release-list.component";
 import { AuthGuard } from "./auth/guards/auth.guard";
 import { AiChatGuard } from './ai-chat/guards/ai-chat.guard';
-import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
 import { FeatureFlagGuard } from './shared/guards/feature-flag.guard';
 import { FeatureFlags } from './shared/service/feature-flag.service';
@@ -375,7 +374,7 @@ const routes: Routes = [
   },
   {
     path: 'parameters',
-    component: ParameterListComponent,
+    loadChildren: () => import('./parameters/parameters.module').then(m => m.ParametersModule),
     canActivate: [AuthGuard]
   },
   {

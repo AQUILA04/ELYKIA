@@ -442,6 +442,10 @@ app:
         key: ENABLED_FIFO_STOCK_VALUATION
         value: false
         description: Activer la valorisation FIFO du stock magasin (lots et coût réel des sorties)
+      init-data[5]:
+        key: TONTINE_SOCIETY_SHARE_VERSION
+        value: V1
+        description: "Version du calcul part société tontine (V1=mois calendaires entamés, V2=mois réellement cotisés). Le basculement déclenche un recalcul automatique."
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}

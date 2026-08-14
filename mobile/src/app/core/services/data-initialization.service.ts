@@ -409,7 +409,8 @@ export class DataInitializationService {
 
 
   public initializeAllData(user: any): Observable<boolean> {
-    return this.initializeArticles().pipe(
+    return this.initializeParameters().pipe(
+      concatMap(() => this.initializeArticles()),
       concatMap(() => this.initializeCommercial()),
       concatMap(() => this.initializeLocalities()),
       concatMap(() => this.initializeClients()),

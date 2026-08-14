@@ -20,8 +20,8 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
 
         const query = `
       INSERT OR REPLACE INTO tontine_members (
-        id, tontineSessionId, clientId, commercialUsername, totalContribution, deliveryStatus, registrationDate, isLocal, isSync, syncDate, syncHash, frequency, amount, notes, updateScope, operationConsentCode
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, tontineSessionId, clientId, commercialUsername, totalContribution, deliveryStatus, registrationDate, isLocal, isSync, syncDate, syncHash, frequency, amount, notes, updateScope, operationConsentCode, societyShare, availableContribution, validatedMonths, currentMonthDays
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
         const set: capSQLiteSet[] = entities.map(m => {
@@ -32,7 +32,8 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
                     member.id, member.tontineSessionId, member.clientId, member.commercialUsername, member.totalContribution, member.deliveryStatus,
                     member.registrationDate, member.isLocal ? 1 : 0, member.isSync ? 1 : 0, member.syncDate || new Date().toISOString(), member.syncHash,
                     member.frequency || null, member.amount || null, member.notes || null, member.updateScope || null,
-                    member.operationConsentCode || null
+                    member.operationConsentCode || null,
+                    member.societyShare ?? 0, member.availableContribution ?? 0, member.validatedMonths ?? 0, member.currentMonthDays ?? 0
                 ]
             };
         });
@@ -147,6 +148,32 @@ export class TontineMemberRepository extends BaseRepository<TontineMember, strin
             member.updateScope || null,
             member.id
         ]);
+    }
+
+    async updateDerivedAllocation(
+        memberId: string,
+        allocation: {
+            totalContribution: number;
+            societyShare: number;
+            availableContribution: number;
+            validatedMonths: number;
+            currentMonthDays: number;
+        }
+    ): Promise<void> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        await this.databaseService.execute(
+            `UPDATE tontine_members
+             SET totalContribution = ?, societyShare = ?, availableContribution = ?, validatedMonths = ?, currentMonthDays = ?
+             WHERE id = ?`,
+            [
+                allocation.totalContribution,
+                allocation.societyShare,
+                allocation.availableContribution,
+                allocation.validatedMonths,
+                allocation.currentMonthDays,
+                memberId
+            ]
+        );
     }
 
     override async countUnsynced(): Promise<number> {

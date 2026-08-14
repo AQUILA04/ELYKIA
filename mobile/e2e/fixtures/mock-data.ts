@@ -50,12 +50,18 @@ export const MockData: Record<string, any> = {
                 "key": "USE_MEMBER_REGISTRATION_DATE_FOR_SHARE",
                 "value": "true",
                 "description": "Utiliser la date d'adhésion d'un membre tontine pour calculer la part société à prélever (si désactiver, on utilise la date debut de la session de tontine)"
+            },
+            {
+                "id": 4,
+                "key": "TONTINE_SOCIETY_SHARE_VERSION",
+                "value": "V1",
+                "description": "Version de l'algorithme de part société tontine"
             }
         ],
         "page": {
             "size": 10,
             "number": 0,
-            "totalElements": 3,
+            "totalElements": 4,
             "totalPages": 1
         }
     }

@@ -28,7 +28,7 @@ describe('Repositories Compilation Check', () => {
 
     it('should instantiate all repositories', () => {
         const articleRepo = new ArticleRepository(dbService);
-        const clientRepo = new ClientRepository(dbService);
+        const clientRepo = new ClientRepository(dbService, { log: () => undefined } as any);
         const localityRepo = new LocalityRepository(dbService);
         const commercialRepo = new CommercialRepository(dbService);
         const distributionRepo = new DistributionRepository(dbService);

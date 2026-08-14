@@ -3,6 +3,7 @@ import { BaseRepository } from './base.repository';
 import { DatabaseService } from '../services/database.service';
 import { TontineCollection } from '../../models/tontine.model';
 import { capSQLiteSet } from '@capacitor-community/sqlite';
+import { mapCollectionRow, toContributionMonth, toSqliteBool } from '../services/tontine-allocation.mapper';
 
 @Injectable({
     providedIn: 'root'
@@ -18,7 +19,7 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
         const sql = `SELECT * FROM tontine_collections WHERE isSync = 0 AND isLocal = 1 AND commercialUsername = ? LIMIT ? OFFSET ?`;
         const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
-        return (result.values || []).map((row: any) => ({ ...row, isLocal: row.isLocal === 1, isSync: row.isSync === 1 }));
+        return (result.values || []).map((row: any) => mapCollectionRow(row));
     }
 
     async markAsSynced(localId: string, serverId: string): Promise<void> {
@@ -42,8 +43,9 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
 
         const query = `
       INSERT OR REPLACE INTO tontine_collections(
-        id, tontineMemberId, amount, collectionDate, commercialUsername, isLocal, isSync, syncDate, syncHash, isDeliveryCollection, operationConsentCode, confirmedAmount
-      ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, tontineMemberId, amount, collectionDate, commercialUsername, isLocal, isSync, syncDate, syncHash,
+        isDeliveryCollection, notes, operationConsentCode, confirmedAmount, societyShareAmount, contributionMonth, advanceToNextMonth
+      ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
         const set: capSQLiteSet[] = entities.map(c => {
@@ -52,10 +54,14 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
                 statement: query,
                 values: [
                     col.id, col.tontineMemberId, col.amount, col.collectionDate, col.commercialUsername,
-                    col.isLocal ? 1 : 0, col.isSync ? 1 : 0, col.syncDate || new Date().toISOString(), col.syncHash,
-                    col.isDeliveryCollection ? 1 : 0,
+                    toSqliteBool(col.isLocal), toSqliteBool(col.isSync), col.syncDate || new Date().toISOString(), col.syncHash,
+                    toSqliteBool(col.isDeliveryCollection),
+                    col.notes || null,
                     col.operationConsentCode || null,
-                    col.confirmedAmount ?? null
+                    col.confirmedAmount ?? null,
+                    col.societyShareAmount ?? 0,
+                    col.contributionMonth || toContributionMonth(null, col.collectionDate) || null,
+                    toSqliteBool(col.advanceToNextMonth)
                 ]
             };
         });
@@ -148,6 +154,14 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
         await this.databaseService.execute(updateQuery, [memberId, memberId]);
     }
 
+    async getUnsyncedLocalIds(): Promise<Set<string>> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        const result = await this.databaseService.query(
+            'SELECT id FROM tontine_collections WHERE isLocal = 1 AND isSync = 0'
+        );
+        return new Set((result.values || []).map((row: any) => String(row.id)));
+    }
+
     /**
      * Update the totalContribution for ALL members by summing their collections.
      * Useful after bulk sync operations to ensure consistency.
@@ -180,12 +194,7 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
             'SELECT * FROM tontine_collections WHERE tontineMemberId = ? ORDER BY collectionDate DESC',
             [memberId]
         );
-        return (result.values || []).map((row: any) => ({
-            ...row,
-            isLocal: row.isLocal === 1 || row.isLocal === true,
-            isSync: row.isSync === 1 || row.isSync === true,
-            isDeliveryCollection: row.isDeliveryCollection === 1 || row.isDeliveryCollection === true
-        }));
+        return (result.values || []).map((row: any) => mapCollectionRow(row));
     }
 
     /**
@@ -225,9 +234,7 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
         `;
         const result = await this.databaseService.query(sql, [commercialUsername, `${date}%`]);
         return (result.values || []).map((row: any) => ({
-            ...row,
-            isLocal: row.isLocal === 1,
-            isSync: row.isSync === 1,
+            ...mapCollectionRow(row),
             clientName: row.clientName
         }));
     }

@@ -29,6 +29,10 @@ export interface TontineMember {
     clientName?: string;
     updateScope?: 'GLOBAL' | 'CURRENT_AND_FUTURE' | 'FUTURE_ONLY';
     operationConsentCode?: string;
+    societyShare?: number;
+    availableContribution?: number;
+    validatedMonths?: number;
+    currentMonthDays?: number;
 }
 
 export interface TontineMemberView extends TontineMember {
@@ -54,6 +58,9 @@ export interface TontineCollection {
     notes?: string;
     operationConsentCode?: string;
     confirmedAmount?: number;
+    societyShareAmount?: number;
+    contributionMonth?: string;
+    advanceToNextMonth?: boolean;
 }
 
 export interface TontineCollectionView extends TontineCollection {

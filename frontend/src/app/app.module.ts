@@ -85,9 +85,7 @@ import { OldReleaseListComponent } from './out/old-release-list/old-release-list
 // Tontine module is lazy loaded, no need to import here
 import { SharedComponentsModule } from './shared/components/shared-components.module';
 import { ToastrModule } from 'ngx-toastr';
-import { ParameterListComponent } from './parameters/parameter-list/parameter-list.component';
 import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
-import { ParameterEditComponent } from './parameters/parameter-edit/parameter-edit.component';
 import {NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule} from "ngx-google-analytics";
 import {environment} from "../environments/environment";
 import { FeatureFlagService } from './shared/service/feature-flag.service';
@@ -144,8 +142,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     OutPdfListComponent,
     LicenseKeyFormatterPipe,
     OldReleaseListComponent,
-    ParameterListComponent,
-    ParameterEditComponent,
     MobileMoneyConfigListComponent,
   ],
   imports: [

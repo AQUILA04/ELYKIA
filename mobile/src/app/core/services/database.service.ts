@@ -101,7 +101,7 @@ export class DatabaseService {
     // 2. Migrations incrémentielles (natif uniquement).
     // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
     const currentVersion = await this.db.getVersion();
-    const targetVersion = 29; // client_reliquats: remove FK(clientId) to allow client re-init
+    const targetVersion = 30; // tontine V2 allocation columns
     const dbVersion = currentVersion.version ?? 2;
     const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -555,6 +555,10 @@ export class DatabaseService {
             notes TEXT,
             updateScope TEXT,
             operationConsentCode TEXT,
+            societyShare REAL DEFAULT 0 CHECK(TYPEOF(societyShare) IN ('integer', 'real') OR societyShare IS NULL),
+            availableContribution REAL DEFAULT 0 CHECK(TYPEOF(availableContribution) IN ('integer', 'real') OR availableContribution IS NULL),
+            validatedMonths INTEGER DEFAULT 0,
+            currentMonthDays INTEGER DEFAULT 0,
             FOREIGN KEY(tontineSessionId) REFERENCES tontine_sessions(id)
             -- IMPORTANT:
             -- On ne met plus de contrainte FOREIGN KEY(clientId) ici, car l'ID du client
@@ -593,7 +597,10 @@ export class DatabaseService {
             isDeliveryCollection BOOLEAN DEFAULT 0,
             notes TEXT,
             operationConsentCode TEXT,
-            confirmedAmount REAL
+            confirmedAmount REAL,
+            societyShareAmount REAL DEFAULT 0 CHECK(TYPEOF(societyShareAmount) IN ('integer', 'real') OR societyShareAmount IS NULL),
+            contributionMonth TEXT,
+            advanceToNextMonth BOOLEAN DEFAULT 0
             -- IMPORTANT:
             -- Pas de contrainte FOREIGN KEY(tontineMemberId) ici pour éviter les erreurs
             -- lors du passage de l'ID membre de tontine local à l'ID serveur pendant la synchro.
@@ -2187,15 +2194,17 @@ export class DatabaseService {
 
     const query = `
       INSERT OR REPLACE INTO tontine_members (
-        id, tontineSessionId, clientId, commercialUsername, totalContribution, deliveryStatus, registrationDate, isLocal, isSync, syncDate, syncHash, frequency, amount, notes, updateScope
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, tontineSessionId, clientId, commercialUsername, totalContribution, deliveryStatus, registrationDate, isLocal, isSync, syncDate, syncHash, frequency, amount, notes, updateScope, operationConsentCode, societyShare, availableContribution, validatedMonths, currentMonthDays
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const set: capSQLiteSet[] = members.map(m => ({
       statement: query,
       values: [
         m.id, m.tontineSessionId, m.clientId, m.commercialUsername, m.totalContribution, m.deliveryStatus,
-        m.registrationDate, m.isLocal ? 1 : 0, m.isSync ? 1 : 0, m.syncDate || new Date().toISOString(), m.syncHash, m.frequency, m.amount, m.notes, m.updateScope || null
+        m.registrationDate, m.isLocal ? 1 : 0, m.isSync ? 1 : 0, m.syncDate || new Date().toISOString(), m.syncHash,
+        m.frequency, m.amount, m.notes, m.updateScope || null, m.operationConsentCode || null,
+        m.societyShare ?? 0, m.availableContribution ?? 0, m.validatedMonths ?? 0, m.currentMonthDays ?? 0
       ]
     }));
 
@@ -2272,19 +2281,30 @@ export class DatabaseService {
 
     const query = `
       INSERT OR REPLACE INTO tontine_collections(
-        id, tontineMemberId, amount, collectionDate, commercialUsername, isLocal, isSync, syncDate, syncHash
-      ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, tontineMemberId, amount, collectionDate, commercialUsername, isLocal, isSync, syncDate, syncHash,
+        isDeliveryCollection, notes, operationConsentCode, confirmedAmount, societyShareAmount, contributionMonth, advanceToNextMonth
+      ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const set: capSQLiteSet[] = collections.map(c => ({
       statement: query,
       values: [
         c.id, c.tontineMemberId, c.amount, c.collectionDate, c.commercialUsername,
-        c.isLocal ? 1 : 0, c.isSync ? 1 : 0, c.syncDate || new Date().toISOString(), c.syncHash
+        c.isLocal ? 1 : 0, c.isSync ? 1 : 0, c.syncDate || new Date().toISOString(), c.syncHash,
+        c.isDeliveryCollection ? 1 : 0, c.notes || null, c.operationConsentCode || null, c.confirmedAmount ?? null,
+        c.societyShareAmount ?? 0, c.contributionMonth || null, c.advanceToNextMonth ? 1 : 0
       ]
     }));
 
     await this.db.executeSet(set);
+  }
+
+  async getUnsyncedLocalCollectionIds(): Promise<string[]> {
+    if (!this.db) throw new Error('Database not initialized.');
+    const result = await this.db.query(
+      'SELECT id FROM tontine_collections WHERE isLocal = 1 AND isSync = 0'
+    );
+    return (result.values || []).map((row: any) => String(row.id));
   }
 
   async getUnsyncedCollectionsTotals(): Promise<{ tontineMemberId: string, total: number }[]> {

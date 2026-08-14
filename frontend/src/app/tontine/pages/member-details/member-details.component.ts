@@ -87,7 +87,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private tontineService: TontineService,
+    public readonly tontineService: TontineService,
     private deliveryService: TontineDeliveryService,
     private dialog: MatDialog,
     private authService: AuthService,

@@ -70,4 +70,8 @@ app:
         key: ENABLED_MOBILE_DEVICE_RESTRICTION
         value: false
         description: Activer le contrôle des appareils autorisés pour l'application mobile
+      init-data[4]:
+        key: TONTINE_SOCIETY_SHARE_VERSION
+        value: V1
+        description: "Version du calcul part société tontine (V1=mois calendaires entamés, V2=mois réellement cotisés). Le basculement déclenche un recalcul automatique."
 

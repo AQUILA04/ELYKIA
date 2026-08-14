@@ -72,6 +72,23 @@ public class TontineController {
                 HttpStatus.OK);
     }
 
+    @GetMapping("/allocation-migration/status")
+    @Operation(summary = "Statut du recalcul des parts société (migration V1/V2)")
+    public ResponseEntity<Response> getAllocationMigrationStatus() {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineService.getAllocationMigrationStatus()), HttpStatus.OK);
+    }
+
+    @PostMapping("/sessions/current/recalculate-allocations")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Relancer manuellement le recalcul des allocations tontine")
+    public ResponseEntity<Response> recalculateAllocations() {
+        String username = tontineService.getUserService().getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineService.triggerAllocationRecalculation(username)),
+                HttpStatus.OK);
+    }
+
     @PostMapping("/members")
     public ResponseEntity<Response> registerMember(@RequestBody @Valid TontineMemberDto dto) {
         return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.registerMember(dto)),

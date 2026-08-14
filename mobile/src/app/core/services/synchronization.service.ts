@@ -1731,7 +1731,9 @@ export class SynchronizationService {
       memberId: serverMemberId,
       amount: collection.amount,
       isDeliveryCollection: collection.isDeliveryCollection,
-      reference: collection.id // Utiliser l'ID local comme référence
+      reference: collection.id, // Utiliser l'ID local comme référence
+      collectionDate: collection.collectionDate ? String(collection.collectionDate).substring(0, 10) : undefined,
+      advanceToNextMonth: collection.advanceToNextMonth === true
     };
   }
 

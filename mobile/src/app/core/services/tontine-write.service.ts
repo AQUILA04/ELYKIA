@@ -7,7 +7,12 @@ import { TontineMemberSyncService } from './sync/tontine-member-sync.service';
 import { TontineCollectionSyncService } from './sync/tontine-collection-sync.service';
 import { TontineDeliverySyncService } from './sync/tontine-delivery-sync.service';
 import { OnlineFirstWriteCoordinator } from './online-first-write.coordinator';
+import { TontineCalculationService } from './tontine-calculation.service';
+import { TontineService } from './tontine.service';
+import { DatabaseService } from './database.service';
 import { TontineCollection, TontineDelivery, TontineDeliveryItem, TontineMember } from '../../models/tontine.model';
+import { toContributionMonth } from './tontine-allocation.mapper';
+import { firstValueFrom } from 'rxjs';
 
 export interface CreateTontineDeliveryParams {
   delivery: TontineDelivery;
@@ -28,7 +33,10 @@ export class TontineWriteService {
     private readonly memberSyncService: TontineMemberSyncService,
     private readonly collectionSyncService: TontineCollectionSyncService,
     private readonly deliverySyncService: TontineDeliverySyncService,
-    private readonly onlineFirstWriteCoordinator: OnlineFirstWriteCoordinator
+    private readonly onlineFirstWriteCoordinator: OnlineFirstWriteCoordinator,
+    private readonly calculationService: TontineCalculationService,
+    private readonly tontineService: TontineService,
+    private readonly databaseService: DatabaseService
   ) {}
 
   async registerMember(member: TontineMember, forceOffline = false): Promise<TontineMember> {
@@ -115,7 +123,11 @@ export class TontineWriteService {
   }
 
   private async persistCollection(collection: TontineCollection, online: boolean): Promise<TontineCollection> {
-    let persisted: TontineCollection = { ...collection };
+    let persisted: TontineCollection = {
+      ...collection,
+      advanceToNextMonth: collection.advanceToNextMonth === true,
+      contributionMonth: collection.contributionMonth || toContributionMonth(null, collection.collectionDate)
+    };
 
     if (online) {
       const response = await this.collectionSyncService.postCreateCollection(persisted);
@@ -127,12 +139,46 @@ export class TontineWriteService {
         id: serverId,
         isLocal: false,
         isSync: true,
-        syncDate: new Date().toISOString()
+        syncDate: new Date().toISOString(),
+        societyShareAmount: response.societyShareAmount ?? persisted.societyShareAmount ?? 0,
+        contributionMonth: response.contributionMonth || persisted.contributionMonth,
+        advanceToNextMonth: response.advanceToNextMonth === true
       };
     }
 
     await this.collectionRepository.save(persisted);
+
+    if (online && /^\d+$/.test(persisted.tontineMemberId)) {
+      await firstValueFrom(this.tontineService.refreshMemberAfterCollection(persisted.tontineMemberId));
+    } else {
+      await this.replayLocalAllocation(persisted.tontineMemberId);
+    }
+
     return persisted;
+  }
+
+  private async replayLocalAllocation(memberId: string): Promise<void> {
+    const member = await this.memberRepository.findById(memberId);
+    const session = await this.databaseService.getTontineSession();
+    if (!member || !session) {
+      return;
+    }
+    const collections = await this.collectionRepository.getByMemberId(memberId);
+    try {
+      const status = await this.calculationService.calculateMemberStatus(member, session, collections);
+      await this.memberRepository.updateDerivedAllocation(memberId, {
+        totalContribution: status.totalCollected,
+        societyShare: status.societyShare,
+        availableContribution: status.availableBudget,
+        validatedMonths: status.validatedMonths,
+        currentMonthDays: status.currentMonthDays
+      });
+      if (status.collections.length) {
+        await this.collectionRepository.saveAll(status.collections, false);
+      }
+    } catch (error) {
+      console.warn('TontineWriteService: local allocation replay failed', error);
+    }
   }
 
   private async persistDelivery(

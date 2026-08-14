@@ -1,0 +1,33 @@
+.migration-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.95), rgba(255, 251, 235, 0.98));
+  color: #92400e;
+}
+
+.migration-banner-icon {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.migration-banner-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.migration-banner-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.migration-banner-content p {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
