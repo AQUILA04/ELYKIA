@@ -43,6 +43,7 @@
 
   <!-- KPI -->
   <app-credit-echeance-kpi
+    *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_ECHEANCE']"
     [totalToday]="summary.totalToday"
     [totalWeek]="summary.totalWeek"
     [totalUnsettled]="summary.totalUnsettled"

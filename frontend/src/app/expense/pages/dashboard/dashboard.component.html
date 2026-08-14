@@ -46,7 +46,7 @@
   </div>
 
   <!-- KPI STRIP -->
-  <div class="kpi-strip a3">
+  <div class="kpi-strip a3" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_DEPENSE']">
     <ng-container *ngIf="kpis.length > 0; else kpiSkeleton">
       <div class="kpi-card" *ngFor="let kpi of kpis; let i = index" [class]="'kpi-p' + i">
         <div class="kpi-label">{{ kpi.periodLabel }}</div>

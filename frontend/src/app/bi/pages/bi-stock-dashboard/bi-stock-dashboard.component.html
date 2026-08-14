@@ -16,7 +16,7 @@
 
   <ng-container *ngIf="!loading && !error">
     <!-- KPI Cards -->
-    <div class="stock-dashboard__kpis">
+    <div class="stock-dashboard__kpis" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_BI_STOCK']">
       <app-bi-kpi-card [data]="valueKpi"></app-bi-kpi-card>
       <app-bi-kpi-card [data]="itemsKpi"></app-bi-kpi-card>
       <app-bi-kpi-card [data]="outOfStockKpi"></app-bi-kpi-card>

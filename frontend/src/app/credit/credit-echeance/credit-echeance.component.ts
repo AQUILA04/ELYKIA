@@ -1,5 +1,7 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { CreditEcheanceService } from '../service/credit-echeance.service';
+import { AuthService } from 'src/app/auth/service/auth.service';
+import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-permission.constant';
 import {
   CreditEcheanceDTO,
   CreditEcheanceSummaryDTO
@@ -32,7 +34,10 @@ export class CreditEcheanceComponent implements OnInit {
   currentDate: Date = new Date();
   lastUpdate: Date = new Date();
 
-  constructor(private echeanceService: CreditEcheanceService) {}
+  constructor(
+    private echeanceService: CreditEcheanceService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
     this.loadData();
@@ -44,15 +49,19 @@ export class CreditEcheanceComponent implements OnInit {
   loadData() {
     this.isLoading = true;
 
-    // Load summary (always week-based)
-    this.echeanceService.getSummary(this.selectedCollector).subscribe({
-      next: (res: any) => {
-        if (res.statusCode === 200 && res.data) {
-          this.summary = res.data;
-          this.lastUpdate = new Date();
-        }
-      },
-      error: (err) => console.error(err)
+    void this.authService.hasPermission(KpiFinancierPermissions.Echeance).then((allowed) => {
+      if (!allowed) {
+        return;
+      }
+      this.echeanceService.getSummary(this.selectedCollector).subscribe({
+        next: (res: any) => {
+          if (res.statusCode === 200 && res.data) {
+            this.summary = res.data;
+            this.lastUpdate = new Date();
+          }
+        },
+        error: (err: any) => console.error(err)
+      });
     });
 
     // Load credits based on selected period

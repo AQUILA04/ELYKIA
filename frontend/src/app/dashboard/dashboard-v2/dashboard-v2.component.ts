@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-permission.constant';
 import {
   ChartTrendPoint,
   DashboardV2Data,
@@ -95,35 +96,46 @@ export class DashboardV2Component implements OnInit, OnDestroy {
     }
     const collector = this.isPromoter ? this.username : undefined;
 
-    const sub = this.dashboardV2Service.loadDashboard(this.period, collector, this.isPromoter).subscribe({
-      next: (data) => {
-        this.data = data;
-        this.kpiCards = this.buildKpiCards(data);
-        this.lastUpdate = new Date();
-        this.loading = false;
-      },
-      error: () => {
-        this.error = 'Impossible de charger le tableau de bord.';
-        this.loading = false;
-      }
+    void this.authService.hasPermission(KpiFinancierPermissions.Dashboard).then((allowed) => {
+      const sub = this.dashboardV2Service
+        .loadDashboard(this.period, collector, this.isPromoter, allowed)
+        .subscribe({
+          next: (data) => {
+            this.data = data;
+            this.kpiCards = allowed ? this.buildKpiCards(data) : [];
+            this.lastUpdate = new Date();
+            this.loading = false;
+          },
+          error: () => {
+            this.error = 'Impossible de charger le tableau de bord.';
+            this.loading = false;
+          }
+        });
+      this.subscriptions.push(sub);
     });
-    this.subscriptions.push(sub);
   }
 
   private loadCharts(): void {
-    this.chartLoading = true;
-    const range = this.getChartRange();
-    const sub = this.dashboardV2Service.loadChartTrends(range.startDate, range.endDate).subscribe({
-      next: (points) => {
-        this.chartPoints = this.applyChartGranularity(points);
-        this.chartLoading = false;
-      },
-      error: () => {
+    void this.authService.hasPermission(KpiFinancierPermissions.Dashboard).then((allowed) => {
+      if (!allowed) {
         this.chartPoints = [];
         this.chartLoading = false;
+        return;
       }
+      this.chartLoading = true;
+      const range = this.getChartRange();
+      const sub = this.dashboardV2Service.loadChartTrends(range.startDate, range.endDate).subscribe({
+        next: (points) => {
+          this.chartPoints = this.applyChartGranularity(points);
+          this.chartLoading = false;
+        },
+        error: () => {
+          this.chartPoints = [];
+          this.chartLoading = false;
+        }
+      });
+      this.subscriptions.push(sub);
     });
-    this.subscriptions.push(sub);
   }
 
   private getChartRange(): { startDate: string; endDate: string } {

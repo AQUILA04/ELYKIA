@@ -32,6 +32,7 @@
   </div>
 
   <app-credit-list-kpi
+    *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_VENTE']"
     [summary]="summary"
     [periodLabel]="periodLabel"
     [loading]="summaryLoading"
@@ -40,7 +41,7 @@
 
   <div class="toolbar-shell a4">
     <div class="toolbar toolbar-top">
-      <div class="filter-group filter-group-period">
+      <div class="filter-group filter-group-period" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_VENTE']">
         <span class="toolbar-label">Période KPI</span>
         <div class="period-buttons">
           <button type="button" class="period-btn" [class.active]="periodPreset === periodPresets.TODAY" (click)="onPeriodPresetChange(periodPresets.TODAY)">Jour</button>

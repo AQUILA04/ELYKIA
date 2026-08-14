@@ -10,6 +10,8 @@ import { UserService } from 'src/app/user/service/user.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 import { ErrorHandlingMixin } from 'src/app/shared/mixins/error-handling.mixin';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { AuthService } from 'src/app/auth/service/auth.service';
+import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-permission.constant';
 import { CreditSearchDto } from '../components/advanced-search/advanced-search.types';
 import { CreditService } from '../service/credit.service';
 import { Collector } from '../types/credit-merge.types';
@@ -79,6 +81,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
     private alertService: AlertService,
     private userService: UserService,
     private clientService: ClientService,
+    private authService: AuthService,
     errorHandler: ErrorHandlerService
   ) {
     super(errorHandler);
@@ -233,28 +236,35 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
   }
 
   loadSummary(): void {
-    this.summaryLoading = true;
-    const range = this.getPeriodRange();
-    const sub = this.creditService.getListSummary({
-      startDate: range.startDate,
-      endDate: range.endDate,
-      search: this.currentSearchDto
-    }).subscribe({
-      next: (response: any) => {
-        if (response.statusCode === 200) {
-          this.summary = response.data;
-        } else {
-          this.summary = null;
-        }
-        this.summaryLoading = false;
-      },
-      error: (error) => {
-        console.error('Erreur chargement KPI ventes', error);
+    void this.authService.hasPermission(KpiFinancierPermissions.Vente).then((allowed) => {
+      if (!allowed) {
         this.summary = null;
         this.summaryLoading = false;
+        return;
       }
+      this.summaryLoading = true;
+      const range = this.getPeriodRange();
+      const sub = this.creditService.getListSummary({
+        startDate: range.startDate,
+        endDate: range.endDate,
+        search: this.currentSearchDto
+      }).subscribe({
+        next: (response: any) => {
+          if (response.statusCode === 200) {
+            this.summary = response.data;
+          } else {
+            this.summary = null;
+          }
+          this.summaryLoading = false;
+        },
+        error: (error) => {
+          console.error('Erreur chargement KPI ventes', error);
+          this.summary = null;
+          this.summaryLoading = false;
+        }
+      });
+      this.subscriptions.push(sub);
     });
-    this.subscriptions.push(sub);
   }
 
   loadCredits(): void {

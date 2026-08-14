@@ -30,7 +30,7 @@ public class CollectorTransferReportController {
     private final CollectorTransferReportService collectorTransferReportService;
 
     @GetMapping("/summary")
-    @PreAuthorize(ACCESS_ROLES)
+    @PreAuthorize("(" + ACCESS_ROLES + ") and hasAuthority('ROLE_KPI_FINANCIER_TRANSFERT_VENTE')")
     public ResponseEntity<Response> getSummary(
             @RequestParam(required = false) String oldCollector,
             @RequestParam(required = false) String newCollector,

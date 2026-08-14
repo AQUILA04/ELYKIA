@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { NgxPermissionsModule } from 'ngx-permissions';
 import { ExpenseRoutingModule } from './expense-routing.module';
 
 // Components
@@ -38,6 +39,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         ExpenseRoutingModule,
         FormsModule,
         ReactiveFormsModule,
+        NgxPermissionsModule,
         MatCardModule,
         MatIconModule,
         MatButtonModule,

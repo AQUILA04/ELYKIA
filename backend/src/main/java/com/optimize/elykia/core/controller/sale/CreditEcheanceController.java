@@ -3,9 +3,11 @@ package com.optimize.elykia.core.controller.sale;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.service.CreditEcheanceService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -42,6 +44,7 @@ public class CreditEcheanceController {
      * Toujours calculés sur la semaine courante (today → today+6).
      */
     @GetMapping("/summary")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_ECHEANCE + "')")
     public ResponseEntity<Response> getSummary(
             @RequestParam(required = false) String collector) {
 

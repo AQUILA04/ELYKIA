@@ -4,6 +4,7 @@ import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.service.expense.ExpenseService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -55,6 +57,7 @@ public class ExpenseController {
     }
     
     @GetMapping("/dashboard-kpis")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_DEPENSE + "')")
     @Operation(summary = "Get expense KPIs for dashboard (This Week, This Month)")
     public ResponseEntity<Response> getDashboardKpis() {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(expenseService.getDashboardKpis()), HttpStatus.OK);

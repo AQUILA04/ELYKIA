@@ -9,6 +9,26 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.10.3] — 2026-08-14
+
+### Added
+
+- Permissions KPI financiers par page (`ROLE_KPI_FINANCIER_*`) : migration Flyway `V93` (rôles, profils cibles et copie sur les comptes existants, hors chef de recouvrement).
+
+### Security
+
+- Les agrégats financiers (CA, marges, totaux, bilans, KPI BI/dépenses) exigent désormais la permission de la page correspondante ; le chef de recouvrement conserve les listes opérationnelles et le recouvrement.
+
+## Frontend — [2.16.16] — 2026-08-14
+
+### Added
+
+- Masquage des bandeaux KPI financiers selon la permission de chaque page ; le rapport journalier ne conserve que l’onglet Recouvrement terrain sans le rôle KPI.
+
+### Changed
+
+- Module `dashboard` migré en lazy-loading (`loadChildren`), URL `/home` inchangée.
+
 ## Backend — [1.10.2] — 2026-08-14
 
 ### Added

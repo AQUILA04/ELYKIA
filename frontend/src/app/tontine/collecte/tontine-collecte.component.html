@@ -33,6 +33,7 @@
   </div>
 
   <app-tontine-collecte-kpi
+    *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_TONTINE_COLLECTE']"
     [summary]="summary"
     [lastUpdate]="lastUpdate">
   </app-tontine-collecte-kpi>

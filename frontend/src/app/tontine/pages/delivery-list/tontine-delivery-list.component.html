@@ -34,7 +34,8 @@
   </div>
 
   <div class="page-scroll-body">
-    <div class="kpi-strip client-kpi-strip a3" *ngIf="deliveryKpis">
+    <div class="kpi-strip client-kpi-strip a3" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_TONTINE_LIVRAISON']">
+      <ng-container *ngIf="deliveryKpis">
       <div class="kpi-card kpi-total">
         <div class="kpi-label">Livraisons</div>
         <div class="kpi-value">{{ deliveryKpis.totalCount | number }}</div>
@@ -55,6 +56,7 @@
         <div class="kpi-value">{{ deliveryKpis.deliveredCount | number }}</div>
         <div class="kpi-sub">Solde restant : {{ deliveryKpis.totalRemainingBalance | number:'1.0-0' }} FCFA</div>
       </div>
+      </ng-container>
     </div>
 
     <div class="toolbar a4">

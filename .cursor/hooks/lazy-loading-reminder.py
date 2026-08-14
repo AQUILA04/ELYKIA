@@ -15,7 +15,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 FRONTEND_APP = REPO_ROOT / "frontend" / "src" / "app"
 
 EAGER_DOMAINS = frozenset({
-    "locality", "account", "client", "dashboard", "dashboard-chart",
+    "locality", "account", "client", "dashboard-chart",
     "accounting-day", "user", "cash-desk", "inventory", "gestion",
     "operation", "deposit", "report", "history", "out", "commercial", "parameters",
 })

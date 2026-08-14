@@ -89,7 +89,7 @@
   <!-- Content -->
   <ng-container *ngIf="!loading && !error">
     <!-- KPI Cards -->
-    <div class="sales-dashboard__kpis">
+    <div class="sales-dashboard__kpis" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_BI_VENTES']">
       <app-bi-kpi-card [data]="salesKpi"></app-bi-kpi-card>
       <app-bi-kpi-card [data]="profitKpi"></app-bi-kpi-card>
       <app-bi-kpi-card [data]="volumeKpi"></app-bi-kpi-card>

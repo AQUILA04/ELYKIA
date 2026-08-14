@@ -5,6 +5,7 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.TontineCollectionKpiDto;
 import com.optimize.elykia.core.dto.TontineCollectionWebDto;
 import com.optimize.elykia.core.service.tontine.TontineCollectionWebService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -14,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -51,6 +53,7 @@ public class TontineCollectionWebController {
     }
 
     @GetMapping("/summary")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_TONTINE_COLLECTE + "')")
     public ResponseEntity<Response> getKpiSummary(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,

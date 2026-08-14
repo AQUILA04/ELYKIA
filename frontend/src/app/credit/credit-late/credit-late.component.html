@@ -29,6 +29,7 @@
   </div>
 
   <app-credit-late-kpi
+    *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RETARD']"
     [totalLate]="summary.totalLate"
     [totalDelai]="summary.totalDelai"
     [totalEcheance]="summary.totalEcheance"

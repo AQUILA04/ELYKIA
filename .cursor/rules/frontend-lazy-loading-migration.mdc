@@ -5,7 +5,6 @@ globs:
   - frontend/src/app/client/**
   - frontend/src/app/locality/**
   - frontend/src/app/account/**
-  - frontend/src/app/dashboard/**
   - frontend/src/app/dashboard-chart/**
   - frontend/src/app/accounting-day/**
   - frontend/src/app/cash-desk/**
@@ -35,11 +34,11 @@ Si le fichier modifié est sous `frontend/src/app/{domaine}/` :
 
 ## Domaines encore eager (à migrer quand touchés)
 
-`locality`, `account`, `client`, `dashboard`, `dashboard-chart`, `accounting-day`, `cash-desk`, `inventory`, `gestion`, `operation`, `deposit`, `report`, `history`, `out`, `commercial`, `parameters`
+`locality`, `account`, `client`, `dashboard-chart`, `accounting-day`, `cash-desk`, `inventory`, `gestion`, `operation`, `deposit`, `report`, `history`, `out`, `commercial`, `parameters`
 
 ## Déjà lazy-loaded (ne pas migrer)
 
-`orders`, `bi`, `ai-chat`, `tontine`, `stock`, `stock-tontine`, `article-type`, `article`, `expense`, `security`, `user`, `credit`
+`orders`, `bi`, `ai-chat`, `tontine`, `stock`, `stock-tontine`, `article-type`, `article`, `expense`, `security`, `user`, `credit`, `dashboard`
 
 ## Transverse (ne pas migrer)
 

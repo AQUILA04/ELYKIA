@@ -60,24 +60,28 @@
                 *ngIf="selectedFilter === 'custom' || selectedAgent">
                 Réinitialiser
             </button>
-            <button type="button" class="btn-icon-toggle"
-                (click)="toggleMargins()"
-                title="Afficher/Masquer les marges"
-                *ngIf="!isPromoter && !isRecoveryManager"
-                [class.active]="showMargins">
-                <mat-icon>{{ showMargins ? 'visibility_off' : 'visibility' }}</mat-icon>
-                <span class="btn-icon-label">{{ showMargins ? 'Masquer marges' : 'Voir marges' }}</span>
-            </button>
+            <ng-container *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']">
+                <button type="button" class="btn-icon-toggle"
+                    (click)="toggleMargins()"
+                    title="Afficher/Masquer les marges"
+                    *ngIf="!isPromoter && !isRecoveryManager"
+                    [class.active]="showMargins">
+                    <mat-icon>{{ showMargins ? 'visibility_off' : 'visibility' }}</mat-icon>
+                    <span class="btn-icon-label">{{ showMargins ? 'Masquer marges' : 'Voir marges' }}</span>
+                </button>
+            </ng-container>
         </div>
     </div>
 
     <!-- Segment navigation -->
     <nav class="report-segment" role="tablist" aria-label="Sections du rapport">
         <button type="button" role="tab" class="segment-btn"
+            *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
             [class.active]="activeTab === 'overview'"
             [attr.aria-selected]="activeTab === 'overview'"
             (click)="activeTab = 'overview'">Vue d'ensemble</button>
         <button type="button" role="tab" class="segment-btn"
+            *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
             [class.active]="activeTab === 'journal'"
             [attr.aria-selected]="activeTab === 'journal'"
             (click)="activeTab = 'journal'">Journal</button>
@@ -87,18 +91,21 @@
             [attr.aria-selected]="activeTab === 'recovery'"
             (click)="activeTab = 'recovery'">Recouvrement</button>
         <button type="button" role="tab" class="segment-btn"
+            *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
             [class.active]="activeTab === 'deposits'"
             [attr.aria-selected]="activeTab === 'deposits'"
             (click)="activeTab = 'deposits'">Versements</button>
-        <button type="button" role="tab" class="segment-btn"
-            *ngIf="isManager || isSecretary"
-            [class.active]="activeTab === 'remittance'"
-            [attr.aria-selected]="activeTab === 'remittance'"
-            (click)="activeTab = 'remittance'">Remise</button>
+        <ng-container *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']">
+            <button type="button" role="tab" class="segment-btn"
+                *ngIf="isManager || isSecretary"
+                [class.active]="activeTab === 'remittance'"
+                [attr.aria-selected]="activeTab === 'remittance'"
+                (click)="activeTab = 'remittance'">Remise</button>
+        </ng-container>
     </nav>
 
     <!-- PANEL: Vue d'ensemble -->
-    <div class="report-panel" *ngIf="activeTab === 'overview'" role="tabpanel">
+    <div class="report-panel" *ngIf="activeTab === 'overview' && canViewFinancialKpis" role="tabpanel">
             <div class="p-4">
                 <!-- Loading Spinner -->
                 <div *ngIf="isLoading" class="loading-container">
@@ -511,7 +518,7 @@
     </div>
 
     <!-- PANEL: Journal des opérations -->
-    <div class="report-panel" *ngIf="activeTab === 'journal'" role="tabpanel">
+    <div class="report-panel" *ngIf="activeTab === 'journal' && canViewFinancialKpis" role="tabpanel">
             <div class="p-4">
                 <div *ngIf="operations.length > 0 || selectedOperationType; else noOps">
                     <table class="w-full text-left border-collapse">
@@ -587,7 +594,7 @@
     </div>
 
     <!-- PANEL: Historique des versements -->
-    <div class="report-panel" *ngIf="activeTab === 'deposits'" role="tabpanel">
+    <div class="report-panel" *ngIf="activeTab === 'deposits' && canViewFinancialKpis" role="tabpanel">
             <div class="p-4">
                 <div *ngIf="deposits.length > 0; else noDeps">
                     <table class="w-full text-left border-collapse">
@@ -654,15 +661,15 @@
     </div>
 
     <!-- PANEL: Remise au gestionnaire -->
-    <div class="report-panel" *ngIf="activeTab === 'remittance' && (isManager || isSecretary)" role="tabpanel">
+    <div class="report-panel" *ngIf="activeTab === 'remittance' && canViewFinancialKpis && (isManager || isSecretary)" role="tabpanel">
             <app-cash-period-remittance-tab></app-cash-period-remittance-tab>
     </div>
 
-    <div *ngIf="!isLoading && reports.length === 0" class="alert alert-info mt-3">
+    <div *ngIf="canViewFinancialKpis && !isLoading && reports.length === 0" class="alert alert-info mt-3">
         Aucun rapport trouvé pour la période sélectionnée.
     </div>
 
-    <div *ngIf="!selectedAgent && !isLoading && !isPromoter" class="alert alert-warning mt-3">
+    <div *ngIf="canViewFinancialKpis && !selectedAgent && !isLoading && !isPromoter" class="alert alert-warning mt-3">
         Veuillez sélectionner un commercial pour voir les détails et effectuer des versements.
     </div>
 </div>

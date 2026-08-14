@@ -74,7 +74,7 @@
   <!-- Dashboard Content -->
   <ng-container *ngIf="!loading && !error && overview">
     <!-- KPI Cards -->
-    <div class="bi-dashboard__kpi-section">
+    <div class="bi-dashboard__kpi-section" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_BI_DASHBOARD']">
       <app-bi-kpi-card [data]="salesKpi" [loading]="loading"></app-bi-kpi-card>
       <app-bi-kpi-card [data]="profitKpi" [loading]="loading"></app-bi-kpi-card>
       <app-bi-kpi-card [data]="collectionKpi" [loading]="loading"></app-bi-kpi-card>

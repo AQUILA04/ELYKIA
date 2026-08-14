@@ -26,16 +26,6 @@ import { LocalityAddComponent } from './locality/localityadd/localityadd.compone
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
 import { NgxPermissionsModule } from 'ngx-permissions';
-import { DashboardComponent } from './dashboard/dashboard.component';
-import { DashboardV2Component } from './dashboard/dashboard-v2/dashboard-v2.component';
-import { DashboardKpiCardComponent } from './dashboard/dashboard-v2/components/dashboard-kpi-card/dashboard-kpi-card.component';
-import { RecentSalesPanelComponent } from './dashboard/dashboard-v2/components/recent-sales-panel/recent-sales-panel.component';
-import { RecentActivityPanelComponent } from './dashboard/dashboard-v2/components/recent-activity-panel/recent-activity-panel.component';
-import { SalesEvolutionChartComponent } from './dashboard/dashboard-v2/components/sales-evolution-chart/sales-evolution-chart.component';
-import { StockStatusChartComponent } from './dashboard/dashboard-v2/components/stock-status-chart/stock-status-chart.component';
-import { DashboardStockkeeperAlertsComponent } from './dashboard/dashboard-v2/components/dashboard-stockkeeper-alerts/dashboard-stockkeeper-alerts.component';
-import { TimeAgoPipe } from './dashboard/dashboard-v2/pipes/time-ago.pipe';
-import { NgChartsModule } from 'ng2-charts';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { NgxSpinnerModule } from 'ngx-spinner';
 import { AuthInterceptor } from './shared/auth.interceptor';
@@ -48,8 +38,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatTableModule } from '@angular/material/table';
 import { BilletageModule } from './cash-desk/billetage/billetage.module';
-import { DashboardChartComponent } from './dashboard-chart/dashboard-chart.component';
-import { NgApexchartsModule } from 'ng-apexcharts';
+import { DashboardChartModule } from './dashboard-chart/dashboard-chart.module';
 // Tontine components removed - now using lazy loaded module
 import { GestionAddComponent } from './gestion/gestion-add/gestion-add.component';
 import { GestionListComponent } from './gestion/gestion-list/gestion-list.component';
@@ -108,20 +97,10 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     LocalityAddComponent,
     LoginComponent,
     RegisterComponent,
-    DashboardComponent,
-    DashboardV2Component,
-    DashboardKpiCardComponent,
-    RecentSalesPanelComponent,
-    RecentActivityPanelComponent,
-    SalesEvolutionChartComponent,
-    StockStatusChartComponent,
-    DashboardStockkeeperAlertsComponent,
-    TimeAgoPipe,
     OpenCashDeskComponent,
     CloseCashDeskComponent,
     DailyOperationComponent,
     TFJComponent,
-    DashboardChartComponent,
     GestionAddComponent,
     GestionListComponent,
     GestionDetailsComponent,
@@ -167,7 +146,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     MatListModule,
     MatCheckboxModule,
     MatTableModule,
-    NgApexchartsModule,
+    DashboardChartModule,
     MatCardModule,
     MatTabsModule,
     MatButtonToggleModule,
@@ -180,7 +159,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     BilletageModule,
     ToastrModule.forRoot(),
     MatExpansionModule,
-    NgChartsModule,
     // Initialise GA avec votre ID
     NgxGoogleAnalyticsModule.forRoot(environment.gaMeasurementId),
     // Track automatique les changements de routes (pages vues)

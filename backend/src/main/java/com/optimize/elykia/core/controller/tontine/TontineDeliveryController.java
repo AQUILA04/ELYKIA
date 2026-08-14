@@ -7,6 +7,7 @@ import com.optimize.elykia.core.dto.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryWebService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -17,6 +18,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -118,6 +120,7 @@ public class TontineDeliveryController {
     }
 
     @GetMapping("/summary")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_TONTINE_LIVRAISON + "')")
     @Operation(summary = "KPI des livraisons filtrées par commercial, période et recherche")
     public ResponseEntity<Response> getDeliveryKpiSummary(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,

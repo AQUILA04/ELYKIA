@@ -12,6 +12,7 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-permission.constant';
 
 interface DeliveryListState {
   searchTerm: string;
@@ -100,17 +101,23 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
   }
 
   loadKpis(): void {
-    const commercial = this.getEffectiveCommercial();
-    this.deliveryService.getDeliveryKpis(this.dateFrom, this.dateTo, commercial, this.searchTerm || undefined)
-      .subscribe({
-        next: (res) => {
-          if (res.statusCode === 200 && res.data) {
-            this.deliveryKpis = res.data;
-            this.lastUpdate = new Date();
-          }
-        },
-        error: (err) => console.error('Erreur chargement KPI livraisons', err)
-      });
+    void this.authService.hasPermission(KpiFinancierPermissions.TontineLivraison).then((allowed) => {
+      if (!allowed) {
+        this.deliveryKpis = null;
+        return;
+      }
+      const commercial = this.getEffectiveCommercial();
+      this.deliveryService.getDeliveryKpis(this.dateFrom, this.dateTo, commercial, this.searchTerm || undefined)
+        .subscribe({
+          next: (res) => {
+            if (res.statusCode === 200 && res.data) {
+              this.deliveryKpis = res.data;
+              this.lastUpdate = new Date();
+            }
+          },
+          error: (err) => console.error('Erreur chargement KPI livraisons', err)
+        });
+    });
   }
 
   loadDeliveries(): void {

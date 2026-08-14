@@ -46,7 +46,7 @@
 
   <ng-container *ngIf="!loading && !error">
     <!-- KPI Cards -->
-    <div class="collections-dashboard__kpis">
+    <div class="collections-dashboard__kpis" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_BI_RECOUVREMENT']">
       <app-bi-kpi-card [data]="collectedKpi"></app-bi-kpi-card>
       <app-bi-kpi-card [data]="rateKpi"></app-bi-kpi-card>
       <app-bi-kpi-card [data]="onTimeKpi"></app-bi-kpi-card>

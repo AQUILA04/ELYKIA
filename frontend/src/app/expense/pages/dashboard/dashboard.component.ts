@@ -2,6 +2,8 @@ import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { ExpenseService } from '../../services/expense.service';
 import { Expense, ExpenseKpi } from '../../models/expense.model';
+import { AuthService } from 'src/app/auth/service/auth.service';
+import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-permission.constant';
 
 @Component({
   selector: 'app-expense-dashboard',
@@ -28,7 +30,8 @@ export class ExpenseDashboardComponent implements OnInit {
 
   constructor(
     private expenseService: ExpenseService,
-    private router: Router
+    private router: Router,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -38,9 +41,15 @@ export class ExpenseDashboardComponent implements OnInit {
 
   loadData(): void {
     this.isLoading = true;
-    this.expenseService.getDashboardKpis().subscribe({
-      next: (data) => { this.kpis = data; this.lastUpdate = new Date(); },
-      error: (err) => console.error(err)
+    void this.authService.hasPermission(KpiFinancierPermissions.Depense).then((allowed) => {
+      if (!allowed) {
+        this.kpis = [];
+        return;
+      }
+      this.expenseService.getDashboardKpis().subscribe({
+        next: (data) => { this.kpis = data; this.lastUpdate = new Date(); },
+        error: (err) => console.error(err)
+      });
     });
     this.loadExpenses();
   }

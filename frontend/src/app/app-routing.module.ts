@@ -7,7 +7,6 @@ import { AccountAddComponent } from './account/accountadd/accountadd.component';
 import { AccountListComponent } from './account/accountlist/accountlist.component';
 import { LoginComponent } from './auth/login/login.component';
 import { NgxPermissionsGuard } from 'ngx-permissions';
-import { DashboardComponent } from './dashboard/dashboard.component';
 import { AccountdetailsComponent } from './account/accountdetails/accountdetails.component';
 import { DailyOperationComponent } from './cash-desk/daily-operation/daily-operation.component';
 import { OpenCashDeskComponent } from './cash-desk/open-cash-desk/open-cash-desk.component';
@@ -52,7 +51,7 @@ const routes: Routes = [
   // Dashboard
   {
     path: 'home',
-    component: DashboardComponent,
+    loadChildren: () => import('./dashboard/dashboard.module').then(m => m.DashboardModule),
     canActivate: [AuthGuard]
   },
   {

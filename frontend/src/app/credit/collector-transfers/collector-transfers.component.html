@@ -36,7 +36,7 @@
     <p class="page-subtitle">Montants figés à la passation · 1 crédit compté une seule fois (dernière passation) · Filtres conservés à la navigation</p>
   </div>
 
-  <div class="kpi-strip a3">
+  <div class="kpi-strip a3" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_TRANSFERT_VENTE']">
     <div class="kpi-card kpi-total">
       <div class="kpi-label">Crédits transférés</div>
       <div class="kpi-value">{{ summary.creditCount | number }}</div>

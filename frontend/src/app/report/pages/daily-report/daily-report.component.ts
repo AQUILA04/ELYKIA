@@ -16,6 +16,8 @@ import { CashDepositService } from '../../service/cash-deposit.service';
 import { UserService } from "../../../user/service/user.service";
 import { UserProfile } from "../../../shared/models/user-profile.enum";
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { AuthService } from 'src/app/auth/service/auth.service';
+import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-permission.constant';
 
 @Component({
     selector: 'app-daily-report',
@@ -46,6 +48,7 @@ export class DailyReportComponent implements OnInit {
     isRecoveryManager = false;
     isManager = false;
     isSecretary = false;
+    canViewFinancialKpis = false;
     showMargins = false; // Toggle for margin visibility
     isDownloading = false;
     activeTab: 'overview' | 'journal' | 'recovery' | 'deposits' | 'remittance' = 'overview';
@@ -99,7 +102,8 @@ export class DailyReportComponent implements OnInit {
         private dailyOperationService: DailyOperationService,
         private cashDepositService: CashDepositService,
         private userService: UserService,
-        private alertService: AlertService
+        private alertService: AlertService,
+        private authService: AuthService
     ) { }
 
     ngOnInit(): void {
@@ -108,6 +112,16 @@ export class DailyReportComponent implements OnInit {
         this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
         this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
         this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
+
+        const roles = this.tokenStorage.getUser()?.roles;
+        this.canViewFinancialKpis = Array.isArray(roles)
+            && roles.includes(KpiFinancierPermissions.RapportJournalier);
+
+        if (this.isRecoveryManager || !this.canViewFinancialKpis) {
+            if (this.isRecoveryManager || this.isManager) {
+                this.activeTab = 'recovery';
+            }
+        }
 
         if (!this.isPromoter) {
             this.loadAgents();
@@ -182,6 +196,16 @@ export class DailyReportComponent implements OnInit {
     }
 
     loadReports() {
+        void this.authService.hasPermission(KpiFinancierPermissions.RapportJournalier).then((allowed) => {
+            if (!allowed) {
+                this.isLoading = false;
+                return;
+            }
+            this.fetchReports();
+        });
+    }
+
+    private fetchReports() {
         this.isLoading = true;
         const startStr = this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd') || '';
         const endStr = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '';
@@ -209,6 +233,17 @@ export class DailyReportComponent implements OnInit {
     }
 
     loadYearlySummary(): void {
+        void this.authService.hasPermission(KpiFinancierPermissions.RapportJournalier).then((allowed) => {
+            if (!allowed) {
+                this.yearlySummary = null;
+                this.yearlyTontineSummary = null;
+                return;
+            }
+            this.fetchYearlySummary();
+        });
+    }
+
+    private fetchYearlySummary(): void {
         const collector = this.isPromoter
             ? this.tokenStorage.getUser().username
             : this.selectedAgent;

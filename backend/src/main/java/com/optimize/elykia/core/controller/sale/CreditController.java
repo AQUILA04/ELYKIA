@@ -57,6 +57,7 @@ public class CreditController {
     }
 
     @PostMapping("/list-summary")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_VENTE + "')")
     public ResponseEntity<Response> listSummary(@RequestBody @Valid CreditListSummaryRequestDto request) {
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 creditListSummaryService.summarize(request.startDate(), request.endDate(), request.search())),

@@ -38,7 +38,7 @@
 
   <div class="error-banner" *ngIf="error">{{ error }}</div>
 
-  <div class="kpi-grid a3">
+  <div class="kpi-grid a3" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_DASHBOARD']">
     <app-dashboard-kpi-card
       *ngFor="let card of kpiCards"
       [data]="card"
@@ -47,12 +47,14 @@
   </div>
 
   <div class="charts-grid a4">
+    <ng-container *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_DASHBOARD']">
     <app-sales-evolution-chart
       [points]="chartPoints"
       [loading]="chartLoading"
       [granularity]="chartGranularity"
       (granularityChange)="onChartGranularityChange($event)">
     </app-sales-evolution-chart>
+    </ng-container>
     <app-stock-status-chart
       [stock]="data?.stock ?? null"
       [loading]="loading">
@@ -60,7 +62,9 @@
   </div>
 
   <div class="panels-grid a5">
+    <ng-container *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_DASHBOARD']">
     <app-recent-sales-panel [sales]="data?.recentSales ?? []" [loading]="loading"></app-recent-sales-panel>
+    </ng-container>
     <app-recent-activity-panel [operations]="data?.recentOperations ?? []" [loading]="loading"></app-recent-activity-panel>
   </div>
 

@@ -1,6 +1,8 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { CollectorTransferService } from '../service/collector-transfer.service';
+import { AuthService } from 'src/app/auth/service/auth.service';
+import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-permission.constant';
 import {
   CollectorTransferDetail,
   CollectorTransferFilters,
@@ -51,7 +53,8 @@ export class CollectorTransfersComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly collectorTransferService: CollectorTransferService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -77,18 +80,24 @@ export class CollectorTransfersComponent implements OnInit, OnDestroy {
     this.loading = true;
     const filters = this.buildFilters();
 
-    this.collectorTransferService.getSummary(filters).subscribe({
-      next: (res: any) => {
-        if (res?.data) {
-          this.summary = res.data;
-          this.lastUpdate = new Date();
-          this.saveState();
-        }
+    void this.authService.hasPermission(KpiFinancierPermissions.TransfertVente).then((allowed) => {
+      if (!allowed) {
         this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
+        return;
       }
+      this.collectorTransferService.getSummary(filters).subscribe({
+        next: (res: any) => {
+          if (res?.data) {
+            this.summary = res.data;
+            this.lastUpdate = new Date();
+            this.saveState();
+          }
+          this.loading = false;
+        },
+        error: () => {
+          this.loading = false;
+        }
+      });
     });
 
     this.loadDetails(filters);

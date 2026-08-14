@@ -6,8 +6,10 @@ import com.optimize.common.entities.util.ResponseUtil;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,6 +30,7 @@ public class CreditLateController {
     }
 
     @GetMapping("/summary")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RETARD + "')")
     public ResponseEntity<Response> getSummary(@RequestParam(required = false) String collector,
                                                @RequestParam(required = false) Integer month,
                                                @RequestParam(required = false) String locality) {

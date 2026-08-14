@@ -62,8 +62,10 @@
     <button class="btn-outline btn-sm" (click)="returnToCurrentSession()">Retourner à la session en cours</button>
   </div>
 
-  <div class="kpi-strip tontine-kpi-strip a3" *ngIf="kpiCards$ | async as kpiCards">
-    <app-tontine-kpi-card *ngFor="let kpi of kpiCards" [config]="kpi"></app-tontine-kpi-card>
+  <div class="kpi-strip tontine-kpi-strip a3" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_TONTINE']">
+    <ng-container *ngIf="kpiCards$ | async as kpiCards">
+      <app-tontine-kpi-card *ngFor="let kpi of kpiCards" [config]="kpi"></app-tontine-kpi-card>
+    </ng-container>
   </div>
 
   <app-tontine-filter-bar

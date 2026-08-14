@@ -3,6 +3,8 @@ import { CreditLateService } from '../service/credit-late.service';
 import { CreditLateDTO, CreditLateSummaryDTO } from '../models/credit-late.model';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { AuthService } from 'src/app/auth/service/auth.service';
+import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-permission.constant';
 import { MatDialog } from '@angular/material/dialog';
 import { CreditLateCloseModalComponent } from './components/credit-late-close-modal/credit-late-close-modal.component';
 import { CreditFieldControlModalComponent } from './components/credit-field-control-modal/credit-field-control-modal.component';
@@ -38,6 +40,7 @@ export class CreditLateComponent implements OnInit {
   constructor(
     private creditLateService: CreditLateService,
     private userService: UserService,
+    private authService: AuthService,
     private dialog: MatDialog
   ) {}
 
@@ -57,15 +60,19 @@ export class CreditLateComponent implements OnInit {
   loadData() {
     this.isLoading = true;
 
-    // Load summary
-    this.creditLateService.getSummary(this.currentCollector, this.currentMonth || undefined, this.currentLocality).subscribe({
-      next: (res: any) => {
-        if (res.statusCode === 200 && res.data) {
-          this.summary = res.data;
-          this.lastUpdate = new Date();
-        }
-      },
-      error: (err) => console.error(err)
+    void this.authService.hasPermission(KpiFinancierPermissions.Retard).then((allowed) => {
+      if (!allowed) {
+        return;
+      }
+      this.creditLateService.getSummary(this.currentCollector, this.currentMonth || undefined, this.currentLocality).subscribe({
+        next: (res: any) => {
+          if (res.statusCode === 200 && res.data) {
+            this.summary = res.data;
+            this.lastUpdate = new Date();
+          }
+        },
+        error: (err) => console.error(err)
+      });
     });
 
     // Load credits

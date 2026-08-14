@@ -100,18 +100,21 @@ export class DashboardV2Service {
   loadDashboard(
     period: DashboardV2Period,
     collector: string | undefined,
-    isPromoter: boolean
+    isPromoter: boolean,
+    includeFinancialKpis = true
   ): Observable<DashboardV2Data> {
     const search = collector ? { commercial: collector } : null;
 
-    const summary$ = this.creditService.getListSummary({
-      startDate: period.startDate,
-      endDate: period.endDate,
-      search
-    }).pipe(
-      map((res: any) => (res?.statusCode === 200 ? res.data as CreditListSummary : null)),
-      catchError(() => of(null))
-    );
+    const summary$ = includeFinancialKpis
+      ? this.creditService.getListSummary({
+          startDate: period.startDate,
+          endDate: period.endDate,
+          search
+        }).pipe(
+          map((res: any) => (res?.statusCode === 200 ? res.data as CreditListSummary : null)),
+          catchError(() => of(null))
+        )
+      : of(null);
 
     const clients$ = this.clientService.getClientKpis(collector ?? null).pipe(catchError(() => of({
       totalRegistered: 0,
@@ -120,21 +123,24 @@ export class DashboardV2Service {
       withoutCreditNorTontine: 0
     } as ClientKpis)));
 
-    const tontine$ = this.tontineCollecteService.getSummary(
-      period.startDate,
-      period.endDate,
-      collector
-    ).pipe(
-      map((res: any) => {
-        const data = res?.data ?? res;
-        return {
-          totalMontant: data?.totalMontant ?? 0,
-          totalMises: data?.totalMises ?? 0,
-          totalSocietyShare: data?.totalSocietyShare ?? 0
-        } as DashboardV2TontineKpi;
-      }),
-      catchError(() => of({ totalMontant: 0, totalMises: 0, totalSocietyShare: 0 }))
-    );
+    const emptyTontine: DashboardV2TontineKpi = { totalMontant: 0, totalMises: 0, totalSocietyShare: 0 };
+    const tontine$ = includeFinancialKpis
+      ? this.tontineCollecteService.getSummary(
+          period.startDate,
+          period.endDate,
+          collector
+        ).pipe(
+          map((res: any) => {
+            const data = res?.data ?? res;
+            return {
+              totalMontant: data?.totalMontant ?? 0,
+              totalMises: data?.totalMises ?? 0,
+              totalSocietyShare: data?.totalSocietyShare ?? 0
+            } as DashboardV2TontineKpi;
+          }),
+          catchError(() => of(emptyTontine))
+        )
+      : of(emptyTontine);
 
     const warehouseStock$ = isPromoter
       ? of(null)
@@ -146,15 +152,17 @@ export class DashboardV2Service {
         )
       : of(null);
 
-    const recentSales$ = this.creditService.searchCredits(search ?? {}, 0, 5).pipe(
-      map((res: any) => {
-        const content = res?.data?.content ?? res?.content ?? [];
-        return [...content].sort((a: any, b: any) =>
-          new Date(b.beginDate).getTime() - new Date(a.beginDate).getTime()
-        );
-      }),
-      catchError(() => of([]))
-    );
+    const recentSales$ = includeFinancialKpis
+      ? this.creditService.searchCredits(search ?? {}, 0, 5).pipe(
+          map((res: any) => {
+            const content = res?.data?.content ?? res?.content ?? [];
+            return [...content].sort((a: any, b: any) =>
+              new Date(b.beginDate).getTime() - new Date(a.beginDate).getTime()
+            );
+          }),
+          catchError(() => of([]))
+        )
+      : of([]);
 
     const recentOps$ = this.dailyOperationService.getOperations(
       period.startDate,

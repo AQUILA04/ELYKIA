@@ -4,6 +4,8 @@ import { TontineCollectionWebDto, TontineCollectionKpiDto } from '../models/tont
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { AuthService } from 'src/app/auth/service/auth.service';
+import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-permission.constant';
 
 @Component({
   selector: 'app-tontine-collecte',
@@ -29,7 +31,8 @@ export class TontineCollecteComponent implements OnInit {
   constructor(
     private tontineCollecteService: TontineCollecteService,
     private tokenStorage: TokenStorageService,
-    private userService: UserService
+    private userService: UserService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -57,16 +60,20 @@ export class TontineCollecteComponent implements OnInit {
 
   loadData() {
     this.isLoading = true;
-    
-    // Load summary
-    this.tontineCollecteService.getSummary(this.dateFrom, this.dateTo, this.currentCollector).subscribe({
-      next: (res: any) => {
-        if (res.statusCode === 200 && res.data) {
-          this.summary = res.data;
-          this.lastUpdate = new Date();
-        }
-      },
-      error: (err: any) => console.error(err)
+
+    void this.authService.hasPermission(KpiFinancierPermissions.TontineCollecte).then((allowed) => {
+      if (!allowed) {
+        return;
+      }
+      this.tontineCollecteService.getSummary(this.dateFrom, this.dateTo, this.currentCollector).subscribe({
+        next: (res: any) => {
+          if (res.statusCode === 200 && res.data) {
+            this.summary = res.data;
+            this.lastUpdate = new Date();
+          }
+        },
+        error: (err: any) => console.error(err)
+      });
     });
 
     // Load table data

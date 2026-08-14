@@ -11,6 +11,7 @@ import com.optimize.elykia.core.service.report.DailyReportPdfService;
 import com.optimize.elykia.core.service.report.RemainingAtClientsPdfService;
 import com.optimize.elykia.core.service.report.RemainingAtClientsService;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,6 +23,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -57,6 +59,7 @@ public class DailyReportController {
     }
 
     @GetMapping("/search")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
     @Operation(summary = "Search reports with date range and role-based filtering")
     public ResponseEntity<List<DailyCommercialReport>> searchReports(
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
@@ -79,6 +82,7 @@ public class DailyReportController {
     }
 
     @GetMapping("/yearly-summary")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
     @Operation(summary = "Get yearly credit sales and deposit summary for a commercial")
     public ResponseEntity<CommercialYearlySummaryDto> getYearlySummary(
             @RequestParam("year") int year,
@@ -93,6 +97,7 @@ public class DailyReportController {
     }
 
     @GetMapping("/yearly-tontine-summary")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
     @Operation(summary = "Get yearly tontine collections and deposits for a commercial")
     public ResponseEntity<CommercialTontineYearlySummaryDto> getYearlyTontineSummary(
             @RequestParam("year") int year,
@@ -108,6 +113,7 @@ public class DailyReportController {
     }
 
     @GetMapping("/yearly-remaining-credits")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
     @Operation(summary = "Paginated list of credits still owed by clients for a commercial year")
     public ResponseEntity<RemainingAtClientsPageDto> getYearlyRemainingCredits(
             @RequestParam("year") int year,
@@ -123,6 +129,7 @@ public class DailyReportController {
     }
 
     @GetMapping("/yearly-remaining-credits/export/pdf")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
     @Operation(summary = "Export remaining-at-clients credits as PDF for a commercial year")
     public ResponseEntity<byte[]> exportYearlyRemainingCreditsPdf(
             @RequestParam("year") int year,
@@ -143,6 +150,7 @@ public class DailyReportController {
     }
 
     @GetMapping("/export/pdf")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
     @Operation(summary = "Export daily report as PDF for a specific commercial and date range")
     public ResponseEntity<byte[]> exportPdf(
             @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
