@@ -46,3 +46,19 @@ ion-content.rm-content {
   border-radius: 14px;
 }
 .menu ion-icon { color: #003366; margin-right: 8px; }
+.menu ion-label h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--ion-text-color, #000);
+}
+.menu ion-label p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: var(--rm-muted);
+}
+.update-progress {
+  color: var(--rm-navy);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}

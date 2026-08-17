@@ -291,6 +291,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Liste dépenses : badge « Comptabilisée » + actions éditer/supprimer désactivées si remise `RECEIVED`.
 - Formulaire dépenses : mode lecture seule avec bannière si comptabilisée.
 
+## Mobile — [2.20.1] — 2026-08-17
+
+### Added
+
+- Page Plus du chef de recouvrement : affichage de la version et bouton « Mettre à jour l'application » (même flux in-app Android que les commerciaux).
+
 ## Mobile — [2.20.0] — 2026-08-14
 
 ### Added

@@ -1,8 +1,10 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { Store } from '@ngrx/store';
+import { Capacitor } from '@capacitor/core';
 import { Subscription } from 'rxjs';
 import * as AuthActions from '../../store/auth/auth.actions';
+import { AppUpdateService } from '../../core/services/app-update.service';
 import { RmOfflinePackService } from '../../core/services/rm/rm-offline-pack.service';
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCloseQueueService } from '../../core/services/rm/rm-close-queue.service';
@@ -18,7 +20,9 @@ import { RmCloseOp } from '../../core/services/rm/rm-close.models';
 import { RmContactPatch } from '../../core/services/rm/rm-contact.models';
 import { RmFieldControlOp } from '../../core/services/rm/rm-field-control.models';
 import { RmTontineFieldControlOp } from '../../core/services/rm/rm-tontine-field-control.models';
-import { LoadingController, ToastController } from '@ionic/angular';
+import { MobileAppReleaseInfo } from 'src/app/models/mobile-app-release.model';
+import { environment } from 'src/environments/environment';
+import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 
 @Component({
   selector: 'app-rm-more',
@@ -33,6 +37,9 @@ export class RmMorePage implements OnInit, OnDestroy {
   pendingContacts: RmContactPatch[] = [];
   pendingControls: RmFieldControlOp[] = [];
   pendingTontineControls: RmTontineFieldControlOp[] = [];
+  appVersion = environment.version;
+  updateInProgress = false;
+  updateProgressLabel = '';
   private subs: Subscription[] = [];
 
   constructor(
@@ -49,7 +56,10 @@ export class RmMorePage implements OnInit, OnDestroy {
     private readonly store: Store,
     private readonly router: Router,
     private readonly loadingCtrl: LoadingController,
-    private readonly toastCtrl: ToastController
+    private readonly toastCtrl: ToastController,
+    private readonly alertController: AlertController,
+    private readonly appUpdateService: AppUpdateService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -138,6 +148,97 @@ export class RmMorePage implements OnInit, OnDestroy {
     void this.fieldControlQueue.clearAll();
     void this.tontineFieldControlQueue.clearAll();
     this.store.dispatch(AuthActions.logout());
+  }
+
+  async checkForAppUpdate(): Promise<void> {
+    if (Capacitor.getPlatform() === 'web') {
+      await this.toast(
+        'La mise à jour in-app est disponible uniquement sur l\'application Android.',
+        'warning'
+      );
+      return;
+    }
+
+    this.updateInProgress = true;
+    this.updateProgressLabel = 'Vérification de la version...';
+    this.cdr.markForCheck();
+
+    try {
+      const release = await this.appUpdateService.checkForUpdate();
+
+      if (!release.updateAvailable) {
+        await this.toast('Votre application est déjà à jour.', 'success');
+        return;
+      }
+
+      const confirmed = await this.confirmAppUpdate(release);
+      if (!confirmed) {
+        return;
+      }
+
+      await this.appUpdateService.downloadAndInstall(release, (progress) => {
+        switch (progress.phase) {
+          case 'downloading':
+            this.updateProgressLabel = progress.percent != null
+              ? `Téléchargement... ${progress.percent}%`
+              : 'Téléchargement en cours...';
+            break;
+          case 'verifying':
+            this.updateProgressLabel = 'Vérification du fichier...';
+            break;
+          case 'installing':
+            this.updateProgressLabel = 'Lancement de l\'installation...';
+            break;
+          default:
+            this.updateProgressLabel = 'Mise à jour en cours...';
+        }
+        this.cdr.markForCheck();
+      });
+
+      await this.toast(
+        'Installation lancée. Suivez les instructions Android pour terminer la mise à jour.',
+        'success'
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Impossible de mettre à jour l\'application.';
+      await this.toast(message, 'danger');
+      console.error('App update error:', error);
+    } finally {
+      this.updateInProgress = false;
+      this.updateProgressLabel = '';
+      this.cdr.markForCheck();
+    }
+  }
+
+  private async confirmAppUpdate(release: MobileAppReleaseInfo): Promise<boolean> {
+    const sizeMb = release.sizeBytes > 0
+      ? (release.sizeBytes / (1024 * 1024)).toFixed(1)
+      : null;
+    const sizeLine = sizeMb ? `\n\nTaille : ${sizeMb} Mo` : '';
+    const notes = release.releaseNotes?.trim()
+      ? `\n\n${release.releaseNotes.trim()}`
+      : '';
+    const mandatoryLine = release.updateRequired || release.mandatory
+      ? '\n\nCette mise à jour est obligatoire.'
+      : '';
+
+    return new Promise<boolean>((resolve) => {
+      this.alertController.create({
+        header: 'Mise à jour disponible',
+        message: `Version ${release.version} disponible (vous êtes en ${this.appVersion}).${sizeLine}${notes}${mandatoryLine}`,
+        buttons: [
+          {
+            text: release.updateRequired || release.mandatory ? 'Plus tard' : 'Annuler',
+            role: 'cancel',
+            handler: () => resolve(false),
+          },
+          {
+            text: 'Mettre à jour',
+            handler: () => resolve(true),
+          },
+        ],
+      }).then((alert) => alert.present());
+    });
   }
 
   formatOp(op: RmCloseOp): string {

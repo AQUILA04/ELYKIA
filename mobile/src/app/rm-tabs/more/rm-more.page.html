@@ -42,6 +42,20 @@
         <ion-icon name="map-outline" slot="start"></ion-icon>
         <ion-label>Changer le plan du jour</ion-label>
       </ion-item>
+      <ion-item>
+        <ion-icon name="information-circle-outline" slot="start"></ion-icon>
+        <ion-label>Version {{ appVersion }}</ion-label>
+      </ion-item>
+      <ion-item button (click)="checkForAppUpdate()" [disabled]="updateInProgress" detail="false">
+        <ion-icon name="arrow-up-circle-outline" slot="start"></ion-icon>
+        <ion-label>
+          <h3>Mettre à jour l'application</h3>
+          <p>Vérifier et installer la dernière version</p>
+          <p *ngIf="updateProgressLabel" class="update-progress">{{ updateProgressLabel }}</p>
+        </ion-label>
+        <ion-spinner *ngIf="updateInProgress" name="crescent" slot="end"></ion-spinner>
+        <ion-icon *ngIf="!updateInProgress" name="chevron-forward-outline" slot="end"></ion-icon>
+      </ion-item>
       <ion-item button detail (click)="logout()">
         <ion-icon name="log-out-outline" slot="start" color="danger"></ion-icon>
         <ion-label color="danger">Déconnexion</ion-label>
