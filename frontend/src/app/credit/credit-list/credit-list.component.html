@@ -72,13 +72,15 @@
       </span>
 
       <div class="toolbar-actions">
-        <button
-          *ngIf="selectedCredits.size > 0 && !isRecoveryManager && !isPromoter"
-          type="button"
-          class="btn-secondary"
-          (click)="openBulkChangeCollectorModal()">
-          Changer l'agent ({{ selectedCredits.size }})
-        </button>
+        <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']">
+          <button
+            *ngIf="selectedCredits.size > 0"
+            type="button"
+            class="btn-secondary"
+            (click)="openBulkChangeCollectorModal()">
+            Changer l'agent ({{ selectedCredits.size }})
+          </button>
+        </ng-container>
         <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" type="button" class="btn-primary" (click)="addCredit()" data-testid="e2e-credit-add-btn">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
           Nouvelle vente
@@ -121,7 +123,7 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th *ngIf="!isRecoveryManager && !isPromoter" class="col-select">
+            <th *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']" class="col-select">
               <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected"></mat-checkbox>
             </th>
             <th>#</th>
@@ -142,10 +144,13 @@
               [attr.data-credit-reference]="credit.reference"
               [attr.data-client-lastname]="credit.client?.lastname"
               [attr.data-status]="credit.status">
-            <td *ngIf="!isRecoveryManager && !isPromoter && credit.status !== 'SETTLED'" class="col-select">
-              <mat-checkbox (change)="toggleSelection(credit.id)" [checked]="isSelected(credit.id)"></mat-checkbox>
+            <td *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']" class="col-select">
+              <mat-checkbox
+                *ngIf="credit.status !== 'SETTLED'"
+                (change)="toggleSelection(credit.id)"
+                [checked]="isSelected(credit.id)"></mat-checkbox>
+              <span *ngIf="credit.status === 'SETTLED'">—</span>
             </td>
-            <td *ngIf="!isRecoveryManager && !isPromoter && credit.status === 'SETTLED'" class="col-select">—</td>
             <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
             <td>{{ credit.client?.firstname }} {{ credit.client?.lastname }}</td>
             <td>{{ credit.collector }}</td>
@@ -171,7 +176,7 @@
       </div>
 
       <div class="mobile-card-list" *ngIf="!isLoading && filteredCredits.length > 0">
-        <div class="mobile-select-bar" *ngIf="!isRecoveryManager && !isPromoter">
+        <div class="mobile-select-bar" *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']">
           <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected">
             Tout sélectionner
           </mat-checkbox>
@@ -186,11 +191,13 @@
           [attr.data-client-lastname]="credit.client?.lastname"
           [attr.data-status]="credit.status">
           <div class="mobile-card-top">
-            <mat-checkbox
-              *ngIf="!isRecoveryManager && !isPromoter && credit.status !== 'SETTLED'"
-              (change)="toggleSelection(credit.id)"
-              [checked]="isSelected(credit.id)">
-            </mat-checkbox>
+            <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']">
+              <mat-checkbox
+                *ngIf="credit.status !== 'SETTLED'"
+                (change)="toggleSelection(credit.id)"
+                [checked]="isSelected(credit.id)">
+              </mat-checkbox>
+            </ng-container>
             <span class="mobile-card-ref">#{{ (currentPage * pageSize) + (i + 1) }}</span>
             <span class="status-badge {{ (credit.status | statusBadge).badgeClass }}">
               {{ (credit.status | statusBadge).label }}

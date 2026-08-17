@@ -43,7 +43,6 @@ export class ClientListComponent implements OnInit, OnDestroy {
   clientKpis: ClientKpis | null = null;
   dualCreditEnabled = false;
   isGestionnaire = false;
-  bulkAssignCollectorEnabled = false;
 
   exportLoading = false;
 
@@ -53,6 +52,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
   collectors: Collector[] = [];
   selectedCreditCollector = '';
   selectedTontineCollector = '';
+  transferInProgressCredits = false;
 
   constructor(
     private clientService: ClientService,
@@ -69,7 +69,6 @@ export class ClientListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.dualCreditEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
-    this.bulkAssignCollectorEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.ClientBulkAssignCollector);
     this.isGestionnaire = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
     this.restoreState();
     this.loadClientKpis();
@@ -295,6 +294,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
     this.showBulkAssignCollectorModal = false;
     this.selectedCreditCollector = '';
     this.selectedTontineCollector = '';
+    this.transferInProgressCredits = false;
   }
 
   confirmBulkAssignCollector(): void {
@@ -307,8 +307,10 @@ export class ClientListComponent implements OnInit, OnDestroy {
       clientIds: number[];
       collector?: string;
       tontineCollector?: string;
+      transferInProgressCredits?: boolean;
     } = {
-      clientIds: Array.from(this.selectedClients)
+      clientIds: Array.from(this.selectedClients),
+      transferInProgressCredits: this.transferInProgressCredits && !!this.selectedCreditCollector
     };
     if (this.selectedCreditCollector) {
       dto.collector = this.selectedCreditCollector;
@@ -321,7 +323,11 @@ export class ClientListComponent implements OnInit, OnDestroy {
     this.clientService.bulkAssignCollectors(dto).subscribe({
       next: () => {
         this.spinner.hide();
-        this.alertService.showSuccess('Changement de commercial effectué avec succès.');
+        this.alertService.showSuccess(
+          this.transferInProgressCredits && this.selectedCreditCollector
+            ? 'Changement de commercial effectué. Le transfert des ventes en cours a été lancé.'
+            : 'Changement de commercial effectué avec succès.'
+        );
         this.closeBulkAssignCollectorModal();
         this.selectedClients.clear();
         this.isAllSelected = false;

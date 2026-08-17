@@ -665,6 +665,36 @@
   box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.12);
 }
 
+.client-list-bulk-modal .bulk-checkbox-group {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.client-list-bulk-modal .bulk-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--navy);
+  cursor: pointer;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
+}
+
+.client-list-bulk-modal .bulk-checkbox-input {
+  margin-top: 3px;
+  accent-color: var(--navy);
+}
+
+.client-list-bulk-modal .bulk-checkbox-hint {
+  margin: 8px 0 0 24px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 .client-list-bulk-modal .bulk-modal-footer {
   display: flex;
   justify-content: flex-end;

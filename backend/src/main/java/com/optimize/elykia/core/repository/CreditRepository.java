@@ -707,6 +707,15 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     int bulkUpdateCollector(@Param("creditIds") List<Long> creditIds, @Param("newCollector") String newCollector);
 
     @Modifying
+    @Query(value = """
+            UPDATE credit SET collector = :newCollector
+            WHERE client_id IN :clientIds AND status = 'INPROGRESS' AND collector <> :newCollector
+            """, nativeQuery = true)
+    int bulkUpdateCollectorForInProgressByClientIds(
+            @Param("clientIds") List<Long> clientIds,
+            @Param("newCollector") String newCollector);
+
+    @Modifying
     @Query("UPDATE Client cl SET cl.recoveryCollector = :newCollector WHERE cl.id IN (SELECT c.client.id FROM Credit c WHERE c.id IN :creditIds)")
     void bulkUpdateClientRecoveryCollector(@Param("creditIds") List<Long> creditIds, @Param("newCollector") String newCollector);
 

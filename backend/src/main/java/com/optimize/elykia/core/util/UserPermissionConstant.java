@@ -90,6 +90,7 @@ public class UserPermissionConstant {
     public static final String CONSULT_INVENTORY_HISTORY = "ROLE_CONSULT_INVENTORY_HISTORY";
 
     public static final String ASSIGN_CLIENT_COLLECTOR = "ROLE_ASSIGN_CLIENT_COLLECTOR";
+    public static final String ASSIGN_CREDIT_COLLECTOR = "ROLE_ASSIGN_CREDIT_COLLECTOR";
 
     public static final String KPI_FINANCIER_VENTE = "ROLE_KPI_FINANCIER_VENTE";
     public static final String KPI_FINANCIER_RETARD = "ROLE_KPI_FINANCIER_RETARD";

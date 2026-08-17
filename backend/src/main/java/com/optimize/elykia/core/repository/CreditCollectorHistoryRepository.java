@@ -20,6 +20,19 @@ public interface CreditCollectorHistoryRepository extends JpaRepository<CreditCo
             "FROM credit WHERE id IN :ids", nativeQuery = true)
     void bulkInsertHistoryForCredits(@Param("ids") List<Long> ids, @Param("newCollector") String newCollector, @Param("regUserId") String regUserId, @Param("modUserId") String modUserId);
 
+    @Modifying
+    @Query(value = """
+            INSERT INTO credit_collector_history (credit_id, old_collector, new_collector, total_amount, total_amount_paid, total_amount_remaining, change_date, DATE_REG, DATE_MOD, visibility, REG_USER_ID, MOD_USER_ID)
+            SELECT id, collector, :newCollector, total_amount, total_amount_paid, total_amount_remaining, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'ENABLED', :regUserId, :modUserId
+            FROM credit
+            WHERE client_id IN :clientIds AND status = 'INPROGRESS' AND collector <> :newCollector
+            """, nativeQuery = true)
+    void bulkInsertHistoryForInProgressCreditsByClientIds(
+            @Param("clientIds") List<Long> clientIds,
+            @Param("newCollector") String newCollector,
+            @Param("regUserId") String regUserId,
+            @Param("modUserId") String modUserId);
+
     @Query(value = """
             WITH filtered AS (
                 SELECT h.id,

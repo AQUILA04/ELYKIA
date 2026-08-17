@@ -39,6 +39,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -54,6 +56,9 @@ import java.util.stream.Collectors;
 @Service
 @Transactional(readOnly = true)
 public class ClientService extends GenericService<Client, Long> {
+
+    private static final String ROLE_ASSIGN_CLIENT_COLLECTOR = "ROLE_ASSIGN_CLIENT_COLLECTOR";
+
     private final ClientMapper clientMapper;
     private final ClientProperties clientProperties;
     private final ClientAutoInitProperties clientAutoInitProperties;
@@ -157,12 +162,18 @@ public class ClientService extends GenericService<Client, Long> {
         dto.setId(clientId);
         var old = getById(clientId);
         String oldPhone = old.getPhone();
+        String oldCollector = old.getCollector();
+        String oldTontineCollector = old.getTontineCollector();
         Client client = clientMapper.toEntity(dto);
         client.setId(clientId);
         preservePhotoFields(old, client);
         validateClientUniquenessForUpdate(client);
+        ensureCollectorChangeAllowed(oldCollector, client.getCollector(), oldTontineCollector,
+                client.getTontineCollector());
         ClientRespDto result = ClientRespDto.fromClient(update(client));
         publishPhoneUpdatedIfChanged(clientId, oldPhone, client.getPhone());
+        publishCollectorChangesIfNeeded(clientId, oldCollector, client.getCollector(), oldTontineCollector,
+                client.getTontineCollector());
         return result;
     }
 
@@ -571,8 +582,16 @@ public class ClientService extends GenericService<Client, Long> {
     @EvictClientListCaches
     public Client assignCollector(AssignCollectorDto dto) {
         Client client = getById(dto.getClientId());
+        String oldCollector = client.getCollector();
+        if (Objects.equals(oldCollector, dto.getCollector())) {
+            return client;
+        }
+        ensureCollectorChangeAllowed(oldCollector, dto.getCollector(), client.getTontineCollector(),
+                client.getTontineCollector());
         client.setCollector(dto.getCollector());
-        return update(client);
+        Client updated = update(client);
+        publishCollectorChangesIfNeeded(client.getId(), oldCollector, dto.getCollector(), null, null);
+        return updated;
     }
 
     @Transactional
@@ -650,9 +669,92 @@ public class ClientService extends GenericService<Client, Long> {
             }
         }
 
-        if (!changes.isEmpty() && eventPublisher != null && StringUtils.hasText(performedBy)) {
-            eventPublisher.publishEvent(new ClientCollectorsChangedEvent(this, changes, performedBy));
+        if (!changes.isEmpty()) {
+            publishCollectorChanges(changes, performedBy);
         }
+    }
+
+    /**
+     * Met à jour le commercial de recouvrement et invalide les caches de listes clients.
+     */
+    @Transactional
+    @EvictClientListCaches
+    public void updateRecoveryCollector(Long clientId, String recoveryCollector) {
+        Client client = getById(clientId);
+        client.setRecoveryCollector(recoveryCollector);
+        update(client);
+    }
+
+    /**
+     * Mise à jour batch du recoveryCollector + invalidation des caches listes.
+     */
+    @Transactional
+    @EvictClientListCaches
+    public void bulkUpdateRecoveryCollectors(List<Long> clientIds, String recoveryCollector) {
+        if (clientIds == null || clientIds.isEmpty() || !StringUtils.hasText(recoveryCollector)) {
+            return;
+        }
+        getRepository().bulkUpdateRecoveryCollector(clientIds, recoveryCollector);
+    }
+
+    /**
+     * No-op volontaire : l'annotation {@link EvictClientListCaches} purge
+     * {@code clients-page} et {@code clients-by-commercial-page}.
+     * À appeler après une mise à jour SQL directe hors de ce service.
+     */
+    @EvictClientListCaches
+    public void evictClientListCaches() {
+        // annotation-driven
+    }
+
+    private void publishCollectorChangesIfNeeded(Long clientId, String oldCollector, String newCollector,
+            String oldTontineCollector, String newTontineCollector) {
+        List<ClientCollectorChangeRecord> changes = new ArrayList<>();
+        if (!Objects.equals(oldCollector, newCollector)) {
+            changes.add(new ClientCollectorChangeRecord(
+                    clientId, ClientCollectorType.CREDIT, oldCollector, newCollector));
+        }
+        if (oldTontineCollector != null || newTontineCollector != null) {
+            if (!Objects.equals(oldTontineCollector, newTontineCollector)) {
+                changes.add(new ClientCollectorChangeRecord(
+                        clientId, ClientCollectorType.TONTINE, oldTontineCollector, newTontineCollector));
+            }
+        }
+        publishCollectorChanges(changes, getCurrentUsername());
+    }
+
+    private void publishCollectorChanges(List<ClientCollectorChangeRecord> changes, String performedBy) {
+        if (changes.isEmpty() || eventPublisher == null || !StringUtils.hasText(performedBy)) {
+            return;
+        }
+        eventPublisher.publishEvent(new ClientCollectorsChangedEvent(this, changes, performedBy));
+    }
+
+    private void ensureCollectorChangeAllowed(String oldCollector, String newCollector,
+            String oldTontineCollector, String newTontineCollector) {
+        boolean creditChanged = !Objects.equals(oldCollector, newCollector);
+        boolean tontineChanged = !Objects.equals(oldTontineCollector, newTontineCollector);
+        if ((creditChanged || tontineChanged) && !hasAssignClientCollectorPermission()) {
+            throw new CustomValidationException(
+                    "Vous n'avez pas la permission de modifier le commercial des clients.");
+        }
+    }
+
+    private boolean hasAssignClientCollectorPermission() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            return false;
+        }
+        return authentication.getAuthorities().stream()
+                .anyMatch(a -> ROLE_ASSIGN_CLIENT_COLLECTOR.equals(a.getAuthority()));
+    }
+
+    private String getCurrentUsername() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !StringUtils.hasText(authentication.getName())) {
+            return null;
+        }
+        return authentication.getName();
     }
 
     @Transactional

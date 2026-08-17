@@ -204,6 +204,14 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
     int bulkUpdateTontineCollector(@Param("clientIds") List<Long> clientIds,
             @Param("tontineCollector") String tontineCollector);
 
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+            UPDATE Client c SET c.recoveryCollector = :recoveryCollector
+            WHERE c.id IN :clientIds AND c.state <> com.optimize.common.entities.enums.State.DELETED
+            """)
+    int bulkUpdateRecoveryCollector(@Param("clientIds") List<Long> clientIds,
+            @Param("recoveryCollector") String recoveryCollector);
+
     @Query("""
             SELECT c.id as id, c.collector as collector, c.tontineCollector as tontineCollector
             FROM Client c

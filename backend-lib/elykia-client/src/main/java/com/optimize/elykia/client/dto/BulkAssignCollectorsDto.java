@@ -14,4 +14,7 @@ public class BulkAssignCollectorsDto {
     private String collector;
 
     private String tontineCollector;
+
+    /** Transfère en async les ventes INPROGRESS vers le nouveau commercial crédit. */
+    private boolean transferInProgressCredits;
 }

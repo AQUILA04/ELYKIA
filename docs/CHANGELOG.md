@@ -9,6 +9,30 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.10.6] — 2026-08-17
+
+### Fixed
+
+- Éviction des caches listes clients (`clients-page`, `clients-by-commercial-page`) après changement de commercial depuis les ventes (unitaire / bulk) et après le transfert async des crédits `INPROGRESS`.
+
+## Backend — [1.10.5] — 2026-08-17
+
+### Added
+
+- Permission `ROLE_ASSIGN_CREDIT_COLLECTOR` (migration Flyway `V94`) pour le changement de commercial sur les ventes (liste bulk et fiche crédit).
+- Transfert async des ventes `INPROGRESS` depuis le modal liste clients (`transferInProgressCredits`) : historisation `credit_collector_history` et mise à jour set-based par lots.
+
+### Changed
+
+- Édition client (`PUT /api/v1/clients/{id}`) et `assign-collector` : détection des changements `collector` / `tontineCollector` avec historisation `client_collector_history` (même flux que le bulk).
+- Endpoints `change-collector` / `bulk-change-collector` crédits et `bulk-assign-collectors` clients protégés par `@PreAuthorize`.
+
+## Backend — [1.10.4] — 2026-08-17
+
+### Fixed
+
+- Cycle de beans Spring entre `TontineAllocationMigrationService` et `TontineAllocationMigrationJobRunner` (injection `@Lazy` côté runner).
+
 ## Backend — [1.10.3] — 2026-08-14
 
 ### Added
@@ -18,6 +42,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Security
 
 - Les agrégats financiers (CA, marges, totaux, bilans, KPI BI/dépenses) exigent désormais la permission de la page correspondante ; le chef de recouvrement conserve les listes opérationnelles et le recouvrement.
+
+## Frontend — [2.16.17] — 2026-08-17
+
+### Added
+
+- Liste clients : case « Transférer automatiquement les ventes… » dans le modal de changement de commercial (ventes `INPROGRESS` transférées en async côté backend).
+
+### Changed
+
+- Changement de commercial ventes et fiche crédit : contrôle par `ROLE_ASSIGN_CREDIT_COLLECTOR` (plus masquage par profil promoteur / chef de recouvrement).
+- Liste clients : bulk changement de commercial visible via `ROLE_ASSIGN_CLIENT_COLLECTOR` uniquement (feature flag `clientBulkAssignCollector` retiré de l’UI).
+- Formulaire client (édition) : champs commerciaux crédit/tontine modifiables seulement avec `ROLE_ASSIGN_CLIENT_COLLECTOR`.
 
 ## Frontend — [2.16.16] — 2026-08-14
 

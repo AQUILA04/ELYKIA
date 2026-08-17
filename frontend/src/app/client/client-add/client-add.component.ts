@@ -11,6 +11,8 @@ import { ParameterService } from 'src/app/parameters/parameter.service';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
+import { NgxPermissionsService } from 'ngx-permissions';
+import { CollectorAssignmentPermissions } from 'src/app/shared/constants/collector-assignment-permission.constant';
 
 @Component({
   selector: 'app-client-add',
@@ -41,6 +43,7 @@ export class ClientAddComponent implements OnInit {
 
   isPromoter = false;
   currentUser: any;
+  canAssignClientCollector = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -54,7 +57,8 @@ export class ClientAddComponent implements OnInit {
     private accountService: AccountService,
     private parameterService: ParameterService,
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private permissionsService: NgxPermissionsService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
@@ -62,6 +66,10 @@ export class ClientAddComponent implements OnInit {
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
+    void this.permissionsService.hasPermission(CollectorAssignmentPermissions.Client).then(has => {
+      this.canAssignClientCollector = has;
+      this.applyCollectorFieldAccess();
+    });
 
     this.initForm();
     this.loadLocalities();
@@ -208,6 +216,8 @@ export class ClientAddComponent implements OnInit {
         if (this.isPromoter) {
           this.clientForm.get('collector')?.disable();
           this.clientForm.get('tontineCollector')?.disable();
+        } else {
+          this.applyCollectorFieldAccess();
         }
       },
       error => {
@@ -223,6 +233,19 @@ export class ClientAddComponent implements OnInit {
 
   searchAgent = (term: string, item: any) => {
     return item.username.toLowerCase().includes(term.toLowerCase());
+  }
+
+  private applyCollectorFieldAccess(): void {
+    if (!this.clientId || this.isPromoter) {
+      return;
+    }
+    if (this.canAssignClientCollector) {
+      this.clientForm.get('collector')?.enable();
+      this.clientForm.get('tontineCollector')?.enable();
+    } else {
+      this.clientForm.get('collector')?.disable();
+      this.clientForm.get('tontineCollector')?.disable();
+    }
   }
 
   onSubmit(): void {

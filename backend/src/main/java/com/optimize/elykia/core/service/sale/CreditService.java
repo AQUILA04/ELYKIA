@@ -1165,11 +1165,10 @@ public class CreditService extends GenericService<Credit, Long> {
             metricsPublisher.creditCollectorChanged(history.getOldCollector(), newCollector);
         }
 
-        // 3. Mettre à jour le recoveryCollector du client
+        // 3. Mettre à jour le recoveryCollector du client (+ évict caches listes)
         Client client = credit.getClient();
         if (client != null) {
-            client.setRecoveryCollector(newCollector);
-            clientService.update(client);
+            clientService.updateRecoveryCollector(client.getId(), newCollector);
         }
 
         credit = super.update(credit);
@@ -1247,5 +1246,8 @@ public class CreditService extends GenericService<Credit, Long> {
 
         // 3. Mettre à jour le recoveryCollector des clients en bulk
         getRepository().bulkUpdateClientRecoveryCollector(dto.getCreditIds(), dto.getNewCollector());
+
+        // 4. Invalider les caches listes clients (filtrées aussi par recoveryCollector)
+        clientService.evictClientListCaches();
     }
 }

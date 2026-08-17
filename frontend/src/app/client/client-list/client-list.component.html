@@ -120,7 +120,7 @@
   </div>
 
   <div class="table-card a5">
-    <div class="table-card-actions" *ngIf="bulkAssignCollectorEnabled">
+    <div class="table-card-actions">
       <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
         <button
           *ngIf="selectedClients.size > 0"
@@ -152,10 +152,8 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th *ngIf="bulkAssignCollectorEnabled" class="col-select">
-              <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
-                <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedClients.size > 0 && !isAllSelected"></mat-checkbox>
-              </ng-container>
+            <th *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']" class="col-select">
+              <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedClients.size > 0 && !isAllSelected"></mat-checkbox>
             </th>
             <th>#</th>
             <th>Nom</th>
@@ -167,10 +165,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let client of clients; let i = index" class="table-row">
-            <td *ngIf="bulkAssignCollectorEnabled" class="col-select">
-              <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
-                <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
-              </ng-container>
+            <td *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']" class="col-select">
+              <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
             </td>
             <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
             <td>
@@ -189,20 +185,16 @@
       </div>
 
       <div class="mobile-card-list" *ngIf="!isLoading && clients.length > 0">
-        <div class="mobile-select-bar" *ngIf="bulkAssignCollectorEnabled">
-          <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
-            <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedClients.size > 0 && !isAllSelected">
-              Tout sélectionner
-            </mat-checkbox>
-            <span class="mobile-select-count" *ngIf="selectedClients.size > 0">{{ selectedClients.size }} sélectionné(s)</span>
-          </ng-container>
+        <div class="mobile-select-bar" *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
+          <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedClients.size > 0 && !isAllSelected">
+            Tout sélectionner
+          </mat-checkbox>
+          <span class="mobile-select-count" *ngIf="selectedClients.size > 0">{{ selectedClients.size }} sélectionné(s)</span>
         </div>
         <div class="mobile-card" *ngFor="let client of clients; let i = index">
           <div class="mobile-card-top">
-            <ng-container *ngIf="bulkAssignCollectorEnabled">
-              <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
-                <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
-              </ng-container>
+            <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']">
+              <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
             </ng-container>
             <span class="mobile-card-ref">#{{ (currentPage * pageSize) + (i + 1) }}</span>
             <span *ngIf="dualCreditEnabled && client.businessCreditAuthorized" class="badge badge-success" title="Crédit business autorisé">B</span>
@@ -283,6 +275,20 @@
               {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
             </option>
           </select>
+        </div>
+        <div class="bulk-form-group bulk-checkbox-group">
+          <label class="bulk-checkbox-label">
+            <input
+              type="checkbox"
+              class="bulk-checkbox-input"
+              [(ngModel)]="transferInProgressCredits"
+              [disabled]="!selectedCreditCollector"
+              data-testid="e2e-client-bulk-transfer-credits-checkbox">
+            <span>Transférer automatiquement les ventes du commercial vers le nouveau commercial en charge du client</span>
+          </label>
+          <p class="bulk-checkbox-hint" *ngIf="!selectedCreditCollector">
+            Sélectionnez un commercial crédit pour activer le transfert des ventes en cours.
+          </p>
         </div>
       </div>
       <div class="bulk-modal-footer">

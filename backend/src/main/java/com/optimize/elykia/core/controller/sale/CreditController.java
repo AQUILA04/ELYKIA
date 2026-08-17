@@ -303,12 +303,14 @@ public class CreditController {
     }
 
     @PostMapping(value = "{id}/change-collector")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.ASSIGN_CREDIT_COLLECTOR + "')")
     public ResponseEntity<Response> changeCollector(@PathVariable Long id, @RequestBody @Valid ChangeCollectorDto dto) {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(creditService.changeCollector(id, dto.getNewCollector())), HttpStatus.OK);
     }
 
     @PostMapping("/bulk-change-collector")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.ASSIGN_CREDIT_COLLECTOR + "')")
     public ResponseEntity<Response> bulkChangeCollector(@RequestBody @Valid BulkChangeCollectorDto dto) {
         creditService.bulkChangeCollector(dto);
         return new ResponseEntity<>(ResponseUtil.successResponse(true), HttpStatus.OK);

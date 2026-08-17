@@ -236,6 +236,7 @@ export class ClientService {
     clientIds: number[];
     collector?: string;
     tontineCollector?: string;
+    transferInProgressCredits?: boolean;
   }): Observable<ApiResponse<boolean>> {
     const headers = this.getHeader();
     return this.http.post<ApiResponse<boolean>>(`${this.apiUrl}/bulk-assign-collectors`, dto, { headers });
