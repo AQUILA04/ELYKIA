@@ -6,22 +6,48 @@
     </header>
 
     <section class="block" *ngIf="tontineByCommercial.length">
-      <h2>Tontine — contrôles carnet</h2>
+      <div class="section-head">
+        <h2>Tontine — contrôles carnet</h2>
+        <ion-button size="small" fill="clear" (click)="toggleSelectMode()"
+                    data-testid="e2e-rm-carnet-select-mode">
+          {{ selectMode ? 'Terminer' : 'Sélection' }}
+        </ion-button>
+      </div>
+      <div class="bulk-bar" *ngIf="selectMode && selectedIds.size > 0">
+        <span>{{ selectedIds.size }} sélectionné(s)</span>
+        <ion-button size="small" (click)="verifySelection()"
+                    data-testid="e2e-rm-carnet-bulk-verify">
+          Vérifier la sélection
+        </ion-button>
+      </div>
       <article *ngFor="let block of tontineByCommercial" class="quarter-card">
         <h3>{{ block.commercial }}</h3>
         <div *ngFor="let q of block.quarters">
           <p class="q-label">Localité · {{ q.quarter }} · {{ q.items.length }}</p>
           <div class="row" *ngFor="let item of q.items">
-            <div>
+            <ion-checkbox *ngIf="selectMode"
+                          [checked]="isSelected(item.id)"
+                          (ionChange)="toggleSelected(item.id)"
+                          [attr.data-testid]="'e2e-rm-carnet-select-' + item.id">
+            </ion-checkbox>
+            <div class="row-main">
               <strong>{{ item.clientName }}</strong>
               <span>{{ formatAmount(item.totalContribution || 0) }} FCFA cotisés</span>
+              <span class="badge verified" *ngIf="item.carnetVerified"
+                    data-testid="e2e-rm-carnet-badge">Vérifié</span>
               <span class="badge" *ngIf="controlStatus(item) as st" [class.ok]="st === 'CONFORME'" [class.ecart]="st === 'ECART'"
                 data-testid="e2e-rm-tontine-badge">
                 {{ st }}
               </span>
             </div>
-            <ion-button size="small" fill="outline" (click)="openTontineControl(item)"
-              data-testid="e2e-rm-tontine-control-open">Contrôle</ion-button>
+            <div class="row-actions">
+              <ion-button size="small" fill="solid" (click)="toggleCarnet(item)"
+                          data-testid="e2e-rm-carnet-verify">
+                {{ item.carnetVerified ? 'Annuler' : 'Vérifier' }}
+              </ion-button>
+              <ion-button size="small" fill="outline" (click)="openTontineControl(item)"
+                data-testid="e2e-rm-tontine-control-open">Contrôle</ion-button>
+            </div>
           </div>
         </div>
       </article>

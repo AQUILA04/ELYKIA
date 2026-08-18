@@ -181,7 +181,10 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.currentMonthDays,
             tm.operationConsentCode,
             tm.syncConsentCode,
-            null
+            null,
+            tm.carnetVerified,
+            tm.carnetVerifiedAt,
+            tm.carnetVerifiedBy
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s
@@ -190,11 +193,13 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
         WHERE s.year = :year
         AND (:commercial IS NULL OR c.tontineCollector = :commercial)
         AND (:deliveryStatus IS NULL OR tm.deliveryStatus = :deliveryStatus)
+        AND (:carnetVerified IS NULL OR tm.carnetVerified = :carnetVerified)
         """)
         Page<TontineMemberRespDto> findMembersDto(
                 @Param("year") Integer year,
                 @Param("commercial") String commercial,
                 @Param("deliveryStatus") TontineMemberDeliveryStatus deliveryStatus,
+                @Param("carnetVerified") Boolean carnetVerified,
                 Pageable pageable);
 
 
@@ -228,7 +233,10 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.currentMonthDays,
             tm.operationConsentCode,
             tm.syncConsentCode,
-            null
+            null,
+            tm.carnetVerified,
+            tm.carnetVerifiedAt,
+            tm.carnetVerifiedBy
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s
@@ -241,11 +249,28 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 OR LOWER(c.phone) LIKE LOWER(CONCAT('%', :search, '%')) 
                 OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%')))     
         AND (:deliveryStatus IS NULL OR tm.deliveryStatus = :deliveryStatus)
+        AND (:carnetVerified IS NULL OR tm.carnetVerified = :carnetVerified)
         """)
         Page<TontineMemberRespDto> findMembersDtoWithSearch(
                 @Param("year") Integer year,
                 @Param("commercial") String commercial,
                 @Param("search") String search,
                 @Param("deliveryStatus") TontineMemberDeliveryStatus deliveryStatus,
+                @Param("carnetVerified") Boolean carnetVerified,
                 Pageable pageable);
+
+        @Query("""
+                SELECT tm FROM TontineMember tm
+                JOIN FETCH tm.client c
+                JOIN tm.tontineSession s
+                WHERE s.year = :year
+                  AND tm.state = :state
+                  AND tm.carnetVerified = :verified
+                  AND (:commercial IS NULL OR c.tontineCollector = :commercial)
+                """)
+        List<TontineMember> findForCarnetVerificationExport(
+                @Param("year") Integer year,
+                @Param("verified") boolean verified,
+                @Param("commercial") String commercial,
+                @Param("state") State state);
 }

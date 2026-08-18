@@ -68,6 +68,9 @@ export interface RmPackTontineMember {
   amount?: number;
   totalContribution?: number;
   deliveryStatus?: string;
+  carnetVerified?: boolean;
+  carnetVerifiedAt?: string;
+  carnetVerifiedBy?: string;
   months: RmPackTontineMonth[];
 }
 

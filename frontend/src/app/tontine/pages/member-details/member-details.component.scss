@@ -250,6 +250,67 @@
   border-color: #00658a;
 }
 
+.member-details-page .btn-carnet-verify {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .18s;
+  white-space: nowrap;
+  background: var(--green-pale);
+  color: var(--green);
+  border: 1px solid #b7e0c4;
+  box-shadow: var(--shadow-sm);
+}
+
+.member-details-page .btn-carnet-verify svg {
+  width: 14px;
+  height: 14px;
+}
+
+.member-details-page .btn-carnet-verify:hover:not(:disabled) {
+  background: var(--green);
+  color: #fff;
+  border-color: var(--green);
+}
+
+.member-details-page .btn-carnet-verify:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.member-details-page .carnet-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.member-details-page .carnet-badge.is-verified {
+  background: var(--green-pale);
+  color: var(--green);
+}
+
+.member-details-page .carnet-badge.is-pending {
+  background: var(--navy-xpale);
+  color: var(--text-muted);
+}
+
+.member-details-page .carnet-meta {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 .member-details-page .field-control-section .section-header {
   display: flex;
   align-items: center;

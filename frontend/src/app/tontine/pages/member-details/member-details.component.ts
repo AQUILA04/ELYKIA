@@ -77,6 +77,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   isRecoveryManager = false;
   fieldControlLatest: TontineMemberFieldControlDto | null = null;
   isFieldControlBusy = false;
+  isCarnetBusy = false;
   exportingPdf = false;
 
   monthsList = [
@@ -279,6 +280,38 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
         this.loadFieldControl(this.member.id);
       }
     });
+  }
+
+  onToggleCarnetVerification(): void {
+    if (!this.member || this.isCarnetBusy || !this.isSessionActive) {
+      return;
+    }
+    const nextVerified = !this.member.carnetVerified;
+    const title = nextVerified ? 'Vérifier le carnet' : 'Annuler la vérification';
+    const text = nextVerified
+      ? 'Marquer le carnet de ce membre comme vérifié ?'
+      : 'Retirer la vérification de carnet de ce membre ?';
+    void this.alertService.showConfirmation(title, text, nextVerified ? 'Vérifier' : 'Annuler la vérification')
+      .then((confirmed) => {
+        if (!confirmed || !this.member) {
+          return;
+        }
+        this.isCarnetBusy = true;
+        this.tontineService.setMemberCarnetVerification(this.member.id, nextVerified).pipe(
+          takeUntil(this.destroy$),
+          finalize(() => this.isCarnetBusy = false)
+        ).subscribe({
+          next: (response) => {
+            if (response.data) {
+              this.member = { ...this.member!, ...response.data };
+              this.showSuccess(nextVerified ? 'Carnet marqué comme vérifié' : 'Vérification annulée');
+            }
+          },
+          error: (err) => {
+            this.showError(err?.message || 'Erreur lors de la vérification du carnet');
+          }
+        });
+      });
   }
 
   getFieldControlMonthLabel(month: number): string {

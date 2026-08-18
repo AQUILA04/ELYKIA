@@ -24,7 +24,10 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                                    Integer currentMonthDays,
                                    String operationConsentCode,
                                    String syncConsentCode,
-                                   Double totalDeliveryCollections
+                                   Double totalDeliveryCollections,
+                                   Boolean carnetVerified,
+                                   LocalDateTime carnetVerifiedAt,
+                                   String carnetVerifiedBy
                                    ) {
 
     public static TontineMemberRespDto fromId(Long id) {
@@ -32,7 +35,7 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
             return null;
         }
 
-        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public static TontineMemberRespDto fromTontineMember(TontineMember member) {
@@ -43,7 +46,10 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 member.getTotalContribution(), member.getDeliveryStatus(), member.getRegistrationDate(), TontineDeliveryRespDto.fromTontineDelivery(member.getDelivery()), member.getFrequency(),
                 member.getAmount(), member.getNotes(), member.getSocietyShare(), member.getAvailableContribution(),
                 member.getValidatedMonths(), member.getCurrentMonthDays(), member.getOperationConsentCode(), member.getSyncConsentCode(),
-                member.getTotalDeliveryCollections());
+                member.getTotalDeliveryCollections(),
+                Boolean.TRUE.equals(member.getCarnetVerified()),
+                member.getCarnetVerifiedAt(),
+                member.getCarnetVerifiedBy());
     }
 
     public static Page<TontineMemberRespDto> fromTontineMembers(Page<TontineMember> members) {

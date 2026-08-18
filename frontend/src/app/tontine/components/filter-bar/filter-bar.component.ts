@@ -10,13 +10,16 @@ import { ClientService } from 'src/app/client/service/client.service';
 export class TontineFilterBarComponent implements OnInit {
   @Input() resultCount = 0;
   @Input() downloading = false;
+  @Input() downloadingCarnet = false;
   currentSearchTerm: string = '';
   currentSelectedStatus: TontineMemberDeliveryStatus | 'ALL' = 'ALL';
   currentSelectedCommercial: string = 'ALL';
+  currentCarnetStatus: 'ALL' | 'VERIFIED' | 'PENDING' = 'ALL';
   commerciaux: any[] = [];
 
   @Output() filterChanged = new EventEmitter<TontineFilterBarParams & { commercial?: string }>();
   @Output() downloadPdf = new EventEmitter<string>();
+  @Output() downloadCarnetPdf = new EventEmitter<{ verified: boolean; commercial?: string }>();
 
   TontineMemberDeliveryStatus = TontineMemberDeliveryStatus;
 
@@ -43,6 +46,11 @@ export class TontineFilterBarComponent implements OnInit {
     this.emitFilterChanges();
   }
 
+  onCarnetChange(value: 'ALL' | 'VERIFIED' | 'PENDING'): void {
+    this.currentCarnetStatus = value;
+    this.emitFilterChanges();
+  }
+
   onCommercialChange(username: string) {
     this.currentSelectedCommercial = username;
     this.emitFilterChanges();
@@ -52,6 +60,7 @@ export class TontineFilterBarComponent implements OnInit {
     this.currentSearchTerm = '';
     this.currentSelectedStatus = 'ALL';
     this.currentSelectedCommercial = 'ALL';
+    this.currentCarnetStatus = 'ALL';
     this.emitFilterChanges();
   }
 
@@ -62,11 +71,24 @@ export class TontineFilterBarComponent implements OnInit {
     this.downloadPdf.emit(this.currentSelectedCommercial);
   }
 
+  onDownloadCarnetPdf(verified: boolean): void {
+    if (this.downloadingCarnet) {
+      return;
+    }
+    this.downloadCarnetPdf.emit({
+      verified,
+      commercial: this.currentSelectedCommercial !== 'ALL' ? this.currentSelectedCommercial : undefined
+    });
+  }
+
   private emitFilterChanges(): void {
     this.filterChanged.emit({
       search: this.currentSearchTerm || undefined,
       deliveryStatus: this.currentSelectedStatus !== 'ALL' ? this.currentSelectedStatus : undefined,
-      commercial: this.currentSelectedCommercial !== 'ALL' ? this.currentSelectedCommercial : undefined
+      commercial: this.currentSelectedCommercial !== 'ALL' ? this.currentSelectedCommercial : undefined,
+      carnetVerified: this.currentCarnetStatus === 'ALL'
+        ? undefined
+        : this.currentCarnetStatus === 'VERIFIED'
     });
   }
 }

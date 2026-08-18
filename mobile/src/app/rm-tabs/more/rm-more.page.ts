@@ -15,11 +15,14 @@ import { RmFieldControlQueueService } from '../../core/services/rm/rm-field-cont
 import { RmFieldControlSyncService } from '../../core/services/rm/rm-field-control-sync.service';
 import { RmTontineFieldControlQueueService } from '../../core/services/rm/rm-tontine-field-control-queue.service';
 import { RmTontineFieldControlSyncService } from '../../core/services/rm/rm-tontine-field-control-sync.service';
+import { RmCarnetVerificationQueueService } from '../../core/services/rm/rm-carnet-verification-queue.service';
+import { RmCarnetVerificationSyncService } from '../../core/services/rm/rm-carnet-verification-sync.service';
 import { FieldDayPlan, RmOfflinePack } from '../../core/services/rm/rm.models';
 import { RmCloseOp } from '../../core/services/rm/rm-close.models';
 import { RmContactPatch } from '../../core/services/rm/rm-contact.models';
 import { RmFieldControlOp } from '../../core/services/rm/rm-field-control.models';
 import { RmTontineFieldControlOp } from '../../core/services/rm/rm-tontine-field-control.models';
+import { RmCarnetVerificationOp } from '../../core/services/rm/rm-carnet-verification.models';
 import { MobileAppReleaseInfo } from 'src/app/models/mobile-app-release.model';
 import { environment } from 'src/environments/environment';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
@@ -37,6 +40,7 @@ export class RmMorePage implements OnInit, OnDestroy {
   pendingContacts: RmContactPatch[] = [];
   pendingControls: RmFieldControlOp[] = [];
   pendingTontineControls: RmTontineFieldControlOp[] = [];
+  pendingCarnetVerifications: RmCarnetVerificationOp[] = [];
   appVersion = environment.version;
   updateInProgress = false;
   updateProgressLabel = '';
@@ -53,6 +57,8 @@ export class RmMorePage implements OnInit, OnDestroy {
     private readonly fieldControlSync: RmFieldControlSyncService,
     private readonly tontineFieldControlQueue: RmTontineFieldControlQueueService,
     private readonly tontineFieldControlSync: RmTontineFieldControlSyncService,
+    private readonly carnetQueue: RmCarnetVerificationQueueService,
+    private readonly carnetSync: RmCarnetVerificationSyncService,
     private readonly store: Store,
     private readonly router: Router,
     private readonly loadingCtrl: LoadingController,
@@ -77,6 +83,9 @@ export class RmMorePage implements OnInit, OnDestroy {
       }),
       this.tontineFieldControlQueue.ops$.subscribe(ops => {
         this.pendingTontineControls = ops.filter(o => !o.isSync);
+      }),
+      this.carnetQueue.ops$.subscribe(ops => {
+        this.pendingCarnetVerifications = ops.filter(o => !o.isSync);
       })
     );
   }
@@ -89,7 +98,8 @@ export class RmMorePage implements OnInit, OnDestroy {
     return this.pendingOps.length
       + this.pendingContacts.length
       + this.pendingControls.length
-      + this.pendingTontineControls.length;
+      + this.pendingTontineControls.length
+      + this.pendingCarnetVerifications.length;
   }
 
   async refreshPack(): Promise<void> {
@@ -114,13 +124,15 @@ export class RmMorePage implements OnInit, OnDestroy {
       const contacts = await this.contactSync.syncPending();
       const controls = await this.fieldControlSync.syncPending();
       const tontineControls = await this.tontineFieldControlSync.syncPending();
+      const carnets = await this.carnetSync.syncPending();
       const closes = await this.closeSync.syncPending();
       await loading.dismiss();
-      const synced = contacts.synced + controls.synced + tontineControls.synced + closes.synced;
-      const failed = contacts.failed + controls.failed + tontineControls.failed + closes.failed;
+      const synced = contacts.synced + controls.synced + tontineControls.synced + carnets.synced + closes.synced;
+      const failed = contacts.failed + controls.failed + tontineControls.failed + carnets.failed + closes.failed;
       const firstError = contacts.errors[0]
         || controls.errors[0]
         || tontineControls.errors[0]
+        || carnets.errors[0]
         || closes.errors[0];
       if (failed === 0) {
         await this.toast(`${synced} opération(s) synchronisée(s)`, 'success');
@@ -147,6 +159,7 @@ export class RmMorePage implements OnInit, OnDestroy {
     void this.contactQueue.clearAll();
     void this.fieldControlQueue.clearAll();
     void this.tontineFieldControlQueue.clearAll();
+    void this.carnetQueue.clearAll();
     this.store.dispatch(AuthActions.logout());
   }
 

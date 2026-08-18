@@ -3,6 +3,25 @@
     <div class="desktop-table-wrap">
       <table mat-table [dataSource]="dataSource" matSort class="members-table">
 
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-checkbox
+              (change)="toggleAllSelection()"
+              [checked]="isAllSelected"
+              [indeterminate]="isIndeterminate"
+              data-testid="e2e-tontine-carnet-select-all">
+            </mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let member">
+            <mat-checkbox
+              (change)="toggleSelection(member.id)"
+              [checked]="isSelected(member.id)"
+              (click)="$event.stopPropagation()"
+              [attr.data-testid]="'e2e-tontine-carnet-select-' + member.id">
+            </mat-checkbox>
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="client">
           <th mat-header-cell *matHeaderCellDef mat-sort-header="client.lastname">Client</th>
           <td mat-cell *matCellDef="let member">
@@ -44,6 +63,16 @@
           </td>
         </ng-container>
 
+        <ng-container matColumnDef="carnet">
+          <th mat-header-cell *matHeaderCellDef>Carnet</th>
+          <td mat-cell *matCellDef="let member">
+            <span class="carnet-badge" [class.is-verified]="member.carnetVerified" [class.is-pending]="!member.carnetVerified"
+                  data-testid="e2e-tontine-carnet-row-badge">
+              {{ member.carnetVerified ? 'Vérifié' : '—' }}
+            </span>
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Action</th>
           <td mat-cell *matCellDef="let member">
@@ -73,12 +102,21 @@
         [attr.data-member-id]="member.id"
         [attr.data-client-lastname]="member.client?.lastname">
         <div class="mobile-card-top">
+          <mat-checkbox
+            *ngIf="canVerify"
+            (change)="toggleSelection(member.id)"
+            [checked]="isSelected(member.id)"
+            (click)="$event.stopPropagation()">
+          </mat-checkbox>
           <span class="status-badge" [ngClass]="getStatusBadgeClass(member.deliveryStatus)">
             {{ getStatusLabel(member.deliveryStatus) }}
           </span>
           <span class="mobile-card-ref" *ngIf="member.client?.code">{{ member.client.code }}</span>
         </div>
         <div class="mobile-card-client">{{ getClientName(member) }}</div>
+        <span class="carnet-badge" [class.is-verified]="member.carnetVerified" [class.is-pending]="!member.carnetVerified">
+          {{ member.carnetVerified ? 'Carnet vérifié' : 'Carnet non vérifié' }}
+        </span>
         <div class="mobile-card-meta">
           <span>{{ getCommercial(member) }}</span>
           <span>{{ formatDate(member.registrationDate) }}</span>

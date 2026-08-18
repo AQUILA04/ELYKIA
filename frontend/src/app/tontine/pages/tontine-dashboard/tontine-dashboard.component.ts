@@ -22,8 +22,9 @@ import { AddMemberModalComponent } from '../../components/modals/add-member-moda
 import { SessionSettingsModalComponent } from '../../components/modals/session-settings-modal/session-settings-modal.component';
 import { AddMultipleMembersModalComponent } from '../../components/modals/add-multiple-members-modal/add-multiple-members-modal.component';
 import {UserService} from "../../../user/service/user.service";
-import {UserProfilConstant} from "../../../shared/constants/user-profil.constant";
 import {UserProfile} from "../../../shared/models/user-profile.enum";
+import { NgxPermissionsService } from 'ngx-permissions';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
   selector: 'app-tontine-dashboard',
@@ -51,6 +52,10 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   isRecoveryManager = false;
   isPromoter = false;
   exportingPdf = false;
+  exportingCarnetPdf = false;
+  canVerify = false;
+  selectedMemberIds = new Set<number>();
+  verifyingBulk = false;
 
   constructor(
     public readonly tontineService: TontineService,
@@ -58,7 +63,9 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly dialog: MatDialog,
     private readonly snackBar: MatSnackBar,
-    private readonly userService: UserService
+    private readonly userService: UserService,
+    private readonly permissionsService: NgxPermissionsService,
+    private readonly alertService: AlertService
   ) {
     this.state$ = this.tontineService.state$;
     this.currentSession$ = this.sessionService.currentSession$;
@@ -69,6 +76,9 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     this.loadCurrentSessionAndMembers();
     this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
+    void this.permissionsService.hasPermission(['ROLE_TONTINE_CARNET_VERIFY', 'ROLE_ADMIN']).then((has) => {
+      this.canVerify = !!has;
+    });
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
     }, 1000);
@@ -208,8 +218,10 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
       search: params.search,
       deliveryStatus: params.deliveryStatus === 'ALL' ? undefined : params.deliveryStatus,
       commercial: params.commercial || undefined,
+      carnetVerified: params.carnetVerified,
       page: 0 // Reset to first page on new filter/search
     };
+    this.selectedMemberIds = new Set();
     this.loadMembers();
   }
 
@@ -235,6 +247,71 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
       error: () => {
         this.showError('Erreur lors du téléchargement du PDF');
       }
+    });
+  }
+
+  onExportCarnetPdf(event: { verified: boolean; commercial?: string }): void {
+    if (this.exportingCarnetPdf) {
+      return;
+    }
+    this.exportingCarnetPdf = true;
+    this.tontineService.exportCarnetVerificationPdf(event.verified, event.commercial).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.exportingCarnetPdf = false)
+    ).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        const statusPart = event.verified ? 'verifies' : 'a_verifier';
+        const commercialPart = event.commercial ? event.commercial.replace(/[^a-zA-Z0-9_-]/g, '_') : 'tous';
+        anchor.download = `carnets_${statusPart}_${commercialPart}_${new Date().toISOString().slice(0, 10)}.pdf`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+        this.showSuccess('PDF téléchargé avec succès');
+      },
+      error: () => {
+        this.showError('Erreur lors du téléchargement du PDF de vérification');
+      }
+    });
+  }
+
+  onSelectionChange(ids: Set<number>): void {
+    this.selectedMemberIds = ids;
+  }
+
+  clearSelection(): void {
+    this.selectedMemberIds = new Set();
+  }
+
+  onBulkVerify(): void {
+    if (this.verifyingBulk || this.selectedMemberIds.size === 0 || this.isHistoricalView) {
+      return;
+    }
+    const ids = Array.from(this.selectedMemberIds);
+    void this.alertService.showConfirmation(
+      'Vérifier les carnets',
+      `Marquer ${ids.length} membre(s) comme vérifiés ?`,
+      'Vérifier'
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.verifyingBulk = true;
+      this.tontineService.bulkSetMemberCarnetVerification(ids, true).pipe(
+        takeUntil(this.destroy$),
+        finalize(() => this.verifyingBulk = false)
+      ).subscribe({
+        next: (response) => {
+          const updated = response.data?.updated ?? ids.length;
+          this.showSuccess(`${updated} carnet(s) marqué(s) comme vérifié(s)`);
+          this.selectedMemberIds = new Set();
+          this.loadMembers();
+        },
+        error: (err) => {
+          this.showError(err?.message || 'Erreur lors de la vérification en masse');
+        }
+      });
     });
   }
 

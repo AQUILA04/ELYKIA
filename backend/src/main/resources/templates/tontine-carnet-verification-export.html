@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${pdfDocumentTitle}">Carnets</title>
+    <th:block th:replace="~{pdf/fragments :: styles}"></th:block>
+    <style>
+        .col-table { width: 100%; border-collapse: collapse; }
+        .col-table td {
+            width: 33.33%;
+            vertical-align: top;
+            padding: 0 6px 0 0;
+            border: none;
+        }
+        .name-table { width: 100%; border-collapse: collapse; }
+        .name-table td {
+            border-bottom: 1px solid #dde3ec;
+            padding: 3px 4px;
+            font-size: 8.5px;
+            color: #1a2a44;
+        }
+        .name-main { font-weight: bold; }
+        .name-code { font-size: 7.5px; color: #6b7a99; }
+        .page-block { page-break-inside: avoid; }
+        .page-break { page-break-after: always; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{pdf/fragments :: header}"></div>
+
+    <table class="pdf-meta">
+        <tr>
+            <td>
+                <span class="pdf-meta-label">Statut</span>
+                <span class="pdf-meta-value" th:text="${doc.statusLabel}">Vérifiés</span>
+            </td>
+            <td>
+                <span class="pdf-meta-label">Commercial</span>
+                <span class="pdf-meta-value" th:text="${doc.commercialLabel}">Tous</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="pdf-meta-label">Session</span>
+                <span class="pdf-meta-value" th:text="${doc.sessionYear}">2026</span>
+            </td>
+            <td>
+                <span class="pdf-meta-label">Date de génération</span>
+                <span class="pdf-meta-value" th:text="${doc.generationDate}">19/08/2026 00:00</span>
+            </td>
+        </tr>
+    </table>
+
+    <table class="pdf-kpi">
+        <tr>
+            <td>
+                <div class="kpi-label">Membres</div>
+                <div class="kpi-value" th:text="${doc.memberCount}">0</div>
+            </td>
+            <td>
+                <div class="kpi-label">Colonnes</div>
+                <div class="kpi-value">3</div>
+            </td>
+            <td>
+                <div class="kpi-label">Ordre</div>
+                <div class="kpi-value" style="font-size: 12px;">A → Z</div>
+            </td>
+            <td>
+                <div class="kpi-label">Pages</div>
+                <div class="kpi-value" th:text="${#lists.size(doc.pages)}">1</div>
+            </td>
+        </tr>
+    </table>
+
+    <div th:if="${doc.memberCount == 0}" class="pdf-empty">
+        Aucun membre pour ce statut de vérification.
+    </div>
+
+    <div th:each="page, pageStat : ${doc.pages}"
+         th:if="${doc.memberCount > 0}"
+         th:class="${!pageStat.last} ? 'page-break' : 'page-block'">
+        <table class="col-table">
+            <tr>
+                <td th:each="col : ${page.columns}">
+                    <table class="name-table">
+                        <tr th:each="row : ${col}">
+                            <td>
+                                <span class="name-main" th:text="${row.displayName}">NOM Prénom</span>
+                                <span class="name-code" th:if="${row.clientCode}" th:text="${' · ' + row.clientCode}"></span>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
+</body>
+</html>

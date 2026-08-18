@@ -121,6 +121,9 @@ export class TontineService {
     if (queryParams.commercial) {
       params = params.set('commercial', queryParams.commercial);
     }
+    if (queryParams.carnetVerified !== undefined) {
+      params = params.set('carnetVerified', String(queryParams.carnetVerified));
+    }
 
     return this.http.get<ApiResponse<PaginatedResponse<TontineMember>>>(`${this.apiUrl}/members`, { headers, params })
       .pipe(
@@ -428,6 +431,37 @@ export class TontineService {
     const headers = this.getHeaders();
     return this.http.get(`${this.apiUrl}/members/${memberId}/export/pdf`, {
       headers,
+      responseType: 'blob'
+    });
+  }
+
+  setMemberCarnetVerification(memberId: number, verified: boolean): Observable<ApiResponse<TontineMember>> {
+    const headers = this.getHeaders();
+    return this.http.patch<ApiResponse<TontineMember>>(
+      `${this.apiUrl}/members/${memberId}/carnet-verification`,
+      { verified },
+      { headers }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
+  bulkSetMemberCarnetVerification(memberIds: number[], verified: boolean): Observable<ApiResponse<{ updated: number; skipped: number; requested: number }>> {
+    const headers = this.getHeaders();
+    return this.http.post<ApiResponse<{ updated: number; skipped: number; requested: number }>>(
+      `${this.apiUrl}/members/carnet-verifications`,
+      { memberIds, verified },
+      { headers }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
+  exportCarnetVerificationPdf(verified: boolean, commercial?: string): Observable<Blob> {
+    const headers = this.getHeaders();
+    let params = new HttpParams().set('verified', String(verified));
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+    return this.http.get(`${this.apiUrl}/members/carnet-verifications/export/pdf`, {
+      headers,
+      params,
       responseType: 'blob'
     });
   }

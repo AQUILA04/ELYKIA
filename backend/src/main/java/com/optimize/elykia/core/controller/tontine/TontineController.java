@@ -3,16 +3,20 @@ package com.optimize.elykia.core.controller.tontine;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.common.securities.models.User;
+import com.optimize.elykia.core.dto.BulkTontineMemberCarnetVerificationDto;
 import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlDto;
 import com.optimize.elykia.core.dto.TontineCollectionDto;
 import com.optimize.elykia.core.dto.TontineCatchupPreviewDto;
+import com.optimize.elykia.core.dto.TontineMemberCarnetVerificationDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
 import com.optimize.elykia.core.dto.TontineMemberRespDto;
 import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
 import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
 import com.optimize.elykia.core.service.stock.StockExportService;
+import com.optimize.elykia.core.service.tontine.TontineCarnetVerificationPdfService;
 import com.optimize.elykia.core.service.tontine.TontineExportService;
+import com.optimize.elykia.core.service.tontine.TontineMemberCarnetVerificationService;
 import com.optimize.elykia.core.service.tontine.TontineMemberFieldControlService;
 import com.optimize.elykia.core.service.tontine.TontineMemberContributionService;
 import com.optimize.elykia.core.service.tontine.TontineService;
@@ -44,6 +48,8 @@ public class TontineController {
     private final TontineService tontineService;
     private final TontineStockService tontineStockService;
     private final TontineMemberFieldControlService tontineMemberFieldControlService;
+    private final TontineMemberCarnetVerificationService tontineMemberCarnetVerificationService;
+    private final TontineCarnetVerificationPdfService tontineCarnetVerificationPdfService;
     private final CreditArticlesService creditArticlesService;
     private final StockExportService stockExportService;
     private final TontineExportService tontineExportService;
@@ -106,10 +112,11 @@ public class TontineController {
             Pageable pageable,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String commercial,
-            @RequestParam(required = false) String deliveryStatus) {
+            @RequestParam(required = false) String deliveryStatus,
+            @RequestParam(required = false) Boolean carnetVerified) {
         User user = tontineService.getUserService().getCurrentUser();
         return new ResponseEntity<>(ResponseUtil.successResponse(
-                tontineService.getMembers(user, search, deliveryStatus, commercial, pageable)), HttpStatus.OK);
+                tontineService.getMembers(user, search, deliveryStatus, commercial, carnetVerified, pageable)), HttpStatus.OK);
     }
 
     @GetMapping("/members/history")
@@ -196,6 +203,47 @@ public class TontineController {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(tontineMemberFieldControlService.getHistory(id)),
                 HttpStatus.OK);
+    }
+
+    @PatchMapping("/members/{id}/carnet-verification")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.TONTINE_CARNET_VERIFY + "', '" + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Marquer ou décocher la vérification de carnet d'un membre")
+    public ResponseEntity<Response> setMemberCarnetVerification(
+            @PathVariable Long id,
+            @RequestBody @Valid TontineMemberCarnetVerificationDto dto) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineMemberCarnetVerificationService.setVerified(id, dto.getVerified())),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/members/carnet-verifications")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.TONTINE_CARNET_VERIFY + "', '" + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Marquer en masse la vérification de carnet")
+    public ResponseEntity<Response> bulkSetMemberCarnetVerification(
+            @RequestBody @Valid BulkTontineMemberCarnetVerificationDto dto) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(
+                        tontineMemberCarnetVerificationService.bulkSet(dto.getMemberIds(), dto.getVerified())),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/members/carnet-verifications/export/pdf")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.TONTINE_CARNET_VERIFY + "', '" + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Exporter en PDF les membres selon le statut de vérification de carnet")
+    public ResponseEntity<byte[]> exportCarnetVerificationPdf(
+            @RequestParam boolean verified,
+            @RequestParam(required = false) String commercial) {
+        byte[] pdfContent = tontineCarnetVerificationPdfService.export(verified, commercial);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        String statusPart = verified ? "verifies" : "a_verifier";
+        String commercialPart = (commercial == null || commercial.isBlank() || "ALL".equalsIgnoreCase(commercial.trim()))
+                ? "tous"
+                : commercial.replaceAll("[^a-zA-Z0-9_-]", "_");
+        headers.setContentDispositionFormData("attachment",
+                "carnets_" + statusPart + "_" + commercialPart + "_" + LocalDate.now() + ".pdf");
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+        return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
     }
 
     @PutMapping("/members/{id}")

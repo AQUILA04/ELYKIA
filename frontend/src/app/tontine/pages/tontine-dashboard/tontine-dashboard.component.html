@@ -72,9 +72,22 @@
     class="a4"
     [resultCount]="paginatedMembers?.page?.totalElements ?? paginatedMembers?.totalElements ?? 0"
     [downloading]="exportingPdf"
+    [downloadingCarnet]="exportingCarnetPdf"
     (filterChanged)="onFilterChange($event)"
-    (downloadPdf)="onExportCommercialPdf($event)">
+    (downloadPdf)="onExportCommercialPdf($event)"
+    (downloadCarnetPdf)="onExportCarnetPdf($event)">
   </app-tontine-filter-bar>
+
+  <div class="bulk-carnet-bar a4" *ngIf="canVerify && selectedMemberIds.size > 0">
+    <span>{{ selectedMemberIds.size }} membre(s) sélectionné(s)</span>
+    <button class="btn-primary" type="button"
+            (click)="onBulkVerify()"
+            [disabled]="verifyingBulk || isHistoricalView"
+            data-testid="e2e-tontine-carnet-bulk-verify">
+      {{ verifyingBulk ? 'Enregistrement…' : 'Vérifier la sélection (' + selectedMemberIds.size + ')' }}
+    </button>
+    <button class="btn-clear" type="button" (click)="clearSelection()">Effacer la sélection</button>
+  </div>
 
   <app-tontine-member-table
     class="a5"
@@ -83,8 +96,11 @@
     [pageSize]="memberQueryParams.size || 20"
     [currentPage]="memberQueryParams.page || 0"
     [totalElements]="paginatedMembers?.page?.totalElements || paginatedMembers?.totalElements || 0"
+    [canVerify]="canVerify && !isHistoricalView"
+    [selectedIds]="selectedMemberIds"
     (memberClick)="onMemberClick($event)"
     (pageChange)="onPageChange($event)"
-    (sortChange)="onSortChange($event)">
+    (sortChange)="onSortChange($event)"
+    (selectionChange)="onSelectionChange($event)">
   </app-tontine-member-table>
 </div>

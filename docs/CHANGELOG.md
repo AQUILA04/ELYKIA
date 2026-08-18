@@ -9,6 +9,24 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.17.0] — 2026-08-19
+
+### Added
+
+- Vérification de carnet tontine : badge sur la fiche membre, bouton Vérifier/Annuler, sélection en masse, filtre Carnet et exports PDF vérifiés / à vérifier (`ROLE_TONTINE_CARNET_VERIFY`).
+
+## Mobile — [2.21.0] — 2026-08-19
+
+### Added
+
+- Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
+
+## Backend — [1.11.0] — 2026-08-19
+
+### Added
+
+- Flag `carnetVerified` sur le membre tontine (session courante), droit `ROLE_TONTINE_CARNET_VERIFY`, API unitaire/bulk et export PDF 3 colonnes (ordre alphabétique colonne d’abord).
+
 ## Frontend — [2.16.28] — 2026-08-18
 
 ### Fixed

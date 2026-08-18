@@ -18,6 +18,7 @@
       <p *ngIf="pendingContacts.length">{{ pendingContacts.length }} contact(s) client</p>
       <p *ngIf="pendingControls.length">{{ pendingControls.length }} contrôle(s) carnet crédit</p>
       <p *ngIf="pendingTontineControls.length">{{ pendingTontineControls.length }} contrôle(s) carnet tontine</p>
+      <p *ngIf="pendingCarnetVerifications.length">{{ pendingCarnetVerifications.length }} vérification(s) de carnet</p>
       <p *ngIf="pendingOps.length" data-testid="e2e-rm-pending-close-count">{{ pendingOps.length }} clôture(s)</p>
       <article class="pending-row" *ngFor="let op of pendingOps">
         <div>

@@ -351,6 +351,9 @@ public class RecoveryFieldPlanService {
                     .amount(member.getAmount())
                     .totalContribution(member.getTotalContribution())
                     .deliveryStatus(member.getDeliveryStatus() != null ? member.getDeliveryStatus().name() : null)
+                    .carnetVerified(Boolean.TRUE.equals(member.getCarnetVerified()))
+                    .carnetVerifiedAt(member.getCarnetVerifiedAt())
+                    .carnetVerifiedBy(member.getCarnetVerifiedBy())
                     .months(months)
                     .build());
         }

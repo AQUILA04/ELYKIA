@@ -76,6 +76,15 @@ public class TontineMember extends BaseEntity<String> {
     @Column(name = "sync_consent_code")
     private String syncConsentCode;
 
+    @Column(name = "carnet_verified", nullable = false)
+    private Boolean carnetVerified = Boolean.FALSE;
+
+    @Column(name = "carnet_verified_at")
+    private LocalDateTime carnetVerifiedAt;
+
+    @Column(name = "carnet_verified_by", length = 100)
+    private String carnetVerifiedBy;
+
     @OneToMany(mappedBy = "tontineMember", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private List<TontineMemberAmountHistory> amountHistory = new ArrayList<>();

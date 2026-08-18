@@ -19,6 +19,30 @@ ion-content.rm-content {
 .rm-hero h1 { margin: 6px 0 0; font-size: 24px; font-weight: 800; }
 .block { padding: 16px; }
 .block h2 { color: #003366; font-size: 16px; margin: 0 0 10px; }
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.section-head h2 { margin: 0; }
+.bulk-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: #e8eef6;
+  border-radius: 12px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  color: #003366;
+  font-size: 13px;
+  font-weight: 700;
+}
+.row-main { flex: 1; min-width: 0; }
+.row-actions { display: flex; flex-direction: column; gap: 4px; }
+.badge.verified { background: #e5f6ea; color: #1d8a3c; }
 .quarter-card {
   background: #fff; border-radius: 16px; padding: 12px 14px; margin-bottom: 12px;
   border: 1px solid #dde3ec;

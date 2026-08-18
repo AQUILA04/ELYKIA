@@ -37,6 +37,9 @@ export interface TontineMember {
   readonly clientId?: number; // Added for compatibility
   readonly operationConsentCode?: string;
   readonly syncConsentCode?: string;
+  readonly carnetVerified?: boolean;
+  readonly carnetVerifiedAt?: string | null;
+  readonly carnetVerifiedBy?: string | null;
 }
 
 export interface TontineCollection {
@@ -244,6 +247,7 @@ export interface TontineMemberQueryParams {
   search?: string;
   deliveryStatus?: TontineMemberDeliveryStatus;
   commercial?: string;
+  carnetVerified?: boolean;
 }
 
 // Interface for parameters emitted by the filter bar component
@@ -251,6 +255,7 @@ export interface TontineFilterBarParams {
   search?: string;
   deliveryStatus?: TontineMemberDeliveryStatus | 'ALL';
   commercial?: string;
+  carnetVerified?: boolean | 'ALL';
 }
 
 // KPIs

@@ -28,6 +28,17 @@
             Code {{ member.client?.code || 'N/A' }}
             <span class="dot-sep">·</span>
             Commercial : {{ getCommercial() }}
+            <span class="dot-sep">·</span>
+            <span class="carnet-badge"
+                  [class.is-verified]="member.carnetVerified"
+                  [class.is-pending]="!member.carnetVerified"
+                  data-testid="e2e-tontine-carnet-badge">
+              {{ member.carnetVerified ? 'Carnet vérifié' : 'Carnet non vérifié' }}
+            </span>
+          </p>
+          <p class="carnet-meta" *ngIf="member.carnetVerified" data-testid="e2e-tontine-carnet-meta">
+            Vérifié le {{ member.carnetVerifiedAt | date:'dd/MM/yyyy HH:mm' }}
+            par {{ member.carnetVerifiedBy }}
           </p>
         </div>
       </div>
@@ -51,6 +62,14 @@
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><path d="M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z"/><path d="M9 12h6"/><path d="M9 16h6"/></svg>
         {{ isFieldControlBusy ? 'Contrôle en cours...' : 'Contrôle terrain' }}
       </button>
+      <ng-container *ngxPermissionsOnly="['ROLE_TONTINE_CARNET_VERIFY', 'ROLE_ADMIN']">
+        <button class="btn-carnet-verify" type="button" (click)="onToggleCarnetVerification()"
+                [disabled]="isCarnetBusy || !isSessionActive"
+                data-testid="e2e-tontine-carnet-verify-btn">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
+          {{ isCarnetBusy ? 'Enregistrement…' : (member.carnetVerified ? 'Annuler la vérification' : 'Vérifier') }}
+        </button>
+      </ng-container>
       <button class="btn-primary" (click)="onRecordCollection()" *ngIf="isSessionActive" [disabled]="tontineService.isAllocationMigrationRunning()" data-testid="e2e-tontine-record-collection-btn">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
         Enregistrer une Collecte

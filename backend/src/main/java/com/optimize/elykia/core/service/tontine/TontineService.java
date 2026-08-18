@@ -691,7 +691,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     public Page<TontineMemberRespDto> getMembers(User currentUser, String search, String deliveryStatus, String commercial,
-                                                 Pageable pageable) {
+                                                 Boolean carnetVerified, Pageable pageable) {
         int currentYear = LocalDate.now().getYear();
 
 
@@ -715,10 +715,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
         String searchFilter = StringUtils.hasText(search) ? search : null;
         Page<TontineMemberRespDto> memberRespDtos= null;
         if (Objects.isNull(searchFilter)) {
-            memberRespDtos= getRepository().findMembersDto(currentYear, commercialFilter, statusFilter, pageable);
+            memberRespDtos= getRepository().findMembersDto(currentYear, commercialFilter, statusFilter, carnetVerified, pageable);
             return memberRespDtos;
         } else {
-            memberRespDtos = getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter, statusFilter, pageable);
+            memberRespDtos = getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter, statusFilter, carnetVerified, pageable);
 
             return memberRespDtos;
         }

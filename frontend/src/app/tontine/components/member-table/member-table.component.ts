@@ -12,21 +12,29 @@ import { TontineMember, formatCurrency, formatDate, getDeliveryStatusLabel, getD
 export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
   @Input() loading: boolean = false;
   @Input() paginatedResponse: PaginatedResponse<TontineMember> | null = null;
-  @Input() pageSize: number = 20; // Default page size
-  @Input() currentPage: number = 0; // Default current page (0-indexed)
+  @Input() pageSize: number = 20;
+  @Input() currentPage: number = 0;
   @Input() totalElements: number = 0;
+  @Input() canVerify = false;
+  @Input() selectedIds: Set<number> = new Set();
 
   @Output() memberClick = new EventEmitter<TontineMember>();
   @Output() pageChange = new EventEmitter<{ page: number, size: number }>();
   @Output() sortChange = new EventEmitter<string>();
+  @Output() selectionChange = new EventEmitter<Set<number>>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) matSort!: MatSort;
 
-  displayedColumns: string[] = ['client', 'totalContribution', 'commercial', 'deliveryStatus', 'registrationDate', 'actions'];
+  displayedColumns: string[] = ['client', 'totalContribution', 'commercial', 'deliveryStatus', 'carnet', 'registrationDate', 'actions'];
   dataSource = new MatTableDataSource<TontineMember>([]);
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['canVerify'] || !this.displayedColumns.length) {
+      this.displayedColumns = this.canVerify
+        ? ['select', 'client', 'totalContribution', 'commercial', 'deliveryStatus', 'carnet', 'registrationDate', 'actions']
+        : ['client', 'totalContribution', 'commercial', 'deliveryStatus', 'carnet', 'registrationDate', 'actions'];
+    }
     if (changes['paginatedResponse'] && this.paginatedResponse) {
       this.dataSource = new MatTableDataSource(this.paginatedResponse.content ? [...this.paginatedResponse.content] : []);
       if (this.paginatedResponse.page) {
@@ -53,6 +61,45 @@ export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
 
   onPageChange(event: PageEvent): void {
     this.pageChange.emit({ page: event.pageIndex, size: event.pageSize });
+  }
+
+  get pageIds(): number[] {
+    return this.dataSource.data.map(member => member.id);
+  }
+
+  get isAllSelected(): boolean {
+    const ids = this.pageIds;
+    return ids.length > 0 && ids.every(id => this.selectedIds.has(id));
+  }
+
+  get isIndeterminate(): boolean {
+    const ids = this.pageIds;
+    const selectedOnPage = ids.filter(id => this.selectedIds.has(id)).length;
+    return selectedOnPage > 0 && selectedOnPage < ids.length;
+  }
+
+  isSelected(id: number): boolean {
+    return this.selectedIds.has(id);
+  }
+
+  toggleSelection(id: number): void {
+    const next = new Set(this.selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    this.selectionChange.emit(next);
+  }
+
+  toggleAllSelection(): void {
+    const next = new Set(this.selectedIds);
+    if (this.isAllSelected) {
+      this.pageIds.forEach(id => next.delete(id));
+    } else {
+      this.pageIds.forEach(id => next.add(id));
+    }
+    this.selectionChange.emit(next);
   }
 
   getClientName(member: TontineMember): string {
@@ -102,4 +149,3 @@ export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
     this.memberClick.emit(member);
   }
 }
-

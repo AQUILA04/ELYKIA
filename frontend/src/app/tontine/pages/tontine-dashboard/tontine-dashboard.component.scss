@@ -519,6 +519,53 @@
   cursor: not-allowed;
 }
 
+.tontine-page .btn-download-outline {
+  background: #fff;
+  color: var(--navy);
+  border: 1px solid var(--navy);
+}
+
+.tontine-page .btn-download-outline:hover:not(:disabled) {
+  background: var(--navy);
+  color: #fff;
+}
+
+.tontine-page .bulk-carnet-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: var(--navy-pale);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--navy);
+}
+
+.tontine-page .carnet-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .03em;
+}
+
+.tontine-page .carnet-badge.is-verified {
+  background: #e6f5eb;
+  color: #1d8a3c;
+}
+
+.tontine-page .carnet-badge.is-pending {
+  background: var(--navy-xpale);
+  color: var(--text-muted);
+}
+}
+
 .tontine-page .result-count {
   margin-left: auto;
   font-size: 12px;
