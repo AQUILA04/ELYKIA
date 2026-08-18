@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.10.10] — 2026-08-18
+
+### Changed
+
+- `GET /api/v1/credits/collector-transfers` : le détail des passations est paginé (`page` / `size`, 25 par défaut) pour éviter de tout charger en mémoire.
+
+## Frontend — [2.16.27] — 2026-08-18
+
+### Changed
+
+- Transfert Ventes : tableau « Détail des ventes » paginé côté serveur (`mat-paginator`), avec rechargement au clic sur un couple et conservation de la page.
+
 ## Backend — [1.10.9] — 2026-08-17
 
 ### Changed

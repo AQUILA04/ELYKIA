@@ -10,6 +10,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -66,21 +72,25 @@ class CollectorTransferReportServiceTest {
         LocalDate from = LocalDate.of(2026, 7, 1);
         LocalDate to = LocalDate.of(2026, 7, 31);
         LocalDateTime changeDate = LocalDateTime.of(2026, 7, 10, 12, 0);
+        Pageable unsorted = PageRequest.of(0, 25);
 
         when(creditCollectorHistoryRepository.findTransferDetails(
                 eq("COM014"), eq("COM013"),
                 eq(from.atStartOfDay()),
-                eq(to.plusDays(1).atStartOfDay())))
-                .thenReturn(List.<Object[]>of(new Object[]{
+                eq(to.plusDays(1).atStartOfDay()),
+                eq(unsorted)))
+                .thenReturn(new PageImpl<>(List.<Object[]>of(new Object[]{
                         11L, 99L, "CR-99", "INPROGRESS", "Doe John", "0600000000",
                         "COM014", "COM013", 50_000D, 10_000D, 40_000D,
                         15_000D, 35_000D, Timestamp.valueOf(changeDate), "admin"
-                }));
+                }), unsorted, 1));
 
-        List<CollectorTransferDetailDto> details = service.getDetails("COM014", "COM013", from, to);
+        Page<CollectorTransferDetailDto> details = service.getDetails(
+                "COM014", "COM013", from, to, PageRequest.of(0, 25, Sort.by("changeDate")));
 
-        assertEquals(1, details.size());
-        CollectorTransferDetailDto detail = details.get(0);
+        assertEquals(1, details.getTotalElements());
+        assertEquals(1, details.getContent().size());
+        CollectorTransferDetailDto detail = details.getContent().get(0);
         assertEquals(11L, detail.getHistoryId());
         assertEquals(99L, detail.getCreditId());
         assertEquals("CR-99", detail.getCreditReference());
@@ -94,7 +104,8 @@ class CollectorTransferReportServiceTest {
         verify(creditCollectorHistoryRepository).findTransferDetails(
                 eq("COM014"), eq("COM013"),
                 eq(from.atStartOfDay()),
-                eq(to.plusDays(1).atStartOfDay()));
+                eq(to.plusDays(1).atStartOfDay()),
+                eq(unsorted));
     }
 
     @Test

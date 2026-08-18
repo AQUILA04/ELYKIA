@@ -497,6 +497,10 @@
   color: var(--text-muted);
 }
 
+.collector-transfers-page mat-paginator {
+  border-top: 1px solid var(--border);
+}
+
 @media (max-width: 900px) {
   .collector-transfers-page .kpi-strip {
     grid-template-columns: repeat(2, 1fr);

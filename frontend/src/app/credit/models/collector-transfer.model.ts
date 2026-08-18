@@ -40,4 +40,6 @@ export interface CollectorTransferFilters {
   newCollector?: string | null;
   fromDate?: string | null;
   toDate?: string | null;
+  page?: number;
+  size?: number;
 }

@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { PageEvent } from '@angular/material/paginator';
 import { Router } from '@angular/router';
 import { CollectorTransferService } from '../service/collector-transfer.service';
 import { AuthService } from 'src/app/auth/service/auth.service';
@@ -16,6 +17,8 @@ interface CollectorTransfersState {
   fromDate: string;
   toDate: string;
   selectedPairKey: string | null;
+  currentPage: number;
+  pageSize: number;
 }
 
 @Component({
@@ -27,6 +30,7 @@ interface CollectorTransfersState {
 })
 export class CollectorTransfersComponent implements OnInit, OnDestroy {
   private readonly STATE_KEY = 'collectorTransfersState';
+  readonly pageSizeOptions = [10, 25, 50, 100];
 
   summary: CollectorTransferSummary = {
     creditCount: 0,
@@ -36,7 +40,9 @@ export class CollectorTransfersComponent implements OnInit, OnDestroy {
     byPair: []
   };
   details: CollectorTransferDetail[] = [];
-  filteredDetails: CollectorTransferDetail[] = [];
+  totalDetails = 0;
+  currentPage = 0;
+  pageSize = 25;
 
   oldCollector = '';
   newCollector = '';
@@ -100,12 +106,13 @@ export class CollectorTransfersComponent implements OnInit, OnDestroy {
       });
     });
 
-    this.loadDetails(filters);
+    this.loadDetails();
   }
 
   onOldCollectorSelected(username: string | null): void {
     this.oldCollector = username || '';
     this.selectedPairKey = null;
+    this.currentPage = 0;
     this.saveState();
     this.loadData();
   }
@@ -113,12 +120,14 @@ export class CollectorTransfersComponent implements OnInit, OnDestroy {
   onNewCollectorSelected(username: string | null): void {
     this.newCollector = username || '';
     this.selectedPairKey = null;
+    this.currentPage = 0;
     this.saveState();
     this.loadData();
   }
 
   onDateChanged(): void {
     this.selectedPairKey = null;
+    this.currentPage = 0;
     this.saveState();
     this.loadData();
   }
@@ -129,6 +138,7 @@ export class CollectorTransfersComponent implements OnInit, OnDestroy {
     this.fromDate = '';
     this.toDate = '';
     this.selectedPairKey = null;
+    this.currentPage = 0;
     this.saveState();
     this.loadData();
   }
@@ -136,12 +146,20 @@ export class CollectorTransfersComponent implements OnInit, OnDestroy {
   selectPair(pair: CollectorTransferPair): void {
     const key = this.pairKey(pair);
     this.selectedPairKey = this.selectedPairKey === key ? null : key;
-    this.applyDetailFilter();
+    this.currentPage = 0;
     this.saveState();
+    this.loadDetails();
   }
 
   isPairSelected(pair: CollectorTransferPair): boolean {
     return this.selectedPairKey === this.pairKey(pair);
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.saveState();
+    this.loadDetails();
   }
 
   openCredit(creditId: number): void {
@@ -149,32 +167,21 @@ export class CollectorTransfersComponent implements OnInit, OnDestroy {
     this.router.navigate(['/credit/details', creditId]);
   }
 
-  private loadDetails(filters: CollectorTransferFilters): void {
+  private loadDetails(): void {
     this.loadingDetails = true;
-    this.collectorTransferService.getDetails(filters).subscribe({
+    this.collectorTransferService.getDetails(this.buildDetailFilters()).subscribe({
       next: (res: any) => {
-        this.details = Array.isArray(res?.data) ? res.data : [];
-        this.applyDetailFilter();
+        this.details = Array.isArray(res?.data?.content) ? res.data.content : [];
+        this.totalDetails = res?.data?.page?.totalElements ?? res?.data?.totalElements ?? 0;
         this.loadingDetails = false;
         this.lastUpdate = new Date();
       },
       error: () => {
         this.details = [];
-        this.filteredDetails = [];
+        this.totalDetails = 0;
         this.loadingDetails = false;
       }
     });
-  }
-
-  private applyDetailFilter(): void {
-    if (!this.selectedPairKey) {
-      this.filteredDetails = [...this.details];
-      return;
-    }
-    this.filteredDetails = this.details.filter(
-      (d) => this.pairKey({ oldCollector: d.oldCollector, newCollector: d.newCollector } as CollectorTransferPair)
-        === this.selectedPairKey
-    );
   }
 
   private pairKey(pair: Pick<CollectorTransferPair, 'oldCollector' | 'newCollector'>): string {
@@ -190,13 +197,29 @@ export class CollectorTransfersComponent implements OnInit, OnDestroy {
     };
   }
 
+  private buildDetailFilters(): CollectorTransferFilters {
+    const filters = this.buildFilters();
+    if (this.selectedPairKey) {
+      const separator = this.selectedPairKey.indexOf('→');
+      if (separator >= 0) {
+        filters.oldCollector = this.selectedPairKey.slice(0, separator) || null;
+        filters.newCollector = this.selectedPairKey.slice(separator + 1) || null;
+      }
+    }
+    filters.page = this.currentPage;
+    filters.size = this.pageSize;
+    return filters;
+  }
+
   private saveState(): void {
     const state: CollectorTransfersState = {
       oldCollector: this.oldCollector,
       newCollector: this.newCollector,
       fromDate: this.fromDate,
       toDate: this.toDate,
-      selectedPairKey: this.selectedPairKey
+      selectedPairKey: this.selectedPairKey,
+      currentPage: this.currentPage,
+      pageSize: this.pageSize
     };
     sessionStorage.setItem(this.STATE_KEY, JSON.stringify(state));
   }
@@ -213,6 +236,8 @@ export class CollectorTransfersComponent implements OnInit, OnDestroy {
       this.fromDate = state.fromDate || '';
       this.toDate = state.toDate || '';
       this.selectedPairKey = state.selectedPairKey || null;
+      this.currentPage = Number.isInteger(state.currentPage) && state.currentPage >= 0 ? state.currentPage : 0;
+      this.pageSize = Number.isInteger(state.pageSize) && state.pageSize > 0 ? state.pageSize : 25;
     } catch {
       // ignore corrupted state
     }

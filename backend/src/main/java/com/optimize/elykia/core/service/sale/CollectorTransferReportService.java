@@ -5,6 +5,9 @@ import com.optimize.elykia.core.dto.sale.CollectorTransferPairDto;
 import com.optimize.elykia.core.dto.sale.CollectorTransferSummaryDto;
 import com.optimize.elykia.core.repository.CreditCollectorHistoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -49,16 +52,19 @@ public class CollectorTransferReportService {
                 .build();
     }
 
-    public List<CollectorTransferDetailDto> getDetails(String oldCollector, String newCollector,
-                                                       LocalDate fromDate, LocalDate toDate) {
+    public Page<CollectorTransferDetailDto> getDetails(String oldCollector, String newCollector,
+                                                       LocalDate fromDate, LocalDate toDate,
+                                                       Pageable pageable) {
+        Pageable unsorted = PageRequest.of(
+                Math.max(pageable.getPageNumber(), 0),
+                Math.max(pageable.getPageSize(), 1));
         return creditCollectorHistoryRepository.findTransferDetails(
                         blankToNull(oldCollector),
                         blankToNull(newCollector),
                         toStart(fromDate),
-                        toExclusiveEnd(toDate))
-                .stream()
-                .map(this::mapDetail)
-                .toList();
+                        toExclusiveEnd(toDate),
+                        unsorted)
+                .map(this::mapDetail);
     }
 
     private CollectorTransferPairDto mapPair(Object[] row) {

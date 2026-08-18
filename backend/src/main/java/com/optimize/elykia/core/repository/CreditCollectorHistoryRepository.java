@@ -1,6 +1,8 @@
 package com.optimize.elykia.core.repository;
 
 import com.optimize.elykia.core.entity.sale.CreditCollectorHistory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -134,12 +136,37 @@ public interface CreditCollectorHistoryRepository extends JpaRepository<CreditCo
             JOIN credit c ON c.id = l.credit_id
             LEFT JOIN client cl ON cl.id = c.client_id
             ORDER BY l.change_date DESC, c.reference
-            """, nativeQuery = true)
-    List<Object[]> findTransferDetails(
+            """,
+            countQuery = """
+            SELECT COUNT(*) FROM (
+                WITH filtered AS (
+                    SELECT h.id,
+                           h.credit_id,
+                           h.old_collector,
+                           h.new_collector,
+                           h.change_date
+                    FROM credit_collector_history h
+                    WHERE h.visibility = 'ENABLED'
+                      AND (CAST(:oldCollector AS text) IS NULL OR UPPER(h.old_collector) = UPPER(CAST(:oldCollector AS text)))
+                      AND (CAST(:newCollector AS text) IS NULL OR UPPER(h.new_collector) = UPPER(CAST(:newCollector AS text)))
+                      AND (CAST(:fromDate AS timestamp) IS NULL OR h.change_date >= CAST(:fromDate AS timestamp))
+                      AND (CAST(:toDate AS timestamp) IS NULL OR h.change_date < CAST(:toDate AS timestamp))
+                ),
+                latest_per_credit AS (
+                    SELECT DISTINCT ON (f.credit_id) f.id
+                    FROM filtered f
+                    ORDER BY f.credit_id, f.change_date DESC, f.id DESC
+                )
+                SELECT l.id FROM latest_per_credit l
+            ) counted
+            """,
+            nativeQuery = true)
+    Page<Object[]> findTransferDetails(
             @Param("oldCollector") String oldCollector,
             @Param("newCollector") String newCollector,
             @Param("fromDate") LocalDateTime fromDate,
-            @Param("toDate") LocalDateTime toDate);
+            @Param("toDate") LocalDateTime toDate,
+            Pageable pageable);
 
     @Query(value = """
             SELECT COALESCE(SUM(h.total_amount_remaining), 0)

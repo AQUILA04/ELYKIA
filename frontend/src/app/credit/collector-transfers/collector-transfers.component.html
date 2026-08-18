@@ -33,7 +33,7 @@
         Actualiser
       </button>
     </div>
-    <p class="page-subtitle">Montants figés à la passation · 1 crédit compté une seule fois (dernière passation) · Filtres conservés à la navigation</p>
+    <p class="page-subtitle">Montants figés à la passation · 1 crédit compté une seule fois (dernière passation) · Filtres et pagination conservés à la navigation</p>
   </div>
 
   <div class="kpi-strip a3" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_TRANSFERT_VENTE']">
@@ -85,7 +85,7 @@
     <button type="button" class="btn-clear" (click)="clearFilters()">Réinitialiser</button>
     <span class="result-count">
       <strong>{{ summary.byPair.length }}</strong> couple(s) ·
-      <strong>{{ filteredDetails.length }}</strong> détail(s)
+      <strong>{{ totalDetails }}</strong> détail(s)
     </span>
   </div>
 
@@ -150,13 +150,13 @@
         <div class="empty-title">Chargement du détail…</div>
       </div>
 
-      <div *ngIf="!loadingDetails && filteredDetails.length === 0" class="empty-state">
+      <div *ngIf="!loadingDetails && details.length === 0" class="empty-state">
         <div class="empty-icon">📋</div>
         <div class="empty-title">Aucune vente dans ce périmètre</div>
         <div class="empty-sub">Sélectionnez un couple dans le tableau ci-dessus ou élargissez les filtres.</div>
       </div>
 
-      <table *ngIf="!loadingDetails && filteredDetails.length > 0" class="data-table detail-table">
+      <table *ngIf="!loadingDetails && details.length > 0" class="data-table detail-table">
         <thead>
           <tr>
             <th class="col-date">Date</th>
@@ -171,7 +171,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let row of filteredDetails">
+          <tr *ngFor="let row of details">
             <td class="col-date mono">{{ row.changeDate | date:'dd/MM/yyyy HH:mm' }}</td>
             <td class="col-ref mono">{{ row.creditReference || ('#' + row.creditId) }}</td>
             <td class="col-client">
@@ -194,5 +194,13 @@
         </tbody>
       </table>
     </div>
+    <mat-paginator
+      *ngIf="!loadingDetails && totalDetails > 0"
+      [length]="totalDetails"
+      [pageIndex]="currentPage"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      (page)="onPageChange($event)">
+    </mat-paginator>
   </div>
 </div>

@@ -6,6 +6,8 @@ import com.optimize.elykia.core.service.sale.CollectorTransferReportService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,10 +50,12 @@ public class CollectorTransferReportController {
             @RequestParam(required = false) String oldCollector,
             @RequestParam(required = false) String newCollector,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate) {
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate toDate,
+            @PageableDefault(size = 25) Pageable pageable) {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(
-                        collectorTransferReportService.getDetails(oldCollector, newCollector, fromDate, toDate)),
+                        collectorTransferReportService.getDetails(
+                                oldCollector, newCollector, fromDate, toDate, pageable)),
                 HttpStatus.OK);
     }
 }

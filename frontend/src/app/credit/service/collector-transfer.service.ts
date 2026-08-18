@@ -34,6 +34,12 @@ export class CollectorTransferService {
     if (filters.toDate) {
       params = params.set('toDate', filters.toDate);
     }
+    if (filters.page !== undefined && filters.page !== null) {
+      params = params.set('page', String(filters.page));
+    }
+    if (filters.size !== undefined && filters.size !== null) {
+      params = params.set('size', String(filters.size));
+    }
     return params;
   }
 }
