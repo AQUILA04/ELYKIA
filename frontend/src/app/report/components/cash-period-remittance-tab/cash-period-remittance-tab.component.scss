@@ -67,7 +67,7 @@
   margin: 8px 0 0;
   font-size: 13px;
   color: var(--text-muted);
-  max-width: 560px;
+  max-width: 640px;
 }
 
 .remittance-tab .btn-refresh {
@@ -153,10 +153,19 @@
   outline: none;
   transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
 
+  &[type="date"] {
+    min-width: 160px;
+  }
+
   &:focus {
     border-color: var(--navy);
     background: #fff;
     box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+  }
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
   }
 }
 

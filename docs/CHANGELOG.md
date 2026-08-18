@@ -9,6 +9,16 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.18.0] — 2026-08-19
+
+### Added
+
+- Onglet Remise : plage Du / Au pour remettre seulement les versements d’un intervalle, sans forcer tout le mois.
+
+### Changed
+
+- Les dépenses de type Approvisionnement ne sont plus proposées à la déduction d’une remise.
+
 ## Frontend — [2.17.0] — 2026-08-19
 
 ### Added
@@ -20,6 +30,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
+
+## Backend — [1.12.0] — 2026-08-19
+
+### Added
+
+- Remise de période : `startDate` / `endDate` optionnels sur le résumé, la soumission et l’initiation pour lier seulement les versements de la plage.
+
+### Changed
+
+- Les dépenses de type Approvisionnement sont exclues des candidats et refusées à l’association d’une remise.
 
 ## Backend — [1.11.0] — 2026-08-19
 

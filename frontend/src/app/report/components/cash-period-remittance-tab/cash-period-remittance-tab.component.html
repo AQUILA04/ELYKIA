@@ -3,7 +3,7 @@
         <div class="intro-text">
             <span class="header-surtitle">Trésorerie</span>
             <h2 class="tab-title">Remise au gestionnaire</h2>
-            <p class="tab-subtitle">Consolidation mensuelle des versements journaliers · Soumission secrétaire ou réception directe gestionnaire</p>
+            <p class="tab-subtitle">Versements d’une plage de dates au sein du mois · Soumission secrétaire ou réception directe gestionnaire</p>
         </div>
         <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="isLoading || isSubmitting"
             data-testid="e2e-remittance-refresh">
@@ -31,6 +31,20 @@
                     data-testid="e2e-remittance-month">
                     <option *ngFor="let month of months" [ngValue]="month.value">{{ month.label }}</option>
                 </select>
+            </div>
+            <div class="field-group">
+                <label for="remittanceStartDate">Du</label>
+                <input id="remittanceStartDate" type="date" class="field-input mono"
+                    [(ngModel)]="selectedStartDate" (ngModelChange)="onDateRangeChange()"
+                    [min]="minDate" [max]="maxDate" [disabled]="datesLocked"
+                    data-testid="e2e-remittance-start-date">
+            </div>
+            <div class="field-group">
+                <label for="remittanceEndDate">Au</label>
+                <input id="remittanceEndDate" type="date" class="field-input mono"
+                    [(ngModel)]="selectedEndDate" (ngModelChange)="onDateRangeChange()"
+                    [min]="minDate" [max]="maxDate" [disabled]="datesLocked"
+                    data-testid="e2e-remittance-end-date">
             </div>
         </div>
         <span class="result-count" *ngIf="summary">

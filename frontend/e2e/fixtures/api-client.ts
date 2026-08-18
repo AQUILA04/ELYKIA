@@ -660,7 +660,12 @@ export class ApiClient {
     return response.data?.content ?? [];
   }
 
-  async getRemittanceSummary(year: number, month: number): Promise<{
+  async getRemittanceSummary(
+    year: number,
+    month: number,
+    startDate?: string,
+    endDate?: string,
+  ): Promise<{
     year?: number;
     month?: number;
     totalAmount?: number;
@@ -672,19 +677,38 @@ export class ApiClient {
     canAcknowledge?: boolean;
     canInitiate?: boolean;
     alreadyRemittedAmount?: number;
-    candidateExpenses?: Array<{ id: number; amount: number }>;
-    linkedExpenses?: Array<{ id: number; amount: number }>;
+    candidateExpenses?: Array<{ id: number; amount: number; expenseTypeName?: string }>;
+    linkedExpenses?: Array<{ id: number; amount: number; expenseTypeName?: string }>;
   }> {
-    return this.get(`/api/cash-period-remittances/summary?year=${year}&month=${month}`);
+    let url = `/api/cash-period-remittances/summary?year=${year}&month=${month}`;
+    if (startDate) {
+      url += `&startDate=${startDate}`;
+    }
+    if (endDate) {
+      url += `&endDate=${endDate}`;
+    }
+    return this.get(url);
   }
 
-  async submitRemittance(year: number, month: number, expenseIds: number[] = []): Promise<{
+  async submitRemittance(
+    year: number,
+    month: number,
+    expenseIds: number[] = [],
+    startDate?: string,
+    endDate?: string,
+  ): Promise<{
     id: number;
     status?: string;
     expenseAmount?: number;
     netAmount?: number;
   }> {
-    return this.post('/api/cash-period-remittances/submit', { year, month, expenseIds });
+    return this.post('/api/cash-period-remittances/submit', {
+      year,
+      month,
+      expenseIds,
+      startDate,
+      endDate,
+    });
   }
 
   async listRemittances(size = 50): Promise<Array<{

@@ -12,13 +12,27 @@ export class CashPeriodRemittanceService {
 
     constructor(private http: HttpClient) { }
 
-    getSummary(year: number, month: number): Observable<CashPeriodRemittanceSummary> {
-        const params = new HttpParams().set('year', year).set('month', month);
+    getSummary(year: number, month: number, startDate?: string, endDate?: string): Observable<CashPeriodRemittanceSummary> {
+        let params = new HttpParams().set('year', year).set('month', month);
+        if (startDate) {
+            params = params.set('startDate', startDate);
+        }
+        if (endDate) {
+            params = params.set('endDate', endDate);
+        }
         return this.http.get<CashPeriodRemittanceSummary>(`${this.apiUrl}/summary`, { params });
     }
 
-    submit(year: number, month: number, expenseIds: number[] = []): Observable<CashPeriodRemittance> {
-        return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/submit`, { year, month, expenseIds });
+    submit(
+        year: number,
+        month: number,
+        expenseIds: number[] = [],
+        startDate?: string,
+        endDate?: string
+    ): Observable<CashPeriodRemittance> {
+        return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/submit`, {
+            year, month, expenseIds, startDate, endDate
+        });
     }
 
     acknowledge(id: number, expenseIds?: number[]): Observable<CashPeriodRemittance> {
@@ -26,8 +40,16 @@ export class CashPeriodRemittanceService {
         return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/${id}/acknowledge`, body);
     }
 
-    initiate(year: number, month: number, expenseIds: number[] = []): Observable<CashPeriodRemittance> {
-        return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/initiate`, { year, month, expenseIds });
+    initiate(
+        year: number,
+        month: number,
+        expenseIds: number[] = [],
+        startDate?: string,
+        endDate?: string
+    ): Observable<CashPeriodRemittance> {
+        return this.http.post<CashPeriodRemittance>(`${this.apiUrl}/initiate`, {
+            year, month, expenseIds, startDate, endDate
+        });
     }
 
     list(page: number = 0, size: number = 10): Observable<any> {

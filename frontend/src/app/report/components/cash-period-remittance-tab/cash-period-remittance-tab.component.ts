@@ -13,8 +13,12 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     standalone: false
 })
 export class CashPeriodRemittanceTabComponent implements OnInit {
+    private static readonly APPROVISIONNEMENT_TYPE = 'Approvisionnement';
+
     selectedYear = new Date().getFullYear();
     selectedMonth = new Date().getMonth() + 1;
+    selectedStartDate = '';
+    selectedEndDate = '';
     summary: CashPeriodRemittanceSummary | null = null;
     history: CashPeriodRemittance[] = [];
     historyPage = 0;
@@ -56,12 +60,57 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
     ngOnInit(): void {
         this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
         this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
+        this.resetDateRange();
         this.loadSummary();
         this.loadHistory();
     }
 
     onPeriodChange(): void {
+        this.resetDateRange();
         this.loadSummary();
+    }
+
+    onDateRangeChange(): void {
+        if (!this.selectedStartDate || !this.selectedEndDate) {
+            return;
+        }
+        if (this.selectedStartDate > this.selectedEndDate) {
+            return;
+        }
+        this.loadSummary();
+    }
+
+    resetDateRange(): void {
+        this.selectedStartDate = this.toIsoDate(new Date(this.selectedYear, this.selectedMonth - 1, 1));
+        this.selectedEndDate = this.toIsoDate(this.defaultEndDate());
+    }
+
+    get minDate(): string {
+        return this.toIsoDate(new Date(this.selectedYear, this.selectedMonth - 1, 1));
+    }
+
+    get maxDate(): string {
+        return this.toIsoDate(this.defaultEndDate());
+    }
+
+    get datesLocked(): boolean {
+        return this.summary?.status === 'PENDING';
+    }
+
+    private defaultEndDate(): Date {
+        const lastDay = new Date(this.selectedYear, this.selectedMonth, 0);
+        const today = new Date();
+        if (this.selectedYear === today.getFullYear() && this.selectedMonth === today.getMonth() + 1) {
+            return today;
+        }
+        return lastDay;
+    }
+
+    private toIsoDate(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     refresh(): void {
@@ -72,7 +121,12 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
 
     loadSummary(): void {
         this.isLoading = true;
-        this.remittanceService.getSummary(this.selectedYear, this.selectedMonth).subscribe({
+        this.remittanceService.getSummary(
+            this.selectedYear,
+            this.selectedMonth,
+            this.selectedStartDate,
+            this.selectedEndDate
+        ).subscribe({
             next: (summary) => {
                 this.summary = summary;
                 this.initExpenseSelection();
@@ -132,8 +186,7 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
         if (!this.summary) return;
 
         if (!this.summary.status) {
-            // No remittance yet: pre-select all candidates
-            (this.summary.candidateExpenses || []).forEach(e => {
+            this.getVisibleExpenses().forEach(e => {
                 if (e.id) this.selectedExpenseIds.add(e.id);
             });
         } else if (this.summary.status === 'PENDING') {
@@ -172,7 +225,9 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
     getVisibleExpenses(): Expense[] {
         if (!this.summary) return [];
         if (!this.summary.status) {
-            return this.summary.candidateExpenses || [];
+            return (this.summary.candidateExpenses || []).filter(
+                e => (e.expenseTypeName || '').toLowerCase() !== CashPeriodRemittanceTabComponent.APPROVISIONNEMENT_TYPE.toLowerCase()
+            );
         }
         return this.summary.linkedExpenses || [];
     }
@@ -189,7 +244,11 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
         if (this.isSubmitting || this.netNegative) return;
         this.isSubmitting = true;
         this.remittanceService.submit(
-            this.selectedYear, this.selectedMonth, Array.from(this.selectedExpenseIds)
+            this.selectedYear,
+            this.selectedMonth,
+            Array.from(this.selectedExpenseIds),
+            this.selectedStartDate,
+            this.selectedEndDate
         ).subscribe({
             next: () => {
                 this.snackBar.open('Remise soumise au gestionnaire.', 'OK', { duration: 3000 });
@@ -227,7 +286,11 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
         if (this.isSubmitting || this.netNegative) return;
         this.isSubmitting = true;
         this.remittanceService.initiate(
-            this.selectedYear, this.selectedMonth, Array.from(this.selectedExpenseIds)
+            this.selectedYear,
+            this.selectedMonth,
+            Array.from(this.selectedExpenseIds),
+            this.selectedStartDate,
+            this.selectedEndDate
         ).subscribe({
             next: () => {
                 this.snackBar.open('Réception enregistrée.', 'OK', { duration: 3000 });

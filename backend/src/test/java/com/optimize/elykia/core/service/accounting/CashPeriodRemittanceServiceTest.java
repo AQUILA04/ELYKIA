@@ -1,7 +1,9 @@
 package com.optimize.elykia.core.service.accounting;
 
+import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.dto.report.CashPeriodRemittanceDto;
 import com.optimize.elykia.core.entity.expense.Expense;
+import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.entity.report.CashPeriodRemittance;
 import com.optimize.elykia.core.enumaration.RemittanceInitiator;
@@ -260,15 +262,150 @@ class CashPeriodRemittanceServiceTest {
         assertEquals(800.0, dto.getNetAmount());
     }
 
+    @Test
+    void getSummary_withDateRange_queriesOnlyThatRange() {
+        Object[] unremittedTotals = new Object[]{12000.0, 12000.0, 0.0, 0.0};
+        LocalDate start = LocalDate.of(2026, 8, 1);
+        LocalDate end = LocalDate.of(2026, 8, 5);
+        when(cashDepositRepository.sumUnremittedDepositsByPeriod(start, end))
+                .thenReturn(Collections.singletonList(unremittedTotals));
+        when(repository.findByYearAndMonthAndStatus(2026, 8, RemittanceStatus.PENDING))
+                .thenReturn(Optional.empty());
+        when(repository.sumReceivedTotalByYearAndMonth(2026, 8)).thenReturn(0.0);
+        when(userService.getCurrentUser()).thenReturn(secretary);
+        when(secretary.is(UserProfilConstant.SECRETARY)).thenReturn(true);
+        when(secretary.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(remittanceExpenseRepository.findAllLinkedExpenseIds()).thenReturn(Collections.emptySet());
+        when(expenseRepository.findByExpenseDateBetween(any(), any())).thenReturn(Collections.emptyList());
+
+        var summary = service.getSummary(2026, 8, start, end);
+
+        assertEquals(12000.0, summary.getTotalAmount());
+        verify(cashDepositRepository).sumUnremittedDepositsByPeriod(start, end);
+        verify(cashDepositRepository, never()).sumUnremittedDepositsByPeriod(
+                LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 31));
+    }
+
+    @Test
+    void submitBySecretary_withDateRange_linksOnlyDepositsInRange() {
+        when(userService.getCurrentUser()).thenReturn(secretary);
+        when(secretary.is(UserProfilConstant.SECRETARY)).thenReturn(true);
+        when(repository.existsByYearAndMonthAndStatus(2026, 8, RemittanceStatus.PENDING)).thenReturn(false);
+
+        LocalDate start = LocalDate.of(2026, 8, 1);
+        LocalDate end = LocalDate.of(2026, 8, 5);
+        CashDeposit inRange = buildDeposit(8000.0, 8000.0, 0.0, 0.0, LocalDate.of(2026, 8, 3));
+        when(cashDepositRepository.findUnremittedDepositsByPeriod(start, end)).thenReturn(List.of(inRange));
+        when(repository.save(any())).thenAnswer(invocation -> {
+            CashPeriodRemittance remittance = invocation.getArgument(0);
+            remittance.setId(20L);
+            return remittance;
+        });
+
+        var dto = service.submitBySecretary(2026, 8, Collections.emptyList(), start, end);
+
+        assertEquals(8000.0, dto.getTotalAmount());
+        verify(cashDepositRepository).findUnremittedDepositsByPeriod(start, end);
+        verify(cashDepositRepository).save(inRange);
+        assertEquals(20L, inRange.getRemittance().getId());
+    }
+
+    @Test
+    void getSummary_excludesApprovisionnementCandidateExpenses() {
+        Object[] unremittedTotals = new Object[]{5000.0, 5000.0, 0.0, 0.0};
+        when(cashDepositRepository.sumUnremittedDepositsByPeriod(any(), any()))
+                .thenReturn(Collections.singletonList(unremittedTotals));
+        when(repository.findByYearAndMonthAndStatus(2026, 8, RemittanceStatus.PENDING))
+                .thenReturn(Optional.empty());
+        when(repository.sumReceivedTotalByYearAndMonth(2026, 8)).thenReturn(0.0);
+        when(userService.getCurrentUser()).thenReturn(secretary);
+        when(secretary.is(UserProfilConstant.SECRETARY)).thenReturn(true);
+        when(secretary.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(remittanceExpenseRepository.findAllLinkedExpenseIds()).thenReturn(Collections.emptySet());
+
+        Expense appro = buildExpense(31L, 400, "Approvisionnement");
+        Expense transport = buildExpense(32L, 200, "Transport");
+        when(expenseRepository.findByExpenseDateBetween(any(), any())).thenReturn(List.of(appro, transport));
+
+        ExpenseDto transportDto = new ExpenseDto();
+        transportDto.setId(32L);
+        transportDto.setExpenseTypeName("Transport");
+        transportDto.setAmount(BigDecimal.valueOf(200));
+        when(expenseMapper.toDto(transport)).thenReturn(transportDto);
+
+        var summary = service.getSummary(2026, 8);
+
+        assertEquals(1, summary.getCandidateExpenses().size());
+        assertEquals(32L, summary.getCandidateExpenses().get(0).getId());
+        verify(expenseMapper, never()).toDto(appro);
+        verify(expenseMapper).toDto(transport);
+    }
+
+    @Test
+    void getSummary_partialRangeWithoutDeposits_doesNotMarkMonthReceived() {
+        LocalDate start = LocalDate.of(2026, 8, 1);
+        LocalDate end = LocalDate.of(2026, 8, 5);
+        when(cashDepositRepository.sumUnremittedDepositsByPeriod(start, end))
+                .thenReturn(Collections.singletonList(new Object[]{0.0, 0.0, 0.0, 0.0}));
+        when(cashDepositRepository.sumUnremittedDepositsByPeriod(
+                LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 31)))
+                .thenReturn(Collections.singletonList(new Object[]{9000.0, 9000.0, 0.0, 0.0}));
+        when(repository.findByYearAndMonthAndStatus(2026, 8, RemittanceStatus.PENDING))
+                .thenReturn(Optional.empty());
+        when(repository.sumReceivedTotalByYearAndMonth(2026, 8)).thenReturn(3000.0);
+        when(userService.getCurrentUser()).thenReturn(secretary);
+        when(secretary.is(UserProfilConstant.SECRETARY)).thenReturn(true);
+        when(secretary.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+
+        var summary = service.getSummary(2026, 8, start, end);
+
+        assertNull(summary.getStatus());
+        assertEquals(0.0, summary.getTotalAmount());
+        assertFalse(summary.isCanSubmit());
+    }
+
+    @Test
+    void submitBySecretary_rejectsApprovisionnementExpense() {
+        when(userService.getCurrentUser()).thenReturn(secretary);
+        when(secretary.is(UserProfilConstant.SECRETARY)).thenReturn(true);
+        when(repository.existsByYearAndMonthAndStatus(2026, 8, RemittanceStatus.PENDING)).thenReturn(false);
+
+        CashDeposit deposit = buildDeposit(5000.0, 5000.0, 0.0, 0.0);
+        when(cashDepositRepository.findUnremittedDepositsByPeriod(any(), any())).thenReturn(List.of(deposit));
+        when(remittanceExpenseRepository.findAllLinkedExpenseIds()).thenReturn(Collections.emptySet());
+
+        Expense appro = buildExpense(40L, 1000, "Approvisionnement");
+        when(expenseRepository.findAllById(List.of(40L))).thenReturn(List.of(appro));
+
+        RuntimeException ex = assertThrows(RuntimeException.class,
+                () -> service.submitBySecretary(2026, 8, List.of(40L)));
+        assertTrue(ex.getMessage().contains("Approvisionnement"));
+        verify(repository, never()).save(any());
+    }
+
     private CashDeposit buildDeposit(double total, double credit, double tontine, double newBalance) {
+        return buildDeposit(total, credit, tontine, newBalance, LocalDate.of(2026, 8, 13));
+    }
+
+    private CashDeposit buildDeposit(double total, double credit, double tontine, double newBalance, LocalDate date) {
         CashDeposit deposit = new CashDeposit();
         deposit.setId(1L);
-        deposit.setDate(LocalDate.of(2026, 8, 13));
+        deposit.setDate(date);
         deposit.setCommercialUsername("COM004");
         deposit.setAmount(total);
         deposit.setCreditAmount(credit);
         deposit.setTontineAmount(tontine);
         deposit.setNewBalanceAmount(newBalance);
         return deposit;
+    }
+
+    private Expense buildExpense(Long id, int amount, String typeName) {
+        ExpenseType type = new ExpenseType();
+        type.setName(typeName);
+        Expense expense = new Expense();
+        expense.setId(id);
+        expense.setAmount(BigDecimal.valueOf(amount));
+        expense.setExpenseType(type);
+        return expense;
     }
 }

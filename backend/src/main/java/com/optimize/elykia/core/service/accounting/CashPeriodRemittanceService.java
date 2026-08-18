@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 @Transactional
 public class CashPeriodRemittanceService extends GenericService<CashPeriodRemittance, Long> {
 
+    static final String APPROVISIONNEMENT_EXPENSE_TYPE = "Approvisionnement";
+
     private final CashDepositRepository cashDepositRepository;
     private final CashPeriodRemittanceExpenseRepository remittanceExpenseRepository;
     private final ExpenseRepository expenseRepository;
@@ -58,8 +60,14 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
 
     @Transactional(readOnly = true)
     public CashPeriodRemittanceSummaryDto getSummary(int year, int month) {
+        return getSummary(year, month, null, null);
+    }
+
+    @Transactional(readOnly = true)
+    public CashPeriodRemittanceSummaryDto getSummary(int year, int month, LocalDate startDate, LocalDate endDate) {
         User currentUser = userService.getCurrentUser();
-        PeriodTotals unremittedTotals = computeUnremittedTotals(year, month);
+        DepositDateRange range = resolveDepositDateRange(year, month, startDate, endDate);
+        PeriodTotals unremittedTotals = computeUnremittedTotals(range);
         CashPeriodRemittance pending = getRemittanceRepository()
                 .findByYearAndMonthAndStatus(year, month, RemittanceStatus.PENDING)
                 .orElse(null);
@@ -98,7 +106,7 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
             candidateExpenses = getCandidateExpenses(year, month);
             canSubmit = isSecretary;
             canInitiate = isManager;
-        } else if (alreadyRemittedAmount > 0) {
+        } else if (alreadyRemittedAmount > 0 && !hasUnremittedInMonth(year, month, range, unremittedTotals)) {
             status = RemittanceStatus.RECEIVED;
         }
 
@@ -123,13 +131,18 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
     }
 
     public CashPeriodRemittanceDto submitBySecretary(int year, int month, List<Long> expenseIds) {
+        return submitBySecretary(year, month, expenseIds, null, null);
+    }
+
+    public CashPeriodRemittanceDto submitBySecretary(int year, int month, List<Long> expenseIds,
+            LocalDate startDate, LocalDate endDate) {
         User currentUser = userService.getCurrentUser();
         if (!currentUser.is(UserProfilConstant.SECRETARY)) {
             throw new RuntimeException("Seul le secrétaire peut soumettre une remise.");
         }
         assertNoPendingRemittance(year, month);
 
-        List<CashDeposit> unremittedDeposits = loadUnremittedDeposits(year, month);
+        List<CashDeposit> unremittedDeposits = loadUnremittedDeposits(year, month, startDate, endDate);
         PeriodTotals totals = totalsFromDeposits(unremittedDeposits);
         if (totals.totalAmount() <= 0) {
             throw new RuntimeException("Aucun versement en attente de remise pour cette période.");
@@ -200,13 +213,18 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
     }
 
     public CashPeriodRemittanceDto initiateByManager(int year, int month, List<Long> expenseIds) {
+        return initiateByManager(year, month, expenseIds, null, null);
+    }
+
+    public CashPeriodRemittanceDto initiateByManager(int year, int month, List<Long> expenseIds,
+            LocalDate startDate, LocalDate endDate) {
         User currentUser = userService.getCurrentUser();
         if (!currentUser.is(UserProfilConstant.GESTIONNAIRE)) {
             throw new RuntimeException("Seul le gestionnaire peut initier une réception.");
         }
         assertNoPendingRemittance(year, month);
 
-        List<CashDeposit> unremittedDeposits = loadUnremittedDeposits(year, month);
+        List<CashDeposit> unremittedDeposits = loadUnremittedDeposits(year, month, startDate, endDate);
         PeriodTotals totals = totalsFromDeposits(unremittedDeposits);
         if (totals.totalAmount() <= 0) {
             throw new RuntimeException("Aucun versement en attente de remise pour cette période.");
@@ -278,6 +296,7 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
 
         return expenseRepository.findByExpenseDateBetween(start, end).stream()
                 .filter(e -> !alreadyLinked.contains(e.getId()))
+                .filter(e -> !isApprovisionnement(e))
                 .map(expenseMapper::toDto)
                 .collect(Collectors.toList());
     }
@@ -290,11 +309,13 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
         if (expenses.size() != expenseIds.size()) {
             throw new RuntimeException("Certaines dépenses sont introuvables.");
         }
-        Set<Long> idsSet = new HashSet<>(expenseIds);
         Set<Long> alreadyLinked = remittanceExpenseRepository.findAllLinkedExpenseIds();
-        for (Long id : idsSet) {
-            if (alreadyLinked.contains(id)) {
-                throw new RuntimeException("La dépense #" + id + " est déjà associée à une remise.");
+        for (Expense expense : expenses) {
+            if (alreadyLinked.contains(expense.getId())) {
+                throw new RuntimeException("La dépense #" + expense.getId() + " est déjà associée à une remise.");
+            }
+            if (isApprovisionnement(expense)) {
+                throw new RuntimeException("Les dépenses de type Approvisionnement ne peuvent pas être associées à une remise.");
             }
         }
         return expenses;
@@ -329,11 +350,9 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
         }
     }
 
-    private List<CashDeposit> loadUnremittedDeposits(int year, int month) {
-        YearMonth yearMonth = YearMonth.of(year, month);
-        return cashDepositRepository.findUnremittedDepositsByPeriod(
-                yearMonth.atDay(1),
-                yearMonth.atEndOfMonth());
+    private List<CashDeposit> loadUnremittedDeposits(int year, int month, LocalDate startDate, LocalDate endDate) {
+        DepositDateRange range = resolveDepositDateRange(year, month, startDate, endDate);
+        return cashDepositRepository.findUnremittedDepositsByPeriod(range.start(), range.end());
     }
 
     private CashPeriodRemittance buildRemittance(int year, int month, PeriodTotals totals) {
@@ -348,11 +367,49 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
         return remittance;
     }
 
-    private PeriodTotals computeUnremittedTotals(int year, int month) {
+    private PeriodTotals computeUnremittedTotals(DepositDateRange range) {
+        return readPeriodTotals(cashDepositRepository.sumUnremittedDepositsByPeriod(range.start(), range.end()));
+    }
+
+    private boolean hasUnremittedInMonth(int year, int month, DepositDateRange requestedRange,
+            PeriodTotals requestedTotals) {
         YearMonth yearMonth = YearMonth.of(year, month);
-        return readPeriodTotals(cashDepositRepository.sumUnremittedDepositsByPeriod(
-                yearMonth.atDay(1),
-                yearMonth.atEndOfMonth()));
+        LocalDate monthStart = yearMonth.atDay(1);
+        LocalDate monthEnd = yearMonth.atEndOfMonth();
+        if (requestedRange.start().equals(monthStart) && requestedRange.end().equals(monthEnd)) {
+            return requestedTotals.totalAmount() > 0;
+        }
+        return computeUnremittedTotals(new DepositDateRange(monthStart, monthEnd)).totalAmount() > 0;
+    }
+
+    private DepositDateRange resolveDepositDateRange(int year, int month, LocalDate startDate, LocalDate endDate) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate monthStart = yearMonth.atDay(1);
+        LocalDate monthEnd = yearMonth.atEndOfMonth();
+        if (startDate == null && endDate == null) {
+            return new DepositDateRange(monthStart, monthEnd);
+        }
+        if (startDate == null || endDate == null) {
+            throw new RuntimeException("Les dates de début et de fin doivent être fournies ensemble.");
+        }
+        if (startDate.isAfter(endDate)) {
+            throw new RuntimeException("La date de début doit être antérieure ou égale à la date de fin.");
+        }
+        if (!isInMonth(startDate, year, month) || !isInMonth(endDate, year, month)) {
+            throw new RuntimeException("Les dates doivent être comprises dans le mois sélectionné.");
+        }
+        return new DepositDateRange(startDate, endDate);
+    }
+
+    private static boolean isInMonth(LocalDate date, int year, int month) {
+        return date.getYear() == year && date.getMonthValue() == month;
+    }
+
+    private static boolean isApprovisionnement(Expense expense) {
+        if (expense.getExpenseType() == null || expense.getExpenseType().getName() == null) {
+            return false;
+        }
+        return APPROVISIONNEMENT_EXPENSE_TYPE.equalsIgnoreCase(expense.getExpenseType().getName());
     }
 
     private PeriodTotals totalsFromDeposits(List<CashDeposit> deposits) {
@@ -456,5 +513,8 @@ public class CashPeriodRemittanceService extends GenericService<CashPeriodRemitt
 
     private record PeriodTotals(double totalAmount, double creditAmount, double tontineAmount,
             double newBalanceAmount) {
+    }
+
+    private record DepositDateRange(LocalDate start, LocalDate end) {
     }
 }

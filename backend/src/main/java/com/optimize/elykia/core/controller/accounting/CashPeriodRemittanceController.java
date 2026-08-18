@@ -9,9 +9,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.Collections;
 
 @RestController
@@ -24,15 +26,18 @@ public class CashPeriodRemittanceController {
     @GetMapping("/summary")
     public ResponseEntity<CashPeriodRemittanceSummaryDto> getSummary(
             @RequestParam int year,
-            @RequestParam int month) {
-        return ResponseEntity.ok(remittanceService.getSummary(year, month));
+            @RequestParam int month,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(remittanceService.getSummary(year, month, startDate, endDate));
     }
 
     @PostMapping("/submit")
     public ResponseEntity<CashPeriodRemittanceDto> submit(@RequestBody CashPeriodRemittanceRequest request) {
         return ResponseEntity.ok(remittanceService.submitBySecretary(
                 request.getYear(), request.getMonth(),
-                request.getExpenseIds() != null ? request.getExpenseIds() : Collections.emptyList()));
+                request.getExpenseIds() != null ? request.getExpenseIds() : Collections.emptyList(),
+                request.getStartDate(), request.getEndDate()));
     }
 
     @PostMapping("/{id}/acknowledge")
@@ -47,7 +52,8 @@ public class CashPeriodRemittanceController {
     public ResponseEntity<CashPeriodRemittanceDto> initiate(@RequestBody CashPeriodRemittanceRequest request) {
         return ResponseEntity.ok(remittanceService.initiateByManager(
                 request.getYear(), request.getMonth(),
-                request.getExpenseIds() != null ? request.getExpenseIds() : Collections.emptyList()));
+                request.getExpenseIds() != null ? request.getExpenseIds() : Collections.emptyList(),
+                request.getStartDate(), request.getEndDate()));
     }
 
     @GetMapping

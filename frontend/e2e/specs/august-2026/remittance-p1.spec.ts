@@ -206,4 +206,22 @@ test.describe('Remise P1 @p1 @web @august-2026 @regression', () => {
     );
     await expect(rows).toHaveCount(group.length);
   });
+
+  test('W-P1-18 plage Du/Au visible et envoyée au résumé', async ({ page }) => {
+    await loginAsGestionnaire(page);
+    await openRemittanceTab(page);
+    await expect(page.getByTestId('e2e-remittance-start-date')).toBeVisible();
+    await expect(page.getByTestId('e2e-remittance-end-date')).toBeVisible();
+
+    const summaryWait = page.waitForResponse((response) =>
+      response.url().includes('/api/cash-period-remittances/summary')
+      && response.url().includes('startDate=')
+      && response.url().includes('endDate=')
+      && response.ok(),
+    );
+    await page.getByTestId('e2e-remittance-refresh').click();
+    const response = await summaryWait;
+    expect(response.url()).toContain('startDate=');
+    expect(response.url()).toContain('endDate=');
+  });
 });
