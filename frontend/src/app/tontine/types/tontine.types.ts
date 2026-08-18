@@ -255,7 +255,7 @@ export interface TontineFilterBarParams {
   search?: string;
   deliveryStatus?: TontineMemberDeliveryStatus | 'ALL';
   commercial?: string;
-  carnetVerified?: boolean | 'ALL';
+  carnetVerified?: boolean;
 }
 
 // KPIs

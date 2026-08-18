@@ -218,7 +218,7 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
       search: params.search,
       deliveryStatus: params.deliveryStatus === 'ALL' ? undefined : params.deliveryStatus,
       commercial: params.commercial || undefined,
-      carnetVerified: params.carnetVerified,
+      carnetVerified: typeof params.carnetVerified === 'boolean' ? params.carnetVerified : undefined,
       page: 0 // Reset to first page on new filter/search
     };
     this.selectedMemberIds = new Set();

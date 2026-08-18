@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.18.1] — 2026-08-19
+
+### Fixed
+
+- Compilation production : le filtre carnet tontine n’envoie plus `'ALL'` dans `TontineMemberQueryParams.carnetVerified`, et une accolade orpheline du SCSS dashboard est retirée.
+
 ## Frontend — [2.18.0] — 2026-08-19
 
 ### Added
@@ -24,6 +30,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Vérification de carnet tontine : badge sur la fiche membre, bouton Vérifier/Annuler, sélection en masse, filtre Carnet et exports PDF vérifiés / à vérifier (`ROLE_TONTINE_CARNET_VERIFY`).
+
+## Mobile — [2.21.1] — 2026-08-19
+
+### Fixed
+
+- Smoke Playwright : le dashboard tontine s’ouvre par navigation interne (sans rechargement) pour conserver la session mockée.
 
 ## Mobile — [2.21.0] — 2026-08-19
 
