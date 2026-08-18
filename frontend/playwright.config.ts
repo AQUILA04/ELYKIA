@@ -24,6 +24,10 @@ export default defineConfig({
       testMatch: /smoke\/.*\.spec\.ts/,
     },
     {
+      name: 'golden-path',
+      testMatch: /golden-path\.spec\.ts/,
+    },
+    {
       name: 'august-2026',
       testMatch: /august-2026\/.*\.spec\.ts/,
     },

@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.16.28] — 2026-08-18
+
+### Fixed
+
+- Playwright : le projet `golden-path` est de nouveau déclaré à côté de `smoke` et `august-2026` (`npm run test:e2e:golden` / pipeline `e2e.yml`).
+
 ## Backend — [1.10.10] — 2026-08-18
 
 ### Changed
