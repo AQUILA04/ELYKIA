@@ -584,7 +584,8 @@ public class ClientService extends GenericService<Client, Long> {
         Client client = getById(dto.getClientId());
         String oldCollector = client.getCollector();
         if (Objects.equals(oldCollector, dto.getCollector())) {
-            return client;
+            throw new CustomValidationException(
+                    "Le nouveau commercial doit être différent de l'actuel.");
         }
         ensureCollectorChangeAllowed(oldCollector, dto.getCollector(), client.getTontineCollector(),
                 client.getTontineCollector());
@@ -671,6 +672,9 @@ public class ClientService extends GenericService<Client, Long> {
 
         if (!changes.isEmpty()) {
             publishCollectorChanges(changes, performedBy);
+        } else {
+            throw new CustomValidationException(
+                    "Aucun changement effectué : le(s) commercial(aux) sélectionné(s) sont déjà assignés aux clients.");
         }
     }
 
