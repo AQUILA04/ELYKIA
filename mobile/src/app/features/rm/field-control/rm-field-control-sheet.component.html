@@ -17,7 +17,8 @@
     </div>
     <div class="row">
       <span>Écart estimé</span>
-      <strong [class.ecart]="statusLabel === 'ECART'" [class.ok]="statusLabel === 'CONFORME'">
+      <strong [class.ecart]="statusLabel === 'ECART'" [class.ok]="statusLabel === 'CONFORME'"
+        data-testid="e2e-rm-control-sheet-status">
         {{ formatAmount(difference) }} · {{ statusLabel }}
       </strong>
     </div>
@@ -30,7 +31,8 @@
       inputmode="decimal"
       [(ngModel)]="notebookTotalAmount"
       (ionInput)="validate()"
-      class="amount-input">
+      class="amount-input"
+      data-testid="e2e-rm-control-amount">
     </ion-input>
     <p class="error" *ngIf="amountError">{{ amountError }}</p>
   </section>
@@ -49,7 +51,8 @@
     expand="block"
     class="rm-cta"
     [disabled]="!isValid || submitting"
-    (click)="confirm()">
+    (click)="confirm()"
+    data-testid="e2e-rm-control-confirm">
     {{ submitting ? 'Enregistrement…' : 'Capturer le contrôle' }}
   </ion-button>
 </div>

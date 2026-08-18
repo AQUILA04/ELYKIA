@@ -24,8 +24,8 @@ export default defineConfig({
       testMatch: /smoke\/.*\.spec\.ts/,
     },
     {
-      name: 'golden-path',
-      testMatch: /golden-path\.spec\.ts/,
+      name: 'august-2026',
+      testMatch: /august-2026\/.*\.spec\.ts/,
     },
   ],
   webServer: process.env['E2E_SKIP_WEB_SERVER']

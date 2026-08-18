@@ -33,6 +33,7 @@
 
   <app-credit-list-kpi
     *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_VENTE']"
+    data-testid="e2e-credit-list-kpi"
     [summary]="summary"
     [periodLabel]="periodLabel"
     [loading]="summaryLoading"
@@ -41,7 +42,7 @@
 
   <div class="toolbar-shell a4">
     <div class="toolbar toolbar-top">
-      <div class="filter-group filter-group-period" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_VENTE']">
+      <div class="filter-group filter-group-period" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_VENTE']" data-testid="e2e-credit-kpi-period">
         <span class="toolbar-label">Période KPI</span>
         <div class="period-buttons">
           <button type="button" class="period-btn" [class.active]="periodPreset === periodPresets.TODAY" (click)="onPeriodPresetChange(periodPresets.TODAY)">Jour</button>
@@ -62,7 +63,8 @@
         type="button"
         class="btn-filter-toggle"
         [class.active]="showAdvancedSearch || activeFiltersCount > 0"
-        (click)="toggleAdvancedSearch()">
+        (click)="toggleAdvancedSearch()"
+        data-testid="e2e-credit-advanced-toggle">
         Recherche avancée
         <span class="filter-count-badge" *ngIf="activeFiltersCount > 0">{{ activeFiltersCount }}</span>
       </button>
@@ -77,6 +79,7 @@
             *ngIf="selectedCredits.size > 0"
             type="button"
             class="btn-secondary"
+            data-testid="e2e-credit-bulk-change-collector"
             (click)="openBulkChangeCollectorModal()">
             Changer l'agent ({{ selectedCredits.size }})
           </button>
@@ -123,7 +126,7 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']" class="col-select">
+            <th *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']" class="col-select" data-testid="e2e-credit-collector-select-col">
               <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected"></mat-checkbox>
             </th>
             <th>#</th>

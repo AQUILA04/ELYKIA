@@ -131,7 +131,8 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             Historique inventaires
           </button>
-          <button type="button" class="btn-inv btn-inv-primary" (click)="addItem()" [disabled]="isProcessing">
+          <button type="button" class="btn-inv btn-inv-primary" (click)="addItem()" [disabled]="isProcessing"
+            data-testid="e2e-inventory-add-stock">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Entrées stock
           </button>

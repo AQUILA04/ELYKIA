@@ -3,7 +3,7 @@
     <div>
       <p class="surtitle">Fiche client</p>
       <h2>{{ client?.fullName || (client?.firstname + ' ' + client?.lastname) }}</h2>
-      <p class="meta">{{ client?.quarter || '—' }} · {{ client?.collector }}</p>
+      <p class="meta" data-testid="e2e-rm-client-quarter">{{ client?.quarter || '—' }} · {{ client?.collector }}</p>
     </div>
     <ion-button fill="clear" (click)="dismiss()">
       <ion-icon slot="icon-only" name="close-outline"></ion-icon>
@@ -17,20 +17,22 @@
       inputmode="tel"
       [(ngModel)]="phone"
       (ionInput)="validatePhone()"
-      placeholder="07 XX XX XX XX">
+      placeholder="07 XX XX XX XX"
+      data-testid="e2e-rm-client-phone">
     </ion-input>
     <p class="error" *ngIf="phoneError">{{ phoneError }}</p>
   </section>
 
   <section class="card">
     <label>Géolocalisation</label>
-    <p class="coords" *ngIf="hasGeo">
+    <p class="coords" *ngIf="hasGeo" data-testid="e2e-rm-client-coords">
       {{ latitude | number:'1.5-5' }}, {{ longitude | number:'1.5-5' }}
     </p>
     <p class="coords muted" *ngIf="!hasGeo">Aucune position enregistrée</p>
 
     <div class="geo-actions">
-      <ion-button expand="block" class="rm-cta" [disabled]="locating" (click)="captureLocation()">
+      <ion-button expand="block" class="rm-cta" [disabled]="locating" (click)="captureLocation()"
+        data-testid="e2e-rm-client-capture-gps">
         <ion-icon slot="start" name="locate-outline"></ion-icon>
         {{ locating ? 'Capture…' : 'Mettre à jour ma position' }}
       </ion-button>
@@ -43,14 +45,15 @@
         Ouvrir Maps
       </ion-button>
     </div>
-    <p class="hint">MLL généré automatiquement à partir de latitude / longitude.</p>
+    <p class="hint" data-testid="e2e-rm-client-mll-hint">MLL généré automatiquement à partir de latitude / longitude.</p>
   </section>
 
   <ion-button
     expand="block"
     class="rm-cta"
     [disabled]="!isValid || submitting"
-    (click)="save()">
+    (click)="save()"
+    data-testid="e2e-rm-client-save">
     {{ submitting ? 'Enregistrement…' : 'Enregistrer' }}
   </ion-button>
 </div>

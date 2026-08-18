@@ -162,8 +162,26 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
             operationConsentCode: collection.operationConsentCode ?? null,
             confirmedAmount: collection.confirmedAmount ?? null,
             syncConsentCode: this.syncConsentCode ?? null,
-            collectionDate: collection.collectionDate ? String(collection.collectionDate).substring(0, 10) : undefined,
+            collectionDate: toCatchupCollectionDate(collection.collectionDate),
             advanceToNextMonth: collection.advanceToNextMonth === true
         };
     }
+}
+
+/** Envoie collectionDate seulement pour un rattrapage (date locale strictement avant aujourd'hui). */
+export function toCatchupCollectionDate(raw?: string | null): string | undefined {
+    if (!raw) {
+        return undefined;
+    }
+    const dateStr = String(raw).substring(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        return undefined;
+    }
+    const now = new Date();
+    const today = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, '0'),
+        String(now.getDate()).padStart(2, '0')
+    ].join('-');
+    return dateStr < today ? dateStr : undefined;
 }

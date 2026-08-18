@@ -20,17 +20,19 @@
             <div>
                 <div class="member-name">{{vm.client.fullName || vm.client.firstname + ' ' + vm.client.lastname}}</div>
                 <div class="session-info">Session Tontine {{vm.session?.year}}</div>
-                <div class="session-info" *ngIf="vm.allocationVersion">Part société {{vm.allocationVersion}}</div>
+                <div class="session-info" *ngIf="vm.allocationVersion"
+                    data-testid="e2e-delivery-allocation-version">Part société {{vm.allocationVersion}}</div>
             </div>
         </div>
 
-        <div class="offline-banner" *ngIf="vm.isOfflineEstimate || !vm.isExactBudget">
+        <div class="offline-banner" *ngIf="vm.isOfflineEstimate || !vm.isExactBudget"
+            data-testid="e2e-delivery-offline-banner">
             {{ vm.isOfflineEstimate
                 ? 'Budget estimé hors-ligne — des collectes ne sont pas encore synchronisées.'
                 : 'Budget indicatif — certaines collectes n\'ont pas encore de mois d\'affectation V2.' }}
         </div>
 
-        <div class="budget-display">
+        <div class="budget-display" data-testid="e2e-delivery-budget">
             <div class="budget-item">
                 <div class="budget-label">💰 Total Épargné</div>
                 <div class="budget-value total">{{vm.totalBudget | number}}</div>

@@ -1146,6 +1146,13 @@ public class CreditService extends GenericService<Credit, Long> {
             throw new CustomValidationException(
                     "Le changement de commercial n'est autorisé que pour les ventes en cours (INPROGRESS).");
         }
+        if (!StringUtils.hasText(newCollector)) {
+            throw new CustomValidationException("Le nouveau commercial est obligatoire.");
+        }
+        if (Objects.equals(credit.getCollector(), newCollector)) {
+            throw new CustomValidationException(
+                    "Le nouveau commercial doit être différent de l'actuel.");
+        }
 
         // 1. Historiser l'opération
         CreditCollectorHistory history = new CreditCollectorHistory();
@@ -1236,16 +1243,30 @@ public class CreditService extends GenericService<Credit, Long> {
         if (dto.getCreditIds() == null || dto.getCreditIds().isEmpty()) {
             return;
         }
+        if (!StringUtils.hasText(dto.getNewCollector())) {
+            throw new CustomValidationException("Le nouveau commercial est obligatoire.");
+        }
+
+        List<Long> creditIdsToUpdate = getRepository().findAllById(dto.getCreditIds()).stream()
+                .filter(credit -> !Objects.equals(credit.getCollector(), dto.getNewCollector()))
+                .map(Credit::getId)
+                .toList();
+        if (creditIdsToUpdate.isEmpty()) {
+            throw new CustomValidationException(
+                    "Le nouveau commercial doit être différent de l'actuel pour au moins une vente sélectionnée.");
+        }
+
         String username = userService.getCurrentUser().getUsername();
 
-        // 1. Historiser l'opération en bulk
-        creditCollectorHistoryRepository.bulkInsertHistoryForCredits(dto.getCreditIds(), dto.getNewCollector(), username, username);
+        // 1. Historiser l'opération en bulk (uniquement les ventes réellement modifiées)
+        creditCollectorHistoryRepository.bulkInsertHistoryForCredits(
+                creditIdsToUpdate, dto.getNewCollector(), username, username);
 
         // 2. Mettre à jour les crédits en bulk
-        getRepository().bulkUpdateCollector(dto.getCreditIds(), dto.getNewCollector());
+        getRepository().bulkUpdateCollector(creditIdsToUpdate, dto.getNewCollector());
 
         // 3. Mettre à jour le recoveryCollector des clients en bulk
-        getRepository().bulkUpdateClientRecoveryCollector(dto.getCreditIds(), dto.getNewCollector());
+        getRepository().bulkUpdateClientRecoveryCollector(creditIdsToUpdate, dto.getNewCollector());
 
         // 4. Invalider les caches listes clients (filtrées aussi par recoveryCollector)
         clientService.evictClientListCaches();

@@ -77,27 +77,32 @@
     <nav class="report-segment" role="tablist" aria-label="Sections du rapport">
         <button type="button" role="tab" class="segment-btn"
             *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
+            data-testid="e2e-daily-report-tab-overview"
             [class.active]="activeTab === 'overview'"
             [attr.aria-selected]="activeTab === 'overview'"
             (click)="activeTab = 'overview'">Vue d'ensemble</button>
         <button type="button" role="tab" class="segment-btn"
             *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
+            data-testid="e2e-daily-report-tab-journal"
             [class.active]="activeTab === 'journal'"
             [attr.aria-selected]="activeTab === 'journal'"
             (click)="activeTab = 'journal'">Journal</button>
         <button type="button" role="tab" class="segment-btn"
             *ngIf="isRecoveryManager || isManager"
+            data-testid="e2e-daily-report-tab-recovery"
             [class.active]="activeTab === 'recovery'"
             [attr.aria-selected]="activeTab === 'recovery'"
             (click)="activeTab = 'recovery'">Recouvrement</button>
         <button type="button" role="tab" class="segment-btn"
             *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']"
+            data-testid="e2e-daily-report-tab-deposits"
             [class.active]="activeTab === 'deposits'"
             [attr.aria-selected]="activeTab === 'deposits'"
             (click)="activeTab = 'deposits'">Versements</button>
         <ng-container *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER']">
             <button type="button" role="tab" class="segment-btn"
                 *ngIf="isManager || isSecretary"
+                data-testid="e2e-daily-report-tab-remittance"
                 [class.active]="activeTab === 'remittance'"
                 [attr.aria-selected]="activeTab === 'remittance'"
                 (click)="activeTab = 'remittance'">Remise</button>
@@ -114,7 +119,7 @@
 
                 <div *ngIf="!isLoading">
                     <!-- Bilan annuel crédit (commercial sélectionné) -->
-                    <div class="yearly-summary mb-4" *ngIf="activeCommercialUsername">
+                    <div class="yearly-summary mb-4" *ngIf="activeCommercialUsername" data-testid="e2e-yearly-credit-bilan">
                         <mat-card class="example-card yearly-summary-card">
                             <mat-card-header>
                                 <mat-card-title>BILAN CRÉDIT {{ summaryYear }}</mat-card-title>
@@ -127,8 +132,8 @@
                                     <mat-spinner diameter="36"></mat-spinner>
                                 </div>
                                 <div *ngIf="!yearlySummaryLoading">
-                                    <div class="yearly-kpi-strip yearly-kpi-strip-secondary">
-                                        <div class="yearly-kpi kpi-total">
+                                    <div class="yearly-kpi-strip yearly-kpi-strip-secondary" data-testid="e2e-yearly-credit-row-stock">
+                                        <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-kpi-opening-stock">
                                             <span class="yearly-kpi-label">Stock ouverture</span>
                                             <span class="yearly-kpi-value">
                                                 {{ yearlySummaryView.openingStockAmount | number:'1.0-0' }}
@@ -136,7 +141,7 @@
                                             </span>
                                             <span class="yearly-kpi-hint">Restes au 01/01/{{ summaryYear }}</span>
                                         </div>
-                                        <div class="yearly-kpi kpi-total">
+                                        <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-kpi-credit-sales">
                                             <span class="yearly-kpi-label">Ventes crédit</span>
                                             <span class="yearly-kpi-value">
                                                 {{ yearlySummaryView.totalCreditSalesAmount | number:'1.0-0' }}
@@ -144,7 +149,7 @@
                                             </span>
                                             <span class="yearly-kpi-hint">{{ yearlySummaryView.totalCreditSalesCount }} ouverture(s)</span>
                                         </div>
-                                        <div class="yearly-kpi kpi-amount">
+                                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-credits-received">
                                             <span class="yearly-kpi-label">Créances reçues</span>
                                             <span class="yearly-kpi-value">
                                                 {{ yearlySummaryView.creditsReceivedAmount | number:'1.0-0' }}
@@ -152,7 +157,7 @@
                                             </span>
                                             <span class="yearly-kpi-hint">Passations entrantes</span>
                                         </div>
-                                        <div class="yearly-kpi kpi-amount">
+                                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-credits-ceded">
                                             <span class="yearly-kpi-label">Créances cédées</span>
                                             <span class="yearly-kpi-value">
                                                 {{ yearlySummaryView.creditsCededAmount | number:'1.0-0' }}
@@ -161,8 +166,8 @@
                                             <span class="yearly-kpi-hint">Passations sortantes</span>
                                         </div>
                                     </div>
-                                    <div class="yearly-kpi-strip">
-                                        <div class="yearly-kpi kpi-green">
+                                    <div class="yearly-kpi-strip" data-testid="e2e-yearly-credit-row-portfolio">
+                                        <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-kpi-portfolio">
                                             <span class="yearly-kpi-label">Portefeuille confié</span>
                                             <span class="yearly-kpi-value">
                                                 {{ yearlySummaryView.entrustedPortfolioAmount | number:'1.0-0' }}
@@ -170,7 +175,7 @@
                                             </span>
                                             <span class="yearly-kpi-hint">Stock + ventes + reçues − cédées</span>
                                         </div>
-                                        <div class="yearly-kpi kpi-amount">
+                                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-deposits">
                                             <span class="yearly-kpi-label">Versements crédit</span>
                                             <span class="yearly-kpi-value">
                                                 {{ yearlySummaryView.totalCreditDepositedAmount | number:'1.0-0' }}
@@ -178,7 +183,7 @@
                                             </span>
                                             <span class="yearly-kpi-hint">Remis au secrétaire</span>
                                         </div>
-                                        <div class="yearly-kpi kpi-green">
+                                        <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-kpi-remaining-commercial">
                                             <span class="yearly-kpi-label">Reste chez le commercial</span>
                                             <span class="yearly-kpi-value"
                                                 [class.is-warn]="yearlySummaryView.remainingAtCommercialAmount > 0">
@@ -190,6 +195,7 @@
                                         <div class="yearly-kpi kpi-delai yearly-kpi-clickable"
                                              role="button"
                                              tabindex="0"
+                                             data-testid="e2e-yearly-kpi-remaining-client"
                                              (click)="openRemainingAtClientsModal()"
                                              (keydown.enter)="openRemainingAtClientsModal()"
                                              (keydown.space)="$event.preventDefault(); openRemainingAtClientsModal()"
@@ -208,7 +214,7 @@
                     </div>
 
                     <!-- Bilan annuel tontine (activité réellement enregistrée par le commercial) -->
-                    <div class="yearly-summary mb-4" *ngIf="activeCommercialUsername">
+                    <div class="yearly-summary mb-4" *ngIf="activeCommercialUsername" data-testid="e2e-yearly-tontine-bilan">
                         <mat-card class="example-card yearly-summary-card yearly-tontine-card">
                             <mat-card-header>
                                 <mat-card-title>BILAN TONTINE {{ summaryYear }}</mat-card-title>
@@ -222,7 +228,7 @@
                                 </div>
                                 <div class="yearly-kpi-strip yearly-kpi-strip-three"
                                      *ngIf="!yearlyTontineSummaryLoading">
-                                    <div class="yearly-kpi kpi-total">
+                                    <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-tontine-kpi-collections">
                                         <span class="yearly-kpi-label">Collectes tontine</span>
                                         <span class="yearly-kpi-value">
                                             {{ yearlyTontineSummaryView.totalTontineCollectionsAmount | number:'1.0-0' }}
@@ -232,7 +238,7 @@
                                             {{ yearlyTontineSummaryView.totalTontineCollectionsCount }} opération(s) enregistrée(s)
                                         </span>
                                     </div>
-                                    <div class="yearly-kpi kpi-amount">
+                                    <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-tontine-kpi-deposits">
                                         <span class="yearly-kpi-label">Versements tontine</span>
                                         <span class="yearly-kpi-value">
                                             {{ yearlyTontineSummaryView.totalTontineDepositedAmount | number:'1.0-0' }}
@@ -240,7 +246,7 @@
                                         </span>
                                         <span class="yearly-kpi-hint">Remis au secrétaire</span>
                                     </div>
-                                    <div class="yearly-kpi kpi-green">
+                                    <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-tontine-kpi-remaining">
                                         <span class="yearly-kpi-label">Reste chez le commercial</span>
                                         <span class="yearly-kpi-value"
                                               [class.is-warn]="yearlyTontineSummaryView.remainingAtCommercialAmount > 0">

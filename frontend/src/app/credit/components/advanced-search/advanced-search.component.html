@@ -13,9 +13,10 @@
           formControlName="keyword"
           class="search-input"
           placeholder="Nom, référence, commercial…"
-          autocomplete="off">
+          autocomplete="off"
+          data-testid="e2e-credit-search-keyword">
         <label class="reference-only-toggle">
-          <input type="checkbox" formControlName="searchByReference">
+          <input type="checkbox" formControlName="searchByReference" data-testid="e2e-credit-search-by-reference">
           <span>Rechercher uniquement par référence</span>
         </label>
       </div>
@@ -107,7 +108,8 @@
         type="button"
         class="btn-primary"
         (click)="onSearch()"
-        [disabled]="!hasActiveFilters()">
+        [disabled]="!hasActiveFilters()"
+        data-testid="e2e-credit-search-submit">
         Rechercher
       </button>
     </div>

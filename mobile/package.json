@@ -1,6 +1,6 @@
 {
   "name": "elykia-mobile",
-  "version": "2.20.1",
+  "version": "2.20.9",
   "author": "Francis AHONSU",
   "homepage": "https://ionicframework.com/",
   "scripts": {
@@ -17,6 +17,7 @@
     "version:bump": "node scripts/version-bump.js",
     "test:e2e": "playwright test",
     "test:e2e:smoke": "playwright test --grep @smoke",
+    "test:e2e:august": "playwright test --grep @august-2026",
     "test:e2e:ui": "playwright test --ui"
   },
   "private": true,

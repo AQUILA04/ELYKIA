@@ -176,6 +176,8 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     this.statusText = "Mode hors ligne détecté";
     this.progress = 100;
 
+    void this.storage.set('initialization_complete', true).catch(() => undefined);
+
     setTimeout(() => {
       this.statusText = "Accès aux données locales...";
       setTimeout(() => {

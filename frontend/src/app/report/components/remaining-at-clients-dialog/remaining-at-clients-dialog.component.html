@@ -1,4 +1,4 @@
-<div class="remaining-at-clients-dialog">
+<div class="remaining-at-clients-dialog" data-testid="e2e-remaining-clients-dialog">
   <header class="dialog-header">
     <div class="dialog-header-text">
       <p class="dialog-surtitle">Bilan crédit {{ data.year }}</p>
@@ -17,11 +17,11 @@
         <span class="kpi-label">Portefeuille confié</span>
         <span class="kpi-value">{{ data.entrustedPortfolioAmount | number:'1.0-0' }} <small>FCFA</small></span>
       </div>
-      <div class="kpi-card kpi-amount">
+      <div class="kpi-card kpi-amount" data-testid="e2e-remaining-clients-kpi-commercial">
         <span class="kpi-label">Reste commercial</span>
         <span class="kpi-value">{{ data.remainingAtCommercialAmount | number:'1.0-0' }} <small>FCFA</small></span>
       </div>
-      <div class="kpi-card kpi-delai">
+      <div class="kpi-card kpi-delai" data-testid="e2e-remaining-clients-kpi-client">
         <span class="kpi-label">Reste client (live)</span>
         <span class="kpi-value">{{ (totalRemainingAmount || data.remainingAtClientAmount) | number:'1.0-0' }} <small>FCFA</small></span>
       </div>
@@ -42,14 +42,15 @@
 
     <div class="table-card" *ngIf="!loading && !error && rows.length > 0">
       <div class="table-toolbar">
-        <button type="button" class="btn-download" (click)="downloadPdf()" [disabled]="downloading">
+        <button type="button" class="btn-download" (click)="downloadPdf()" [disabled]="downloading"
+                data-testid="e2e-remaining-clients-download-pdf">
           {{ downloading ? 'Téléchargement…' : 'Télécharger PDF' }}
         </button>
         <span class="result-count">
           <strong>{{ rows.length }}</strong> / {{ salesCount }} crédit(s)
         </span>
       </div>
-      <div class="table-wrapper">
+      <div class="table-wrapper" data-testid="e2e-remaining-clients-table">
         <table class="data-table">
           <thead>
             <tr>
@@ -68,6 +69,7 @@
               <td class="mono">
                 <button type="button" class="ref-link"
                         (click)="openCredit(row)"
+                        data-testid="e2e-remaining-clients-ref-link"
                         [attr.aria-label]="'Ouvrir le crédit ' + row.reference">
                   {{ row.reference }}
                 </button>

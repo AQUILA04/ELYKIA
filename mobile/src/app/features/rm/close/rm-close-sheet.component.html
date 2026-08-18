@@ -24,7 +24,7 @@
   <section class="mode">
     <div class="mode-toggle">
       <button type="button" [class.on]="!isPartial" (click)="setTotal()">Total</button>
-      <button type="button" [class.on]="isPartial" (click)="setPartial()">Partiel</button>
+      <button type="button" [class.on]="isPartial" (click)="setPartial()" data-testid="e2e-rm-close-partial">Partiel</button>
     </div>
   </section>
 
@@ -51,7 +51,8 @@
     expand="block"
     class="rm-cta"
     [disabled]="!isValid || submitting"
-    (click)="confirm()">
+    (click)="confirm()"
+    data-testid="e2e-rm-close-confirm">
     {{ submitting ? 'Enregistrement…' : 'Confirmer la clôture' }}
   </ion-button>
 </div>

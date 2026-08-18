@@ -1,4 +1,4 @@
-<div class="main-container dashboard-v2-page a1">
+<div class="main-container dashboard-v2-page a1" data-testid="e2e-dashboard-v2">
   <div class="breadcrumb-bar">
     <a routerLink="/home" class="breadcrumb-link">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -38,7 +38,7 @@
 
   <div class="error-banner" *ngIf="error">{{ error }}</div>
 
-  <div class="kpi-grid a3" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_DASHBOARD']">
+  <div class="kpi-grid a3" *ngxPermissionsOnly="['ROLE_KPI_FINANCIER_DASHBOARD']" data-testid="e2e-dashboard-kpi-grid">
     <app-dashboard-kpi-card
       *ngFor="let card of kpiCards"
       [data]="card"

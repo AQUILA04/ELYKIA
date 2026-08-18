@@ -81,6 +81,31 @@ describe('TontineCollectionSyncService', () => {
     expect(persisted.id).toBe(99);
   }));
 
+  it('omits collectionDate when the collecte is today so the server does not treat it as catch-up', fakeAsync(() => {
+    const now = new Date();
+    const today = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0')
+    ].join('-');
+    const collection: TontineCollection = {
+      id: 'uuid-today',
+      tontineMemberId: '42',
+      amount: 1000,
+      collectionDate: `${today}T10:00:00.000Z`,
+      isLocal: true,
+      isSync: false
+    };
+
+    service.syncSingle(collection).then(() => undefined);
+    flushMicrotasks();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/api/v1/tontines/collections`);
+    expect(req.request.body.collectionDate).toBeUndefined();
+    req.flush({ data: { id: 100, amount: 1000, collectionDate: `${today}T10:00:00` } });
+    flushMicrotasks();
+  }));
+
   it('keeps the local collection when the backend returns a business error', fakeAsync(() => {
     const collection: TontineCollection = {
       id: 'uuid-err',

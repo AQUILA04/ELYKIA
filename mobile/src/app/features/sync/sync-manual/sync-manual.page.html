@@ -19,7 +19,7 @@
   <!-- Segment pour les onglets (scrollable pour 6 onglets) -->
   <ion-toolbar class="segment-toolbar">
     <ion-segment scrollable [(ngModel)]="activeTab" (ionChange)="onSegmentChange($event)">
-      <ion-segment-button value="clients">
+      <ion-segment-button value="clients" data-testid="e2e-sync-tab-clients">
         <ion-icon name="people-outline"></ion-icon>
         <ion-label>Clients</ion-label>
       </ion-segment-button>
@@ -35,7 +35,7 @@
         <ion-icon name="people-circle-outline"></ion-icon>
         <ion-label>Membres</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="tontine-collections">
+      <ion-segment-button value="tontine-collections" data-testid="e2e-sync-tab-tontine-collections">
         <ion-icon name="wallet-outline"></ion-icon>
         <ion-label>Collectes</ion-label>
       </ion-segment-button>
@@ -62,7 +62,7 @@
   <!-- Contenu des onglets -->
   <div class="sync-content" *ngIf="!(loading$ | async)">
     <!-- Onglet Clients -->
-    <div *ngIf="activeTab === 'clients'">
+    <div *ngIf="activeTab === 'clients'" data-testid="e2e-sync-panel-clients">
       <app-entity-sync-list [entities]="(clients$ | async) || []" [selectedIds]="(selectedClientIds$ | async) || []"
         [syncingIds]="(syncingEntities$ | async) || []" entityType="client"
         (toggleSelection)="onToggleSelection('client', $event)" (selectAll)="onSelectAll('client')"
@@ -101,7 +101,7 @@
     </div>
 
     <!-- Onglet Collectes Tontine -->
-    <div *ngIf="activeTab === 'tontine-collections'">
+    <div *ngIf="activeTab === 'tontine-collections'" data-testid="e2e-sync-panel-tontine-collections">
       <app-entity-sync-list [entities]="(tontineCollections$ | async) || []"
         [selectedIds]="(selectedTontineCollectionIds$ | async) || []" [syncingIds]="(syncingEntities$ | async) || []"
         entityType="tontine-collection" (toggleSelection)="onToggleSelection('tontine-collection', $event)"

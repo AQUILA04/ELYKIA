@@ -1,7 +1,7 @@
 <ngx-spinner bdColor="rgba(0, 0, 0, 0.8)" size="medium" color="#fff" type="ball-pulse"
   [fullScreen]="true"></ngx-spinner>
 
-<div class="cd-page-wrapper" *ngIf="!isLoading && credit">
+<div class="cd-page-wrapper" *ngIf="!isLoading && credit" data-testid="e2e-credit-details">
 
   <!-- TOPBAR -->
   <div class="cd-topbar a1">
@@ -188,6 +188,10 @@
           type="button"
           class="source-stock-link"
           *ngFor="let stock of credit.sourceMonthlyStocks"
+          data-testid="e2e-credit-source-stock"
+          [attr.data-collector]="stock.collector"
+          [attr.data-year]="stock.year"
+          [attr.data-month]="stock.month"
           (click)="openSourceMonthlyStock(stock)">
           Stock {{ stock.collector }} — {{ getMonthName(stock.month) }} {{ stock.year }}
         </button>

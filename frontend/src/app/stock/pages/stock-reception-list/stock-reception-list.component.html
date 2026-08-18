@@ -1,4 +1,4 @@
-<div class="main-container a1">
+  <div class="main-container a1" data-testid="e2e-stock-reception-list">
 
   <!-- BREADCRUMB -->
   <div class="breadcrumb-bar">
@@ -105,7 +105,10 @@
             </div>
           </td>
         </tr>
-        <tr *ngFor="let r of receptions; let i = index" [class.cancelled-row]="r.status === 'CANCELLED' || r.status === 'REFUSED'">
+        <tr *ngFor="let r of receptions; let i = index" [class.cancelled-row]="r.status === 'CANCELLED' || r.status === 'REFUSED'"
+            [attr.data-testid]="'e2e-stock-reception-row'"
+            [attr.data-reference]="r.reference"
+            [attr.data-status]="r.status">
           <td>
             <span class="row-num">{{ currentPage * pageSize + i + 1 }}</span>
           </td>
@@ -132,9 +135,12 @@
           <td>
             <div class="action-buttons">
               <button class="btn-detail" (click)="viewDetails(r.id)">Voir</button>
-              <button class="btn-validate" *ngIf="canValidateOrRefuse(r)" (click)="validateReception(r)">Valider</button>
-              <button class="btn-refuse" *ngIf="canValidateOrRefuse(r)" (click)="refuseReception(r)">Refuser</button>
-              <button class="btn-cancel" *ngIf="canAbandonPending(r)" (click)="abandonReception(r)">Abandonner</button>
+              <button class="btn-validate" *ngIf="canValidateOrRefuse(r)" (click)="validateReception(r)"
+                data-testid="e2e-stock-reception-validate">Valider</button>
+              <button class="btn-refuse" *ngIf="canValidateOrRefuse(r)" (click)="refuseReception(r)"
+                data-testid="e2e-stock-reception-refuse">Refuser</button>
+              <button class="btn-cancel" *ngIf="canAbandonPending(r)" (click)="abandonReception(r)"
+                data-testid="e2e-stock-reception-abandon">Abandonner</button>
               <button class="btn-cancel" *ngIf="canCancelValidated(r)" (click)="cancelValidatedReception(r)">Annuler</button>
             </div>
           </td>

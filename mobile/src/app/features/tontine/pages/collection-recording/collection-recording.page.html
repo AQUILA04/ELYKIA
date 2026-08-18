@@ -56,7 +56,8 @@
                 <p>Aucun membre trouvé</p>
             </div>
 
-            <div *ngFor="let member of filteredMembers" class="member-item" (click)="selectMember(member)">
+            <div *ngFor="let member of filteredMembers" class="member-item" (click)="selectMember(member)"
+                data-testid="e2e-tontine-member-item">
                 <div class="member-avatar-small">
                     <span>{{(member.clientName || '').substring(0, 2).toUpperCase()}}</span>
                 </div>
@@ -79,7 +80,8 @@
             </div>
 
             <ion-item class="amount-input" lines="none">
-                <ion-input type="number" formControlName="amount" placeholder="Entrez le montant" min="100" max="1000000" step="100">
+                <ion-input type="number" formControlName="amount" placeholder="Entrez le montant" min="100" max="1000000" step="100"
+                    data-testid="e2e-tontine-collection-amount">
                 </ion-input>
                 <span class="currency" slot="end">FCFA</span>
             </ion-item>
@@ -109,12 +111,13 @@
 
             <ion-item class="notes-input" lines="none">
                 <ion-textarea formControlName="notes" placeholder="Ajoutez des notes (optionnel)" rows="3"
-                    auto-grow="true">
+                    auto-grow="true" data-testid="e2e-tontine-collection-notes">
                 </ion-textarea>
             </ion-item>
 
             <!-- Submit Button -->
-            <ion-button expand="block" type="submit" class="submit-button" [disabled]="collectionForm.invalid">
+            <ion-button expand="block" type="submit" class="submit-button" [disabled]="collectionForm.invalid"
+                data-testid="e2e-tontine-collection-submit">
                 <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
                 Enregistrer la Cotisation
             </ion-button>

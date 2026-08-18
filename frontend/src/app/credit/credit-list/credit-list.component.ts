@@ -570,6 +570,14 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
       return;
     }
 
+    const selected = this.filteredCredits.filter(c => this.selectedCredits.has(c.id));
+    if (selected.length > 0 && selected.every(c => c.collector === this.selectedNewCollector)) {
+      this.alertService.showWarning(
+        'Le nouveau commercial doit être différent de l\'actuel pour au moins une vente sélectionnée.'
+      );
+      return;
+    }
+
     const dto = {
       creditIds: Array.from(this.selectedCredits),
       newCollector: this.selectedNewCollector

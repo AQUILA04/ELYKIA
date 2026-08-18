@@ -1,12 +1,12 @@
 <ion-tabs>
 
   <ion-tab-bar slot="bottom">
-    <ion-tab-button tab="dashboard" href="/tabs/dashboard">
+    <ion-tab-button tab="dashboard" href="/tabs/dashboard" data-testid="e2e-tab-dashboard">
       <ion-icon aria-hidden="true" name="home-outline"></ion-icon>
       <ion-label>Tableau de Bord</ion-label>
     </ion-tab-button>
 
-    <ion-tab-button tab="clients" href="/tabs/clients">
+    <ion-tab-button tab="clients" href="/tabs/clients" data-testid="e2e-tab-clients">
       <ion-icon aria-hidden="true" name="people-outline"></ion-icon>
       <ion-label>Clients</ion-label>
     </ion-tab-button>
@@ -21,7 +21,7 @@
 <!--      <ion-label>Commandes</ion-label>-->
 <!--    </ion-tab-button>-->
 
-    <ion-tab-button tab="more" href="/tabs/more">
+    <ion-tab-button tab="more" href="/tabs/more" data-testid="e2e-tab-more">
       <ion-icon aria-hidden="true" name="ellipsis-horizontal-outline"></ion-icon>
       <ion-label>Plus</ion-label>
     </ion-tab-button>

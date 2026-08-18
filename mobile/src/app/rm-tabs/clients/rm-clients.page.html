@@ -15,7 +15,8 @@
       </ion-searchbar>
     </div>
 
-    <article class="client-card" *ngFor="let c of filtered" (click)="openEdit(c)">
+    <article class="client-card" *ngFor="let c of filtered" (click)="openEdit(c)"
+      data-testid="e2e-rm-client-card">
       <div class="left">
         <div class="avatar">
           <img

@@ -165,6 +165,11 @@
                 <ion-icon name="time-outline"></ion-icon>
                 <h2>Historique des Cotisations</h2>
                 <span class="count-badge">{{vm.collections.length}}</span>
+                <ion-button size="small" fill="outline" (click)="recordCollection()"
+                    data-testid="e2e-member-record-collection">
+                    <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+                    Cotiser
+                </ion-button>
             </div>
 
             <div *ngIf="vm.collections.length === 0" class="empty-state">

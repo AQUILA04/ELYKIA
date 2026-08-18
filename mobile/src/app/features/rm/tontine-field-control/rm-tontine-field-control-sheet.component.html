@@ -21,7 +21,8 @@
     </div>
     <div class="row">
       <span>Écart estimé</span>
-      <strong [class.ecart]="statusLabel === 'ECART'" [class.ok]="statusLabel === 'CONFORME'">
+      <strong [class.ecart]="statusLabel === 'ECART'" [class.ok]="statusLabel === 'CONFORME'"
+        data-testid="e2e-rm-tontine-sheet-status">
         {{ formatAmount(difference) }} · {{ statusLabel }}
       </strong>
     </div>
@@ -34,7 +35,8 @@
       class="month-row"
       *ngFor="let row of rows"
       [class.selected]="row.selected"
-      (click)="toggleRow(row)">
+      (click)="toggleRow(row)"
+      data-testid="e2e-rm-tontine-month">
       <div class="month-head">
           <ion-checkbox
           [checked]="row.selected"
@@ -74,7 +76,8 @@
     expand="block"
     class="rm-cta"
     [disabled]="!isValid || submitting"
-    (click)="confirm()">
+    (click)="confirm()"
+    data-testid="e2e-rm-tontine-control-confirm">
     {{ submitting ? 'Enregistrement…' : 'Capturer le contrôle' }}
   </ion-button>
 </div>

@@ -1,7 +1,7 @@
 import {Injectable} from '@angular/core';
 import {HttpClient, HttpErrorResponse, HttpHeaders} from '@angular/common/http';
-import {Observable, of} from 'rxjs';
-import {catchError, map, tap} from 'rxjs/operators';
+import {Observable, of, TimeoutError} from 'rxjs';
+import {catchError, map, tap, timeout} from 'rxjs/operators';
 import {environment} from '../../../environments/environment';
 import {LoggerService} from './logger.service';
 
@@ -13,6 +13,7 @@ interface HealthResponse {
   providedIn: 'root'
 })
 export class HealthCheckService {
+  static readonly PING_TIMEOUT_MS = 4_000;
 
   constructor(private http: HttpClient, private log: LoggerService) { }
 
@@ -35,6 +36,7 @@ export class HealthCheckService {
       observe: 'response',
       reportProgress: true
     }).pipe(
+      timeout(HealthCheckService.PING_TIMEOUT_MS),
       tap(response => {
         const duration = Date.now() - startTime;
         this.log.log('=== HEALTH CHECK SUCCESS === DURATION: ' + duration);
@@ -45,7 +47,9 @@ export class HealthCheckService {
       catchError(error => {
         const duration = Date.now() - startTime;
         this.log.log('=== HEALTH CHECK FAILED ===');
-        this.logDetailedHttpError(error, url, duration);
+        if (!(error instanceof TimeoutError)) {
+          this.logDetailedHttpError(error, url, duration);
+        }
         return of(false);
       })
     );

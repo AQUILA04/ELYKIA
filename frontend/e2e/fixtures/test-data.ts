@@ -3,7 +3,8 @@
  *
  * mag001 :
  * - Environnement vierge (init `application.yml`) → `Maga1234`
- * - Bases locales déjà peuplées (mot de passe modifié) → `Abcd1234` en repli
+ * - Base locale Francis → `Afric@`
+ * - Autre repli → `Abcd1234`
  * - Surcharge explicite → `E2E_MAG001_PASSWORD`
  */
 export const USER_ACCOUNTS = {
@@ -19,6 +20,7 @@ export const USER_ACCOUNTS = {
     username: process.env['E2E_MAG001_USERNAME'] ?? 'mag001',
     passwordCandidates: uniqueStrings([
       process.env['E2E_MAG001_PASSWORD'],
+      'Afric@',
       'Maga1234',
       'Abcd1234',
     ]),
@@ -32,6 +34,23 @@ export const USER_ACCOUNTS = {
       'Abcd1234',
     ]),
     label: 'PROMOTER',
+  },
+  secretaire: {
+    username: process.env['E2E_SEC_USERNAME'] ?? 'secret001',
+    passwordCandidates: uniqueStrings([
+      process.env['E2E_SEC_PASSWORD'],
+      'Abcd1234',
+    ]),
+    label: 'SECRETARY',
+  },
+  recoveryManager: {
+    username: process.env['E2E_RM_USERNAME'] ?? 'recov001',
+    passwordCandidates: uniqueStrings([
+      process.env['E2E_RM_PASSWORD'],
+      'Recover1234',
+      'Abcd1234',
+    ]),
+    label: 'RECOVERY_MANAGER',
   },
 } as const;
 
@@ -168,5 +187,15 @@ export const USERS = {
     username: USER_ACCOUNTS.commercial.username,
     password: USER_ACCOUNTS.commercial.passwordCandidates[0]!,
     label: USER_ACCOUNTS.commercial.label,
+  },
+  secretaire: {
+    username: USER_ACCOUNTS.secretaire.username,
+    password: USER_ACCOUNTS.secretaire.passwordCandidates[0]!,
+    label: USER_ACCOUNTS.secretaire.label,
+  },
+  recoveryManager: {
+    username: USER_ACCOUNTS.recoveryManager.username,
+    password: USER_ACCOUNTS.recoveryManager.passwordCandidates[0]!,
+    label: USER_ACCOUNTS.recoveryManager.label,
   },
 } as const;

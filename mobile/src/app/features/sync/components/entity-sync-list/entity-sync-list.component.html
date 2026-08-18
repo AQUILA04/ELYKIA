@@ -1,4 +1,4 @@
-<div class="entity-sync-list">
+<div class="entity-sync-list" data-testid="e2e-sync-entity-list">
   <!-- En-tête avec "Tout sélectionner" -->
   <div class="list-header" *ngIf="entities && entities.length > 0">
     <ion-item lines="none" class="select-all-item">
@@ -77,7 +77,8 @@
         slot="end" 
         fill="clear" 
         (click)="onSync(entity.id, $event)"
-        class="sync-button">
+        class="sync-button"
+        data-testid="e2e-sync-single-button">
         <ion-icon name="sync-outline"></ion-icon>
       </ion-button>
     </ion-item>

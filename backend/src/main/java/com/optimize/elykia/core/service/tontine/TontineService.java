@@ -382,14 +382,19 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         LocalDate allocationDate = LocalDate.now();
         LocalDateTime collectionDateTime = LocalDateTime.now();
-        if (dto.getCollectionDate() != null) {
-            validateCatchupCollectionDate(member, currentSession, dto.getCollectionDate());
-            allocationDate = dto.getCollectionDate();
-            collectionDateTime = dto.getCollectionDate().atStartOfDay();
+        LocalDate requestedDate = dto.getCollectionDate();
+        // Date du jour (ou absente) = collecte live. Seule une date strictement passée est un rattrapage.
+        if (requestedDate != null && requestedDate.isBefore(allocationDate)) {
+            validateCatchupCollectionDate(member, currentSession, requestedDate);
+            allocationDate = requestedDate;
+            collectionDateTime = requestedDate.atStartOfDay();
 
             if (dto.getCatchupDailyStake() != null) {
                 applyCatchupDailyStakeIfNeeded(member, allocationDate, dto.getCatchupDailyStake());
             }
+        } else if (requestedDate != null && requestedDate.isAfter(allocationDate)) {
+            throw new CustomValidationException(
+                    "La date de rattrapage doit être strictement antérieure à la date du jour.");
         }
 
         String commercialUsername = userService.getCurrentUser().getUsername();
@@ -408,7 +413,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         if (StringUtils.hasText(dto.getNotes())) {
             collection.setNotes(dto.getNotes());
-        } else if (dto.getCollectionDate() != null) {
+        } else if (requestedDate != null && requestedDate.isBefore(LocalDate.now())) {
             collection.setNotes("Rattrapage");
         }
 

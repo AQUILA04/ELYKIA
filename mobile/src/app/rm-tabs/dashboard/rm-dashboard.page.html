@@ -13,13 +13,13 @@
       <p class="meta" *ngIf="plan">
         {{ plan.commercialUsernames?.length || 0 }} commerciaux
         <span *ngIf="plan.quarters?.length"> · {{ plan.quarters.length }} localités</span>
-        <span *ngIf="pendingCloses > 0"> · {{ pendingCloses }} en attente sync</span>
+        <span *ngIf="pendingCloses > 0" data-testid="e2e-rm-pending-closes"> · {{ pendingCloses }} en attente sync</span>
       </p>
       <app-rm-session-bar></app-rm-session-bar>
     </header>
 
-    <section class="kpi-strip">
-      <article class="kpi kpi-navy">
+    <section class="kpi-strip" data-testid="e2e-rm-kpi-strip">
+      <article class="kpi kpi-navy" data-testid="e2e-rm-kpi-lates">
         <span>Retards</span>
         <strong>{{ lateCount }}</strong>
       </article>
@@ -27,7 +27,7 @@
         <span>Dû</span>
         <strong>{{ formatAmount(totalDue) }}</strong>
       </article>
-      <article class="kpi kpi-green">
+      <article class="kpi kpi-green" data-testid="e2e-rm-kpi-closed">
         <span>Clôturé</span>
         <strong>{{ formatAmount(closedTodayAmount) }}</strong>
       </article>
@@ -59,17 +59,20 @@
             class="ctrl-badge"
             *ngIf="controlStatus(item.id) as st"
             [class.ok]="st === 'CONFORME'"
-            [class.ecart]="st === 'ECART'">
+            [class.ecart]="st === 'ECART'"
+            data-testid="e2e-rm-control-badge">
             {{ st }}
           </span>
         </div>
         <div class="late-side">
           <strong>{{ formatAmount(item.totalAmountRemaining || 0) }}</strong>
           <span class="badge" *ngIf="item.lateDaysDelai">{{ item.lateDaysDelai }}j</span>
-          <ion-button size="small" fill="outline" class="ctrl-btn" (click)="openFieldControl(item, $event)">
+          <ion-button size="small" fill="outline" class="ctrl-btn" (click)="openFieldControl(item, $event)"
+            data-testid="e2e-rm-control-open">
             Contrôle
           </ion-button>
-          <ion-button size="small" class="close-btn" (click)="openClose(item, $event)">Clôturer</ion-button>
+          <ion-button size="small" class="close-btn" (click)="openClose(item, $event)"
+            data-testid="e2e-rm-close-open">Clôturer</ion-button>
         </div>
       </article>
     </section>

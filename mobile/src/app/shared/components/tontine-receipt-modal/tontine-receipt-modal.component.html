@@ -79,7 +79,7 @@
             <div class="total-value">{{data.totalToDate | number}} FCFA</div>
         </div>
 
-        <div class="offline-estimate" *ngIf="data.isOfflineEstimate">
+        <div class="offline-estimate" *ngIf="data.isOfflineEstimate" data-testid="e2e-tontine-receipt-offline">
             Estimation hors-ligne — le serveur recalculera la part société à la synchronisation.
         </div>
 
@@ -109,7 +109,8 @@
         <ion-grid>
             <ion-row>
                 <ion-col size="6">
-                    <ion-button expand="block" color="medium" fill="outline" (click)="dismiss()">
+                    <ion-button expand="block" color="medium" fill="outline" (click)="dismiss()"
+                        data-testid="e2e-tontine-receipt-close">
                         Fermer
                     </ion-button>
                 </ion-col>

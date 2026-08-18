@@ -13,12 +13,12 @@
       <p *ngIf="pack">Pack : {{ pack.stats?.lateCredits }} retards · {{ pack.stats?.clients }} clients · {{ pack.stats?.tontineMembers || 0 }} tontines</p>
     </section>
 
-    <section class="card" *ngIf="pendingTotal">
+    <section class="card" *ngIf="pendingTotal" data-testid="e2e-rm-pending-queue">
       <h2>File d'attente</h2>
       <p *ngIf="pendingContacts.length">{{ pendingContacts.length }} contact(s) client</p>
       <p *ngIf="pendingControls.length">{{ pendingControls.length }} contrôle(s) carnet crédit</p>
       <p *ngIf="pendingTontineControls.length">{{ pendingTontineControls.length }} contrôle(s) carnet tontine</p>
-      <p *ngIf="pendingOps.length">{{ pendingOps.length }} clôture(s)</p>
+      <p *ngIf="pendingOps.length" data-testid="e2e-rm-pending-close-count">{{ pendingOps.length }} clôture(s)</p>
       <article class="pending-row" *ngFor="let op of pendingOps">
         <div>
           <strong>{{ op.clientName || op.creditReference || op.creditId }}</strong>
@@ -29,7 +29,7 @@
     </section>
 
     <ion-list class="menu" lines="none">
-      <ion-item button detail (click)="syncPending()" [disabled]="!pendingTotal">
+      <ion-item button detail (click)="syncPending()" [disabled]="!pendingTotal" data-testid="e2e-rm-more-sync">
         <ion-icon name="sync-outline" slot="start"></ion-icon>
         <ion-label>Synchroniser (contacts + contrôles + clôtures)</ion-label>
         <ion-badge *ngIf="pendingTotal" color="warning" slot="end">{{ pendingTotal }}</ion-badge>

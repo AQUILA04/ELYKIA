@@ -200,6 +200,10 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
 
   submitChangeCollector(): void {
     if (!this.selectedCommercial) return;
+    if (this.selectedCommercial === this.credit?.collector) {
+      this.alertService.showWarning('Le nouveau commercial doit être différent de l\'actuel.');
+      return;
+    }
 
     this.spinner.show();
     this.creditService.changeCollector(this.credit.id, this.selectedCommercial).subscribe({

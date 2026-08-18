@@ -5,7 +5,8 @@
             <h2 class="tab-title">Remise au gestionnaire</h2>
             <p class="tab-subtitle">Consolidation mensuelle des versements journaliers · Soumission secrétaire ou réception directe gestionnaire</p>
         </div>
-        <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="isLoading || isSubmitting">
+        <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="isLoading || isSubmitting"
+            data-testid="e2e-remittance-refresh">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
                 <path d="M3 3v5h5"/>
@@ -49,7 +50,8 @@
             <div class="kpi-card kpi-total">
                 <div class="kpi-label">{{ summary.status === 'PENDING' ? 'Montant en attente' : 'Reste à remettre' }}</div>
                 <div class="kpi-value">{{ summary.totalAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
-                <div class="kpi-sub" *ngIf="summary.alreadyRemittedAmount && summary.alreadyRemittedAmount > 0">
+                <div class="kpi-sub" *ngIf="summary.alreadyRemittedAmount && summary.alreadyRemittedAmount > 0"
+                    data-testid="e2e-remittance-already-remitted">
                     Déjà remis : {{ summary.alreadyRemittedAmount | currency:'XOF':'symbol':'1.0-0' }}
                 </div>
                 <div class="kpi-sub" *ngIf="!summary.alreadyRemittedAmount || summary.alreadyRemittedAmount <= 0">
@@ -71,12 +73,13 @@
                 <div class="kpi-value">{{ summary.newBalanceAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
                 <div class="kpi-sub">Dépôts initiaux</div>
             </div>
-            <div class="kpi-card kpi-expense">
+            <div class="kpi-card kpi-expense" data-testid="e2e-remittance-expenses-kpi">
                 <div class="kpi-label">Dépenses</div>
                 <div class="kpi-value">{{ computedExpenseAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
                 <div class="kpi-sub">À déduire</div>
             </div>
-            <div class="kpi-card" [class.kpi-net]="!netNegative" [class.kpi-net-negative]="netNegative">
+            <div class="kpi-card" [class.kpi-net]="!netNegative" [class.kpi-net-negative]="netNegative"
+                data-testid="e2e-remittance-net-kpi">
                 <div class="kpi-label">Montant net</div>
                 <div class="kpi-value">{{ computedNetAmount | currency:'XOF':'symbol':'1.0-0' }}</div>
                 <div class="kpi-sub">À remettre au gestionnaire</div>
@@ -101,7 +104,10 @@
                 <div class="expense-item" *ngFor="let expense of getVisibleExpenses()"
                      [class.selected]="isExpenseSelected(expense)"
                      [class.readonly]="isReadOnly"
-                     (click)="toggleExpense(expense)">
+                     (click)="toggleExpense(expense)"
+                     data-testid="e2e-remittance-expense-item"
+                     [attr.data-expense-id]="expense.id"
+                     [attr.data-amount]="expense.amount">
                     <input type="checkbox"
                         [checked]="isExpenseSelected(expense)"
                         [disabled]="isReadOnly"
@@ -178,7 +184,12 @@
                 </thead>
                 <tbody>
                     <ng-container *ngFor="let item of history">
-                        <tr [class.row-expanded]="isHistoryExpanded(item.id)">
+                        <tr [class.row-expanded]="isHistoryExpanded(item.id)"
+                            data-testid="e2e-remittance-history-row"
+                            [attr.data-remittance-id]="item.id"
+                            [attr.data-year]="item.year"
+                            [attr.data-month]="item.month"
+                            [attr.data-status]="item.status">
                             <td class="expand-cell">
                                 <button type="button" class="btn-expand"
                                     (click)="toggleHistoryExpand(item.id)"

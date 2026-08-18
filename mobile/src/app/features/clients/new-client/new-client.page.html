@@ -268,7 +268,8 @@
           <ion-button expand="block" fill="outline" color="danger" (click)="resetForm()">Annuler</ion-button>
         </ion-col>
         <ion-col>
-          <ion-button expand="block" (click)="onSubmit()" [disabled]="!clientForm.valid">Enregistrer</ion-button>
+          <ion-button expand="block" (click)="onSubmit()" [disabled]="!clientForm.valid"
+            data-testid="e2e-new-client-submit">Enregistrer</ion-button>
         </ion-col>
       </ion-row>
     </ion-grid>

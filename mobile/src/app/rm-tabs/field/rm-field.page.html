@@ -15,11 +15,13 @@
             <div>
               <strong>{{ item.clientName }}</strong>
               <span>{{ formatAmount(item.totalContribution || 0) }} FCFA cotisés</span>
-              <span class="badge" *ngIf="controlStatus(item) as st" [class.ok]="st === 'CONFORME'" [class.ecart]="st === 'ECART'">
+              <span class="badge" *ngIf="controlStatus(item) as st" [class.ok]="st === 'CONFORME'" [class.ecart]="st === 'ECART'"
+                data-testid="e2e-rm-tontine-badge">
                 {{ st }}
               </span>
             </div>
-            <ion-button size="small" fill="outline" (click)="openTontineControl(item)">Contrôle</ion-button>
+            <ion-button size="small" fill="outline" (click)="openTontineControl(item)"
+              data-testid="e2e-rm-tontine-control-open">Contrôle</ion-button>
           </div>
         </div>
       </article>

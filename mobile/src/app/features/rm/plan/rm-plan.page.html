@@ -1,4 +1,4 @@
-<div class="rm-plan-page">
+<div class="rm-plan-page" data-testid="e2e-rm-plan-page">
   <header class="rm-hero">
     <p class="rm-surtitle">Chef de recouvrement</p>
     <h1>Plan du jour</h1>
@@ -29,7 +29,9 @@
           button
           detail="false"
           (click)="toggleCommercial(c.username)"
-          [class.selected]="isSelected(c.username)">
+          [class.selected]="isSelected(c.username)"
+          [attr.data-testid]="'e2e-rm-plan-collector'"
+          [attr.data-username]="c.username">
           <ion-checkbox
             slot="start"
             [checked]="isSelected(c.username)">
@@ -41,7 +43,7 @@
         </ion-item>
       </ion-list>
 
-      <ion-button expand="block" class="rm-cta" [disabled]="selectedCommercials.size < 1" (click)="goStep2()">
+      <ion-button expand="block" class="rm-cta" data-testid="e2e-rm-plan-continue" [disabled]="selectedCommercials.size < 1" (click)="goStep2()">
         Continuer
       </ion-button>
     </section>
@@ -59,7 +61,8 @@
         </div>
       </article>
 
-      <article class="locality-card" [class.active]="!allQuarters" (click)="openLocalityPicker()">
+      <article class="locality-card" [class.active]="!allQuarters" (click)="openLocalityPicker()"
+        data-testid="e2e-rm-plan-open-localities">
         <ion-icon name="checkbox-outline" class="card-icon"></ion-icon>
         <div>
           <strong>Sélection multiple</strong>
@@ -78,7 +81,7 @@
 
       <div class="rm-actions sticky-actions">
         <ion-button fill="outline" class="rm-cta-outline" (click)="step = 1">Retour</ion-button>
-        <ion-button class="rm-cta" (click)="goStep3()">Continuer</ion-button>
+        <ion-button class="rm-cta" data-testid="e2e-rm-plan-localities-continue" (click)="goStep3()">Continuer</ion-button>
       </div>
     </section>
 
@@ -97,7 +100,7 @@
 
       <div class="rm-actions">
         <ion-button fill="outline" class="rm-cta-outline" (click)="step = 2">Retour</ion-button>
-        <ion-button class="rm-cta" [disabled]="downloading" (click)="confirmDownload()">
+        <ion-button class="rm-cta" data-testid="e2e-rm-plan-download" [disabled]="downloading" (click)="confirmDownload()">
           Télécharger le pack
         </ion-button>
       </div>
@@ -119,7 +122,8 @@
           [(ngModel)]="localityQuery"
           placeholder="Rechercher une localité"
           debounce="200"
-          showClearButton="focus">
+          showClearButton="focus"
+          data-testid="e2e-rm-plan-locality-search">
         </ion-searchbar>
       </ion-toolbar>
     </ion-header>
@@ -132,7 +136,8 @@
           button
           detail="false"
           (click)="toggleQuarter(q)"
-          [class.selected]="selectedQuarters.has(q)">
+          [class.selected]="selectedQuarters.has(q)"
+          data-testid="e2e-rm-plan-locality">
           <ion-checkbox slot="start" [checked]="selectedQuarters.has(q)" class="pointer-none"></ion-checkbox>
           <ion-label>
             <h3>{{ q }}</h3>
@@ -149,7 +154,7 @@
             <ion-button fill="clear" (click)="clearSelectedQuarters()" [disabled]="!selectedQuarters.size">
               Effacer
             </ion-button>
-            <ion-button class="rm-cta" (click)="applyLocalitySelection()">
+            <ion-button class="rm-cta" data-testid="e2e-rm-plan-apply-localities" (click)="applyLocalitySelection()">
               Valider
             </ion-button>
           </div>

@@ -45,7 +45,7 @@
       </tr>
       </thead>
       <tbody>
-      <tr *ngFor="let param of parameters; let i = index">
+      <tr *ngFor="let param of parameters; let i = index" [attr.data-testid]="'e2e-parameter-row-' + param.key">
         <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
         <td>{{ param.key }}</td>
         <td>
@@ -57,7 +57,7 @@
         <td>{{ param.description }}</td>
         <td>
           <div style="display: flex; justify-content: flex-end;">
-            <button mat-icon-button matTooltip="Modifier" (click)="editParameter(param)">
+            <button mat-icon-button matTooltip="Modifier" (click)="editParameter(param)" [attr.data-testid]="'e2e-parameter-edit-' + param.key">
               <mat-icon style="color: #003366;">edit</mat-icon>
             </button>
             <button mat-icon-button matTooltip="Supprimer" (click)="deleteParameter(param.id)">

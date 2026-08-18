@@ -108,11 +108,11 @@
         <div class="action-icon"><ion-icon name="storefront-outline"></ion-icon></div>
         <div class="action-text">Nouvelle Distribution</div>
       </div>
-      <div class="action-card action-recovery" (click)="navigateToRecovery()">
+      <div class="action-card action-recovery" (click)="navigateToRecovery()" data-testid="e2e-action-recovery">
         <div class="action-icon"><ion-icon name="repeat-outline"></ion-icon></div>
         <div class="action-text">Recouvrement</div>
       </div>
-      <div class="action-card action-client" (click)="navigateToNewClient()">
+      <div class="action-card action-client" (click)="navigateToNewClient()" data-testid="e2e-action-new-client">
         <div class="action-icon"><ion-icon name="person-add-outline"></ion-icon></div>
         <div class="action-text">Nouveau Client</div>
       </div>
@@ -120,7 +120,7 @@
         <div class="action-icon"><ion-icon name="document-text-outline"></ion-icon></div>
         <div class="action-text">Rapport</div>
       </div>
-      <div class="action-card action-tontine" (click)="navigateToTontineDashboard()">
+      <div class="action-card action-tontine" (click)="navigateToTontineDashboard()" data-testid="e2e-action-tontine">
         <div class="action-icon"><ion-icon name="wallet-outline"></ion-icon></div>
         <div class="action-text">Tontine</div>
       </div>

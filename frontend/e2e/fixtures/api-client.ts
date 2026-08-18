@@ -203,6 +203,42 @@ export class ApiClient {
     return this.signIn(username, password);
   }
 
+  async signInAsSecretaire(): Promise<AuthTokenResponse> {
+    const { username, password } = await resolveCredentials('secretaire');
+    return this.signIn(username, password);
+  }
+
+  async signInAsRecoveryManager(): Promise<AuthTokenResponse> {
+    const { username, password } = await resolveCredentials('recoveryManager');
+    return this.signIn(username, password);
+  }
+
+  async requestStatus(path: string, init: RequestInit = {}): Promise<{ status: number; text: string }> {
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      ...init,
+      headers: {
+        ...this.authHeaders(),
+        'Content-Type': 'application/json',
+        ...(init.headers as Record<string, string> | undefined),
+      },
+    });
+    return { status: response.status, text: await response.text() };
+  }
+
+  async getBinary(path: string): Promise<{ status: number; body: Buffer; contentType: string }> {
+    if (!this.token) {
+      throw new Error('ApiClient: call signIn() first');
+    }
+    const response = await fetch(`${this.baseUrl}${path}`, {
+      headers: { Authorization: `Bearer ${this.token}` },
+    });
+    return {
+      status: response.status,
+      body: Buffer.from(await response.arrayBuffer()),
+      contentType: response.headers.get('content-type') ?? '',
+    };
+  }
+
   private authHeaders(): Record<string, string> {
     if (!this.token) {
       throw new Error('ApiClient: call signIn() first');
@@ -258,6 +294,15 @@ export class ApiClient {
     return data?.content ?? [];
   }
 
+  async getArticle(id: number): Promise<TestArticle> {
+    const response = await this.get<ApiEnvelope<TestArticle>>(`/api/v1/articles/${id}`);
+    const article = response.data;
+    if (!article) {
+      throw new Error(`Article ${id} introuvable`);
+    }
+    return { ...article, label: buildArticleSearchLabel(article) };
+  }
+
   async makeStockEntries(articleId: number, quantity: number): Promise<void> {
     await this.patch('/api/v1/articles/make-stock-entries', {
       articleEntries: [{ articleId, quantity }],
@@ -294,6 +339,7 @@ export class ApiClient {
       type?: string;
       status?: string;
       clientId?: number;
+      searchByReference?: boolean;
     },
     page = 0,
     size = 100,
@@ -303,6 +349,42 @@ export class ApiClient {
       criteria,
     );
     return response.data?.content ?? [];
+  }
+
+  async getCreditById(id: number): Promise<Record<string, unknown> & {
+    id: number;
+    reference?: string;
+    collector?: string;
+    client?: { id?: number; lastname?: string; firstname?: string };
+    sourceMonthlyStocks?: Array<{ id: number; collector: string; month: number; year: number }>;
+  }> {
+    const response = await this.get<ApiEnvelope<Record<string, unknown> & {
+      id: number;
+      reference?: string;
+      sourceMonthlyStocks?: Array<{ id: number; collector: string; month: number; year: number }>;
+    }>>(`/api/v1/credits/${id}`);
+    if (!response.data) {
+      throw new Error(`GET /api/v1/credits/${id} returned no data`);
+    }
+    return response.data;
+  }
+
+  async bulkAssignCollectors(dto: {
+    clientIds: number[];
+    collector?: string;
+    tontineCollector?: string;
+    transferInProgressCredits?: boolean;
+  }): Promise<void> {
+    await this.post('/api/v1/clients/bulk-assign-collectors', dto);
+  }
+
+  async getCollectorHistory(
+    creditId: number,
+  ): Promise<Array<{ oldCollector?: string; newCollector?: string }>> {
+    const response = await this.get<ApiEnvelope<Array<{ oldCollector?: string; newCollector?: string }>>>(
+      `/api/v1/credits/${creditId}/collector-history`,
+    );
+    return response.data ?? [];
   }
 
   async findCreditByClientLastName(
@@ -405,6 +487,29 @@ export class ApiClient {
     );
     const members = response.data?.content ?? [];
     return members.find((member) => member.client?.lastname === clientLastName) ?? null;
+  }
+
+  async listTontineMembers(commercial?: string, size = 50): Promise<TontineMemberSummary[]> {
+    const commercialQuery = commercial ? `&commercial=${encodeURIComponent(commercial)}` : '';
+    const response = await this.get<ApiEnvelope<PagedTontineMembers>>(
+      `/api/v1/tontines/members?page=0&size=${size}${commercialQuery}`,
+    );
+    return response.data?.content ?? [];
+  }
+
+  async getTontineContributionsByCommercial(memberId: number): Promise<Array<{
+    commercialUsername: string;
+    collectionsCount: number;
+    totalAmount: number;
+    currentCollector: boolean;
+  }>> {
+    const response = await this.get<ApiEnvelope<Array<{
+      commercialUsername: string;
+      collectionsCount: number;
+      totalAmount: number;
+      currentCollector: boolean;
+    }>>>(`/api/v1/tontines/members/${memberId}/contributions-by-commercial`);
+    return response.data ?? [];
   }
 
   async closeCurrentTontineSession(): Promise<void> {
@@ -545,6 +650,112 @@ export class ApiClient {
       `Stock commercial insuffisant pour l'article ${articleId} (${collector}) : ` +
         `${last?.quantityRemaining ?? 0} restant, ${minRemaining} requis`,
     );
+  }
+
+  async getStockReceptions(status?: string): Promise<Array<{ id: number; reference: string; status: string }>> {
+    const statusQuery = status ? `&status=${encodeURIComponent(status)}` : '';
+    const response = await this.get<ApiEnvelope<{ content?: Array<{ id: number; reference: string; status: string }> }>>(
+      `/api/v1/stock-receptions?size=50&page=0${statusQuery}`,
+    );
+    return response.data?.content ?? [];
+  }
+
+  async getRemittanceSummary(year: number, month: number): Promise<{
+    year?: number;
+    month?: number;
+    totalAmount?: number;
+    expenseAmount?: number;
+    netAmount?: number;
+    status?: string | null;
+    remittanceId?: number | null;
+    canSubmit?: boolean;
+    canAcknowledge?: boolean;
+    canInitiate?: boolean;
+    alreadyRemittedAmount?: number;
+    candidateExpenses?: Array<{ id: number; amount: number }>;
+    linkedExpenses?: Array<{ id: number; amount: number }>;
+  }> {
+    return this.get(`/api/cash-period-remittances/summary?year=${year}&month=${month}`);
+  }
+
+  async submitRemittance(year: number, month: number, expenseIds: number[] = []): Promise<{
+    id: number;
+    status?: string;
+    expenseAmount?: number;
+    netAmount?: number;
+  }> {
+    return this.post('/api/cash-period-remittances/submit', { year, month, expenseIds });
+  }
+
+  async listRemittances(size = 50): Promise<Array<{
+    id: number;
+    year: number;
+    month: number;
+    status: string;
+    totalAmount?: number;
+    expenseAmount?: number;
+    netAmount?: number;
+    deposits?: Array<{ id: number; amount?: number }>;
+  }>> {
+    const page = await this.get<{
+      content?: Array<{
+        id: number;
+        year: number;
+        month: number;
+        status: string;
+        totalAmount?: number;
+        expenseAmount?: number;
+        netAmount?: number;
+        deposits?: Array<{ id: number; amount?: number }>;
+      }>;
+    }>(`/api/cash-period-remittances?page=0&size=${size}&sort=id,desc`);
+    return page.content ?? [];
+  }
+
+  async listCashDeposits(startDate: string, endDate: string): Promise<Array<{
+    id: number;
+    date?: string;
+    amount?: number;
+    commercialUsername?: string;
+  }>> {
+    const page = await this.get<{
+      content?: Array<{
+        id: number;
+        date?: string;
+        amount?: number;
+        commercialUsername?: string;
+      }>;
+    }>(`/api/cash-deposits?startDate=${startDate}&endDate=${endDate}&page=0&size=100`);
+    return page.content ?? [];
+  }
+
+  async getLateCredits(collector?: string): Promise<Array<{
+    id: number;
+    reference: string;
+    totalAmountRemaining?: number;
+    status?: string;
+  }>> {
+    const collectorQuery = collector ? `?collector=${encodeURIComponent(collector)}` : '';
+    const response = await this.get<ApiEnvelope<Array<{
+      id: number;
+      reference: string;
+      totalAmountRemaining?: number;
+      status?: string;
+    }>>>(`/api/v1/credits/late${collectorQuery}`);
+    return response.data ?? [];
+  }
+
+  async closeCredits(items: Array<{
+    creditId: number;
+    amount: number;
+    isPartial?: boolean;
+    reference?: string;
+  }>): Promise<{ successes?: unknown[]; failures?: unknown[] }> {
+    const response = await this.post<ApiEnvelope<{ successes?: unknown[]; failures?: unknown[] }>>(
+      '/api/v1/recovery-manager/close-credits',
+      { items },
+    );
+    return response.data ?? {};
   }
 
   async ensureArticleWithStock(minQuantity = 10): Promise<TestArticle> {

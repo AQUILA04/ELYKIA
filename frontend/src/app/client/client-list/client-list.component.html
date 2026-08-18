@@ -152,7 +152,7 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']" class="col-select">
+            <th *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']" class="col-select" data-testid="e2e-client-collector-select-col">
               <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedClients.size > 0 && !isAllSelected"></mat-checkbox>
             </th>
             <th>#</th>
@@ -164,7 +164,10 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let client of clients; let i = index" class="table-row">
+          <tr *ngFor="let client of clients; let i = index" class="table-row"
+              data-testid="e2e-client-row"
+              [attr.data-client-id]="client.id"
+              [attr.data-collector]="client.collector">
             <td *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']" class="col-select">
               <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
             </td>
@@ -249,7 +252,8 @@
   </div>
 </div>
 
-<div class="client-list-bulk-modal modal-overlay" *ngIf="showBulkAssignCollectorModal" (click)="closeBulkAssignCollectorModal()">
+<div class="client-list-bulk-modal modal-overlay" *ngIf="showBulkAssignCollectorModal" (click)="closeBulkAssignCollectorModal()"
+     data-testid="e2e-client-bulk-assign-modal">
   <div class="bulk-modal-dialog" role="dialog" (click)="$event.stopPropagation()">
     <div class="bulk-modal-content">
       <div class="bulk-modal-header">
@@ -260,7 +264,8 @@
         <p>Sélectionnez le(s) nouveau(x) commercial(aux) pour les {{ selectedClients.size }} client(s) sélectionné(s).</p>
         <div class="bulk-form-group">
           <label for="creditCollectorSelect">Commercial crédit</label>
-          <select class="bulk-form-control" id="creditCollectorSelect" [(ngModel)]="selectedCreditCollector">
+          <select class="bulk-form-control" id="creditCollectorSelect" [(ngModel)]="selectedCreditCollector"
+                  data-testid="e2e-client-bulk-credit-collector">
             <option value="">— Ne pas modifier —</option>
             <option *ngFor="let collector of collectors" [value]="collector.username">
               {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
@@ -293,7 +298,9 @@
       </div>
       <div class="bulk-modal-footer">
         <button type="button" class="btn-cancel" (click)="closeBulkAssignCollectorModal()">Annuler</button>
-        <button type="button" class="btn-validate" (click)="confirmBulkAssignCollector()" [disabled]="!selectedCreditCollector && !selectedTontineCollector">Valider</button>
+        <button type="button" class="btn-validate" (click)="confirmBulkAssignCollector()"
+                [disabled]="!selectedCreditCollector && !selectedTontineCollector"
+                data-testid="e2e-client-bulk-validate">Valider</button>
       </div>
     </div>
   </div>

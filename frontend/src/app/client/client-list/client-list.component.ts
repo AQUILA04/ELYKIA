@@ -303,6 +303,18 @@ export class ClientListComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const selected = this.clients.filter(c => this.selectedClients.has(c.id));
+    const creditUnchanged = !this.selectedCreditCollector
+      || (selected.length > 0 && selected.every(c => c.collector === this.selectedCreditCollector));
+    const tontineUnchanged = !this.selectedTontineCollector
+      || (selected.length > 0 && selected.every(c => c.tontineCollector === this.selectedTontineCollector));
+    if (creditUnchanged && tontineUnchanged) {
+      this.alertService.showWarning(
+        'Le(s) commercial(aux) sélectionné(s) sont déjà assignés aux clients choisis.'
+      );
+      return;
+    }
+
     const dto: {
       clientIds: number[];
       collector?: string;

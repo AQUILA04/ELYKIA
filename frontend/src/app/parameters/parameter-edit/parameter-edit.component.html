@@ -22,7 +22,7 @@
         <label for="value">Valeur <span class="text-danger">*</span></label>
 
         <div *ngIf="isSocietyShareVersion">
-          <select id="value" class="form-control" formControlName="value">
+          <select id="value" class="form-control" formControlName="value" data-testid="e2e-tontine-share-version-select">
             <option *ngFor="let option of societyShareVersionOptions" [value]="option">{{ option }}</option>
           </select>
           <small class="form-text text-muted">

@@ -108,7 +108,7 @@
     </div>
   </div>
 
-  <div class="section-card a3 contribution-commercial-section">
+  <div class="section-card a3 contribution-commercial-section" data-testid="e2e-member-contributions-by-commercial">
     <div class="section-header">
       <div>
         <h2 class="section-title">Cotisations par commercial</h2>
@@ -129,7 +129,10 @@
          *ngIf="!loadingContributionsByCommercial && contributionsByCommercial.length > 0">
       <div class="contribution-commercial-card"
            *ngFor="let contribution of contributionsByCommercial"
-           [class.is-current]="contribution.currentCollector">
+           [class.is-current]="contribution.currentCollector"
+           data-testid="e2e-member-contribution-card"
+           [attr.data-commercial]="contribution.commercialUsername"
+           [attr.data-current]="contribution.currentCollector">
         <div class="contribution-commercial-identity">
           <div class="col-collector-dot">{{ getInitials(contribution.commercialUsername) }}</div>
           <div>
@@ -138,7 +141,8 @@
               {{ contribution.collectionsCount }} collecte(s)
             </div>
           </div>
-          <span class="current-collector-badge" *ngIf="contribution.currentCollector">Actuel</span>
+          <span class="current-collector-badge" *ngIf="contribution.currentCollector"
+                data-testid="e2e-member-contribution-actuel">Actuel</span>
         </div>
         <div class="contribution-commercial-amount">
           {{ formatCurrency(contribution.totalAmount) }}

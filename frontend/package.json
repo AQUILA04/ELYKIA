@@ -1,6 +1,6 @@
 {
   "name": "optimize-elykia-ui",
-  "version": "2.16.17",
+  "version": "2.16.26",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -11,7 +11,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:smoke": "playwright test --project=smoke",
-    "test:e2e:golden": "playwright test --project=golden-path"
+    "test:e2e:golden": "playwright test --project=golden-path",
+    "test:e2e:august": "playwright test --project=august-2026"
   },
   "private": true,
   "dependencies": {

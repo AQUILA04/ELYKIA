@@ -9,6 +9,137 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.10.9] — 2026-08-17
+
+### Changed
+
+- Profil chef de recouvrement : `ROLE_CONSULT_CLIENT`, `ROLE_EDIT_CLIENT`, `ROLE_ASSIGN_CLIENT_COLLECTOR` et `ROLE_ASSIGN_CREDIT_COLLECTOR` attribués par défaut (nouveaux comptes et comptes existants, migration Flyway `V95`).
+
+## Frontend — [2.16.26] — 2026-08-17
+
+### Added
+
+- E2E `W-P1-15` / `W-P1-16` : retrait d’une dépense sur remise PENDING (net recalculé, sans accusé) et plusieurs remises par période (versements déjà remis exclus du reste à remettre).
+
+## Frontend — [2.16.25] — 2026-08-17
+
+### Added
+
+- E2E `W-P1-13` / `W-P1-14` : bilan tontine annuel (collectes − versements) et répartition des cotisations par commercial avec badge Actuel.
+
+## Frontend — [2.16.24] — 2026-08-17
+
+### Added
+
+- E2E `W-P1-10` / `W-P1-11` : transfert async des ventes `INPROGRESS` depuis la liste clients (historique collector, restauration COM020) et champs commerciaux gated à l’édition.
+
+## Frontend — [2.16.23] — 2026-08-17
+
+### Added
+
+- E2E `W-P1-08` / `W-P1-09` : case recherche uniquement par référence, et lien stock mensuel source vers le modal des ventes.
+
+## Frontend — [2.16.22] — 2026-08-17
+
+### Added
+
+- E2E `W-P1-05` à `W-P1-07` : exports PDF reste clients, stock mensuel (qté panneau = PDF) et fiche client navy.
+
+## Frontend — [2.16.21] — 2026-08-17
+
+### Added
+
+- E2E `W-P1-01` à `W-P1-04` : bilan crédit annuel (2 rangées KPI, formule reste commercial, reste client live, modal infinie + lien fiche).
+
+## Frontend — [2.16.20] — 2026-08-17
+
+### Changed
+
+- E2E août : `recov001` doit avoir la gestion clients et le changement de commercial (JWT + menu Clients + colonnes de sélection).
+
+## Backend — [1.10.8] — 2026-08-17
+
+### Fixed
+
+- Collecte tontine : une `collectionDate` égale à aujourd’hui n’est plus traitée comme rattrapage (collecte live, comme si le champ était absent).
+
+## Mobile — [2.20.9] — 2026-08-18
+
+### Added
+
+- E2E `RM-P1-04` : arrange API d’un membre tontine COM020 `SESSION_INPROGRESS` (session année en cours) avant le pack, puis contrôle mois-par-mois CONFORME/ECART + badge Terrain.
+- E2E `RM-P1-05` à `RM-P1-08` : édition client (téléphone, GPS, quarter lecture seule, MLL dérivé), ordre de sync Plus, barre session limitée à Retards/Plus, KPI Clôturé du jour + badge file d’attente.
+
+## Mobile — [2.20.8] — 2026-08-18
+
+### Added
+
+- E2E `RM-P1-01` à `RM-P1-03` : plafond 3 commerciaux + toast, modal localités avec recherche, contrôle carnet crédit CONFORME/ECART + badge du jour. `RM-P1-04` skip si le pack n’a aucun membre tontine pour l’année de session en cours.
+
+## Mobile — [2.20.7] — 2026-08-18
+
+### Added
+
+- E2E `M-P1-01` à `M-P1-05` : création client online-first, fallback 4xx hors ligne, SWR listes, budget livraison V1/V2. `M-P1-03` skip si aucun crédit COM020 ; `M-P1-06` skip Playwright (onglets inaccessibles depuis la pile tontine).
+
+## Mobile — [2.20.6] — 2026-08-17
+
+### Added
+
+- E2E `RM-P0-06` : clôture terrain hors-ligne (backend arrêté), file Plus, un POST `close-credits` à la reconnexion.
+
+## Mobile — [2.20.5] — 2026-08-17
+
+### Added
+
+- E2E `RM-P0-04` : wizard plan du jour (commerciaux, localités, téléchargement pack) jusqu’au shell Retards/Terrain/Clients/Plus.
+
+### Changed
+
+- M-P0-03 (reload init-safe) n’est pas joué en navigateur : le reload Playwright efface le stockage local, contrairement à l’APK.
+
+## Mobile — [2.20.4] — 2026-08-17
+
+### Changed
+
+- E2E `M-P0-02` : collecte tontine hors-ligne après arrêt réel du backend, sync manuelle à la relance, puis contrôle API (un seul POST 2xx).
+
+## Mobile — [2.20.3] — 2026-08-17
+
+### Fixed
+
+- Sync des cotisations du jour : `collectionDate` n’est envoyée que pour un vrai rattrapage (date strictement antérieure), ce qui évite le rejet serveur « date de rattrapage ».
+- Ping `/actuator/health` : timeout 4 s pour ne pas bloquer l’écran d’initialisation quand le backend est arrêté.
+- Init hors-ligne : pose `initialization_complete` pour éviter la boucle `/initial-loading` ↔ `/tabs`.
+
+### Added
+
+- E2E hybrid tontine (`M-P0-01` online) et parcours in-app (Cotiser, onglet Plus → sync manuelle).
+
+## Backend — [1.10.7] — 2026-08-17
+
+### Fixed
+
+- Changement de commercial : rejet si le nouveau username est identique à l’actuel (vente unitaire, bulk ventes, bulk clients, `assign-collector`).
+
+## Frontend — [2.16.19] — 2026-08-17
+
+### Fixed
+
+- Contrôle UI du changement de commercial : avertissement si le commercial sélectionné est déjà celui des ventes/clients choisis (listes + fiche crédit).
+
+## Frontend — [2.16.18] — 2026-08-17
+
+### Added
+
+- Suite E2E Playwright `august-2026` (permissions KPI / change-collector, paramètre tontine V1/V2) rejouable via `npm run test:e2e:august`.
+
+## Mobile — [2.20.2] — 2026-08-17
+
+### Added
+
+- Suite E2E Playwright shell chef de recouvrement (`@rm` / `@august-2026`) : login `/rm`, gate plan, refus commercial.
+
 ## Backend — [1.10.6] — 2026-08-17
 
 ### Fixed

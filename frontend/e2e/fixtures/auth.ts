@@ -21,6 +21,13 @@ export async function loginAs(page: Page, userKey: E2eUserKey): Promise<void> {
   });
 
   await page.goto('/login');
+  if (!/\/login/.test(page.url())) {
+    await page.evaluate(() => {
+      localStorage.removeItem('auth-token');
+      localStorage.removeItem('currentUser');
+    });
+    await page.goto('/login');
+  }
   await page.getByTestId('e2e-login-form').waitFor({ state: 'visible' });
 
   await page.getByTestId('e2e-login-username').fill(username);
@@ -42,6 +49,14 @@ export async function loginAsMagasinier(page: Page): Promise<void> {
 
 export async function loginAsCommercial(page: Page): Promise<void> {
   await loginAs(page, 'commercial');
+}
+
+export async function loginAsSecretaire(page: Page): Promise<void> {
+  await loginAs(page, 'secretaire');
+}
+
+export async function loginAsRecoveryManager(page: Page): Promise<void> {
+  await loginAs(page, 'recoveryManager');
 }
 
 /** Vérifie que les identifiants fonctionnent sur l'API du environnement courant. */

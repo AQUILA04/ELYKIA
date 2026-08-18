@@ -183,6 +183,7 @@
         <!-- MENU VENTES -->
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_CREDIT']">
           <a class="sidebar-link has-arrow" (click)="onVentesClick()" aria-expanded="false"
+             data-testid="e2e-sidebar-ventes"
              [ngClass]="{ 'active': isRouteActive('/ventes') }">
             <span>
               <mat-icon>monetization_on</mat-icon>
@@ -192,6 +193,7 @@
           <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isVentesOpen }">
             <li class="sidebar-item submenu-item">
               <a class="sidebar-link" routerLink="/credit/list"
+                 data-testid="e2e-sidebar-credit-list"
                  [ngClass]="{ 'active': isSubRouteActive('/credit/list') }">
                 <span class="material-icons">list</span>
                 <span class="hide-menu">Liste</span>
@@ -342,6 +344,7 @@
             </li>
             <li class="sidebar-item submenu-item" *ngIf="hasAccessToParameters() && !isPromoter()">
               <a class="sidebar-link" routerLink="/parameters"
+                 data-testid="e2e-sidebar-parameters"
                  [ngClass]="{ 'active': isSubRouteActive('/parameters') }">
                 <span class="material-icons">tune</span>
                 <span class="hide-menu">Paramètres</span>
@@ -392,7 +395,8 @@
 
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER','ROLE_REPORT']">
           <a class="sidebar-link" routerLink="/inventory/list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/inventory') }">
+             [ngClass]="{ 'active': isRouteActive('/inventory') }"
+             data-testid="e2e-sidebar-inventory">
             <span>
               <mat-icon>inventory</mat-icon>
             </span>
@@ -401,7 +405,8 @@
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_STOREKEEPER', 'ROLE_REPORT']">
           <a class="sidebar-link" routerLink="/stock/receptions" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/stock/receptions') }">
+             [ngClass]="{ 'active': isRouteActive('/stock/receptions') }"
+             data-testid="e2e-sidebar-stock-receptions">
             <span>
               <mat-icon>history</mat-icon>
             </span>
