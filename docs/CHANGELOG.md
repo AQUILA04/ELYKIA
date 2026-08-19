@@ -55,6 +55,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
 
+## Backend — [1.12.2] — 2026-08-19
+
+### Fixed
+
+- Liste clients : le filtre commercial matche aussi `tontineCollector`, `agencyCollector` et `recoveryCollector`, pas seulement le commercial crédit (recherche Elasticsearch, liste, KPI et export PDF).
+
 ## Backend — [1.12.1] — 2026-08-19
 
 ### Added

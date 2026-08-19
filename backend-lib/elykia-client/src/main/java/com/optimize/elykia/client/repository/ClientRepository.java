@@ -6,6 +6,7 @@ import com.optimize.elykia.client.dto.ClientPhotoDto;
 import com.optimize.elykia.client.dto.ClientRespDto;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
+import com.optimize.elykia.client.repository.spec.ClientCommercialPredicates;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -44,16 +45,19 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                     cb.like(cb.lower(root.get("contactPersonPhone")), searchKeyword),
                     cb.like(cb.lower(root.get("contactPersonAddress")), searchKeyword),
                     cb.like(cb.lower(root.get("collector")), searchKeyword),
+                    cb.like(cb.lower(root.get("tontineCollector")), searchKeyword),
+                    cb.like(cb.lower(root.get("agencyCollector")), searchKeyword),
                     cb.like(cb.lower(root.get("recoveryCollector")), searchKeyword),
                     cb.like(cb.lower(root.get("quarter")), searchKeyword),
                     cb.like(cb.lower(root.get("cardType")), searchKeyword));
             if (Objects.nonNull(username) && username.startsWith("COM")) {
-                if (Objects.nonNull(tontine) && tontine) {
+                if (tontine) {
                     jakarta.persistence.criteria.Predicate p2 = cb.and(p,
                             cb.equal(root.get("tontineCollector"), username));
                     return cb.and(p2, cb.notEqual(root.get("state"), State.DELETED));
                 }
-                jakarta.persistence.criteria.Predicate p2 = cb.and(p, cb.equal(root.get("collector"), username));
+                jakarta.persistence.criteria.Predicate p2 = cb.and(p,
+                        ClientCommercialPredicates.anyCollectorEquals(root, cb, username));
                 return cb.and(p2, cb.notEqual(root.get("state"), State.DELETED));
             }
 
@@ -68,7 +72,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude,
                 c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl)
                 FROM Client c
-                WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.recoveryCollector = :collector) AND c.clientType = :clientType AND c.state = :state
+                WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.agencyCollector = :collector OR c.recoveryCollector = :collector) AND c.clientType = :clientType AND c.state = :state
             """)
     Page<ClientRespDto> findByCollectorAndClientTypeAndState(String collector, ClientType clientType, State state,
             Pageable pageable);
@@ -92,7 +96,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude,
                 c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl)
                 FROM Client c
-                WHERE (c.tontineCollector = :collector OR c.collector = :collector OR c.recoveryCollector = :collector) AND c.clientType = :clientType AND c.state = :state
+                WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.agencyCollector = :collector OR c.recoveryCollector = :collector) AND c.clientType = :clientType AND c.state = :state
             """)
     Page<ClientRespDto> findByCollectorAndTontineCollectorAndClientTypeAndState(String collector, ClientType clientType,
             State state, Pageable pageable);
@@ -152,15 +156,15 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
        "WHERE c.state <> com.optimize.common.entities.enums.State.DELETED " +
        "AND (:#{#username == null} = true OR ( " +
        "    (:#{#tontine == true} = true AND c.tontineCollector = :username) OR " +
-       "    (:#{#mobile == true} = true AND (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username)) OR " +
-       "    (:#{#tontine != true AND #mobile != true} = true AND (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))" +
+       "    (:#{#mobile == true} = true AND " + ClientCommercialPredicates.ANY_EQUALS_C_USERNAME + ") OR " +
+       "    (:#{#tontine != true AND #mobile != true} = true AND " + ClientCommercialPredicates.ANY_EQUALS_C_USERNAME + ")" +
        "))")
     Page<ClientRespDto> findClientsDto(@Param("username") String username, @Param("tontine") Boolean tontine, @Param("mobile") Boolean mobile, Pageable pageable);
 
     @Query("""
             SELECT COUNT(c) FROM Client c
             WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
-            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))
+            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
             """)
     long countActiveClients(@Param("username") String username);
 
@@ -168,7 +172,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
             SELECT COUNT(c) FROM Client c
             WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
             AND c.creditInProgress = true
-            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))
+            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
             """)
     long countClientsWithCreditInProgress(@Param("username") String username);
 
@@ -176,7 +180,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
             SELECT COUNT(c) FROM Client c
             WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
             AND c.isTontineMember = true
-            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))
+            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
             """)
     long countTontineMembers(@Param("username") String username);
 
@@ -185,7 +189,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
             WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
             AND (c.creditInProgress IS NULL OR c.creditInProgress = false)
             AND c.isTontineMember = false
-            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.recoveryCollector = :username))
+            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
             """)
     long countClientsWithoutCreditNorTontine(@Param("username") String username);
 
@@ -221,7 +225,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
 
     @Query("""
             SELECT c FROM Client c
-            WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.recoveryCollector = :collector)
+            WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.agencyCollector = :collector OR c.recoveryCollector = :collector)
               AND c.clientType = :clientType
               AND c.state = :state
             ORDER BY c.quarter ASC, c.lastname ASC, c.firstname ASC

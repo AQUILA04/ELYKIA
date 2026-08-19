@@ -47,14 +47,9 @@ public class ClientSpecification {
                 predicates.add(cb.equal(root.get("creditInProgress"), dto.hasCreditInProgress()));
             }
 
-            // case-insensitive string filters
-            addLikeIgnoreCaseIfPresent(cb, root, predicates, "collector", dto.collector());
+            // commercial filter: any collector role (credit, tontine, agency, recovery)
             if (dto.collector() != null && !dto.collector().isBlank()) {
-                Predicate p1 = cb.like(cb.lower(root.get("collector")),
-                        "%" + dto.collector().trim().toLowerCase() + "%");
-                Predicate p2 = cb.like(cb.lower(root.get("recoveryCollector")),
-                        "%" + dto.collector().trim().toLowerCase() + "%");
-                predicates.add(cb.or(p1, p2));
+                predicates.add(ClientCommercialPredicates.anyCollectorLikeIgnoreCase(root, cb, dto.collector()));
             }
             addLikeIgnoreCaseIfPresent(cb, root, predicates, "tontineCollector", dto.tontineCollector());
             addLikeIgnoreCaseIfPresent(cb, root, predicates, "agencyCollector", dto.agencyCollector());

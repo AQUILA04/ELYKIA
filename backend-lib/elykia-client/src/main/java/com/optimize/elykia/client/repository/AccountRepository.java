@@ -38,7 +38,7 @@ public interface AccountRepository extends GenericRepository<Account, Long> {
     @Query(value = """
             SELECT new com.optimize.elykia.client.dto.AccountRespDto(a.id, a.accountNumber,
                 c.id, c.firstname, c.lastname, a.accountBalance, a.status, a.createdDate)
-                FROM Account a JOIN a.client c WHERE (c.collector = :commercial OR c.tontineCollector = :commercial OR c.recoveryCollector = :commercial) AND a.state = :state AND c.clientType = :clientType AND a.status = :status
+                FROM Account a JOIN a.client c WHERE (c.collector = :commercial OR c.tontineCollector = :commercial OR c.agencyCollector = :commercial OR c.recoveryCollector = :commercial) AND a.state = :state AND c.clientType = :clientType AND a.status = :status
     """)
     Page<AccountRespDto> getAccountForCommercial(String commercial, State state, ClientType clientType, AccountStatus status, Pageable pageable);
 
