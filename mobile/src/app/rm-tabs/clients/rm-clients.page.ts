@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmPackClient } from '../../core/services/rm/rm.models';
 import { RmClientEditSheetComponent } from '../../features/rm/client-edit/rm-client-edit-sheet.component';
+import { RmCollectorAssignSheetComponent } from '../../features/rm/collector-assign/rm-collector-assign-sheet.component';
 
 @Component({
   selector: 'app-rm-clients',
@@ -14,6 +15,7 @@ import { RmClientEditSheetComponent } from '../../features/rm/client-edit/rm-cli
 export class RmClientsPage implements OnInit, OnDestroy {
   clients: RmPackClient[] = [];
   query = '';
+  selectedIds = new Set<number>();
   private failedAvatars = new Set<number>();
   private sub?: Subscription;
 
@@ -26,6 +28,8 @@ export class RmClientsPage implements OnInit, OnDestroy {
     this.sub = this.scope.pack$.subscribe(pack => {
       this.clients = pack?.clients ?? [];
       this.failedAvatars.clear();
+      const valid = new Set(this.clients.map(c => c.id));
+      this.selectedIds = new Set([...this.selectedIds].filter(id => valid.has(id)));
     });
   }
 
@@ -43,6 +47,42 @@ export class RmClientsPage implements OnInit, OnDestroy {
       (c.phone || '').includes(q) ||
       (c.quarter || '').toLowerCase().includes(q)
     );
+  }
+
+  get isAllSelected(): boolean {
+    return this.filtered.length > 0 && this.filtered.every(c => this.selectedIds.has(c.id));
+  }
+
+  isSelected(clientId: number): boolean {
+    return this.selectedIds.has(clientId);
+  }
+
+  toggleSelection(clientId: number, event?: CustomEvent<{ checked?: boolean }>): void {
+    const checked = event?.detail?.checked;
+    const next = new Set(this.selectedIds);
+    if (typeof checked === 'boolean') {
+      if (checked) {
+        next.add(clientId);
+      } else {
+        next.delete(clientId);
+      }
+    } else if (next.has(clientId)) {
+      next.delete(clientId);
+    } else {
+      next.add(clientId);
+    }
+    this.selectedIds = next;
+  }
+
+  toggleAllSelection(event?: CustomEvent<{ checked?: boolean }>): void {
+    const checked = event?.detail?.checked ?? !this.isAllSelected;
+    const next = new Set(this.selectedIds);
+    if (checked) {
+      this.filtered.forEach(c => next.add(c.id));
+    } else {
+      this.filtered.forEach(c => next.delete(c.id));
+    }
+    this.selectedIds = next;
   }
 
   hasGeo(c: RmPackClient): boolean {
@@ -79,5 +119,22 @@ export class RmClientsPage implements OnInit, OnDestroy {
       cssClass: 'rm-close-modal'
     });
     await modal.present();
+  }
+
+  async openBulkAssign(): Promise<void> {
+    const selected = this.clients.filter(c => this.selectedIds.has(c.id));
+    if (!selected.length) {
+      return;
+    }
+    const modal = await this.modalCtrl.create({
+      component: RmCollectorAssignSheetComponent,
+      componentProps: { clients: selected },
+      cssClass: 'rm-close-modal'
+    });
+    await modal.present();
+    const { role } = await modal.onDidDismiss();
+    if (role === 'confirm') {
+      this.selectedIds = new Set();
+    }
   }
 }

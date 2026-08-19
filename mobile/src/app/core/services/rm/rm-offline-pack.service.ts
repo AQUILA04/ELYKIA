@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { RmFieldPlanApiService } from './rm-field-plan-api.service';
 import { RmScopeService } from './rm-scope.service';
+import { RmCollectorsCacheService } from './rm-collectors-cache.service';
 import { FieldDayPlanRequest, RmOfflinePack } from './rm.models';
 
 const VOLUME_WARNING_LATES = 400;
@@ -16,7 +17,8 @@ export interface RmPackDownloadResult {
 export class RmOfflinePackService {
   constructor(
     private readonly api: RmFieldPlanApiService,
-    private readonly scope: RmScopeService
+    private readonly scope: RmScopeService,
+    private readonly collectorsCache: RmCollectorsCacheService
   ) {}
 
   async createPlanAndDownload(request: FieldDayPlanRequest): Promise<RmPackDownloadResult> {
@@ -24,6 +26,7 @@ export class RmOfflinePackService {
     await this.scope.setPlan(plan);
     const pack = await this.api.downloadOfflinePack(plan.id, true);
     await this.scope.setPack(pack);
+    await this.cacheCollectorsQuietly();
     return this.withWarning(pack);
   }
 
@@ -34,7 +37,16 @@ export class RmOfflinePackService {
     }
     const pack = await this.api.downloadOfflinePack(plan.id, true);
     await this.scope.setPack(pack);
+    await this.cacheCollectorsQuietly();
     return this.withWarning(pack);
+  }
+
+  private async cacheCollectorsQuietly(): Promise<void> {
+    try {
+      await this.collectorsCache.refreshFromApi();
+    } catch {
+      // Pack already persisted; picker will use cache or pack.commercials.
+    }
   }
 
   private withWarning(pack: RmOfflinePack): RmPackDownloadResult {

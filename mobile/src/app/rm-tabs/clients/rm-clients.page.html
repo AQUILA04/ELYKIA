@@ -15,9 +15,38 @@
       </ion-searchbar>
     </div>
 
+    <div class="select-bar">
+      <ion-checkbox
+        [checked]="isAllSelected"
+        (ionChange)="toggleAllSelection($event)"
+        labelPlacement="end"
+        data-testid="e2e-rm-client-select-all">
+        Tout sélectionner
+      </ion-checkbox>
+      <span class="select-count" *ngIf="selectedIds.size > 0">{{ selectedIds.size }} sélectionné(s)</span>
+    </div>
+
+    <ion-button
+      *ngIf="selectedIds.size > 0"
+      expand="block"
+      class="rm-assign-btn"
+      (click)="openBulkAssign()"
+      data-testid="e2e-rm-bulk-assign-btn">
+      Changer de commercial ({{ selectedIds.size }})
+    </ion-button>
+
     <article class="client-card" *ngFor="let c of filtered" (click)="openEdit(c)"
-      data-testid="e2e-rm-client-card">
+      data-testid="e2e-rm-client-card"
+      [attr.data-client-id]="c.id"
+      [attr.data-collector]="c.collector">
       <div class="left">
+        <div class="select-wrap" (click)="$event.stopPropagation()">
+          <ion-checkbox
+            [checked]="isSelected(c.id)"
+            (ionChange)="toggleSelection(c.id, $event)"
+            data-testid="e2e-rm-client-select">
+          </ion-checkbox>
+        </div>
         <div class="avatar">
           <img
             *ngIf="avatarUrl(c) as url; else avatarInitials"
@@ -31,7 +60,12 @@
         <div class="info">
           <h3>{{ c.fullName || (c.firstname + ' ' + c.lastname) }}</h3>
           <p>{{ c.phone || '—' }} · {{ c.quarter || '—' }}</p>
-          <p class="meta">{{ c.collector }}</p>
+          <p class="meta" data-testid="e2e-rm-client-collector">
+            Crédit {{ c.collector || '—' }}
+            <ng-container *ngIf="c.tontineCollector && c.tontineCollector !== c.collector">
+              · Tontine {{ c.tontineCollector }}
+            </ng-container>
+          </p>
         </div>
       </div>
       <div class="right">

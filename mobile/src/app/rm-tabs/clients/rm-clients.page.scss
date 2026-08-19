@@ -73,6 +73,34 @@ ion-content.rm-content {
   flex: 1;
 }
 
+.select-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 16px 8px;
+  color: #003366;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.select-count {
+  color: #6b7a99;
+  font-weight: 500;
+}
+
+.select-wrap {
+  flex-shrink: 0;
+}
+
+.rm-assign-btn {
+  --background: #003366;
+  --background-activated: #002244;
+  --border-radius: 12px;
+  font-weight: 700;
+  margin: 0 16px 8px;
+}
+
 .avatar {
   width: 48px;
   height: 48px;

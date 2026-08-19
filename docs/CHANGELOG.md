@@ -31,6 +31,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Vérification de carnet tontine : badge sur la fiche membre, bouton Vérifier/Annuler, sélection en masse, filtre Carnet et exports PDF vérifiés / à vérifier (`ROLE_TONTINE_CARNET_VERIFY`).
 
+## Mobile — [2.22.1] — 2026-08-19
+
+### Fixed
+
+- Smoke Playwright : le dashboard tontine est vérifié via son titre, pas le `ion-content` caché de la page login encore dans la pile Ionic.
+
+## Mobile — [2.22.0] — 2026-08-19
+
+### Added
+
+- Chef de recouvrement : transfert de commercial (crédit / tontine, ventes en cours) depuis l’onglet Clients, en hybride online-first avec file hors-ligne et sync prioritaire depuis Plus.
+
 ## Mobile — [2.21.1] — 2026-08-19
 
 ### Fixed
@@ -42,6 +54,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
+
+## Backend — [1.12.1] — 2026-08-19
+
+### Added
+
+- Pack terrain RM : le DTO client expose `tontineCollector` en plus du commercial crédit.
 
 ## Backend — [1.12.0] — 2026-08-19
 

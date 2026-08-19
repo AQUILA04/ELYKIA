@@ -1,0 +1,71 @@
+<div class="rm-assign-sheet" data-testid="e2e-rm-bulk-assign-sheet">
+  <header>
+    <div>
+      <p class="surtitle">Clients</p>
+      <h2>Changer de commercial</h2>
+      <p class="meta">{{ selectedCount }} client(s) sélectionné(s)</p>
+    </div>
+    <ion-button fill="clear" (click)="dismiss()">
+      <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+    </ion-button>
+  </header>
+
+  <section class="card">
+    <label for="rmCreditCollector">Commercial crédit</label>
+    <ion-select
+      id="rmCreditCollector"
+      interface="action-sheet"
+      placeholder="— Ne pas modifier —"
+      [(ngModel)]="selectedCreditCollector"
+      (ionChange)="onCreditChange()"
+      data-testid="e2e-rm-bulk-credit-collector">
+      <ion-select-option value="">— Ne pas modifier —</ion-select-option>
+      <ion-select-option *ngFor="let collector of collectors" [value]="collector.username">
+        {{ label(collector) }}
+      </ion-select-option>
+    </ion-select>
+  </section>
+
+  <section class="card">
+    <label for="rmTontineCollector">Commercial tontine</label>
+    <ion-select
+      id="rmTontineCollector"
+      interface="action-sheet"
+      placeholder="— Ne pas modifier —"
+      [(ngModel)]="selectedTontineCollector"
+      data-testid="e2e-rm-bulk-tontine-collector">
+      <ion-select-option value="">— Ne pas modifier —</ion-select-option>
+      <ion-select-option *ngFor="let collector of collectors" [value]="collector.username">
+        {{ label(collector) }}
+      </ion-select-option>
+    </ion-select>
+  </section>
+
+  <section class="card">
+    <ion-checkbox
+      [(ngModel)]="transferInProgressCredits"
+      [disabled]="!selectedCreditCollector"
+      labelPlacement="end"
+      alignment="start"
+      data-testid="e2e-rm-bulk-transfer-credits">
+      Transférer automatiquement les ventes du commercial vers le nouveau commercial en charge du client
+    </ion-checkbox>
+    <p class="hint" *ngIf="!selectedCreditCollector">
+      Sélectionnez un commercial crédit pour activer le transfert des ventes en cours.
+    </p>
+  </section>
+
+  <div class="actions">
+    <ion-button expand="block" fill="outline" class="rm-cta-outline" (click)="dismiss()">
+      Annuler
+    </ion-button>
+    <ion-button
+      expand="block"
+      class="rm-cta"
+      [disabled]="!canSubmit"
+      (click)="confirm()"
+      data-testid="e2e-rm-bulk-validate">
+      {{ submitting ? 'Enregistrement…' : 'Valider' }}
+    </ion-button>
+  </div>
+</div>

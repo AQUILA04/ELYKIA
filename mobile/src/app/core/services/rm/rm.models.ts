@@ -42,6 +42,7 @@ export interface RmPackClient {
   phone?: string;
   quarter?: string;
   collector?: string;
+  tontineCollector?: string;
   latitude?: number;
   longitude?: number;
   mll?: string;

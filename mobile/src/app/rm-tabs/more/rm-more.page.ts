@@ -17,12 +17,15 @@ import { RmTontineFieldControlQueueService } from '../../core/services/rm/rm-ton
 import { RmTontineFieldControlSyncService } from '../../core/services/rm/rm-tontine-field-control-sync.service';
 import { RmCarnetVerificationQueueService } from '../../core/services/rm/rm-carnet-verification-queue.service';
 import { RmCarnetVerificationSyncService } from '../../core/services/rm/rm-carnet-verification-sync.service';
+import { RmCollectorAssignQueueService } from '../../core/services/rm/rm-collector-assign-queue.service';
+import { RmCollectorAssignSyncService } from '../../core/services/rm/rm-collector-assign-sync.service';
 import { FieldDayPlan, RmOfflinePack } from '../../core/services/rm/rm.models';
 import { RmCloseOp } from '../../core/services/rm/rm-close.models';
 import { RmContactPatch } from '../../core/services/rm/rm-contact.models';
 import { RmFieldControlOp } from '../../core/services/rm/rm-field-control.models';
 import { RmTontineFieldControlOp } from '../../core/services/rm/rm-tontine-field-control.models';
 import { RmCarnetVerificationOp } from '../../core/services/rm/rm-carnet-verification.models';
+import { RmCollectorAssignOp } from '../../core/services/rm/rm-collector-assign.models';
 import { MobileAppReleaseInfo } from 'src/app/models/mobile-app-release.model';
 import { environment } from 'src/environments/environment';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
@@ -41,6 +44,7 @@ export class RmMorePage implements OnInit, OnDestroy {
   pendingControls: RmFieldControlOp[] = [];
   pendingTontineControls: RmTontineFieldControlOp[] = [];
   pendingCarnetVerifications: RmCarnetVerificationOp[] = [];
+  pendingAssigns: RmCollectorAssignOp[] = [];
   appVersion = environment.version;
   updateInProgress = false;
   updateProgressLabel = '';
@@ -59,6 +63,8 @@ export class RmMorePage implements OnInit, OnDestroy {
     private readonly tontineFieldControlSync: RmTontineFieldControlSyncService,
     private readonly carnetQueue: RmCarnetVerificationQueueService,
     private readonly carnetSync: RmCarnetVerificationSyncService,
+    private readonly assignQueue: RmCollectorAssignQueueService,
+    private readonly assignSync: RmCollectorAssignSyncService,
     private readonly store: Store,
     private readonly router: Router,
     private readonly loadingCtrl: LoadingController,
@@ -86,6 +92,9 @@ export class RmMorePage implements OnInit, OnDestroy {
       }),
       this.carnetQueue.ops$.subscribe(ops => {
         this.pendingCarnetVerifications = ops.filter(o => !o.isSync);
+      }),
+      this.assignQueue.ops$.subscribe(ops => {
+        this.pendingAssigns = ops.filter(o => !o.isSync);
       })
     );
   }
@@ -99,7 +108,8 @@ export class RmMorePage implements OnInit, OnDestroy {
       + this.pendingContacts.length
       + this.pendingControls.length
       + this.pendingTontineControls.length
-      + this.pendingCarnetVerifications.length;
+      + this.pendingCarnetVerifications.length
+      + this.pendingAssigns.length;
   }
 
   async refreshPack(): Promise<void> {
@@ -121,15 +131,17 @@ export class RmMorePage implements OnInit, OnDestroy {
     const loading = await this.loadingCtrl.create({ message: 'Synchronisation…', spinner: 'crescent' });
     await loading.present();
     try {
+      const assigns = await this.assignSync.syncPending();
       const contacts = await this.contactSync.syncPending();
       const controls = await this.fieldControlSync.syncPending();
       const tontineControls = await this.tontineFieldControlSync.syncPending();
       const carnets = await this.carnetSync.syncPending();
       const closes = await this.closeSync.syncPending();
       await loading.dismiss();
-      const synced = contacts.synced + controls.synced + tontineControls.synced + carnets.synced + closes.synced;
-      const failed = contacts.failed + controls.failed + tontineControls.failed + carnets.failed + closes.failed;
-      const firstError = contacts.errors[0]
+      const synced = assigns.synced + contacts.synced + controls.synced + tontineControls.synced + carnets.synced + closes.synced;
+      const failed = assigns.failed + contacts.failed + controls.failed + tontineControls.failed + carnets.failed + closes.failed;
+      const firstError = assigns.errors[0]
+        || contacts.errors[0]
         || controls.errors[0]
         || tontineControls.errors[0]
         || carnets.errors[0]

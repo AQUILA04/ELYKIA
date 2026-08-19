@@ -15,6 +15,7 @@
 
     <section class="card" *ngIf="pendingTotal" data-testid="e2e-rm-pending-queue">
       <h2>File d'attente</h2>
+      <p *ngIf="pendingAssigns.length">{{ pendingAssigns.length }} transfert(s) de commercial</p>
       <p *ngIf="pendingContacts.length">{{ pendingContacts.length }} contact(s) client</p>
       <p *ngIf="pendingControls.length">{{ pendingControls.length }} contrôle(s) carnet crédit</p>
       <p *ngIf="pendingTontineControls.length">{{ pendingTontineControls.length }} contrôle(s) carnet tontine</p>
@@ -32,7 +33,7 @@
     <ion-list class="menu" lines="none">
       <ion-item button detail (click)="syncPending()" [disabled]="!pendingTotal" data-testid="e2e-rm-more-sync">
         <ion-icon name="sync-outline" slot="start"></ion-icon>
-        <ion-label>Synchroniser (contacts + contrôles + clôtures)</ion-label>
+        <ion-label>Synchroniser (transferts + contacts + contrôles + clôtures)</ion-label>
         <ion-badge *ngIf="pendingTotal" color="warning" slot="end">{{ pendingTotal }}</ion-badge>
       </ion-item>
       <ion-item button detail (click)="refreshPack()">

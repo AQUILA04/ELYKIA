@@ -13,6 +13,7 @@ public class RmPackClientDto {
     private String phone;
     private String quarter;
     private String collector;
+    private String tontineCollector;
     private Double latitude;
     private Double longitude;
     private String mll;

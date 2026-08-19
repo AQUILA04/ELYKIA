@@ -6,7 +6,7 @@ export const environment = {
   production: false,
   apiUrl: 'http://localhost:8081',
   appName: 'Elykia',
-  version: '2.21.1'
+  version: '2.22.1'
 };
 
 /*

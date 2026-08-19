@@ -144,6 +144,7 @@ public class RecoveryFieldPlanService {
                 .phone(updated.getPhone())
                 .quarter(updated.getQuarter())
                 .collector(updated.getCollector())
+                .tontineCollector(updated.getTontineCollector())
                 .latitude(updated.getLatitude())
                 .longitude(updated.getLongitude())
                 .mll(updated.getMll())
@@ -406,6 +407,7 @@ public class RecoveryFieldPlanService {
         String mll = null;
         String firstname = null;
         String lastname = null;
+        String tontineCollector = null;
         String profilPhotoUrl = null;
         String profilPhotoThumbUrl = null;
         try {
@@ -414,6 +416,7 @@ public class RecoveryFieldPlanService {
                 Client client = credit.get().getClient();
                 firstname = client.getFirstname();
                 lastname = client.getLastname();
+                tontineCollector = client.getTontineCollector();
                 latitude = client.getLatitude();
                 longitude = client.getLongitude();
                 mll = client.getMll();
@@ -433,6 +436,7 @@ public class RecoveryFieldPlanService {
                 .phone(late.getClientPhone())
                 .quarter(late.getClientQuarter())
                 .collector(late.getCollector())
+                .tontineCollector(tontineCollector)
                 .latitude(latitude)
                 .longitude(longitude)
                 .mll(mll)
@@ -455,7 +459,8 @@ public class RecoveryFieldPlanService {
                 .fullName(fullName)
                 .phone(client.getPhone())
                 .quarter(client.getQuarter())
-                .collector(StringUtils.hasText(fallbackCollector) ? fallbackCollector : client.getTontineCollector())
+                .collector(StringUtils.hasText(client.getCollector()) ? client.getCollector() : fallbackCollector)
+                .tontineCollector(client.getTontineCollector())
                 .latitude(client.getLatitude())
                 .longitude(client.getLongitude())
                 .mll(client.getMll())
