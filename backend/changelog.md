@@ -7,6 +7,18 @@ et ce projet adhère au [Semantic Versioning](https://semver.org/lang/fr/).
 
 ---
 
+## [Unreleased] - 2026-08-19
+
+### Ajouté
+- **Quality gate JaCoCo** : le cycle `mvn verify` prépare l’agent de couverture, génère les rapports HTML, CSV et XML dans `target/site/jacoco/`, puis contrôle des seuils de couverture.
+- **Seuils de non-régression** : plancher global sur les lignes et branches, seuil agrégé sur `com.optimize.elykia.core.service.*`, puis seuil par sous-package métier.
+- **Traçabilité de la couverture** : la stratégie de tests documente la base mesurée et la trajectoire de relèvement des seuils.
+
+### Validation
+- La commande `sh ./mvnw -B -Delykia.testcontainers.host-network=true verify` exécute la suite complète, produit le rapport JaCoCo et applique le quality gate.
+
+---
+
 ## [2.1.0] - 2025-11-18
 
 ### 🎉 Résumé

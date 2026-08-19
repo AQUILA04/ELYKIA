@@ -5,6 +5,7 @@ import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.service.bi.BiCollectionAnalyticsService;
 import com.optimize.elykia.core.service.bi.BiDashboardService;
 import com.optimize.elykia.core.service.bi.BiSalesAnalyticsService;
+import com.optimize.elykia.core.support.IntegrationTestSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class BiPerformanceIntegrationTest {
+class BiPerformanceIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private BiDashboardService biDashboardService;

@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -595,20 +596,23 @@ public class CreditService extends GenericService<Credit, Long> {
         CreditPurpose explicitPurpose = dto.getCreditPurpose();
         creditUnicity(clientCredit, explicitPurpose);
 
-        // Vérification et mise à jour du stock commercial
-        this.checkAndUpdateStockCommercial(clientCredit, monthlyStock);
-
-        // Configuration finale du crédit
-
-
+        // La référence idempotente doit être fixée avant le mouvement de stock : elle est la clé de
+        // traçabilité partagée entre le crédit et son ledger commercial.
         if (StringUtils.hasText(dto.getReference())) {
             if (getRepository().existsByReference(dto.getReference())) {
                 return CreditRespDto.fromCredit(getRepository().findByReference(dto.getReference()).orElseThrow());
             }
             clientCredit.setReference(dto.getReference());
         }
+
+        // Le crédit doit disposer de son identifiant et de sa référence définitive avant d'écrire
+        // le mouvement commercial qui les porte comme lien métier persistant.
         clientCredit.validate();
         clientCredit.start();
+        repository.saveAndFlush(clientCredit);
+
+        // Vérification et mise à jour du stock commercial avec le crédit désormais identifiable.
+        this.checkAndUpdateStockCommercial(clientCredit, monthlyStock);
         repository.saveAndFlush(clientCredit);
         this.marginAndBIAggregationOperation(clientCredit);
 
@@ -1118,7 +1122,7 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
     @Autowired
-    public void setCreditTimelineService(CreditTimelineService creditTimelineService) {
+    public void setCreditTimelineService(@Lazy CreditTimelineService creditTimelineService) {
         this.creditTimelineService = creditTimelineService;
     }
 

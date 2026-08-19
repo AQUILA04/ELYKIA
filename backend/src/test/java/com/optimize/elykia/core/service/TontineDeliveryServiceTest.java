@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service;
 
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Account;
@@ -19,6 +20,7 @@ import com.optimize.elykia.core.repository.TontineDeliveryRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.service.sale.CreditService;
+import com.optimize.elykia.core.service.tontine.TontineDeliveryReferenceService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
 import com.optimize.elykia.core.service.util.ClientAccountService;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +30,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 
@@ -54,6 +57,8 @@ class TontineDeliveryServiceTest {
     private ClientAccountService clientAccountService;
     @Mock
     private AccountService accountService;
+    @Mock
+    private TontineDeliveryReferenceService deliveryReferenceService;
 
     @InjectMocks
     private TontineDeliveryService tontineDeliveryService;
@@ -85,14 +90,13 @@ class TontineDeliveryServiceTest {
         mockMember.setClient(mockClient);
         mockMember.setTontineSession(mockSession);
         mockMember.setTotalContribution(100000.0);
+        mockMember.setAvailableContribution(100000.0);
         mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
 
         // Mock User
         // Since the User class is from a JAR and setters might not be public,
         // we mock its behavior directly.
         mockUser = mock(User.class);
-        when(userService.getCurrentUser()).thenReturn(mockUser);
-        when(mockUser.getUsername()).thenReturn("testuser");
 
         // Mock Article
         mockArticle = new Articles();
@@ -106,15 +110,21 @@ class TontineDeliveryServiceTest {
         
         createDeliveryDto = new CreateDeliveryDto();
         createDeliveryDto.setTontineMemberId(1L);
+        createDeliveryDto.setRequestDate(LocalDateTime.now());
         createDeliveryDto.setItems(Collections.singletonList(itemDto));
+    }
+
+    private void givenRegularUser() {
+        when(userService.getCurrentUser()).thenReturn(mockUser);
     }
 
     @Test
     void createDelivery_AsRegularUser_ShouldCreateWithPendingStatus() {
         // Given
+        givenRegularUser();
         when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
-        when(userService.getCurrentUser()).thenReturn(mockUser);
         when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        when(deliveryReferenceService.resolveReference(any(), any())).thenReturn("TNT-001");
         when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
@@ -128,5 +138,32 @@ class TontineDeliveryServiceTest {
         
         verify(creditService, never()).createTontineCredit(any());
         verify(deliveryRepository, times(1)).save(any(TontineDelivery.class));
+    }
+
+    @Test
+    void createDelivery_rejectsDuplicateDeliveryForMember() {
+        // Given
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(deliveryRepository.existsByTontineMemberId(1L)).thenReturn(true);
+
+        // When / Then
+        assertThrows(CustomValidationException.class,
+                () -> tontineDeliveryService.createDelivery(createDeliveryDto));
+        verify(deliveryRepository, never()).save(any());
+        verifyNoInteractions(articlesRepository, deliveryReferenceService, userService);
+    }
+
+    @Test
+    void createDelivery_rejectsAmountGreaterThanAvailableContribution() {
+        // Given
+        mockMember.setAvailableContribution(20_000.0);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+
+        // When / Then
+        assertThrows(CustomValidationException.class,
+                () -> tontineDeliveryService.createDelivery(createDeliveryDto));
+        verify(deliveryRepository, never()).save(any());
+        verifyNoInteractions(deliveryReferenceService, userService);
     }
 }

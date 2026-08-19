@@ -8,6 +8,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Service
+@ConditionalOnProperty(name = "elykia.ai.enabled", havingValue = "true")
 @RequiredArgsConstructor
 @Slf4j
 public class UserGuideRagService {

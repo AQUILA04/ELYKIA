@@ -5,6 +5,7 @@ import com.optimize.elykia.core.dto.ArticlesDto;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
 import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.core.support.IntegrationTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false) // Disable security filters for simplicity
-class ArticlesControllerIntegrationTest {
+class ArticlesControllerIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;
@@ -45,12 +46,22 @@ class ArticlesControllerIntegrationTest {
         articlesDto = new ArticlesDto();
         articlesDto.setName("Article 1");
         articlesDto.setPurchasePrice(100.0);
+        articlesDto.setSellingPrice(130.0);
+        articlesDto.setCreditSalePrice(150.0);
+        articlesDto.setMarque("Elykia");
+        articlesDto.setModel("M-100");
+        articlesDto.setType("ELECTRONIQUE");
         articlesDto.setStockQuantity(10);
 
         article = new Articles();
         article.setId(1L);
         article.setName("Article 1");
         article.setPurchasePrice(100.0);
+        article.setSellingPrice(130.0);
+        article.setCreditSalePrice(150.0);
+        article.setMarque("Elykia");
+        article.setModel("M-100");
+        article.setType("ELECTRONIQUE");
         article.setStockQuantity(10);
     }
 

@@ -15,6 +15,7 @@ import com.optimize.elykia.core.ai.sql.*;
 import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +25,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@ConditionalOnProperty(name = "elykia.ai.enabled", havingValue = "true")
 @RequiredArgsConstructor
 @Slf4j
 public class AiOrchestratorService {

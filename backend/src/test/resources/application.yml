@@ -1,13 +1,65 @@
 spring:
+  profiles:
+    active: test
+  autoconfigure:
+    exclude:
+      - org.springframework.ai.model.anthropic.autoconfigure.AnthropicChatAutoConfiguration
+      - org.springframework.ai.model.deepseek.autoconfigure.DeepSeekChatAutoConfiguration
+      - org.springframework.ai.model.ollama.autoconfigure.OllamaChatAutoConfiguration
+      - org.springframework.ai.model.ollama.autoconfigure.OllamaEmbeddingAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioSpeechAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiAudioTranscriptionAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiChatAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiEmbeddingAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiImageAutoConfiguration
+      - org.springframework.ai.model.openai.autoconfigure.OpenAiModerationAutoConfiguration
+      - org.springframework.ai.model.vertexai.autoconfigure.embedding.VertexAiMultiModalEmbeddingAutoConfiguration
+      - org.springframework.ai.model.vertexai.autoconfigure.embedding.VertexAiTextEmbeddingAutoConfiguration
+      - org.springframework.ai.model.vertexai.autoconfigure.gemini.VertexAiGeminiChatAutoConfiguration
   datasource:
-    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driverClassName: org.h2.Driver
-    username: sa
-    password:
+    # Les valeurs réelles sont injectées par IntegrationTestSupport.
+    url: jdbc:postgresql://localhost:5432/elykia_test
+    driverClassName: org.postgresql.Driver
+    username: elykia
+    password: elykia
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: create-drop
-    defer-datasource-initialization: true
   flyway:
     enabled: false
+    baseline-on-migrate: true
+    baseline-version: 0
+    locations: classpath:db/migration
+    validate-on-migrate: true
+    out-of-order: false
+
+elykia:
+  ai:
+    enabled: false
+
+app:
+  folder: /tmp/elykia-test/operations/
+  credit:
+    dividend: 6
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: elykia-test-access-key
+  secret-key: elykia-test-secret-key
+
+bezkoder:
+  app:
+    jwtSecret: elykia-test-jwt-secret-must-remain-local-and-never-be-used-outside-tests-2026
+    jwtExpirationMs: 86400000
+    jwtRefreshExpirationMs: 604800000
+
+security:
+  licence:
+    prod:
+      active: 0
+      society: Elykia Test
+
+  config:
+    auto-initialize:
+      enabled: false

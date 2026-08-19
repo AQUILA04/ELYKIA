@@ -23,6 +23,7 @@ public class ClientReliquatService {
 
     @Transactional
     public ClientReliquat addReliquat(Long clientId, Double amount, String mobileRecoveryId, LocalDate accountedDate) {
+        assertPositiveAmount(amount);
         ClientReliquat reliquat = clientReliquatRepository.findByClientId(clientId).orElse(null);
         if (reliquat == null) {
             Client client = clientRepository.findById(clientId)
@@ -39,6 +40,7 @@ public class ClientReliquatService {
 
     @Transactional
     public ClientReliquat consumeReliquat(Long clientId, Double amount, String mobileRecoveryId, LocalDate accountedDate) {
+        assertPositiveAmount(amount);
         ClientReliquat reliquat = clientReliquatRepository.findByClientId(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException("Reliquat not found for client"));
         if (reliquat.getTotalAmount() < amount) {
@@ -51,6 +53,13 @@ public class ClientReliquatService {
             reliquat.setLastAccountedDate(accountedDate);
         }
         return clientReliquatRepository.save(reliquat);
+    }
+
+    private void assertPositiveAmount(Double amount) {
+        if (amount == null || amount <= 0.0) {
+            throw new com.optimize.common.entities.exception.ApplicationException(
+                    "Le montant du reliquat doit être strictement positif.");
+        }
     }
 
     @Transactional(readOnly = true)

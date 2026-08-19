@@ -1,10 +1,12 @@
 package com.optimize.elykia.core.ai.help;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "elykia.ai.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class UserGuideAnswerFormatter {
 

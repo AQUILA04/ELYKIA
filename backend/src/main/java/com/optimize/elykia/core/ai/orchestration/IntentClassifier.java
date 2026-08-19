@@ -2,12 +2,14 @@ package com.optimize.elykia.core.ai.orchestration;
 
 import com.optimize.elykia.core.ai.enums.AiIntent;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Component;
 
 import java.util.Locale;
 
 @Component
+@ConditionalOnProperty(name = "elykia.ai.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class IntentClassifier {
 
