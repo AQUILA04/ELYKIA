@@ -12,6 +12,7 @@ test.describe('Tontine hybrid allocation @smoke', () => {
       await page.getByTestId('e2e-action-tontine').click();
     }
     await expect(page).toHaveURL(/\/tontine\/dashboard/, { timeout: 15_000 });
-    await expect(page.locator('ion-content').first()).toBeVisible();
+    // Do not use ion-content.first(): the login page stays in the Ionic stack as hidden.
+    await expect(page.getByTestId('e2e-tontine-dashboard-title')).toBeVisible({ timeout: 15_000 });
   });
 });

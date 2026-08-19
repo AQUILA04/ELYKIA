@@ -117,6 +117,19 @@ export function resolveMockResponse(apiPath: string, method: string): Record<str
     return buildDataSummary(summaryMatch[1]!);
   }
 
+  if (pathname === '/api/v1/tontines/members' && method === 'GET') {
+    return {
+      status: 'OK',
+      statusCode: 200,
+      message: 'default.message.success',
+      service: 'MOCK-SERVICE',
+      data: {
+        content: [],
+        page: { size: 20, number: 0, totalElements: 0, totalPages: 0 },
+      },
+    };
+  }
+
   if (pathname === '/api/v1/tontines/sessions/current' && method === 'GET') {
     return {
       status: 'OK',
