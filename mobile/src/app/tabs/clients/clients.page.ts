@@ -180,6 +180,7 @@ export class ClientsPage implements OnInit, OnDestroy {
   async presentActionSheet() {
     const actionSheet = await this.actionSheetCtrl.create({
       header: 'Options',
+      cssClass: 'elyk-action-sheet',
       buttons: [
         { text: 'Clients à Recouvrer', handler: () => this.router.navigate(['/recovery-client-list']) },
         { text: 'Annuler', role: 'cancel' }

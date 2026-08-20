@@ -48,12 +48,8 @@ function resetDataStatePreservingAuth(state: AppState): AppState {
     distribution: undefined,
     stockOutput: undefined,
     sync: undefined,
-    healthCheck: undefined,
-    // strategies for article/locality might differ, but let's keep them if they are "static" data
-    // Original logout logic preserved them. Let's preserve them here too for consistency, 
-    // OR reset them if "vider la memoire" implies everything.
-    // The user said "toutes les listes chargées". Client, distributions, accounts are the main ones.
-    // Let's stick to the pattern: reset what logout resets, BUT keep auth.
+    // Keep healthCheck: resetAppData must not wipe online status (login showed Connecté,
+    // then clearMemoryCache used to force Hors ligne on the dashboard).
   };
 
   // Ensure auth is preserved

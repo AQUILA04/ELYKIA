@@ -26,10 +26,10 @@ export class HealthCheckEffects {
     )
   );
 
-  // New effect: Trigger health check after successful logout
-  triggerHealthCheckAfterLogout$ = createEffect(() =>
+  // Re-check after logout (login screen) and after login (dashboard must not stay stale offline)
+  triggerHealthCheckAfterAuth$ = createEffect(() =>
     this.actions$.pipe(
-      ofType(AuthActions.logoutSuccess),
+      ofType(AuthActions.logoutSuccess, AuthActions.loginSuccess),
       map(() => HealthCheckActions.checkOnlineStatus())
     )
   );

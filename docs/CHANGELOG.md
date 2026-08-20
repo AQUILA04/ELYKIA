@@ -31,6 +31,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Vérification de carnet tontine : badge sur la fiche membre, bouton Vérifier/Annuler, sélection en masse, filtre Carnet et exports PDF vérifiés / à vérifier (`ROLE_TONTINE_CARNET_VERIFY`).
 
+## Mobile — [2.28.5] — 2026-08-20
+
+### Changed
+
+- Menu Options de la liste Clients (`Clients à Recouvrer`) aligné sur `elyk-action-sheet`.
+
+### Fixed
+
+- Dashboard ne reste plus « Hors ligne » après login : `resetAppData` ne réinitialise plus le statut réseau ; ping d’init + refresh au login et à l’entrée du dashboard mettent à jour le store.
+
 ## Mobile — [2.22.1] — 2026-08-19
 
 ### Fixed

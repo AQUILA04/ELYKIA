@@ -9,7 +9,6 @@ import { Storage } from '@ionic/storage-angular';
 import { LoggerService } from '../../core/services/logger.service';
 import { HealthCheckService } from '../../core/services/health-check.service';
 import { InitializationValidationService } from '../../core/services/initialization-validation.service';
-import { resetAppData } from '../../store/app.actions';
 import { Store } from '@ngrx/store';
 import { MemoryManagementService } from '../../core/services/memory-management.service';
 import { DatabaseService } from '../../core/services/database.service';
@@ -18,6 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { DistributionService } from '../../core/services/distribution.service';
 import { LocalDataCleanupService } from '../../core/local-data-cleanup/local-data-cleanup.service';
 import * as KpiActions from '../../store/kpi/kpi.actions';
+import * as HealthCheckActions from '../../store/health-check/health-check.actions';
 
 @Component({
   selector: 'app-initial-loading',
@@ -115,6 +115,7 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     }
 
     const isOnline = await this.healthCheckService.pingBackend().pipe(take(1)).toPromise();
+    this.store.dispatch(HealthCheckActions.setOnlineStatus({ isOnline: !!isOnline }));
 
     if (!isOnline) {
       this.skipInitializationForOfflineMode();

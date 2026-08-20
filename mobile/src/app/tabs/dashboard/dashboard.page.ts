@@ -8,6 +8,7 @@ import { Commercial } from '../../models/commercial.model';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { selectCommercialByUsername, selectCommercialLoading } from '../../store/commercial/commercial.selectors';
 import { selectIsOnline } from '../../store/health-check/health-check.selectors';
+import * as HealthCheckActions from '../../store/health-check/health-check.actions';
 import * as CommercialActions from '../../store/commercial/commercial.actions';
 import * as AuthActions from '../../store/auth/auth.actions';
 import { selectSyncErrorsCount, selectAutomaticSyncIsActive } from '../../store/sync/sync.selectors';
@@ -117,6 +118,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   ionViewWillEnter() {
     console.log('[DashboardPage] ionViewWillEnter triggered');
+    this.store.dispatch(HealthCheckActions.checkOnlineStatus());
     this.loadDashboardData(this.activePeriod);
     void this.maybeShowLocalDataCleanupModal();
   }
