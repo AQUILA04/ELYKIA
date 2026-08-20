@@ -1,9 +1,13 @@
 package com.optimize.elykia.core.service;
 
+import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.stock.CommercialStockMovement;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
+import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.core.repository.CommercialStockMovementRepository;
 import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -12,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,11 +28,31 @@ class CommercialStockMovementServiceTest {
     @Mock
     private CommercialStockMovementRepository repository;
 
+    @Mock
+    private CommercialMonthlyStockItemRepository stockItemRepository;
+
     @InjectMocks
     private CommercialStockMovementService service;
 
+    private CommercialMonthlyStockItem stockItem;
+
+    @BeforeEach
+    void setUp() {
+        stockItem = new CommercialMonthlyStockItem();
+        stockItem.setId(1L);
+        Articles article = new Articles();
+        article.setId(100L);
+        article.setName("Test Article");
+        stockItem.setArticle(article);
+    }
+
+    private void givenExistingStockItem() {
+        when(stockItemRepository.findById(anyLong())).thenReturn(Optional.of(stockItem));
+    }
+
     @Test
     void testRecord_CREDIT_SALE() {
+        givenExistingStockItem();
         when(repository.save(any(CommercialStockMovement.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -61,6 +86,7 @@ class CommercialStockMovementServiceTest {
 
     @Test
     void testRecord_CASH_SALE() {
+        givenExistingStockItem();
         when(repository.save(any(CommercialStockMovement.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -90,6 +116,7 @@ class CommercialStockMovementServiceTest {
 
     @Test
     void testRecord_STOCK_IN() {
+        givenExistingStockItem();
         when(repository.save(any(CommercialStockMovement.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -121,6 +148,7 @@ class CommercialStockMovementServiceTest {
 
     @Test
     void testRecord_RETURN() {
+        givenExistingStockItem();
         when(repository.save(any(CommercialStockMovement.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -150,6 +178,7 @@ class CommercialStockMovementServiceTest {
 
     @Test
     void testProperty_P1_QuantityConservation() {
+        givenExistingStockItem();
         when(repository.save(any(CommercialStockMovement.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -176,6 +205,7 @@ class CommercialStockMovementServiceTest {
 
     @Test
     void testProperty_P3_NonNegativity() {
+        givenExistingStockItem();
         when(repository.save(any(CommercialStockMovement.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -250,6 +280,7 @@ class CommercialStockMovementServiceTest {
 
     @Test
     void testRecord_HandlesException() {
+        givenExistingStockItem();
         when(repository.save(any(CommercialStockMovement.class)))
                 .thenThrow(new RuntimeException("Database error"));
 

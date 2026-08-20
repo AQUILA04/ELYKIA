@@ -5,10 +5,12 @@ import com.optimize.elykia.core.ai.context.AiUserContext;
 import com.optimize.elykia.core.ai.dto.SqlQueryResult;
 import com.optimize.elykia.core.ai.schema.SchemaCatalogService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnProperty(name = "elykia.ai.enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class SqlGenerationService {
 

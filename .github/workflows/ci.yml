@@ -32,6 +32,7 @@ jobs:
             - 'frontend/**'
           backend:
             - 'backend/**'
+            - '.github/workflows/ci.yml'
           backend_lib:
             - 'backend-lib/**'
           mobile:
@@ -128,8 +129,17 @@ jobs:
     - name: Build elykia-client
       run: mvn -B clean install -DskipTests --file backend-lib/elykia-client/pom.xml
 
-    - name: Package Backend
-      run: mvn -B package -DskipTests --file backend/pom.xml
+    - name: Run backend quality gate
+      run: mvn -B verify --file backend/pom.xml
+
+    - name: Publish JaCoCo coverage report
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: backend-jacoco-${{ github.run_id }}
+        path: backend/target/site/jacoco/
+        if-no-files-found: warn
+        retention-days: 14
 
     - name: Deploy Backend Maven Artifact
       run: mvn -B deploy -DskipTests --file backend/pom.xml -s $GITHUB_WORKSPACE/settings.xml || echo "Deployment failed, likely because version already exists. Continuing..."

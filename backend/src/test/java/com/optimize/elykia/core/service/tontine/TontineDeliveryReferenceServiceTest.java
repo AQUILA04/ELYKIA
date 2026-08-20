@@ -10,7 +10,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -18,39 +23,56 @@ class TontineDeliveryReferenceServiceTest {
 
     @Mock
     private TontineDeliveryRepository deliveryRepository;
-
     @InjectMocks
     private TontineDeliveryReferenceService service;
 
     @Test
-    void generate_shouldFollowExpectedFormat() {
-        String reference = service.generate(LocalDateTime.of(2026, 6, 5, 10, 0));
-        assertTrue(reference.matches("LIV-2026-06-[0-9A-F]{8}"));
+    void resolveReference_returnsTrimmedProvidedReferenceWhenItIsAvailable() {
+        // Given
+        when(deliveryRepository.existsByReference("LIV-2026-01-MANUEL")).thenReturn(false);
+
+        // When
+        String result = service.resolveReference("  LIV-2026-01-MANUEL  ", LocalDateTime.of(2026, 1, 15, 10, 30));
+
+        // Then
+        assertEquals("LIV-2026-01-MANUEL", result);
+        verify(deliveryRepository).existsByReference("LIV-2026-01-MANUEL");
     }
 
     @Test
-    void resolveReference_shouldUseProvidedReferenceWhenUnique() {
-        when(deliveryRepository.existsByReference("LIV-2026-06-EB934TL0")).thenReturn(false);
+    void resolveReference_rejectsProvidedReferenceAlreadyUsed() {
+        // Given
+        when(deliveryRepository.existsByReference("LIV-2026-01-DUP")).thenReturn(true);
 
-        String reference = service.resolveReference("LIV-2026-06-EB934TL0", LocalDateTime.now());
-
-        assertEquals("LIV-2026-06-EB934TL0", reference);
-    }
-
-    @Test
-    void resolveReference_shouldRejectDuplicateProvidedReference() {
-        when(deliveryRepository.existsByReference("LIV-2026-06-EB934TL0")).thenReturn(true);
-
+        // When / Then
         assertThrows(CustomValidationException.class,
-                () -> service.resolveReference("LIV-2026-06-EB934TL0", LocalDateTime.now()));
+                () -> service.resolveReference("LIV-2026-01-DUP", LocalDateTime.of(2026, 1, 15, 10, 30)));
+        verify(deliveryRepository).existsByReference("LIV-2026-01-DUP");
     }
 
     @Test
-    void resolveReference_shouldGenerateWhenMissing() {
-        when(deliveryRepository.existsByReference(org.mockito.ArgumentMatchers.anyString())).thenReturn(false);
+    void resolveReference_generatesMonthScopedReferenceWhenNoneIsProvided() {
+        // Given
+        when(deliveryRepository.existsByReference(anyString())).thenReturn(false);
 
-        String reference = service.resolveReference(null, LocalDateTime.of(2026, 6, 1, 0, 0));
+        // When
+        String result = service.resolveReference(null, LocalDateTime.of(2026, 3, 15, 10, 30));
 
-        assertTrue(reference.startsWith("LIV-2026-06-"));
+        // Then
+        assertTrue(result.matches("LIV-2026-03-[0-9A-F]{8}"));
+        verify(deliveryRepository).existsByReference(result);
+    }
+
+    @Test
+    void generate_usesCurrentDateWhenRequestDateIsAbsent() {
+        // Given
+        int currentYear = LocalDateTime.now().getYear();
+
+        // When
+        String result = service.generate(null);
+
+        // Then
+        assertTrue(result.startsWith("LIV-" + currentYear + "-"));
+        assertFalse(result.isBlank());
     }
 }

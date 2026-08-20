@@ -14,6 +14,7 @@ import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.enumaration.ReceptionStatus;
+import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.mapper.StockReceptionMapper;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import com.optimize.elykia.core.repository.StockReceptionItemRepository;
@@ -224,6 +225,9 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
 
             ArticleHistory articleHistory = ArticleHistory.buildEntryHistory(article, stockEntry, connectedUser);
             articleHistory.setBeneficiary(connectedUser);
+            articleHistory.setReferenceType(StockHistoryReferenceType.STOCK_RECEPTION);
+            articleHistory.setReferenceId(reception.getId());
+            articleHistory.setReferenceLabel(reception.getReference());
             articleHistoryService.create(articleHistory);
 
             stockValuationFacade.registerEntry(
@@ -275,6 +279,10 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
 
             ArticleHistory history = ArticleHistory.buildCancelReceptionHistory(
                     article, item.getQuantity(), connectedUser);
+            history.setBeneficiary(connectedUser);
+            history.setReferenceType(StockHistoryReferenceType.STOCK_RECEPTION);
+            history.setReferenceId(reception.getId());
+            history.setReferenceLabel(reception.getReference());
             articleHistoryService.create(history);
 
             article.makeRelease(item.getQuantity());

@@ -69,9 +69,13 @@ public class MonthlyReportAggregationService {
         LocalDate endDate = startDate.withDayOfMonth(startDate.lengthOfMonth());
         Set<String> commercials = new TreeSet<>();
         dailyCommercialReportRepository.findAggregatedByDateBetween(startDate, endDate)
-                .forEach(r -> commercials.add(r.getCommercialUsername()));
-        commercials.addAll(creditRepository.findDistinctCollectors());
-        commercials.removeIf(Objects::isNull);
+                .stream()
+                .map(DailyCommercialReport::getCommercialUsername)
+                .filter(Objects::nonNull)
+                .forEach(commercials::add);
+        creditRepository.findDistinctCollectors().stream()
+                .filter(Objects::nonNull)
+                .forEach(commercials::add);
         return new ArrayList<>(commercials);
     }
 

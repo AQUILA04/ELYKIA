@@ -60,10 +60,12 @@ public class CommercialPerformanceService extends GenericService<CommercialPerfo
                 .sum()
         );
         
-        if (periodCredits.size() > 0) {
+        if (!periodCredits.isEmpty()) {
             performance.setAverageSaleAmount(
                 performance.getTotalSalesAmount() / periodCredits.size()
             );
+        } else {
+            performance.setAverageSaleAmount(0.0);
         }
         
         // Métriques de recouvrement
@@ -79,6 +81,8 @@ public class CommercialPerformanceService extends GenericService<CommercialPerfo
             performance.setCollectionRate(
                 (performance.getTotalCollected() / performance.getTotalSalesAmount()) * 100
             );
+        } else {
+            performance.setCollectionRate(0.0);
         }
         
         // Métriques de risque

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.optimize.elykia.core.dto.ArticleTypeDto;
 import com.optimize.elykia.core.entity.article.ArticleType;
 import com.optimize.elykia.core.service.store.ArticleTypeService;
+import com.optimize.elykia.core.support.IntegrationTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false) // Disable security filters for simplicity
-class ArticleTypeControllerIntegrationTest {
+class ArticleTypeControllerIntegrationTest extends IntegrationTestSupport {
 
     @Autowired
     private MockMvc mockMvc;

@@ -23,7 +23,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class RemainingAtClientsPdfService {
 
-    static final String DOCUMENT_TITLE = "Reste chez le client";
+    static final String DOCUMENT_TITLE = "Reste chez les clients";
     private static final DateTimeFormatter GENERATION_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final NumberFormat AMOUNT_FORMAT = NumberFormat.getNumberInstance(Locale.FRANCE);
