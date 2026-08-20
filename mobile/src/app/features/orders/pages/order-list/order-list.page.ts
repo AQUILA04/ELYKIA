@@ -1,11 +1,16 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
-import { AlertController, ToastController, LoadingController } from '@ionic/angular';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { InfiniteScrollCustomEvent, IonInfiniteScroll } from '@ionic/angular';
+import { Store } from '@ngrx/store';
+import { combineLatest, Observable, Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, map, take, takeUntil } from 'rxjs/operators';
 
-import { OrderService } from '../../../../core/services/order.service';
-import { Order } from '../../../../models/order.model';
+import { OrderView } from '../../../../models/order-view.model';
+import { User } from '../../../../models/auth.model';
+import * as OrderActions from '../../../../store/order/order.actions';
+import * as OrderSelectors from '../../../../store/order/order.selectors';
+import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 import { LoggerService } from '../../../../core/services/logger.service';
 
 @Component({
@@ -15,25 +20,60 @@ import { LoggerService } from '../../../../core/services/logger.service';
   standalone: false
 })
 export class OrderListPage implements OnInit, OnDestroy {
+  @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
+
+  searchControl = new FormControl('');
   private destroy$ = new Subject<void>();
 
-  orders: Order[] = [];
-  filteredOrders: Order[] = [];
-  searchTerm = '';
-  isLoading = false;
+  vm$: Observable<{
+    orders: OrderView[];
+    loading: boolean;
+    error: string | null;
+    totalItems: number;
+    hasMore: boolean;
+  }>;
 
   constructor(
+    private store: Store,
     private router: Router,
-    private orderService: OrderService,
-    private alertController: AlertController,
-    private toastController: ToastController,
-    private loadingController: LoadingController,
     private log: LoggerService
-  ) {}
+  ) {
+    this.vm$ = combineLatest([
+      this.store.select(OrderSelectors.selectPaginatedOrders),
+      this.store.select(OrderSelectors.selectOrderPaginationLoading),
+      this.store.select(OrderSelectors.selectOrderPaginationError),
+      this.store.select(OrderSelectors.selectOrderPaginationTotalItems),
+      this.store.select(OrderSelectors.selectOrderPaginationHasMore)
+    ]).pipe(
+      map(([orders, loading, error, totalItems, hasMore]) => ({
+        orders,
+        loading,
+        error,
+        totalItems,
+        hasMore
+      }))
+    );
+  }
 
   ngOnInit() {
     this.log.log('[OrderListPage] User entered order list page.');
-    this.loadOrders();
+
+    this.searchControl.valueChanges.pipe(
+      debounceTime(400),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(query => {
+      this.refreshList(query || '');
+    });
+  }
+
+  ionViewWillEnter() {
+    this.store.select(selectAuthUser).pipe(
+      filter((user): user is User => !!user?.username),
+      take(1)
+    ).subscribe(() => {
+      this.refreshList(this.searchControl.value || '');
+    });
   }
 
   ngOnDestroy() {
@@ -41,51 +81,33 @@ export class OrderListPage implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  ionViewWillEnter() {
-    // Recharger les commandes à chaque fois qu'on revient sur la page
-    this.loadOrders();
+  refreshList(query: string) {
+    this.store.dispatch(OrderActions.loadFirstPageOrders({
+      filters: { searchQuery: query || undefined }
+    }));
   }
 
-  async loadOrders() {
-    this.isLoading = true;
-    
-    try {
-      this.orderService.getOrders()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: (orders) => {
-            this.orders = orders;
-            this.filteredOrders = [...orders];
-            this.isLoading = false;
-            console.log(`Loaded ${orders.length} orders`);
-          },
-          error: (error) => {
-            console.error('Error loading orders:', error);
-            this.isLoading = false;
-            this.showErrorToast('Erreur lors du chargement des commandes');
-          }
-        });
-    } catch (error) {
-      console.error('Error in loadOrders:', error);
-      this.isLoading = false;
-      this.showErrorToast('Erreur lors du chargement des commandes');
-    }
+  loadMoreData(event: InfiniteScrollCustomEvent) {
+    this.store.dispatch(OrderActions.loadNextPageOrders({
+      filters: { searchQuery: this.searchControl.value || undefined }
+    }));
+
+    this.store.select(OrderSelectors.selectOrderPaginationLoading).pipe(
+      filter(loading => !loading),
+      take(1)
+    ).subscribe(() => {
+      event.target.complete();
+    });
   }
 
-  onSearchChange(event: any) {
-    this.searchTerm = event.target.value.toLowerCase();
-    this.filterOrders();
+  clearSearch() {
+    this.searchControl.setValue('');
   }
 
-  private filterOrders() {
-    if (!this.searchTerm.trim()) {
-      this.filteredOrders = [...this.orders];
-    } else {
-      this.filteredOrders = this.orders.filter(order => 
-        order.reference.toLowerCase().includes(this.searchTerm) ||
-        (order.client?.firstname?.toLowerCase().includes(this.searchTerm)) ||
-        (order.client?.lastname?.toLowerCase().includes(this.searchTerm))
-      );
+  refreshOrders(event?: CustomEvent) {
+    this.refreshList(this.searchControl.value || '');
+    if (event?.target && 'complete' in (event.target as any)) {
+      setTimeout(() => (event.target as any).complete(), 400);
     }
   }
 
@@ -93,111 +115,15 @@ export class OrderListPage implements OnInit, OnDestroy {
     this.router.navigate(['/tabs/orders/new']);
   }
 
-  editOrder(order: Order) {
-    this.router.navigate(['/tabs/orders/edit', order.id]);
+  openOrderDetail(order: OrderView) {
+    this.router.navigate(['/tabs/orders/detail', order.id]);
   }
 
-  async deleteOrder(order: Order) {
-    const alert = await this.alertController.create({
-      header: 'Confirmer la suppression',
-      message: `Êtes-vous sûr de vouloir supprimer la commande ${order.reference} ?`,
-      buttons: [
-        {
-          text: 'Annuler',
-          role: 'cancel'
-        },
-        {
-          text: 'Supprimer',
-          role: 'destructive',
-          handler: () => {
-            this.performDelete(order);
-          }
-        }
-      ]
-    });
-
-    await alert.present();
+  retryLoad() {
+    this.refreshList(this.searchControl.value || '');
   }
 
-  private async performDelete(order: Order) {
-    const loading = await this.loadingController.create({
-      message: 'Suppression en cours...'
-    });
-    await loading.present();
-
-    try {
-      const success = await this.orderService.deleteOrder(order.id).toPromise();
-      
-      if (success) {
-        await this.showSuccessToast(`Commande ${order.reference} supprimée`);
-        this.loadOrders(); // Recharger la liste
-      } else {
-        await this.showErrorToast('Erreur lors de la suppression');
-      }
-    } catch (error) {
-      console.error('Error deleting order:', error);
-      await this.showErrorToast('Erreur lors de la suppression');
-    } finally {
-      await loading.dismiss();
-    }
-  }
-
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'PENDING': return 'warning';
-      case 'CONFIRMED': return 'primary';
-      case 'DELIVERED': return 'success';
-      case 'CANCELLED': return 'danger';
-      default: return 'medium';
-    }
-  }
-
-  getStatusText(status: string): string {
-    switch (status) {
-      case 'PENDING': return 'En attente';
-      case 'CONFIRMED': return 'Confirmée';
-      case 'DELIVERED': return 'Livrée';
-      case 'CANCELLED': return 'Annulée';
-      default: return status;
-    }
-  }
-
-  getAvatarColor(firstName: string): string {
-    const colors = [
-      '#FF6B35', '#2E8B57', '#4682B4', '#8B4513', '#9932CC',
-      '#DC143C', '#008B8B', '#B8860B', '#8B008B', '#556B2F'
-    ];
-    const index = firstName ? firstName.charCodeAt(0) % colors.length : 0;
-    return colors[index];
-  }
-
-  getInitials(firstName: string, lastName: string): string {
-    const first = firstName ? firstName.charAt(0) : '';
-    const last = lastName ? lastName.charAt(0) : '';
-    return `${first}${last}`.toUpperCase();
-  }
-
-  private async showSuccessToast(message: string) {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      color: 'success',
-      position: 'top'
-    });
-    await toast.present();
-  }
-
-  trackByOrderId(index: number, order: Order): string {
+  trackByOrderId(_index: number, order: OrderView): string {
     return order.id;
-  }
-
-  private async showErrorToast(message: string) {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      color: 'danger',
-      position: 'top'
-    });
-    await toast.present();
   }
 }

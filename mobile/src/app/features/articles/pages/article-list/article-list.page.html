@@ -1,59 +1,52 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/more"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Articles</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="elyk-content">
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/tabs/more"></ion-back-button>
+      </ion-buttons>
+      <ion-title>
+        <span class="elyk-surtitle">Données</span>
+        Articles
+      </ion-title>
+    </ion-toolbar>
+  </header>
 
-<ion-content>
-  <!-- Section Articles Disponibles -->
-  <div class="articles-section">
-    <div class="section-header">
-      <ion-icon name="cube" class="section-icon"></ion-icon>
-      <span class="section-title">Articles Disponibles</span>
-      <!-- Count removed as pagination total is not exposed in VM currently, can be added if needed -->
+  <div class="elyk-search-overlap">
+    <ion-searchbar
+      class="elyk-searchbar"
+      placeholder="Rechercher par nom, référence..."
+      (ionInput)="onSearchInput($event)"
+      [debounce]="300"
+      mode="md">
+    </ion-searchbar>
+  </div>
+
+  <div class="articles-list">
+    <div *ngIf="(isLoading$ | async) && !(articles$ | async)?.length" class="elyk-empty">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Chargement...</p>
     </div>
 
-    <!-- Search Container -->
-    <div class="search-container">
-      <ion-searchbar placeholder="Rechercher par nom, référence..." (ionInput)="onSearchInput($event)" [debounce]="300">
-      </ion-searchbar>
+    <div *ngIf="!(isLoading$ | async) && (articles$ | async)?.length === 0" class="elyk-empty">
+      <ion-icon name="cube-outline"></ion-icon>
+      <h3>Aucun article</h3>
+      <p>Aucun article trouvé.</p>
     </div>
 
-    <div class="articles-list">
-      <!-- Loading State -->
-      <div *ngIf="(isLoading$ | async) && !(articles$ | async)?.length" class="ion-text-center ion-padding">
-        <ion-spinner></ion-spinner>
-      </div>
+    <ion-card *ngFor="let article of articles$ | async; trackBy: trackByArticleId" class="elyk-card article-card">
+      <ion-card-content>
+        <div class="article-info">
+          <h3 class="article-name">{{ article.commercialName || article.name }}</h3>
+          <p class="article-details">{{ article.type }} · {{ article.marque }}</p>
+          <p class="stock-info">Stock disponible: {{ article.stockQuantity }} unités</p>
+          <span class="unit-price elyk-amount">{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
 
-      <!-- Empty State -->
-      <div *ngIf="!(isLoading$ | async) && (articles$ | async)?.length === 0" class="empty-state">
-        <p>Aucun article trouvé.</p>
-      </div>
-
-      <!-- Remplacement du virtual scroll par une boucle *ngFor -->
-      <ion-card *ngFor="let article of articles$ | async; trackBy: trackByArticleId" class="article-card">
-        <ion-card-content>
-          <div class="article-content">
-            <div class="article-info">
-              <h3 class="article-name">{{ article.commercialName || article.name }}</h3>
-              <p class="article-details">{{ article.type }} • {{ article.marque }}</p>
-              <p class="stock-info">Stock disponible: {{ article.stockQuantity }} unités</p>
-              <div class="price-info">
-                <span class="unit-price">{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
-              </div>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-
-      <!-- Ajout de l'infinite scroll -->
-      <ion-infinite-scroll (ionInfinite)="loadMoreData($event)" [disabled]="!(hasMore$ | async)">
-        <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement...">
-        </ion-infinite-scroll-content>
-      </ion-infinite-scroll>
-    </div>
+    <ion-infinite-scroll (ionInfinite)="loadMoreData($event)" [disabled]="!(hasMore$ | async)">
+      <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement...">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
   </div>
 </ion-content>

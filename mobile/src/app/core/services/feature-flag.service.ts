@@ -12,6 +12,7 @@ export enum FeatureFlags {
   DualCreditAuthorization = 'dualCreditAuthorization',
   MobileDeviceRestriction = 'mobileDeviceRestriction',
   RecoveryManagerMobile = 'recoveryManagerMobile',
+  OrdersManagement = 'ordersManagement',
 }
 
 @Injectable({
@@ -26,6 +27,7 @@ export class FeatureFlagService {
     [FeatureFlags.DualCreditAuthorization]: false,
     [FeatureFlags.MobileDeviceRestriction]: false,
     [FeatureFlags.RecoveryManagerMobile]: true,
+    [FeatureFlags.OrdersManagement]: false,
   };
 
   private readonly flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);

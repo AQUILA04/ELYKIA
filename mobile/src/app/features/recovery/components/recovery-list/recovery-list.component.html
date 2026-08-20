@@ -1,137 +1,103 @@
-<ion-header>
-  <ion-toolbar color="success">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/more"></ion-back-button>
-    </ion-buttons>
-    <ion-title class="ion-text-center">Recouvrements</ion-title>
-    <ion-buttons slot="end"></ion-buttons>
-  </ion-toolbar>
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/tabs/more"></ion-back-button>
+      </ion-buttons>
+      <ion-title>
+        <span class="elyk-surtitle">Rapports</span>
+        Recouvrements
+      </ion-title>
+    </ion-toolbar>
+  </header>
 </ion-header>
 
-<ion-content class="ion-padding" *ngIf="vm$ | async as vm">
-  <!-- Section de recherche et filtres -->
-  <ion-card class="search-section">
-    <ion-searchbar [formControl]="searchControl" placeholder="Rechercher par client, référence..."></ion-searchbar>
-    <ion-grid>
-      <ion-row>
-        <ion-col>
-          <ion-item>
-            <ion-label>Type</ion-label>
-            <ion-select [formControl]="typeFilterControl">
-              <ion-select-option value="all">Tous</ion-select-option>
-              <ion-select-option value="CASH">Espèces</ion-select-option>
-              <ion-select-option value="MOBILE_MONEY">Mobile Money</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </ion-col>
-        <ion-col>
-          <ion-item>
-            <ion-label>Période</ion-label>
-            <ion-select [formControl]="periodFilterControl">
-              <ion-select-option value="all">Toutes</ion-select-option>
-              <ion-select-option value="today">Aujourd'hui</ion-select-option>
-              <ion-select-option value="week">Cette semaine</ion-select-option>
-              <ion-select-option value="month">Ce mois</ion-select-option>
-            </ion-select>
-          </ion-item>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
-  </ion-card>
+<ion-content class="elyk-content" *ngIf="vm$ | async as vm">
+  <div class="elyk-card filters-card">
+    <ion-searchbar class="elyk-searchbar" [formControl]="searchControl" placeholder="Rechercher par client, référence..." mode="md"></ion-searchbar>
+    <div class="filters-row">
+      <ion-item class="filter-item" lines="none">
+        <ion-label>Type</ion-label>
+        <ion-select [formControl]="typeFilterControl" interface="popover">
+          <ion-select-option value="all">Tous</ion-select-option>
+          <ion-select-option value="CASH">Espèces</ion-select-option>
+          <ion-select-option value="MOBILE_MONEY">Mobile Money</ion-select-option>
+        </ion-select>
+      </ion-item>
+      <ion-item class="filter-item" lines="none">
+        <ion-label>Période</ion-label>
+        <ion-select [formControl]="periodFilterControl" interface="popover">
+          <ion-select-option value="all">Toutes</ion-select-option>
+          <ion-select-option value="today">Aujourd'hui</ion-select-option>
+          <ion-select-option value="week">Cette semaine</ion-select-option>
+          <ion-select-option value="month">Ce mois</ion-select-option>
+        </ion-select>
+      </ion-item>
+    </div>
+  </div>
 
-  <!-- Section statistiques -->
-  <ion-grid class="stats-section">
-    <ion-row>
-      <ion-col>
-        <ion-card class="stat-card">
-          <ion-card-content>
-            <div class="stat-number">{{ vm.stats.total }}</div>
-            <div class="stat-label">TOTAL</div>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-      <ion-col>
-        <ion-card class="stat-card">
-          <ion-card-content>
-            <div class="stat-number">{{ vm.stats.today }}</div>
-            <div class="stat-label">AUJOURD'HUI</div>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-      <ion-col>
-        <ion-card class="stat-card">
-          <ion-card-content>
-            <div class="stat-number">{{ vm.stats.totalAmount | number:'1.0-0' }}</div>
-            <div class="stat-label">FCFA</div>
-          </ion-card-content>
-        </ion-card>
-      </ion-col>
-    </ion-row>
-  </ion-grid>
+  <section class="elyk-kpi-strip">
+    <article class="elyk-kpi elyk-kpi--navy">
+      <span>Total</span>
+      <strong>{{ vm.stats.total }}</strong>
+    </article>
+    <article class="elyk-kpi elyk-kpi--green">
+      <span>Aujourd'hui</span>
+      <strong>{{ vm.stats.today }}</strong>
+    </article>
+    <article class="elyk-kpi elyk-kpi--cyan">
+      <span>FCFA</span>
+      <strong>{{ vm.stats.totalAmount | number:'1.0-0' }}</strong>
+    </article>
+  </section>
 
-  <!-- Liste des recouvrements -->
   @if (vm.recoveries.length > 0) {
   <div class="recoveries-container">
-    <ion-list-header>
-      <ion-label>Historique des Recouvrements</ion-label>
-      <ion-badge color="success">{{ vm.recoveries.length }}</ion-badge>
-    </ion-list-header>
-    <ion-list class="recouvrements-list">
-      <!-- Note: Using standard ngFor for simplicity with pagination, or keep virtual scroll if performant -->
-      <ion-item *ngFor="let recovery of vm.recoveries; trackBy: trackByRecoveryId" (click)="openDetailModal(recovery)"
-        class="recouvrement-item" button>
-        <div class="recouvrement-date">
-          <div class="date-day">{{ recovery.paymentDate | date:'dd' }}</div>
-          <div class="date-month">{{ recovery.paymentDate | date:'MMM' }}</div>
-        </div>
-        <div class="recouvrement-info">
-          <h2>{{ recovery.clientName }}</h2>
-          <!-- FIX: Display full reference if available, otherwise fallback to ID -->
-          <p class="client-name">Réf: {{ recovery.reference || recovery.id }}</p>
-          <p class="time-and-reference">
-            {{ recovery.paymentDate | date:'HH:mm' }}
-            <span *ngIf="recovery.distributionReference">- D: {{ recovery.distributionReference }}</span>
-          </p>
-        </div>
-        <div class="recouvrement-amount">
-          <div class="amount-value">{{ recovery.amount | number:'1.0-0' }} FCFA</div>
-          <div class="amount-type">Recouvrement</div>
-          <ion-badge *ngIf="!recovery.isSync" color="medium" style="margin-top: 4px; font-size: 10px;">
-            <ion-icon name="cloud-offline-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
-            Local
-          </ion-badge>
-          <ion-badge *ngIf="recovery.isSync" color="success" style="margin-top: 4px; font-size: 10px;">
-            <ion-icon name="cloud-done-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
-            Sync
-          </ion-badge>
-        </div>
-        <ion-button
-          *ngIf="!recovery.isSync"
-          slot="end"
-          fill="clear"
-          color="danger"
-          (click)="deleteLocalRecovery($event, recovery)"
-          aria-label="Supprimer le recouvrement local">
-          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-        </ion-button>
-      </ion-item>
-    </ion-list>
+    <p class="elyk-quarter-title">Historique des recouvrements <span class="count-badge">{{ vm.recoveries.length }}</span></p>
+    <div class="recovery-row elyk-client-card" *ngFor="let recovery of vm.recoveries; trackBy: trackByRecoveryId" (click)="openDetailModal(recovery)">
+      <div class="recovery-date">
+        <div class="date-day">{{ recovery.paymentDate | date:'dd' }}</div>
+        <div class="date-month">{{ recovery.paymentDate | date:'MMM' | uppercase }}</div>
+      </div>
+      <div class="recovery-info">
+        <h2>{{ recovery.clientName }}</h2>
+        <p class="recovery-ref">Réf: {{ recovery.reference || recovery.id }}</p>
+        <p class="recovery-meta">
+          {{ recovery.paymentDate | date:'HH:mm' }}
+          <span *ngIf="recovery.distributionReference"> · D: {{ recovery.distributionReference }}</span>
+        </p>
+      </div>
+      <div class="recovery-amount">
+        <div class="elyk-amount elyk-amount--green">{{ recovery.amount | number:'1.0-0' }} FCFA</div>
+        <span class="elyk-badge elyk-badge--local" *ngIf="!recovery.isSync">Local</span>
+        <span class="elyk-badge elyk-badge--sync" *ngIf="recovery.isSync">Sync</span>
+      </div>
+      <ion-button
+        *ngIf="!recovery.isSync"
+        fill="clear"
+        color="danger"
+        class="delete-btn"
+        (click)="deleteLocalRecovery($event, recovery)"
+        aria-label="Supprimer le recouvrement local">
+        <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+      </ion-button>
+      <ion-icon name="chevron-forward" class="elyk-chevron"></ion-icon>
+    </div>
 
     <ion-infinite-scroll (ionInfinite)="loadMore($event)" [disabled]="!vm.hasMore">
       <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement..."></ion-infinite-scroll-content>
     </ion-infinite-scroll>
   </div>
   } @else {
-  <div class="empty-state-card">
-    <ion-icon name="receipt-outline" class="empty-state-icon"></ion-icon>
-    <h3 class="empty-state-title">Aucun recouvrement</h3>
-    <p class="empty-state-description">Il n'y a aucun recouvrement à afficher pour le moment.</p>
+  <div class="elyk-empty">
+    <ion-icon name="receipt-outline"></ion-icon>
+    <h3>Aucun recouvrement</h3>
+    <p>Il n'y a aucun recouvrement à afficher pour le moment.</p>
   </div>
   }
 
-  <!-- Bouton d'action flottant -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button routerLink="/tabs/more/recovery">
+    <ion-fab-button class="elyk-fab" routerLink="/recovery">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>

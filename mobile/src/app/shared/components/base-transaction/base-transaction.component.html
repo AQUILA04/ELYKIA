@@ -1,59 +1,53 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-back-button [defaultHref]="config.backRoute"></ion-back-button>
-    </ion-buttons>
-    <ion-title>{{ config.title }}</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="validateTransaction()" [disabled]="!canValidate()">
-        <ion-icon slot="icon-only" name="checkmark"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-buttons slot="start">
+        <ion-back-button [defaultHref]="config.backRoute"></ion-back-button>
+      </ion-buttons>
+      <ion-title>
+        <span class="elyk-surtitle">{{ config.type === 'ORDER' ? 'Commandes' : 'Ventes crédit' }}</span>
+        {{ config.title }}
+      </ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="validateTransaction()" [disabled]="!canValidate()">
+          <ion-icon slot="icon-only" name="checkmark"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </header>
 </ion-header>
 
-<ion-content [fullscreen]="true" class="transaction-content">
-  <!-- Section Sélection Client -->
+<ion-content [fullscreen]="true" class="elyk-content transaction-content">
   <div class="client-section">
     <div class="section-header">
-      <ion-icon name="person" class="section-icon"></ion-icon>
+      <ion-icon name="person-outline" class="section-icon"></ion-icon>
       <span class="section-title">Client Sélectionné</span>
     </div>
 
-    <ion-card class="client-card" [class.selected]="selectedClient">
+    <ion-card class="elyk-card client-card" [class.selected]="selectedClient">
       <ion-card-content>
         <div class="client-content" *ngIf="!selectedClient">
-          <div class="empty-client">
-            <ion-icon name="person-outline" class="empty-icon"></ion-icon>
+          <div class="empty-client elyk-empty">
+            <ion-icon name="person-outline"></ion-icon>
             <h3>Aucun client sélectionné</h3>
             <p>Veuillez sélectionner un client pour continuer</p>
           </div>
-          <ion-button
-            fill="solid"
-            color="primary"
-            (click)="openClientSelector()"
-            class="select-client-button">
+          <ion-button class="elyk-btn-navy select-client-button" (click)="openClientSelector()">
             Sélectionner un Client
           </ion-button>
         </div>
 
         <div class="client-content" *ngIf="selectedClient">
           <div class="client-info">
-            <div class="client-avatar">
-              <div class="avatar-circle" [style.background-color]="getAvatarColor(selectedClient.firstname)">
-                {{ getInitials(selectedClient.firstname, selectedClient.lastname) }}
-              </div>
+            <div class="elyk-avatar">
+              <ion-icon name="person"></ion-icon>
             </div>
             <div class="client-details">
               <h3>{{ selectedClient.firstname }} {{ selectedClient.lastname }}</h3>
               <p class="address">{{ selectedClient.address }}</p>
               <p class="phone">{{ selectedClient.phone }}</p>
             </div>
-            <ion-button
-              fill="outline"
-              color="primary"
-              size="small"
-              (click)="openClientSelector()">
+            <ion-button fill="outline" class="elyk-btn-outline" size="small" (click)="openClientSelector()">
               Changer
             </ion-button>
           </div>
@@ -62,57 +56,54 @@
     </ion-card>
   </div>
 
-  <!-- Section Articles Disponibles -->
   <div class="articles-section">
     <div class="section-header">
-      <ion-icon name="cube" class="section-icon"></ion-icon>
+      <ion-icon name="cube-outline" class="section-icon"></ion-icon>
       <span class="section-title">Articles Disponibles</span>
       <span class="articles-count">{{ availableArticles.length }} articles</span>
     </div>
 
-    <!-- Search Container -->
     <div class="search-container">
-      <ion-searchbar 
+      <ion-searchbar
+        class="elyk-searchbar"
         placeholder="Rechercher par nom, référence..."
         (ionInput)="onSearchInput($event)"
-        debounce="300">
+        debounce="300"
+        mode="md">
       </ion-searchbar>
     </div>
 
     <div class="articles-list">
       <ion-card
         *ngFor="let article of filteredArticles"
-        class="article-card"
+        class="elyk-card article-card"
         [class.selected]="getArticleQuantity(article.id) > 0"
         [class.low-stock]="config.showStockInfo && article.stockQuantity <= 5">
         <ion-card-content>
           <div class="article-content">
             <div class="article-info">
               <h3 class="article-name">{{ article.commercialName || article.name }}</h3>
-              <p class="article-details">{{ article.type }} • {{ article.marque }}</p>
-              
-              <!-- Stock info - conditionnel selon la config -->
+              <p class="article-details">{{ article.type }} · {{ article.marque }}</p>
+
               <p class="stock-info" *ngIf="config.showStockInfo">
-                <ion-icon 
-                  [name]="article.stockQuantity <= 5 ? 'warning' : 'checkmark-circle'" 
-                  [color]="article.stockQuantity <= 5 ? 'warning' : 'success'">
+                <ion-icon
+                  [name]="article.stockQuantity <= 5 ? 'warning' : 'checkmark-circle'">
                 </ion-icon>
                 Stock disponible: {{ article.stockQuantity }} unités
               </p>
-              
-              <!-- Prix -->
+
               <div class="price-info">
-                <span class="unit-price">{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
-                <span class="total-price" *ngIf="getArticleQuantity(article.id) > 0">
+                <span class="unit-price elyk-amount">{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
+                <span class="total-price elyk-amount elyk-amount--green" *ngIf="getArticleQuantity(article.id) > 0">
                   {{ getArticleTotal(article.id) | number:'1.0-0' }} FCFA
                 </span>
               </div>
             </div>
 
-            <!-- Contrôles de quantité -->
             <div class="quantity-controls">
               <ion-button
                 fill="outline"
+                class="elyk-btn-outline qty-btn"
                 size="small"
                 (click)="decreaseQuantity(article)"
                 [disabled]="getArticleQuantity(article.id) <= 0">
@@ -130,6 +121,7 @@
 
               <ion-button
                 fill="outline"
+                class="elyk-btn-outline qty-btn"
                 size="small"
                 (click)="increaseQuantity(article)"
                 [disabled]="config.maxQuantityCheck && getArticleQuantity(article.id) >= article.stockQuantity">
@@ -142,12 +134,10 @@
     </div>
   </div>
 
-  <!-- Section Résumé -->
   <div class="summary-section" *ngIf="hasSelectedArticles()">
-    <ion-card class="summary-card">
+    <ion-card class="elyk-card summary-card">
       <ion-card-header>
         <ion-card-title>
-          <ion-icon name="receipt" class="summary-icon"></ion-icon>
           Résumé de la {{ config.type === 'ORDER' ? 'Commande' : 'Distribution' }}
         </ion-card-title>
       </ion-card-header>
@@ -155,16 +145,15 @@
         <form [formGroup]="transactionForm" *ngIf="config.requiresAdvance">
           <div class="summary-details">
             <div class="summary-row">
-              <span class="label">Articles sélectionnés :</span>
+              <span class="label">Articles sélectionnés</span>
               <span class="value">{{ getSelectedArticlesCount() }}</span>
             </div>
             <div class="summary-row total-row">
-              <span class="label">Montant total :</span>
-              <span class="value total-amount">{{ totalAmount | number:'1.0-0' }} FCFA</span>
+              <span class="label">Montant total</span>
+              <span class="value elyk-amount">{{ totalAmount | number:'1.0-0' }} FCFA</span>
             </div>
 
-            <!-- Champ pour l'avance -->
-            <ion-item class="advance-item">
+            <ion-item class="advance-item" lines="none">
               <ion-label position="floating">Avance (FCFA)</ion-label>
               <ion-input
                 type="number"
@@ -175,43 +164,40 @@
               </ion-input>
             </ion-item>
 
-            <!-- Affichage des détails calculés -->
             <div class="summary-row calculated-row" *ngIf="((adjustedAdvance$ | async) ?? 0) > 0">
-              <span class="label">Avance ajustée :</span>
-              <span class="value adjusted-advance">{{ adjustedAdvance$ | async | number:'1.0-0' }} FCFA</span>
+              <span class="label">Avance ajustée</span>
+              <span class="value">{{ adjustedAdvance$ | async | number:'1.0-0' }} FCFA</span>
             </div>
             <div class="summary-row daily-payment-row" *ngIf="config.calculateDailyPayment">
-              <span class="label">Mise journalière :</span>
-              <span class="value daily-payment">{{ dailyPayment$ | async | number:'1.0-0' }} FCFA</span>
+              <span class="label">Mise journalière</span>
+              <span class="value">{{ dailyPayment$ | async | number:'1.0-0' }} FCFA</span>
             </div>
           </div>
         </form>
 
-        <!-- Résumé simple pour les commandes -->
         <div class="summary-details" *ngIf="!config.requiresAdvance">
           <div class="summary-row">
-            <span class="label">Articles sélectionnés :</span>
+            <span class="label">Articles sélectionnés</span>
             <span class="value">{{ getSelectedArticlesCount() }}</span>
           </div>
           <div class="summary-row total-row">
-            <span class="label">Montant total :</span>
-            <span class="value total-amount">{{ totalAmount | number:'1.0-0' }} FCFA</span>
+            <span class="label">Montant total</span>
+            <span class="value elyk-amount">{{ totalAmount | number:'1.0-0' }} FCFA</span>
           </div>
         </div>
       </ion-card-content>
     </ion-card>
   </div>
+</ion-content>
 
-  <!-- Bouton de Confirmation -->
-  <div class="confirm-section">
+<ion-footer class="elyk-footer-bar">
+  <ion-toolbar>
     <ion-button
       expand="block"
-      size="large"
-      [color]="canValidate() ? 'primary' : 'medium'"
+      class="elyk-btn-navy confirm-button"
       [disabled]="!canValidate()"
-      (click)="validateTransaction()"
-      class="confirm-button">
+      (click)="validateTransaction()">
       {{ config.submitButtonText }}
     </ion-button>
-  </div>
-</ion-content>
+  </ion-toolbar>
+</ion-footer>

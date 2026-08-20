@@ -1,6 +1,4 @@
 <div class="amount-input-container">
-
-  <!-- En-tête : label + badge "déjà payé" + badge retard -->
   <div class="mise-header">
     <span class="mise-header-label">Sélectionner les mises à collecter</span>
     <div class="mise-header-badges">
@@ -15,7 +13,6 @@
     </div>
   </div>
 
-  <!-- Grille de pastilles numérotées -->
   <div class="mise-grid" *ngIf="getMiseChips().length > 0">
     <div
       *ngFor="let chip of getMiseChips()"
@@ -28,29 +25,25 @@
     </div>
   </div>
 
-  <!-- Aucune mise restante -->
   <div class="mise-empty" *ngIf="getMiseChips().length === 0">
-    <ion-icon name="checkmark-circle" color="success"></ion-icon>
+    <ion-icon name="checkmark-circle"></ion-icon>
     <span>Toutes les mises sont à jour</span>
   </div>
 
-  <!-- Légende retard (affichée uniquement s'il y a des retards et rien de sélectionné) -->
   <div class="mise-legend" *ngIf="getLateCount() > 0 && selectedUpTo === null">
     <span class="legend-dot late-dot"></span>
     <span class="legend-text">{{ getLateCount() }} mise{{ getLateCount() > 1 ? 's' : '' }} en retard</span>
   </div>
 
-  <!-- Séparateur -->
   <div class="mise-divider"></div>
 
-  <!-- Récap montant calculé -->
   <div class="mise-result" [class.has-value]="selectedUpTo !== null">
     <div class="mise-result-left">
       <span class="mise-result-label">Montant à collecter</span>
       <span class="mise-result-count" *ngIf="selectedUpTo !== null">
         {{ getSelectedCount() }} mise{{ getSelectedCount() > 1 ? 's' : '' }}
         <ng-container *ngIf="getCollectAmount() === (getSelectedCount() * getExpectedAmount())">
-          &times; {{ formatAmount(getExpectedAmount()) }}
+          × {{ formatAmount(getExpectedAmount()) }}
         </ng-container>
         <ng-container *ngIf="getCollectAmount() !== (getSelectedCount() * getExpectedAmount())">
           (Solde partiel)
@@ -60,22 +53,17 @@
         Appuyez sur un numéro
       </span>
     </div>
-    <span class="mise-result-amount" *ngIf="selectedUpTo !== null">
+    <span class="mise-result-amount elyk-amount" *ngIf="selectedUpTo !== null">
       {{ formatAmount(getCollectAmount()) }} FCFA
     </span>
     <span class="mise-result-dash" *ngIf="selectedUpTo === null">—</span>
   </div>
 
-  <!-- Message de validation (succès ou erreur) -->
   <div class="validation-message"
        [class.success]="isValid"
        [class.error]="!isValid && !!validationMessage"
        *ngIf="validationMessage">
-    <ion-icon
-      [name]="isValid ? 'checkmark-circle' : 'alert-circle'"
-      [color]="isValid ? 'success' : 'danger'">
-    </ion-icon>
+    <ion-icon [name]="isValid ? 'checkmark-circle' : 'alert-circle'"></ion-icon>
     <span>{{ validationMessage }}</span>
   </div>
-
 </div>

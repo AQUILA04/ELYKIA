@@ -1,10 +1,47 @@
+ion-header.ion-no-border {
+  --border-width: 0;
+}
+
+.elyk-hero--compact {
+  padding-top: 0;
+}
+
+.hero-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-width: 0;
+  --min-height: 56px;
+}
+
+.hero-toolbar ion-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 17px;
+  text-align: start;
+  padding-inline: 8px;
+
+  .elyk-surtitle {
+    display: block;
+    margin-bottom: 2px;
+  }
+}
+
+.receipt-shell {
+  margin: 16px;
+  padding: 16px;
+  display: flex;
+  justify-content: center;
+}
+
+/* Contenu ticket thermique — conserver monospace pour l'impression */
 #receipt-content {
   font-family: 'Courier New', monospace;
   font-size: 12px;
   line-height: 1.4;
   width: 180px;
-  margin: 20px auto;
+  margin: 0 auto;
   padding: 0;
+  color: #000;
 }
 
 .header {
@@ -23,6 +60,7 @@
   display: flex;
   justify-content: space-between;
   margin-bottom: 5px;
+  gap: 8px;
 }
 
 .total-row {
@@ -36,3 +74,7 @@
   font-size: 11px;
 }
 
+.qr-code-container {
+  display: flex;
+  justify-content: center;
+}

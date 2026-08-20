@@ -1,30 +1,34 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/distributions"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Nouvelle Distribution</ion-title>
-  </ion-toolbar>
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/tabs/distributions"></ion-back-button>
+      </ion-buttons>
+      <ion-title>
+        <span class="elyk-surtitle">Ventes crédit</span>
+        Nouvelle Distribution
+      </ion-title>
+    </ion-toolbar>
+  </header>
 </ion-header>
 
-<ion-content>
-  <!-- Section Sélection Client -->
+<ion-content class="elyk-content">
   <div class="client-section">
     <div class="section-header">
-      <ion-icon name="person" class="section-icon"></ion-icon>
+      <ion-icon name="person-outline" class="section-icon"></ion-icon>
       <span class="section-title">Client Sélectionné</span>
     </div>
 
-    <ion-card class="client-card" [class.selected]="vm.client">
+    <ion-card class="elyk-card client-card" [class.selected]="vm.client">
       <ion-card-content>
         @if (!vm.client) {
         <div class="client-content">
-          <div class="empty-client">
-            <ion-icon name="person-outline" class="empty-icon"></ion-icon>
+          <div class="empty-client elyk-empty">
+            <ion-icon name="person-outline"></ion-icon>
             <h3>Aucun client sélectionné</h3>
             <p>Veuillez sélectionner un client pour continuer</p>
           </div>
-          <ion-button fill="solid" color="primary" (click)="openClientSelector()" class="select-client-button">
+          <ion-button class="elyk-btn-navy select-client-button" (click)="openClientSelector()">
             Sélectionner un Client
           </ion-button>
         </div>
@@ -33,15 +37,12 @@
         @if (vm.client) {
         <div class="client-content">
           <div class="client-info">
-            <div class="client-avatar">
-              <!-- Add avatar logic if needed -->
-            </div>
             <div class="client-details">
               <h3>{{ vm.client.firstname }} {{ vm.client.lastname }}</h3>
               <p class="address">{{ vm.client.address }}</p>
               <p class="phone">{{ vm.client.phone }}</p>
             </div>
-            <ion-button fill="outline" color="primary" size="small" (click)="openClientSelector()">
+            <ion-button fill="outline" class="elyk-btn-outline" size="small" (click)="openClientSelector()">
               Changer
             </ion-button>
           </div>
@@ -53,10 +54,10 @@
     @if (showCreditPurposeSelector) {
     <div class="credit-purpose-section">
       <div class="section-header">
-        <ion-icon name="briefcase" class="section-icon"></ion-icon>
+        <ion-icon name="briefcase-outline" class="section-icon"></ion-icon>
         <span class="section-title">Finalité du crédit</span>
       </div>
-      <ion-segment [value]="creditPurpose" (ionChange)="onCreditPurposeChange($any($event.detail.value))">
+      <ion-segment mode="md" [value]="creditPurpose" (ionChange)="onCreditPurposeChange($any($event.detail.value))" class="elyk-segment">
         <ion-segment-button value="PERSONAL">
           <ion-label>Personnel</ion-label>
         </ion-segment-button>
@@ -68,74 +69,75 @@
     }
   </div>
 
-  <!-- Section Articles Disponibles -->
   <div class="articles-section">
     <div class="section-header">
-      <ion-icon name="cube" class="section-icon"></ion-icon>
+      <ion-icon name="cube-outline" class="section-icon"></ion-icon>
       <span class="section-title">Articles Disponibles</span>
       <span class="articles-count">{{ vm.articles.length }} articles</span>
     </div>
 
     <div class="search-container">
-      <ion-searchbar placeholder="Rechercher par nom, nom commercial, marque..." (ionInput)="onSearchInput($event)" debounce="300">
+      <ion-searchbar
+        class="elyk-searchbar"
+        placeholder="Rechercher par nom, nom commercial, marque..."
+        (ionInput)="onSearchInput($event)"
+        debounce="300"
+        mode="md">
       </ion-searchbar>
     </div>
 
     <div class="articles-list">
-      <div class="articles-list">
-        <div *ngFor="let article of vm.articles; trackBy: trackByArticleId">
-          <ion-card class="article-card" [class.selected]="(vm.quantities[article.id] || 0) > 0">
-            <ion-card-content>
-              <div class="article-content">
-                <div class="article-info">
-                  <h3 class="article-name">{{ article.commercialName + ' ' + article.name || article.name }}</h3>
-                  <p class="article-details">{{ article.type }} • {{ article.marque }}</p>
-                  <p class="stock-info">Stock disponible: {{ article.stockQuantity }} unités</p>
-                  <div class="price-info">
-                    <span class="unit-price">{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
-                    @if ((vm.quantities[article.id] || 0) > 0) {
-                    <span class="total-price">
-                      {{ (article.creditSalePrice * vm.quantities[article.id]) | number:'1.0-0' }} FCFA
-                    </span>
-                    }
-                  </div>s
-                </div>
-
-                <div class="quantity-controls">
-                  <ion-button fill="outline" size="small" (click)="updateQuantity(article, -1)"
-                    [disabled]="(vm.quantities[article.id] || 0) <= 0">
-                    <ion-icon slot="icon-only" name="remove"></ion-icon>
-                  </ion-button>
-
-                  <ion-input type="number" [value]="vm.quantities[article.id] || 0"
-                    (ionBlur)="onQuantityChange(article, $event)" min="0" [max]="article.stockQuantity"
-                    class="quantity-input"></ion-input>
-
-                  <ion-button fill="outline" size="small" (click)="updateQuantity(article, 1)"
-                    [disabled]="(vm.quantities[article.id] || 0) >= article.stockQuantity">
-                    <ion-icon slot="icon-only" name="add"></ion-icon>
-                  </ion-button>
+      <div *ngFor="let article of vm.articles; trackBy: trackByArticleId">
+        <ion-card class="elyk-card article-card" [class.selected]="(vm.quantities[article.id] || 0) > 0">
+          <ion-card-content>
+            <div class="article-content">
+              <div class="article-info">
+                <h3 class="article-name">{{ article.commercialName + ' ' + article.name || article.name }}</h3>
+                <p class="article-details">{{ article.type }} · {{ article.marque }}</p>
+                <p class="stock-info">Stock disponible: {{ article.stockQuantity }} unités</p>
+                <div class="price-info">
+                  <span class="unit-price elyk-amount">{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
+                  @if ((vm.quantities[article.id] || 0) > 0) {
+                  <span class="total-price elyk-amount elyk-amount--due">
+                    {{ (article.creditSalePrice * vm.quantities[article.id]) | number:'1.0-0' }} FCFA
+                  </span>
+                  }
                 </div>
               </div>
-            </ion-card-content>
-          </ion-card>
-        </div>
 
-        <ion-infinite-scroll (ionInfinite)="loadMoreArticles($event)" [disabled]="!vm.hasMoreArticles">
-          <ion-infinite-scroll-content loadingSpinner="bubbles"
-            loadingText="Chargement des articles..."></ion-infinite-scroll-content>
-        </ion-infinite-scroll>
+              <div class="quantity-controls">
+                <ion-button fill="outline" class="qty-btn" size="small" (click)="updateQuantity(article, -1)"
+                  [disabled]="(vm.quantities[article.id] || 0) <= 0">
+                  <ion-icon slot="icon-only" name="remove"></ion-icon>
+                </ion-button>
+
+                <ion-input type="number" [value]="vm.quantities[article.id] || 0"
+                  (ionBlur)="onQuantityChange(article, $event)" min="0" [max]="article.stockQuantity"
+                  class="quantity-input"></ion-input>
+
+                <ion-button fill="outline" class="qty-btn" size="small" (click)="updateQuantity(article, 1)"
+                  [disabled]="(vm.quantities[article.id] || 0) >= article.stockQuantity">
+                  <ion-icon slot="icon-only" name="add"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </ion-card-content>
+        </ion-card>
       </div>
+
+      <ion-infinite-scroll (ionInfinite)="loadMoreArticles($event)" [disabled]="!vm.hasMoreArticles">
+        <ion-infinite-scroll-content loadingSpinner="bubbles"
+          loadingText="Chargement des articles..."></ion-infinite-scroll-content>
+      </ion-infinite-scroll>
     </div>
   </div>
 
-  <!-- Section Résumé -->
   @if (Object.keys(vm.quantities).length > 0) {
   <div class="summary-section">
-    <ion-card class="summary-card">
+    <ion-card class="elyk-card summary-card">
       <ion-card-header>
         <ion-card-title>
-          <ion-icon name="receipt" class="summary-icon"></ion-icon>
+          <ion-icon name="receipt-outline" class="summary-icon"></ion-icon>
           Résumé de la Distribution
         </ion-card-title>
       </ion-card-header>
@@ -148,10 +150,10 @@
             </div>
             <div class="summary-row total-row">
               <span class="label">Montant total :</span>
-              <span class="value total-amount">{{ vm.totalAmount | number:'1.0-0' }} FCFA</span>
+              <span class="value total-amount elyk-amount">{{ vm.totalAmount | number:'1.0-0' }} FCFA</span>
             </div>
 
-            <ion-item class="advance-item">
+            <ion-item class="advance-item elyk-field" lines="none">
               <ion-label position="floating">Avance (FCFA)</ion-label>
               <ion-input type="number" formControlName="advance" placeholder="0"></ion-input>
             </ion-item>
@@ -159,12 +161,12 @@
             @if (getDisplayAdvance() > 0) {
             <div class="summary-row calculated-row">
               <span class="label">Avance ajustée :</span>
-              <span class="value adjusted-advance">{{ getDisplayAdvance() | number:'1.0-0' }} FCFA</span>
+              <span class="value adjusted-advance elyk-amount">{{ getDisplayAdvance() | number:'1.0-0' }} FCFA</span>
             </div>
             }
             <div class="summary-row daily-payment-row">
               <span class="label">Mise journalière :</span>
-              <span class="value daily-payment">{{ vm.dailyPayment | number:'1.0-0' }} FCFA</span>
+              <span class="value daily-payment elyk-amount elyk-amount--due">{{ vm.dailyPayment | number:'1.0-0' }} FCFA</span>
             </div>
             @if (vm.paymentPeriod !== 30) {
             <div class="summary-row period-row">
@@ -172,19 +174,18 @@
               <span class="value payment-period">{{ vm.paymentPeriod }} jours</span>
             </div>
             }
-
           </div>
         </form>
       </ion-card-content>
     </ion-card>
   </div>
   }
+</ion-content>
 
-  <!-- Bouton de Confirmation -->
-  <div class="confirm-section">
-    <ion-button expand="block" size="large" [disabled]="!canValidate()" (click)="validateDistribution()"
-      class="confirm-button">
+<ion-footer class="elyk-footer-bar">
+  <ion-toolbar>
+    <ion-button expand="block" class="elyk-btn-navy confirm-button" [disabled]="!canValidate()" (click)="validateDistribution()">
       CONFIRMER LA DISTRIBUTION
     </ion-button>
-  </div>
-</ion-content>
+  </ion-toolbar>
+</ion-footer>

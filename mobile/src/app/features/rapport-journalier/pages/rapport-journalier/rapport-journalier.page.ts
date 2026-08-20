@@ -5,7 +5,7 @@ import { Observable, Subscription, combineLatest, of } from 'rxjs';
 import { PrintingService } from '../../../../core/services/printing.service';
 import { RapportJournalierService, DailyReportData } from '../../services/rapport-journalier.service';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
-import { IonBadge, IonButton, IonContent, IonIcon, IonSegment, IonSegmentButton, IonLabel, IonSpinner, ToastController, LoadingController } from '@ionic/angular/standalone';
+import { IonBadge, IonButton, IonContent, IonFooter, IonIcon, IonLabel, IonSegment, IonSegmentButton, IonSpinner, IonToolbar, ToastController, LoadingController } from '@ionic/angular/standalone';
 import { CommonModule, DecimalPipe, registerLocaleData } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Component, OnInit, LOCALE_ID, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy, ViewChild } from '@angular/core';
@@ -44,6 +44,8 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
     DecimalPipe,
     FormsModule,
     IonContent,
+    IonFooter,
+    IonToolbar,
     IonButton,
     IonIcon,
     IonBadge,

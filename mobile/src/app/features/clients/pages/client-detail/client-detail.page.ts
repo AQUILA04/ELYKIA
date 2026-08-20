@@ -246,7 +246,8 @@ export class ClientDetailPage implements OnInit, OnDestroy {
           updatePhotoDisabled: client ? client.isLocal : true,
         },
         event: event,
-        translucent: true
+        translucent: true,
+        cssClass: 'elyk-popover'
       });
 
       await popover.present();

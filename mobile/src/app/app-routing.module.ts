@@ -3,6 +3,7 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
 import { InitializationGuard } from './core/guards/initialization.guard';
 import { RmProfilGuard } from './core/guards/rm-profil.guard';
+import { OrdersFeatureGuard } from './core/guards/orders-feature.guard';
 
 const routes: Routes = [
   {
@@ -105,7 +106,7 @@ const routes: Routes = [
   {
     path: 'orders',
     loadChildren: () => import('./features/orders/orders.module').then(m => m.OrdersModule),
-    canActivate: [AuthGuard]
+    canActivate: [AuthGuard, OrdersFeatureGuard]
   },
   {
     path: 'tontine/dashboard',

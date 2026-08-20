@@ -1,50 +1,103 @@
+ion-header.ion-no-border {
+  --border-width: 0;
+}
+
+.elyk-hero--compact {
+  padding-top: 0;
+}
+
+.hero-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-width: 0;
+  --min-height: 56px;
+}
+
+.hero-toolbar ion-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 17px;
+  text-align: start;
+  padding-inline: 8px;
+
+  .elyk-surtitle {
+    display: block;
+    margin-bottom: 2px;
+  }
+}
+
+.consent-wrap {
+  padding: 16px;
+}
+
 .intro {
-  margin-bottom: 1rem;
+  margin: 0 0 18px;
   line-height: 1.45;
-  color: var(--ion-color-medium-shade);
+  font-size: 14px;
+  color: var(--elyk-muted);
+}
+
+.date-hint {
+  margin: 12px 0 0;
+  font-size: 12px;
+  color: var(--elyk-muted);
+  text-align: center;
+}
+
+.field-control {
+  --background: #fff;
+  --padding-start: 12px;
+  --inner-padding-end: 4px;
+  --min-height: 48px;
+  margin: 0;
+  border: 1px solid var(--elyk-border);
+  border-radius: 14px;
+  overflow: hidden;
 }
 
 .challenge-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
-  margin: 1rem 0 1.25rem;
-  padding: 1rem;
-  border-radius: 8px;
-  background: var(--ion-color-light);
-  border: 1px dashed var(--ion-color-primary);
+  gap: 6px;
+  margin: 0 0 18px;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--elyk-navy-pale);
+  border: 1px dashed var(--elyk-navy);
 }
 
 .challenge-label {
-  font-size: 0.85rem;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--ion-color-medium);
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: var(--elyk-muted);
 }
 
 .challenge-code {
-  font-size: 1.75rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  color: var(--ion-color-primary);
-  font-family: monospace;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--elyk-navy);
+  font-family: ui-monospace, monospace;
 }
 
 .consent-block {
-  margin-top: 1rem;
-  padding: 0.75rem;
-  border-radius: 8px;
-  background: var(--ion-color-light-tint, #f4f5f8);
+  margin-top: 8px;
+  padding: 14px;
 }
 
 .consent-text {
-  margin: 0 0 0.75rem;
-  font-size: 0.95rem;
+  margin: 0 0 12px;
+  font-size: 14px;
   line-height: 1.5;
+  color: var(--elyk-navy);
 }
 
 .consent-checkbox-item {
   --background: transparent;
   --padding-start: 0;
+  --inner-padding-end: 0;
+  --color: var(--elyk-navy);
 }

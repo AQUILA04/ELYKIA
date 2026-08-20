@@ -1,92 +1,86 @@
-
-.distribution-item {
-  display: flex;
-  align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid var(--ion-color-step-150, #e0e0e0);
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.distribution-item:last-child {
-  border-bottom: none;
-}
-
-.distribution-item:hover {
-  background: rgba(var(--ion-color-primary-rgb), 0.05);
+:host {
+  display: block;
 }
 
 .distribution-date {
-  width: 60px;
+  width: 46px;
+  min-width: 46px;
   text-align: center;
-  margin-right: 16px;
+  padding: 8px 6px;
+  background: var(--elyk-navy-pale);
+  border-radius: 14px;
+  flex-shrink: 0;
 }
 
 .date-day {
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--ion-color-primary);
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--elyk-navy);
   line-height: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .date-month {
-  font-size: 12px;
-  color: var(--ion-color-medium);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--elyk-muted);
   text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
 }
 
 .distribution-info {
   flex: 1;
-  margin-right: 16px;
+  min-width: 0;
 }
 
 .distribution-reference {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--ion-color-dark);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--elyk-navy);
   margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .distribution-client {
-  font-size: 14px;
-  color: var(--ion-color-primary);
+  font-size: 13px;
+  color: var(--elyk-muted);
   margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .distribution-details {
-  font-size: 14px;
-  color: var(--ion-color-medium);
+  font-size: 12px;
+  color: var(--elyk-muted);
 }
 
 .distribution-amount {
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
-.amount-value {
-  font-size: 16px;
-  font-weight: bold;
-  color: var(--ion-color-primary);
-  margin-bottom: 2px;
+.elyk-amount {
+  font-size: 14px;
 }
 
-.amount-status {
-  font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-weight: 500;
+.amount-status.status-active {
+  background: #e6f5eb;
+  color: var(--elyk-green);
 }
 
-.status-active {
-  background: rgba(var(--ion-color-success-rgb), 0.1);
-  color: var(--ion-color-success);
+.amount-status.status-completed {
+  background: var(--elyk-navy-pale);
+  color: var(--elyk-muted);
 }
 
-.status-completed {
-  background: rgba(var(--ion-color-medium-rgb), 0.1);
-  color: var(--ion-color-medium);
-}
-
-.status-overdue {
-  background: rgba(var(--ion-color-danger-rgb), 0.1);
-  color: var(--ion-color-danger);
+.amount-status.status-overdue {
+  background: #fff3e6;
+  color: var(--elyk-orange);
 }

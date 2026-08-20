@@ -1,164 +1,139 @@
-// Composant racine - occupe toute la hauteur
 :host {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-// Assurer que ion-content occupe toute la hauteur disponible
-ion-content.transaction-content {
-  --padding-bottom: 0;
-  --padding-top: 0;
-  height: 100%;
+ion-header.ion-no-border {
+  --border-width: 0;
 }
 
-.client-section {
-  margin: 16px;
+.elyk-hero--compact {
+  padding-top: 0;
+}
+
+.hero-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-width: 0;
+  --min-height: 56px;
+}
+
+.hero-toolbar ion-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 17px;
+  text-align: start;
+  padding-inline: 8px;
+
+  .elyk-surtitle {
+    display: block;
+    margin-bottom: 2px;
+  }
+}
+
+ion-content.transaction-content {
+  --padding-bottom: 100px;
 }
 
 .section-header {
   display: flex;
   align-items: center;
-  margin-bottom: 16px;
-  padding: 0 8px;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 0 4px;
 
   .section-icon {
-    font-size: 20px;
-    margin-right: 8px;
-    color: var(--ion-color-primary);
+    color: var(--elyk-navy);
+    font-size: 18px;
   }
 
   .section-title {
-    font-weight: 600;
-    font-size: 16px;
+    color: var(--elyk-navy);
+    font-size: 14px;
+    font-weight: 700;
     flex: 1;
   }
 
   .articles-count {
+    color: var(--elyk-muted);
     font-size: 12px;
-    color: var(--ion-color-medium);
-    background: var(--ion-color-light);
-    padding: 4px 8px;
-    border-radius: 12px;
+    font-weight: 600;
+    background: var(--elyk-navy-pale);
+    padding: 4px 10px;
+    border-radius: 999px;
   }
 }
 
-.client-card {
-  margin: 0;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.client-section,
+.articles-section,
+.summary-section {
+  margin: 16px;
+}
 
-  &.selected {
-    border: 2px solid var(--ion-color-primary);
-    box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.2);
-  }
-
-  ion-card-content {
-    padding: 16px;
-  }
+.client-card.selected {
+  border: 1.5px solid var(--elyk-navy);
 }
 
 .client-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 16px;
+  gap: 12px;
 
   .empty-client {
-    text-align: center;
-    color: var(--ion-color-medium);
-
-    .empty-icon {
-      font-size: 48px;
-      margin-bottom: 8px;
-    }
-
-    h3 {
-      margin: 0 0 4px 0;
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    p {
-      margin: 0;
-      font-size: 14px;
-    }
+    padding: 8px 0;
   }
 
   .select-client-button {
-    --border-radius: 8px;
+    align-self: center;
   }
 }
 
 .client-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   width: 100%;
-
-  .client-avatar {
-    .avatar-circle {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-weight: 600;
-      font-size: 18px;
-    }
-  }
 
   .client-details {
     flex: 1;
+    min-width: 0;
 
     h3 {
-      margin: 0 0 4px 0;
+      margin: 0 0 2px;
       font-size: 16px;
-      font-weight: 600;
-      color: var(--ion-color-dark);
+      font-weight: 700;
+      color: var(--elyk-navy);
     }
 
-    .address, .phone {
-      margin: 0 0 2px 0;
-      font-size: 14px;
-      color: var(--ion-color-medium);
+    .address,
+    .phone {
+      margin: 0;
+      font-size: 13px;
+      color: var(--elyk-muted);
     }
   }
 }
 
-.articles-section {
-  margin: 16px;
-}
-
 .search-container {
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .articles-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
 }
 
 .article-card {
   margin: 0;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
 
   &.selected {
-    border: 2px solid var(--ion-color-primary);
-    box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.2);
+    border: 1.5px solid var(--elyk-navy);
   }
 
   &.low-stock {
-    border-left: 4px solid var(--ion-color-warning);
-  }
-
-  ion-card-content {
-    padding: 16px;
+    border-left: 3px solid var(--elyk-orange);
   }
 }
 
@@ -166,108 +141,78 @@ ion-content.transaction-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .article-info {
   flex: 1;
+  min-width: 0;
 
   .article-name {
-    margin: 0 0 4px 0;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--ion-color-dark);
+    margin: 0 0 4px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--elyk-navy);
   }
 
   .article-details {
-    margin: 0 0 8px 0;
-    font-size: 14px;
-    color: var(--ion-color-medium);
+    margin: 0 0 6px;
+    font-size: 12px;
+    color: var(--elyk-muted);
   }
 
   .stock-info {
-    margin: 0 0 8px 0;
+    margin: 0 0 8px;
     font-size: 12px;
+    color: var(--elyk-muted);
     display: flex;
     align-items: center;
     gap: 4px;
 
     ion-icon {
       font-size: 14px;
+      color: var(--elyk-orange);
     }
   }
 
   .price-info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-
-    .unit-price {
-      font-size: 14px;
-      color: var(--ion-color-primary);
-      font-weight: 500;
-    }
-
-    .total-price {
-      font-size: 16px;
-      color: var(--ion-color-success);
-      font-weight: 600;
-    }
+    gap: 2px;
   }
 }
 
 .quantity-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-width: 120px;
+  gap: 6px;
+  flex-shrink: 0;
 
-  ion-button {
-    --border-radius: 8px;
-    --padding-start: 8px;
-    --padding-end: 8px;
-    height: 32px;
+  .qty-btn {
     width: 32px;
+    height: 32px;
+    margin: 0;
   }
 
   .quantity-input {
-    width: 60px;
+    width: 52px;
     text-align: center;
-    --padding-start: 8px;
-    --padding-end: 8px;
-    --border-radius: 8px;
-    --background: var(--ion-color-light);
-    font-weight: 600;
+    --padding-start: 4px;
+    --padding-end: 4px;
+    --background: var(--elyk-navy-pale);
+    --border-radius: 10px;
+    font-weight: 700;
+    color: var(--elyk-navy);
   }
-}
-
-.summary-section {
-  margin: 16px;
 }
 
 .summary-card {
   margin: 0;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
-  ion-card-header {
-    padding-bottom: 8px;
-
-    ion-card-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 16px;
-      font-weight: 600;
-
-      .summary-icon {
-        color: var(--ion-color-primary);
-      }
-    }
-  }
-
-  ion-card-content {
-    padding-top: 8px;
+  ion-card-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--elyk-navy);
   }
 }
 
@@ -276,86 +221,45 @@ ion-content.transaction-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--ion-color-light);
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(15, 40, 80, 0.06);
 
     &:last-child {
       border-bottom: none;
     }
 
     &.total-row {
-      font-weight: 600;
-      font-size: 16px;
-      border-bottom: 2px solid var(--ion-color-primary);
-      margin-bottom: 16px;
-
-      .total-amount {
-        color: var(--ion-color-primary);
-      }
-    }
-
-    &.calculated-row {
-      .adjusted-advance {
-        color: var(--ion-color-warning);
-        font-weight: 600;
-      }
-    }
-
-    &.daily-payment-row {
-      .daily-payment {
-        color: var(--ion-color-success);
-        font-weight: 600;
-      }
+      margin-top: 4px;
+      padding-top: 12px;
+      border-top: 1px solid rgba(15, 40, 80, 0.1);
+      border-bottom: none;
     }
 
     .label {
-      color: var(--ion-color-medium);
+      color: var(--elyk-muted);
+      font-size: 13px;
     }
 
     .value {
-      font-weight: 500;
+      font-weight: 700;
+      color: var(--elyk-navy);
     }
   }
 
   .advance-item {
-    margin: 16px 0;
-    --border-radius: 8px;
-    --background: var(--ion-color-light);
-
-    &.readonly {
-      --background: var(--ion-color-light-shade);
-    }
-  }
-}
-
-.confirm-section {
-  margin: 16px;
-  padding-bottom: 32px;
-
-  .confirm-button {
+    margin: 12px 0;
+    --background: var(--elyk-navy-pale);
     --border-radius: 12px;
-    height: 48px;
-    font-weight: 600;
-    font-size: 16px;
   }
 }
 
-// Responsive design
 @media (max-width: 768px) {
   .article-content {
     flex-direction: column;
     align-items: stretch;
-    gap: 12px;
   }
 
   .quantity-controls {
     justify-content: center;
-    min-width: auto;
-  }
-
-  .client-info {
-    flex-direction: column;
-    text-align: center;
-    gap: 12px;
   }
 }

@@ -1,9 +1,82 @@
-pre.json-data {
-  background-color: #f4f4f4;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 10px;
+ion-header.ion-no-border {
+  --border-width: 0;
+}
+
+.elyk-hero--compact {
+  padding-top: 0;
+}
+
+.hero-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-width: 0;
+  --min-height: 56px;
+}
+
+.hero-toolbar ion-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 17px;
+  text-align: start;
+  padding-inline: 8px;
+
+  .elyk-surtitle {
+    display: block;
+    margin-bottom: 2px;
+  }
+}
+
+.detail-body {
+  padding: 16px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--elyk-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.detail-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--elyk-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--elyk-navy);
+  text-align: right;
+  max-width: 65%;
+}
+
+.error-text {
+  color: var(--ion-color-danger);
+  white-space: pre-wrap;
+}
+
+.json-data {
+  background: var(--elyk-navy-pale);
+  border: 1px solid var(--elyk-border);
+  border-radius: 12px;
+  padding: 12px;
   white-space: pre-wrap;
   word-wrap: break-word;
-  font-size: 12px;
+  font-size: 11px;
+  color: var(--elyk-navy);
+  margin: 0;
+}
+
+ion-card {
+  margin-bottom: 12px;
 }

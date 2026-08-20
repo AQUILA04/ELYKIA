@@ -1,107 +1,95 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title class="ion-text-center">Distributions</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="goToNewDistribution()">
-        <ion-icon slot="icon-only" name="add"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
-
-<ion-content>
+<ion-content [fullscreen]="true" class="elyk-content">
   <ng-container *ngIf="vm$ | async as vm">
-    <!-- Pull to Refresh -->
     <ion-refresher slot="fixed" (ionRefresh)="refreshDistributions($event)">
       <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
 
-    <!-- Quick Actions -->
-    <div class="quick-actions">
-      <ion-card class="action-card" button (click)="goToNewDistribution()">
-        <ion-card-content>
-          <div class="action-content"><ion-icon name="add-circle" class="action-icon primary"></ion-icon>
-            <div class="action-text">
-              <h3>Nouvelle Distribution</h3>
-              <p>Enregistrer une vente à crédit</p>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-      <ion-card class="action-card" button (click)="goToNewOrder()">
-        <ion-card-content>
-          <div class="action-content"><ion-icon name="receipt" class="action-icon success"></ion-icon>
-            <div class="action-text">
-              <h3>Nouvelle Commande</h3>
-              <p>Enregistrer une commande client</p>
-            </div>
-          </div>
-        </ion-card-content>
-      </ion-card>
-    </div>
+    <header class="elyk-hero">
+      <div class="elyk-hero-top">
+        <div>
+          <p class="elyk-surtitle">Ventes crédit</p>
+          <h1>Distributions</h1>
+        </div>
+        <ion-button fill="clear" class="hero-add" (click)="goToNewDistribution()">
+          <ion-icon slot="icon-only" name="add"></ion-icon>
+        </ion-button>
+      </div>
+    </header>
 
-    <!-- Search and Filters -->
-    <div class="search-section">
-      <ion-searchbar placeholder="Rechercher par client, référence..." [formControl]="searchControl"
-        (ionClear)="clearSearch()">
+    <div class="elyk-search-overlap">
+      <ion-searchbar
+        class="elyk-searchbar"
+        placeholder="Rechercher par client, référence..."
+        [formControl]="searchControl"
+        (ionClear)="clearSearch()"
+        mode="md">
       </ion-searchbar>
     </div>
 
-    <!-- Stats Section -->
-    <div class="stats-section" *ngIf="vm.stats">
-      <ion-card><ion-card-content>
-          <div class="stat-number">{{ vm.stats.total }}</div>
-          <div class="stat-label">Total</div>
-        </ion-card-content></ion-card>
-      <ion-card><ion-card-content>
-          <div class="stat-number">{{ vm.stats.active }}</div>
-          <div class="stat-label">En cours</div>
-        </ion-card-content></ion-card>
-      <ion-card><ion-card-content>
-          <div class="stat-number">{{ vm.stats.totalAmount | number:'1.0-0' }}</div>
-          <div class="stat-label">FCFA</div>
-        </ion-card-content></ion-card>
+    <section class="elyk-kpi-strip" *ngIf="vm.stats">
+      <article class="elyk-kpi elyk-kpi--navy">
+        <span>Total</span>
+        <strong>{{ vm.stats.total }}</strong>
+      </article>
+      <article class="elyk-kpi elyk-kpi--green">
+        <span>En cours</span>
+        <strong>{{ vm.stats.active }}</strong>
+      </article>
+      <article class="elyk-kpi elyk-kpi--cyan">
+        <span>FCFA</span>
+        <strong>{{ vm.stats.totalAmount | number:'1.0-0' }}</strong>
+      </article>
+    </section>
+
+    <div class="quick-actions" [class.quick-actions--single]="!ordersManagementEnabled">
+      <div class="action-card elyk-card" (click)="goToNewDistribution()">
+        <div class="action-icon-wrap">
+          <ion-icon name="add-circle-outline"></ion-icon>
+        </div>
+        <div class="action-text">
+          <h3>Nouvelle Distribution</h3>
+          <p>Enregistrer une vente à crédit</p>
+        </div>
+      </div>
+      <div class="action-card elyk-card" *ngIf="ordersManagementEnabled" (click)="goToNewOrder()">
+        <div class="action-icon-wrap">
+          <ion-icon name="receipt-outline"></ion-icon>
+        </div>
+        <div class="action-text">
+          <h3>Nouvelle Commande</h3>
+          <p>Enregistrer une commande client</p>
+        </div>
+      </div>
     </div>
 
-    <!-- Loading State -->
-    <div class="loading-container" *ngIf="vm.loading && vm.distributions.length === 0">
-      <ion-spinner name="crescent" color="primary"></ion-spinner>
+    <div class="elyk-empty loading-container" *ngIf="vm.loading && vm.distributions.length === 0">
+      <ion-spinner name="crescent"></ion-spinner>
       <p>Chargement des distributions...</p>
     </div>
 
-    <!-- Error State -->
     <div class="error-container" *ngIf="vm.error">
-      <ion-card color="danger">
-        <ion-card-content>
-          <div class="error-content">
-            <ion-icon name="alert-circle-outline" class="error-icon"></ion-icon>
-            <h3>Erreur de chargement</h3>
-            <p>{{ vm.error }}</p>
-            <ion-button fill="outline" color="light" (click)="retryLoadDistributions()">
-              <ion-icon name="refresh-outline" slot="start"></ion-icon>
-              Réessayer
-            </ion-button>
-          </div>
-        </ion-card-content>
-      </ion-card>
+      <div class="elyk-empty">
+        <ion-icon name="alert-circle-outline"></ion-icon>
+        <h3>Erreur de chargement</h3>
+        <p>{{ vm.error }}</p>
+        <ion-button fill="outline" class="elyk-btn-outline" (click)="retryLoadDistributions()">
+          <ion-icon name="refresh-outline" slot="start"></ion-icon>
+          Réessayer
+        </ion-button>
+      </div>
     </div>
 
-    <!-- Debug Info (Temporary) -->
-    <!-- <div style="padding: 10px; background: #f0f0f0; font-size: 10px;">
-      DEBUG: Distributions: {{ vm.distributions.length }}, Loading: {{ vm.loading }}, Total: {{ vm.totalItems }}
-    </div> -->
-
-    <!-- Distributions List -->
     <div class="distributions-list" *ngIf="vm.distributions.length > 0 || (!vm.loading && vm.totalItems > 0)">
       <div class="list-header">
-        <div class="list-title">Historique des Distributions</div>
-        <!-- Display filtered count here -->
+        <div class="list-title">Historique</div>
         <div class="list-count">{{ vm.totalItems }}</div>
       </div>
 
-      <ion-list>
-        <app-distribution-item *ngFor="let distribution of vm.distributions; trackBy: trackByDistributionId"
-          [distribution]="distribution" (click)="openDistributionDetail(distribution)">
+      <ion-list lines="none">
+        <app-distribution-item
+          *ngFor="let distribution of vm.distributions; trackBy: trackByDistributionId"
+          [distribution]="distribution"
+          (click)="openDistributionDetail(distribution)">
         </app-distribution-item>
       </ion-list>
 
@@ -111,19 +99,16 @@
       </ion-infinite-scroll>
     </div>
 
-    <!-- Empty State (Moved outside the list container to ensure visibility) -->
-    <div class="empty-state" *ngIf="!vm.loading && vm.distributions.length === 0 && !vm.error">
-      <ion-icon name="receipt-outline" class="empty-icon"></ion-icon>
+    <div class="elyk-empty" *ngIf="!vm.loading && vm.distributions.length === 0 && !vm.error">
+      <ion-icon name="receipt-outline"></ion-icon>
       <h3>Aucune distribution trouvée</h3>
       <p>Essayez un autre terme de recherche ou créez une nouvelle distribution.</p>
-      <ion-button fill="solid" color="primary" (click)="goToNewDistribution()">Nouvelle Distribution</ion-button>
+      <ion-button class="elyk-btn-navy" (click)="goToNewDistribution()">Nouvelle Distribution</ion-button>
     </div>
-
   </ng-container>
 
-  <!-- Floating Action Button -->
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button color="primary" (click)="goToNewDistribution()">
+    <ion-fab-button class="elyk-fab" (click)="goToNewDistribution()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>

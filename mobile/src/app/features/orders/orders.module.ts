@@ -9,6 +9,8 @@ import { SharedModule } from '../../shared/shared.module';
 import { NewOrderPage } from './pages/new-order/new-order.page';
 import { EditOrderPage } from './pages/edit-order/edit-order.page';
 import { OrderListPage } from './pages/order-list/order-list.page';
+import { OrderDetailPage } from './pages/order-detail/order-detail.page';
+import { OrderItemComponent } from './components/order-item/order-item.component';
 
 @NgModule({
   imports: [
@@ -22,7 +24,9 @@ import { OrderListPage } from './pages/order-list/order-list.page';
   declarations: [
     NewOrderPage,
     EditOrderPage,
-    OrderListPage
+    OrderListPage,
+    OrderDetailPage,
+    OrderItemComponent
   ]
 })
 export class OrdersModule { }

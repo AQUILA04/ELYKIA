@@ -1,48 +1,53 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/more"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Erreurs de Synchronisation</ion-title>
-  </ion-toolbar>
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/tabs/more"></ion-back-button>
+      </ion-buttons>
+      <ion-title>
+        <span class="elyk-surtitle">Paramètres</span>
+        Erreurs de synchronisation
+      </ion-title>
+    </ion-toolbar>
+  </header>
 </ion-header>
 
-<ion-content>
+<ion-content class="elyk-content">
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
   <ng-container *ngIf="syncErrors$ | async as errors; else loading">
-    <div *ngIf="errors.length === 0" class="ion-text-center ion-padding-top">
-      <ion-icon name="checkmark-circle-outline" size="large" color="success"></ion-icon>
+    <div *ngIf="errors.length === 0" class="elyk-empty empty-wrap">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      <h3>Aucune erreur</h3>
       <p>Aucune erreur de synchronisation.</p>
     </div>
 
-    <ion-list *ngIf="errors.length > 0">
-      <ion-item *ngFor="let error of errors" (click)="goToDetails(error.id)" button [detail]="true">
-        <ion-icon name="warning-outline" slot="start" color="danger"></ion-icon>
-        <ion-label>
+    <div class="error-list" *ngIf="errors.length > 0">
+      <div class="error-row elyk-client-card" *ngFor="let error of errors" (click)="goToDetails(error.id)">
+        <div class="error-icon-wrap">
+          <ion-icon name="warning-outline"></ion-icon>
+        </div>
+        <div class="error-info">
           <h2>{{ error.entityDisplayName }}</h2>
-          <p>Type: {{ error.entityType }} | Opération: {{ error.operation }}</p>
+          <p class="error-meta">Type: {{ error.entityType }} · Opération: {{ error.operation }}</p>
           <p *ngIf="isValidDate(error.syncDate)">{{ error.syncDate | date:'dd/MM/yyyy HH:mm' }}</p>
-          <p *ngIf="!isValidDate(error.syncDate)" class="ion-text-muted">Date non disponible</p>
+          <p *ngIf="!isValidDate(error.syncDate)" class="muted">Date non disponible</p>
           <p class="error-message">{{ error.errorMessage }}</p>
-        </ion-label>
-      </ion-item>
-    </ion-list>
+        </div>
+        <ion-icon name="chevron-forward" class="elyk-chevron"></ion-icon>
+      </div>
+    </div>
   </ng-container>
 
   <ng-template #loading>
-    <ion-list>
-      <ion-item *ngFor="let i of [1,2,3,4,5]">
-        <ion-icon name="warning-outline" slot="start" color="medium"></ion-icon>
-        <ion-label>
-          <h2><ion-skeleton-text animated style="width: 60%;"></ion-skeleton-text></h2>
-          <p><ion-skeleton-text animated style="width: 80%;"></ion-skeleton-text></p>
-          <p><ion-skeleton-text animated style="width: 40%;"></ion-skeleton-text></p>
-          <p class="error-message"><ion-skeleton-text animated style="width: 90%;"></ion-skeleton-text></p>
-        </ion-label>
-      </ion-item>
-    </ion-list>
+    <div class="skeleton-list">
+      <div class="elyk-card skeleton-card" *ngFor="let i of [1,2,3,4,5]">
+        <ion-skeleton-text animated style="width: 60%; height: 16px; margin-bottom: 8px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 80%; height: 12px; margin-bottom: 6px;"></ion-skeleton-text>
+        <ion-skeleton-text animated style="width: 90%; height: 12px;"></ion-skeleton-text>
+      </div>
+    </div>
   </ng-template>
 </ion-content>

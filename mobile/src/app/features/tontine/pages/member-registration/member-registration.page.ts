@@ -143,7 +143,8 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
             this.alertCtrl.create({
                 header: 'Erreur',
                 message: 'Impossible de charger les informations du membre.',
-                buttons: ['OK']
+                buttons: ['OK'],
+                cssClass: 'elyk-alert'
             }).then(a => a.present());
             this.navCtrl.back();
         } finally {
@@ -203,7 +204,8 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
             const alert = await this.alertCtrl.create({
                 header: 'Client requis',
                 message: 'Veuillez sélectionner un client pour continuer.',
-                buttons: ['OK']
+                buttons: ['OK'],
+                cssClass: 'elyk-alert'
             });
             await alert.present();
             return;
@@ -218,7 +220,8 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
             const alert = await this.alertCtrl.create({
                 header: 'Erreur',
                 message: 'Session ou utilisateur non trouvé. Veuillez réessayer.',
-                buttons: ['OK']
+                buttons: ['OK'],
+                cssClass: 'elyk-alert'
             });
             await alert.present();
             return;
@@ -241,7 +244,8 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
                     const alert = await this.alertCtrl.create({
                         header: 'Client déjà enregistré',
                         message: `${this.getClientDisplayName()} est déjà membre de cette session de tontine. Un client ne peut être enregistré qu'une seule fois par session.`,
-                        buttons: ['OK']
+                        buttons: ['OK'],
+                        cssClass: 'elyk-alert'
                     });
                     await alert.present();
                     return;
@@ -298,7 +302,8 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
             const alert = await this.alertCtrl.create({
                 header: 'Erreur',
                 message: error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'enregistrement. Veuillez réessayer.',
-                buttons: ['OK']
+                buttons: ['OK'],
+                cssClass: 'elyk-alert'
             });
             await alert.present();
         }
@@ -323,7 +328,8 @@ export class MemberRegistrationPage implements OnInit, OnDestroy {
                     handler: () => {
                         this.navCtrl.back();
                     }
-                }]
+                }],
+                cssClass: 'elyk-alert'
             });
             await alert.present();
         } catch (error) {

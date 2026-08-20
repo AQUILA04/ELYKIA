@@ -4,6 +4,7 @@ import { PopoverController } from '@ionic/angular';
 @Component({
   selector: 'app-client-menu',
   templateUrl: './client-menu.component.html',
+  styleUrls: ['./client-menu.component.scss'],
   standalone: false
 })
 export class ClientMenuComponent {

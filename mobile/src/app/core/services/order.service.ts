@@ -99,10 +99,27 @@ export class OrderService {
 
   // Get order items by order ID from local database
   getOrderItems(orderId: string): Observable<OrderItem[]> {
-    return from(this.orderRepository.getItemsForOrder(orderId)).pipe(
-      map(items => {
-        return items;
-      }),
+    return from(
+      this.orderRepository.getItemsForOrder(orderId).then(async (items) => {
+        const missingNameIds = items
+          .filter((item: any) => !item.articleName && item.articleId)
+          .map((item: any) => item.articleId);
+        if (missingNameIds.length === 0) {
+          return items as OrderItem[];
+        }
+        const articles = await this.articleRepository.findByIds(missingNameIds);
+        return items.map((item: any) => {
+          if (item.articleName) {
+            return item as OrderItem;
+          }
+          const article = articles.find(a => a.id === item.articleId);
+          return {
+            ...item,
+            articleName: article?.commercialName || article?.name
+          } as OrderItem;
+        });
+      })
+    ).pipe(
       catchError(error => {
         console.error(`Failed to get items for order ${orderId}:`, error);
         return of([]);
@@ -166,7 +183,8 @@ export class OrderService {
         articleId: item.articleId,
         quantity: item.quantity,
         unitPrice: unitPrice,
-        totalPrice: unitPrice * item.quantity
+        totalPrice: unitPrice * item.quantity,
+        articleName: articleDetails?.commercialName || articleDetails?.name || undefined
       };
     });
 
@@ -271,15 +289,16 @@ export class OrderService {
       throw new Error('Commercial user not identified.');
     }
     try {
-      // OPTIMIZATION: Fetch specific order
       const originalOrder = await this.orderRepository.findById(orderData.id);
 
       if (!originalOrder) {
         throw new Error('Order not found');
       }
 
-      // Create updated order items
-      // OPTIMIZATION: Fetch only needed articles
+      if (originalOrder.status !== 'PENDING') {
+        throw new Error('Seules les commandes en attente peuvent être modifiées.');
+      }
+
       const articleIds = orderData.articles.map((a: any) => a.articleId);
       const articles = await this.articleRepository.findByIds(articleIds);
 
@@ -292,21 +311,26 @@ export class OrderService {
           articleId: article.articleId,
           quantity: article.quantity,
           unitPrice: unitPrice,
-          totalPrice: unitPrice * article.quantity
+          totalPrice: unitPrice * article.quantity,
+          articleName: articleDetails?.commercialName || articleDetails?.name || undefined
         };
       });
 
-      // Create updated order
+      const nextClientId = orderData.clientId || orderData.client?.id || originalOrder.clientId;
+      const totalAmount = orderData.totalAmount ?? orderItems.reduce((sum, item) => sum + item.totalPrice, 0);
+
       const updatedOrder: Order = {
         ...originalOrder,
-        totalAmount: orderData.totalAmount,
+        clientId: nextClientId,
+        totalAmount,
+        remainingAmount: totalAmount,
         articleCount: orderData.articles.length,
         isSync: false,
+        isLocal: true,
         syncDate: new Date().toISOString(),
         items: orderItems
       };
 
-      // Save order and items in a single transaction
       await this.orderRepository.saveAll([updatedOrder]);
 
       return updatedOrder;

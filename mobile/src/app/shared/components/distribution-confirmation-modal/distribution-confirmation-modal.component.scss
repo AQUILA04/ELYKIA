@@ -1,33 +1,37 @@
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(2px);
+  inset: 0;
+  background: rgba(0, 51, 102, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
   padding: 16px;
+  animation: backdropFadeIn 0.28s ease-out;
 }
 
-.modal-content {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
+.modal-card {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 28px 56px rgba(0, 20, 40, 0.28);
   max-width: 400px;
   width: 100%;
   max-height: 90vh;
   overflow: hidden;
-  animation: modalEnter 0.3s ease-out;
+  animation: modalEnter 0.28s ease-out;
+}
+
+@keyframes backdropFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes modalEnter {
   from {
     opacity: 0;
-    transform: scale(0.9) translateY(-10px);
+    transform: scale(0.94) translateY(8px);
   }
   to {
     opacity: 1;
@@ -36,129 +40,80 @@
 }
 
 .modal-header {
-  padding: 24px 24px 16px 24px;
-  border-bottom: 1px solid #e0e0e0;
-  
+  padding: 24px 24px 12px;
+
   .modal-title {
     margin: 0;
-    color: #212121;
+    color: var(--elyk-navy);
     font-size: 20px;
-    font-weight: 500;
+    font-weight: 800;
     text-align: center;
+    letter-spacing: -0.02em;
   }
 }
 
 .modal-body {
-  padding: 24px;
-  
-  .distribution-details {
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      
-      &:last-child {
-        margin-bottom: 0;
-      }
-      
-      .label {
-        color: #757575;
-        font-size: 14px;
-        font-weight: 400;
-      }
-      
-      .value {
-        color: #212121;
-        font-size: 14px;
-        font-weight: 500;
-        text-align: right;
-      }
-      
-      &.total-row {
-        padding-top: 12px;
-        border-top: 1px solid #e0e0e0;
-        margin-top: 12px;
-        
-        .label {
-          color: #212121;
-          font-weight: 500;
-        }
-        
-        .total-amount {
-          color: #1976d2;
-          font-size: 16px;
-          font-weight: 600;
-        }
-      }
-      
-      &.daily-payment-row {
-        .daily-payment {
-          color: #ff9800;
-          font-weight: 600;
-        }
+  padding: 8px 24px 20px;
+
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--elyk-border);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .label {
+      color: var(--elyk-muted);
+      font-size: 14px;
+    }
+
+    .value {
+      color: var(--elyk-navy);
+      font-size: 14px;
+      font-weight: 600;
+      text-align: right;
+    }
+
+    &.total-row {
+      border-top: 1px solid var(--elyk-border);
+      margin-top: 4px;
+      padding-top: 14px;
+
+      .total-amount {
+        font-size: 17px;
       }
     }
   }
 }
 
 .modal-footer {
-  padding: 16px 24px 24px 24px;
+  padding: 12px 24px 24px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: flex-end;
-  
-  button {
-    border: none;
-    border-radius: 8px;
-    padding: 12px 24px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    min-width: 80px;
-    
-    &:active {
-      transform: scale(0.98);
-    }
-  }
-  
-  .cancel-button {
-    background: #f5f5f5;
-    color: #757575;
-    
-    &:hover {
-      background: #eeeeee;
-    }
-  }
-  
-  .confirm-button {
-    background: #1976d2;
-    color: #ffffff;
-    
-    &:hover {
-      background: #1565c0;
-    }
+
+  ion-button {
+    margin: 0;
+    min-width: 96px;
+    height: 44px;
   }
 }
 
-// Responsive design
 @media (max-width: 480px) {
   .modal-backdrop {
-    padding: 8px;
+    padding: 12px;
   }
-  
-  .modal-content {
-    max-width: none;
-    width: 100%;
-  }
-  
+
   .modal-footer {
     flex-direction: column-reverse;
-    
-    button {
+
+    ion-button {
       width: 100%;
     }
   }
 }
-

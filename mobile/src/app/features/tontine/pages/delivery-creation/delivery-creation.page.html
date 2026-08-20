@@ -1,154 +1,131 @@
 <ion-header class="ion-no-border">
-    <ion-toolbar>
-        <ion-buttons slot="start">
-            <ion-back-button defaultHref="/tontine/member-detail"></ion-back-button>
-        </ion-buttons>
-        <ion-title>Livraison Fin d'Année</ion-title>
-        <ion-buttons slot="end">
-            <ion-button (click)="showHelp()">
-                <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>
-            </ion-button>
-        </ion-buttons>
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/tontine/dashboard"></ion-back-button>
+      </ion-buttons>
+      <ion-title>
+        <span class="elyk-surtitle">Tontine</span>
+        Livraison fin d'année
+      </ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="showHelp()">
+          <ion-icon slot="icon-only" name="help-circle-outline"></ion-icon>
+        </ion-button>
+      </ion-buttons>
     </ion-toolbar>
+  </header>
 </ion-header>
 
-<ion-content class="ion-padding-bottom">
-    <!-- Budget Header -->
-    <div class="budget-header" *ngIf="vm.member && vm.client">
-        <div class="member-info">
-            <div class="member-avatar">{{vm.client.firstname.charAt(0)}}</div>
-            <div>
-                <div class="member-name">{{vm.client.fullName || vm.client.firstname + ' ' + vm.client.lastname}}</div>
-                <div class="session-info">Session Tontine {{vm.session?.year}}</div>
-                <div class="session-info" *ngIf="vm.allocationVersion"
-                    data-testid="e2e-delivery-allocation-version">Part société {{vm.allocationVersion}}</div>
-            </div>
+<ion-content class="elyk-content">
+  <div class="budget-header elyk-card" *ngIf="vm.member && vm.client">
+    <div class="member-info">
+      <div class="elyk-avatar">{{ vm.client.firstname.charAt(0) }}</div>
+      <div>
+        <div class="member-name">{{ vm.client.fullName || vm.client.firstname + ' ' + vm.client.lastname }}</div>
+        <div class="session-info">Session Tontine {{ vm.session?.year }}</div>
+        <div class="session-info" *ngIf="vm.allocationVersion" data-testid="e2e-delivery-allocation-version">
+          Part société {{ vm.allocationVersion }}
         </div>
-
-        <div class="offline-banner" *ngIf="vm.isOfflineEstimate || !vm.isExactBudget"
-            data-testid="e2e-delivery-offline-banner">
-            {{ vm.isOfflineEstimate
-                ? 'Budget estimé hors-ligne — des collectes ne sont pas encore synchronisées.'
-                : 'Budget indicatif — certaines collectes n\'ont pas encore de mois d\'affectation V2.' }}
-        </div>
-
-        <div class="budget-display" data-testid="e2e-delivery-budget">
-            <div class="budget-item">
-                <div class="budget-label">💰 Total Épargné</div>
-                <div class="budget-value total">{{vm.totalBudget | number}}</div>
-            </div>
-            <div class="budget-item">
-                <div class="budget-label">📦 Sélectionné</div>
-                <div class="budget-value used">{{vm.usedBudget | number}}</div>
-            </div>
-            <div class="budget-item">
-                <div class="budget-label">✨ Restant</div>
-                <div class="budget-value remaining" [class.negative]="vm.remainingBudget < 0">
-                    {{vm.remainingBudget | number}}
-                </div>
-                <div class="budget-surplus" *ngIf="vm.remainingBudget < 0">
-                    (Surplus: {{vm.remainingBudget * -1 | number}})
-                </div>
-            </div>
-        </div>
-
-        <!-- Compléter le solde button -->
-        <div class="complete-balance-section" *ngIf="vm.remainingBudget < 0">
-            <ion-button fill="outline" expand="block" (click)="navigateToCollection()">
-                <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-                Compléter le solde ({{vm.remainingBudget * -1 | number}} F)
-            </ion-button>
-        </div>
+      </div>
     </div>
 
-    <!-- Warning Message -->
-    <div class="warning-message">
-        <ion-icon name="warning-outline"></ion-icon>
-        <span>Le montant total ne doit pas dépasser le budget épargné.</span>
+    <div class="offline-banner" *ngIf="vm.isOfflineEstimate || !vm.isExactBudget" data-testid="e2e-delivery-offline-banner">
+      {{ vm.isOfflineEstimate
+        ? 'Budget estimé hors-ligne — des collectes ne sont pas encore synchronisées.'
+        : 'Budget indicatif — certaines collectes n\'ont pas encore de mois d\'affectation V2.' }}
     </div>
 
-    <!-- Search Section -->
-    <div class="search-section">
-        <ion-searchbar placeholder="Rechercher un article..." [debounce]="500" (ionInput)="onSearch($event)">
-        </ion-searchbar>
+    <section class="elyk-kpi-strip budget-kpi" data-testid="e2e-delivery-budget">
+      <article class="elyk-kpi elyk-kpi--green">
+        <span>Total épargné</span>
+        <strong>{{ vm.totalBudget | number }}</strong>
+      </article>
+      <article class="elyk-kpi elyk-kpi--navy">
+        <span>Sélectionné</span>
+        <strong>{{ vm.usedBudget | number }}</strong>
+      </article>
+      <article class="elyk-kpi" [class.elyk-kpi--orange]="vm.remainingBudget < 0" [class.elyk-kpi--cyan]="vm.remainingBudget >= 0">
+        <span>Restant</span>
+        <strong [class.negative]="vm.remainingBudget < 0">{{ vm.remainingBudget | number }}</strong>
+      </article>
+    </section>
+
+    <div class="complete-balance-section" *ngIf="vm.remainingBudget < 0">
+      <ion-button fill="outline" expand="block" class="elyk-btn-outline" (click)="navigateToCollection()">
+        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+        Compléter le solde ({{ vm.remainingBudget * -1 | number }} F)
+      </ion-button>
+    </div>
+  </div>
+
+  <div class="warning-message elyk-card">
+    <ion-icon name="warning-outline"></ion-icon>
+    <span>Le montant total ne doit pas dépasser le budget épargné.</span>
+  </div>
+
+  <div class="elyk-search-overlap search-section">
+    <ion-searchbar class="elyk-searchbar" placeholder="Rechercher un article..." [debounce]="500" (ionInput)="onSearch($event)" mode="md">
+    </ion-searchbar>
+  </div>
+
+  <div class="articles-container">
+    <p class="elyk-quarter-title">Articles disponibles</p>
+
+    <div class="elyk-empty" *ngIf="(stocks$ | async)?.length === 0 && !(isLoading$ | async)">
+      <ion-icon name="cube-outline"></ion-icon>
+      <h3>Aucun stock disponible</h3>
+      <p>Aucun article en stock pour cette session</p>
     </div>
 
-    <!-- Articles List -->
-    <div class="articles-container">
-        <div class="section-title">
-            <ion-icon name="cube-outline"></ion-icon>
-            <span>Articles Disponibles</span>
+    <div class="elyk-card article-card" *ngFor="let stock of stocks$ | async">
+      <div class="article-icon"><ion-icon name="cube-outline"></ion-icon></div>
+      <div class="article-info">
+        <div class="article-name">{{ stock.articleName || 'Article' }}</div>
+        <div class="article-price elyk-amount">{{ stock.unitPrice | number }} FCFA</div>
+        <div class="article-stock">Disponible : {{ stock.availableQuantity }} unités</div>
+        <div class="quantity-control">
+          <button type="button" class="qty-btn" (click)="decreaseQuantity(stock)" [disabled]="getQuantity(stock.id) === 0">
+            <ion-icon name="remove"></ion-icon>
+          </button>
+          <div class="quantity-display">{{ getQuantity(stock.id) }}</div>
+          <button type="button" class="qty-btn" (click)="increaseQuantity(stock)"
+            [disabled]="getQuantity(stock.id) >= stock.availableQuantity">
+            <ion-icon name="add"></ion-icon>
+          </button>
         </div>
-
-        <div class="empty-state" *ngIf="(stocks$ | async)?.length === 0 && !(isLoading$ | async)">
-            <ion-icon name="cube-outline" class="empty-icon"></ion-icon>
-            <h3>Aucun stock disponible</h3>
-            <p>Aucun article en stock pour cette session</p>
-        </div>
-
-        <div class="article-card" *ngFor="let stock of stocks$ | async">
-            <div class="article-image">
-                <ion-icon name="cube-outline"></ion-icon>
-            </div>
-            <div class="article-info">
-                <div>
-                    <div class="article-name">{{stock.articleName || 'Article'}}</div>
-                    <div class="article-price">{{stock.unitPrice | number}} FCFA</div>
-                    <div class="article-stock">Disponible: {{stock.availableQuantity}} unités</div>
-                </div>
-
-                <div class="article-actions">
-                    <div class="quantity-control">
-                        <button class="quantity-btn" (click)="decreaseQuantity(stock)"
-                            [disabled]="getQuantity(stock.id) === 0">
-                            <ion-icon name="remove"></ion-icon>
-                        </button>
-                        <div class="quantity-display">{{getQuantity(stock.id)}}</div>
-                        <button class="quantity-btn" (click)="increaseQuantity(stock)"
-                            [disabled]="getQuantity(stock.id) >= stock.availableQuantity">
-                            <ion-icon name="add"></ion-icon>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreStocks($event)">
-            <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement plus d'articles...">
-            </ion-infinite-scroll-content>
-        </ion-infinite-scroll>
+      </div>
     </div>
+
+    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreStocks($event)">
+      <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement plus d'articles...">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+  </div>
 </ion-content>
 
-<!-- Footer Summary -->
-<ion-footer class="ion-no-border">
-    <div class="selected-articles">
-        <div class="selected-summary">
-            <div class="summary-item">
-                <div class="summary-label">Articles</div>
-                <div class="summary-value">{{vm.selectedCount}}</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-label">Total</div>
-                <div class="summary-value">{{vm.usedBudget | number}} F</div>
-            </div>
-            <div class="summary-item">
-                <div class="summary-label">Restant</div>
-                <div class="summary-value remaining" [class.exceeded]="vm.remainingBudget < 0">
-                    {{vm.remainingBudget | number}} F
-                </div>
-            </div>
-        </div>
-
-        <div class="action-buttons">
-            <ion-button fill="outline" color="danger" class="btn-cancel" (click)="cancel()">
-                Annuler
-            </ion-button>
-            <ion-button expand="block" color="success" class="btn-validate"
-                [disabled]="vm.selectedCount === 0 || vm.remainingBudget < 0" (click)="validateDelivery()">
-                <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-                Valider la Livraison
-            </ion-button>
-        </div>
+<ion-footer class="elyk-footer-bar">
+  <ion-toolbar>
+    <div class="footer-summary">
+      <div class="summary-item">
+        <span>Articles</span>
+        <strong>{{ vm.selectedCount }}</strong>
+      </div>
+      <div class="summary-item">
+        <span>Total</span>
+        <strong class="elyk-amount">{{ vm.usedBudget | number }} F</strong>
+      </div>
+      <div class="summary-item">
+        <span>Restant</span>
+        <strong [class.exceeded]="vm.remainingBudget < 0">{{ vm.remainingBudget | number }} F</strong>
+      </div>
     </div>
+    <div class="footer-actions">
+      <ion-button fill="outline" class="elyk-btn-outline" (click)="cancel()">Annuler</ion-button>
+      <ion-button class="elyk-btn-navy" [disabled]="vm.selectedCount === 0 || vm.remainingBudget < 0" (click)="validateDelivery()">
+        <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+        Valider la livraison
+      </ion-button>
+    </div>
+  </ion-toolbar>
 </ion-footer>

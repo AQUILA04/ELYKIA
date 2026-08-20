@@ -1,70 +1,82 @@
 .rapport-container {
-  --background: #F5F5F5;
+  --background: var(--elyk-bg);
   padding-bottom: 80px;
 }
 
-.rapport-header {
-  height: 100px;
-  background: linear-gradient(135deg, #2196F3, #1976D2);
-  color: white;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  position: relative;
+.rapport-hero {
+  padding-top: 0;
+  border-radius: 0 0 var(--elyk-radius-hero) var(--elyk-radius-hero);
 }
 
-.header-top {
+.rapport-hero-top {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 16px 20px;
 }
 
-.back-button,
-.print-button,
-.save-pdf-button {
-  --background: rgba(255, 255, 255, 0.2);
-  --color: white;
-  --border-radius: 50%;
+.rapport-hero-center {
+  flex: 1;
+  text-align: center;
+  min-width: 0;
+
+  h2 {
+    margin: 4px 0 0;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+  }
+}
+
+.rapport-date {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.88);
+  margin: 4px 0 0;
+}
+
+.rapport-hero-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.hero-glass-btn {
   width: 40px;
   height: 40px;
-  margin: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.45;
+  }
 
   ion-icon {
     font-size: 20px;
   }
-
-  &:hover {
-    --background: rgba(255, 255, 255, 0.3);
-  }
-}
-
-.header-title {
-  font-size: 20px;
-  font-weight: 500;
-  flex: 1;
-  text-align: center;
-  color: white;
-}
-
-.rapport-date {
-  font-size: 14px;
-  text-align: center;
-  opacity: 0.9;
-  color: white;
 }
 
 .rapport-content {
   padding: 16px;
-  background: #F5F5F5;
+  background: var(--elyk-bg);
 }
 
-.summary-cards {
-  display: grid;
+.summary-kpi {
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-  margin-bottom: 16px;
+  padding: 0 0 16px;
+}
+
+.summary-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid var(--elyk-border);
+  box-shadow: 0 8px 24px rgba(0, 51, 102, 0.06);
+  text-align: center;
 }
 
 .new-clients-card .card-icon {
@@ -76,19 +88,6 @@
   color: #9C27B0;
 }
 
-.summary-card {
-  background: white;
-  border-radius: 8px;
-  padding: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  transition: all 0.3s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  }
-}
 
 .card-icon {
   width: 48px;
@@ -106,13 +105,13 @@
 }
 
 .distribution-card .card-icon {
-  background: rgba(25, 118, 210, 0.1);
-  color: #1976D2;
+  background: var(--elyk-navy-pale);
+  color: var(--elyk-navy);
 }
 
 .recovery-card .card-icon {
-  background: rgba(76, 175, 80, 0.1);
-  color: #4CAF50;
+  background: #e6f5eb;
+  color: var(--elyk-green);
 }
 
 .reliquat-card .card-icon {
@@ -152,25 +151,26 @@
 }
 
 .details-section {
-  background: white;
-  border-radius: 8px;
+  background: #fff;
+  border-radius: 18px;
   padding: 16px;
   margin-bottom: 16px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--elyk-border);
+  box-shadow: 0 8px 24px rgba(0, 51, 102, 0.06);
 }
 
-// Styles pour ion-segment
 ion-segment {
   margin-bottom: 16px;
-  --background: #F5F5F5;
-  border-radius: 8px;
+  --background: #fff;
+  border: 1px solid var(--elyk-border);
+  border-radius: 999px;
   padding: 4px;
 }
 
 ion-segment-button {
-  --indicator-color: #2196F3;
-  --color: #757575;
-  --color-checked: #2196F3;
+  --indicator-color: var(--elyk-navy-pale);
+  --color: var(--elyk-muted);
+  --color-checked: var(--elyk-navy);
   font-size: 13px;
   min-width: 100px;
   text-transform: none;
@@ -287,26 +287,9 @@ ion-segment-button {
 }
 
 .print-report-button {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
   margin: 0;
-  --background: #2196F3;
-  --color: white;
-  --border-radius: 0;
-  height: 60px;
-  font-size: 16px;
-  font-weight: bold;
-  z-index: 1000;
-
-  ion-icon {
-    font-size: 20px;
-  }
-
-  &:hover {
-    --background: #1976D2;
-  }
+  height: 48px;
+  font-weight: 700;
 }
 
 .empty-state {
@@ -342,12 +325,12 @@ ion-segment-button {
 }
 
 .total-to-pay-card {
-  background: linear-gradient(135deg, #4CAF50, #388E3C);
+  background: linear-gradient(165deg, #0a4a7a 0%, var(--elyk-navy) 48%, var(--elyk-navy-dark, #002244) 100%);
   color: white;
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 20px;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  box-shadow: 0 12px 28px rgba(0, 51, 102, 0.22);
 
   .total-label {
     font-size: 14px;

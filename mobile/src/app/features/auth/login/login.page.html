@@ -1,57 +1,71 @@
-<ion-content class="login-container">
+<ion-content class="login-container" [fullscreen]="true">
+  <div class="login-orbs" aria-hidden="true"></div>
   <div class="login-page-wrapper">
-    <div class="login-header">
-      <div class="app-logo" aria-hidden="true">📱</div>
-      <div class="app-title">AMENOUVEVE-YAVEH</div>
-      <div class="app-subtitle">ELYKIA</div>
-      <div class="app-subtitle">Gestion Mobile</div>
-    </div>
+    <header class="login-hero">
+      <div class="app-logo" aria-hidden="true"><span>E</span></div>
+      <p class="elyk-surtitle">AMENOUVEVE-YAVEH</p>
+      <h1>ELYKIA</h1>
+      <p class="login-kicker">L’outil du commercial, au rythme du terrain</p>
+    </header>
 
     <div class="login-form-container">
-      <ion-card class="login-form">
+      <ion-card class="login-form elyk-card">
+        <p class="form-eyebrow">Connexion</p>
         <form #loginForm="ngForm">
-          <ion-item lines="none" class="input-group">
-            <ion-label position="stacked" class="input-label">Nom d'utilisateur *</ion-label>
-            <ion-input type="text" placeholder="Saisissez votre nom d'utilisateur" [(ngModel)]="username"
-              name="username" required autocomplete="username">
-              <ion-icon name="person-outline" slot="start" class="input-icon"></ion-icon>
-            </ion-input>
-          </ion-item>
+          <div class="elyk-field required">
+            <label class="elyk-field-label" for="login-username">Nom d'utilisateur</label>
+            <ion-item lines="none" class="field-control">
+              <ion-icon name="person-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+              <ion-input
+                id="login-username"
+                type="text"
+                placeholder="Votre identifiant"
+                [(ngModel)]="username"
+                name="username"
+                required
+                autocomplete="username">
+              </ion-input>
+            </ion-item>
+          </div>
 
-          <ion-item lines="none" class="input-group">
-            <ion-label position="stacked" class="input-label">Mot de passe *</ion-label>
-            <ion-input [type]="passwordVisible ? 'text' : 'password'" placeholder="Saisissez votre mot de passe"
-              [(ngModel)]="password" name="password" required autocomplete="current-password">
-              <ion-icon name="lock-closed-outline" slot="start" class="input-icon"></ion-icon>
-              <ion-button fill="clear" size="small" slot="end" class="password-toggle"
-                type="button" (click)="togglePasswordVisibility()">
+          <div class="elyk-field required">
+            <label class="elyk-field-label" for="login-password">Mot de passe</label>
+            <ion-item lines="none" class="field-control">
+              <ion-icon name="lock-closed-outline" slot="start" class="input-icon" aria-hidden="true"></ion-icon>
+              <ion-input
+                id="login-password"
+                [type]="passwordVisible ? 'text' : 'password'"
+                placeholder="Votre mot de passe"
+                [(ngModel)]="password"
+                name="password"
+                required
+                autocomplete="current-password">
+              </ion-input>
+              <ion-button
+                fill="clear"
+                size="small"
+                slot="end"
+                class="password-toggle"
+                type="button"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="passwordVisible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'">
                 <ion-icon [name]="passwordVisible ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
               </ion-button>
-            </ion-input>
-          </ion-item>
+            </ion-item>
+          </div>
 
           <div class="error-message" *ngIf="error$ | async as error">
             {{ error }}
           </div>
 
-          <ion-button expand="block" class="btn-login" type="button" (click)="onLogin()"
+          <ion-button
+            expand="block"
+            class="btn-login elyk-btn-navy"
+            type="button"
+            (click)="onLogin()"
             [disabled]="!loginForm.form.valid">
             SE CONNECTER
           </ion-button>
-
-          <div class="secondary-actions">
-            <ion-button expand="block" fill="outline" class="btn-secondary" type="button"
-              (click)="onOpenWeb()">
-              <ion-icon name="globe-outline" slot="start"></ion-icon>
-              Se connecter sur le web
-            </ion-button>
-
-            <ion-button expand="block" fill="outline" class="btn-secondary" type="button"
-              (click)="onRestore()">
-              <ion-icon name="sync-circle-outline" slot="start"></ion-icon>
-              Restaurer une sauvegarde
-            </ion-button>
-          </div>
 
           @if (isOnline$ | async; as isOnline) {
           <div class="connection-status">
@@ -64,6 +78,15 @@
             <span>Hors ligne</span>
           </div>
           }
+
+          <div class="secondary-actions">
+            <button type="button" class="ghost-link" (click)="onOpenWeb()">
+              Se connecter sur le web
+            </button>
+            <button type="button" class="ghost-link" (click)="onRestore()">
+              Restaurer une sauvegarde
+            </button>
+          </div>
         </form>
       </ion-card>
     </div>

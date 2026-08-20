@@ -1,121 +1,104 @@
 <ion-header class="ion-no-border">
-    <ion-toolbar>
-        <ion-buttons slot="start">
-            <ion-button (click)="goBack()">
-                <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
-            </ion-button>
-        </ion-buttons>
-        <ion-title>{{ isEditMode ? 'Modification du Membre' : 'Nouvel Enregistrement' }}</ion-title>
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-buttons slot="start">
+        <ion-button (click)="goBack()">
+          <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title>
+        <span class="elyk-surtitle">Tontine</span>
+        {{ isEditMode ? 'Modification du membre' : 'Nouvel enregistrement' }}
+      </ion-title>
     </ion-toolbar>
+  </header>
 </ion-header>
 
-<ion-content class="ion-padding">
-    <form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+<ion-content class="elyk-content">
+  <form class="form-wrap" [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+    <p class="elyk-quarter-title">Sélection du client</p>
 
-        <!-- Client Selection Section -->
-        <div class="section-header">
-            <ion-icon name="person-outline"></ion-icon>
-            <h2>Sélection du Client</h2>
-        </div>
+    <div class="elyk-card client-selector-card" *ngIf="!selectedClient" (click)="!isEditMode && selectClient()"
+      [class.disabled]="isEditMode">
+      <ion-icon name="person-add-outline"></ion-icon>
+      <p>Appuyez pour sélectionner un client</p>
+    </div>
 
-        <div class="client-selector-card" *ngIf="!selectedClient" (click)="!isEditMode && selectClient()"
-            [class.disabled]="isEditMode">
-            <ion-icon name="add-circle-outline" class="add-icon"></ion-icon>
-            <p class="selector-text">Appuyez pour sélectionner un client</p>
-        </div>
+    <div class="elyk-card selected-client-card" *ngIf="selectedClient">
+      <div class="elyk-avatar">
+        <span>{{ getClientDisplayName().substring(0, 2).toUpperCase() }}</span>
+      </div>
+      <div class="client-details">
+        <h3>{{ getClientDisplayName() }}</h3>
+        <p>{{ getClientInfo() }}</p>
+      </div>
+      <ion-button fill="clear" color="danger" (click)="removeClient()" *ngIf="!isEditMode">
+        <ion-icon slot="icon-only" name="close-circle"></ion-icon>
+      </ion-button>
+    </div>
 
-        <div class="selected-client-card" *ngIf="selectedClient">
-            <div class="client-info">
-                <div class="client-avatar">
-                    <span>{{getClientDisplayName().substring(0, 2).toUpperCase()}}</span>
-                </div>
-                <div class="client-details">
-                    <h3>{{getClientDisplayName()}}</h3>
-                    <p>{{getClientInfo()}}</p>
-                </div>
-            </div>
-            <ion-button fill="clear" color="danger" (click)="removeClient()" *ngIf="!isEditMode">
-                <ion-icon slot="icon-only" name="close-circle"></ion-icon>
-            </ion-button>
-        </div>
+    <p class="elyk-quarter-title">Fréquence de cotisation</p>
+    <ion-card class="elyk-card">
+      <ion-card-content>
+        <ion-radio-group formControlName="frequency">
+          <ion-item *ngFor="let option of frequencyOptions" lines="none" class="option-item">
+            <ion-radio [value]="option.value" slot="start"></ion-radio>
+            <ion-label>{{ option.label }}</ion-label>
+          </ion-item>
+        </ion-radio-group>
+      </ion-card-content>
+    </ion-card>
 
-        <!-- Frequency Section -->
-        <div class="section-header">
-            <ion-icon name="calendar-outline"></ion-icon>
-            <h2>Fréquence de Cotisation</h2>
-        </div>
-
-        <ion-list class="frequency-list">
-            <ion-radio-group formControlName="frequency">
-                <ion-item *ngFor="let option of frequencyOptions" lines="none" class="frequency-item">
-                    <ion-radio [value]="option.value" slot="start"></ion-radio>
-                    <ion-label>
-                        <h3>{{option.label}}</h3>
-                    </ion-label>
-                    <ion-icon *ngIf="registrationForm.get('frequency')?.value === option.value" name="checkmark-circle"
-                        color="success" slot="end">
-                    </ion-icon>
-                </ion-item>
-            </ion-radio-group>
-        </ion-list>
-
-        <!-- Amount Section -->
-        <div class="section-header">
-            <ion-icon name="cash-outline"></ion-icon>
-            <h2>Montant par Échéance</h2>
-        </div>
-
-        <ion-item class="amount-input" lines="none">
-            <ion-input type="number" formControlName="amount" placeholder="Entrez le montant" min="100" max="50000000"
-                step="100">
-            </ion-input>
-            <span class="currency" slot="end">FCFA</span>
+    <p class="elyk-quarter-title">Montant par échéance</p>
+    <ion-card class="elyk-card">
+      <ion-card-content>
+        <ion-item class="elyk-field amount-input" lines="none">
+          <ion-input type="number" formControlName="amount" placeholder="Entrez le montant" min="100" max="50000000" step="100">
+          </ion-input>
+          <span class="currency" slot="end">FCFA</span>
         </ion-item>
-
         <div class="error-message"
-            *ngIf="registrationForm.get('amount')?.invalid && registrationForm.get('amount')?.touched">
-            <ion-icon name="alert-circle-outline"></ion-icon>
-            <span>Le montant est requis et doit être supérieur à 0</span>
+          *ngIf="registrationForm.get('amount')?.invalid && registrationForm.get('amount')?.touched">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <span>Le montant est requis et doit être supérieur à 0</span>
         </div>
+      </ion-card-content>
+    </ion-card>
 
-        <!-- Update Scope Section (Only visible when editing amount) -->
-        <div *ngIf="showUpdateScope">
-            <div class="section-header">
-                <ion-icon name="options-outline"></ion-icon>
-                <h2>Portée de la modification</h2>
-            </div>
-            <p class="helper-text">Le montant a changé. Veuillez choisir comment appliquer ce changement :</p>
+    <div *ngIf="showUpdateScope">
+      <p class="elyk-quarter-title">Portée de la modification</p>
+      <p class="helper-text">Le montant a changé. Veuillez choisir comment appliquer ce changement :</p>
+      <ion-card class="elyk-card">
+        <ion-card-content>
+          <ion-radio-group formControlName="updateScope">
+            <ion-item *ngFor="let option of updateScopeOptions" lines="none" class="option-item">
+              <ion-radio [value]="option.value" slot="start"></ion-radio>
+              <ion-label class="ion-text-wrap">{{ option.label }}</ion-label>
+            </ion-item>
+          </ion-radio-group>
+        </ion-card-content>
+      </ion-card>
+    </div>
 
-            <ion-list class="scope-list">
-                <ion-radio-group formControlName="updateScope">
-                    <ion-item *ngFor="let option of updateScopeOptions" lines="none" class="scope-item">
-                        <ion-radio [value]="option.value" slot="start"></ion-radio>
-                        <ion-label class="ion-text-wrap">
-                            <h3>{{option.label}}</h3>
-                        </ion-label>
-                    </ion-item>
-                </ion-radio-group>
-            </ion-list>
-        </div>
-
-        <!-- Notes Section -->
-        <div class="section-header">
-            <ion-icon name="document-text-outline"></ion-icon>
-            <h2>Notes / Observations</h2>
-        </div>
-
-        <ion-item class="notes-input" lines="none">
-            <ion-textarea formControlName="notes" placeholder="Ajoutez des notes ou observations (optionnel)" rows="4"
-                auto-grow="true">
-            </ion-textarea>
+    <p class="elyk-quarter-title">Notes / Observations</p>
+    <ion-card class="elyk-card">
+      <ion-card-content>
+        <ion-item class="elyk-field notes-input" lines="none">
+          <ion-textarea formControlName="notes" placeholder="Ajoutez des notes ou observations (optionnel)" rows="4"
+            auto-grow="true">
+          </ion-textarea>
         </ion-item>
-
-        <!-- Submit Button -->
-        <ion-button expand="block" type="submit" class="submit-button"
-            [disabled]="!selectedClient || registrationForm.invalid">
-            <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-            {{ isEditMode ? 'Modifier le Membre' : 'Enregistrer le Membre' }}
-        </ion-button>
-
-    </form>
+      </ion-card-content>
+    </ion-card>
+  </form>
 </ion-content>
+
+<ion-footer class="elyk-footer-bar">
+  <ion-toolbar>
+    <ion-button expand="block" class="elyk-btn-navy" (click)="onSubmit()"
+      [disabled]="!selectedClient || registrationForm.invalid">
+      <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+      {{ isEditMode ? 'Modifier le membre' : 'Enregistrer le membre' }}
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

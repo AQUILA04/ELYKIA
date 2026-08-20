@@ -1,39 +1,34 @@
 .reliquat-container {
-  background: var(--ion-color-light);
-  border-radius: 8px;
-  padding: 16px;
+  background: var(--elyk-navy-pale);
+  border-radius: 14px;
+  padding: 14px;
   margin-top: 16px;
 }
 
-.reliquat-header, .input-header {
+.reliquat-header,
+.input-header {
   display: flex;
   align-items: center;
   margin-bottom: 12px;
+  gap: 8px;
 }
 
-.reliquat-icon {
-  color: var(--ion-color-primary);
-  font-size: 20px;
-  margin-right: 8px;
-}
-
+.reliquat-icon,
 .input-icon {
-  color: var(--ion-color-success);
+  color: var(--elyk-navy);
   font-size: 20px;
-  margin-right: 8px;
 }
 
-.reliquat-title, .input-title {
-  font-weight: 600;
-  font-size: 15px;
-  color: var(--ion-color-dark);
+.reliquat-title,
+.input-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--elyk-navy);
   flex-grow: 1;
 }
 
 .reliquat-amount {
-  font-weight: bold;
-  font-size: 16px;
-  color: var(--ion-color-primary);
+  font-size: 15px;
 }
 
 .reliquat-toggle-item {
@@ -44,45 +39,52 @@
   font-size: 14px;
 
   ion-label {
-    color: var(--ion-color-medium);
+    color: var(--elyk-muted);
     white-space: normal;
+  }
+
+  ion-toggle {
+    --track-background-checked: var(--elyk-navy);
   }
 }
 
 .reliquat-divider {
   height: 1px;
-  background: rgba(0,0,0,0.05);
-  margin: 16px 0;
+  background: var(--elyk-border);
+  margin: 14px 0;
 }
 
 .received-input-item {
   --background: #fff;
-  --border-radius: 8px;
-  --border-color: var(--ion-color-medium);
-  margin-bottom: 16px;
+  border: 1px solid var(--elyk-border);
+  border-radius: 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
 
   ion-input {
-    font-weight: bold;
+    font-weight: 700;
     font-size: 16px;
+    color: var(--elyk-navy);
   }
 
   .currency-label {
-    color: var(--ion-color-medium);
-    font-size: 14px;
-    font-weight: 600;
+    color: var(--elyk-muted);
+    font-size: 13px;
+    font-weight: 700;
   }
 }
 
 .reliquat-summary {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   padding: 12px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  border: 1px solid var(--elyk-border);
 }
 
 .summary-row {
   display: flex;
   justify-content: space-between;
+  gap: 12px;
   margin-bottom: 8px;
   font-size: 14px;
 
@@ -92,37 +94,19 @@
 }
 
 .summary-label {
-  color: var(--ion-color-medium);
-}
-
-.summary-value {
-  font-weight: 600;
-}
-
-.text-success {
-  color: var(--ion-color-success);
-}
-
-.text-warning {
-  color: var(--ion-color-warning);
-}
-
-.bold {
-  font-weight: bold;
-  color: var(--ion-color-dark);
+  color: var(--elyk-muted);
 }
 
 .highlight-row {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed rgba(0,0,0,0.1);
-  font-size: 15px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--elyk-border);
 }
 
 .reliquat-generated {
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px dashed rgba(0,0,0,0.1);
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--elyk-border);
 
   .generated-toggle {
     margin-top: 8px;

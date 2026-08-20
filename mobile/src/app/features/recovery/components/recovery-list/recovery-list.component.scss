@@ -1,188 +1,143 @@
-/* Styles globaux pour la page */
-:host {
-  height: 100%;
-  
-  ion-content {
-    --background: #f5f5f5;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-  }
+ion-header.ion-no-border {
+  --border-width: 0;
+}
 
-  .recoveries-container {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
+.elyk-hero--compact {
+  padding-top: 0;
+}
 
-  .recouvrements-list {
-    flex: 1;
-    min-height: 0;
-  }
+.hero-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-width: 0;
+  --min-height: 56px;
+}
 
-  cdk-virtual-scroll-viewport {
-    flex: 1;
-    min-height: 300px;
+.hero-toolbar ion-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  text-align: start;
+  padding-inline: 8px;
+
+  .elyk-surtitle {
+    display: block;
+    margin-bottom: 2px;
   }
 }
 
-/* Section de recherche et filtres */
-.search-section {
-  margin-bottom: 8px;
-  border-radius: 16px;
-  padding: 8px;
-
-  ion-searchbar {
-    --box-shadow: none;
-    padding-bottom: 0;
-    border: 2px solid #e0e0e0;
-    border-radius: 16px;
-    margin-bottom: 8px;
-  }
-  ion-item {
-    --background: transparent;
-    border: 2px solid #e0e0e0;
-    border-radius: 16px;
-  }
+.filters-card {
+  margin: 12px 16px;
+  padding: 12px 12px 4px;
 }
 
-/* Section statistiques */
-.stats-section {
-  ion-row {
-    display: flex;
-    justify-content: space-between;
-  }
-  ion-col {
-    padding: 4px;
-  }
-  .stat-card {
-    text-align: center;
-    border-radius: 16px;
-    margin: 0;
-    .stat-number {
-      font-size: 1.8em;
-      font-weight: bold;
-      color: var(--ion-color-success);
-    }
-    .stat-label {
-      font-size: 0.8em;
-      text-transform: uppercase;
-      color: #757575;
-      font-weight: bold;
-    }
-  }
+.filters-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 4px;
 }
 
-/* En-tête de la liste */
-ion-list-header {
-  font-weight: 500;
-  ion-label {
-    color: #333;
-  }
-}
-
-/* Liste des recouvrements */
-.recouvrements-list {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-
-.recouvrement-item {
+.filter-item {
+  --background: transparent;
   --padding-start: 0;
   --inner-padding-end: 0;
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
+  font-size: 13px;
+
+  ion-label {
+    font-size: 12px;
+    color: var(--elyk-muted);
+    font-weight: 600;
+  }
+
+  ion-select {
+    font-size: 13px;
+    color: var(--elyk-navy);
+    font-weight: 600;
+  }
 }
 
-.recouvrement-date {
-  width: 60px;
+.elyk-kpi-strip {
+  padding-top: 0;
+}
+
+.count-badge {
+  background: var(--elyk-navy-pale);
+  color: var(--elyk-navy);
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  margin-left: 6px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.recoveries-container {
+  padding-bottom: 80px;
+}
+
+.recovery-row {
+  cursor: pointer;
+  flex-wrap: wrap;
+}
+
+.recovery-date {
+  width: 46px;
+  min-width: 46px;
   text-align: center;
-  padding-right: 16px;
-  border-right: 1px solid #e0e0e0;
-  margin-right: 16px;
-
-  .date-day {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: var(--ion-color-success);
-  }
-
-  .client-name {
-    color: var(--ion-color-success);
-  }
-
-  .time-and-reference {
-    color: #666;
-  }
-
-  .date-month {
-    font-size: 0.8em;
-    text-transform: uppercase;
-    color: #666;
-  }
+  padding: 8px 6px;
+  background: #e6f5eb;
+  border-radius: 14px;
+  flex-shrink: 0;
 }
 
-.recouvrement-info {
+.date-day {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--elyk-green);
+  line-height: 1;
+}
+
+.date-month {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--elyk-muted);
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.recovery-info {
   flex: 1;
+  min-width: 0;
 
   h2 {
-    font-size: 1em;
-    font-weight: 500;
-    margin: 0;
+    margin: 0 0 2px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--elyk-navy);
   }
 
   p {
-    margin: 2px 0 0 0;
-    font-size: 0.8em;
-    color: #666;
+    margin: 0 0 2px;
+    font-size: 12px;
+    color: var(--elyk-muted);
   }
 }
 
-.recouvrement-amount {
-  text-align: right;
-
-  .amount-value {
-    font-size: 1.1em;
-    font-weight: bold;
-    color: var(--ion-color-success);
-  }
-
-  .amount-type {
-    font-size: 0.7em;
-    padding: 2px 6px;
-    border-radius: 8px;
-    font-weight: 500;
-    background: rgba(76, 175, 80, 0.1);
-    color: var(--ion-color-success);
-  }
+.recovery-amount {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
-/* État vide */
-.empty-state-card {
-  margin: 24px;
-  padding: 32px 24px;
-  text-align: center;
-  border: 1px dashed #dcdcdc;
-  border-radius: 16px;
+.delete-btn {
+  margin: 0;
+  height: 36px;
+}
 
-  .empty-state-icon {
-    font-size: 48px;
-    color: var(--ion-color-success);
-    margin-bottom: 16px;
-  }
-
-  .empty-state-title {
-    font-size: 18px;
-    font-weight: 500;
-    margin-bottom: 8px;
-  }
-
-  .empty-state-description {
-    font-size: 14px;
-    color: #757575;
-    margin: 0;
-  }
+.elyk-empty {
+  min-height: 40vh;
+  padding: 32px 16px;
 }

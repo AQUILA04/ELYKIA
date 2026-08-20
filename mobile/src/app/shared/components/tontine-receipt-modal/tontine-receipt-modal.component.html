@@ -1,126 +1,124 @@
-<ion-header>
-    <ion-toolbar>
-        <ion-title>Aperçu du Reçu</ion-title>
-        <ion-buttons slot="end">
-            <ion-button (click)="dismiss()">Fermer</ion-button>
-        </ion-buttons>
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-title>
+        <span class="elyk-surtitle">Tontine</span>
+        Aperçu du reçu
+      </ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="dismiss()">Fermer</ion-button>
+      </ion-buttons>
     </ion-toolbar>
+  </header>
 </ion-header>
 
-<ion-content class="ion-padding">
-    <div id="receipt-content" class="receipt-preview">
-        <!-- Header -->
-        <div class="header">
-            <div class="logo">🎯</div>
-            <h2>REÇU TONTINE</h2>
-            <p>Elykia Commercial App</p>
-        </div>
-
-        <div class="separator"></div>
-
-        <!-- Receipt Number -->
-        <div class="receipt-number">
-            <span class="label">N° de Reçu</span>
-            <span class="value">TON-{{data.session.year}}-{{data.collection.id.substring(0, 5).toUpperCase()}}</span>
-        </div>
-
-        <!-- Member Info -->
-        <div class="section">
-            <div class="section-title">
-                <ion-icon name="person-outline"></ion-icon>
-                <span>Informations du Membre</span>
-            </div>
-            <div class="row">
-                <span class="label">Nom complet</span>
-                <span class="value">{{data.client.fullName}}</span>
-            </div>
-            <div class="row">
-                <span class="label">Téléphone</span>
-                <span class="value">{{data.client.phone || '-'}}</span>
-            </div>
-            <div class="row">
-                <span class="label">Fréquence</span>
-                <span class="value">{{data.member.frequency}}</span>
-            </div>
-        </div>
-
-        <!-- Collection Info -->
-        <div class="section">
-            <div class="section-title">
-                <ion-icon name="calendar-outline"></ion-icon>
-                <span>Détails de la Collecte</span>
-            </div>
-            <div class="row">
-                <span class="label">Date</span>
-                <span class="value">{{data.collection.date | date:'dd MMMM yyyy'}}</span>
-            </div>
-            <div class="row">
-                <span class="label">Heure</span>
-                <span class="value">{{data.collection.date | date:'HH:mm'}}</span>
-            </div>
-            <div class="row">
-                <span class="label">Commercial</span>
-                <span class="value">{{data.commercial.name}}</span>
-            </div>
-            <div class="row">
-                <span class="label">Session</span>
-                <span class="value">{{data.session.year}}</span>
-            </div>
-        </div>
-
-        <!-- Amounts -->
-        <div class="amount-highlight">
-            <div class="amount-label">💵 Montant Collecté</div>
-            <div class="amount-value">{{data.collection.amount | number}} FCFA</div>
-        </div>
-
-        <div class="total-highlight">
-            <div class="total-label">✨ Total Épargné à ce Jour</div>
-            <div class="total-value">{{data.totalToDate | number}} FCFA</div>
-        </div>
-
-        <div class="offline-estimate" *ngIf="data.isOfflineEstimate" data-testid="e2e-tontine-receipt-offline">
-            Estimation hors-ligne — le serveur recalculera la part société à la synchronisation.
-        </div>
-
-        <!-- Footer -->
-        <div class="receipt-footer">
-            <div class="signature-section">
-                <div class="signature-box">
-                    <div class="signature-line"></div>
-                    <div class="signature-label">Signature du Commercial</div>
-                </div>
-                <div class="signature-box">
-                    <div class="signature-line"></div>
-                    <div class="signature-label">Signature du Membre</div>
-                </div>
-            </div>
-
-            <div class="receipt-note">
-                Ce reçu atteste du paiement de la cotisation tontine.<br>
-                Conservez-le précieusement jusqu'à la fin de la session.
-            </div>
-        </div>
+<ion-content class="elyk-content">
+  <div id="receipt-content" class="receipt-preview elyk-card">
+    <div class="header">
+      <div class="logo-mark">T</div>
+      <h2>REÇU TONTINE</h2>
+      <p>Elykia Commercial App</p>
     </div>
+
+    <div class="separator"></div>
+
+    <div class="receipt-number">
+      <span class="label">N° de reçu</span>
+      <span class="value">TON-{{ data.session.year }}-{{ data.collection.id.substring(0, 5).toUpperCase() }}</span>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <ion-icon name="person-outline"></ion-icon>
+        <span>Informations du membre</span>
+      </div>
+      <div class="row">
+        <span class="label">Nom complet</span>
+        <span class="value">{{ data.client.fullName }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Téléphone</span>
+        <span class="value">{{ data.client.phone || '-' }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Fréquence</span>
+        <span class="value">{{ data.member.frequency }}</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>Détails de la collecte</span>
+      </div>
+      <div class="row">
+        <span class="label">Date</span>
+        <span class="value">{{ data.collection.date | date:'dd MMMM yyyy' }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Heure</span>
+        <span class="value">{{ data.collection.date | date:'HH:mm' }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Commercial</span>
+        <span class="value">{{ data.commercial.name }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Session</span>
+        <span class="value">{{ data.session.year }}</span>
+      </div>
+    </div>
+
+    <div class="amount-highlight">
+      <div class="amount-label">Montant collecté</div>
+      <div class="amount-value elyk-amount">{{ data.collection.amount | number }} FCFA</div>
+    </div>
+
+    <div class="total-highlight">
+      <div class="total-label">Total épargné à ce jour</div>
+      <div class="total-value elyk-amount elyk-amount--green">{{ data.totalToDate | number }} FCFA</div>
+    </div>
+
+    <div class="offline-estimate" *ngIf="data.isOfflineEstimate" data-testid="e2e-tontine-receipt-offline">
+      Estimation hors-ligne — le serveur recalculera la part société à la synchronisation.
+    </div>
+
+    <div class="receipt-footer">
+      <div class="signature-section">
+        <div class="signature-box">
+          <div class="signature-line"></div>
+          <div class="signature-label">Signature du commercial</div>
+        </div>
+        <div class="signature-box">
+          <div class="signature-line"></div>
+          <div class="signature-label">Signature du membre</div>
+        </div>
+      </div>
+      <div class="receipt-note">
+        Ce reçu atteste du paiement de la cotisation tontine.<br>
+        Conservez-le précieusement jusqu'à la fin de la session.
+      </div>
+    </div>
+  </div>
 </ion-content>
 
-<ion-footer>
-    <ion-toolbar>
-        <ion-grid>
-            <ion-row>
-                <ion-col size="6">
-                    <ion-button expand="block" color="medium" fill="outline" (click)="dismiss()"
-                        data-testid="e2e-tontine-receipt-close">
-                        Fermer
-                    </ion-button>
-                </ion-col>
-                <ion-col size="6">
-                    <ion-button expand="block" (click)="print()">
-                        <ion-icon slot="start" name="print-outline"></ion-icon>
-                        Imprimer
-                    </ion-button>
-                </ion-col>
-            </ion-row>
-        </ion-grid>
-    </ion-toolbar>
+<ion-footer class="elyk-footer-bar">
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="6">
+          <ion-button expand="block" fill="outline" class="elyk-btn-outline" (click)="dismiss()"
+            data-testid="e2e-tontine-receipt-close">
+            Fermer
+          </ion-button>
+        </ion-col>
+        <ion-col size="6">
+          <ion-button expand="block" class="elyk-btn-navy" (click)="print()">
+            <ion-icon slot="start" name="print-outline"></ion-icon>
+            Imprimer
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
 </ion-footer>

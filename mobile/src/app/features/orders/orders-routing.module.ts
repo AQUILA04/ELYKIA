@@ -4,6 +4,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { NewOrderPage } from './pages/new-order/new-order.page';
 import { EditOrderPage } from './pages/edit-order/edit-order.page';
 import { OrderListPage } from './pages/order-list/order-list.page';
+import { OrderDetailPage } from './pages/order-detail/order-detail.page';
 
 const routes: Routes = [
   {
@@ -13,6 +14,10 @@ const routes: Routes = [
   {
     path: 'new',
     component: NewOrderPage
+  },
+  {
+    path: 'detail/:id',
+    component: OrderDetailPage
   },
   {
     path: 'edit/:id',

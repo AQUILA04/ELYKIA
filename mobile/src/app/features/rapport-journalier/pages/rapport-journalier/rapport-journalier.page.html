@@ -1,29 +1,30 @@
-<ion-content [fullscreen]="true" class="rapport-container">
-  <!-- Header -->
-  <div class="rapport-header">
-    <div class="header-top">
-      <ion-button fill="clear" class="back-button" (click)="goBack()">
-        <ion-icon name="arrow-back" slot="icon-only"></ion-icon>
-      </ion-button>
-
-      <div class="header-title">Rapport Journalier</div>
-
-      <ion-button fill="clear" class="save-pdf-button" (click)="savePDF()">
-        <ion-icon name="download" slot="icon-only"></ion-icon>
-      </ion-button>
-
-      <ion-button fill="clear" class="print-button" (click)="printReport()"
-        [disabled]="reportData.distributions.count === 0 && reportData.recoveries.count === 0">
-        <ion-icon name="print" slot="icon-only"></ion-icon>
-      </ion-button>
+<ion-content [fullscreen]="true" class="rapport-container elyk-content">
+  <header class="elyk-hero elyk-hero--compact rapport-hero">
+    <div class="rapport-hero-top">
+      <button type="button" class="hero-glass-btn" (click)="goBack()" aria-label="Retour">
+        <ion-icon name="arrow-back"></ion-icon>
+      </button>
+      <div class="rapport-hero-center">
+        <p class="elyk-surtitle">Rapports</p>
+        <h2>Rapport journalier</h2>
+        <p class="rapport-date">{{ reportData.date }}</p>
+      </div>
+      <div class="rapport-hero-actions">
+        <button type="button" class="hero-glass-btn" (click)="savePDF()" aria-label="PDF">
+          <ion-icon name="download"></ion-icon>
+        </button>
+        <button type="button" class="hero-glass-btn" (click)="printReport()"
+          [disabled]="reportData.distributions.count === 0 && reportData.recoveries.count === 0"
+          aria-label="Imprimer">
+          <ion-icon name="print"></ion-icon>
+        </button>
+      </div>
     </div>
-    <div class="rapport-date">{{ reportData.date }}</div>
-  </div>
+  </header>
 
   <!-- Contenu -->
   <div class="rapport-content">
-    <!-- Cartes de résumé -->
-    <div class="summary-cards">
+    <section class="elyk-kpi-strip summary-kpi">
       <div class="summary-card distribution-card">
         <div class="card-icon">
           <ion-icon name="basket"></ion-icon>
@@ -77,7 +78,7 @@
         <div class="card-amount">{{ reportData.recoveries.reliquatNetDuJour | number:'1.0-0':'fr-FR' }} FCFA</div>
         <div class="card-label">RELIQUATS</div>
       </div>
-    </div>
+    </section>
 
     <!-- Carte Total à Verser -->
     <div class="total-card-container">
@@ -381,10 +382,17 @@
     </div>
   </div>
 
-  <!-- Bouton d'impression fixe -->
-  <ion-button expand="full" class="print-report-button" (click)="printReport()"
-    [disabled]="reportData.distributions.count === 0 && reportData.recoveries.count === 0">
-    <ion-icon name="print" slot="start"></ion-icon>
-    IMPRIMER LE RAPPORT
-  </ion-button>
 </ion-content>
+
+<ion-footer class="elyk-footer-bar">
+  <ion-toolbar>
+    <ion-button
+      expand="block"
+      class="elyk-btn-navy print-report-button"
+      (click)="printReport()"
+      [disabled]="reportData.distributions.count === 0 && reportData.recoveries.count === 0">
+      <ion-icon name="print-outline" slot="start"></ion-icon>
+      Imprimer le Rapport
+    </ion-button>
+  </ion-toolbar>
+</ion-footer>

@@ -1,95 +1,98 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Aperçu du Reçu</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">Fermer</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-title>
+        <span class="elyk-surtitle">Recouvrement</span>
+        Aperçu du reçu
+      </ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="dismiss()">Fermer</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </header>
 </ion-header>
 
-<ion-content class="ion-padding" *ngIf="recovery && distribution && client">
-  <div id="receipt-content">
-    <!-- Header -->
-    <div class="header">
-      AMENOUVEVE-YAVEH<br>
-      REÇU DE RECOUVREMENT
-    </div>
-
-    <div class="separator"></div>
-
-    <!-- Info -->
-    <div class="row">
-      <span>Date:</span>
-      <span>{{ recovery.paymentDate | date: 'dd/MM/yyyy HH:mm' }}</span>
-    </div>
-    <div class="row">
-      <span>Client:</span>
-      <span>{{ client.fullName }}</span>
-    </div>
-    <div class="row">
-      <span>Commercial:</span>
-      <span>{{ recovery.commercialId }}</span> <!-- Assuming commercialId is the name for now -->
-    </div>
-    <div class="row">
-      <span>Crédit Réf:</span>
-      <span>{{ distribution.reference }}</span>
-    </div>
-
-    <div class="separator"></div>
-
-    <!-- Body -->
-    <div class="row total-row">
-      <span>MONTANT FACTURÉ:</span>
-      <span>{{ recovery.amount | number:'1.0-0' }} FCFA</span>
-    </div>
-
-    <div class="row" *ngIf="recovery.reliquatUsedAmount && recovery.reliquatUsedAmount > 0">
-      <span>Reliquat utilisé:</span>
-      <span>- {{ recovery.reliquatUsedAmount | number:'1.0-0' }} FCFA</span>
-    </div>
-
-    <div class="row">
-      <span>MONTANT REMIS (Espèces):</span>
-      <span>{{ (recovery.amount - (recovery.reliquatUsedAmount || 0) + (recovery.reliquatGeneratedAmount || 0)) | number:'1.0-0' }} FCFA</span>
-    </div>
-
-    <div class="row" *ngIf="recovery.reliquatGeneratedAmount && recovery.reliquatGeneratedAmount > 0">
-      <span>Reliquat conservé:</span>
-      <span>{{ recovery.reliquatGeneratedAmount | number:'1.0-0' }} FCFA</span>
-    </div>
-
-    <div class="separator"></div>
-
-    <div class="row">
-      <span>Ancien Solde:</span>
-      <span>{{ previousRemainingAmount | number:'1.0-0' }} FCFA</span>
-    </div>
-    <div class="row">
-      <span>Nouveau Solde:</span>
-      <span>{{ newRemainingAmount | number:'1.0-0' }} FCFA</span>
-    </div>
-
-    <div class="separator"></div>
-
-    <!-- Footer -->
-    <div class="footer">
-      <div class="qr-code-container" *ngIf="qrCodeData">
-        <qrcode
-          [qrdata]="qrCodeData"
-          [width]="120"
-          [errorCorrectionLevel]="'M'">
-        </qrcode>
+<ion-content class="elyk-content" *ngIf="recovery && distribution && client">
+  <div class="receipt-shell elyk-card">
+    <div id="receipt-content">
+      <div class="header">
+        AMENOUVEVE-YAVEH<br>
+        REÇU DE RECOUVREMENT
       </div>
-      <br>
-      Merci pour votre fidélité!<br>
-      AMENOUVEVE-YAVEH, votre partenaire de confiance.
+
+      <div class="separator"></div>
+
+      <div class="row">
+        <span>Date:</span>
+        <span>{{ recovery.paymentDate | date: 'dd/MM/yyyy HH:mm' }}</span>
+      </div>
+      <div class="row">
+        <span>Client:</span>
+        <span>{{ client.fullName }}</span>
+      </div>
+      <div class="row">
+        <span>Commercial:</span>
+        <span>{{ recovery.commercialId }}</span>
+      </div>
+      <div class="row">
+        <span>Crédit Réf:</span>
+        <span>{{ distribution.reference }}</span>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="row total-row">
+        <span>MONTANT FACTURÉ:</span>
+        <span>{{ recovery.amount | number:'1.0-0' }} FCFA</span>
+      </div>
+
+      <div class="row" *ngIf="recovery.reliquatUsedAmount && recovery.reliquatUsedAmount > 0">
+        <span>Reliquat utilisé:</span>
+        <span>- {{ recovery.reliquatUsedAmount | number:'1.0-0' }} FCFA</span>
+      </div>
+
+      <div class="row">
+        <span>MONTANT REMIS (Espèces):</span>
+        <span>{{ (recovery.amount - (recovery.reliquatUsedAmount || 0) + (recovery.reliquatGeneratedAmount || 0)) | number:'1.0-0' }} FCFA</span>
+      </div>
+
+      <div class="row" *ngIf="recovery.reliquatGeneratedAmount && recovery.reliquatGeneratedAmount > 0">
+        <span>Reliquat conservé:</span>
+        <span>{{ recovery.reliquatGeneratedAmount | number:'1.0-0' }} FCFA</span>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="row">
+        <span>Ancien Solde:</span>
+        <span>{{ previousRemainingAmount | number:'1.0-0' }} FCFA</span>
+      </div>
+      <div class="row">
+        <span>Nouveau Solde:</span>
+        <span>{{ newRemainingAmount | number:'1.0-0' }} FCFA</span>
+      </div>
+
+      <div class="separator"></div>
+
+      <div class="footer">
+        <div class="qr-code-container" *ngIf="qrCodeData">
+          <qrcode
+            [qrdata]="qrCodeData"
+            [width]="120"
+            [errorCorrectionLevel]="'M'">
+          </qrcode>
+        </div>
+        <br>
+        Merci pour votre fidélité!<br>
+        AMENOUVEVE-YAVEH, votre partenaire de confiance.
+      </div>
     </div>
   </div>
 </ion-content>
 
-<ion-footer>
+<ion-footer class="elyk-footer-bar">
   <ion-toolbar>
-    <ion-button expand="block" (click)="print()">
+    <ion-button expand="block" class="elyk-btn-navy" (click)="print()">
       <ion-icon name="print-outline" slot="start"></ion-icon>
       Imprimer
     </ion-button>

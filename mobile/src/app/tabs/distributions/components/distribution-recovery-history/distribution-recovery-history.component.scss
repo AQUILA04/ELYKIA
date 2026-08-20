@@ -1,184 +1,142 @@
-.recovery-history-section {
+:host {
+  display: block;
   margin-top: 16px;
-  padding: 0 4px;
 }
 
-// ==================== Section Header ====================
+.recovery-history-card {
+  margin: 0;
 
-.section-header {
+  ion-card-header {
+    padding-bottom: 8px;
+  }
+
+  ion-card-content {
+    padding-top: 0;
+  }
+}
+
+.recovery-card-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 16px 8px;
-  border-top: 1px solid var(--ion-color-light-shade);
-
-  .section-icon {
-    font-size: 18px;
-    color: var(--ion-color-success);
-  }
-
-  .section-title {
-    flex: 1;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ion-color-dark);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-
-  .section-badge {
-    font-size: 11px;
-    padding: 2px 6px;
-  }
-}
-
-// ==================== Recovery List ====================
-
-.recovery-list {
-  background: transparent;
-  padding: 0;
-
-  ion-item {
-    --padding-start: 0;
-    --inner-padding-end: 8px;
-    --background: transparent;
-    --border-color: var(--ion-color-light-shade);
-    margin-bottom: 2px;
-  }
-}
-
-.recovery-item {
-  --min-height: 56px;
-}
-
-// ==================== Date Block ====================
-
-.recovery-date {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-width: 44px;
-  width: 44px;
-  margin-right: 12px;
-  padding: 6px 4px;
-  background: var(--ion-color-light);
-  border: 1.5px solid var(--ion-color-success);
-  border-radius: 8px;
-
-  .date-day {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--ion-color-success-shade);
-    line-height: 1.1;
-  }
-
-  .date-month {
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--ion-color-success);
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
-    line-height: 1.2;
-  }
-}
-
-// ==================== Recovery Info ====================
-
-ion-label {
-  .recovery-amount {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--ion-color-dark);
-    margin-bottom: 2px;
-  }
-
-  .recovery-ref {
-    font-size: 11px;
-    color: var(--ion-color-medium-shade);
-    font-family: monospace;
-    margin-bottom: 1px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 160px;
-  }
-
-  .recovery-meta {
-    font-size: 12px;
-    color: var(--ion-color-medium);
-  }
-}
-
-// ==================== Sync Badge ====================
-
-.sync-badge-container {
-  display: flex;
-  align-items: center;
-}
-
-.sync-badge {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  font-size: 10px;
-  padding: 3px 6px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--elyk-navy);
 
   ion-icon {
+    font-size: 20px;
+    color: var(--elyk-green);
+    flex-shrink: 0;
+  }
+
+  .recovery-count {
+    margin-left: auto;
+    background: var(--elyk-navy-pale);
+    color: var(--elyk-navy);
+    padding: 2px 10px;
+    border-radius: 999px;
     font-size: 11px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
   }
 }
 
-// ==================== States ====================
+.recovery-state {
+  padding: 24px 8px;
 
-.loading-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 24px 16px;
-  gap: 8px;
-  color: var(--ion-color-medium);
+  ion-spinner {
+    --color: var(--elyk-navy);
+  }
 
-  p {
-    font-size: 13px;
-    margin: 0;
+  &--error {
+    color: var(--ion-color-danger);
   }
 }
 
-.error-state {
+.recovery-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 20px 16px;
-  gap: 8px;
-  color: var(--ion-color-danger);
+}
 
-  .error-icon {
-    font-size: 28px;
+.recovery-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--elyk-border);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+
+  &:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
   }
 
-  p {
-    font-size: 13px;
-    margin: 0;
+  &:first-child {
+    padding-top: 4px;
+  }
+
+  &:active {
+    opacity: 0.72;
   }
 }
 
-.empty-state {
+.recovery-date {
+  width: 46px;
+  min-width: 46px;
+  text-align: center;
+  padding: 8px 6px;
+  background: #e6f5eb;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+
+.date-day {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--elyk-green);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.date-month {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--elyk-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 2px;
+}
+
+.recovery-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.recovery-amount {
+  font-size: 15px;
+  margin-bottom: 2px;
+}
+
+.recovery-ref {
+  font-size: 12px;
+  color: var(--elyk-muted);
+  font-family: ui-monospace, monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+
+.recovery-meta {
+  font-size: 12px;
+  color: var(--elyk-muted);
+}
+
+.recovery-badges {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  padding: 24px 16px;
-  gap: 8px;
-  color: var(--ion-color-medium);
-
-  .empty-icon {
-    font-size: 32px;
-    opacity: 0.5;
-  }
-
-  p {
-    font-size: 13px;
-    margin: 0;
-    text-align: center;
-  }
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
 }

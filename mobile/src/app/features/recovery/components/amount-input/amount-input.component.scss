@@ -1,25 +1,8 @@
-// ─── Variables ────────────────────────────────────────────────────────────────
-:root {
-  --amount-input-background: #FFFFFF;
-  --amount-input-border: #E0E0E0;
-  --amount-input-radius: 12px;
-  --amount-input-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  --validation-success-color: #4CAF50;
-  --validation-success-background: #E8F5E8;
-  --validation-error-color: #F44336;
-  --validation-error-background: #FFEBEE;
-}
-
-// ─── Conteneur principal ──────────────────────────────────────────────────────
 .amount-input-container {
-  background: var(--amount-input-background);
-  border-radius: var(--amount-input-radius);
-  padding: 14px;
-  box-shadow: var(--amount-input-shadow);
-  border: 1px solid var(--amount-input-border);
+  background: transparent;
+  padding: 0;
 }
 
-// ─── En-tête ──────────────────────────────────────────────────────────────────
 .mise-header {
   display: flex;
   align-items: center;
@@ -29,7 +12,7 @@
 
 .mise-header-label {
   font-size: 13px;
-  color: #757575;
+  color: var(--elyk-muted);
   flex: 1;
   padding-right: 8px;
   line-height: 1.3;
@@ -52,7 +35,7 @@
 .mise-paid-text,
 .mise-late-text {
   font-size: 11px;
-  color: #9E9E9E;
+  color: var(--elyk-muted);
   white-space: nowrap;
 }
 
@@ -60,29 +43,30 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: #2E7D32;
+  background: var(--elyk-green);
   color: #fff;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .mise-late-badge {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: #C62828;
+  background: var(--elyk-orange);
   color: #fff;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-variant-numeric: tabular-nums;
 }
 
-// ─── Grille de pastilles ──────────────────────────────────────────────────────
 .mise-grid {
   display: flex;
   flex-wrap: wrap;
@@ -98,43 +82,39 @@
   align-items: center;
   justify-content: center;
   font-size: 13px;
-  font-weight: 500;
-  border: 1.5px solid #E0E0E0;
-  background: #FAFAFA;
-  color: #757575;
+  font-weight: 600;
+  border: 1.5px solid var(--elyk-border);
+  background: #fff;
+  color: var(--elyk-muted);
   cursor: pointer;
   transition: background 0.12s, border-color 0.12s, transform 0.1s;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
+  font-variant-numeric: tabular-nums;
 
   &:active {
     transform: scale(0.88);
   }
 
-  // En retard — pas encore sélectionné
   &.late {
-    background: #FFEBEE;
-    border-color: #EF9A9A;
-    color: #C62828;
+    background: #fff3e6;
+    border-color: var(--elyk-orange);
+    color: var(--elyk-orange);
   }
 
-  // Mises intermédiaires sélectionnées (vert clair) — écrase .late
   &.in-range {
-    background: #E8F5E9;
-    border-color: #4CAF50;
-    color: #1B5E20;
+    background: var(--elyk-navy-pale);
+    border-color: var(--elyk-navy);
+    color: var(--elyk-navy);
   }
 
-  // Dernière mise sélectionnée (vert foncé) — écrase .late
   &.selected {
-    background: #2E7D32;
-    border-color: #1B5E20;
+    background: var(--elyk-navy);
+    border-color: var(--elyk-navy-dark, #002244);
     color: #fff;
     transform: scale(1.08);
   }
 }
 
-// ─── Légende retard ───────────────────────────────────────────────────────────
 .mise-legend {
   display: flex;
   align-items: center;
@@ -142,24 +122,20 @@
   margin-bottom: 10px;
 }
 
-.legend-dot {
+.legend-dot.late-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  background: var(--elyk-orange);
   flex-shrink: 0;
-
-  &.late-dot {
-    background: #EF9A9A;
-    border: 1px solid #C62828;
-  }
 }
 
 .legend-text {
   font-size: 11px;
-  color: #C62828;
+  color: var(--elyk-orange);
+  font-weight: 600;
 }
 
-// ─── État vide ────────────────────────────────────────────────────────────────
 .mise-empty {
   display: flex;
   align-items: center;
@@ -167,32 +143,30 @@
   gap: 6px;
   padding: 10px 0 14px;
   font-size: 13px;
-  color: #4CAF50;
+  color: var(--elyk-green);
+  font-weight: 600;
 
   ion-icon {
-    font-size: 16px;
+    font-size: 18px;
   }
 }
 
-// ─── Séparateur ───────────────────────────────────────────────────────────────
 .mise-divider {
   height: 1px;
-  background: #F0F0F0;
+  background: var(--elyk-border);
   margin-bottom: 12px;
 }
 
-// ─── Bloc résultat ────────────────────────────────────────────────────────────
 .mise-result {
-  background: #F8F9FA;
-  border-radius: 10px;
+  background: var(--elyk-navy-pale);
+  border-radius: 14px;
   padding: 12px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  transition: background 0.2s;
 
   &.has-value {
-    background: #F1F8E9;
+    background: #e6f5eb;
   }
 }
 
@@ -204,42 +178,38 @@
 
 .mise-result-label {
   font-size: 11px;
-  color: #558B2F;
-  font-weight: 500;
+  color: var(--elyk-muted);
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.04em;
 }
 
 .mise-result-count {
   font-size: 12px;
-  color: #33691E;
+  color: var(--elyk-navy);
 }
 
 .mise-result-hint {
-  color: #BDBDBD;
+  color: var(--elyk-muted);
 }
 
 .mise-result-amount {
-  font-size: 20px;
-  font-weight: 600;
-  color: #1B5E20;
+  font-size: 18px;
 }
 
 .mise-result-dash {
   font-size: 18px;
-  color: #BDBDBD;
+  color: var(--elyk-muted);
 }
 
-// ─── Message de validation ────────────────────────────────────────────────────
 .validation-message {
   display: flex;
   align-items: center;
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   margin-top: 12px;
-  animation: slideIn 0.25s ease;
 
   ion-icon {
     margin-right: 8px;
@@ -248,24 +218,16 @@
   }
 
   &.success {
-    background: var(--validation-success-background);
-    color: var(--validation-success-color);
-    border: 1px solid var(--validation-success-color);
+    background: #e6f5eb;
+    color: var(--elyk-green);
   }
 
   &.error {
-    background: var(--validation-error-background);
-    color: var(--validation-error-color);
-    border: 1px solid var(--validation-error-color);
+    background: #fde8ea;
+    color: var(--ion-color-danger);
   }
 }
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(-6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-// ─── Responsive petits écrans ─────────────────────────────────────────────────
 @media (max-width: 360px) {
   .mise-chip {
     width: 32px;
@@ -275,9 +237,5 @@
 
   .mise-grid {
     gap: 6px;
-  }
-
-  .mise-result-amount {
-    font-size: 18px;
   }
 }

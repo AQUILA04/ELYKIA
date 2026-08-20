@@ -1,25 +1,22 @@
 :host {
   display: block;
   width: 100%;
+  margin-bottom: 12px;
 }
 
 .credit-card {
-  background: #FFFFFF;
-  border: 1px solid #E0E0E0;
-  border-radius: 12px;
+  margin: 0;
   padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
   cursor: pointer;
+  transition: transform 0.16s ease, border-color 0.16s ease;
 
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
+  &:active {
+    transform: scale(0.99);
   }
 
   &.selected {
-    background: #E8F5E9; // Fond vert clair
-    border: 2px solid #4CAF50; // Bordure verte solide
+    border: 1.5px solid var(--elyk-navy);
+    background: rgba(0, 51, 102, 0.03);
   }
 }
 
@@ -27,53 +24,54 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+}
 
-  .credit-reference {
-    font-size: 16px;
-    font-weight: 600;
-    color: #1976D2; // Couleur bleue
-  }
+.credit-reference {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--elyk-navy);
+}
 
-  .credit-date {
-    font-size: 12px;
-    color: #757575;
-    background: #F5F5F5;
-    padding: 4px 8px;
-    border-radius: 16px;
-  }
+.credit-date {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--elyk-muted);
+  background: var(--elyk-navy-pale);
+  padding: 4px 10px;
+  border-radius: 999px;
 }
 
 .progress-section {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
+}
 
-  .progress-bar {
-    width: 100%;
-    height: 8px;
-    background: #E0E0E0;
-    border-radius: 4px;
-    overflow: hidden;
-    margin-bottom: 8px;
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--elyk-navy-pale);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
 
-    .progress-fill {
-      height: 100%;
-      background: #4CAF50;
-      border-radius: 4px;
-      transition: width 0.3s ease;
-    }
-  }
+.progress-fill {
+  height: 100%;
+  background: var(--elyk-navy);
+  border-radius: 999px;
+  transition: width 0.3s ease;
+}
 
-  .progress-label {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    color: #757575;
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--elyk-muted);
 
-    span:last-child {
-      font-weight: 600;
-      color: #4CAF50;
-    }
+  span:last-child {
+    font-weight: 700;
+    color: var(--elyk-navy);
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -81,63 +79,45 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   text-align: center;
+}
 
-  .amount-item {
-    .amount-label {
-      font-size: 11px;
-      color: #757575;
-      margin-bottom: 4px;
-    }
+.amount-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--elyk-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+}
 
-    .amount-value {
-      font-size: 14px;
-      font-weight: 600;
-
-      &.amount-total {
-        color: #1976D2; // Bleu
-      }
-
-      &.amount-paid {
-        color: #4CAF50; // Vert
-      }
-
-      &.amount-remaining {
-        color: #F44336; // Rouge
-      }
-    }
-  }
+.amount-value {
+  font-size: 13px;
 }
 
 .daily-payment-info {
-  background: #F1F8E9;
-  border-radius: 8px;
+  background: #e6f5eb;
+  border-radius: 12px;
   padding: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 14px;
   text-align: center;
+}
 
-  .daily-payment-label {
-    font-size: 12px;
-    color: #757575;
-    margin-bottom: 4px;
-  }
+.daily-payment-label {
+  font-size: 12px;
+  color: var(--elyk-muted);
+  margin-bottom: 4px;
+}
 
-  .daily-amount {
-    font-size: 16px;
-    font-weight: 600;
-    color: #2E7D32;
-  }
+.daily-amount {
+  font-size: 16px;
+  color: var(--elyk-green);
 }
 
 .select-credit-btn {
-  --border-radius: 8px;
+  margin: 0;
   height: 44px;
-  font-weight: 500;
-  font-size: 14px;
+  font-weight: 600;
   text-transform: none;
-
-  ion-icon {
-    margin-right: 8px;
-  }
 }

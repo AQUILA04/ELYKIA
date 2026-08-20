@@ -1,5 +1,4 @@
-
-<div class="distribution-item" *ngIf="distribution">
+<div class="distribution-item elyk-client-card" *ngIf="distribution">
   <div class="distribution-date">
     <div class="date-day">{{ distribution.startDate | date:'dd' }}</div>
     <div class="date-month">{{ distribution.startDate | date:'MMM' | uppercase }}</div>
@@ -8,27 +7,22 @@
     <div class="distribution-reference">{{ distribution.reference }}</div>
     <div class="distribution-client">{{ distribution.client?.firstname || distribution?.clientName }} {{ distribution.client?.lastname }}</div>
     <div class="distribution-details">
-      {{ distribution.articleCount || 0 }} {{ distribution.articleCount === 1 ? 'article' : 'articles' }} • {{ distribution.dailyPayment }} FCFA/jour
+      {{ distribution.articleCount || 0 }} {{ distribution.articleCount === 1 ? 'article' : 'articles' }} · {{ distribution.dailyPayment | number:'1.0-0' }} FCFA/jour
     </div>
   </div>
   <div class="distribution-amount">
-    <div class="amount-value">{{ distribution.totalAmount | number:'1.0-0' }} FCFA</div>
-    <div
-      class="amount-status"
+    <div class="elyk-amount">{{ distribution.totalAmount | number:'1.0-0' }} FCFA</div>
+    <span
+      class="elyk-badge amount-status"
       [ngClass]="{
         'status-active': distribution.status === 'INPROGRESS' || distribution.status === 'ACTIVE',
         'status-completed': distribution.status === 'COMPLETED',
         'status-overdue': distribution.status === 'OVERDUE'
       }">
       {{ getStatusLabel(distribution.status) }}
-    </div>
-    <ion-badge *ngIf="!distribution.isSync" color="medium" style="margin-top: 4px; font-size: 10px;">
-      <ion-icon name="cloud-offline-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
-      Local
-    </ion-badge>
-    <ion-badge *ngIf="distribution.isSync" color="success" style="margin-top: 4px; font-size: 10px;">
-      <ion-icon name="cloud-done-outline" style="font-size: 10px; margin-right: 2px;"></ion-icon>
-      Sync
-    </ion-badge>
+    </span>
+    <span class="elyk-badge elyk-badge--local" *ngIf="!distribution.isSync">Local</span>
+    <span class="elyk-badge elyk-badge--sync" *ngIf="distribution.isSync">Sync</span>
   </div>
+  <ion-icon name="chevron-forward" class="elyk-chevron"></ion-icon>
 </div>

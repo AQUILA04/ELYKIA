@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { TabsPage } from './tabs.page';
+import { OrdersFeatureGuard } from '../core/guards/orders-feature.guard';
 
 const routes: Routes = [
   {
@@ -33,7 +34,8 @@ const routes: Routes = [
       },
       {
         path: 'orders',
-        loadChildren: () => import('../features/orders/orders.module').then(m => m.OrdersModule)
+        loadChildren: () => import('../features/orders/orders.module').then(m => m.OrdersModule),
+        canActivate: [OrdersFeatureGuard]
       },
       {
         path: 'stock',

@@ -1,74 +1,78 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title class="ion-text-center">Mes Clients</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="presentActionSheet()">
-        <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-  <ion-toolbar color="primary">
-    <ion-searchbar placeholder="Rechercher un client..." [formControl]="searchControl"></ion-searchbar>
-  </ion-toolbar>
-</ion-header>
+<ion-content [fullscreen]="true" class="elyk-content">
+  <div class="elyk-page">
+    <header class="elyk-hero">
+      <div class="elyk-hero-top">
+        <div>
+          <p class="elyk-surtitle">Portefeuille</p>
+          <h1>Mes clientes</h1>
+        </div>
+        <ion-button fill="clear" class="hero-more" (click)="presentActionSheet()">
+          <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
+        </ion-button>
+      </div>
+    </header>
 
-<ion-content>
-  <div class="filters-section">
-    <ion-chip [class.ion-color-primary]="activeFilter === 'all'" (click)="setFilter('all')">Tous</ion-chip>
-    <ion-chip [class.ion-color-primary]="activeFilter === 'credit'" (click)="setFilter('credit')">Crédit en
-      cours</ion-chip>
-    <ion-chip [class.ion-color-primary]="activeFilter === 'new'" (click)="setFilter('new')">Nouveau</ion-chip>
-    <ion-chip [class.ion-color-primary]="activeFilter === 'quartier'" (click)="setFilter('quartier')">Par
-      Quartier</ion-chip>
-  </div>
+    <div class="search-wrap elyk-search-overlap">
+      <ion-searchbar
+        class="elyk-searchbar"
+        placeholder="Rechercher un client..."
+        [formControl]="searchControl"
+        mode="md">
+      </ion-searchbar>
+    </div>
 
-  <div class="list-container">
-    <ion-list *ngIf="(paginatedClients$ | async) as clients">
+    <div class="elyk-chip-row sticky-filters">
+      <ion-chip class="elyk-chip" [class.on]="activeFilter === 'all'" (click)="setFilter('all')">Tous</ion-chip>
+      <ion-chip class="elyk-chip" [class.on]="activeFilter === 'credit'" (click)="setFilter('credit')">Crédit en cours</ion-chip>
+      <ion-chip class="elyk-chip" [class.on]="activeFilter === 'new'" (click)="setFilter('new')">Nouveau</ion-chip>
+      <ion-chip class="elyk-chip" [class.on]="activeFilter === 'quartier'" (click)="setFilter('quartier')">Par Quartier</ion-chip>
+    </div>
+
+    <ng-container *ngIf="(paginatedClients$ | async) as clients">
       <ng-container *ngIf="clients.length > 0; else emptyState">
-        <ion-item *ngFor="let client of clients; trackBy: trackByClientId" (click)="openClientDetail(client.id)" button>
-          <ion-avatar slot="start">
-            <img *ngIf="(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto); else defaultAvatar" 
-                 [src]="getPhotoUrl(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto)" 
-                 (error)="handleImageError($event)"/>
-            <ng-template #defaultAvatar>
-              <div class="avatar-fallback">
-                <ion-icon name="person"></ion-icon>
-              </div>
-            </ng-template>
-          </ion-avatar>
-          <ion-label>
-            <h2>{{ client.fullName || (client.firstname + ' ' + client.lastname) }}</h2>
-            <p *ngIf="client.address || client.quarter">
-              <ng-container *ngIf="client.address">{{ client.address }}</ng-container>
-              <ng-container *ngIf="client.address && client.quarter"> • </ng-container>
-              <ng-container *ngIf="client.quarter">{{ client.quarter }}</ng-container>
-            </p>
-            <p *ngIf="client.phone">{{ client.phone }}</p>
-          </ion-label>
-          <div slot="end" class="client-details">
-            <ion-note color="success">{{ client.account?.accountBalance | currency:'XOF' }}</ion-note>
-            <ion-badge *ngIf="client.hasActiveCredit" color="warning">Crédit en cours</ion-badge>
-            <ion-badge *ngIf="!client.isSync" color="medium">
-              <ion-icon name="cloud-offline-outline" style="font-size: 12px; margin-right: 2px;"></ion-icon>
-              Local
-            </ion-badge>
-            <ion-badge *ngIf="client.isSync" color="success">
-              <ion-icon name="cloud-done-outline" style="font-size: 12px; margin-right: 2px;"></ion-icon>
-              Sync
-            </ion-badge>
+        <article
+          class="elyk-client-card"
+          *ngFor="let client of clients; trackBy: trackByClientId"
+          (click)="openClientDetail(client.id)">
+          <div class="card-left">
+            <div class="elyk-avatar">
+              <img *ngIf="(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto); else defaultAvatar"
+                   [src]="getPhotoUrl(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto)"
+                   (error)="handleImageError($event)"
+                   alt="" />
+              <ng-template #defaultAvatar>
+                <span>{{ (client.firstname?.charAt(0) || '') + (client.lastname?.charAt(0) || '') || '?' }}</span>
+              </ng-template>
+            </div>
+            <div class="card-info">
+              <h3>{{ client.fullName || (client.firstname + ' ' + client.lastname) }}</h3>
+              <p *ngIf="client.address || client.quarter">
+                <ng-container *ngIf="client.address">{{ client.address }}</ng-container>
+                <ng-container *ngIf="client.address && client.quarter"> · </ng-container>
+                <ng-container *ngIf="client.quarter">{{ client.quarter }}</ng-container>
+              </p>
+              <p *ngIf="client.phone">{{ client.phone }}</p>
+            </div>
           </div>
-        </ion-item>
+          <div class="card-right">
+            <span class="elyk-amount">{{ client.account?.accountBalance | currency:'XOF' }}</span>
+            <span class="elyk-badge elyk-badge--credit" *ngIf="client.hasActiveCredit">Crédit</span>
+            <span class="elyk-badge elyk-badge--local" *ngIf="!client.isSync">Local</span>
+            <span class="elyk-badge elyk-badge--sync" *ngIf="client.isSync">Sync</span>
+          </div>
+          <ion-icon name="chevron-forward" class="elyk-chevron"></ion-icon>
+        </article>
       </ng-container>
 
       <ng-template #emptyState>
-        <div class="empty-state">
+        <div class="elyk-empty">
           <ion-icon name="people-outline"></ion-icon>
           <h2 *ngIf="!(isLoading$ | async)">Aucun client trouvé</h2>
           <ion-spinner *ngIf="isLoading$ | async"></ion-spinner>
           <p>Ajouter un <a routerLink="new-client">nouveau client</a> ?</p>
         </div>
       </ng-template>
-    </ion-list>
+    </ng-container>
 
     <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMore($event)" [disabled]="!(hasMore$ | async)">
       <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement..."></ion-infinite-scroll-content>
@@ -76,7 +80,7 @@
   </div>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button routerLink="new-client">
+    <ion-fab-button class="elyk-fab" routerLink="new-client">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>

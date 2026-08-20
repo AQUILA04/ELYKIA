@@ -1,0 +1,31 @@
+ion-header.ion-no-border {
+  --border-width: 0;
+}
+
+.elyk-hero--compact {
+  padding-top: 0;
+}
+
+.hero-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-width: 0;
+  --min-height: 56px;
+}
+
+.hero-toolbar ion-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  text-align: start;
+  padding-inline: 8px;
+
+  .elyk-surtitle {
+    display: block;
+    margin-bottom: 2px;
+  }
+}
+
+.form-wrap {
+  padding: 16px;
+}

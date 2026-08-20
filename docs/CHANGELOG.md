@@ -41,6 +41,100 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Dashboard ne reste plus « Hors ligne » après login : `resetAppData` ne réinitialise plus le statut réseau ; ping d’init + refresh au login et à l’entrée du dashboard mettent à jour le store.
 
+## Mobile — [2.28.4] — 2026-08-20
+
+### Changed
+
+- CTA sélection client (recouvrement) en outline plus discret ; footer Imprimer le Rapport en navy ; consentement journalier et menus ActionSheet tontine (dashboard + détail membre) alignés DS ; alertes tontine via `elyk-alert`.
+
+### Fixed
+
+- Chevauchements hero/search/KPI : search-overlap −28px, KPI sans double overlap après search (distributions, tontine) ; liste Articles avec hero+search dans le même flux.
+
+## Mobile — [2.28.3] — 2026-08-20
+
+### Changed
+
+- Menu popover fiche client et écran Modifier le client alignés sur le design system Elykia navy (cartes, champs, footer).
+
+### Fixed
+
+- Tontine : recherche repositionnée sous le hero (plus de chevauchement sur la 2ᵉ rangée de KPI).
+- Dashboard : marge basse suffisante pour que la dernière action rapide ne soit plus masquée par la tab bar.
+
+## Mobile — [2.28.2] — 2026-08-20
+
+### Changed
+
+- Écran de connexion : labels des champs hors chevauchement (structure `.elyk-field`) ; actions « web » et « restaurer » en liens discrets sous le statut, pour laisser « SE CONNECTER » en focus principal.
+
+## Mobile — [2.28.1] — 2026-08-20
+
+### Changed
+
+- Gestion des commandes derrière le feature flag `ordersManagement` (défaut `false`) : guard routes, section Plus et raccourci Distributions masqués tant que le flag n'est pas activé via Remote Config.
+
+## Mobile — [2.28.0] — 2026-08-20
+
+### Added
+
+- Domaine Commandes : page détail (`/tabs/orders/detail/:id`) avec lignes articles, badges statut/sync et actions Modifier/Supprimer si PENDING.
+
+### Changed
+
+- Liste des commandes branchée sur NgRx paginé + item compact DS (réf, client, montant, date, statut) ; create/edit via `base-transaction` aligné navy.
+- Édition commande : hydratation client, persistance `clientId`, garde statut PENDING ; retour vers le détail après modification.
+
+### Fixed
+
+- Raccourci « Nouvelle Commande » depuis la liste Distributions (stub `console.log` → `/tabs/orders/new`).
+
+## Mobile — [2.27.0] — 2026-08-20
+
+### Changed
+
+- Domaine Recouvrement : nouveau (create + credit-card, amount-input, reliquat), détail modal et reçu alignés sur le design system Elykia navy.
+
+### Fixed
+
+- FAB liste des recouvrements : lien mort `/tabs/more/recovery` remplacé par `/recovery`.
+
+## Mobile — [2.26.0] — 2026-08-20
+
+### Changed
+
+- Domaine Tontine commercial : dashboard, détail membre, cotisation, inscription, livraison et reçus alignés sur le design system Elykia navy (heroes, KPI, cartes, search, footer sticky) ; suppression du thème violet legacy `#667eea`.
+
+## Mobile — [2.25.0] — 2026-08-20
+
+### Changed
+
+- Onglet Plus / Paramètres et écrans enfants (sync manuelle, erreurs sync, mot de passe, localités, articles, recouvrements, rapport journalier) alignés sur le design system Elykia navy ; primitives `.elyk-settings-group` / `.elyk-settings-row`.
+
+## Mobile — [2.24.1] — 2026-08-20
+
+### Changed
+
+- Historique recouvrements (détail distribution) : section en carte `.elyk-card`, lignes alignées sur le pattern liste, états vide/chargement/erreur DS.
+
+## Mobile — [2.24.0] — 2026-08-20
+
+### Changed
+
+- Domaine Distributions : liste, item, détail modal, historique recouvrements, nouvelle/édition et modal de confirmation alignés sur le design system Elykia navy (heroes, KPI, cartes, search overlap, footer sticky).
+
+## Mobile — [2.23.1] — 2026-08-20
+
+### Changed
+
+- Modal `client-selector` : hero navy, search en overlap, cartes clientes et avatars navy-pale, alignée sur le design system Elykia.
+
+## Mobile — [2.23.0] — 2026-08-20
+
+### Changed
+
+- Design system commercial : navy Elykia poussé au-delà du shell RM (heroes lumineux, verre, KPI en overlap, tab bar flottante, login éditorial) sur login, dashboard, clientes, nouveau client et à recouvrer.
+
 ## Mobile — [2.22.1] — 2026-08-19
 
 ### Fixed

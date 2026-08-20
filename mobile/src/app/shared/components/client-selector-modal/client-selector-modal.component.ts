@@ -175,7 +175,18 @@ export class ClientSelectorModalComponent implements OnInit, OnDestroy {
   }
 
   getAvatarColor(client: Client): string {
-    const colors = ['#FF6B35', '#2E8B57', '#4682B4', '#8B4513', '#9932CC', '#DC143C', '#008B8B', '#B8860B', '#8B008B', '#556B2F'];
+    const colors = [
+      '#e8eef6',
+      '#d9e4f0',
+      '#cfe0ef',
+      '#c5d8eb',
+      '#bcd0e6',
+      '#b3c8e0',
+      '#a9bfd9',
+      '#9fb7d3',
+      '#95aecc',
+      '#8ba6c6'
+    ];
     const idStr = String(client.id);
     const index = idStr ? parseInt(idStr.slice(-1), 16) % colors.length : 0;
     return colors[index];

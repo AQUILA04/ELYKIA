@@ -1,0 +1,121 @@
+ion-header.ion-no-border {
+  --border-width: 0;
+}
+
+.elyk-hero--compact {
+  padding-top: 0;
+}
+
+.hero-toolbar,
+.modal-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-width: 0;
+  --min-height: 56px;
+}
+
+.hero-toolbar ion-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  text-align: start;
+  padding-inline: 8px;
+
+  .elyk-surtitle {
+    display: block;
+    margin-bottom: 2px;
+  }
+}
+
+.modal-toolbar {
+  --background: var(--elyk-navy);
+  --color: #fff;
+}
+
+.edit-client-form {
+  padding: 14px 16px 24px;
+}
+
+.name-lock-note {
+  display: block;
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff3e6;
+  color: var(--elyk-orange);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+ion-card.elyk-card {
+  margin: 0 0 14px;
+}
+
+ion-card-title {
+  display: flex;
+  align-items: center;
+  color: var(--elyk-navy);
+  font-size: 15px;
+  font-weight: 700;
+
+  ion-icon {
+    color: var(--elyk-navy);
+    margin-right: 10px;
+    font-size: 20px;
+  }
+}
+
+.gps-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 8px 0 16px;
+  color: var(--elyk-navy);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.coords {
+  margin-top: 12px;
+  text-align: center;
+  color: var(--elyk-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.validation-errors {
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.search-wrap {
+  padding: 8px 16px 12px;
+  background: var(--elyk-bg);
+}
+
+.locality-list {
+  background: transparent;
+  padding: 8px 0;
+
+  ion-item {
+    --color: var(--elyk-navy);
+    margin: 0 16px 8px;
+    border: 1px solid var(--elyk-border);
+    border-radius: 12px;
+    --background: #fff;
+  }
+}
+
+.footer-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 4px 4px 0;
+  width: 100%;
+
+  ion-button {
+    margin: 0;
+    min-width: 0;
+    white-space: nowrap;
+  }
+}

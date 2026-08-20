@@ -1,28 +1,25 @@
 <div class="reliquat-container">
-  
-  <!-- Reliquat existant -->
   <div class="reliquat-existing" *ngIf="clientReliquat && clientReliquat.totalAmount > 0">
     <div class="reliquat-header">
       <ion-icon name="wallet-outline" class="reliquat-icon"></ion-icon>
       <span class="reliquat-title">Reliquat disponible</span>
-      <span class="reliquat-amount">{{ formatAmount(clientReliquat.totalAmount) }} FCFA</span>
+      <span class="reliquat-amount elyk-amount elyk-amount--green">{{ formatAmount(clientReliquat.totalAmount) }} FCFA</span>
     </div>
-    
+
     <ion-item lines="none" class="reliquat-toggle-item">
       <ion-label>Utiliser ce reliquat pour payer</ion-label>
-      <ion-toggle color="success" [checked]="useReliquat" (ionChange)="onUseReliquatToggle($event)"></ion-toggle>
+      <ion-toggle [checked]="useReliquat" (ionChange)="onUseReliquatToggle($event)"></ion-toggle>
     </ion-item>
   </div>
 
   <div class="reliquat-divider" *ngIf="clientReliquat && clientReliquat.totalAmount > 0"></div>
 
-  <!-- Saisie du montant remis -->
   <div class="received-amount-section">
     <div class="input-header">
-      <ion-icon name="cash" class="input-icon"></ion-icon>
+      <ion-icon name="cash-outline" class="input-icon"></ion-icon>
       <span class="input-title">Montant remis par le client</span>
     </div>
-    <ion-item lines="outline" class="received-input-item">
+    <ion-item lines="none" class="elyk-field received-input-item">
       <ion-input
         type="number"
         placeholder="Saisissez le montant en espèces"
@@ -34,34 +31,29 @@
     </ion-item>
   </div>
 
-  <!-- Bilan du calcul -->
   <div class="reliquat-summary" *ngIf="recoveryPlan">
-    
     <div class="summary-row" *ngIf="recoveryPlan.reliquatUsed > 0">
-      <span class="summary-label">Reliquat utilisé :</span>
-      <span class="summary-value text-success">- {{ formatAmount(recoveryPlan.reliquatUsed) }} FCFA</span>
+      <span class="summary-label">Reliquat utilisé</span>
+      <span class="summary-value elyk-amount elyk-amount--green">- {{ formatAmount(recoveryPlan.reliquatUsed) }} FCFA</span>
     </div>
 
     <div class="summary-row highlight-row">
-      <span class="summary-label">Montant à verser (espèces) :</span>
-      <span class="summary-value bold">{{ formatAmount(recoveryPlan.cashNeeded) }} FCFA</span>
+      <span class="summary-label">Montant à verser (espèces)</span>
+      <span class="summary-value elyk-amount">{{ formatAmount(recoveryPlan.cashNeeded) }} FCFA</span>
     </div>
 
-    <!-- Si le client donne plus que ce qui est attendu -->
     <ng-container *ngIf="recoveryPlan.reliquatGenerated > 0">
       <div class="reliquat-generated">
         <div class="summary-row">
-          <span class="summary-label">Nouveau reliquat généré :</span>
-          <span class="summary-value text-warning">+ {{ formatAmount(recoveryPlan.reliquatGenerated) }} FCFA</span>
+          <span class="summary-label">Nouveau reliquat généré</span>
+          <span class="summary-value elyk-amount elyk-amount--due">+ {{ formatAmount(recoveryPlan.reliquatGenerated) }} FCFA</span>
         </div>
-        
+
         <ion-item lines="none" class="reliquat-toggle-item generated-toggle">
           <ion-label>Conserver ce reliquat pour le client</ion-label>
-          <ion-toggle color="warning" [checked]="keepReliquat" (ionChange)="onKeepReliquatToggle($event)"></ion-toggle>
+          <ion-toggle [checked]="keepReliquat" (ionChange)="onKeepReliquatToggle($event)"></ion-toggle>
         </ion-item>
       </div>
     </ng-container>
-
   </div>
-
 </div>

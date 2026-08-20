@@ -1,184 +1,210 @@
+ion-header.ion-no-border {
+  --border-width: 0;
+}
+
+.elyk-hero--compact {
+  padding-top: 0;
+}
+
+.hero-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-width: 0;
+  --min-height: 56px;
+}
+
+.hero-toolbar ion-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 17px;
+  text-align: start;
+  padding-inline: 8px;
+
+  .elyk-surtitle {
+    display: block;
+    margin-bottom: 2px;
+  }
+}
+
 .receipt-preview {
-    background: white;
-    padding: 16px;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    max-width: 400px;
-    margin: 0 auto;
+  margin: 16px;
+  padding: 20px;
+  max-width: 420px;
 }
 
 .header {
-    text-align: center;
-    margin-bottom: 24px;
+  text-align: center;
+  margin-bottom: 20px;
+}
 
-    .logo {
-        font-size: 48px;
-        margin-bottom: 8px;
-    }
+.logo-mark {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 10px;
+  border-radius: 16px;
+  background: var(--elyk-navy);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 800;
+}
 
-    h2 {
-        margin: 0;
-        font-size: 24px;
-        font-weight: bold;
-        color: #2d3748;
-    }
+.header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--elyk-navy);
+}
 
-    p {
-        margin: 4px 0 0;
-        color: #718096;
-        font-size: 14px;
-    }
+.header p {
+  margin: 4px 0 0;
+  color: var(--elyk-muted);
+  font-size: 13px;
 }
 
 .separator {
-    border-top: 2px dashed #e2e8f0;
-    margin: 24px 0;
+  border-top: 2px dashed var(--elyk-border);
+  margin: 20px 0;
 }
 
 .receipt-number {
-    text-align: center;
-    background: #f7fafc;
-    padding: 16px;
-    border-radius: 8px;
-    margin-bottom: 24px;
+  text-align: center;
+  background: var(--elyk-navy-pale);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
 
-    .label {
-        display: block;
-        font-size: 12px;
-        color: #718096;
-        margin-bottom: 4px;
-    }
+  .label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--elyk-muted);
+    text-transform: uppercase;
+  }
 
-    .value {
-        font-size: 18px;
-        font-weight: bold;
-        color: var(--ion-color-primary);
-        font-family: monospace;
-    }
+  .value {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--elyk-navy);
+    font-family: ui-monospace, monospace;
+  }
 }
 
 .section {
-    margin-bottom: 24px;
+  margin-bottom: 16px;
+}
 
-    .section-title {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 12px;
-        color: var(--ion-color-primary);
-        font-weight: 500;
-        font-size: 14px;
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--elyk-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
 
-        ion-icon {
-            font-size: 16px;
-        }
-    }
+  ion-icon {
+    font-size: 16px;
+    color: var(--elyk-navy);
+  }
 }
 
 .row {
-    display: flex;
-    justify-content: space-between;
-    padding: 8px 0;
-    border-bottom: 1px dashed #edf2f7;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--elyk-border);
 
-    &:last-child {
-        border-bottom: none;
-    }
+  &:last-child {
+    border-bottom: none;
+  }
 
-    .label {
-        color: #718096;
-        font-size: 14px;
-    }
+  .label {
+    font-size: 13px;
+    color: var(--elyk-muted);
+  }
 
-    .value {
-        color: #2d3748;
-        font-weight: 500;
-        font-size: 14px;
-        text-align: right;
-    }
+  .value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--elyk-navy);
+    text-align: right;
+  }
+}
+
+.amount-highlight,
+.total-highlight {
+  text-align: center;
+  padding: 14px;
+  border-radius: 14px;
+  margin-bottom: 10px;
 }
 
 .amount-highlight {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 20px;
-    border-radius: 12px;
-    text-align: center;
-    margin: 24px 0;
-
-    .amount-label {
-        font-size: 14px;
-        opacity: 0.9;
-        margin-bottom: 8px;
-    }
-
-    .amount-value {
-        font-size: 28px;
-        font-weight: bold;
-    }
+  background: var(--elyk-navy-pale);
 }
 
 .total-highlight {
-    background: rgba(var(--ion-color-success-rgb), 0.1);
-    border: 2px solid var(--ion-color-success);
-    padding: 16px;
-    border-radius: 12px;
-    text-align: center;
-    margin-bottom: 24px;
-
-    .total-label {
-        font-size: 13px;
-        color: var(--ion-color-success);
-        font-weight: 600;
-        margin-bottom: 4px;
-    }
-
-    .total-value {
-        font-size: 24px;
-        font-weight: bold;
-        color: var(--ion-color-success);
-    }
+  background: #e6f5eb;
 }
 
-.receipt-footer {
-    padding-top: 24px;
-    border-top: 2px dashed #e2e8f0;
-    text-align: center;
+.amount-label,
+.total-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--elyk-muted);
+  margin-bottom: 4px;
+}
 
-    .signature-section {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        margin: 24px 0;
-    }
-
-    .signature-box {
-        text-align: center;
-
-        .signature-line {
-            border-top: 2px solid #e2e8f0;
-            margin: 40px 0 8px 0;
-        }
-
-        .signature-label {
-            font-size: 11px;
-            color: #718096;
-        }
-    }
-
-    .receipt-note {
-        font-size: 12px;
-        color: #718096;
-        line-height: 1.6;
-    }
+.amount-value,
+.total-value {
+  font-size: 22px;
 }
 
 .offline-estimate {
-    margin-top: 16px;
-    padding: 10px 12px;
-    border-radius: 8px;
-    background: #fff7ed;
-    color: #9a3412;
-    font-size: 12px;
-    text-align: center;
+  background: #fff3e6;
+  color: var(--elyk-orange);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.receipt-footer {
+  margin-top: 20px;
+}
+
+.signature-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.signature-box {
+  text-align: center;
+}
+
+.signature-line {
+  border-bottom: 1px solid var(--elyk-border);
+  height: 40px;
+  margin-bottom: 6px;
+}
+
+.signature-label {
+  font-size: 11px;
+  color: var(--elyk-muted);
+}
+
+.receipt-note {
+  text-align: center;
+  font-size: 11px;
+  color: var(--elyk-muted);
+  line-height: 1.45;
 }

@@ -1,259 +1,286 @@
-ion-header {
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  &.ion-no-border {
-    --border-width: 0;
-  }
+ion-header.ion-no-border {
+  --border-width: 0;
 }
 
-.header-toolbar {
-  --background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
-  --color: var(--ion-color-primary-contrast);
+.client-hero {
+  padding-top: 0;
+  border-radius: 0 0 var(--elyk-radius-hero) var(--elyk-radius-hero);
+}
 
-  &.segment-toolbar {
-    --background: #ffffff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  }
-
-  ion-segment {
-    --background: #ffffff;
-    ion-segment-button {
-      --color: #888888; // Gray color for unselected tabs
-      --color-checked: #3880ff; // Blue color for the selected tab
-      --indicator-color: #3880ff; // Blue color for the indicator line
-      font-weight: 500;
-      text-transform: none;
-    }
-  }
+.hero-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-width: 0;
+  --min-height: 44px;
 }
 
 .client-header-content {
-  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
-  color: var(--ion-color-primary-contrast);
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
   text-align: center;
+  padding: 4px 16px 8px;
+}
+
+.client-photo-large {
+  width: 88px;
+  height: 88px;
+  min-width: 88px;
+  font-size: 28px;
+  border: 3px solid rgba(255, 255, 255, 0.35);
+  background: #fff;
+  color: var(--elyk-navy);
+  margin-bottom: 10px;
+}
+
+.call-icon {
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.client-basic-info {
+  margin: 6px 0 0;
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.segment-wrap {
+  background: var(--elyk-bg);
+  padding: 12px 16px 0;
+}
+
+.elyk-segment {
+  --background: #fff;
+  border: 1px solid var(--elyk-border);
+  border-radius: 999px;
+  overflow: hidden;
+
+  ion-segment-button {
+    --color: var(--elyk-muted);
+    --color-checked: var(--elyk-navy);
+    --indicator-color: var(--elyk-navy-pale);
+    --indicator-height: 100%;
+    --indicator-box-shadow: none;
+    --border-radius: 999px;
+    font-weight: 600;
+    text-transform: none;
+    min-height: 36px;
+  }
+}
+
+.detail-body {
   padding: 16px;
-  padding-top: 0;
-
-  .client-photo-large {
-    width: 100px;
-    height: 100px;
-    border: 4px solid var(--ion-color-light);
-    margin-bottom: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    background-color: #ffffff;
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .initials-placeholder {
-        font-size: 40px;
-        font-weight: bold;
-        color: var(--ion-color-primary);
-        background-color: var(--ion-color-light);
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-  }
-
-  .client-name-large {
-    font-size: 1.6rem;
-    font-weight: bold;
-    margin: 0;
-  }
-
-  .client-basic-info {
-    font-size: 0.9rem;
-    opacity: 0.9;
-    margin-top: 4px;
-  }
 }
 
-ion-content {
-  .ion-padding {
-    padding-top: 16px;
-  }
-}
-
-// Styles pour les cartes d'information
 .info-list {
-    background: transparent;
-    ion-card {
-        margin-bottom: 16px;
-        ion-card-title {
-            display: flex;
-            align-items: center;
-            font-size: 1.1rem;
-            color: var(--ion-color-info);
-            ion-icon {
-                margin-right: 12px;
-                color: var(--ion-color-info) !important; // Forcer la couleur
-            }
-        }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--ion-color-light-shade);
-            &:last-child {
-                border-bottom: none;
-            }
-            .info-label {
-                color: var(--ion-color-medium);
-                font-weight: 500;
-            }
-            .info-value {
-                color: var(--ion-color-dark);
-                font-weight: 500;
-            }
-        }
-        .map-button {
-            margin-top: 16px;
-        }
+  background: transparent;
+
+  ion-card {
+    margin: 0 0 14px;
+  }
+
+  ion-card-title {
+    display: flex;
+    align-items: center;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--elyk-navy);
+
+    ion-icon {
+      margin-right: 10px;
+      color: var(--elyk-navy);
     }
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--elyk-navy-pale);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .info-label {
+    color: var(--elyk-muted);
+    font-weight: 500;
+  }
+
+  .info-value {
+    color: var(--elyk-navy);
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .reliquat-value {
+    color: var(--elyk-green);
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .map-button {
+    margin-top: 16px;
+  }
 }
 
-// Styles pour l'état vide
-.empty-state {
-    text-align: center;
-    padding: 48px 16px;
-    .empty-icon {
-        font-size: 72px;
-        color: var(--ion-color-medium-tint);
-    }
-    h2 {
-        margin-top: 16px;
-        font-weight: bold;
-    }
-    p {
-        color: var(--ion-color-medium);
-    }
-}
-
-// Styles pour les cartes de crédit
 .credit-list {
-    background: transparent;
-    .credit-card {
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-        &:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--ion-box-shadow, 0 4px 16px rgba(0,0,0,.12));
-        }
-        .credit-header-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .credit-amounts, .credit-footer {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            .amount-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                .amount-label { font-size: 0.8rem; color: var(--ion-color-medium); }
-                .amount-value { font-size: 1.1rem; font-weight: bold; }
-                .amount-total { color: var(--ion-color-primary); }
-                .amount-paid { color: var(--ion-color-success); }
-                .amount-remaining { color: var(--ion-color-danger); }
-            }
-        }
-        .progress-section {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 12px;
-            ion-progress-bar { flex: 1; }
-            .progress-label { font-size: 0.8rem; font-weight: bold; color: var(--ion-color-primary); }
-        }
-        .credit-dates {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.75rem;
-            color: var(--ion-color-medium);
-            margin-top: 8px;
-        }
+  background: transparent;
+
+  .credit-card {
+    cursor: pointer;
+    margin: 0 0 14px;
+  }
+
+  .credit-header-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  ion-card-title {
+    color: var(--elyk-navy);
+    font-weight: 800;
+    font-size: 15px;
+  }
+
+  .credit-amounts,
+  .credit-footer {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .amount-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .amount-label {
+    font-size: 11px;
+    color: var(--elyk-muted);
+  }
+
+  .amount-value {
+    font-size: 15px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .amount-total { color: var(--elyk-navy); }
+  .amount-paid { color: var(--elyk-green); }
+  .amount-remaining { color: var(--elyk-orange); }
+
+  .progress-section {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+
+    ion-progress-bar {
+      flex: 1;
+      --progress-background: var(--elyk-navy);
+      --background: var(--elyk-navy-pale);
     }
+
+    .progress-label {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--elyk-navy);
+    }
+  }
+
+  .credit-dates {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--elyk-muted);
+  }
 }
 
-// Styles pour la timeline
 .timeline {
-    position: relative;
-    padding-left: 20px;
-    &::before {
-        content: '';
-        position: absolute;
-        left: 8px;
-        top: 0;
-        bottom: 0;
-        width: 2px;
-        background: var(--ion-color-light-shade);
-    }
-    .timeline-item {
-        position: relative;
-        margin-bottom: 16px;
-        .timeline-icon {
-            position: absolute;
-            left: -20px;
-            top: 0;
-            font-size: 24px;
-            background: var(--ion-color-background);
-            padding-right: 4px;
-            &.distribution { color: var(--ion-color-secondary); }
-            &.payment { color: var(--ion-color-success); }
-        }
-        .timeline-content {
-            background: var(--ion-color-light);
-            padding: 12px;
-            border-radius: 8px;
-            .timeline-header {
-                display: flex;
-                justify-content: space-between;
-                font-weight: 500;
-                .timeline-date { font-size: 0.8rem; color: var(--ion-color-medium); }
-            }
-            .timeline-details { margin: 4px 0; font-size: 0.9rem; }
-            .timeline-amount {
-                font-weight: bold;
-                font-size: 1.1rem;
-                &.distribution { color: var(--ion-color-secondary); }
-                &.payment { color: var(--ion-color-success); }
-            }
-        }
-    }
+  position: relative;
+  padding-left: 20px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--elyk-navy-pale);
+  }
 }
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.timeline-icon {
+  position: absolute;
+  left: -20px;
+  top: 0;
+  font-size: 24px;
+  background: var(--elyk-bg);
+  padding-right: 4px;
+
+  &.distribution { color: var(--elyk-orange); }
+  &.payment { color: var(--elyk-green); }
+}
+
+.timeline-content {
+  padding: 12px;
+}
+
+.timeline-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--elyk-navy);
+}
+
+.timeline-date {
+  font-size: 12px;
+  color: var(--elyk-muted);
+  font-weight: 500;
+}
+
+.timeline-details {
+  margin: 4px 0;
+  font-size: 13px;
+  color: var(--elyk-muted);
+}
+
+.timeline-amount {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+
+  &.distribution { color: var(--elyk-orange); }
+  &.payment { color: var(--elyk-green); }
+}
+
 .reliquat-banner {
-  background-color: rgba(var(--ion-color-success-rgb), 0.1);
-  color: var(--ion-color-success-shade);
+  background: #e6f5eb;
+  color: var(--elyk-green);
   padding: 12px 16px;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 16px;
   display: flex;
   align-items: center;
   gap: 8px;
-  border: 1px solid rgba(var(--ion-color-success-rgb), 0.3);
+  border: 1px solid rgba(29, 138, 60, 0.25);
 
   ion-icon {
-    font-size: 24px;
-    color: var(--ion-color-success);
+    font-size: 22px;
   }
 
-  span {
-    font-size: 14px;
-    flex: 1;
-
-    strong {
-      font-size: 16px;
-    }
+  strong {
+    font-variant-numeric: tabular-nums;
   }
 }

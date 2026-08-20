@@ -1,150 +1,118 @@
-<ion-header>
-  <ion-toolbar color="primary">
-    <ion-title>Distributions</ion-title>
-    <ion-buttons slot="end">
-      <ion-button (click)="dismiss()">
-        <ion-icon name="close" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact dist-detail-hero">
+    <div class="dist-hero-top">
+      <div class="dist-hero-text">
+        <p class="elyk-surtitle">Ventes crédit</p>
+        <h2 *ngIf="distribution && hasValidData()">Distribution {{ distribution.reference }}</h2>
+        <h2 *ngIf="!distribution || !hasValidData()">Distributions</h2>
+      </div>
+      <button type="button" class="close-glass" (click)="dismiss()" aria-label="Fermer">
+        <ion-icon name="close"></ion-icon>
+      </button>
+    </div>
+  </header>
 </ion-header>
 
-<ion-content class="distribution-modal">
-  <!-- Empty state when no distribution data -->
-  <div class="empty-state" *ngIf="!distribution || !hasValidData()">
-    <ion-icon name="document-outline" class="empty-icon"></ion-icon>
-    <h3 class="empty-title">Oups, désolé !</h3>
-    <p class="empty-message">Les données ne sont pas chargées</p>
-    <ion-button fill="outline" (click)="dismiss()">
-      Fermer
-    </ion-button>
+<ion-content class="elyk-content dist-detail-content">
+  <div class="elyk-empty dist-empty" *ngIf="!distribution || !hasValidData()">
+    <ion-icon name="document-outline"></ion-icon>
+    <h3>Oups, désolé !</h3>
+    <p>Les données ne sont pas chargées</p>
+    <ion-button fill="outline" class="elyk-btn-outline" (click)="dismiss()">Fermer</ion-button>
   </div>
 
-  <div class="modal-content" *ngIf="distribution && hasValidData()">
-    <!-- Header with reference -->
-    <div class="distribution-header">
-      <h2 class="distribution-title">Distribution {{ distribution.reference }}</h2>
-    </div>
-
-    <!-- Distribution details -->
-    <div class="distribution-details">
-      <!-- Date de distribution -->
-      <div class="detail-item">
-        <label class="detail-label">Date de distribution</label>
-        <div class="detail-value">{{ getFormattedDate(distribution.startDate) }}</div>
-      </div>
-
-      <!-- Client -->
-      <div class="detail-item">
-        <label class="detail-label">Client</label>
-        <div class="detail-value">{{ getClientFullName() }}</div>
-      </div>
-
-      <!-- Reliquat -->
-      <div class="detail-item" *ngIf="clientReliquatAmount > 0">
-        <label class="detail-label">Reliquat disponible</label>
-        <div class="detail-value" style="color: var(--ion-color-success); font-weight: bold;">
-          {{ getFormattedAmount(clientReliquatAmount) }}
+  <div class="dist-body" *ngIf="distribution && hasValidData()">
+    <ion-card class="elyk-card">
+      <ion-card-content>
+        <div class="detail-row">
+          <span class="detail-label">Date de distribution</span>
+          <span class="detail-value">{{ getFormattedDate(distribution.startDate) }}</span>
         </div>
-      </div>
-
-      <!-- Statut -->
-      <div class="detail-item">
-        <label class="detail-label">Statut</label>
-        <ion-chip [color]="getStatusColor()" class="status-chip">
-          {{ distribution.status }}
-        </ion-chip>
-      </div>
-
-      <!-- Progression du paiement -->
-      <div class="detail-item">
-        <label class="detail-label">Progression du paiement</label>
-        <div class="progress-container">
-          <div class="progress-value">{{ getPaymentProgress() }}%</div>
-          <ion-progress-bar
-            [value]="getPaymentProgress() / 100"
-            color="primary"
-            class="payment-progress">
-          </ion-progress-bar>
+        <div class="detail-row">
+          <span class="detail-label">Client</span>
+          <span class="detail-value">{{ getClientFullName() }}</span>
         </div>
-      </div>
+        <div class="detail-row" *ngIf="clientReliquatAmount > 0">
+          <span class="detail-label">Reliquat disponible</span>
+          <span class="detail-value elyk-amount elyk-amount--green">{{ getFormattedAmount(clientReliquatAmount) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Statut</span>
+          <span class="elyk-badge status-chip" [ngClass]="'status-' + getStatusColor()">{{ distribution.status }}</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
 
-      <!-- Mise journalière -->
-      <div class="detail-item">
-        <label class="detail-label">Mise journalière</label>
-        <div class="detail-value amount">{{ getFormattedAmount(distribution.dailyPayment || 0) }}</div>
-      </div>
+    <ion-card class="elyk-card">
+      <ion-card-content>
+        <div class="detail-row">
+          <span class="detail-label">Progression du paiement</span>
+          <span class="progress-value">{{ getPaymentProgress() }}%</span>
+        </div>
+        <ion-progress-bar [value]="getPaymentProgress() / 100" class="payment-progress"></ion-progress-bar>
+      </ion-card-content>
+    </ion-card>
 
-      <!-- Avance -->
-      <div class="detail-item">
-        <label class="detail-label">Avance</label>
-        <div class="detail-value amount">{{ getFormattedAmount(distribution.advance || 0) }}</div>
-      </div>
+    <ion-card class="elyk-card">
+      <ion-card-content>
+        <div class="detail-row">
+          <span class="detail-label">Mise journalière</span>
+          <span class="detail-value elyk-amount">{{ getFormattedAmount(distribution.dailyPayment || 0) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Avance</span>
+          <span class="detail-value elyk-amount">{{ getFormattedAmount(distribution.advance || 0) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Montant total payé</span>
+          <span class="detail-value elyk-amount elyk-amount--green">{{ getFormattedAmount(distribution.paidAmount || 0) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Montant restant</span>
+          <span class="detail-value elyk-amount">{{ getFormattedAmount(distribution.remainingAmount || 0) }}</span>
+        </div>
+      </ion-card-content>
+    </ion-card>
 
-      <!-- Montant total payé -->
-      <div class="detail-item">
-        <label class="detail-label">Montant total payé</label>
-        <div class="detail-value amount">{{ getFormattedAmount(distribution.paidAmount || 0) }}</div>
-      </div>
-
-      <!-- Montant restant -->
-      <div class="detail-item">
-        <label class="detail-label">Montant restant</label>
-        <div class="detail-value amount">{{ getFormattedAmount(distribution.remainingAmount || 0) }}</div>
-      </div>
-
-      <!-- Articles distribués -->
-      <div class="detail-item">
-        <label class="detail-label">Articles distribués</label>
-        <div class="articles-list" *ngIf="distribution.items && distribution.items.length > 0">
+    <ion-card class="elyk-card" *ngIf="distribution.items && distribution.items.length > 0">
+      <ion-card-header>
+        <ion-card-title>Articles distribués</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <div class="articles-list">
           <div class="article-item" *ngFor="let item of distribution.items">
             <div class="article-info">
               <span class="article-name">{{ item.article.name || 'Article #' + item.articleId }}</span>
-              <span class="article-quantity">(x{{ item.quantity }})</span>
+              <span class="article-quantity">×{{ item.quantity }}</span>
             </div>
-            <div class="article-price">{{ item.totalPrice }} FCFA</div>
+            <div class="article-price elyk-amount">{{ item.totalPrice | number:'1.0-0' }} FCFA</div>
           </div>
         </div>
-      </div>
+      </ion-card-content>
+    </ion-card>
 
-      <!-- Montant total -->
-      <div class="total-section">
-        <div class="total-label">Montant total</div>
-        <div class="total-amount">{{ getFormattedAmount(distribution.totalAmount) }}</div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="action-buttons">
-        <ion-button 
-          expand="block" 
-          fill="outline" 
-          color="primary"
-          (click)="editDistribution()"
-          [disabled]="!canModifyOrDelete()"
-          class="action-button">
-          <ion-icon name="create-outline" slot="start"></ion-icon>
-          Modifier
-        </ion-button>
-        
-        <ion-button 
-          expand="block" 
-          fill="outline" 
-          color="danger"
-          (click)="deleteDistribution()"
-          [disabled]="!canModifyOrDelete()"
-          class="action-button">
-          <ion-icon name="trash-outline" slot="start"></ion-icon>
-          Supprimer
-        </ion-button>
-      </div>
-
-      <!-- Historique des recouvrements liés à cette distribution -->
-      <app-distribution-recovery-history
-        *ngIf="distribution?.id"
-        [distributionId]="distribution.id"
-        [distributionReference]="distribution.reference">
-      </app-distribution-recovery-history>
-
+    <div class="total-section elyk-card">
+      <span class="total-label">Montant total</span>
+      <span class="total-amount elyk-amount">{{ getFormattedAmount(distribution.totalAmount) }}</span>
     </div>
+
+    <div class="action-buttons">
+      <ion-button expand="block" fill="outline" class="elyk-btn-outline action-button"
+        (click)="editDistribution()" [disabled]="!canModifyOrDelete()">
+        <ion-icon name="create-outline" slot="start"></ion-icon>
+        Modifier
+      </ion-button>
+      <ion-button expand="block" fill="outline" color="danger" class="action-button action-button--danger"
+        (click)="deleteDistribution()" [disabled]="!canModifyOrDelete()">
+        <ion-icon name="trash-outline" slot="start"></ion-icon>
+        Supprimer
+      </ion-button>
+    </div>
+
+    <app-distribution-recovery-history
+      *ngIf="distribution?.id"
+      [distributionId]="distribution.id"
+      [distributionReference]="distribution.reference">
+    </app-distribution-recovery-history>
   </div>
 </ion-content>

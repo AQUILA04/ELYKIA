@@ -235,7 +235,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                 {
                     text: 'Supprimer',
                     icon: 'trash-outline',
-                    cssClass: 'disabled-action',
+                    cssClass: 'elyk-action-danger',
                     handler: () => {
                         return false; // Prevent action
                     }
@@ -245,7 +245,8 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                     icon: 'close',
                     role: 'cancel'
                 }
-            ]
+            ],
+            cssClass: 'elyk-action-sheet'
         });
 
         await actionSheet.present();
@@ -283,6 +284,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         const alert = await this.alertCtrl.create({
             header: 'Confirmer la suppression',
             message: `Êtes-vous sûr de vouloir supprimer ${this.getClientDisplayName()} de cette session de tontine ?`,
+            cssClass: 'elyk-alert',
             buttons: [
                 {
                     text: 'Annuler',
@@ -298,6 +300,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                             const successAlert = await this.alertCtrl.create({
                                 header: 'Succès',
                                 message: 'Le membre a été supprimé avec succès.',
+                                cssClass: 'elyk-alert',
                                 buttons: [{
                                     text: 'OK',
                                     handler: () => {
@@ -332,6 +335,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         const alert = await this.alertCtrl.create({
             header: 'Confirmer la suppression',
             message: `Supprimer la cotisation locale du ${this.formatDate(collection.collectionDate)} (${this.formatCurrency(collection.amount)}) ?`,
+            cssClass: 'elyk-alert',
             buttons: [
                 { text: 'Annuler', role: 'cancel' },
                 {
@@ -377,7 +381,8 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         const alert = await this.alertCtrl.create({
             header: 'Erreur',
             message,
-            buttons: ['OK']
+            buttons: ['OK'],
+            cssClass: 'elyk-alert'
         });
         await alert.present();
     }

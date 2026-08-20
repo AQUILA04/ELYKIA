@@ -1,43 +1,52 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/more"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Localités</ion-title>
-  </ion-toolbar>
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact list-hero">
+    <ion-toolbar class="hero-toolbar">
+      <ion-buttons slot="start">
+        <ion-back-button defaultHref="/tabs/more"></ion-back-button>
+      </ion-buttons>
+      <ion-title>
+        <span class="elyk-surtitle">Données</span>
+        Localités
+      </ion-title>
+    </ion-toolbar>
+  </header>
 </ion-header>
 
-<ion-content>
+<ion-content [fullscreen]="true" class="elyk-content">
   <ion-refresher slot="fixed" (ionRefresh)="ionViewWillEnter()">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <ion-list *ngIf="(localities$ | async) as localities">
+  <div class="list-body" *ngIf="(localities$ | async) as localities">
     <ng-container *ngIf="localities.length > 0; else emptyState">
-      <ion-item *ngFor="let locality of localities">
-        <ion-label>
+      <div class="locality-row elyk-client-card" *ngFor="let locality of localities">
+        <div class="locality-icon"><ion-icon name="map-outline"></ion-icon></div>
+        <div class="locality-info">
           <h2>{{ locality.name }}</h2>
           <p>{{ locality?.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
-        </ion-label>
-      </ion-item>
+        </div>
+      </div>
     </ng-container>
 
     <ng-template #emptyState>
-      <div *ngIf="loading$ | async" class="ion-text-center ion-padding-top">
-        <ion-spinner></ion-spinner>
+      <div *ngIf="loading$ | async" class="elyk-empty">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Chargement...</p>
       </div>
-      <div *ngIf="!(loading$ | async)" class="ion-text-center ion-padding-top">
+      <div *ngIf="!(loading$ | async)" class="elyk-empty">
+        <ion-icon name="map-outline"></ion-icon>
+        <h3>Aucune localité</h3>
         <p>Aucune localité trouvée.</p>
       </div>
     </ng-template>
-  </ion-list>
+  </div>
 
   <ion-infinite-scroll threshold="100px" (ionInfinite)="loadData($event)" [disabled]="!(hasMore$ | async)">
     <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement..."></ion-infinite-scroll-content>
   </ion-infinite-scroll>
 
   <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="navigateToAddLocality()">
+    <ion-fab-button class="elyk-fab" (click)="navigateToAddLocality()">
       <ion-icon name="add"></ion-icon>
     </ion-fab-button>
   </ion-fab>

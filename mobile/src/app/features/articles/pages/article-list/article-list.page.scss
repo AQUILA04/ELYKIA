@@ -1,112 +1,55 @@
-// NOTE: Le bloc :host a été entièrement supprimé.
+.hero-toolbar {
+  --background: transparent;
+  --color: #fff;
+  --border-width: 0;
+  --min-height: 56px;
+}
 
-// Section Headers
-.section-header {
-  display: flex;
-  align-items: center;
-  margin-bottom: 12px;
-  padding: 0 4px;
+.hero-toolbar ion-title {
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  text-align: start;
+  padding-inline: 8px;
 
-  .section-icon {
-    color: #1976d2;
-    font-size: 20px;
-    margin-right: 8px;
-  }
-
-  .section-title {
-    color: #212121;
-    font-size: 16px;
-    font-weight: 500;
-    flex: 1;
-  }
-
-  .articles-count {
-    color: #757575;
-    font-size: 14px;
-    background: #e3f2fd;
-    padding: 4px 8px;
-    border-radius: 12px;
+  .elyk-surtitle {
+    display: block;
+    margin-bottom: 2px;
   }
 }
 
-// Articles Section
-.articles-section {
-  // Changement : plus besoin de flex ici, la page défile normalement
-  margin-bottom: 24px;
-
-  .search-container {
-    padding: 0 4px 16px;
-
-    ion-searchbar {
-      --background: white;
-      --border-radius: 12px;
-      --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      margin-bottom: 0;
-    }
-  }
-
-  .articles-list {
-    .article-card {
-      margin: 0 0 12px 0;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      transition: all 0.2s ease;
-
-      ion-card-content {
-        padding: 16px;
-      }
-    }
-
-    .article-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-
-      .article-info {
-        flex: 1;
-
-        .article-name {
-          color: #1976d2;
-          font-size: 16px;
-          font-weight: 500;
-          margin-bottom: 4px;
-        }
-
-        .article-details {
-          color: #757575;
-          font-size: 14px;
-          margin-bottom: 4px;
-        }
-
-        .stock-info {
-          color: #4caf50;
-          font-size: 12px;
-          font-weight: 500;
-          margin-bottom: 8px;
-        }
-
-        .price-info {
-          display: flex;
-          flex-direction: column;
-          gap: 2px;
-
-          .unit-price {
-            color: #1976d2;
-            font-size: 16px;
-            font-weight: 600;
-          }
-        }
-      }
-    }
-  }
+.elyk-hero--compact {
+  padding-bottom: 36px;
 }
 
-// Responsive Design
-@media (max-width: 768px) {
-  .article-content {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
+.articles-list {
+  padding: 8px 0 24px;
+}
+
+.article-card {
+  margin: 0 16px 10px;
+}
+
+.article-name {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--elyk-navy);
+}
+
+.article-details,
+.stock-info {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--elyk-muted);
+}
+
+.stock-info {
+  color: var(--elyk-green);
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.elyk-empty ion-spinner {
+  --color: var(--elyk-navy);
 }

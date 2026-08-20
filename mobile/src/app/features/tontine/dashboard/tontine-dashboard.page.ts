@@ -194,7 +194,7 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
     }
 
     onSearch(event: any) {
-        this.searchTerm$.next(event.target.value);
+        this.searchTerm$.next(event.detail?.value ?? event.target?.value ?? '');
     }
 
     viewMemberDetails(memberId: string) {
@@ -237,11 +237,10 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
                 {
                     text: 'Annuler',
                     icon: 'close',
-                    role: 'cancel',
-                    cssClass: 'action-sheet-cancel' // Added class for better styling control
+                    role: 'cancel'
                 },
             ],
-            cssClass: 'custom-action-sheet' // Added class for better styling control
+            cssClass: 'elyk-action-sheet'
         });
         await actionSheet.present();
     }
