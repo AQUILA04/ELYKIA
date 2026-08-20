@@ -1,76 +1,32 @@
-# Les Opérations Quotidiennes
+# Opérations quotidiennes
 
-Ici, nous allons voir comment gérer le quotidien : ouvrir la boutique, accueillir les clients et surveiller leurs comptes.
+Cette page rassemble les gestes de contrôle du jour : journée comptable, caisse, clients, comptes et versements. Les libellés et boutons dépendent des permissions de la session.
 
----
+## Journée comptable et caisse
 
-## 1. La Journée Comptable (Le "Top Départ")
+La page **Gestion de la journée comptable** affiche la date comptable, en lecture seule, et l’action **Ouvrir** ou **Fermer** selon son état. Lorsqu’elle est ouverte, la liste **Caisses Ouvertes** identifie les collecteurs encore en service. Cette page peut être réservée aux comptes chargés de l’ouverture ou de la fermeture.
 
-Imaginez que vous ouvrez le rideau de fer du magasin. Dans l'application, c'est pareil.
-**Règle d'or** : Aucune vente ni encaissement n'est possible si la journée n'est pas ouverte.
+Le menu **Caisse > Ouverture / Fermeture** permet à l’agent autorisé d’ouvrir ou de fermer sa caisse. L’écran indique le nom de l’utilisateur concerné et ne demande pas de saisie supplémentaire.
 
-Allez dans **Journée comptable**.
-*   Le matin : Cliquez sur **Ouvrir une nouvelle journée**.
-*   Le soir (après avoir tout vérifié) : Cliquez sur **Fermer la journée**.
+<!-- CAPTURE À INSÉRER : Écran Gestion de la caisse avec le nom de l’utilisateur et le bouton Ouvrir Caisse. -->
 
-![Journée Comptable](../images/manager/05_accounting_day_list.png)
+| Action | Précondition | Résultat attendu |
+|---|---|---|
+| Ouvrir la journée | Permission d’ouverture et date comptable proposée. | Les opérations du jour peuvent être réalisées. |
+| Ouvrir une caisse | Journée comptable ouverte et permission de caisse. | L’agent peut enregistrer ses opérations. |
+| Fermer une caisse | Fin des opérations de l’agent. | La caisse ne doit plus recevoir de nouvelle opération. |
+| Fermer la journée | Contrôle préalable des caisses encore ouvertes. | La journée est clôturée selon la procédure de l’organisation. |
 
-La journée est ouverte, vous êtes prêt à recevoir les clients.
+Le **billetage** peut être accessible selon le déploiement. Il consiste à renseigner les quantités de billets et de pièces ; le total est calculé avant la validation. Comparez le total obtenu avec les opérations enregistrées, sans modifier artificiellement les montants pour faire disparaître un écart.
 
----
+## Clients et comptes
 
-## 2. Gérer vos Clients
+Dans **Clients**, recherchez d’abord par nom, prénom, téléphone ou localité. Un filtre commercial peut être appliqué, et les KPI indiquent notamment les clients avec crédit actif ou membres tontine. La création exige les informations d’identité, la pièce, les coordonnées, la localité et les commerciaux associés. La géolocalisation peut être obtenue par GPS ou saisie manuellement.
 
-Le client est roi, et son dossier doit être impeccable. C'est dans le menu **Clients** que ça se passe.
+La réaffectation d’un portefeuille par cases à cocher est réservée aux comptes habilités. Le responsable peut choisir séparément un commercial crédit et un commercial tontine ; la case de transfert automatique ne concerne que les ventes crédit en cours et n’est disponible qu’après sélection d’un commercial crédit.
 
-### a. Rechercher avant de créer
-Avant d'ajouter quelqu'un, ayez le réflexe de vérifier s'il n'est pas déjà là.
-Utilisez la barre de recherche avec son nom ou son numéro de téléphone. Ça évite les doublons !
+## Suivre l’opération journalière et les versements
 
-![Liste des Clients](../images/manager/06_client_list.png)
+Le sous-menu **Caisse > Opération Journalière** affiche des crédits avec le client, la localité, la mise journalière et le reste à payer. Il fournit un accès aux détails et, selon l’habilitation, à des documents de suivi.
 
-### b. Accueillir un Nouveau Client
-C'est un nouveau ? Bienvenue à lui !
-1.  Cliquez sur **Ajouter**.
-2.  Prenez le temps de bien remplir sa fiche :
-    *   **Qui est-il ?** Nom, Prénom, Photo.
-    *   **Où habite-t-il ?** Adresse précise (la géolocalisation aide beaucoup).
-    *   **Qui s'occupe de lui ?** Assignez-lui ses Commerciaux responsables (pour le Crédit et la Tontine).
-    *   **Finance** : Définissez son solde initial.
-3.  Validez.
-
-![Nouveau Client](../images/manager/07_client_add_form.png)
-
-### c. Mettre à jour un dossier
-Le client a déménagé ? Il a changé de numéro ?
-Dans la liste, utilisez les petits boutons à droite :
-*   L'**Œil** pour voir tout son historique.
-*   Le **Crayon** pour modifier ses infos.
-*   La **Corbeille** pour supprimer (Attention, c'est irréversible !).
-
-![Détails Client](../images/manager/08_client_details.png)
-
-Votre base client est propre. Voyons maintenant leur situation financière.
-
----
-
-## 3. Surveiller les Comptes (L'Argent)
-
-Le menu **Comptes** est votre tour de contrôle financière. Il répond à la question : *"Est-ce que ce client est solvable ?"*
-
-### a. Coup d'œil rapide
-Dans la liste, regardez la colonne **Solde**.
-*   Positif ? Il a de l'avance.
-*   Négatif ? Il nous doit de l'argent.
-
-Regardez aussi le **Statut**. Si un compte est **Bloqué**, le client ne pourra plus rien acheter à crédit tant que vous ne l'aurez pas débloqué.
-
-![Liste des Comptes](../images/manager/09_accounts_list.png)
-
-### b. Analyser en détail
-Cliquez sur l'**Œil** d'un compte pour voir sa fiche.
-C'est ici que vous pouvez intervenir manuellement si besoin (par exemple pour corriger une erreur ou bloquer le compte d'un mauvais payeur).
-
-![Détails du Compte](../images/manager/09b_account_details.png)
-
-Vous maîtrisez la gestion des clients. Passons maintenant à la gestion des stocks et des ventes.
+Les versements ne se lisent plus comme un total unique. Dans le **Rapport Journalier**, le segment **Versements** sépare les montants crédit, tontine, solde de nouveaux comptes, surplus et total. Les règles de création, d’annulation et de réception sont précisées dans le guide [Rapports et configuration](reporting_config.md).

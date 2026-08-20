@@ -1,142 +1,34 @@
-# Stocks, Ventes et Commandes
+# Stocks, ventes et commandes
 
-C'est le cœur du réacteur. Ici, nous gérons le flux de marchandises (du stock vers le client) et le flux d'argent (la vente).
+Les marchandises suivent un circuit tracé : référentiel article, entrée de stock, demande de sortie, validation, livraison, retour éventuel, puis vente ou livraison tontine. Chaque étape comporte un statut ; ne passez pas directement à l’étape suivante.
 
----
+## Catalogue et inventaire
 
-## 1. Votre Catalogue (Articles)
+Le menu **Articles** donne accès au catalogue. La fiche article regroupe les informations commerciales et l’historique de ses mouvements. Utilisez l’inventaire pour consulter les quantités, créer un inventaire physique, saisir les quantités constatées, réconcilier les écarts puis clôturer l’opération lorsque les contrôles sont terminés.
 
-Le menu **Articles**, c'est votre vitrine. Il liste tout ce que vous pouvez vendre.
+<!-- CAPTURE À INSÉRER : Page Inventaires — panneau Actions inventaire avec Créer, Saisir quantités physiques, Réconcilier et Clôturer. -->
 
-### a. Consulter le catalogue
-La liste vous montre tous vos produits avec leur marque, modèle et type.
+## Entrées de stock : validation obligatoire
 
-![Liste des Articles](../images/manager/10_articles_list.png)
+Depuis **Inventaires > Entrées stock**, sélectionnez les articles et les quantités reçues, puis validez l’entrée. L’application crée une réception en attente ; elle ne doit pas être présentée comme du stock immédiatement disponible.
 
-### b. Ajouter un produit
-Pour ajouter un nouveau produit :
-1.  Cliquez sur **Ajouter**.
-2.  Définissez bien son identité (Nom, Marque) et surtout ses **Prix** (Achat, Vente Comptant, Vente Crédit).
-3.  N'oubliez pas les seuils d'alerte stock pour être prévenu avant la rupture !
+Le menu **Historique Entrée** permet de rechercher une réception par référence, date ou statut. Le gestionnaire habilité y trouve les actions **Valider** et **Refuser** ; le créateur ou le gestionnaire peut, selon le statut, **Abandonner** une réception en attente, et l’annulation d’une réception validée est réservée aux droits appropriés.
 
-![Nouvel Article](../images/manager/10_article_add.png)
+| Statut de réception | Sens opérationnel |
+|---|---|
+| En attente | Saisie créée, à contrôler avant impact sur le stock. |
+| Validée | Réception acceptée ; son impact est pris en compte. |
+| Refusée ou abandonnée | Réception non retenue, sans disponibilité à utiliser. |
+| Annulée | Réception validée annulée selon les droits et contrôles disponibles. |
 
-Votre catalogue est prêt. Il faut maintenant distribuer ces produits.
+## Stock commercial et ventes
 
----
+Une demande de sortie suit le circuit **Créée → Validée → Livrée**. Depuis **Stock Commercial > Demandes Sortie**, les commerciaux ou gestionnaires habilités créent une demande en sélectionnant le commercial et les articles. Le gestionnaire valide une demande créée ; le magasinier livre une demande validée. Les listes proposent les filtres de période et commercial ainsi que des exports PDF par période, demande ou sélection.
 
-## 2. Le Stock Commercial (La Marchandise Ambulante)
+Après livraison, la vente apparaît dans **Ventes > Liste**. Pour une vente à crédit, le responsable valide l’enregistrement puis le magasinier démarre la vente validée. Seules les ventes `INPROGRESS` sont candidates à l’encaissement régulier. Consultez [le parcours commercial](../commercial/sales_orders.md) pour le détail du crédit, des retards et des recouvrements.
 
-Vos commerciaux partent sur le terrain avec de la marchandise. Vous devez savoir exactement ce qu'ils ont.
+## Stock tontine et commandes
 
-### a. Donner du stock (Approvisionnement)
-Un commercial a besoin de produits ?
-1.  Allez dans **Stock Commercial > Demandes Sortie**.
-2.  Créez une **Nouvelle Demande** pour lui.
-3.  **Important** : Une fois la demande créée, vous devez la **VALIDER** (bouton vert).
-    *   *Pourquoi ?* Tant que vous ne validez pas, le magasinier ne voit rien et ne peut pas livrer la marchandise.
+Le stock tontine suit le même principe de demande, validation, livraison et retour, mais il est affecté aux livraisons de fin d’année. Ne confondez pas une demande de stock tontine avec la préparation de livraison sur la fiche du membre : la première alimente le stock concerné, la seconde choisit les articles destinés au membre.
 
-![Création Demande Sortie](../images/manager/11b_stock_request_create.png)
-
-### b. Surveiller le stock des agents
-Allez dans **Stock Commercial > Stock**.
-Ce tableau est redoutable. Il vous dit pour chaque commercial :
-*   Ce qu'il a pris.
-*   Ce qu'il a vendu.
-*   Ce qu'il doit encore avoir dans les mains (**Restant**).
-
-*Conseil : En fin de journée, jetez un œil ici. Si un commercial dit "J'ai tout vendu" mais que le tableau dit le contraire, il y a un problème.*
-
-![Dashboard Stock Commercial](../images/manager/11c_stock_dashboard.png)
-
-### c. Gérer les Retours
-Si un commercial ramène des invendus, cela apparaît dans **Stock Commercial > Retours**.
-Vérifiez que le magasinier a bien validé la réception pour que le stock de l'agent soit mis à jour.
-
-![Liste des Retours](../images/manager/11d_stock_return_list.png)
-
-Vous savez où est votre stock. Voyons les spécificités de la Tontine.
-
----
-
-## 3. Le Stock Tontine
-
-C'est exactement le même principe que le Stock Commercial, mais pour les produits réservés à la Tontine.
-Veillez bien à ne pas mélanger les deux stocks physiquement !
-
-![Dashboard Stock Tontine](../images/manager/12c_stock_tontine_dashboard.png)
-
----
-
-## 4. Les Commandes (Le Sas de Validation)
-
-Avant de devenir une vente ferme, une demande client passe souvent par la case "Commande". C'est ici que vous donnez votre feu vert.
-
-### a. Votre rôle de contrôleur
-Allez dans le menu **Commandes**.
-Regardez les indicateurs en haut : **Commandes en Attente**. C'est votre "To-Do List".
-
-![Liste des Commandes](../images/manager/15_orders_list.png)
-
-### b. Créer une commande
-Vous pouvez aussi créer une commande vous-même pour un client :
-1.  Cliquez sur **Ajouter**.
-2.  Choisissez le client et remplissez son panier.
-3.  Enregistrez. Elle passe en attente de validation.
-
-![Création Commande](../images/manager/15_order_add.png)
-
-### c. Valider et Vendre
-1.  Ouvrez une commande en attente (l'œil).
-2.  Vérifiez tout : Est-ce le bon client ? Les bons prix ?
-3.  Si c'est bon, cliquez sur **Valider**. La commande est acceptée.
-4.  Pour finaliser la transaction, cliquez sur **Transformer en Vente**.
-    *   *Attention : À ce moment-là, le stock sort et la dette client est créée. C'est irréversible.*
-
-![Détails Commande](../images/manager/15b_order_details.png)
-
-La vente est actée. Mais est-ce que le stock physique suit ? C'est l'heure de l'inventaire.
-
----
-
-## 5. Les Inventaires (L'Heure de Vérité)
-
-Régulièrement, il faut vérifier que le stock de l'ordinateur correspond au stock réel de l'entrepôt.
-
-**Comment faire un inventaire sans douleur ?**
-
-1.  **Figer** : Créez un nouvel inventaire. Le système prend une "photo" du stock théorique.
-2.  **Compter** : Imprimez la fiche (PDF) et allez compter dans l'entrepôt. Ne regardez pas les chiffres de l'ordi pour ne pas être influencé !
-3.  **Saisir** : Revenez et entrez vos chiffres réels dans le système.
-4.  **Réconcilier** : Le système va vous montrer les écarts.
-    *   Il y en a plus ? Tant mieux (Surplus).
-    *   Il en manque ? Aïe. Vous devez justifier pourquoi (Vol ? Perte ? Erreur ?).
-5.  **Clôturer** : Une fois tout justifié, validez. Le stock réel devient la nouvelle référence.
-
-![Liste des Inventaires](../images/manager/19_inventory_list.png)
-
-### Ajouter du stock (Entrées)
-Pour ajouter du stock venant d'un fournisseur (hors inventaire), utilisez le bouton **+ Entrées**.
-
-![Entrée de Stock](../images/manager/19_inventory_add.png)
-
-Votre stock est carré. Terminons par les ventes directes.
-
----
-
-## 6. Les Ventes Directes
-
-Parfois, vous vendez directement au comptoir, sans passer par un commercial terrain.
-
-### a. Créer une vente
-1.  Allez dans **Ventes** et cliquez sur **+**.
-2.  Choisissez **Comptant** (si le client paie tout de suite) ou **Crédit**.
-3.  Remplissez le panier et validez.
-
-### b. Suivre les ventes
-Dans la liste des ventes, vous pouvez suivre la vie de chaque crédit : combien le client a déjà payé, combien il reste, et s'il est en retard.
-Utilisez la **Recherche Avancée** (la loupe) pour filtrer par statut ou par commercial.
-
-![Liste des Ventes](../images/manager/13_sales_list.png)
-
-Vous maîtrisez maintenant tout le cycle commercial.
+Le menu **Commandes** est disponible selon les rôles. Utilisez les statuts et les détails de la commande pour traiter le dossier dans l’ordre prévu par l’interface ; n’enregistrez pas de vente ou de livraison avant que le statut n’y autorise l’action.

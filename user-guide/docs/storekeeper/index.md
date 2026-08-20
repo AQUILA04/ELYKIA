@@ -1,26 +1,17 @@
-# Bienvenue dans votre Espace Magasinier
+# Guide Magasinier
 
-Bonjour et bienvenue dans le guide dédié au **Magasinier**.
+Le magasinier sécurise la circulation physique de la marchandise : catalogue, réceptions, inventaires, sorties, retours et stock tontine. Il ne valide pas automatiquement chaque étape ; les boutons disponibles dans les listes indiquent les actions autorisées à son profil.
 
-Votre rôle est essentiel : vous êtes le gardien du temple. C'est vous qui assurez que le stock physique correspond à ce qui est dans l'ordinateur, qui réceptionnez les marchandises et qui servez les commerciaux pour qu'ils puissent vendre.
+<!-- CAPTURE À INSÉRER : Menu d’un magasinier avec Articles, Stock Commercial, Stock Tontine, Inventaires et Historique Entrée. -->
 
-Ce guide est là pour vous aider à maîtriser vos outils au quotidien.
+## Vos priorités
 
-## Votre Tableau de Bord (Dashboard)
+| Priorité | Objectif |
+|---|---|
+| Préparer les articles | Vérifier la référence, le type, le stock et les informations de la fiche article. |
+| Réceptionner correctement | Créer une entrée puis attendre sa validation lorsqu’elle est requise. |
+| Servir les demandes validées | Livrer les demandes de stock commercial ou tontine au bon statut. |
+| Traiter les retours | Réceptionner les retours autorisés et conserver leur traçabilité. |
+| Contrôler le physique | Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. |
 
-Dès que vous vous connectez, vous arrivez sur votre **Tableau de Bord**. C'est votre tour de contrôle. Il vous dit tout de suite s'il y a le feu ou si tout va bien.
-
-![Dashboard Magasinier](../images/storekeeper_dashboard.png)
-
-### 1. La Vue d'Ensemble
-Les cartes en haut vous donnent les grands chiffres :
-*   **Total Articles** : Combien de références différentes gérons-nous ?
-*   D'autres indicateurs (Clients, etc.) pour info.
-
-### 2. Les Alertes Stock (Votre priorité !)
-C'est la partie la plus importante pour vous. Elle vous crie ce qu'il faut faire :
-
-*   **Rupture de stock (Rouge)** : Ces produits sont à 0. Il n'y en a plus ! Il faut réapprovisionner d'urgence.
-*   **Rupture imminente (Orange)** : Attention, le stock est bas. Préparez une commande fournisseur.
-
-Vous avez vérifié les alertes ? Passons à la gestion de votre catalogue.
+Consultez les pages dédiées pour [les articles](articles.md), [les inventaires et entrées](inventory.md), [le stock commercial](stock_commercial.md) et [le stock tontine](stock_tontine.md).

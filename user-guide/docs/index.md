@@ -1,65 +1,41 @@
-# Bienvenue sur le Guide Utilisateur AMENOUVEVE-YAVEH
+# Guide utilisateur ELYKIA
 
-Ce guide a pour objectif de vous accompagner dans l'utilisation quotidienne de l'application de gestion des ventes d'**AMENOUVEVE-YAVEH**.
+Ce site décrit les parcours actuellement disponibles dans l’application ELYKIA. Il s’adresse aux équipes de gestion, de magasin, de terrain et de recouvrement. Les menus et les actions visibles dépendent du compte connecté, de ses permissions et, dans certains cas, des paramètres activés par l’organisation.
 
-L'application est conçue pour piloter efficacement les deux activités principales de la société :
-1.  **La Vente à Crédit** : Distribution de produits avec recouvrement sur un mois (30 jours).
-2.  **La Gestion de Tontine** : Système d'épargne programmée (Février à Novembre) pour une livraison d'articles en fin d'année (Décembre).
+> **Principe de lecture.** Utilisez le guide correspondant à votre rôle. Une action qui n’apparaît pas dans votre interface ne constitue pas une anomalie : elle peut être protégée par une permission ou réservée à un autre profil.
 
----
+<!-- CAPTURE À INSÉRER : Barre latérale de l’application web avec les sections Caisse, Stock Commercial, Ventes, Tontines, Configuration et Rapport Journalier. -->
 
-## 🏗 Concepts Clés
+## Les parcours disponibles
 
-Pour bien utiliser l'application, il est essentiel de comprendre le cycle métier sur lequel elle repose.
+| Profil | Responsabilités principales | Guide |
+|---|---|---|
+| Gestionnaire, secrétaire ou administrateur | Pilotage, clients, trésorerie, contrôles, validation et configuration. | [Guide Gestionnaire](manager/index.md) |
+| Magasinier | Catalogue, inventaire, réceptions, livraisons et retours de stock. | [Guide Magasinier](storekeeper/index.md) |
+| Commercial | Portefeuille clients, demandes de stock, ventes, encaissements et tontine. | [Guide Commercial](commercial/index.md) |
+| Chef de recouvrement | Retards, contrôles de carnet, clôtures terrain, plan de tournée et synchronisation mobile. | [Guide Chef de recouvrement](recovery-manager/index.md) |
 
-### 1. Cycle Comptable Strict
-L'application impose un rythme de travail journalier sécurisé :
-*   **Ouverture de la journée (Gestionnaire)** : Aucune opération n'est possible si la journée comptable n'est pas ouverte.
-*   **Ouverture des caisses (Commerciaux)** : Chaque commercial doit ouvrir sa caisse pour commencer ses encaissements.
-*   **Opérations** : Ventes, recouvrements, tontines.
-*   **Fermeture des caisses** : Chaque commercial clôture sa journée.
-*   **Fermeture de la journée (Gestionnaire)** : Une fois toutes les caisses fermées, le gestionnaire clôture la journée, ce qui déclenche les écritures comptables et génère les rapports.
+## Repères essentiels
 
-!!! danger "Règle d'Or"
-    Il est impossible d'effectuer une transaction (recouvrement, vente) si la **Journée Comptable** ou votre **Caisse** est fermée.
+### Le cycle de travail
 
-### 2. Flux de Stock
-Le stock suit un chemin précis :
-*   **Magasin** : Lieu de stockage central.
-*   **Sortie d'article** : Transfert du Magasin vers le stock d'un Commercial (chargement du véhicule/sac).
-*   **Distribution** : Vente finale du Commercial vers le Client.
+Les opérations monétaires sont rattachées à une **journée comptable** et à une **caisse**. Selon les droits du compte, la journée est ouverte puis fermée par les responsables, tandis que chaque agent concerné ouvre ou ferme sa propre caisse. Le menu **Caisse** donne accès à l’ouverture ou à la fermeture et à l’**Opération Journalière**.
 
-### 3. Types de Clients
-*   **Client Commercial** : Il s'agit du Commercial lui-même. Il gère son propre stock mobile et est responsable de ses encaissements.
-*   **Client Final** : L'acheteur final ou l'adhérent à la Tontine.
+### Les statuts font foi
 
----
+Les crédits, demandes de stock, retours, livraisons tontine et réceptions ne sont pas seulement des listes : leurs actions changent selon leur statut. Avant d’agir, vérifiez systématiquement le badge de statut et la période affichée.
 
-## 🧭 Navigation par Profil
+| Flux | Enchaînement courant |
+|---|---|
+| Demande de sortie stock | `CREATED` → `VALIDATED` → `DELIVERED` |
+| Réception de stock | `PENDING` → `VALIDATED`, ou `REFUSED` / `CANCELLED` selon le rôle et l’étape |
+| Vente à crédit | `CREATED` → `VALIDATED` → `INPROGRESS` → `SETTLED` |
+| Livraison tontine | `PENDING` → `VALIDATED` → `DELIVERED` |
 
-Choisissez votre profil pour accéder aux instructions qui vous concernent :
+### Des données filtrées et protégées
 
-"👔 Gestionnaire"
-    Vous avez une vue d'ensemble et la responsabilité du cycle comptable.
-    
-    [Accéder au Guide Gestionnaire](manager/index.md)
+Les tableaux récents conservent généralement la recherche, les filtres et la pagination pendant la navigation. Les KPI financiers, exports PDF, annulations, réaffectations et paramètres peuvent être masqués selon les permissions. Ne contournez jamais un contrôle d’accès en partageant un compte : demandez plutôt l’habilitation adaptée à votre responsable.
 
-"🚛 Magasinier"
-    Vous êtes le garant des stocks physiques.
-    
-    [Accéder au Guide Magasinier](storekeeper/index.md)
+## Signaler un besoin d’assistance
 
-"💼 Commercial"
-    Vous êtes sur le terrain au contact des clients.
-    
-    [Accéder au Guide Commercial](commercial/index.md)
-
-"📝 Secrétaire"
-    Vous assistez la gestion administrative.
-    
-    [Accéder au Guide du Secretaire](manager/index.md)
-
----
-
-## Besoin d'aide rapide ?
-Utilisez la barre de recherche en haut à droite ou naviguez via le menu latéral pour trouver une procédure spécifique.
+Avant de signaler un problème, notez le nom de l’écran, la période sélectionnée, le statut de l’opération et, si elle existe, sa référence. Ces éléments permettent à l’équipe support de retrouver rapidement le dossier sans exposer de données sensibles.

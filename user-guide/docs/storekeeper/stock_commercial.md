@@ -1,48 +1,25 @@
-# Servir les Commerciaux (Stock Commercial)
+# Stock commercial
 
-Les commerciaux ont besoin de marchandises pour aller vendre. C'est vous qui les approvisionnez via ce menu.
+Le stock commercial alimente les agents chargés de la vente. Les opérations sont centralisées dans **Stock Commercial > Demandes Sortie**, **Stock** et **Retours**.
 
----
+## Livrer une demande de sortie
 
-## 1. Livrer un Commercial (Demandes Sortie)
+La liste des demandes affiche des KPI, les filtres de période et de commercial, les statuts, les détails et les exports PDF. Le flux standard est le suivant :
 
-Quand un commercial (ou le manager) fait une demande de matériel, c'est ici qu'elle arrive.
+| Statut | Acteur et action habituels |
+|---|---|
+| `CREATED` | La demande est créée. Un gestionnaire peut la valider ; l’annulation ou le refus dépend du rôle. |
+| `VALIDATED` | La demande est prête. Le magasinier peut utiliser **Livrer**. |
+| `DELIVERED` | La sortie est effectuée et la date de livraison est renseignée. |
 
-### La Règle d'Or de la Visibilité
-> **Important** : Vous ne voyez dans votre liste **QUE** les demandes qui ont été **VALIDÉES** par un Manager.
-> Si un commercial vous dit "J'ai fait une demande" mais que vous ne la voyez pas, c'est qu'elle est encore en attente de validation chez le patron.
+Sélectionnez une ligne puis utilisez **Voir** pour contrôler le commercial, les dates, le statut et les articles avant livraison. Le bouton **Fiche sortie PDF** peut exporter une période ; il est aussi possible de télécharger un lot sélectionné ou une demande unique.
 
-### Comment livrer ?
-1.  Allez dans **Stock Commercial > Demandes Sortie**.
-2.  Repérez la demande (elle a le statut vert **Validé**).
-3.  Préparez physiquement la marchandise.
-4.  Quand vous remettez le matériel au commercial, cliquez sur le bouton **Livrer** (le petit camion bleu).
+<!-- CAPTURE À INSÉRER : Liste Demandes de sortie stock avec badges CREATED, VALIDATED et DELIVERED, et bouton Livrer. -->
 
-Hop ! La marchandise sort de votre stock et passe sous la responsabilité du commercial.
+## Gérer les retours
 
-![Liste des demandes de sortie](../images/storekeeper_stock_requests.png)
+Dans **Stock Commercial > Retours**, créez un retour pour les articles autorisés, puis suivez son statut. La liste propose des KPI, des filtres de période et de commercial, des exports et, selon l’état de la ligne, les actions **Voir**, **Télécharger**, **Réceptionner**, **Annuler** ou **Refuser**. Une date de réception vide signifie que le retour n’a pas encore été réceptionné.
 
-### Créer une demande vous-même
-Parfois, c'est vous qui initiez la demande pour le commercial (s'il est devant vous).
-1.  Cliquez sur **Nouvelle Demande**.
-2.  Choisissez le commercial et les articles.
-3.  Envoyez. (Elle devra quand même être validée par un manager avant que vous puissiez la livrer !).
+## Consulter le stock mensuel
 
-![Formulaire création demande](../images/storekeeper_request_create.png)
-
----
-
-## 2. Réceptionner les Retours
-
-Parfois, les commerciaux ramènent du matériel (invendus, fin de journée). Il faut le remettre en stock.
-
-1.  Allez dans **Stock Commercial > Retours**.
-2.  Vous voyez la liste des retours déclarés.
-3.  Vérifiez physiquement le matériel rapporté.
-4.  Si tout est là, cliquez sur le bouton **Valider** (la coche verte).
-
-Les articles réintègrent immédiatement votre stock central.
-
-![Liste des retours](../images/storekeeper_stock_returns.png)
-
-Vous savez gérer les flux avec les commerciaux. C'est la même chose pour la Tontine.
+Le sous-menu **Stock** est accessible aux profils qui ne sont pas magasinier uniquement. Il présente les quantités prises, vendues, retournées et restantes par article, avec les valeurs de stock et de recouvrement. Les panneaux mensuels peuvent fournir un rapport PDF et le KPI de valeur vendue ouvre le détail des ventes liées.

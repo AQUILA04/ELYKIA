@@ -1,43 +1,23 @@
-# Gérer le Catalogue (Articles)
+# Gestion des articles
 
-Le menu **Articles** est votre bible. C'est ici que sont listés tous les produits que l'entreprise vend.
+Le catalogue d’articles est la référence commune aux entrées, demandes de sortie, ventes et livraisons tontine. Créez ou modifiez une fiche avec rigueur : une erreur de prix ou de type se répercute dans plusieurs flux.
 
----
+## Consulter et rechercher
 
-## 1. Consulter le Catalogue
+Ouvrez **Articles**. La liste présente les désignations, marques, modèles, types, prix, quantités et statuts selon votre habilitation. Utilisez la recherche et la pagination plutôt que de parcourir les pages sans filtre. La fiche article donne accès à ses informations détaillées et à son historique de mouvements.
 
-L'écran principal vous montre tout ce qui existe en rayon.
-Pour chaque produit, vous voyez son Nom, sa Marque, son modèle, et son Type.
+<!-- CAPTURE À INSÉRER : Liste Articles avec recherche, colonne de stock et bouton de consultation de la fiche. -->
 
-*Astuce : Utilisez la barre de recherche en haut pour trouver un produit rapidement par son nom.*
+## Créer ou modifier une fiche
 
-![Liste des articles](../images/storekeeper_articles_list.png)
+Le formulaire demande l’identification de l’article, son type, ses prix et les valeurs de suivi stock. Renseignez les montants de manière cohérente avec la politique commerciale : prix d’achat, prix de vente comptant et prix de vente à crédit ne doivent pas être confondus. Si la gestion FIFO est active, des informations de lots et de prix d’achat peuvent apparaître dans la fiche.
 
----
+| Information | Utilisation |
+|---|---|
+| Nom, marque, modèle, type | Identifier et filtrer l’article dans les listes. |
+| Prix d’achat | Valoriser le stock et calculer les marges. |
+| Prix vente / crédit | Alimenter les ventes selon le type choisi. |
+| Seuil de réapprovisionnement | Signaler qu’une quantité devient faible. |
+| Stock et historique | Suivre les mouvements sans modifier les quantités hors procédure. |
 
-## 2. Ajouter un Nouveau Produit
-
-Vous avez reçu une nouvelle référence ? Il faut la créer dans le système.
-
-1.  Cliquez sur le bouton **Ajouter**.
-2.  Remplissez la fiche d'identité du produit :
-    *   **C'est quoi ?** (Nom, Marque, Modèle).
-    *   **Quel type ?** (Moto, TV...).
-    *   **Combien ça coûte ?** (Prix d'achat et Prix de vente).
-        > **Règle d'or** : Le Prix de vente doit toujours être supérieur au Prix d'achat !
-    *   **Quand s'inquiéter ?** (Point de commande) : C'est le seuil en dessous duquel l'alerte "Stock bas" se déclenchera.
-3.  Cliquez sur **Valider**.
-
-![Formulaire ajout article](../images/storekeeper_article_add.png)
-
----
-
-## 3. Mettre à jour un produit
-
-Un prix a changé ? Une erreur de saisie ?
-Dans la liste, utilisez les boutons d'action à droite :
-*   Le **Crayon** pour modifier.
-*   L'**Œil** pour voir tous les détails.
-*   La **Corbeille** pour supprimer (Attention, ne supprimez pas un article qui a déjà du stock ou des ventes !).
-
-Votre catalogue est à jour. Voyons maintenant comment faire entrer et sortir la marchandise.
+Ne supprimez pas une fiche qui a déjà été utilisée par une opération sans validation de la procédure interne. Préférez la consultation de l’historique pour comprendre une variation de stock.

@@ -1,58 +1,27 @@
-# Inventaires et Approvisionnements
+# Inventaires et entrées de stock
 
-C'est le cœur de votre métier : s'assurer que le stock est juste et bien rempli.
+Le menu **Inventaires** réunit la consultation du stock, l’inventaire physique et l’entrée de marchandises. Il ne faut pas confondre une **entrée** avec un **inventaire** : l’entrée enregistre une réception attendue ; l’inventaire compare le stock système au comptage physique.
 
----
+## Enregistrer une entrée
 
-## 1. Faire entrer de la marchandise (Approvisionnement)
+Dans **Inventaires**, choisissez **Entrées stock**, sélectionnez les articles et saisissez les quantités. Après validation, l’application confirme que l’entrée est enregistrée en attente de validation et redirige vers l’historique des réceptions.
 
-Le camion du fournisseur est là ? Il faut enregistrer ce qui rentre.
+<!-- CAPTURE À INSÉRER : Formulaire Entrée de stock avec sélecteur d’articles et bouton Valider l’entrée. -->
 
-1.  Cliquez sur le bouton **+ Entrées**.
-2.  Le formulaire s'ouvre :
-    *   **Quoi ?** Sélectionnez les articles reçus dans la liste.
-    *   **Combien ?** Tapez la quantité exacte que vous avez comptée au déchargement.
-3.  Cliquez sur **Valider l'entrée** (Icône bleue).
+Ouvrez ensuite **Historique Entrée** pour retrouver la référence. Les filtres portent sur la référence, la date et le statut. Le gestionnaire habilité peut valider ou refuser une réception ; l’abandon concerne une réception en attente et l’annulation d’une réception validée reste réservée à la procédure et aux droits concernés.
 
-Le stock augmente instantanément.
+> **Règle importante.** Une entrée `PENDING` ou en attente ne doit pas être utilisée comme stock disponible. Attendez le statut validé avant de préparer une sortie ou une vente fondée sur cette quantité.
 
-![Formulaire entrées stock](../images/storekeeper_supply_entry.png)
+## Réaliser un inventaire physique
 
----
+Quand aucune session d’inventaire n’est en cours, choisissez **Créer un inventaire**. Lors d’une session active, le panneau d’actions propose le téléchargement du support, la saisie des quantités physiques, la réconciliation des écarts et la clôture, selon le statut et les permissions.
 
-## 2. Faire un Inventaire (L'Heure de Vérité)
+| Étape | Action |
+|---|---|
+| Préparer | Créer l’inventaire puis télécharger le support si nécessaire. |
+| Compter | Relever les quantités physiques article par article. |
+| Saisir | Utiliser **Saisir quantités physiques** pour enregistrer le comptage. |
+| Analyser | Ouvrir **Réconcilier les écarts** afin d’examiner les différences. |
+| Terminer | Clôturer seulement après résolution ou justification des écarts. |
 
-Régulièrement, il faut vérifier que le stock de l'ordinateur correspond au stock réel de l'entrepôt.
-
-### a. Lancer l'opération
-Cliquez sur **Créer un inventaire**.
-Le système prend une "photo" du stock théorique à cet instant précis.
-
-### b. Compter sur le terrain
-1.  **Imprimer** : Cliquez sur **Télécharger PDF**. C'est votre feuille de comptage.
-2.  **Compter** : Allez dans l'entrepôt avec votre feuille et comptez physiquement chaque article.
-    *   *Conseil de pro : Ne regardez pas les quantités de l'ordinateur avant de compter, pour ne pas être influencé.*
-
-### c. Saisir les résultats
-Revenez devant l'écran :
-1.  Cliquez sur **Saisir quantités physiques**.
-2.  Remplissez la colonne **Quantité Physique** avec vos chiffres.
-    *   Le système vous montre tout de suite les écarts en couleur (Rouge = Manquant, Vert = Surplus).
-3.  Cliquez sur **Soumettre les quantités**.
-
-![Saisie des quantités physiques](../images/storekeeper_inventory_count.png)
-
----
-
-## 3. Clôturer (Pour le Gestionnaire)
-
-Cette partie est souvent réservée au Gestionnaire, mais il est bon que vous sachiez ce qui se passe.
-
-Une fois votre comptage terminé, le Gestionnaire va :
-1.  Analyser les écarts (Pourquoi il manque 2 laits ?).
-2.  **Réconcilier** : Ajuster le stock informatique pour qu'il colle à votre comptage réel.
-3.  **Clôturer** : Valider l'inventaire. C'est fini pour ce mois-ci !
-
-![Détails réconciliation inventaire](../images/manager_inventory_reconcile.png)
-
-Votre stock central est carré. Voyons maintenant comment servir les commerciaux.
+L’**Historique inventaires** et la trajectoire d’un article sont visibles uniquement aux comptes dotés de la permission de consultation correspondante.

@@ -1,50 +1,28 @@
-# Bienvenue dans votre Espace de Gestion
+# Guide Gestionnaire
 
-Bonjour et bienvenue dans le guide dédié au **Gestionnaire**.
+Ce guide accompagne les gestionnaires, secrétaires et administrateurs dans les tâches de pilotage. Les responsabilités exactes restent déterminées par les permissions attribuées au compte : la présence d’un menu ou d’un bouton confirme qu’il est autorisé pour votre session.
 
-En tant que Gestionnaire (ou Administrateur), vous êtes le capitaine du navire. Votre rôle est de superviser l'ensemble des opérations : de l'ouverture de la journée comptable à la validation des stocks, en passant par le contrôle des ventes et des tontines.
+<!-- CAPTURE À INSÉRER : Accueil web d’un gestionnaire avec le menu développé et les indicateurs du tableau de bord. -->
 
-Ce guide est conçu pour vous accompagner pas à pas dans le pilotage de l'application **Gestion Elykia**.
+## Votre espace de pilotage
 
-## 1. Se Connecter
+Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Articles**, aux modules **Stock Commercial** et **Stock Tontine**, aux **Ventes**, aux **Tontines**, aux **Dépenses**, à la **Configuration**, au **Rapport Journalier**, aux **Inventaires**, aux **Utilisateurs** et à la **Sécurité**. Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.
 
-Tout commence ici. Pour accéder à votre tableau de bord :
+| Priorité | Où intervenir | Finalité |
+|---|---|---|
+| Démarrer et contrôler l’activité | Caisse, Clients, Ventes | Sécuriser les opérations du jour et les portefeuilles. |
+| Garantir la disponibilité des articles | Articles, Inventaires, Stock Commercial | Suivre les réceptions, sorties, retours et écarts. |
+| Contrôler l’argent et la performance | Rapport Journalier, Dépenses | Lire les indicateurs, les versements et les remises. |
+| Gouverner l’application | Configuration, Utilisateurs, Sécurité | Maintenir les référentiels, paramètres et habilitations. |
 
-1.  Allez sur la page de connexion.
-2.  Entrez votre **Identifiant** et votre **Mot de passe**.
-3.  Cliquez sur **SE CONNECTER**.
+## Règles de travail
 
-![Page de Connexion](../images/manager/01_login.png)
+La gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.
 
-Vous voilà connecté. Découvrons votre environnement de travail.
+Consultez les pages suivantes selon la tâche à accomplir :
 
-## 2. Votre Interface de Pilotage
-
-Une fois connecté, l'écran se divise en deux parties simples :
-
-1.  **À gauche : Le Menu de Navigation**. C'est votre boîte à outils. Tout ce dont vous avez besoin est listé ici.
-2.  **Au centre : Votre Espace de Travail**. C'est là que les informations s'affichent.
-
-![Menu Latéral](../images/manager/03_sidebar.png)
-
-### Que trouve-t-on dans votre menu ?
-
-Voici un tour rapide de vos outils, dans l'ordre où vous les verrez :
-
-*   **Dashboard** : Votre météo du jour (chiffres clés, alertes).
-*   **Dashboard BI** : Pour aller plus loin dans l'analyse financière.
-*   **Journée comptable** : L'interrupteur ON/OFF de l'activité quotidienne.
-*   **Clients** : Votre base de données clients.
-*   **Comptes** : La santé financière de vos clients.
-*   **Articles** : Votre catalogue de produits.
-*   **Stock Commercial** : Pour savoir où est la marchandise.
-*   **Stock Tontine** : Le stock dédié à l'épargne.
-*   **Ventes** : Le cœur du business.
-*   **Tontines** : La gestion de l'épargne.
-*   **Commandes** : Le sas de validation avant vente.
-*   **Dépenses** : Pour suivre les sorties de caisse.
-*   **Configuration** : Les réglages de l'application.
-*   **Rapport Journalier** : Pour faire le bilan et fermer la caisse.
-*   **Inventaires** : Pour vérifier que le stock virtuel correspond à la réalité.
-
-Prêt à prendre les commandes ? Commençons par découvrir votre Tableau de Bord.
+- [Tableaux de bord](dashboard.md) pour lire les KPI sans confondre les périodes.
+- [Opérations quotidiennes](operations.md) pour les caisses, clients, comptes et versements.
+- [Stocks, ventes et commandes](stock_sales.md) pour les flux de marchandises et de crédits.
+- [Finances et tontines](finance.md) pour les dépenses, remises et contrôles tontine.
+- [Rapports et configuration](reporting_config.md) pour l’analyse et les référentiels.

@@ -1,69 +1,34 @@
-# La Gestion des Tontines
+# Tontines
 
-La Tontine est un produit très populaire. C'est un système d'épargne programmée qui permet à vos clients de cotiser petit à petit pour s'offrir des produits en fin d'année.
+Le module **Tontines** suit les membres, collectes, livraisons et archives de collectes. Les actions d’écriture concernent la session active ; une session historique est affichée en lecture seule.
 
-Votre rôle est d'inscrire les membres, de collecter leurs mises régulières, et d'assurer la livraison finale. Tout se passe dans le menu **Tontines**.
+## Tableau de bord de la session
 
----
+Dans **Tontines > Liste**, choisissez la session puis utilisez les filtres pour limiter les membres par recherche, commercial, localité ou statut de carnet. Le tableau peut fournir les exports PDF par commercial et, pour les comptes habilités, les exports de carnets vérifiés ou à vérifier. Les boutons **Ajouter un Membre** et **Ajout Multiple** sont indisponibles en session historique ou pendant un recalcul de part société.
 
-## 1. Piloter votre Tontine
+<!-- CAPTURE À INSÉRER : Gestion des Tontines avec sélecteur de session, filtres, Ajout Multiple et barre de vérification de carnet. -->
 
-Le **Tableau de Bord Tontine** vous donne la température de votre session en cours.
+La vérification en masse s’effectue en sélectionnant les membres puis en choisissant **Vérifier la sélection**. Sur la fiche membre, le badge précise `Carnet vérifié` ou `Carnet non vérifié`, ainsi que la date et l’auteur lorsqu’une vérification existe. Cette action est réservée à la permission dédiée ; elle peut être annulée par les mêmes comptes habilités.
 
-Vous pouvez voir immédiatement :
-*   Combien de **Membres Actifs** cotisent actuellement.
-*   Le **Montant Total** que vous avez déjà collecté.
-*   Qui a fini de payer et attend sa livraison (**En Attente de Livraison**).
+## Inscrire et modifier un membre
 
-C'est aussi d'ici que vous pouvez basculer pour voir les archives des années précédentes si besoin.
+Utilisez **Ajouter un Membre** pour sélectionner un client et définir sa mise. L’ajout multiple permet de créer plusieurs inscriptions quand le rôle le permet. Ouvrez ensuite une ligne pour consulter la fiche : montant contribué, solde disponible, part société, collectes à la livraison, progression des mois et historique des montants de mise.
 
-![Dashboard tontine](../images/commercial_tontine_list.png)
+## Enregistrer une collecte
 
-Vous avez la vue d'ensemble. Voyons comment faire grandir ce groupe.
+Sur la fiche membre active, choisissez **Enregistrer une Collecte** pour une collecte normale ou **Collecte de rattrapage** pour une date antérieure à aujourd’hui. Le rattrapage demande de vérifier le mois ciblé et la mise journalière applicable avant confirmation. Le récapitulatif mensuel et l’historique des collectes se mettent à jour après l’enregistrement.
 
----
+| Écran de contrôle | Ce qu’il permet de vérifier |
+|---|---|
+| Cotisations par commercial | Répartition des collectes selon l’agent qui les a réellement enregistrées ; le commercial actuel est signalé. |
+| Synthèse mensuelle | Nombre de collectes, montant et équivalent en jours de mise. |
+| Historique des montants de mise | Montant journalier applicable par période. |
+| Contrôle terrain | Comparaison système, carnet et écart, lorsque le chef de recouvrement a saisi un contrôle. |
 
-## 2. Gérer vos Membres
+L’annulation d’une collecte est réservée aux comptes autorisés et peut être limitée au profil administrateur. Ne corrigez pas une collecte par une nouvelle collecte inverse sans suivre la procédure interne.
 
-### Inscrire un nouveau membre
+## Préparer et finaliser une livraison
 
-Un client veut rejoindre la tontine ?
-1.  Cliquez sur **Ajouter un Membre**.
-2.  Choisissez le client.
-3.  Définissez les règles du jeu avec lui :
-    *   **Combien ?** (Montant de la mise).
-    *   **Tous les quand ?** (Fréquence : tous les jours, toutes les semaines...).
-    *   **Pendant combien de temps ?** (Nombre de mises).
-4.  Enregistrez. Le voilà inscrit !
+Lorsque la session est fermée et que le statut de livraison le permet, utilisez **Préparer la Livraison** pour choisir les articles. Le dossier passe alors en `PENDING`. Un gestionnaire ou administrateur autorisé utilise **Valider la Livraison** ; ensuite, un compte autorisé par le rôle rapport ou édition tontine peut **Marquer comme Livré**. La fiche affiche alors les articles, le montant, la date, le commercial et le solde non utilisé éventuel.
 
-*Astuce : Si vous démarrez un nouveau groupe, utilisez le bouton **Ajout Multiple** pour inscrire plein de monde d'un coup avec les mêmes paramètres.*
-
-![Formulaire ajout membre tontine](../images/commercial_tontine_add.png)
-
-### Suivre les cotisations
-
-Pour savoir où en est un client, cliquez sur son nom dans la liste. Sa fiche détaillée est très visuelle :
-*   Une **grille de progression** vous montre les cases vertes (payées) et grises (restantes).
-*   Vous avez l'historique précis de chaque versement avec la date.
-
-Si un client vous donne de l'argent hors de votre tournée habituelle, vous pouvez utiliser le bouton **Enregistrer une Collecte** directement depuis cette fiche.
-
-Vos membres cotisent régulièrement, c'est parfait. Arrive enfin le moment tant attendu : la livraison.
-
----
-
-## 3. La Livraison (La récompense !)
-
-C'est le moment préféré des clients : la fin du cycle. Quand un membre a payé toutes ses mises, il est temps de transformer son épargne en produits.
-
-**Comment faire ?**
-1.  Allez sur la fiche du membre.
-2.  Si tout est payé, un bouton **Préparer la Livraison** apparaît. Cliquez dessus.
-3.  Avec le client, choisissez les articles qu'il veut pour le montant de son épargne.
-4.  Validez la demande.
-
-La demande part alors en validation. Une fois approuvée par le gestionnaire, vous pourrez récupérer les produits dans votre **Stock Tontine** et les remettre au client heureux.
-
-![Détails membre tontine](../images/commercial_tontine_member_details.png)
-
-Voilà, le cycle de la tontine est bouclé !
+> La livraison n’est pas réservée au seul magasinier : l’action est disponible selon les permissions `ROLE_REPORT` ou `ROLE_EDIT_TONTINE` de l’application actuelle.

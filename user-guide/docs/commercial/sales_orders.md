@@ -1,60 +1,37 @@
-# Ventes et Commandes
+# Ventes, crédits et commandes
 
-C'est ici que tout se concrétise ! Nous allons voir comment enregistrer vos contrats de vente et gérer les commandes de vos clients.
+Le menu **Ventes** rassemble la liste des crédits, les retards, échéances, recouvrements, transferts de ventes et rattrapages selon les permissions. Une vente est une opération suivie par statut ; créez-la correctement avant de solliciter une validation ou une livraison.
 
-Il y a une distinction importante à faire :
-*   Une **Vente** est un contrat ferme : le client part avec la marchandise, et la dette est créée.
-*   Une **Commande** est une réservation : le client veut le produit, mais la transaction n'est pas encore finalisée.
+## Créer une vente
 
----
+Dans **Ventes > Liste**, cliquez sur **Nouvelle vente**. Le formulaire permet de choisir le type **Crédit** ou **Comptant**, puis le client et les articles. Pour une vente à crédit, sélectionnez également le commercial et renseignez une avance éventuelle. Si l’option de finalité est active, le crédit peut être déclaré personnel ou professionnel pour les clients habilités.
 
-## 1. Réaliser une Vente (Le Contrat)
+<!-- CAPTURE À INSÉRER : Formulaire Nouvelle vente avec le sélecteur Crédit / Comptant, Client et Articles. -->
 
-C'est l'opération que vous ferez le plus souvent. Allez dans le menu **Ventes**.
+| Type de vente | Données et résultat |
+|---|---|
+| Crédit | Client, commercial, articles, avance optionnelle ; une mise journalière et un solde sont ensuite suivis. |
+| Comptant | Client et articles ; aucun suivi de mise journalière n’est affiché sur le reçu. |
 
-Vous arrivez sur la liste de tous vos contrats passés. Vous pouvez voir rapidement qui a payé (**Soldé**) et qui est encore en train de rembourser (**En cours**).
+Le sélecteur de client et le sélecteur d’articles utilisent une recherche et un chargement progressif. Saisissez quelques caractères et attendez les résultats plutôt que de conclure qu’un dossier n’existe pas.
 
-### Comment créer un nouveau contrat ?
+## Suivre le cycle du crédit
 
-1.  Cliquez sur le bouton **Ajouter**.
-2.  Le formulaire de vente s'ouvre.
-    *   **Type de Vente** : Choisissez "Crédit" (c'est le plus courant) ou "Comptant".
-    *   **Qui vend ?** Sélectionnez votre nom dans la liste des commerciaux.
-    *   **A qui ?** Cherchez votre client.
-    *   **Quoi ?** Ajoutez les articles. Le système vous montrera le prix correspondant au mode de vente choisi.
-        *   *Attention : Vous ne pouvez vendre que ce que vous avez réellement dans votre stock personnel !*
-    *   **L'Avance** : Si le client verse un premier acompte tout de suite, notez-le ici.
+| Statut | Signification et action courante |
+|---|---|
+| `CREATED` | Vente enregistrée ; un responsable habilité peut **Valider**. |
+| `VALIDATED` | Vente validée ; le magasinier peut **Démarrer** après remise de la marchandise. |
+| `INPROGRESS` | Crédit en cours ; l’action **Encaisser** permet la mise, selon les droits. |
+| `SETTLED` | Crédit soldé ; il n’est plus sélectionnable pour une réaffectation en lot. |
 
-3.  Tout est bon ? Cliquez sur **Valider**.
+La liste propose les filtres de période KPI et une **Recherche avancée**. La case de recherche par référence permet de cibler une référence, notamment une référence de rattrapage. La fiche crédit peut afficher le stock mensuel source, l’historique des transferts de commercial et, lorsque le rôle l’autorise, le contrôle terrain.
 
-Le système s'occupe du reste : il génère le contrat, calcule l'échéancier de paiement pour le client, et retire les produits de votre stock.
+## Encaissements, retards et transfert
 
-![Formulaire nouvelle vente](../images/commercial_sale_add.png)
+Utilisez **Retards** pour identifier les crédits en retard et **Échéances** pour suivre les périodes dues. Les encaissements apparaissent dans **Recouvrements** ; leur annulation est réservée à une permission spécifique. La liste principale permet de modifier la mise d’un crédit admissible et de réaffecter plusieurs ventes non soldées si le compte dispose de la permission correspondante.
 
-Félicitations, votre vente est enregistrée !
+Le menu **Transfert Ventes** est un rapport de passations. Il filtre les commerciaux sortant et entrant ainsi que la période, puis présente les agrégats et le détail paginé. Une vente est comptée une seule fois dans cette lecture, sur la dernière passation pertinente.
 
----
+## Commandes
 
-## 2. Gérer les Commandes
-
-Parfois, un client veut réserver un produit que vous n'avez pas encore, ou il réfléchit. Utilisez le menu **Commandes** pour cela.
-
-### Prendre une commande
-
-1.  Cliquez sur **Créer une Commande**.
-2.  C'est très simple : trouvez le client, ajoutez les articles qu'il souhaite, et validez.
-3.  La commande est enregistrée avec le statut *Créé*. Elle n'impacte pas encore votre stock ni le compte du client.
-
-![Formulaire commande](../images/commercial_order_create.png)
-
-### Transformer l'essai
-
-Le client est prêt à conclure ? Parfait ! Vous n'avez pas besoin de tout ressaisir.
-
-1.  Ouvrez la commande en question.
-2.  Dans le menu d'actions, choisissez **Transformer en Vente**.
-3.  Confirmez.
-
-La commande devient instantanément un contrat de vente officiel. C'est un gain de temps précieux sur le terrain.
-
-Vous savez maintenant gérer tout le cycle de vente. Passons à un produit spécifique : la Tontine.
+Le menu **Commandes** est un parcours distinct, présent uniquement pour les comptes autorisés. Créez, consultez ou mettez à jour une commande dans l’ordre permis par ses statuts. Ne confondez pas une commande avec une vente crédit déjà démarrée.

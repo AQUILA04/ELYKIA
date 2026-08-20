@@ -1,36 +1,17 @@
-# Bienvenue dans votre Espace Commercial
+# Guide Commercial
 
-Bonjour et bienvenue dans votre guide utilisateur.
+Ce guide présente les parcours de terrain disponibles sur le web et, dans sa dernière partie, sur l’application mobile. Votre interface montre uniquement les actions correspondant à vos droits : l’absence d’un bouton de validation, d’export ou de réaffectation est normale si l’habilitation n’est pas attribuée.
 
-En tant que commercial chez **AMENOUVEVE-YAVEH**, vous êtes le moteur de l'entreprise. Votre rôle ne se limite pas à vendre ; vous êtes le lien de confiance avec nos clients, vous gérez votre propre stock mobile et vous assurez le suivi des tontines.
+<!-- CAPTURE À INSÉRER : Menu d’un commercial avec Clients, Stock Commercial, Ventes, Tontines et Rapport Journalier. -->
 
-Ce guide a été conçu comme une formation continue pour vous aider à maîtriser vos outils quotidiens.
+## Votre cycle de travail
 
-## Votre Tableau de Bord : Le centre de contrôle
+| Moment | Module | Objectif |
+|---|---|---|
+| Préparer le portefeuille | Clients | Créer et mettre à jour les informations client. |
+| Obtenir les articles | Stock Commercial | Créer une demande de sortie et suivre sa livraison. |
+| Distribuer et suivre | Ventes | Créer une vente, suivre son statut et encaisser les mises. |
+| Collecter l’épargne | Tontines | Inscrire, collecter, suivre la progression et préparer la livraison. |
+| Rendre compte | Caisse, Rapport Journalier | Contrôler les versements et les opérations de la période. |
 
-Dès que vous vous connectez, vous arrivez sur votre **Tableau de Bord (Dashboard)**. Considérez cet écran comme votre boussole pour la journée. Il a été pensé pour vous donner l'information essentielle en un coup d'œil, sans avoir à fouiller dans les menus.
-
-![Dashboard Commercial](../images/commercial_dashboard.png)
-
-### Que regardons-nous ici ?
-
-Tout en haut, vous avez vos **Indicateurs Clés**. Ce sont les chiffres qui résument votre activité :
-*   La taille de votre portefeuille (**Total Clients**).
-*   Le nombre de comptes actifs que vous gérez.
-*   Un aperçu rapide de votre stock ou catalogue.
-
-Sur la gauche (ou via le menu), vous trouverez vos outils de travail classés par activité :
-1.  **Clients & Comptes** : C'est votre carnet d'adresses et la gestion financière de vos clients.
-2.  **Stock** : C'est la gestion de votre "magasin mobile". Vous y verrez ce que vous avez dans votre sac ou votre véhicule.
-3.  **Ventes & Commandes** : C'est ici que vous enregistrez vos contrats et vos ventes.
-4.  **Tontines** : L'espace dédié à la gestion de l'épargne produit.
-
-Vous avez maintenant une vue d'ensemble de votre cockpit. Passons à la pratique !
-
-## Et pour le terrain ?
-
-Nous savons que l'essentiel de votre travail se passe dehors, souvent sans connexion internet. C'est pourquoi nous avons développé une **Application Mobile** spécifique pour vous.
-
-Si vous cherchez comment utiliser l'application sur votre téléphone (faire une vente, synchroniser, encaisser), je vous invite à consulter directement le [Guide de l'Application Mobile](./mobile.pdf).
-
-Prêt à commencer ? Explorons d'abord comment gérer vos clients.
+Suivez les pages [Clients et comptes](clients_accounts.md), [Stock](stock.md), [Ventes et commandes](sales_orders.md), [Tontines](tontine.md) et [Application mobile](mobile_app.md).

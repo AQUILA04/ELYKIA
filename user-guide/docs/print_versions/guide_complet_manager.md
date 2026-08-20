@@ -1,545 +1,188 @@
-# Guide Utilisateur - Profil Manager
+# Guide Gestionnaire — édition imprimable
 
-_Ce document est une compilation de la documentation pour impression._
+Cette édition regroupe les pages canoniques du guide utilisateur. Vérifiez la date de mise à jour du site avant toute impression ou diffusion.
 
-\newpage
+## Guide Gestionnaire
 
-# Bienvenue dans votre Espace de Gestion
+Ce guide accompagne les gestionnaires, secrétaires et administrateurs dans les tâches de pilotage. Les responsabilités exactes restent déterminées par les permissions attribuées au compte : la présence d’un menu ou d’un bouton confirme qu’il est autorisé pour votre session.
 
-Bonjour et bienvenue dans le guide dédié au **Gestionnaire**.
+<!-- CAPTURE À INSÉRER : Accueil web d’un gestionnaire avec le menu développé et les indicateurs du tableau de bord. -->
 
-En tant que Gestionnaire (ou Administrateur), vous êtes le capitaine du navire. Votre rôle est de superviser l'ensemble des opérations : de l'ouverture de la journée comptable à la validation des stocks, en passant par le contrôle des ventes et des tontines.
+## Votre espace de pilotage
 
-Ce guide est conçu pour vous accompagner pas à pas dans le pilotage de l'application **Gestion Elykia**.
+Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Articles**, aux modules **Stock Commercial** et **Stock Tontine**, aux **Ventes**, aux **Tontines**, aux **Dépenses**, à la **Configuration**, au **Rapport Journalier**, aux **Inventaires**, aux **Utilisateurs** et à la **Sécurité**. Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.
 
-## 1. Se Connecter
+| Priorité | Où intervenir | Finalité |
+|---|---|---|
+| Démarrer et contrôler l’activité | Caisse, Clients, Ventes | Sécuriser les opérations du jour et les portefeuilles. |
+| Garantir la disponibilité des articles | Articles, Inventaires, Stock Commercial | Suivre les réceptions, sorties, retours et écarts. |
+| Contrôler l’argent et la performance | Rapport Journalier, Dépenses | Lire les indicateurs, les versements et les remises. |
+| Gouverner l’application | Configuration, Utilisateurs, Sécurité | Maintenir les référentiels, paramètres et habilitations. |
 
-Tout commence ici. Pour accéder à votre tableau de bord :
+## Règles de travail
 
-1.  Allez sur la page de connexion.
-2.  Entrez votre **Identifiant** et votre **Mot de passe**.
-3.  Cliquez sur **SE CONNECTER**.
+La gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.
 
-![Page de Connexion](../images/manager/01_login.png)
+Consultez les pages suivantes selon la tâche à accomplir :
 
-Vous voilà connecté. Découvrons votre environnement de travail.
+- Tableaux de bord pour lire les KPI sans confondre les périodes.
+- Opérations quotidiennes pour les caisses, clients, comptes et versements.
+- Stocks, ventes et commandes pour les flux de marchandises et de crédits.
+- Finances et tontines pour les dépenses, remises et contrôles tontine.
+- Rapports et configuration pour l’analyse et les référentiels.
 
-## 2. Votre Interface de Pilotage
+## Tableaux de bord
 
-Une fois connecté, l'écran se divise en deux parties simples :
+Les tableaux de bord permettent de suivre une situation opérationnelle ou financière. Ils ne remplacent pas le contrôle des opérations détaillées : utilisez les cartes comme points d’entrée, puis ouvrez la liste ou le rapport concerné lorsque vous devez expliquer un montant, un stock ou un écart.
 
-1.  **À gauche : Le Menu de Navigation**. C'est votre boîte à outils. Tout ce dont vous avez besoin est listé ici.
-2.  **Au centre : Votre Espace de Travail**. C'est là que les informations s'affichent.
+<!-- CAPTURE À INSÉRER : Tableau de bord gestionnaire avec cartes KPI et raccourcis vers les modules opérationnels. -->
 
-![Menu Latéral](../images/manager/03_sidebar.png)
+## Lire un indicateur correctement
 
-### Que trouve-t-on dans votre menu ?
+Vérifiez d’abord la période, le commercial sélectionné et le libellé de la carte. Une valeur peut représenter le jour, la semaine, le mois ou une période personnalisée. Les indicateurs financiers sont visibles uniquement si le compte possède la permission KPI de la page concernée.
 
-Voici un tour rapide de vos outils, dans l'ordre où vous les verrez :
+| Indicateur fréquent | Vérification utile |
+|---|---|
+| Stock ou valeur de stock | Contrôler le mois, le commercial et la distinction entre stock restant, vendu ou retourné. |
+| Vente ou recouvrement | Vérifier si l’indicateur porte sur les opérations enregistrées, les versements remis ou les soldes encore dus. |
+| Retard | Ouvrir la liste **Ventes > Retards** pour identifier les crédits concernés. |
+| Réception en attente | Ouvrir **Historique Entrée** afin de valider, refuser ou consulter la réception. |
 
-*   **Dashboard** : Votre météo du jour (chiffres clés, alertes).
-*   **Dashboard BI** : Pour aller plus loin dans l'analyse financière.
-*   **Journée comptable** : L'interrupteur ON/OFF de l'activité quotidienne.
-*   **Clients** : Votre base de données clients.
-*   **Comptes** : La santé financière de vos clients.
-*   **Articles** : Votre catalogue de produits.
-*   **Stock Commercial** : Pour savoir où est la marchandise.
-*   **Stock Tontine** : Le stock dédié à l'épargne.
-*   **Ventes** : Le cœur du business.
-*   **Tontines** : La gestion de l'épargne.
-*   **Commandes** : Le sas de validation avant vente.
-*   **Dépenses** : Pour suivre les sorties de caisse.
-*   **Configuration** : Les réglages de l'application.
-*   **Rapport Journalier** : Pour faire le bilan et fermer la caisse.
-*   **Inventaires** : Pour vérifier que le stock virtuel correspond à la réalité.
+## Accéder au détail
 
-Prêt à prendre les commandes ? Commençons par découvrir votre Tableau de Bord.
+Utilisez les liens, cartes cliquables ou boutons **Voir** plutôt que de tirer une conclusion sur un total seul. Le tableau de bord de stock mensuel, par exemple, permet d’ouvrir le détail des ventes liées depuis la valeur du stock vendu. La fiche client et la fiche crédit permettent ensuite de suivre le dossier individuel.
 
+> **Bon réflexe.** Actualisez l’écran après une validation, une livraison, une annulation ou un versement avant de communiquer un total.
 
-\newpage
+## Opérations quotidiennes
 
+Cette page rassemble les gestes de contrôle du jour : journée comptable, caisse, clients, comptes et versements. Les libellés et boutons dépendent des permissions de la session.
 
+## Journée comptable et caisse
 
----
+La page **Gestion de la journée comptable** affiche la date comptable, en lecture seule, et l’action **Ouvrir** ou **Fermer** selon son état. Lorsqu’elle est ouverte, la liste **Caisses Ouvertes** identifie les collecteurs encore en service. Cette page peut être réservée aux comptes chargés de l’ouverture ou de la fermeture.
 
-# Vos Tableaux de Bord (Dashboards)
+Le menu **Caisse > Ouverture / Fermeture** permet à l’agent autorisé d’ouvrir ou de fermer sa caisse. L’écran indique le nom de l’utilisateur concerné et ne demande pas de saisie supplémentaire.
 
-Piloter une entreprise sans tableau de bord, c'est comme conduire les yeux fermés. Ici, nous vous donnons les outils pour voir clair, tout de suite.
+<!-- CAPTURE À INSÉRER : Écran Gestion de la caisse avec le nom de l’utilisateur et le bouton Ouvrir Caisse. -->
 
-Nous avons séparé les choses en deux : l'opérationnel (pour l'action immédiate) et le décisionnel (pour l'analyse).
+| Action | Précondition | Résultat attendu |
+|---|---|---|
+| Ouvrir la journée | Permission d’ouverture et date comptable proposée. | Les opérations du jour peuvent être réalisées. |
+| Ouvrir une caisse | Journée comptable ouverte et permission de caisse. | L’agent peut enregistrer ses opérations. |
+| Fermer une caisse | Fin des opérations de l’agent. | La caisse ne doit plus recevoir de nouvelle opération. |
+| Fermer la journée | Contrôle préalable des caisses encore ouvertes. | La journée est clôturée selon la procédure de l’organisation. |
 
----
+Le **billetage** peut être accessible selon le déploiement. Il consiste à renseigner les quantités de billets et de pièces ; le total est calculé avant la validation. Comparez le total obtenu avec les opérations enregistrées, sans modifier artificiellement les montants pour faire disparaître un écart.
 
-## 1. Le Dashboard Principal (L'Opérationnel)
+## Clients et comptes
 
-C'est la première chose que vous voyez en arrivant. Son but est simple : vous dire ce qui se passe **maintenant**.
+Dans **Clients**, recherchez d’abord par nom, prénom, téléphone ou localité. Un filtre commercial peut être appliqué, et les KPI indiquent notamment les clients avec crédit actif ou membres tontine. La création exige les informations d’identité, la pièce, les coordonnées, la localité et les commerciaux associés. La géolocalisation peut être obtenue par GPS ou saisie manuellement.
 
-### a. La Vue d'Ensemble
-Tout en haut, quatre chiffres vous donnent le pouls de l'agence :
-*   Combien de **Clients** avons-nous ? (Avec la tendance : est-ce que ça monte ?)
-*   Combien de **Comptes** actifs ?
-*   Quelle est l'étendue de notre catalogue (**Total Articles**) ?
-*   Combien de **Localités** couvrons-nous ?
+La réaffectation d’un portefeuille par cases à cocher est réservée aux comptes habilités. Le responsable peut choisir séparément un commercial crédit et un commercial tontine ; la case de transfert automatique ne concerne que les ventes crédit en cours et n’est disponible qu’après sélection d’un commercial crédit.
 
-![Dashboard Principal](../images/manager/02_dashboard_summary.png)
+## Suivre l’opération journalière et les versements
 
-### b. Les Alertes Stock (Urgent !)
-Si vous gérez aussi le stock, cette partie est critique. Elle vous crie ce qui ne va pas :
-1.  **Rupture de stock** : Ces produits sont à 0. Il faut commander tout de suite !
-2.  **Rupture imminente** : Attention, le stock est bas (zone orange ou rouge). Prévoyez le réassort.
+Le sous-menu **Caisse > Opération Journalière** affiche des crédits avec le client, la localité, la mise journalière et le reste à payer. Il fournit un accès aux détails et, selon l’habilitation, à des documents de suivi.
 
-Vous avez géré les urgences ? Passons à l'analyse de fond.
+Les versements ne se lisent plus comme un total unique. Dans le **Rapport Journalier**, le segment **Versements** sépare les montants crédit, tontine, solde de nouveaux comptes, surplus et total. Les règles de création, d’annulation et de réception sont précisées dans le guide Rapports et configuration.
 
----
+## Stocks, ventes et commandes
 
-## 2. Le Dashboard BI (Le Décisionnel)
+Les marchandises suivent un circuit tracé : référentiel article, entrée de stock, demande de sortie, validation, livraison, retour éventuel, puis vente ou livraison tontine. Chaque étape comporte un statut ; ne passez pas directement à l’étape suivante.
 
-Besoin de prendre du recul ? Cliquez sur **Dashboard BI** dans le menu. Ici, on parle argent et stratégie.
+## Catalogue et inventaire
 
-### a. Choisissez votre période
-Vous voulez voir les chiffres d'aujourd'hui ? De la semaine ? Ou de l'année entière ?
-Utilisez les filtres en haut pour définir la période d'analyse.
+Le menu **Articles** donne accès au catalogue. La fiche article regroupe les informations commerciales et l’historique de ses mouvements. Utilisez l’inventaire pour consulter les quantités, créer un inventaire physique, saisir les quantités constatées, réconcilier les écarts puis clôturer l’opération lorsque les contrôles sont terminés.
 
-### b. La Santé Financière
-Quatre cartes vous disent si l'entreprise est en bonne santé :
-1.  **Chiffre d'Affaires** : Combien avons-nous vendu ?
-2.  **Marge Brute** : Combien avons-nous réellement gagné (Bénéfice) ?
-3.  **Encaissements** : L'argent est-il rentré dans la caisse ?
-4.  **Valeur du Stock** : Combien d'argent "dort" dans notre entrepôt ?
+<!-- CAPTURE À INSÉRER : Page Inventaires — panneau Actions inventaire avec Créer, Saisir quantités physiques, Réconcilier et Clôturer. -->
 
-### c. Le Centre d'Alertes
-C'est votre radar à problèmes. Il surveille pour vous :
-*   Les articles qui manquent.
-*   Les crédits clients qui sont en retard (Impayés).
-*   Votre taux de recouvrement (Êtes-vous efficace dans la collecte des dettes ?).
+## Entrées de stock : validation obligatoire
 
-*Conseil de pro : Si le taux de recouvrement est rouge (< 50%), c'est votre priorité numéro 1 : relancez les commerciaux !*
+Depuis **Inventaires > Entrées stock**, sélectionnez les articles et les quantités reçues, puis validez l’entrée. L’application crée une réception en attente ; elle ne doit pas être présentée comme du stock immédiatement disponible.
 
-### d. Liens Rapides
-Besoin de creuser un chiffre ? Utilisez les boutons d'accès direct pour ouvrir les rapports détaillés :
-*   *Analyse des Ventes*
-*   *Analyse des Recouvrements*
-*   *Analyse du Stock*
+Le menu **Historique Entrée** permet de rechercher une réception par référence, date ou statut. Le gestionnaire habilité y trouve les actions **Valider** et **Refuser** ; le créateur ou le gestionnaire peut, selon le statut, **Abandonner** une réception en attente, et l’annulation d’une réception validée est réservée aux droits appropriés.
 
-![Dashboard BI](../images/manager/04_dashboard_bi.png)
+| Statut de réception | Sens opérationnel |
+|---|---|
+| En attente | Saisie créée, à contrôler avant impact sur le stock. |
+| Validée | Réception acceptée ; son impact est pris en compte. |
+| Refusée ou abandonnée | Réception non retenue, sans disponibilité à utiliser. |
+| Annulée | Réception validée annulée selon les droits et contrôles disponibles. |
 
-Vous avez maintenant une vision claire de la situation. Passons à l'action sur le terrain.
+## Stock commercial et ventes
 
+Une demande de sortie suit le circuit **Créée → Validée → Livrée**. Depuis **Stock Commercial > Demandes Sortie**, les commerciaux ou gestionnaires habilités créent une demande en sélectionnant le commercial et les articles. Le gestionnaire valide une demande créée ; le magasinier livre une demande validée. Les listes proposent les filtres de période et commercial ainsi que des exports PDF par période, demande ou sélection.
 
-\newpage
+Après livraison, la vente apparaît dans **Ventes > Liste**. Pour une vente à crédit, le responsable valide l’enregistrement puis le magasinier démarre la vente validée. Seules les ventes `INPROGRESS` sont candidates à l’encaissement régulier. Consultez le parcours commercial pour le détail du crédit, des retards et des recouvrements.
 
+## Stock tontine et commandes
 
+Le stock tontine suit le même principe de demande, validation, livraison et retour, mais il est affecté aux livraisons de fin d’année. Ne confondez pas une demande de stock tontine avec la préparation de livraison sur la fiche du membre : la première alimente le stock concerné, la seconde choisit les articles destinés au membre.
 
----
+Le menu **Commandes** est disponible selon les rôles. Utilisez les statuts et les détails de la commande pour traiter le dossier dans l’ordre prévu par l’interface ; n’enregistrez pas de vente ou de livraison avant que le statut n’y autorise l’action.
 
-# Les Opérations Quotidiennes
+## Finances et tontines
 
-Ici, nous allons voir comment gérer le quotidien : ouvrir la boutique, accueillir les clients et surveiller leurs comptes.
+Ce guide couvre les dépenses, les versements et le contrôle de la tontine depuis le point de vue de gestion. Les montants présentés par l’application restent soumis aux permissions KPI financières de la page.
 
----
+## Dépenses
 
-## 1. La Journée Comptable (Le "Top Départ")
+Le menu **Dépenses** permet de créer, filtrer et consulter les dépenses par mois et type. Une dépense comporte un type, un montant, une date, une référence éventuelle et une description. Lorsqu’elle est indiquée comme **Comptabilisée**, les actions de modification et de suppression sont bloquées : elle est liée à une remise déjà reçue.
 
-Imaginez que vous ouvrez le rideau de fer du magasin. Dans l'application, c'est pareil.
-**Règle d'or** : Aucune vente ni encaissement n'est possible si la journée n'est pas ouverte.
+<!-- CAPTURE À INSÉRER : Liste des dépenses avec filtres Mois et Type, et badge Comptabilisée sur une ligne verrouillée. -->
 
-Allez dans **Journée comptable**.
-*   Le matin : Cliquez sur **Ouvrir une nouvelle journée**.
-*   Le soir (après avoir tout vérifié) : Cliquez sur **Fermer la journée**.
+## Remise au gestionnaire
 
-![Journée Comptable](../images/manager/05_accounting_day_list.png)
+La **Remise** est accessible depuis le Rapport Journalier aux profils autorisés. Elle travaille à l’intérieur d’un mois et peut être limitée par une plage **Du / Au**. Cette plage permet de remettre uniquement les versements non encore remis dans l’intervalle choisi.
 
-La journée est ouverte, vous êtes prêt à recevoir les clients.
+| Étape | Secrétaire | Gestionnaire |
+|---|---|---|
+| Préparer | Choisit le mois et, si nécessaire, la plage de dates. Sélectionne les dépenses à déduire. | Peut initier une réception directe lorsque l’action est disponible. |
+| Soumettre | Soumet la remise lorsque le montant net est valide. | Consulte la remise en attente. |
+| Contrôler | Consulte l’historique. | Peut retirer des dépenses tant que la remise est en attente, puis **Accuser réception**. |
+| Archiver | Consulte les lignes de versements incluses. | Après réception, dépenses et montant net sont figés. |
 
----
+Le bandeau KPI distingue le total à remettre, crédit, tontine, solde des nouveaux comptes, dépenses et **montant net**. Les dépenses de type **Approvisionnement** ne sont pas proposées à la déduction. Si les dépenses dépassent le montant versé, l’action est bloquée jusqu’à correction.
 
-## 2. Gérer vos Clients
+## Pilotage tontine
 
-Le client est roi, et son dossier doit être impeccable. C'est dans le menu **Clients** que ça se passe.
+Le Rapport Journalier affiche, pour le commercial sélectionné et si les KPI sont autorisés, un bilan annuel tontine : collectes enregistrées, versements tontine remis et reste chez le commercial. La fiche d’un membre complète ce contrôle avec la répartition des collectes par commercial, la synthèse mensuelle et les contrôles terrain.
 
-### a. Rechercher avant de créer
-Avant d'ajouter quelqu'un, ayez le réflexe de vérifier s'il n'est pas déjà là.
-Utilisez la barre de recherche avec son nom ou son numéro de téléphone. Ça évite les doublons !
+La vérification de carnet est une action dédiée : elle ne modifie pas les montants. Elle ajoute ou retire le badge **Carnet vérifié** et conserve la date ainsi que l’auteur de la vérification. L’export PDF des membres ou d’un membre ne s’affiche qu’aux comptes autorisés.
 
-![Liste des Clients](../images/manager/06_client_list.png)
+## Rapports et configuration
 
-### b. Accueillir un Nouveau Client
-C'est un nouveau ? Bienvenue à lui !
-1.  Cliquez sur **Ajouter**.
-2.  Prenez le temps de bien remplir sa fiche :
-    *   **Qui est-il ?** Nom, Prénom, Photo.
-    *   **Où habite-t-il ?** Adresse précise (la géolocalisation aide beaucoup).
-    *   **Qui s'occupe de lui ?** Assignez-lui ses Commerciaux responsables (pour le Crédit et la Tontine).
-    *   **Finance** : Définissez son solde initial.
-3.  Validez.
+Le **Rapport Journalier** et le menu **Configuration** sont les deux points de contrôle les plus utiles pour un gestionnaire. Le premier explique ce qui s’est passé ; le second maîtrise les référentiels et règles appliqués aux futurs dossiers.
 
-![Nouveau Client](../images/manager/07_client_add_form.png)
+## Rapport Journalier
 
-### c. Mettre à jour un dossier
-Le client a déménagé ? Il a changé de numéro ?
-Dans la liste, utilisez les petits boutons à droite :
-*   L'**Œil** pour voir tout son historique.
-*   Le **Crayon** pour modifier ses infos.
-*   La **Corbeille** pour supprimer (Attention, c'est irréversible !).
+Ouvrez **Rapport Journalier**. La barre de filtres commune propose **Aujourd’hui**, **Cette semaine**, **Ce mois** ou **Personnalisé**, avec une plage de dates. Les comptes non commerciaux peuvent sélectionner un commercial. Ces filtres s’appliquent à tous les segments.
 
-![Détails Client](../images/manager/08_client_details.png)
+<!-- CAPTURE À INSÉRER : Rapport Journalier — barre de période, sélection de commercial et segments. -->
 
-Votre base client est propre. Voyons maintenant leur situation financière.
+| Segment | Usage | Accès courant |
+|---|---|---|
+| Vue d’ensemble | Totaux de période, bilans annuels crédit et tontine, indicateurs globaux et par commercial. | Permission KPI financier du rapport. |
+| Journal | Liste paginée des opérations, filtre par type et export PDF. | Permission KPI financier du rapport. |
+| Recouvrement | Contrôle opérationnel du recouvrement terrain. | Chef de recouvrement ou gestionnaire. |
+| Versements | Historique ventilé par crédit, tontine, solde de nouveaux comptes, surplus et total. | Permission KPI financier du rapport. |
+| Remise | Préparation, réception et historique des remises de période. | Gestionnaire ou secrétaire avec les permissions requises. |
 
----
+Le bilan annuel crédit s’affiche après sélection d’un commercial. Il distingue stock d’ouverture, ventes, créances reçues ou cédées, portefeuille confié, versements crédit, reste chez le commercial et reste chez le client. Le KPI **Reste chez le client** ouvre le détail des crédits encore dus et permet un export PDF. Ne confondez pas le portefeuille confié avec le solde live des clients.
 
-## 3. Surveiller les Comptes (L'Argent)
+## Référentiels et paramètres
 
-Le menu **Comptes** est votre tour de contrôle financière. Il répond à la question : *"Est-ce que ce client est solvable ?"*
+| Sous-menu Configuration | Usage |
+|---|---|
+| Localités | Gérer les zones et quartiers proposés dans la fiche client. |
+| Type d’Article | Gérer les catégories utilisées pour classer et rechercher les articles. |
+| Types de Dépense | Définir les catégories proposées à la saisie des dépenses. |
+| Paramètres | Gérer les clés fonctionnelles autorisées, leurs valeurs et descriptions. |
+| Mobile Money | Définir les numéros Mixx by YAS et Moov Money par commercial. |
 
-### a. Coup d'œil rapide
-Dans la liste, regardez la colonne **Solde**.
-*   Positif ? Il a de l'avance.
-*   Négatif ? Il nous doit de l'argent.
+Les listes de localités et de types d’article proposent recherche, pagination, ajout, modification et suppression selon les permissions. Le type de dépense est un référentiel plus simple, centré sur son nom ; créez-le avant la première dépense de cette catégorie.
 
-Regardez aussi le **Statut**. Si un compte est **Bloqué**, le client ne pourra plus rien acheter à crédit tant que vous ne l'aurez pas débloqué.
+Les paramètres sont sensibles. Modifiez une valeur uniquement après validation de la procédure interne. En particulier, `TONTINE_SOCIETY_SHARE_VERSION` est proposé sous la forme d’un choix contrôlé **V1** ou **V2** ; le passage de version peut déclencher un recalcul des parts société et bloquer temporairement les écritures tontine pendant le traitement.
 
-![Liste des Comptes](../images/manager/09_accounts_list.png)
-
-### b. Analyser en détail
-Cliquez sur l'**Œil** d'un compte pour voir sa fiche.
-C'est ici que vous pouvez intervenir manuellement si besoin (par exemple pour corriger une erreur ou bloquer le compte d'un mauvais payeur).
-
-![Détails du Compte](../images/manager/09b_account_details.png)
-
-Vous maîtrisez la gestion des clients. Passons maintenant à la gestion des stocks et des ventes.
-
-
-\newpage
-
-
-
----
-
-# Stocks, Ventes et Commandes
-
-C'est le cœur du réacteur. Ici, nous gérons le flux de marchandises (du stock vers le client) et le flux d'argent (la vente).
-
----
-
-## 1. Votre Catalogue (Articles)
-
-Le menu **Articles**, c'est votre vitrine. Il liste tout ce que vous pouvez vendre.
-
-### a. Consulter le catalogue
-La liste vous montre tous vos produits avec leur marque, modèle et type.
-
-![Liste des Articles](../images/manager/10_articles_list.png)
-
-### b. Ajouter un produit
-Pour ajouter un nouveau produit :
-1.  Cliquez sur **Ajouter**.
-2.  Définissez bien son identité (Nom, Marque) et surtout ses **Prix** (Achat, Vente Comptant, Vente Crédit).
-3.  N'oubliez pas les seuils d'alerte stock pour être prévenu avant la rupture !
-
-![Nouvel Article](../images/manager/10_article_add.png)
-
-Votre catalogue est prêt. Il faut maintenant distribuer ces produits.
-
----
-
-## 2. Le Stock Commercial (La Marchandise Ambulante)
-
-Vos commerciaux partent sur le terrain avec de la marchandise. Vous devez savoir exactement ce qu'ils ont.
-
-### a. Donner du stock (Approvisionnement)
-Un commercial a besoin de produits ?
-1.  Allez dans **Stock Commercial > Demandes Sortie**.
-2.  Créez une **Nouvelle Demande** pour lui.
-3.  **Important** : Une fois la demande créée, vous devez la **VALIDER** (bouton vert).
-    *   *Pourquoi ?* Tant que vous ne validez pas, le magasinier ne voit rien et ne peut pas livrer la marchandise.
-
-![Création Demande Sortie](../images/manager/11b_stock_request_create.png)
-
-### b. Surveiller le stock des agents
-Allez dans **Stock Commercial > Stock**.
-Ce tableau est redoutable. Il vous dit pour chaque commercial :
-*   Ce qu'il a pris.
-*   Ce qu'il a vendu.
-*   Ce qu'il doit encore avoir dans les mains (**Restant**).
-
-*Conseil : En fin de journée, jetez un œil ici. Si un commercial dit "J'ai tout vendu" mais que le tableau dit le contraire, il y a un problème.*
-
-![Dashboard Stock Commercial](../images/manager/11c_stock_dashboard.png)
-
-### c. Gérer les Retours
-Si un commercial ramène des invendus, cela apparaît dans **Stock Commercial > Retours**.
-Vérifiez que le magasinier a bien validé la réception pour que le stock de l'agent soit mis à jour.
-
-![Liste des Retours](../images/manager/11d_stock_return_list.png)
-
-Vous savez où est votre stock. Voyons les spécificités de la Tontine.
-
----
-
-## 3. Le Stock Tontine
-
-C'est exactement le même principe que le Stock Commercial, mais pour les produits réservés à la Tontine.
-Veillez bien à ne pas mélanger les deux stocks physiquement !
-
-![Dashboard Stock Tontine](../images/manager/12c_stock_tontine_dashboard.png)
-
----
-
-## 4. Les Commandes (Le Sas de Validation)
-
-Avant de devenir une vente ferme, une demande client passe souvent par la case "Commande". C'est ici que vous donnez votre feu vert.
-
-### a. Votre rôle de contrôleur
-Allez dans le menu **Commandes**.
-Regardez les indicateurs en haut : **Commandes en Attente**. C'est votre "To-Do List".
-
-![Liste des Commandes](../images/manager/15_orders_list.png)
-
-### b. Créer une commande
-Vous pouvez aussi créer une commande vous-même pour un client :
-1.  Cliquez sur **Ajouter**.
-2.  Choisissez le client et remplissez son panier.
-3.  Enregistrez. Elle passe en attente de validation.
-
-![Création Commande](../images/manager/15_order_add.png)
-
-### c. Valider et Vendre
-1.  Ouvrez une commande en attente (l'œil).
-2.  Vérifiez tout : Est-ce le bon client ? Les bons prix ?
-3.  Si c'est bon, cliquez sur **Valider**. La commande est acceptée.
-4.  Pour finaliser la transaction, cliquez sur **Transformer en Vente**.
-    *   *Attention : À ce moment-là, le stock sort et la dette client est créée. C'est irréversible.*
-
-![Détails Commande](../images/manager/15b_order_details.png)
-
-La vente est actée. Mais est-ce que le stock physique suit ? C'est l'heure de l'inventaire.
-
----
-
-## 5. Les Inventaires (L'Heure de Vérité)
-
-Régulièrement, il faut vérifier que le stock de l'ordinateur correspond au stock réel de l'entrepôt.
-
-**Comment faire un inventaire sans douleur ?**
-
-1.  **Figer** : Créez un nouvel inventaire. Le système prend une "photo" du stock théorique.
-2.  **Compter** : Imprimez la fiche (PDF) et allez compter dans l'entrepôt. Ne regardez pas les chiffres de l'ordi pour ne pas être influencé !
-3.  **Saisir** : Revenez et entrez vos chiffres réels dans le système.
-4.  **Réconcilier** : Le système va vous montrer les écarts.
-    *   Il y en a plus ? Tant mieux (Surplus).
-    *   Il en manque ? Aïe. Vous devez justifier pourquoi (Vol ? Perte ? Erreur ?).
-5.  **Clôturer** : Une fois tout justifié, validez. Le stock réel devient la nouvelle référence.
-
-![Liste des Inventaires](../images/manager/19_inventory_list.png)
-
-### Ajouter du stock (Entrées)
-Pour ajouter du stock venant d'un fournisseur (hors inventaire), utilisez le bouton **+ Entrées**.
-
-![Entrée de Stock](../images/manager/19_inventory_add.png)
-
-Votre stock est carré. Terminons par les ventes directes.
-
----
-
-## 6. Les Ventes Directes
-
-Parfois, vous vendez directement au comptoir, sans passer par un commercial terrain.
-
-### a. Créer une vente
-1.  Allez dans **Ventes** et cliquez sur **+**.
-2.  Choisissez **Comptant** (si le client paie tout de suite) ou **Crédit**.
-3.  Remplissez le panier et validez.
-
-### b. Suivre les ventes
-Dans la liste des ventes, vous pouvez suivre la vie de chaque crédit : combien le client a déjà payé, combien il reste, et s'il est en retard.
-Utilisez la **Recherche Avancée** (la loupe) pour filtrer par statut ou par commercial.
-
-![Liste des Ventes](../images/manager/13_sales_list.png)
-
-Vous maîtrisez maintenant tout le cycle commercial.
-
-
-\newpage
-
-
-
----
-
-# Finances et Tontines
-
-L'argent est le nerf de la guerre. Ici, nous gérons ce qui sort (Dépenses) et l'épargne de nos clients (Tontines).
-
----
-
-## 1. Gérer les Dépenses (Sorties de Caisse)
-
-Chaque franc qui sort de la caisse doit être justifié. Le menu **Dépenses** est là pour ça.
-
-### a. Tableau de Bord Dépenses
-Voyez tout de suite combien vous avez dépensé cette semaine ou ce mois-ci.
-
-![Tableau de Bord Dépenses](../images/manager/expense_dashboard.png)
-
-### b. Enregistrer une dépense
-Vous avez payé l'électricité ou le carburant ?
-1.  Cliquez sur **Ajouter**.
-2.  Dites-nous tout :
-    *   **C'est quoi ?** (Type : Loyer, Transport...).
-    *   **Combien ?** (Montant).
-    *   **La preuve ?** (Référence du reçu).
-3.  Enregistrez.
-
-C'est essentiel pour que votre caisse soit juste le soir.
-
-![Formulaire Dépense](../images/manager/expense_form.png)
-
-### c. Suivre l'historique
-La liste vous permet de retrouver n'importe quelle dépense passée, de la modifier ou de la supprimer en cas d'erreur.
-
-![Liste des Dépenses](../images/manager/expense_list.png)
-
-Vos dépenses sont tracées. Parlons maintenant de l'épargne client.
-
----
-
-## 2. La Gestion des Tontines
-
-La Tontine est un produit phare. C'est de l'épargne programmée pour vos clients.
-
-### a. Le Tableau de Bord Tontine
-C'est votre tour de contrôle. Vous voyez en un coup d'œil :
-*   Combien de membres cotisent activement.
-*   Combien d'argent a été collecté au total (C'est bon pour la trésorerie !).
-*   Qui attend sa livraison (Les clients qui ont fini de payer).
-
-![Tableau de Bord Tontine](../images/manager/tontine_dashboard.png)
-
-### b. Inscrire des Membres
-Vous avez deux façons de faire :
-
-**1. Un par un (Au comptoir)**
-Cliquez sur **Ajouter un Membre**. Choisissez le client, fixez avec lui le montant de sa mise et la fréquence (tous les jours ? toutes les semaines ?).
-
-![Ajout Membre](../images/manager/tontine_add_member.png)
-
-**2. En masse (Par Commercial)**
-C'est très pratique pour lancer une nouvelle zone.
-Cliquez sur **Ajout Multiple**.
-*   Choisissez le Commercial responsable.
-*   Définissez les règles par défaut (ex: 500F par jour).
-*   Cochez tous les clients de sa liste qui participent.
-*   Validez tout d'un coup !
-
-![Ajout Multiple](../images/manager/tontine_add_multiple.png)
-
-Votre tontine est lancée. Il ne reste plus qu'à suivre les collectes.
-
-
-\newpage
-
-
-
----
-
-# Rapports et Configuration
-
-C'est la fin de la journée, ou le moment de régler la machine.
-
----
-
-## 1. Le Rapport Journalier (L'Heure du Bilan)
-
-C'est sans doute l'écran le plus important de votre fin de journée. Il vous permet de contrôler la caisse de chaque commercial et de fermer la boutique sereinement.
-
-Allez dans **Rapport Journalier**.
-
-### a. La Vue d'Ensemble
-Le premier onglet vous donne les grands chiffres de la journée (ou de la période choisie). Utilisez les filtres en haut pour changer de date ou cibler un commercial.
-
-![Filtres Rapport](../images/manager/18a_daily_report_filters.png)
-
-Regardez surtout le bloc **Caisse** :
-*   **A Verser** : C'est ce que les commerciaux *devraient* avoir dans leurs poches (selon l'ordi).
-*   **Versé** : C'est ce qu'ils vous ont *réellement* donné.
-*   **Reste** : C'est la différence. Si c'est rouge, il manque de l'argent !
-
-![Vue d'Ensemble](../images/manager/18b_daily_report_overview.png)
-
-### b. Contrôler un Commercial
-Déroulez la liste pour voir le détail par agent.
-Le cadre de couleur vous parle :
-*   **Rouge** ? Il doit de l'argent.
-*   **Vert** ? Il est à jour, tout va bien.
-
-**Il vous tend des billets ?**
-Cliquez sur le bouton **FAIRE UN VERSEMENT** dans sa case. Entrez le montant que vous prenez. Le système mettra sa dette à jour instantanément.
-
-![Détail Commercial](../images/manager/18c_daily_report_commercial.png)
-
-### c. L'Audit (Qui a fait quoi ?)
-L'onglet **Journal des Opérations** est votre mouchard. Il liste tout : chaque vente, chaque suppression, chaque encaissement, avec l'heure et l'auteur. Utile en cas de litige.
-
-![Journal des Opérations](../images/manager/18d_daily_report_operations.png)
-
-### d. Historique des Versements
-L'onglet **Versements** garde la trace de toutes les remises d'espèces que vous avez validées.
-
-![Historique Versements](../images/manager/18e_daily_report_deposits.png)
-
-La caisse est juste ? Vous pouvez fermer la journée comptable.
-
----
-
-## 2. Configurer l'Application
-
-Le menu **Configuration** est réservé aux experts. C'est ici qu'on paramètre le moteur.
-
-### a. Les Localités (Zones)
-Pour que la géolocalisation serve à quelque chose, il faut définir vos zones.
-Ajoutez vos Villes et Quartiers ici.
-
-![Liste des Localités](../images/manager/17a_localities_list.png)
-
-Pour ajouter une zone, cliquez sur **Ajouter** et donnez-lui un nom.
-
-![Ajout Localité](../images/manager/17b_locality_add.png)
-
-### b. Les Catégories (Articles & Dépenses)
-Pour avoir des rapports propres, classez vos données.
-
-**Types d'Article** : Créez des familles (Motos, TV, Téléphones...).
-
-![Liste Types Article](../images/manager/17c_article_types_list.png)
-
-Pour créer une famille, cliquez sur **Ajouter**, donnez un nom et un code (ex: MOTO).
-
-![Création Type Article](../images/manager/17d_article_type_add.png)
-
-**Types de Dépense** : Créez vos postes de charges (Loyer, Carburant, Salaires...).
-
-![Liste Types Dépense](../images/manager/17e_expense_types_list.png)
-
-Pour ajouter un type de dépense, cliquez sur **Nouveau Type**.
-
-![Ajout Type Dépense](../images/manager/17f_expense_types_add.png)
-
-### c. Les Paramètres Globaux (Attention !)
-Ici, on touche au cœur du système (Taux de change, Options cachées...).
-
-![Liste Paramètres](../images/manager/17g_parameters_list.png)
-
-Pour modifier une valeur, cliquez sur le crayon.
-**Conseil d'ami** : Ne modifiez rien ici si vous n'êtes pas sûr à 100% de ce que vous faites. Une mauvaise manipulation peut changer le comportement de toute l'application.
-
-![Formulaire Paramètre](../images/manager/17h_parameter_edit.png)
-
-Vous avez maintenant toutes les clés pour administrer l'application comme un pro.
-
-
-\newpage
-
-
-
----
-
+Dans **Mobile Money**, les numéros saisis par commercial prévalent sur les numéros globaux affichés en haut de page. Laissez un champ vide pour conserver le repli sur la configuration globale ; vérifiez la colonne **Effectif** avant d’enregistrer.

@@ -1,68 +1,28 @@
-# Finances et Tontines
+# Finances et tontines
 
-L'argent est le nerf de la guerre. Ici, nous gérons ce qui sort (Dépenses) et l'épargne de nos clients (Tontines).
+Ce guide couvre les dépenses, les versements et le contrôle de la tontine depuis le point de vue de gestion. Les montants présentés par l’application restent soumis aux permissions KPI financières de la page.
 
----
+## Dépenses
 
-## 1. Gérer les Dépenses (Sorties de Caisse)
+Le menu **Dépenses** permet de créer, filtrer et consulter les dépenses par mois et type. Une dépense comporte un type, un montant, une date, une référence éventuelle et une description. Lorsqu’elle est indiquée comme **Comptabilisée**, les actions de modification et de suppression sont bloquées : elle est liée à une remise déjà reçue.
 
-Chaque franc qui sort de la caisse doit être justifié. Le menu **Dépenses** est là pour ça.
+<!-- CAPTURE À INSÉRER : Liste des dépenses avec filtres Mois et Type, et badge Comptabilisée sur une ligne verrouillée. -->
 
-### a. Tableau de Bord Dépenses
-Voyez tout de suite combien vous avez dépensé cette semaine ou ce mois-ci.
+## Remise au gestionnaire
 
-![Tableau de Bord Dépenses](../images/manager/expense_dashboard.png)
+La **Remise** est accessible depuis le Rapport Journalier aux profils autorisés. Elle travaille à l’intérieur d’un mois et peut être limitée par une plage **Du / Au**. Cette plage permet de remettre uniquement les versements non encore remis dans l’intervalle choisi.
 
-### b. Enregistrer une dépense
-Vous avez payé l'électricité ou le carburant ?
-1.  Cliquez sur **Ajouter**.
-2.  Dites-nous tout :
-    *   **C'est quoi ?** (Type : Loyer, Transport...).
-    *   **Combien ?** (Montant).
-    *   **La preuve ?** (Référence du reçu).
-3.  Enregistrez.
+| Étape | Secrétaire | Gestionnaire |
+|---|---|---|
+| Préparer | Choisit le mois et, si nécessaire, la plage de dates. Sélectionne les dépenses à déduire. | Peut initier une réception directe lorsque l’action est disponible. |
+| Soumettre | Soumet la remise lorsque le montant net est valide. | Consulte la remise en attente. |
+| Contrôler | Consulte l’historique. | Peut retirer des dépenses tant que la remise est en attente, puis **Accuser réception**. |
+| Archiver | Consulte les lignes de versements incluses. | Après réception, dépenses et montant net sont figés. |
 
-C'est essentiel pour que votre caisse soit juste le soir.
+Le bandeau KPI distingue le total à remettre, crédit, tontine, solde des nouveaux comptes, dépenses et **montant net**. Les dépenses de type **Approvisionnement** ne sont pas proposées à la déduction. Si les dépenses dépassent le montant versé, l’action est bloquée jusqu’à correction.
 
-![Formulaire Dépense](../images/manager/expense_form.png)
+## Pilotage tontine
 
-### c. Suivre l'historique
-La liste vous permet de retrouver n'importe quelle dépense passée, de la modifier ou de la supprimer en cas d'erreur.
+Le Rapport Journalier affiche, pour le commercial sélectionné et si les KPI sont autorisés, un bilan annuel tontine : collectes enregistrées, versements tontine remis et reste chez le commercial. La fiche d’un membre complète ce contrôle avec la répartition des collectes par commercial, la synthèse mensuelle et les contrôles terrain.
 
-![Liste des Dépenses](../images/manager/expense_list.png)
-
-Vos dépenses sont tracées. Parlons maintenant de l'épargne client.
-
----
-
-## 2. La Gestion des Tontines
-
-La Tontine est un produit phare. C'est de l'épargne programmée pour vos clients.
-
-### a. Le Tableau de Bord Tontine
-C'est votre tour de contrôle. Vous voyez en un coup d'œil :
-*   Combien de membres cotisent activement.
-*   Combien d'argent a été collecté au total (C'est bon pour la trésorerie !).
-*   Qui attend sa livraison (Les clients qui ont fini de payer).
-
-![Tableau de Bord Tontine](../images/manager/tontine_dashboard.png)
-
-### b. Inscrire des Membres
-Vous avez deux façons de faire :
-
-**1. Un par un (Au comptoir)**
-Cliquez sur **Ajouter un Membre**. Choisissez le client, fixez avec lui le montant de sa mise et la fréquence (tous les jours ? toutes les semaines ?).
-
-![Ajout Membre](../images/manager/tontine_add_member.png)
-
-**2. En masse (Par Commercial)**
-C'est très pratique pour lancer une nouvelle zone.
-Cliquez sur **Ajout Multiple**.
-*   Choisissez le Commercial responsable.
-*   Définissez les règles par défaut (ex: 500F par jour).
-*   Cochez tous les clients de sa liste qui participent.
-*   Validez tout d'un coup !
-
-![Ajout Multiple](../images/manager/tontine_add_multiple.png)
-
-Votre tontine est lancée. Il ne reste plus qu'à suivre les collectes.
+La vérification de carnet est une action dédiée : elle ne modifie pas les montants. Elle ajoute ou retire le badge **Carnet vérifié** et conserve la date ainsi que l’auteur de la vérification. L’export PDF des membres ou d’un membre ne s’affiche qu’aux comptes autorisés.

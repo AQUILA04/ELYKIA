@@ -1,65 +1,37 @@
-# Gérer vos Clients et leurs Comptes
+# Clients et comptes
 
-Le cœur de votre métier, c'est votre relation avec le client. Dans cette section, nous allons voir comment enregistrer proprement un nouveau prospect et comment gérer son compte financier pour qu'il puisse acheter à crédit.
+Le module **Clients** centralise les données nécessaires aux ventes et à la tontine. Recherchez toujours un dossier existant avant de créer un client afin d’éviter les doublons.
 
-L'accès se fait tout simplement via les menus **Clients** ou **Comptes** dans la barre latérale.
+## Rechercher et consulter
 
----
+La liste affiche des KPI de portefeuille, une recherche par nom, prénom, téléphone ou localité, un filtre commercial et une pagination. Cliquez sur le nom ou sur **Voir** pour ouvrir la fiche. La fiche peut montrer les badges de crédit actif, membre tontine ou commande en cours, les informations de contact, une photo et les historiques disponibles.
 
-## 1. Votre Carnet de Clients
+<!-- CAPTURE À INSÉRER : Liste des clients avec la recherche, le filtre Commercial, les KPI et le bouton Ajouter. -->
 
-Rendez-vous dans le menu **Clients**. Ici, vous retrouvez la liste complète de toutes les personnes que vous avez enregistrées.
+Si un commercial est sélectionné, le bouton **Fiche Client PDF** permet l’export du portefeuille correspondant. L’export ne remplace pas la vérification de la période ou du commercial choisi.
 
-C'est votre base de données personnelle. Vous pouvez y rechercher un client par son nom ou son numéro de téléphone pour vérifier ses informations ou le contacter rapidement.
+## Créer ou modifier un client
 
-![Liste des clients](../images/commercial_client_list.png)
+Cliquez sur **Ajouter** puis remplissez les sections du formulaire. Les champs obligatoires affichent un astérisque.
 
-### Comment enregistrer un nouveau client ?
+| Section | Informations principales |
+|---|---|
+| Identité | Nom, prénom, adresse, téléphone à huit chiffres et photo de profil facultative. |
+| Pièce d’identité | Type de pièce, numéro et document facultatif au format autorisé. |
+| Informations personnelles | Date de naissance, occupation et localité recherchable. |
+| Contact | Personne à contacter, si nécessaire. |
+| Géolocalisation | Position GPS obtenue depuis l’appareil ou latitude/longitude saisies manuellement. |
+| Commerciaux associés | Commercial crédit, commercial tontine et commercial agence. |
+| Type et compte | Type client ou commercial ; solde initial lorsque la section compte est affichée. |
 
-C'est une étape cruciale. Plus les informations sont précises, plus le recouvrement sera facile plus tard.
+Validez avec **Enregistrer**. En modification, les champs liés aux commerciaux peuvent être restreints : seul un compte autorisé à l’affectation peut changer les responsables crédit ou tontine.
 
-1.  Cliquez sur le bouton **+ Nouveau** en haut à droite.
-2.  Le formulaire s'ouvre. Prenons le temps de bien le remplir :
-    *   **Qui est-ce ?** Commencez par son Nom, Prénom et une photo si possible (c'est toujours plus convivial).
-    *   **Où habite-t-il ?** Notez son adresse et son numéro de téléphone.
-    *   **Géolocalisation** : C'est très important pour retrouver le client. Si vous êtes sur mobile ou tablette, cliquez simplement sur "Obtenir la position GPS". Sinon, vous pouvez le faire manuellement.
-    *   **Papiers d'identité** : Pour sécuriser le crédit, nous avons besoin d'une preuve. Sélectionnez le type de pièce et prenez une photo du document.
-    *   **Associations** : C'est ici que vous dites au système "C'est mon client". Sélectionnez-vous dans les champs *Commercial Crédit* et *Commercial Tontine*.
-    *   **Le premier versement** : Pour valider l'ouverture du dossier, le client doit verser un solde initial (minimum 500 FCFA).
+## Réaffecter plusieurs clients
 
-Une fois que tout est bon, cliquez sur **Enregistrer**. Bravo, votre portefeuille s'agrandit !
+Les comptes ayant la permission d’affectation voient des cases à cocher et le bouton **Changer de commercial**. Sélectionnez les clients, puis choisissez le commercial crédit, le commercial tontine ou les deux. L’option **Transférer automatiquement les ventes du commercial** devient disponible après sélection d’un commercial crédit ; elle transfère les ventes crédit `INPROGRESS` du portefeuille vers le nouveau commercial.
 
-![Formulaire nouveau client](../images/commercial_client_add.png)
+> Vérifiez la sélection avant validation. L’historique conserve la traçabilité des changements de commercial.
 
-Votre client est maintenant bien enregistré. Voyons comment gérer son argent.
+## Comptes
 
----
-
-## 2. La Gestion des Comptes Financiers
-
-Maintenant que le client existe, il lui faut un "compte" pour pouvoir acheter à crédit. C'est un peu comme lui ouvrir un compte en banque chez nous.
-
-Allez dans le menu **Comptes**.
-
-### Comprendre le tableau des comptes
-
-Ici, vous avez une vision financière. Pour chaque client, vous voyez :
-*   Son **Numéro de Compte** (unique).
-*   Son **Solde** actuel.
-*   Son **Statut** : C'est le point le plus important.
-    *   Si le statut est **Actif**, tout va bien, vous pouvez lui vendre à crédit.
-    *   Si le statut est **Bloqué** (ou désactivé), le système refusera toute nouvelle vente.
-
-![Liste des comptes](../images/commercial_account_list.png)
-
-### Que pouvez-vous faire ici ?
-
-Au bout de chaque ligne, vous avez des petits boutons d'action :
-
-*   **Besoin de bloquer un mauvais payeur ?** Cliquez sur l'icône "Power" (Activer/Désactiver). Cela gèle son compte instantanément.
-*   **Une erreur de saisie ?** Le crayon vous permet de corriger le solde ou le numéro de compte.
-*   **Voir l'historique ?** L'icône "Œil" vous permet de voir tous les mouvements sur ce compte.
-
-**Note importante** : Généralement, le compte est créé automatiquement lors de l'inscription du client. Mais si vous avez besoin d'en ajouter un manuellement pour un ancien client, utilisez le bouton **Ajouter** et suivez les instructions.
-
-Vous savez maintenant gérer vos clients de A à Z. Passons à la gestion de votre stock.
+Le menu **Comptes**, lorsqu’il est visible, est distinct de la fiche client. Utilisez-le pour consulter les comptes et leurs soldes avec les droits prévus. Ne créez pas un nouveau client uniquement pour corriger une information de compte : revenez à la fiche client ou suivez la procédure de gestion de compte de votre organisation.

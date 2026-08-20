@@ -1,28 +1,19 @@
-# Le Stock Tontine
+# Stock tontine
 
-Le principe est **exactement le même** que pour le Stock Commercial, mais attention : ce sont des stocks séparés !
+Le **Stock Tontine** sépare les articles destinés au cycle tontine du stock commercial. Les gestes restent proches : demande, validation, livraison et retour, mais les stocks ainsi alimentés servent ensuite aux livraisons de fin d’année des membres.
 
-Ce menu concerne uniquement les marchandises destinées aux contrats de Tontine (livraisons de fin d'année).
+## Demandes et livraisons
 
----
+Dans **Stock Tontine > Demandes Sortie**, créez ou consultez les demandes de sortie, appliquez les filtres de période et de commercial, puis contrôlez le statut. Une demande créée doit être validée avant que le magasinier puisse la livrer. La sélection multiple et les exports PDF permettent d’éditer une fiche pour une ou plusieurs demandes.
 
-## 1. Livrer pour la Tontine
+<!-- CAPTURE À INSÉRER : Liste des demandes de stock tontine avec filtres de période, statut et action Livrer. -->
 
-Allez dans **Stock Tontine > Demandes Sortie**.
+## Retours tontine
 
-*   Comme pour le stock commercial, vous ne voyez que les demandes **Validées** par le manager.
-*   Préparez les lots tontine.
-*   Cliquez sur le **Camion** pour livrer au commercial qui ira distribuer aux clients.
+Le sous-menu **Retours** enregistre les articles retournés au stock tontine. Utilisez le détail de la demande pour vérifier les articles, les quantités, la date de demande et la date de réception. Les exports PDF sont disponibles par période, sélection ou ligne selon les droits du compte.
 
-![Demandes sortie Tontine](../images/storekeeper_tontine_requests.png)
+> **À distinguer.** La livraison de stock tontine à un commercial n’est pas la livraison finale au membre. La livraison finale est préparée et validée depuis la fiche du membre dans le module **Tontines**.
 
----
+## Stock annuel
 
-## 2. Retours Tontine
-
-Si une livraison tontine échoue et que la marchandise revient :
-1.  Allez dans **Stock Tontine > Retours**.
-2.  Vérifiez le matériel.
-3.  Validez pour le remettre dans votre stock Tontine central.
-
-Voilà, vous maîtrisez maintenant tous les mouvements de stock de l'entrepôt !
+Le sous-menu **Stock** présente le stock tontine par commercial et par année, lorsque le profil y est autorisé. Le rapport PDF associé doit être lu avec l’année et le commercial affichés sur le panneau.

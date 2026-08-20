@@ -31,6 +31,10 @@ nav:
     - Ventes & Commandes: commercial/sales_orders.md
     - Tontines: commercial/tontine.md
     - Application Mobile: commercial/mobile_app.md
+  - Guide Chef de recouvrement:
+    - Vue d'ensemble: recovery-manager/index.md
+    - Application web: recovery-manager/web.md
+    - Application mobile: recovery-manager/mobile.md
 
 markdown_extensions:
   - admonition
