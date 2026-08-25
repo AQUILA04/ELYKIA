@@ -18,8 +18,9 @@ export async function dismissBlockingAlerts(page: Page) {
   }
 }
 
-async function fillIonInput(page: Page, placeholder: string, value: string) {
-  const input = page.locator(`input.native-input[placeholder="${placeholder}"]`).first();
+async function fillIonInput(page: Page, fieldId: string, value: string) {
+  // Ionic renders the native input below the ion-input host; use the stable host ID.
+  const input = page.locator(`ion-input#${fieldId} input.native-input`).first();
   await input.waitFor({ state: 'visible', timeout: 60_000 });
   await input.fill(value);
   await input.blur();
@@ -32,8 +33,8 @@ export async function loginLive(
 ): Promise<void> {
   await page.goto('/', { waitUntil: 'load', timeout: 60_000 });
   await expect(page).toHaveURL(/\/login/, { timeout: 60_000 });
-  await fillIonInput(page, "Saisissez votre nom d'utilisateur", username);
-  await fillIonInput(page, 'Saisissez votre mot de passe', password);
+  await fillIonInput(page, 'login-username', username);
+  await fillIonInput(page, 'login-password', password);
   await page.getByRole('button', { name: 'SE CONNECTER', exact: true }).click();
   await dismissBlockingAlerts(page);
 }

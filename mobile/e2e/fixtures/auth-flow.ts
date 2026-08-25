@@ -45,8 +45,9 @@ async function waitForTabsAfterInitialization(page: Page, timeoutMs: number) {
   await expect(page).toHaveURL(/\/tabs/, { timeout: 0 });
 }
 
-async function fillIonInput(page: Page, placeholder: string, value: string) {
-  const input = page.locator(`input.native-input[placeholder="${placeholder}"]`).first();
+async function fillIonInput(page: Page, fieldId: string, value: string) {
+  // Ionic renders the native input below the ion-input host; the host ID is stable across UI copy changes.
+  const input = page.locator(`ion-input#${fieldId} input.native-input`).first();
   await input.waitFor({ state: 'visible', timeout: 60_000 });
   await input.fill(value);
   await input.blur();
@@ -56,12 +57,12 @@ export async function loginAndWaitForTabs(page: Page, timeoutMs = 90_000) {
   // Static http-server needs SPA fallback; always boot from / then wait for login route.
   await page.goto('/', { waitUntil: 'load', timeout: 60_000 });
   await expect(page).toHaveURL(/\/login/, { timeout: 60_000 });
-  await expect(
-    page.locator('input.native-input[placeholder="Saisissez votre nom d\'utilisateur"]'),
-  ).toBeVisible({ timeout: 60_000 });
+  await expect(page.locator('ion-input#login-username input.native-input')).toBeVisible({
+    timeout: 60_000,
+  });
 
-  await fillIonInput(page, "Saisissez votre nom d'utilisateur", 'COM002');
-  await fillIonInput(page, 'Saisissez votre mot de passe', 'password');
+  await fillIonInput(page, 'login-username', 'COM002');
+  await fillIonInput(page, 'login-password', 'password');
   await page.getByRole('button', { name: 'SE CONNECTER', exact: true }).click();
 
   // App now goes through /initial-loading before landing on /tabs.
