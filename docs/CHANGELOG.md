@@ -159,6 +159,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
 
+## Backend — [1.12.3] — 2026-08-25
+
+### Fixed
+
+- Opération journalière : le reste à payer (liste et PDF) est net du reliquat client, comme pour les crédits en retard.
+
 ## Backend — [1.12.2] — 2026-08-19
 
 ### Fixed

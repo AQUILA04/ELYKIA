@@ -1,0 +1,713 @@
+/* Elykia mobile design system
+   Navy brand from RM AppShell, pushed further: atmosphere, glass, overlap, motion. */
+
+.elyk-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: #fff;
+  padding: calc(18px + env(safe-area-inset-top, 0px)) 18px 28px;
+  border-radius: 0 0 28px 28px;
+  background:
+    radial-gradient(120% 80% at 100% -10%, rgba(0, 149, 200, 0.38), transparent 52%),
+    radial-gradient(90% 60% at -10% 110%, rgba(255, 255, 255, 0.08), transparent 46%),
+    linear-gradient(165deg, #0a4a7a 0%, var(--elyk-navy) 48%, var(--elyk-navy-dark) 100%);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.06) 0.6px, transparent 0.6px);
+    background-size: 3px 3px;
+    opacity: 0.35;
+    z-index: 0;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  h1 {
+    margin: 6px 0 0;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.12;
+    color: #fff;
+  }
+}
+
+.elyk-hero--compact {
+  padding: calc(8px + env(safe-area-inset-top, 0px)) 12px 16px;
+  border-radius: 0 0 24px 24px;
+}
+
+.elyk-surtitle {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.72;
+  color: #fff;
+}
+
+.elyk-hero-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+
+  ion-back-button,
+  ion-button {
+    --color: #fff;
+    --icon-color: #fff;
+  }
+}
+
+.elyk-hero-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.elyk-frost {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 16px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.elyk-chip-row,
+.elyk-filters {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 14px 16px 4px;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.elyk-chip-row--on-hero {
+  padding: 16px 0 0;
+}
+
+ion-chip.elyk-chip {
+  --background: #fff;
+  --color: var(--elyk-navy);
+  border: 1px solid var(--elyk-border);
+  flex-shrink: 0;
+  font-weight: 600;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+
+  &.on {
+    --background: var(--elyk-navy);
+    --color: #fff;
+    border-color: var(--elyk-navy);
+    font-weight: 700;
+  }
+}
+
+.elyk-chip-row--on-hero ion-chip.elyk-chip {
+  --background: rgba(255, 255, 255, 0.12);
+  --color: #fff;
+  border-color: rgba(255, 255, 255, 0.22);
+
+  &.on {
+    --background: #fff;
+    --color: var(--elyk-navy);
+    border-color: #fff;
+  }
+}
+
+.elyk-kpi-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 14px 16px 0;
+}
+
+.elyk-kpi-strip--2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.elyk-kpi-strip--overlap {
+  margin-top: -22px;
+  padding-top: 0;
+  position: relative;
+  z-index: 2;
+}
+
+.elyk-kpi {
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px 14px 14px 16px;
+  border: 1px solid rgba(221, 227, 236, 0.9);
+  box-shadow: 0 10px 28px rgba(0, 51, 102, 0.08);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    border-radius: 999px;
+  }
+
+  span {
+    display: block;
+    color: var(--elyk-muted);
+    font-size: 11px;
+    letter-spacing: 0.02em;
+  }
+
+  strong {
+    display: block;
+    margin-top: 6px;
+    color: var(--elyk-navy);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.elyk-kpi--navy::before { background: var(--elyk-navy); }
+.elyk-kpi--orange::before { background: var(--elyk-orange); }
+.elyk-kpi--green::before { background: var(--elyk-green); }
+.elyk-kpi--cyan::before { background: var(--elyk-cyan); }
+
+.elyk-card {
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid var(--elyk-border);
+  box-shadow: 0 8px 24px rgba(0, 51, 102, 0.06);
+}
+
+.elyk-client-card {
+  margin: 10px 16px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 14px;
+  border: 1px solid var(--elyk-border);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  box-shadow: 0 8px 20px rgba(0, 51, 102, 0.05);
+  cursor: pointer;
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+
+  &:active {
+    transform: scale(0.985);
+    box-shadow: 0 2px 8px rgba(0, 51, 102, 0.04);
+  }
+}
+
+.elyk-avatar {
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: 14px;
+  background: var(--elyk-navy-pale);
+  color: var(--elyk-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.02em;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.elyk-searchbar {
+  --background: #ffffff;
+  --border-radius: 16px;
+  --box-shadow: 0 10px 24px rgba(0, 51, 102, 0.08);
+  --placeholder-color: var(--elyk-muted);
+  --icon-color: var(--elyk-navy);
+  --color: var(--elyk-navy);
+  --cancel-button-color: var(--elyk-navy);
+  padding-inline: 0;
+  min-height: 48px;
+
+  &::part(native) {
+    border: 1px solid var(--elyk-border);
+    border-radius: 16px;
+  }
+}
+
+.elyk-searchbar .searchbar-input-container {
+  border-radius: 16px !important;
+  overflow: hidden;
+  border: 1px solid var(--elyk-border);
+  min-height: 48px;
+}
+
+.elyk-search-overlap {
+  padding: 0 16px;
+  margin-top: -28px;
+  position: relative;
+  z-index: 2;
+}
+
+.elyk-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--elyk-muted);
+
+  ion-icon {
+    font-size: 56px;
+    color: var(--elyk-navy);
+    opacity: 0.28;
+    margin-bottom: 8px;
+  }
+
+  h2 {
+    margin: 8px 0 4px;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--elyk-navy);
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+
+  a {
+    color: var(--elyk-navy);
+    font-weight: 700;
+    text-decoration: none;
+  }
+}
+
+.elyk-fab {
+  --background: var(--elyk-navy);
+  --background-activated: var(--elyk-navy-dark);
+  --background-focused: var(--elyk-navy-dark);
+  --color: #fff;
+  --box-shadow: 0 10px 24px rgba(0, 51, 102, 0.28);
+}
+
+/* Popover menu (fiche client, etc.) */
+.elyk-popover {
+  --width: 260px;
+  --max-width: calc(100vw - 32px);
+  --background: #fff;
+  --box-shadow: 0 16px 40px rgba(0, 51, 102, 0.18);
+  --backdrop-opacity: 0.18;
+  --offset-y: 6px;
+
+  &::part(content) {
+    border-radius: 16px;
+    border: 1px solid var(--elyk-border);
+    overflow: hidden;
+  }
+}
+
+.elyk-tab-bar {
+  --background: rgba(255, 255, 255, 0.92);
+  --border: 0;
+  margin: 0 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  border-radius: 22px;
+  border: 1px solid rgba(221, 227, 236, 0.9);
+  box-shadow: 0 12px 32px rgba(0, 51, 102, 0.12);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  height: 62px;
+  overflow: hidden;
+
+  ion-tab-button {
+    --color: var(--elyk-muted);
+    --color-selected: var(--elyk-navy);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  ion-tab-button.tab-selected {
+    ion-icon {
+      transform: translateY(-1px);
+    }
+  }
+}
+
+.elyk-field {
+  margin-bottom: 16px;
+
+  > ion-label,
+  > .elyk-field-label {
+    display: block;
+    color: var(--elyk-muted);
+    font-weight: 500;
+    font-size: 13px;
+    margin-bottom: 8px;
+  }
+
+  ion-item {
+    --background: #fff;
+    --border-color: var(--elyk-border);
+    --border-radius: 14px;
+    --padding-start: 12px;
+    --inner-padding-end: 12px;
+    border: 1px solid var(--elyk-border);
+    border-radius: 14px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  ion-item.ion-focused {
+    --border-color: var(--elyk-navy);
+    border-color: var(--elyk-navy);
+    box-shadow: 0 0 0 4px rgba(0, 51, 102, 0.08);
+  }
+}
+
+.elyk-field.required .elyk-field-label::after,
+.elyk-field.required > ion-label::after {
+  content: ' *';
+  color: var(--elyk-orange);
+}
+
+.elyk-footer-bar {
+  --background: rgba(255, 255, 255, 0.94);
+  --border-width: 1px 0 0 0;
+  --border-color: var(--elyk-border);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+
+  ion-button.elyk-btn-navy {
+    --background: var(--elyk-navy);
+    --background-activated: var(--elyk-navy-dark);
+    --color: #fff;
+    --border-radius: 14px;
+    font-weight: 700;
+  }
+
+  ion-button.elyk-btn-outline {
+    --background: transparent;
+    --color: var(--elyk-navy);
+    --border-color: var(--elyk-border);
+    --border-width: 1.5px;
+    --border-style: solid;
+    --border-radius: 14px;
+    font-weight: 600;
+  }
+
+  ion-button[disabled].elyk-btn-navy {
+    --background: var(--elyk-navy-pale);
+    --color: var(--elyk-muted);
+  }
+}
+
+.elyk-btn-navy {
+  --background: var(--elyk-navy);
+  --background-activated: var(--elyk-navy-dark);
+  --color: #fff;
+  --border-radius: 14px;
+  font-weight: 700;
+  --box-shadow: 0 8px 18px rgba(0, 51, 102, 0.22);
+}
+
+.elyk-btn-outline {
+  --background: transparent;
+  --color: var(--elyk-navy);
+  --border-color: var(--elyk-navy);
+  --border-width: 1.5px;
+  --border-style: solid;
+  --border-radius: 14px;
+  font-weight: 600;
+}
+
+/* Action sheets (tontine menus) */
+.elyk-action-sheet {
+  --background: #fff;
+  --button-background: #fff;
+  --button-background-activated: var(--elyk-navy-pale);
+  --button-background-selected: var(--elyk-navy-pale);
+  --button-color: var(--elyk-navy);
+  --color: var(--elyk-navy);
+  --button-color-activated: var(--elyk-navy);
+
+  .action-sheet-group {
+    border-radius: 18px 18px 0 0;
+    overflow: hidden;
+  }
+
+  .action-sheet-title {
+    color: var(--elyk-muted);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding-top: 14px;
+  }
+
+  .action-sheet-button {
+    font-weight: 600;
+    --color: var(--elyk-navy);
+
+    ion-icon {
+      color: var(--elyk-navy);
+    }
+  }
+
+  .action-sheet-cancel {
+    font-weight: 600;
+    --color: var(--elyk-muted) !important;
+
+    ion-icon {
+      color: var(--elyk-muted) !important;
+    }
+  }
+
+  .elyk-action-danger {
+    opacity: 0.4;
+  }
+}
+
+/* Alertes succès / confirm */
+ion-alert.elyk-alert {
+  --backdrop-opacity: 0.35;
+
+  .alert-wrapper {
+    border-radius: 18px;
+    border: 1px solid var(--elyk-border);
+    box-shadow: 0 16px 40px rgba(0, 51, 102, 0.18);
+    max-width: 320px;
+  }
+
+  .alert-head {
+    padding-bottom: 4px;
+  }
+
+  .alert-title {
+    color: var(--elyk-navy);
+    font-weight: 800;
+    font-size: 17px;
+  }
+
+  .alert-message {
+    color: var(--elyk-muted);
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .alert-button {
+    color: var(--elyk-navy);
+    font-weight: 700;
+  }
+
+  .alert-button.alert-button-role-destructive,
+  .alert-button[ng-reflect-role='destructive'] {
+    color: var(--elyk-orange);
+  }
+}
+
+.elyk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.elyk-badge--credit {
+  background: #fff3e6;
+  color: var(--elyk-orange);
+}
+
+.elyk-badge--local {
+  background: var(--elyk-navy-pale);
+  color: var(--elyk-muted);
+}
+
+.elyk-badge--sync {
+  background: #e6f5eb;
+  color: var(--elyk-green);
+}
+
+.elyk-amount {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  color: var(--elyk-navy);
+}
+
+.elyk-amount--due {
+  color: var(--elyk-orange);
+}
+
+.elyk-amount--green {
+  color: var(--elyk-green);
+}
+
+.elyk-quarter-title {
+  margin: 16px 16px 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--elyk-muted);
+}
+
+.elyk-page {
+  background: var(--elyk-bg);
+  min-height: 100%;
+  padding-bottom: 24px;
+}
+
+ion-content.elyk-content {
+  --background: var(--elyk-bg);
+}
+
+.elyk-chevron {
+  color: var(--elyk-muted);
+  font-size: 16px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.elyk-settings-group {
+  margin: 0 16px 8px;
+  padding: 4px 0;
+  overflow: hidden;
+}
+
+.elyk-settings-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--elyk-border);
+  cursor: default;
+  transition: background 0.15s ease, transform 0.15s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &[role='button'],
+  &.is-clickable {
+    cursor: pointer;
+
+    &:active {
+      background: var(--elyk-navy-pale);
+      transform: scale(0.995);
+    }
+  }
+}
+
+.settings-icon {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 12px;
+  background: var(--elyk-navy-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 20px;
+    color: var(--elyk-navy);
+  }
+
+  &.settings-icon--danger ion-icon {
+    color: var(--ion-color-danger);
+  }
+
+  &.settings-icon--warning ion-icon {
+    color: var(--elyk-orange);
+  }
+
+  &.settings-icon--green ion-icon {
+    color: var(--elyk-green);
+  }
+}
+
+.settings-body {
+  flex: 1;
+  min-width: 0;
+
+  h3 {
+    margin: 0 0 2px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--elyk-navy);
+    line-height: 1.3;
+  }
+
+  p {
+    margin: 0;
+    font-size: 12px;
+    color: var(--elyk-muted);
+    line-height: 1.35;
+  }
+
+  .settings-label-only {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--elyk-navy);
+  }
+}
+
+.settings-end {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+
+  ion-select {
+    max-width: 140px;
+    font-size: 13px;
+    --padding-start: 0;
+    --padding-end: 0;
+  }
+
+  ion-toggle {
+    --handle-background: #fff;
+    --track-background: var(--elyk-border);
+    --track-background-checked: var(--elyk-navy);
+  }
+
+  ion-spinner {
+    --color: var(--elyk-navy);
+  }
+}
+
+.elyk-settings-row--control {
+  .settings-body {
+    padding-right: 4px;
+  }
+}

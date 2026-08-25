@@ -1,0 +1,49 @@
+:host {
+  display: block;
+}
+
+.client-menu-list {
+  background: transparent;
+  padding: 6px 0;
+  margin: 0;
+}
+
+.menu-item {
+  --background: transparent;
+  --padding-start: 14px;
+  --inner-padding-end: 14px;
+  --min-height: 44px;
+  --color: var(--elyk-navy);
+  font-weight: 600;
+  margin: 0;
+
+  ion-icon {
+    color: var(--elyk-navy);
+    font-size: 20px;
+    margin-inline-end: 10px;
+  }
+
+  ion-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--elyk-navy);
+  }
+
+  &.item-disabled,
+  &[disabled] {
+    opacity: 1;
+
+    ion-icon,
+    ion-label {
+      color: var(--elyk-muted);
+      opacity: 0.45;
+    }
+  }
+}
+
+.menu-item--danger:not(.item-disabled):not([disabled]) {
+  ion-icon,
+  ion-label {
+    color: var(--elyk-orange);
+  }
+}

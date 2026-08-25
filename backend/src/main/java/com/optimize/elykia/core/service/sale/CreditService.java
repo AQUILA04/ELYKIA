@@ -33,6 +33,7 @@ import com.optimize.elykia.core.service.stock.StockMovementService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.core.util.CreditArticleUnitPricePolicy;
 import com.optimize.elykia.core.util.CommercialMonthlyStockCashSalePricing;
+import com.optimize.elykia.core.util.ClientReliquatNetRemaining;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.SneakyThrows;
@@ -80,6 +81,7 @@ public class CreditService extends GenericService<Credit, Long> {
     private TontineStockService tontineStockService;
     private ParameterService parameterService;
     private BusinessMetricsPublisher metricsPublisher;
+    private ClientReliquatRepository clientReliquatRepository;
 
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private CreditTimelineService creditTimelineService;
@@ -131,6 +133,11 @@ public class CreditService extends GenericService<Credit, Long> {
     @Autowired(required = false)
     public void setSoldValueHistoryService(CommercialMonthlyStockItemSoldValueHistoryService soldValueHistoryService) {
         this.soldValueHistoryService = soldValueHistoryService;
+    }
+
+    @Autowired
+    public void setClientReliquatRepository(ClientReliquatRepository clientReliquatRepository) {
+        this.clientReliquatRepository = clientReliquatRepository;
     }
 
     @Transactional
@@ -920,13 +927,15 @@ public class CreditService extends GenericService<Credit, Long> {
             throw new ApplicationException("Aucune caisse ouverte pour l'utilisateur " + user.getUsername());
         }
         LocalDateTime[] dayRange = getCurrentAccountingDayRange();
-        return getRepository().findUnrecoveredCreditsForDay(
+        Page<DailyUnrecoveredCreditDto> page = getRepository().findUnrecoveredCreditsForDay(
                 CreditStatus.INPROGRESS,
                 user.getUsername(),
                 ClientType.CLIENT,
                 dayRange[0],
                 dayRange[1],
                 pageable);
+        applyClientReliquatDeduction(page.getContent());
+        return page;
     }
 
     public List<DailyUnrecoveredCreditDto> getCreditByCollector() {
@@ -935,12 +944,14 @@ public class CreditService extends GenericService<Credit, Long> {
             throw new ApplicationException("Aucune caisse ouverte pour l'utilisateur " + user.getUsername());
         }
         LocalDateTime[] dayRange = getCurrentAccountingDayRange();
-        return getRepository().findUnrecoveredCreditsForDay(
+        List<DailyUnrecoveredCreditDto> credits = getRepository().findUnrecoveredCreditsForDay(
                 CreditStatus.INPROGRESS,
                 user.getUsername(),
                 ClientType.CLIENT,
                 dayRange[0],
                 dayRange[1]);
+        applyClientReliquatDeduction(credits);
+        return credits;
     }
 
     public Map<String, List<DailyUnrecoveredCreditDto>> getCreditByCollectorV2() {
@@ -952,6 +963,14 @@ public class CreditService extends GenericService<Credit, Long> {
             }
         }
         return grouped;
+    }
+
+    /**
+     * Déduit le reliquat client du montant restant affiché (liste / PDF).
+     * Si un client a plusieurs crédits non recouvrés, le reliquat est réparti sans double comptage.
+     */
+    private void applyClientReliquatDeduction(List<DailyUnrecoveredCreditDto> credits) {
+        ClientReliquatNetRemaining.applyToDailyCredits(clientReliquatRepository, credits);
     }
 
     private LocalDateTime[] getCurrentAccountingDayRange() {

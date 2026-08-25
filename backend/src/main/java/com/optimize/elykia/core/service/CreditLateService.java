@@ -2,11 +2,11 @@ package com.optimize.elykia.core.service;
 
 import com.optimize.elykia.core.dto.CreditLateDTO;
 import com.optimize.elykia.core.dto.CreditLateSummaryDTO;
-import com.optimize.elykia.core.entity.sale.ClientReliquat;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.LateType;
 import com.optimize.elykia.core.repository.ClientReliquatRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.util.ClientReliquatNetRemaining;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +16,6 @@ import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -150,31 +149,16 @@ public class CreditLateService {
                 .map(CreditLateDTO::getClientId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
-        if (clientIds.isEmpty()) {
-            return;
-        }
-
-        Map<Long, Double> remainingReliquat = new HashMap<>();
-        for (ClientReliquat reliquat : clientReliquatRepository.findByClientIdIn(clientIds)) {
-            if (reliquat.getClient() == null || reliquat.getClient().getId() == null) {
-                continue;
-            }
-            double amount = reliquat.getTotalAmount() != null ? reliquat.getTotalAmount() : 0.0;
-            remainingReliquat.put(reliquat.getClient().getId(), Math.max(0.0, amount));
-        }
+        Map<Long, Double> remainingReliquat = ClientReliquatNetRemaining.loadAvailableByClient(
+                clientReliquatRepository, clientIds);
 
         for (int i = 0; i < lates.size(); i++) {
             CreditLateDTO dto = lates.get(i);
-            if (dto.getClientId() == null) {
-                continue;
-            }
-            double available = remainingReliquat.getOrDefault(dto.getClientId(), 0.0);
-            if (available <= 0) {
-                continue;
-            }
             double remaining = dto.getTotalAmountRemaining() != null ? dto.getTotalAmountRemaining() : 0.0;
-            double applied = Math.min(remaining, available);
-            remainingReliquat.put(dto.getClientId(), available - applied);
+            double applied = ClientReliquatNetRemaining.consume(remainingReliquat, dto.getClientId(), remaining);
+            if (applied <= 0) {
+                continue;
+            }
             lates.set(i, dto.toBuilder()
                     .totalAmountRemaining(remaining - applied)
                     .clientReliquatApplied(applied)

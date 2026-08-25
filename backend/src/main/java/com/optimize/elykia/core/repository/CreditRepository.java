@@ -81,7 +81,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
 
     @Query("""
             SELECT new com.optimize.elykia.core.dto.DailyUnrecoveredCreditDto(
-                c.id, c.reference, c.dailyStake, c.totalAmountRemaining,
+                c.id, c.reference, c.dailyStake, c.totalAmountRemaining, cl.id,
                 cl.firstname, cl.lastname, cl.quarter, cl.occupation
             )
             FROM Credit c
@@ -106,7 +106,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
 
     @Query(value = """
             SELECT new com.optimize.elykia.core.dto.DailyUnrecoveredCreditDto(
-                c.id, c.reference, c.dailyStake, c.totalAmountRemaining,
+                c.id, c.reference, c.dailyStake, c.totalAmountRemaining, cl.id,
                 cl.firstname, cl.lastname, cl.quarter, cl.occupation
             )
             FROM Credit c

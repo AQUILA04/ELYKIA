@@ -1,0 +1,22 @@
+<div class="order-item elyk-client-card" *ngIf="order">
+  <div class="order-date">
+    <div class="date-day">{{ displayDate | date:'dd' }}</div>
+    <div class="date-month">{{ displayDate | date:'MMM' | uppercase }}</div>
+  </div>
+  <div class="order-info">
+    <div class="order-reference">{{ order.reference }}</div>
+    <div class="order-client">{{ clientDisplayName }}</div>
+    <div class="order-details">
+      {{ order.articleCount || 0 }} {{ (order.articleCount || 0) === 1 ? 'article' : 'articles' }}
+    </div>
+  </div>
+  <div class="order-amount">
+    <div class="elyk-amount">{{ order.totalAmount | number:'1.0-0' }} FCFA</div>
+    <span class="elyk-badge amount-status" [ngClass]="getStatusClass(order.status)">
+      {{ getStatusLabel(order.status) }}
+    </span>
+    <span class="elyk-badge elyk-badge--local" *ngIf="!order.isSync">Local</span>
+    <span class="elyk-badge elyk-badge--sync" *ngIf="order.isSync">Sync</span>
+  </div>
+  <ion-icon name="chevron-forward" class="elyk-chevron"></ion-icon>
+</div>

@@ -1,0 +1,175 @@
+ion-header.ion-no-border {
+  --border-width: 0;
+}
+
+.elyk-hero--compact {
+  padding-top: 0;
+}
+
+.order-detail-hero {
+  padding-bottom: 20px;
+}
+
+.order-hero-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px 0;
+}
+
+.order-hero-text {
+  min-width: 0;
+
+  h2 {
+    margin: 0;
+    color: #fff;
+    font-size: 20px;
+    font-weight: 800;
+    word-break: break-word;
+  }
+}
+
+.hero-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.close-glass {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  &.danger {
+    background: rgba(220, 53, 69, 0.35);
+  }
+}
+
+.detail-body {
+  --padding-bottom: 100px;
+}
+
+.elyk-card {
+  margin: 16px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(15, 40, 80, 0.06);
+
+  &:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  &:first-child {
+    padding-top: 0;
+  }
+}
+
+.detail-label {
+  font-size: 13px;
+  color: var(--elyk-muted);
+  flex-shrink: 0;
+}
+
+.detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--elyk-navy);
+  text-align: right;
+}
+
+ion-card-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--elyk-navy);
+}
+
+.line-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(15, 40, 80, 0.06);
+
+  &:last-child {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  &:first-child {
+    padding-top: 0;
+  }
+}
+
+.line-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.line-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--elyk-navy);
+}
+
+.line-meta {
+  font-size: 12px;
+  color: var(--elyk-muted);
+}
+
+.line-total {
+  flex-shrink: 0;
+  font-size: 14px;
+}
+
+.elyk-empty.compact {
+  padding: 8px 0;
+}
+
+.readonly-hint {
+  margin: 0 16px 24px;
+  font-size: 13px;
+  color: var(--elyk-muted);
+  text-align: center;
+}
+
+.amount-status.status-pending {
+  background: #fff3e6;
+  color: var(--elyk-orange);
+}
+
+.amount-status.status-accepted {
+  background: #e6f5eb;
+  color: var(--elyk-green);
+}
+
+.amount-status.status-denied,
+.amount-status.status-cancel {
+  background: var(--elyk-navy-pale);
+  color: var(--elyk-muted);
+}
+
+.amount-status.status-sold {
+  background: var(--elyk-navy-pale);
+  color: var(--elyk-navy);
+}

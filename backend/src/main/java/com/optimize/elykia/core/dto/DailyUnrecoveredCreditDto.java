@@ -12,7 +12,9 @@ public class DailyUnrecoveredCreditDto {
     private Long id;
     private String reference;
     private Double dailyStake;
+    /** Montant restant net du reliquat client (à encaisser). */
     private Double totalAmountRemaining;
+    private Long clientId;
     private String clientFirstname;
     private String clientLastname;
     private String clientQuarter;
