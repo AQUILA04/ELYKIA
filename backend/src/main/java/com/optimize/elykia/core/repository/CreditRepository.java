@@ -435,6 +435,16 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     @Query("SELECT DISTINCT c.collector FROM Credit c WHERE c.state = 'ENABLED'")
     List<String> findDistinctCollectors();
 
+    @Query("""
+        SELECT DISTINCT cl.quarter FROM Credit c
+        JOIN c.client cl
+        WHERE c.collector = :collector
+          AND c.state = 'ENABLED'
+          AND cl.quarter IS NOT NULL
+          AND TRIM(cl.quarter) <> ''
+        """)
+    List<String> findDistinctClientQuartersByCollector(@Param("collector") String collector);
+
     boolean existsByTypeAndCollectorAndStatusInAndBeginDateBetween(OperationType type, String commercial, List<CreditStatus> statusList, LocalDate startDate, LocalDate endDate);
 
     boolean existsByTypeAndCollectorAndStatusAndClientTypeAndBeginDateBetween(OperationType type, String commercial, CreditStatus status, ClientType clientType, LocalDate startDate, LocalDate endDate);

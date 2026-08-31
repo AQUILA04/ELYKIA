@@ -85,6 +85,68 @@
   font-size: 13px;
 }
 
+.info-banner {
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 16px;
+  padding: 20px 16px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.info-banner ion-icon {
+  font-size: 40px;
+  color: #1d8a3c;
+  opacity: 0.85;
+  margin-bottom: 4px;
+}
+
+.info-banner h2 {
+  margin: 8px 0 6px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--rm-navy);
+}
+
+.info-banner p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--rm-muted);
+}
+
+.collectors-empty {
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 16px;
+  padding: 28px 16px;
+  margin-bottom: 16px;
+}
+
+.collectors-empty ion-icon {
+  font-size: 48px;
+  color: var(--rm-navy);
+  opacity: 0.28;
+}
+
+.collectors-empty h2 {
+  margin: 8px 0 6px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--rm-navy);
+}
+
+.collectors-empty p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--rm-muted);
+}
+
+.retry-btn {
+  margin-top: 14px;
+}
+
 .rm-list {
   background: transparent;
   margin-bottom: 20px;

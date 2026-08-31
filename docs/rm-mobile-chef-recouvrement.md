@@ -114,15 +114,17 @@ Coordinateur partagé : `mobile/src/app/core/services/online-first-write.coordin
 ### 4.1 Plan du jour — `/rm/plan`
 
 1. Login RM → redirection `/rm/plan` (bypass commercial init).  
-2. Étape 1 : `GET .../collector-stats` → sélection **1–3** commerciaux.  
-3. Étape 2 : multi-select **Localités** (modal + recherche) ; vide = toutes.  
-4. Étape 3 : estimation volume ; confirmation si gros pack.  
-5. `POST /field-plans` + `GET .../offline-pack?includeTontine=true` → Storage → `/rm/dashboard`.  
-6. Si plan ACTIVE + pack du jour déjà présents → redirect auto dashboard (`RmPlanGuard`).
+2. Étape 1 : `GET .../collector-stats` → sélection **1–3** commerciaux (portefeuille actif : crédits ENABLED + tontine session en cours, **pas seulement** les commerciaux en retard).  
+3. Si **aucun retard** : bandeau informatif + liste des commerciaux avec `lateCount = 0` ; le RM peut continuer pour accéder à Terrain / Clients (contrôle carnet tontine, changement de commercial, contacts).  
+4. Étape 2 : multi-select **Localités** (modal + recherche) ; vide = toutes.  
+5. Étape 3 : estimation volume ; confirmation si gros pack.  
+6. `POST /field-plans` + `GET .../offline-pack?includeTontine=true` → Storage → `/rm/dashboard`.  
+7. Si plan ACTIVE + pack du jour déjà présents → redirect auto dashboard (`RmPlanGuard`).
 
 ### 4.2 Retards — `/rm/dashboard`
 
 - Liste `lateCredits` du pack, groupée localité, filtre commercial.  
+- Si pack sans retard : message « Aucun retard dans le périmètre du plan » + orientation vers Terrain / Clients.  
 - KPI : nb retards, montant dû, clôturé du jour, badge file close.  
 - Actions : **Clôturer** (sheet total/partiel), **Contrôle** carnet crédit.  
 - Barre de session (username + online/offline).

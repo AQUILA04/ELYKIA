@@ -31,6 +31,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Vérification de carnet tontine : badge sur la fiche membre, bouton Vérifier/Annuler, sélection en masse, filtre Carnet et exports PDF vérifiés / à vérifier (`ROLE_TONTINE_CARNET_VERIFY`).
 
+## Mobile — [2.28.6] — 2026-08-31
+
+### Added
+
+- Wizard Plan du jour RM : bandeau « Aucun retard aujourd'hui » et empty-state si le portefeuille actif est vide ; possibilité de continuer vers l'application (contrôle carnet, changement de commercial).
+- Dashboard Retards RM : message explicite quand le pack ne contient aucun retard.
+
+### Changed
+
+- Toast de téléchargement du pack RM adapté au cas « 0 retard » (clients + membres tontine).
+
 ## Mobile — [2.28.5] — 2026-08-20
 
 ### Changed
@@ -158,6 +169,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
+
+## Backend — [1.12.4] — 2026-08-31
+
+### Changed
+
+- `GET /recovery-manager/field-plans/collector-stats` : inclut le portefeuille actif (crédits ENABLED + commerciaux tontine session en cours) même sans retard ; quartiers issus du portefeuille si aucun retard.
 
 ## Backend — [1.12.3] — 2026-08-25
 

@@ -48,6 +48,12 @@
       <ion-button class="rm-cta" (click)="openPlan()">Plan du jour</ion-button>
     </section>
 
+    <section *ngIf="pack && lateCount === 0" class="elyk-empty no-lates-empty" data-testid="e2e-rm-dashboard-no-lates">
+      <ion-icon name="checkmark-circle-outline"></ion-icon>
+      <h2>Aucun retard dans le périmètre du plan</h2>
+      <p>Consultez l'onglet Terrain ou Clients pour vos opérations du jour.</p>
+    </section>
+
     <section *ngFor="let group of grouped" class="quarter-block">
       <h2>Localité · {{ group.quarter }}</h2>
       <article class="late-card" *ngFor="let item of group.items">
