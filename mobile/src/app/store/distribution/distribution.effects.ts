@@ -141,11 +141,29 @@ export class DistributionEffects {
       ofType(DistributionActions.loadFirstPageAvailableArticles),
       switchMap(({ commercialUsername, pageSize, filters }) =>
         this.distributionService.getAvailableArticlesPaginated(0, pageSize || 20, filters).pipe(
-          map(page => DistributionActions.loadFirstPageAvailableArticlesSuccess({
-            articles: page.content,
-            totalElements: page.totalElements,
-            totalPages: page.totalPages
-          })),
+          concatMap((localPage) => concat(
+            of(DistributionActions.loadFirstPageAvailableArticlesSuccess({
+              articles: localPage.content,
+              totalElements: localPage.totalElements,
+              totalPages: localPage.totalPages
+            })),
+            from(commercialUsername
+              ? this.onlineListRefreshService.refreshCommercialStockPage(
+                commercialUsername,
+                0,
+                pageSize || 20,
+                filters
+              )
+              : Promise.resolve(null)
+            ).pipe(
+              filter((serverPage): serverPage is Page<any> => !!serverPage),
+              map((serverPage) => DistributionActions.loadFirstPageAvailableArticlesSuccess({
+                articles: serverPage.content,
+                totalElements: serverPage.totalElements,
+                totalPages: serverPage.totalPages
+              }))
+            )
+          )),
           catchError(error => of(DistributionActions.loadFirstPageAvailableArticlesFailure({ error: error.message })))
         )
       )
@@ -159,6 +177,16 @@ export class DistributionEffects {
       switchMap(([{ commercialUsername, pageSize, filters }, state]) => {
         const nextPage = state.articlesPagination.currentPage + 1;
         return this.distributionService.getAvailableArticlesPaginated(nextPage, pageSize || 20, filters).pipe(
+          tap(() => {
+            if (commercialUsername) {
+              void this.onlineListRefreshService.refreshCommercialStockPage(
+                commercialUsername,
+                nextPage,
+                pageSize || 20,
+                filters
+              );
+            }
+          }),
           map(page => DistributionActions.loadNextPageAvailableArticlesSuccess({
             articles: page.content
           })),

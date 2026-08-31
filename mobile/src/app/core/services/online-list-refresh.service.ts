@@ -32,6 +32,11 @@ import {
   TontineStockRepositoryExtensions,
   TontineStockRepositoryFilters
 } from '../repositories/tontine-stock.repository.extensions';
+import { CommercialStockRepository } from '../repositories/commercial-stock.repository';
+import { StockSnapshotRepository } from '../repositories/stock-snapshot.repository';
+import { ArticleRepository } from '../repositories/article.repository';
+import { CommercialStockItemDto } from '../../models/commercial-stock-item.model';
+import { Article } from '../../models/article.model';
 import { DatabaseService } from './database.service';
 import { Page } from '../repositories/repository.interface';
 import { LoggerService } from './logger.service';
@@ -56,6 +61,9 @@ export class OnlineListRefreshService {
     private readonly tontineCollectionRepositoryExtensions: TontineCollectionRepositoryExtensions,
     private readonly tontineDeliveryRepositoryExtensions: TontineDeliveryRepositoryExtensions,
     private readonly tontineStockRepositoryExtensions: TontineStockRepositoryExtensions,
+    private readonly commercialStockRepository: CommercialStockRepository,
+    private readonly stockSnapshotRepository: StockSnapshotRepository,
+    private readonly articleRepository: ArticleRepository,
     private readonly databaseService: DatabaseService,
     private readonly log: LoggerService
   ) {}
@@ -426,6 +434,55 @@ export class OnlineListRefreshService {
       );
     } catch (error) {
       void this.log.log(`[OnlineListRefresh] tontine stocks page ${page} failed: ${String(error)}`);
+      return null;
+    }
+  }
+
+  async refreshCommercialStockPage(
+    commercialUsername: string,
+    page: number,
+    size: number,
+    filters?: { searchQuery?: string }
+  ): Promise<Page<any> | null> {
+    if (!commercialUsername || !await this.shouldRefreshFromServer()) {
+      return null;
+    }
+
+    try {
+      const url = `${environment.apiUrl}/api/commercial-stocks/available/${encodeURIComponent(commercialUsername)}`;
+      const items = await firstValueFrom(this.http.get<CommercialStockItemDto[]>(url));
+
+      await this.commercialStockRepository.reconcileServerStock(items, commercialUsername);
+
+      if (items.length > 0) {
+        const articles: Article[] = items.map(item => ({
+          id: String(item.articleId),
+          name: item.articleName || item.commercialName || '',
+          commercialName: item.commercialName || item.articleName || '',
+          marque: '',
+          model: '',
+          type: '',
+          creditSalePrice: item.creditSalePrice || 0,
+          stockQuantity: 0
+        }));
+        await this.articleRepository.saveAll(articles);
+
+        const totalStock = items.reduce(
+          (sum, item) => sum + ((item.quantityRemaining || 0) * (item.creditSalePrice || 0)),
+          0
+        );
+        await this.stockSnapshotRepository.upsertSnapshot(commercialUsername, totalStock);
+      }
+
+      const localPage = await this.commercialStockRepository.findAvailableArticlesPaginated(
+        commercialUsername,
+        page,
+        size,
+        filters
+      );
+      return { ...localPage, page, size };
+    } catch (error) {
+      void this.log.log(`[OnlineListRefresh] commercial stock page ${page} failed: ${String(error)}`);
       return null;
     }
   }
