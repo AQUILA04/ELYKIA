@@ -6,8 +6,7 @@ import { map, switchMap, take } from 'rxjs/operators';
 import { selectIsLoggedIn, selectAuthUser } from '../../store/auth/auth.selectors';
 import { Storage } from '@ionic/storage-angular';
 import { DatabaseService } from '../services/database.service';
-import { FeatureFlagService, FeatureFlags } from '../services/feature-flag.service';
-import { canAccessRecoveryManagerMobile, hasRecoveryManagerProfil } from '../utils/rm-user.util';
+import { canAccessRecoveryManagerMobile } from '../utils/rm-user.util';
 
 @Injectable({
   providedIn: 'root'
@@ -18,8 +17,7 @@ export class AuthGuard implements CanActivate {
     private store: Store,
     private router: Router,
     private storage: Storage,
-    private dbService: DatabaseService,
-    private featureFlags: FeatureFlagService
+    private dbService: DatabaseService
   ) { }
 
   canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
@@ -40,7 +38,7 @@ export class AuthGuard implements CanActivate {
             return of(this.router.createUrlTree(['/change-password']));
           }
 
-          const isRm = canAccessRecoveryManagerMobile(user, this.featureFlags);
+          const isRm = canAccessRecoveryManagerMobile(user);
 
           if (isRm) {
             if (state.url.startsWith('/rm')) {

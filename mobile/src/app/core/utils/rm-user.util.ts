@@ -1,5 +1,4 @@
 import { RECOVERY_MANAGER_PROFIL, User } from '../../models/auth.model';
-import { FeatureFlagService, FeatureFlags } from '../services/feature-flag.service';
 
 export function hasRecoveryManagerProfil(user: User | null | undefined): boolean {
   if (!user) {
@@ -13,9 +12,7 @@ export function hasRecoveryManagerProfil(user: User | null | undefined): boolean
   );
 }
 
-export function canAccessRecoveryManagerMobile(
-  user: User | null | undefined,
-  featureFlags: FeatureFlagService
-): boolean {
-  return hasRecoveryManagerProfil(user) && featureFlags.isFeatureEnabled(FeatureFlags.RecoveryManagerMobile);
+/** RM mobile shell access — driven by profil/role, not Remote Config (flag is informational only). */
+export function canAccessRecoveryManagerMobile(user: User | null | undefined): boolean {
+  return hasRecoveryManagerProfil(user);
 }

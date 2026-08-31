@@ -3,7 +3,6 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LoadingController, ToastController } from '@ionic/angular';
 import { AuthService } from '../../../core/services/auth.service';
-import { FeatureFlagService } from '../../../core/services/feature-flag.service';
 import { canAccessRecoveryManagerMobile } from '../../../core/utils/rm-user.util';
 
 @Component({
@@ -23,8 +22,7 @@ export class ChangePasswordPage {
     private authService: AuthService,
     private router: Router,
     private loadingController: LoadingController,
-    private toastController: ToastController,
-    private featureFlags: FeatureFlagService
+    private toastController: ToastController
   ) {
     this.forcedMode = this.authService.mustChangePassword();
     this.form = this.formBuilder.group({
@@ -56,7 +54,7 @@ export class ChangePasswordPage {
       await loading.dismiss();
       await this.presentToast('Mot de passe mis à jour avec succès.', 'success');
       const user = this.authService.currentUser;
-      const rmMobile = canAccessRecoveryManagerMobile(user, this.featureFlags);
+      const rmMobile = canAccessRecoveryManagerMobile(user);
       this.router.navigateByUrl(rmMobile ? '/rm/plan' : '/initial-loading');
     } catch (error) {
       await loading.dismiss();

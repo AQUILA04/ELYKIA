@@ -1,6 +1,5 @@
 import { hasRecoveryManagerProfil, canAccessRecoveryManagerMobile } from './rm-user.util';
 import { User } from '../../models/auth.model';
-import { FeatureFlagService, FeatureFlags } from '../services/feature-flag.service';
 
 describe('rm-user.util', () => {
   const rmUser: User = {
@@ -24,14 +23,8 @@ describe('rm-user.util', () => {
     expect(hasRecoveryManagerProfil({ ...rmUser, profil: 'PROMOTER', roles: ['ROLE_PROMOTER'] })).toBe(false);
   });
 
-  it('canAccessRecoveryManagerMobile requires profil and feature flag', () => {
-    const flags = {
-      isFeatureEnabled: (flag: FeatureFlags) => flag === FeatureFlags.RecoveryManagerMobile,
-    } as FeatureFlagService;
-
-    expect(canAccessRecoveryManagerMobile({ ...rmUser, profil: 'RECOVERY_MANAGER' }, flags)).toBe(true);
-    expect(canAccessRecoveryManagerMobile({ ...rmUser, profil: 'RECOVERY_MANAGER' }, {
-      isFeatureEnabled: () => false,
-    } as FeatureFlagService)).toBe(false);
+  it('canAccessRecoveryManagerMobile follows profil/role regardless of remote config', () => {
+    expect(canAccessRecoveryManagerMobile({ ...rmUser, profil: 'RECOVERY_MANAGER' })).toBe(true);
+    expect(canAccessRecoveryManagerMobile({ ...rmUser, profil: 'PROMOTER', roles: ['ROLE_PROMOTER'] })).toBe(false);
   });
 });
