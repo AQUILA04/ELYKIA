@@ -193,7 +193,7 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     const photoUrl = this.getPhotoUrl(photoPath);
     const url = photoUrl.toString();
     if (url && !url.includes('favicon') && !url.includes('person-circle-outline')) {
-      this.openImagePreview(photoUrl, client.fullName || `${client.firstname} ${client.lastname}`);
+      this.openImagePreview(url, client.fullName || `${client.firstname} ${client.lastname}`);
     }
   }
 

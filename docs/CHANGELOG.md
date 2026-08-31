@@ -31,6 +31,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Vérification de carnet tontine : badge sur la fiche membre, bouton Vérifier/Annuler, sélection en masse, filtre Carnet et exports PDF vérifiés / à vérifier (`ROLE_TONTINE_CARNET_VERIFY`).
 
+## Mobile — [2.28.12] — 2026-08-31
+
+### Fixed
+
+- Fiche client : correction compilation TypeScript lors de l’aperçu photo (`SafeUrl` → `string`).
+
 ## Mobile — [2.28.11] — 2026-08-31
 
 ### Fixed
