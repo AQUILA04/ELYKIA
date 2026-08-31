@@ -14,6 +14,9 @@ import { TontineMemberRepositoryExtensions } from '../repositories/tontine-membe
 import { TontineCollectionRepositoryExtensions } from '../repositories/tontine-collection.repository.extensions';
 import { TontineDeliveryRepositoryExtensions } from '../repositories/tontine-delivery.repository.extensions';
 import { TontineStockRepositoryExtensions } from '../repositories/tontine-stock.repository.extensions';
+import { CommercialStockRepository } from '../repositories/commercial-stock.repository';
+import { StockSnapshotRepository } from '../repositories/stock-snapshot.repository';
+import { ArticleRepository } from '../repositories/article.repository';
 import { DatabaseService } from './database.service';
 import { LoggerService } from './logger.service';
 import { environment } from '../../../environments/environment';
@@ -26,6 +29,9 @@ describe('OnlineListRefreshService', () => {
   let localityRepository: jasmine.SpyObj<LocalityRepository>;
   let localityRepositoryExtensions: jasmine.SpyObj<LocalityRepositoryExtensions>;
   let tontineMemberRepositoryExtensions: jasmine.SpyObj<TontineMemberRepositoryExtensions>;
+  let commercialStockRepository: jasmine.SpyObj<CommercialStockRepository>;
+  let stockSnapshotRepository: jasmine.SpyObj<StockSnapshotRepository>;
+  let articleRepository: jasmine.SpyObj<ArticleRepository>;
   let databaseService: jasmine.SpyObj<DatabaseService>;
 
   beforeEach(() => {
@@ -36,6 +42,12 @@ describe('OnlineListRefreshService', () => {
     tontineMemberRepositoryExtensions = jasmine.createSpyObj('TontineMemberRepositoryExtensions', [
       'findBySessionAndCommercialPaginated'
     ]);
+    commercialStockRepository = jasmine.createSpyObj('CommercialStockRepository', [
+      'reconcileServerStock',
+      'findAvailableArticlesPaginated'
+    ]);
+    stockSnapshotRepository = jasmine.createSpyObj('StockSnapshotRepository', ['upsertSnapshot']);
+    articleRepository = jasmine.createSpyObj('ArticleRepository', ['saveAll']);
     databaseService = jasmine.createSpyObj('DatabaseService', [
       'getUnsyncedCollectionsTotals',
       'getUnsyncedLocalCollectionIds',
@@ -66,6 +78,9 @@ describe('OnlineListRefreshService', () => {
         { provide: TontineCollectionRepositoryExtensions, useValue: {} },
         { provide: TontineDeliveryRepositoryExtensions, useValue: {} },
         { provide: TontineStockRepositoryExtensions, useValue: {} },
+        { provide: CommercialStockRepository, useValue: commercialStockRepository },
+        { provide: StockSnapshotRepository, useValue: stockSnapshotRepository },
+        { provide: ArticleRepository, useValue: articleRepository },
         { provide: DatabaseService, useValue: databaseService },
         { provide: LoggerService, useValue: { log: jasmine.createSpy('log') } }
       ]
@@ -155,5 +170,38 @@ describe('OnlineListRefreshService', () => {
         isLocal: false
       })
     ]);
+  });
+
+  it('refreshes commercial stock page and returns reconciled articles when online', async () => {
+    hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
+    connectivityService.checkBackendReachable.and.resolveTo(true);
+    commercialStockRepository.reconcileServerStock.and.resolveTo();
+    articleRepository.saveAll.and.resolveTo();
+    stockSnapshotRepository.upsertSnapshot.and.resolveTo();
+    const refreshedPage = {
+      content: [{ id: '1', name: 'Article A', stockQuantity: 5 }],
+      totalElements: 1,
+      totalPages: 1
+    };
+    commercialStockRepository.findAvailableArticlesPaginated.and.resolveTo(refreshedPage as any);
+
+    const refreshPromise = service.refreshCommercialStockPage('com1', 0, 20);
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/api/commercial-stocks/available/com1`);
+    expect(req.request.method).toBe('GET');
+    req.flush([
+      {
+        articleId: '1',
+        articleName: 'Article A',
+        creditSalePrice: 1000,
+        quantityRemaining: 5
+      }
+    ]);
+
+    await expectAsync(refreshPromise).toBeResolvedTo(refreshedPage as any);
+    expect(commercialStockRepository.reconcileServerStock).toHaveBeenCalled();
+    expect(articleRepository.saveAll).toHaveBeenCalled();
+    expect(stockSnapshotRepository.upsertSnapshot).toHaveBeenCalledWith('com1', 5000);
+    expect(commercialStockRepository.findAvailableArticlesPaginated).toHaveBeenCalledWith('com1', 0, 20, undefined);
   });
 });

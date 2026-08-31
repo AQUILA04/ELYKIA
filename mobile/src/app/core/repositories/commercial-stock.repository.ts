@@ -185,6 +185,48 @@ export class CommercialStockRepository {
   }
 
   /**
+   * Quantités vendues localement mais pas encore synchronisées, par article.
+   */
+  async getUnsyncedSalesByArticle(username: string): Promise<Map<string, number>> {
+    const salesMap = new Map<string, number>();
+    try {
+      const result = await this.db.query(
+        `SELECT di.articleId, SUM(di.quantity) as totalQty
+         FROM distribution_items di
+         JOIN distributions d ON di.distributionId = d.id
+         WHERE d.commercialId = ? AND d.isLocal = 1 AND d.isSync = 0
+         GROUP BY di.articleId`,
+        [username]
+      );
+      for (const row of result?.values || []) {
+        salesMap.set(String(row.articleId), row.totalQty || 0);
+      }
+    } catch (error) {
+      this.log.error('[CommercialStockRepository] Error getting unsynced sales by article', error);
+    }
+    return salesMap;
+  }
+
+  /**
+   * Réconcilie le stock serveur avec les ventes locales non synchronisées.
+   * quantityRemaining = max(0, serverQty - unsyncedLocalQty)
+   */
+  async reconcileServerStock(
+    serverItems: CommercialStockItemDto[],
+    username: string
+  ): Promise<void> {
+    const unsyncedSales = await this.getUnsyncedSalesByArticle(username);
+    const reconciledItems = serverItems.map(item => {
+      const unsyncedQty = unsyncedSales.get(String(item.articleId)) || 0;
+      return {
+        ...item,
+        quantityRemaining: Math.max(0, (item.quantityRemaining || 0) - unsyncedQty)
+      };
+    });
+    await this.saveWithCommercialUsername(reconciledItems, username);
+  }
+
+  /**
    * Find available articles (with stock) paginated
    *
    * @param username Commercial username

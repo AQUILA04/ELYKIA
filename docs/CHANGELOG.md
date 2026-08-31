@@ -31,6 +31,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Vérification de carnet tontine : badge sur la fiche membre, bouton Vérifier/Annuler, sélection en masse, filtre Carnet et exports PDF vérifiés / à vérifier (`ROLE_TONTINE_CARNET_VERIFY`).
 
+## Mobile — [2.28.6] — 2026-08-31
+
+### Fixed
+
+- Nouvelle distribution : rafraîchissement hybride du stock commercial en ligne (SWR) — affichage immédiat du cache local puis mise à jour depuis l’API, avec réconciliation des ventes offline non synchronisées.
+
 ## Mobile — [2.28.5] — 2026-08-20
 
 ### Changed

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ModalController, ToastController, AlertController, LoadingController } from '@ionic/angular';
+import { ModalController, ToastController, AlertController, LoadingController, ViewWillEnter } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, BehaviorSubject, combineLatest, of } from 'rxjs';
 import { takeUntil, map, startWith, distinctUntilChanged, withLatestFrom, take, switchMap } from 'rxjs/operators';
@@ -24,8 +24,6 @@ import { DistributionService } from '../../../../core/services/distribution.serv
 import { AccountService } from '../../../../core/services/account.service';
 import { DatabaseService } from '../../../../core/services/database.service';
 import { ArticleRepository } from '../../../../core/repositories/article.repository';
-import { selectAvailableStockItems } from '../../../../store/commercial-stock/commercial-stock.selectors';
-import { CommercialStockItem } from '../../../../models/commercial-stock-item.model';
 import { FeatureFlagService, FeatureFlags } from '../../../../core/services/feature-flag.service';
 import { CreditPurpose } from '../../../../models/credit-purpose.model';
 import { Distribution } from '../../../../models/distribution.model';
@@ -49,7 +47,7 @@ interface DistributionViewModel {
   styleUrls: ['./new-distribution.page.scss'],
   standalone: false
 })
-export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeactivate {
+export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeactivate, ViewWillEnter {
   private destroy$ = new Subject<void>();
 
   distributionForm: FormGroup;
@@ -102,9 +100,6 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     this.log.log('[NewDistributionPage] Initializing...');
     this.dualCreditEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
 
-    // Load initial page of articles
-    this.loadFirstPage();
-
     const availableArticles$ = this.store.select(selectAvailableArticles);
     const articleQuantities$ = this.store.select(selectArticleQuantities);
 
@@ -135,31 +130,18 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
 
     // Handle search input with server-side search
     this.searchTerm$.pipe(
-      startWith(''),
-      // distinctUntilChanged(), // Remove distinctUntilChanged to allow re-trigger if needed? No, keep it.
-      // debounceTime(300), // Already debounced in template, but good practice here too if binding directly
       distinctUntilChanged(),
       takeUntil(this.destroy$)
     ).subscribe(term => {
-      // Search trigger handled in onSearchInput or here?
-      // Let's handle it here if searchTerm$ is updated from template.
-      if (term !== null) { // Allow empty string
-        this.refreshList(term);
-      }
+      this.refreshList(term);
     });
 
     this.setupCalculationPipeline();
     this.setupActionListeners();
   }
 
-  loadFirstPage() {
-    this.store.select(selectAuthUser).pipe(take(1)).subscribe(user => {
-      if (user) {
-        // Initial load with empty search
-        // We defer to refreshList triggered by initial param?
-        // Or call it explicitly.
-      }
-    });
+  ionViewWillEnter() {
+    this.refreshList(this.searchTerm$.value);
   }
 
   refreshList(query: string) {
