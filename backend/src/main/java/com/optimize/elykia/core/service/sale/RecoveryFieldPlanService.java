@@ -70,6 +70,7 @@ public class RecoveryFieldPlanService {
         ).ifPresent(existing -> {
             existing.setStatus(FieldDayPlanStatus.CLOSED);
             planRepository.save(existing);
+            planRepository.flush();
         });
 
         RecoveryFieldDayPlan plan = new RecoveryFieldDayPlan();

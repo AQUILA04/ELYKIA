@@ -21,8 +21,24 @@ export class RmOfflinePackService {
     private readonly collectorsCache: RmCollectorsCacheService
   ) {}
 
+  async restoreTodayPlanIfExists(): Promise<RmPackDownloadResult | null> {
+    const existing = await this.api.getTodayPlan();
+    if (existing?.status !== 'ACTIVE') {
+      return null;
+    }
+    await this.scope.setPlan(existing);
+    const pack = await this.api.downloadOfflinePack(existing.id, true);
+    await this.scope.setPack(pack);
+    await this.cacheCollectorsQuietly();
+    return this.withWarning(pack);
+  }
+
   async createPlanAndDownload(request: FieldDayPlanRequest): Promise<RmPackDownloadResult> {
-    const plan = await this.api.createPlan(request);
+    const existing = await this.api.getTodayPlan();
+    const plan =
+      existing?.status === 'ACTIVE'
+        ? await this.api.updatePlan(existing.id, request)
+        : await this.api.createPlan(request);
     await this.scope.setPlan(plan);
     const pack = await this.api.downloadOfflinePack(plan.id, true);
     await this.scope.setPack(pack);

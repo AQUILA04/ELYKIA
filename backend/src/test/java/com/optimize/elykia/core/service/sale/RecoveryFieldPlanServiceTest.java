@@ -108,6 +108,7 @@ class RecoveryFieldPlanServiceTest {
         assertEquals(List.of("Nord", "Sud"), result.getQuarters());
         ArgumentCaptor<RecoveryFieldDayPlan> savedPlans = ArgumentCaptor.forClass(RecoveryFieldDayPlan.class);
         verify(planRepository, times(2)).save(savedPlans.capture());
+        verify(planRepository).flush();
         assertEquals(existing, savedPlans.getAllValues().get(0));
         RecoveryFieldDayPlan replacement = savedPlans.getAllValues().get(1);
         assertEquals(FieldDayPlanStatus.ACTIVE, replacement.getStatus());

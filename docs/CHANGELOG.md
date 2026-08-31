@@ -31,6 +31,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Vérification de carnet tontine : badge sur la fiche membre, bouton Vérifier/Annuler, sélection en masse, filtre Carnet et exports PDF vérifiés / à vérifier (`ROLE_TONTINE_CARNET_VERIFY`).
 
+## Mobile — [2.28.10] — 2026-08-31
+
+### Fixed
+
+- Chef de recouvrement : reconnexion après déconnexion — restauration du plan du jour depuis le serveur au lieu de recréer un plan (contrainte `uk_rm_field_plan_active_day`).
+
 ## Mobile — [2.28.6] — 2026-08-31
 
 ### Fixed
@@ -164,6 +170,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
+
+## Backend — [1.12.4] — 2026-08-31
+
+### Fixed
+
+- Plan terrain chef de recouvrement : `POST /field-plans` flush la clôture du plan ACTIVE avant d’en insérer un nouveau, évitant la violation de contrainte `uk_rm_field_plan_active_day`.
 
 ## Backend — [1.12.3] — 2026-08-25
 

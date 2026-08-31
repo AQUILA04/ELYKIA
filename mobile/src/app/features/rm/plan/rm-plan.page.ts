@@ -46,6 +46,15 @@ export class RmPlanPage implements OnInit {
       await this.router.navigateByUrl('/rm/dashboard', { replaceUrl: true });
       return;
     }
+    try {
+      const restored = await this.packService.restoreTodayPlanIfExists();
+      if (restored) {
+        await this.router.navigateByUrl('/rm/dashboard', { replaceUrl: true });
+        return;
+      }
+    } catch {
+      // Pas de plan serveur ou réseau indisponible : afficher l'assistant.
+    }
     await this.loadCollectors();
   }
 
