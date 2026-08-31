@@ -1,6 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { loginAsRecoveryManagerLive } from '../../fixtures/live-auth';
-import { clickIonic, ensureRmFieldPack, openRmPlanWizard } from '../../fixtures/rm-plan-ops';
+import { clickIonic, dismissVolumeWarningIfNeeded, ensureRmFieldPack, openRmPlanWizard } from '../../fixtures/rm-plan-ops';
 import { ensureCom020InProgressTontineMember } from '../../fixtures/rm-tontine-seed';
 
 async function fillIonNumber(page: Page, testId: string, value: string): Promise<void> {
