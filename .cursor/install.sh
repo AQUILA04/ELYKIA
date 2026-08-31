@@ -41,7 +41,11 @@ echo "==> Building backend application jar"
 mvn -q -f backend/pom.xml clean package -DskipTests
 
 echo "==> Installing frontend dependencies"
+# --ignore-scripts hardens installs against malicious dependency lifecycle
+# scripts (supply-chain risk). The Angular build does not rely on any package
+# postinstall step: esbuild resolves its binary from the @esbuild/linux-x64
+# optional dependency, and the other native deps ship prebuilt fallbacks.
 cd frontend
-npm install --legacy-peer-deps
+npm install --legacy-peer-deps --ignore-scripts
 
 echo "==> Install complete"
