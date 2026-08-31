@@ -16,6 +16,8 @@ import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { AuthService } from '../../core/services/auth.service';
 import { DistributionService } from '../../core/services/distribution.service';
 import { LocalDataCleanupService } from '../../core/local-data-cleanup/local-data-cleanup.service';
+import { FeatureFlagService } from '../../core/services/feature-flag.service';
+import { canAccessRecoveryManagerMobile, hasRecoveryManagerProfil } from '../../core/utils/rm-user.util';
 import * as KpiActions from '../../store/kpi/kpi.actions';
 import * as HealthCheckActions from '../../store/health-check/health-check.actions';
 
@@ -66,10 +68,23 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     private initValidationService: InitializationValidationService,
     private authService: AuthService,
     private distributionService: DistributionService,
-    private localDataCleanupService: LocalDataCleanupService
+    private localDataCleanupService: LocalDataCleanupService,
+    private featureFlags: FeatureFlagService
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+    const user = await this.store.select(selectAuthUser).pipe(take(1)).toPromise() ?? this.authService.currentUser;
+    if (hasRecoveryManagerProfil(user)) {
+      if (canAccessRecoveryManagerMobile(user, this.featureFlags)) {
+        this.log.log('[InitialLoadingPage] Recovery manager detected — skip commercial init, redirect /rm/plan');
+        await this.router.navigateByUrl('/rm/plan', { replaceUrl: true });
+        return;
+      }
+      this.presentErrorAlert(
+        'Le module Chef de recouvrement mobile n\'est pas activé pour ce compte. Contactez votre administrateur.'
+      );
+      return;
+    }
     this.startInitialization();
   }
 

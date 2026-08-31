@@ -113,7 +113,9 @@ Coordinateur partagé : `mobile/src/app/core/services/online-first-write.coordin
 
 ### 4.1 Plan du jour — `/rm/plan`
 
-1. Login RM → redirection `/rm/plan` (bypass commercial init).  
+1. Login RM → redirection `/rm/plan` (bypass commercial init / SQLite).  
+   Détection : `profil === RECOVERY_MANAGER` ou rôle `ROLE_RECOVERY_MANAGER` + flag `recoveryManagerMobile`.  
+   Le RM **ne passe jamais** par `/initial-loading` (pas de chargement promoteur SQLite).
 2. Étape 1 : `GET .../collector-stats` → sélection **1–3** commerciaux (portefeuille actif : crédits ENABLED + tontine session en cours, **pas seulement** les commerciaux en retard).  
 3. Si **aucun retard** : bandeau informatif + liste des commerciaux avec `lateCount = 0` ; le RM peut continuer pour accéder à Terrain / Clients (contrôle carnet tontine, changement de commercial, contacts).  
 4. Étape 2 : multi-select **Localités** (modal + recherche) ; vide = toutes.  
