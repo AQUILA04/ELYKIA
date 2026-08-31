@@ -99,7 +99,7 @@ export class ClientDetailPage implements OnInit, OnDestroy {
           return of(null);
         }
         // Combine photo loading observables
-        const profilePhoto = this.getPhotoUrl(client.profilPhoto || client.profilPhotoUrl);
+        const profilePhoto = this.getPhotoUrl(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto);
         const cardPhoto = this.getPhotoUrl(client.cardPhoto || client.cardPhotoUrl);
 
         return from(this.reliquatService.getReliquatForClient(client.id)).pipe(
@@ -186,8 +186,14 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   }
 
   onAvatarClick(client: any) {
-    if (client.photoUrl && !client.photoUrl.toString().includes('favicon')) {
-      this.openImagePreview(client.photoUrl, client.fullName);
+    const photoPath = client.profilPhoto || client.profilPhotoUrl || client.profilPhotoThumbUrl;
+    if (!photoPath) {
+      return;
+    }
+    const photoUrl = this.getPhotoUrl(photoPath);
+    const url = photoUrl.toString();
+    if (url && !url.includes('favicon') && !url.includes('person-circle-outline')) {
+      this.openImagePreview(photoUrl, client.fullName || `${client.firstname} ${client.lastname}`);
     }
   }
 
@@ -204,7 +210,7 @@ export class ClientDetailPage implements OnInit, OnDestroy {
    * Optimized photo URL retrieval using Capacitor.convertFileSrc.
    * This avoids reading the file into memory (base64) and uses the native WebView rendering.
    */
-  private getPhotoUrl(localPath: string | undefined | null): SafeUrl {
+  getPhotoUrl(localPath: string | undefined | null): SafeUrl {
     if (!localPath) {
       return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
     }
@@ -229,6 +235,14 @@ export class ClientDetailPage implements OnInit, OnDestroy {
 
     const finalPath = this.basePath + (localPath.startsWith('/') ? '' : '/') + localPath;
     return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(finalPath));
+  }
+
+  handleImageError(event: Event) {
+    const target = event.target as HTMLImageElement | null;
+    if (target) {
+      target.src = 'assets/icon/person-circle-outline.svg';
+      target.onerror = null;
+    }
   }
 
   async presentPopover(event: any) {

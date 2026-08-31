@@ -14,9 +14,12 @@
     <ng-container *ngIf="client$ | async as client">
       <div class="client-header-content">
         <div class="elyk-avatar client-photo-large" (click)="onAvatarClick(client)">
-          <img [src]="client.profilPhotoThumbUrl" *ngIf="client.profilPhotoThumbUrl; else initials" alt="" />
+          <img *ngIf="(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto); else initials"
+               [src]="getPhotoUrl(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto)"
+               (error)="handleImageError($event)"
+               alt="" />
           <ng-template #initials>
-            <span>{{ client.firstname?.charAt(0) }}{{ client.lastname?.charAt(0) }}</span>
+            <span>{{ (client.firstname?.charAt(0) || '') + (client.lastname?.charAt(0) || '') || '?' }}</span>
           </ng-template>
         </div>
         <h1>{{ client.firstname }} {{ client.lastname }}</h1>
