@@ -31,6 +31,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Vérification de carnet tontine : badge sur la fiche membre, bouton Vérifier/Annuler, sélection en masse, filtre Carnet et exports PDF vérifiés / à vérifier (`ROLE_TONTINE_CARNET_VERIFY`).
 
+## Mobile — [2.28.9] — 2026-08-31
+
+### Fixed
+
+- Login Chef de recouvrement : accès RM basé sur le profil/rôle uniquement — le flag Remote Config `recoveryManagerMobile` ne bloque plus la connexion ni n'affiche « module non activé ».
+
 ## Mobile — [2.28.8] — 2026-08-31
 
 ### Fixed

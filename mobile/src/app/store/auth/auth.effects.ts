@@ -7,7 +7,6 @@ import { AuthService } from '../../core/services/auth.service';
 import { Router } from '@angular/router';
 import { LoadingController } from '@ionic/angular';
 import { LoggerService } from '../../core/services/logger.service';
-import { FeatureFlagService, FeatureFlags } from '../../core/services/feature-flag.service';
 import { canAccessRecoveryManagerMobile } from '../../core/utils/rm-user.util';
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCloseQueueService } from '../../core/services/rm/rm-close-queue.service';
@@ -25,7 +24,6 @@ export class AuthEffects {
     private router: Router,
     private loadingController: LoadingController,
     private log: LoggerService,
-    private featureFlags: FeatureFlagService,
     private rmScope: RmScopeService,
     private rmCloseQueue: RmCloseQueueService,
     private rmContactQueue: RmContactQueueService,
@@ -75,7 +73,7 @@ export class AuthEffects {
             this.router.navigateByUrl('/change-password');
             return;
           }
-          if (canAccessRecoveryManagerMobile(user, this.featureFlags)) {
+          if (canAccessRecoveryManagerMobile(user)) {
             this.log.log('[AuthEffects] loginSuccess$ RECOVERY_MANAGER → /rm/plan');
             this.router.navigateByUrl('/rm/plan');
             return;

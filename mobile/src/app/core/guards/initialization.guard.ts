@@ -5,7 +5,6 @@ import { Store } from '@ngrx/store';
 import { Observable, from, of } from 'rxjs';
 import { map, switchMap, take } from 'rxjs/operators';
 import { DatabaseService } from '../services/database.service';
-import { FeatureFlagService } from '../services/feature-flag.service';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { canAccessRecoveryManagerMobile } from '../utils/rm-user.util';
 
@@ -18,8 +17,7 @@ export class InitializationGuard implements CanActivate {
         private storage: Storage,
         private router: Router,
         private dbService: DatabaseService,
-        private store: Store,
-        private featureFlags: FeatureFlagService
+        private store: Store
     ) { }
 
     canActivate(): Observable<boolean | UrlTree> {
@@ -27,7 +25,7 @@ export class InitializationGuard implements CanActivate {
         return this.store.select(selectAuthUser).pipe(
             take(1),
             switchMap(user => {
-                if (canAccessRecoveryManagerMobile(user, this.featureFlags)) {
+                if (canAccessRecoveryManagerMobile(user)) {
                     console.log('[InitializationGuard] Recovery manager — redirect /rm/plan');
                     return of(this.router.createUrlTree(['/rm/plan']));
                 }
