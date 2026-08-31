@@ -273,4 +273,32 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("verified") boolean verified,
                 @Param("commercial") String commercial,
                 @Param("state") State state);
+
+        @Query("""
+                SELECT DISTINCT c.tontineCollector FROM TontineMember tm
+                JOIN tm.client c
+                JOIN tm.tontineSession s
+                WHERE s.year = :year
+                  AND tm.state = :state
+                  AND c.tontineCollector IS NOT NULL
+                  AND TRIM(c.tontineCollector) <> ''
+                """)
+        List<String> findDistinctTontineCollectorsBySessionYear(
+                @Param("year") Integer year,
+                @Param("state") State state);
+
+        @Query("""
+                SELECT DISTINCT c.quarter FROM TontineMember tm
+                JOIN tm.client c
+                JOIN tm.tontineSession s
+                WHERE s.year = :year
+                  AND tm.state = :state
+                  AND c.tontineCollector = :collector
+                  AND c.quarter IS NOT NULL
+                  AND TRIM(c.quarter) <> ''
+                """)
+        List<String> findDistinctQuartersBySessionYearAndTontineCollector(
+                @Param("year") Integer year,
+                @Param("collector") String collector,
+                @Param("state") State state);
 }

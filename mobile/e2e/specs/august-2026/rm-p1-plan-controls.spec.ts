@@ -1,6 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 import { loginAsRecoveryManagerLive } from '../../fixtures/live-auth';
-import { clickIonic, ensureRmFieldPack, openRmPlanWizard } from '../../fixtures/rm-plan-ops';
+import { clickIonic, dismissVolumeWarningIfNeeded, ensureRmFieldPack, openRmPlanWizard } from '../../fixtures/rm-plan-ops';
 import { ensureCom020InProgressTontineMember } from '../../fixtures/rm-tontine-seed';
 
 async function fillIonNumber(page: Page, testId: string, value: string): Promise<void> {
@@ -203,5 +203,30 @@ test.describe('Plan et contrôles RM @p1 @mobile @rm @august-2026 @regression', 
     await expect(page.getByText(/Contrôle tontine (enregistré|hors ligne)/)).toBeVisible({ timeout: 20_000 });
     await expect.poll(() => posts.filter((s) => s >= 200 && s < 300).length, { timeout: 30_000 }).toBeGreaterThan(0);
     await expect(page.getByTestId('e2e-rm-tontine-badge').first()).toHaveText(/ECART/, { timeout: 15_000 });
+  });
+
+  test('RM-P1-05 bandeau sans retard + accès application', async ({ page }) => {
+    test.setTimeout(180_000);
+    await loginAsRecoveryManagerLive(page);
+    await openRmPlanWizard(page);
+
+    const hasNoLateBanner = await page
+      .getByTestId('e2e-rm-plan-no-lates-banner')
+      .isVisible({ timeout: 8_000 })
+      .catch(() => false);
+    test.skip(!hasNoLateBanner, 'Environnement avec retards — bandeau « aucun retard » non applicable');
+
+    await expect(page.getByText(/Aucun retard aujourd'hui/)).toBeVisible();
+    await page.locator('[data-testid="e2e-rm-plan-collector"]').first().click();
+    await clickIonic(page.getByTestId('e2e-rm-plan-continue'));
+    await expect(page.getByRole('heading', { name: 'Localités' })).toBeVisible({ timeout: 15_000 });
+    await clickIonic(page.getByTestId('e2e-rm-plan-localities-continue'));
+    await expect(page.getByRole('heading', { name: 'Téléchargement' })).toBeVisible({ timeout: 15_000 });
+    await clickIonic(page.getByTestId('e2e-rm-plan-download'));
+    await dismissVolumeWarningIfNeeded(page);
+    await page.locator('ion-loading').waitFor({ state: 'hidden', timeout: 180_000 }).catch(() => {});
+    await expect(page).toHaveURL(/\/rm\/dashboard/, { timeout: 60_000 });
+    await expect(page.getByTestId('e2e-rm-dashboard-no-lates')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(/Consultez l'onglet Terrain ou Clients/)).toBeVisible();
   });
 });

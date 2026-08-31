@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
+import com.optimize.common.entities.enums.State;
+import com.optimize.elykia.core.dto.CreditLateDTO;
 import com.optimize.elykia.core.dto.sale.FieldDayPlanRequestDto;
 import com.optimize.elykia.core.dto.sale.RmClientContactUpdateDto;
 import com.optimize.elykia.core.entity.sale.RecoveryFieldDayPlan;
@@ -23,6 +25,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -72,6 +75,72 @@ class RecoveryFieldPlanServiceTest {
                 tontineMemberFieldControlRepository,
                 clientService,
                 new ObjectMapper());
+    }
+
+    @Test
+    void getCollectorStats_includesCreditCollectorsWithZeroLateCount() {
+        // Given
+        when(creditRepository.findDistinctCollectors()).thenReturn(List.of("commercial.a"));
+        when(tontineMemberRepository.findDistinctTontineCollectorsBySessionYear(
+                LocalDate.now().getYear(), State.ENABLED)).thenReturn(List.of());
+        when(creditLateService.getLateCredits("commercial.a", null, null)).thenReturn(List.of());
+        when(creditRepository.findDistinctClientQuartersByCollector("commercial.a")).thenReturn(List.of("Nord"));
+        when(tontineMemberRepository.findDistinctQuartersBySessionYearAndTontineCollector(
+                LocalDate.now().getYear(), "commercial.a", State.ENABLED)).thenReturn(List.of());
+
+        // When
+        var stats = service.getCollectorStats();
+
+        // Then
+        assertEquals(1, stats.size());
+        assertEquals("commercial.a", stats.get(0).getUsername());
+        assertEquals(0L, stats.get(0).getLateCount());
+        assertEquals(0.0, stats.get(0).getTotalAmountRemaining());
+        assertEquals(List.of("Nord"), stats.get(0).getQuarters());
+    }
+
+    @Test
+    void getCollectorStats_includesTontineOnlyCollectorWithoutEnabledCredits() {
+        // Given
+        when(creditRepository.findDistinctCollectors()).thenReturn(List.of());
+        when(tontineMemberRepository.findDistinctTontineCollectorsBySessionYear(
+                LocalDate.now().getYear(), State.ENABLED)).thenReturn(List.of("tontine.only"));
+        when(creditLateService.getLateCredits("tontine.only", null, null)).thenReturn(List.of());
+        when(creditRepository.findDistinctClientQuartersByCollector("tontine.only")).thenReturn(List.of());
+        when(tontineMemberRepository.findDistinctQuartersBySessionYearAndTontineCollector(
+                LocalDate.now().getYear(), "tontine.only", State.ENABLED)).thenReturn(List.of("Sud"));
+
+        // When
+        var stats = service.getCollectorStats();
+
+        // Then
+        assertEquals(1, stats.size());
+        assertEquals("tontine.only", stats.get(0).getUsername());
+        assertEquals(0L, stats.get(0).getLateCount());
+        assertEquals(List.of("Sud"), stats.get(0).getQuarters());
+    }
+
+    @Test
+    void getCollectorStats_usesLateQuartersWithoutPortfolioLookup() {
+        // Given
+        CreditLateDTO late = CreditLateDTO.builder()
+                .clientQuarter("Centre")
+                .totalAmountRemaining(1200.0)
+                .build();
+        when(creditRepository.findDistinctCollectors()).thenReturn(List.of("commercial.b"));
+        when(tontineMemberRepository.findDistinctTontineCollectorsBySessionYear(
+                LocalDate.now().getYear(), State.ENABLED)).thenReturn(Collections.emptyList());
+        when(creditLateService.getLateCredits("commercial.b", null, null)).thenReturn(List.of(late));
+
+        // When
+        var stats = service.getCollectorStats();
+
+        // Then
+        assertEquals(1, stats.size());
+        assertEquals(1L, stats.get(0).getLateCount());
+        assertEquals(1200.0, stats.get(0).getTotalAmountRemaining());
+        assertEquals(List.of("Centre"), stats.get(0).getQuarters());
+        verify(creditRepository, never()).findDistinctClientQuartersByCollector("commercial.b");
     }
 
     @Test
