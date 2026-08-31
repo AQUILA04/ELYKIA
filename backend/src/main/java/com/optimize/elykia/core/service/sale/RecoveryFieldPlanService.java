@@ -174,20 +174,34 @@ public class RecoveryFieldPlanService {
 
     @Transactional(readOnly = true)
     public List<RmCollectorStatDto> getCollectorStats() {
-        List<String> collectors = creditLateService.getLateCollectors();
+        int sessionYear = LocalDate.now().getYear();
+        Set<String> usernameSet = new LinkedHashSet<>();
+        creditRepository.findDistinctCollectors().stream()
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .forEach(usernameSet::add);
+        tontineMemberRepository.findDistinctTontineCollectorsBySessionYear(sessionYear, State.ENABLED).stream()
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .forEach(usernameSet::add);
+
         List<RmCollectorStatDto> stats = new ArrayList<>();
-        for (String username : collectors) {
-            if (!StringUtils.hasText(username)) {
-                continue;
-            }
+        for (String username : usernameSet) {
             List<CreditLateDTO> lates = creditLateService.getLateCredits(username, null, null);
             List<String> quarters = lates.stream()
                     .map(CreditLateDTO::getClientQuarter)
                     .filter(StringUtils::hasText)
-                    .map(q -> q.trim())
+                    .map(String::trim)
                     .distinct()
                     .sorted(String.CASE_INSENSITIVE_ORDER)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toCollection(ArrayList::new));
+            if (quarters.isEmpty()) {
+                quarters.addAll(loadPortfolioQuarters(username, sessionYear));
+                quarters = quarters.stream()
+                        .distinct()
+                        .sorted(String.CASE_INSENSITIVE_ORDER)
+                        .collect(Collectors.toList());
+            }
             double total = lates.stream()
                     .mapToDouble(d -> d.getTotalAmountRemaining() != null ? d.getTotalAmountRemaining() : 0.0)
                     .sum();
@@ -198,8 +212,23 @@ public class RecoveryFieldPlanService {
                     .quarters(quarters)
                     .build());
         }
-        stats.sort(Comparator.comparingLong(RmCollectorStatDto::getLateCount).reversed());
+        stats.sort(Comparator.comparingLong(RmCollectorStatDto::getLateCount).reversed()
+                .thenComparing(RmCollectorStatDto::getUsername, String.CASE_INSENSITIVE_ORDER));
         return stats;
+    }
+
+    private List<String> loadPortfolioQuarters(String username, int sessionYear) {
+        Set<String> quarters = new LinkedHashSet<>();
+        creditRepository.findDistinctClientQuartersByCollector(username).stream()
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .forEach(quarters::add);
+        tontineMemberRepository.findDistinctQuartersBySessionYearAndTontineCollector(
+                sessionYear, username, State.ENABLED).stream()
+                .filter(StringUtils::hasText)
+                .map(String::trim)
+                .forEach(quarters::add);
+        return new ArrayList<>(quarters);
     }
 
     @Transactional(readOnly = true)

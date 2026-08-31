@@ -70,6 +70,18 @@ export class RmPlanPage implements OnInit {
     return Array.from(this.selectedQuarters).slice(0, 6);
   }
 
+  get totalLateCount(): number {
+    return this.collectors.reduce((sum, collector) => sum + (collector.lateCount || 0), 0);
+  }
+
+  get hasNoLateCredits(): boolean {
+    return !this.loadingStats && this.collectors.length > 0 && this.totalLateCount === 0;
+  }
+
+  get isCollectorsEmpty(): boolean {
+    return !this.loadingStats && this.collectors.length === 0;
+  }
+
   async loadCollectors(): Promise<void> {
     this.loadingStats = true;
     try {
@@ -232,10 +244,14 @@ export class RmPlanPage implements OnInit {
       if (result.volumeWarning && result.warningMessage) {
         await this.toast(result.warningMessage, 'warning');
       } else {
-        await this.toast(
-          `Pack prêt : ${result.pack.stats.lateCredits} retards · ${result.pack.stats.clients} clients`,
-          'success'
-        );
+        const stats = result.pack.stats;
+        const clientCount = stats?.clients ?? result.pack.clients?.length ?? 0;
+        const tontineCount = stats?.tontineMembers ?? result.pack.tontineMembers?.length ?? 0;
+        const lateCredits = stats?.lateCredits ?? result.pack.lateCredits?.length ?? 0;
+        const message = lateCredits === 0
+          ? `Pack prêt : aucun retard · ${clientCount} clients · ${tontineCount} membres tontine`
+          : `Pack prêt : ${lateCredits} retards · ${clientCount} clients`;
+        await this.toast(message, 'success');
       }
       await this.router.navigateByUrl('/rm/dashboard', { replaceUrl: true });
     } catch (e: any) {
@@ -248,6 +264,11 @@ export class RmPlanPage implements OnInit {
 
   formatAmount(value: number): string {
     return new Intl.NumberFormat('fr-FR').format(Math.round(value || 0));
+  }
+
+  formatLateCount(count: number): string {
+    const value = count || 0;
+    return value === 1 ? '1 retard' : `${value} retard${value > 1 ? 's' : ''}`;
   }
 
   private async toast(message: string, color: 'success' | 'danger' | 'warning'): Promise<void> {

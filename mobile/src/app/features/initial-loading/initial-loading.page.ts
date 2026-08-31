@@ -16,6 +16,7 @@ import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { AuthService } from '../../core/services/auth.service';
 import { DistributionService } from '../../core/services/distribution.service';
 import { LocalDataCleanupService } from '../../core/local-data-cleanup/local-data-cleanup.service';
+import { hasRecoveryManagerProfil } from '../../core/utils/rm-user.util';
 import * as KpiActions from '../../store/kpi/kpi.actions';
 import * as HealthCheckActions from '../../store/health-check/health-check.actions';
 
@@ -69,7 +70,13 @@ export class InitialLoadingPage implements OnInit, OnDestroy {
     private localDataCleanupService: LocalDataCleanupService
   ) { }
 
-  ngOnInit() {
+  async ngOnInit() {
+    const user = await this.store.select(selectAuthUser).pipe(take(1)).toPromise() ?? this.authService.currentUser;
+    if (hasRecoveryManagerProfil(user)) {
+      this.log.log('[InitialLoadingPage] Recovery manager detected — skip commercial init, redirect /rm/plan');
+      await this.router.navigateByUrl('/rm/plan', { replaceUrl: true });
+      return;
+    }
     this.startInitialization();
   }
 

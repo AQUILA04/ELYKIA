@@ -1,0 +1,17 @@
+{
+  "name": "ELYKIA (backend + frontend)",
+  "user": "ubuntu",
+  "install": "./.cursor/install.sh",
+  "start": "./.cursor/start.sh",
+  "terminals": [
+    {
+      "name": "backend",
+      "command": "cd backend && java -jar target/optimize-elykia-core-*.jar"
+    },
+    {
+      "name": "frontend",
+      "command": "cd frontend && npm start -- --host 0.0.0.0 --port 4200"
+    }
+  ],
+  "ports": [8081, 4200]
+}

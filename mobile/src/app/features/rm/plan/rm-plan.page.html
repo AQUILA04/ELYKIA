@@ -2,7 +2,7 @@
   <header class="rm-hero">
     <p class="rm-surtitle">Chef de recouvrement</p>
     <h1>Plan du jour</h1>
-    <p class="rm-subtitle">Choisissez 1 à 3 commerciaux pour borner le cache offline.</p>
+    <p class="rm-subtitle">Choisissez 1 à 3 commerciaux pour borner le cache offline — retards, contrôles carnet et changements de commercial.</p>
 
     <div class="rm-steps">
       <span [class.active]="step === 1" [class.done]="step > 1">1</span>
@@ -23,7 +23,25 @@
         <div class="skeleton" *ngFor="let i of [1,2,3,4]"></div>
       </div>
 
-      <ion-list *ngIf="!loadingStats" lines="none" class="rm-list">
+      <div *ngIf="hasNoLateCredits" class="elyk-empty info-banner" data-testid="e2e-rm-plan-no-lates-banner">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <h2>Aucun retard aujourd'hui</h2>
+        <p>
+          Sélectionnez 1 à 3 commerciaux pour accéder à l'application : contrôle carnet tontine,
+          changement de commercial, mise à jour des contacts clients.
+        </p>
+      </div>
+
+      <div *ngIf="isCollectorsEmpty" class="elyk-empty collectors-empty" data-testid="e2e-rm-plan-collectors-empty">
+        <ion-icon name="people-outline"></ion-icon>
+        <h2>Aucun commercial disponible</h2>
+        <p>Impossible de charger le portefeuille actif. Vérifiez votre connexion et réessayez.</p>
+        <ion-button fill="outline" class="rm-cta-outline retry-btn" (click)="loadCollectors()">
+          Réessayer
+        </ion-button>
+      </div>
+
+      <ion-list *ngIf="!loadingStats && collectors.length" lines="none" class="rm-list">
         <ion-item
           *ngFor="let c of collectors"
           button
@@ -38,7 +56,10 @@
           </ion-checkbox>
           <ion-label>
             <h3>{{ c.username }}</h3>
-            <p>{{ c.lateCount }} retards · {{ formatAmount(c.totalAmountRemaining) }} FCFA</p>
+            <p>
+              {{ formatLateCount(c.lateCount) }} · {{ formatAmount(c.totalAmountRemaining) }} FCFA
+              <span *ngIf="!c.lateCount"> · portefeuille actif</span>
+            </p>
           </ion-label>
         </ion-item>
       </ion-list>
