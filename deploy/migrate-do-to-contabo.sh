@@ -23,7 +23,7 @@
 #     --user root \
 #     --ip 169.58.127.90 \
 #     --password 'CONTABO_PASSWORD' \
-#     [--envs prod,test] \
+#     [--envs prod,test] \   # default: prod,test
 #     [--skip-minio] \
 #     [--skip-images] \
 #     [--dry-run]
@@ -33,7 +33,7 @@ set -euo pipefail
 REMOTE_USER=""
 REMOTE_IP=""
 REMOTE_PASSWORD=""
-ENVS="prod"
+ENVS="prod,test"
 SKIP_MINIO=0
 SKIP_IMAGES=0
 DRY_RUN=0
@@ -212,7 +212,13 @@ OCI_MINIO_PASS="$(remote "grep -E '^MINIO_ROOT_PASSWORD=' '$OCI_ENV_PATH' | cut 
 [[ -n "$OCI_MINIO_USER" && -n "$OCI_MINIO_PASS" ]] || die "Could not read MINIO_ROOT_* from Contabo $OCI_ENV_PATH"
 
 log "[3/8] Preparing Contabo directories + syncing deploy scripts…"
-remote_bash "mkdir -p '$REMOTE_ELYKIA'/{deploy,prod/logs,prod/photos/pending,test/logs,test/photos/pending,prod/releases,test/releases}"
+# Backend image runs as user app (uid 100 / gid 101). Root-owned log mounts cause crash-loop
+# (Logback Permission denied) → Traefik only routes FE → POST /api = nginx 405.
+remote_bash "mkdir -p '$REMOTE_ELYKIA'/{deploy,prod/logs,prod/photos/pending,prod/backups,prod/releases,test/logs,test/photos/pending,test/backups,test/releases}
+chown -R 100:101 '$REMOTE_ELYKIA'/prod/logs '$REMOTE_ELYKIA'/prod/photos/pending \
+  '$REMOTE_ELYKIA'/test/logs '$REMOTE_ELYKIA'/test/photos/pending
+chmod -R u+rwX '$REMOTE_ELYKIA'/prod/logs '$REMOTE_ELYKIA'/prod/photos/pending \
+  '$REMOTE_ELYKIA'/test/logs '$REMOTE_ELYKIA'/test/photos/pending"
 
 # Sync deploy folder (keep Contabo compose + migration docs)
 rsync_to "$ELYKIA_ROOT/deploy/" "$REMOTE_ELYKIA/deploy/"
@@ -306,18 +312,35 @@ for env in "${ENV_LIST[@]}"; do
   ccompose="$(contabo_compose_for "$env")"
   proj="$(project_for "$env")"
 
-  # Start only DB first for restore
+  # Start only DB first for restore.
+  # IMPORTANT: compose exec needs -i so gunzip stdin reaches psql (without -i restore is empty).
   remote_bash "cd '$REMOTE_ELYKIA/deploy'
 docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' up -d db
-for i in \$(seq 1 60); do
-  docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' exec -T db \
-    pg_isready -U '$db_user' -d '$db_name' && break
+ready=0
+for i in \$(seq 1 90); do
+  if docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' exec -T db \
+      pg_isready -U '$db_user' -d '$db_name' >/dev/null 2>&1 \
+    && docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' exec -T db \
+      psql -U '$db_user' -d '$db_name' -c 'SELECT 1' >/dev/null 2>&1; then
+    ready=1
+    break
+  fi
   sleep 2
 done
+[[ \"\$ready\" -eq 1 ]] || { echo 'ERROR: Postgres $env not ready'; exit 1; }
+sleep 5
 docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' exec -T db \
   psql -U '$db_user' -d '$db_name' -v ON_ERROR_STOP=1 -c \"DROP SCHEMA public CASCADE; CREATE SCHEMA public; GRANT ALL ON SCHEMA public TO \\\"$db_user\\\"; GRANT ALL ON SCHEMA public TO public;\"
-gunzip -c /tmp/elykia-${env}.sql.gz | docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' exec -T db \
+gunzip -c /tmp/elykia-${env}.sql.gz | docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' exec -T -i db \
   psql -U '$db_user' -d '$db_name' -v ON_ERROR_STOP=1
+mkdir -p '$REMOTE_ELYKIA/$env/backups'
+cp -f /tmp/elykia-${env}.sql.gz '$REMOTE_ELYKIA/$env/backups/elykia-${env}.sql.gz'
+users_n=\$(docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' exec -T db \
+  psql -U '$db_user' -d '$db_name' -tAc \"SELECT count(*) FROM users;\" | tr -d '[:space:]')
+credit_n=\$(docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' exec -T db \
+  psql -U '$db_user' -d '$db_name' -tAc \"SELECT count(*) FROM credit;\" | tr -d '[:space:]' || echo 0)
+echo \"verify $env: users=\$users_n credit=\$credit_n\"
+[[ \"\${users_n:-0}\" =~ ^[0-9]+$ && \"\${users_n:-0}\" -gt 0 ]] || { echo \"ERROR: restore $env looks empty (users=\$users_n)\"; exit 1; }
 rm -f /tmp/elykia-${env}.sql.gz"
   log "  → Postgres $env restored"
 done
@@ -423,7 +446,9 @@ for env in "${ENV_LIST[@]}"; do
   env="$(echo "$env" | xargs)"
   ccompose="$(contabo_compose_for "$env")"
   proj="$(project_for "$env")"
-  remote_bash "cd '$REMOTE_ELYKIA/deploy'
+  remote_bash "chown -R 100:101 '$REMOTE_ELYKIA/$env/logs' '$REMOTE_ELYKIA/$env/photos/pending' 2>/dev/null || true
+chmod -R u+rwX '$REMOTE_ELYKIA/$env/logs' '$REMOTE_ELYKIA/$env/photos/pending' 2>/dev/null || true
+cd '$REMOTE_ELYKIA/deploy'
 docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' up -d
 docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' ps"
 done
@@ -451,5 +476,6 @@ Next steps (manual DNS only):
 Smoke:
   curl -I https://elykia.amenouveve-yaveh.com
   curl -I https://elykia.amenouveve-yaveh.com/api/actuator/health
+  curl -I https://elykia-test.amenouveve-yaveh.com/api/actuator/health
 
 EOF

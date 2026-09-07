@@ -25,15 +25,16 @@ chmod +x migrate-do-to-contabo.sh
 sudo ./migrate-do-to-contabo.sh \
   --user root \
   --ip 169.58.127.90 \
-  --password 'MOT_DE_PASSE_CONTABO' \
-  --envs prod
-  # ou: --envs prod,test
+  --password 'MOT_DE_PASSE_CONTABO'
+  # défaut: --envs prod,test
+  # pour prod seul: --envs prod
 ```
 
 Options utiles :
 
 | Option | Effet |
 |--------|--------|
+| `--envs prod,test` | Envs à migrer (défaut : `prod,test`) |
 | `--dry-run` | Vérifie SSH + réseaux Contabo uniquement |
 | `--skip-minio` | Ne copie pas les objets S3 |
 | `--skip-images` | Ne transfère pas les images Docker (pull GHCR côté Contabo) |
@@ -44,12 +45,17 @@ Options utiles :
 |-------|--------|
 | 1 | SSH Contabo, vérifie `traefik-public` + `optimizesolux-common` |
 | 2 | Lit `MINIO_ROOT_*` depuis `/opt/optimizesolux/common-infra/.env` |
-| 3 | Sync `deploy/` → `/opt/elykia/deploy` |
+| 3 | Sync `deploy/` → `/opt/elykia/deploy` + `chown 100:101` sur logs/photos (user `app`) |
 | 4 | Génère `.env` Contabo (MinIO → OCI, OTel → collector) |
-| 5 | `pg_dump` DO → restore Postgres Contabo (compose slim) |
+| 5 | `pg_dump` DO → restore Postgres Contabo (`docker compose exec -T -i`, backup sous `/opt/elykia/$env/backups/`, vérif counts) |
 | 6 | `mc mirror` buckets MinIO DO → MinIO OCI |
 | 7 | `docker save` / `load` images FE/BE |
 | 8 | `docker compose -f docker-compose.contabo-*.yml up -d` |
+
+**Pièges déjà corrigés dans le script :**
+
+- Restore sans `-i` → stdin vide → DB quasi vide (login seed, pas de données métier)
+- Logs montés en `root:root` → crash loop backend → Traefik route `/api` vers le FE nginx → **405** sur POST login
 
 **Non migrés** (volontairement) : Traefik produit, MinIO produit, monitoring produit, pgAdmin produit.
 
