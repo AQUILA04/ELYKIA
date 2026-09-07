@@ -39,11 +39,6 @@ on:
         default: promote
         options:
           - promote
-  push:
-    paths:
-      - 'deploy/monitoring/**'
-    branches:
-      - main
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -218,21 +213,6 @@ jobs:
              && cd ${{ secrets.TEST_DEPLOY_PATH }} \
              && ./deploy/deploy-website.sh test '$WEBSITE_IMAGE'"
 
-      - name: Deploy monitoring stack (test)
-        env:
-          TEST_USER: ${{ secrets.TEST_SERVER_USER }}
-          TEST_HOST: ${{ secrets.TEST_SERVER_HOST }}
-          TEST_PATH: ${{ secrets.TEST_DEPLOY_PATH }}
-        run: |
-          set -euo pipefail
-          : "${TEST_USER:?Missing TEST_SERVER_USER}"
-          : "${TEST_HOST:?Missing TEST_SERVER_HOST}"
-          : "${TEST_PATH:?Missing TEST_DEPLOY_PATH}"
-
-          ssh -o StrictHostKeyChecking=no -i private_key "$TEST_USER@$TEST_HOST" \
-            "cd '$TEST_PATH' \
-             && docker compose -f /opt/elykia/deploy/monitoring/docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env up -d"
-
       - name: Cleanup SSH key
         if: always()
         run: rm -f private_key
@@ -284,21 +264,6 @@ jobs:
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
              && cd ${{ secrets.PROD_DEPLOY_PATH }} \
              && ./deploy/deploy-website.sh prod '$WEBSITE_IMAGE'"
-
-      - name: Deploy monitoring stack (Prometheus + Grafana)
-        env:
-          PROD_USER: ${{ secrets.PROD_SERVER_USER }}
-          PROD_HOST: ${{ secrets.PROD_SERVER_HOST }}
-          PROD_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
-        run: |
-          set -euo pipefail
-          : "${PROD_USER:?Missing PROD_SERVER_USER}"
-          : "${PROD_HOST:?Missing PROD_SERVER_HOST}"
-          : "${PROD_PATH:?Missing PROD_DEPLOY_PATH}"
-
-          ssh -o StrictHostKeyChecking=no -i private_key "$PROD_USER@$PROD_HOST" \
-            "cd '$PROD_PATH' \
-             && docker compose -f /opt/elykia/deploy/monitoring/docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env up -d"
 
       - name: Cleanup SSH key
         if: always()
@@ -436,44 +401,6 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i private_key "$TEST_USER@$TEST_HOST" \
             "cd '$TEST_PATH/deploy' \
              && docker compose -f docker-compose.test.yml --project-name elykia-test --env-file /opt/elykia/test/.env down"
-
-      - name: Cleanup
-        if: always()
-        run: rm -f private_key
-
-  # ---------------------------------------------------------------------------
-  # Deploy monitoring stack on config changes
-  # ---------------------------------------------------------------------------
-  deploy-monitoring:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    environment: prod
-    name: Deploy monitoring stack
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v6
-
-      - name: Prepare SSH key
-        run: |
-          echo "$SSH_PRIVATE_KEY" > private_key
-          chmod 600 private_key
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Deploy monitoring stack
-        env:
-          PROD_USER: ${{ secrets.PROD_SERVER_USER }}
-          PROD_HOST: ${{ secrets.PROD_SERVER_HOST }}
-          PROD_PATH: ${{ secrets.PROD_DEPLOY_PATH }}
-        run: |
-          set -euo pipefail
-          : "${PROD_USER:?Missing PROD_SERVER_USER}"
-          : "${PROD_HOST:?Missing PROD_SERVER_HOST}"
-          : "${PROD_PATH:?Missing PROD_DEPLOY_PATH}"
-
-          ssh -o StrictHostKeyChecking=no -i private_key "$PROD_USER@$PROD_HOST" \
-            "curl -sSL https://raw.githubusercontent.com/AQUILA04/ELYKIA/main/deploy/update-monitoring.sh | bash \
-             && docker compose -f /opt/elykia/deploy/monitoring/docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env up -d"
 
       - name: Cleanup
         if: always()
