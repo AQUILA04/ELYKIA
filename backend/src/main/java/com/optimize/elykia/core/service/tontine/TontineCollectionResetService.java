@@ -3,7 +3,6 @@ package com.optimize.elykia.core.service.tontine;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.core.dto.TontineCollectionArchiveRowDto;
 import com.optimize.elykia.core.dto.TontineCollectionResetRunDto;
-import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.entity.report.TontineCollectionResetFile;
 import com.optimize.elykia.core.entity.report.TontineCollectionResetRun;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
@@ -11,13 +10,14 @@ import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineCollectionResetRunStatus;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.*;
-import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;
+import com.optimize.elykia.core.service.report.DailyTontineReportReconciler;
 import com.optimize.elykia.core.service.report.monthly.MonthlyReportStorageService;
 import com.optimize.common.securities.security.services.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -33,8 +33,7 @@ public class TontineCollectionResetService {
     private final TontineCollectionRepository collectionRepository;
     private final TontineMemberRepository memberRepository;
     private final TontineSessionRepository sessionRepository;
-    private final DailyCommercialReportRepository dailyReportRepository;
-    private final DailyCommercialReportPersistence reportPersistence;
+    private final DailyTontineReportReconciler dailyTontineReportReconciler;
     private final TontineCollectionResetRunRepository runRepository;
     private final TontineCollectionResetFileRepository fileRepository;
     private final TontineCollectionResetPdfService pdfService;
@@ -153,8 +152,12 @@ public class TontineCollectionResetService {
         run.setStatus(TontineCollectionResetRunStatus.RESETTING);
         runRepository.save(run);
 
-        adjustDailyCommercialReports(collections);
+        Map<String, Set<LocalDate>> datesByCommercial = collectReportDatesByCommercial(collections);
         collectionRepository.deleteAllBySessionId(session.getId());
+        for (var entry : datesByCommercial.entrySet()) {
+            dailyTontineReportReconciler.reconcileAll(entry.getKey(), entry.getValue());
+        }
+
         int membersReset = memberRepository.resetContributionsBySessionId(session.getId());
 
         session.setTotalRevenue(0.0);
@@ -164,40 +167,24 @@ public class TontineCollectionResetService {
         runRepository.save(run);
     }
 
-    private void adjustDailyCommercialReports(List<TontineCollection> collections) {
-        Map<String, Map<LocalDate, double[]>> aggregates = new HashMap<>();
+    /**
+     * Dates à reconcilier : collectionDate (activité) + createdDate (cash saisi).
+     */
+    private Map<String, Set<LocalDate>> collectReportDatesByCommercial(List<TontineCollection> collections) {
+        Map<String, Set<LocalDate>> result = new HashMap<>();
         for (TontineCollection collection : collections) {
             String commercial = collection.getCommercialUsername();
-            LocalDate date = collection.getCollectionDate().toLocalDate();
-            double amount = collection.getAmount() != null ? collection.getAmount() : 0.0;
-
-            aggregates
-                    .computeIfAbsent(commercial, k -> new HashMap<>())
-                    .merge(date, new double[]{amount, 1}, (a, b) -> new double[]{a[0] + b[0], a[1] + b[1]});
-        }
-
-        for (var commercialEntry : aggregates.entrySet()) {
-            for (var dateEntry : commercialEntry.getValue().entrySet()) {
-                dailyReportRepository
-                        .findByDateAndCommercialUsername(dateEntry.getKey(), commercialEntry.getKey())
-                        .ifPresent(report -> adjustReport(
-                                report, dateEntry.getValue()[0], (int) dateEntry.getValue()[1]));
+            if (!StringUtils.hasText(commercial)) {
+                continue;
+            }
+            Set<LocalDate> dates = result.computeIfAbsent(commercial, k -> new HashSet<>());
+            if (collection.getCollectionDate() != null) {
+                dates.add(collection.getCollectionDate().toLocalDate());
+            }
+            if (collection.getCreatedDate() != null) {
+                dates.add(collection.getCreatedDate().toLocalDate());
             }
         }
-    }
-
-    private void adjustReport(DailyCommercialReport report, double amountToRemove, int countToRemove) {
-        double currentTontineAmount = report.getTontineCollectionsAmount() != null ? report.getTontineCollectionsAmount() : 0.0;
-        int currentTontineCount = report.getTontineCollectionsCount() != null ? report.getTontineCollectionsCount() : 0;
-        double currentDeposit = report.getTotalAmountToDeposit() != null ? report.getTotalAmountToDeposit() : 0.0;
-
-        double newTontineAmount = Math.max(0.0, currentTontineAmount - amountToRemove);
-        int newTontineCount = Math.max(0, currentTontineCount - countToRemove);
-        double actualRemoved = currentTontineAmount - newTontineAmount;
-
-        report.setTontineCollectionsAmount(newTontineAmount);
-        report.setTontineCollectionsCount(newTontineCount);
-        report.setTotalAmountToDeposit(Math.max(0.0, currentDeposit - actualRemoved));
-        reportPersistence.save(report);
+        return result;
     }
 }

@@ -60,6 +60,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     private TontineAllocationPolicyResolver allocationPolicyResolver;
     private TontineAllocationMigrationService allocationMigrationService;
     private TontineAmountHistoryHelper amountHistoryHelper;
+    private com.optimize.elykia.core.service.report.DailyTontineReportReconciler dailyTontineReportReconciler;
 
     public TontineService(TontineMemberRepository repository,
                           TontineSessionRepository tontineSessionRepository,
@@ -100,6 +101,12 @@ public class TontineService extends GenericService<TontineMember, Long> {
     @Autowired
     public void setAmountHistoryHelper(TontineAmountHistoryHelper amountHistoryHelper) {
         this.amountHistoryHelper = amountHistoryHelper;
+    }
+
+    @Autowired
+    public void setDailyTontineReportReconciler(
+            com.optimize.elykia.core.service.report.DailyTontineReportReconciler dailyTontineReportReconciler) {
+        this.dailyTontineReportReconciler = dailyTontineReportReconciler;
     }
 
     private TontineAllocationPolicy currentPolicy() {
@@ -397,7 +404,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
                     "La date de rattrapage doit être strictement antérieure à la date du jour.");
         }
 
-        String commercialUsername = userService.getCurrentUser().getUsername();
+        // Propriétaire métier = collector tontine du client (pas l'opérateur RM/secrétaire).
+        // L'opérateur reste dans reg_user_id (audit CreatedBy).
+        String commercialUsername = resolveCollectionCommercialUsername(member);
 
         TontineCollection collection = new TontineCollection();
         collection.setTontineMember(member);
@@ -435,18 +444,23 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         TontineCollection savedCollection = tontineCollectionRepository.save(collection);
 
-        String tontineCollector = member.getClient().getTontineCollector();
         if (metricsPublisher != null) {
-            metricsPublisher.tontineCollectionRecorded(tontineCollector, dto.getAmount());
+            metricsPublisher.tontineCollectionRecorded(savedCollection.getCommercialUsername(), dto.getAmount());
         }
 
-        // Publish Event
+        // Event : même commercial que la ligne (collector métier au moment de la saisie)
         if (eventPublisher != null) {
+            LocalDate operationDate = savedCollection.getCollectionDate().toLocalDate();
+            LocalDate captureDate = savedCollection.getCreatedDate() != null
+                    ? savedCollection.getCreatedDate().toLocalDate()
+                    : LocalDate.now();
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineCollectionEvent(
                     this,
-                    collection.getAmount(),
-                    tontineCollector,
-                    member.getClient().getFullName()));
+                    savedCollection.getAmount(),
+                    savedCollection.getCommercialUsername(),
+                    member.getClient().getFullName(),
+                    operationDate,
+                    captureDate));
         }
 
         return TontineCollectionRespDto.fromTontineCollection(savedCollection);
@@ -568,6 +582,13 @@ public class TontineService extends GenericService<TontineMember, Long> {
             throw new CustomValidationException("Membre associé à la collecte introuvable.");
         }
 
+        LocalDate operationDate = collection.getCollectionDate() != null
+                ? collection.getCollectionDate().toLocalDate()
+                : LocalDate.now();
+        LocalDate captureDate = collection.getCreatedDate() != null
+                ? collection.getCreatedDate().toLocalDate()
+                : operationDate;
+
         collection.setState(State.DELETED);
         tontineCollectionRepository.save(collection);
 
@@ -575,17 +596,43 @@ public class TontineService extends GenericService<TontineMember, Long> {
         super.update(member);
         updateSessionRevenue(member.getTontineSession());
 
+        // IMPORTANT : utiliser le commercial persisté sur la collecte (historique),
+        // pas client.tontineCollector actuel — après réaffectation A→B, l'annulation
+        // d'une collecte faite sous A doit impacter uniquement le rapport de A.
+        String reportCommercial = collection.getCommercialUsername();
+        if (dailyTontineReportReconciler != null && StringUtils.hasText(reportCommercial)) {
+            dailyTontineReportReconciler.reconcile(reportCommercial, operationDate);
+            if (!captureDate.equals(operationDate)) {
+                dailyTontineReportReconciler.reconcile(reportCommercial, captureDate);
+            }
+        }
+
         if (eventPublisher != null) {
             String clientName = member.getClient() != null ? member.getClient().getFullName() : "N/A";
             eventPublisher.publishEvent(new TontineCollectionCancelledEvent(
                     this,
                     collection.getAmount(),
-                    collection.getCommercialUsername(),
+                    reportCommercial,
                     clientName,
-                    collection.getReference()));
+                    collection.getReference(),
+                    operationDate,
+                    captureDate));
         }
 
         return TontineCollectionRespDto.fromId(collection.getId());
+    }
+
+    /**
+     * Commercial propriétaire de la collecte / du rapport = collector tontine du client
+     * au moment de la saisie (y compris si l'opérateur est RM ou secrétaire).
+     */
+    private String resolveCollectionCommercialUsername(TontineMember member) {
+        Client client = member.getClient();
+        if (client == null || !StringUtils.hasText(client.getTontineCollector())) {
+            throw new CustomValidationException(
+                    "Le client n'a pas de commercial tontine associé : impossible d'enregistrer la collecte.");
+        }
+        return client.getTontineCollector();
     }
 
     private void recalculateMemberFromCollections(TontineMember member) {

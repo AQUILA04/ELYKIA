@@ -312,40 +312,60 @@ public class DailyReportEventListener {
         @EventListener
         @Transactional(propagation = Propagation.REQUIRES_NEW)
         public void handleTontineCollection(TontineCollectionEvent event) {
-                log.info("Processing TontineCollectionEvent for collector: {}", event.getCollector());
-                DailyCommercialReport report = getOrCreateReport(event.getCollector());
-                report.setTontineCollectionsCount(report.getTontineCollectionsCount() + 1);
-                report.setTontineCollectionsAmount(report.getTontineCollectionsAmount() + event.getAmount());
+                log.info("Processing TontineCollectionEvent for collector: {} operationDate={} captureDate={}",
+                                event.getCollector(), event.getOperationDate(), event.getCaptureDate());
+                double amount = event.getAmount() != null ? event.getAmount() : 0.0;
 
-                // Add to total deposit
-                report.setTotalAmountToDeposit(report.getTotalAmountToDeposit() + event.getAmount());
+                // Compteurs d'activité sur la date métier (collectionDate).
+                DailyCommercialReport activityReport = getOrCreateReport(event.getCollector(), event.getOperationDate());
+                int currentCount = activityReport.getTontineCollectionsCount() != null
+                                ? activityReport.getTontineCollectionsCount()
+                                : 0;
+                double currentAmount = activityReport.getTontineCollectionsAmount() != null
+                                ? activityReport.getTontineCollectionsAmount()
+                                : 0.0;
+                activityReport.setTontineCollectionsCount(currentCount + 1);
+                activityReport.setTontineCollectionsAmount(currentAmount + amount);
 
-                reportPersistence.save(report);
+                // Cash à verser sur le jour de saisie (peut différer en rattrapage).
+                if (event.getCaptureDate().equals(event.getOperationDate())) {
+                        double currentDeposit = activityReport.getTotalAmountToDeposit() != null
+                                        ? activityReport.getTotalAmountToDeposit()
+                                        : 0.0;
+                        activityReport.setTotalAmountToDeposit(currentDeposit + amount);
+                        reportPersistence.save(activityReport);
+                } else {
+                        reportPersistence.save(activityReport);
+                        DailyCommercialReport captureReport = getOrCreateReport(event.getCollector(),
+                                        event.getCaptureDate());
+                        double currentDeposit = captureReport.getTotalAmountToDeposit() != null
+                                        ? captureReport.getTotalAmountToDeposit()
+                                        : 0.0;
+                        captureReport.setTotalAmountToDeposit(currentDeposit + amount);
+                        reportPersistence.save(captureReport);
+                }
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
                                 com.optimize.elykia.core.enumaration.OperationType.TONTINE_COLLECTION,
-                                event.getAmount(),
+                                amount,
                                 "Collecte Tontine",
                                 "Collecte tontine (Client: "
                                                 + (event.getClientName() != null ? event.getClientName() : "N/A")
-                                                + ")");
+                                                + ")",
+                                0.0,
+                                0.0,
+                                event.getOperationDate());
         }
 
         @EventListener
         @Transactional(propagation = Propagation.REQUIRES_NEW)
         public void handleTontineCollectionCancelled(TontineCollectionCancelledEvent event) {
-                log.info("Processing TontineCollectionCancelledEvent for collector: {}", event.getCollector());
-                DailyCommercialReport report = getOrCreateReport(event.getCollector());
-                int currentCount = report.getTontineCollectionsCount() != null ? report.getTontineCollectionsCount() : 0;
-                double currentAmount = report.getTontineCollectionsAmount() != null ? report.getTontineCollectionsAmount() : 0.0;
-                double currentDeposit = report.getTotalAmountToDeposit() != null ? report.getTotalAmountToDeposit() : 0.0;
+                // Les montants sont reconstruits par DailyTontineReportReconciler dans la TX
+                // d'annulation (visibilité DELETED). Ici : journal d'opération uniquement.
+                log.info("Processing TontineCollectionCancelledEvent for collector: {} operationDate={} captureDate={}",
+                                event.getCollector(), event.getOperationDate(), event.getCaptureDate());
                 double amountToCancel = event.getAmount() != null ? event.getAmount() : 0.0;
-
-                report.setTontineCollectionsCount(Math.max(0, currentCount - 1));
-                report.setTontineCollectionsAmount(Math.max(0.0, currentAmount - amountToCancel));
-                report.setTotalAmountToDeposit(Math.max(0.0, currentDeposit - amountToCancel));
-                reportPersistence.save(report);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
@@ -356,7 +376,10 @@ public class DailyReportEventListener {
                                                 + (event.getClientName() != null ? event.getClientName() : "N/A")
                                                 + ", Ref: "
                                                 + (event.getReference() != null ? event.getReference() : "N/A")
-                                                + ")");
+                                                + ")",
+                                0.0,
+                                0.0,
+                                event.getOperationDate());
         }
 
         @EventListener

@@ -200,6 +200,20 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
 
+## Backend — [1.12.6] — 2026-09-10
+
+### Fixed
+
+- Collecte tontine : `commercial_username` et le rapport journalier utilisent le collector tontine du client (RM / secrétaire inclus), plus le username de l’opérateur.
+- Annulation tontine après réaffectation : le rapport et le log restent sur le commercial historique de la collecte, pas sur le nouveau collector du client.
+
+## Backend — [1.12.5] — 2026-09-10
+
+### Fixed
+
+- Rapport journalier tontine : les compteurs d’activité suivent `collectionDate` et le commercial persisté ; le cash à verser reste sur le jour de saisie (rattrapage).
+- Annulation / reset tontine : reconstruction des totaux via `DailyTontineReportReconciler` depuis `tontine_collection`, sans décrément silencieux sur le mauvais jour.
+
 ## Backend — [1.12.4] — 2026-08-31
 
 ### Fixed
