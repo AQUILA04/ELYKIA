@@ -20,11 +20,11 @@ npm run test:e2e:smoke
 
 CI découplé : `.github/workflows/ci-customer-space.yml`
 
-## Firebase
+## Firebase (Remote Config) + OTP Notification Hub
 
-L'app utilise le SDK Web (`environment.firebase`, alimenté par `firebase.config.local.ts` gitignored). Le fichier `google-services.json` **ne se commit pas** — voir [`docs/FIREBASE_SETUP.md`](docs/FIREBASE_SETUP.md).
+Firebase Web SDK reste pour **Remote Config** uniquement. Les **SMS OTP** passent par Notification Hub via le backend — voir [`docs/FIREBASE_SETUP.md`](docs/FIREBASE_SETUP.md).
 
-**Local :**
+**Local (Remote Config) :**
 
 ```bash
 # Copier google-services.json à la racine customer-space/, puis :
@@ -37,11 +37,11 @@ npm run firebase:configure       # environment.prod.ts
 | Secret | Obligatoire |
 |--------|-------------|
 | `CUSTOMER_SPACE_GOOGLE_SERVICES_JSON` | Oui (contenu du fichier google-services.json) |
-| `CUSTOMER_SPACE_FIREBASE_WEB_CONFIG` | Non (config Web SDK, recommandé pour Phone Auth navigateur) |
+| `CUSTOMER_SPACE_FIREBASE_WEB_CONFIG` | Non (config Web SDK Remote Config) |
 
-Les tests CI (unit + E2E) **n'utilisent pas** ces secrets (Firebase mocké).
+Les tests CI mockent l'API OTP backend (`send-otp` / `verify-otp`) ; Firebase Phone Auth n'est plus utilisé.
 
-**Backend** : `FIREBASE_CREDENTIALS` = compte de service Admin SDK sur le serveur (pas le google-services.json client).
+**Backend OTP** : `NOTIFICATION_HUB_*` (voir `application.yml`) — plus de `FIREBASE_CREDENTIALS` pour l'espace client.
 
 ## Écrans (S-01 à S-11)
 

@@ -46,6 +46,23 @@ export async function mockCustomerApi(page: Page): Promise<void> {
       return;
     }
 
+    if (url.includes('/auth/send-otp') && method === 'POST') {
+      await route.fulfill(jsonResponse({
+        sessionId: '00000000-0000-0000-0000-000000000001',
+        expiresAt: new Date(Date.now() + 300_000).toISOString(),
+        channel: 'SMS',
+      }, 202));
+      return;
+    }
+
+    if (url.includes('/auth/verify-otp') && method === 'POST') {
+      await route.fulfill(jsonResponse({
+        verified: true,
+        otpProofToken: 'e2e-mock-otp-proof',
+      }));
+      return;
+    }
+
     if (url.includes('/auth/setup-pin') && method === 'POST') {
       await route.fulfill(jsonResponse(MOCK_SESSION));
       return;

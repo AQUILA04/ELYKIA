@@ -25,7 +25,7 @@ class CustomerAuthServiceTest {
     @Mock
     private CustomerContextService contextService;
     @Mock
-    private FirebaseTokenVerifier firebaseTokenVerifier;
+    private CustomerOtpService customerOtpService;
 
     @InjectMocks
     private CustomerAuthService customerAuthService;

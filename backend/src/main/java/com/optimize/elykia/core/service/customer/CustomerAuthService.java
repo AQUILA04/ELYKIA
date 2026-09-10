@@ -5,9 +5,9 @@ import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.repository.UserRepository;
 import com.optimize.common.securities.security.jwt.JwtUtils;
-import com.optimize.common.securities.security.services.UserDetailsImpl;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.dto.customer.*;
+import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
 import com.optimize.elykia.core.util.PhoneNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,7 +31,7 @@ public class CustomerAuthService {
     private final JwtUtils jwtUtils;
     private final PasswordEncoder passwordEncoder;
     private final CustomerContextService contextService;
-    private final FirebaseTokenVerifier firebaseTokenVerifier;
+    private final CustomerOtpService customerOtpService;
 
     @Value("${bezkoder.app.jwtExpirationMs:86400000}")
     private long jwtExpirationMs;
@@ -69,10 +69,45 @@ public class CustomerAuthService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public CustomerOtpSendResponse sendOtp(CustomerPhoneRequest request) {
+        String username = PhoneNormalizer.toUsername(request.getPhone());
+        User user = userRepository.findByUserAccount_usernameIgnoreCase(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Compte introuvable pour ce numéro."));
+        if (Boolean.TRUE.equals(user.getUserAccount().getPinConfigured())) {
+            throw new CustomValidationException("Le code PIN est déjà configuré. Connectez-vous avec votre PIN.");
+        }
+        if (contextService.findClientIdOptional(username).isEmpty()) {
+            throw new ResourceNotFoundException(
+                    "Aucun dossier client associé à ce numéro. Contactez votre agence.");
+        }
+        OtpSendResponse hub = customerOtpService.sendOtp(username);
+        return CustomerOtpSendResponse.builder()
+                .sessionId(hub.sessionId())
+                .expiresAt(hub.expiresAt())
+                .channel(hub.channel() != null ? hub.channel() : "SMS")
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerOtpVerifyResponse verifyOtp(CustomerOtpVerifyRequest request) {
+        String username = PhoneNormalizer.toUsername(request.getPhone());
+        User user = userRepository.findByUserAccount_usernameIgnoreCase(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Compte introuvable pour ce numéro."));
+        if (Boolean.TRUE.equals(user.getUserAccount().getPinConfigured())) {
+            throw new CustomValidationException("Le code PIN est déjà configuré.");
+        }
+        String proof = customerOtpService.verifyOtp(username, request.getCode());
+        return CustomerOtpVerifyResponse.builder()
+                .verified(true)
+                .otpProofToken(proof)
+                .build();
+    }
+
     @Transactional
     public CustomerLoginResponse setupPin(CustomerSetupPinRequest request) {
         String username = PhoneNormalizer.toUsername(request.getPhone());
-        firebaseTokenVerifier.assertPhoneMatchesToken(username, request.getFirebaseIdToken());
+        customerOtpService.assertProofToken(username, request.getOtpProofToken());
         User user = userRepository.findByUserAccount_usernameIgnoreCase(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Compte introuvable pour ce numéro."));
         if (Boolean.TRUE.equals(user.getUserAccount().getPinConfigured())) {

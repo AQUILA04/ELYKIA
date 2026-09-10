@@ -7,6 +7,9 @@ import {
   CustomerCheckPhoneResponse,
   CustomerLoginRequest,
   CustomerLoginResponse,
+  CustomerOtpSendResponse,
+  CustomerOtpVerifyRequest,
+  CustomerOtpVerifyResponse,
   CustomerSetupPinRequest,
 } from '../models/customer-auth.model';
 import {
@@ -43,6 +46,14 @@ export class CustomerApiService {
 
   login(payload: CustomerLoginRequest): Observable<CustomerLoginResponse> {
     return this.http.post<CustomerLoginResponse>(`${this.base}/auth/login`, payload);
+  }
+
+  sendOtp(payload: CustomerCheckPhoneRequest): Observable<CustomerOtpSendResponse> {
+    return this.http.post<CustomerOtpSendResponse>(`${this.base}/auth/send-otp`, payload);
+  }
+
+  verifyOtp(payload: CustomerOtpVerifyRequest): Observable<CustomerOtpVerifyResponse> {
+    return this.http.post<CustomerOtpVerifyResponse>(`${this.base}/auth/verify-otp`, payload);
   }
 
   setupPin(payload: CustomerSetupPinRequest): Observable<CustomerLoginResponse> {

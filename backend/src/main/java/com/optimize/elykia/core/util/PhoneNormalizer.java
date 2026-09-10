@@ -5,7 +5,7 @@ import org.springframework.util.StringUtils;
 /**
  * Normalise les numéros de téléphone Togo (+228) pour l'espace client.
  * Username / stockage : numéro local sans indicatif.
- * Firebase : format E.164 (+228XXXXXXXX).
+ * Notification Hub OTP : format E.164 (+228XXXXXXXX).
  */
 public final class PhoneNormalizer {
 

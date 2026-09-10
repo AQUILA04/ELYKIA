@@ -200,6 +200,21 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
 
+## Backend — [1.13.0] — 2026-09-10
+
+### Changed
+
+- Authentification espace client : OTP SMS via **Notification Hub** (`POST /api/customer/auth/send-otp` et `/verify-otp`) à la place de Firebase Admin Phone Auth.
+- `setup-pin` exige désormais `otpProofToken` (preuve HMAC après verify) au lieu de `firebaseIdToken`.
+
+### Removed
+
+- Dépendance `firebase-admin` et `FirebaseTokenVerifier` (vérification token Firebase espace client).
+
+### Added
+
+- Client OTP Notification Hub (`optimize.notification.hub.*`) aligné sur le contrat `OTP_CLIENT_INTEGRATION.md`.
+
 ## Backend — [1.12.7] — 2026-09-10
 
 ### Fixed
@@ -832,6 +847,8 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Changed
 - **Deploy Contabo —** `docker-compose.prod.yml` / `test.yml` = stack Contabo (FE/BE/DB, MinIO common-infra). Anciens stacks DigitalOcean avec MinIO embarqué renommés en `docker-compose.DO.yml` / `DO-test.yml`.
+- **CI customer-space —** Node.js `20.19.3` → `22` dans `ci-customer-space.yml` et `build-customer-space-apk` pour satisfaire `@capacitor/cli` 8.4 (`NodeJS >=22`).
+- **CI customer-space —** `google-services.json` : écriture via env + validation JSON ; si le secret `CUSTOMER_SPACE_GOOGLE_SERVICES_JSON` est vide, le fichier n’est pas créé (évite `processDebugGoogleServices` / JSON malformé).
 
 ## Docs & Infra — 2026-08-13
 
@@ -1723,6 +1740,23 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Endpoint admin `PATCH /api/v1/users/{id}/reset-password` (mot de passe temporaire + `mustChangePassword=true`).
 - Changement de mot de passe forcé via `PATCH /api/v1/users/change-password` avec `forced=true` (sans ancien mot de passe, nouveau mot de passe différent du temporaire).
 - Nouveaux comptes créés via signup : `mustChangePassword=true` à la première connexion.
+
+## Customer-space — [0.3.1] — 2026-09-10
+
+### Fixed
+
+- Dépendance `@capacitor/android@8.4.0` pour le build APK CI (`npx cap add android`).
+
+## Customer-space — [0.3.0] — 2026-09-10
+
+### Changed
+
+- Première connexion : OTP SMS via le backend / Notification Hub (`send-otp` / `verify-otp`) au lieu de Firebase Phone Auth (reCAPTCHA retiré).
+- `setup-pin` envoie `otpProofToken` à la place de `firebaseIdToken`.
+
+### Removed
+
+- `FirebaseAuthService` (Phone Auth) — Firebase reste uniquement pour Remote Config.
 
 ## Customer-space — [0.0.6] — 2026-07-08
 

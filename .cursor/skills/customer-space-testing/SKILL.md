@@ -32,9 +32,10 @@ Aucune fonctionnalité n'est livrée sans :
 | Utilitaires purs | `*.spec.ts` à côté du fichier | Pas de `TestBed` |
 | Services HTTP | `*.service.spec.ts` | `HttpClientTestingModule`, `HttpTestingController` |
 | Guards | `*.guard.spec.ts` | `RouterTestingModule`, mock session |
-| Pages / composants | `*.page.spec.ts`, `*.component.spec.ts` | `TestBed`, mocks API/session/Firebase |
+| Pages / composants | `*.page.spec.ts`, `*.component.spec.ts` | `TestBed`, mocks API/session |
 
-**Firebase** : toujours mock via `jasmine.createSpyObj` — jamais d'appel réseau réel.
+**OTP** : mocker `CustomerApiService.sendOtp` / `verifyOtp` — jamais d'appel réseau réel vers Notification Hub.
+**Firebase Remote Config** : mocker `FeatureFlagService` — jamais d'appel réseau réel.
 
 ```bash
 cd customer-space && npm run test:unit
@@ -87,5 +88,6 @@ Workflow découplé [`.github/workflows/ci-customer-space.yml`](../../.github/wo
 
 - Livrer une page sans `*.spec.ts` ni spec Playwright
 - Sélecteurs CSS fragiles en E2E au lieu de `data-testid`
-- Tests E2E dépendant d'un backend réel ou Firebase en CI
-- Oublier le mock Firebase dans les tests unitaires de l'auth
+- Tests E2E dépendant d'un backend réel ou Notification Hub en CI
+- Oublier le mock `sendOtp` / `verifyOtp` dans les tests unitaires de l'auth
+- Oublier le mock Firebase Remote Config / FeatureFlagService

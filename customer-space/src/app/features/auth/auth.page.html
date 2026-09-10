@@ -5,8 +5,7 @@
       <span class="logo-sub">Espace Client</span>
     </div>
 
-    <!-- reCAPTCHA invisible : doit exister avant sendOtp(), pas seulement à l'étape OTP -->
-    <div id="recaptcha-container" aria-hidden="true"></div>
+    <!-- OTP SMS via Notification Hub (plus de reCAPTCHA Firebase) -->
 
     <div class="auth-card elyk-animate">
       <button type="button" class="back-btn" *ngIf="step !== 'phone'" (click)="goBack()">
@@ -53,7 +52,7 @@
         </ion-button>
       </form>
 
-      <!-- Étape 3 : OTP Firebase -->
+      <!-- Étape 3 : OTP SMS (Notification Hub) -->
       <form *ngIf="step === 'otp'" [formGroup]="otpForm" (ngSubmit)="submitOtp()">
         <div class="field">
           <label>Code reçu par SMS</label>

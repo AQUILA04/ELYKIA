@@ -17,10 +17,27 @@ export interface CustomerLoginRequest {
   pin: string;
 }
 
+export interface CustomerOtpSendResponse {
+  sessionId?: string;
+  expiresAt?: string;
+  channel?: string;
+}
+
+export interface CustomerOtpVerifyRequest {
+  phone: string;
+  code: string;
+}
+
+export interface CustomerOtpVerifyResponse {
+  verified: boolean;
+  otpProofToken: string;
+}
+
 export interface CustomerSetupPinRequest {
   phone: string;
   pin: string;
-  firebaseIdToken: string;
+  /** Preuve OTP émise par /auth/verify-otp (remplace firebaseIdToken). */
+  otpProofToken: string;
 }
 
 export interface CustomerLoginResponse {
