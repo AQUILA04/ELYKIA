@@ -30,7 +30,15 @@ public class PhotoStore extends BaseEntity<String> {
         return of(client.getId(), client.getIDDoc(), PhotoType.CARD);
     }
 
-    private static PhotoStore of (Long clientId, byte[] photo, PhotoType type) {
+    public static PhotoStore ofProfil(Long clientId, byte[] photo) {
+        return of(clientId, photo, PhotoType.PROFIL);
+    }
+
+    public static PhotoStore ofCard(Long clientId, byte[] photo) {
+        return of(clientId, photo, PhotoType.CARD);
+    }
+
+    private static PhotoStore of(Long clientId, byte[] photo, PhotoType type) {
         PhotoStore photoStore = new PhotoStore();
         photoStore.setClientId(clientId);
         photoStore.setPhoto(photo);

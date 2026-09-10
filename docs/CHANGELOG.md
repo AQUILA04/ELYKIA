@@ -200,6 +200,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
 
+## Backend — [1.12.7] — 2026-09-10
+
+### Fixed
+
+- Photos client : avec `optimize.client.s3-photo-migration.enabled=true`, create/update (`persistNewClient`, `photo-update`, batch) uploadent vers MinIO (thumbs + URLs) avec fallback outbox, au lieu de n’écrire que dans `PhotoStore`.
+- `checkMissingPhotos` : une URL MinIO renseignée compte comme photo présente.
+
 ## Backend — [1.12.6] — 2026-09-10
 
 ### Fixed

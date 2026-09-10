@@ -394,7 +394,11 @@ optimize:
   client:
     auto-init:
       enabled: false
+    # One-shot job PhotoStore → MinIO (PhotoMigrationInitializer)
     migrate-photo:
+      enabled: false
+    # Write-path create/update → MinIO + outbox (ClientService)
+    s3-photo-migration:
       enabled: false
     info:
       "COM001":

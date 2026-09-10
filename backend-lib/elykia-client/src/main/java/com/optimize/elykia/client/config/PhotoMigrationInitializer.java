@@ -31,8 +31,8 @@ public class PhotoMigrationInitializer {
             return;
         }
         long startTime = LocalDateTime.now().toInstant(java.time.ZoneOffset.UTC).toEpochMilli();
-        log.info("Starting legacy photo_store migration at : {}", LocalDateTime.now());
-        clientService.migratePhoto();
+        //log.info("Starting legacy photo_store migration at : {}", LocalDateTime.now());
+        //clientService.migratePhoto();
         log.info("Starting MinIO photo migration at : {}", LocalDateTime.now());
         photoMigrationJob.runMigration();
         log.info("Photo migration completed at : {} in {} ms ",

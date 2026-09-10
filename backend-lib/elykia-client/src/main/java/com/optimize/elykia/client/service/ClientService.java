@@ -29,11 +29,14 @@ import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.client.repository.PhotoStoreRepository;
 import com.optimize.elykia.client.enumeration.BusinessCreditAuthorizationAction;
 import com.optimize.elykia.client.entity.BusinessCreditAuthorizationEvent;
+import com.optimize.elykia.client.outbox.PhotoOutboxService;
 import com.optimize.elykia.client.storage.ImageProcessingService;
 import com.optimize.elykia.client.storage.MinioStorageService;
 import com.optimize.elykia.client.storage.PhotoObjectKeyBuilder;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -55,6 +58,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
+@Slf4j
 public class ClientService extends GenericService<Client, Long> {
 
     private static final String ROLE_ASSIGN_CLIENT_COLLECTOR = "ROLE_ASSIGN_CLIENT_COLLECTOR";
@@ -68,6 +72,10 @@ public class ClientService extends GenericService<Client, Long> {
     private final BusinessCreditAuthorizationEventRepository businessCreditAuthorizationEventRepository;
     private final MinioStorageService minioStorageService;
     private final ImageProcessingService imageProcessingService;
+    private final PhotoOutboxService photoOutboxService;
+
+    @Value("${optimize.client.s3-photo-migration.enabled:false}")
+    private boolean s3PhotoMigrationEnabled;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -79,7 +87,8 @@ public class ClientService extends GenericService<Client, Long> {
             PhotoStoreRepository photoStoreRepository,
             BusinessCreditAuthorizationEventRepository businessCreditAuthorizationEventRepository,
             MinioStorageService minioStorageService,
-            ImageProcessingService imageProcessingService) {
+            ImageProcessingService imageProcessingService,
+            PhotoOutboxService photoOutboxService) {
         super(repository);
         this.clientMapper = clientMapper;
         this.clientProperties = clientProperties;
@@ -90,6 +99,7 @@ public class ClientService extends GenericService<Client, Long> {
         this.businessCreditAuthorizationEventRepository = businessCreditAuthorizationEventRepository;
         this.minioStorageService = minioStorageService;
         this.imageProcessingService = imageProcessingService;
+        this.photoOutboxService = photoOutboxService;
     }
 
     @Transactional(noRollbackFor = DataIntegrityViolationException.class)
@@ -110,13 +120,20 @@ public class ClientService extends GenericService<Client, Long> {
 
     private ClientRespDto persistNewClient(Client client) {
         acquireCreateLocks(client);
-        PhotoStore profilPhoto = PhotoStore.buildClientProfil(client);
-        PhotoStore cardPhoto = PhotoStore.buildClientCard(client);
+        byte[] profilBytes = client.getProfilPhoto();
+        byte[] cardBytes = client.getIDDoc();
         client.removePhotos();
         Client savedClient = getRepository().saveAndFlush(client);
-        profilPhoto.setClientId(savedClient.getId());
-        cardPhoto.setClientId(savedClient.getId());
-        photoStoreRepository.saveProfilAndCard(profilPhoto, cardPhoto);
+
+        if (s3PhotoMigrationEnabled) {
+            uploadClientPhotos(savedClient.getId(), profilBytes, cardBytes);
+            savedClient = getById(savedClient.getId());
+        } else {
+            PhotoStore profilPhoto = PhotoStore.ofProfil(savedClient.getId(), profilBytes);
+            PhotoStore cardPhoto = PhotoStore.ofCard(savedClient.getId(), cardBytes);
+            photoStoreRepository.saveProfilAndCard(profilPhoto, cardPhoto);
+        }
+
         publishClientCreatedEvent(savedClient);
         return ClientRespDto.fromClient(savedClient);
     }
@@ -355,6 +372,40 @@ public class ClientService extends GenericService<Client, Long> {
         return originalUrl;
     }
 
+    /**
+     * Upload profil/card vers MinIO (ou outbox si MinIO indisponible).
+     */
+    @Transactional
+    @EvictClientListCaches
+    public PhotoUploadResultDto uploadClientPhotos(Long clientId, byte[] profilPhotoBytes, byte[] cardPhotoBytes) {
+        tryUploadOrFallback(clientId, profilPhotoBytes, PhotoType.PROFIL);
+        tryUploadOrFallback(clientId, cardPhotoBytes, PhotoType.CARD);
+        Client client = getById(clientId);
+        return new PhotoUploadResultDto(
+                clientId,
+                client.getProfilPhotoUrl(),
+                client.getCardPhotoUrl(),
+                client.getProfilPhotoThumbUrl(),
+                client.getCardPhotoThumbUrl());
+    }
+
+    private String tryUploadOrFallback(Long clientId, byte[] bytes, PhotoType type) {
+        if (bytes == null || bytes.length == 0) {
+            return null;
+        }
+        try {
+            if (minioStorageService.isAvailable()) {
+                return uploadPhotoWithThumb(clientId, bytes, type);
+            }
+            log.warn("MinIO indisponible — fallback outbox clientId={}, type={}", clientId, type);
+        } catch (Exception e) {
+            log.warn("Échec upload MinIO — fallback outbox clientId={}, type={}: {}",
+                    clientId, type, e.getMessage());
+        }
+        photoOutboxService.saveFallback(clientId, type, bytes);
+        return null;
+    }
+
     private static String deriveThumbUrl(String originalUrl) {
         if (!StringUtils.hasText(originalUrl)) {
             return null;
@@ -372,11 +423,22 @@ public class ClientService extends GenericService<Client, Long> {
             throw new CustomValidationException("vous devez fournir au moins une photo pour la modification !!!");
         }
         Client client = getById(dto.clientId());
-        if (StringUtils.hasText(dto.profilPhoto())) {
-            photoStoreRepository.updateProfil(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto())));
-        }
-        if (StringUtils.hasText(dto.cardPhoto())) {
-            photoStoreRepository.updateCard(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto())));
+        byte[] profilBytes = StringUtils.hasText(dto.profilPhoto())
+                ? Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto()))
+                : null;
+        byte[] cardBytes = StringUtils.hasText(dto.cardPhoto())
+                ? Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto()))
+                : null;
+
+        if (s3PhotoMigrationEnabled) {
+            uploadClientPhotos(dto.clientId(), profilBytes, cardBytes);
+        } else {
+            if (profilBytes != null) {
+                photoStoreRepository.updateProfil(dto.clientId(), profilBytes);
+            }
+            if (cardBytes != null) {
+                photoStoreRepository.updateCard(dto.clientId(), cardBytes);
+            }
         }
         if (StringUtils.hasText(dto.cardType())) {
             client.setCardType(dto.cardType());
@@ -395,11 +457,23 @@ public class ClientService extends GenericService<Client, Long> {
     @EvictClientListCaches
     public Boolean updatePhotosBatch(List<ClientPhotoBatchUpdateDto> dtos) {
         for (ClientPhotoBatchUpdateDto dto : dtos) {
-            if (StringUtils.hasText(dto.profilPhoto())) {
-                photoStoreRepository.updateProfil(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto())));
-            }
-            if (StringUtils.hasText(dto.cardPhoto())) {
-                photoStoreRepository.updateCard(dto.clientId(), Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto())));
+            byte[] profilBytes = StringUtils.hasText(dto.profilPhoto())
+                    ? Converter.convertToByteImage(Objects.requireNonNull(dto.profilPhoto()))
+                    : null;
+            byte[] cardBytes = StringUtils.hasText(dto.cardPhoto())
+                    ? Converter.convertToByteImage(Objects.requireNonNull(dto.cardPhoto()))
+                    : null;
+            if (s3PhotoMigrationEnabled) {
+                if (profilBytes != null || cardBytes != null) {
+                    uploadClientPhotos(dto.clientId(), profilBytes, cardBytes);
+                }
+            } else {
+                if (profilBytes != null) {
+                    photoStoreRepository.updateProfil(dto.clientId(), profilBytes);
+                }
+                if (cardBytes != null) {
+                    photoStoreRepository.updateCard(dto.clientId(), cardBytes);
+                }
             }
         }
         return Boolean.TRUE;
@@ -409,10 +483,24 @@ public class ClientService extends GenericService<Client, Long> {
         List<ClientPhotoCheckDto> result = new ArrayList<>();
 
         for (Long id : ids) {
-            PhotoStore clientPhoto = photoStoreRepository.getClientProfil(id);
-            PhotoStore cardPhoto = photoStoreRepository.getClientCard(id);
-            boolean missingProfil = clientPhoto == null || clientPhoto.getPhoto() == null || clientPhoto.getPhoto().length < 512;
-            boolean missingCard = cardPhoto == null || cardPhoto.getPhoto() == null || cardPhoto.getPhoto().length < 512;
+            Client client = getRepository().findById(id).orElse(null);
+            boolean hasProfilUrl = client != null && StringUtils.hasText(client.getProfilPhotoUrl());
+            boolean hasCardUrl = client != null && StringUtils.hasText(client.getCardPhotoUrl());
+
+            boolean missingProfil = !hasProfilUrl;
+            boolean missingCard = !hasCardUrl;
+            if (missingProfil || missingCard) {
+                PhotoStore clientPhoto = photoStoreRepository.getClientProfil(id);
+                PhotoStore cardPhoto = photoStoreRepository.getClientCard(id);
+                if (missingProfil) {
+                    missingProfil = clientPhoto == null || clientPhoto.getPhoto() == null
+                            || clientPhoto.getPhoto().length < 512;
+                }
+                if (missingCard) {
+                    missingCard = cardPhoto == null || cardPhoto.getPhoto() == null
+                            || cardPhoto.getPhoto().length < 512;
+                }
+            }
 
             if (missingProfil || missingCard) {
                 result.add(new ClientPhotoCheckDto(id, missingProfil, missingCard));
