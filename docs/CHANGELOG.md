@@ -821,6 +821,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 - **Field day plan —** table `recovery_field_day_plan` (V85) + APIs `field-plans` (CRUD jour, collector-stats, offline-pack).
 
+## Docs & Infra — 2026-09-10
+
+### Changed
+- **Deploy Contabo —** `docker-compose.prod.yml` / `test.yml` = stack Contabo (FE/BE/DB, MinIO common-infra). Anciens stacks DigitalOcean avec MinIO embarqué renommés en `docker-compose.DO.yml` / `DO-test.yml`.
+
 ## Docs & Infra — 2026-08-13
 
 ### Added

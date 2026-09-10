@@ -50,7 +50,7 @@ Options utiles :
 | 5 | `pg_dump` DO → restore Postgres Contabo (`docker compose exec -T -i`, backup sous `/opt/elykia/$env/backups/`, vérif counts) |
 | 6 | `mc mirror` buckets MinIO DO → MinIO OCI |
 | 7 | `docker save` / `load` images FE/BE |
-| 8 | `docker compose -f docker-compose.contabo-*.yml up -d` |
+| 8 | `docker compose -f docker-compose.prod.yml` / `test.yml` up -d |
 
 **Pièges déjà corrigés dans le script :**
 
@@ -61,8 +61,9 @@ Options utiles :
 
 ## Compose Contabo
 
-- `docker-compose.contabo-prod.yml` — FE + BE + DB (`elykia-db` sur `optimizesolux-common`)
-- `docker-compose.contabo-test.yml` — idem test (buckets `*-test` sur MinIO partagé)
+- `docker-compose.prod.yml` — Contabo FE + BE + DB (`elykia-db` sur `optimizesolux-common`, MinIO partagé)
+- `docker-compose.test.yml` — idem test (buckets `*-test` sur MinIO partagé)
+- `docker-compose.DO.yml` / `docker-compose.DO-test.yml` — legacy DigitalOcean (MinIO embarqué)
 
 ## Après migration
 

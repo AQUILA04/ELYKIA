@@ -3,7 +3,8 @@
 # Stop:   docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring down
 #
 # Requires: traefik-public network (created by docker-compose.traefik.yml)
-# Requires: elykia-prod-internal network (created by docker-compose.prod.yml)
+# Requires: elykia-prod-internal network (legacy DO) or Contabo internal network from docker-compose.prod.yml
+# Contabo: MinIO is shared via optimizesolux-common (not started by this monitoring compose).
 
 services:
   prometheus:

@@ -65,8 +65,9 @@ graph TD
 
 ## Structure du dossier
 - `docker-compose.traefik.yml` - Compose pour le reverse proxy Traefik (à lancer une seule fois).
-- `docker-compose.test.yml` - Compose pour l'environnement de test (inclut MinIO S3).
-- `docker-compose.prod.yml` - Compose pour l'environnement de production (inclut MinIO S3).
+- `docker-compose.test.yml` - Compose Contabo test (FE/BE/DB, MinIO partagé common-infra).
+- `docker-compose.prod.yml` - Compose Contabo prod (FE/BE/DB, MinIO partagé common-infra).
+- `docker-compose.DO.yml` / `docker-compose.DO-test.yml` - Legacy DigitalOcean (MinIO embarqué), conservés pour historique.
 - `docker-compose.tools.yml` - Compose pour les outils (PgAdmin 4).
 - `docker-compose.dev.yml` - MinIO local pour le développement (ports 9000/9001, sans Traefik).
 - `setup-server.sh` - Script de configuration initiale du serveur (création des dossiers, réseau Docker, templates `.env`, répertoires `photos/pending`).
@@ -77,7 +78,7 @@ graph TD
 - `rollback.sh` - Script pour revenir à une release précédente.
 - `import-db.sh` - Script pour importer un dump SQL dans le container Postgres.
 - `migrate-do-to-contabo.sh` - Migration DigitalOcean → Contabo (consommateur OCI + shared-traefik).
-- `docker-compose.contabo-prod.yml` / `docker-compose.contabo-test.yml` - Compose Contabo slim (FE/BE/DB).
+- `docker-compose.DO.yml` / `docker-compose.DO-test.yml` - Legacy DigitalOcean (MinIO embarqué).
 - `CONTABO_MIGRATION.md` - Guide de migration Contabo.
 - `INSTRUCTION_SETUP.md` - Guide détaillé pour l'installation initiale du serveur.
 - `INSTRUCTION_BOOTSTRAP.md` - Guide pour la création de l'utilisateur de déploiement et configuration CI/CD.

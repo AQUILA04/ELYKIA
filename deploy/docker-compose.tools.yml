@@ -4,8 +4,8 @@
 # Stop:   docker compose -f docker-compose.tools.yml --project-name elykia-tools down
 #
 # Requires: traefik-public network   (created by docker-compose.traefik.yml)
-# Requires: elykia-prod-internal network  (created by docker-compose.prod.yml)
-# Requires: elykia-test-internal network  (created by docker-compose.test.yml)
+# Requires: elykia-prod-internal / elykia-test-internal (legacy DO) or networks from Contabo compose
+# Contabo prod/test create elykia-*-internal; MinIO is shared via optimizesolux-common (not in this stack).
 
 services:
   pgadmin:

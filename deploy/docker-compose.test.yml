@@ -1,68 +1,44 @@
-# TEST stack — project name: elykia-test
-# Domain: elykia-test.amenouveve-yaveh.com
-# Start:  docker compose -f docker-compose.test.yml --project-name elykia-test up -d
-# Stop:   docker compose -f docker-compose.test.yml --project-name elykia-test down
+# Contabo TEST — ELYKIA as OptimizeSolux common-infra consumer
+# Project: elykia-test
+#
+# Start:
+#   docker compose -f docker-compose.test.yml --project-name elykia-test \
+#     --env-file /opt/elykia/test/.env up -d
+#
+# Does NOT include: Traefik, MinIO (shared via optimizesolux-common).
+# Legacy DigitalOcean stack with embedded MinIO: docker-compose.DO-test.yml
 
 services:
-  minio:
-    image: minio/minio:latest
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
-    volumes:
-      - minio_data:/data
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-    networks:
-      - internal
-      - traefik-public
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=traefik-public"
-      # Console UI
-      - "traefik.http.routers.elykia-test-minio-console.rule=Host(`minio-test.amenouveve-yaveh.com`)"
-      - "traefik.http.routers.elykia-test-minio-console.entrypoints=websecure"
-      - "traefik.http.routers.elykia-test-minio-console.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.elykia-test-minio-console.service=elykia-test-minio-console"
-      - "traefik.http.services.elykia-test-minio-console.loadbalancer.server.port=9001"
-      # API
-      - "traefik.http.routers.elykia-test-minio-api.rule=Host(`minio-test-api.amenouveve-yaveh.com`)"
-      - "traefik.http.routers.elykia-test-minio-api.entrypoints=websecure"
-      - "traefik.http.routers.elykia-test-minio-api.tls.certresolver=letsencrypt"
-      - "traefik.http.routers.elykia-test-minio-api.service=elykia-test-minio-api"
-      - "traefik.http.services.elykia-test-minio-api.loadbalancer.server.port=9000"
-
   db:
     image: postgres:15
+    container_name: elykia-test-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-elykia_test}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-elykia_test_pwd}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
       POSTGRES_DB: ${POSTGRES_DB:-elykia_test_db}
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB} || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-elykia_test} -d ${POSTGRES_DB:-elykia_test_db} || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
     networks:
-      - internal
+      optimizesolux-common:
+        aliases: ["elykia-test-db"]
+      internal:
 
   backend:
-    image: ${BACKEND_IMAGE}
+    image: ${BACKEND_IMAGE:?BACKEND_IMAGE required}
+    container_name: elykia-test-backend
     restart: unless-stopped
     depends_on:
       db:
         condition: service_healthy
     environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://db:5432/${POSTGRES_DB}}
-      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://elykia-test-db:5432/${POSTGRES_DB:-elykia_test_db}}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-elykia_test}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       LOGGING_FILE_PATH: /home/app/.optimize-elykia-core/logs
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
@@ -70,31 +46,34 @@ services:
       SERVER_PORT: ${SERVER_PORT:-8080}
       LOKI_API_KEY: ${LOKI_API_KEY:-}
       SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-false}
-      SECURITY_CONFIG_ALLOW_ORIGIN: ${SECURITY_ALLOWED_ORIGINS:-https://elykia-test.amenouveve-yaveh.com,https://site.amenouveve-yaveh.com,https://www.amenouveve-yaveh.com,https://amenouveve-yaveh.com,http://localhost,capacitor://localhost,http://localhost:8100,https://localhost,ionic://localhost}
+      SECURITY_CONFIG_ALLOW_ORIGIN: ${SECURITY_ALLOWED_ORIGINS:-https://elykia-test.amenouveve-yaveh.com,https://www.amenouveve-yaveh.com,https://amenouveve-yaveh.com,http://localhost,capacitor://localhost,http://localhost:8100,https://localhost,ionic://localhost}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
-      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
-      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
-      MINIO_BUCKET: ${MINIO_BUCKET:-elykia-clients}
-      MINIO_REPORTS_BUCKET: ${MINIO_REPORTS_BUCKET:-elykia-reports}
-      MINIO_MOBILE_RELEASES_BUCKET: ${MINIO_MOBILE_RELEASES_BUCKET:-elykia-mobile-releases}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY required}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:?MINIO_SECRET_KEY required}
+      MINIO_BUCKET: ${MINIO_BUCKET:-elykia-clients-test}
+      MINIO_REPORTS_BUCKET: ${MINIO_REPORTS_BUCKET:-elykia-reports-test}
+      MINIO_MOBILE_RELEASES_BUCKET: ${MINIO_MOBILE_RELEASES_BUCKET:-elykia-mobile-releases-test}
       MOBILE_RELEASE_CHANNEL: ${MOBILE_RELEASE_CHANNEL:-test}
-      MINIO_CUSTOMER_SPACE_RELEASES_BUCKET: ${MINIO_CUSTOMER_SPACE_RELEASES_BUCKET:-elykia-customer-space-releases}
-      MINIO_RECRUITMENT_BUCKET: ${MINIO_RECRUITMENT_BUCKET:-elykia-recruitment}
+      MINIO_CUSTOMER_SPACE_RELEASES_BUCKET: ${MINIO_CUSTOMER_SPACE_RELEASES_BUCKET:-elykia-customer-space-releases-test}
+      MINIO_RECRUITMENT_BUCKET: ${MINIO_RECRUITMENT_BUCKET:-elykia-recruitment-test}
       CUSTOMER_SPACE_RELEASE_CHANNEL: ${CUSTOMER_SPACE_RELEASE_CHANNEL:-test}
-      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://minio-test-api.amenouveve-yaveh.com}
+      MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://s3.optimizesolux.com}
       PHOTO_FALLBACK_PATH: /opt/elykia/photos/pending
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-elykia-api-test}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
+      OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
+      OTEL_RESOURCE_ATTRIBUTES: ${OTEL_RESOURCE_ATTRIBUTES:-service.namespace=optimizesolux,deployment.environment=test}
     volumes:
       - ${LOG_PATH:-/opt/elykia/test/logs}:/home/app/.optimize-elykia-core/logs
       - ${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/test/photos/pending}:/opt/elykia/photos/pending
     networks:
-      - internal
+      - optimizesolux-common
       - traefik-public
+      - internal
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
-      # HTTPS router — higher priority (10) than frontend (1) so /api routes hit backend first
-      # stripprefix removes /api before forwarding to Spring Boot (backend uses /actuator, not /api/actuator)
-      - "traefik.http.routers.elykia-test-backend.rule=Host(`elykia-test.amenouveve-yaveh.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.elykia-test-backend.rule=Host(`${APP_HOSTNAME:-elykia-test.amenouveve-yaveh.com}`) && PathPrefix(`/api`)"
       - "traefik.http.routers.elykia-test-backend.entrypoints=websecure"
       - "traefik.http.routers.elykia-test-backend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.elykia-test-backend.priority=10"
@@ -103,7 +82,8 @@ services:
       - "traefik.http.services.elykia-test-backend.loadbalancer.server.port=${SERVER_PORT:-8080}"
 
   frontend:
-    image: ${FRONTEND_IMAGE}
+    image: ${FRONTEND_IMAGE:?FRONTEND_IMAGE required}
+    container_name: elykia-test-frontend
     restart: unless-stopped
     environment:
       API_URL: ${API_URL:-https://elykia-test.amenouveve-yaveh.com/api}
@@ -113,8 +93,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=traefik-public"
-      # HTTPS router — lower priority (1), catches all remaining traffic
-      - "traefik.http.routers.elykia-test-frontend.rule=Host(`elykia-test.amenouveve-yaveh.com`)"
+      - "traefik.http.routers.elykia-test-frontend.rule=Host(`${APP_HOSTNAME:-elykia-test.amenouveve-yaveh.com}`)"
       - "traefik.http.routers.elykia-test-frontend.entrypoints=websecure"
       - "traefik.http.routers.elykia-test-frontend.tls.certresolver=letsencrypt"
       - "traefik.http.routers.elykia-test-frontend.priority=1"
@@ -122,11 +101,12 @@ services:
 
 volumes:
   db_data:
-  minio_data:
 
 networks:
   internal:
     name: elykia-test-internal
-    external: true
+    driver: bridge
   traefik-public:
+    external: true
+  optimizesolux-common:
     external: true

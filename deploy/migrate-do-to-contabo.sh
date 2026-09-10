@@ -119,18 +119,20 @@ read_env_var() {
   grep -E "^${key}=" "$file" | tail -1 | cut -d= -f2- | sed -e "s/^'//" -e "s/'$//" -e 's/^"//' -e 's/"$//'
 }
 
+# Source stack on DigitalOcean (embedded MinIO).
 compose_file_for() {
   local env="$1"
   if [[ "$env" == "prod" ]]; then
-    echo "docker-compose.prod.yml"
+    echo "docker-compose.DO.yml"
   else
-    echo "docker-compose.test.yml"
+    echo "docker-compose.DO-test.yml"
   fi
 }
 
+# Target stack on Contabo (shared MinIO / common-infra).
 contabo_compose_for() {
   local env="$1"
-  echo "docker-compose.contabo-${env}.yml"
+  echo "docker-compose.${env}.yml"
 }
 
 project_for() {
@@ -457,7 +459,7 @@ cat <<EOF
 
 === Migration complete ===
 
-Contabo stacks started with docker-compose.contabo-*.yml (FE + BE + DB only).
+Contabo stacks started with docker-compose.prod.yml / docker-compose.test.yml (FE + BE + DB only; MinIO = common-infra).
 Shared services used: Traefik, MinIO OCI, Grafana/Promtail/cAdvisor, pgAdmin OCI.
 
 Next steps (manual DNS only):
