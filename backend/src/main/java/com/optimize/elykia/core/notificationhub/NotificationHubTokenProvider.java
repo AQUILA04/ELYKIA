@@ -63,7 +63,7 @@ public class NotificationHubTokenProvider {
                 || !StringUtils.hasText(oauth2.getClientId())
                 || !StringUtils.hasText(oauth2.getClientSecret())) {
             throw new NotificationHubClientException(
-                    "OAuth2 Notification Hub incomplet (token-uri / client-id / client-secret)", null);
+                    "OAuth2 Notification Hub incomplet (token-uri / client-id / client-secret)");
         }
 
         MultiValueMap<String, String> form = new LinkedMultiValueMap<>();

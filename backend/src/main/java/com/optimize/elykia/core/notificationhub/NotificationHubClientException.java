@@ -8,19 +8,23 @@ public class NotificationHubClientException extends RuntimeException {
     private final Integer statusCode;
     private final String responseBody;
 
-    public NotificationHubClientException(String message, Integer statusCode) {
-        this(message, statusCode, null, null);
+    public NotificationHubClientException(String message) {
+        this(message, null, null, null);
     }
 
-    public NotificationHubClientException(String message, Integer statusCode, String responseBody) {
-        this(message, statusCode, responseBody, null);
+    public NotificationHubClientException(String message, int statusCode) {
+        this(message, Integer.valueOf(statusCode), null, null);
+    }
+
+    public NotificationHubClientException(String message, int statusCode, String responseBody) {
+        this(message, Integer.valueOf(statusCode), responseBody, null);
     }
 
     public NotificationHubClientException(String message, Throwable cause) {
         this(message, null, null, cause);
     }
 
-    public NotificationHubClientException(
+    private NotificationHubClientException(
             String message, Integer statusCode, String responseBody, Throwable cause) {
         super(message, cause);
         this.statusCode = statusCode;

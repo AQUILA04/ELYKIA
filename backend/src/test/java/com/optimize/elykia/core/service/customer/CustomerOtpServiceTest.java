@@ -46,7 +46,7 @@ class CustomerOtpServiceTest {
         properties.setProofSecret("test-proof-secret");
         service = new CustomerOtpService(otpClientProvider, properties);
         ReflectionTestUtils.setField(service, "jwtSecret", "jwt-secret");
-        when(otpClientProvider.getIfAvailable()).thenReturn(otpClient);
+        org.mockito.Mockito.lenient().when(otpClientProvider.getIfAvailable()).thenReturn(otpClient);
     }
 
     @Test
