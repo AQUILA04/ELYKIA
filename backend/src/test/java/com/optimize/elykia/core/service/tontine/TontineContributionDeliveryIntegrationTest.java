@@ -1,6 +1,9 @@
 package com.optimize.elykia.core.service.tontine;
 
+import com.optimize.common.entities.util.TontineParameterConstant;
+import com.optimize.common.securities.models.Parameter;
 import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.repository.ParameterRepository;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
@@ -62,8 +65,8 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
     private static final String DELIVERY_REFERENCE = "LIV-TONTINE-CHAIN-001";
     private static final double DAILY_STAKE = 1_000.0;
     private static final double COLLECTION_AMOUNT = 31_000.0;
-    private static final double EXPECTED_SOCIETY_SHARE = 8_000.0;
-    private static final double EXPECTED_AVAILABLE_CONTRIBUTION = 23_000.0;
+    private static final double EXPECTED_SOCIETY_SHARE = 1_000.0;
+    private static final double EXPECTED_AVAILABLE_CONTRIBUTION = 30_000.0;
 
     @Autowired private TontineService tontineService;
     @Autowired private TontineDeliveryService tontineDeliveryService;
@@ -80,6 +83,7 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
     @Autowired private CreditTimelineRepository creditTimelineRepository;
     @Autowired private AccountingDayService accountingDayService;
     @Autowired private EntityManager entityManager;
+    @Autowired private ParameterRepository parameterRepository;
 
     @MockBean private UserService userService;
     @MockBean private User currentUser;
@@ -87,6 +91,7 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
     @Test
     void contributeThenDeliverTontine_persistsAllocationDeliveryCreditAndStockLedgerAsOneBusinessChain() {
         // Given: the only member of an active annual session has a daily stake and one tontine article available.
+        ensureSocietyShareVersionV2();
         when(userService.getCurrentUser()).thenReturn(currentUser);
         when(currentUser.getUsername()).thenReturn(COLLECTOR);
         when(currentUser.is("GESTIONNAIRE")).thenReturn(false);
@@ -95,11 +100,11 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
         Client client = persistClient("client.tontine.chain");
         TontineSession session = persistActiveSession();
         TontineMember member = persistMember(session, client);
-        Articles article = persistArticle("TONTINE-CHAIN-ARTICLE", 10, 15_000.0, 23_000.0);
-        TontineStock tontineStock = persistTontineStock(article, 1, 23_000.0);
+        Articles article = persistArticle("TONTINE-CHAIN-ARTICLE", 10, 15_000.0, 30_000.0);
+        TontineStock tontineStock = persistTontineStock(article, 1, 30_000.0);
         accountingDayService.ensureAccountingReadyForOperations();
         TontineCollectionDto contribution = contribution(member.getId(), COLLECTION_REFERENCE, COLLECTION_AMOUNT);
-        CreateDeliveryDto delivery = delivery(member.getId(), article.getId(), DELIVERY_REFERENCE, 23_000.0);
+        CreateDeliveryDto delivery = delivery(member.getId(), article.getId(), DELIVERY_REFERENCE, 30_000.0);
 
         // When: the same mobile contribution is replayed, then its available contribution is delivered to the member.
         tontineService.recordCollection(contribution);
@@ -124,7 +129,7 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
         assertEquals(EXPECTED_SOCIETY_SHARE, persistedMember.getSocietyShare());
         assertEquals(EXPECTED_AVAILABLE_CONTRIBUTION, persistedMember.getAvailableContribution());
         assertEquals(0, persistedMember.getValidatedMonths());
-        assertEquals(23, persistedMember.getCurrentMonthDays());
+        assertEquals(30, persistedMember.getCurrentMonthDays());
         assertEquals(TontineMemberDeliveryStatus.DELIVERED, persistedMember.getDeliveryStatus());
 
         TontineSession persistedSession = sessionRepository.findById(session.getId()).orElseThrow();
@@ -169,7 +174,7 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
         assertEquals(0, persistedStock.getAvailableQuantity());
         assertEquals(1, persistedStock.getDistributedQuantity());
         assertEquals(0, persistedStock.getQuantityReturned());
-        assertEquals(23_000.0, persistedStock.getWeightedAverageUnitPrice());
+        assertEquals(30_000.0, persistedStock.getWeightedAverageUnitPrice());
 
         TontineStockMovement deliveryMovement = tontineStockMovementRepository.findAll().stream()
                 .filter(movement -> movement.getMovementType() == TontineStockMovementType.TONTINE_DELIVERY)
@@ -185,6 +190,21 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
         assertEquals(tontineCredit.getReference(), deliveryMovement.getCreditReference());
         assertEquals(persistedDelivery.getId(), deliveryMovement.getTontineDeliveryId());
         assertEquals(DELIVERY_REFERENCE, deliveryMovement.getTontineDeliveryReference());
+    }
+
+    private void ensureSocietyShareVersionV2() {
+        // Profil test : auto-initialize désactivé — forcer V2 sans event de migration.
+        parameterRepository.findByKey(TontineParameterConstant.SOCIETY_SHARE_VERSION)
+                .ifPresentOrElse(existing -> {
+                    existing.setValue(TontineParameterConstant.SOCIETY_SHARE_VERSION_V2);
+                    parameterRepository.saveAndFlush(existing);
+                }, () -> {
+                    Parameter parameter = new Parameter();
+                    parameter.setKey(TontineParameterConstant.SOCIETY_SHARE_VERSION);
+                    parameter.setValue(TontineParameterConstant.SOCIETY_SHARE_VERSION_V2);
+                    parameter.setDescription("Forced V2 for contribution/delivery IT");
+                    parameterRepository.saveAndFlush(parameter);
+                });
     }
 
     private TontineCollectionDto contribution(Long memberId, String reference, double amount) {

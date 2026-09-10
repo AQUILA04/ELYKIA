@@ -448,7 +448,7 @@ app:
         description: Activer la valorisation FIFO du stock magasin (lots et coût réel des sorties)
       init-data[5]:
         key: TONTINE_SOCIETY_SHARE_VERSION
-        value: V1
+        value: V2
         description: "Version du calcul part société tontine (V1=mois calendaires entamés, V2=mois réellement cotisés). Le basculement déclenche un recalcul automatique."
 
 loki:
