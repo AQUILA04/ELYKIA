@@ -130,8 +130,19 @@ jobs:
       run: npx cap add android
 
     - name: Create google-services.json
+      env:
+        GOOGLE_SERVICES_JSON: ${{ secrets.CUSTOMER_SPACE_GOOGLE_SERVICES_JSON }}
       run: |
-        echo '${{ secrets.CUSTOMER_SPACE_GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+        set -euo pipefail
+        mkdir -p android/app
+        if [ -n "${GOOGLE_SERVICES_JSON:-}" ]; then
+          printf '%s' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
+          python3 -m json.tool android/app/google-services.json > /dev/null
+        else
+          echo "WARN: CUSTOMER_SPACE_GOOGLE_SERVICES_JSON is empty — skipping google-services.json"
+          echo "(debug APK without native Google Services plugin; set the secret for Firebase-enabled builds)"
+          rm -f android/app/google-services.json
+        fi
 
     - name: Sync Capacitor
       run: npx cap sync android
