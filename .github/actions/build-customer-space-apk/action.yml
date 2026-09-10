@@ -63,7 +63,7 @@ runs:
     - name: Setup Node.js
       uses: actions/setup-node@v6
       with:
-        node-version: '20.19.3'
+        node-version: '22'
         cache: 'npm'
         cache-dependency-path: 'customer-space/package-lock.json'
 

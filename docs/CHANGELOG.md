@@ -847,6 +847,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Changed
 - **Deploy Contabo —** `docker-compose.prod.yml` / `test.yml` = stack Contabo (FE/BE/DB, MinIO common-infra). Anciens stacks DigitalOcean avec MinIO embarqué renommés en `docker-compose.DO.yml` / `DO-test.yml`.
+- **CI customer-space —** Node.js `20.19.3` → `22` dans `ci-customer-space.yml` et `build-customer-space-apk` pour satisfaire `@capacitor/cli` 8.4 (`NodeJS >=22`).
 
 ## Docs & Infra — 2026-08-13
 
