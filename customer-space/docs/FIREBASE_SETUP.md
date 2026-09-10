@@ -2,18 +2,25 @@
 
 Ce document décrit la configuration Firebase pour l'app **Espace Client**, distincte de l'app commerciale [`mobile/`](../../mobile/).
 
+## Rôle actuel de Firebase
+
+| Usage | Statut |
+|-------|--------|
+| **OTP / Phone Auth SMS** | **Supprimé** — les SMS OTP passent par **Notification Hub** via le backend ELYKIA (`POST /api/customer/auth/send-otp` + `verify-otp`) |
+| **Remote Config** (`customerSpaceAvailable`) | Conservé — [`FeatureFlagService`](../src/app/shared/services/feature-flag.service.ts) |
+
 ## Deux projets Firebase distincts
 
-| App | Package / usage | Fichier / config | Secret GitHub (mobile existant) |
-|-----|-----------------|------------------|--------------------------------|
+| App | Package / usage | Fichier / config | Secret GitHub |
+|-----|-----------------|------------------|---------------|
 | **mobile** (commercial) | APK terrain | `mobile/android/app/google-services.json` | `GOOGLE_SERVICES_JSON` |
-| **customer-space** (client) | Ionic Web + futur APK `com.optimize.elykia.customer` | `customer-space/google-services.json` (local, gitignored) | **`CUSTOMER_SPACE_GOOGLE_SERVICES_JSON`** |
+| **customer-space** (client) | Ionic Web + APK `com.optimize.elykia.customer` | `customer-space/google-services.json` (local, gitignored) | **`CUSTOMER_SPACE_GOOGLE_SERVICES_JSON`** |
 
-Ne réutilisez **pas** le secret `GOOGLE_SERVICES_JSON` du mobile : les fichiers `google-services.json` sont liés à un package Android différent.
+Ne réutilisez **pas** le secret `GOOGLE_SERVICES_JSON` du mobile.
 
-## Ce que fait le code aujourd'hui
+## Config Web SDK (Remote Config)
 
-L'authentification OTP/PIN utilise le **SDK Firebase Web** (`firebase` npm) via [`FirebaseAuthService`](../src/app/shared/services/firebase-auth.service.ts). La config est lue depuis un fichier **local gitignored** :
+La config est lue depuis un fichier **local gitignored** :
 
 ```ts
 // src/environments/firebase.config.local.ts (généré, ne pas committer)
@@ -22,112 +29,40 @@ firebaseConfigLocal: { apiKey, authDomain, projectId, storageBucket, messagingSe
 
 Les fichiers `environment.ts` / `environment.prod.ts` importent cette config via `firebase-config.ts` — **aucun secret Firebase n'est versionné**.
 
-Le fichier `google-services.json` sert à :
+Scripts :
 
-1. **Générer** `firebase.config.local.ts` (script CI / local)
-2. **Build Android natif** Capacitor (`android/app/google-services.json`) quand le dossier `android/` existe
-
-## Backend (vérification du token OTP)
-
-Le serveur Spring valide le `firebaseIdToken` avec le **compte de service** Firebase Admin — **pas** le `google-services.json` client :
-
-| Variable serveur | Rôle |
-|------------------|------|
-| `FIREBASE_ENABLED=true` | Active la vérification |
-| `FIREBASE_CREDENTIALS=/chemin/vers/service-account.json` | Clé privée Admin SDK |
-
-Ce fichier s'obtient dans Firebase Console → **Paramètres du projet → Comptes de service → Générer une nouvelle clé privée**. Ce n'est **pas** le « jeton de test » de la page Vérification téléphone.
-
-## Secrets GitHub à créer
-
-### Obligatoire pour build prod CI
-
-| Secret | Contenu |
-|--------|---------|
-| **`CUSTOMER_SPACE_GOOGLE_SERVICES_JSON`** | Contenu **intégral** du fichier `google-services.json` de l'app Espace Client (projet Firebase dédié, package `com.optimize.elykia.customer`) |
-
-Dans GitHub : **Settings → Secrets and variables → Actions → New repository secret**.
-
-Collez le JSON minifié ou formaté ; le workflow et le script le parsent tel quel.
-
-### Optionnel (recommandé pour Phone Auth navigateur)
-
-| Secret | Contenu |
-|--------|---------|
-| **`CUSTOMER_SPACE_FIREBASE_WEB_CONFIG`** | Objet JSON Web SDK depuis Firebase Console → Ajouter une app → **Web** |
-
-Exemple :
-
-```json
-{
-  "apiKey": "AIza...",
-  "authDomain": "elykia-customer.firebaseapp.com",
-  "projectId": "elykia-customer",
-  "storageBucket": "elykia-customer.appspot.com",
-  "messagingSenderId": "123456789",
-  "appId": "1:123456789:web:abcdef"
-}
+```bash
+npm run firebase:configure:dev   # génère la config locale
+npm run firebase:configure       # profil prod
 ```
 
-Si ce secret est défini, il **prime** sur la conversion depuis `google-services.json` (meilleur pour reCAPTCHA / domaines autorisés en navigateur).
+## OTP SMS — Notification Hub (backend)
 
-## Pipeline CI
+L'espace client n'appelle **plus** Firebase Phone Auth. Flux :
 
-Fichier : [`.github/workflows/ci-customer-space.yml`](../../.github/workflows/ci-customer-space.yml)
+1. `POST /api/customer/auth/send-otp` → backend → Notification Hub `POST /v1/otp/send`
+2. `POST /api/customer/auth/verify-otp` → backend → Hub `POST /v1/otp/verify` → jeton de preuve HMAC
+3. `POST /api/customer/auth/setup-pin` avec `otpProofToken` (plus de `firebaseIdToken`)
 
-| Job | Firebase requis ? |
-|-----|-------------------|
-| `test-customer-space` (unit + E2E) | **Non** — build `e2e` avec Firebase mocké (`window.__E2E__`) |
-| `build-customer-space-prod` (push uniquement) | **Oui** — injecte les secrets puis `ng build --configuration=production` |
+Variables serveur ELYKIA (voir `backend` `application.yml`) :
 
-Étapes build prod :
+| Variable | Rôle |
+|----------|------|
+| `NOTIFICATION_HUB_ENABLED=true` | Active le client OTP |
+| `NOTIFICATION_HUB_BASE_URL` | URL API hub (prod : `https://notification-api.optimizesolux.com`) |
+| `NOTIFICATION_HUB_TENANT_ID` | Tenant local (`X-Tenant-Id`) si OAuth2 off |
+| `NOTIFICATION_HUB_OAUTH2_ENABLED` | Client credentials Keycloak (prod) |
+| `NOTIFICATION_HUB_CLIENT_ID` / `NOTIFICATION_HUB_CLIENT_SECRET` | Service account hub |
+| `NOTIFICATION_HUB_TOKEN_URI` | Token Keycloak realm `notification-hub` |
+| `NOTIFICATION_HUB_ENVIRONMENT` | `test` (email recette) ou `prod` (SMS réel) ; vide = dérivé du profil Spring |
 
-1. `node scripts/apply-firebase-config.mjs --profile prod`
-2. `npm run build -- --configuration=production`
+Guide d'intégration : dépôt `AQUILA04/notification-hub` → `backend/docs/OTP_CLIENT_INTEGRATION.md`.
 
-Sans secret, le job de build passe mais affiche un avertissement et compile avec `firebase` vide (OTP désactivé en prod).
+## Secrets GitHub (Remote Config / APK)
 
-## Configuration locale
+| Secret | Contenu |
+|--------|---------|
+| **`CUSTOMER_SPACE_GOOGLE_SERVICES_JSON`** | `google-services.json` Espace Client |
+| **`CUSTOMER_SPACE_FIREBASE_WEB_CONFIG`** | JSON Web SDK (Remote Config) |
 
-1. Placez votre fichier à la racine du module :
-
-   ```
-   customer-space/google-services.json
-   ```
-
-   (fichier **gitignored** — ne pas committer)
-
-2. Injectez la config :
-
-   ```bash
-   cd customer-space
-   npm run firebase:configure        # → firebase.config.local.ts (prod)
-   npm run firebase:configure:dev  # → firebase.config.local.ts (dev local)
-   ```
-
-3. Vérifiez dans la console Firebase :
-
-   - **Authentication → Sign-in method → Phone** activé
-   - **Authentication → Settings → Authorized domains** : `localhost` + domaine de prod
-   - Numéros de test OTP si besoin (dev)
-
-4. Build Android (après `npx cap add android`) :
-
-   ```bash
-   npm run firebase:configure
-   ionic build
-   npx cap sync android
-   ```
-
-## Jeton de test (console Firebase)
-
-La page **Vérification du numéro de téléphone → Jeton de test** sert aux tests **client natifs** (Play Services), pas à `FIREBASE_CREDENTIALS` ni aux secrets GitHub ci-dessus.
-
-## Récapitulatif des noms de secrets
-
-| Secret | Où | Usage |
-|--------|-----|-------|
-| `GOOGLE_SERVICES_JSON` | GitHub Actions | App **mobile** commerciale uniquement |
-| **`CUSTOMER_SPACE_GOOGLE_SERVICES_JSON`** | GitHub Actions | App **customer-space** (build prod / futur APK) |
-| **`CUSTOMER_SPACE_FIREBASE_WEB_CONFIG`** | GitHub Actions (optionnel) | Config Web SDK dédiée navigateur |
-| `FIREBASE_CREDENTIALS` | Serveur backend (env, pas GitHub client) | Compte de service Admin SDK |
+Les tests CI (unit + E2E) **n'utilisent pas** Firebase Phone Auth (OTP mocké via interception API / `window.__E2E__`).

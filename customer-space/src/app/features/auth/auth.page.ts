@@ -6,7 +6,6 @@ import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { firstValueFrom, Observable } from 'rxjs';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
-import { FirebaseAuthService } from '../../shared/services/firebase-auth.service';
 import {
   AuthStep,
   CustomerLoginResponse,
@@ -15,8 +14,9 @@ import { environment } from '../../../environments/environment';
 import { toUsername } from '../../shared/utils/phone-normalizer';
 import { FeatureFlagService } from '../../shared/services/feature-flag.service';
 import { APP_UNAVAILABLE_MESSAGE } from '../../shared/constants/app-availability';
+import { isE2eMode } from '../../shared/utils/e2e';
 
-/** Page Connexion — wizard téléphone → PIN ou OTP+PIN. */
+/** Page Connexion — wizard téléphone → PIN ou OTP (Notification Hub) + PIN. */
 @Component({
   selector: 'app-auth',
   standalone: true,
@@ -28,7 +28,7 @@ export class AuthPage implements ViewWillEnter {
   step: AuthStep = 'phone';
   phone = '';
   maskedName = '';
-  firebaseIdToken = '';
+  otpProofToken = '';
   isLoading = false;
   error = '';
   appUnavailable = false;
@@ -44,7 +44,6 @@ export class AuthPage implements ViewWillEnter {
     private fb: FormBuilder,
     private api: CustomerApiService,
     private session: CustomerSessionService,
-    private firebaseAuth: FirebaseAuthService,
     private featureFlags: FeatureFlagService,
     private router: Router,
   ) {
@@ -73,7 +72,7 @@ export class AuthPage implements ViewWillEnter {
     this.step = 'phone';
     this.phone = '';
     this.maskedName = '';
-    this.firebaseIdToken = '';
+    this.otpProofToken = '';
     this.error = '';
     this.appUnavailable = false;
     this.isLoading = false;
@@ -146,47 +145,17 @@ export class AuthPage implements ViewWillEnter {
   }
 
   private async startOtp(): Promise<void> {
-    if (!this.firebaseAuth.isConfigured()) {
-      this.error = 'Vérification SMS non configurée. Contactez le support.';
-      return;
-    }
     try {
-      await this.firebaseAuth.sendOtp(this.phone);
+      if (isE2eMode()) {
+        this.step = 'otp';
+        return;
+      }
+      await firstValueFrom(this.api.sendOtp({ phone: this.phone }));
       this.step = 'otp';
     } catch (e: unknown) {
-      console.error('[Auth] Échec envoi OTP Firebase', e);
-      this.error = this.formatOtpSendError(e);
+      console.error('[Auth] Échec envoi OTP Notification Hub', e);
+      this.error = this.extractError(e) || 'Impossible d\'envoyer le SMS.';
     }
-  }
-
-  private formatOtpSendError(e: unknown): string {
-    const code = this.firebaseErrorCode(e);
-    if (code === 'auth/invalid-app-credential' || code === 'auth/app-not-authorized') {
-      return 'Configuration Firebase incorrecte (app Web requise pour le navigateur).';
-    }
-    if (code === 'auth/configuration-not-found') {
-      return 'Firebase Auth non activé : activez « Téléphone » dans la console Firebase (Authentication → Sign-in method) et autorisez la région +228.';
-    }
-    if (code === 'auth/invalid-phone-number') {
-      return 'Numéro de téléphone invalide.';
-    }
-    if (code === 'auth/too-many-requests') {
-      return 'Trop de tentatives. Réessayez plus tard.';
-    }
-    if (code === 'auth/captcha-check-failed' || code === 'auth/missing-recaptcha-token') {
-      return 'Vérification anti-robot échouée. Rechargez la page et réessayez.';
-    }
-    if (!environment.production && e instanceof Error && e.message) {
-      return `Impossible d'envoyer le SMS : ${e.message}`;
-    }
-    return 'Impossible d\'envoyer le SMS.';
-  }
-
-  private firebaseErrorCode(e: unknown): string | undefined {
-    if (e && typeof e === 'object' && 'code' in e && typeof (e as { code: unknown }).code === 'string') {
-      return (e as { code: string }).code;
-    }
-    return undefined;
   }
 
   async submitOtp(): Promise<void> {
@@ -194,10 +163,19 @@ export class AuthPage implements ViewWillEnter {
     this.isLoading = true;
     this.error = '';
     try {
-      this.firebaseIdToken = await this.firebaseAuth.verifyOtp(this.otpForm.value.otp);
+      if (isE2eMode()) {
+        this.otpProofToken = 'e2e-mock-otp-proof';
+        this.step = 'setup-pin';
+        return;
+      }
+      const res = await firstValueFrom(this.api.verifyOtp({
+        phone: this.phone,
+        code: this.otpForm.value.otp,
+      }));
+      this.otpProofToken = res.otpProofToken;
       this.step = 'setup-pin';
-    } catch {
-      this.error = 'Code incorrect. Réessayez.';
+    } catch (e: unknown) {
+      this.error = this.extractError(e) || 'Code incorrect. Réessayez.';
     } finally {
       this.isLoading = false;
     }
@@ -212,7 +190,7 @@ export class AuthPage implements ViewWillEnter {
     await this.completeLogin(this.api.setupPin({
       phone: this.phone,
       pin: this.setupPinForm.value.pin,
-      firebaseIdToken: this.firebaseIdToken,
+      otpProofToken: this.otpProofToken,
     }));
   }
 

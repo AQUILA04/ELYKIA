@@ -25,6 +25,16 @@ public class CustomerAuthController {
         return ResponseEntity.ok(customerAuthService.login(request));
     }
 
+    @PostMapping("/send-otp")
+    public ResponseEntity<CustomerOtpSendResponse> sendOtp(@Valid @RequestBody CustomerPhoneRequest request) {
+        return ResponseEntity.accepted().body(customerAuthService.sendOtp(request));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<CustomerOtpVerifyResponse> verifyOtp(@Valid @RequestBody CustomerOtpVerifyRequest request) {
+        return ResponseEntity.ok(customerAuthService.verifyOtp(request));
+    }
+
     @PostMapping("/setup-pin")
     public ResponseEntity<CustomerLoginResponse> setupPin(@Valid @RequestBody CustomerSetupPinRequest request) {
         return ResponseEntity.ok(customerAuthService.setupPin(request));

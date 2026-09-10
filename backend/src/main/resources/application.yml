@@ -417,13 +417,26 @@ optimize:
           accountNumber: "0011010001"
           accountBalance: 100000.00
 
+optimize:
+  notification:
+    hub:
+      enabled: ${NOTIFICATION_HUB_ENABLED:false}
+      base-url: ${NOTIFICATION_HUB_BASE_URL:http://localhost:8088}
+      tenant-id: ${NOTIFICATION_HUB_TENANT_ID:elykia}
+      app-id: ${NOTIFICATION_HUB_APP_ID:elykia-customer-space}
+      # test = email recette sms@optimizesolux.com ; prod = SMS réel (ou dérivé du profil Spring)
+      environment: ${NOTIFICATION_HUB_ENVIRONMENT:}
+      proof-ttl-minutes: ${NOTIFICATION_HUB_PROOF_TTL_MINUTES:10}
+      proof-secret: ${NOTIFICATION_HUB_PROOF_SECRET:}
+      oauth2:
+        enabled: ${NOTIFICATION_HUB_OAUTH2_ENABLED:false}
+        token-uri: ${NOTIFICATION_HUB_TOKEN_URI:https://auth.optimizesolux.com/realms/notification-hub/protocol/openid-connect/token}
+        client-id: ${NOTIFICATION_HUB_CLIENT_ID:elykia}
+        client-secret: ${NOTIFICATION_HUB_CLIENT_SECRET:}
+
 app:
   folder: ${user.home}/.optimize-elykia-core/operations/
   customer:
-    auth:
-      firebase:
-        enabled: ${FIREBASE_ENABLED:false}
-        credentials-path: ${FIREBASE_CREDENTIALS:}
     mobile-money:
       mixx-number: ${CUSTOMER_MOBILE_MONEY_MIXX_NUMBER:}
       moov-number: ${CUSTOMER_MOBILE_MONEY_MOOV_NUMBER:}
