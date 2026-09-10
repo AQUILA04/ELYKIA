@@ -13,5 +13,8 @@
       "command": "cd frontend && npm start -- --host 0.0.0.0 --port 4200"
     }
   ],
-  "ports": [8081, 4200]
+  "ports": [
+    { "name": "backend", "port": 8081 },
+    { "name": "frontend", "port": 4200 }
+  ]
 }
