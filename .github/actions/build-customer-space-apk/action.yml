@@ -89,7 +89,7 @@ runs:
         npm install -g @ionic/cli @capacitor/cli
         npm run test:e2e:smoke || true
         ionic build --prod
-        npx cap add android || true
+        npx cap add android
 
     - name: Write google-services.json
       shell: bash

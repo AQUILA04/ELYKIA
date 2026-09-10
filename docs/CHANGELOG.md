@@ -848,6 +848,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 - **Deploy Contabo —** `docker-compose.prod.yml` / `test.yml` = stack Contabo (FE/BE/DB, MinIO common-infra). Anciens stacks DigitalOcean avec MinIO embarqué renommés en `docker-compose.DO.yml` / `DO-test.yml`.
 - **CI customer-space —** Node.js `20.19.3` → `22` dans `ci-customer-space.yml` et `build-customer-space-apk` pour satisfaire `@capacitor/cli` 8.4 (`NodeJS >=22`).
+- **Customer-space —** dépendance `@capacitor/android@8.4.0` ajoutée pour que `npx cap add android` réussisse en CI.
 
 ## Docs & Infra — 2026-08-13
 
@@ -1739,6 +1740,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Endpoint admin `PATCH /api/v1/users/{id}/reset-password` (mot de passe temporaire + `mustChangePassword=true`).
 - Changement de mot de passe forcé via `PATCH /api/v1/users/change-password` avec `forced=true` (sans ancien mot de passe, nouveau mot de passe différent du temporaire).
 - Nouveaux comptes créés via signup : `mustChangePassword=true` à la première connexion.
+
+## Customer-space — [0.3.1] — 2026-09-10
+
+### Fixed
+
+- Dépendance `@capacitor/android@8.4.0` pour le build APK CI (`npx cap add android`).
 
 ## Customer-space — [0.3.0] — 2026-09-10
 
