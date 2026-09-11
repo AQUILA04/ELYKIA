@@ -35,7 +35,7 @@ class DailyTontineReportReconcilerTest {
     private DailyTontineReportReconciler reconciler;
 
     @Test
-    void reconcile_rebuildsActivityFromCollectionDateAndToDepositFromCreatedDate() {
+    void reconcile_rebuildsActivityAndToDepositFromCollectionDate() {
         LocalDate day = LocalDate.of(2026, 9, 10);
         LocalDateTime start = day.atStartOfDay();
         LocalDateTime end = day.plusDays(1).atStartOfDay();
@@ -52,9 +52,6 @@ class DailyTontineReportReconcilerTest {
         when(tontineCollectionRepository.sumByCommercialAndCollectionDate(
                 eq("COM003"), eq(State.ENABLED), eq(start), eq(end)))
                 .thenReturn(List.<Object[]>of(new Object[]{4500.0, 3L}));
-        when(tontineCollectionRepository.sumAmountByCommercialAndCreatedDate(
-                eq("COM003"), eq(State.ENABLED), eq(start), eq(end)))
-                .thenReturn(7000.0);
         when(dailyReportRepository.findByDateAndCommercialUsername(day, "COM003"))
                 .thenReturn(Optional.of(report));
         when(reportPersistence.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -63,8 +60,8 @@ class DailyTontineReportReconcilerTest {
 
         assertEquals(4500.0, report.getTontineCollectionsAmount());
         assertEquals(3, report.getTontineCollectionsCount());
-        // creditToDeposit=1000+2000 + newBalance=500 + captured=7000
-        assertEquals(10_500.0, report.getTotalAmountToDeposit());
+        // creditToDeposit=1000+2000 + newBalance=500 + activity=4500
+        assertEquals(8_000.0, report.getTotalAmountToDeposit());
         verify(reportPersistence).save(report);
     }
 
@@ -74,8 +71,6 @@ class DailyTontineReportReconcilerTest {
         LocalDate d2 = LocalDate.of(2026, 9, 10);
         when(tontineCollectionRepository.sumByCommercialAndCollectionDate(any(), any(), any(), any()))
                 .thenReturn(List.<Object[]>of(new Object[]{0.0, 0L}));
-        when(tontineCollectionRepository.sumAmountByCommercialAndCreatedDate(any(), any(), any(), any()))
-                .thenReturn(0.0);
         when(dailyReportRepository.findByDateAndCommercialUsername(any(), eq("COM003")))
                 .thenReturn(Optional.empty());
 

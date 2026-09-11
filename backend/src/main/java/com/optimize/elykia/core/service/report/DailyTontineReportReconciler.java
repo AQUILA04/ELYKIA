@@ -21,7 +21,7 @@ import java.util.Objects;
  * Rebuild des compteurs tontine du rapport journalier depuis {@code tontine_collection}.
  * <ul>
  *   <li>activité ({@code tontine_collections_*}) → commercial + {@code collectionDate}</li>
- *   <li>part tontine de {@code total_amount_to_deposit} → commercial + {@code createdDate} (saisie)</li>
+ *   <li>part tontine de {@code total_amount_to_deposit} → même base ({@code collectionDate} / jour métier rattrapage)</li>
  * </ul>
  */
 @Service
@@ -54,14 +54,10 @@ public class DailyTontineReportReconciler {
             activityCount = 0;
         }
 
-        Double captured = tontineCollectionRepository.sumAmountByCommercialAndCreatedDate(
-                commercialUsername, State.ENABLED, dayStart, dayEnd);
-        final double tontineCaptured = captured != null ? captured : 0.0;
-
         DailyCommercialReport report = dailyReportRepository
                 .findByDateAndCommercialUsername(date, commercialUsername)
                 .orElseGet(() -> {
-                    if (activityAmount == 0.0 && activityCount == 0 && tontineCaptured == 0.0) {
+                    if (activityAmount == 0.0 && activityCount == 0) {
                         return null;
                     }
                     DailyCommercialReport created = new DailyCommercialReport();
@@ -78,12 +74,12 @@ public class DailyTontineReportReconciler {
 
         double creditPart = CashDepositCategoryCalculator.creditToDeposit(report);
         double newBalancePart = CashDepositCategoryCalculator.newBalanceToDeposit(report);
-        double rebuiltToDeposit = creditPart + tontineCaptured + newBalancePart;
+        double rebuiltToDeposit = creditPart + activityAmount + newBalancePart;
         report.setTotalAmountToDeposit(Math.max(0.0, rebuiltToDeposit));
 
         reportPersistence.save(report);
-        log.debug("Reconciled tontine daily report {} / {} : activity={} ({}), captured={}, toDeposit={}",
-                commercialUsername, date, activityAmount, activityCount, tontineCaptured, rebuiltToDeposit);
+        log.debug("Reconciled tontine daily report {} / {} : activity={} ({}), toDeposit={}",
+                commercialUsername, date, activityAmount, activityCount, rebuiltToDeposit);
     }
 
     @Transactional

@@ -316,7 +316,7 @@ public class DailyReportEventListener {
                                 event.getCollector(), event.getOperationDate(), event.getCaptureDate());
                 double amount = event.getAmount() != null ? event.getAmount() : 0.0;
 
-                // Compteurs d'activité sur la date métier (collectionDate).
+                // Compteurs d'activité + cash à verser sur la date métier (collectionDate / rattrapage).
                 DailyCommercialReport activityReport = getOrCreateReport(event.getCollector(), event.getOperationDate());
                 int currentCount = activityReport.getTontineCollectionsCount() != null
                                 ? activityReport.getTontineCollectionsCount()
@@ -327,23 +327,11 @@ public class DailyReportEventListener {
                 activityReport.setTontineCollectionsCount(currentCount + 1);
                 activityReport.setTontineCollectionsAmount(currentAmount + amount);
 
-                // Cash à verser sur le jour de saisie (peut différer en rattrapage).
-                if (event.getCaptureDate().equals(event.getOperationDate())) {
-                        double currentDeposit = activityReport.getTotalAmountToDeposit() != null
-                                        ? activityReport.getTotalAmountToDeposit()
-                                        : 0.0;
-                        activityReport.setTotalAmountToDeposit(currentDeposit + amount);
-                        reportPersistence.save(activityReport);
-                } else {
-                        reportPersistence.save(activityReport);
-                        DailyCommercialReport captureReport = getOrCreateReport(event.getCollector(),
-                                        event.getCaptureDate());
-                        double currentDeposit = captureReport.getTotalAmountToDeposit() != null
-                                        ? captureReport.getTotalAmountToDeposit()
-                                        : 0.0;
-                        captureReport.setTotalAmountToDeposit(currentDeposit + amount);
-                        reportPersistence.save(captureReport);
-                }
+                double currentDeposit = activityReport.getTotalAmountToDeposit() != null
+                                ? activityReport.getTotalAmountToDeposit()
+                                : 0.0;
+                activityReport.setTotalAmountToDeposit(currentDeposit + amount);
+                reportPersistence.save(activityReport);
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),

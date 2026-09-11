@@ -215,6 +215,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Client OTP Notification Hub (`optimize.notification.hub.*`) aligné sur le contrat `OTP_CLIENT_INTEGRATION.md`.
 
+## Backend — [1.12.8] — 2026-09-10
+
+### Fixed
+
+- Rapport journalier tontine : le cash d’un rattrapage alimente `totalAmountToDeposit` du **jour métier** (`collectionDate`), aligné sur « A Verser (Tontine) » — plus sur le jour de saisie.
+
 ## Backend — [1.12.7] — 2026-09-10
 
 ### Fixed

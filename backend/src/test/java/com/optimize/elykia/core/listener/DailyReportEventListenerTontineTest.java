@@ -57,16 +57,13 @@ class DailyReportEventListenerTontineTest {
     }
 
     @Test
-    void handleTontineCollection_catchup_putsActivityOnOperationDateAndCashOnCaptureDate() {
+    void handleTontineCollection_catchup_putsActivityAndCashOnOperationDate() {
         LocalDate operationDate = LocalDate.of(2026, 8, 1);
         LocalDate captureDate = LocalDate.of(2026, 9, 10);
-        DailyCommercialReport activity = report("COM003", operationDate, 0.0, 0, 0.0);
-        DailyCommercialReport capture = report("COM003", captureDate, 100.0, 1, 200.0);
+        DailyCommercialReport activity = report("COM003", operationDate, 0.0, 0, 1000.0);
 
         when(repository.findByDateAndCommercialUsername(operationDate, "COM003"))
                 .thenReturn(Optional.of(activity));
-        when(repository.findByDateAndCommercialUsername(captureDate, "COM003"))
-                .thenReturn(Optional.of(capture));
         when(reportPersistence.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         listener.handleTontineCollection(new TontineCollectionEvent(
@@ -74,12 +71,9 @@ class DailyReportEventListenerTontineTest {
 
         assertEquals(1, activity.getTontineCollectionsCount());
         assertEquals(3000.0, activity.getTontineCollectionsAmount());
-        assertEquals(0.0, activity.getTotalAmountToDeposit());
-        assertEquals(1, capture.getTontineCollectionsCount());
-        assertEquals(100.0, capture.getTontineCollectionsAmount());
-        assertEquals(3200.0, capture.getTotalAmountToDeposit());
+        assertEquals(4000.0, activity.getTotalAmountToDeposit());
         verify(reportPersistence).save(activity);
-        verify(reportPersistence).save(capture);
+        verify(repository, never()).findByDateAndCommercialUsername(eq(captureDate), any());
     }
 
     @Test
