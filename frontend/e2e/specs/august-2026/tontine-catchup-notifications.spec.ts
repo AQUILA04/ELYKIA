@@ -165,11 +165,14 @@ test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @re
     await expect(collectionsKpi).toBeVisible();
     // Montants cumulés possibles si plusieurs runs le même jour — on vérifie la présence d'un montant.
     await expect(collectionsKpi).toContainText(/F\s*CFA|FCFA/i);
+    await collectionsKpi.scrollIntoViewIfNeeded();
 
     const catchupKpi = panel.getByTestId('e2e-daily-report-tontine-catchup-kpi');
     await expect(catchupKpi).toBeVisible();
     await expect(catchupKpi).toContainText(/[1-9]/);
     await expect(catchupKpi).toContainText(/1[\s.,]?750|1750|3[\s.,]?500|3500/);
+    await catchupKpi.scrollIntoViewIfNeeded();
+    await page.waitForTimeout(800);
 
     const api = new ApiClient();
     await api.signInAsGestionnaire();
@@ -229,6 +232,7 @@ test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @re
     await expect(notifPanel.getByTestId('e2e-catchup-notif-item').first()).toBeVisible({
       timeout: 15_000,
     });
+    await page.waitForTimeout(800);
 
     const targetItem = notifPanel
       .getByTestId('e2e-catchup-notif-item')
@@ -237,6 +241,7 @@ test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @re
       .first();
     await expect(targetItem).toBeVisible({ timeout: 15_000 });
     await expect(targetItem).toHaveAttribute('data-operation-date', catchupDateIso);
+    await page.waitForTimeout(500);
 
     await targetItem.click();
     await expect(page).toHaveURL(/\/report\/daily/, { timeout: 20_000 });
