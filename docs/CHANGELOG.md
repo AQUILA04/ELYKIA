@@ -19,12 +19,6 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - E2E : candidat de mot de passe `Secret1234` pour `secret001` (init `application.yml`).
 
-## Backend — [1.13.2] — 2026-09-12
-
-### Fixed
-
-- `application.yml` : fusion des blocs `optimize:` dupliqués (client + notification hub) qui empêchaient le démarrage Spring Boot.
-
 ## Frontend — [2.18.2] — 2026-09-11
 
 ### Added
