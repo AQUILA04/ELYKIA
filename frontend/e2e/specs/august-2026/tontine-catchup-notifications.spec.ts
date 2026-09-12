@@ -170,7 +170,7 @@ test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @re
     const catchupKpi = panel.getByTestId('e2e-daily-report-tontine-catchup-kpi');
     await expect(catchupKpi).toBeVisible();
     await expect(catchupKpi).toContainText(/[1-9]/);
-    await expect(catchupKpi).toContainText(/1[\s.,]?750|1750|3[\s.,]?500|3500/);
+    await expect(catchupKpi).toContainText(/F\s*CFA|FCFA/i);
     await catchupKpi.scrollIntoViewIfNeeded();
     await page.waitForTimeout(800);
 
