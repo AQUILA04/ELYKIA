@@ -1,4 +1,4 @@
-<div class="catchup-modal">
+<div class="catchup-modal" data-testid="e2e-tontine-catchup-modal">
   <div class="modal-header">
     <div class="modal-header-text">
       <span class="modal-surtitle">TONTINE · RATTRAPAGE</span>
@@ -38,7 +38,8 @@
         <label class="field-label" for="catchup-date">Date de la collecte *</label>
         <mat-form-field appearance="outline" class="elykia-field">
           <input matInput id="catchup-date" [matDatepicker]="picker" formControlName="collectionDate"
-                 [min]="minDate" [max]="maxDate" placeholder="Choisir une date passée">
+                 [min]="minDate" [max]="maxDate" placeholder="Choisir une date passée"
+                 data-testid="e2e-tontine-catchup-date">
           <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
           <mat-datepicker #picker></mat-datepicker>
           <mat-error *ngIf="form.get('collectionDate')?.hasError('required')">
@@ -95,7 +96,8 @@
             formControlName="catchupDailyStake"
             placeholder="Saisir la mise journalière"
             [readonly]="catchupPreview?.monthLocked"
-            min="1">
+            min="1"
+            data-testid="e2e-tontine-catchup-daily-stake">
           <span class="amount-suffix">FCFA</span>
         </div>
         <div class="field-error" *ngIf="form.get('catchupDailyStake')?.invalid && form.get('catchupDailyStake')?.touched">
@@ -114,7 +116,8 @@
             formControlName="amount"
             placeholder="Saisir le montant"
             [min]="TONTINE_CONSTANTS.MIN_COLLECTION_AMOUNT"
-            [max]="TONTINE_CONSTANTS.MAX_COLLECTION_AMOUNT">
+            [max]="TONTINE_CONSTANTS.MAX_COLLECTION_AMOUNT"
+            data-testid="e2e-tontine-catchup-amount">
           <span class="amount-suffix">FCFA</span>
         </div>
         <div class="field-error" *ngIf="form.get('amount')?.invalid && form.get('amount')?.touched">
@@ -129,8 +132,10 @@
   </div>
 
   <div class="modal-footer">
-    <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="loading">Annuler</button>
-    <button type="button" class="btn-primary" (click)="onSubmit()" [disabled]="loading || form.invalid">
+    <button type="button" class="btn-outline" (click)="onCancel()" [disabled]="loading"
+      data-testid="e2e-tontine-catchup-cancel">Annuler</button>
+    <button type="button" class="btn-primary" (click)="onSubmit()" [disabled]="loading || form.invalid"
+      data-testid="e2e-tontine-catchup-submit">
       <span *ngIf="loading" class="btn-spinner"></span>
       <span>{{ loading ? 'Enregistrement…' : 'Enregistrer le rattrapage' }}</span>
     </button>

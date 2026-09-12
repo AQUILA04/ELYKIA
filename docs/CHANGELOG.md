@@ -9,6 +9,16 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.18.3] — 2026-09-12
+
+### Added
+
+- Test E2E `@august-2026` : collecte tontine du jour + rattrapage mois précédent, KPI rapport journalier, cloche notifications secrétaire → deep-link rapport ; testids header / modal rattrapage / bouton fiche membre.
+
+### Fixed
+
+- E2E : candidat de mot de passe `Secret1234` pour `secret001` (init `application.yml`).
+
 ## Frontend — [2.18.2] — 2026-09-11
 
 ### Added
@@ -206,6 +216,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
+
+## Backend — [1.13.2] — 2026-09-12
+
+### Fixed
+
+- `application.yml` : fusion des blocs `optimize:` dupliqués (client + notification hub) qui empêchaient le démarrage Spring Boot.
 
 ## Backend — [1.13.1] — 2026-09-12
 
