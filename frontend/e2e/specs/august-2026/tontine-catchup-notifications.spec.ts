@@ -142,10 +142,10 @@ test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @re
     await page
       .getByTestId('e2e-tontine-catchup-amount')
       .fill(String(E2E_TONTINE_CATCHUP_COLLECTION_AMOUNT));
-    // Le footer du modal peut être hors viewport (contenu + preview longs).
+    // Le footer peut être clipé hors viewport (modal trop haut) — click DOM direct.
     const submit = page.getByTestId('e2e-tontine-catchup-submit');
-    await submit.evaluate((el) => el.scrollIntoView({ block: 'center' }));
-    await submit.click({ force: true });
+    await expect(submit).toBeEnabled({ timeout: 10_000 });
+    await submit.evaluate((el: HTMLButtonElement) => el.click());
     await expect(page.getByTestId('e2e-tontine-catchup-modal')).toBeHidden({ timeout: 30_000 });
   });
 
