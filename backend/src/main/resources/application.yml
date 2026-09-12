@@ -416,8 +416,6 @@ optimize:
         account:
           accountNumber: "0011010001"
           accountBalance: 100000.00
-
-optimize:
   notification:
     hub:
       enabled: ${NOTIFICATION_HUB_ENABLED:false}

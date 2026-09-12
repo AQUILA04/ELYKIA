@@ -109,6 +109,8 @@ export interface DailyCommercialReport {
   tontineMembersCount?: number;
   tontineCollectionsCount?: number;
   tontineCollectionsAmount?: number;
+  tontineCatchupCount?: number;
+  tontineCatchupAmount?: number;
   tontineDeliveriesCount?: number;
   tontineDeliveriesAmount?: number;
   totalTontineStockRequestAmount?: number;
