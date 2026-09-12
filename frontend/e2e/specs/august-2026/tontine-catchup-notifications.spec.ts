@@ -27,9 +27,9 @@ import {
  * Collecte tontine du jour + rattrapage mois précédent :
  * KPI rapport journalier, puis cloche notifications secrétaire → deep-link rapport.
  */
-test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @regression', () => {
-  test.use({ video: 'on' });
+test.use({ video: 'on' });
 
+test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @regression', () => {
   let localityName: string;
   let clientLastName: string;
   let clientFirstName: string;
@@ -277,24 +277,82 @@ function backdateTontineMemberRegistration(memberId: number, registrationTimesta
 /** Sélectionne une date ISO (yyyy-MM-dd) dans un mat-datepicker lié à un input testid. */
 async function pickMatDate(page: Page, inputTestId: string, isoDate: string): Promise<void> {
   const [year, month, day] = isoDate.split('-').map(Number);
+  const target = new Date(year!, month! - 1, day!);
   const input = page.getByTestId(inputTestId);
-  await input.click();
 
-  const periodButton = page.locator('.mat-calendar-period-button');
-  await expect(periodButton).toBeVisible({ timeout: 10_000 });
-  await periodButton.click();
+  // Ouvre via le toggle (cliquer l'input seul n'ouvre pas toujours le popup Material).
+  const toggle = input.locator('xpath=ancestor::mat-form-field[1]//mat-datepicker-toggle button');
+  await toggle.click();
 
-  await page.locator('.mat-calendar-body-cell-content', { hasText: String(year) }).first().click();
+  const calendar = page.locator('.mat-datepicker-content .mat-calendar');
+  await expect(calendar).toBeVisible({ timeout: 10_000 });
 
-  const monthCells = page.locator('.mat-calendar-body-cell');
-  await expect(monthCells.first()).toBeVisible({ timeout: 5_000 });
-  await monthCells.nth(month! - 1).click();
+  // Navigue mois par mois jusqu'à la période cible (locale fr-FR).
+  for (let i = 0; i < 24; i++) {
+    const periodText = (await calendar.locator('.mat-calendar-period-button').innerText()).trim();
+    const periodDate = parseFrenchCalendarPeriod(periodText);
+    if (
+      periodDate &&
+      periodDate.getFullYear() === target.getFullYear() &&
+      periodDate.getMonth() === target.getMonth()
+    ) {
+      break;
+    }
+    if (!periodDate || periodDate > target) {
+      await calendar.locator('.mat-calendar-previous-button').click();
+    } else {
+      await calendar.locator('.mat-calendar-next-button').click();
+    }
+  }
 
-  await page
+  await calendar
     .locator('.mat-calendar-body-cell:not(.mat-calendar-body-disabled)')
     .filter({ hasText: new RegExp(`^\\s*${day}\\s*$`) })
     .first()
     .click();
 
+  await expect(calendar).toBeHidden({ timeout: 5_000 });
   await expect(input).not.toHaveValue('', { timeout: 5_000 });
+}
+
+/** Parse « août 2026 » / « August 2026 » from the Material calendar period button. */
+function parseFrenchCalendarPeriod(label: string): Date | null {
+  const normalized = label.toLowerCase().replace(/\s+/g, ' ').trim();
+  const months: Record<string, number> = {
+    janvier: 0,
+    february: 1,
+    février: 1,
+    fevrier: 1,
+    march: 2,
+    mars: 2,
+    april: 3,
+    avril: 3,
+    may: 4,
+    mai: 4,
+    june: 5,
+    juin: 5,
+    july: 6,
+    juillet: 6,
+    august: 7,
+    août: 7,
+    aout: 7,
+    september: 8,
+    septembre: 8,
+    october: 9,
+    octobre: 9,
+    november: 10,
+    novembre: 10,
+    december: 11,
+    décembre: 11,
+    decembre: 11,
+  };
+  const match = normalized.match(/^([a-zàâäéèêëïîôùûüÿç]+)\s+(\d{4})$/i);
+  if (!match) {
+    return null;
+  }
+  const monthIndex = months[match[1]!];
+  if (monthIndex === undefined) {
+    return null;
+  }
+  return new Date(Number(match[2]), monthIndex, 1);
 }
