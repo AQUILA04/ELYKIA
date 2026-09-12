@@ -280,11 +280,14 @@ async function pickMatDate(page: Page, inputTestId: string, isoDate: string): Pr
   const target = new Date(year!, month! - 1, day!);
   const input = page.getByTestId(inputTestId);
 
-  // Ouvre via le toggle (cliquer l'input seul n'ouvre pas toujours le popup Material).
-  const toggle = input.locator('xpath=ancestor::mat-form-field[1]//mat-datepicker-toggle button');
-  await toggle.click();
+  // Ouvre via le toggle du même mat-form-field (cliquer l'input seul n'ouvre pas toujours le popup).
+  await page
+    .locator('mat-form-field')
+    .filter({ has: page.getByTestId(inputTestId) })
+    .locator('mat-datepicker-toggle button')
+    .click();
 
-  const calendar = page.locator('.mat-datepicker-content .mat-calendar');
+  const calendar = page.locator('mat-calendar').last();
   await expect(calendar).toBeVisible({ timeout: 10_000 });
 
   // Navigue mois par mois jusqu'à la période cible (locale fr-FR).
@@ -307,7 +310,7 @@ async function pickMatDate(page: Page, inputTestId: string, isoDate: string): Pr
 
   await calendar
     .locator('.mat-calendar-body-cell:not(.mat-calendar-body-disabled)')
-    .filter({ hasText: new RegExp(`^\\s*${day}\\s*$`) })
+    .filter({ hasText: new RegExp(`^\s*${day}\s*$`) })
     .first()
     .click();
 
