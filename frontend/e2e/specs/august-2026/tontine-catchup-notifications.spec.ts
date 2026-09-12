@@ -310,7 +310,7 @@ async function pickMatDate(page: Page, inputTestId: string, isoDate: string): Pr
 
   await calendar
     .locator('.mat-calendar-body-cell:not(.mat-calendar-body-disabled)')
-    .filter({ hasText: new RegExp(`^\s*${day}\s*$`) })
+    .filter({ hasText: new RegExp(`^\\s*${day}\\s*$`) })
     .first()
     .click();
 
