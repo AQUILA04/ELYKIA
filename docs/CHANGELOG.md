@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.18.3] — 2026-09-12
+
+### Added
+
+- Test E2E `@august-2026` : collecte tontine du jour + rattrapage mois précédent, KPI rapport journalier, cloche notifications secrétaire → deep-link rapport ; testids header / modal rattrapage / bouton fiche membre.
+
 ## Frontend — [2.18.2] — 2026-09-11
 
 ### Added

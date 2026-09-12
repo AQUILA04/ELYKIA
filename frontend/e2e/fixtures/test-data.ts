@@ -112,6 +112,10 @@ export const E2E_CASH_SALE_QTY = 1;
 /** Montant collecte tontine E2E (min. 100 FCFA) — suffisant pour une livraison article. */
 export const E2E_TONTINE_COLLECTION_AMOUNT = 50_000;
 
+/** Montants dédiés au scénario collecte jour + rattrapage mois précédent. */
+export const E2E_TONTINE_NORMAL_COLLECTION_AMOUNT = 2_500;
+export const E2E_TONTINE_CATCHUP_COLLECTION_AMOUNT = 1_750;
+
 /** Montant souhaité membre tontine E2E (obligatoire côté historique montants). */
 export const E2E_TONTINE_MEMBER_AMOUNT = 5_000;
 
