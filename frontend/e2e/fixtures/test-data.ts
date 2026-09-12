@@ -39,6 +39,7 @@ export const USER_ACCOUNTS = {
     username: process.env['E2E_SEC_USERNAME'] ?? 'secret001',
     passwordCandidates: uniqueStrings([
       process.env['E2E_SEC_PASSWORD'],
+      'Secret1234',
       'Abcd1234',
     ]),
     label: 'SECRETARY',
