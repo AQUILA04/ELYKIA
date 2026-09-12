@@ -7,6 +7,7 @@ import com.optimize.elykia.core.event.TontineCollectionEvent;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;
 import com.optimize.elykia.core.service.report.DailyOperationService;
+import com.optimize.elykia.core.service.tontine.TontineCatchupNotificationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -33,6 +34,8 @@ class DailyReportEventListenerTontineTest {
     private DailyCommercialReportPersistence reportPersistence;
     @Mock
     private DailyOperationService dailyOperationService;
+    @Mock
+    private TontineCatchupNotificationService tontineCatchupNotificationService;
 
     @InjectMocks
     private DailyReportEventListener listener;
@@ -51,29 +54,37 @@ class DailyReportEventListenerTontineTest {
         assertEquals(3500.0, report.getTontineCollectionsAmount());
         assertEquals(7500.0, report.getTotalAmountToDeposit());
         verify(reportPersistence).save(report);
+        verify(tontineCatchupNotificationService, never()).createFromCatchupEvent(any());
         verify(dailyOperationService).logOperation(
                 eq("COM003"), eq(OperationType.TONTINE_COLLECTION), eq(2500.0),
                 eq("Collecte Tontine"), any(), eq(0.0), eq(0.0), eq(today));
     }
 
     @Test
-    void handleTontineCollection_catchup_putsActivityAndCashOnOperationDate() {
+    void handleTontineCollection_catchup_putsActivityOnOperationDateAndKpiOnCaptureDate() {
         LocalDate operationDate = LocalDate.of(2026, 8, 1);
         LocalDate captureDate = LocalDate.of(2026, 9, 10);
         DailyCommercialReport activity = report("COM003", operationDate, 0.0, 0, 1000.0);
+        DailyCommercialReport capture = report("COM003", captureDate, 0.0, 0, 0.0);
 
         when(repository.findByDateAndCommercialUsername(operationDate, "COM003"))
                 .thenReturn(Optional.of(activity));
+        when(repository.findByDateAndCommercialUsername(captureDate, "COM003"))
+                .thenReturn(Optional.of(capture));
         when(reportPersistence.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        listener.handleTontineCollection(new TontineCollectionEvent(
-                this, 3000.0, "COM003", "Client B", operationDate, captureDate));
+        TontineCollectionEvent event = new TontineCollectionEvent(
+                this, 3000.0, "COM003", "Client B", operationDate, captureDate, 42L, "COL-42");
+        listener.handleTontineCollection(event);
 
         assertEquals(1, activity.getTontineCollectionsCount());
         assertEquals(3000.0, activity.getTontineCollectionsAmount());
         assertEquals(4000.0, activity.getTotalAmountToDeposit());
+        assertEquals(1, capture.getTontineCatchupCount());
+        assertEquals(3000.0, capture.getTontineCatchupAmount());
         verify(reportPersistence).save(activity);
-        verify(repository, never()).findByDateAndCommercialUsername(eq(captureDate), any());
+        verify(reportPersistence).save(capture);
+        verify(tontineCatchupNotificationService).createFromCatchupEvent(event);
     }
 
     @Test
@@ -94,13 +105,14 @@ class DailyReportEventListenerTontineTest {
     }
 
     @Test
-    void handleTontineCollectionCancelled_onlyLogsOperationOnOperationDate() {
+    void handleTontineCollectionCancelled_cancelsNotificationAndLogsOnOperationDate() {
         LocalDate operationDate = LocalDate.of(2026, 8, 1);
         LocalDate captureDate = LocalDate.of(2026, 9, 10);
 
         listener.handleTontineCollectionCancelled(new TontineCollectionCancelledEvent(
-                this, 3000.0, "COM003", "Client B", "COL-1", operationDate, captureDate));
+                this, 3000.0, "COM003", "Client B", "COL-1", 99L, operationDate, captureDate));
 
+        verify(tontineCatchupNotificationService).cancelByCollectionId(99L);
         verify(dailyOperationService).logOperation(
                 eq("COM003"), eq(OperationType.TONTINE_COLLECTION_CANCEL), eq(-3000.0),
                 eq("Annulation Collecte Tontine"), any(), eq(0.0), eq(0.0), eq(operationDate));

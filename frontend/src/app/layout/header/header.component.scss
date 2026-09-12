@@ -52,4 +52,16 @@
       display: none;
     }
   }
-  
+
+  .catchup-notif-panel {
+    .catchup-notif-item {
+      white-space: normal;
+      border-left: 3px solid transparent;
+
+      &.unread {
+        background: #f5f8fc;
+        border-left-color: #003366;
+      }
+    }
+  }
+ 

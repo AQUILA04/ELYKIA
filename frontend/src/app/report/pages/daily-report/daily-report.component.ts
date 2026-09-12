@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { DailyReportService } from '../../service/daily-report.service';
 import { DailyCommercialReport, creditToDeposit, tontineToDeposit, newBalanceToDeposit, remainingCredit, remainingTontine, remainingNewBalance, totalRemainingToDeposit } from '../../models/daily-commercial-report.model';
 import { CommercialYearlySummary } from '../../models/commercial-yearly-summary.model';
@@ -103,7 +104,9 @@ export class DailyReportComponent implements OnInit {
         private cashDepositService: CashDepositService,
         private userService: UserService,
         private alertService: AlertService,
-        private authService: AuthService
+        private authService: AuthService,
+        private route: ActivatedRoute,
+        private router: Router
     ) { }
 
     ngOnInit(): void {
@@ -127,9 +130,40 @@ export class DailyReportComponent implements OnInit {
             this.loadAgents();
         }
 
-        // Initial Load (Today)
-        this.setFilter('today');
+        const qp = this.route.snapshot.queryParamMap;
+        const collector = qp.get('collector');
+        const startDate = qp.get('startDate');
+        const endDate = qp.get('endDate');
+        if (collector || startDate || endDate) {
+            this.applyDeepLink(collector, startDate, endDate);
+        } else {
+            this.setFilter('today');
+        }
         this.loadYearlySummary();
+    }
+
+    private applyDeepLink(collector: string | null, startDate: string | null, endDate: string | null): void {
+        this.selectedFilter = 'custom';
+        if (collector) {
+            this.selectedAgent = collector;
+        }
+        const start = startDate ? this.parseIsoDate(startDate) : new Date();
+        const end = endDate ? this.parseIsoDate(endDate) : start;
+        this.range.patchValue({ start, end });
+        this.loadReports();
+        void this.router.navigate([], {
+            relativeTo: this.route,
+            queryParams: {},
+            replaceUrl: true
+        });
+    }
+
+    private parseIsoDate(value: string): Date {
+        const [y, m, d] = value.split('-').map(Number);
+        if (!y || !m || !d) {
+            return new Date();
+        }
+        return new Date(y, m - 1, d);
     }
 
     loadAgents(): void {
@@ -349,6 +383,8 @@ export class DailyReportComponent implements OnInit {
             tontineMembersCount: this.reports.reduce((sum, r) => sum + (r.tontineMembersCount || 0), 0),
             tontineCollectionsCount: this.reports.reduce((sum, r) => sum + (r.tontineCollectionsCount || 0), 0),
             tontineCollectionsAmount: this.reports.reduce((sum, r) => sum + (r.tontineCollectionsAmount || 0), 0),
+            tontineCatchupCount: this.reports.reduce((sum, r) => sum + (r.tontineCatchupCount || 0), 0),
+            tontineCatchupAmount: this.reports.reduce((sum, r) => sum + (r.tontineCatchupAmount || 0), 0),
             tontineDeliveriesCount: this.reports.reduce((sum, r) => sum + (r.tontineDeliveriesCount || 0), 0),
             tontineDeliveriesAmount: this.reports.reduce((sum, r) => sum + (r.tontineDeliveriesAmount || 0), 0),
             totalAmountToDeposit: this.reports.reduce((sum, r) => sum + (r.totalAmountToDeposit || 0), 0),

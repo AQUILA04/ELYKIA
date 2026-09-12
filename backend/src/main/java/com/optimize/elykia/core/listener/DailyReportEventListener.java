@@ -7,6 +7,7 @@ import com.optimize.elykia.client.event.*;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;
 import com.optimize.elykia.core.service.report.DailyOperationService;
+import com.optimize.elykia.core.service.tontine.TontineCatchupNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -24,6 +25,7 @@ public class DailyReportEventListener {
         private final DailyCommercialReportRepository repository;
         private final DailyCommercialReportPersistence reportPersistence;
         private final DailyOperationService dailyOperationService;
+        private final TontineCatchupNotificationService tontineCatchupNotificationService;
 
         @EventListener
         @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -333,6 +335,21 @@ public class DailyReportEventListener {
                 activityReport.setTotalAmountToDeposit(currentDeposit + amount);
                 reportPersistence.save(activityReport);
 
+                if (event.isCatchup()) {
+                        DailyCommercialReport captureReport = getOrCreateReport(event.getCollector(),
+                                        event.getCaptureDate());
+                        int catchupCount = captureReport.getTontineCatchupCount() != null
+                                        ? captureReport.getTontineCatchupCount()
+                                        : 0;
+                        double catchupAmount = captureReport.getTontineCatchupAmount() != null
+                                        ? captureReport.getTontineCatchupAmount()
+                                        : 0.0;
+                        captureReport.setTontineCatchupCount(catchupCount + 1);
+                        captureReport.setTontineCatchupAmount(catchupAmount + amount);
+                        reportPersistence.save(captureReport);
+                        tontineCatchupNotificationService.createFromCatchupEvent(event);
+                }
+
                 dailyOperationService.logOperation(
                                 event.getCollector(),
                                 com.optimize.elykia.core.enumaration.OperationType.TONTINE_COLLECTION,
@@ -354,6 +371,8 @@ public class DailyReportEventListener {
                 log.info("Processing TontineCollectionCancelledEvent for collector: {} operationDate={} captureDate={}",
                                 event.getCollector(), event.getOperationDate(), event.getCaptureDate());
                 double amountToCancel = event.getAmount() != null ? event.getAmount() : 0.0;
+
+                tontineCatchupNotificationService.cancelByCollectionId(event.getCollectionId());
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),

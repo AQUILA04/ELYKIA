@@ -194,6 +194,10 @@
                 <span class="kpi-value" th:text="${report.tontineCollectionCount} + ' (' + ${#numbers.formatDecimal(report.tontineCollectionAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
             </div>
             <div class="kpi-item">
+                <span class="kpi-label">Rattrapages Tontine</span>
+                <span class="kpi-value" th:text="${report.tontineCatchupCount} + ' (' + ${#numbers.formatDecimal(report.tontineCatchupAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
+            </div>
+            <div class="kpi-item">
                 <span class="kpi-label">Livraisons Tontine</span>
                 <span class="kpi-value" th:text="${report.tontineDeliveryCount} + ' (' + ${#numbers.formatDecimal(report.tontineDeliveryAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
             </div>

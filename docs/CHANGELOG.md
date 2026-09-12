@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.18.2] — 2026-09-11
+
+### Added
+
+- Rapport journalier : KPI rattrapages tontine (nombre + montant) et deep-link `collector` / `startDate` / `endDate`.
+- Header secrétaire/gestionnaire : badge notifications rattrapage, panel groupé par date métier, navigation vers le rapport journalier.
+
 ## Frontend — [2.18.1] — 2026-08-19
 
 ### Fixed
@@ -199,6 +206,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Terrain chef de recouvrement : vérification unitaire et en masse des carnets tontine, badge Vérifié, file d’attente hors-ligne et sync depuis Plus.
+
+## Backend — [1.13.1] — 2026-09-12
+
+### Added
+
+- KPI rattrapage sur le rapport journalier du jour de saisie (`tontine_catchup_count` / `tontine_catchup_amount`) + PDF.
+- Notifications rattrapage tontine pour secrétaire/gestionnaire (`/api/v1/tontine-catchup-notifications`).
 
 ## Backend — [1.13.0] — 2026-09-10
 

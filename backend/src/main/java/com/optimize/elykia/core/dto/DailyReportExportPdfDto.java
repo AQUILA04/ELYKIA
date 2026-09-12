@@ -29,6 +29,8 @@ public class DailyReportExportPdfDto {
     private double totalAdvancesAmount;
     private double totalReliquatGeneratedAmount;
     private double totalReliquatUsedAmount;
+    private int tontineCatchupCount;
+    private double tontineCatchupAmount;
     private double totalToPay;
 
     private List<ItemRow> distributions;

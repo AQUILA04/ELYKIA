@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { BreadcrumbComponent } from './bread/breadcrumb/breadcrumb.component';
@@ -135,6 +136,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
+    MatBadgeModule,
     MatTooltipModule,
     MatPaginatorModule,
     HttpClientModule,

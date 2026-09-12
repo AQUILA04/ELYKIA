@@ -20,6 +20,46 @@
           <span class="nav-link">{{ username }}</span>
         </li>
 
+        <li class="nav-item dropdown" *ngIf="showCatchupNotifications">
+          <a class="nav-link nav-icon-hover position-relative" href="javascript:void(0)"
+            id="catchupNotifDrop" data-bs-toggle="dropdown" aria-expanded="false"
+            title="Rattrapages tontine" (click)="onNotificationsOpen()">
+            <mat-icon [matBadge]="unreadCount > 0 ? unreadCount : null"
+              matBadgeColor="warn" matBadgeSize="small"
+              [matBadgeHidden]="unreadCount === 0">notifications</mat-icon>
+          </a>
+          <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up catchup-notif-panel"
+            aria-labelledby="catchupNotifDrop" style="min-width: 320px; max-height: 420px; overflow-y: auto;">
+            <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+              <strong class="fs-3 mb-0">Rattrapages</strong>
+              <button type="button" class="btn btn-link btn-sm p-0" (click)="markAllRead(); $event.stopPropagation()"
+                [disabled]="unreadCount === 0">Tout lire</button>
+            </div>
+            <div class="px-3 py-3 text-muted" *ngIf="notificationsLoading">Chargement…</div>
+            <div class="px-3 py-3 text-muted" *ngIf="!notificationsLoading && notificationGroups.length === 0">
+              Aucune notification
+            </div>
+            <ng-container *ngFor="let group of notificationGroups">
+              <div class="px-3 pt-2 pb-1 text-uppercase text-muted small fw-semibold">
+                {{ group.operationDate | date:'dd/MM/yyyy' }}
+              </div>
+              <a href="javascript:void(0)" class="dropdown-item catchup-notif-item"
+                *ngFor="let item of group.items"
+                [class.unread]="!item.read"
+                (click)="openNotification(item); $event.preventDefault()">
+                <div class="d-flex justify-content-between gap-2">
+                  <span class="fw-semibold">{{ item.commercialUsername }}</span>
+                  <span>{{ item.amount | currency:'XOF':'symbol':'1.0-0' }}</span>
+                </div>
+                <div class="small text-muted text-truncate">
+                  {{ item.clientName || 'Client' }}
+                  · saisi le {{ item.captureDate | date:'dd/MM/yyyy' }}
+                </div>
+              </a>
+            </ng-container>
+          </div>
+        </li>
+
         <li class="nav-item dropdown">
           <a class="nav-link nav-icon-hover" href="javascript:void(0)" id="drop2" data-bs-toggle="dropdown"
             aria-expanded="false">

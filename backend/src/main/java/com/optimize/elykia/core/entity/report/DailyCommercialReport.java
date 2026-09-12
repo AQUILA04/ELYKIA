@@ -121,6 +121,13 @@ public class DailyCommercialReport extends BaseEntity<String> {
     @Column(columnDefinition = "double precision default 0")
     private Double totalReliquatUsedAmount = 0.0;
 
+    /** Rattrapages saisis ce jour (captureDate), indépendant de la date métier. */
+    @Column(columnDefinition = "integer default 0")
+    private Integer tontineCatchupCount = 0;
+
+    @Column(columnDefinition = "double precision default 0")
+    private Double tontineCatchupAmount = 0.0;
+
     public DailyCommercialReport(
             String commercialUsername,
             Double totalStockRequestAmount,
@@ -147,7 +154,9 @@ public class DailyCommercialReport extends BaseEntity<String> {
             Double totalAdvancesAmount,
             Double recoveryManagerCollectionsAmount,
             Double totalReliquatGeneratedAmount,
-            Double totalReliquatUsedAmount
+            Double totalReliquatUsedAmount,
+            Long tontineCatchupCount,
+            Double tontineCatchupAmount
     ) {
         this.commercialUsername = commercialUsername;
         this.totalStockRequestAmount = totalStockRequestAmount != null ? totalStockRequestAmount : 0.0;
@@ -175,6 +184,8 @@ public class DailyCommercialReport extends BaseEntity<String> {
         this.recoveryManagerCollectionsAmount = recoveryManagerCollectionsAmount != null ? recoveryManagerCollectionsAmount : 0.0;
         this.totalReliquatGeneratedAmount = totalReliquatGeneratedAmount != null ? totalReliquatGeneratedAmount : 0.0;
         this.totalReliquatUsedAmount = totalReliquatUsedAmount != null ? totalReliquatUsedAmount : 0.0;
+        this.tontineCatchupCount = tontineCatchupCount != null ? tontineCatchupCount.intValue() : 0;
+        this.tontineCatchupAmount = tontineCatchupAmount != null ? tontineCatchupAmount : 0.0;
     }
 
     public void addAmountToDeposit(Double amount) {

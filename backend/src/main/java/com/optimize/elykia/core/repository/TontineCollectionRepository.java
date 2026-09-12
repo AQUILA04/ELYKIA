@@ -250,6 +250,25 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             @Param("dayStart") java.time.LocalDateTime dayStart,
             @Param("dayEnd") java.time.LocalDateTime dayEnd);
 
+    /**
+     * Rattrapages saisis le jour ({@code createdDate}) dont la date métier
+     * ({@code collectionDate}) n'est pas ce jour.
+     */
+    @Query("""
+            SELECT COALESCE(SUM(tc.amount), 0), COUNT(tc.id)
+            FROM TontineCollection tc
+            WHERE UPPER(tc.commercialUsername) = UPPER(:commercial)
+              AND tc.state = :state
+              AND tc.createdDate >= :dayStart
+              AND tc.createdDate < :dayEnd
+              AND (tc.collectionDate < :dayStart OR tc.collectionDate >= :dayEnd)
+            """)
+    java.util.List<Object[]> sumCatchupByCommercialAndCreatedDate(
+            @Param("commercial") String commercial,
+            @Param("state") State state,
+            @Param("dayStart") java.time.LocalDateTime dayStart,
+            @Param("dayEnd") java.time.LocalDateTime dayEnd);
+
     @Query("""
             SELECT new com.optimize.elykia.core.dto.TontineMemberContributionByCommercialDto(
                 tc.commercialUsername,

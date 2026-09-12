@@ -81,6 +81,8 @@ public class DailyReportPdfService {
                 .totalAdvancesAmount(kpi.getTotalAdvancesAmount() != null ? kpi.getTotalAdvancesAmount() : 0.0)
                 .totalReliquatGeneratedAmount(kpi.getTotalReliquatGeneratedAmount() != null ? kpi.getTotalReliquatGeneratedAmount() : 0.0)
                 .totalReliquatUsedAmount(kpi.getTotalReliquatUsedAmount() != null ? kpi.getTotalReliquatUsedAmount() : 0.0)
+                .tontineCatchupCount(kpi.getTontineCatchupCount() != null ? kpi.getTontineCatchupCount() : 0)
+                .tontineCatchupAmount(kpi.getTontineCatchupAmount() != null ? kpi.getTontineCatchupAmount() : 0.0)
                 .totalToPay(kpi.getTotalAmountToDeposit() != null ? kpi.getTotalAmountToDeposit() : 0.0);
 
         List<DailyOperationLog> creditSales = grouped.getOrDefault(OperationType.CREDIT_SALES, Collections.emptyList());

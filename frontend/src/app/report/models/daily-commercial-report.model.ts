@@ -16,6 +16,8 @@ export interface DailyCommercialReport {
     tontineCollectionsAmount: number;
     tontineDeliveriesCount: number;
     tontineDeliveriesAmount: number;
+    tontineCatchupCount?: number;
+    tontineCatchupAmount?: number;
     totalAmountToDeposit: number;
     totalAmountDeposited: number;
     totalCreditAmountDeposited?: number;

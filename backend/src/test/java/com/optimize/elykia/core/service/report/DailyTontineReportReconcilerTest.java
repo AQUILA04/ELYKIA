@@ -48,10 +48,15 @@ class DailyTontineReportReconcilerTest {
         report.setCollectionsAmount(2000.0);
         report.setNewAccountsBalance(500.0);
         report.setTotalAmountToDeposit(50_000.0);
+        report.setTontineCatchupAmount(888.0);
+        report.setTontineCatchupCount(8);
 
         when(tontineCollectionRepository.sumByCommercialAndCollectionDate(
                 eq("COM003"), eq(State.ENABLED), eq(start), eq(end)))
                 .thenReturn(List.<Object[]>of(new Object[]{4500.0, 3L}));
+        when(tontineCollectionRepository.sumCatchupByCommercialAndCreatedDate(
+                eq("COM003"), eq(State.ENABLED), eq(start), eq(end)))
+                .thenReturn(List.<Object[]>of(new Object[]{0.0, 0L}));
         when(dailyReportRepository.findByDateAndCommercialUsername(day, "COM003"))
                 .thenReturn(Optional.of(report));
         when(reportPersistence.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -60,8 +65,43 @@ class DailyTontineReportReconcilerTest {
 
         assertEquals(4500.0, report.getTontineCollectionsAmount());
         assertEquals(3, report.getTontineCollectionsCount());
+        assertEquals(0.0, report.getTontineCatchupAmount());
+        assertEquals(0, report.getTontineCatchupCount());
         // creditToDeposit=1000+2000 + newBalance=500 + activity=4500
         assertEquals(8_000.0, report.getTotalAmountToDeposit());
+        verify(reportPersistence).save(report);
+    }
+
+    @Test
+    void reconcile_rebuildsCatchupCountersFromCreatedDate() {
+        LocalDate captureDay = LocalDate.of(2026, 9, 10);
+        LocalDateTime start = captureDay.atStartOfDay();
+        LocalDateTime end = captureDay.plusDays(1).atStartOfDay();
+        DailyCommercialReport report = new DailyCommercialReport();
+        report.setCommercialUsername("COM003");
+        report.setDate(captureDay);
+        report.setTontineCollectionsAmount(0.0);
+        report.setTontineCollectionsCount(0);
+        report.setTotalAdvancesAmount(0.0);
+        report.setCollectionsAmount(0.0);
+        report.setNewAccountsBalance(0.0);
+        report.setTotalAmountToDeposit(0.0);
+
+        when(tontineCollectionRepository.sumByCommercialAndCollectionDate(
+                eq("COM003"), eq(State.ENABLED), eq(start), eq(end)))
+                .thenReturn(List.<Object[]>of(new Object[]{0.0, 0L}));
+        when(tontineCollectionRepository.sumCatchupByCommercialAndCreatedDate(
+                eq("COM003"), eq(State.ENABLED), eq(start), eq(end)))
+                .thenReturn(List.<Object[]>of(new Object[]{4200.0, 2L}));
+        when(dailyReportRepository.findByDateAndCommercialUsername(captureDay, "COM003"))
+                .thenReturn(Optional.of(report));
+        when(reportPersistence.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        reconciler.reconcile("COM003", captureDay);
+
+        assertEquals(4200.0, report.getTontineCatchupAmount());
+        assertEquals(2, report.getTontineCatchupCount());
+        assertEquals(0.0, report.getTotalAmountToDeposit());
         verify(reportPersistence).save(report);
     }
 
@@ -70,6 +110,8 @@ class DailyTontineReportReconcilerTest {
         LocalDate d1 = LocalDate.of(2026, 8, 1);
         LocalDate d2 = LocalDate.of(2026, 9, 10);
         when(tontineCollectionRepository.sumByCommercialAndCollectionDate(any(), any(), any(), any()))
+                .thenReturn(List.<Object[]>of(new Object[]{0.0, 0L}));
+        when(tontineCollectionRepository.sumCatchupByCommercialAndCreatedDate(any(), any(), any(), any()))
                 .thenReturn(List.<Object[]>of(new Object[]{0.0, 0L}));
         when(dailyReportRepository.findByDateAndCommercialUsername(any(), eq("COM003")))
                 .thenReturn(Optional.empty());

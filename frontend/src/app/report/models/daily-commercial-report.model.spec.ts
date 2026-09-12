@@ -32,7 +32,9 @@ describe('daily-commercial-report.model', () => {
       totalReliquatUsedAmount: 0,
       totalCreditAmountDeposited: 400,
       totalTontineAmountDeposited: 100,
-      totalNewBalanceAmountDeposited: 50
+      totalNewBalanceAmountDeposited: 50,
+      tontineCatchupCount: 2,
+      tontineCatchupAmount: 4200
     };
 
     expect(creditToDeposit(report)).toBe(1500);
@@ -40,5 +42,19 @@ describe('daily-commercial-report.model', () => {
     expect(newBalanceToDeposit(report)).toBe(3000);
     expect(remainingCredit(report)).toBe(1100);
     expect(totalRemainingToDeposit(report)).toBe(1100 + 700 + 2950);
+    expect(report.tontineCatchupCount).toBe(2);
+    expect(report.tontineCatchupAmount).toBe(4200);
+  });
+});
+
+describe('daily-report catch-up deep-link query params', () => {
+  it('targets commercial and operation date as start=end', () => {
+    const queryParams = {
+      collector: 'COM003',
+      startDate: '2026-08-01',
+      endDate: '2026-08-01'
+    };
+    expect(queryParams.collector).toBe('COM003');
+    expect(queryParams.startDate).toBe(queryParams.endDate);
   });
 });

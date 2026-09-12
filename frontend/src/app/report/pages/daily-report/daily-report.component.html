@@ -333,6 +333,12 @@
                                             currency:'XOF':'symbol':'1.0-0' }})</span>
                                     </div>
                                     <div class="kpi-card">
+                                        <span class="kpi-label">Tontine Rattrapages</span>
+                                        <span class="kpi-value">{{ aggregatedReportData.tontineCatchupCount || 0 }} ({{
+                                            (aggregatedReportData.tontineCatchupAmount || 0) |
+                                            currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card">
                                         <span class="kpi-label">Tontine Livraisons</span>
                                         <span class="kpi-value">{{ aggregatedReportData.tontineDeliveriesCount }} ({{
                                             aggregatedReportData.tontineDeliveriesAmount |
@@ -446,6 +452,11 @@
                                         <span class="kpi-label">Tontine Collectes</span>
                                         <span class="kpi-value">{{ report.tontineCollectionsCount }} ({{
                                             report.tontineCollectionsAmount | currency:'XOF':'symbol':'1.0-0' }})</span>
+                                    </div>
+                                    <div class="kpi-card" data-testid="e2e-daily-report-tontine-catchup-kpi">
+                                        <span class="kpi-label">Tontine Rattrapages</span>
+                                        <span class="kpi-value">{{ report.tontineCatchupCount || 0 }} ({{
+                                            (report.tontineCatchupAmount || 0) | currency:'XOF':'symbol':'1.0-0' }})</span>
                                     </div>
                                     <div class="kpi-card" data-testid="e2e-daily-report-tontine-deliveries-kpi">
                                         <span class="kpi-label">Tontine Livraisons</span>

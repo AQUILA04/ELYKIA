@@ -21,7 +21,8 @@ import java.util.Objects;
  * Rebuild des compteurs tontine du rapport journalier depuis {@code tontine_collection}.
  * <ul>
  *   <li>activité ({@code tontine_collections_*}) → commercial + {@code collectionDate}</li>
- *   <li>part tontine de {@code total_amount_to_deposit} → même base ({@code collectionDate} / jour métier rattrapage)</li>
+ *   <li>part tontine de {@code total_amount_to_deposit} → même base ({@code collectionDate})</li>
+ *   <li>KPI rattrapage ({@code tontine_catchup_*}) → commercial + {@code createdDate} avec collectionDate ≠ jour</li>
  * </ul>
  */
 @Service
@@ -54,10 +55,24 @@ public class DailyTontineReportReconciler {
             activityCount = 0;
         }
 
+        final double catchupAmount;
+        final int catchupCount;
+        List<Object[]> catchupRows = tontineCollectionRepository.sumCatchupByCommercialAndCreatedDate(
+                commercialUsername, State.ENABLED, dayStart, dayEnd);
+        if (catchupRows != null && !catchupRows.isEmpty() && catchupRows.get(0) != null) {
+            Object[] row = catchupRows.get(0);
+            catchupAmount = number(row, 0).doubleValue();
+            catchupCount = number(row, 1).intValue();
+        } else {
+            catchupAmount = 0.0;
+            catchupCount = 0;
+        }
+
         DailyCommercialReport report = dailyReportRepository
                 .findByDateAndCommercialUsername(date, commercialUsername)
                 .orElseGet(() -> {
-                    if (activityAmount == 0.0 && activityCount == 0) {
+                    if (activityAmount == 0.0 && activityCount == 0
+                            && catchupAmount == 0.0 && catchupCount == 0) {
                         return null;
                     }
                     DailyCommercialReport created = new DailyCommercialReport();
@@ -71,6 +86,8 @@ public class DailyTontineReportReconciler {
 
         report.setTontineCollectionsAmount(activityAmount);
         report.setTontineCollectionsCount(activityCount);
+        report.setTontineCatchupAmount(catchupAmount);
+        report.setTontineCatchupCount(catchupCount);
 
         double creditPart = CashDepositCategoryCalculator.creditToDeposit(report);
         double newBalancePart = CashDepositCategoryCalculator.newBalanceToDeposit(report);
@@ -78,8 +95,9 @@ public class DailyTontineReportReconciler {
         report.setTotalAmountToDeposit(Math.max(0.0, rebuiltToDeposit));
 
         reportPersistence.save(report);
-        log.debug("Reconciled tontine daily report {} / {} : activity={} ({}), toDeposit={}",
-                commercialUsername, date, activityAmount, activityCount, rebuiltToDeposit);
+        log.debug("Reconciled tontine daily report {} / {} : activity={} ({}), catchup={} ({}), toDeposit={}",
+                commercialUsername, date, activityAmount, activityCount, catchupAmount, catchupCount,
+                rebuiltToDeposit);
     }
 
     @Transactional

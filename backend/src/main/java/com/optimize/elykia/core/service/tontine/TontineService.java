@@ -460,7 +460,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
                     savedCollection.getCommercialUsername(),
                     member.getClient().getFullName(),
                     operationDate,
-                    captureDate));
+                    captureDate,
+                    savedCollection.getId(),
+                    savedCollection.getReference()));
         }
 
         return TontineCollectionRespDto.fromTontineCollection(savedCollection);
@@ -615,6 +617,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
                     reportCommercial,
                     clientName,
                     collection.getReference(),
+                    collection.getId(),
                     operationDate,
                     captureDate));
         }
