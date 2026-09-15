@@ -91,11 +91,10 @@ runs:
         cd mobile
         npm cache clean --force
         npm install --legacy-peer-deps
-        npx playwright install --with-deps chromium || true
         # Prefer lockfile-local CLIs. Unpinned `npm install -g @ionic/cli` pulls
         # @ionic/utils-fs → @types/fs-extra → @types/node@* (latest), which can 404
         # when npm publishes a broken/incomplete @types/node version.
-        npm run test:e2e || true
+        # E2E live (Playwright) runs in ci-mobile, not during APK packaging.
         npm run build -- --configuration=production
         ./node_modules/.bin/cap add android || true
 

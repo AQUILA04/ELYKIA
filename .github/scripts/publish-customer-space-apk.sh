@@ -39,13 +39,34 @@ VERSION_CODE=$((MAJOR * 10000 + MINOR * 100 + PATCH))
 APK_BASENAME="elykia-customer-${TARGET}-v${VERSION}.apk"
 APK_OBJECT_KEY="${TARGET}/releases/${VERSION}/${APK_BASENAME}"
 MANIFEST_OBJECT_KEY="${TARGET}/manifest.json"
+MC_ALIAS="elykia-customer-release"
 
 SHA256=$(sha256sum "$APK_PATH" | awk '{print $1}')
 SIZE_BYTES=$(stat -c%s "$APK_PATH" 2>/dev/null || stat -f%z "$APK_PATH")
 PUBLISHED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
+mask_key() {
+  local key="$1"
+  local len=${#key}
+  if [[ "$len" -le 8 ]]; then
+    echo "(len=${len})"
+  else
+    echo "${key:0:4}…${key: -4} (len=${len})"
+  fi
+}
+
 echo "Publishing $APK_BASENAME to MinIO bucket=$MINIO_BUCKET key=$APK_OBJECT_KEY"
 echo "versionCode=$VERSION_CODE sha256=$SHA256 size=$SIZE_BYTES"
+echo "MinIO publish diagnostics:"
+echo "  endpoint=${MINIO_ENDPOINT}"
+echo "  target=${TARGET}"
+echo "  bucket=${MINIO_BUCKET}"
+echo "  alias=${MC_ALIAS}"
+echo "  access_key=$(mask_key "$MINIO_ACCESS_KEY")"
+echo "  secret_key=*** (len=${#MINIO_SECRET_KEY})"
+echo "  object_key=${APK_OBJECT_KEY}"
+echo "  manifest_key=${MANIFEST_OBJECT_KEY}"
+echo "  apk_path=${APK_PATH}"
 
 MC_BIN="${MC_BIN:-mc}"
 if ! command -v "$MC_BIN" &>/dev/null; then
@@ -60,31 +81,57 @@ if ! command -v "$MC_BIN" &>/dev/null; then
   fi
 fi
 
-"$MC_BIN" alias set elykia-customer-release "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" --api S3v4
+"$MC_BIN" alias set "$MC_ALIAS" "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" --api S3v4
+
+echo "Buckets visible via this alias (${MC_ALIAS}/):"
+set +e
+LS_OUT=$("$MC_BIN" ls "${MC_ALIAS}/" 2>&1)
+LS_RC=$?
+set -e
+echo "$LS_OUT"
+echo "  mc ls exit_code=${LS_RC}"
 
 # Contabo Object Storage: CreateBucket via API often fails even when the bucket
 # already exists in the console. Prefer access check; only attempt mb as fallback.
 ensure_bucket() {
   local alias_bucket="$1"
-  if "$MC_BIN" ls "$alias_bucket" >/dev/null 2>&1; then
+  local out rc
+  set +e
+  out=$("$MC_BIN" ls "$alias_bucket" 2>&1)
+  rc=$?
+  set -e
+  if [[ "$rc" -eq 0 ]]; then
     echo "Bucket accessible: $alias_bucket"
     return 0
   fi
   echo "Bucket not listed yet; attempting create: $alias_bucket"
-  if "$MC_BIN" mb --ignore-existing "$alias_bucket"; then
+  echo "  mc ls stderr/stdout: $out"
+  set +e
+  out=$("$MC_BIN" mb --ignore-existing "$alias_bucket" 2>&1)
+  rc=$?
+  set -e
+  if [[ "$rc" -eq 0 ]]; then
+    echo "Bucket create succeeded: $alias_bucket"
     return 0
   fi
-  if "$MC_BIN" ls "$alias_bucket" >/dev/null 2>&1; then
+  echo "  mc mb stderr/stdout: $out"
+  set +e
+  out=$("$MC_BIN" ls "$alias_bucket" 2>&1)
+  rc=$?
+  set -e
+  if [[ "$rc" -eq 0 ]]; then
     echo "Bucket accessible after create attempt: $alias_bucket"
     return 0
   fi
   echo "ERROR: bucket not accessible: $alias_bucket" >&2
-  echo "Create it in the MinIO/Contabo console (expected: elykia-customer-space-releases[-test])." >&2
+  echo "  final mc ls stderr/stdout: $out" >&2
+  echo "Compare endpoint above with your MinIO console URL." >&2
+  echo "Expected bucket name: elykia-customer-space-releases[-test]." >&2
   return 1
 }
-ensure_bucket "elykia-customer-release/${MINIO_BUCKET}"
+ensure_bucket "${MC_ALIAS}/${MINIO_BUCKET}"
 
-"$MC_BIN" cp "$APK_PATH" "elykia-customer-release/${MINIO_BUCKET}/${APK_OBJECT_KEY}"
+"$MC_BIN" cp "$APK_PATH" "${MC_ALIAS}/${MINIO_BUCKET}/${APK_OBJECT_KEY}"
 
 MANIFEST_FILE="$(mktemp)"
 trap 'rm -f "$MANIFEST_FILE"' EXIT
@@ -103,7 +150,7 @@ cat > "$MANIFEST_FILE" <<EOF
 }
 EOF
 
-"$MC_BIN" cp "$MANIFEST_FILE" "elykia-customer-release/${MINIO_BUCKET}/${MANIFEST_OBJECT_KEY}"
+"$MC_BIN" cp "$MANIFEST_FILE" "${MC_ALIAS}/${MINIO_BUCKET}/${MANIFEST_OBJECT_KEY}"
 
 echo "Manifest published: ${MANIFEST_OBJECT_KEY}"
 echo "APK published successfully."
