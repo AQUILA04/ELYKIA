@@ -9,7 +9,14 @@ VERSION="${3:?version required}"
 MINIO_ENDPOINT="${MINIO_ENDPOINT:?MINIO_ENDPOINT required}"
 MINIO_ACCESS_KEY="${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY required}"
 MINIO_SECRET_KEY="${MINIO_SECRET_KEY:?MINIO_SECRET_KEY required}"
-MINIO_BUCKET="${MINIO_CUSTOMER_SPACE_RELEASES_BUCKET:-elykia-customer-space-releases}"
+# Contabo : buckets pré-provisionnés (test ≠ prod). Aligné sur deploy/docker-compose.*.yml
+if [[ -n "${MINIO_CUSTOMER_SPACE_RELEASES_BUCKET:-}" ]]; then
+  MINIO_BUCKET="$MINIO_CUSTOMER_SPACE_RELEASES_BUCKET"
+elif [[ "$TARGET" == "test" ]]; then
+  MINIO_BUCKET="elykia-customer-space-releases-test"
+else
+  MINIO_BUCKET="elykia-customer-space-releases"
+fi
 
 if [[ ! -f "$APK_PATH" ]]; then
   echo "APK not found: $APK_PATH" >&2
@@ -55,7 +62,27 @@ fi
 
 "$MC_BIN" alias set elykia-customer-release "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" --api S3v4
 
-"$MC_BIN" mb --ignore-existing "elykia-customer-release/${MINIO_BUCKET}"
+# Contabo Object Storage: CreateBucket via API often fails even when the bucket
+# already exists in the console. Prefer access check; only attempt mb as fallback.
+ensure_bucket() {
+  local alias_bucket="$1"
+  if "$MC_BIN" ls "$alias_bucket" >/dev/null 2>&1; then
+    echo "Bucket accessible: $alias_bucket"
+    return 0
+  fi
+  echo "Bucket not listed yet; attempting create: $alias_bucket"
+  if "$MC_BIN" mb --ignore-existing "$alias_bucket"; then
+    return 0
+  fi
+  if "$MC_BIN" ls "$alias_bucket" >/dev/null 2>&1; then
+    echo "Bucket accessible after create attempt: $alias_bucket"
+    return 0
+  fi
+  echo "ERROR: bucket not accessible: $alias_bucket" >&2
+  echo "Create it in the MinIO/Contabo console (expected: elykia-customer-space-releases[-test])." >&2
+  return 1
+}
+ensure_bucket "elykia-customer-release/${MINIO_BUCKET}"
 
 "$MC_BIN" cp "$APK_PATH" "elykia-customer-release/${MINIO_BUCKET}/${APK_OBJECT_KEY}"
 
