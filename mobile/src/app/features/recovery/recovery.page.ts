@@ -219,10 +219,14 @@ export class RecoveryPage implements OnInit, OnDestroy {
   updateRecoveryPlan() {
     this.store.select(RecoverySelectors.selectSelectedCredit).pipe(take(1)).subscribe(credit => {
       if (credit && this.recoveryAmount !== null) {
-        let effectiveReceived = this.receivedAmount > 0 ? this.receivedAmount : this.recoveryAmount;
+        // Espèces réellement saisies (0 autorisé pour clôturer uniquement avec le reliquat).
+        // Ne jamais substituer recoveryAmount : cela créait un faux « nouveau reliquat ».
+        const effectiveReceived = Math.max(0, this.receivedAmount || 0);
         let amountCovered = this.recoveryAmount;
+        const remaining = credit.remainingAmount ?? 0;
+        const existingReliquat = this.clientReliquat ? this.clientReliquat.totalAmount : 0;
 
-        const totalAvailable = effectiveReceived + (this.useReliquat && this.clientReliquat ? this.clientReliquat.totalAmount : 0);
+        const totalAvailable = effectiveReceived + (this.useReliquat ? existingReliquat : 0);
         const stake = credit.dailyPayment;
 
         if (stake > 0 && totalAvailable > amountCovered) {
@@ -230,14 +234,19 @@ export class RecoveryPage implements OnInit, OnDestroy {
           if (extraCash >= stake) {
             const extraStakes = Math.floor(extraCash / stake);
             amountCovered += extraStakes * stake;
-            this.recoveryAmount = amountCovered;
           }
         }
+
+        // Ne jamais dépasser le restant du crédit (clôture exacte).
+        if (remaining > 0 && amountCovered > remaining) {
+          amountCovered = remaining;
+        }
+        this.recoveryAmount = amountCovered;
 
         this.recoveryPlan = this.reliquatService.computeRecoveryPlan(
           amountCovered,
           effectiveReceived,
-          this.clientReliquat ? this.clientReliquat.totalAmount : 0,
+          existingReliquat,
           this.useReliquat
         );
         this.cdr.markForCheck();
@@ -375,14 +384,20 @@ export class RecoveryPage implements OnInit, OnDestroy {
     const hasBaseValid = !!(vm.client && vm.selectedCredit && this.recoveryAmount > 0);
     if (!hasBaseValid) return false;
 
-    if (this.receivedAmount <= 0) return false;
-    if (this.recoveryPlan) {
-      if (this.receivedAmount < this.recoveryPlan.cashNeeded) {
-        return false;
-      }
-      return true;
+    if (!this.recoveryPlan) {
+      return false;
     }
-    return false;
+
+    // cashNeeded === 0 : clôture / paiement couvert entièrement par le reliquat (espèces facultatives).
+    return this.receivedAmount >= this.recoveryPlan.cashNeeded;
+  }
+
+  /** Libellé du bouton : clôture par reliquat seul vs encaissement classique. */
+  getConfirmLabel(): string {
+    if (this.recoveryPlan && this.recoveryPlan.cashNeeded <= 0 && this.recoveryPlan.reliquatUsed > 0) {
+      return 'CLÔTURER AVEC LE RELIQUAT';
+    }
+    return 'CONFIRMER LE RECOUVREMENT';
   }
 
   shouldShowConfirmFooter(vm: RecoveryViewModel): boolean {

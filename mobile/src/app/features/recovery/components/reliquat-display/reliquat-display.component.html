@@ -22,7 +22,7 @@
     <ion-item lines="none" class="elyk-field received-input-item">
       <ion-input
         type="number"
-        placeholder="Saisissez le montant en espèces"
+        placeholder="Saisissez le montant en espèces (0 si reliquat suffit)"
         [value]="receivedAmount > 0 ? receivedAmount : ''"
         (ionInput)="onReceivedAmountChange($event)"
         clearInput="true">

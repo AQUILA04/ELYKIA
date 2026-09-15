@@ -200,6 +200,60 @@ class CreditTimelineServiceRecoveryFlowTest {
     }
 
     @Test
+    void applyAutoReliquatForClosure_closesWhenCashPlusReliquatCoversRemaining() {
+        Credit credit = inProgressCredit(1L, "collector1", 225.0, 200.0);
+        credit.getClient().setId(42L);
+        when(clientReliquatService.getReliquatForClient(42L)).thenReturn(200.0);
+
+        CreditTimelineDto dto = stakeDto(1L, 0.0, "REC-RELIQUAT-CLOSE");
+        service.applyAutoReliquatForClosure(dto, credit);
+
+        assertEquals(200.0, dto.getAmount());
+        assertEquals(200.0, dto.getReliquatUsedAmount());
+        assertEquals(0.0, dto.getReliquatGeneratedAmount());
+    }
+
+    @Test
+    void applyAutoReliquatForClosure_extendsPartialCashToClose() {
+        Credit credit = inProgressCredit(1L, "collector1", 225.0, 400.0);
+        credit.getClient().setId(42L);
+        when(clientReliquatService.getReliquatForClient(42L)).thenReturn(200.0);
+
+        CreditTimelineDto dto = stakeDto(1L, 225.0, "REC-RELIQUAT-PARTIAL");
+        service.applyAutoReliquatForClosure(dto, credit);
+
+        assertEquals(400.0, dto.getAmount());
+        assertEquals(175.0, dto.getReliquatUsedAmount());
+    }
+
+    @Test
+    void applyAutoReliquatForClosure_skipsWhenMobileAlreadySentUsed() {
+        Credit credit = inProgressCredit(1L, "collector1", 225.0, 200.0);
+        credit.getClient().setId(42L);
+
+        CreditTimelineDto dto = stakeDto(1L, 200.0, "REC-MOBILE");
+        dto.setReliquatUsedAmount(200.0);
+        service.applyAutoReliquatForClosure(dto, credit);
+
+        assertEquals(200.0, dto.getAmount());
+        assertEquals(200.0, dto.getReliquatUsedAmount());
+        verify(clientReliquatService, never()).getReliquatForClient(any());
+    }
+
+    @Test
+    void applyAutoReliquatForClosure_noopWhenReliquatInsufficient() {
+        Credit credit = inProgressCredit(1L, "collector1", 225.0, 500.0);
+        credit.getClient().setId(42L);
+        when(clientReliquatService.getReliquatForClient(42L)).thenReturn(50.0);
+
+        CreditTimelineDto dto = stakeDto(1L, 225.0, "REC-NORMAL");
+        service.applyAutoReliquatForClosure(dto, credit);
+
+        assertEquals(225.0, dto.getAmount());
+        assertEquals(null, dto.getReliquatUsedAmount());
+    }
+
+    @Test
     void makeDailyStake_returnsExistingTimelineWithoutEnsureWhenReferenceAlreadySynced() {
         CreditTimeline existing = new CreditTimeline();
         existing.setId(7L);

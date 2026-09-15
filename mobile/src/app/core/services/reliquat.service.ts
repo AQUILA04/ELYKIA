@@ -132,27 +132,28 @@ export class ReliquatService {
 
   computeRecoveryPlan(
     amountCovered: number,  // Montant défini par les pastilles
-    received: number,       // Montant en espèces remis par le client
+    received: number,       // Montant en espèces remis par le client (peut être 0)
     existingReliquat: number, // Reliquat accumulé du client
     useReliquat: boolean    // Checkbox "Utiliser le reliquat"
   ): RecoveryPlan {
-    
-    let cashNeeded = amountCovered;
+    const safeCovered = Math.max(0, amountCovered || 0);
+    const safeReceived = Math.max(0, received || 0);
+    const safeReliquat = Math.max(0, existingReliquat || 0);
+
+    let cashNeeded = safeCovered;
     let reliquatUsed = 0;
 
-    if (useReliquat && existingReliquat > 0) {
-      reliquatUsed = Math.min(existingReliquat, amountCovered);
-      cashNeeded = amountCovered - reliquatUsed;
+    if (useReliquat && safeReliquat > 0) {
+      reliquatUsed = Math.min(safeReliquat, safeCovered);
+      cashNeeded = Math.max(0, safeCovered - reliquatUsed);
     }
 
-    let reliquatGenerated = 0;
-    if (received > cashNeeded) {
-      reliquatGenerated = received - cashNeeded;
-    }
+    // Uniquement l'excédent d'espèces au-delà du cash réellement requis.
+    const reliquatGenerated = safeReceived > cashNeeded ? safeReceived - cashNeeded : 0;
 
     return {
-      misesCount: 0, // Ignoré dans cette logique
-      amountCovered,
+      misesCount: 0,
+      amountCovered: safeCovered,
       reliquatUsed,
       reliquatGenerated,
       cashNeeded

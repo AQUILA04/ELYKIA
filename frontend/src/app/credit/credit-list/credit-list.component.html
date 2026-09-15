@@ -268,6 +268,7 @@
 <app-daily-stake-modal
   *ngIf="showDailyStakeModal"
   [credit]="selectedCreditForStake"
+  [clientReliquatAmount]="clientReliquatForStake"
   [isSubmitting]="isSubmittingStake"
   (onSubmit)="onDailyStakeSubmit($event)"
   (onClose)="closeDailyStakeModal()">

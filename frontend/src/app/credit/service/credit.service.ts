@@ -299,6 +299,10 @@ export class CreditService extends BaseHttpService {
     return this.post(`${this.apiUrl}/daily-stake`, dto);
   }
 
+  getClientReliquatAmount(creditId: number): Observable<any> {
+    return this.get(`${this.apiUrl}/${creditId}/client-reliquat`);
+  }
+
   getCreditArticles(creditId: number): Observable<any> {
     return this.get(`${this.apiUrl}/${creditId}/articles`);
   }

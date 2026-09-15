@@ -154,6 +154,10 @@ public class Credit extends BaseEntity<String> {
     @Transient
     private List<CreditSourceMonthlyStockDto> sourceMonthlyStocks = new ArrayList<>();
 
+    /** Reliquat client disponible (enrichi à la lecture, non persisté). */
+    @Transient
+    private Double clientReliquatAmount;
+
     public Credit(Long creditId) {
         this.id = creditId;
     }
