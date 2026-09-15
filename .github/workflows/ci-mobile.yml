@@ -56,20 +56,12 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
       with:
-        packages: 'tools platform-tools'
+        # Le paquet historique "tools" n'existe plus (cmdline-tools 16+) → "Failed to find package 'tools'"
+        packages: 'platform-tools'
 
     - name: Accept Android SDK licenses
       run: |
-        mkdir -p "$ANDROID_HOME/licenses"
-        printf '%s\n' \
-          '24333f8a63b6825ea9c5514f83c2829b004d1fee' \
-          'd56f5187479451eabf01fb78af6dfcb131a6481e' \
-          '84831b9409646a918e30573bab4c9c91346d8abd' \
-          '33b6a2b526a6a3f5e1b2bd7cae4ae5e0f0b5e8d3' \
-          > "$ANDROID_HOME/licenses/android-sdk-license"
         yes | sdkmanager --licenses >/tmp/android-licenses.log 2>&1 || true
-        echo "Licenses directory:"
-        ls -la "$ANDROID_HOME/licenses" || true
       working-directory: .
 
     - name: Install dependencies
