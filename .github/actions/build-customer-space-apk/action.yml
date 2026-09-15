@@ -40,9 +40,9 @@ inputs:
     required: false
     default: ''
   minio-customer-space-releases-bucket:
-    description: MinIO bucket for customer-space releases
+    description: MinIO bucket for customer-space releases (empty → test/prod default)
     required: false
-    default: 'elykia-customer-space-releases'
+    default: ''
 
 runs:
   using: composite

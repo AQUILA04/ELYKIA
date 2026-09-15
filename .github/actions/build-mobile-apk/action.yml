@@ -40,9 +40,9 @@ inputs:
     required: false
     default: ''
   minio-mobile-releases-bucket:
-    description: MinIO bucket for mobile releases
+    description: MinIO bucket for mobile releases (empty → test/prod default)
     required: false
-    default: 'elykia-mobile-releases'
+    default: ''
 
 runs:
   using: composite

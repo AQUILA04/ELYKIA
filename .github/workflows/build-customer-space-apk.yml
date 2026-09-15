@@ -258,7 +258,7 @@ jobs:
           minio-endpoint: ${{ secrets.TEST_MINIO_ENDPOINT }}
           minio-access-key: ${{ secrets.TEST_MINIO_ACCESS_KEY }}
           minio-secret-key: ${{ secrets.TEST_MINIO_SECRET_KEY }}
-          minio-customer-space-releases-bucket: ${{ secrets.MINIO_CUSTOMER_SPACE_RELEASES_BUCKET }}
+          minio-customer-space-releases-bucket: elykia-customer-space-releases-test
 
   build-apk-prod:
     needs: prepare
@@ -295,4 +295,4 @@ jobs:
           minio-endpoint: ${{ secrets.PROD_MINIO_ENDPOINT }}
           minio-access-key: ${{ secrets.PROD_MINIO_ACCESS_KEY }}
           minio-secret-key: ${{ secrets.PROD_MINIO_SECRET_KEY }}
-          minio-customer-space-releases-bucket: ${{ secrets.MINIO_CUSTOMER_SPACE_RELEASES_BUCKET }}
+          minio-customer-space-releases-bucket: elykia-customer-space-releases
