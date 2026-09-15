@@ -46,6 +46,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - CI mobile : setup Android SDK (licences) pour débloquer `build-mobile` sur les runners récents.
 - Pipeline APK (`build-mobile-apk` / `build-customer-space-apk` / `ci-customer-space`) : même correctif — plus de paquet SDK obsolète `tools` après acceptation des licences Google.
+- Publication APK MinIO : téléchargement de `mc` via GitHub Releases (`dl.min.io` → HTTP 410).
 
 ## Frontend — [2.18.3] — 2026-09-12
 
