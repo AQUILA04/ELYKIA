@@ -49,6 +49,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Publication APK MinIO : téléchargement de `mc` via GitHub Releases (`dl.min.io` → HTTP 410).
 - Publication APK MinIO : `curl` forcé en HTTPS (`--proto '=https' --tlsv1.2`) pour le Quality Gate SonarCloud (C Security Rating).
 - Publication APK MinIO : buckets Contabo alignés (`elykia-mobile-releases[-test]`, idem customer-space) ; `mc mb` ne fait plus échouer le job si le bucket est déjà provisionné.
+- CI / APK : plus d’`npm install -g @ionic/cli` non piné (résolvait `@types/node@*` → 404 npm) ; build via `npx ng build --configuration=production` + CLIs locaux.
 
 ## Frontend — [2.18.3] — 2026-09-12
 

@@ -92,10 +92,12 @@ runs:
         npm cache clean --force
         npm install --legacy-peer-deps
         npx playwright install --with-deps chromium || true
-        npm install -g @ionic/cli @capacitor/cli
+        # Prefer lockfile-local CLIs. Unpinned `npm install -g @ionic/cli` pulls
+        # @ionic/utils-fs → @types/fs-extra → @types/node@* (latest), which can 404
+        # when npm publishes a broken/incomplete @types/node version.
         npm run test:e2e || true
-        ionic build --prod
-        npx cap add android || true
+        npm run build -- --configuration=production
+        ./node_modules/.bin/cap add android || true
 
     - name: Write google-services.json
       shell: bash
