@@ -62,8 +62,11 @@ public abstract class IntegrationTestSupport {
     }
 
     private static NoWaitGenericContainer minioContainer() {
-        NoWaitGenericContainer container = noWaitContainer(
-                DockerImageName.parse("minio/minio:RELEASE.2025-04-22T22-12-26Z"))
+        // Docker Hub minio/minio est devenu inaccessible (404 / pull denied) ; Quay reste public.
+        DockerImageName image = DockerImageName
+                .parse("quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z")
+                .asCompatibleSubstituteFor("minio/minio");
+        NoWaitGenericContainer container = noWaitContainer(image)
                 .withEnv("MINIO_ROOT_USER", "elykia-test-access-key")
                 .withEnv("MINIO_ROOT_PASSWORD", "elykia-test-secret-key")
                 .withCommand("server", "/data", "--console-address", ":9001")
