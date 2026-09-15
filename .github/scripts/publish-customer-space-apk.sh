@@ -44,7 +44,11 @@ MC_BIN="${MC_BIN:-mc}"
 if ! command -v "$MC_BIN" &>/dev/null; then
   MC_BIN="/tmp/mc"
   if [[ ! -x "$MC_BIN" ]]; then
-    curl -fsSL "https://dl.min.io/client/mc/release/linux-amd64/mc" -o "$MC_BIN"
+    # dl.min.io renvoie 410 (binaires MinIO community retirés) — utiliser GitHub Releases.
+    MC_VERSION="${MC_VERSION:-RELEASE.2025-08-13T08-35-41Z}"
+    MC_URL="https://github.com/minio/mc/releases/download/${MC_VERSION}/mc.linux-amd64.${MC_VERSION}"
+    echo "Downloading mc from ${MC_URL}"
+    curl -fsSL "$MC_URL" -o "$MC_BIN"
     chmod +x "$MC_BIN"
   fi
 fi
