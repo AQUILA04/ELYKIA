@@ -4,7 +4,7 @@ name: ELYKIA Mobile APK Build
 # Triggers on CD completion (mobile may still be running) or ci-mobile completion (CD may have run first).
 #   main  → test APK
 #   prod/** → prod APK (direct, same commit as the prod CI)
-#   promote (manual) → prod APK rebuilt from the last successful test deployment (GitHub API only)
+#   promote (manual) → prod APK rebuilt from the last successful TEST APK build (GitHub API only)
 
 on:
   workflow_run:
@@ -39,6 +39,7 @@ jobs:
         id: resolve
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
           sudo apt-get update -y && sudo apt-get install -y jq
@@ -72,21 +73,56 @@ jobs:
             fi
           }
 
-          find_last_test_deploy_ci_sha() {
-            local cd_runs run_id run_started jobs test_ok
-            cd_runs=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
-              "https://api.github.com/repos/${REPO}/actions/workflows/cd.yml/runs?status=completed&per_page=30")
-            while read -r run_id run_started; do
+          # Promote must use the last run that actually built a TEST APK, not the
+          # last CD TEST deploy (which may be a non-mobile commit with APK skipped).
+          # SHA is embedded in the job name: "Build TEST APK <sha>".
+          find_last_successful_test_apk_sha() {
+            local workflow_file="$1"
+            local current_run_id="${GITHUB_RUN_ID:-}"
+            local apk_runs run_id run_number jobs_json job_line job_name job_status job_conclusion sha
+
+            apk_runs=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+              "https://api.github.com/repos/${REPO}/actions/workflows/${workflow_file}/runs?per_page=30")
+
+            while read -r run_id run_number; do
               [ -z "$run_id" ] && continue
-              jobs=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
-                "https://api.github.com/repos/${REPO}/actions/runs/${run_id}/jobs")
-              test_ok=$(echo "$jobs" | jq -r \
-                '.jobs[] | select(.name=="Deploy to TEST after CI") | .conclusion' | head -n1 || true)
-              if [ "$test_ok" = "success" ]; then
-                find_ci_sha_before "main" "$run_started"
-                return 0
+              if [ -n "$current_run_id" ] && [ "$run_id" = "$current_run_id" ]; then
+                continue
               fi
-            done < <(echo "$cd_runs" | jq -r '.workflow_runs[] | "\(.id) \(.run_started_at)"')
+
+              jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
+                "https://api.github.com/repos/${REPO}/actions/runs/${run_id}/jobs")
+
+              job_line=$(echo "$jobs_json" | jq -r '
+                [.jobs[]
+                  | select(.name | startswith("Build TEST APK "))
+                  | "\(.name)|\(.status)|\(.conclusion // "")"
+                ][0] // empty')
+
+              if [ -z "$job_line" ]; then
+                continue
+              fi
+
+              job_name="${job_line%%|*}"
+              rest="${job_line#*|}"
+              job_status="${rest%%|*}"
+              job_conclusion="${rest#*|}"
+
+              if [ "$job_status" = "in_progress" ] || [ "$job_status" = "queued" ] \
+                || [ "$job_status" = "waiting" ] || [ "$job_status" = "pending" ]; then
+                echo "A TEST APK build is still running (run #${run_number}, id=${run_id}). Wait for it to finish before promoting." >&2
+                return 2
+              fi
+
+              if [ "$job_conclusion" = "success" ]; then
+                sha="${job_name#Build TEST APK }"
+                if [ -n "$sha" ] && [ "$sha" != "$job_name" ]; then
+                  echo "$sha"
+                  return 0
+                fi
+              fi
+            done < <(echo "$apk_runs" | jq -r '.workflow_runs[] | "\(.id) \(.run_number)"')
+
             return 1
           }
 
@@ -134,14 +170,26 @@ jobs:
           BUILD_SHA=""
           MOBILE_RUN_ID=""
 
-          if [ "$EVENT" = "workflow_dispatch" ]; then
-            TARGET="prod"
-            BUILD_SHA=$(find_last_test_deploy_ci_sha) || true
-            if [ -z "$BUILD_SHA" ]; then
-              echo "Could not resolve CI commit for promote" >&2
+          resolve_promote_test_apk_sha() {
+            local sha status
+            set +e
+            sha=$(find_last_successful_test_apk_sha "build-mobile-apk.yml")
+            status=$?
+            set -e
+            if [ "$status" -eq 2 ]; then
               exit 2
             fi
-            echo "Manual promote → PROD APK from test deployment at $BUILD_SHA" >&2
+            if [ "$status" -ne 0 ] || [ -z "$sha" ]; then
+              echo "Could not find a successful TEST APK build to promote" >&2
+              exit 2
+            fi
+            echo "$sha"
+          }
+
+          if [ "$EVENT" = "workflow_dispatch" ]; then
+            TARGET="prod"
+            BUILD_SHA=$(resolve_promote_test_apk_sha)
+            echo "Manual promote → PROD APK from last successful TEST APK at $BUILD_SHA" >&2
           elif [ "$TRIGGER_PATH" = ".github/workflows/ci-mobile.yml" ]; then
             echo "Triggered by ci-mobile for commit $TRIGGER_SHA" >&2
             MOBILE_RUN_ID="$TRIGGER_RUN_ID"
@@ -170,7 +218,7 @@ jobs:
               case "$SHA_SOURCE" in
                 test) BUILD_SHA=$(find_ci_sha_before "main" "$CD_STARTED") ;;
                 prod) BUILD_SHA=$(find_ci_sha_before "prod" "$CD_STARTED") ;;
-                promote) BUILD_SHA=$(find_last_test_deploy_ci_sha) || true ;;
+                promote) BUILD_SHA=$(resolve_promote_test_apk_sha) ;;
               esac
               echo "Resolved CI commit ($SHA_SOURCE): $BUILD_SHA" >&2
             fi
@@ -227,6 +275,7 @@ jobs:
     if: needs.prepare.outputs.target == 'test' && needs.prepare.outputs.mobile_built == 'true'
     runs-on: ubuntu-latest
     environment: test
+    name: Build TEST APK ${{ needs.prepare.outputs.build_sha }}
     steps:
       - uses: actions/checkout@v6
         with:
