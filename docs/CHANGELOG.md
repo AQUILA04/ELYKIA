@@ -16,6 +16,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Encaissement crédit (modal mise) : affichage du reliquat client, option pour l’utiliser, clôture possible uniquement avec le reliquat si restant ≤ reliquat.
 - Détail crédit : affichage systématique du reliquat client (y compris 0 FCFA).
 
+## Mobile — [2.28.15] — 2026-09-15
+
+### Changed
+
+- Version bump pour relancer le pipeline CI / APK mobile (validation publication MinIO).
+
 ## Mobile — [2.28.14] — 2026-09-15
 
 ### Changed
