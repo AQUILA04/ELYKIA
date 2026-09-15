@@ -15,4 +15,6 @@ export interface CreditTimelineDto {
   amount: number;
   date?: string; // Optionnel, peut être géré par le backend
   reference?: string;
+  reliquatUsedAmount?: number;
+  reliquatGeneratedAmount?: number;
 }

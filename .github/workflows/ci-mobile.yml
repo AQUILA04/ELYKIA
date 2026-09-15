@@ -54,7 +54,15 @@ jobs:
         java-version: '21'
 
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v4
+      uses: android-actions/setup-android@v3
+      with:
+        # Le paquet historique "tools" n'existe plus (cmdline-tools 16+) → "Failed to find package 'tools'"
+        packages: 'platform-tools'
+
+    - name: Accept Android SDK licenses
+      run: |
+        yes | sdkmanager --licenses >/tmp/android-licenses.log 2>&1 || true
+      working-directory: .
 
     - name: Install dependencies
       run: npm install --legacy-peer-deps

@@ -122,6 +122,9 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     }
 
     private CreditTimeline doMakeDailyStake(CreditTimelineDto dto) {
+        Credit credit = creditService.getById(dto.getCreditId());
+        applyAutoReliquatForClosure(dto, credit);
+
         CreditTimeline creditTimeline = creditMapper.toCreditTimeline(dto);
         if (creditTimeline.getReliquatGeneratedAmount() == null) {
             creditTimeline.setReliquatGeneratedAmount(
@@ -131,7 +134,10 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
             creditTimeline.setReliquatUsedAmount(
                     dto.getReliquatUsedAmount() != null ? dto.getReliquatUsedAmount() : 0.0);
         }
-        Credit credit = creditService.getById(dto.getCreditId());
+        // Réaligner le montant timeline si l'auto-reliquat a relevé le montant de clôture
+        if (dto.getAmount() != null) {
+            creditTimeline.setAmount(dto.getAmount());
+        }
         dailyStakeFactor(credit, creditTimeline);
 
         Double reliquatGenerated = dto.getReliquatGeneratedAmount();
@@ -143,6 +149,51 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
             clientReliquatService.consumeReliquat(credit.getClientId(), reliquatUsed, creditTimeline.getReference(), null);
         }
         return creditTimeline;
+    }
+
+    /**
+     * Si le cash saisi + le reliquat client suffisent à solder le crédit, consomme automatiquement
+     * le reliquat manquant et relève le montant de mise au restant (clôture).
+     * Ne remplace pas un {@code reliquatUsedAmount} déjà fourni (sync mobile).
+     */
+    void applyAutoReliquatForClosure(CreditTimelineDto dto, Credit credit) {
+        if (dto == null || credit == null || credit.getClientId() == null) {
+            return;
+        }
+        double remaining = credit.getTotalAmountRemaining() != null ? credit.getTotalAmountRemaining() : 0.0;
+        if (remaining <= 0) {
+            return;
+        }
+
+        double alreadyUsed = dto.getReliquatUsedAmount() != null ? dto.getReliquatUsedAmount() : 0.0;
+        if (alreadyUsed > 0) {
+            return;
+        }
+
+        Double availableObj = clientReliquatService.getReliquatForClient(credit.getClientId());
+        double available = availableObj != null ? Math.max(0.0, availableObj) : 0.0;
+        if (available <= 0) {
+            return;
+        }
+
+        double cashOrAmount = dto.getAmount() != null ? Math.max(0.0, dto.getAmount()) : 0.0;
+
+        // Cas 1 : paiement (éventuellement 0) + reliquat >= restant → clôture auto
+        if (cashOrAmount < remaining && cashOrAmount + available >= remaining) {
+            double reliquatUsed = remaining - cashOrAmount;
+            dto.setReliquatUsedAmount(reliquatUsed);
+            dto.setAmount(remaining);
+            if (dto.getReliquatGeneratedAmount() == null) {
+                dto.setReliquatGeneratedAmount(0.0);
+            }
+            log.info("Auto-reliquat clôture creditId={} remaining={} cash={} reliquatUsed={}",
+                    credit.getId(), remaining, cashOrAmount, reliquatUsed);
+            return;
+        }
+
+        // Cas 2 : montant déjà = restant mais un reliquat existe — ne force pas la conso
+        // (le client / l'UI peut vouloir encaisser le cash plein). La clôture par reliquat seul
+        // passe par le cas 1 avec cashOrAmount = 0.
     }
 
     /**

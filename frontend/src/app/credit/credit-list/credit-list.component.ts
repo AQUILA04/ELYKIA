@@ -46,6 +46,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
 
   showDailyStakeModal = false;
   selectedCreditForStake: any = null;
+  clientReliquatForStake = 0;
   isSubmittingStake = false;
 
   selectedCredits: Set<number> = new Set();
@@ -488,13 +489,28 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
 
   openDailyStakeModal(credit: any): void {
     this.selectedCreditForStake = credit;
+    this.clientReliquatForStake = 0;
     this.isSubmittingStake = false;
     this.showDailyStakeModal = true;
+    if (credit?.id) {
+      this.creditService.getClientReliquatAmount(credit.id).subscribe({
+        next: (response: any) => {
+          const amount = typeof response?.data === 'number'
+            ? response.data
+            : (response?.data?.amount ?? response?.data ?? 0);
+          this.clientReliquatForStake = Number(amount) || 0;
+        },
+        error: () => {
+          this.clientReliquatForStake = 0;
+        }
+      });
+    }
   }
 
   closeDailyStakeModal(): void {
     this.showDailyStakeModal = false;
     this.selectedCreditForStake = null;
+    this.clientReliquatForStake = 0;
   }
 
   onDailyStakeSubmit(dto: CreditTimelineDto): void {

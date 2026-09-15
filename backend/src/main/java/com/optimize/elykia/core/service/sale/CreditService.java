@@ -1226,7 +1226,35 @@ public class CreditService extends GenericService<Credit, Long> {
     public Credit getByIdWithSourceStocks(Long id) {
         Credit credit = getById(id);
         enrichSourceMonthlyStocks(credit);
+        enrichClientReliquat(credit);
         return credit;
+    }
+
+    private void enrichClientReliquat(Credit credit) {
+        if (credit == null || clientReliquatRepository == null) {
+            return;
+        }
+        Long clientId = credit.getClientId();
+        if (clientId == null) {
+            credit.setClientReliquatAmount(0.0);
+            return;
+        }
+        double amount = clientReliquatRepository.findByClientId(clientId)
+                .map(r -> r.getTotalAmount() != null ? r.getTotalAmount() : 0.0)
+                .orElse(0.0);
+        credit.setClientReliquatAmount(amount);
+    }
+
+    @Transactional(readOnly = true)
+    public Double getClientReliquatAmount(Long creditId) {
+        Credit credit = getById(creditId);
+        Long clientId = credit.getClientId();
+        if (clientId == null || clientReliquatRepository == null) {
+            return 0.0;
+        }
+        return clientReliquatRepository.findByClientId(clientId)
+                .map(r -> r.getTotalAmount() != null ? r.getTotalAmount() : 0.0)
+                .orElse(0.0);
     }
 
     private void enrichSourceMonthlyStocks(Credit credit) {

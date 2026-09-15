@@ -11,14 +11,43 @@
       <div class="credit-info">
         <p><strong>Client :</strong> {{ credit.client?.firstname }} {{ credit.client?.lastname }}</p>
         <p><strong>Référence :</strong> {{ credit.reference }}</p>
-        <p><strong>Montant Total :</strong> {{ credit.totalAmount | currency }}</p>
-        <p><strong>Mise journalière :</strong> {{ credit.dailyStake | currency }}</p>
-        <p><strong>Montant restant :</strong> {{ credit.totalAmountRemaining | currency }}</p>
+        <p><strong>Montant Total :</strong> {{ credit.totalAmount | number:'1.0-0' }} FCFA</p>
+        <p><strong>Mise journalière :</strong> {{ credit.dailyStake | number:'1.0-0' }} FCFA</p>
+        <p><strong>Montant restant :</strong> {{ remaining | number:'1.0-0' }} FCFA</p>
+        <p *ngIf="clientReliquatAmount > 0" data-testid="e2e-daily-stake-reliquat">
+          <strong>Reliquat disponible :</strong>
+          <span style="color: var(--success, #2e7d32); font-weight: 600;">
+            {{ clientReliquatAmount | number:'1.0-0' }} FCFA
+          </span>
+        </p>
       </div>
 
-      <form [formGroup]="stakeForm" (ngSubmit)="submit()">
+      <div class="reliquat-toggle" *ngIf="clientReliquatAmount > 0">
+        <label>
+          <input
+            type="checkbox"
+            [checked]="useReliquat"
+            (change)="onUseReliquatToggle($any($event.target).checked)"
+            data-testid="e2e-daily-stake-use-reliquat">
+          Utiliser le reliquat pour payer
+        </label>
+      </div>
+
+      <div class="reliquat-close-banner" *ngIf="canCloseWithReliquatOnly && useReliquat">
+        <p>Le reliquat couvre entièrement le restant. Vous pouvez clôturer sans encaisser d’espèces.</p>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="closeWithReliquatOnly()"
+          [disabled]="isSubmitting"
+          data-testid="e2e-daily-stake-close-reliquat">
+          {{ isSubmitting ? 'En cours...' : 'Clôturer avec le reliquat' }}
+        </button>
+      </div>
+
+      <form [formGroup]="stakeForm" (ngSubmit)="submit()" *ngIf="!(canCloseWithReliquatOnly && useReliquat)">
         <div class="form-group">
-          <label for="amount">Montant de la mise</label>
+          <label for="amount">Montant en espèces</label>
           <input
             type="number"
             id="amount"
@@ -26,13 +55,18 @@
             class="form-control"
             data-testid="e2e-daily-stake-amount"
             [min]="minAmount"
-            [max]="credit.totalAmountRemaining ?? credit.totalAmount">
+            [max]="remaining">
 
           <div *ngIf="amountControl?.invalid && (amountControl?.dirty || amountControl?.touched)" class="error-message">
             <small *ngIf="amountControl?.errors?.['required']">Le montant est requis.</small>
             <small *ngIf="amountControl?.errors?.['min']">Le montant doit être supérieur ou égal à {{ minAmount }}.</small>
             <small *ngIf="amountControl?.errors?.['max']">Le montant ne peut pas dépasser le montant restant.</small>
           </div>
+        </div>
+
+        <div class="plan-preview" *ngIf="useReliquat && reliquatUsedPreview > 0">
+          <p>Reliquat utilisé : <strong>{{ reliquatUsedPreview | number:'1.0-0' }} FCFA</strong></p>
+          <p>Montant appliqué au crédit : <strong>{{ appliedAmountPreview | number:'1.0-0' }} FCFA</strong></p>
         </div>
 
         <div class="modal-actions">
@@ -42,6 +76,10 @@
           </button>
         </div>
       </form>
+
+      <div class="modal-actions" *ngIf="canCloseWithReliquatOnly && useReliquat">
+        <button type="button" class="btn btn-secondary" (click)="close()" [disabled]="isSubmitting">Annuler</button>
+      </div>
     </div>
   </div>
 </div>

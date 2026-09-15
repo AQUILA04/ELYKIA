@@ -75,6 +75,11 @@ public class CreditController {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getByIdWithSourceStocks(id)), HttpStatus.OK);
     }
 
+    @GetMapping(value = "{id}/client-reliquat")
+    public ResponseEntity<Response> getClientReliquat(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getClientReliquatAmount(id)), HttpStatus.OK);
+    }
+
     @GetMapping(value = "timeline/{creditId}")
     public ResponseEntity<Response> getCreditDetails(@PathVariable Long creditId) {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditTimelineService.getAllByCredit(creditId)),

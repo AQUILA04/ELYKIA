@@ -9,6 +9,37 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.18.4] — 2026-09-15
+
+### Added
+
+- Encaissement crédit (modal mise) : affichage du reliquat client, option pour l’utiliser, clôture possible uniquement avec le reliquat si restant ≤ reliquat.
+- Détail crédit : affichage systématique du reliquat client (y compris 0 FCFA).
+
+## Mobile — [2.28.13] — 2026-09-15
+
+### Fixed
+
+- Recouvrement : le plan de reliquat n’utilise plus le montant à collecter comme espèces quand le champ cash est vide (plus de faux « nouveau reliquat »).
+- Confirmation possible avec 0 FCFA d’espèces lorsque le reliquat couvre entièrement le montant (clôture du dernier solde).
+
+## Backend — [1.13.3] — 2026-09-15
+
+### Added
+
+- `makeDailyStake` : consommation automatique du reliquat si cash + reliquat permettent de clôturer le crédit.
+- `GET /api/v1/credits/{id}/client-reliquat` et champ `clientReliquatAmount` sur le détail crédit.
+
+### Fixed
+
+- Tests d’intégration : image MinIO Testcontainers basculée sur `quay.io/minio/minio` (Docker Hub `minio/minio` inaccessible / pull denied).
+
+## Docs & Infra — 2026-09-15
+
+### Fixed
+
+- CI mobile : setup Android SDK (licences) pour débloquer `build-mobile` sur les runners récents.
+
 ## Frontend — [2.18.3] — 2026-09-12
 
 ### Added
