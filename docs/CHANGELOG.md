@@ -30,6 +30,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - `makeDailyStake` : consommation automatique du reliquat si cash + reliquat permettent de clôturer le crédit.
 - `GET /api/v1/credits/{id}/client-reliquat` et champ `clientReliquatAmount` sur le détail crédit.
 
+### Fixed
+
+- Tests d’intégration : image MinIO Testcontainers basculée sur `quay.io/minio/minio` (Docker Hub `minio/minio` inaccessible / pull denied).
+
+## Docs & Infra — 2026-09-15
+
+### Fixed
+
+- CI mobile : setup Android SDK (licences) pour débloquer `build-mobile` sur les runners récents.
+
 ## Frontend — [2.18.3] — 2026-09-12
 
 ### Added
