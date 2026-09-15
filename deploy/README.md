@@ -78,6 +78,7 @@ graph TD
 - `rollback.sh` - Script pour revenir à une release précédente.
 - `import-db.sh` - Script pour importer un dump SQL dans le container Postgres.
 - `migrate-do-to-contabo.sh` - Migration DigitalOcean → Contabo (consommateur OCI + shared-traefik).
+- `mirror-minio-do-to-contabo.sh` - Reprise mirror MinIO DO → OCI Contabo (objets seuls).
 - `docker-compose.DO.yml` / `docker-compose.DO-test.yml` - Legacy DigitalOcean (MinIO embarqué).
 - `CONTABO_MIGRATION.md` - Guide de migration Contabo.
 - `INSTRUCTION_SETUP.md` - Guide détaillé pour l'installation initiale du serveur.

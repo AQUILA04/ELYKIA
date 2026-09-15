@@ -65,16 +65,37 @@ Options utiles :
 - `docker-compose.test.yml` — idem test (buckets `*-test` sur MinIO partagé)
 - `docker-compose.DO.yml` / `docker-compose.DO-test.yml` — legacy DigitalOcean (MinIO embarqué)
 
+## Reprise MinIO seule (si les objets n’ont pas été copiés)
+
+À lancer **sur DigitalOcean** (ne touche pas Postgres) :
+
+```bash
+cd /opt/elykia/deploy
+# git pull si besoin pour récupérer le script
+chmod +x mirror-minio-do-to-contabo.sh
+
+sudo ./mirror-minio-do-to-contabo.sh \
+  --user root \
+  --ip 169.58.127.90 \
+  --password 'MOT_DE_PASSE_CONTABO' \
+  --envs prod,test
+  # dry-run: --dry-run
+```
+
+Le script lit les credentials OCI sur Contabo (`/opt/optimizesolux/common-infra/.env`) puis fait un `mc mirror` direct depuis le MinIO Docker DO vers `https://s3.optimizesolux.com`.
+
+Buckets prod → mêmes noms ; buckets test → `*-test`.
+
 ## Après migration
 
 1. **DNS Cloudflare** (zone app) : A → IP Contabo, **Proxy ON**, SSL **Full**
 2. **pgAdmin** `https://pgadmin.optimizesolux.com` :
-   - Host `elykia-db`, port `5432`, credentials `/opt/elykia/prod/.env`
+   - Host `elykia-db` (prod) ou `elykia-test-db` (test), port `5432`, credentials `/opt/elykia/{prod,test}/.env`
 3. **Grafana** `https://grafana.optimizesolux.com` :
    - Conteneurs / logs déjà visibles (cAdvisor, Promtail)
    - Métriques actuator via job Prometheus `elykia-backend`
    - Importer au besoin les dashboards `deploy/monitoring/grafana/dashboards/`
-4. Secrets GitHub Actions : `SERVER_HOST` → IP Contabo
+4. Secrets GitHub Actions : `TEST_SERVER_HOST` / `PROD_SERVER_HOST` → IP Contabo
 5. Smoke, puis arrêt des stacks DO
 
 ## Rollback

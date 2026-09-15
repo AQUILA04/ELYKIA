@@ -58,6 +58,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - CI / APK : plus d’`npm install -g @ionic/cli` non piné (résolvait `@types/node@*` → 404 npm) ; build via `npx ng build --configuration=production` + CLIs locaux.
 - **CI APK —** promote manuel mobile / customer-space : le SHA prod est résolu depuis le dernier job `Build TEST APK` réussi (plus depuis le dernier déploiement CD TEST) ; échec explicite si un build TEST APK plus récent est encore en cours.
 - **CI APK —** publication MinIO : logs de diagnostic (endpoint, bucket, access key masquée, `mc ls` des buckets visibles) pour comparer avec la console ; E2E Playwright retirés du packaging APK (restent dans `ci-mobile` / `ci-customer-space`).
+- **Deploy Contabo —** script `mirror-minio-do-to-contabo.sh` + doc reprise mirror MinIO DO → OCI (objets seuls).
 
 ## Frontend — [2.18.3] — 2026-09-12
 
