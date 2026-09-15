@@ -48,7 +48,7 @@ if ! command -v "$MC_BIN" &>/dev/null; then
     MC_VERSION="${MC_VERSION:-RELEASE.2025-08-13T08-35-41Z}"
     MC_URL="https://github.com/minio/mc/releases/download/${MC_VERSION}/mc.linux-amd64.${MC_VERSION}"
     echo "Downloading mc from ${MC_URL}"
-    curl -fsSL "$MC_URL" -o "$MC_BIN"
+    curl -fsSL --proto '=https' --tlsv1.2 "$MC_URL" -o "$MC_BIN"
     chmod +x "$MC_BIN"
   fi
 fi
