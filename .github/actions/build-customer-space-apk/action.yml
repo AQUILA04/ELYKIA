@@ -94,9 +94,11 @@ runs:
         node scripts/sync-app-version.mjs
         node scripts/apply-firebase-config.mjs --profile prod
         npx playwright install --with-deps chromium || true
-        npm install -g @ionic/cli @capacitor/cli
+        # Prefer lockfile-local CLIs. Unpinned `npm install -g @ionic/cli` pulls
+        # @ionic/utils-fs → @types/fs-extra → @types/node@* (latest), which can 404
+        # when npm publishes a broken/incomplete @types/node version.
         npm run test:e2e:smoke || true
-        ionic build --prod
+        npx ng build --configuration=production
         npx cap add android
 
     - name: Write google-services.json

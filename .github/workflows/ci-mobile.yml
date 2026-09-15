@@ -75,15 +75,10 @@ jobs:
       env:
         CI: true
 
-    - name: Install Ionic CLI
-      run: npm install -g @ionic/cli
-
-    - name: Install Capacitor CLI
-      run: npm install -g @capacitor/cli
-
+    # Prefer lockfile-local CLIs (@angular/cli + @capacitor/cli from npm ci).
+    # Unpinned `npm install -g @ionic/cli` can 404 on @types/node@* (latest).
     - name: Build Ionic app
-      run: |
-        ionic build --prod
+      run: npx ng build --configuration=production
 
     - name: Add Android platform
       run: |

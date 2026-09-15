@@ -232,6 +232,19 @@ jobs:
         with:
           ref: ${{ needs.prepare.outputs.build_sha }}
 
+      - name: Overlay APK pipeline from workflow ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          # App sources stay on build_sha; pipeline action/scripts come from this
+          # workflow run so CI fixes apply without a new app commit.
+          if [ "${{ github.sha }}" != "${{ needs.prepare.outputs.build_sha }}" ]; then
+            git fetch --depth=1 origin "${{ github.sha }}"
+            git checkout "${{ github.sha }}" -- \
+              .github/actions/build-customer-space-apk \
+              .github/scripts
+          fi
+
       - name: Build and upload TEST APK
         uses: ./.github/actions/build-customer-space-apk
         with:
@@ -257,6 +270,17 @@ jobs:
       - uses: actions/checkout@v6
         with:
           ref: ${{ needs.prepare.outputs.build_sha }}
+
+      - name: Overlay APK pipeline from workflow ref
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.sha }}" != "${{ needs.prepare.outputs.build_sha }}" ]; then
+            git fetch --depth=1 origin "${{ github.sha }}"
+            git checkout "${{ github.sha }}" -- \
+              .github/actions/build-customer-space-apk \
+              .github/scripts
+          fi
 
       - name: Build and upload PROD APK
         uses: ./.github/actions/build-customer-space-apk
