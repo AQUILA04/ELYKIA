@@ -96,8 +96,8 @@ runs:
         # @ionic/utils-fs → @types/fs-extra → @types/node@* (latest), which can 404
         # when npm publishes a broken/incomplete @types/node version.
         npm run test:e2e || true
-        npx ng build --configuration=production
-        npx cap add android || true
+        npm run build -- --configuration=production
+        ./node_modules/.bin/cap add android || true
 
     - name: Write google-services.json
       shell: bash

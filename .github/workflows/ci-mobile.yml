@@ -78,11 +78,11 @@ jobs:
     # Prefer lockfile-local CLIs (@angular/cli + @capacitor/cli from npm ci).
     # Unpinned `npm install -g @ionic/cli` can 404 on @types/node@* (latest).
     - name: Build Ionic app
-      run: npx ng build --configuration=production
+      run: npm run build -- --configuration=production
 
     - name: Add Android platform
       run: |
-        npx cap add android
+        ./node_modules/.bin/cap add android
 
     - name: Create google-services.json
       run: |
