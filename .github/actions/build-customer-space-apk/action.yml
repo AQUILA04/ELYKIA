@@ -74,7 +74,15 @@ runs:
         java-version: '21'
 
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v4
+      uses: android-actions/setup-android@v3
+      with:
+        # Le paquet historique "tools" n'existe plus (cmdline-tools 16+/20+) → "Failed to find package 'tools'"
+        packages: 'platform-tools'
+
+    - name: Accept Android SDK licenses
+      shell: bash
+      run: |
+        yes | sdkmanager --licenses >/tmp/android-licenses.log 2>&1 || true
 
     - name: Install dependencies and build web assets
       shell: bash

@@ -28,7 +28,12 @@ jobs:
         java-version: '21'
         
     - name: Setup Android SDK
-      uses: android-actions/setup-android@v4
+      uses: android-actions/setup-android@v3
+      with:
+        packages: 'platform-tools'
+
+    - name: Accept Android SDK licenses
+      run: yes | sdkmanager --licenses >/tmp/android-licenses.log 2>&1 || true
       
     - name: Clean npm cache
       working-directory: ./elykia-mobile

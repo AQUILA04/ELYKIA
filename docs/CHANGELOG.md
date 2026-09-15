@@ -16,6 +16,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Encaissement crédit (modal mise) : affichage du reliquat client, option pour l’utiliser, clôture possible uniquement avec le reliquat si restant ≤ reliquat.
 - Détail crédit : affichage systématique du reliquat client (y compris 0 FCFA).
 
+## Mobile — [2.28.14] — 2026-09-15
+
+### Changed
+
+- Workflows Android debug : alignement du setup SDK (`platform-tools` uniquement) pour éviter l’échec `Failed to find package 'tools'`.
+
 ## Mobile — [2.28.13] — 2026-09-15
 
 ### Fixed
@@ -39,6 +45,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - CI mobile : setup Android SDK (licences) pour débloquer `build-mobile` sur les runners récents.
+- Pipeline APK (`build-mobile-apk` / `build-customer-space-apk` / `ci-customer-space`) : même correctif — plus de paquet SDK obsolète `tools` après acceptation des licences Google.
 
 ## Frontend — [2.18.3] — 2026-09-12
 
