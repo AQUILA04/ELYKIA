@@ -6,11 +6,15 @@ import { ItemService } from 'src/app/article/service/item.service';
 
 export interface ArticleSelection {
   articleId: number;
-  quantity: number;
+  quantity?: number;
   unitPrice?: number;
+  entryPackagingMode?: 'UNIT' | 'WHOLESALE' | 'HALF_WHOLESALE';
+  packageCount?: number;
+  packagePrice?: number;
 }
 
 export type PriceType = 'credit' | 'tontine' | 'inventory';
+export type EntryPackagingMode = 'UNIT' | 'WHOLESALE' | 'HALF_WHOLESALE';
 
 @Component({
   selector: 'app-article-selector',
@@ -154,10 +158,14 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     if (this.capturePurchasePrice) {
       const group = this.fb.group({
         articleId: [null, Validators.required],
+        entryPackagingMode: ['UNIT' as EntryPackagingMode],
         quantity: ['', [Validators.required, Validators.min(1)]],
-        unitPrice: [null, [Validators.required, Validators.min(0.01)]]
+        unitPrice: [null, [Validators.required, Validators.min(0.01)]],
+        packageCount: [null],
+        packagePrice: [null]
       });
       this.attachPurchasePriceSync(group);
+      this.attachPackagingModeSync(group);
       return group;
     }
 
@@ -252,12 +260,148 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
       }
       const article = this.getArticle(articleId);
       if (article) {
-        group.patchValue({ unitPrice: article.purchasePrice ?? 0 }, { emitEvent: false });
+        const hasPackaging = article.packagingType && article.packagingType !== 'NONE'
+          && typeof article.unitsPerPackage === 'number' && article.unitsPerPackage >= 2;
+        group.patchValue({
+          unitPrice: article.purchasePrice ?? 0,
+          entryPackagingMode: 'UNIT',
+          packageCount: null,
+          packagePrice: null
+        }, { emitEvent: false });
+        if (!hasPackaging) {
+          group.get('entryPackagingMode')?.setValue('UNIT', { emitEvent: false });
+        }
+        this.applyPackagingModeValidators(group);
       }
     });
     if (sub) {
       this.rowSubs.push(sub);
     }
+  }
+
+  private attachPackagingModeSync(group: FormGroup): void {
+    const sub = group.get('entryPackagingMode')?.valueChanges.subscribe(() => {
+      this.prefillPackagePrice(group);
+      this.applyPackagingModeValidators(group);
+    });
+    if (sub) {
+      this.rowSubs.push(sub);
+    }
+  }
+
+  private prefillPackagePrice(group: FormGroup): void {
+    const articleId = group.get('articleId')?.value;
+    const mode = group.get('entryPackagingMode')?.value as EntryPackagingMode;
+    const article = this.getArticle(articleId);
+    if (!article || mode === 'UNIT') {
+      return;
+    }
+    const packagePrice = mode === 'WHOLESALE'
+      ? article.wholesalePurchasePrice
+      : article.halfWholesalePurchasePrice;
+    if (packagePrice != null && packagePrice > 0) {
+      group.patchValue({ packagePrice }, { emitEvent: false });
+    }
+  }
+
+  hasArticlePackaging(articleId: number | null | undefined): boolean {
+    if (articleId == null) {
+      return false;
+    }
+    const article = this.getArticle(articleId);
+    const units = article?.unitsPerPackage;
+    return !!article && article.packagingType && article.packagingType !== 'NONE'
+      && typeof units === 'number' && units >= 2;
+  }
+
+  getPackagingLabel(articleId: number): string {
+    const article = this.getArticle(articleId);
+    if (!article) {
+      return 'colis';
+    }
+    if (article.packagingType === 'SAC') {
+      return 'sac';
+    }
+    if (article.packagingType === 'CARTON') {
+      return 'carton';
+    }
+    return 'colis';
+  }
+
+  getComputedQuantity(index: number): number {
+    const control = this.articlesArray.at(index);
+    const mode = control.get('entryPackagingMode')?.value as EntryPackagingMode;
+    if (!mode || mode === 'UNIT') {
+      return Number(control.get('quantity')?.value) || 0;
+    }
+    const article = this.getArticle(control.get('articleId')?.value);
+    const packageCount = Number(control.get('packageCount')?.value) || 0;
+    const units = article?.unitsPerPackage || 0;
+    if (!units || !packageCount) {
+      return 0;
+    }
+    const unitsInMode = mode === 'WHOLESALE' ? units : units / 2;
+    return packageCount * unitsInMode;
+  }
+
+  getComputedUnitPrice(index: number): number {
+    const control = this.articlesArray.at(index);
+    const mode = control.get('entryPackagingMode')?.value as EntryPackagingMode;
+    if (!mode || mode === 'UNIT') {
+      return Number(control.get('unitPrice')?.value) || 0;
+    }
+    const article = this.getArticle(control.get('articleId')?.value);
+    const packagePrice = Number(control.get('packagePrice')?.value) || 0;
+    const units = article?.unitsPerPackage || 0;
+    if (!units || packagePrice <= 0) {
+      return 0;
+    }
+    const unitsInMode = mode === 'WHOLESALE' ? units : units / 2;
+    return Math.round((packagePrice / unitsInMode) * 100) / 100;
+  }
+
+  getComputedLineTotal(index: number): number {
+    const control = this.articlesArray.at(index);
+    const mode = control.get('entryPackagingMode')?.value as EntryPackagingMode;
+    if (!mode || mode === 'UNIT') {
+      const qty = Number(control.get('quantity')?.value) || 0;
+      const pu = Number(control.get('unitPrice')?.value) || 0;
+      return qty * pu;
+    }
+    const packageCount = Number(control.get('packageCount')?.value) || 0;
+    const packagePrice = Number(control.get('packagePrice')?.value) || 0;
+    return packageCount * packagePrice;
+  }
+
+  isPackageMode(index: number): boolean {
+    const mode = this.articlesArray.at(index).get('entryPackagingMode')?.value;
+    return mode === 'WHOLESALE' || mode === 'HALF_WHOLESALE';
+  }
+
+  private applyPackagingModeValidators(group: FormGroup): void {
+    const mode = (group.get('entryPackagingMode')?.value as EntryPackagingMode) || 'UNIT';
+    const quantityCtrl = group.get('quantity');
+    const unitPriceCtrl = group.get('unitPrice');
+    const packageCountCtrl = group.get('packageCount');
+    const packagePriceCtrl = group.get('packagePrice');
+
+    if (mode === 'UNIT') {
+      quantityCtrl?.setValidators([Validators.required, Validators.min(1)]);
+      unitPriceCtrl?.setValidators([Validators.required, Validators.min(0.01)]);
+      packageCountCtrl?.clearValidators();
+      packagePriceCtrl?.clearValidators();
+      packageCountCtrl?.setValue(null, { emitEvent: false });
+      packagePriceCtrl?.setValue(null, { emitEvent: false });
+    } else {
+      quantityCtrl?.clearValidators();
+      unitPriceCtrl?.clearValidators();
+      packageCountCtrl?.setValidators([Validators.required, Validators.min(1)]);
+      packagePriceCtrl?.setValidators([Validators.required, Validators.min(0.01)]);
+    }
+    quantityCtrl?.updateValueAndValidity({ emitEvent: false });
+    unitPriceCtrl?.updateValueAndValidity({ emitEvent: false });
+    packageCountCtrl?.updateValueAndValidity({ emitEvent: false });
+    packagePriceCtrl?.updateValueAndValidity({ emitEvent: false });
   }
 
   private clearRowSubs(): void {
@@ -308,7 +452,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
 
     this.articlesSub = this.articlesArray.valueChanges.subscribe(() => {
       this.updateAvailableArticleLists();
-      if (this.showPrices) {
+      if (this.showPrices || this.capturePurchasePrice) {
         this.calculateTotalAmount();
       }
       this.emitChanges();
@@ -332,7 +476,11 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   private calculateTotalAmount(): void {
     let total = 0;
 
-    this.articlesArray.controls.forEach(control => {
+    this.articlesArray.controls.forEach((control, index) => {
+      if (this.capturePurchasePrice) {
+        total += this.getComputedLineTotal(index);
+        return;
+      }
       const articleId = control.get('articleId')?.value;
       const quantity = control.get('quantity')?.value;
 
@@ -350,7 +498,29 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   }
 
   private emitChanges(): void {
-    const value = this.articlesArray.value;
+    const value = this.articlesArray.controls.map((control, index) => {
+      const raw = control.value;
+      if (!this.capturePurchasePrice) {
+        return raw;
+      }
+      const mode = (raw.entryPackagingMode || 'UNIT') as EntryPackagingMode;
+      if (mode === 'UNIT') {
+        return {
+          articleId: raw.articleId,
+          quantity: raw.quantity,
+          unitPrice: raw.unitPrice,
+          entryPackagingMode: 'UNIT'
+        };
+      }
+      return {
+        articleId: raw.articleId,
+        entryPackagingMode: mode,
+        packageCount: raw.packageCount,
+        packagePrice: raw.packagePrice,
+        quantity: this.getComputedQuantity(index),
+        unitPrice: this.getComputedUnitPrice(index)
+      };
+    });
     this.onChange(value);
     this.onTouched();
     this.articlesChange.emit(value);
@@ -419,19 +589,24 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
           quantity: [article.quantity, [Validators.required, Validators.min(1)]]
         };
         if (this.capturePurchasePrice) {
+          groupConfig['entryPackagingMode'] = [article.entryPackagingMode || 'UNIT'];
           groupConfig['unitPrice'] = [
             article.unitPrice ?? this.getCatalogPurchasePrice(article.articleId),
             [Validators.required, Validators.min(0.01)]
           ];
+          groupConfig['packageCount'] = [article.packageCount ?? null];
+          groupConfig['packagePrice'] = [article.packagePrice ?? null];
         }
         const group = this.fb.group(groupConfig);
         if (this.capturePurchasePrice) {
           this.attachPurchasePriceSync(group);
+          this.attachPackagingModeSync(group);
+          this.applyPackagingModeValidators(group);
         }
         this.articlesArray.push(group);
       });
       this.updateAvailableArticleLists();
-      if (this.showPrices) {
+      if (this.showPrices || this.capturePurchasePrice) {
         this.calculateTotalAmount();
       }
       this.listenForArticleChanges();

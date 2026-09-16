@@ -43,6 +43,10 @@ export interface Article {
   category?: string;
   isSeasonal?: boolean;
   lastRestockDate?: string;
+  packagingType?: 'NONE' | 'CARTON' | 'SAC';
+  unitsPerPackage?: number | null;
+  wholesalePurchasePrice?: number | null;
+  halfWholesalePurchasePrice?: number | null;
   state?: 'ENABLED' | 'DISABLED' | 'DELETED';
   /** @deprecated Utiliser 'state' — alias de compatibilité pour list.component */
   status?: 'ENABLED' | 'DISABLED' | 'DELETED';
@@ -65,6 +69,10 @@ export interface NewArticleData {
   reorderPoint?: number;
   optimalStockLevel?: number;
   isSeasonal?: boolean;
+  packagingType?: 'NONE' | 'CARTON' | 'SAC';
+  unitsPerPackage?: number | null;
+  wholesalePurchasePrice?: number | null;
+  halfWholesalePurchasePrice?: number | null;
 }
 
 export interface ArticleHistoryItem {

@@ -1,6 +1,8 @@
 package com.optimize.elykia.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.optimize.elykia.core.enumaration.ArticlePackagingType;
+import com.optimize.elykia.core.enumaration.StockEntryPackagingMode;
 import lombok.Data;
 
 @Data
@@ -12,4 +14,9 @@ public class StockReceptionItemDto {
     private Integer quantity;
     private Double unitPrice;
     private Double totalPrice;
+    private StockEntryPackagingMode entryPackagingMode;
+    private Integer packageCount;
+    private Double packagePrice;
+    private ArticlePackagingType packagingTypeSnapshot;
+    private Integer unitsPerPackageSnapshot;
 }

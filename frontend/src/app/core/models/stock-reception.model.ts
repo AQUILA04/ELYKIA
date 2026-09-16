@@ -30,6 +30,11 @@ export interface StockReceptionItem {
   quantity: number;
   unitPrice: number;
   totalPrice: number;
+  entryPackagingMode?: 'UNIT' | 'WHOLESALE' | 'HALF_WHOLESALE' | null;
+  packageCount?: number | null;
+  packagePrice?: number | null;
+  packagingTypeSnapshot?: 'NONE' | 'CARTON' | 'SAC' | null;
+  unitsPerPackageSnapshot?: number | null;
 }
 
 export interface PagedResponse<T> {

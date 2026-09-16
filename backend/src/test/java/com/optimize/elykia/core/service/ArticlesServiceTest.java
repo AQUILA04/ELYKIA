@@ -19,6 +19,10 @@ import com.optimize.elykia.core.repository.StockReceptionRepository;
 import com.optimize.elykia.core.service.expense.ExpenseService;
 import com.optimize.elykia.core.service.store.ArticleHistoryService;
 import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.core.dto.stock.PackagingEntryResolution;
+import com.optimize.elykia.core.enumaration.ArticlePackagingType;
+import com.optimize.elykia.core.enumaration.StockEntryPackagingMode;
+import com.optimize.elykia.core.service.stock.ArticlePackagingPricingService;
 import com.optimize.elykia.core.service.stock.StockValuationFacade;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -50,6 +54,7 @@ class ArticlesServiceTest {
     @Mock private ArticleStateHistoryRepository articleStateHistoryRepository;
     @Mock private ArticlePriceHistoryRepository articlePriceHistoryRepository;
     @Mock private StockValuationFacade stockValuationFacade;
+    @Mock private ArticlePackagingPricingService articlePackagingPricingService;
 
     @InjectMocks
     private ArticlesService articlesService;
@@ -77,6 +82,8 @@ class ArticlesServiceTest {
             Double requested = invocation.getArgument(1);
             return requested != null && requested > 0 ? requested : target.getPurchasePrice();
         });
+        lenient().when(stockValuationFacade.isFifoEnabled()).thenReturn(false);
+        lenient().doNothing().when(articlePackagingPricingService).validateArticlePackaging(any());
     }
 
     @Test
@@ -149,6 +156,49 @@ class ArticlesServiceTest {
         verify(stockReceptionRepository, times(1)).save(any(StockReception.class));
         verify(expenseService, never()).createExpense(any(ExpenseDto.class));
         verify(articleHistoryService, never()).create(any(ArticleHistory.class));
+        verify(articlePackagingPricingService, never()).resolveFifoEntry(any(), any());
+    }
+
+    @Test
+    void makeStockEntries_FifoWholesale_PersistsPackagingSnapshot() {
+        when(stockValuationFacade.isFifoEnabled()).thenReturn(true);
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        article.setPackagingType(ArticlePackagingType.CARTON);
+        article.setUnitsPerPackage(24);
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(article));
+        when(articlePackagingPricingService.resolveFifoEntry(any(), any())).thenReturn(
+                new PackagingEntryResolution(
+                        72,
+                        208.33,
+                        15000.0,
+                        StockEntryPackagingMode.WHOLESALE,
+                        3,
+                        5000.0,
+                        ArticlePackagingType.CARTON,
+                        24
+                )
+        );
+
+        StockEntryDto stockEntryDto = new StockEntryDto();
+        StockEntry entry = new StockEntry();
+        entry.setArticleId(1L);
+        entry.setEntryPackagingMode(StockEntryPackagingMode.WHOLESALE);
+        entry.setPackageCount(3);
+        entry.setPackagePrice(5000.0);
+        stockEntryDto.setArticleEntries(Set.of(entry));
+
+        articlesService.makeStockEntries(stockEntryDto);
+
+        verify(stockReceptionRepository).save(argThat(reception -> {
+            var item = reception.getItems().iterator().next();
+            return item.getQuantity() == 72
+                    && item.getUnitPrice() == 208.33
+                    && item.getTotalPrice() == 15000.0
+                    && item.getEntryPackagingMode() == StockEntryPackagingMode.WHOLESALE
+                    && item.getPackageCount() == 3
+                    && item.getPackagingTypeSnapshot() == ArticlePackagingType.CARTON
+                    && item.getUnitsPerPackageSnapshot() == 24;
+        }));
     }
 
     @Test

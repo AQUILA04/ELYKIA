@@ -105,7 +105,10 @@
           </tr>
           <tr *ngFor="let item of receptionItems; let i = index">
             <td><span class="row-num">{{ i + 1 }}</span></td>
-            <td><div class="col-article">{{ item.articleName || item.article?.name || '—' }}</div></td>
+            <td>
+              <div class="col-article">{{ item.articleName || item.article?.name || '—' }}</div>
+              <small class="packaging-summary" *ngIf="formatPackagingSummary(item) as summary">{{ summary }}</small>
+            </td>
             <td>
               <span class="qty-badge">{{ item.quantity }}</span>
             </td>

@@ -211,6 +211,13 @@ tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
   color: var(--text-light); font-weight: 600;
 }
 .col-article { font-weight: 600; color: var(--navy); font-size: 13px; }
+.packaging-summary {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted, #64748b);
+  font-size: 12px;
+  font-weight: 400;
+}
 .qty-badge {
   display: inline-flex; align-items: center; justify-content: center;
   padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 700;

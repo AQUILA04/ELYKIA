@@ -9,6 +9,22 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.19.0] — 2026-09-16
+
+### Added
+
+- Packaging d'achat sur la fiche article (carton/sac, unités/colis, prix gros et demi-gros de référence).
+- Entrée de stock FIFO : modes Unitaire / Gros / Demi-gros avec préremplissage catalogue, aperçu qty/PU/total.
+- Détail réception : résumé packaging (ex. « 3 cartons × 24 u = 72 u »).
+
+## Backend — [1.14.0] — 2026-09-16
+
+### Added
+
+- Packaging catalogue article (`packagingType`, `unitsPerPackage`, prix gros/demi-gros) — migration `V98`.
+- Conversion gros/demi-gros → quantité unitaire + PU à l'entrée de stock, uniquement si FIFO actif.
+- Trace packaging sur `StockReceptionItem` (mode, colis, snapshots).
+
 ## Frontend — [2.18.4] — 2026-09-15
 
 ### Added

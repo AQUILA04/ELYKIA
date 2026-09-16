@@ -70,11 +70,29 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
     const formValue = this.inventoryForm.value;
 
     const payload = {
-      articleEntries: formValue.articles.map((entry: { articleId: number; quantity: number; unitPrice?: number }) => ({
-        articleId: entry.articleId,
-        quantity: entry.quantity,
-        ...(entry.unitPrice != null ? { unitPrice: entry.unitPrice } : {})
-      }))
+      articleEntries: formValue.articles.map((entry: {
+        articleId: number;
+        quantity?: number;
+        unitPrice?: number;
+        entryPackagingMode?: string;
+        packageCount?: number;
+        packagePrice?: number;
+      }) => {
+        const base: Record<string, unknown> = {
+          articleId: entry.articleId,
+          entryPackagingMode: entry.entryPackagingMode || 'UNIT'
+        };
+        if (entry.entryPackagingMode === 'WHOLESALE' || entry.entryPackagingMode === 'HALF_WHOLESALE') {
+          base['packageCount'] = entry.packageCount;
+          base['packagePrice'] = entry.packagePrice;
+        } else {
+          base['quantity'] = entry.quantity;
+          if (entry.unitPrice != null) {
+            base['unitPrice'] = entry.unitPrice;
+          }
+        }
+        return base;
+      })
     };
 
     const submitSub = this.inventoryService.addInventories(payload).subscribe({
