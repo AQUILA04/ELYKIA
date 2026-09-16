@@ -21,6 +21,22 @@ fi
 
 export PGPASSWORD
 
+# E2E tourne avec flyway disabled + Hibernate ddl-auto=update : la colonne
+# packaging_type est NOT NULL sans DEFAULT PostgreSQL. Les INSERT V14 ne la
+# renseignent pas — on pose le défaut avant le seed.
+psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -v ON_ERROR_STOP=1 <<'SQL'
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'articles' AND column_name = 'packaging_type'
+  ) THEN
+    ALTER TABLE public.articles ALTER COLUMN packaging_type SET DEFAULT 'NONE';
+    UPDATE public.articles SET packaging_type = 'NONE' WHERE packaging_type IS NULL;
+  END IF;
+END $$;
+SQL
+
 echo "Application des INSERT articles depuis $SQL_FILE sur $PGHOST:$PGPORT/$PGDATABASE ..."
 grep '^INSERT INTO public.articles' "$SQL_FILE" | psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" \
   -v ON_ERROR_STOP=1

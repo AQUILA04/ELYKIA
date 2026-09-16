@@ -28,6 +28,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Stock tontine : gel du prix à la création/livraison sur `sellingPrice` (plus `creditSalePrice`).
+- Seed E2E articles : défaut `packaging_type = NONE` avant les INSERT V14 (évite l'échec NOT NULL sous Hibernate ddl-auto).
 
 ## Backend — [1.14.0] — 2026-09-16
 

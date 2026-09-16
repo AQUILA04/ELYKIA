@@ -63,6 +63,7 @@ public class Articles extends Auditable<String> {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @org.hibernate.annotations.ColumnDefault("'NONE'")
     private ArticlePackagingType packagingType = ArticlePackagingType.NONE;
 
     @PositiveOrZero
