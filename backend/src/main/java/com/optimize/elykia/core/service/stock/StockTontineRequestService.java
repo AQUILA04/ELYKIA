@@ -111,9 +111,9 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
                 item.setArticle(article);
                 item.setItemName(article.getCommercialName() + " " + article.getName());
 
-                // On fige les prix
+                // On fige les prix (tontine = sellingPrice)
                 if (item.getUnitPrice() == null || item.getUnitPrice() == 0) {
-                    item.setUnitPrice(article.getCreditSalePrice()); // Ou un prix spécifique tontine si existant
+                    item.setUnitPrice(article.getSellingPrice());
                 }
                 if (item.getPurchasePrice() == null || item.getPurchasePrice() == 0) {
                     item.setPurchasePrice(article.getPurchasePrice());
@@ -140,6 +140,29 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         request.setStatus(StockRequestStatus.VALIDATED);
         request.setValidationDate(LocalDate.now());
         return update(request);
+    }
+
+    /**
+     * Demande tontine créée, validée et livrée pour réalignement de prix.
+     * À appeler sous SecurityContext du gestionnaire (acting user).
+     */
+    public StockTontineRequest createValidateAndDeliverForPriceRealignment(
+            String collector, Articles article, int quantity, String note) {
+        if (quantity <= 0) {
+            throw new CustomValidationException("Quantité de sortie tontine invalide pour le réalignement de prix.");
+        }
+        StockTontineRequest request = new StockTontineRequest();
+        request.setCollector(collector);
+        request.setNote(note);
+        StockTontineRequestItem item = new StockTontineRequestItem();
+        item.setArticle(article);
+        item.setQuantity(quantity);
+        request.addItem(item);
+
+        StockTontineRequest created = save(request);
+        validate(created.getId());
+        deliver(created.getId());
+        return getById(created.getId());
     }
 
     public PartialDeliveryResponseDTO deliver(Long id) {

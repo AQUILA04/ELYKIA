@@ -17,6 +17,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Entrée de stock FIFO : modes Unitaire / Gros / Demi-gros avec préremplissage catalogue, aperçu qty/PU/total.
 - Détail réception : résumé packaging (ex. « 3 cartons × 24 u = 72 u »).
 
+## Backend — [1.15.0] — 2026-09-16
+
+### Added
+
+- Paramètre `ENABLED_AUTO_STOCK_PRICE_REALIGNMENT` : si activé, un changement de prix déclenche un job de réalignement (retour auto + re-sortie livrée) pour les stocks concernés, avec commentaires d'audit et identité du gestionnaire.
+- Déclencheurs : `creditSalePrice` → stock commercial (mois courant) ; `sellingPrice` → stock tontine (année courante).
+- Notes/commentaires sur demandes de sortie commercial et tontine (migration `V99`).
+
+### Fixed
+
+- Stock tontine : gel du prix à la création/livraison sur `sellingPrice` (plus `creditSalePrice`).
+
 ## Backend — [1.14.0] — 2026-09-16
 
 ### Added

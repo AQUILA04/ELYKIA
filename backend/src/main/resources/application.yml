@@ -465,6 +465,10 @@ app:
         key: TONTINE_SOCIETY_SHARE_VERSION
         value: V2
         description: "Version du calcul part société tontine (V1=mois calendaires entamés, V2=mois réellement cotisés). Le basculement déclenche un recalcul automatique."
+      init-data[6]:
+        key: ENABLED_AUTO_STOCK_PRICE_REALIGNMENT
+        value: false
+        description: "Lorsqu'activé, un changement de prix catalogue déclenche automatiquement le retour et la re-sortie du stock commercial (creditSalePrice) et tontine (sellingPrice) au nouveau prix."
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}

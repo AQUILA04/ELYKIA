@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service.store;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.core.config.CacheNames;
 import com.optimize.elykia.core.dto.ArticlePriceHistoryDto;
 import com.optimize.elykia.core.dto.ArticleStateHistoryDto;
@@ -19,6 +20,7 @@ import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.enumaration.ReceptionStatus;
+import com.optimize.elykia.core.event.ArticlePriceChangedEvent;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
 import com.optimize.elykia.core.repository.ArticlePriceHistoryRepository;
 import com.optimize.elykia.core.repository.ArticleStateHistoryRepository;
@@ -33,9 +35,11 @@ import com.optimize.elykia.core.service.stock.ArticlePackagingPricingService;
 import com.optimize.elykia.core.service.stock.StockValuationFacade;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import com.optimize.elykia.core.util.ArticleCodeGenerator;
+import com.optimize.elykia.core.util.StockPriceRealignmentParams;
 import lombok.Getter;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -64,6 +68,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
     private final ArticlePriceHistoryRepository articlePriceHistoryRepository;
     private final StockValuationFacade stockValuationFacade;
     private final ArticlePackagingPricingService articlePackagingPricingService;
+    private final ParameterService parameterService;
+    private final ApplicationEventPublisher eventPublisher;
     private BusinessMetricsPublisher metricsPublisher;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -81,7 +87,9 @@ public class ArticlesService extends GenericService<Articles, Long> {
             ArticleStateHistoryRepository articleStateHistoryRepository,
             ArticlePriceHistoryRepository articlePriceHistoryRepository,
             StockValuationFacade stockValuationFacade,
-            ArticlePackagingPricingService articlePackagingPricingService) {
+            ArticlePackagingPricingService articlePackagingPricingService,
+            ParameterService parameterService,
+            ApplicationEventPublisher eventPublisher) {
         super(repository);
         this.articlesMapper = articlesMapper;
         this.userService = userService;
@@ -93,6 +101,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
         this.articlePriceHistoryRepository = articlePriceHistoryRepository;
         this.stockValuationFacade = stockValuationFacade;
         this.articlePackagingPricingService = articlePackagingPricingService;
+        this.parameterService = parameterService;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -173,8 +183,32 @@ public class ArticlesService extends GenericService<Articles, Long> {
                     oldOne,
                     oldOne.getPurchasePrice(), oldOne.getSellingPrice(), oldOne.getCreditSalePrice(),
                     articles.getPurchasePrice(), articles.getSellingPrice(), articles.getCreditSalePrice()));
+            publishPriceRealignmentEventIfNeeded(oldOne, articles);
         }
         return super.create(articles);
+    }
+
+    private void publishPriceRealignmentEventIfNeeded(Articles oldOne, Articles updated) {
+        if (!parameterService.isEnabled(StockPriceRealignmentParams.ENABLED_KEY)) {
+            return;
+        }
+        boolean commercialSync = Double.compare(oldOne.getCreditSalePrice(), updated.getCreditSalePrice()) != 0;
+        boolean tontineSync = Double.compare(oldOne.getSellingPrice(), updated.getSellingPrice()) != 0;
+        if (!commercialSync && !tontineSync) {
+            return;
+        }
+        String actingUsername = userService.getCurrentUser() != null
+                ? userService.getCurrentUser().getUsername()
+                : "system";
+        eventPublisher.publishEvent(new ArticlePriceChangedEvent(
+                updated.getId(),
+                oldOne.getSellingPrice(),
+                updated.getSellingPrice(),
+                oldOne.getCreditSalePrice(),
+                updated.getCreditSalePrice(),
+                commercialSync,
+                tontineSync,
+                actingUsername));
     }
 
     private void normalizePackagingDefaults(Articles articles) {

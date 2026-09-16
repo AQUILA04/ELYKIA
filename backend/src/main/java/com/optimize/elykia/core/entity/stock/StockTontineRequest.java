@@ -25,6 +25,8 @@ public class StockTontineRequest extends Auditable<String> {
 
     private String collector; // Le commercial
 
+    private String note;
+
     private LocalDate requestDate;
     
     private LocalDate validationDate;

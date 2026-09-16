@@ -40,6 +40,12 @@ class StockTontineReturnServiceTest {
     private TontineStockService tontineStockService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private com.optimize.elykia.core.service.store.ArticlesService articlesService;
+    @Mock
+    private StockMovementService stockMovementService;
+    @Mock
+    private StockValuationFacade stockValuationFacade;
     @InjectMocks
     private StockTontineReturnService service;
 

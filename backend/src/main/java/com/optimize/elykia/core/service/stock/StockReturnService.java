@@ -113,6 +113,34 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         return stockReturn;
     }
 
+    /**
+     * Retour commercial forcé (création + validation) pour réalignement de prix.
+     * L'identité (audit / mouvements) repose sur le SecurityContext (acting user).
+     */
+    public StockReturn createAndValidateForPriceRealignment(
+            String collector, Articles article, int quantity, String note) {
+        if (quantity <= 0) {
+            throw new CustomValidationException("Quantité de retour invalide pour le réalignement de prix.");
+        }
+        StockReturn stockReturn = new StockReturn();
+        stockReturn.setReference(generateReference());
+        stockReturn.setCollector(collector);
+        stockReturn.setNote(note);
+        stockReturn.setStatus(StockReturnStatus.CREATED);
+        stockReturn.setReturnDate(LocalDate.now());
+
+        StockReturnItem item = new StockReturnItem();
+        item.setArticle(article);
+        item.setQuantity(quantity);
+        stockReturn.addItem(item);
+
+        repository.save(stockReturn);
+        if (metricsPublisher != null) {
+            metricsPublisher.stockReturnCreated(collector);
+        }
+        return validateReturn(stockReturn.getId());
+    }
+
     public StockReturn validateReturn(Long returnId) {
         StockReturn stockReturn = getByIdForValidation(returnId);
         if (stockReturn.getStatus() != StockReturnStatus.CREATED) {

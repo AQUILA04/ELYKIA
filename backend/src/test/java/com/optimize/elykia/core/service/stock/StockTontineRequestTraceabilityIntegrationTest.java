@@ -66,7 +66,7 @@ class StockTontineRequestTraceabilityIntegrationTest extends IntegrationTestSupp
     @Test
     void deliverTontineRequest_persistsWarehouseReleaseAndAnnualTontineStockWithLinkedTraces() {
         // Given
-        Articles article = persistArticle("CHAINE-TONTINE", 10, 800.0, 1_500.0);
+        Articles article = persistArticle("CHAINE-TONTINE", 10, 800.0, 1_500.0, 1_800.0);
         StockTontineRequest request = persistValidatedRequest(article, 3, "TRQ-CHAIN-001", "commercial.tontine");
         when(userService.getCurrentUser()).thenReturn(currentUser);
         when(currentUser.getUsername()).thenReturn("magasinier.tontine");
@@ -142,7 +142,8 @@ class StockTontineRequestTraceabilityIntegrationTest extends IntegrationTestSupp
         assertNotNull(tontineMovement.getOperationDate());
     }
 
-    private Articles persistArticle(String name, int quantity, double purchasePrice, double creditSalePrice) {
+    private Articles persistArticle(String name, int quantity, double purchasePrice, double sellingPrice,
+            double creditSalePrice) {
         Articles article = new Articles();
         article.setName(name);
         article.setType("PACK");
@@ -150,7 +151,7 @@ class StockTontineRequestTraceabilityIntegrationTest extends IntegrationTestSupp
         article.setModel("M-CHAIN");
         article.setStockQuantity(quantity);
         article.setPurchasePrice(purchasePrice);
-        article.setSellingPrice(1_200.0);
+        article.setSellingPrice(sellingPrice);
         article.setCreditSalePrice(creditSalePrice);
         return articlesRepository.saveAndFlush(article);
     }
@@ -166,7 +167,7 @@ class StockTontineRequestTraceabilityIntegrationTest extends IntegrationTestSupp
         item.setArticle(article);
         item.setItemName(article.getCommercialName() + " " + article.getName());
         item.setQuantity(quantity);
-        item.setUnitPrice(article.getCreditSalePrice());
+        item.setUnitPrice(article.getSellingPrice());
         item.setPurchasePrice(article.getPurchasePrice());
         request.addItem(item);
         return stockTontineRequestRepository.saveAndFlush(request);
