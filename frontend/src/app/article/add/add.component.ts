@@ -68,8 +68,13 @@ export class AddComponent implements OnInit {
           creditSalePrice: data.data.creditSalePrice,
           reorderPoint: data.data.reorderPoint,
           optimalStockLevel: data.data.optimalStockLevel,
-          isSeasonal: data.data.isSeasonal
+          isSeasonal: data.data.isSeasonal,
+          packagingType: data.data.packagingType || 'NONE',
+          unitsPerPackage: data.data.unitsPerPackage ?? null,
+          wholesalePurchasePrice: data.data.wholesalePurchasePrice ?? null,
+          halfWholesalePurchasePrice: data.data.halfWholesalePurchasePrice ?? null
         });
+        this.onPackagingTypeChanged(data.data.packagingType || 'NONE');
       },
       error => {
         console.error('Erreur lors du chargement de l\'article à modifier', error);
@@ -88,8 +93,51 @@ export class AddComponent implements OnInit {
       creditSalePrice: [''],
       reorderPoint: ['', [Validators.required, Validators.min(0)]],
       optimalStockLevel: ['', [Validators.required, Validators.min(0)]],
-      isSeasonal: [false]
-    }, { validators: this.priceOrderValidator });
+      isSeasonal: [false],
+      packagingType: ['NONE'],
+      unitsPerPackage: [null],
+      wholesalePurchasePrice: [null],
+      halfWholesalePurchasePrice: [null]
+    }, { validators: [this.priceOrderValidator, this.packagingValidator] });
+
+    this.articleForm.get('packagingType')?.valueChanges.subscribe(type => {
+      this.onPackagingTypeChanged(type);
+    });
+  }
+
+  get hasPackaging(): boolean {
+    const type = this.articleForm?.get('packagingType')?.value;
+    return type && type !== 'NONE';
+  }
+
+  onPackagingTypeChanged(type: string): void {
+    const unitsCtrl = this.articleForm.get('unitsPerPackage');
+    if (type && type !== 'NONE') {
+      unitsCtrl?.setValidators([Validators.required, Validators.min(2)]);
+    } else {
+      unitsCtrl?.clearValidators();
+      this.articleForm.patchValue({
+        unitsPerPackage: null,
+        wholesalePurchasePrice: null,
+        halfWholesalePurchasePrice: null
+      }, { emitEvent: false });
+    }
+    unitsCtrl?.updateValueAndValidity({ emitEvent: false });
+  }
+
+  packagingValidator(control: AbstractControl): ValidationErrors | null {
+    const type = control.get('packagingType')?.value;
+    if (!type || type === 'NONE') {
+      return null;
+    }
+    const units = Number(control.get('unitsPerPackage')?.value);
+    if (!units || units < 2) {
+      return { packagingUnitsInvalid: true };
+    }
+    if (units % 2 !== 0) {
+      return { packagingUnitsOdd: true };
+    }
+    return null;
   }
 
   priceOrderValidator(control: AbstractControl): ValidationErrors | null {
@@ -124,7 +172,11 @@ export class AddComponent implements OnInit {
       creditSalePrice: article.creditSalePrice,
       reorderPoint: article.reorderPoint,
       optimalStockLevel: article.optimalStockLevel,
-      isSeasonal: article.isSeasonal
+      isSeasonal: article.isSeasonal,
+      packagingType: article.packagingType || 'NONE',
+      unitsPerPackage: article.unitsPerPackage ?? null,
+      wholesalePurchasePrice: article.wholesalePurchasePrice ?? null,
+      halfWholesalePurchasePrice: article.halfWholesalePurchasePrice ?? null
     });
   }
 
@@ -132,6 +184,7 @@ export class AddComponent implements OnInit {
     if (this.articleForm.valid) {
       this.isLoading = true;
       this.spinner.show();
+      const packagingType = this.articleForm.value.packagingType || 'NONE';
       const formData: NewArticleData = {
         id: this.articleId!,
         name: this.articleForm.value.name,
@@ -143,7 +196,11 @@ export class AddComponent implements OnInit {
         creditSalePrice: this.articleForm.value.creditSalePrice,
         reorderPoint: this.articleForm.value.reorderPoint,
         optimalStockLevel: this.articleForm.value.optimalStockLevel,
-        isSeasonal: this.articleForm.value.isSeasonal
+        isSeasonal: this.articleForm.value.isSeasonal,
+        packagingType,
+        unitsPerPackage: packagingType === 'NONE' ? null : this.articleForm.value.unitsPerPackage,
+        wholesalePurchasePrice: packagingType === 'NONE' ? null : this.articleForm.value.wholesalePurchasePrice,
+        halfWholesalePurchasePrice: packagingType === 'NONE' ? null : this.articleForm.value.halfWholesalePurchasePrice
       };
 
       if (this.articleId) {

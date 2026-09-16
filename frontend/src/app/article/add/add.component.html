@@ -105,10 +105,43 @@
             <option [ngValue]="false">Non</option>
           </select>
         </div>
+
+        <div class="form-field">
+          <label for="packagingType">Packaging d'achat</label>
+          <select id="packagingType" formControlName="packagingType" class="field-input">
+            <option value="NONE">Aucun (entrée unitaire uniquement)</option>
+            <option value="CARTON">Carton</option>
+            <option value="SAC">Sac</option>
+          </select>
+        </div>
+
+        <div class="form-field" *ngIf="hasPackaging">
+          <label for="unitsPerPackage">Unités par colis <span class="required">*</span></label>
+          <input type="number" id="unitsPerPackage" formControlName="unitsPerPackage" class="field-input field-mono" min="2" step="2">
+          <span class="field-error" *ngIf="articleForm.get('unitsPerPackage')?.invalid && articleForm.get('unitsPerPackage')?.touched">
+            Nombre d'unités ≥ 2 requis
+          </span>
+        </div>
+
+        <div class="form-field" *ngIf="hasPackaging">
+          <label for="wholesalePurchasePrice">Prix d'achat gros (1 colis)</label>
+          <input type="number" id="wholesalePurchasePrice" formControlName="wholesalePurchasePrice" class="field-input field-mono" min="0">
+        </div>
+
+        <div class="form-field" *ngIf="hasPackaging">
+          <label for="halfWholesalePurchasePrice">Prix d'achat demi-gros (½ colis)</label>
+          <input type="number" id="halfWholesalePurchasePrice" formControlName="halfWholesalePurchasePrice" class="field-input field-mono" min="0">
+        </div>
       </div>
 
       <div class="form-hint" *ngIf="articleForm.errors?.['priceOrderInvalid']">
         Les prix doivent respecter l'ordre : Prix d'achat ≤ Prix de vente ≤ Prix de vente à crédit.
+      </div>
+      <div class="form-hint" *ngIf="articleForm.errors?.['packagingUnitsOdd']">
+        Le nombre d'unités par colis doit être pair pour permettre le demi-gros.
+      </div>
+      <div class="form-hint" *ngIf="articleForm.errors?.['packagingUnitsInvalid']">
+        Indiquez un nombre d'unités par colis ≥ 2.
       </div>
 
       <div class="form-actions">

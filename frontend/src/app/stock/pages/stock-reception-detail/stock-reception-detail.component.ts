@@ -214,6 +214,26 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
     }
   }
 
+  formatPackagingSummary(item: StockReceptionItem): string | null {
+    const mode = item.entryPackagingMode;
+    if (!mode || mode === 'UNIT' || !item.packageCount || !item.unitsPerPackageSnapshot) {
+      return null;
+    }
+    const typeLabel = item.packagingTypeSnapshot === 'SAC'
+      ? 'sac'
+      : item.packagingTypeSnapshot === 'CARTON'
+        ? 'carton'
+        : 'colis';
+    if (mode === 'WHOLESALE') {
+      return `${item.packageCount} ${typeLabel}${item.packageCount > 1 ? 's' : ''} × ${item.unitsPerPackageSnapshot} u = ${item.quantity} u`;
+    }
+    if (mode === 'HALF_WHOLESALE') {
+      const halfUnits = item.unitsPerPackageSnapshot / 2;
+      return `${item.packageCount} demi-${typeLabel}${item.packageCount > 1 ? 's' : ''} × ${halfUnits} u = ${item.quantity} u`;
+    }
+    return null;
+  }
+
   goBack(): void {
     this.router.navigate(['/stock/receptions']);
   }

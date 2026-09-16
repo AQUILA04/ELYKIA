@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 import com.optimize.common.entities.annotations.NotStringValue;
+import com.optimize.elykia.core.enumaration.ArticlePackagingType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -48,4 +49,15 @@ public class ArticlesDto {
     private String category; // Catégorie produit pour analyse
 
     private Boolean isSeasonal = false;
+
+    private ArticlePackagingType packagingType = ArticlePackagingType.NONE;
+
+    @PositiveOrZero
+    private Integer unitsPerPackage;
+
+    @PositiveOrZero
+    private Double wholesalePurchasePrice;
+
+    @PositiveOrZero
+    private Double halfWholesalePurchasePrice;
 }

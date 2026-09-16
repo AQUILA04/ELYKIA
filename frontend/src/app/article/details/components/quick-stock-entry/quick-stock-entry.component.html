@@ -22,6 +22,7 @@
     <div class="ai-meta">
         <ng-container *ngIf="article.marque">Marque : {{ article.marque }}</ng-container>
         <ng-container *ngIf="article.model"> · Modèle : {{ article.model }}</ng-container>
+        <ng-container *ngIf="hasPackaging"> · {{ packagingLabel }} de {{ article.unitsPerPackage }} u</ng-container>
     </div>
     <div class="ai-stock-row">
         <div class="ai-stock-chip">
@@ -40,7 +41,16 @@
 
 <!-- Formulaire -->
 <form [formGroup]="form" (ngSubmit)="onSubmit()" class="qse-form">
-    <div class="field-wrap">
+    <div class="field-wrap" *ngIf="fifoEnabled && hasPackaging">
+        <label class="field-label" for="entryPackagingMode">Mode d'entrée</label>
+        <select id="entryPackagingMode" class="field-input" formControlName="entryPackagingMode">
+            <option value="UNIT">Unitaire</option>
+            <option value="WHOLESALE">Gros ({{ packagingLabel }})</option>
+            <option value="HALF_WHOLESALE">Demi-gros (½ {{ packagingLabel }})</option>
+        </select>
+    </div>
+
+    <div class="field-wrap" *ngIf="!isPackageMode">
         <label class="field-label" for="qty">Quantité à ajouter</label>
         <input id="qty" type="number" class="field-input"
             [class.field-input--error]="quantityControl?.invalid && quantityControl?.touched" formControlName="quantity"
@@ -53,7 +63,17 @@
         </span>
     </div>
 
-    <div class="field-wrap" *ngIf="fifoEnabled">
+    <div class="field-wrap" *ngIf="fifoEnabled && isPackageMode">
+        <label class="field-label" for="packageCount">
+            Nombre de {{ form.get('entryPackagingMode')?.value === 'HALF_WHOLESALE' ? 'demi-' : '' }}{{ packagingLabel }}s
+        </label>
+        <input id="packageCount" type="number" class="field-input" formControlName="packageCount" min="1" />
+        <span class="field-error" *ngIf="form.get('packageCount')?.touched && form.get('packageCount')?.invalid">
+            Nombre requis (≥ 1).
+        </span>
+    </div>
+
+    <div class="field-wrap" *ngIf="fifoEnabled && !isPackageMode">
         <label class="field-label" for="unitPrice">PU achat</label>
         <input id="unitPrice" type="number" class="field-input"
             [class.field-input--error]="unitPriceControl?.invalid && unitPriceControl?.touched"
@@ -61,6 +81,19 @@
         <small class="field-hint">Prix catalogue : {{ article.purchasePrice | number:'1.0-0' }} FCFA — modifiable si différent</small>
         <span class="field-error" *ngIf="unitPriceControl?.touched && unitPriceControl?.invalid">
             Le prix d'achat est requis.
+        </span>
+    </div>
+
+    <div class="field-wrap" *ngIf="fifoEnabled && isPackageMode">
+        <label class="field-label" for="packagePrice">
+            Prix {{ form.get('entryPackagingMode')?.value === 'HALF_WHOLESALE' ? 'demi-gros' : 'gros' }}
+        </label>
+        <input id="packagePrice" type="number" class="field-input" formControlName="packagePrice" min="0.01" step="1" />
+        <small class="field-hint">
+            ≈ {{ computedQuantity }} u · PU {{ computedUnitPrice | number:'1.0-2' }} FCFA
+        </small>
+        <span class="field-error" *ngIf="form.get('packagePrice')?.touched && form.get('packagePrice')?.invalid">
+            Le prix colis est requis.
         </span>
     </div>
 

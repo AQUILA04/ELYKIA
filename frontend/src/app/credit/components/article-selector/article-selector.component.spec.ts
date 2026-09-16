@@ -10,7 +10,18 @@ describe('ArticleSelectorComponent', () => {
 
   const articles = [
     { id: 1, name: 'Article A', purchasePrice: 200, sellingPrice: 300, creditSalePrice: 350, stockQuantity: 10 },
-    { id: 2, name: 'Article B', purchasePrice: 250, sellingPrice: 400, creditSalePrice: 450, stockQuantity: 5 }
+    { id: 2, name: 'Article B', purchasePrice: 250, sellingPrice: 400, creditSalePrice: 450, stockQuantity: 5 },
+    {
+      id: 3,
+      name: 'Article C',
+      purchasePrice: 200,
+      sellingPrice: 300,
+      creditSalePrice: 350,
+      stockQuantity: 10,
+      packagingType: 'CARTON',
+      unitsPerPackage: 24,
+      wholesalePurchasePrice: 5000
+    }
   ];
 
   beforeEach(async () => {
@@ -50,5 +61,17 @@ describe('ArticleSelectorComponent', () => {
     row.patchValue({ articleId: 2 });
 
     expect(row.get('unitPrice')?.value).toBe(250);
+  });
+
+  it('computes wholesale quantity and unit price from packaging', () => {
+    const row = component.articlesArray.at(0);
+    row.patchValue({ articleId: 3 });
+    row.patchValue({ entryPackagingMode: 'WHOLESALE', packageCount: 2, packagePrice: 5000 });
+    fixture.detectChanges();
+
+    expect(component.hasArticlePackaging(3)).toBeTrue();
+    expect(component.getComputedQuantity(0)).toBe(48);
+    expect(component.getComputedUnitPrice(0)).toBe(208.33);
+    expect(component.getComputedLineTotal(0)).toBe(10000);
   });
 });

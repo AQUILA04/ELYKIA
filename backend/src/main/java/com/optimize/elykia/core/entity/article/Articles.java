@@ -3,6 +3,7 @@ package com.optimize.elykia.core.entity.article;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.optimize.common.entities.entity.Auditable;
 import com.optimize.common.entities.enums.State;
+import com.optimize.elykia.core.enumaration.ArticlePackagingType;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -59,6 +60,19 @@ public class Articles extends Auditable<String> {
     private String category; // Catégorie produit pour analyse
 
     private Boolean isSeasonal = false; // Produit saisonnier
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ArticlePackagingType packagingType = ArticlePackagingType.NONE;
+
+    @PositiveOrZero
+    private Integer unitsPerPackage;
+
+    @PositiveOrZero
+    private Double wholesalePurchasePrice;
+
+    @PositiveOrZero
+    private Double halfWholesalePurchasePrice;
 
     public Articles(Long articleId) {
         this.id = articleId;

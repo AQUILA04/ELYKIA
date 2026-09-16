@@ -25,7 +25,11 @@ import com.optimize.elykia.core.repository.ArticleStateHistoryRepository;
 import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import com.optimize.elykia.core.repository.StockReceptionRepository;
+import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.elykia.core.dto.stock.PackagingEntryResolution;
+import com.optimize.elykia.core.enumaration.ArticlePackagingType;
 import com.optimize.elykia.core.service.expense.ExpenseService;
+import com.optimize.elykia.core.service.stock.ArticlePackagingPricingService;
 import com.optimize.elykia.core.service.stock.StockValuationFacade;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import com.optimize.elykia.core.util.ArticleCodeGenerator;
@@ -59,6 +63,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
     private final ArticleStateHistoryRepository articleStateHistoryRepository;
     private final ArticlePriceHistoryRepository articlePriceHistoryRepository;
     private final StockValuationFacade stockValuationFacade;
+    private final ArticlePackagingPricingService articlePackagingPricingService;
     private BusinessMetricsPublisher metricsPublisher;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -75,7 +80,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
             StockReceptionRepository stockReceptionRepository,
             ArticleStateHistoryRepository articleStateHistoryRepository,
             ArticlePriceHistoryRepository articlePriceHistoryRepository,
-            StockValuationFacade stockValuationFacade) {
+            StockValuationFacade stockValuationFacade,
+            ArticlePackagingPricingService articlePackagingPricingService) {
         super(repository);
         this.articlesMapper = articlesMapper;
         this.userService = userService;
@@ -86,6 +92,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
         this.articleStateHistoryRepository = articleStateHistoryRepository;
         this.articlePriceHistoryRepository = articlePriceHistoryRepository;
         this.stockValuationFacade = stockValuationFacade;
+        this.articlePackagingPricingService = articlePackagingPricingService;
     }
 
     @Transactional
@@ -97,6 +104,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }, allEntries = true)
     public Articles createArticles(ArticlesDto dto) {
         Articles articles = articlesMapper.toEntity(dto);
+        normalizePackagingDefaults(articles);
+        articlePackagingPricingService.validateArticlePackaging(articles);
         articles.setCode(ArticleCodeGenerator.generate(articles));
         return create(articles);
 
@@ -157,6 +166,8 @@ public class ArticlesService extends GenericService<Articles, Long> {
         articles.setLastRestockDate(oldOne.getLastRestockDate());
         articles.setStockTurnoverRate(oldOne.getStockTurnoverRate());
         articles.setCode(oldOne.getCode());
+        normalizePackagingDefaults(articles);
+        articlePackagingPricingService.validateArticlePackaging(articles);
         if (hasPriceChanged(oldOne, articles)) {
             articlePriceHistoryRepository.save(new ArticlePriceHistory(
                     oldOne,
@@ -164,6 +175,17 @@ public class ArticlesService extends GenericService<Articles, Long> {
                     articles.getPurchasePrice(), articles.getSellingPrice(), articles.getCreditSalePrice()));
         }
         return super.create(articles);
+    }
+
+    private void normalizePackagingDefaults(Articles articles) {
+        if (articles.getPackagingType() == null) {
+            articles.setPackagingType(ArticlePackagingType.NONE);
+        }
+        if (articles.getPackagingType() == ArticlePackagingType.NONE) {
+            articles.setUnitsPerPackage(null);
+            articles.setWholesalePurchasePrice(null);
+            articles.setHalfWholesalePurchasePrice(null);
+        }
     }
 
     private boolean hasPriceChanged(Articles oldOne, Articles updated) {
@@ -305,19 +327,40 @@ public class ArticlesService extends GenericService<Articles, Long> {
         stockReception.setReceivedBy(connectedUser);
         stockReception.setReference("RCP-" + System.currentTimeMillis());
 
+        final boolean fifoEnabled = stockValuationFacade.isFifoEnabled();
+
         stockEntryDto.getArticleEntries().forEach(stockEntry -> {
             Articles articles = getById(stockEntry.getArticleId());
-            double unitPrice = stockValuationFacade.resolveEntryUnitPrice(articles, stockEntry.getUnitPrice());
 
             StockReceptionItem receptionItem = new StockReceptionItem();
             receptionItem.setArticle(articles);
-            receptionItem.setQuantity(stockEntry.getQuantity());
-            receptionItem.setUnitPrice(unitPrice);
-            receptionItem.setTotalPrice(unitPrice * stockEntry.getQuantity());
-            stockReception.addItem(receptionItem);
 
-            double totalLinePrice = unitPrice * stockEntry.getQuantity();
-            totalCheck.updateAndGet(v -> v + totalLinePrice);
+            if (fifoEnabled) {
+                PackagingEntryResolution resolved = articlePackagingPricingService.resolveFifoEntry(articles, stockEntry);
+                double unitPrice = stockValuationFacade.resolveEntryUnitPrice(articles, resolved.unitPrice());
+                receptionItem.setQuantity(resolved.quantity());
+                receptionItem.setUnitPrice(unitPrice);
+                receptionItem.setTotalPrice(resolved.totalPrice());
+                receptionItem.setEntryPackagingMode(resolved.entryPackagingMode());
+                receptionItem.setPackageCount(resolved.packageCount());
+                receptionItem.setPackagePrice(resolved.packagePrice());
+                receptionItem.setPackagingTypeSnapshot(resolved.packagingTypeSnapshot());
+                receptionItem.setUnitsPerPackageSnapshot(resolved.unitsPerPackageSnapshot());
+                totalCheck.updateAndGet(v -> v + resolved.totalPrice());
+            } else {
+                // Legacy : ignore packaging fields ; quantity obligatoire
+                if (stockEntry.getQuantity() == null) {
+                    throw new CustomValidationException(
+                            "La quantité d'entrée pour l'article est obligatoire !");
+                }
+                double unitPrice = stockValuationFacade.resolveEntryUnitPrice(articles, stockEntry.getUnitPrice());
+                receptionItem.setQuantity(stockEntry.getQuantity());
+                receptionItem.setUnitPrice(unitPrice);
+                receptionItem.setTotalPrice(unitPrice * stockEntry.getQuantity());
+                totalCheck.updateAndGet(v -> v + (unitPrice * stockEntry.getQuantity()));
+            }
+
+            stockReception.addItem(receptionItem);
         });
 
         stockReception.setTotalAmount(totalCheck.get());
