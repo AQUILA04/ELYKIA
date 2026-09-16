@@ -21,7 +21,8 @@ public final class StockRequestDeliveryPricing {
 
     public static void applyAtDelivery(StockTontineRequestItem item, Articles article,
             boolean fifoEnabled, double fifoAverageUnitCost) {
-        item.setUnitPrice(article.getCreditSalePrice());
+        // Tontine fige le prix de vente comptant (sellingPrice), pas le crédit
+        item.setUnitPrice(article.getSellingPrice());
         item.setPurchasePrice(resolvePurchasePrice(article, fifoEnabled, fifoAverageUnitCost));
     }
 

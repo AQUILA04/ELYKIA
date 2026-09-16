@@ -25,6 +25,8 @@ public class StockRequest extends Auditable<String> {
 
     private String collector; // Le commercial
 
+    private String note;
+
     private Integer month;
 
     private Integer year;

@@ -60,8 +60,8 @@ class StockTontineRequestServiceTest {
     @Test
     void save_newRequestInitializesLifecycleReferenceFrozenPricesAndTotals() {
         // Given
-        Articles requestedArticle = article(7L, null, null, null, null, null, null);
-        Articles managedArticle = article(7L, "Produit", "Pack", "Elykia", "Familial", 1_500.0, 800.0);
+        Articles requestedArticle = article(7L, null, null, null, null, null, null, null);
+        Articles managedArticle = article(7L, "Produit", "Pack", "Elykia", "Familial", 1_500.0, 2_000.0, 800.0);
         StockTontineRequestItem item = new StockTontineRequestItem();
         item.setArticle(requestedArticle);
         item.setQuantity(3);
@@ -138,13 +138,16 @@ class StockTontineRequestServiceTest {
     }
 
     private Articles article(Long id, String name, String type, String marque, String model,
-            Double creditSalePrice, Double purchasePrice) {
+            Double sellingPrice, Double creditSalePrice, Double purchasePrice) {
         Articles article = new Articles();
         article.setId(id);
         article.setName(name);
         article.setType(type);
         article.setMarque(marque);
         article.setModel(model);
+        if (sellingPrice != null) {
+            article.setSellingPrice(sellingPrice);
+        }
         if (creditSalePrice != null) {
             article.setCreditSalePrice(creditSalePrice);
         }

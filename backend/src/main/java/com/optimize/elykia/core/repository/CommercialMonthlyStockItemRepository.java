@@ -52,4 +52,18 @@ public interface CommercialMonthlyStockItemRepository extends GenericRepository<
     @EntityGraph(attributePaths = {"monthlyStock"})
     @Query("SELECT s FROM CommercialMonthlyStockItem s WHERE s.id IN :ids")
     List<CommercialMonthlyStockItem> findAllByIdInWithMonthlyStock(@Param("ids") Collection<Long> ids);
+
+    @EntityGraph(attributePaths = {"article", "monthlyStock"})
+    @Query("""
+            SELECT cmsi FROM CommercialMonthlyStockItem cmsi
+            JOIN cmsi.monthlyStock cms
+            WHERE cmsi.article.id = :articleId
+              AND cms.month = :month
+              AND cms.year = :year
+              AND cmsi.quantityRemaining > 0
+            """)
+    List<CommercialMonthlyStockItem> findRemainingByArticleAndPeriod(
+            @Param("articleId") Long articleId,
+            @Param("month") Integer month,
+            @Param("year") Integer year);
 }

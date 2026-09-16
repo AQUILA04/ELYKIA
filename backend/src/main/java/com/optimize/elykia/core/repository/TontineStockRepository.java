@@ -31,4 +31,7 @@ public interface TontineStockRepository extends GenericRepository<TontineStock, 
     default TontineStock getArticleForCommercial(Long articleId, String commercial) {
         return findByArticleIdAndCommercialAndYear(articleId, commercial, LocalDate.now().getYear()).orElse(null);
     }
+
+    List<TontineStock> findByArticleIdAndYearAndAvailableQuantityGreaterThan(
+            Long articleId, Integer year, Integer availableQuantity);
 }

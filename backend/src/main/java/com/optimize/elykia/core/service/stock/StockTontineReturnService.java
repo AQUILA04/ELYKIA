@@ -4,10 +4,16 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.dto.ArticleHistoryContext;
+import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.StockTontineReturn;
 import com.optimize.elykia.core.entity.stock.StockTontineReturnItem;
+import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
+import com.optimize.elykia.core.enumaration.MovementType;
+import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.StockTontineReturnRepository;
+import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.util.ArticleSortOrder;
@@ -21,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @Transactional
@@ -30,15 +35,24 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
     private final UserService userService;
     private final TontineStockService tontineStockService;
     private final ApplicationEventPublisher eventPublisher;
+    private final ArticlesService articlesService;
+    private final StockMovementService stockMovementService;
+    private final StockValuationFacade stockValuationFacade;
 
     protected StockTontineReturnService(StockTontineReturnRepository repository,
             UserService userService,
             TontineStockService tontineStockService,
-            ApplicationEventPublisher eventPublisher) {
+            ApplicationEventPublisher eventPublisher,
+            ArticlesService articlesService,
+            StockMovementService stockMovementService,
+            StockValuationFacade stockValuationFacade) {
         super(repository);
         this.userService = userService;
         this.tontineStockService = tontineStockService;
         this.eventPublisher = eventPublisher;
+        this.articlesService = articlesService;
+        this.stockMovementService = stockMovementService;
+        this.stockValuationFacade = stockValuationFacade;
     }
 
     public StockTontineReturn save(StockTontineReturn entity) {
@@ -73,6 +87,40 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
             return saved;
         }
         return super.create(entity);
+    }
+
+    /**
+     * Retour tontine forcé + validation. Si {@code reintegrateToWarehouse},
+     * réintègre le stock magasin (chemin réalignement prix uniquement).
+     */
+    public StockTontineReturn createAndValidateForPriceRealignment(
+            String collector, Articles article, int quantity, String comment, boolean reintegrateToWarehouse) {
+        if (quantity <= 0) {
+            throw new CustomValidationException("Quantité de retour tontine invalide pour le réalignement de prix.");
+        }
+        User currentUser = userService.getCurrentUser();
+        String actingUsername = currentUser != null ? currentUser.getUsername() : "system";
+
+        StockTontineReturn entity = new StockTontineReturn();
+        entity.setCollector(collector);
+        entity.setComment(comment);
+        entity.setReturnDate(LocalDate.now());
+        entity.setStatus(StockReturnStatus.RECEIVED);
+        entity.setReceivedDate(LocalDate.now());
+        entity.setReceivedBy(actingUsername);
+
+        StockTontineReturnItem item = new StockTontineReturnItem();
+        item.setArticle(article);
+        item.setQuantity(quantity);
+        entity.addItem(item);
+
+        StockTontineReturn saved = super.create(entity);
+        processValidationLogic(saved);
+
+        if (reintegrateToWarehouse) {
+            reintegrateToWarehouse(saved, actingUsername);
+        }
+        return saved;
     }
 
     public StockTontineReturn validate(Long id) {
@@ -143,6 +191,38 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
                 totalAmount,
                 returnRequest.getCollector(),
                 returnRequest.getId()));
+    }
+
+    private void reintegrateToWarehouse(StockTontineReturn stockReturn, String actingUsername) {
+        for (StockTontineReturnItem item : stockReturn.getItems()) {
+            Articles article = articlesService.getById(item.getArticle().getId());
+            double returnUnitCost = article.getPurchasePrice();
+
+            stockValuationFacade.registerEntry(
+                    article,
+                    item.getQuantity(),
+                    returnUnitCost,
+                    ArticleStockLotSourceType.STOCK_RETURN,
+                    null,
+                    LocalDate.now());
+
+            stockMovementService.recordMovement(
+                    article,
+                    MovementType.RETURN,
+                    item.getQuantity(),
+                    "Réalignement prix — retour tontine " + stockReturn.getId(),
+                    actingUsername,
+                    null,
+                    returnUnitCost,
+                    ArticleHistoryContext.withReference(
+                            stockReturn.getCollector(),
+                            StockHistoryReferenceType.STOCK_TONTINE_RETURN,
+                            stockReturn.getId(),
+                            null));
+
+            article.makeEntry(item.getQuantity());
+            articlesService.update(article);
+        }
     }
 
     @Override

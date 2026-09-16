@@ -264,6 +264,29 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         return repository.save(request);
     }
 
+    /**
+     * Demande de sortie commerciale créée, validée et livrée pour réalignement de prix.
+     * À appeler sous SecurityContext du gestionnaire (acting user).
+     */
+    public StockRequest createValidateAndDeliverForPriceRealignment(
+            String collector, Articles article, int quantity, String note) {
+        if (quantity <= 0) {
+            throw new CustomValidationException("Quantité de sortie invalide pour le réalignement de prix.");
+        }
+        StockRequest request = new StockRequest();
+        request.setCollector(collector);
+        request.setNote(note);
+        StockRequestItem item = new StockRequestItem();
+        item.setArticle(article);
+        item.setQuantity(quantity);
+        request.addItem(item);
+
+        StockRequest created = createRequest(request, false);
+        validateRequest(created.getId());
+        deliverRequest(created.getId());
+        return getById(created.getId());
+    }
+
     public PartialDeliveryResponseDTO deliverRequest(Long requestId) {
         StockRequest request = getByIdForDelivery(requestId);
         if (request.getStatus() != StockRequestStatus.VALIDATED) {

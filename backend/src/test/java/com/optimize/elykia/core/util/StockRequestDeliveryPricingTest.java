@@ -10,8 +10,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class StockRequestDeliveryPricingTest {
 
     @Test
-    void applyAtDelivery_legacy_usesCatalogPrices() {
-        Articles article = article(80.0, 150.0);
+    void applyAtDelivery_commercial_legacy_usesCreditSalePriceAndCatalogPurchase() {
+        Articles article = article(80.0, 120.0, 150.0);
         StockRequestItem item = itemWithPrices(100.0, 50.0);
 
         StockRequestDeliveryPricing.applyAtDelivery(item, article, false, 0.0);
@@ -21,19 +21,31 @@ class StockRequestDeliveryPricingTest {
     }
 
     @Test
-    void applyAtDelivery_fifo_usesCatalogSalePriceAndFifoCost() {
-        Articles article = article(80.0, 150.0);
+    void applyAtDelivery_tontine_fifo_usesSellingPriceAndFifoCost() {
+        Articles article = article(80.0, 120.0, 150.0);
         StockTontineRequestItem item = tontineItemWithPrices(100.0, 50.0);
 
         StockRequestDeliveryPricing.applyAtDelivery(item, article, true, 92.5);
 
-        assertEquals(150.0, item.getUnitPrice());
+        assertEquals(120.0, item.getUnitPrice());
         assertEquals(92.5, item.getPurchasePrice());
     }
 
-    private static Articles article(double purchasePrice, double creditSalePrice) {
+    @Test
+    void applyAtDelivery_tontine_legacy_usesSellingPriceNotCreditSalePrice() {
+        Articles article = article(80.0, 120.0, 150.0);
+        StockTontineRequestItem item = tontineItemWithPrices(100.0, 50.0);
+
+        StockRequestDeliveryPricing.applyAtDelivery(item, article, false, 0.0);
+
+        assertEquals(120.0, item.getUnitPrice());
+        assertEquals(80.0, item.getPurchasePrice());
+    }
+
+    private static Articles article(double purchasePrice, double sellingPrice, double creditSalePrice) {
         Articles article = new Articles();
         article.setPurchasePrice(purchasePrice);
+        article.setSellingPrice(sellingPrice);
         article.setCreditSalePrice(creditSalePrice);
         return article;
     }
