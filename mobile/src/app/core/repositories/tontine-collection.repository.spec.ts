@@ -68,4 +68,41 @@ describe('TontineCollectionRepository V2 fields', () => {
     expect(ids.has('uuid-local')).toBeTrue();
     expect(ids.size).toBe(2);
   });
+
+  it('markAsSynced rewrites the primary key in place (no second INSERT)', async () => {
+    databaseService.execute.and.resolveTo();
+
+    await repository.markAsSynced('uuid-local', '31979');
+
+    expect(databaseService.execute).toHaveBeenCalledWith(
+      jasmine.stringMatching(/UPDATE tontine_collections SET isSync = 1, isLocal = 0, id = \?/),
+      ['31979', 'uuid-local']
+    );
+  });
+
+  it('purgeSyncedOrphans deletes Local UUID rows that already have a Sync server twin', async () => {
+    databaseService.query.and.resolveTo({
+      values: [{ localId: 'uuid-orphan-1' }, { localId: 'uuid-orphan-2' }]
+    });
+    databaseService.execute.and.resolveTo();
+
+    const purged = await repository.purgeSyncedOrphans();
+
+    expect(purged).toBe(2);
+    expect(databaseService.execute).toHaveBeenCalledTimes(2);
+    expect(databaseService.execute.calls.argsFor(0)).toEqual([
+      jasmine.stringMatching(/DELETE FROM tontine_collections WHERE id = \? AND isLocal = 1 AND isSync = 0/),
+      ['uuid-orphan-1']
+    ]);
+    expect(databaseService.execute.calls.argsFor(1)[1]).toEqual(['uuid-orphan-2']);
+  });
+
+  it('purgeSyncedOrphans is a no-op when there are no orphan twins', async () => {
+    databaseService.query.and.resolveTo({ values: [] });
+
+    const purged = await repository.purgeSyncedOrphans();
+
+    expect(purged).toBe(0);
+    expect(databaseService.execute).not.toHaveBeenCalled();
+  });
 });

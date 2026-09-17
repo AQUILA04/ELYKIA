@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.28.17] — 2026-09-17
+
+### Fixed
+
+- Tests de non-régression collectes tontine : après sync réussie, une seule ligne Sync (id serveur) et plus d’orphelin Local UUID ; purge d’une paire Local+Sync préexistante avant batch.
+
 ## Mobile — [2.28.16] — 2026-09-17
 
 ### Fixed
