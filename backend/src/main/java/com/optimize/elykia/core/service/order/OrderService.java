@@ -9,9 +9,12 @@ import com.optimize.elykia.core.dto.*;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.entity.sale.OrderItem;
+import com.optimize.common.securities.models.User;
+import com.optimize.elykia.core.enumaration.AppNotificationType;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.repository.OrderItemRepository;
 import com.optimize.elykia.core.repository.OrderRepository;
+import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.sale.CreditService;
 import org.hibernate.Hibernate; // CORRECTION : Import nécessaire
@@ -43,6 +46,7 @@ public class OrderService extends GenericService<Order, Long> {
     private final CreditService creditService;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
+    private final AppNotificationService appNotificationService;
 
     protected OrderService(OrderRepository repository,
             OrderItemRepository orderItemRepository,
@@ -52,7 +56,8 @@ public class OrderService extends GenericService<Order, Long> {
             UserService userService,
             CreditService creditService,
             OrderStatusHistoryRepository orderStatusHistoryRepository,
-            org.springframework.context.ApplicationEventPublisher eventPublisher) {
+            org.springframework.context.ApplicationEventPublisher eventPublisher,
+            AppNotificationService appNotificationService) {
         super(repository);
         this.orderItemRepository = orderItemRepository;
         this.clientService = clientService;
@@ -62,6 +67,7 @@ public class OrderService extends GenericService<Order, Long> {
         this.creditService = creditService;
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
         this.eventPublisher = eventPublisher;
+        this.appNotificationService = appNotificationService;
     }
 
     @Override
@@ -140,11 +146,13 @@ public class OrderService extends GenericService<Order, Long> {
     }
 
     public List<Order> updateOrderStatus(UpdateOrderStatusDto dto) {
-        String username = userService.getCurrentUser().getUsername();
+        User currentUser = userService.getCurrentUser();
+        String username = currentUser.getUsername();
         List<Order> updatedOrders = new ArrayList<>();
 
         for (Long orderId : dto.getOrderIds()) {
             Order order = super.getById(orderId);
+            assertOrderPortfolioAccess(currentUser, order);
             OrderStatus oldStatus = order.getStatus();
             OrderStatus newStatus = dto.getNewStatus();
 
@@ -155,6 +163,10 @@ public class OrderService extends GenericService<Order, Long> {
             updatedOrders.add(updatedOrder);
 
             historyService.createHistory(updatedOrder, oldStatus, newStatus, username);
+
+            if (oldStatus == OrderStatus.PENDING && newStatus != OrderStatus.PENDING) {
+                appNotificationService.resolveByTypeAndEntityId(AppNotificationType.CUSTOMER_ORDER, orderId);
+            }
         }
 
         return updatedOrders;
@@ -202,7 +214,14 @@ public class OrderService extends GenericService<Order, Long> {
     @Transactional(readOnly = true)
     public Page<Order> getAllOrders(OrderStatus status, Pageable pageable) {
         OrderStatus finalStatus = (status == null) ? OrderStatus.PENDING : status;
-        Page<Order> ordersPage = getRepository().findByStatus(finalStatus, pageable);
+        User currentUser = userService.getCurrentUser();
+        Page<Order> ordersPage;
+        if (AppNotificationService.isPromoterOnly(currentUser)) {
+            ordersPage = getRepository().findByStatusAndClientCollectors(
+                    finalStatus, currentUser.getUsername(), pageable);
+        } else {
+            ordersPage = getRepository().findByStatus(finalStatus, pageable);
+        }
 
         // CORRECTION : Force le chargement de la collection "items" pour chaque
         // commande de la page.
@@ -249,9 +268,22 @@ public class OrderService extends GenericService<Order, Long> {
                     savedOrder.getId()));
         }
 
+        appNotificationService.createCustomerOrder(savedOrder, client);
         clientService.updateOrderStatus(client.getId(), Boolean.TRUE);
 
         return savedOrder;
+    }
+
+    private void assertOrderPortfolioAccess(User user, Order order) {
+        if (!AppNotificationService.isPromoterOnly(user)) {
+            return;
+        }
+        Client client = order.getClient();
+        String collector = client != null ? client.getCollector() : null;
+        String tontineCollector = client != null ? client.getTontineCollector() : null;
+        if (!AppNotificationService.matchesPromoterPortfolio(user, collector, tontineCollector)) {
+            throw new CustomValidationException("Accès non autorisé à cette commande.");
+        }
     }
 
     public Order updatePendingOrder(Long orderId, OrderDto dto) {

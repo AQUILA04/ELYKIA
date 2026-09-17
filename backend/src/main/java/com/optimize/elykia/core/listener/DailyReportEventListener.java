@@ -26,6 +26,7 @@ public class DailyReportEventListener {
         private final DailyCommercialReportPersistence reportPersistence;
         private final DailyOperationService dailyOperationService;
         private final TontineCatchupNotificationService tontineCatchupNotificationService;
+        private final com.optimize.elykia.core.service.notification.AppNotificationService appNotificationService;
 
         @EventListener
         @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -347,6 +348,7 @@ public class DailyReportEventListener {
                         captureReport.setTontineCatchupCount(catchupCount + 1);
                         captureReport.setTontineCatchupAmount(catchupAmount + amount);
                         reportPersistence.save(captureReport);
+                        appNotificationService.createFromCatchupEvent(event);
                         tontineCatchupNotificationService.createFromCatchupEvent(event);
                 }
 
@@ -372,6 +374,7 @@ public class DailyReportEventListener {
                                 event.getCollector(), event.getOperationDate(), event.getCaptureDate());
                 double amountToCancel = event.getAmount() != null ? event.getAmount() : 0.0;
 
+                appNotificationService.cancelCatchupByCollectionId(event.getCollectionId());
                 tontineCatchupNotificationService.cancelByCollectionId(event.getCollectionId());
 
                 dailyOperationService.logOperation(

@@ -36,6 +36,8 @@ class DailyReportEventListenerTontineTest {
     private DailyOperationService dailyOperationService;
     @Mock
     private TontineCatchupNotificationService tontineCatchupNotificationService;
+    @Mock
+    private com.optimize.elykia.core.service.notification.AppNotificationService appNotificationService;
 
     @InjectMocks
     private DailyReportEventListener listener;

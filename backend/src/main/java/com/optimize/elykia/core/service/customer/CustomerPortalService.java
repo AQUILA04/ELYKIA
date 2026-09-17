@@ -25,6 +25,7 @@ import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
 import com.optimize.elykia.core.repository.CreditArticlesRepository;
 import com.optimize.elykia.core.service.order.OrderService;
+import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -59,6 +60,7 @@ public class CustomerPortalService {
     private final TontineMemberRepository tontineMemberRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
     private final CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
+    private final AppNotificationService appNotificationService;
 
     public CustomerDashboardDto getDashboard() {
         Client client = contextService.requireClient(contextService.currentUsername());
@@ -217,6 +219,8 @@ public class CustomerPortalService {
         submission.setStatus(CustomerSubmissionStatus.INITIE);
         submission.setCreatedBy(client.getFullName());
         submission = submissionRepository.save(submission);
+
+        appNotificationService.createPaymentDeclaration(submission, credit, client);
 
         return CustomerRecoveryDto.builder()
                 .id(String.valueOf(submission.getId()))

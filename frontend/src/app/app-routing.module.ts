@@ -73,6 +73,18 @@ const routes: Routes = [
     }
   },
 
+  {
+    path: 'customer-payments',
+    loadChildren: () => import('./customer-payments/customer-payments.module').then(m => m.CustomerPaymentsModule),
+    canActivate: [AuthGuard]
+  },
+
+  {
+    path: 'notifications',
+    loadChildren: () => import('./notifications/notifications.module').then(m => m.NotificationsModule),
+    canActivate: [AuthGuard]
+  },
+
   // === ROUTES BI DASHBOARD ===
   {
     path: 'bi',

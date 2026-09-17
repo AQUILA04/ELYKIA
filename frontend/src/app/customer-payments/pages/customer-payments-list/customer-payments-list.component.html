@@ -1,0 +1,62 @@
+<div class="container-fluid py-3" data-testid="e2e-customer-payments-page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="mb-1">Déclarations de paiement</h2>
+      <p class="text-muted mb-0">Soumissions Mobile Money en attente de validation (customer-space).</p>
+    </div>
+    <button type="button" class="btn btn-outline-primary" (click)="load()" [disabled]="loading">
+      Actualiser
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="text-muted py-4">Chargement…</div>
+
+  <div *ngIf="!loading && submissions.length === 0" class="alert alert-light border">
+    Aucune déclaration en attente.
+  </div>
+
+  <div class="table-responsive" *ngIf="!loading && submissions.length > 0">
+    <table class="table table-hover align-middle">
+      <thead>
+        <tr>
+          <th>Client</th>
+          <th>Commercial</th>
+          <th>Crédit</th>
+          <th>Échéance</th>
+          <th>Montant</th>
+          <th>Téléphone</th>
+          <th>Référence</th>
+          <th>Date</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of submissions"
+            [class.table-primary]="highlightId === row.id"
+            [attr.data-testid]="'e2e-customer-payment-row'"
+            [attr.data-submission-id]="row.id">
+          <td>{{ row.clientName || ('#' + row.clientId) }}</td>
+          <td>{{ row.targetCollector || '—' }}</td>
+          <td>
+            <button type="button" class="btn btn-link p-0" (click)="openCredit(row)">
+              #{{ row.creditId }}
+            </button>
+          </td>
+          <td>{{ row.installmentNumber }}</td>
+          <td>{{ row.mobileMoneyAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+          <td>{{ row.mobileMoneyPhone }}</td>
+          <td>{{ row.mobileMoneyReference }}</td>
+          <td>{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td class="text-nowrap">
+            <button type="button" class="btn btn-sm btn-success me-1"
+              data-testid="e2e-customer-payment-validate"
+              (click)="validate(row)">Valider</button>
+            <button type="button" class="btn btn-sm btn-outline-danger"
+              data-testid="e2e-customer-payment-reject"
+              (click)="reject(row)">Rejeter</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
