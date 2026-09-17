@@ -4,7 +4,7 @@ import { firstValueFrom, Observable, Subject, combineLatest, BehaviorSubject } f
 import { takeUntil, filter, switchMap, take, map, debounceTime, distinctUntilChanged, tap } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController, InfiniteScrollCustomEvent, IonInfiniteScroll } from '@ionic/angular';
+import { IonicModule, ModalController, InfiniteScrollCustomEvent, IonInfiniteScroll, ActionSheetController } from '@ionic/angular';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 
 import { Distribution } from '../../models/distribution.model';
@@ -58,7 +58,8 @@ export class DistributionsListPage implements OnInit, OnDestroy {
     private router: Router,
     private modalController: ModalController,
     private cdr: ChangeDetectorRef,
-    private featureFlagService: FeatureFlagService
+    private featureFlagService: FeatureFlagService,
+    private actionSheetCtrl: ActionSheetController
   ) {
     this.ordersManagementEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.OrdersManagement);
     const distributions$ = this.store.select(DistributionSelectors.selectPaginatedDistributions);
@@ -171,6 +172,36 @@ export class DistributionsListPage implements OnInit, OnDestroy {
   refreshDistributions(event?: any) {
     this.loadInitialData();
     if (event) setTimeout(() => event.target.complete(), 500); // Simulate network delay or wait for store?
+  }
+
+  /**
+   * Entry point for creation: when orders are enabled, ask commande vs livraison directe.
+   */
+  async presentCreationChooser() {
+    if (!this.ordersManagementEnabled) {
+      this.goToNewDistribution();
+      return;
+    }
+
+    const actionSheet = await this.actionSheetCtrl.create({
+      header: 'Type de création',
+      subHeader: 'Commande (à livrer plus tard) ou livraison directe',
+      cssClass: 'elyk-action-sheet',
+      buttons: [
+        {
+          text: 'Livraison directe',
+          icon: 'bicycle-outline',
+          handler: () => this.goToNewDistribution()
+        },
+        {
+          text: 'Commande',
+          icon: 'receipt-outline',
+          handler: () => this.goToNewOrder()
+        },
+        { text: 'Annuler', role: 'cancel' }
+      ]
+    });
+    await actionSheet.present();
   }
 
   goToNewDistribution() { this.router.navigate(['/distributions/new']); }

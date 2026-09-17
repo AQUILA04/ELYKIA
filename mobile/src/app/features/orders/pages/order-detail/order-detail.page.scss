@@ -153,6 +153,28 @@ ion-card-title {
   text-align: center;
 }
 
+.footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 0;
+}
+
+.footer-actions ion-button {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 120px;
+}
+
+.footer-btn-primary {
+  flex: 1 1 100%;
+}
+
+.footer-btn-muted {
+  --color: var(--elyk-muted);
+}
+
 .amount-status.status-pending {
   background: #fff3e6;
   color: var(--elyk-orange);
@@ -170,6 +192,6 @@ ion-card-title {
 }
 
 .amount-status.status-sold {
-  background: var(--elyk-navy-pale);
-  color: var(--elyk-navy);
+  background: #e6f5eb;
+  color: var(--elyk-green);
 }

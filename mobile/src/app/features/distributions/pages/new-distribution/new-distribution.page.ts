@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ModalController, ToastController, AlertController, LoadingController, ViewWillEnter } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Observable, Subject, BehaviorSubject, combineLatest, of } from 'rxjs';
@@ -21,12 +21,16 @@ import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 import { CanComponentDeactivate } from '../../../../core/guards/unsaved-changes.guard';
 import { LoggerService } from '../../../../core/services/logger.service';
 import { DistributionService } from '../../../../core/services/distribution.service';
+import { OrderService } from '../../../../core/services/order.service';
+import { ClientService } from '../../../../core/services/client.service';
 import { AccountService } from '../../../../core/services/account.service';
 import { DatabaseService } from '../../../../core/services/database.service';
 import { ArticleRepository } from '../../../../core/repositories/article.repository';
 import { FeatureFlagService, FeatureFlags } from '../../../../core/services/feature-flag.service';
 import { CreditPurpose } from '../../../../models/credit-purpose.model';
 import { Distribution } from '../../../../models/distribution.model';
+import { OnlineWriteError, WriteErrorKind } from '../../../../core/services/online-first-write.types';
+import { HybridSyncUiService } from '../../../../core/services/hybrid-sync-ui.service';
 
 interface DistributionViewModel {
   client: Client | null;
@@ -68,6 +72,9 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
 
   dualCreditEnabled = false;
   creditPurpose: CreditPurpose = 'PERSONAL';
+  /** When delivering an existing order, holds its id. */
+  sourceOrderId: string | null = null;
+  sourceOrderReference: string | null = null;
 
   private searchTerm$ = new BehaviorSubject<string>('');
   private dailyPayment$ = new BehaviorSubject<number>(0);
@@ -78,6 +85,7 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
 
   constructor(
     private router: Router,
+    private route: ActivatedRoute,
     private modalController: ModalController,
     private toastController: ToastController,
     private loadingController: LoadingController,
@@ -88,10 +96,13 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     private log: LoggerService,
     private cdr: ChangeDetectorRef,
     private distributionService: DistributionService,
+    private orderService: OrderService,
+    private clientService: ClientService,
     private accountService: AccountService,
     private databaseService: DatabaseService,
     private articleRepository: ArticleRepository,
-    private featureFlagService: FeatureFlagService
+    private featureFlagService: FeatureFlagService,
+    private hybridSyncUiService: HybridSyncUiService
   ) {
     this.distributionForm = this.fb.group({ advance: [0] });
   }
@@ -138,6 +149,65 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
 
     this.setupCalculationPipeline();
     this.setupActionListeners();
+    void this.prefillFromOrderIfNeeded();
+  }
+
+  /**
+   * Prefill client + articles when navigating from order detail « Livrer ».
+   */
+  private async prefillFromOrderIfNeeded() {
+    const orderId = this.route.snapshot.queryParamMap.get('orderId');
+    if (!orderId) {
+      return;
+    }
+
+    try {
+      const order = await firstValueFrom(this.orderService.getOrderById(orderId));
+      if (!order) {
+        await this.presentErrorAlert('Commande introuvable', 'Impossible de préremplir depuis la commande.');
+        return;
+      }
+
+      this.sourceOrderId = order.id;
+      this.sourceOrderReference = order.reference;
+
+      let client = order.client || null;
+      if (!client && order.clientId) {
+        client = await this.clientService.getClientById(order.clientId);
+      }
+      if (client) {
+        this.store.dispatch(DistributionActions.setSelectedClient({ client }));
+      }
+
+      const items = await firstValueFrom(this.orderService.getOrderItems(orderId));
+      const articleIds = items.map(i => i.articleId);
+      const articles = articleIds.length
+        ? await this.articleRepository.findByIds(articleIds)
+        : [];
+
+      for (const item of items) {
+        const article = articles.find(a => a.id === item.articleId);
+        if (!article) {
+          this.log.error('[NewDistributionPage] Article commande introuvable en DB', { articleId: item.articleId });
+          continue;
+        }
+        // Ensure quantity is allowed in UI even if current stock is lower than ordered qty
+        const articleForUi: Article = {
+          ...article,
+          stockQuantity: Math.max(article.stockQuantity || 0, item.quantity)
+        };
+        this.store.dispatch(DistributionActions.updateArticleQuantity({
+          articleId: article.id,
+          quantity: item.quantity,
+          article: articleForUi
+        }));
+      }
+
+      this.cdr.detectChanges();
+    } catch (error) {
+      this.log.error('[NewDistributionPage] Prefill order failed', error);
+      await this.presentErrorAlert('Erreur', 'Impossible de préremplir la livraison depuis la commande.');
+    }
   }
 
   ionViewWillEnter() {
@@ -190,6 +260,8 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     this.log.log('[NewDistributionPage] Leaving page, resetting state.');
     this.store.dispatch(DistributionActions.resetDistributionState());
     this.distributionForm.reset({ advance: 0 });
+    this.sourceOrderId = null;
+    this.sourceOrderReference = null;
   }
 
   private setupCalculationPipeline() {
@@ -350,6 +422,10 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
       ),
       takeUntil(this.destroy$)
     ).subscribe(async ([{ distribution }, user, articles, client]) => {
+      if (this.sourceOrderId) {
+        await this.markSourceOrderDelivered();
+      }
+
       const modal = await this.modalController.create({
         component: PrintReceiptModalComponent,
         componentProps: { distribution, client, articles, commercial: user }
@@ -359,6 +435,37 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
       this.store.dispatch(DistributionActions.resetDistributionState());
       this.router.navigate(['/tabs/distributions']);
     });
+  }
+
+  private async markSourceOrderDelivered(forceOffline = false): Promise<void> {
+    if (!this.sourceOrderId) {
+      return;
+    }
+    try {
+      await firstValueFrom(
+        this.orderService.markOrderAsDelivered(this.sourceOrderId, { forceOffline })
+      );
+      const toast = await this.toastController.create({
+        message: `Commande ${this.sourceOrderReference || ''} marquée comme livrée`,
+        duration: 2500,
+        color: 'success',
+        position: 'top'
+      });
+      await toast.present();
+    } catch (error) {
+      if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS) {
+        const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
+        if (saveOffline) {
+          await this.markSourceOrderDelivered(true);
+          return;
+        }
+      }
+      this.log.error('[NewDistributionPage] markOrderAsDelivered failed', error);
+      const message = error instanceof Error
+        ? error.message
+        : 'Distribution créée, mais le statut de la commande n\'a pas pu être mis à jour.';
+      await this.presentErrorAlert('Statut commande', message);
+    }
   }
 
   async openClientSelector() {

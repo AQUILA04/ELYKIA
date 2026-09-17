@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { OrderView } from '../../../../models/order-view.model';
+import { getOrderStatusClass, getOrderStatusLabel } from '../../../../core/utils/order-status.util';
 
 @Component({
   selector: 'app-order-item',
@@ -11,37 +12,11 @@ export class OrderItemComponent {
   @Input() order!: OrderView;
 
   getStatusLabel(status: string): string {
-    switch (status) {
-      case 'PENDING':
-        return 'En attente';
-      case 'ACCEPTED':
-        return 'Acceptée';
-      case 'DENIED':
-        return 'Refusée';
-      case 'CANCEL':
-        return 'Annulée';
-      case 'SOLD':
-        return 'Vendue';
-      default:
-        return status || '—';
-    }
+    return getOrderStatusLabel(status);
   }
 
   getStatusClass(status: string): string {
-    switch (status) {
-      case 'PENDING':
-        return 'status-pending';
-      case 'ACCEPTED':
-        return 'status-accepted';
-      case 'DENIED':
-        return 'status-denied';
-      case 'CANCEL':
-        return 'status-cancel';
-      case 'SOLD':
-        return 'status-sold';
-      default:
-        return 'status-pending';
-    }
+    return getOrderStatusClass(status);
   }
 
   get clientDisplayName(): string {

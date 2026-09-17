@@ -90,17 +90,50 @@
       </ion-card-content>
     </ion-card>
 
-    <p class="readonly-hint" *ngIf="!canModify">
-      Cette commande n'est plus modifiable (statut {{ getStatusLabel(order.status) }}).
+    <p class="readonly-hint" *ngIf="order.status === 'SOLD'">
+      Commande livrée (transformée en distribution).
+    </p>
+    <p class="readonly-hint" *ngIf="order.status === 'CANCEL' || order.status === 'DENIED'">
+      Cette commande est {{ getStatusLabel(order.status).toLowerCase() }}.
     </p>
   </ng-container>
 </ion-content>
 
-<ion-footer class="elyk-footer-bar" *ngIf="order && canModify">
+<ion-footer class="elyk-footer-bar" *ngIf="order && (canModify || canDeliver || canAccept || canCancel)">
   <ion-toolbar>
-    <ion-button expand="block" class="elyk-btn-navy" (click)="editOrder()">
-      <ion-icon name="create-outline" slot="start"></ion-icon>
-      Modifier
-    </ion-button>
+    <div class="footer-actions">
+      <ion-button
+        *ngIf="canModify"
+        fill="outline"
+        class="elyk-btn-outline"
+        (click)="editOrder()">
+        <ion-icon name="create-outline" slot="start"></ion-icon>
+        Modifier
+      </ion-button>
+      <ion-button
+        *ngIf="canAccept"
+        fill="outline"
+        class="elyk-btn-outline"
+        (click)="acceptOrder()">
+        <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+        Accepter
+      </ion-button>
+      <ion-button
+        *ngIf="canCancel"
+        fill="outline"
+        class="elyk-btn-outline footer-btn-muted"
+        (click)="cancelOrderStatus()">
+        <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+        Annuler
+      </ion-button>
+      <ion-button
+        *ngIf="canDeliver"
+        expand="block"
+        class="elyk-btn-navy footer-btn-primary"
+        (click)="deliverOrder()">
+        <ion-icon name="bicycle-outline" slot="start"></ion-icon>
+        Livrer
+      </ion-button>
+    </div>
   </ion-toolbar>
 </ion-footer>

@@ -6,13 +6,21 @@
       </ion-buttons>
       <ion-title>
         <span class="elyk-surtitle">Ventes crédit</span>
-        Nouvelle Distribution
+        {{ sourceOrderId ? 'Livrer la commande' : 'Nouvelle Distribution' }}
       </ion-title>
     </ion-toolbar>
   </header>
 </ion-header>
 
 <ion-content class="elyk-content">
+  <div class="order-source-banner elyk-card" *ngIf="sourceOrderId">
+    <ion-icon name="receipt-outline"></ion-icon>
+    <div>
+      <strong>Livraison depuis commande</strong>
+      <p>{{ sourceOrderReference || sourceOrderId }}</p>
+    </div>
+  </div>
+
   <div class="client-section">
     <div class="section-header">
       <ion-icon name="person-outline" class="section-icon"></ion-icon>

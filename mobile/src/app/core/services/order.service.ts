@@ -22,12 +22,21 @@ import { DailyConsentStateService } from '../daily-consent/daily-consent-state.s
 import { AmountConfirmationService } from '../../features/amount-confirmation/amount-confirmation.service';
 import { OrderSyncService } from './sync/order-sync.service';
 import { OnlineFirstWriteCoordinator } from './online-first-write.coordinator';
+import {
+  OrderStatusValue,
+  canTransitionOrderStatus,
+  getOrderStatusTransitionPath
+} from '../utils/order-status.util';
 
 interface CreateOrderData {
   clientId: string;
   articles: Array<{ articleId: string; quantity: number }>;
   totalAmount: number;
   client?: any;
+  forceOffline?: boolean;
+}
+
+interface UpdateOrderStatusOptions {
   forceOffline?: boolean;
 }
 
@@ -424,5 +433,118 @@ export class OrderService {
       console.error('Failed to mark order as synced:', error);
       return false;
     }
+  }
+
+  /**
+   * Change order status (local-first + online PATCH when the order already has a server id).
+   */
+  updateOrderStatus(
+    orderId: string,
+    newStatus: OrderStatusValue,
+    options: UpdateOrderStatusOptions = {}
+  ): Observable<Order> {
+    return from(this.updateOrderStatusLocalFirst(orderId, newStatus, options.forceOffline === true));
+  }
+
+  /**
+   * Mark order as delivered (SOLD). Applies PENDING→ACCEPTED→SOLD when needed.
+   * Does not create the credit itself — caller creates the distribution/livraison.
+   */
+  markOrderAsDelivered(
+    orderId: string,
+    options: UpdateOrderStatusOptions = {}
+  ): Observable<Order> {
+    return from(this.markOrderAsDeliveredLocalFirst(orderId, options.forceOffline === true));
+  }
+
+  private async updateOrderStatusLocalFirst(
+    orderId: string,
+    newStatus: OrderStatusValue,
+    forceOffline: boolean
+  ): Promise<Order> {
+    const order = await this.orderRepository.findById(orderId);
+    if (!order) {
+      throw new Error('Commande introuvable.');
+    }
+    if (!canTransitionOrderStatus(order.status, newStatus)) {
+      throw new Error(`Transition de statut non autorisée : ${order.status} → ${newStatus}`);
+    }
+
+    const writeResult = await this.onlineFirstWriteCoordinator.executeWrite({
+      entityLabel: 'order-status',
+      forceOffline,
+      saveOffline: () => this.persistOrderStatus(order, newStatus, false),
+      saveOnline: () => this.persistOrderStatus(order, newStatus, true)
+    });
+    return writeResult.data;
+  }
+
+  private async markOrderAsDeliveredLocalFirst(
+    orderId: string,
+    forceOffline: boolean
+  ): Promise<Order> {
+    const order = await this.orderRepository.findById(orderId);
+    if (!order) {
+      throw new Error('Commande introuvable.');
+    }
+
+    const path = getOrderStatusTransitionPath(order.status, 'SOLD');
+    if (path.length === 0) {
+      return order;
+    }
+
+    let current = order;
+    for (const step of path) {
+      const writeResult = await this.onlineFirstWriteCoordinator.executeWrite({
+        entityLabel: 'order-status',
+        forceOffline,
+        saveOffline: () => this.persistOrderStatus(current, step, false),
+        saveOnline: () => this.persistOrderStatus(current, step, true)
+      });
+      current = writeResult.data;
+    }
+    return current;
+  }
+
+  private async persistOrderStatus(
+    order: Order,
+    newStatus: OrderStatusValue,
+    online: boolean
+  ): Promise<Order> {
+    if (online) {
+      const serverId = await this.orderRepository.getServerId(order.id, 'order');
+      if (!serverId) {
+        // Not yet on server: keep local-only and leave for create+status sync
+        return this.persistOrderStatus(order, newStatus, false);
+      }
+      await this.orderSyncService.postUpdateOrderStatus([serverId], newStatus);
+      const updated: Order = {
+        ...order,
+        status: newStatus,
+        isSync: true,
+        isLocal: false,
+        syncDate: new Date().toISOString()
+      };
+      await this.orderRepository.updateStatusFields(order.id, {
+        status: newStatus,
+        isSync: true,
+        isLocal: false,
+        syncDate: updated.syncDate
+      });
+      return updated;
+    }
+
+    const updated: Order = {
+      ...order,
+      status: newStatus,
+      isSync: false,
+      syncDate: new Date().toISOString()
+    };
+    await this.orderRepository.updateStatusFields(order.id, {
+      status: newStatus,
+      isSync: false,
+      syncDate: updated.syncDate
+    });
+    return updated;
   }
 }

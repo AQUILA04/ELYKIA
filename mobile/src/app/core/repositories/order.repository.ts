@@ -253,4 +253,49 @@ export class OrderRepository extends BaseRepository<Order, string> {
         }
     }
 
+    /**
+     * Update status / sync flags without touching order_items.
+     */
+    async updateStatusFields(
+        orderId: string,
+        fields: { status: string; isSync: boolean; isLocal?: boolean; syncDate?: string }
+    ): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const syncDate = fields.syncDate ?? new Date().toISOString();
+        if (typeof fields.isLocal === 'boolean') {
+            await this.databaseService.execute(
+                `UPDATE orders SET status = ?, isSync = ?, isLocal = ?, syncDate = ? WHERE id = ?`,
+                [fields.status, fields.isSync ? 1 : 0, fields.isLocal ? 1 : 0, syncDate, orderId]
+            );
+        } else {
+            await this.databaseService.execute(
+                `UPDATE orders SET status = ?, isSync = ?, syncDate = ? WHERE id = ?`,
+                [fields.status, fields.isSync ? 1 : 0, syncDate, orderId]
+            );
+        }
+    }
+
+    /**
+     * Unsynced orders including status-only updates on already-created server orders.
+     */
+    async findUnsyncedIncludingStatusUpdates(
+        commercialUsername: string,
+        limit: number,
+        offset: number
+    ): Promise<Order[]> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        const sql = `
+            SELECT * FROM orders
+            WHERE isSync = 0 AND commercialId = ?
+            ORDER BY createdAt ASC
+            LIMIT ? OFFSET ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        return (result.values || []).map((row: any) => this.mapRowToOrder(row));
+    }
+
 }

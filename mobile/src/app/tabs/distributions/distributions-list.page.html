@@ -10,7 +10,7 @@
           <p class="elyk-surtitle">Ventes crédit</p>
           <h1>Distributions</h1>
         </div>
-        <ion-button fill="clear" class="hero-add" (click)="goToNewDistribution()">
+        <ion-button fill="clear" class="hero-add" (click)="presentCreationChooser()">
           <ion-icon slot="icon-only" name="add"></ion-icon>
         </ion-button>
       </div>
@@ -42,13 +42,13 @@
     </section>
 
     <div class="quick-actions" [class.quick-actions--single]="!ordersManagementEnabled">
-      <div class="action-card elyk-card" (click)="goToNewDistribution()">
+      <div class="action-card elyk-card" (click)="presentCreationChooser()">
         <div class="action-icon-wrap">
           <ion-icon name="add-circle-outline"></ion-icon>
         </div>
         <div class="action-text">
-          <h3>Nouvelle Distribution</h3>
-          <p>Enregistrer une vente à crédit</p>
+          <h3>{{ ordersManagementEnabled ? 'Nouvelle vente' : 'Nouvelle Distribution' }}</h3>
+          <p>{{ ordersManagementEnabled ? 'Commande ou livraison directe' : 'Enregistrer une vente à crédit' }}</p>
         </div>
       </div>
       <div class="action-card elyk-card" *ngIf="ordersManagementEnabled" (click)="goToNewOrder()">
@@ -57,7 +57,7 @@
         </div>
         <div class="action-text">
           <h3>Nouvelle Commande</h3>
-          <p>Enregistrer une commande client</p>
+          <p>Réserver sans livrer tout de suite</p>
         </div>
       </div>
     </div>

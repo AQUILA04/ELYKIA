@@ -9,6 +9,17 @@ import { Order } from '../../../../models/order.model';
 import { OrderItem } from '../../../../models/order-item.model';
 import { Client } from '../../../../models/client.model';
 import { LoggerService } from '../../../../core/services/logger.service';
+import { HybridSyncUiService } from '../../../../core/services/hybrid-sync-ui.service';
+import { OnlineWriteError, WriteErrorKind } from '../../../../core/services/online-first-write.types';
+import {
+  canAcceptOrder,
+  canCancelOrder,
+  canDeliverOrder,
+  canModifyOrder,
+  getOrderStatusClass,
+  getOrderStatusLabel,
+  OrderStatusValue
+} from '../../../../core/utils/order-status.util';
 import * as OrderActions from '../../../../store/order/order.actions';
 import { Store } from '@ngrx/store';
 
@@ -38,11 +49,24 @@ export class OrderDetailPage implements OnInit, OnDestroy {
     private toastController: ToastController,
     private loadingController: LoadingController,
     private store: Store,
-    private log: LoggerService
+    private log: LoggerService,
+    private hybridSyncUiService: HybridSyncUiService
   ) {}
 
   get canModify(): boolean {
-    return this.order?.status === 'PENDING';
+    return !!this.order && canModifyOrder(this.order.status);
+  }
+
+  get canAccept(): boolean {
+    return !!this.order && canAcceptOrder(this.order.status);
+  }
+
+  get canCancel(): boolean {
+    return !!this.order && canCancelOrder(this.order.status);
+  }
+
+  get canDeliver(): boolean {
+    return !!this.order && canDeliverOrder(this.order.status);
   }
 
   ngOnInit() {
@@ -106,25 +130,11 @@ export class OrderDetailPage implements OnInit, OnDestroy {
   }
 
   getStatusLabel(status: string): string {
-    switch (status) {
-      case 'PENDING': return 'En attente';
-      case 'ACCEPTED': return 'Acceptée';
-      case 'DENIED': return 'Refusée';
-      case 'CANCEL': return 'Annulée';
-      case 'SOLD': return 'Vendue';
-      default: return status || '—';
-    }
+    return getOrderStatusLabel(status);
   }
 
   getStatusClass(status: string): string {
-    switch (status) {
-      case 'PENDING': return 'status-pending';
-      case 'ACCEPTED': return 'status-accepted';
-      case 'DENIED': return 'status-denied';
-      case 'CANCEL': return 'status-cancel';
-      case 'SOLD': return 'status-sold';
-      default: return 'status-pending';
-    }
+    return getOrderStatusClass(status);
   }
 
   goBack() {
@@ -137,6 +147,94 @@ export class OrderDetailPage implements OnInit, OnDestroy {
       return;
     }
     this.router.navigate(['/tabs/orders/edit', this.order.id]);
+  }
+
+  async acceptOrder() {
+    await this.confirmAndChangeStatus('ACCEPTED', 'Accepter la commande',
+      'Confirmer l\'acceptation de cette commande ?', 'Commande acceptée');
+  }
+
+  async cancelOrderStatus() {
+    await this.confirmAndChangeStatus('CANCEL', 'Annuler la commande',
+      'Confirmer l\'annulation de cette commande ?', 'Commande annulée');
+  }
+
+  deliverOrder() {
+    if (!this.canDeliver || !this.order) {
+      this.showToast('Cette commande ne peut pas être livrée.', 'warning');
+      return;
+    }
+    this.router.navigate(['/distributions/new'], {
+      queryParams: { orderId: this.order.id }
+    });
+  }
+
+  private async confirmAndChangeStatus(
+    newStatus: OrderStatusValue,
+    header: string,
+    message: string,
+    successMessage: string
+  ) {
+    if (!this.order) {
+      return;
+    }
+    const alert = await this.alertController.create({
+      header,
+      message,
+      buttons: [
+        { text: 'Retour', role: 'cancel' },
+        {
+          text: 'Confirmer',
+          handler: () => {
+            void this.performStatusChange(newStatus, successMessage);
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  private async performStatusChange(
+    newStatus: OrderStatusValue,
+    successMessage: string,
+    forceOffline = false
+  ) {
+    if (!this.order) {
+      return;
+    }
+
+    const loading = await this.loadingController.create({
+      message: 'Mise à jour du statut...'
+    });
+    await loading.present();
+
+    try {
+      const updated = await firstValueFrom(
+        this.orderService.updateOrderStatus(this.order.id, newStatus, { forceOffline })
+      );
+      this.order = updated;
+      this.store.dispatch(OrderActions.loadFirstPageOrders({ filters: {} }));
+      await this.showToast(successMessage, 'success');
+    } catch (error) {
+      if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS) {
+        await loading.dismiss();
+        const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
+        if (saveOffline) {
+          await this.performStatusChange(newStatus, successMessage, true);
+          return;
+        }
+        return;
+      }
+      console.error('Error updating order status:', error);
+      const message = error instanceof Error ? error.message : 'Erreur lors de la mise à jour du statut';
+      await this.showToast(message, 'danger');
+    } finally {
+      try {
+        await loading.dismiss();
+      } catch {
+        // already dismissed
+      }
+    }
   }
 
   async deleteOrder() {

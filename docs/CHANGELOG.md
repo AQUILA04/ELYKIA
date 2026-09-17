@@ -9,6 +9,19 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.29.0] — 2026-09-17
+
+### Added
+
+- Choix à la création (flag `ordersManagement`) : **commande** vs **livraison directe** (action sheet FAB / carte rapide Distributions).
+- Gestion du statut commande côté mobile (accepter, annuler) en local-first + `PATCH /api/v1/orders/status`.
+- Action **Livrer** : préremplit la nouvelle distribution depuis la commande, puis marque la commande `SOLD` (via `PENDING→ACCEPTED→SOLD` si besoin) sans appeler `/sell` pour éviter un double crédit.
+- Sync commandes : pousse aussi les mises à jour de statut (après create si besoin).
+
+### Changed
+
+- Libellé statut `SOLD` affiché **Livrée** sur mobile (aligné usage commercial).
+
 ## Customer-space — [0.4.0] — 2026-09-17
 
 ### Added
