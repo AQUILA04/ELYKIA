@@ -16,7 +16,6 @@ import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissio
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +50,9 @@ public class CustomerMobileMoneySubmissionAdminService {
             return Page.empty(pageable);
         }
 
-        Map<Long, Client> clientsById = loadClients(content);
+        Map<Long, Client> clientsById = SubmissionAdminSupport.loadClientsById(
+                clientService,
+                content.stream().map(CustomerMobileMoneySubmission::getClientId).toList());
         Map<Long, Credit> creditsById = loadCredits(content);
 
         List<CustomerMobileMoneySubmissionDto> dtos = new ArrayList<>();
@@ -67,11 +68,7 @@ public class CustomerMobileMoneySubmissionAdminService {
             dtos.add(toDto(submission, client, targetCollector, tontineCollector));
         }
 
-        if (AppNotificationService.isPromoterOnly(user)) {
-            // In-memory filter keeps pagination approximate for promoters; list sizes stay small for INITIE.
-            return new PageImpl<>(dtos, pageable, dtos.size());
-        }
-        return new PageImpl<>(dtos, pageable, page.getTotalElements());
+        return SubmissionAdminSupport.pageForAudience(user, dtos, pageable, page.getTotalElements());
     }
 
     public CustomerMobileMoneySubmissionDto validate(User user, Long id) {
@@ -106,22 +103,6 @@ public class CustomerMobileMoneySubmissionAdminService {
         submission = submissionRepository.save(submission);
         appNotificationService.resolveByTypeAndEntityId(AppNotificationType.PAYMENT_DECLARATION, submission.getId());
         return toDto(submission, client, targetCollector, tontineCollector);
-    }
-
-    private Map<Long, Client> loadClients(List<CustomerMobileMoneySubmission> submissions) {
-        return submissions.stream()
-                .map(CustomerMobileMoneySubmission::getClientId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .map(id -> {
-                    try {
-                        return clientService.getById(id);
-                    } catch (Exception ex) {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(Client::getId, Function.identity(), (a, b) -> a));
     }
 
     private Map<Long, Credit> loadCredits(List<CustomerMobileMoneySubmission> submissions) {

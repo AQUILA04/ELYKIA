@@ -19,7 +19,6 @@ import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,9 +28,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -54,7 +50,9 @@ public class CustomerTontineMmSubmissionAdminService {
             return Page.empty(pageable);
         }
 
-        Map<Long, Client> clientsById = loadClients(page.getContent());
+        Map<Long, Client> clientsById = SubmissionAdminSupport.loadClientsById(
+                clientService,
+                page.getContent().stream().map(CustomerTontineMmSubmission::getClientId).toList());
         List<CustomerTontineMmSubmissionDto> dtos = new ArrayList<>();
         for (CustomerTontineMmSubmission submission : page.getContent()) {
             Client client = clientsById.get(submission.getClientId());
@@ -69,10 +67,7 @@ public class CustomerTontineMmSubmissionAdminService {
             }
             dtos.add(toDto(submission, client, tontineCollector));
         }
-        if (AppNotificationService.isPromoterOnly(user)) {
-            return new PageImpl<>(dtos, pageable, dtos.size());
-        }
-        return new PageImpl<>(dtos, pageable, page.getTotalElements());
+        return SubmissionAdminSupport.pageForAudience(user, dtos, pageable, page.getTotalElements());
     }
 
     public CustomerTontineMmSubmissionDto validate(User user, Long id) {
@@ -149,22 +144,6 @@ public class CustomerTontineMmSubmissionAdminService {
         appNotificationService.resolveByTypeAndEntityId(
                 AppNotificationType.TONTINE_PAYMENT_DECLARATION, submission.getId());
         return toDto(submission, client, tontineCollector);
-    }
-
-    private Map<Long, Client> loadClients(List<CustomerTontineMmSubmission> submissions) {
-        return submissions.stream()
-                .map(CustomerTontineMmSubmission::getClientId)
-                .filter(Objects::nonNull)
-                .distinct()
-                .map(id -> {
-                    try {
-                        return clientService.getById(id);
-                    } catch (Exception ex) {
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull)
-                .collect(Collectors.toMap(Client::getId, Function.identity(), (a, b) -> a));
     }
 
     private static String buildValidationNotes(CustomerTontineMmSubmission submission) {
