@@ -134,6 +134,16 @@
 
     <p class="elyk-quarter-title">Rapports</p>
     <div class="elyk-card elyk-settings-group">
+      <div class="elyk-settings-row elyk-settings-row--control">
+        <div class="settings-icon"><ion-icon name="calendar-outline"></ion-icon></div>
+        <div class="settings-body">
+          <h3>Autoriser les rapports antérieurs</h3>
+          <p>Permet de choisir une date passée sur le rapport journalier pour régénérer un PDF</p>
+        </div>
+        <div class="settings-end">
+          <ion-toggle [(ngModel)]="allowPastDailyReports" (ionChange)="onAllowPastDailyReportsToggleChange()"></ion-toggle>
+        </div>
+      </div>
       <div class="elyk-settings-row is-clickable" routerLink="/tabs/dashboard/recoveries/list">
         <div class="settings-icon settings-icon--green"><ion-icon name="cash-outline"></ion-icon></div>
         <div class="settings-body"><h3>Recouvrements</h3></div>

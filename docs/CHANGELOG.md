@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.28.16] — 2026-09-17
+
+### Fixed
+
+- Collectes tontine (sync hybride) : après un POST offline réussi, `markAsSynced` réécrit la PK locale vers l’id serveur avant de persister les champs V2 — plus de doublon Local UUID + Sync serveur dans SQLite, KPI et PDF.
+- Purge automatique des orphelins Local déjà synchronisés (`purgeSyncedOrphans`) au démarrage tontine et avant chaque batch de sync collectes.
+
+### Added
+
+- Paramètre Plus **Autoriser les rapports antérieurs** (`allowPastDailyReports`, défaut off) : affiche un sélecteur de date sur le rapport journalier pour régénérer un PDF d’un jour passé (ex. 16/09/2026) après purge.
+- Scénario ops : déployer 2.28.16 → ouvrir l’app (purge) → Plus activer le toggle → Rapport journalier choisir la date → PDF ; contrôler vs `GET /api/daily-commercial-reports?date=YYYY-MM-DD&commercialUsername=…`. Les collectes serveur restent saines (idempotence `reference`). Recouvrements non concernés (pas le même bug PK).
+
 ## Frontend — [2.19.0] — 2026-09-16
 
 ### Added

@@ -34,6 +34,28 @@
   margin: 4px 0 0;
 }
 
+.rapport-date-picker {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.rapport-date-item {
+  --background: rgba(255, 255, 255, 0.16);
+  --border-radius: 10px;
+  --padding-start: 10px;
+  --padding-end: 10px;
+  --min-height: 36px;
+  max-width: 180px;
+  border-radius: 10px;
+
+  ion-input {
+    color: #fff;
+    font-size: 13px;
+    text-align: center;
+  }
+}
+
 .rapport-hero-actions {
   display: flex;
   gap: 8px;
