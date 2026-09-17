@@ -51,6 +51,7 @@ public class AppNotificationService {
             return;
         }
         String targetCollector = resolveCreditCollector(credit, client);
+        // Metadata only: PROMOTER audience for PAYMENT_DECLARATION is targetCollector (recouvrement).
         String tontineCollector = client != null ? client.getTontineCollector() : null;
         String clientName = client != null ? client.getFullName() : null;
 
@@ -84,6 +85,7 @@ public class AppNotificationService {
             return;
         }
         String targetCollector = client != null ? client.getCollector() : null;
+        // Metadata only: PROMOTER audience for CUSTOMER_ORDER is targetCollector (commercial crédit).
         String tontineCollector = client != null ? client.getTontineCollector() : null;
         String clientName = client != null ? client.getFullName() : null;
         String reference = "CMD-" + order.getId();
@@ -130,6 +132,7 @@ public class AppNotificationService {
                 + " · " + (collector != null ? collector : ""));
         notification.setClientName(event.getClientName());
         notification.setTargetCollector(collector);
+        // Audience PROMOTER for tontine = tontineCollector only (not credit collector).
         notification.setTontineCollector(collector);
         notification.setOperationDate(operationDate);
         notification.setAmount(event.getAmount() != null ? event.getAmount() : 0.0);
@@ -172,7 +175,7 @@ public class AppNotificationService {
     public long unreadCount(User user) {
         assertNotificationAudience(user);
         if (isPromoterOnly(user)) {
-            return notificationRepository.countUnreadUnresolvedForCollector(user.getUsername(), State.ENABLED);
+            return notificationRepository.countUnreadUnresolvedForPromoter(user.getUsername(), State.ENABLED);
         }
         return notificationRepository.countUnreadUnresolvedForUser(user.getUsername(), State.ENABLED);
     }
@@ -181,7 +184,7 @@ public class AppNotificationService {
     public List<AppNotificationGroupDto> listGrouped(User user) {
         assertNotificationAudience(user);
         List<AppNotification> notifications = isPromoterOnly(user)
-                ? notificationRepository.findUnresolvedForCollector(user.getUsername(), State.ENABLED)
+                ? notificationRepository.findUnresolvedForPromoter(user.getUsername(), State.ENABLED)
                 : notificationRepository.findAllUnresolved(State.ENABLED);
         if (notifications.isEmpty()) {
             return List.of();
@@ -234,7 +237,7 @@ public class AppNotificationService {
     public void markAllRead(User user) {
         assertNotificationAudience(user);
         List<AppNotification> notifications = isPromoterOnly(user)
-                ? notificationRepository.findUnresolvedForCollector(user.getUsername(), State.ENABLED)
+                ? notificationRepository.findUnresolvedForPromoter(user.getUsername(), State.ENABLED)
                 : notificationRepository.findAllUnresolved(State.ENABLED);
         if (notifications.isEmpty()) {
             return;
@@ -286,13 +289,42 @@ public class AppNotificationService {
                 && !isStaffAllAccess(user);
     }
 
-    public static boolean matchesPromoterPortfolio(User user, String targetCollector, String tontineCollector) {
-        if (user == null || !StringUtils.hasText(user.getUsername())) {
+    /**
+     * Type-scoped PROMOTER audience:
+     * <ul>
+     *   <li>{@code PAYMENT_DECLARATION} / {@code CUSTOMER_ORDER} → credit {@code targetCollector} only</li>
+     *   <li>{@code TONTINE_CATCHUP} → {@code tontineCollector} only (fallback {@code targetCollector})</li>
+     * </ul>
+     * A commercial who is only {@code client.collector} must not receive tontine notifications,
+     * and a commercial who is only {@code client.tontineCollector} must not receive recovery/order notifications.
+     */
+    public static boolean matchesPromoterAudience(
+            User user,
+            AppNotificationType type,
+            String targetCollector,
+            String tontineCollector) {
+        if (user == null || !StringUtils.hasText(user.getUsername()) || type == null) {
             return false;
         }
         String username = user.getUsername();
-        return username.equalsIgnoreCase(nullToEmpty(targetCollector))
-                || username.equalsIgnoreCase(nullToEmpty(tontineCollector));
+        return switch (type) {
+            case PAYMENT_DECLARATION, CUSTOMER_ORDER ->
+                    username.equalsIgnoreCase(nullToEmpty(targetCollector));
+            case TONTINE_CATCHUP -> {
+                if (StringUtils.hasText(tontineCollector)) {
+                    yield username.equalsIgnoreCase(tontineCollector);
+                }
+                yield username.equalsIgnoreCase(nullToEmpty(targetCollector));
+            }
+        };
+    }
+
+    /** Credit recovery / order portfolio: match {@code collector} only (not tontineCollector). */
+    public static boolean matchesCreditCollector(User user, String collector) {
+        if (user == null || !StringUtils.hasText(user.getUsername())) {
+            return false;
+        }
+        return user.getUsername().equalsIgnoreCase(nullToEmpty(collector));
     }
 
     private void assertNotificationAudience(User user) {
@@ -303,7 +335,11 @@ public class AppNotificationService {
         if (isStaffAllAccess(user)) {
             return;
         }
-        if (!matchesPromoterPortfolio(user, notification.getTargetCollector(), notification.getTontineCollector())) {
+        if (!matchesPromoterAudience(
+                user,
+                notification.getType(),
+                notification.getTargetCollector(),
+                notification.getTontineCollector())) {
             throw new CustomValidationException("Accès non autorisé à cette notification.");
         }
     }

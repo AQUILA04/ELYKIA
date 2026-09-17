@@ -28,15 +28,28 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
             """)
     List<AppNotification> findAllUnresolved(@Param("state") State state);
 
+    /**
+     * PROMOTER audience is type-scoped:
+     * - PAYMENT_DECLARATION / CUSTOMER_ORDER → credit {@code targetCollector} only
+     * - TONTINE_CATCHUP → {@code tontineCollector} (fallback {@code targetCollector}) only
+     */
     @Query("""
             SELECT n FROM AppNotification n
             WHERE n.state = :state
               AND n.resolvedAt IS NULL
-              AND (UPPER(n.targetCollector) = UPPER(:username)
-                   OR UPPER(n.tontineCollector) = UPPER(:username))
+              AND (
+                    (n.type IN (com.optimize.elykia.core.enumaration.AppNotificationType.PAYMENT_DECLARATION,
+                                com.optimize.elykia.core.enumaration.AppNotificationType.CUSTOMER_ORDER)
+                     AND UPPER(n.targetCollector) = UPPER(:username))
+                 OR (n.type = com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_CATCHUP
+                     AND (
+                          UPPER(n.tontineCollector) = UPPER(:username)
+                          OR (n.tontineCollector IS NULL AND UPPER(n.targetCollector) = UPPER(:username))
+                     ))
+              )
             ORDER BY n.operationDate DESC, n.id DESC
             """)
-    List<AppNotification> findUnresolvedForCollector(
+    List<AppNotification> findUnresolvedForPromoter(
             @Param("username") String username, @Param("state") State state);
 
     @Query("""
@@ -54,13 +67,21 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
             SELECT COUNT(n) FROM AppNotification n
             WHERE n.state = :state
               AND n.resolvedAt IS NULL
-              AND (UPPER(n.targetCollector) = UPPER(:username)
-                   OR UPPER(n.tontineCollector) = UPPER(:username))
+              AND (
+                    (n.type IN (com.optimize.elykia.core.enumaration.AppNotificationType.PAYMENT_DECLARATION,
+                                com.optimize.elykia.core.enumaration.AppNotificationType.CUSTOMER_ORDER)
+                     AND UPPER(n.targetCollector) = UPPER(:username))
+                 OR (n.type = com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_CATCHUP
+                     AND (
+                          UPPER(n.tontineCollector) = UPPER(:username)
+                          OR (n.tontineCollector IS NULL AND UPPER(n.targetCollector) = UPPER(:username))
+                     ))
+              )
               AND n.id NOT IN (
                   SELECT r.notificationId FROM AppNotificationRead r
                   WHERE UPPER(r.username) = UPPER(:username)
               )
             """)
-    long countUnreadUnresolvedForCollector(
+    long countUnreadUnresolvedForPromoter(
             @Param("username") String username, @Param("state") State state);
 }

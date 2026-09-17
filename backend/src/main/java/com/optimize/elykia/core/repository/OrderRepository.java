@@ -28,10 +28,9 @@ public interface OrderRepository extends GenericRepository<Order, Long> {
             SELECT o FROM Order o
             WHERE o.status = :status
               AND o.state <> 'DELETED'
-              AND (UPPER(o.client.collector) = UPPER(:username)
-                   OR UPPER(o.client.tontineCollector) = UPPER(:username))
+              AND UPPER(o.client.collector) = UPPER(:username)
             """)
-    Page<Order> findByStatusAndClientCollectors(
+    Page<Order> findByStatusAndClientCollector(
             @Param("status") OrderStatus status,
             @Param("username") String username,
             Pageable pageable);

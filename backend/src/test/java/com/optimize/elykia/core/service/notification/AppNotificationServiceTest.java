@@ -66,10 +66,10 @@ class AppNotificationServiceTest {
         when(user.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
         when(user.is(UserProfilConstant.ADMIN)).thenReturn(false);
         when(user.is(UserProfilConstant.PROMOTER)).thenReturn(true);
-        when(notificationRepository.countUnreadUnresolvedForCollector("COM003", State.ENABLED)).thenReturn(2L);
+        when(notificationRepository.countUnreadUnresolvedForPromoter("COM003", State.ENABLED)).thenReturn(2L);
 
         assertEquals(2L, service.unreadCount(user));
-        verify(notificationRepository).countUnreadUnresolvedForCollector("COM003", State.ENABLED);
+        verify(notificationRepository).countUnreadUnresolvedForPromoter("COM003", State.ENABLED);
         verify(notificationRepository, never()).countUnreadUnresolvedForUser(any(), any());
     }
 
@@ -164,12 +164,51 @@ class AppNotificationServiceTest {
         mine.setTargetCollector("COM003");
         mine.setOperationDate(java.time.LocalDate.now());
 
-        when(notificationRepository.findUnresolvedForCollector("COM003", State.ENABLED))
+        when(notificationRepository.findUnresolvedForPromoter("COM003", State.ENABLED))
                 .thenReturn(List.of(mine));
         when(readRepository.findByUsernameIgnoreCaseAndNotificationIdIn(eq("COM003"), any()))
                 .thenReturn(List.of());
 
         assertEquals(1, service.listGrouped(user).size());
         assertEquals(1, service.listGrouped(user).get(0).items().size());
+    }
+
+    @Test
+    void matchesPromoterAudience_paymentGoesToCreditCollectorOnly() {
+        User comA = mock(User.class);
+        when(comA.getUsername()).thenReturn("comA");
+        User comB = mock(User.class);
+        when(comB.getUsername()).thenReturn("comB");
+
+        assertTrue(AppNotificationService.matchesPromoterAudience(
+                comA, AppNotificationType.PAYMENT_DECLARATION, "comA", "comB"));
+        assertTrue(!AppNotificationService.matchesPromoterAudience(
+                comB, AppNotificationType.PAYMENT_DECLARATION, "comA", "comB"));
+    }
+
+    @Test
+    void matchesPromoterAudience_tontineGoesToTontineCollectorOnly() {
+        User comA = mock(User.class);
+        when(comA.getUsername()).thenReturn("comA");
+        User comB = mock(User.class);
+        when(comB.getUsername()).thenReturn("comB");
+
+        assertTrue(!AppNotificationService.matchesPromoterAudience(
+                comA, AppNotificationType.TONTINE_CATCHUP, "comA", "comB"));
+        assertTrue(AppNotificationService.matchesPromoterAudience(
+                comB, AppNotificationType.TONTINE_CATCHUP, "comA", "comB"));
+    }
+
+    @Test
+    void matchesPromoterAudience_orderGoesToCreditCollectorOnly() {
+        User comA = mock(User.class);
+        when(comA.getUsername()).thenReturn("comA");
+        User comB = mock(User.class);
+        when(comB.getUsername()).thenReturn("comB");
+
+        assertTrue(AppNotificationService.matchesPromoterAudience(
+                comA, AppNotificationType.CUSTOMER_ORDER, "comA", "comB"));
+        assertTrue(!AppNotificationService.matchesPromoterAudience(
+                comB, AppNotificationType.CUSTOMER_ORDER, "comA", "comB"));
     }
 }

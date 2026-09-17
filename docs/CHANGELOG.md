@@ -23,10 +23,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Table unifiée `app_notification` + `app_notification_read` (migration `V100`) avec backfill des rattrapages tontine.
-- API `/api/v1/app-notifications` (liste groupée, unread-count, mark-read) avec filtrage PROMOTER sur `target_collector` / `tontine_collector`.
+- API `/api/v1/app-notifications` (liste groupée, unread-count, mark-read) avec filtrage PROMOTER **par type** :
+  - `PAYMENT_DECLARATION` / `CUSTOMER_ORDER` → commercial crédit (`target_collector`) uniquement
+  - `TONTINE_CATCHUP` → commercial tontine (`tontine_collector`) uniquement
 - Création automatique de notifications à la soumission MM, à la création de commande, et au rattrapage tontine ; résolution à la validation/rejet/changement de statut.
 - API admin `/api/v1/customer-mobile-money-submissions` (liste INITIE, validate, reject).
-- Filtrage des listes de commandes pour les PROMOTER (collector OR tontineCollector).
+- Filtrage des listes de commandes pour les PROMOTER sur `client.collector` uniquement.
 
 ## Mobile — [2.28.17] — 2026-09-17
 

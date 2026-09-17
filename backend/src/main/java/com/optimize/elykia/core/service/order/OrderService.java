@@ -217,7 +217,7 @@ public class OrderService extends GenericService<Order, Long> {
         User currentUser = userService.getCurrentUser();
         Page<Order> ordersPage;
         if (AppNotificationService.isPromoterOnly(currentUser)) {
-            ordersPage = getRepository().findByStatusAndClientCollectors(
+            ordersPage = getRepository().findByStatusAndClientCollector(
                     finalStatus, currentUser.getUsername(), pageable);
         } else {
             ordersPage = getRepository().findByStatus(finalStatus, pageable);
@@ -280,8 +280,7 @@ public class OrderService extends GenericService<Order, Long> {
         }
         Client client = order.getClient();
         String collector = client != null ? client.getCollector() : null;
-        String tontineCollector = client != null ? client.getTontineCollector() : null;
-        if (!AppNotificationService.matchesPromoterPortfolio(user, collector, tontineCollector)) {
+        if (!AppNotificationService.matchesCreditCollector(user, collector)) {
             throw new CustomValidationException("Accès non autorisé à cette commande.");
         }
     }

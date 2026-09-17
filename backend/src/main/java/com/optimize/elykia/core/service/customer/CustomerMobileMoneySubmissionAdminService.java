@@ -61,7 +61,7 @@ public class CustomerMobileMoneySubmissionAdminService {
             String targetCollector = resolveCollector(credit, client);
             String tontineCollector = client != null ? client.getTontineCollector() : null;
             if (AppNotificationService.isPromoterOnly(user)
-                    && !AppNotificationService.matchesPromoterPortfolio(user, targetCollector, tontineCollector)) {
+                    && !AppNotificationService.matchesCreditCollector(user, targetCollector)) {
                 continue;
             }
             dtos.add(toDto(submission, client, targetCollector, tontineCollector));
@@ -95,7 +95,7 @@ public class CustomerMobileMoneySubmissionAdminService {
         String targetCollector = resolveCollector(credit, client);
         String tontineCollector = client != null ? client.getTontineCollector() : null;
         if (AppNotificationService.isPromoterOnly(user)
-                && !AppNotificationService.matchesPromoterPortfolio(user, targetCollector, tontineCollector)) {
+                && !AppNotificationService.matchesCreditCollector(user, targetCollector)) {
             throw new CustomValidationException("Accès non autorisé à cette déclaration.");
         }
 
