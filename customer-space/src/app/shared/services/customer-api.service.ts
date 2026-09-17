@@ -24,7 +24,9 @@ import {
   OrderResponse,
   CustomerTontineContributionSummary,
   CustomerTontineContributionDetail,
+  CustomerTontinePayment,
   CustomerTontinePaymentPage,
+  TontineMobileMoneyPaymentRequest,
 } from '../models/customer.model';
 
 /**
@@ -106,6 +108,22 @@ export class CustomerApiService {
       {
         params: { page: String(page), size: String(size) },
       },
+    );
+  }
+
+  getTontineMobileMoneyRecipients(memberId: string): Observable<MobileMoneyRecipient> {
+    return this.http.get<MobileMoneyRecipient>(
+      `${this.base}/tontine/contributions/${memberId}/mobile-money-recipients`,
+    );
+  }
+
+  submitTontineMobileMoneyPayment(
+    memberId: string,
+    payload: TontineMobileMoneyPaymentRequest,
+  ): Observable<CustomerTontinePayment> {
+    return this.http.post<CustomerTontinePayment>(
+      `${this.base}/tontine/contributions/${memberId}/mobile-money`,
+      payload,
     );
   }
 

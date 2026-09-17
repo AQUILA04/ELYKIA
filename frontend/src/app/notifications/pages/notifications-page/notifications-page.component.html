@@ -1,0 +1,36 @@
+<div class="container-fluid py-3" data-testid="e2e-notifications-page">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h2 class="mb-1">Notifications</h2>
+      <p class="text-muted mb-0">Opérations en attente de validation.</p>
+    </div>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-outline-secondary" (click)="markAllRead()">Tout lire</button>
+      <button type="button" class="btn btn-outline-primary" (click)="load()" [disabled]="loading">Actualiser</button>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="text-muted py-4">Chargement…</div>
+  <div *ngIf="!loading && groups.length === 0" class="alert alert-light border">
+    Aucune notification en attente.
+  </div>
+
+  <ng-container *ngFor="let group of groups">
+    <h6 class="text-uppercase text-muted mt-3">{{ group.operationDate | date:'dd/MM/yyyy' }}</h6>
+    <div class="list-group mb-2">
+      <button type="button"
+        class="list-group-item list-group-item-action"
+        *ngFor="let item of group.items"
+        [class.list-group-item-primary]="!item.read"
+        [attr.data-testid]="'e2e-notifications-item'"
+        (click)="open(item)">
+        <div class="d-flex justify-content-between">
+          <strong>{{ item.title }}</strong>
+          <span class="badge bg-light text-dark">{{ typeLabel(item.type) }}</span>
+        </div>
+        <div class="small text-muted">{{ item.message }}</div>
+        <div class="small" *ngIf="item.amount != null">{{ item.amount | currency:'XOF':'symbol':'1.0-0' }}</div>
+      </button>
+    </div>
+  </ng-container>
+</div>

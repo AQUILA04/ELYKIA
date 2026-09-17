@@ -11,10 +11,11 @@ import { NgxPermissionsService } from 'ngx-permissions';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import {
-  TontineCatchupNotificationGroup,
-  TontineCatchupNotificationItem,
-  TontineCatchupNotificationService
-} from 'src/app/tontine/services/tontine-catchup-notification.service';
+  AppNotificationGroup,
+  AppNotificationItem,
+  AppNotificationService
+} from 'src/app/shared/service/app-notification.service';
+import { PendingOpsToastService } from 'src/app/shared/service/pending-ops-toast.service';
 import { Subscription, interval } from 'rxjs';
 
 @Component({
@@ -25,9 +26,9 @@ import { Subscription, interval } from 'rxjs';
 export class HeaderComponent implements OnInit, OnDestroy {
   username: string | null = '';
   showElykiaAi = false;
-  showCatchupNotifications = false;
+  showNotifications = false;
   unreadCount = 0;
-  notificationGroups: TontineCatchupNotificationGroup[] = [];
+  notificationGroups: AppNotificationGroup[] = [];
   notificationsLoading = false;
   private pollSub?: Subscription;
 
@@ -39,7 +40,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private featureFlagService: FeatureFlagService,
     private permissionsService: NgxPermissionsService,
     private userService: UserService,
-    private catchupNotificationService: TontineCatchupNotificationService
+    private appNotificationService: AppNotificationService,
+    private pendingOpsToastService: PendingOpsToastService
   ) {
   }
 
@@ -52,14 +54,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.refreshElykiaAiVisibility();
     this.featureFlagService.flags$.subscribe(() => this.refreshElykiaAiVisibility());
 
-    this.showCatchupNotifications =
+    this.showNotifications =
       this.userService.hasProfile(UserProfile.SECRETARY)
       || this.userService.hasProfile(UserProfile.GESTIONNAIRE)
-      || this.userService.hasProfile(UserProfile.ADMIN);
+      || this.userService.hasProfile(UserProfile.ADMIN)
+      || this.userService.hasProfile(UserProfile.PROMOTER);
 
-    if (this.showCatchupNotifications) {
+    if (this.showNotifications) {
       this.refreshUnreadCount();
       this.pollSub = interval(60_000).subscribe(() => this.refreshUnreadCount());
+      this.pendingOpsToastService.maybeShowAfterLogin();
     }
   }
 
@@ -81,21 +85,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   refreshUnreadCount(): void {
-    if (!this.showCatchupNotifications) {
+    if (!this.showNotifications) {
       return;
     }
-    this.catchupNotificationService.unreadCount().subscribe({
+    this.appNotificationService.unreadCount().subscribe({
       next: (count) => this.unreadCount = count,
       error: () => { /* ignore for badge */ }
     });
   }
 
   onNotificationsOpen(): void {
-    if (!this.showCatchupNotifications) {
+    if (!this.showNotifications) {
       return;
     }
     this.notificationsLoading = true;
-    this.catchupNotificationService.listGrouped().subscribe({
+    this.appNotificationService.listGrouped().subscribe({
       next: (groups) => {
         this.notificationGroups = groups;
         this.notificationsLoading = false;
@@ -103,29 +107,25 @@ export class HeaderComponent implements OnInit, OnDestroy {
       },
       error: () => {
         this.notificationsLoading = false;
-        this.alertService.toastError('Impossible de charger les notifications rattrapage.');
+        this.alertService.toastError('Impossible de charger les notifications.');
       }
     });
   }
 
-  openNotification(item: TontineCatchupNotificationItem): void {
-    this.catchupNotificationService.markRead(item.id).subscribe({
+  openNotification(item: AppNotificationItem): void {
+    this.appNotificationService.markRead(item.id).subscribe({
       next: () => {
         item.read = true;
         this.refreshUnreadCount();
       }
     });
-    void this.router.navigate(['/report/daily'], {
-      queryParams: {
-        collector: item.commercialUsername,
-        startDate: item.operationDate,
-        endDate: item.operationDate
-      }
-    });
+    const path = item.linkPath || '/notifications';
+    const queryParams = this.parseQuery(item.linkQuery);
+    void this.router.navigate([path], { queryParams });
   }
 
   markAllRead(): void {
-    this.catchupNotificationService.markAllRead().subscribe({
+    this.appNotificationService.markAllRead().subscribe({
       next: () => {
         this.notificationGroups = this.notificationGroups.map((g) => ({
           ...g,
@@ -134,6 +134,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
         this.unreadCount = 0;
       }
     });
+  }
+
+  typeLabel(type: string): string {
+    switch (type) {
+      case 'PAYMENT_DECLARATION':
+        return 'Paiement';
+      case 'CUSTOMER_ORDER':
+        return 'Commande';
+      case 'TONTINE_CATCHUP':
+        return 'Rattrapage';
+      case 'TONTINE_PAYMENT_DECLARATION':
+        return 'Cotisation tontine';
+      default:
+        return 'Notification';
+    }
   }
 
   confirmLogout(): void {
@@ -146,7 +161,22 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
+    this.pendingOpsToastService.clearSessionFlag();
     this.authService.logout();
     localStorage.setItem('logout-event', Date.now().toString());
+  }
+
+  private parseQuery(linkQuery?: string | null): Record<string, string> {
+    if (!linkQuery) {
+      return {};
+    }
+    const params: Record<string, string> = {};
+    linkQuery.split('&').forEach((part) => {
+      const [key, value] = part.split('=');
+      if (key) {
+        params[key] = value ?? '';
+      }
+    });
+    return params;
   }
 }

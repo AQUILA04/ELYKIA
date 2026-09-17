@@ -216,10 +216,10 @@ test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @re
     await loginAsSecretaire(page);
     await expect(page.getByTestId('e2e-app-shell')).toBeVisible();
 
-    const bell = page.getByTestId('e2e-catchup-notif-bell');
+    const bell = page.getByTestId('e2e-app-notif-bell');
     await expect(bell).toBeVisible({ timeout: 20_000 });
 
-    const badge = page.getByTestId('e2e-catchup-notif-badge');
+    const badge = page.getByTestId('e2e-app-notif-badge');
     await expect
       .poll(async () => Number(await badge.getAttribute('data-unread-count')), {
         timeout: 30_000,
@@ -227,15 +227,15 @@ test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @re
       .toBeGreaterThanOrEqual(1);
 
     await bell.click();
-    const notifPanel = page.getByTestId('e2e-catchup-notif-panel');
+    const notifPanel = page.getByTestId('e2e-app-notif-panel');
     await expect(notifPanel).toBeVisible({ timeout: 15_000 });
-    await expect(notifPanel.getByTestId('e2e-catchup-notif-item').first()).toBeVisible({
+    await expect(notifPanel.getByTestId('e2e-app-notif-item').first()).toBeVisible({
       timeout: 15_000,
     });
     await page.waitForTimeout(800);
 
     const targetItem = notifPanel
-      .getByTestId('e2e-catchup-notif-item')
+      .getByTestId('e2e-app-notif-item')
       .filter({ hasText: TEST_COMMERCIAL_USERNAME })
       .filter({ hasText: /1[\s.,]?750|1750/ })
       .first();

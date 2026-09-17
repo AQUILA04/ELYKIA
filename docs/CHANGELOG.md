@@ -9,6 +9,50 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.4.0] — 2026-09-17
+
+### Added
+
+- Déclaration Mobile Money de cotisation tontine : route `/tontines/:id/payment`, CTA sur le détail, API recipients/submit, affichage `INITIE` dans la timeline.
+- E2E déclaration cotisation tontine (mocks recipients + POST).
+
+## Frontend — [2.21.0] — 2026-09-17
+
+### Added
+
+- Onglet « Cotisations tontine » sur `/customer-payments` (liste / valider / rejeter) avec deep-link `?tab=tontine&id=`.
+- Libellé de notification `TONTINE_PAYMENT_DECLARATION` dans la cloche et le hub `/notifications`.
+
+## Backend — [1.17.0] — 2026-09-17
+
+### Added
+
+- Table `customer_tontine_mm_submission` (migration `V101`) pour les déclarations MM tontine customer-space.
+- API customer : `GET/POST …/tontine/contributions/{memberId}/mobile-money(-recipients)`.
+- API admin `/api/v1/customer-tontine-mm-submissions` (liste, validate → `TontineCollection`, reject).
+- Type notif `TONTINE_PAYMENT_DECLARATION` routé vers `tontineCollector` uniquement.
+
+## Frontend — [2.20.0] — 2026-09-17
+
+### Added
+
+- Cloche de notifications unifiée (déclarations Mobile Money, commandes customer-space, rattrapages tontine) dans le header.
+- Toast login bas-droite (5 min) pour les profils SECRETARY / GESTIONNAIRE / ADMIN / PROMOTER lorsqu’il reste des opérations non lues.
+- Pages `/notifications` (hub) et `/customer-payments` (validation des déclarations MM).
+- Deep-links depuis chaque notification vers la page métier concernée.
+
+## Backend — [1.16.0] — 2026-09-17
+
+### Added
+
+- Table unifiée `app_notification` + `app_notification_read` (migration `V100`) avec backfill des rattrapages tontine.
+- API `/api/v1/app-notifications` (liste groupée, unread-count, mark-read) avec filtrage PROMOTER **par type** :
+  - `PAYMENT_DECLARATION` / `CUSTOMER_ORDER` → commercial crédit (`target_collector`) uniquement
+  - `TONTINE_CATCHUP` → commercial tontine (`tontine_collector`) uniquement
+- Création automatique de notifications à la soumission MM, à la création de commande, et au rattrapage tontine ; résolution à la validation/rejet/changement de statut.
+- API admin `/api/v1/customer-mobile-money-submissions` (liste INITIE, validate, reject).
+- Filtrage des listes de commandes pour les PROMOTER sur `client.collector` uniquement.
+
 ## Mobile — [2.28.17] — 2026-09-17
 
 ### Fixed

@@ -8,6 +8,7 @@ import com.optimize.elykia.core.dto.OrderItemDto;
 import com.optimize.elykia.core.dto.customer.*;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.customer.CustomerMobileMoneySubmission;
+import com.optimize.elykia.core.entity.customer.CustomerTontineMmSubmission;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.sale.CreditTimeline;
@@ -23,8 +24,10 @@ import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
+import com.optimize.elykia.core.repository.customer.CustomerTontineMmSubmissionRepository;
 import com.optimize.elykia.core.repository.CreditArticlesRepository;
 import com.optimize.elykia.core.service.order.OrderService;
+import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -59,6 +62,8 @@ public class CustomerPortalService {
     private final TontineMemberRepository tontineMemberRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
     private final CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
+    private final AppNotificationService appNotificationService;
+    private final CustomerTontineMmSubmissionRepository tontineMmSubmissionRepository;
 
     public CustomerDashboardDto getDashboard() {
         Client client = contextService.requireClient(contextService.currentUsername());
@@ -161,13 +166,76 @@ public class CustomerPortalService {
                         sanitizedPage,
                         sanitizedSize,
                         Sort.by(Sort.Direction.DESC, "collectionDate", "id")));
+
+        List<CustomerTontinePaymentDto> items = new ArrayList<>(result.getContent());
+        long pendingCount = 0;
+        if (sanitizedPage == 0) {
+            List<CustomerTontineMmSubmission> pending = tontineMmSubmissionRepository
+                    .findByTontineMemberIdAndStatusOrderByCreatedDateDesc(
+                            memberId, CustomerSubmissionStatus.INITIE);
+            pendingCount = pending.size();
+            List<CustomerTontinePaymentDto> pendingDtos = pending.stream()
+                    .map(sub -> new CustomerTontinePaymentDto(
+                            sub.getId(),
+                            sub.getMobileMoneyReference(),
+                            sub.getMobileMoneyAmount(),
+                            sub.getCreatedDate(),
+                            Boolean.FALSE,
+                            0.0,
+                            "INITIE"))
+                    .toList();
+            items = new ArrayList<>(pendingDtos);
+            items.addAll(result.getContent());
+        }
+
         return CustomerTontinePaymentPageDto.builder()
-                .items(result.getContent())
+                .items(items)
                 .page(result.getNumber())
                 .size(result.getSize())
-                .totalElements(result.getTotalElements())
+                .totalElements(result.getTotalElements() + pendingCount)
                 .totalPages(result.getTotalPages())
                 .build();
+    }
+
+    public CustomerMobileMoneyRecipientDto getTontineMobileMoneyRecipients(Long memberId) {
+        TontineMember member = requireOwnedTontineMember(memberId);
+        Client client = member.getClient();
+        String collector = client != null ? client.getTontineCollector() : null;
+        if (!StringUtils.hasText(collector) && client != null) {
+            collector = client.getCollector();
+        }
+        return commercialMobileMoneyConfigService.resolveForCollector(collector);
+    }
+
+    @Transactional
+    public CustomerTontinePaymentDto submitTontineMobileMoney(
+            Long memberId, CustomerTontineMobileMoneyRequest request) {
+        TontineMember member = requireOwnedTontineMember(memberId);
+        Client client = contextService.requireClient(contextService.currentUsername());
+
+        CustomerTontineMmSubmission submission = new CustomerTontineMmSubmission();
+        submission.setClientId(client.getId());
+        submission.setTontineMemberId(member.getId());
+        submission.setExpectedAmount(request.getExpectedAmount());
+        submission.setMobileMoneyPhone(request.getMobileMoneyPhone());
+        submission.setMobileMoneyAmount(request.getMobileMoneyAmount());
+        submission.setMobileMoneyReference(request.getMobileMoneyReference());
+        submission.setNotes(request.getNotes());
+        submission.setOperationDate(LocalDate.now());
+        submission.setStatus(CustomerSubmissionStatus.INITIE);
+        submission.setCreatedBy(client.getFullName());
+        submission = tontineMmSubmissionRepository.save(submission);
+
+        appNotificationService.createTontinePaymentDeclaration(submission, client);
+
+        return new CustomerTontinePaymentDto(
+                submission.getId(),
+                submission.getMobileMoneyReference(),
+                submission.getMobileMoneyAmount(),
+                submission.getCreatedDate() != null ? submission.getCreatedDate() : LocalDateTime.now(),
+                Boolean.FALSE,
+                0.0,
+                "INITIE");
     }
 
     public List<CustomerRecoveryDto> getRecoveries(Long creditId) {
@@ -217,6 +285,8 @@ public class CustomerPortalService {
         submission.setStatus(CustomerSubmissionStatus.INITIE);
         submission.setCreatedBy(client.getFullName());
         submission = submissionRepository.save(submission);
+
+        appNotificationService.createPaymentDeclaration(submission, credit, client);
 
         return CustomerRecoveryDto.builder()
                 .id(String.valueOf(submission.getId()))

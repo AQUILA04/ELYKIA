@@ -24,6 +24,17 @@ public interface OrderRepository extends GenericRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.status = :status AND o.state <> 'DELETED'")
     Page<Order> findByStatus(@Param("status") OrderStatus status, Pageable pageable);
 
+    @Query("""
+            SELECT o FROM Order o
+            WHERE o.status = :status
+              AND o.state <> 'DELETED'
+              AND UPPER(o.client.collector) = UPPER(:username)
+            """)
+    Page<Order> findByStatusAndClientCollector(
+            @Param("status") OrderStatus status,
+            @Param("username") String username,
+            Pageable pageable);
+
     @Query("SELECT COUNT(o) FROM Order o WHERE o.status = :status AND o.state <> 'DELETED'")
     long countByStatus(@Param("status") OrderStatus status);
 

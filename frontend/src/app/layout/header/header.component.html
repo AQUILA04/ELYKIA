@@ -20,53 +20,57 @@
           <span class="nav-link">{{ username }}</span>
         </li>
 
-        <li class="nav-item dropdown" *ngIf="showCatchupNotifications" data-testid="e2e-catchup-notif-root">
+        <li class="nav-item dropdown" *ngIf="showNotifications" data-testid="e2e-app-notif-root">
           <a class="nav-link nav-icon-hover position-relative" href="javascript:void(0)"
-            id="catchupNotifDrop" data-bs-toggle="dropdown" aria-expanded="false"
-            title="Rattrapages tontine" (click)="onNotificationsOpen()"
-            data-testid="e2e-catchup-notif-bell">
+            id="appNotifDrop" data-bs-toggle="dropdown" aria-expanded="false"
+            title="Notifications" (click)="onNotificationsOpen()"
+            data-testid="e2e-app-notif-bell">
             <mat-icon [matBadge]="unreadCount > 0 ? unreadCount : null"
               matBadgeColor="warn" matBadgeSize="small"
               [matBadgeHidden]="unreadCount === 0"
-              [attr.data-testid]="'e2e-catchup-notif-badge'"
+              [attr.data-testid]="'e2e-app-notif-badge'"
               [attr.data-unread-count]="unreadCount">notifications</mat-icon>
           </a>
           <div class="dropdown-menu dropdown-menu-end dropdown-menu-animate-up catchup-notif-panel"
-            aria-labelledby="catchupNotifDrop" style="min-width: 320px; max-height: 420px; overflow-y: auto;"
-            data-testid="e2e-catchup-notif-panel">
+            aria-labelledby="appNotifDrop" style="min-width: 340px; max-height: 420px; overflow-y: auto;"
+            data-testid="e2e-app-notif-panel">
             <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-              <strong class="fs-3 mb-0">Rattrapages</strong>
+              <strong class="fs-3 mb-0">Notifications</strong>
               <button type="button" class="btn btn-link btn-sm p-0" (click)="markAllRead(); $event.stopPropagation()"
-                [disabled]="unreadCount === 0" data-testid="e2e-catchup-notif-mark-all-read">Tout lire</button>
+                [disabled]="unreadCount === 0" data-testid="e2e-app-notif-mark-all-read">Tout lire</button>
             </div>
-            <div class="px-3 py-3 text-muted" *ngIf="notificationsLoading" data-testid="e2e-catchup-notif-loading">Chargement…</div>
+            <div class="px-3 py-3 text-muted" *ngIf="notificationsLoading" data-testid="e2e-app-notif-loading">Chargement…</div>
             <div class="px-3 py-3 text-muted" *ngIf="!notificationsLoading && notificationGroups.length === 0"
-              data-testid="e2e-catchup-notif-empty">
+              data-testid="e2e-app-notif-empty">
               Aucune notification
             </div>
             <ng-container *ngFor="let group of notificationGroups">
               <div class="px-3 pt-2 pb-1 text-uppercase text-muted small fw-semibold"
-                data-testid="e2e-catchup-notif-group-date">
+                data-testid="e2e-app-notif-group-date">
                 {{ group.operationDate | date:'dd/MM/yyyy' }}
               </div>
               <a href="javascript:void(0)" class="dropdown-item catchup-notif-item"
                 *ngFor="let item of group.items"
                 [class.unread]="!item.read"
-                [attr.data-testid]="'e2e-catchup-notif-item'"
+                [attr.data-testid]="'e2e-app-notif-item'"
                 [attr.data-notification-id]="item.id"
-                [attr.data-commercial]="item.commercialUsername"
+                [attr.data-notification-type]="item.type"
+                [attr.data-commercial]="item.targetCollector"
                 [attr.data-operation-date]="item.operationDate"
                 (click)="openNotification(item); $event.preventDefault()">
                 <div class="d-flex justify-content-between gap-2">
-                  <span class="fw-semibold">{{ item.commercialUsername }}</span>
-                  <span>{{ item.amount | currency:'XOF':'symbol':'1.0-0' }}</span>
+                  <span class="fw-semibold">{{ item.title || typeLabel(item.type) }}</span>
+                  <span *ngIf="item.amount != null">{{ item.amount | currency:'XOF':'symbol':'1.0-0' }}</span>
                 </div>
                 <div class="small text-muted text-truncate">
-                  {{ item.clientName || 'Client' }}
-                  · saisi le {{ item.captureDate | date:'dd/MM/yyyy' }}
+                  {{ item.message || item.clientName || 'Opération' }}
                 </div>
+                <div class="small text-primary">{{ typeLabel(item.type) }}</div>
               </a>
             </ng-container>
+            <div class="border-top px-3 py-2" *ngIf="!notificationsLoading && notificationGroups.length > 0">
+              <a routerLink="/notifications" class="small" (click)="$event.stopPropagation()">Voir toutes les notifications</a>
+            </div>
           </div>
         </li>
 

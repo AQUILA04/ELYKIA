@@ -299,6 +299,26 @@
             <span class="hide-menu">Commandes</span>
           </a>
         </li>
+        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">
+          <a class="sidebar-link" routerLink="/customer-payments" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/customer-payments') }"
+             data-testid="e2e-sidebar-customer-payments">
+            <span>
+              <mat-icon>payments</mat-icon>
+            </span>
+            <span class="hide-menu">Paiements clients</span>
+          </a>
+        </li>
+        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">
+          <a class="sidebar-link" routerLink="/notifications" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/notifications') }"
+             data-testid="e2e-sidebar-notifications">
+            <span>
+              <mat-icon>notifications</mat-icon>
+            </span>
+            <span class="hide-menu">Notifications</span>
+          </a>
+        </li>
         <li class="sidebar-item" *ngIf="!isStorekeeper() && !isPromoter() && !isRecoveryManager()">
           <a class="sidebar-link" routerLink="/expense" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/expense') }">
