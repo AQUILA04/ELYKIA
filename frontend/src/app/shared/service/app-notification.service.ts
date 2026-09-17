@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import {
+  fetchUnreadNotificationCount,
+  listNotificationGroups,
+  markAllNotificationsRead,
+  markNotificationRead
+} from './notification-api.helper';
 
 export type AppNotificationType =
   | 'PAYMENT_DECLARATION'
@@ -33,10 +39,6 @@ export interface AppNotificationGroup {
   items: AppNotificationItem[];
 }
 
-interface ApiResponse<T> {
-  data: T;
-}
-
 @Injectable({ providedIn: 'root' })
 export class AppNotificationService {
   private readonly apiUrl = `${environment.apiUrl}/api/v1/app-notifications`;
@@ -44,26 +46,18 @@ export class AppNotificationService {
   constructor(private http: HttpClient) {}
 
   listGrouped(): Observable<AppNotificationGroup[]> {
-    return this.http
-      .get<ApiResponse<AppNotificationGroup[]>>(this.apiUrl)
-      .pipe(map((res) => res?.data ?? []));
+    return listNotificationGroups<AppNotificationGroup>(this.http, this.apiUrl);
   }
 
   unreadCount(): Observable<number> {
-    return this.http
-      .get<ApiResponse<{ count: number }>>(`${this.apiUrl}/unread-count`)
-      .pipe(map((res) => res?.data?.count ?? 0));
+    return fetchUnreadNotificationCount(this.http, this.apiUrl);
   }
 
   markRead(id: number): Observable<boolean> {
-    return this.http
-      .post<ApiResponse<boolean>>(`${this.apiUrl}/${id}/read`, {})
-      .pipe(map((res) => !!res?.data));
+    return markNotificationRead(this.http, this.apiUrl, id);
   }
 
   markAllRead(): Observable<boolean> {
-    return this.http
-      .post<ApiResponse<boolean>>(`${this.apiUrl}/read-all`, {})
-      .pipe(map((res) => !!res?.data));
+    return markAllNotificationsRead(this.http, this.apiUrl);
   }
 }

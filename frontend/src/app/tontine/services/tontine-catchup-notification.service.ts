@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import {
+  fetchUnreadNotificationCount,
+  listNotificationGroups,
+  markAllNotificationsRead,
+  markNotificationRead
+} from '../../shared/service/notification-api.helper';
 
 export interface TontineCatchupNotificationItem {
   id: number;
@@ -19,10 +25,6 @@ export interface TontineCatchupNotificationGroup {
   items: TontineCatchupNotificationItem[];
 }
 
-interface ApiResponse<T> {
-  data: T;
-}
-
 @Injectable({ providedIn: 'root' })
 export class TontineCatchupNotificationService {
   private readonly apiUrl = `${environment.apiUrl}/api/v1/tontine-catchup-notifications`;
@@ -30,26 +32,18 @@ export class TontineCatchupNotificationService {
   constructor(private http: HttpClient) {}
 
   listGrouped(): Observable<TontineCatchupNotificationGroup[]> {
-    return this.http
-      .get<ApiResponse<TontineCatchupNotificationGroup[]>>(this.apiUrl)
-      .pipe(map((res) => res?.data ?? []));
+    return listNotificationGroups<TontineCatchupNotificationGroup>(this.http, this.apiUrl);
   }
 
   unreadCount(): Observable<number> {
-    return this.http
-      .get<ApiResponse<{ count: number }>>(`${this.apiUrl}/unread-count`)
-      .pipe(map((res) => res?.data?.count ?? 0));
+    return fetchUnreadNotificationCount(this.http, this.apiUrl);
   }
 
   markRead(id: number): Observable<boolean> {
-    return this.http
-      .post<ApiResponse<boolean>>(`${this.apiUrl}/${id}/read`, {})
-      .pipe(map((res) => !!res?.data));
+    return markNotificationRead(this.http, this.apiUrl, id);
   }
 
   markAllRead(): Observable<boolean> {
-    return this.http
-      .post<ApiResponse<boolean>>(`${this.apiUrl}/read-all`, {})
-      .pipe(map((res) => !!res?.data));
+    return markAllNotificationsRead(this.http, this.apiUrl);
   }
 }

@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { MobileMoneyRecipient } from '../../shared/models/customer.model';
+import {
+  createMobileMoneyPaymentForm,
+  mobileMoneySubmitErrorMessage,
+} from '../../shared/utils/mobile-money-form';
 
 /** Déclaration Mobile Money cotisation tontine. */
 @Component({
@@ -17,27 +21,22 @@ import { MobileMoneyRecipient } from '../../shared/models/customer.model';
 })
 export class TontinePaymentPage implements OnInit {
   form: FormGroup;
-  memberId = '';
-  expectedAmount = 0;
-  isLoading = false;
-  isSubmitted = false;
-  error = '';
-  recipientsLoading = true;
-  recipientsError = '';
   recipients: MobileMoneyRecipient | null = null;
+  recipientsError = '';
+  recipientsLoading = true;
+  error = '';
+  isSubmitted = false;
+  isLoading = false;
+  expectedAmount = 0;
+  memberId = '';
 
   constructor(
-    private fb: FormBuilder,
-    private route: ActivatedRoute,
-    private router: Router,
     private api: CustomerApiService,
+    private router: Router,
+    private route: ActivatedRoute,
+    private fb: FormBuilder,
   ) {
-    this.form = this.fb.group({
-      mobileMoneyPhone: ['', Validators.required],
-      mobileMoneyAmount: [null, [Validators.required, Validators.min(1)]],
-      mobileMoneyReference: ['', Validators.required],
-      notes: [''],
-    });
+    this.form = createMobileMoneyPaymentForm(this.fb);
   }
 
   ngOnInit(): void {
@@ -80,8 +79,7 @@ export class TontinePaymentPage implements OnInit {
       }));
       this.isSubmitted = true;
     } catch (e: unknown) {
-      const err = e as { error?: { message?: string } };
-      this.error = err?.error?.message ?? 'Erreur lors de la soumission.';
+      this.error = mobileMoneySubmitErrorMessage(e, 'Erreur lors de la soumission.');
     } finally {
       this.isLoading = false;
     }
