@@ -1,0 +1,77 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start"><ion-back-button [defaultHref]="'/tontines/' + memberId"></ion-back-button></ion-buttons>
+    <ion-title>Paiement cotisation</ion-title>
+  </ion-toolbar>
+</ion-header>
+<ion-content class="page-content" *ngIf="!isSubmitted" data-testid="e2e-tontine-payment-page">
+  <div class="page-inner">
+    <div class="info-box" *ngIf="expectedAmount > 0">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>Mise journalière attendue : {{ expectedAmount | number:'1.0-0' }} FCFA</p>
+    </div>
+
+    <div class="recipients-card" *ngIf="recipientsLoading" data-testid="e2e-tontine-payment-recipients-loading">
+      <ion-spinner name="crescent"></ion-spinner>
+      <span>Chargement des numéros de paiement…</span>
+    </div>
+
+    <div class="info-box warning" *ngIf="!recipientsLoading && recipientsError">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ recipientsError }}</p>
+    </div>
+
+    <div class="recipients-card" *ngIf="!recipientsLoading && hasRecipientNumbers()" data-testid="e2e-tontine-payment-recipients">
+      <h3>Effectuez votre transfert vers :</h3>
+      <p class="collector-line" *ngIf="recipients?.collectorName || recipients?.collector">
+        Commercial tontine : <strong>{{ recipients?.collectorName || recipients?.collector }}</strong>
+      </p>
+      <div class="recipient-row" *ngIf="recipients?.mixxNumber" data-testid="e2e-tontine-payment-mixx-number">
+        <span class="recipient-label">Mixx by YAS</span>
+        <span class="recipient-number">{{ recipients?.mixxNumber }}</span>
+      </div>
+      <div class="recipient-row" *ngIf="recipients?.moovNumber" data-testid="e2e-tontine-payment-moov-number">
+        <span class="recipient-label">Moov Money</span>
+        <span class="recipient-number">{{ recipients?.moovNumber }}</span>
+      </div>
+    </div>
+
+    <div class="info-box">
+      <ion-icon name="information-circle-outline"></ion-icon>
+      <p>Effectuez d'abord votre transfert Mobile Money, puis renseignez les informations ci-dessous.</p>
+    </div>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="field">
+        <label>Numéro d'envoi</label>
+        <ion-input formControlName="mobileMoneyPhone" type="tel" data-testid="e2e-tontine-payment-phone" placeholder="+229 XX XX XX XX"></ion-input>
+      </div>
+      <div class="field">
+        <label>Montant envoyé (FCFA)</label>
+        <ion-input formControlName="mobileMoneyAmount" type="number" data-testid="e2e-tontine-payment-amount" placeholder="Ex: 500"></ion-input>
+      </div>
+      <div class="field">
+        <label>Référence du transfert</label>
+        <ion-input formControlName="mobileMoneyReference" type="text" data-testid="e2e-tontine-payment-reference" placeholder="Ex: TXN-TONTINE-XXXX"></ion-input>
+      </div>
+      <div class="field">
+        <label>Notes (optionnel)</label>
+        <ion-textarea formControlName="notes" rows="3" placeholder="Informations complémentaires..."></ion-textarea>
+      </div>
+      <div class="error" *ngIf="error">{{ error }}</div>
+      <ion-button type="submit" expand="block" class="elyk-btn-primary" data-testid="e2e-tontine-payment-submit" [disabled]="form.invalid || isLoading">
+        <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+        <span *ngIf="!isLoading">Soumettre le paiement</span>
+      </ion-button>
+    </form>
+  </div>
+</ion-content>
+<ion-content class="page-content ion-text-center" *ngIf="isSubmitted" data-testid="e2e-tontine-payment-success">
+  <div class="success-wrapper">
+    <div class="success-icon"><ion-icon name="checkmark-circle-outline"></ion-icon></div>
+    <h2>Paiement soumis !</h2>
+    <p>Votre cotisation tontine est en attente de validation.</p>
+    <div class="status-badge">INITIÉ</div>
+    <ion-button expand="block" class="elyk-btn-primary" (click)="goTimeline()">Voir la timeline</ion-button>
+    <ion-button expand="block" fill="outline" (click)="goHome()">Retour à l'accueil</ion-button>
+  </div>
+</ion-content>

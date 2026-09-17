@@ -91,6 +91,14 @@ export interface MobileMoneyPaymentRequest {
   notes?: string;
 }
 
+export interface TontineMobileMoneyPaymentRequest {
+  expectedAmount: number;
+  mobileMoneyPhone: string;
+  mobileMoneyAmount: number;
+  mobileMoneyReference: string;
+  notes?: string;
+}
+
 export interface MobileMoneyRecipient {
   collector?: string;
   collectorName?: string;

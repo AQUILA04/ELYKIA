@@ -59,6 +59,20 @@ public class CustomerApiController {
         return ResponseEntity.ok(customerPortalService.getTontinePayments(memberId, page, size));
     }
 
+    @GetMapping("/tontine/contributions/{memberId}/mobile-money-recipients")
+    public ResponseEntity<CustomerMobileMoneyRecipientDto> getTontineMobileMoneyRecipients(
+            @PathVariable Long memberId) {
+        return ResponseEntity.ok(customerPortalService.getTontineMobileMoneyRecipients(memberId));
+    }
+
+    @PostMapping("/tontine/contributions/{memberId}/mobile-money")
+    public ResponseEntity<CustomerTontinePaymentDto> submitTontineMobileMoney(
+            @PathVariable Long memberId,
+            @Valid @RequestBody CustomerTontineMobileMoneyRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(customerPortalService.submitTontineMobileMoney(memberId, request));
+    }
+
     @GetMapping("/purchases/{id}/mobile-money-recipients")
     public ResponseEntity<CustomerMobileMoneyRecipientDto> getMobileMoneyRecipients(@PathVariable Long id) {
         return ResponseEntity.ok(customerPortalService.getMobileMoneyRecipients(id));

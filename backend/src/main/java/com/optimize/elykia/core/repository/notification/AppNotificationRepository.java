@@ -31,7 +31,8 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
     /**
      * PROMOTER audience is type-scoped:
      * - PAYMENT_DECLARATION / CUSTOMER_ORDER → credit {@code targetCollector} only
-     * - TONTINE_CATCHUP → {@code tontineCollector} (fallback {@code targetCollector}) only
+     * - TONTINE_CATCHUP / TONTINE_PAYMENT_DECLARATION → {@code tontineCollector}
+     *   (fallback {@code targetCollector}) only
      */
     @Query("""
             SELECT n FROM AppNotification n
@@ -41,7 +42,8 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
                     (n.type IN (com.optimize.elykia.core.enumaration.AppNotificationType.PAYMENT_DECLARATION,
                                 com.optimize.elykia.core.enumaration.AppNotificationType.CUSTOMER_ORDER)
                      AND UPPER(n.targetCollector) = UPPER(:username))
-                 OR (n.type = com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_CATCHUP
+                 OR (n.type IN (com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_CATCHUP,
+                                com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_PAYMENT_DECLARATION)
                      AND (
                           UPPER(n.tontineCollector) = UPPER(:username)
                           OR (n.tontineCollector IS NULL AND UPPER(n.targetCollector) = UPPER(:username))
@@ -71,7 +73,8 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
                     (n.type IN (com.optimize.elykia.core.enumaration.AppNotificationType.PAYMENT_DECLARATION,
                                 com.optimize.elykia.core.enumaration.AppNotificationType.CUSTOMER_ORDER)
                      AND UPPER(n.targetCollector) = UPPER(:username))
-                 OR (n.type = com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_CATCHUP
+                 OR (n.type IN (com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_CATCHUP,
+                                com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_PAYMENT_DECLARATION)
                      AND (
                           UPPER(n.tontineCollector) = UPPER(:username)
                           OR (n.tontineCollector IS NULL AND UPPER(n.targetCollector) = UPPER(:username))

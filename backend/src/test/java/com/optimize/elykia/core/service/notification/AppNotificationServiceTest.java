@@ -200,15 +200,15 @@ class AppNotificationServiceTest {
     }
 
     @Test
-    void matchesPromoterAudience_orderGoesToCreditCollectorOnly() {
+    void matchesPromoterAudience_tontinePaymentGoesToTontineCollectorOnly() {
         User comA = mock(User.class);
         when(comA.getUsername()).thenReturn("comA");
         User comB = mock(User.class);
         when(comB.getUsername()).thenReturn("comB");
 
-        assertTrue(AppNotificationService.matchesPromoterAudience(
-                comA, AppNotificationType.CUSTOMER_ORDER, "comA", "comB"));
         assertTrue(!AppNotificationService.matchesPromoterAudience(
-                comB, AppNotificationType.CUSTOMER_ORDER, "comA", "comB"));
+                comA, AppNotificationType.TONTINE_PAYMENT_DECLARATION, "comA", "comB"));
+        assertTrue(AppNotificationService.matchesPromoterAudience(
+                comB, AppNotificationType.TONTINE_PAYMENT_DECLARATION, "comA", "comB"));
     }
 }

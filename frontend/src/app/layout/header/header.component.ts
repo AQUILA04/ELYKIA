@@ -144,6 +144,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
         return 'Commande';
       case 'TONTINE_CATCHUP':
         return 'Rattrapage';
+      case 'TONTINE_PAYMENT_DECLARATION':
+        return 'Cotisation tontine';
       default:
         return 'Notification';
     }

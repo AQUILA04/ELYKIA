@@ -40,6 +40,7 @@ class CustomerPortalServiceTest {
     @Mock private TontineCollectionRepository tontineCollectionRepository;
     @Mock private CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
     @Mock private com.optimize.elykia.core.service.notification.AppNotificationService appNotificationService;
+    @Mock private com.optimize.elykia.core.repository.customer.CustomerTontineMmSubmissionRepository tontineMmSubmissionRepository;
 
     @Test
     void getTopArticleTypes_capsRequestedLimitAndNormalizesNullSoldQuantity() {
@@ -98,7 +99,8 @@ class CustomerPortalServiceTest {
                 tontineMemberRepository,
                 tontineCollectionRepository,
                 commercialMobileMoneyConfigService,
-                appNotificationService);
+                appNotificationService,
+                tontineMmSubmissionRepository);
     }
 
     private Articles article(Long id, String type, String commercialName, String name, int stock) {

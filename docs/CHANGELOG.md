@@ -9,6 +9,29 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.4.0] — 2026-09-17
+
+### Added
+
+- Déclaration Mobile Money de cotisation tontine : route `/tontines/:id/payment`, CTA sur le détail, API recipients/submit, affichage `INITIE` dans la timeline.
+- E2E déclaration cotisation tontine (mocks recipients + POST).
+
+## Frontend — [2.21.0] — 2026-09-17
+
+### Added
+
+- Onglet « Cotisations tontine » sur `/customer-payments` (liste / valider / rejeter) avec deep-link `?tab=tontine&id=`.
+- Libellé de notification `TONTINE_PAYMENT_DECLARATION` dans la cloche et le hub `/notifications`.
+
+## Backend — [1.17.0] — 2026-09-17
+
+### Added
+
+- Table `customer_tontine_mm_submission` (migration `V101`) pour les déclarations MM tontine customer-space.
+- API customer : `GET/POST …/tontine/contributions/{memberId}/mobile-money(-recipients)`.
+- API admin `/api/v1/customer-tontine-mm-submissions` (liste, validate → `TontineCollection`, reject).
+- Type notif `TONTINE_PAYMENT_DECLARATION` routé vers `tontineCollector` uniquement.
+
 ## Frontend — [2.20.0] — 2026-09-17
 
 ### Added

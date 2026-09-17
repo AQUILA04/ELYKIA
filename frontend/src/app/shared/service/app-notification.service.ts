@@ -3,7 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
-export type AppNotificationType = 'PAYMENT_DECLARATION' | 'CUSTOMER_ORDER' | 'TONTINE_CATCHUP';
+export type AppNotificationType =
+  | 'PAYMENT_DECLARATION'
+  | 'CUSTOMER_ORDER'
+  | 'TONTINE_CATCHUP'
+  | 'TONTINE_PAYMENT_DECLARATION';
 
 export interface AppNotificationItem {
   id: number;

@@ -105,6 +105,29 @@ export async function mockCustomerApi(page: Page): Promise<void> {
       return;
     }
 
+    if (url.match(/\/tontine\/contributions\/[^/]+\/mobile-money-recipients$/) && method === 'GET') {
+      await route.fulfill(jsonResponse({
+        collector: 'COM_TONTINE',
+        collectorName: 'Commercial Tontine',
+        mixxNumber: '90001111',
+        moovNumber: '90002222',
+      }));
+      return;
+    }
+
+    if (url.match(/\/tontine\/contributions\/[^/]+\/mobile-money$/) && method === 'POST') {
+      await route.fulfill(jsonResponse({
+        id: 'tp-mm-1',
+        reference: 'TXN-TONTINE-1',
+        amount: 500,
+        collectionDate: '2026-09-17T10:00:00',
+        deliveryCollection: false,
+        societyShareAmount: 0,
+        status: 'INITIE',
+      }, 201));
+      return;
+    }
+
     if (url.match(/\/tontine\/contributions\/[^/]+$/) && method === 'GET') {
       await route.fulfill(jsonResponse(MOCK_TONTINE_DETAIL));
       return;

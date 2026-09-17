@@ -34,6 +34,14 @@
       </div>
       <ion-button
         expand="block"
+        class="elyk-btn-primary"
+        [routerLink]="['/tontines', memberId, 'payment']"
+        [queryParams]="{ amount: detail.dailyStake || 0 }"
+        data-testid="e2e-tontine-detail-pay-btn">
+        Déclarer un paiement
+      </ion-button>
+      <ion-button
+        expand="block"
         fill="outline"
         [routerLink]="['/tontines', memberId, 'timeline']"
         data-testid="e2e-tontine-detail-timeline-btn">

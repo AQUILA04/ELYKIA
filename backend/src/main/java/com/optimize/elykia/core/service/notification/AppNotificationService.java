@@ -7,6 +7,7 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.dto.notification.AppNotificationDto;
 import com.optimize.elykia.core.dto.notification.AppNotificationGroupDto;
 import com.optimize.elykia.core.entity.customer.CustomerMobileMoneySubmission;
+import com.optimize.elykia.core.entity.customer.CustomerTontineMmSubmission;
 import com.optimize.elykia.core.entity.notification.AppNotification;
 import com.optimize.elykia.core.entity.notification.AppNotificationRead;
 import com.optimize.elykia.core.entity.sale.Credit;
@@ -108,6 +109,44 @@ public class AppNotificationService {
         notification.setLinkQuery(null);
         notificationRepository.save(notification);
         log.info("CUSTOMER_ORDER notification created orderId={} collector={}", order.getId(), targetCollector);
+    }
+
+    @Transactional
+    public void createTontinePaymentDeclaration(CustomerTontineMmSubmission submission, Client client) {
+        if (submission == null || submission.getId() == null) {
+            return;
+        }
+        if (notificationRepository
+                .findByTypeAndEntityIdAndResolvedAtIsNull(
+                        AppNotificationType.TONTINE_PAYMENT_DECLARATION, submission.getId())
+                .isPresent()) {
+            return;
+        }
+        String tontineCollector = client != null ? client.getTontineCollector() : null;
+        String clientName = client != null ? client.getFullName() : null;
+
+        AppNotification notification = new AppNotification();
+        notification.setType(AppNotificationType.TONTINE_PAYMENT_DECLARATION);
+        notification.setEntityId(submission.getId());
+        notification.setEntityReference(submission.getMobileMoneyReference());
+        notification.setTitle("Déclaration cotisation tontine");
+        notification.setMessage((clientName != null ? clientName : "Client")
+                + " · " + (submission.getMobileMoneyAmount() != null
+                ? submission.getMobileMoneyAmount().longValue() + " XOF"
+                : ""));
+        notification.setClientId(client != null ? client.getId() : submission.getClientId());
+        notification.setClientName(clientName);
+        notification.setTargetCollector(tontineCollector);
+        notification.setTontineCollector(tontineCollector);
+        notification.setOperationDate(submission.getOperationDate() != null
+                ? submission.getOperationDate()
+                : LocalDate.now());
+        notification.setAmount(submission.getMobileMoneyAmount());
+        notification.setLinkPath("/customer-payments");
+        notification.setLinkQuery("tab=tontine&id=" + submission.getId());
+        notificationRepository.save(notification);
+        log.info("TONTINE_PAYMENT_DECLARATION notification created submissionId={} tontineCollector={}",
+                submission.getId(), tontineCollector);
     }
 
     @Transactional
@@ -310,7 +349,7 @@ public class AppNotificationService {
         return switch (type) {
             case PAYMENT_DECLARATION, CUSTOMER_ORDER ->
                     username.equalsIgnoreCase(nullToEmpty(targetCollector));
-            case TONTINE_CATCHUP -> {
+            case TONTINE_CATCHUP, TONTINE_PAYMENT_DECLARATION -> {
                 if (StringUtils.hasText(tontineCollector)) {
                     yield username.equalsIgnoreCase(tontineCollector);
                 }
