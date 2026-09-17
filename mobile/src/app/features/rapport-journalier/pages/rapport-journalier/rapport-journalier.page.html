@@ -8,6 +8,17 @@
         <p class="elyk-surtitle">Rapports</p>
         <h2>Rapport journalier</h2>
         <p class="rapport-date">{{ reportData.date }}</p>
+        <div class="rapport-date-picker" *ngIf="allowPastDailyReports">
+          <ion-item lines="none" class="rapport-date-item">
+            <ion-input
+              type="date"
+              [(ngModel)]="selectedDateInput"
+              (ngModelChange)="onSelectedDateChange($event)"
+              [max]="maxSelectableDate"
+              aria-label="Date du rapport">
+            </ion-input>
+          </ion-item>
+        </div>
       </div>
       <div class="rapport-hero-actions">
         <button type="button" class="hero-glass-btn" (click)="savePDF()" aria-label="PDF">

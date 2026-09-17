@@ -12,21 +12,29 @@ describe('TontineCollectionSyncService', () => {
   let service: TontineCollectionSyncService;
   let httpMock: HttpTestingController;
   let repository: jasmine.SpyObj<TontineCollectionRepository>;
+  let extensions: { findByCommercialPaginated: jasmine.Spy };
 
   beforeEach(() => {
     repository = jasmine.createSpyObj('TontineCollectionRepository', [
-      'getServerId', 'saveIdMapping', 'saveAll', 'markAsSynced'
+      'getServerId', 'saveIdMapping', 'saveAll', 'markAsSynced', 'purgeSyncedOrphans'
     ]);
     repository.getServerId.and.resolveTo('42');
     repository.saveIdMapping.and.resolveTo();
     repository.saveAll.and.resolveTo();
+    repository.markAsSynced.and.resolveTo();
+    repository.purgeSyncedOrphans.and.resolveTo(0);
+
+    extensions = {
+      findByCommercialPaginated: jasmine.createSpy('findByCommercialPaginated')
+        .and.resolveTo({ content: [], totalElements: 0 })
+    };
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
       providers: [
         TontineCollectionSyncService,
         { provide: TontineCollectionRepository, useValue: repository },
-        { provide: TontineCollectionRepositoryExtensions, useValue: {} },
+        { provide: TontineCollectionRepositoryExtensions, useValue: extensions },
         { provide: AuthService, useValue: { currentUser: { username: 'COM002', accessToken: 't' } } },
         { provide: SyncErrorService, useValue: { logSyncError: jasmine.createSpy('logSyncError') } }
       ]
@@ -40,7 +48,7 @@ describe('TontineCollectionSyncService', () => {
     httpMock.verify();
   });
 
-  it('sends collectionDate and advanceToNextMonth then persists server allocation fields', fakeAsync(() => {
+  it('rewrites local UUID via markAsSynced then persists server allocation fields on the same id', fakeAsync(() => {
     const collection: TontineCollection = {
       id: 'uuid-1',
       tontineMemberId: '42',
@@ -72,12 +80,15 @@ describe('TontineCollectionSyncService', () => {
     });
     flushMicrotasks();
 
+    expect(repository.saveIdMapping).toHaveBeenCalledWith('uuid-1', '99', 'tontine-collection');
+    expect(repository.markAsSynced).toHaveBeenCalledWith('uuid-1', '99');
     expect(repository.saveAll).toHaveBeenCalled();
     const saved = repository.saveAll.calls.mostRecent().args[0][0];
     expect(saved.id).toBe('99');
     expect(saved.societyShareAmount).toBe(1000);
     expect(saved.contributionMonth).toBe('2026-03-01');
     expect(saved.isSync).toBeTrue();
+    expect(saved.isLocal).toBeFalse();
     expect(persisted.id).toBe(99);
   }));
 
@@ -104,6 +115,8 @@ describe('TontineCollectionSyncService', () => {
     expect(req.request.body.collectionDate).toBeUndefined();
     req.flush({ data: { id: 100, amount: 1000, collectionDate: `${today}T10:00:00` } });
     flushMicrotasks();
+
+    expect(repository.markAsSynced).toHaveBeenCalledWith('uuid-today', '100');
   }));
 
   it('keeps the local collection when the backend returns a business error', fakeAsync(() => {
@@ -125,6 +138,18 @@ describe('TontineCollectionSyncService', () => {
     flushMicrotasks();
 
     expect(caught).toBeTruthy();
+    expect(repository.markAsSynced).not.toHaveBeenCalled();
     expect(repository.saveAll).not.toHaveBeenCalled();
+  }));
+
+  it('purges synced orphans before processing a sync batch', fakeAsync(() => {
+    repository.purgeSyncedOrphans.and.resolveTo(2);
+
+    let result: any;
+    service.syncBatch(10).then(r => result = r);
+    flushMicrotasks();
+
+    expect(repository.purgeSyncedOrphans).toHaveBeenCalled();
+    expect(result).toEqual({ success: 0, errors: 0, failedIds: [] });
   }));
 });

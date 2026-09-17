@@ -31,6 +31,42 @@ export class TontineCollectionRepository extends BaseRepository<TontineCollectio
     }
 
     /**
+     * Deletes pending Local UUID rows that already have a synced server-id twin
+     * (via id_mappings). Used to heal devices after the hybrid sync bug that
+     * inserted a server row without rewriting the local UUID row.
+     * @returns number of orphan rows deleted
+     */
+    async purgeSyncedOrphans(): Promise<number> {
+        if (!this.databaseService['db']) return 0;
+
+        const result = await this.databaseService.query(
+            `SELECT tc.id AS localId
+             FROM tontine_collections tc
+             INNER JOIN id_mappings m
+               ON m.localId = tc.id AND m.entityType = 'tontine-collection'
+             WHERE tc.isLocal = 1 AND tc.isSync = 0
+               AND EXISTS (
+                 SELECT 1 FROM tontine_collections c2 WHERE c2.id = m.serverId
+               )`
+        );
+
+        const orphanIds: string[] = (result.values || []).map((row: any) => String(row.localId));
+        if (orphanIds.length === 0) {
+            return 0;
+        }
+
+        for (const localId of orphanIds) {
+            await this.databaseService.execute(
+                `DELETE FROM tontine_collections WHERE id = ? AND isLocal = 1 AND isSync = 0`,
+                [localId]
+            );
+        }
+
+        console.log(`[TontineCollectionRepository] Purged ${orphanIds.length} synced orphan collection(s).`);
+        return orphanIds.length;
+    }
+
+    /**
      * Override save to update member total contribution for manual collection recording
      */
     override async save(entity: TontineCollection): Promise<void> {

@@ -147,11 +147,17 @@ export class PdfReportService {
   }
 
   /**
-   * Génère le nom de fichier avec date et heure
+   * Génère le nom de fichier avec date et heure.
+   * @param reportDate optional report day (defaults to now) — used for past-day regeneration
    */
-  generateFilename(): string {
+  generateFilename(reportDate?: Date): string {
+    const ref = reportDate ?? new Date();
+    const date = [
+      ref.getFullYear(),
+      String(ref.getMonth() + 1).padStart(2, '0'),
+      String(ref.getDate()).padStart(2, '0')
+    ].join('-');
     const now = new Date();
-    const date = now.toISOString().split('T')[0];
     const time = now.toTimeString().split(' ')[0].replace(/:/g, '-');
     return `rapport_${date}_${time}.pdf`;
   }

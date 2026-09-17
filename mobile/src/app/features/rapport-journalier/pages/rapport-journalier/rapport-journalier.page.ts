@@ -5,7 +5,7 @@ import { Observable, Subscription, combineLatest, of } from 'rxjs';
 import { PrintingService } from '../../../../core/services/printing.service';
 import { RapportJournalierService, DailyReportData } from '../../services/rapport-journalier.service';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
-import { IonBadge, IonButton, IonContent, IonFooter, IonIcon, IonLabel, IonSegment, IonSegmentButton, IonSpinner, IonToolbar, ToastController, LoadingController } from '@ionic/angular/standalone';
+import { IonBadge, IonButton, IonContent, IonFooter, IonIcon, IonInput, IonItem, IonLabel, IonSegment, IonSegmentButton, IonSpinner, IonToolbar, ToastController, LoadingController } from '@ionic/angular/standalone';
 import { CommonModule, DecimalPipe, registerLocaleData } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Component, OnInit, LOCALE_ID, ChangeDetectionStrategy, ChangeDetectorRef, OnDestroy, ViewChild } from '@angular/core';
@@ -20,6 +20,7 @@ import * as KpiActions from '../../../../store/kpi/kpi.actions';
 import * as KpiSelectors from '../../../../store/kpi/kpi.selectors';
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 import { map, take, filter, distinctUntilChanged, tap, withLatestFrom } from 'rxjs/operators';
+import { Storage } from '@ionic/storage-angular';
 
 // Store Imports
 import * as DistributionActions from '../../../../store/distribution/distribution.actions';
@@ -53,6 +54,8 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
     IonSegmentButton,
     IonLabel,
     IonSpinner,
+    IonInput,
+    IonItem,
     ScrollingModule
   ],
   providers: [
@@ -105,6 +108,15 @@ export class RapportJournalierPage implements OnDestroy {
   private commercialUsername: string | null = null;
   private tontineSessionId: string | null = null;
 
+  /** When false (default), report is locked to today and date picker is hidden. */
+  allowPastDailyReports = false;
+  /** Local calendar day used for KPIs / lists / PDF (defaults to today). */
+  selectedDate: Date = new Date();
+  /** Bound to ion-input type=date (YYYY-MM-DD). */
+  selectedDateInput = '';
+  /** Max selectable day for past-report mode (today, local). */
+  maxSelectableDate = '';
+
   constructor(
     private router: Router,
     private store: Store,
@@ -114,9 +126,11 @@ export class RapportJournalierPage implements OnDestroy {
     private pdfReportService: PdfReportService,
     private toastController: ToastController,
     private loadingController: LoadingController,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private storage: Storage
   ) {
     this.initializeObservables();
+    this.resetSelectedDateToToday();
   }
 
   private initializeObservables() {
@@ -200,8 +214,73 @@ export class RapportJournalierPage implements OnDestroy {
   }
 
   ionViewWillEnter() {
-    this.loadUserDataAndReport();
-    this.listenToSyncCompletion();
+    void this.refreshPastReportsPreference().then(() => {
+      this.loadUserDataAndReport();
+      this.listenToSyncCompletion();
+    });
+  }
+
+  private async refreshPastReportsPreference(): Promise<void> {
+    this.allowPastDailyReports = (await this.storage.get('allowPastDailyReports')) === true;
+    if (!this.allowPastDailyReports) {
+      this.resetSelectedDateToToday();
+    }
+    this.cdr.markForCheck();
+  }
+
+  private resetSelectedDateToToday(): void {
+    this.selectedDate = new Date();
+    this.selectedDateInput = this.toLocalDateString(this.selectedDate);
+    this.maxSelectableDate = this.selectedDateInput;
+    this.reportData.date = this.formatDisplayDate(this.selectedDate);
+  }
+
+  toLocalDateString(d: Date): string {
+    return [
+      d.getFullYear(),
+      String(d.getMonth() + 1).padStart(2, '0'),
+      String(d.getDate()).padStart(2, '0')
+    ].join('-');
+  }
+
+  private formatDisplayDate(d: Date): string {
+    return d.toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }
+
+  private getReportDateFilter(): { startDate: string; endDate: string } {
+    const dateString = this.toLocalDateString(this.selectedDate);
+    return { startDate: dateString, endDate: dateString };
+  }
+
+  onSelectedDateChange(value: string | null | undefined): void {
+    if (!this.allowPastDailyReports || !value) {
+      return;
+    }
+    // Noon avoids UTC midnight shifting the calendar day.
+    this.selectedDate = new Date(`${value}T12:00:00`);
+    this.selectedDateInput = value;
+    this.reportData.date = this.formatDisplayDate(this.selectedDate);
+    this.loadedTabs.clear();
+    if (this.commercialUsername) {
+      const dateFilter = this.getReportDateFilter();
+      this.store.dispatch(KpiActions.loadAllKpi({
+        commercialUsername: this.commercialUsername,
+        commercialId: this.commercialUsername,
+        dateFilter
+      }));
+      this.loadTab(this.activeTab, true);
+      ['recouvrements', 'clients'].forEach(tab => {
+        if (this.activeTab !== tab) {
+          this.loadTab(tab as any, true);
+        }
+      });
+    }
+    this.cdr.markForCheck();
   }
 
   ngOnDestroy() {
@@ -224,10 +303,9 @@ export class RapportJournalierPage implements OnDestroy {
         if (user) {
           this.commercialUsername = user.username;
           this.reportData.commercialName = user.username;
+          this.reportData.date = this.formatDisplayDate(this.selectedDate);
 
-          const today = new Date();
-          const dateString = today.toISOString().split('T')[0];
-          const dateFilter = { startDate: dateString, endDate: dateString };
+          const dateFilter = this.getReportDateFilter();
 
           // 1. Load KPIs for Summary Cards
           this.store.dispatch(KpiActions.loadAllKpi({
@@ -363,9 +441,7 @@ export class RapportJournalierPage implements OnDestroy {
     if (!this.commercialUsername) return;
     if (this.loadedTabs.has(tab) && !forceReset) return;
 
-    const today = new Date();
-    const dateString = today.toISOString().split('T')[0];
-    const dateFilter = { startDate: dateString, endDate: dateString };
+    const dateFilter = this.getReportDateFilter();
 
     switch (tab) {
       case 'distributions':
@@ -422,10 +498,7 @@ export class RapportJournalierPage implements OnDestroy {
             this.store.dispatch(DistributionActions.loadNextPageDistributions({
               commercialUsername: this.commercialUsername!,
               filters: {
-                dateFilter: {
-                  startDate: new Date().toISOString().split('T')[0],
-                  endDate: new Date().toISOString().split('T')[0]
-                }
+                dateFilter: this.getReportDateFilter()
               } as any
             }));
           }
@@ -546,13 +619,13 @@ export class RapportJournalierPage implements OnDestroy {
     await loading.present();
 
     try {
-      const currentDate = new Date();
+      const currentDate = this.selectedDate;
 
       this.rapportJournalierService.getDailyReportWithDetails(currentDate).subscribe({
         next: async (fullData) => {
           try {
             const htmlContent = this.rapportJournalierService.generatePDFHTML(fullData);
-            const filename = this.pdfReportService.generateFilename();
+            const filename = this.pdfReportService.generateFilename(currentDate);
             const pdfBase64 = await this.pdfReportService.generatePDF(htmlContent, filename);
             const uri = await this.pdfReportService.savePDFToExternalStorage(pdfBase64, filename);
 
@@ -606,7 +679,7 @@ export class RapportJournalierPage implements OnDestroy {
     });
     await loading.present();
 
-    const currentDate = new Date();
+    const currentDate = this.selectedDate;
 
     // Charger les données complètes (lazy loaded inclus)
     this.rapportJournalierService.getDailyReportWithDetails(currentDate).subscribe({
@@ -618,7 +691,7 @@ export class RapportJournalierPage implements OnDestroy {
           // Utiliser le plugin Capacitor Printer
           await Printer.print({
             content: htmlContent,
-            name: `rapport_journalier_${new Date().toISOString().split('T')[0]}`
+            name: `rapport_journalier_${this.toLocalDateString(currentDate)}`
           });
 
           console.log('Rapport imprimé avec succès');
@@ -654,7 +727,7 @@ export class RapportJournalierPage implements OnDestroy {
       const htmlContent = this.rapportJournalierService.generateReportHTML(this.reportData);
       await Printer.print({
         content: htmlContent,
-        name: `rapport_journalier_${new Date().toISOString().split('T')[0]}`
+        name: `rapport_journalier_${this.toLocalDateString(this.selectedDate)}`
       });
     } catch (e) {
       console.error('Erreur fallback print:', e);
@@ -667,7 +740,7 @@ export class RapportJournalierPage implements OnDestroy {
       const htmlContent = this.rapportJournalierService.generateReportHTML(reportToUse);
       const options = {
         margin: 1,
-        filename: `rapport_journalier_${new Date().toISOString().split('T')[0]}.pdf`,
+        filename: `rapport_journalier_${this.toLocalDateString(this.selectedDate)}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }

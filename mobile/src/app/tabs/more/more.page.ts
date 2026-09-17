@@ -56,6 +56,7 @@ export class MorePage implements OnInit, OnDestroy {
   autoSyncIntervalLabel = 'Toutes les 2 heures';
   autoLock = false;
   autoLockDuration = 2;
+  allowPastDailyReports = false;
   enableProfilePhotoSync = false;
   enableCardPhotoSync = false;
   totalClients$: Observable<number>;
@@ -113,6 +114,7 @@ export class MorePage implements OnInit, OnDestroy {
     this.updateAutoSyncIntervalLabel();
     this.autoLock = await this.storage.get('autoLock') || true;
     this.autoLockDuration = await this.storage.get('autoLockDuration') || 2;
+    this.allowPastDailyReports = (await this.storage.get('allowPastDailyReports')) === true;
 
     // Charger les préférences de synchronisation des photos
     const photoPrefs = await this.photoSyncService.getPhotoSyncPreferences();
@@ -204,6 +206,10 @@ export class MorePage implements OnInit, OnDestroy {
 
   onAutoLockToggleChange() {
     this.storage.set('autoLock', this.autoLock);
+  }
+
+  onAllowPastDailyReportsToggleChange() {
+    this.storage.set('allowPastDailyReports', this.allowPastDailyReports);
   }
 
   onAutoLockDurationChange() {

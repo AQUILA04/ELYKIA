@@ -43,6 +43,10 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
      * Overridden to handle failedMemberIds dependency
      */
     override async syncBatch(limit: number = 50, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        // Remove Local UUID orphans left after a prior sync that inserted a server-id row
+        // without rewriting/deleting the pending row (pre-fix hybrid path).
+        await this.repository.purgeSyncedOrphans();
+
         const unsyncedCollections = await this.fetchUnsynced(limit, dateFilter);
 
         let success = 0;
@@ -132,10 +136,13 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
 
     private async syncSingleTontineCollection(collection: TontineCollection): Promise<TontineCollectionSyncResponse> {
         const syncedCollection = await this.postCreateCollection(collection);
-        await this.repository.saveIdMapping(collection.id, syncedCollection.id.toString(), 'tontine-collection');
+        const serverId = syncedCollection.id.toString();
+        await this.repository.saveIdMapping(collection.id, serverId, 'tontine-collection');
+        // Rewrite PK in place so the pending UUID row does not remain as a Local orphan.
+        await this.repository.markAsSynced(collection.id, serverId);
         const persisted: TontineCollection = {
             ...collection,
-            id: syncedCollection.id.toString(),
+            id: serverId,
             isLocal: false,
             isSync: true,
             syncDate: new Date().toISOString(),
@@ -143,6 +150,7 @@ export class TontineCollectionSyncService extends BaseSyncService<TontineCollect
             contributionMonth: syncedCollection.contributionMonth || collection.contributionMonth,
             advanceToNextMonth: syncedCollection.advanceToNextMonth === true
         };
+        // Update V2 allocation fields on the same (now server-id) row.
         await this.repository.saveAll([persisted], false);
         return syncedCollection;
     }
