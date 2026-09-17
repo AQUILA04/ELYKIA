@@ -81,6 +81,8 @@ graph TD
 - `mirror-minio-do-to-contabo.sh` - Reprise mirror MinIO DO → OCI Contabo (objets seuls).
 - `docker-compose.DO.yml` / `docker-compose.DO-test.yml` - Legacy DigitalOcean (MinIO embarqué).
 - `CONTABO_MIGRATION.md` - Guide de migration Contabo.
+- `VERTEX_AI_CONTABO.md` - Activation Elykia IA (Vertex AI Gemini 3.8 Flash) sur Contabo test/prod.
+- `.env.contabo.test.example` / `.env.contabo.prod.example` - Templates `.env` Contabo (MinIO, OTEL, Vertex AI).
 - `INSTRUCTION_SETUP.md` - Guide détaillé pour l'installation initiale du serveur.
 - `INSTRUCTION_BOOTSTRAP.md` - Guide pour la création de l'utilisateur de déploiement et configuration CI/CD.
 

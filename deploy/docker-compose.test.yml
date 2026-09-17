@@ -63,9 +63,19 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://otel-collector:4318}
       OTEL_EXPORTER_OTLP_PROTOCOL: ${OTEL_EXPORTER_OTLP_PROTOCOL:-http/protobuf}
       OTEL_RESOURCE_ATTRIBUTES: ${OTEL_RESOURCE_ATTRIBUTES:-service.namespace=optimizesolux,deployment.environment=test}
+      # Elykia IA — Vertex AI (Gemini)
+      ELYKIA_AI_ENABLED: ${ELYKIA_AI_ENABLED:-true}
+      ELYKIA_AI_PROVIDER: ${ELYKIA_AI_PROVIDER:-gemini}
+      ELYKIA_AI_MODEL: ${ELYKIA_AI_MODEL:-gemini-3.8-flash}
+      SPRING_AI_MODEL_CHAT: ${SPRING_AI_MODEL_CHAT:-vertexai}
+      SPRING_AI_VERTEX_AI_GEMINI_CHAT_OPTIONS_MODEL: ${ELYKIA_AI_MODEL:-gemini-3.8-flash}
+      GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-elykia-503006}
+      GOOGLE_CLOUD_LOCATION: ${GOOGLE_CLOUD_LOCATION:-global}
+      GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-/secrets/gcp/vertex-ai-sa.json}
     volumes:
       - ${LOG_PATH:-/opt/elykia/test/logs}:/home/app/.optimize-elykia-core/logs
       - ${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/test/photos/pending}:/opt/elykia/photos/pending
+      - ${GCP_VERTEX_SA_PATH:-/opt/elykia/secrets/vertex-ai-sa.json}:/secrets/gcp/vertex-ai-sa.json:ro
     networks:
       - optimizesolux-common
       - traefik-public

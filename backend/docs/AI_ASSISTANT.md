@@ -221,16 +221,27 @@ OpenAI propose des embeddings (`text-embedding-3-small`) — intégration embedd
 
 **Prérequis :** `spring-ai-starter-model-vertex-ai-gemini` (déjà dans le `pom.xml`).
 
-> Avec Spring AI **1.0**, le provider `gemini` utilise **Vertex AI** (Google Cloud), pas une simple clé AI Studio. Authentification via Application Default Credentials (ADC).
+> Avec Spring AI **1.0**, le provider `gemini` utilise **Vertex AI** (Google Cloud), pas une simple clé AI Studio. Authentification via Application Default Credentials (ADC) : fichier compte de service (`GOOGLE_APPLICATION_CREDENTIALS`) ou `gcloud auth application-default login` en local.
 
 #### 1. Prérequis GCP
 
+- Projet GCP avec **billing** actif
+- API **Vertex AI** (Agent Platform) activée
+- Compte de service avec rôle minimal `roles/aiplatform.user`
+
 ```bash
-# Installer gcloud CLI, puis :
+# Local (dev) — ADC interactif
 gcloud auth application-default login
-export GOOGLE_CLOUD_PROJECT=votre-projet-id
-export GOOGLE_CLOUD_LOCATION=us-central1
+export GOOGLE_CLOUD_PROJECT=elykia-503006
+export GOOGLE_CLOUD_LOCATION=global
+
+# Contabo / Docker — ADC via fichier SA (recommandé)
+export GOOGLE_APPLICATION_CREDENTIALS=/secrets/gcp/vertex-ai-sa.json
+export GOOGLE_CLOUD_PROJECT=elykia-503006
+export GOOGLE_CLOUD_LOCATION=global
 ```
+
+> **Location :** Gemini 3.8 Flash est disponible sur `global`, `us` et `eu` — **pas** sur une région unique type `us-central1`.
 
 #### 2. Configuration
 
@@ -239,7 +250,7 @@ elykia:
   ai:
     enabled: true
     provider: gemini
-    model: gemini-2.0-flash
+    model: gemini-3.8-flash
 
 spring:
   ai:
@@ -249,10 +260,10 @@ spring:
       ai:
         gemini:
           project-id: ${GOOGLE_CLOUD_PROJECT}
-          location: ${GOOGLE_CLOUD_LOCATION:us-central1}
+          location: ${GOOGLE_CLOUD_LOCATION:global}
           chat:
             options:
-              model: gemini-2.0-flash
+              model: gemini-3.8-flash
               temperature: 0.1
               max-output-tokens: 4096
 ```
@@ -261,11 +272,12 @@ spring:
 
 | Modèle | Cas d'usage Elykia |
 |--------|-------------------|
-| `gemini-2.0-flash` | **Recommandé** — rapide, bon pour SQL |
-| `gemini-2.5-flash-preview-*` | Qualité supérieure (vérifier région GCP) |
-| `gemini-2.5-pro-preview-*` | Questions complexes (coût plus élevé) |
+| `gemini-3.8-flash` | **Recommandé** — dernière GA Vertex AI (SQL, agentic, coding) |
+| `gemini-3.5-flash` | Alternative stable (GA) si besoin de rester sur 3.5 |
+| `gemini-3.7-flash` | Génération précédente Flash 3.x |
+| `gemini-2.5-flash` | Legacy — retraite prévue oct. 2026 |
 
-Vérifier les [régions supportées](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/locations) par modèle.
+Vérifier les [régions / endpoints supportés](https://docs.cloud.google.com/gemini-enterprise-agent-platform/resources/locations) par modèle.
 
 #### 4. RAG (HOW_TO)
 
@@ -273,7 +285,44 @@ Comme Anthropic : pas d'embeddings Vertex dans le pipeline actuel → mots-clés
 
 #### 5. Vérification
 
-`GET /api/v1/ai/health` → `"provider": "gemini"`.
+`GET /api/v1/ai/health` → `"provider": "gemini"` (model `gemini-3.8-flash`).
+
+#### 6. Déploiement Contabo (test + prod)
+
+Les compose Contabo montent le SA en lecture seule et activent Gemini via env :
+
+| Variable | Valeur typique |
+|----------|----------------|
+| `ELYKIA_AI_ENABLED` | `true` |
+| `ELYKIA_AI_PROVIDER` | `gemini` |
+| `ELYKIA_AI_MODEL` | `gemini-3.8-flash` |
+| `GOOGLE_CLOUD_PROJECT` | `elykia-503006` |
+| `GOOGLE_CLOUD_LOCATION` | `global` |
+| `GOOGLE_APPLICATION_CREDENTIALS` | `/secrets/gcp/vertex-ai-sa.json` |
+| `GCP_VERTEX_SA_PATH` | `/opt/elykia/secrets/vertex-ai-sa.json` (hôte) |
+| `SPRING_AI_MODEL_CHAT` | `vertexai` (active l’auto-config Spring AI Vertex) |
+
+**Checklist ops VPS**
+
+1. GCP : API Vertex AI activée ; SA avec `roles/aiplatform.user` ; billing OK.
+2. Sur le VPS :
+   ```bash
+   sudo mkdir -p /opt/elykia/secrets && sudo chmod 700 /opt/elykia/secrets
+   # scp du JSON local → /opt/elykia/secrets/vertex-ai-sa.json
+   # chmod 644 : le processus Java (user non-root) doit pouvoir lire le fichier
+   sudo chmod 644 /opt/elykia/secrets/vertex-ai-sa.json
+   ```
+3. Ajouter les variables dans `/opt/elykia/test/.env` et `/opt/elykia/prod/.env` (voir `deploy/.env.contabo.test.example` / `deploy/.env.contabo.prod.example`). **Ne jamais committer le JSON.** Commentaires `.env` en ASCII (`-` uniquement).
+4. Recreate backends :
+   ```bash
+   cd /opt/elykia/deploy
+   docker compose -f docker-compose.test.yml --project-name elykia-test \
+     --env-file /opt/elykia/test/.env up -d backend
+   docker compose -f docker-compose.prod.yml --project-name elykia-prod \
+     --env-file /opt/elykia/prod/.env up -d backend
+   ```
+5. Smoke : `GET /api/v1/ai/health` → `401` sans token (module up) ou `"provider":"gemini"` avec JWT `ROLE_AI_CHAT` ; question DATA + HOW_TO via `/ai-chat`.
+6. Frontend : feature flag `elykiaAi` + rôles `ROLE_AI_CHAT` / `ROLE_AI_REPORT`.
 
 #### Alternative : Google AI Studio (clé API seule)
 
@@ -420,5 +469,5 @@ Spécifique par provider :
 |----------|---------------------|
 | `anthropic` | `ANTHROPIC_API_KEY` |
 | `openai` | `OPENAI_API_KEY` |
-| `gemini` | `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, ADC (`gcloud auth application-default login`) |
+| `gemini` | `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION=global`, ADC (`GOOGLE_APPLICATION_CREDENTIALS` ou `gcloud auth application-default login`) |
 | `deepseek` | `DEEPSEEK_API_KEY` |

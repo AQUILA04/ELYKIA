@@ -39,10 +39,10 @@ spring:
       ai:
         gemini:
           project-id: ${GOOGLE_CLOUD_PROJECT:}
-          location: ${GOOGLE_CLOUD_LOCATION:us-central1}
+          location: ${GOOGLE_CLOUD_LOCATION:global}
           chat:
             options:
-              model: gemini-3.5-flash
+              model: gemini-3.8-flash
               temperature: 0.1
               max-output-tokens: 4096
     deepseek:
