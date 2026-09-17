@@ -134,6 +134,15 @@
             <span class="elyk-amount">{{ formatCurrency(vm.delivery.totalAmount) }}</span>
           </div>
         </div>
+        <ion-button
+          *ngIf="canMarkAsDelivered()"
+          expand="block"
+          class="elyk-btn-navy ion-margin-top"
+          (click)="markAsDelivered()"
+          data-testid="e2e-tontine-mark-delivered">
+          <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+          Marquer comme livré
+        </ion-button>
       </ion-card-content>
     </ion-card>
 

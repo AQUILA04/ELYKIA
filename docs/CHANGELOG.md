@@ -9,6 +9,23 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.29.0] — 2026-09-17
+
+### Added
+
+- Livraison tontine : choix **Commande** vs **Livraison directe** à la validation (action sheet).
+- Passage d'une commande tontine (`PENDING` / `VALIDATED`) à **Livrée** depuis la fiche membre (local-first + sync).
+- Colonne SQLite `needsDeliverSync` (migration v31) pour synchroniser `PATCH …/deliver` après une commande déjà syncée.
+- Sync : `POST /deliveries` pour les commandes, `POST /deliveries/distribute` pour la livraison directe, `PATCH /deliver` pour le passage livré.
+
+## Backend — [1.17.1] — 2026-09-17
+
+### Changed
+
+- `deliverDelivery` met à jour `deliveryDate` au moment de la remise effective.
+- Clarification OpenAPI : création = commande, `/distribute` = livraison directe.
+- DTO livraison : exposition de `requestDate` et codes de consentement.
+
 ## Customer-space — [0.4.0] — 2026-09-17
 
 ### Added
