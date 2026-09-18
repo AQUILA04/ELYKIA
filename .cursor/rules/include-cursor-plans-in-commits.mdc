@@ -1,0 +1,28 @@
+---
+description: Inclure toujours .cursor/ (plans, etc.) dans les commits
+alwaysApply: true
+---
+
+# Commits : inclure `.cursor/`
+
+Quand tu crées un commit (ou un commit-and-push demandé), **inclus toujours** les fichiers modifiés ou non suivis sous `.cursor/`, en particulier :
+
+- `.cursor/plans/**` (plans créés ou mis à jour pendant la tâche)
+- autres artefacts utiles de `.cursor/` liés au travail en cours (rules, skills locaux du repo si touchés)
+
+## Comportement attendu
+
+1. Au `git status` / staging : ne **pas** exclure `.cursor/plans/` par défaut.
+2. Si un plan a été créé ou mis à jour pour la feature/fix en cours, l’ajouter au même commit (ou au commit dédié si l’utilisateur ne commit que ça).
+3. Continuer d’exclure les secrets, `.env`, credentials, et le bruit non pertinent (ex. caches temporaires inutiles type dumps binaires massifs) — mais **pas** les plans Markdown.
+
+## Exemple
+
+```bash
+# ✅ Inclure le plan avec le reste du travail
+git add deploy/ frontend/ .cursor/plans/vertex_ai_contabo_d28169db.plan.md
+
+# ❌ Ne pas omettre volontairement les plans
+git add deploy/ frontend/
+# (en laissant .cursor/plans/ de côté)
+```

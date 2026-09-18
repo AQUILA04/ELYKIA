@@ -95,7 +95,7 @@ netty_internal_tcnative_SSLContext_JNI_OnLoad
 Cause : image Alpine (`musl`) + native SSL de gRPC/Vertex AI.
 
 Mitigations :
-1. **Hotfix immédiat** : `JAVA_TOOL_OPTIONS=-Dio.grpc.netty.shaded.io.netty.handler.ssl.noOpenSsl=true -Dio.grpc.netty.shaded.io.netty.transport.noNative=true` puis recreate backend.
+1. **Hotfix immédiat** : `JAVA_TOOL_OPTIONS="-Dio.grpc.netty.shaded.io.netty.handler.ssl.noOpenSsl=true -Dio.grpc.netty.shaded.io.netty.transport.noNative=true"` (guillemets obligatoires — `deploy.sh` source le `.env`) puis recreate backend.
 2. **Fix durable** : image backend basée sur `eclipse-temurin:17-jre` (glibc), pas `*-alpine`.
 
 Le double path `/api/api/v1/...` côté navigateur est normal (Traefik strip `/api`).
