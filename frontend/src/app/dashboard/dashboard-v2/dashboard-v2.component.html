@@ -26,7 +26,7 @@
       </div>
       <div class="header-actions">
         <div class="month-control" data-testid="e2e-dashboard-month-picker">
-          <span class="month-control-label">Mois</span>
+          <label class="month-control-label" for="dashboard-v2-month-input">Mois</label>
           <div class="month-picker-field">
             <button
               type="button"
@@ -38,12 +38,13 @@
               <mat-icon>calendar_today</mat-icon>
             </button>
             <input
+              id="dashboard-v2-month-input"
               class="month-picker-hidden"
               matInput
               [matDatepicker]="monthPicker"
               [formControl]="monthControl"
               tabindex="-1"
-              aria-hidden="true">
+              aria-label="Mois">
             <mat-datepicker
               #monthPicker
               startView="year"
