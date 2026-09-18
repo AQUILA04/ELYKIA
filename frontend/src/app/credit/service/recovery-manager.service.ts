@@ -48,6 +48,24 @@ export class RecoveryManagerService {
     return this.http.get<any>(`${this.BASE}/report/summary`, { params: httpParams });
   }
 
+  getMonthlyRecoveryRate(params: {
+    year?: number;
+    month?: number;
+    recoveryManagerUsername?: string;
+  } = {}): Observable<any> {
+    let httpParams = new HttpParams();
+    if (params.year != null) {
+      httpParams = httpParams.set('year', params.year.toString());
+    }
+    if (params.month != null) {
+      httpParams = httpParams.set('month', params.month.toString());
+    }
+    if (params.recoveryManagerUsername) {
+      httpParams = httpParams.set('recoveryManagerUsername', params.recoveryManagerUsername);
+    }
+    return this.http.get<any>(`${this.BASE}/kpi/monthly-recovery-rate`, { params: httpParams });
+  }
+
   downloadReportPdf(params: ReportPeriodParams): Observable<Blob> {
     let httpParams = new HttpParams()
       .set('startDate', params.startDate)
