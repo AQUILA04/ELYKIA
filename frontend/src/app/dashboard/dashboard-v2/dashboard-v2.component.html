@@ -25,12 +25,33 @@
         </div>
       </div>
       <div class="header-actions">
-        <mat-form-field appearance="outline" class="month-picker">
-          <mat-label>Mois</mat-label>
-          <input matInput [matDatepicker]="monthPicker" [formControl]="monthControl">
-          <mat-datepicker-toggle matSuffix [for]="monthPicker"></mat-datepicker-toggle>
-          <mat-datepicker #monthPicker startView="year" (monthSelected)="monthControl.setValue($event); monthPicker.close()"></mat-datepicker>
-        </mat-form-field>
+        <div class="month-control" data-testid="e2e-dashboard-month-picker">
+          <label class="month-control-label" for="dashboard-v2-month-input">Mois</label>
+          <div class="month-picker-field">
+            <button
+              type="button"
+              class="month-picker-trigger"
+              (click)="monthPicker.open()"
+              aria-label="Sélectionner le mois"
+              data-testid="e2e-dashboard-month-trigger">
+              <span class="month-picker-value">{{ period.label | titlecase }}</span>
+              <mat-icon>calendar_today</mat-icon>
+            </button>
+            <input
+              id="dashboard-v2-month-input"
+              class="month-picker-hidden"
+              matInput
+              [matDatepicker]="monthPicker"
+              [formControl]="monthControl"
+              tabindex="-1"
+              aria-label="Mois">
+            <mat-datepicker
+              #monthPicker
+              startView="year"
+              (monthSelected)="onMonthSelected($event, monthPicker)">
+            </mat-datepicker>
+          </div>
+        </div>
         <button class="btn-refresh" type="button" (click)="refresh()">Actualiser</button>
       </div>
     </div>

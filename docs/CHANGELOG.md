@@ -45,28 +45,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Déclaration Mobile Money de cotisation tontine : route `/tontines/:id/payment`, CTA sur le détail, API recipients/submit, affichage `INITIE` dans la timeline.
 - E2E déclaration cotisation tontine (mocks recipients + POST).
 
-## Frontend — [2.21.1] — 2026-09-18
+## Frontend — [2.21.3] — 2026-09-18
 
 ### Fixed
 
-- Magasinier (`ROLE_STOREKEEPER` / profil STOREKEEPER) : accès au menu et à l’écran Stock mensuel (`/stock/my-stock`), avec sélecteur de commercial pour tous les portefeuilles (seul le profil PROMOTER reste limité au sien). Même correction pour le sous-menu Stock tontine.
-## Frontend — [2.22.0] — 2026-09-18
+- Dashboard v2 : input mois du date picker associé à un label (`id` / `for`) pour le quality gate Sonar (a11y).
 
-### Added
+## Frontend — [2.21.2] — 2026-09-18
 
-- Rapport « Recouvrement terrain » : bandeau **Taux du mois** (encaissé chef / dû live des retards délai app).
+### Fixed
 
-## Backend — [1.18.0] — 2026-09-18
-
-### Added
-
-- Endpoint `GET /api/v1/recovery-manager/kpi/monthly-recovery-rate` : taux de recouvrement mensuel du chef (Σ `amountCollected` / dû live retards délai app).
-
-## Mobile — [2.29.0] — 2026-09-18
-
-### Added
-
-- Onglet Retards (`/rm/dashboard`) : bandeau **Taux du mois** (séparé du strip plan), sélecteur de mois simple, cache hors ligne.
+- Dashboard v2 : date picker mois compact (label hors champ, affichage « Septembre 2026 », aligné au bouton Actualiser) ; grille KPI en 2 lignes (3 + 2).
 
 ## Frontend — [2.21.0] — 2026-09-17
 
