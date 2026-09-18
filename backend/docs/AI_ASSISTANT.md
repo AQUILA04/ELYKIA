@@ -11,6 +11,18 @@ Module backend `com.optimize.elykia.core.ai` exposant :
 
 Interface admin : route **`/ai-chat`** (discussion + onglet statistiques pour `ROLE_AI_REPORT`).
 
+## Index RAG user-guide
+
+Le chat HOW_TO lit [`classpath:ai/user-guide-index.json`](../src/main/resources/ai/user-guide-index.json) (chunks issus de `user-guide/docs`).
+
+Après toute modification du guide MkDocs :
+
+```bash
+python user-guide/generate_rag_index.py
+```
+
+Committer le JSON régénéré avec le guide. Voir la règle Cursor `user-guide-rag-index-sync`.
+
 ## Rôles dédiés
 
 | Rôle | Accès |

@@ -1,58 +1,647 @@
 [
   {
-    "id": "clients_accounts",
-    "title": "Comptes clients et crédits",
+    "id": "administration",
+    "title": "Administration et paramétrage",
+    "path": "/user-guide/administration.html",
+    "roles": [
+      "admin",
+      "manager"
+    ],
+    "content": "Administration et paramétrage\n\nCette ancienne adresse est conservée pour les favoris et les liens historiques. La procédure à jour se trouve dans Rapports et Configuration.\n Document remplacé. Utilisez la page cible pour les libellés, rôles, statuts et procédures de la version actuelle de l’application."
+  },
+  {
+    "id": "commercial_clients_accounts",
+    "title": "Clients et comptes",
     "path": "/user-guide/commercial/clients_accounts.html",
-    "roles": ["commercial", "manager"],
-    "content": "Pour créer un crédit : accédez à la liste des clients, sélectionnez un client, puis créez une nouvelle vente à crédit. Pour enregistrer une mise (recouvrement) : ouvrez le détail du crédit et saisissez le montant de la mise du jour."
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Clients et comptes\n\nLe module Clients centralise les données nécessaires aux ventes et à la tontine. Recherchez toujours un dossier existant avant de créer un client afin d’éviter les doublons."
   },
   {
-    "id": "tontine",
-    "title": "Gestion de la tontine",
-    "path": "/user-guide/commercial/tontine.html",
-    "roles": ["commercial", "manager"],
-    "content": "La tontine permet de gérer les cotisations et livraisons annuelles. Accédez au module Tontine pour enregistrer une collecte, consulter les membres d'une session et suivre les livraisons."
+    "id": "commercial_clients_accounts__rechercher_et_consulter",
+    "title": "Clients et comptes — Rechercher et consulter",
+    "path": "/user-guide/commercial/clients_accounts.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Clients et comptes\nRechercher et consulter\n\nLa liste affiche des KPI de portefeuille, une recherche par nom, prénom, téléphone ou localité, un filtre commercial et une pagination. Cliquez sur le nom ou sur Voir pour ouvrir la fiche. La fiche peut montrer les badges de crédit actif, membre tontine ou commande en cours, les informations de contact, une photo et les historiques disponibles.\n\n \n\nSi un commercial est sélectionné, le bouton Fiche Client PDF permet l’export du portefeuille correspondant. L’export ne remplace pas la vérification de la période ou du commercial choisi."
   },
   {
-    "id": "reporting",
-    "title": "Rapports et reporting",
+    "id": "commercial_clients_accounts__cr_er_ou_modifier_un_client",
+    "title": "Clients et comptes — Créer ou modifier un client",
+    "path": "/user-guide/commercial/clients_accounts.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Clients et comptes\nCréer ou modifier un client\n\nCliquez sur Ajouter puis remplissez les sections du formulaire. Les champs obligatoires affichent un astérisque.\n\n Section Informations principales \n --- --- \n Identité Nom, prénom, adresse, téléphone à huit chiffres et photo de profil facultative. \n Pièce d’identité Type de pièce, numéro et document facultatif au format autorisé. \n Informations personnelles Date de naissance, occupation et localité recherchable. \n Contact Personne à contacter, si nécessaire. \n Géolocalisation Position GPS obtenue depuis l’appareil ou latitude/longitude saisies manuellement. \n Commerciaux associés Commercial crédit, commercial tontine et commercial agence. \n Type et compte Type client ou commercial ; solde initial lorsque la section compte est affichée. \n\nValidez avec Enregistrer . En modification, les champs liés aux commerciaux peuvent être restreints : seul un compte autorisé à l’affectation peut changer les responsables crédit ou tontine."
+  },
+  {
+    "id": "commercial_clients_accounts__r_affecter_plusieurs_clients",
+    "title": "Clients et comptes — Réaffecter plusieurs clients",
+    "path": "/user-guide/commercial/clients_accounts.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Clients et comptes\nRéaffecter plusieurs clients\n\nLes comptes ayant la permission d’affectation voient des cases à cocher et le bouton Changer de commercial . Sélectionnez les clients, puis choisissez le commercial crédit, le commercial tontine ou les deux. L’option Transférer automatiquement les ventes du commercial devient disponible après sélection d’un commercial crédit ; elle transfère les ventes crédit INPROGRESS du portefeuille vers le nouveau commercial.\nVérifiez la sélection avant validation. L’historique conserve la traçabilité des changements de commercial."
+  },
+  {
+    "id": "commercial_clients_accounts__comptes",
+    "title": "Clients et comptes — Comptes",
+    "path": "/user-guide/commercial/clients_accounts.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Clients et comptes\nComptes\n\nLe menu Comptes , lorsqu’il est visible, est distinct de la fiche client. Utilisez-le pour consulter les comptes et leurs soldes avec les droits prévus. Ne créez pas un nouveau client uniquement pour corriger une information de compte : revenez à la fiche client ou suivez la procédure de gestion de compte de votre organisation."
+  },
+  {
+    "id": "commercial",
+    "title": "Guide Commercial",
+    "path": "/user-guide/commercial/index.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Guide Commercial\n\nCe guide présente les parcours de terrain disponibles sur le web et, dans sa dernière partie, sur l’application mobile. Votre interface montre uniquement les actions correspondant à vos droits : l’absence d’un bouton de validation, d’export ou de réaffectation est normale si l’habilitation n’est pas attribuée.\n\nVotre cycle de travail\n\n Moment Module Objectif \n --- --- --- \n Préparer le portefeuille Clients Créer et mettre à jour les informations client. \n Obtenir les articles Stock Commercial Créer une demande de sortie et suivre sa livraison. \n Distribuer et suivre Ventes Créer une vente, suivre son statut et encaisser les mises. \n Collecter l’épargne Tontines Inscrire, collecter, suivre la progression et préparer la livraison. \n Rendre compte Caisse, Rapport Journalier Contrôler les versements et les opérations de la période. \n\nSuivez les pages Clients et comptes, Stock, Ventes et commandes, Tontines et Application mobile."
+  },
+  {
+    "id": "commercial_mobile",
+    "title": "Application mobile",
+    "path": "/user-guide/commercial/mobile.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Application mobile\n\nCette ancienne adresse est conservée pour les favoris et les liens historiques. La procédure à jour se trouve dans Application mobile de terrain.\n Document remplacé. Utilisez la page cible pour les libellés, rôles, statuts et procédures de la version actuelle de l’application."
+  },
+  {
+    "id": "commercial_mobile_app",
+    "title": "Application mobile de terrain",
+    "path": "/user-guide/commercial/mobile_app.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Application mobile de terrain\n\nL’application mobile propose un parcours commercial et un parcours dédié au chef de recouvrement. Elle privilégie l’écriture en ligne lorsque le serveur est joignable, avec possibilité d’enregistrer hors ligne lorsque l’interface le propose. La synchronisation reste indispensable pour remonter les opérations locales.\nParcours commercial\n\nAprès connexion, le chargement initial prépare les données nécessaires aux onglets de travail. Les parcours disponibles incluent les clients, distributions, recouvrements, stock, commandes, tontine, rapport et synchronisation, selon le compte connecté.\n\n Action Comportement à retenir \n --- --- \n Créer ou modifier un client Tentative en ligne en priorité ; l’application peut proposer un enregistrement hors ligne en cas d’indisponibilité. \n Distribution et encaissement Tentative en ligne puis repli local proposé selon l’erreur rencontrée. \n Tontine Inscription, collecte et livraison suivent la même logique hybride ; les collectes locales sont synchronisées ultérieurement. \n Synchroniser Les pages de synchronisation manuelle, automatique et d’erreurs permettent de contrôler les opérations en attente. \n\n \n\nUne collecte tontine hors ligne peut afficher une estimation. Après reconnexion, lancez la synchronisation et vérifiez que l’opération a bien quitté la file d’attente avant de la considérer comme définitive.\nParcours chef de recouvrement\n\nLe profil Chef de recouvrement dispose d’un espace terrain distinct, accessible après le plan du jour, avec les onglets Retards , Terrain , Clients et Plus . Son parcours complet — contrôles de carnet, clôtures, réaffectations, pack hors ligne et synchronisation — est documenté dans le Guide Chef de recouvrement.\nSécurité et mise à jour\n\nAprès une réinitialisation de mot de passe, le changement est obligatoire avant de poursuivre. Si la gestion d’appareils mobiles est activée par l’organisation, seuls les appareils autorisés peuvent se connecter. La page Plus peut afficher la version installée et le bouton Mettre à jour l’application ; installez uniquement les mises à jour proposées par l’application ou par la procédure officielle de l’organisation."
+  },
+  {
+    "id": "commercial_reporting",
+    "title": "Reporting commercial",
     "path": "/user-guide/commercial/reporting.html",
-    "roles": ["commercial", "manager"],
-    "content": "Les rapports journaliers récapitulent ventes, recouvrements et versements caisse par commercial. Consultez Rapport journalier pour voir le détail du jour et effectuer un versement caisse."
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Reporting commercial\n\nCette ancienne adresse est conservée pour les favoris et les liens historiques. La procédure à jour se trouve dans Rapports et Configuration.\n Document remplacé. Utilisez la page cible pour les libellés, rôles, statuts et procédures de la version actuelle de l’application."
+  },
+  {
+    "id": "commercial_sales_orders",
+    "title": "Ventes, crédits et commandes",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits et commandes\n\nLe menu Ventes rassemble la liste des crédits, les retards, échéances, recouvrements, transferts de ventes et rattrapages selon les permissions. Une vente est une opération suivie par statut ; créez-la correctement avant de solliciter une validation ou une livraison."
+  },
+  {
+    "id": "commercial_sales_orders__cr_er_une_vente",
+    "title": "Ventes, crédits et commandes — Créer une vente",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits et commandes\nCréer une vente\n\nDans Ventes > Liste , cliquez sur Nouvelle vente . Le formulaire permet de choisir le type Crédit ou Comptant , puis le client et les articles. Pour une vente à crédit, sélectionnez également le commercial et renseignez une avance éventuelle. Si l’option de finalité est active, le crédit peut être déclaré personnel ou professionnel pour les clients habilités.\n\n \n\n Type de vente Données et résultat \n --- --- \n Crédit Client, commercial, articles, avance optionnelle ; une mise journalière et un solde sont ensuite suivis. \n Comptant Client et articles ; aucun suivi de mise journalière n’est affiché sur le reçu. \n\nLe sélecteur de client et le sélecteur d’articles utilisent une recherche et un chargement progressif. Saisissez quelques caractères et attendez les résultats plutôt que de conclure qu’un dossier n’existe pas."
+  },
+  {
+    "id": "commercial_sales_orders__suivre_le_cycle_du_cr_dit",
+    "title": "Ventes, crédits et commandes — Suivre le cycle du crédit",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits et commandes\nSuivre le cycle du crédit\n\n Statut Signification et action courante \n --- --- \n CREATED Vente enregistrée ; un responsable habilité peut Valider . \n VALIDATED Vente validée ; le magasinier peut Démarrer après remise de la marchandise. \n INPROGRESS Crédit en cours ; l’action Encaisser permet la mise, selon les droits. \n SETTLED Crédit soldé ; il n’est plus sélectionnable pour une réaffectation en lot. \n\nLa liste propose les filtres de période KPI et une Recherche avancée . La case de recherche par référence permet de cibler une référence, notamment une référence de rattrapage. La fiche crédit peut afficher le stock mensuel source, l’historique des transferts de commercial et, lorsque le rôle l’autorise, le contrôle terrain."
+  },
+  {
+    "id": "commercial_sales_orders__encaissements_retards_et_transfert",
+    "title": "Ventes, crédits et commandes — Encaissements, retards et transfert",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits et commandes\nEncaissements, retards et transfert\n\nUtilisez Retards pour identifier les crédits en retard et Échéances pour suivre les périodes dues. Les encaissements apparaissent dans Recouvrements ; leur annulation est réservée à une permission spécifique. La liste principale permet de modifier la mise d’un crédit admissible et de réaffecter plusieurs ventes non soldées si le compte dispose de la permission correspondante.\n\nLe menu Transfert Ventes est un rapport de passations. Il filtre les commerciaux sortant et entrant ainsi que la période, puis présente les agrégats et le détail paginé. Une vente est comptée une seule fois dans cette lecture, sur la dernière passation pertinente."
+  },
+  {
+    "id": "commercial_sales_orders__commandes",
+    "title": "Ventes, crédits et commandes — Commandes",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits et commandes\nCommandes\n\nLe menu Commandes est un parcours distinct, présent uniquement pour les comptes autorisés. Créez, consultez ou mettez à jour une commande dans l’ordre permis par ses statuts. Ne confondez pas une commande avec une vente crédit déjà démarrée."
+  },
+  {
+    "id": "commercial_stock",
+    "title": "Stock commercial du commercial",
+    "path": "/user-guide/commercial/stock.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Stock commercial du commercial\n\nLe stock commercial représente les articles effectivement attribués au commercial. Il est alimenté par des demandes de sortie validées et livrées, puis ajusté par les retours traités selon leur statut.\nDemander du stock\n\nOuvrez Stock Commercial > Demandes Sortie , puis sélectionnez Nouvelle demande si l’action est disponible. Choisissez le commercial concerné, ajoutez les articles et quantités depuis le sélecteur, puis envoyez la demande. En fin de mois, l’écran peut afficher des indications particulières pour orienter le choix de période.\n\n \n\nLa liste utilise les états suivants :\n\n État Ce qu’il faut faire \n --- --- \n Créée Attendre la validation, ou modifier/annuler si l’interface et votre rôle l’autorisent. \n Validée La demande est prête à être livrée par le magasinier. \n Livrée Les articles sont attribués au stock commercial ; vous pouvez ensuite les distribuer. \n\nUtilisez Voir pour vérifier les articles, la référence et les dates. Les filtres de période et commercial, ainsi que les exports PDF, permettent de retrouver un dossier sans modifier les données.\nLire le stock mensuel\n\nDans Stock Commercial > Stock , les panneaux présentent les quantités prises, vendues, retournées et restantes. Les KPI complètent la lecture avec la valeur du stock restant, la valeur vendue, le montant recouvré, le reste à recouvrer et le taux de recouvrement. La valeur du stock vendu peut ouvrir le détail des ventes liées ; le bouton de rapport PDF porte sur le panneau commercial et mensuel affiché.\nRetourner des articles\n\nUtilisez Stock Commercial > Retours lorsqu’un article doit revenir au stock. Créez le retour selon les articles disponibles, puis suivez la ligne jusqu’à sa réception. Un retour non réceptionné ne doit pas être présenté comme revenu en stock. Les statuts et actions proposés par la liste indiquent si vous pouvez encore modifier, annuler ou demander une réception."
+  },
+  {
+    "id": "commercial_tontine",
+    "title": "Tontines",
+    "path": "/user-guide/commercial/tontine.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Tontines\n\nLe module Tontines suit les membres, collectes, livraisons et archives de collectes. Les actions d’écriture concernent la session active ; une session historique est affichée en lecture seule."
+  },
+  {
+    "id": "commercial_tontine__tableau_de_bord_de_la_session",
+    "title": "Tontines — Tableau de bord de la session",
+    "path": "/user-guide/commercial/tontine.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Tontines\nTableau de bord de la session\n\nDans Tontines > Liste , choisissez la session puis utilisez les filtres pour limiter les membres par recherche, commercial, localité ou statut de carnet. Le tableau peut fournir les exports PDF par commercial et, pour les comptes habilités, les exports de carnets vérifiés ou à vérifier. Les boutons Ajouter un Membre et Ajout Multiple sont indisponibles en session historique ou pendant un recalcul de part société.\n\n \n\nLa vérification en masse s’effectue en sélectionnant les membres puis en choisissant Vérifier la sélection . Sur la fiche membre, le badge précise Carnet vérifié ou Carnet non vérifié, ainsi que la date et l’auteur lorsqu’une vérification existe. Cette action est réservée à la permission dédiée ; elle peut être annulée par les mêmes comptes habilités."
+  },
+  {
+    "id": "commercial_tontine__inscrire_et_modifier_un_membre",
+    "title": "Tontines — Inscrire et modifier un membre",
+    "path": "/user-guide/commercial/tontine.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Tontines\nInscrire et modifier un membre\n\nUtilisez Ajouter un Membre pour sélectionner un client et définir sa mise. L’ajout multiple permet de créer plusieurs inscriptions quand le rôle le permet. Ouvrez ensuite une ligne pour consulter la fiche : montant contribué, solde disponible, part société, collectes à la livraison, progression des mois et historique des montants de mise."
+  },
+  {
+    "id": "commercial_tontine__enregistrer_une_collecte",
+    "title": "Tontines — Enregistrer une collecte",
+    "path": "/user-guide/commercial/tontine.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Tontines\nEnregistrer une collecte\n\nSur la fiche membre active, choisissez Enregistrer une Collecte pour une collecte normale ou Collecte de rattrapage pour une date antérieure à aujourd’hui. Le rattrapage demande de vérifier le mois ciblé et la mise journalière applicable avant confirmation. Le récapitulatif mensuel et l’historique des collectes se mettent à jour après l’enregistrement.\n\n Écran de contrôle Ce qu’il permet de vérifier \n --- --- \n Cotisations par commercial Répartition des collectes selon l’agent qui les a réellement enregistrées ; le commercial actuel est signalé. \n Synthèse mensuelle Nombre de collectes, montant et équivalent en jours de mise. \n Historique des montants de mise Montant journalier applicable par période. \n Contrôle terrain Comparaison système, carnet et écart, lorsque le chef de recouvrement a saisi un contrôle. \n\nL’annulation d’une collecte est réservée aux comptes autorisés et peut être limitée au profil administrateur. Ne corrigez pas une collecte par une nouvelle collecte inverse sans suivre la procédure interne."
+  },
+  {
+    "id": "commercial_tontine__pr_parer_et_finaliser_une_livraison",
+    "title": "Tontines — Préparer et finaliser une livraison",
+    "path": "/user-guide/commercial/tontine.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Tontines\nPréparer et finaliser une livraison\n\nLorsque la session est fermée et que le statut de livraison le permet, utilisez Préparer la Livraison pour choisir les articles. Le dossier passe alors en PENDING. Un gestionnaire ou administrateur autorisé utilise Valider la Livraison ; ensuite, un compte autorisé par le rôle rapport ou édition tontine peut Marquer comme Livré . La fiche affiche alors les articles, le montant, la date, le commercial et le solde non utilisé éventuel.\nLa livraison n’est pas réservée au seul magasinier : l’action est disponible selon les permissions ROLE_REPORT ou ROLE_EDIT_TONTINE de l’application actuelle."
   },
   {
     "id": "daily_cycle",
     "title": "Cycle journalier",
     "path": "/user-guide/daily-cycle.html",
-    "roles": ["commercial", "manager", "storekeeper"],
-    "content": "Le cycle journalier comprend : ouverture journée comptable, ventes et recouvrements terrain, clôture et versement caisse. Chaque commercial doit enregistrer ses mises sur les crédits avant la clôture."
+    "roles": [
+      "commercial",
+      "manager",
+      "storekeeper"
+    ],
+    "content": "Cycle journalier\n\nCette ancienne adresse est conservée pour les favoris et les liens historiques. La procédure à jour se trouve dans Opérations Quotidiennes.\n Document remplacé. Utilisez la page cible pour les libellés, rôles, statuts et procédures de la version actuelle de l’application."
+  },
+  {
+    "id": "home",
+    "title": "Guide utilisateur ELYKIA",
+    "path": "/user-guide/index.html",
+    "roles": [
+      "commercial",
+      "manager",
+      "storekeeper",
+      "recovery_manager",
+      "admin"
+    ],
+    "content": "Guide utilisateur ELYKIA\n\nCe site décrit les parcours actuellement disponibles dans l’application ELYKIA. Il s’adresse aux équipes de gestion, de magasin, de terrain et de recouvrement. Les menus et les actions visibles dépendent du compte connecté, de ses permissions et, dans certains cas, des paramètres activés par l’organisation.\n Principe de lecture. Utilisez le guide correspondant à votre rôle. Une action qui n’apparaît pas dans votre interface ne constitue pas une anomalie : elle peut être protégée par une permission ou réservée à un autre profil."
+  },
+  {
+    "id": "home__les_parcours_disponibles",
+    "title": "Guide utilisateur ELYKIA — Les parcours disponibles",
+    "path": "/user-guide/index.html",
+    "roles": [
+      "commercial",
+      "manager",
+      "storekeeper",
+      "recovery_manager",
+      "admin"
+    ],
+    "content": "Guide utilisateur ELYKIA\nLes parcours disponibles\n\n Profil Responsabilités principales Guide \n --- --- --- \n Gestionnaire, secrétaire ou administrateur Pilotage, clients, trésorerie, contrôles, validation et configuration. Guide Gestionnaire \n Magasinier Catalogue, inventaire, réceptions, livraisons et retours de stock. Guide Magasinier \n Commercial Portefeuille clients, demandes de stock, ventes, encaissements et tontine. Guide Commercial \n Chef de recouvrement Retards, contrôles de carnet, clôtures terrain, plan de tournée et synchronisation mobile. Guide Chef de recouvrement"
+  },
+  {
+    "id": "home__rep_res_essentiels",
+    "title": "Guide utilisateur ELYKIA — Repères essentiels",
+    "path": "/user-guide/index.html",
+    "roles": [
+      "commercial",
+      "manager",
+      "storekeeper",
+      "recovery_manager",
+      "admin"
+    ],
+    "content": "Guide utilisateur ELYKIA\nRepères essentiels\nLe cycle de travail\n\nLes opérations monétaires sont rattachées à une journée comptable et à une caisse . Selon les droits du compte, la journée est ouverte puis fermée par les responsables, tandis que chaque agent concerné ouvre ou ferme sa propre caisse. Le menu Caisse donne accès à l’ouverture ou à la fermeture et à l’ Opération Journalière .\nLes statuts font foi\n\nLes crédits, demandes de stock, retours, livraisons tontine et réceptions ne sont pas seulement des listes : leurs actions changent selon leur statut. Avant d’agir, vérifiez systématiquement le badge de statut et la période affichée.\n\n Flux Enchaînement courant \n --- --- \n Demande de sortie stock CREATED → VALIDATED → DELIVERED \n Réception de stock PENDING → VALIDATED, ou REFUSED / CANCELLED selon le rôle et l’étape \n Vente à crédit CREATED → VALIDATED → INPROGRESS → SETTLED \n Livraison tontine PENDING → VALIDATED → DELIVERED \nDes données filtrées et protégées\n\nLes tableaux récents conservent généralement la recherche, les filtres et la pagination pendant la navigation. Les KPI financiers, exports PDF, annulations, réaffectations et paramètres peuvent être masqués selon les permissions. Ne contournez jamais un contrôle d’accès en partageant un compte : demandez plutôt l’habilitation adaptée à votre responsable."
+  },
+  {
+    "id": "home__signaler_un_besoin_d_assistance",
+    "title": "Guide utilisateur ELYKIA — Signaler un besoin d’assistance",
+    "path": "/user-guide/index.html",
+    "roles": [
+      "commercial",
+      "manager",
+      "storekeeper",
+      "recovery_manager",
+      "admin"
+    ],
+    "content": "Guide utilisateur ELYKIA\nSignaler un besoin d’assistance\n\nAvant de signaler un problème, notez le nom de l’écran, la période sélectionnée, le statut de l’opération et, si elle existe, sa référence. Ces éléments permettent à l’équipe support de retrouver rapidement le dossier sans exposer de données sensibles."
   },
   {
     "id": "manager_dashboard",
-    "title": "Tableau de bord gestionnaire",
+    "title": "Tableaux de bord",
     "path": "/user-guide/manager/dashboard.html",
-    "roles": ["manager"],
-    "content": "Le tableau de bord gestionnaire affiche les KPIs globaux : ventes, recouvrements, stock et encours crédit. Utilisez les filtres de période pour analyser les performances."
+    "roles": [
+      "manager"
+    ],
+    "content": "Tableaux de bord\n\nLes tableaux de bord permettent de suivre une situation opérationnelle ou financière. Ils ne remplacent pas le contrôle des opérations détaillées : utilisez les cartes comme points d’entrée, puis ouvrez la liste ou le rapport concerné lorsque vous devez expliquer un montant, un stock ou un écart.\n\nLire un indicateur correctement\n\nVérifiez d’abord la période, le commercial sélectionné et le libellé de la carte. Une valeur peut représenter le jour, la semaine, le mois ou une période personnalisée. Les indicateurs financiers sont visibles uniquement si le compte possède la permission KPI de la page concernée.\n\n Indicateur fréquent Vérification utile \n --- --- \n Stock ou valeur de stock Contrôler le mois, le commercial et la distinction entre stock restant, vendu ou retourné. \n Vente ou recouvrement Vérifier si l’indicateur porte sur les opérations enregistrées, les versements remis ou les soldes encore dus. \n Retard Ouvrir la liste Ventes > Retards pour identifier les crédits concernés. \n Réception en attente Ouvrir Historique Entrée afin de valider, refuser ou consulter la réception. \nAccéder au détail\n\nUtilisez les liens, cartes cliquables ou boutons Voir plutôt que de tirer une conclusion sur un total seul. Le tableau de bord de stock mensuel, par exemple, permet d’ouvrir le détail des ventes liées depuis la valeur du stock vendu. La fiche client et la fiche crédit permettent ensuite de suivre le dossier individuel.\n Bon réflexe. Actualisez l’écran après une validation, une livraison, une annulation ou un versement avant de communiquer un total."
+  },
+  {
+    "id": "manager_finance",
+    "title": "Finances et tontines",
+    "path": "/user-guide/manager/finance.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Finances et tontines\n\nCe guide couvre les dépenses, les versements et le contrôle de la tontine depuis le point de vue de gestion. Les montants présentés par l’application restent soumis aux permissions KPI financières de la page."
+  },
+  {
+    "id": "manager_finance__d_penses",
+    "title": "Finances et tontines — Dépenses",
+    "path": "/user-guide/manager/finance.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Finances et tontines\nDépenses\n\nLe menu Dépenses permet de créer, filtrer et consulter les dépenses par mois et type. Une dépense comporte un type, un montant, une date, une référence éventuelle et une description. Lorsqu’elle est indiquée comme Comptabilisée , les actions de modification et de suppression sont bloquées : elle est liée à une remise déjà reçue."
+  },
+  {
+    "id": "manager_finance__remise_au_gestionnaire",
+    "title": "Finances et tontines — Remise au gestionnaire",
+    "path": "/user-guide/manager/finance.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Finances et tontines\nRemise au gestionnaire\n\nLa Remise est accessible depuis le Rapport Journalier aux profils autorisés. Elle travaille à l’intérieur d’un mois et peut être limitée par une plage Du / Au . Cette plage permet de remettre uniquement les versements non encore remis dans l’intervalle choisi.\n\n Étape Secrétaire Gestionnaire \n --- --- --- \n Préparer Choisit le mois et, si nécessaire, la plage de dates. Sélectionne les dépenses à déduire. Peut initier une réception directe lorsque l’action est disponible. \n Soumettre Soumet la remise lorsque le montant net est valide. Consulte la remise en attente. \n Contrôler Consulte l’historique. Peut retirer des dépenses tant que la remise est en attente, puis Accuser réception . \n Archiver Consulte les lignes de versements incluses. Après réception, dépenses et montant net sont figés. \n\nLe bandeau KPI distingue le total à remettre, crédit, tontine, solde des nouveaux comptes, dépenses et montant net . Les dépenses de type Approvisionnement ne sont pas proposées à la déduction. Si les dépenses dépassent le montant versé, l’action est bloquée jusqu’à correction."
+  },
+  {
+    "id": "manager_finance__pilotage_tontine",
+    "title": "Finances et tontines — Pilotage tontine",
+    "path": "/user-guide/manager/finance.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Finances et tontines\nPilotage tontine\n\nLe Rapport Journalier affiche, pour le commercial sélectionné et si les KPI sont autorisés, un bilan annuel tontine : collectes enregistrées, versements tontine remis et reste chez le commercial. La fiche d’un membre complète ce contrôle avec la répartition des collectes par commercial, la synthèse mensuelle et les contrôles terrain.\n\nLa vérification de carnet est une action dédiée : elle ne modifie pas les montants. Elle ajoute ou retire le badge Carnet vérifié et conserve la date ainsi que l’auteur de la vérification. L’export PDF des membres ou d’un membre ne s’affiche qu’aux comptes autorisés."
+  },
+  {
+    "id": "manager",
+    "title": "Guide Gestionnaire",
+    "path": "/user-guide/manager/index.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Guide Gestionnaire\n\nCe guide accompagne les gestionnaires, secrétaires et administrateurs dans les tâches de pilotage. Les responsabilités exactes restent déterminées par les permissions attribuées au compte : la présence d’un menu ou d’un bouton confirme qu’il est autorisé pour votre session.\n\nVotre espace de pilotage\n\nLe menu peut notamment donner accès au Dashboard , aux Clients , aux Articles , aux modules Stock Commercial et Stock Tontine , aux Ventes , aux Tontines , aux Dépenses , à la Configuration , au Rapport Journalier , aux Inventaires , aux Utilisateurs et à la Sécurité . Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.\n\n Priorité Où intervenir Finalité \n --- --- --- \n Démarrer et contrôler l’activité Caisse, Clients, Ventes Sécuriser les opérations du jour et les portefeuilles. \n Garantir la disponibilité des articles Articles, Inventaires, Stock Commercial Suivre les réceptions, sorties, retours et écarts. \n Contrôler l’argent et la performance Rapport Journalier, Dépenses Lire les indicateurs, les versements et les remises. \n Gouverner l’application Configuration, Utilisateurs, Sécurité Maintenir les référentiels, paramètres et habilitations. \nRègles de travail\n\nLa gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.\n\nConsultez les pages suivantes selon la tâche à accomplir :\nTableaux de bord pour lire les KPI sans confondre les périodes.\nOpérations quotidiennes pour les caisses, clients, comptes et versements.\nStocks, ventes et commandes pour les flux de marchandises et de crédits.\nFinances et tontines pour les dépenses, remises et contrôles tontine.\nRapports et configuration pour l’analyse et les référentiels."
   },
   {
     "id": "manager_operations",
-    "title": "Opérations gestionnaire",
+    "title": "Opérations quotidiennes",
     "path": "/user-guide/manager/operations.html",
-    "roles": ["manager"],
-    "content": "Le gestionnaire supervise les opérations journalières, valide les crédits, gère les remises caisse et consulte les journaux d'opération."
+    "roles": [
+      "manager"
+    ],
+    "content": "Opérations quotidiennes\n\nCette page rassemble les gestes de contrôle du jour : journée comptable, caisse, clients, comptes et versements. Les libellés et boutons dépendent des permissions de la session."
   },
   {
-    "id": "stock_commercial",
+    "id": "manager_operations__journ_e_comptable_et_caisse",
+    "title": "Opérations quotidiennes — Journée comptable et caisse",
+    "path": "/user-guide/manager/operations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Opérations quotidiennes\nJournée comptable et caisse\n\nLa page Gestion de la journée comptable affiche la date comptable, en lecture seule, et l’action Ouvrir ou Fermer selon son état. Lorsqu’elle est ouverte, la liste Caisses Ouvertes identifie les collecteurs encore en service. Cette page peut être réservée aux comptes chargés de l’ouverture ou de la fermeture.\n\nLe menu Caisse > Ouverture / Fermeture permet à l’agent autorisé d’ouvrir ou de fermer sa caisse. L’écran indique le nom de l’utilisateur concerné et ne demande pas de saisie supplémentaire.\n\n \n\n Action Précondition Résultat attendu \n --- --- --- \n Ouvrir la journée Permission d’ouverture et date comptable proposée. Les opérations du jour peuvent être réalisées. \n Ouvrir une caisse Journée comptable ouverte et permission de caisse. L’agent peut enregistrer ses opérations. \n Fermer une caisse Fin des opérations de l’agent. La caisse ne doit plus recevoir de nouvelle opération. \n Fermer la journée Contrôle préalable des caisses encore ouvertes. La journée est clôturée selon la procédure de l’organisation. \n\nLe billetage peut être accessible selon le déploiement. Il consiste à renseigner les quantités de billets et de pièces ; le total est calculé avant la validation. Comparez le total obtenu avec les opérations enregistrées, sans modifier artificiellement les montants pour faire disparaître un écart."
+  },
+  {
+    "id": "manager_operations__clients_et_comptes",
+    "title": "Opérations quotidiennes — Clients et comptes",
+    "path": "/user-guide/manager/operations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Opérations quotidiennes\nClients et comptes\n\nDans Clients , recherchez d’abord par nom, prénom, téléphone ou localité. Un filtre commercial peut être appliqué, et les KPI indiquent notamment les clients avec crédit actif ou membres tontine. La création exige les informations d’identité, la pièce, les coordonnées, la localité et les commerciaux associés. La géolocalisation peut être obtenue par GPS ou saisie manuellement.\n\nLa réaffectation d’un portefeuille par cases à cocher est réservée aux comptes habilités. Le responsable peut choisir séparément un commercial crédit et un commercial tontine ; la case de transfert automatique ne concerne que les ventes crédit en cours et n’est disponible qu’après sélection d’un commercial crédit."
+  },
+  {
+    "id": "manager_operations__suivre_l_op_ration_journali_re_et_les_versements",
+    "title": "Opérations quotidiennes — Suivre l’opération journalière et les versements",
+    "path": "/user-guide/manager/operations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Opérations quotidiennes\nSuivre l’opération journalière et les versements\n\nLe sous-menu Caisse > Opération Journalière affiche des crédits avec le client, la localité, la mise journalière et le reste à payer. Il fournit un accès aux détails et, selon l’habilitation, à des documents de suivi.\n\nLes versements ne se lisent plus comme un total unique. Dans le Rapport Journalier , le segment Versements sépare les montants crédit, tontine, solde de nouveaux comptes, surplus et total. Les règles de création, d’annulation et de réception sont précisées dans le guide Rapports et configuration."
+  },
+  {
+    "id": "manager_reporting_config",
+    "title": "Rapports et configuration",
+    "path": "/user-guide/manager/reporting_config.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Rapports et configuration\n\nLe Rapport Journalier et le menu Configuration sont les deux points de contrôle les plus utiles pour un gestionnaire. Le premier explique ce qui s’est passé ; le second maîtrise les référentiels et règles appliqués aux futurs dossiers."
+  },
+  {
+    "id": "manager_reporting_config__rapport_journalier",
+    "title": "Rapports et configuration — Rapport Journalier",
+    "path": "/user-guide/manager/reporting_config.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Rapports et configuration\nRapport Journalier\n\nOuvrez Rapport Journalier . La barre de filtres commune propose Aujourd’hui , Cette semaine , Ce mois ou Personnalisé , avec une plage de dates. Les comptes non commerciaux peuvent sélectionner un commercial. Ces filtres s’appliquent à tous les segments.\n\n \n\n Segment Usage Accès courant \n --- --- --- \n Vue d’ensemble Totaux de période, bilans annuels crédit et tontine, indicateurs globaux et par commercial. Permission KPI financier du rapport. \n Journal Liste paginée des opérations, filtre par type et export PDF. Permission KPI financier du rapport. \n Recouvrement Contrôle opérationnel du recouvrement terrain. Chef de recouvrement ou gestionnaire. \n Versements Historique ventilé par crédit, tontine, solde de nouveaux comptes, surplus et total. Permission KPI financier du rapport. \n Remise Préparation, réception et historique des remises de période. Gestionnaire ou secrétaire avec les permissions requises. \n\nLe bilan annuel crédit s’affiche après sélection d’un commercial. Il distingue stock d’ouverture, ventes, créances reçues ou cédées, portefeuille confié, versements crédit, reste chez le commercial et reste chez le client. Le KPI Reste chez le client ouvre le détail des crédits encore dus et permet un export PDF. Ne confondez pas le portefeuille confié avec le solde live des clients."
+  },
+  {
+    "id": "manager_reporting_config__r_f_rentiels_et_param_tres",
+    "title": "Rapports et configuration — Référentiels et paramètres",
+    "path": "/user-guide/manager/reporting_config.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Rapports et configuration\nRéférentiels et paramètres\n\n Sous-menu Configuration Usage \n --- --- \n Localités Gérer les zones et quartiers proposés dans la fiche client. \n Type d’Article Gérer les catégories utilisées pour classer et rechercher les articles. \n Types de Dépense Définir les catégories proposées à la saisie des dépenses. \n Paramètres Gérer les clés fonctionnelles autorisées, leurs valeurs et descriptions. \n Mobile Money Définir les numéros Mixx by YAS et Moov Money par commercial. \n\nLes listes de localités et de types d’article proposent recherche, pagination, ajout, modification et suppression selon les permissions. Le type de dépense est un référentiel plus simple, centré sur son nom ; créez-le avant la première dépense de cette catégorie.\n\nLes paramètres sont sensibles. Modifiez une valeur uniquement après validation de la procédure interne. En particulier, TONTINE_SOCIETY_SHARE_VERSION est proposé sous la forme d’un choix contrôlé V1 ou V2 ; le passage de version peut déclencher un recalcul des parts société et bloquer temporairement les écritures tontine pendant le traitement.\n\nDans Mobile Money , les numéros saisis par commercial prévalent sur les numéros globaux affichés en haut de page. Laissez un champ vide pour conserver le repli sur la configuration globale ; vérifiez la colonne Effectif avant d’enregistrer."
+  },
+  {
+    "id": "manager_stock_sales",
+    "title": "Stocks, ventes et commandes",
+    "path": "/user-guide/manager/stock_sales.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Stocks, ventes et commandes\n\nLes marchandises suivent un circuit tracé : référentiel article, entrée de stock, demande de sortie, validation, livraison, retour éventuel, puis vente ou livraison tontine. Chaque étape comporte un statut ; ne passez pas directement à l’étape suivante."
+  },
+  {
+    "id": "manager_stock_sales__catalogue_et_inventaire",
+    "title": "Stocks, ventes et commandes — Catalogue et inventaire",
+    "path": "/user-guide/manager/stock_sales.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Stocks, ventes et commandes\nCatalogue et inventaire\n\nLe menu Articles donne accès au catalogue. La fiche article regroupe les informations commerciales et l’historique de ses mouvements. Utilisez l’inventaire pour consulter les quantités, créer un inventaire physique, saisir les quantités constatées, réconcilier les écarts puis clôturer l’opération lorsque les contrôles sont terminés."
+  },
+  {
+    "id": "manager_stock_sales__entr_es_de_stock_validation_obligatoire",
+    "title": "Stocks, ventes et commandes — Entrées de stock : validation obligatoire",
+    "path": "/user-guide/manager/stock_sales.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Stocks, ventes et commandes\nEntrées de stock : validation obligatoire\n\nDepuis Inventaires > Entrées stock , sélectionnez les articles et les quantités reçues, puis validez l’entrée. L’application crée une réception en attente ; elle ne doit pas être présentée comme du stock immédiatement disponible.\n\nLe menu Historique Entrée permet de rechercher une réception par référence, date ou statut. Le gestionnaire habilité y trouve les actions Valider et Refuser ; le créateur ou le gestionnaire peut, selon le statut, Abandonner une réception en attente, et l’annulation d’une réception validée est réservée aux droits appropriés.\n\n Statut de réception Sens opérationnel \n --- --- \n En attente Saisie créée, à contrôler avant impact sur le stock. \n Validée Réception acceptée ; son impact est pris en compte. \n Refusée ou abandonnée Réception non retenue, sans disponibilité à utiliser. \n Annulée Réception validée annulée selon les droits et contrôles disponibles."
+  },
+  {
+    "id": "manager_stock_sales__stock_commercial_et_ventes",
+    "title": "Stocks, ventes et commandes — Stock commercial et ventes",
+    "path": "/user-guide/manager/stock_sales.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Stocks, ventes et commandes\nStock commercial et ventes\n\nUne demande de sortie suit le circuit Créée → Validée → Livrée . Depuis Stock Commercial > Demandes Sortie , les commerciaux ou gestionnaires habilités créent une demande en sélectionnant le commercial et les articles. Le gestionnaire valide une demande créée ; le magasinier livre une demande validée. Les listes proposent les filtres de période et commercial ainsi que des exports PDF par période, demande ou sélection.\n\nAprès livraison, la vente apparaît dans Ventes > Liste . Pour une vente à crédit, le responsable valide l’enregistrement puis le magasinier démarre la vente validée. Seules les ventes INPROGRESS sont candidates à l’encaissement régulier. Consultez le parcours commercial pour le détail du crédit, des retards et des recouvrements."
+  },
+  {
+    "id": "manager_stock_sales__stock_tontine_et_commandes",
+    "title": "Stocks, ventes et commandes — Stock tontine et commandes",
+    "path": "/user-guide/manager/stock_sales.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Stocks, ventes et commandes\nStock tontine et commandes\n\nLe stock tontine suit le même principe de demande, validation, livraison et retour, mais il est affecté aux livraisons de fin d’année. Ne confondez pas une demande de stock tontine avec la préparation de livraison sur la fiche du membre : la première alimente le stock concerné, la seconde choisit les articles destinés au membre.\n\nLe menu Commandes est disponible selon les rôles. Utilisez les statuts et les détails de la commande pour traiter le dossier dans l’ordre prévu par l’interface ; n’enregistrez pas de vente ou de livraison avant que le statut n’y autorise l’action."
+  },
+  {
+    "id": "recovery-manager",
+    "title": "Guide Chef de recouvrement",
+    "path": "/user-guide/recovery-manager/index.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Guide Chef de recouvrement\n\nCe guide s’adresse au Chef de recouvrement chargé de suivre les crédits en retard, de contrôler les carnets sur le terrain, de clôturer les dossiers autorisés et d’assurer la synchronisation des opérations mobiles. Le profil dispose d’un parcours spécifique sur l’application web et d’un espace terrain dédié sur l’application mobile.\n Périmètre du rôle. Le Chef de recouvrement ne remplace ni le gestionnaire, ni le commercial, ni le magasinier. Il intervient sur les portefeuilles et opérations auxquels son plan de terrain et ses permissions lui donnent accès."
+  },
+  {
+    "id": "recovery-manager__responsabilit_s_principales",
+    "title": "Guide Chef de recouvrement — Responsabilités principales",
+    "path": "/user-guide/recovery-manager/index.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Guide Chef de recouvrement\nResponsabilités principales\n\n Responsabilité Objectif Outil privilégié \n --- --- --- \n Prioriser les retards Identifier les crédits à traiter par gravité, délai, échéance, localité et commercial. Application web ou onglet mobile Retards . \n Contrôler les carnets Comparer les montants relevés auprès du client aux montants système. Action Terrain sur le web ou onglet Terrain mobile. \n Clôturer un dossier Enregistrer une clôture totale ou partielle selon le montant réellement encaissé et le reliquat applicable. Action Clôturer sur les retards. \n Mettre à jour le contact client Corriger le téléphone et la géolocalisation du client rencontré. Onglet mobile Clients . \n Suivre les opérations réalisées Contrôler les montants collectés, les opérations et les montants à remettre par commercial. Segment web Rapport Journalier > Recouvrement . \n Synchroniser le terrain Envoyer les opérations différées, résoudre les erreurs et mettre à jour le pack hors ligne. Onglet mobile Plus ."
+  },
+  {
+    "id": "recovery-manager__deux_environnements_compl_mentaires",
+    "title": "Guide Chef de recouvrement — Deux environnements complémentaires",
+    "path": "/user-guide/recovery-manager/index.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Guide Chef de recouvrement\nDeux environnements complémentaires\n\nLe web est adapté au pilotage, à la recherche dans les retards, à la consultation des fiches et au rapport de recouvrement. Le mobile est conçu pour la préparation du plan du jour, les visites terrain et le travail avec un pack local lorsque le réseau est limité.\n\nConsultez le parcours web pour les retards, contrôles et rapports, puis le parcours mobile pour le plan du jour, les quatre onglets terrain et la synchronisation."
+  },
+  {
+    "id": "recovery-manager__r_gles_respecter",
+    "title": "Guide Chef de recouvrement — Règles à respecter",
+    "path": "/user-guide/recovery-manager/index.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Guide Chef de recouvrement\nRègles à respecter\n\nLes contrôles de carnet doivent refléter le montant réellement observé, avec une note lorsqu’un écart doit être expliqué. Une clôture ne doit être confirmée qu’après vérification du montant encaissé, du montant restant net et des informations affichées par le formulaire. Lorsqu’une opération est en attente de synchronisation, ne la saisissez pas une seconde fois : utilisez l’onglet Plus pour la synchroniser et traiter les éventuelles erreurs."
+  },
+  {
+    "id": "recovery_manager_mobile",
+    "title": "Chef de recouvrement — application mobile",
+    "path": "/user-guide/recovery-manager/mobile.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application mobile\n\nL’application mobile fournit un espace terrain dédié au Chef de recouvrement. Après la connexion, le profil accède au Plan du jour , puis au shell composé de quatre onglets : Retards , Terrain , Clients et Plus . L’identité de l’utilisateur et l’état En ligne / Hors ligne sont affichés dans le parcours afin d’indiquer si les opérations seront envoyées immédiatement ou placées en attente de synchronisation."
+  },
+  {
+    "id": "recovery_manager_mobile__pr_parer_le_plan_du_jour",
+    "title": "Chef de recouvrement — application mobile — Préparer le plan du jour",
+    "path": "/user-guide/recovery-manager/mobile.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application mobile\nPréparer le plan du jour\n\nLe plan du jour détermine le périmètre du pack hors ligne. Il se déroule en trois étapes.\n\n \n\n Étape Action Résultat \n --- --- --- \n 1. Commerciaux Sélectionner de 1 à 3 commerciaux . La liste indique les retards et le montant restant. Le portefeuille à traiter est borné. \n 2. Localités Conserver toutes les localités ou effectuer une sélection multiple avec recherche. Le pack peut être limité aux zones de tournée. \n 3. Téléchargement Vérifier l’estimation : commerciaux, retards, montant dû et localités, puis choisir Télécharger le pack . Le téléphone reçoit les données utiles au travail terrain. \n\nLe pack est nécessaire pour travailler hors ligne. Si l’onglet Retards indique qu’aucun pack n’est disponible, revenez au plan du jour au lieu de tenter d’effectuer des opérations sans périmètre."
+  },
+  {
+    "id": "recovery_manager_mobile__onglet_retards_prioriser_contr_ler_et_cl_turer",
+    "title": "Chef de recouvrement — application mobile — Onglet Retards : prioriser, contrôler et clôturer",
+    "path": "/user-guide/recovery-manager/mobile.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application mobile\nOnglet Retards : prioriser, contrôler et clôturer\n\nL’onglet Retards affiche les KPI Retards , Dû et Clôturé (périmètre du plan du jour ), puis un bandeau distinct Taux du mois : le taux de recouvrement du chef sur tous les retards délai de l’application (pas seulement le pack). Ce bandeau nécessite le réseau ; hors ligne, la dernière valeur mise en cache peut s’afficher, sinon un message indique que le taux est disponible en ligne uniquement. Un sélecteur de mois simple permet de consulter le mois courant ou un mois passé.\n\nLes dossiers sont regroupés par localité. Des filtres par commercial sélectionné dans le plan permettent de concentrer la tournée.\n\nChaque carte affiche le client, la référence, le commercial, le téléphone lorsque disponible, le montant restant et les jours de retard. Les boutons Contrôle et Clôturer ouvrent les formulaires correspondants.\nContrôle crédit\n\nLe formulaire compare le montant payé dans le système au montant observé sur le carnet. Saisissez le montant réellement lu, ajoutez une note si nécessaire, puis choisissez Capturer le contrôle . Le résultat affiche un statut CONFORME ou ECART .\nClôture totale ou partielle\n\nLe formulaire de clôture rappelle le client, la référence, le commercial, le restant dû et le reliquat appliqué, le cas échéant. Choisissez Total ou Partiel , puis saisissez le montant encaissé. Les raccourcis de montant peuvent aider à renseigner la valeur, mais le montant final doit toujours correspondre à l’encaissement réel.\n Ne doublez pas une clôture hors ligne. Après confirmation, consultez l’onglet Plus pour vérifier si l’opération a été synchronisée ou placée dans la file d’attente."
+  },
+  {
+    "id": "recovery_manager_mobile__onglet_terrain_carnets_cr_dit_et_tontine",
+    "title": "Chef de recouvrement — application mobile — Onglet Terrain : carnets crédit et tontine",
+    "path": "/user-guide/recovery-manager/mobile.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application mobile\nOnglet Terrain : carnets crédit et tontine\n\nL’onglet Terrain regroupe les portefeuilles par commercial et par localité. Il distingue les retards des membres tontine.\n\n Zone Action \n --- --- \n Retards Consulter les clients et utiliser Naviguer lorsqu’une position est disponible. \n Tontine Vérifier ou annuler la vérification d’un carnet, lancer un contrôle, ou passer en mode sélection pour une vérification en masse. \n\nLe contrôle tontine permet de sélectionner les mois à contrôler et de saisir le montant écrit dans le carnet pour chaque mois. L’application calcule la comparaison Système / Carnet / Écart et accepte une note. Le badge Vérifié indique la vérification de carnet, tandis que le badge CONFORME ou ECART correspond au résultat d’un contrôle : ces deux informations sont complémentaires et ne doivent pas être confondues."
+  },
+  {
+    "id": "recovery_manager_mobile__onglet_clients_contact_gps_et_changement_de_comm",
+    "title": "Chef de recouvrement — application mobile — Onglet Clients : contact, GPS et changement de commercial",
+    "path": "/user-guide/recovery-manager/mobile.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application mobile\nOnglet Clients : contact, GPS et changement de commercial\n\nL’onglet Clients recherche les clients contenus dans le pack par nom, téléphone ou localité. Chaque carte montre le téléphone, le quartier, les commerciaux crédit et tontine, ainsi que l’état GPS.\n\nTouchez une carte pour modifier uniquement les données autorisées : le téléphone et la géolocalisation . Le quartier est visible comme information de périmètre et reste en lecture seule. Utilisez Mettre à jour ma position lorsque vous êtes sur le lieu du client ; utilisez Ouvrir Maps pour consulter une position déjà enregistrée.\n\nLa sélection multiple donne accès à Changer de commercial . La feuille permet de choisir séparément le commercial crédit et le commercial tontine. La case de transfert automatique des ventes en cours n’est activable qu’après sélection d’un commercial crédit."
+  },
+  {
+    "id": "recovery_manager_mobile__onglet_plus_synchroniser_et_maintenir_le_pack",
+    "title": "Chef de recouvrement — application mobile — Onglet Plus : synchroniser et maintenir le pack",
+    "path": "/user-guide/recovery-manager/mobile.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application mobile\nOnglet Plus : synchroniser et maintenir le pack\n\nL’onglet Plus est le point de contrôle de la journée. Il présente le plan actif, les informations du pack et la file d’attente classée par type d’opération : transferts de commercial, modifications de contact, contrôles crédit, contrôles tontine, vérifications de carnet et clôtures.\n\n Action Quand l’utiliser \n --- --- \n Synchroniser Après une période hors ligne ou avant la fin de tournée, pour transmettre les opérations en attente. \n Actualiser le pack Lorsque le périmètre ou les informations téléchargées doivent être renouvelés. \n Changer le plan du jour Lorsque les commerciaux ou localités à traiter changent. \n Mettre à jour l’application Lorsqu’une version officielle est proposée par l’application. \n\nTraitez les erreurs affichées avant de recommencer une opération. Une opération placée dans la file est déjà enregistrée localement ; la ressaisie créerait un risque de doublon. La synchronisation priorise les données de contact et les contrôles avant les clôtures, afin de conserver la cohérence du compte rendu terrain."
+  },
+  {
+    "id": "recovery_manager_web",
+    "title": "Chef de recouvrement — application web",
+    "path": "/user-guide/recovery-manager/web.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application web\n\nL’application web permet au Chef de recouvrement de préparer et contrôler les dossiers avant, pendant ou après une tournée. Les actions particulières de ce profil apparaissent principalement dans Ventes > Retards , la fiche crédit, la fiche membre tontine et le segment Recouvrement du Rapport Journalier."
+  },
+  {
+    "id": "recovery_manager_web__traiter_les_cr_dits_en_retard",
+    "title": "Chef de recouvrement — application web — Traiter les crédits en retard",
+    "path": "/user-guide/recovery-manager/web.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application web\nTraiter les crédits en retard\n\nOuvrez Ventes > Retards . La liste peut être filtrée par commercial, période, localité et type de retard. Chaque ligne présente une référence, le client, son téléphone, sa localité, le commercial concerné, le montant restant, la date prévue et la gravité du retard.\n\n \n\n Élément affiché Utilisation opérationnelle \n --- --- \n Gravité et jours de retard Aider à prioriser les visites, sans modifier le montant dû. \n Type de retard Distinguer un délai dépassé d’une échéance . \n Client et localité Préparer la visite, puis ouvrir la fiche client si nécessaire. \n Montant restant et payé Vérifier la situation système avant d’encaisser ou de clôturer. \n Bouton Voir Ouvrir le détail du crédit et son historique. \n\nLe profil Chef de recouvrement voit des cases de sélection sur les listes adaptées. Sur écran mobile web, les mêmes dossiers sont présentés sous forme de cartes avec les actions Voir , Terrain et Clôturer ."
+  },
+  {
+    "id": "recovery_manager_web__enregistrer_un_contr_le_terrain_cr_dit",
+    "title": "Chef de recouvrement — application web — Enregistrer un contrôle terrain crédit",
+    "path": "/user-guide/recovery-manager/web.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application web\nEnregistrer un contrôle terrain crédit\n\nSur une ligne de retard, choisissez Terrain . Le formulaire rappelle la référence, le client, le montant payé dans le système et le restant dû. Saisissez le total noté dans le carnet client , puis ajoutez une note si l’observation doit être expliquée.\n\n Situation observée Traitement attendu \n --- --- \n Montant carnet identique au système Enregistrer le contrôle ; le statut sera conforme. \n Montant carnet différent Saisir le montant réellement constaté et décrire l’écart dans la note. \n Carnet indisponible ou illisible Ne pas inventer de montant ; suivre la procédure interne et documenter la situation si un contrôle est requis. \n\nAprès enregistrement, la fiche crédit peut afficher la section Contrôle terrain avec les montants système et carnet, l’écart, le statut et l’auteur du contrôle."
+  },
+  {
+    "id": "recovery_manager_web__cl_turer_un_ou_plusieurs_retards",
+    "title": "Chef de recouvrement — application web — Clôturer un ou plusieurs retards",
+    "path": "/user-guide/recovery-manager/web.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application web\nClôturer un ou plusieurs retards\n\nUtilisez le bouton de clôture de la ligne concernée. Selon l’écran et les droits, la procédure peut regrouper plusieurs crédits sélectionnés. La fenêtre de clôture affiche, pour chaque dossier, le client, le commercial, le restant, le mode partiel éventuel et le montant prévu.\n Vérification obligatoire. Comparez le montant encaissé au restant net affiché par le système. Un reliquat peut réduire le cash nécessaire pour solder un crédit ; il ne doit pas être traité comme un encaissement supplémentaire.\n\nAvant de choisir Confirmer l’opération , contrôlez le résumé financier. Une clôture totale ou partielle est journalisée et devient disponible dans le rapport de recouvrement. Ne confirmez jamais une clôture à partir d’une promesse de paiement non encaissée."
+  },
+  {
+    "id": "recovery_manager_web__contr_ler_la_tontine_depuis_le_web",
+    "title": "Chef de recouvrement — application web — Contrôler la tontine depuis le web",
+    "path": "/user-guide/recovery-manager/web.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application web\nContrôler la tontine depuis le web\n\nLa fiche membre tontine donne accès au bouton Contrôle terrain pour le Chef de recouvrement. Le contrôle se réalise mois par mois : l’utilisateur sélectionne les mois, saisit les montants indiqués sur le carnet et peut ajouter une note. La fiche conserve ensuite le total système, le total carnet, l’écart, le statut Conforme ou Disparité , la date et l’auteur.\n\nLa vérification administrative du carnet est une action distincte du contrôle terrain. Le badge Carnet vérifié peut être appliqué ou retiré seulement par les rôles dotés de la permission de vérification ; il atteste la vérification du carnet sans changer les collectes ni l’état du contrôle terrain."
+  },
+  {
+    "id": "recovery_manager_web__suivre_le_rapport_de_recouvrement",
+    "title": "Chef de recouvrement — application web — Suivre le rapport de recouvrement",
+    "path": "/user-guide/recovery-manager/web.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application web\nSuivre le rapport de recouvrement\n\nOuvrez Rapport Journalier , appliquez la période et, lorsque l’interface le demande, choisissez le commercial. Le segment Recouvrement est disponible au Chef de recouvrement ou au gestionnaire. Un gestionnaire peut également filtrer le rapport par identifiant de Chef de recouvrement.\n\n \n\n Partie du rapport Contenu \n --- --- \n Taux du mois Pourcentage de recouvrement du chef sur le mois de fin de période : encaissé terrain / dû live de tous les retards délai de l’application. \n KPI Total collecté, nombre d’opérations et nombre de commerciaux concernés. \n À remettre par commercial Nombre d’opérations et montant à remettre pour chaque commercial. \n Détail des opérations Date, référence crédit, client, commercial, montant et type Partiel ou Total . \n Export PDF Génère le rapport correspondant à la période et aux filtres appliqués. \n\nUtilisez l’export uniquement après contrôle de la période et des filtres. Un montant de recouvrement terrain n’est pas automatiquement une remise au gestionnaire : la remise suit son propre circuit de trésorerie."
+  },
+  {
+    "id": "storekeeper_articles",
+    "title": "Gestion des articles",
+    "path": "/user-guide/storekeeper/articles.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Gestion des articles\n\nLe catalogue d’articles est la référence commune aux entrées, demandes de sortie, ventes et livraisons tontine. Créez ou modifiez une fiche avec rigueur : une erreur de prix ou de type se répercute dans plusieurs flux.\nConsulter et rechercher\n\nOuvrez Articles . La liste présente les désignations, marques, modèles, types, prix, quantités et statuts selon votre habilitation. Utilisez la recherche et la pagination plutôt que de parcourir les pages sans filtre. La fiche article donne accès à ses informations détaillées et à son historique de mouvements.\n\nCréer ou modifier une fiche\n\nLe formulaire demande l’identification de l’article, son type, ses prix et les valeurs de suivi stock. Renseignez les montants de manière cohérente avec la politique commerciale : prix d’achat, prix de vente comptant et prix de vente à crédit ne doivent pas être confondus. Si la gestion FIFO est active, des informations de lots et de prix d’achat peuvent apparaître dans la fiche.\n\n Information Utilisation \n --- --- \n Nom, marque, modèle, type Identifier et filtrer l’article dans les listes. \n Prix d’achat Valoriser le stock et calculer les marges. \n Prix vente / crédit Alimenter les ventes selon le type choisi. \n Seuil de réapprovisionnement Signaler qu’une quantité devient faible. \n Stock et historique Suivre les mouvements sans modifier les quantités hors procédure. \n\nNe supprimez pas une fiche qui a déjà été utilisée par une opération sans validation de la procédure interne. Préférez la consultation de l’historique pour comprendre une variation de stock."
+  },
+  {
+    "id": "storekeeper",
+    "title": "Guide Magasinier",
+    "path": "/user-guide/storekeeper/index.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Guide Magasinier\n\nLe magasinier sécurise la circulation physique de la marchandise : catalogue, réceptions, inventaires, sorties, retours et stock tontine. Il ne valide pas automatiquement chaque étape ; les boutons disponibles dans les listes indiquent les actions autorisées à son profil.\n\nVos priorités\n\n Priorité Objectif \n --- --- \n Préparer les articles Vérifier la référence, le type, le stock et les informations de la fiche article. \n Réceptionner correctement Créer une entrée puis attendre sa validation lorsqu’elle est requise. \n Servir les demandes validées Livrer les demandes de stock commercial ou tontine au bon statut. \n Traiter les retours Réceptionner les retours autorisés et conserver leur traçabilité. \n Contrôler le physique Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. \n\nConsultez les pages dédiées pour les articles, les inventaires et entrées, le stock commercial et le stock tontine."
+  },
+  {
+    "id": "storekeeper_inventory",
+    "title": "Inventaires et entrées de stock",
+    "path": "/user-guide/storekeeper/inventory.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Inventaires et entrées de stock\n\nLe menu Inventaires réunit la consultation du stock, l’inventaire physique et l’entrée de marchandises. Il ne faut pas confondre une entrée avec un inventaire : l’entrée enregistre une réception attendue ; l’inventaire compare le stock système au comptage physique.\nEnregistrer une entrée\n\nDans Inventaires , choisissez Entrées stock , sélectionnez les articles et saisissez les quantités. Après validation, l’application confirme que l’entrée est enregistrée en attente de validation et redirige vers l’historique des réceptions.\n\n \n\nOuvrez ensuite Historique Entrée pour retrouver la référence. Les filtres portent sur la référence, la date et le statut. Le gestionnaire habilité peut valider ou refuser une réception ; l’abandon concerne une réception en attente et l’annulation d’une réception validée reste réservée à la procédure et aux droits concernés.\n Règle importante. Une entrée PENDING ou en attente ne doit pas être utilisée comme stock disponible. Attendez le statut validé avant de préparer une sortie ou une vente fondée sur cette quantité.\nRéaliser un inventaire physique\n\nQuand aucune session d’inventaire n’est en cours, choisissez Créer un inventaire . Lors d’une session active, le panneau d’actions propose le téléchargement du support, la saisie des quantités physiques, la réconciliation des écarts et la clôture, selon le statut et les permissions.\n\n Étape Action \n --- --- \n Préparer Créer l’inventaire puis télécharger le support si nécessaire. \n Compter Relever les quantités physiques article par article. \n Saisir Utiliser Saisir quantités physiques pour enregistrer le comptage. \n Analyser Ouvrir Réconcilier les écarts afin d’examiner les différences. \n Terminer Clôturer seulement après résolution ou justification des écarts. \n\nL’ Historique inventaires et la trajectoire d’un article sont visibles uniquement aux comptes dotés de la permission de consultation correspondante."
+  },
+  {
+    "id": "storekeeper_stock_commercial",
     "title": "Stock commercial",
     "path": "/user-guide/storekeeper/stock_commercial.html",
-    "roles": ["storekeeper", "manager"],
-    "content": "Gestion des demandes de stock, livraisons aux commerciaux et retours. Le magasinier traite les demandes depuis le module Stock."
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Stock commercial\n\nLe stock commercial alimente les agents chargés de la vente. Les opérations sont centralisées dans Stock Commercial > Demandes Sortie , Stock et Retours .\nLivrer une demande de sortie\n\nLa liste des demandes affiche des KPI, les filtres de période et de commercial, les statuts, les détails et les exports PDF. Le flux standard est le suivant :\n\n Statut Acteur et action habituels \n --- --- \n CREATED La demande est créée. Un gestionnaire peut la valider ; l’annulation ou le refus dépend du rôle. \n VALIDATED La demande est prête. Le magasinier peut utiliser Livrer . \n DELIVERED La sortie est effectuée et la date de livraison est renseignée. \n\nSélectionnez une ligne puis utilisez Voir pour contrôler le commercial, les dates, le statut et les articles avant livraison. Le bouton Fiche sortie PDF peut exporter une période ; il est aussi possible de télécharger un lot sélectionné ou une demande unique.\n\nGérer les retours\n\nDans Stock Commercial > Retours , créez un retour pour les articles autorisés, puis suivez son statut. La liste propose des KPI, des filtres de période et de commercial, des exports et, selon l’état de la ligne, les actions Voir , Télécharger , Réceptionner , Annuler ou Refuser . Une date de réception vide signifie que le retour n’a pas encore été réceptionné.\nConsulter le stock mensuel\n\nLe sous-menu Stock est accessible aux profils qui ne sont pas magasinier uniquement. Il présente les quantités prises, vendues, retournées et restantes par article, avec les valeurs de stock et de recouvrement. Les panneaux mensuels peuvent fournir un rapport PDF et le KPI de valeur vendue ouvre le détail des ventes liées."
   },
   {
-    "id": "administration",
-    "title": "Administration",
-    "path": "/user-guide/administration.html",
-    "roles": ["admin"],
-    "content": "Administration des utilisateurs, profils, permissions et paramètres système."
+    "id": "storekeeper_stock_tontine",
+    "title": "Stock tontine",
+    "path": "/user-guide/storekeeper/stock_tontine.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Stock tontine\n\nLe Stock Tontine sépare les articles destinés au cycle tontine du stock commercial. Les gestes restent proches : demande, validation, livraison et retour, mais les stocks ainsi alimentés servent ensuite aux livraisons de fin d’année des membres.\nDemandes et livraisons\n\nDans Stock Tontine > Demandes Sortie , créez ou consultez les demandes de sortie, appliquez les filtres de période et de commercial, puis contrôlez le statut. Une demande créée doit être validée avant que le magasinier puisse la livrer. La sélection multiple et les exports PDF permettent d’éditer une fiche pour une ou plusieurs demandes.\n\nRetours tontine\n\nLe sous-menu Retours enregistre les articles retournés au stock tontine. Utilisez le détail de la demande pour vérifier les articles, les quantités, la date de demande et la date de réception. Les exports PDF sont disponibles par période, sélection ou ligne selon les droits du compte.\n À distinguer. La livraison de stock tontine à un commercial n’est pas la livraison finale au membre. La livraison finale est préparée et validée depuis la fiche du membre dans le module Tontines .\nStock annuel\n\nLe sous-menu Stock présente le stock tontine par commercial et par année, lorsque le profil y est autorisé. Le rapport PDF associé doit être lu avec l’année et le commercial affichés sur le panneau."
   }
 ]

@@ -1,0 +1,30 @@
+---
+description: Mettre à jour l’index RAG IA dès qu’on modifie le user-guide
+globs: user-guide/**/*
+alwaysApply: true
+---
+
+# User-guide → index RAG Elykia IA (obligatoire)
+
+Quand tu **ajoutes, modifies ou supprimes** du contenu sous `user-guide/` (surtout `user-guide/docs/**/*.md`), tu dois **dans la même tâche** (idéalement le même commit) synchroniser l’index RAG consommé par Elykia IA.
+
+Sans ça, le chat HOW_TO répond « documentation insuffisante » même si le guide MkDocs est à jour (ex. vérification carnet chef de recouvrement présent dans `user-guide/docs/recovery-manager/` mais absent de l’index).
+
+## Fichier à maintenir
+
+- **Index RAG** : [`backend/src/main/resources/ai/user-guide-index.json`](backend/src/main/resources/ai/user-guide-index.json)
+- Chargé au démarrage par `UserGuideRagService` (`elykia.ai.help.user-guide-index-path`)
+- **Générateur** : depuis la racine du repo, exécuter `python user-guide/generate_rag_index.py` après toute maj de `user-guide/docs/**/*.md` (régénère l’index à partir des pages MkDocs, hors `print_versions` et pages legacy)
+
+## Checklist agent (à chaque changement user-guide)
+
+1. Identifier les pages `.md` touchées sous `user-guide/docs/`
+2. Exécuter `python user-guide/generate_rag_index.py` **ou** créer / mettre à jour / retirer manuellement les entrées dans `user-guide-index.json`
+3. Vérifier qu’aucun rôle ou module documenté n’est orphelin (ex. `recovery-manager` doit avoir des chunks ; « vérification carnet », « contrôle terrain » doivent apparaître dans le contenu)
+4. Inclure l’index **et** le script générateur s’il a changé **dans le même commit** que le guide (avec les plans `.cursor/` si applicable)
+5. Mentionner dans le résumé : index RAG synchronisé
+
+## Interdit
+
+- Mettre à jour uniquement MkDocs / `user-guide/docs` sans toucher `user-guide-index.json`
+- Laisser l’index avec d’anciennes formulations alors que la procédure a changé
