@@ -22,7 +22,7 @@ isProject: false
 
 # Plan — Tests commande vs livraison directe (tontine_delivery)
 
-**Statut :** brouillon — **à valider avant implémentation** (aucun code de test dans ce lot).  
+**Statut :** validé — implémentation des tests sur PR #104.  
 **Produit validé :** [Plan commande vs livraison](/cursor/stores/bc-fbdc0dac-2b34-4a43-a4bd-57c4441d9067/docs/tontine-delivery-order-plan.md)  
 **Feature :** [PR #104](https://github.com/AQUILA04/ELYKIA/pull/104) (`feat(tontine): commande vs livraison directe`) — déjà en review / CI green.  
 **Hors périmètre de ce plan :** nouvelles features, Order/Distribution vente (PR #103), workflow `VALIDATED` magasinier.
