@@ -38,22 +38,22 @@ public class TontineDeliveryController {
 
     @PostMapping
     //@PreAuthorize("hasAnyRole('ROLE_EDIT_TONTINE', 'ROLE_ADMIN', 'ROLE_GESTIONNAIRE')")
-    @Operation(summary = "Créer une livraison de fin d'année pour un membre")
+    @Operation(summary = "Créer une commande de livraison tontine (statut PENDING / VALIDATED selon le profil)")
     public ResponseEntity<Response> createDelivery(@RequestBody @Valid CreateDeliveryDto dto) {
         TontineDeliveryDto delivery = deliveryService.createDelivery(dto);
         return new ResponseEntity<>(
-            ResponseUtil.successResponse(delivery, "Livraison créée avec succès"), 
+            ResponseUtil.successResponse(delivery, "Commande de livraison créée avec succès"),
             HttpStatus.CREATED
         );
     }
 
     @PostMapping("/distribute")
     //@PreAuthorize("hasAnyRole('ROLE_EDIT_TONTINE', 'ROLE_ADMIN', 'ROLE_GESTIONNAIRE')")
-    @Operation(summary = "Créer une livraison de fin d'année pour un membre")
+    @Operation(summary = "Livraison directe tontine (création + validation + remise immédiate)")
     public ResponseEntity<Response> distributeDelivery(@RequestBody @Valid CreateDeliveryDto dto) {
         TontineDeliveryDto delivery = deliveryService.distributeTontineDelivery(dto);
         return new ResponseEntity<>(
-                ResponseUtil.successResponse(delivery, "Livraison créée avec succès"),
+                ResponseUtil.successResponse(delivery, "Livraison directe créée avec succès"),
                 HttpStatus.CREATED
         );
     }
