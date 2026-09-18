@@ -1,0 +1,62 @@
+---
+description: Mettre à jour le schema-catalog IA quand le DDL change
+globs: backend/**/*
+alwaysApply: true
+---
+
+# Schema catalog IA obligatoire si le DDL change
+
+Elykia IA (Text-to-SQL / DATA) ne lit **pas** le schéma live de Postgres. Elle utilise un snapshot whitelisté chargé au démarrage :
+
+- **Catalog** : [`backend/src/main/resources/ai/schema-catalog.json`](backend/src/main/resources/ai/schema-catalog.json) (`SchemaCatalogService`)
+- **Few-shot** : [`backend/src/main/resources/ai/sql-examples.json`](backend/src/main/resources/ai/sql-examples.json) (si les exemples SQL deviennent faux)
+
+Sans sync, le LLM génère des requêtes sur un **ancien snapshot** (colonnes/tables manquantes ou obsolètes) → erreurs SQL ou réponses DATA incorrectes.
+
+## Déclencheurs (mettre à jour le catalog avant livraison)
+
+Tout changement qui modifie la structure ou le sens queryable des données :
+
+- Migrations Flyway : `backend/src/main/resources/db/migration/**/*.sql` (`CREATE` / `ALTER` / `DROP` / renommages)
+- Entités JPA / colonnes mappées exposées aux requêtes métier (`@Entity`, `@Column`, nouvelles tables)
+- Vues SQL ou tables de reporting utilisées pour le chat DATA
+- Filtres row-level (ex. `collector`, `commercial_username`) ajoutés/retirés sur une table
+
+## Checklist agent
+
+1. Identifier tables/colonnes ajoutées, modifiées, renommées ou supprimées
+2. Mettre à jour `schema-catalog.json` :
+   - `tables[]` / `views[]` : `name`, `description`, `synonyms` (FR métier), `columns[]` (`name`, `type`, `description`, `synonyms`)
+   - `relations[]` si FK utiles au SQL
+   - `rowLevelFilter` si la table doit être filtrée par commercial / promoteur
+3. Retirer du catalog ce qui n’existe plus (sinon whitelist trompeuse)
+4. Adapter `sql-examples.json` si un exemple référence l’ancien schéma
+5. Inclure catalog (+ examples si touchés) **dans le même commit** que la migration / le code DDL
+6. Mentionner dans le résumé : schema catalog IA synchronisé
+
+## Format minimal d’une table
+
+```json
+{
+  "name": "ma_table",
+  "description": "Rôle métier de la table",
+  "synonyms": ["libellé utilisateur"],
+  "columns": [
+    { "name": "id", "type": "bigint", "description": "Identifiant" }
+  ],
+  "relations": [
+    { "column": "fk_id", "refTable": "autre", "refColumn": "id" }
+  ]
+}
+```
+
+## Exceptions
+
+- Migrations purement data (`UPDATE`/`INSERT` sans changer la structure)
+- Index / contraintes sans nouvelle colonne exploitable en SELECT
+- Tables purement techniques hors périmètre chat DATA (ne pas les ajouter à la whitelist)
+
+## Interdit
+
+- Livrer une migration DDL queryable sans maj de `schema-catalog.json`
+- Laisser des exemples SQL few-shot qui référencent colonnes/tables disparues
