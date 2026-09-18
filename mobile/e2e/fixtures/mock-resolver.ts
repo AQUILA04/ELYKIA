@@ -49,8 +49,8 @@ function paginatedTotal(keyPrefix: string): number {
   return (MockData[key]?.data?.page?.totalElements as number | undefined) ?? 0;
 }
 
-/** Seed used by @smoke tontine delivery order scenarios (S1 / S2). */
-const E2E_TONTINE_DELIVERY_MEMBERS = [
+/** Seed used by @smoke tontine delivery order scenarios (S1 / S2). Mutable for post-write refresh. */
+const E2E_TONTINE_DELIVERY_MEMBERS: Array<Record<string, unknown>> = [
   {
     id: 91001,
     client: {
@@ -93,6 +93,38 @@ const E2E_TONTINE_DELIVERY_MEMBERS = [
   },
 ];
 
+function findE2eMember(memberId: number): Record<string, unknown> | undefined {
+  return E2E_TONTINE_DELIVERY_MEMBERS.find((member) => member.id === memberId);
+}
+
+function markE2eMemberDelivery(
+  memberId: number,
+  status: 'PENDING' | 'DELIVERED',
+  deliveryId: number
+): void {
+  const member = findE2eMember(memberId);
+  if (!member) {
+    return;
+  }
+  member.deliveryStatus = status;
+  member.delivery = {
+    id: deliveryId,
+    tontineMemberId: memberId,
+    requestDate: '2026-09-18T10:00:00',
+    deliveryDate: status === 'DELIVERED' ? '2026-09-18T10:05:00' : '2026-09-18T10:00:00',
+    totalAmount: 5000,
+    status,
+    items: [
+      {
+        id: deliveryId * 10,
+        articleId: 11,
+        quantity: 1,
+        unitPrice: 5000,
+        totalPrice: 5000,
+      },
+    ],
+  };
+}
 const E2E_TONTINE_STOCKS = [
   {
     id: 88001,
@@ -105,6 +137,29 @@ const E2E_TONTINE_STOCKS = [
     distributedQuantity: 0,
     year: 2026,
     tontineSessionId: 1,
+  },
+];
+
+const E2E_TONTINE_COLLECTIONS = [
+  {
+    id: 50101,
+    tontineMemberId: 91001,
+    amount: 100000,
+    collectionDate: '2026-03-15T00:00:00',
+    societyShareAmount: 10000,
+    contributionMonth: '2026-03-01',
+    commercialUsername: 'COM002',
+    advanceToNextMonth: false,
+  },
+  {
+    id: 50102,
+    tontineMemberId: 91002,
+    amount: 100000,
+    collectionDate: '2026-03-15T00:00:00',
+    societyShareAmount: 10000,
+    contributionMonth: '2026-03-01',
+    commercialUsername: 'COM002',
+    advanceToNextMonth: false,
   },
 ];
 
@@ -130,7 +185,7 @@ function buildDataSummary(commercial: string): Record<string, unknown> {
       totalDistributions: paginatedTotal(`/api/v1/credits/by-commercial/${commercial}`),
       totalRecoveries,
       totalTontineMembers: E2E_TONTINE_DELIVERY_MEMBERS.length,
-      totalTontineCollections: 0,
+      totalTontineCollections: E2E_TONTINE_COLLECTIONS.length,
       totalTontineDeliveries: 0,
       totalArticles: paginatedTotal('/api/v1/articles'),
       totalLocalities,
@@ -234,6 +289,7 @@ export function resolveMockResponse(apiPath: string, method: string): Record<str
   }
 
   if (pathname === '/api/v1/tontines/deliveries/distribute' && method === 'POST') {
+    markE2eMemberDelivery(91001, 'DELIVERED', 92001);
     return {
       status: 'OK',
       statusCode: 200,
@@ -253,6 +309,7 @@ export function resolveMockResponse(apiPath: string, method: string): Record<str
   }
 
   if (pathname === '/api/v1/tontines/deliveries' && method === 'POST') {
+    markE2eMemberDelivery(91002, 'PENDING', 92002);
     return {
       status: 'OK',
       statusCode: 200,
@@ -273,6 +330,7 @@ export function resolveMockResponse(apiPath: string, method: string): Record<str
 
   const deliverMatch = pathname.match(/^\/api\/v1\/tontines\/deliveries\/(\d+)\/deliver$/);
   if (deliverMatch && method === 'PATCH') {
+    markE2eMemberDelivery(91002, 'DELIVERED', Number(deliverMatch[1]));
     return {
       status: 'OK',
       statusCode: 200,
@@ -289,6 +347,27 @@ export function resolveMockResponse(apiPath: string, method: string): Record<str
         deliveryDate: '2026-09-18T11:00:00',
       },
     };
+  }
+
+  if (pathname === '/api/v1/tontines/collections' && method === 'GET') {
+    return adaptPagedResponse(
+      {
+        status: 'OK',
+        statusCode: 200,
+        message: 'default.message.success',
+        service: 'MOCK-SERVICE',
+        data: {
+          content: E2E_TONTINE_COLLECTIONS,
+          page: {
+            size: 20,
+            number: 0,
+            totalElements: E2E_TONTINE_COLLECTIONS.length,
+            totalPages: 1,
+          },
+        },
+      },
+      apiPath
+    );
   }
 
   if (pathname === '/api/v1/tontines/collections' && method === 'POST') {
