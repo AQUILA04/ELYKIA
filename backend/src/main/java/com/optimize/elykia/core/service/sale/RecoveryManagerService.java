@@ -1,17 +1,20 @@
 package com.optimize.elykia.core.service.sale;
 
+import com.optimize.elykia.core.dto.CreditLateSummaryDTO;
 import com.optimize.elykia.core.dto.CreditTimelineDto;
 import com.optimize.elykia.core.dto.sale.CloseCreditsRequestDto;
 import com.optimize.elykia.core.dto.sale.CreditCloseItemDto;
 import com.optimize.elykia.core.dto.sale.CloseCreditsResponseDto;
 import com.optimize.elykia.core.dto.sale.CreditCloseResultDto;
 import com.optimize.elykia.core.dto.sale.CommercialRemittanceDto;
+import com.optimize.elykia.core.dto.sale.MonthlyRecoveryRateDto;
 import com.optimize.elykia.core.dto.sale.RecoveryManagerReportSummaryDto;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.RecoveryManagerOperation;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.event.RecoveryManagerCollectionEvent;
 import com.optimize.elykia.core.repository.RecoveryManagerOperationRepository;
+import com.optimize.elykia.core.service.CreditLateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -24,6 +27,7 @@ import org.springframework.util.StringUtils;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,7 @@ public class RecoveryManagerService {
     private final CreditService creditService;
     private final ClientReliquatService clientReliquatService;
     private final RecoveryManagerOperationRepository operationRepository;
+    private final CreditLateService creditLateService;
     private final ApplicationEventPublisher eventPublisher;
 
     public CloseCreditsResponseDto closeCredits(CloseCreditsRequestDto dto, String recoveryManagerUsername) {
@@ -281,6 +286,44 @@ public class RecoveryManagerService {
                 .commercialsCount(commercialsCount != null ? commercialsCount : 0)
                 .remittanceByCommercial(remittances)
                 .build();
+    }
+
+    /**
+     * Taux mensuel chef = Σ amountCollected (ops du chef, mois)
+     * / Σ dû live de tous les retards délai de l'application (D-b).
+     */
+    @Transactional(readOnly = true)
+    public MonthlyRecoveryRateDto getMonthlyRecoveryRate(int year, int month, String recoveryManagerUsername) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        Double collected = operationRepository.sumAmountCollected(
+                startDate, endDate, recoveryManagerUsername, null);
+        Integer opsCount = operationRepository.countOperations(
+                startDate, endDate, recoveryManagerUsername, null);
+
+        CreditLateSummaryDTO lateSummary = creditLateService.getSummary(null, null, null);
+        double latePortfolioDue = lateSummary.getTotalAmountRemainingDelai();
+        long lateCreditsCount = lateSummary.getTotalDelai();
+        double amountCollected = collected != null ? collected : 0.0;
+        double rate = latePortfolioDue > 0.0
+                ? (amountCollected / latePortfolioDue) * 100.0
+                : 0.0;
+
+        return MonthlyRecoveryRateDto.builder()
+                .year(year)
+                .month(month)
+                .amountCollectedByChef(amountCollected)
+                .latePortfolioDue(latePortfolioDue)
+                .lateCreditsCount(lateCreditsCount)
+                .operationsCount(opsCount != null ? opsCount : 0)
+                .recoveryRatePercent(roundRate(rate))
+                .build();
+    }
+
+    private static double roundRate(double rate) {
+        return Math.round(rate * 100.0) / 100.0;
     }
 
     private String generateReference() {
