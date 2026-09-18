@@ -16,6 +16,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Déclaration Mobile Money de cotisation tontine : route `/tontines/:id/payment`, CTA sur le détail, API recipients/submit, affichage `INITIE` dans la timeline.
 - E2E déclaration cotisation tontine (mocks recipients + POST).
 
+## Frontend — [2.21.3] — 2026-09-18
+
+### Fixed
+
+- Dashboard v2 : input mois du date picker associé à un label (`id` / `for`) pour le quality gate Sonar (a11y).
+
 ## Frontend — [2.21.2] — 2026-09-18
 
 ### Fixed
