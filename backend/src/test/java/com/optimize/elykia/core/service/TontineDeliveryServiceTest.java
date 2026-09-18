@@ -238,6 +238,7 @@ class TontineDeliveryServiceTest {
 
         assertEquals(TontineMemberDeliveryStatus.DELIVERED, result.getDeliveryStatus());
         verify(creditService, times(1)).createTontineCredit(any(TontineDelivery.class));
-        verify(memberRepository).save(argThat(m -> m.getDeliveryStatus() == TontineMemberDeliveryStatus.DELIVERED));
+        verify(memberRepository, times(2)).save(any(TontineMember.class));
+        assertEquals(TontineMemberDeliveryStatus.DELIVERED, mockMember.getDeliveryStatus());
     }
 }
