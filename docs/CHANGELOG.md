@@ -16,6 +16,24 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Déclaration Mobile Money de cotisation tontine : route `/tontines/:id/payment`, CTA sur le détail, API recipients/submit, affichage `INITIE` dans la timeline.
 - E2E déclaration cotisation tontine (mocks recipients + POST).
 
+## Frontend — [2.22.0] — 2026-09-18
+
+### Added
+
+- Rapport « Recouvrement terrain » : bandeau **Taux du mois** (encaissé chef / dû live des retards délai app).
+
+## Backend — [1.18.0] — 2026-09-18
+
+### Added
+
+- Endpoint `GET /api/v1/recovery-manager/kpi/monthly-recovery-rate` : taux de recouvrement mensuel du chef (Σ `amountCollected` / dû live retards délai app).
+
+## Mobile — [2.29.0] — 2026-09-18
+
+### Added
+
+- Onglet Retards (`/rm/dashboard`) : bandeau **Taux du mois** (séparé du strip plan), sélecteur de mois simple, cache hors ligne.
+
 ## Frontend — [2.21.0] — 2026-09-17
 
 ### Added

@@ -18,7 +18,9 @@ Le pack est nécessaire pour travailler hors ligne. Si l’onglet **Retards** in
 
 ## Onglet Retards : prioriser, contrôler et clôturer
 
-L’onglet **Retards** affiche les KPI **Retards**, **Dû** et **Clôturé**, puis les dossiers regroupés par localité. Des filtres par commercial sélectionné dans le plan permettent de concentrer la tournée.
+L’onglet **Retards** affiche les KPI **Retards**, **Dû** et **Clôturé** (périmètre du **plan du jour**), puis un bandeau distinct **Taux du mois** : le taux de recouvrement du chef sur **tous les retards délai** de l’application (pas seulement le pack). Ce bandeau nécessite le réseau ; hors ligne, la dernière valeur mise en cache peut s’afficher, sinon un message indique que le taux est disponible en ligne uniquement. Un sélecteur de mois simple permet de consulter le mois courant ou un mois passé.
+
+Les dossiers sont regroupés par localité. Des filtres par commercial sélectionné dans le plan permettent de concentrer la tournée.
 
 Chaque carte affiche le client, la référence, le commercial, le téléphone lorsque disponible, le montant restant et les jours de retard. Les boutons **Contrôle** et **Clôturer** ouvrent les formulaires correspondants.
 
