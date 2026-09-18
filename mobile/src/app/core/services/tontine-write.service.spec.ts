@@ -45,18 +45,27 @@ describe('TontineWriteService', () => {
         TontineWriteService,
         { provide: TontineMemberRepository, useValue: {
           save: jasmine.createSpy('save'),
-          saveAll: jasmine.createSpy('saveAll'),
+          saveAll: jasmine.createSpy('saveAll').and.resolveTo(),
           updateMember: jasmine.createSpy('updateMember'),
           saveIdMapping: jasmine.createSpy('saveIdMapping'),
           findById: jasmine.createSpy('findById').and.resolveTo(null),
           updateDerivedAllocation: jasmine.createSpy('updateDerivedAllocation').and.resolveTo()
         } },
         { provide: TontineCollectionRepository, useValue: collectionRepository },
-        { provide: TontineDeliveryRepository, useValue: { saveAll: jasmine.createSpy('saveAll'), saveIdMapping: jasmine.createSpy('saveIdMapping') } },
-        { provide: TontineStockRepository, useValue: { updateQuantities: jasmine.createSpy('updateQuantities') } },
+        { provide: TontineDeliveryRepository, useValue: {
+          saveAll: jasmine.createSpy('saveAll').and.resolveTo(),
+          saveIdMapping: jasmine.createSpy('saveIdMapping').and.resolveTo(),
+          updateDeliveryStatusFields: jasmine.createSpy('updateDeliveryStatusFields').and.resolveTo(),
+          getItems: jasmine.createSpy('getItems').and.resolveTo([]),
+          getServerId: jasmine.createSpy('getServerId').and.resolveTo(null)
+        } },
+        { provide: TontineStockRepository, useValue: { updateQuantities: jasmine.createSpy('updateQuantities').and.resolveTo() } },
         { provide: TontineMemberSyncService, useValue: {} },
         { provide: TontineCollectionSyncService, useValue: collectionSyncService },
-        { provide: TontineDeliverySyncService, useValue: {} },
+        { provide: TontineDeliverySyncService, useValue: {
+          postCreateDelivery: jasmine.createSpy('postCreateDelivery'),
+          postMarkDelivered: jasmine.createSpy('postMarkDelivered')
+        } },
         { provide: OnlineFirstWriteCoordinator, useValue: coordinator },
         { provide: TontineCalculationService, useValue: {
           calculateMemberStatus: jasmine.createSpy('calculateMemberStatus').and.resolveTo({
@@ -133,5 +142,79 @@ describe('TontineWriteService', () => {
     } as any);
 
     expect(collectionSyncService.postCreateCollection.calls.mostRecent().args[0].id).toBe('uuid-retry');
+  });
+
+  it('creates an order without deducting stock and sets member PENDING', async () => {
+    const deliveryRepo = TestBed.inject(TontineDeliveryRepository) as any;
+    const stockRepo = TestBed.inject(TontineStockRepository) as any;
+    const memberRepo = TestBed.inject(TontineMemberRepository) as any;
+
+    const saved = await service.createDelivery({
+      delivery: {
+        id: 'd1',
+        tontineMemberId: 'm1',
+        commercialUsername: 'c1',
+        requestDate: '2026-09-17T10:00:00.000Z',
+        status: 'PENDING',
+        totalAmount: 1000,
+        isLocal: true,
+        isSync: false
+      } as any,
+      items: [],
+      stockUpdates: [{ stockId: 's1', quantity: 2 }],
+      member: { id: 'm1', deliveryStatus: 'PENDING' } as any
+    });
+
+    expect(saved.status).toBe('PENDING');
+    expect(stockRepo.updateQuantities).not.toHaveBeenCalled();
+    expect(memberRepo.saveAll).toHaveBeenCalledWith([jasmine.objectContaining({ deliveryStatus: 'PENDING' })]);
+  });
+
+  it('creates a direct delivery and deducts stock', async () => {
+    const stockRepo = TestBed.inject(TontineStockRepository) as any;
+    const memberRepo = TestBed.inject(TontineMemberRepository) as any;
+
+    await service.createDelivery({
+      delivery: {
+        id: 'd2',
+        tontineMemberId: 'm1',
+        commercialUsername: 'c1',
+        requestDate: '2026-09-17T10:00:00.000Z',
+        deliveryDate: '2026-09-17T10:00:00.000Z',
+        status: 'DELIVERED',
+        totalAmount: 1000,
+        isLocal: true,
+        isSync: false
+      } as any,
+      items: [],
+      stockUpdates: [{ stockId: 's1', quantity: 2 }],
+      member: { id: 'm1', deliveryStatus: 'PENDING' } as any
+    });
+
+    expect(stockRepo.updateQuantities).toHaveBeenCalledWith('s1', 2);
+    expect(memberRepo.saveAll).toHaveBeenCalledWith([jasmine.objectContaining({ deliveryStatus: 'DELIVERED' })]);
+  });
+
+  it('marks a synced order as delivered offline with needsDeliverSync', async () => {
+    const deliveryRepo = TestBed.inject(TontineDeliveryRepository) as any;
+    const stockRepo = TestBed.inject(TontineStockRepository) as any;
+
+    const saved = await service.markDeliveryAsDelivered({
+      delivery: {
+        id: '55',
+        tontineMemberId: 'm1',
+        status: 'PENDING',
+        isSync: true,
+        isLocal: false,
+        items: []
+      } as any,
+      member: { id: 'm1' } as any,
+      stockUpdates: [{ stockId: 's1', quantity: 1 }]
+    });
+
+    expect(saved.status).toBe('DELIVERED');
+    expect(saved.needsDeliverSync).toBeTrue();
+    expect(deliveryRepo.updateDeliveryStatusFields).toHaveBeenCalled();
+    expect(stockRepo.updateQuantities).toHaveBeenCalledWith('s1', 1);
   });
 });

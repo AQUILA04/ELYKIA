@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BaseRepository } from './base.repository';
 import { DatabaseService } from '../services/database.service';
-import { TontineDelivery } from '../../models/tontine.model';
+import { TontineDelivery, TontineDeliveryStatus } from '../../models/tontine.model';
 import { capSQLiteSet } from '@capacitor-community/sqlite';
 
 @Injectable({
@@ -14,20 +14,89 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         super(databaseService);
     }
 
+    private mapRow(row: any): TontineDelivery {
+        return {
+            ...row,
+            isLocal: row.isLocal === 1 || row.isLocal === true,
+            isSync: row.isSync === 1 || row.isSync === true,
+            needsDeliverSync: row.needsDeliverSync === 1 || row.needsDeliverSync === true
+        };
+    }
+
     override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<TontineDelivery[]> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
-        const sql = `SELECT * FROM tontine_deliveries WHERE isSync = 0 AND isLocal = 1 AND commercialUsername = ? LIMIT ? OFFSET ?`;
+        const sql = `
+            SELECT * FROM tontine_deliveries
+            WHERE commercialUsername = ?
+              AND (
+                (isSync = 0 AND isLocal = 1)
+                OR needsDeliverSync = 1
+              )
+            LIMIT ? OFFSET ?
+        `;
         const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
-        return (result.values || []).map((row: any) => ({ ...row, isLocal: row.isLocal === 1, isSync: row.isSync === 1 }));
+        return (result.values || []).map((row: any) => this.mapRow(row));
     }
 
     async markAsSynced(localId: string, serverId: string): Promise<void> {
-        if (!this.databaseService['db'] || localId === serverId) return;
+        if (!this.databaseService['db'] || localId === serverId) {
+            if (this.databaseService['db'] && localId === serverId) {
+                await this.databaseService.execute(
+                    `UPDATE tontine_deliveries SET isSync = 1, isLocal = 0, needsDeliverSync = 0, syncDate = datetime('now', 'localtime') WHERE id = ?`,
+                    [localId]
+                );
+            }
+            return;
+        }
         const updateSet = [
             { statement: `UPDATE tontine_delivery_items SET tontineDeliveryId = ? WHERE tontineDeliveryId = ?`, values: [serverId, localId] },
-            { statement: `UPDATE tontine_deliveries SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`, values: [serverId, localId] }
+            {
+                statement: `UPDATE tontine_deliveries SET isSync = 1, isLocal = 0, needsDeliverSync = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`,
+                values: [serverId, localId]
+            }
         ];
         await this.databaseService.executeSet(updateSet);
+    }
+
+    async markDeliverSynced(deliveryId: string): Promise<void> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        await this.databaseService.execute(
+            `UPDATE tontine_deliveries SET needsDeliverSync = 0, isSync = 1, syncDate = datetime('now', 'localtime') WHERE id = ?`,
+            [deliveryId]
+        );
+    }
+
+    async updateDeliveryStatusFields(
+        deliveryId: string,
+        fields: {
+            status: TontineDeliveryStatus;
+            deliveryDate?: string | null;
+            needsDeliverSync?: boolean;
+            isSync?: boolean;
+            isLocal?: boolean;
+            syncDate?: string | null;
+        }
+    ): Promise<void> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        await this.databaseService.execute(
+            `UPDATE tontine_deliveries
+             SET status = ?,
+                 deliveryDate = ?,
+                 needsDeliverSync = ?,
+                 isSync = COALESCE(?, isSync),
+                 isLocal = COALESCE(?, isLocal),
+                 syncDate = COALESCE(?, syncDate)
+             WHERE id = ?`,
+            [
+                fields.status,
+                fields.deliveryDate ?? null,
+                fields.needsDeliverSync ? 1 : 0,
+                fields.isSync === undefined ? null : (fields.isSync ? 1 : 0),
+                fields.isLocal === undefined ? null : (fields.isLocal ? 1 : 0),
+                fields.syncDate === undefined ? null : fields.syncDate,
+                deliveryId
+            ]
+        );
     }
 
     async saveAll(entities: TontineDelivery[]): Promise<void> {
@@ -36,8 +105,8 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
 
         const queryDelivery = `
       INSERT OR REPLACE INTO tontine_deliveries(
-          id, reference, tontineMemberId, commercialUsername, requestDate, deliveryDate, totalAmount, status, isLocal, isSync, syncDate, syncHash, operationConsentCode
-        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          id, reference, tontineMemberId, commercialUsername, requestDate, deliveryDate, totalAmount, status, isLocal, isSync, syncDate, syncHash, operationConsentCode, needsDeliverSync
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
 
         const queryItems = `
@@ -55,7 +124,8 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
                 values: [
                     delivery.id, delivery.reference || null, delivery.tontineMemberId, delivery.commercialUsername, delivery.requestDate, delivery.deliveryDate, delivery.totalAmount, delivery.status,
                     delivery.isLocal ? 1 : 0, delivery.isSync ? 1 : 0, delivery.syncDate || new Date().toISOString(), delivery.syncHash,
-                    delivery.operationConsentCode || null
+                    delivery.operationConsentCode || null,
+                    delivery.needsDeliverSync ? 1 : 0
                 ]
             });
 
@@ -74,22 +144,12 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         await this.databaseService.executeSet(set);
     }
 
-    // ==================== SPECIFIC QUERY METHODS ====================
-
-    /**
-     * Get deliveries for a specific member and commercial
-     * @param memberId ID of the tontine member
-     * @param commercialUsername Username of the commercial
-     * @returns Array of deliveries with their items
-     */
     async getByMemberAndCommercial(memberId: string, commercialUsername: string): Promise<TontineDelivery[]> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
 
-        // Get deliveries
         const deliveriesResult = await this.databaseService.query('SELECT * FROM tontine_deliveries WHERE tontineMemberId = ? AND commercialUsername = ?', [memberId, commercialUsername]);
-        const deliveries = deliveriesResult.values || [];
+        const deliveries = (deliveriesResult.values || []).map((row: any) => this.mapRow(row));
 
-        // Get items for each delivery with article names via JOIN
         for (const d of deliveries) {
             const itemsQuery = `
                 SELECT
@@ -118,12 +178,6 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         return result.values || [];
     }
 
-    /**
-     * Get tontine deliveries created on a specific date for a commercial
-     * @param commercialUsername Commercial username
-     * @param date Date string (YYYY-MM-DD)
-     * @returns Array of tontine deliveries with member names
-     */
     async findByCommercialAndDate(commercialUsername: string, date: string): Promise<any[]> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
         const sql = `
@@ -135,9 +189,7 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         `;
         const result = await this.databaseService.query(sql, [commercialUsername, `${date}%`]);
         return (result.values || []).map((row: any) => ({
-            ...row,
-            isLocal: row.isLocal === 1,
-            isSync: row.isSync === 1,
+            ...this.mapRow(row),
             clientName: row.clientName
         }));
     }

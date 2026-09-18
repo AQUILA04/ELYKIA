@@ -119,14 +119,17 @@ public class TontineDeliveryService {
 
         double remainingBalance = member.getAvailableContribution() - totalAmount;
 
+        LocalDateTime requestDate = dto.getRequestDate() != null ? dto.getRequestDate() : LocalDateTime.now();
+
         TontineDelivery delivery = new TontineDelivery();
         delivery.setTontineMember(member);
-        delivery.setDeliveryDate(LocalDateTime.now());
+        // Placeholder until effective delivery (column is NOT NULL); overwritten on deliver/distribute.
+        delivery.setDeliveryDate(requestDate);
         delivery.setTotalAmount(totalAmount);
         delivery.setRemainingBalance(remainingBalance);
         delivery.setCommercialUsername(member.getClient().getCollector());
-        delivery.setRequestDate(dto.getRequestDate());
-        delivery.setReference(deliveryReferenceService.resolveReference(dto.getReference(), dto.getRequestDate()));
+        delivery.setRequestDate(requestDate);
+        delivery.setReference(deliveryReferenceService.resolveReference(dto.getReference(), requestDate));
         delivery.setOperationConsentCode(dto.getOperationConsentCode());
         delivery.setSyncConsentCode(dto.getSyncConsentCode());
 
@@ -145,7 +148,7 @@ public class TontineDeliveryService {
         } else {
             member.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
             TontineDelivery savedDelivery = deliveryRepository.save(delivery);
-            log.info("Delivery for member {} created with PENDING status.", member.getId());
+            log.info("Delivery for member {} created with PENDING status (commande).", member.getId());
             return mapToDto(savedDelivery);
         }
     }
@@ -204,6 +207,8 @@ public class TontineDeliveryService {
         // }
 
         creditService.createTontineCredit(delivery);
+        delivery.setDeliveryDate(LocalDateTime.now());
+        deliveryRepository.save(delivery);
         member.setDeliveryStatus(TontineMemberDeliveryStatus.DELIVERED);
         memberRepository.save(member);
 
@@ -289,12 +294,15 @@ public class TontineDeliveryService {
                 .tontineMemberId(delivery.getTontineMember().getId())
                 .reference(delivery.getReference())
                 .clientName(delivery.getTontineMember().getClient().getFullName())
+                .requestDate(delivery.getRequestDate())
                 .deliveryDate(delivery.getDeliveryDate())
                 .totalAmount(delivery.getTotalAmount())
                 .remainingBalance(delivery.getRemainingBalance())
                 .commercialUsername(delivery.getCommercialUsername())
                 .deliveryStatus(delivery.getTontineMember().getDeliveryStatus())
                 .items(itemDtos)
+                .operationConsentCode(delivery.getOperationConsentCode())
+                .syncConsentCode(delivery.getSyncConsentCode())
                 .build();
     }
 }

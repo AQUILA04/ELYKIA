@@ -78,6 +78,11 @@ export interface TontineDeliveryItem {
     articleName?: string; // Populated via JOIN with articles table
 }
 
+export type TontineDeliveryStatus = 'PENDING' | 'VALIDATED' | 'DELIVERED' | 'CANCELLED';
+
+/** Mode choisi à la création : commande (PENDING) vs livraison immédiate (DELIVERED). */
+export type TontineDeliveryCreationMode = 'ORDER' | 'DIRECT';
+
 export interface TontineDelivery {
     id: string;
     reference?: string;
@@ -86,7 +91,7 @@ export interface TontineDelivery {
     requestDate: string;
     deliveryDate?: string;
     totalAmount: number;
-    status: 'PENDING' | 'VALIDATED' | 'DELIVERED' | 'CANCELLED';
+    status: TontineDeliveryStatus;
     items?: TontineDeliveryItem[];
     isLocal: boolean;
     isSync: boolean;
@@ -94,6 +99,8 @@ export interface TontineDelivery {
     syncHash?: string;
     clientName?: string;
     operationConsentCode?: string;
+    /** True when create was already synced as PENDING and local mark-as-delivered still needs PATCH /deliver. */
+    needsDeliverSync?: boolean;
 }
 
 export interface TontineDeliveryView extends TontineDelivery {
