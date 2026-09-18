@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { TontineDeliveryRepository } from '../../repositories/tontine-delivery.repository';
-import { TontineDeliveryRepositoryExtensions } from '../../repositories/tontine-delivery.repository.extensions';
 import { AuthService } from '../auth.service';
 import { SyncErrorService } from '../sync-error.service';
 import { TontineDelivery, TontineDeliveryItem } from '../../../models/tontine.model';
@@ -17,13 +16,11 @@ import { DateFilter } from '../../models/date-filter.model';
 export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery, TontineDeliveryRepository> {
     private failedMemberIds: string[] = [];
 
-
     constructor(
         protected override http: HttpClient,
         protected override repository: TontineDeliveryRepository,
         protected override authService: AuthService,
-        protected override syncErrorService: SyncErrorService,
-        private readonly tontineDeliveryRepositoryExtensions: TontineDeliveryRepositoryExtensions
+        protected override syncErrorService: SyncErrorService
     ) {
         super(http, repository, authService, syncErrorService, 'tontine-delivery');
     }
@@ -38,10 +35,6 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
         this.syncConsentCode = code;
     }
 
-    /**
-     * Synchronize a batch of unsynced tontine deliveries
-     * Overridden to handle failedMemberIds dependency
-     */
     override async syncBatch(limit: number = 50, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
         const unsyncedDeliveries = await this.fetchUnsynced(limit, dateFilter);
 
@@ -82,7 +75,7 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
     }
 
     /**
-     * Crée une livraison tontine sur le serveur sans modifier SQLite (online-first).
+     * Crée une commande (PENDING) ou une livraison directe (DELIVERED) sur le serveur.
      */
     async postCreateDelivery(
         delivery: TontineDelivery,
@@ -90,54 +83,105 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
     ): Promise<TontineDeliverySyncResponse> {
         const syncRequest = await this.prepareTontineDeliverySyncRequest(delivery, items);
         const headers = this.getAuthHeaders();
+        const isOrder = delivery.status === 'PENDING' || delivery.status === 'VALIDATED';
+        const endpoint = isOrder
+            ? `${this.baseUrl}/api/v1/tontines/deliveries`
+            : `${this.baseUrl}/api/v1/tontines/deliveries/distribute`;
 
         const response = await firstValueFrom(
-            this.http.post<ApiResponse<TontineDeliverySyncResponse>>(`${this.baseUrl}/api/v1/tontines/deliveries/distribute`, syncRequest, { headers })
+            this.http.post<ApiResponse<TontineDeliverySyncResponse>>(endpoint, syncRequest, { headers })
         );
 
         if (!response?.data) {
             throw new Error(response?.message || 'Invalid response from server for tontine delivery sync');
         }
 
-        return response.data;
+        return this.normalizeSyncResponse(response.data);
+    }
+
+    /**
+     * Marque une commande déjà créée sur le serveur comme livrée.
+     */
+    async postMarkDelivered(serverDeliveryId: string): Promise<TontineDeliverySyncResponse> {
+        const headers = this.getAuthHeaders();
+        const response = await firstValueFrom(
+            this.http.patch<ApiResponse<TontineDeliverySyncResponse>>(
+                `${this.baseUrl}/api/v1/tontines/deliveries/${serverDeliveryId}/deliver`,
+                {},
+                { headers }
+            )
+        );
+
+        if (!response?.data) {
+            throw new Error(response?.message || 'Invalid response from server for tontine delivery mark-delivered');
+        }
+
+        return this.normalizeSyncResponse(response.data);
     }
 
     protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<TontineDelivery[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
 
-        const filters: any = { isSync: false, isLocal: true };
+        const unsynced = await this.repository.findUnsynced(commercialUsername, limit, 0);
 
-        if (dateFilter && (dateFilter.startDate || dateFilter.endDate)) {
-            filters.dateFilter = {
-                ...dateFilter,
-                dateColumn: 'deliveryDate'
-            };
+        if (!dateFilter || (!dateFilter.startDate && !dateFilter.endDate)) {
+            return unsynced;
         }
 
-        const page = await this.tontineDeliveryRepositoryExtensions.findByCommercialPaginated(
-            commercialUsername,
-            0,
-            limit,
-            filters
-        );
-        return page.content;
+        return unsynced.filter(delivery => {
+            const dateValue = delivery.deliveryDate || delivery.requestDate;
+            if (!dateValue) return true;
+            const day = dateValue.substring(0, 10);
+            if (dateFilter.startDate && day < dateFilter.startDate) return false;
+            if (dateFilter.endDate && day > dateFilter.endDate) return false;
+            return true;
+        });
     }
 
     override async getUnsyncedCount(): Promise<number> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return 0;
-        const page = await this.tontineDeliveryRepositoryExtensions.findByCommercialPaginated(
-            commercialUsername, 0, 1, { isSync: false, isLocal: true }
-        );
-        return page.totalElements;
+        const all = await this.repository.findUnsynced(commercialUsername, 500, 0);
+        return all.length;
     }
 
     private async syncSingleTontineDelivery(delivery: TontineDelivery): Promise<TontineDeliverySyncResponse> {
-        const syncedDelivery = await this.postCreateDelivery(delivery, delivery.items || await this.repository.getItems(delivery.id));
+        if (delivery.needsDeliverSync) {
+            const serverId = await this.resolveServerDeliveryId(delivery);
+            if (!serverId) {
+                throw new Error(`Impossible de trouver l'ID serveur pour la livraison tontine ${delivery.id}`);
+            }
+            const synced = await this.postMarkDelivered(serverId);
+            await this.repository.markDeliverSynced(delivery.id);
+            return synced;
+        }
+
+        const items = delivery.items || await this.repository.getItems(delivery.id);
+        const syncedDelivery = await this.postCreateDelivery(delivery, items);
         await this.repository.saveIdMapping(delivery.id, syncedDelivery.id.toString(), 'tontine-delivery');
         await this.repository.markAsSynced(delivery.id, syncedDelivery.id.toString());
         return syncedDelivery;
+    }
+
+    private async resolveServerDeliveryId(delivery: TontineDelivery): Promise<string | null> {
+        if (/^\d+$/.test(delivery.id)) {
+            return delivery.id;
+        }
+        return this.repository.getServerId(delivery.id, 'tontine-delivery');
+    }
+
+    private normalizeSyncResponse(data: any): TontineDeliverySyncResponse {
+        return {
+            id: data.id,
+            tontineMemberId: data.tontineMemberId,
+            reference: data.reference,
+            totalAmount: data.totalAmount,
+            status: data.status || data.deliveryStatus,
+            requestDate: data.requestDate,
+            deliveryDate: data.deliveryDate,
+            deliveryStatus: data.deliveryStatus || data.status
+        };
     }
 
     private async prepareTontineDeliverySyncRequest(
@@ -145,7 +189,10 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
         items?: TontineDeliveryItem[]
     ): Promise<TontineDeliverySyncRequest> {
         const deliveryItems = items ?? await this.repository.getItems(delivery.id);
-        const serverMemberId = await this.repository.getServerId(delivery.tontineMemberId, 'tontine-member');
+        let serverMemberId = await this.repository.getServerId(delivery.tontineMemberId, 'tontine-member');
+        if (!serverMemberId && /^\d+$/.test(delivery.tontineMemberId)) {
+            serverMemberId = delivery.tontineMemberId;
+        }
 
         if (!serverMemberId) {
             throw new Error(`Impossible de trouver l'ID serveur pour le membre de tontine local ${delivery.tontineMemberId}`);

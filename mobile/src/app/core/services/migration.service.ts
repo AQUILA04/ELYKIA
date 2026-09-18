@@ -139,6 +139,9 @@ export class MigrationService {
       case 30:
         await this.migrateToV30(db);
         break;
+      case 31:
+        await this.migrateToV31(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -851,6 +854,21 @@ export class MigrationService {
     } catch (error: any) {
       this.log.log(`Error in migration v30: ${error}`);
       console.error('Error in migration v30', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Flag local pour synchroniser PATCH /deliver après une commande déjà syncée.
+   */
+  private async migrateToV31(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v31: tontine_deliveries.needsDeliverSync...');
+      await this.addColumnIfNotExists(db, 'tontine_deliveries', 'needsDeliverSync', 'BOOLEAN DEFAULT 0');
+      this.log.log('Migration to v31 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v31: ${error}`);
+      console.error('Error in migration v31', error);
       throw error;
     }
   }

@@ -122,9 +122,9 @@
     </div>
     <div class="footer-actions">
       <ion-button fill="outline" class="elyk-btn-outline" (click)="cancel()">Annuler</ion-button>
-      <ion-button class="elyk-btn-navy" [disabled]="vm.selectedCount === 0 || vm.remainingBudget < 0" (click)="validateDelivery()">
+      <ion-button class="elyk-btn-navy" [disabled]="vm.selectedCount === 0 || vm.remainingBudget < 0" (click)="validateDelivery()" data-testid="e2e-tontine-delivery-validate">
         <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
-        Valider la livraison
+        Valider
       </ion-button>
     </div>
   </ion-toolbar>

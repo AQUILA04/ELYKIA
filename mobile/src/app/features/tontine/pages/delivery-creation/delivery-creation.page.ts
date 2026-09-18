@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { NavController, AlertController, LoadingController, IonInfiniteScroll, ModalController } from '@ionic/angular';
+import { NavController, AlertController, LoadingController, IonInfiniteScroll, ModalController, ActionSheetController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
@@ -16,7 +16,7 @@ import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-f
 import { DatabaseService } from 'src/app/core/services/database.service';
 import { TontineCalculationService } from 'src/app/core/services/tontine-calculation.service';
 
-import { TontineMember, TontineSession, TontineDelivery, TontineDeliveryItem, TontineStock } from 'src/app/models/tontine.model';
+import { TontineMember, TontineSession, TontineDelivery, TontineDeliveryItem, TontineStock, TontineDeliveryCreationMode } from 'src/app/models/tontine.model';
 import { Client } from 'src/app/models/client.model';
 import { selectTontineSession, selectPaginatedTontineStocks, selectTontineStockPaginationLoading, selectTontineStockPaginationHasMore } from 'src/app/store/tontine/tontine.selectors';
 import * as TontineActions from 'src/app/store/tontine/tontine.actions';
@@ -91,6 +91,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         private route: ActivatedRoute,
         private navCtrl: NavController,
         private alertCtrl: AlertController,
+        private actionSheetCtrl: ActionSheetController,
         private loadingCtrl: LoadingController,
         private modalCtrl: ModalController,
         private store: Store,
@@ -345,27 +346,66 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             }
         }
 
+        const sheet = await this.actionSheetCtrl.create({
+            header: 'Type d\'opération',
+            subHeader: `Total: ${this.vm.usedBudget.toLocaleString('fr-FR')} FCFA — Restant: ${this.vm.remainingBudget.toLocaleString('fr-FR')} FCFA`,
+            cssClass: 'elyk-action-sheet',
+            buttons: [
+                {
+                    text: 'Commande',
+                    icon: 'document-text-outline',
+                    cssClass: 'e2e-tontine-delivery-mode-order',
+                    handler: () => {
+                        void this.confirmAndProcess('ORDER');
+                    }
+                },
+                {
+                    text: 'Livraison directe',
+                    icon: 'cube-outline',
+                    cssClass: 'e2e-tontine-delivery-mode-direct',
+                    handler: () => {
+                        void this.confirmAndProcess('DIRECT');
+                    }
+                },
+                {
+                    text: 'Annuler',
+                    icon: 'close',
+                    role: 'cancel'
+                }
+            ]
+        });
+        await sheet.present();
+    }
+
+    private async confirmAndProcess(mode: TontineDeliveryCreationMode): Promise<void> {
+        const isOrder = mode === 'ORDER';
         const alert = await this.alertCtrl.create({
-            header: 'Confirmer la livraison',
-            message: `Total: ${this.vm.usedBudget.toLocaleString('fr-FR')} FCFA\nRestant: ${this.vm.remainingBudget.toLocaleString('fr-FR')} FCFA\n\nConfirmez-vous cette livraison ?`,
+            header: isOrder ? 'Confirmer la commande' : 'Confirmer la livraison',
+            message: isOrder
+                ? `Total: ${this.vm.usedBudget.toLocaleString('fr-FR')} FCFA\n\nEnregistrer comme commande (articles non encore remis) ?`
+                : `Total: ${this.vm.usedBudget.toLocaleString('fr-FR')} FCFA\nRestant: ${this.vm.remainingBudget.toLocaleString('fr-FR')} FCFA\n\nConfirmez-vous la livraison directe ?`,
             buttons: [
                 { text: 'Annuler', role: 'cancel' },
                 {
                     text: 'Confirmer',
-                    handler: () => this.processDelivery()
+                    handler: () => {
+                        void this.processDelivery(mode);
+                    }
                 }
             ]
         });
         await alert.present();
     }
 
-    async processDelivery(forceOffline = false) {
+    async processDelivery(mode: TontineDeliveryCreationMode = 'DIRECT', forceOffline = false) {
         const loading = await this.loadingCtrl.create({ message: 'Enregistrement...' });
+        const isOrder = mode === 'ORDER';
 
         try {
             const deliveryId = this.generateUuid();
             const items: TontineDeliveryItem[] = [];
             const stockUpdates: Array<{ stockId: string, quantity: number }> = [];
+            const nowIso = new Date().toISOString();
 
             this.cart.forEach((qty, stockId) => {
                 const details = this.cartDetails.get(stockId);
@@ -376,7 +416,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                         articleId: details.articleId,
                         quantity: qty,
                         unitPrice: details.price,
-                        totalPrice: details.price * qty
+                        totalPrice: details.price * qty,
+                        articleName: details.name
                     });
 
                     stockUpdates.push({ stockId: stockId, quantity: qty });
@@ -391,24 +432,38 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 reference: generateTontineDeliveryReference(),
                 tontineMemberId: this.memberId!,
                 commercialUsername: this.commercialUsername!,
-                requestDate: new Date().toISOString(),
-                deliveryDate: new Date().toISOString(),
-                status: 'DELIVERED',
+                requestDate: nowIso,
+                deliveryDate: nowIso,
+                status: isOrder ? 'PENDING' : 'DELIVERED',
                 totalAmount: this.vm.usedBudget,
                 items: items,
                 isLocal: true,
                 isSync: false,
+                needsDeliverSync: false,
                 operationConsentCode: this.dailyConsentState.getActiveConsentCode() ?? undefined
             };
 
             const savedDelivery = await this.tontineWriteService.createDelivery({
                 delivery,
                 items,
-                stockUpdates,
+                stockUpdates: isOrder ? [] : stockUpdates,
                 member: this.vm.member!
             }, forceOffline);
 
             await loading.dismiss();
+
+            if (isOrder) {
+                const success = await this.alertCtrl.create({
+                    header: 'Commande enregistrée',
+                    message: 'La commande est en attente de livraison. Vous pourrez la marquer comme livrée depuis la fiche membre.',
+                    buttons: [{
+                        text: 'OK',
+                        handler: () => this.navigateToTontineDashboard()
+                    }]
+                });
+                await success.present();
+                return;
+            }
 
             const receiptData: PrintableTontineDelivery = {
                 delivery: {
@@ -417,15 +472,12 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                     deliveryDate: savedDelivery.deliveryDate,
                     totalAmount: savedDelivery.totalAmount
                 },
-                items: items.map(item => {
-                    const details = this.cartDetails.get(item.articleId);
-                    return {
-                        articleName: details?.name || 'Article',
-                        quantity: item.quantity,
-                        unitPrice: item.unitPrice,
-                        totalPrice: item.totalPrice
-                    };
-                }),
+                items: items.map(item => ({
+                    articleName: item.articleName || 'Article',
+                    quantity: item.quantity,
+                    unitPrice: item.unitPrice,
+                    totalPrice: item.totalPrice
+                })),
                 client: {
                     fullName: this.vm.client?.fullName || ((this.vm.client?.firstname || '') + ' ' + (this.vm.client?.lastname || '')).trim() || 'Client',
                     phone: this.vm.client?.phone
@@ -460,7 +512,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS && !forceOffline) {
                 const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
                 if (saveOffline) {
-                    await this.processDelivery(true);
+                    await this.processDelivery(mode, true);
                     return;
                 }
             }
@@ -487,7 +539,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     async showHelp() {
         const alert = await this.alertCtrl.create({
             header: 'Aide',
-            message: 'Sélectionnez les articles pour la livraison de fin d\'année. Le montant total ne doit pas dépasser le budget épargné par le membre.',
+            message: 'Sélectionnez les articles. Au moment de valider, choisissez « Commande » (remise plus tard) ou « Livraison directe ». Le montant ne doit pas dépasser le budget du membre.',
             buttons: ['OK']
         });
         await alert.present();

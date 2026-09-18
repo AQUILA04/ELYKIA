@@ -22,3 +22,20 @@ describe('MigrationService v30', () => {
     expect(executes.some(sql => sql.includes('societyShareAmount = 0'))).toBeTrue();
   });
 });
+
+describe('MigrationService v31', () => {
+  it('adds needsDeliverSync on tontine_deliveries', async () => {
+    const executes: string[] = [];
+    const db = {
+      query: async () => ({ values: [] }),
+      execute: async (sql: string) => {
+        executes.push(sql);
+      }
+    } as any;
+
+    const service = new MigrationService({ log: () => undefined } as unknown as LoggerService);
+    await service.runMigrations(db, 30, 31);
+
+    expect(executes.some(sql => sql.includes('ALTER TABLE tontine_deliveries ADD COLUMN needsDeliverSync'))).toBeTrue();
+  });
+});

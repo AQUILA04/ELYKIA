@@ -444,5 +444,7 @@ export interface TontineDeliverySyncResponse {
   reference?: string;
   totalAmount: number;
   status: string;
+  deliveryStatus?: string;
   requestDate: string;
+  deliveryDate?: string;
 }
