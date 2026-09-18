@@ -122,7 +122,7 @@
                 <span class="hide-menu">Demandes Sortie</span>
               </a>
             </li>
-            <li class="sidebar-item submenu-item" *ngIf="!isStorekeeper()">
+            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_STOCK_MANAGEMENT', 'ROLE_STOREKEEPER']">
               <a class="sidebar-link" routerLink="/stock/my-stock"
                  data-testid="e2e-sidebar-stock-my-stock"
                  [ngClass]="{ 'active': isSubRouteActive('/stock/my-stock') }">
@@ -160,7 +160,7 @@
                 <span class="hide-menu">Demandes Sortie</span>
               </a>
             </li>
-            <li class="sidebar-item submenu-item" *ngIf="!isStorekeeper()">
+            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_STOCK_MANAGEMENT', 'ROLE_STOREKEEPER', 'ROLE_REPORT']">
               <a class="sidebar-link" routerLink="/stock-tontine/my-stock"
                  data-testid="e2e-sidebar-stock-tontine-my-stock"
                  [ngClass]="{ 'active': isSubRouteActive('/stock-tontine/my-stock') }">

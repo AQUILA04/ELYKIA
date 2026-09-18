@@ -38,6 +38,8 @@ export class MyStockDashboardComponent implements OnInit {
   isStoreKeeper = false;
   isPromoter = false;
   isSecretary = false;
+  /** Tous les portefeuilles sauf commercial (PROMOTER) qui ne voit que le sien. */
+  canSelectAllAgents = false;
 
   private exportingStockKeys = new Set<string>();
   private pendingSalesOpen: { collector: string; year: number; month: number } | null = null;
@@ -57,10 +59,19 @@ export class MyStockDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
-    this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE) || this.userService.hasProfile(UserProfile.ADMIN) || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
-    this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER);
+    this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE)
+      || this.userService.hasProfile(UserProfile.ADMIN)
+      || this.userService.hasProfile(UserProfile.SUPER_ADMIN)
+      || this.authService.hasRole('ROLE_ADMIN')
+      || this.authService.hasRole('ROLE_SUPER_ADMIN');
+    // Profil magasinier OU permission ROLE_STOREKEEPER (attribuable à tout utilisateur)
+    this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER)
+      || this.authService.hasRole('ROLE_STOREKEEPER');
+    // Scope portefeuille aligné backend : seul le profil PROMOTER est restreint à son portefeuille
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
+    // Magasinier, secrétaire, gestionnaire, admin, ou tout rôle stock hors commercial
+    this.canSelectAllAgents = !this.isPromoter;
     this.showStockReturnHistory = this.featureFlagService.isFeatureEnabled(FeatureFlags.StockReturnHistory);
     this.loadAgents();
     this.route.queryParams.subscribe(params => {

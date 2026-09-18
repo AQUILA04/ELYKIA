@@ -16,6 +16,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Déclaration Mobile Money de cotisation tontine : route `/tontines/:id/payment`, CTA sur le détail, API recipients/submit, affichage `INITIE` dans la timeline.
 - E2E déclaration cotisation tontine (mocks recipients + POST).
 
+## Frontend — [2.21.1] — 2026-09-18
+
+### Fixed
+
+- Magasinier (`ROLE_STOREKEEPER` / profil STOREKEEPER) : accès au menu et à l’écran Stock mensuel (`/stock/my-stock`), avec sélecteur de commercial pour tous les portefeuilles (seul le profil PROMOTER reste limité au sien). Même correction pour le sous-menu Stock tontine.
+
 ## Frontend — [2.21.0] — 2026-09-17
 
 ### Added
