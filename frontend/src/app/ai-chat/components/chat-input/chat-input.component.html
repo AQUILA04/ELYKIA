@@ -17,10 +17,11 @@
       (keydown)="onKeydown($event)"
       [disabled]="disabled"
       rows="2"
-      placeholder="Posez votre question… (Entrée pour envoyer, Maj+Entrée pour nouvelle ligne)"
+      placeholder="Posez votre question…"
     ></textarea>
-    <button type="button" class="btn-send" (click)="onSubmit()" [disabled]="disabled || !message.trim()">
+    <button type="button" class="btn-send" (click)="onSubmit()" [disabled]="disabled || !message.trim()" aria-label="Envoyer">
       <mat-icon>send</mat-icon>
     </button>
   </div>
+  <p class="input-hint">Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne</p>
 </div>

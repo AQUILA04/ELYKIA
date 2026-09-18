@@ -1,4 +1,14 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import {
+  AfterViewChecked,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewChild,
+} from '@angular/core';
 import { ChatMessage } from '../../models/ai-chat.models';
 
 @Component({
@@ -6,12 +16,33 @@ import { ChatMessage } from '../../models/ai-chat.models';
   templateUrl: './chat-message-list.component.html',
   styleUrls: ['./chat-message-list.component.scss'],
 })
-export class ChatMessageListComponent {
+export class ChatMessageListComponent implements OnChanges, AfterViewChecked {
   @Input() messages: ChatMessage[] = [];
   @Input() sending = false;
   @Input() showSql = false;
 
   @Output() suggestionSelected = new EventEmitter<string>();
+
+  @ViewChild('messageList', { static: true }) messageList?: ElementRef<HTMLElement>;
+
+  private shouldScrollToBottom = false;
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['messages'] || changes['sending']) {
+      this.shouldScrollToBottom = true;
+    }
+  }
+
+  ngAfterViewChecked(): void {
+    if (!this.shouldScrollToBottom) {
+      return;
+    }
+    this.shouldScrollToBottom = false;
+    const el = this.messageList?.nativeElement;
+    if (el) {
+      el.scrollTop = el.scrollHeight;
+    }
+  }
 
   isUser(role: string): boolean {
     return role === 'user' || role === 'USER';

@@ -40,6 +40,8 @@ spring:
         gemini:
           project-id: ${GOOGLE_CLOUD_PROJECT:}
           location: ${GOOGLE_CLOUD_LOCATION:global}
+          # With location=global, must use host aiplatform.googleapis.com (not global-aiplatform...)
+          api-endpoint: ${SPRING_AI_VERTEX_AI_GEMINI_API_ENDPOINT:aiplatform.googleapis.com}
           chat:
             options:
               model: gemini-3.8-flash

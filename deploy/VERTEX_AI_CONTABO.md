@@ -81,6 +81,49 @@ Puis dans l’UI `/ai-chat` (flag `elykiaAi` + rôles `ROLE_AI_CHAT` / `ROLE_AI_
 - une question **DATA** (SQL)
 - une question **HOW_TO** (user guide)
 
+## Dépannage
+
+### 502 Cloudflare au premier message chat
+
+Symptôme : `POST /api/v1/ai/chat` → 502 ; logs backend :
+
+```
+SIGSEGV ... libio_grpc_netty_shaded_netty_tcnative_linux_x86_64...
+netty_internal_tcnative_SSLContext_JNI_OnLoad
+```
+
+Cause : image Alpine (`musl`) + native SSL de gRPC/Vertex AI.
+
+Mitigations :
+1. **Hotfix immédiat** : `JAVA_TOOL_OPTIONS=-Dio.grpc.netty.shaded.io.netty.handler.ssl.noOpenSsl=true -Dio.grpc.netty.shaded.io.netty.transport.noNative=true` puis recreate backend.
+2. **Fix durable** : image backend basée sur `eclipse-temurin:17-jre` (glibc), pas `*-alpine`.
+
+Le double path `/api/api/v1/...` côté navigateur est normal (Traefik strip `/api`).
+
+### 500 `Failed to generate content` (UNIMPLEMENTED / HTTP 404)
+
+Cause fréquente avec `GOOGLE_CLOUD_LOCATION=global` : le SDK Vertex construit `global-aiplatform.googleapis.com` (404 HTML).
+
+Fix :
+```env
+GOOGLE_CLOUD_LOCATION=global
+SPRING_AI_VERTEX_AI_GEMINI_API_ENDPOINT=aiplatform.googleapis.com
+```
+
+Puis recreate backend. Alternative : location régionale (`us-central1`) + modèle dispo dans cette région (ex. `gemini-2.5-flash`).
+
+### 500 `Failed to generate content` (PERMISSION_DENIED)
+
+Logs :
+```
+Agent Platform API has not been used in project elykia-503006 before or it is disabled.
+```
+
+Activer l’API (compte owner/éditeur GCP) :
+https://console.developers.google.com/apis/api/aiplatform.googleapis.com/overview?project=elykia-503006
+
+Attendre 1–2 min puis retester le chat (pas besoin de recreate si l’API vient d’être activée).
+
 ## Rollback rapide
 
 Dans le `.env` concerné :

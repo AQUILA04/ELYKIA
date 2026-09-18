@@ -80,7 +80,11 @@ services:
       SPRING_AI_VERTEX_AI_GEMINI_CHAT_OPTIONS_MODEL: ${ELYKIA_AI_MODEL:-gemini-3.8-flash}
       GOOGLE_CLOUD_PROJECT: ${GOOGLE_CLOUD_PROJECT:-elykia-503006}
       GOOGLE_CLOUD_LOCATION: ${GOOGLE_CLOUD_LOCATION:-global}
+      # Required when location=global (SDK otherwise hits global-aiplatform.googleapis.com → 404)
+      SPRING_AI_VERTEX_AI_GEMINI_API_ENDPOINT: ${SPRING_AI_VERTEX_AI_GEMINI_API_ENDPOINT:-aiplatform.googleapis.com}
       GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-/secrets/gcp/vertex-ai-sa.json}
+      # Avoid netty-tcnative SIGSEGV (Alpine/musl) when Vertex AI gRPC loads SSL natives
+      JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:--Dio.grpc.netty.shaded.io.netty.handler.ssl.noOpenSsl=true -Dio.grpc.netty.shaded.io.netty.transport.noNative=true}"
     volumes:
       - ${LOG_PATH:-/opt/elykia/prod/logs}:/home/app/.optimize-elykia-core/logs
       - ${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/prod/photos/pending}:/opt/elykia/photos/pending

@@ -1,3 +1,8 @@
+:host {
+  display: block;
+  flex: 0 0 auto;
+}
+
 .chat-input {
   --navy: #003366;
   --navy-pale: #e8eef6;
@@ -6,7 +11,8 @@
 
   border-top: 1px solid var(--border);
   background: #fff;
-  padding: 0.75rem 1rem 1rem;
+  padding: 0.65rem 1rem 0.85rem;
+  box-shadow: 0 -4px 12px rgba(0, 51, 102, 0.04);
 }
 
 .domain-chips {
@@ -71,9 +77,16 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  flex-shrink: 0;
 
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
+}
+
+.input-hint {
+  margin: 0.35rem 0 0;
+  font-size: 0.72rem;
+  color: var(--text-muted);
 }
