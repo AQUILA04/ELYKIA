@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import { MatDatepicker } from '@angular/material/datepicker';
 import { Subscription } from 'rxjs';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { UserService } from 'src/app/user/service/user.service';
@@ -81,6 +82,11 @@ export class DashboardV2Component implements OnInit, OnDestroy {
   refresh(): void {
     this.loadDashboard();
     this.loadCharts();
+  }
+
+  onMonthSelected(date: Date, picker: MatDatepicker<Date>): void {
+    this.monthControl.setValue(date);
+    picker.close();
   }
 
   onChartGranularityChange(granularity: 'month' | 'quarter' | 'year'): void {
