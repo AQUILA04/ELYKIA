@@ -91,6 +91,87 @@ ion-content.rm-content {
   font-variant-numeric: tabular-nums;
 }
 
+.month-rate-banner {
+  margin: 12px 16px 0;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #e8eef6 0%, #fff 70%);
+  border: 1px solid #c5d3e6;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 51, 102, 0.05);
+}
+
+.month-rate-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.month-rate-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--rm-navy);
+}
+
+.month-rate-sub {
+  margin: 2px 0 0;
+  font-size: 11px;
+  color: var(--rm-muted);
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.month-nav-btn {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #c5d3e6;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--rm-navy);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.month-nav-label {
+  min-width: 96px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--rm-navy);
+}
+
+.month-rate-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 10px;
+}
+
+.month-rate-body strong {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--rm-navy);
+  font-variant-numeric: tabular-nums;
+}
+
+.month-rate-body .hint {
+  font-size: 11px;
+  color: var(--rm-muted);
+}
+
+.month-rate-body ion-spinner {
+  width: 22px;
+  height: 22px;
+  color: var(--rm-navy);
+}
+
 .filters {
   display: flex;
   gap: 8px;

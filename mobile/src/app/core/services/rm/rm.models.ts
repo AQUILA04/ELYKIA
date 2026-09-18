@@ -127,3 +127,14 @@ export interface RmOfflinePack {
   tontineMembers: RmPackTontineMember[];
   tontineFieldControlsToday: RmPackTontineFieldControlToday[];
 }
+
+/** Taux de recouvrement mensuel chef (retards délai app, stock live). */
+export interface MonthlyRecoveryRate {
+  year: number;
+  month: number;
+  amountCollectedByChef: number;
+  latePortfolioDue: number;
+  lateCreditsCount: number;
+  operationsCount: number;
+  recoveryRatePercent: number;
+}

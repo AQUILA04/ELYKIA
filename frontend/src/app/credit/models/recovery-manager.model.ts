@@ -36,6 +36,17 @@ export interface RecoveryManagerReportSummaryDto {
   remittanceByCommercial: CommercialRemittanceDto[];
 }
 
+/** Taux de recouvrement mensuel chef (retards délai app, stock live). */
+export interface MonthlyRecoveryRateDto {
+  year: number;
+  month: number;
+  amountCollectedByChef: number;
+  latePortfolioDue: number;
+  lateCreditsCount: number;
+  operationsCount: number;
+  recoveryRatePercent: number;
+}
+
 export interface CreditCloseResultDto {
   creditId: number;
   creditReference?: string;

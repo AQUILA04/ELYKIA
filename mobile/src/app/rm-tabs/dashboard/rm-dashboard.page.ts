@@ -4,7 +4,13 @@ import { ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCloseQueueService } from '../../core/services/rm/rm-close-queue.service';
-import { RmCreditLate, RmOfflinePack, FieldDayPlan } from '../../core/services/rm/rm.models';
+import { RmMonthlyRecoveryRateService } from '../../core/services/rm/rm-monthly-recovery-rate.service';
+import {
+  RmCreditLate,
+  RmOfflinePack,
+  FieldDayPlan,
+  MonthlyRecoveryRate
+} from '../../core/services/rm/rm.models';
 import { RmCloseSheetComponent } from '../../features/rm/close/rm-close-sheet.component';
 import { RmFieldControlSheetComponent } from '../../features/rm/field-control/rm-field-control-sheet.component';
 
@@ -21,12 +27,18 @@ export class RmDashboardPage implements OnInit, OnDestroy {
   filterCommercial = '';
   pendingCloses = 0;
   closedTodayAmount = 0;
+  monthlyRate: MonthlyRecoveryRate | null = null;
+  monthlyRateLoading = false;
+  monthlyRateOffline = false;
+  selectedYear = new Date().getFullYear();
+  selectedMonth = new Date().getMonth() + 1;
   private controlByCredit = new Map<number, string>();
   private subs: Subscription[] = [];
 
   constructor(
     private readonly scope: RmScopeService,
     private readonly closeQueue: RmCloseQueueService,
+    private readonly monthlyRecovery: RmMonthlyRecoveryRateService,
     private readonly modalCtrl: ModalController,
     private readonly router: Router
   ) {}
@@ -44,8 +56,18 @@ export class RmDashboardPage implements OnInit, OnDestroy {
         this.closedTodayAmount = ops
           .filter(o => o.createdAt?.slice(0, 10) === new Date().toISOString().slice(0, 10))
           .reduce((s, o) => s + (o.amount || 0), 0);
+      }),
+      this.monthlyRecovery.rate$.subscribe(rate => {
+        this.monthlyRate = rate;
+      }),
+      this.monthlyRecovery.loading$.subscribe(loading => {
+        this.monthlyRateLoading = loading;
+      }),
+      this.monthlyRecovery.offline$.subscribe(offline => {
+        this.monthlyRateOffline = offline;
       })
     );
+    void this.refreshMonthlyRate();
   }
 
   ngOnDestroy(): void {
@@ -60,9 +82,22 @@ export class RmDashboardPage implements OnInit, OnDestroy {
     return this.filteredLates().reduce((s, c) => s + (c.totalAmountRemaining || 0), 0);
   }
 
+  get monthLabel(): string {
+    const label = new Date(this.selectedYear, this.selectedMonth - 1, 1)
+      .toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  }
+
   setCommercialFilter(username: string): void {
     this.filterCommercial = username;
     this.rebuild();
+  }
+
+  shiftMonth(delta: number): void {
+    const d = new Date(this.selectedYear, this.selectedMonth - 1 + delta, 1);
+    this.selectedYear = d.getFullYear();
+    this.selectedMonth = d.getMonth() + 1;
+    void this.refreshMonthlyRate();
   }
 
   openPlan(): void {
@@ -97,6 +132,17 @@ export class RmDashboardPage implements OnInit, OnDestroy {
 
   formatAmount(value: number): string {
     return new Intl.NumberFormat('fr-FR').format(Math.round(value || 0));
+  }
+
+  formatRate(value: number | null | undefined): string {
+    if (value == null || Number.isNaN(value)) {
+      return '—';
+    }
+    return `${value.toLocaleString('fr-FR', { maximumFractionDigits: 1, minimumFractionDigits: 0 })} %`;
+  }
+
+  private async refreshMonthlyRate(): Promise<void> {
+    await this.monthlyRecovery.load(this.selectedYear, this.selectedMonth);
   }
 
   private filteredLates(): RmCreditLate[] {
