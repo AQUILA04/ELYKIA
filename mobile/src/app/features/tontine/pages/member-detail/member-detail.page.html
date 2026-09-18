@@ -30,7 +30,10 @@
       <div class="elyk-avatar member-avatar-lg">
         <span>{{ getClientDisplayName().substring(0, 2).toUpperCase() }}</span>
       </div>
-      <span class="elyk-badge status-badge" [ngClass]="'status-' + getStatusColor(vm.member.deliveryStatus)">
+      <span
+        class="elyk-badge status-badge"
+        [ngClass]="'status-' + getStatusColor(vm.member.deliveryStatus)"
+        data-testid="e2e-tontine-member-delivery-status">
         {{ getStatusLabel(vm.member.deliveryStatus) }}
       </span>
       <h1 class="member-name">{{ getClientDisplayName() }}</h1>
@@ -106,7 +109,10 @@
         <ion-card-title>
           <ion-icon name="cube-outline"></ion-icon>
           Livraison
-          <span class="elyk-badge status-badge-small" [ngClass]="'status-' + getStatusColor(vm.delivery.status)">
+          <span
+            class="elyk-badge status-badge-small"
+            [ngClass]="'status-' + getStatusColor(vm.delivery.status)"
+            data-testid="e2e-tontine-delivery-status">
             {{ getStatusLabel(vm.delivery.status) }}
           </span>
         </ion-card-title>

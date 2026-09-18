@@ -121,6 +121,7 @@ class TontineDeliveryServiceTest {
 
     @Test
     void createDelivery_AsRegularUser_ShouldCreateWithPendingStatus() {
+        // S2a — commande: PENDING, no commercial stock impact (createTontineCredit never called).
         givenRegularUser();
         when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
         when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
@@ -135,8 +136,11 @@ class TontineDeliveryServiceTest {
         assertEquals(50000.0, result.getRemainingBalance());
         assertEquals(createDeliveryDto.getRequestDate(), result.getRequestDate());
 
+        // Stock commercial is applied only via tontine credit — must not run on order create.
         verify(creditService, never()).createTontineCredit(any());
+        verifyNoMoreInteractions(creditService);
         verify(deliveryRepository, times(1)).save(any(TontineDelivery.class));
+        assertEquals(TontineMemberDeliveryStatus.PENDING, mockMember.getDeliveryStatus());
     }
 
     @Test
@@ -164,6 +168,7 @@ class TontineDeliveryServiceTest {
 
     @Test
     void deliverDelivery_fromPendingOrder_setsDeliveredStatusAndDeliveryDate() {
+        // S2b — mark order delivered: DELIVERED + stock impact via createTontineCredit.
         LocalDateTime requestDate = LocalDateTime.of(2026, 3, 1, 10, 0);
         TontineDelivery delivery = new TontineDelivery();
         delivery.setId(10L);
@@ -192,13 +197,15 @@ class TontineDeliveryServiceTest {
         ArgumentCaptor<TontineDelivery> deliveryCaptor = ArgumentCaptor.forClass(TontineDelivery.class);
         verify(deliveryRepository, atLeastOnce()).save(deliveryCaptor.capture());
         assertTrue(deliveryCaptor.getValue().getDeliveryDate().isAfter(requestDate));
-        verify(creditService).createTontineCredit(delivery);
+        // Credit creation is the stock-impact contract for commercial tontine stock.
+        verify(creditService, times(1)).createTontineCredit(delivery);
         verify(clientService).updateTontineStatus(eq(1L), eq(Boolean.FALSE));
         verify(memberRepository).save(argThat(m -> m.getDeliveryStatus() == TontineMemberDeliveryStatus.DELIVERED));
     }
 
     @Test
     void distributeTontineDelivery_endsAsDelivered() {
+        // S1 — direct delivery: DELIVERED + immediate stock impact via createTontineCredit.
         givenRegularUser();
         when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
         when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
@@ -230,6 +237,7 @@ class TontineDeliveryServiceTest {
         TontineDeliveryDto result = tontineDeliveryService.distributeTontineDelivery(createDeliveryDto);
 
         assertEquals(TontineMemberDeliveryStatus.DELIVERED, result.getDeliveryStatus());
-        verify(creditService).createTontineCredit(any(TontineDelivery.class));
+        verify(creditService, times(1)).createTontineCredit(any(TontineDelivery.class));
+        verify(memberRepository).save(argThat(m -> m.getDeliveryStatus() == TontineMemberDeliveryStatus.DELIVERED));
     }
 }

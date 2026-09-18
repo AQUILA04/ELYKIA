@@ -354,6 +354,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 {
                     text: 'Commande',
                     icon: 'document-text-outline',
+                    cssClass: 'e2e-tontine-delivery-mode-order',
                     handler: () => {
                         void this.confirmAndProcess('ORDER');
                     }
@@ -361,6 +362,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 {
                     text: 'Livraison directe',
                     icon: 'cube-outline',
+                    cssClass: 'e2e-tontine-delivery-mode-direct',
                     handler: () => {
                         void this.confirmAndProcess('DIRECT');
                     }

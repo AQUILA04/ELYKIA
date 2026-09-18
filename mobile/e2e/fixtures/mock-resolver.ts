@@ -49,6 +49,65 @@ function paginatedTotal(keyPrefix: string): number {
   return (MockData[key]?.data?.page?.totalElements as number | undefined) ?? 0;
 }
 
+/** Seed used by @smoke tontine delivery order scenarios (S1 / S2). */
+const E2E_TONTINE_DELIVERY_MEMBERS = [
+  {
+    id: 91001,
+    client: {
+      id: 29,
+      firstname: 'BOBO',
+      lastname: 'DIOUF',
+      fullName: 'BOBO DIOUF',
+      phone: '90934343',
+      collector: 'COM002',
+      quarter: 'AGBODI KOKLO',
+    },
+    commercialUsername: 'COM002',
+    totalContribution: 100000,
+    availableContribution: 90000,
+    societyShare: 10000,
+    deliveryStatus: 'SESSION_INPROGRESS',
+    registrationDate: '2026-02-01T00:00:00',
+    frequency: 'WEEKLY',
+    amount: 5000,
+  },
+  {
+    id: 91002,
+    client: {
+      id: 4,
+      firstname: 'VITOR',
+      lastname: 'NOUHNA',
+      fullName: 'VITOR NOUHNA',
+      phone: '97779988',
+      collector: 'COM002',
+      quarter: 'DEVANT 1er PONT',
+    },
+    commercialUsername: 'COM002',
+    totalContribution: 100000,
+    availableContribution: 90000,
+    societyShare: 10000,
+    deliveryStatus: 'SESSION_INPROGRESS',
+    registrationDate: '2026-02-01T00:00:00',
+    frequency: 'WEEKLY',
+    amount: 5000,
+  },
+];
+
+const E2E_TONTINE_STOCKS = [
+  {
+    id: 88001,
+    commercial: 'COM002',
+    articleId: 11,
+    articleName: 'Article E2E Tontine',
+    unitPrice: 5000,
+    totalQuantity: 50,
+    availableQuantity: 50,
+    distributedQuantity: 0,
+    year: 2026,
+    tontineSessionId: 1,
+  },
+];
+
 function buildDataSummary(commercial: string): Record<string, unknown> {
   const clientsKey = findMockKeyByPathPrefix(`/api/v1/clients/by-commercial/${commercial}`);
   const totalClients = clientsKey ? ((MockData[clientsKey]?.data?.page?.totalElements as number) ?? 0) : 0;
@@ -70,15 +129,15 @@ function buildDataSummary(commercial: string): Record<string, unknown> {
       totalClients,
       totalDistributions: paginatedTotal(`/api/v1/credits/by-commercial/${commercial}`),
       totalRecoveries,
-      totalTontineMembers: 0,
+      totalTontineMembers: E2E_TONTINE_DELIVERY_MEMBERS.length,
       totalTontineCollections: 0,
       totalTontineDeliveries: 0,
       totalArticles: paginatedTotal('/api/v1/articles'),
       totalLocalities,
       totalStockOutputs: 0,
       totalAccounts: paginatedTotal('/api/v1/accounts/by-commercial'),
-      totalTontineStockItems: 0,
-      totalTontineStockAvailable: 0,
+      totalTontineStockItems: E2E_TONTINE_STOCKS.length,
+      totalTontineStockAvailable: E2E_TONTINE_STOCKS.reduce((sum, s) => sum + s.availableQuantity, 0),
       totalCommercialStockItems: 0,
       totalCommercialStockRemaining: 0,
     },
@@ -118,16 +177,24 @@ export function resolveMockResponse(apiPath: string, method: string): Record<str
   }
 
   if (pathname === '/api/v1/tontines/members' && method === 'GET') {
-    return {
-      status: 'OK',
-      statusCode: 200,
-      message: 'default.message.success',
-      service: 'MOCK-SERVICE',
-      data: {
-        content: [],
-        page: { size: 20, number: 0, totalElements: 0, totalPages: 0 },
+    return adaptPagedResponse(
+      {
+        status: 'OK',
+        statusCode: 200,
+        message: 'default.message.success',
+        service: 'MOCK-SERVICE',
+        data: {
+          content: E2E_TONTINE_DELIVERY_MEMBERS,
+          page: {
+            size: 20,
+            number: 0,
+            totalElements: E2E_TONTINE_DELIVERY_MEMBERS.length,
+            totalPages: 1,
+          },
+        },
       },
-    };
+      apiPath
+    );
   }
 
   if (pathname === '/api/v1/tontines/sessions/current' && method === 'GET') {
@@ -141,9 +208,85 @@ export function resolveMockResponse(apiPath: string, method: string): Record<str
         year: 2026,
         startDate: '2026-02-01',
         endDate: '2026-11-30',
-        status: 'ACTIVE',
-        memberCount: 0,
-        totalCollected: 0
+        status: 'CLOSED',
+        memberCount: E2E_TONTINE_DELIVERY_MEMBERS.length,
+        totalCollected: 200000,
+      },
+    };
+  }
+
+  if (pathname === '/api/v1/tontines/stock' && method === 'GET') {
+    return {
+      status: 'OK',
+      statusCode: 200,
+      message: 'default.message.success',
+      service: 'MOCK-SERVICE',
+      data: {
+        content: E2E_TONTINE_STOCKS,
+        page: {
+          size: E2E_TONTINE_STOCKS.length,
+          number: 0,
+          totalElements: E2E_TONTINE_STOCKS.length,
+          totalPages: 1,
+        },
+      },
+    };
+  }
+
+  if (pathname === '/api/v1/tontines/deliveries/distribute' && method === 'POST') {
+    return {
+      status: 'OK',
+      statusCode: 200,
+      message: 'default.message.success',
+      service: 'MOCK-SERVICE',
+      data: {
+        id: 92001,
+        tontineMemberId: 91001,
+        reference: 'TNT-E2E-DIR',
+        totalAmount: 5000,
+        status: 'DELIVERED',
+        deliveryStatus: 'DELIVERED',
+        requestDate: '2026-09-18T10:00:00',
+        deliveryDate: '2026-09-18T10:05:00',
+      },
+    };
+  }
+
+  if (pathname === '/api/v1/tontines/deliveries' && method === 'POST') {
+    return {
+      status: 'OK',
+      statusCode: 200,
+      message: 'default.message.success',
+      service: 'MOCK-SERVICE',
+      data: {
+        id: 92002,
+        tontineMemberId: 91002,
+        reference: 'TNT-E2E-ORD',
+        totalAmount: 5000,
+        status: 'PENDING',
+        deliveryStatus: 'PENDING',
+        requestDate: '2026-09-18T10:00:00',
+        deliveryDate: '2026-09-18T10:00:00',
+      },
+    };
+  }
+
+  const deliverMatch = pathname.match(/^\/api\/v1\/tontines\/deliveries\/(\d+)\/deliver$/);
+  if (deliverMatch && method === 'PATCH') {
+    return {
+      status: 'OK',
+      statusCode: 200,
+      message: 'default.message.success',
+      service: 'MOCK-SERVICE',
+      data: {
+        id: Number(deliverMatch[1]),
+        tontineMemberId: 91002,
+        reference: 'TNT-E2E-ORD',
+        totalAmount: 5000,
+        status: 'DELIVERED',
+        deliveryStatus: 'DELIVERED',
+        requestDate: '2026-09-18T10:00:00',
+        deliveryDate: '2026-09-18T11:00:00',
       },
     };
   }
@@ -160,7 +303,7 @@ export function resolveMockResponse(apiPath: string, method: string): Record<str
         collectionDate: '2026-03-15T00:00:00',
         societyShareAmount: 1000,
         contributionMonth: '2026-03-01',
-        advanceToNextMonth: false
+        advanceToNextMonth: false,
       },
     };
   }
