@@ -1,0 +1,41 @@
+---
+description: Mettre à jour le user-guide avant livraison si UI ou règle métier change
+alwaysApply: true
+---
+
+# User-guide obligatoire avant livraison (UI / règles métier)
+
+Avant de considérer le travail **livré** (fin de tâche, PR, commit de feature/fix produit), mettre à jour le **guide utilisateur** si le changement impacte :
+
+1. **L’UI** d’un des clients :
+   - `frontend/` (admin web)
+   - `mobile/`
+   - `customer-space/`
+2. **Une règle de gestion** (backend ou lib métier) : permissions, workflows, calculs, statuts, validations, parcours métier visibles ou imposés à l’utilisateur.
+
+## Périmètre guide
+
+- Source canonique : `user-guide/docs/**/*.md` (structure MkDocs / profils)
+- Aligner libellés d’écran, menus, boutons, prérequis de rôle et enchaînements sur l’UI **réelle**
+- Ne pas inventer de captures : laisser `<!-- CAPTURE À INSÉRER : … -->` si besoin
+
+## Chaîne obligatoire
+
+1. Mettre à jour les pages `user-guide/docs/` concernées (créer / corriger / retirer)
+2. **Synchroniser l’index RAG** : `python user-guide/generate_rag_index.py`  
+   → met à jour `backend/src/main/resources/ai/user-guide-index.json`  
+   (règle `user-guide-rag-index-sync`)
+3. Inclure guide + index (et plans `.cursor/` si applicable) **dans le même lot de livraison** que le code
+
+## Exceptions (pas de maj guide)
+
+- Refactors purement techniques sans changement de comportement ni d’UI
+- CI, deps, infra, typos code-only, tests sans impact produit
+- Correctifs internes non exposés à un rôle utilisateur
+
+Si doute : **mettre à jour le guide** (mieux vaut une page à jour qu’un HOW_TO IA obsolète).
+
+## Interdit
+
+- Merger / livrer une feature UI ou métier sans page guide alignée
+- Mettre à jour le guide sans régénérer l’index RAG
