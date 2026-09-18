@@ -33,6 +33,39 @@
       </article>
     </section>
 
+    <section class="month-rate-banner" data-testid="e2e-rm-month-rate-banner">
+      <div class="month-rate-head">
+        <div>
+          <p class="month-rate-label">Taux du mois</p>
+          <p class="month-rate-sub">Taux de recouvrement · tous les retards délai</p>
+        </div>
+        <div class="month-nav">
+          <button type="button" class="month-nav-btn" (click)="shiftMonth(-1)" aria-label="Mois précédent"
+            data-testid="e2e-rm-month-prev">‹</button>
+          <span class="month-nav-label">{{ monthLabel }}</span>
+          <button type="button" class="month-nav-btn" (click)="shiftMonth(1)" aria-label="Mois suivant"
+            data-testid="e2e-rm-month-next">›</button>
+        </div>
+      </div>
+      <div class="month-rate-body" *ngIf="monthlyRateLoading && !monthlyRate">
+        <ion-spinner name="crescent"></ion-spinner>
+        <span>Chargement…</span>
+      </div>
+      <div class="month-rate-body" *ngIf="!monthlyRateLoading && !monthlyRate && monthlyRateOffline"
+        data-testid="e2e-rm-month-rate-offline">
+        <strong>—</strong>
+        <span class="hint">Disponible en ligne uniquement</span>
+      </div>
+      <div class="month-rate-body" *ngIf="monthlyRate as rate" data-testid="e2e-rm-month-rate-value">
+        <strong>{{ formatRate(rate.recoveryRatePercent) }}</strong>
+        <span class="hint">
+          Encaissé {{ formatAmount(rate.amountCollectedByChef) }}
+          · Dû app {{ formatAmount(rate.latePortfolioDue) }}
+          <span *ngIf="monthlyRateOffline"> · cache</span>
+        </span>
+      </div>
+    </section>
+
     <section class="filters" *ngIf="plan?.commercialUsernames?.length">
       <ion-chip [class.on]="!filterCommercial" (click)="setCommercialFilter('')">Tous</ion-chip>
       <ion-chip
