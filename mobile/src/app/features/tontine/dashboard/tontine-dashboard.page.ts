@@ -260,9 +260,9 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
     getStatusLabel(status: string): string {
         const labels: { [key: string]: string } = {
             'ACTIVE': 'ACTIF',
-            'PENDING': 'EN ATTENTE',
-            'VALIDATED': 'VALIDÉ',
-            'DELIVERED': 'LIVRÉ'
+            'PENDING': 'Commande',
+            'VALIDATED': 'Validée',
+            'DELIVERED': 'Livré'
         };
         return labels[status] || status;
     }
@@ -271,6 +271,7 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
         const classes: { [key: string]: string } = {
             'ACTIVE': 'status-active',
             'PENDING': 'status-pending',
+            'VALIDATED': 'status-pending',
             'DELIVERED': 'status-delivered'
         };
         return classes[status] || '';

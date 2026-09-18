@@ -1,6 +1,10 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { RecoveryManagerService } from '../../../credit/service/recovery-manager.service';
-import { RecoveryManagerReportSummaryDto, RecoveryManagerOperation } from '../../../credit/models/recovery-manager.model';
+import {
+  RecoveryManagerReportSummaryDto,
+  RecoveryManagerOperation,
+  MonthlyRecoveryRateDto
+} from '../../../credit/models/recovery-manager.model';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 
@@ -16,6 +20,7 @@ export class RecoveryManagerReportTabComponent implements OnInit, OnChanges {
   @Input() commercialUsername: string | null = null;
 
   summary: RecoveryManagerReportSummaryDto | null = null;
+  monthlyRate: MonthlyRecoveryRateDto | null = null;
   operations: RecoveryManagerOperation[] = [];
   isLoading = false;
   isDownloading = false;
@@ -51,6 +56,15 @@ export class RecoveryManagerReportTabComponent implements OnInit, OnChanges {
     }
   }
 
+  get monthLabel(): string {
+    if (!this.monthlyRate) {
+      return '';
+    }
+    const label = new Date(this.monthlyRate.year, this.monthlyRate.month - 1, 1)
+      .toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  }
+
   loadData(): void {
     this.isLoading = true;
     this.showNoData = false;
@@ -74,7 +88,29 @@ export class RecoveryManagerReportTabComponent implements OnInit, OnChanges {
       }
     });
 
+    this.loadMonthlyRate();
     this.loadOperations();
+  }
+
+  loadMonthlyRate(): void {
+    const end = this.endDate ? new Date(this.endDate) : new Date();
+    const year = end.getFullYear();
+    const month = end.getMonth() + 1;
+    this.recoveryManagerService.getMonthlyRecoveryRate({
+      year,
+      month,
+      recoveryManagerUsername: this.recoveryManagerUsername || undefined
+    }).subscribe({
+      next: (res: any) => {
+        if (res.statusCode === 200 && res.data) {
+          this.monthlyRate = res.data;
+        }
+      },
+      error: (err) => {
+        console.error('Error loading monthly recovery rate', err);
+        this.monthlyRate = null;
+      }
+    });
   }
 
   loadOperations(): void {

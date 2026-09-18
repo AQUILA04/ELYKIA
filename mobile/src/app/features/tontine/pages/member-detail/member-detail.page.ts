@@ -10,10 +10,22 @@ import { TontineCollectionRepository } from 'src/app/core/repositories/tontine-c
 import { ClientRepository } from 'src/app/core/repositories/client.repository';
 import { TontineDeliveryRepository } from 'src/app/core/repositories/tontine-delivery.repository';
 import { ArticleRepository } from 'src/app/core/repositories/article.repository';
+import { TontineStockRepository } from 'src/app/core/repositories/tontine-stock.repository';
+import { TontineWriteService } from 'src/app/core/services/tontine-write.service';
+import { HybridSyncUiService } from 'src/app/core/services/hybrid-sync-ui.service';
+import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-first-write.types';
+import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-consent-guard.service';
 
 import { TontineMember, TontineCollection, TontineDelivery, TontineDeliveryItem } from 'src/app/models/tontine.model';
 import { Client } from 'src/app/models/client.model';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
+import { selectTontineSession } from 'src/app/store/tontine/tontine.selectors';
+import {
+    canMarkTontineDeliveryAsDelivered,
+    getTontineDeliveryStatusLabel
+} from 'src/app/core/utils/tontine-delivery-status.util';
+import { firstValueFrom } from 'rxjs';
+import { take } from 'rxjs/operators';
 
 interface DeliveryItemWithArticle extends TontineDeliveryItem {
     articleName?: string;
@@ -62,7 +74,11 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         private collectionRepo: TontineCollectionRepository,
         private clientRepo: ClientRepository,
         private deliveryRepo: TontineDeliveryRepository,
-        private articleRepo: ArticleRepository
+        private articleRepo: ArticleRepository,
+        private stockRepo: TontineStockRepository,
+        private tontineWriteService: TontineWriteService,
+        private hybridSyncUiService: HybridSyncUiService,
+        private dailyConsentGuard: DailyConsentGuardService
     ) { }
 
     async ngOnInit() {
@@ -166,20 +182,100 @@ export class MemberDetailPage implements OnInit, OnDestroy {
     }
 
     getStatusLabel(status?: string): string {
-        const labels: { [key: string]: string } = {
-            'PENDING': 'En attente',
-            'VALIDATED': 'Validé',
-            'DELIVERED': 'Livré',
-            'CANCELLED': 'Annulé'
-        };
-        return status ? labels[status] || status : 'Non défini';
+        return getTontineDeliveryStatusLabel(status);
+    }
+
+    canMarkAsDelivered(): boolean {
+        return !!this.vm.delivery && canMarkTontineDeliveryAsDelivered(this.vm.delivery.status);
+    }
+
+    async markAsDelivered(): Promise<void> {
+        if (!this.vm.delivery || !this.vm.member || !this.canMarkAsDelivered()) {
+            return;
+        }
+
+        const alert = await this.alertCtrl.create({
+            header: 'Marquer comme livré',
+            message: 'Confirmez-vous que les articles de cette commande ont été remis au membre ?',
+            cssClass: 'elyk-alert',
+            buttons: [
+                { text: 'Annuler', role: 'cancel' },
+                {
+                    text: 'Livrer',
+                    handler: () => {
+                        void this.performMarkAsDelivered(false);
+                    }
+                }
+            ]
+        });
+        await alert.present();
+    }
+
+    private async performMarkAsDelivered(forceOffline = false): Promise<void> {
+        if (!this.vm.delivery || !this.vm.member) {
+            return;
+        }
+
+        const loading = await this.loadingCtrl.create({ message: 'Mise à jour...' });
+
+        try {
+            await this.dailyConsentGuard.requireDailyConsent();
+            await loading.present();
+
+            const session = await firstValueFrom(this.store.select(selectTontineSession).pipe(take(1)));
+            const items = this.vm.delivery.items?.length
+                ? this.vm.delivery.items
+                : await this.deliveryRepo.getItems(this.vm.delivery.id);
+
+            const stockUpdates: Array<{ stockId: string; quantity: number }> = [];
+            if (session && this.commercialUsername) {
+                for (const item of items) {
+                    const stock = await this.stockRepo.getByArticle(
+                        this.commercialUsername,
+                        session.id,
+                        item.articleId
+                    );
+                    if (stock) {
+                        stockUpdates.push({ stockId: stock.id, quantity: item.quantity });
+                    }
+                }
+            }
+
+            await this.tontineWriteService.markDeliveryAsDelivered({
+                delivery: { ...this.vm.delivery, items },
+                member: this.vm.member,
+                stockUpdates
+            }, forceOffline);
+
+            await loading.dismiss();
+            const toast = await this.toastCtrl.create({
+                message: 'Commande marquée comme livrée.',
+                duration: 2000,
+                color: 'success'
+            });
+            await toast.present();
+            await this.loadMemberData();
+        } catch (error) {
+            if (await this.loadingCtrl.getTop()) {
+                await loading.dismiss();
+            }
+            if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS && !forceOffline) {
+                const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
+                if (saveOffline) {
+                    await this.performMarkAsDelivered(true);
+                    return;
+                }
+            }
+            console.error('Error marking delivery as delivered:', error);
+            this.showError(error instanceof Error ? error.message : 'Erreur lors de la mise à jour');
+        }
     }
 
     getStatusColor(status?: string): string {
         const colors: { [key: string]: string } = {
-            'PENDING': 'tertiary',  // Light blue
-            'VALIDATED': 'success', // Green
-            'DELIVERED': 'success',  // Green
+            'PENDING': 'tertiary',
+            'VALIDATED': 'warning',
+            'DELIVERED': 'success',
             'CANCELLED': 'danger'
         };
         return status ? colors[status] || 'medium' : 'medium';
@@ -218,13 +314,20 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                         this.viewClient();
                     }
                 },
-                {
+                ...(!this.vm.delivery ? [{
                     text: 'Livraison Fin d\'Année',
                     icon: 'cube-outline',
                     handler: () => {
                         this.createDelivery();
                     }
-                },
+                }] : []),
+                ...(this.canMarkAsDelivered() ? [{
+                    text: 'Marquer comme livré',
+                    icon: 'checkmark-done-outline',
+                    handler: () => {
+                        void this.markAsDelivered();
+                    }
+                }] : []),
                 {
                     text: 'Modifier',
                     icon: 'create-outline',

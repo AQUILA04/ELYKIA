@@ -9,6 +9,35 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.29.1] — 2026-09-18
+
+### Added
+
+- Tests non-régression commande vs livraison directe tontine : sync unit (`tontine-delivery-sync.service.spec.ts`), smoke Playwright mock API S1/S2 (`tontine-delivery-order-smoke.spec.ts`), asserts stock/crédit backend renforcés.
+
+## Mobile — [2.29.0] — 2026-09-17
+
+### Added
+
+- Livraison tontine : choix **Commande** vs **Livraison directe** à la validation (action sheet).
+- Passage d'une commande tontine (`PENDING` / `VALIDATED`) à **Livrée** depuis la fiche membre (local-first + sync).
+- Colonne SQLite `needsDeliverSync` (migration v31) pour synchroniser `PATCH …/deliver` après une commande déjà syncée.
+- Sync : `POST /deliveries` pour les commandes, `POST /deliveries/distribute` pour la livraison directe, `PATCH /deliver` pour le passage livré.
+
+## Backend — [1.17.2] — 2026-09-18
+
+### Changed
+
+- `TontineDeliveryServiceTest` : asserts explicites S1/S2 (crédit/stock never sur create commande ; called sur deliver/distribute).
+
+## Backend — [1.17.1] — 2026-09-17
+
+### Changed
+
+- `deliverDelivery` met à jour `deliveryDate` au moment de la remise effective.
+- Clarification OpenAPI : création = commande, `/distribute` = livraison directe.
+- DTO livraison : exposition de `requestDate` et codes de consentement.
+
 ## Customer-space — [0.4.0] — 2026-09-17
 
 ### Added
@@ -21,6 +50,23 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Magasinier (`ROLE_STOREKEEPER` / profil STOREKEEPER) : accès au menu et à l’écran Stock mensuel (`/stock/my-stock`), avec sélecteur de commercial pour tous les portefeuilles (seul le profil PROMOTER reste limité au sien). Même correction pour le sous-menu Stock tontine.
+## Frontend — [2.22.0] — 2026-09-18
+
+### Added
+
+- Rapport « Recouvrement terrain » : bandeau **Taux du mois** (encaissé chef / dû live des retards délai app).
+
+## Backend — [1.18.0] — 2026-09-18
+
+### Added
+
+- Endpoint `GET /api/v1/recovery-manager/kpi/monthly-recovery-rate` : taux de recouvrement mensuel du chef (Σ `amountCollected` / dû live retards délai app).
+
+## Mobile — [2.29.0] — 2026-09-18
+
+### Added
+
+- Onglet Retards (`/rm/dashboard`) : bandeau **Taux du mois** (séparé du strip plan), sélecteur de mois simple, cache hors ligne.
 
 ## Frontend — [2.21.0] — 2026-09-17
 

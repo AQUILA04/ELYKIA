@@ -5,6 +5,7 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.sale.CloseCreditsRequestDto;
 import com.optimize.elykia.core.dto.sale.FieldDayPlanRequestDto;
+import com.optimize.elykia.core.dto.sale.MonthlyRecoveryRateDto;
 import com.optimize.elykia.core.dto.sale.RmClientContactUpdateDto;
 import com.optimize.elykia.core.dto.sale.RecoveryManagerReportSummaryDto;
 import com.optimize.elykia.core.service.report.RecoveryManagerReportPdfService;
@@ -26,6 +27,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 
 @RestController
 @RequestMapping("api/v1/recovery-manager")
@@ -83,6 +85,30 @@ public class RecoveryManagerController {
                 ResponseUtil.successResponse(recoveryManagerService.getReportSummary(startDate, endDate, username, commercialUsername)),
                 HttpStatus.OK
         );
+    }
+
+    /**
+     * Taux de recouvrement mensuel du chef sur le portefeuille global des retards délai (live).
+     * Sans paramètre username : chef connecté. MANAGER/ADMIN peuvent cibler un chef.
+     */
+    @GetMapping("/kpi/monthly-recovery-rate")
+    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Response> getMonthlyRecoveryRate(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) String recoveryManagerUsername) {
+        YearMonth current = YearMonth.now();
+        int resolvedYear = year != null ? year : current.getYear();
+        int resolvedMonth = month != null ? month : current.getMonthValue();
+        YearMonth.of(resolvedYear, resolvedMonth); // validation IllegalArgumentException
+
+        String username = recoveryManagerUsername;
+        if (username == null || username.isBlank()) {
+            username = userService.getCurrentUser().getUsername();
+        }
+        MonthlyRecoveryRateDto dto = recoveryManagerService.getMonthlyRecoveryRate(
+                resolvedYear, resolvedMonth, username.trim());
+        return new ResponseEntity<>(ResponseUtil.successResponse(dto), HttpStatus.OK);
     }
 
     @GetMapping("/report/pdf")

@@ -1,12 +1,15 @@
 package com.optimize.elykia.core.service.sale;
 
+import com.optimize.elykia.core.dto.CreditLateSummaryDTO;
 import com.optimize.elykia.core.dto.sale.CloseCreditsRequestDto;
 import com.optimize.elykia.core.dto.sale.CloseCreditsResponseDto;
 import com.optimize.elykia.core.dto.sale.CreditCloseItemDto;
+import com.optimize.elykia.core.dto.sale.MonthlyRecoveryRateDto;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.RecoveryManagerOperation;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.repository.RecoveryManagerOperationRepository;
+import com.optimize.elykia.core.service.CreditLateService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,6 +18,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +38,8 @@ class RecoveryManagerServiceTest {
     private ClientReliquatService clientReliquatService;
     @Mock
     private RecoveryManagerOperationRepository operationRepository;
+    @Mock
+    private CreditLateService creditLateService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @InjectMocks
@@ -96,6 +102,54 @@ class RecoveryManagerServiceTest {
         assertEquals("La date de fin du crédit n'est pas encore dépassée", result.getFailures().get(0).getErrorMessage());
         verify(operationRepository, never()).existsByCreditIdAndOperationDate(12L, LocalDate.now());
         verify(operationRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void getMonthlyRecoveryRate_computesPercentFromChefCollectedOverLiveDelaiDue() {
+        YearMonth ym = YearMonth.of(2026, 9);
+        LocalDate start = ym.atDay(1);
+        LocalDate end = ym.atEndOfMonth();
+        when(operationRepository.sumAmountCollected(start, end, "chef.rm", null)).thenReturn(250_000.0);
+        when(operationRepository.countOperations(start, end, "chef.rm", null)).thenReturn(4);
+        when(creditLateService.getSummary(null, null, null)).thenReturn(CreditLateSummaryDTO.builder()
+                .totalLate(12)
+                .totalDelai(10)
+                .totalEcheance(2)
+                .totalAmountRemaining(1_200_000.0)
+                .totalAmountRemainingDelai(1_000_000.0)
+                .build());
+
+        MonthlyRecoveryRateDto dto = service.getMonthlyRecoveryRate(2026, 9, "chef.rm");
+
+        assertEquals(2026, dto.getYear());
+        assertEquals(9, dto.getMonth());
+        assertEquals(250_000.0, dto.getAmountCollectedByChef());
+        assertEquals(1_000_000.0, dto.getLatePortfolioDue());
+        assertEquals(10L, dto.getLateCreditsCount());
+        assertEquals(4, dto.getOperationsCount());
+        assertEquals(25.0, dto.getRecoveryRatePercent());
+    }
+
+    @Test
+    void getMonthlyRecoveryRate_returnsZeroPercentWhenLiveDelaiDueIsZero() {
+        YearMonth ym = YearMonth.of(2026, 9);
+        when(operationRepository.sumAmountCollected(ym.atDay(1), ym.atEndOfMonth(), "chef.rm", null))
+                .thenReturn(0.0);
+        when(operationRepository.countOperations(ym.atDay(1), ym.atEndOfMonth(), "chef.rm", null))
+                .thenReturn(0);
+        when(creditLateService.getSummary(null, null, null)).thenReturn(CreditLateSummaryDTO.builder()
+                .totalLate(0)
+                .totalDelai(0)
+                .totalEcheance(0)
+                .totalAmountRemaining(0.0)
+                .totalAmountRemainingDelai(0.0)
+                .build());
+
+        MonthlyRecoveryRateDto dto = service.getMonthlyRecoveryRate(2026, 9, "chef.rm");
+
+        assertEquals(0.0, dto.getRecoveryRatePercent());
+        assertEquals(0L, dto.getLateCreditsCount());
+        assertEquals(0.0, dto.getLatePortfolioDue());
     }
 
     private CloseCreditsRequestDto request(CreditCloseItemDto... items) {

@@ -127,7 +127,8 @@ Coordinateur partagé : `mobile/src/app/core/services/online-first-write.coordin
 
 - Liste `lateCredits` du pack, groupée localité, filtre commercial.  
 - Si pack sans retard : message « Aucun retard dans le périmètre du plan » + orientation vers Terrain / Clients.  
-- KPI : nb retards, montant dû, clôturé du jour, badge file close.  
+- KPI strip (plan) : nb retards, montant dû, clôturé du jour, badge file close.  
+- Bandeau **Taux du mois** (global, online) : encaissé chef / dû live des retards délai app ; sélecteur de mois ; cache hors ligne.  
 - Actions : **Clôturer** (sheet total/partiel), **Contrôle** carnet crédit.  
 - Barre de session (username + online/offline).
 

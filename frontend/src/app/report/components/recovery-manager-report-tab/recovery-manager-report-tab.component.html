@@ -18,6 +18,21 @@
     <p class="empty-text">Aucune opération de recouvrement pour cette période.</p>
   </div>
 
+  <!-- Taux du mois (portefeuille retards délai app) -->
+  <div class="month-rate-banner" *ngIf="!isLoading && monthlyRate as rate" data-testid="rm-month-rate-banner">
+    <div class="month-rate-text">
+      <span class="month-rate-title">Taux du mois</span>
+      <span class="month-rate-sub">Taux de recouvrement · {{ monthLabel }} · tous les retards délai</span>
+    </div>
+    <div class="month-rate-value">
+      <strong>{{ rate.recoveryRatePercent | number:'1.0-1' }} %</strong>
+      <span>
+        Encaissé {{ rate.amountCollectedByChef | number }} FCFA
+        · Dû app {{ rate.latePortfolioDue | number }} FCFA
+      </span>
+    </div>
+  </div>
+
   <!-- KPIs Row -->
   <div class="kpi-row" *ngIf="!isLoading && summary">
     <div class="kpi-card">
