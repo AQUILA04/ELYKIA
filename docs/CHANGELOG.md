@@ -25,6 +25,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra — 2026-09-19
 
+### Added
+
+- Règle Cursor : tout correctif Contabo doit être dans le repo Git avant (ou avec) le VPS, sinon le CD l’écrase.
+
 ### Fixed
 
 - **Deploy —** `deploy.sh` / `rollback.sh` / `setup-server.sh` réalignent les bind mounts hôte sur UID 999 avant `up` (`fix-backend-bind-mounts.sh`) ; plus de `chown 100:101` Alpine dans la migration Contabo.

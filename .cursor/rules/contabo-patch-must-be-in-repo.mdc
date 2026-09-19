@@ -1,0 +1,38 @@
+---
+description: Tout correctif Contabo doit d’abord être dans le repo Git, sinon le prochain CD l’écrase
+alwaysApply: true
+---
+
+# Contabo : patcher le repo avant (ou avec) le VPS
+
+Un changement appliqué **seulement** sur Contabo (`/opt/...`, `docker compose`, labels Traefik, `.env` hors secrets, `chown`, scripts) est **éphémère**. Le CD (`install.sh`, `deploy.sh -fu`, `update-deploy.sh`) resynchronise depuis GitHub et **écrase** le VPS.
+
+## Ordre obligatoire
+
+1. Modifier le **dépôt source** (compose, Dockerfile, Traefik labels, scripts, docs).
+2. **Commit + push** sur la branche que le CD déploie (`main` / `release/*` selon le repo).
+3. **Ensuite** appliquer sur Contabo (`install.sh --force-update <outil>`, `deploy.sh`, recreate ciblé).
+
+Hotfix VPS en urgence : même diff dans Git **dans la même tâche**, avant de considérer le travail livré. Ne jamais laisser le VPS en avance sur Git.
+
+## Repos concernés
+
+`optimize-common-infra`, `shared-traefik`, `ELYKIA`, et tout produit consommateur OCI. Le compose / les labels / les scripts du VPS doivent matcher Git.
+
+## Interdit
+
+- Corriger Traefik / MinIO / pgAdmin / Keycloak **uniquement** via `docker compose` ou labels live
+- `chown` / sed sur le serveur sans équivalent dans `Dockerfile`, `deploy.sh` ou compose
+- Considérer un incident clos si le VPS est OK mais Git n’a pas le correctif
+
+## Exemples déjà vus
+
+```yaml
+# ✅ Repo + VPS — deux services Traefik sur MinIO
+- "traefik.http.routers.oci-minio.service=oci-minio"
+```
+
+```text
+❌ VPS only : chown 999 logs → prochain CD Alpine 100:101 → backend crash-loop
+❌ VPS only : label Traefik MinIO → sync common-infra → s3 404, CD APK cassé
+```
