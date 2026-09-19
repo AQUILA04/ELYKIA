@@ -67,6 +67,7 @@ export class AuthService {
   }
 
   async changePassword(newPassword: string, forced = false): Promise<void> {
+  async changePassword(newPassword: string, forced = false, oldPassword?: string): Promise<void> {
     const user = this._user;
     if (!user?.id || !user.username) {
       throw new Error('Utilisateur non connecté.');
@@ -76,6 +77,7 @@ export class AuthService {
       id: Number(user.id),
       username: user.username,
       newPassword,
+      oldPassword: forced ? undefined : oldPassword,
       forced,
     }));
 
