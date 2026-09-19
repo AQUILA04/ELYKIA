@@ -29,6 +29,9 @@ public class ExpenseTypeService extends GenericService<ExpenseType, Long> {
     @Transactional
     public ExpenseTypeDto createArticleType(ExpenseTypeDto dto) {
         ExpenseType expenseType = expenseTypeMapper.toEntity(dto);
+        if (expenseType.getCode() == null || expenseType.getCode().isBlank()) {
+            expenseType.setCode(generateCode(expenseType.getName()));
+        }
         expenseType = create(expenseType);
         return expenseTypeMapper.toDto(expenseType);
     }
@@ -37,8 +40,22 @@ public class ExpenseTypeService extends GenericService<ExpenseType, Long> {
     public ExpenseTypeDto updateArticleType(ExpenseTypeDto dto, Long id) {
         dto.setId(id);
         ExpenseType expenseType = expenseTypeMapper.toEntity(dto);
+        if (expenseType.getCode() == null || expenseType.getCode().isBlank()) {
+            expenseType.setCode(generateCode(expenseType.getName()));
+        }
         expenseType = update(expenseType);
         return expenseTypeMapper.toDto(expenseType);
+    }
+
+    /**
+     * Génère un code à partir du nom : majuscules, espaces remplacés par underscore.
+     * Ex: "fourniture bureau" → "FOURNITURE_BUREAU"
+     */
+    private String generateCode(String name) {
+        if (name == null || name.isBlank()) {
+            return "EXP_" + System.currentTimeMillis();
+        }
+        return name.trim().toUpperCase().replaceAll("\\s+", "_");
     }
     
     // GenericService likely provides deleteSoft(id) if Auditable. ArticleTypeService called it.

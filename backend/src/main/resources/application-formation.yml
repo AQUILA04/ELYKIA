@@ -2,9 +2,9 @@ spring:
   application:
     name: optimize-elykia-core
   datasource:
-    url: jdbc:postgresql://localhost:5432/oec_formation
-    username: oec
-    password: APP2024
+    url: jdbc:postgresql://localhost:5432/oec_test2
+    username: eric
+    password: 9191
   jpa:
     hibernate:
       ddl-auto: update

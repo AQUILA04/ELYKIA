@@ -16,6 +16,7 @@ export class ChangePasswordPage {
   forcedMode = false;
   passwordVisible = false;
   confirmVisible = false;
+  oldPasswordVisible = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -26,6 +27,7 @@ export class ChangePasswordPage {
   ) {
     this.forcedMode = this.authService.mustChangePassword();
     this.form = this.formBuilder.group({
+      oldPassword: ['', this.forcedMode ? [] : [Validators.required]],
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required],
     });
@@ -37,7 +39,7 @@ export class ChangePasswordPage {
       return;
     }
 
-    const { newPassword, confirmPassword } = this.form.value;
+    const { oldPassword, newPassword, confirmPassword } = this.form.value;
     if (newPassword !== confirmPassword) {
       await this.presentToast('Les mots de passe ne correspondent pas.', 'danger');
       return;
@@ -50,7 +52,7 @@ export class ChangePasswordPage {
     await loading.present();
 
     try {
-      await this.authService.changePassword(newPassword, this.forcedMode);
+      await this.authService.changePassword(newPassword, this.forcedMode, oldPassword);
       await loading.dismiss();
       await this.presentToast('Mot de passe mis à jour avec succès.', 'success');
       const user = this.authService.currentUser;

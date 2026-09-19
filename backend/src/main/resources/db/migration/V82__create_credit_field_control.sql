@@ -15,9 +15,16 @@ CREATE TABLE IF NOT EXISTS credit_field_control (
     state VARCHAR(50)
 );
 
-ALTER TABLE credit_field_control
-    ADD CONSTRAINT fk_credit_field_control_credit
-        FOREIGN KEY (credit_id) REFERENCES credit(id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'fk_credit_field_control_credit'
+    ) THEN
+        ALTER TABLE credit_field_control
+            ADD CONSTRAINT fk_credit_field_control_credit
+                FOREIGN KEY (credit_id) REFERENCES credit(id);
+    END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_credit_field_control_credit_observed
     ON credit_field_control (credit_id, observed_at DESC);
