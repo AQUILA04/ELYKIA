@@ -28,7 +28,7 @@ isProject: false
 
 # Plan — Articles mobile : Mon Stock / Catalogue
 
-**Statut :** VALIDÉ — implémentation en cours  
+**Statut :** VALIDÉ — implémenté (feature PR)  
 **Périmètre :** `mobile/` (écran Articles + services/repos/NgRx associés) ; colonne `state` SQLite ; pas de changement d’endpoint d’init  
 **Hors périmètre (cette itération) :** magasinier / dashboard stock web ; sélecteur articles dans nouvelle distribution (sauf impact partagé non voulu)
 
@@ -118,11 +118,11 @@ Endpoints catalogue actif (utilisés par le **refresh SWR Catalogue**, pas par l
 
 ## 4. Critères d’acceptation
 
-- [ ] Segment **Mon Stock** | **Catalogue** sur `/tabs/article-list`
-- [ ] Mon Stock = liste actuelle (qty + prix), infinite scroll + SWR stock
-- [ ] Catalogue = articles ENABLED, prix crédit seul, sans quantité, infinite scroll + SWR
-- [ ] Init toujours sur `/articles` (DISABLED syncés)
-- [ ] Hors ligne : chaque onglet lit son cache local
-- [ ] Online : refresh serveur sans bloquer l’affichage local initial
-- [ ] Guide utilisateur + index RAG à jour
-- [ ] Version mobile alignée (3 fichiers)
+- [x] Segment **Mon Stock** | **Catalogue** sur `/tabs/article-list`
+- [x] Mon Stock = liste actuelle (qty + prix), infinite scroll + SWR stock
+- [x] Catalogue = articles ENABLED, prix crédit seul, sans quantité, infinite scroll + SWR
+- [x] Init toujours sur `/articles` (DISABLED syncés)
+- [x] Hors ligne : chaque onglet lit son cache local
+- [x] Online : refresh serveur sans bloquer l’affichage local initial
+- [x] Guide utilisateur + index RAG à jour
+- [x] Version mobile alignée (3 fichiers)
