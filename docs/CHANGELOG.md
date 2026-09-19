@@ -26,6 +26,9 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Added
 
+- **Multi-agences (vague 2) —** claim JWT `agencyId`, `JwtResponse.agencyId`, `UserDetailsImpl.agencyId` (depuis `UserAccount.currentAgencyId`).
+- `AgencyContext` (ThreadLocal), `AgencyScopeFilter` : Profil_Terrain sans agence → **HTTP 403** ; Profil_Global non restreint ; enregistrement dans `WebSecurityConfig`.
+
 - **Multi-agences (vague 1) —** migration Flyway `V102__multi_agency_management.sql` : colonnes `agency.active` / désactivation, table `agency_assignment` (`user_id` = `USERS.USEID`), `uacc.current_agency_id`, `agency_id` sur les entités opérationnelles **et `credit`**, agence `DEFAULT`, backfill, index.
 - Entité `AgencyAssignment` ; enrichissement `Agency` ; champ `agencyId` sur Client, Credit, Recovery, stocks, tontine, orders, etc.
 - Repositories `AgencyRepository` (unicité code actif) et `AgencyAssignmentRepository`.
