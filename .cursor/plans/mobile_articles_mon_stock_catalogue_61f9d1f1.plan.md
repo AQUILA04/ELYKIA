@@ -1,24 +1,27 @@
 ---
 name: Mobile Articles Mon Stock / Catalogue
-overview: "Ajouter un ion-segment Mon Stock | Catalogue sur la liste articles mobile. Mon Stock conserve la liste stock commercial actuelle (qty + prix). Catalogue liste tous les articles actifs avec prix crédit uniquement (sans quantité). Les deux listes restent hybrides (SWR + cache SQLite) avec infinite scroll. PLAN ONLY — attendre validation avant implémentation."
+overview: "VALIDATED — ion-segment Mon Stock | Catalogue sur la liste articles mobile. Mon Stock = stock commercial actuel (qty + prix). Catalogue = articles filtrés par state (actifs à l’affichage), prix crédit seul, sans quantité. Init API inchangée (garder DISABLED syncés pour refs distribution). Hybride SWR + infinite scroll. Implémentation sur un autre agent."
 todos:
   - id: validate-plan
-    content: "Validation utilisateur du plan (endpoint ENABLED, UX segment, périmètre catalogue)"
-    status: pending
+    content: "Validation utilisateur — décisions §7 figées"
+    status: completed
   - id: segment-ux
-    content: "ion-segment Mon Stock | Catalogue dans article-list (+ SCSS elyk-segment)"
+    content: "ion-segment Mon Stock | Catalogue ; titre hero Articles ; empty states toujours visibles"
     status: pending
   - id: mon-stock-keep
     content: "Conserver parcours DistributionActions + commercial stock paginé pour Mon Stock"
     status: pending
+  - id: catalogue-state
+    content: "Persister state (ENABLED/DISABLED) en local ; Catalogue filtre ENABLED ; DISABLED restant syncés pour refs distribution"
+    status: pending
   - id: catalogue-data
-    content: "Source Catalogue = table articles + refresh API /articles/enabled (SWR + pagination)"
+    content: "Catalogue local = articles WHERE state=ENABLED (+ search) ; SWR upsert nouveaux + retirer DELETED de l’affichage catalogue"
     status: pending
   - id: hybrid-swr
-    content: "Étendre OnlineListRefreshService + effets NgRx pagination catalogue"
+    content: "Étendre OnlineListRefreshService + effets NgRx pagination catalogue (init API inchangée)"
     status: pending
-  - id: init-gap
-    content: "Décider si initializeArticles passe de /articles à /articles/enabled (+ pagination >1000)"
+  - id: shared-search
+    content: "Une searchbar partagée filtre le segment actif uniquement"
     status: pending
   - id: tests-guide
     content: "Specs article-list + maj user-guide mobile_app + index RAG + bump version mobile"
@@ -28,59 +31,66 @@ isProject: false
 
 # Plan — Articles mobile : Mon Stock / Catalogue
 
-**Statut :** brouillon — **attendre validation utilisateur avant tout code feature**  
-**Périmètre :** `mobile/` (écran Articles + services/repos/NgRx associés) ; éventuellement endpoint d’init articles  
-**Hors périmètre (cette itération) :** magasinier / dashboard stock web ; sélecteur articles dans nouvelle distribution (sauf impact partagé non voulu)
+**Statut :** VALIDATED (2026-09-19) — décisions utilisateur figées ci-dessous  
+**Périmètre :** `mobile/` (écran Articles + services/repos/NgRx associés ; colonne `state` locale si absente)  
+**Hors périmètre :** changer l’endpoint d’init vers `/articles/enabled` ; magasinier / dashboard stock web ; sélecteur articles nouvelle distribution (sauf lecture refs DISABLED déjà syncées)  
+**Implémentation :** autre agent — ce document est la spec validée
 
 ---
 
-## 1. Vérification initial-loading (finding principal)
+## Décisions utilisateur (figées)
+
+| # | Décision |
+|---|---|
+| 1 | **Garder** l’API/endpoint d’init actuel (`GET /api/v1/articles`). **Ajouter** le champ `state` en local pour filtrer le Catalogue. **Conserver** les articles DISABLED syncés (références distributions / historique). |
+| 2 | **Pas** de bascule init vers `/articles/enabled`. |
+| 3 | **Une** searchbar partagée ; elle filtre **uniquement le segment actif**. |
+| 4 | **Offline :** afficher le cache catalogue complet (filtré ENABLED pour l’onglet Catalogue). **Online :** sync des nouveaux + **retirer les DELETED** de l’affichage catalogue. |
+| 5 | **Toujours** les deux onglets Mon Stock \| Catalogue + empty states dédiés. |
+| 6 | Titre hero reste **Articles** ; segments **Mon Stock \| Catalogue**. |
+
+---
+
+## 1. Vérification initial-loading (finding — inchangé)
 
 **Oui : le chargement des articles catalogue est déjà séparé du stock commercial.**
 
-Dans [`initial-loading.page.ts`](mobile/src/app/features/initial-loading/initial-loading.page.ts), les étapes pertinentes sont distinctes :
+Dans [`initial-loading.page.ts`](mobile/src/app/features/initial-loading/initial-loading.page.ts) :
 
 | Étape UI | Méthode | Rôle |
 |---|---|---|
 | « Chargement des articles... » | `dataInitService.initializeArticles()` | Catalogue référence → SQLite `articles` |
 | « Sync du stock commercial... » | `dataInitService.initializeCommercialStock()` | Quantités du commercial → `commercial_stock_items` |
-| « Calcul des stocks... » | `dataInitService.calculateArticleStocks()` | Recalcule `articles.stockQuantity` (sorties / logique locale) |
+| « Calcul des stocks... » | `dataInitService.calculateArticleStocks()` | Recalcule `articles.stockQuantity` |
 
-### 1.1 Ce que `initializeArticles` synchronise aujourd’hui
+### 1.1 Init articles (à conserver telle quelle côté endpoint)
 
 [`ArticleService.initializeArticles()`](mobile/src/app/core/services/article.service.ts) :
 
 1. Ping backend
-2. Si online : `GET ${apiUrl}/api/v1/articles?page=0&size=1000`
-3. Force `stockQuantity: 0` sur chaque article avant `articleRepository.saveAll(...)`
-4. Si offline / erreur API : retourne `[]` (pas de relecture locale dans cette méthode)
+2. Online : `GET ${apiUrl}/api/v1/articles?page=0&size=1000`
+3. Force `stockQuantity: 0` puis `articleRepository.saveAll(...)`
+4. Offline / erreur API : `[]`
 
-Côté backend, `GET /api/v1/articles` → [`ArticlesService.getAll(pageable)`](backend/src/main/java/com/optimize/elykia/core/service/store/ArticlesService.java) = **tous les articles sauf `DELETED`** (donc **ENABLED + DISABLED**), **pas** uniquement les actifs.
+Backend : `GET /api/v1/articles` → non-DELETED (**ENABLED + DISABLED**).  
+**Décision :** ne pas basculer vers `/enabled` — les DISABLED restent nécessaires pour les refs distribution.
 
-Endpoints déjà disponibles pour le catalogue actif :
+**Évolution requise à l’implémentation (sans changer l’URL) :**
 
-- `GET /api/v1/articles/enabled` (pageable)
-- `GET /api/v1/articles/enabled/all` (liste complète)
-- Recherche : `elasticSearchEnabled`
+- Persister `state` (depuis `ArticleListItemDto.state` / `status`) dans SQLite `articles`
+- À l’upsert init / SWR : écrire `state` ; ne pas purge les DISABLED du cache
+- Catalogue UI : `WHERE state = 'ENABLED'` (ou équivalent)
+- Articles passés DELETED côté serveur : ne plus les afficher dans Catalogue (retirer / marquer après sync online)
 
-Le DTO [`ArticleListItemDto`](backend/src/main/java/com/optimize/elykia/core/dto/ArticleListItemDto.java) expose bien `creditSalePrice`, `name`, `commercialName`, `marque`, `model`, `type`, `state`, etc.
+### 1.2 Stock commercial (inchangé)
 
-### 1.2 Ce que le stock commercial synchronise
+[`CommercialStockService.syncCommercialStock`](mobile/src/app/core/services/commercial-stock.service.ts) → `/api/commercial-stocks/available/{username}` — indépendant du seed catalogue.
 
-[`CommercialStockService.syncCommercialStock(username)`](mobile/src/app/core/services/commercial-stock.service.ts) :
+### 1.3 Gaps restants (non bloquants pour la validation)
 
-- `GET /api/commercial-stocks/available/{username}`
-- Persist dans `commercial_stock_items` + snapshot valeur stock
-- **Indépendant** du seed catalogue (mais la liste « disponibles » joint ensuite `articles`)
-
-### 1.3 Écarts / gaps sur l’init actuelle
-
-1. **Pas filtré « actifs only »** : init utilise `/articles` (non-DELETED) au lieu de `/articles/enabled`.
-2. **Plafond `size=1000`** : catalogue > 1000 articles → sync incomplète.
-3. **Offline init** : si hors ligne au démarrage, `skipInitializationForOfflineMode` s’appuie sur le cache SQLite déjà présent (pas de re-fetch).
-4. La table locale `articles` **n’a pas de colonne `state`/`status`** : une fois syncés, articles désactivés ne sont pas distinguables côté mobile sans évolution schéma ou purge.
-
-**Conclusion finding :** le seed catalogue existe déjà et est séparé du stock. Pour un onglet « Catalogue = articles actifs », il faudra **aligner** l’endpoint d’init (et/ou le refresh SWR) sur `/enabled`, et idéalement paginer au-delà de 1000.
+1. Plafond init `size=1000` (hors décision ; à traiter si volume réel le justifie, sans changer vers `/enabled`).
+2. Table locale sans `state` aujourd’hui → **à ajouter** (décision 1).
+3. Offline init skip → cache SQLite existant.
 
 ---
 
@@ -88,87 +98,74 @@ Le DTO [`ArticleListItemDto`](backend/src/main/java/com/optimize/elykia/core/dto
 
 Fichiers : [`article-list.page.ts`](mobile/src/app/features/articles/pages/article-list/article-list.page.ts) / [`.html`](mobile/src/app/features/articles/pages/article-list/article-list.page.html)
 
-- Entrée menu : **Plus → Articles** (`/tabs/article-list`)
-- Données : NgRx `DistributionActions.loadFirstPageAvailableArticles` / `loadNextPageAvailableArticles`
-- Selectors : `selectAvailableArticles`, pagination loading / hasMore
-- Source locale : [`CommercialStockRepository.findAvailableArticlesPaginated`](mobile/src/app/core/repositories/commercial-stock.repository.ts) — `quantityRemaining > 0`, jointure `articles`, `stockQuantity` = qty restante
-- Affichage carte : nom, type · marque, **Stock disponible: N unités**, **prix crédit**
-- Infinite scroll déjà en place
-- Hybrid SWR déjà branché dans [`distribution.effects.ts`](mobile/src/app/store/distribution/distribution.effects.ts) via [`OnlineListRefreshService.refreshCommercialStockPage`](mobile/src/app/core/services/online-list-refresh.service.ts) (local first → refresh serveur stock → re-query locale)
-
-**Point clé :** l’écran « Articles » affiche aujourd’hui **Mon Stock** (stock commercial > 0), **pas** le catalogue complet déjà seedé en SQLite.
-
-Le store NgRx `article` (`loadArticles` → `articleService.getArticles()` = `findAll`) charge tout le catalogue en mémoire **sans pagination** — inadapté pour l’UI liste Catalogue.
+- Plus → Articles (`/tabs/article-list`)
+- NgRx distribution : `loadFirst/NextPageAvailableArticles` = stock commercial `quantityRemaining > 0`
+- Affiche qty + prix ; infinite scroll + SWR `refreshCommercialStockPage`
+- **Pas** encore de segment ni de vue catalogue
 
 ---
 
-## 3. UX proposée
-
-Réutiliser le pattern `ion-segment` + `elyk-segment` (ex. [`sync-manual.page.html`](mobile/src/app/features/sync/sync-manual/sync-manual.page.html), [`client-detail.page.html`](mobile/src/app/features/clients/pages/client-detail/client-detail.page.html)).
+## 3. UX validée
 
 ```
-[hero] Articles
-[searchbar]  (partagée ou reset au switch — à valider)
-[ion-segment]
+[hero] Articles          ← titre fixe
+[searchbar]              ← partagée ; filtre le segment actif
+[ion-segment elyk-segment]
   Mon Stock  |  Catalogue
 [liste + ion-infinite-scroll]
+[empty states par segment]
 ```
 
 ### Mon Stock (défaut)
 
-- Comportement **inchangé** : qty + prix crédit (prix unitaire stock si déjà appliqué via `stockUnitPrice`)
-- Empty state : « Aucun article en stock »
+- Liste actuelle inchangée : qty + prix (unit price stock si déjà appliqué)
+- Empty : « Aucun article en stock »
+- Onglet **toujours** visible même si vide
 
 ### Catalogue
 
-- Liste **tous les articles actifs** (cible produit)
-- Afficher : nom commercial / name, type · marque, **uniquement `creditSalePrice`**
-- **Ne pas** afficher de quantité / « Stock disponible »
-- Empty state : « Aucun article dans le catalogue »
-- Même infinite scroll (threshold / spinner alignés app)
+- Articles **ENABLED** uniquement à l’affichage (DISABLED restent en DB pour refs)
+- Afficher : nom / commercialName, type · marque, **`creditSalePrice` seul**
+- **Pas** de quantité
+- Empty : « Aucun article dans le catalogue »
+- Onglet **toujours** visible
 
-Switch segment :
+### Search & switch
 
-- Reset page 0 + éventuellement terme de recherche
-- États pagination **séparés** (évite mélange Mon Stock / Catalogue dans le reducer distribution)
+- Searchbar unique → filtre le segment courant
+- Switch segment : reset page 0 ; **conserver** le terme de recherche et l’appliquer au nouvel onglet (comportement naturel d’une barre partagée)
+- Paginations NgRx **séparées** Mon Stock / Catalogue
 
 ---
 
-## 4. Sources de données & patterns à réutiliser
+## 4. Sources de données & patterns
 
 ### 4.1 Mon Stock
 
-| Couche | Réutiliser |
+Réutiliser tel quel : DistributionActions + `commercialStockRepository.findAvailableArticlesPaginated` + `refreshCommercialStockPage`.
+
+### 4.2 Catalogue
+
+| Couche | Spec validée |
 |---|---|
-| UI | Liste + infinite scroll actuels |
-| NgRx | `loadFirst/NextPageAvailableArticles` + selectors distribution |
-| Local | `commercialStockRepository.findAvailableArticlesPaginated` |
-| SWR | `OnlineListRefreshService.refreshCommercialStockPage` |
+| Local first | `ArticleRepository` paginé + search, filtre `state = ENABLED` |
+| Offline | Cache local complet (ENABLED pour l’UI) ; DISABLED non listés mais toujours en SQLite |
+| SWR online | `OnlineListRefreshService.refreshArticlesCataloguePage` — upsert nouveaux / maj ; **drop DELETED** de l’affichage catalogue (soft-delete local ou exclusion par `state`) |
+| API refresh | Même famille que l’init : `GET /api/v1/articles` (pageable / search), **pas** `/enabled` pour rester aligné décision 1–2. Option : consommer `state` du DTO pour filtrer côté client après upsert |
+| Upsert | Préserver `stockQuantity` existante à l’update ; écrire `state` ; ne pas supprimer les DISABLED du cache |
+| NgRx | Slice pagination catalogue dédié (préféré dans store `article`) |
 
-Pas de changement métier attendu hors encapsulation sous le segment.
+Pattern SWR (réf. hybrid sync mobile) :
 
-### 4.2 Catalogue (à ajouter)
+1. Page locale immédiate  
+2. Si hybrid ON + backend UP → fetch → upsert → re-émettre  
+3. `loadNext` : local + refresh best-effort  
 
-| Couche | Proposition |
-|---|---|
-| Local first | `ArticleRepository.searchArticles(query, page, size)` (existe déjà) — étendre si besoin (tri, empty query = page complète) |
-| SWR online | Nouveau `OnlineListRefreshService.refreshArticlesCataloguePage(page, size, filters)` |
-| API | `GET /api/v1/articles/enabled?page=&size=` (+ search enabled si dispo) |
-| Upsert | `articleRepository.saveAll` **sans écraser** les `stockQuantity` locales utiles à d’autres flux — attention : `saveAll` écrit déjà `stockQuantity` ; pour le catalogue, mapper avec qty 0 **seulement à l’insert**, ou préserver qty existante à l’update (gap à traiter à l’implémentation) |
-| NgRx | Soit slice dédié `catalogueArticlesPagination` dans `article` store, soit état local au composant + service — **préférence** : étendre `article` store (symétrie clients/localities) plutôt que surcharger `distribution` |
+### 4.3 Init
 
-Pattern SWR de référence (déjà en prod mobile) :
-
-1. Afficher page locale immédiatement
-2. Si hybrid sync ON + backend joignable → fetch page serveur → upsert SQLite → re-émettre succès first page
-3. `loadNext` : local next page + refresh best-effort en background (comme commercial stock / clients)
-
-Références : [`mobile_hybrid_sync_dad3be1e.plan.md`](.cursor/plans/mobile_hybrid_sync_dad3be1e.plan.md), effets client / locality / distribution.
-
-### 4.3 Init (option recommandée, même lot ou suivi immédiat)
-
-- Remplacer `GET /api/v1/articles?page=0&size=1000` par boucle sur `/api/v1/articles/enabled` (pages) **ou** `/enabled/all` si volume acceptable
-- Documenter le choix dans le commit d’implémentation
+- **Endpoint inchangé** : `/api/v1/articles?page=0&size=1000`
+- **Ajouter** mapping + persist de `state` lors du seed
+- Pas de migration vers `/articles/enabled`
 
 ---
 
@@ -176,62 +173,65 @@ Références : [`mobile_hybrid_sync_dad3be1e.plan.md`](.cursor/plans/mobile_hybr
 
 | Domaine | Impact |
 |---|---|
-| Version mobile | Bump **mineur** (nouvelle UX écran) — skill `mobile-version-bump` |
-| User-guide | Maj [`user-guide/docs/commercial/mobile_app.md`](user-guide/docs/commercial/mobile_app.md) (Plus → Articles : Mon Stock / Catalogue) + régénérer index RAG |
-| CHANGELOG | Entrée keep-changelog |
-| Backend | Aucune migration obligatoire si on consomme `/enabled` existant |
-| Magasinier / RM | Hors scope ; RM skip déjà l’init commerciale |
+| SQLite / modèle | Colonne `state` (ou équivalent) sur `articles` + migration schema mobile |
+| Version mobile | Bump **mineur** — skill `mobile-version-bump` |
+| User-guide | [`mobile_app.md`](user-guide/docs/commercial/mobile_app.md) : Plus → Articles, Mon Stock / Catalogue + index RAG |
+| CHANGELOG | keep-changelog |
+| Backend | Aucune nouvelle API obligatoire |
+| RM / magasinier | Hors scope |
 
 ---
 
-## 6. Risques
+## 6. Risques (mis à jour)
 
-1. **Écrasement `stockQuantity`** lors d’un upsert catalogue (init force déjà 0 ; refresh commercial stock aussi mappe qty 0 sur `articles` puis s’appuie sur `commercial_stock_items` pour l’UI stock — rester cohérent).
-2. **Articles DISABLED** déjà en cache local : sans filtre `state`, le Catalogue offline pourrait les afficher tant que l’init n’a pas basculé sur `/enabled` + stratégie de purge.
-3. **Pagination init 1000** : risque de catalogue incomplet offline.
-4. **Deux paginations** dans le même écran : fuite d’état si un seul reducer `articlesPagination` de distribution est réutilisé sans isolation.
-5. **Prix Mon Stock** : aujourd’hui peut différer du prix catalogue (`stockUnitPrice` vs `creditSalePrice`) — volontaire pour Mon Stock ; Catalogue = prix catalogue uniquement.
-
----
-
-## 7. Questions ouvertes (bloquantes validation)
-
-1. **« Actifs » = `State.ENABLED` uniquement ?** (recommandé : oui → `/articles/enabled`)
-2. **Faut-il corriger `initializeArticles` dans le même lot** (passer à `/enabled` + pagination) ou seulement le refresh SWR Catalogue ?
-3. **Recherche** : une barre partagée qui filtre le segment actif, ou deux comportements ?
-4. **Catalogue hors ligne** : afficher tout le cache `articles`, ou seulement ceux encore présents après dernière sync enabled ?
-5. **Faut-il masquer Mon Stock** si l’utilisateur n’a aucun stock (segment Catalogue seul) — ou toujours les deux onglets ?
-6. **Titre hero** : rester « Articles » ou devenir dynamique (« Mon Stock » / « Catalogue ») ?
+1. **Écrasement `stockQuantity`** à l’upsert catalogue — préserver qty à l’update.
+2. **Articles DISABLED** : doivent rester en cache mais **hors** liste Catalogue ; les jointures distribution / historique doivent continuer à résoudre le nom via `findByIds`.
+3. **DELETED online** : définir purge ou `state=DELETED` + filtre affichage ; ne pas casser les lignes d’historique qui référencent l’id.
+4. **Pagination init 1000** toujours un risque volume.
+5. **Deux paginations** : isoler les reducers.
+6. **Prix Mon Stock** vs catalogue : écart `stockUnitPrice` / `creditSalePrice` volontaire.
 
 ---
 
-## 8. Plan d’implémentation (après validation — ne pas démarrer maintenant)
+## 7. Questions ouvertes — RÉSOLUES
 
-1. Confirmer les réponses §7
-2. Segment UX + empty states + SCSS
+1. ~~Actifs = ENABLED ?~~ → **Oui pour l’affichage Catalogue** ; sync garde ENABLED+DISABLED via init actuelle ; filtre local par `state`.
+2. ~~Corriger init vers `/enabled` ?~~ → **Non.**
+3. ~~Recherche ?~~ → **Partagée, filtre le segment actif.**
+4. ~~Catalogue offline ?~~ → **Cache complet (ENABLED à l’UI)** ; online : sync nouveaux + drop DELETED de l’affichage.
+5. ~~Masquer Mon Stock si vide ?~~ → **Non — toujours les deux onglets + empty states.**
+6. ~~Titre hero ?~~ → **Reste « Articles ».**
+
+---
+
+## 8. Plan d’implémentation (autre agent)
+
+1. Migration SQLite + modèle : `state` sur `articles` ; maj `saveAll` / mapping DTO
+2. Segment UX + empty states + search partagée (titre Articles fixe)
 3. Isoler pagination Catalogue (actions/effects/selectors)
-4. `refreshArticlesCataloguePage` + éventuel fix `saveAll` préservation qty
-5. Option : aligner `initializeArticles` sur `/enabled` paginé
-6. Tests unitaires page + service refresh
-7. User-guide + RAG index + CHANGELOG + bump version
-8. Tests manuels : online SWR, offline cache, infinite scroll, switch segment, recherche
+4. `refreshArticlesCataloguePage` : upsert + exclusion DELETED affichage ; préserver qty ; écrire `state`
+5. Init : même URL, persister `state` (pas `/enabled`)
+6. Tests unitaires + manuels (online/offline, DISABLED non listés mais résolvables, infinite scroll, switch + search)
+7. User-guide + RAG + CHANGELOG + bump version
 
 ---
 
-## 9. Critères d’acceptation (cible post-validation)
+## 9. Critères d’acceptation
 
-- [ ] Segment **Mon Stock** | **Catalogue** visible sur `/tabs/article-list`
+- [ ] Segment **Mon Stock \| Catalogue** ; hero **Articles**
 - [ ] Mon Stock = liste actuelle (qty + prix), infinite scroll + SWR stock
-- [ ] Catalogue = articles actifs, **prix crédit seul**, **sans quantité**, infinite scroll + SWR
-- [ ] Hors ligne : chaque onglet lit son cache local
-- [ ] Online : refresh serveur sans bloquer l’affichage local initial
-- [ ] Guide utilisateur + index RAG à jour
-- [ ] Version mobile alignée (3 fichiers)
+- [ ] Catalogue = ENABLED only à l’UI, prix crédit seul, sans qty, infinite scroll + SWR
+- [ ] DISABLED syncés / conservés en local pour refs distribution ; absents du Catalogue
+- [ ] Search partagée filtre le segment actif
+- [ ] Offline : cache local ; Online : nouveaux syncés, DELETED retirés de l’affichage catalogue
+- [ ] Les deux onglets toujours présents + empty states
+- [ ] Init endpoint **inchangé** (`/api/v1/articles`)
+- [ ] Guide + index RAG + version mobile alignée
 
 ---
 
-## 10. Livrables de cette tâche (plan only)
+## 10. Livrables docs
 
-- Plan Cursor : `.cursor/plans/mobile_articles_mon_stock_catalogue_61f9d1f1.plan.md`
-- Copie store : `/cursor/stores/bc-fbdc0dac-2b34-4a43-a4bd-57c4441d9067/docs/mobile-articles-mon-stock-catalogue-plan.md`
-- **Aucun code feature** tant que l’utilisateur n’a pas validé
+- Plan Cursor : `.cursor/plans/mobile_articles_mon_stock_catalogue_61f9d1f1.plan.md` (**VALIDATED**)
+- Store : `/cursor/stores/bc-fbdc0dac-2b34-4a43-a4bd-57c4441d9067/docs/mobile-articles-mon-stock-catalogue-plan.md`
+- PR plan (docs) : https://github.com/AQUILA04/ELYKIA/pull/109
