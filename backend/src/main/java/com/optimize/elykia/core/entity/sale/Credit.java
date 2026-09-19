@@ -71,6 +71,11 @@ public class Credit extends BaseEntity<String> {
     @PositiveOrZero
     private Integer remainingDaysCount;
     private String collector;
+
+    /** Multi-agency scope (FK agency.id). */
+    @Column(name = "agency_id")
+    private Long agencyId;
+
     @Enumerated(EnumType.STRING)
     private OperationType type;
     @Column(columnDefinition = "boolean default false")

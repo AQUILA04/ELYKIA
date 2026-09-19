@@ -15,6 +15,10 @@ public class AccountingDay extends BaseEntity<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /** Multi-agency scope (FK agency.id). */
+    @Column(name = "agency_id")
+    private Long agencyId;
     @Column(unique = true, updatable = false)
     private LocalDate accountingDate = LocalDate.now();
     @Enumerated(EnumType.STRING)

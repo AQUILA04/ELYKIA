@@ -15,7 +15,8 @@
         { "name": "status", "type": "varchar", "description": "INPROGRESS, SETTLED, etc." },
         { "name": "type", "type": "varchar", "description": "CREDIT, CASH, etc." },
         { "name": "client_type", "type": "varchar", "description": "CLIENT ou PROMOTER" },
-        { "name": "client_id", "type": "bigint", "description": "FK client" }
+        { "name": "client_id", "type": "bigint", "description": "FK client" },
+        { "name": "agency_id", "type": "bigint", "description": "Identifiant de l'agence (cloisonnement multi-agences)", "synonyms": ["agence", "agency", "site", "succursale"] }
       ],
       "relations": [
         { "column": "client_id", "refTable": "client", "refColumn": "id" }
@@ -58,7 +59,8 @@
         { "name": "firstname", "type": "varchar" },
         { "name": "lastname", "type": "varchar" },
         { "name": "phone", "type": "varchar" },
-        { "name": "collector", "type": "varchar" }
+        { "name": "collector", "type": "varchar" },
+        { "name": "agency_id", "type": "bigint", "description": "Identifiant de l'agence (cloisonnement multi-agences)", "synonyms": ["agence", "agency", "site", "succursale"] }
       ]
     },
     {
@@ -80,7 +82,8 @@
       "columns": [
         { "name": "id", "type": "bigint" },
         { "name": "year", "type": "integer" },
-        { "name": "status", "type": "varchar" }
+        { "name": "status", "type": "varchar" },
+        { "name": "agency_id", "type": "bigint", "description": "Identifiant de l'agence (cloisonnement multi-agences)", "synonyms": ["agence", "agency", "site", "succursale"] }
       ]
     },
     {
@@ -136,7 +139,8 @@
         { "name": "total_new_balance_amount_deposited", "type": "double" },
         { "name": "total_surplus_amount_deposited", "type": "double" },
         { "name": "total_advances_amount", "type": "double" },
-        { "name": "recovery_manager_collections_amount", "type": "double" }
+        { "name": "recovery_manager_collections_amount", "type": "double" },
+        { "name": "agency_id", "type": "bigint", "description": "Identifiant de l'agence (cloisonnement multi-agences)", "synonyms": ["agence", "agency", "site", "succursale"] }
       ]
     },
     {
@@ -179,7 +183,8 @@
         { "name": "accounting_date", "type": "date" },
         { "name": "total_credit_sale_price", "type": "double", "description": "Valeur vente crédit totale" },
         { "name": "total_purchase_price", "type": "double", "description": "Valeur achat totale" },
-        { "name": "status", "type": "varchar", "description": "CREATED, VALIDATED, DELIVERED, CANCELLED, REFUSED" }
+        { "name": "status", "type": "varchar", "description": "CREATED, VALIDATED, DELIVERED, CANCELLED, REFUSED" },
+        { "name": "agency_id", "type": "bigint", "description": "Identifiant de l'agence (cloisonnement multi-agences)", "synonyms": ["agence", "agency", "site", "succursale"] }
       ]
     },
     {
@@ -214,7 +219,8 @@
         { "name": "return_date", "type": "date" },
         { "name": "received_date", "type": "date" },
         { "name": "target_stock_date", "type": "date" },
-        { "name": "status", "type": "varchar", "description": "CREATED, RECEIVED, CANCELLED, REFUSED" }
+        { "name": "status", "type": "varchar", "description": "CREATED, RECEIVED, CANCELLED, REFUSED" },
+        { "name": "agency_id", "type": "bigint", "description": "Identifiant de l'agence (cloisonnement multi-agences)", "synonyms": ["agence", "agency", "site", "succursale"] }
       ],
       "relations": [
         { "column": "target_stock_id", "refTable": "commercial_monthly_stock", "refColumn": "id" }
@@ -246,7 +252,8 @@
         { "name": "collector", "type": "varchar", "synonyms": ["commercial"] },
         { "name": "month", "type": "integer" },
         { "name": "year", "type": "integer" },
-        { "name": "status", "type": "varchar", "description": "ACTIVE, etc." }
+        { "name": "status", "type": "varchar", "description": "ACTIVE, etc." },
+        { "name": "agency_id", "type": "bigint", "description": "Identifiant de l'agence (cloisonnement multi-agences)", "synonyms": ["agence", "agency", "site", "succursale"] }
       ]
     },
     {
@@ -295,7 +302,8 @@
         { "name": "unit_sale_price", "type": "double" },
         { "name": "margin_amount", "type": "double" },
         { "name": "source_type", "type": "varchar" },
-        { "name": "source_id", "type": "bigint" }
+        { "name": "source_id", "type": "bigint" },
+        { "name": "agency_id", "type": "bigint", "description": "Identifiant de l'agence (cloisonnement multi-agences)", "synonyms": ["agence", "agency", "site", "succursale"] }
       ],
       "relations": [
         { "column": "stock_item_id", "refTable": "commercial_monthly_stock_item", "refColumn": "id" },
@@ -338,6 +346,39 @@
         { "name": "date", "type": "date" },
         { "name": "collector", "type": "varchar" },
         { "name": "total_collected", "type": "double" }
+      ]
+    },
+    {
+      "name": "agency",
+      "description": "Agence / site organisationnel (référentiel multi-agences)",
+      "synonyms": ["agence", "site", "succursale", "filiale"],
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "code", "type": "varchar", "description": "Code unique de l'agence", "synonyms": ["code agence"] },
+        { "name": "name", "type": "varchar", "description": "Nom de l'agence", "synonyms": ["nom agence"] },
+        { "name": "phone", "type": "varchar", "description": "Téléphone" },
+        { "name": "active", "type": "boolean", "description": "Agence active (source métier)", "synonyms": ["actif", "ouverte"] },
+        { "name": "deactivated_at", "type": "timestamp", "description": "Date de désactivation" },
+        { "name": "deactivated_by", "type": "varchar", "description": "Utilisateur ayant désactivé" },
+        { "name": "visibility", "type": "varchar", "description": "État technique ENABLED/DISABLED/DELETED" }
+      ]
+    },
+    {
+      "name": "agency_assignment",
+      "description": "Affectation d'un utilisateur (USERS.USEID) à une agence sur une période",
+      "synonyms": ["affectation agence", "mutation agence", "transfert agence"],
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "user_id", "type": "bigint", "description": "Identifiant utilisateur USERS.USEID", "synonyms": ["utilisateur"] },
+        { "name": "agency_id", "type": "bigint", "description": "Agence d'affectation" },
+        { "name": "start_date", "type": "date", "description": "Début d'affectation" },
+        { "name": "end_date", "type": "date", "description": "Fin d'affectation (null = active)" },
+        { "name": "assigned_by", "type": "varchar", "description": "Auteur de l'affectation" },
+        { "name": "notes", "type": "text", "description": "Notes" }
+      ],
+      "relations": [
+        { "column": "agency_id", "refTable": "agency", "refColumn": "id" },
+        { "column": "user_id", "refTable": "users", "refColumn": "useid" }
       ]
     }
   ],

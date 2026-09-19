@@ -9,6 +9,33 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [3.0.0] — 2026-09-19
+
+### Changed
+
+- **Breaking —** montée de version majeure anticipée pour le chantier multi-agences (réservation SemVer ; logique UI dans les PRs suivantes).
+
+## Mobile — [3.0.0] — 2026-09-19
+
+### Changed
+
+- **Breaking —** montée de version majeure anticipée pour le chantier multi-agences (réservation SemVer ; logique mobile dans les PRs suivantes).
+- Alignement `package.json` / `environment.ts` / `environment.prod.ts` sur `3.0.0`.
+
+## Backend — [2.0.0] — 2026-09-19
+
+### Added
+
+- **Multi-agences (vague 1) —** migration Flyway `V102__multi_agency_management.sql` : colonnes `agency.active` / désactivation, table `agency_assignment` (`user_id` = `USERS.USEID`), `uacc.current_agency_id`, `agency_id` sur les entités opérationnelles **et `credit`**, agence `DEFAULT`, backfill, index.
+- Entité `AgencyAssignment` ; enrichissement `Agency` ; champ `agencyId` sur Client, Credit, Recovery, stocks, tontine, orders, etc.
+- Repositories `AgencyRepository` (unicité code actif) et `AgencyAssignmentRepository`.
+- Catalog IA (`schema-catalog.json`) : tables `agency` / `agency_assignment` + colonne `agency_id` whitelistée.
+
+### Changed
+
+- **Breaking —** dépendance `common-security-service` **2.0.0** (`UserAccount.currentAgencyId`).
+- Version API `2.0.0`.
+
 ## Mobile — [2.30.0] — 2026-09-19
 
 ### Added
