@@ -1,5 +1,5 @@
 -- 1. Add reference field to CashDeposit
-ALTER TABLE public.cash_deposit ADD COLUMN reference character varying(255);
+ALTER TABLE public.cash_deposit ADD COLUMN IF NOT EXISTS reference character varying(255);
 
 -- 1.1 Backfill reference for existing cash deposits
 UPDATE public.cash_deposit SET reference = 'DEP-' || id WHERE reference IS NULL;

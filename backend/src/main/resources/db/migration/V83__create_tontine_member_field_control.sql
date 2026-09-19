@@ -15,9 +15,16 @@ CREATE TABLE IF NOT EXISTS tontine_member_field_control (
     state VARCHAR(50)
 );
 
-ALTER TABLE tontine_member_field_control
-    ADD CONSTRAINT fk_tm_field_control_member
-        FOREIGN KEY (tontine_member_id) REFERENCES tontine_member(id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'fk_tm_field_control_member'
+    ) THEN
+        ALTER TABLE tontine_member_field_control
+            ADD CONSTRAINT fk_tm_field_control_member
+                FOREIGN KEY (tontine_member_id) REFERENCES tontine_member(id);
+    END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_tm_field_control_member_observed
     ON tontine_member_field_control (tontine_member_id, observed_at DESC);
@@ -39,9 +46,16 @@ CREATE TABLE IF NOT EXISTS tontine_member_field_control_line (
     CONSTRAINT chk_tm_field_control_line_month CHECK (month >= 1 AND month <= 12)
 );
 
-ALTER TABLE tontine_member_field_control_line
-    ADD CONSTRAINT fk_tm_field_control_line_parent
-        FOREIGN KEY (field_control_id) REFERENCES tontine_member_field_control(id) ON DELETE CASCADE;
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'fk_tm_field_control_line_parent'
+    ) THEN
+        ALTER TABLE tontine_member_field_control_line
+            ADD CONSTRAINT fk_tm_field_control_line_parent
+                FOREIGN KEY (field_control_id) REFERENCES tontine_member_field_control(id) ON DELETE CASCADE;
+    END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_tm_field_control_line_parent
     ON tontine_member_field_control_line (field_control_id);

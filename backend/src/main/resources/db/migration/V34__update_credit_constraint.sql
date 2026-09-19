@@ -1,4 +1,4 @@
-ALTER TABLE credit DROP CONSTRAINT uc_credit_unique_non_null;
+ALTER TABLE credit DROP CONSTRAINT IF EXISTS uc_credit_unique_non_null;
 
 CREATE UNIQUE INDEX uc_credit_unique_non_null
     ON Credit (client_id, type, status, visibility, collector, client_type)

@@ -1,8 +1,15 @@
 ALTER TABLE cash_deposit ADD COLUMN IF NOT EXISTS remittance_id bigint;
 
-ALTER TABLE cash_deposit
-    ADD CONSTRAINT cash_deposit_remittance_fk
-    FOREIGN KEY (remittance_id) REFERENCES cash_period_remittance(id);
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'cash_deposit_remittance_fk'
+    ) THEN
+        ALTER TABLE cash_deposit
+            ADD CONSTRAINT cash_deposit_remittance_fk
+            FOREIGN KEY (remittance_id) REFERENCES cash_period_remittance(id);
+    END IF;
+END $$;
 
 CREATE INDEX IF NOT EXISTS idx_cash_deposit_remittance_id ON cash_deposit(remittance_id);
 

@@ -1,4 +1,4 @@
-CREATE TABLE recovery_manager_operation (
+CREATE TABLE IF NOT EXISTS recovery_manager_operation (
     id                        BIGSERIAL PRIMARY KEY,
     recovery_manager_username VARCHAR(255) NOT NULL,
     commercial_username       VARCHAR(255) NOT NULL,
@@ -18,9 +18,9 @@ CREATE TABLE recovery_manager_operation (
     visibility                VARCHAR(20) DEFAULT 'ENABLED'
 );
 
-CREATE INDEX idx_rmo_recovery_manager ON recovery_manager_operation(recovery_manager_username, operation_date);
-CREATE INDEX idx_rmo_commercial ON recovery_manager_operation(commercial_username, operation_date);
-CREATE INDEX idx_rmo_credit ON recovery_manager_operation(credit_id);
+CREATE INDEX IF NOT EXISTS idx_rmo_recovery_manager ON recovery_manager_operation(recovery_manager_username, operation_date);
+CREATE INDEX IF NOT EXISTS idx_rmo_commercial ON recovery_manager_operation(commercial_username, operation_date);
+CREATE INDEX IF NOT EXISTS idx_rmo_credit ON recovery_manager_operation(credit_id);
 
 ALTER TABLE daily_commercial_report
     ADD COLUMN IF NOT EXISTS recovery_manager_collections_amount DOUBLE PRECISION DEFAULT 0;

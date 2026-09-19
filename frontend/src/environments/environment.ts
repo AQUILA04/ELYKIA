@@ -10,7 +10,7 @@ export const environment = {
   aiChatEnabled: true,
   gaMeasurementId: 'G-Q6614CGTFQ',
   //apiUrl: 'http://192.168.1.126:8081',
-  apiUrl: 'http://localhost:8081', // Base URL de l'API
+  apiUrl: 'http://192.168.1.72:8081', // Basee URL de l'API
   config: {
     authuser: 'currentUser',
     authtoken: 'auth-token',
