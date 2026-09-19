@@ -48,6 +48,7 @@ import { RecouvrementKpiComponent } from './recouvrement/components/recouvrement
 import { RecouvrementFilterComponent } from './recouvrement/components/recouvrement-filter/recouvrement-filter.component';
 import { RecouvrementTableComponent } from './recouvrement/components/recouvrement-table/recouvrement-table.component';
 import { CollectorTransfersComponent } from './collector-transfers/collector-transfers.component';
+import { CreditArticlesVendusComponent } from './credit-articles-vendus/credit-articles-vendus.component';
 
 @NgModule({
   declarations: [
@@ -75,6 +76,7 @@ import { CollectorTransfersComponent } from './collector-transfers/collector-tra
     RecouvrementFilterComponent,
     RecouvrementTableComponent,
     CollectorTransfersComponent,
+    CreditArticlesVendusComponent,
   ],
   imports: [
     CommonModule,

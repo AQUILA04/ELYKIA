@@ -56,6 +56,12 @@ public class CreditController {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.searchCredits(dto, pageable)), HttpStatus.OK);
     }
 
+    @PostMapping("/articles-vendus/search")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECOVERY_MANAGER', 'REPORT', 'CONSULT_DASHBOARD')")
+    public ResponseEntity<Response> searchSoldArticles(@RequestBody com.optimize.elykia.core.dto.SoldArticleSearchDto dto, Pageable pageable) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(creditArticlesService.searchSoldArticles(dto, pageable)), HttpStatus.OK);
+    }
+
     @PostMapping("/list-summary")
     @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_VENTE + "')")
     public ResponseEntity<Response> listSummary(@RequestBody @Valid CreditListSummaryRequestDto request) {

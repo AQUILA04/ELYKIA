@@ -9,6 +9,21 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.0] — 2026-09-19
+
+### Added
+
+- Sous-menu **Articles Vendus** (ou **Articles**) sous le menu Ventes pour afficher la liste globale des quantités vendues par article et par commercial.
+- Filtres de période (Ce jour, Cette semaine, Ce mois, Personnalisé) et filtre par commercial sur la liste des articles vendus.
+
+## Backend — [1.19.0] — 2026-09-19
+
+### Added
+
+- DTOs `SoldArticleDto` et `SoldArticleSearchDto` pour la recherche agrégée des articles vendus.
+- Requête paginée `findSoldArticles` dans `CreditArticlesRepository` avec `GROUP BY` sur article et commercial.
+- Endpoint `POST /api/v1/credits/articles-vendus/search` pour exposer les données agrégées.
+
 ## Mobile — [2.30.0] — 2026-09-19
 
 ### Added

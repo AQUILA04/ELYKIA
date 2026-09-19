@@ -32,6 +32,8 @@ Utilisez **Retards** pour identifier les crédits en retard et **Échéances** p
 
 Le menu **Transfert Ventes** est un rapport de passations. Il filtre les commerciaux sortant et entrant ainsi que la période, puis présente les agrégats et le détail paginé. Une vente est comptée une seule fois dans cette lecture, sur la dernière passation pertinente.
 
+Le sous-menu **Articles Vendus** (ou **Articles**) permet d'obtenir une vue globale des quantités totales vendues par article. Les résultats sont groupés par article et par commercial, et vous pouvez filtrer la liste sur une période donnée (aujourd'hui, cette semaine, ce mois, etc.) ou l'isoler pour un commercial spécifique.
+
 ## Commandes
 
 Le menu **Commandes** est un parcours distinct, présent uniquement pour les comptes autorisés. Créez, consultez ou mettez à jour une commande dans l’ordre permis par ses statuts. Ne confondez pas une commande avec une vente crédit déjà démarrée.

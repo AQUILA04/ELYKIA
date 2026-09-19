@@ -40,4 +40,8 @@ public class CreditArticlesService extends GenericService<CreditArticles, Long> 
     public List<CreditArticleDetailDto> getDetailsByTontineItemId(Long tontineItemId) {
         return getRepository().findDetailsByTontineItemId(tontineItemId);
     }
+
+    public org.springframework.data.domain.Page<com.optimize.elykia.core.dto.SoldArticleDto> searchSoldArticles(com.optimize.elykia.core.dto.SoldArticleSearchDto dto, Pageable pageable) {
+        return getRepository().findSoldArticles(dto.getStartDate(), dto.getEndDate(), dto.getCommercial(), pageable);
+    }
 }

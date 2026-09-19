@@ -117,4 +117,24 @@ public interface CreditArticlesRepository extends GenericRepository<CreditArticl
             @Param("monthStart") LocalDate monthStart,
             @Param("monthEnd") LocalDate monthEnd,
             @Param("articleIds") Collection<Long> articleIds);
+
+    @Query("""
+        SELECT new com.optimize.elykia.core.dto.SoldArticleDto(
+            a.id, CONCAT(a.type, ': ', a.marque, ' ', a.model), SUM(ca.quantity), c.collector
+        )
+        FROM CreditArticles ca
+        JOIN ca.articles a
+        JOIN ca.credit c
+        WHERE c.type IN (com.optimize.elykia.core.enumaration.OperationType.CREDIT, com.optimize.elykia.core.enumaration.OperationType.CASH)
+          AND (cast(:startDate as date) IS NULL OR c.beginDate >= :startDate)
+          AND (cast(:endDate as date) IS NULL OR c.beginDate <= :endDate)
+          AND (:commercial IS NULL OR c.collector = :commercial)
+        GROUP BY a.id, a.type, a.marque, a.model, c.collector
+    """)
+    org.springframework.data.domain.Page<com.optimize.elykia.core.dto.SoldArticleDto> findSoldArticles(
+        @Param("startDate") LocalDate startDate, 
+        @Param("endDate") LocalDate endDate, 
+        @Param("commercial") String commercial, 
+        Pageable pageable
+    );
 }

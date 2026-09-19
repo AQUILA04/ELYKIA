@@ -149,6 +149,15 @@ export class CreditService extends BaseHttpService {
     return this.http.post(`${this.apiUrl}/fetch`, searchDto, { headers, params });
   }
 
+  searchSoldArticles(searchDto: any, page: number, size: number): Observable<any> {
+    const headers = this.getHeader();
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+      
+    return this.http.post(`${this.apiUrl}/articles-vendus/search`, searchDto, { headers, params });
+  }
+
   getListSummary(request: CreditListSummaryRequest): Observable<any> {
     const headers = this.getHeader();
     return this.http.post(`${this.apiUrl}/list-summary`, request, { headers });
