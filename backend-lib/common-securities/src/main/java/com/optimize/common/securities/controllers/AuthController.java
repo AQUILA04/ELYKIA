@@ -96,6 +96,7 @@ public class AuthController {
 
     JwtResponse jwtResponse = new JwtResponse(jwt, refreshToken.getToken(), userDetails.getId(),
         userDetails.getUsername(), userDetails.getEmail(), roles, userDetails.getProfil());
+    jwtResponse.setAgencyId(userDetails.getAgencyId());
     jwtResponse.setDeviceRestrictionActive(
         userAuthorizedDeviceService.isRestrictionActiveForUserId(userDetails.getId()));
     userRepository.findById(userDetails.getId()).ifPresent(user -> {
