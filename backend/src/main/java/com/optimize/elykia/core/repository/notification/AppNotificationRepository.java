@@ -87,4 +87,44 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
             """)
     long countUnreadUnresolvedForPromoter(
             @Param("username") String username, @Param("state") State state);
+
+    /**
+     * Login toast scope: payment declarations (credit + tontine MM) and customer orders only.
+     * Excludes {@code TONTINE_CATCHUP} rattrapages.
+     */
+    @Query("""
+            SELECT COUNT(n) FROM AppNotification n
+            WHERE n.state = :state
+              AND n.resolvedAt IS NULL
+              AND n.type IN (com.optimize.elykia.core.enumaration.AppNotificationType.PAYMENT_DECLARATION,
+                             com.optimize.elykia.core.enumaration.AppNotificationType.CUSTOMER_ORDER,
+                             com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_PAYMENT_DECLARATION)
+              AND n.id NOT IN (
+                  SELECT r.notificationId FROM AppNotificationRead r
+                  WHERE UPPER(r.username) = UPPER(:username)
+              )
+            """)
+    long countUnreadLoginToastForUser(@Param("username") String username, @Param("state") State state);
+
+    @Query("""
+            SELECT COUNT(n) FROM AppNotification n
+            WHERE n.state = :state
+              AND n.resolvedAt IS NULL
+              AND (
+                    (n.type IN (com.optimize.elykia.core.enumaration.AppNotificationType.PAYMENT_DECLARATION,
+                                com.optimize.elykia.core.enumaration.AppNotificationType.CUSTOMER_ORDER)
+                     AND UPPER(n.targetCollector) = UPPER(:username))
+                 OR (n.type = com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_PAYMENT_DECLARATION
+                     AND (
+                          UPPER(n.tontineCollector) = UPPER(:username)
+                          OR (n.tontineCollector IS NULL AND UPPER(n.targetCollector) = UPPER(:username))
+                     ))
+              )
+              AND n.id NOT IN (
+                  SELECT r.notificationId FROM AppNotificationRead r
+                  WHERE UPPER(r.username) = UPPER(:username)
+              )
+            """)
+    long countUnreadLoginToastForPromoter(
+            @Param("username") String username, @Param("state") State state);
 }

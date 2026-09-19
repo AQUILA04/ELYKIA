@@ -84,6 +84,34 @@ class AppNotificationServiceTest {
     }
 
     @Test
+    void unreadCountForLoginToast_secretaryUsesPaymentAndOrderScope() {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn("SEC");
+        when(user.is(UserProfilConstant.SECRETARY)).thenReturn(true);
+        when(notificationRepository.countUnreadLoginToastForUser("SEC", State.ENABLED)).thenReturn(3L);
+
+        assertEquals(3L, service.unreadCountForLoginToast(user));
+        verify(notificationRepository).countUnreadLoginToastForUser("SEC", State.ENABLED);
+        verify(notificationRepository, never()).countUnreadUnresolvedForUser(any(), any());
+        verify(notificationRepository, never()).countUnreadLoginToastForPromoter(any(), any());
+    }
+
+    @Test
+    void unreadCountForLoginToast_promoterExcludesCatchupScope() {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn("COM003");
+        when(user.is(UserProfilConstant.SECRETARY)).thenReturn(false);
+        when(user.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(user.is(UserProfilConstant.ADMIN)).thenReturn(false);
+        when(user.is(UserProfilConstant.PROMOTER)).thenReturn(true);
+        when(notificationRepository.countUnreadLoginToastForPromoter("COM003", State.ENABLED)).thenReturn(1L);
+
+        assertEquals(1L, service.unreadCountForLoginToast(user));
+        verify(notificationRepository).countUnreadLoginToastForPromoter("COM003", State.ENABLED);
+        verify(notificationRepository, never()).countUnreadUnresolvedForPromoter(any(), any());
+    }
+
+    @Test
     void createPaymentDeclaration_persistsNotification() {
         when(notificationRepository.findByTypeAndEntityIdAndResolvedAtIsNull(
                 AppNotificationType.PAYMENT_DECLARATION, 11L)).thenReturn(Optional.empty());

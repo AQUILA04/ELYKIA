@@ -26,14 +26,14 @@ export class PendingOpsToastService {
     if (sessionStorage.getItem(SESSION_KEY) === '1') {
       return;
     }
-    this.notificationService.unreadCount().subscribe({
+    this.notificationService.loginToastUnreadCount().subscribe({
       next: (count) => {
         if (count <= 0) {
           return;
         }
         sessionStorage.setItem(SESSION_KEY, '1');
         this.activeToast = this.toastr.info(
-          'Vous avez des opérations en attente de validation. Cliquez pour les consulter.',
+          'Vous avez des paiements clients ou des commandes en attente de validation. Cliquez pour les consulter.',
           'Notifications',
           {
             timeOut: TOAST_MS,

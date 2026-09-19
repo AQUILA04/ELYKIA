@@ -53,6 +53,11 @@ export class AppNotificationService {
     return fetchUnreadNotificationCount(this.http, this.apiUrl);
   }
 
+  /** Unread count for login toast: payments + orders only (excludes catch-up). */
+  loginToastUnreadCount(): Observable<number> {
+    return fetchUnreadNotificationCount(this.http, this.apiUrl, 'login-toast');
+  }
+
   markRead(id: number): Observable<boolean> {
     return markNotificationRead(this.http, this.apiUrl, id);
   }

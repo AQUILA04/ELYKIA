@@ -219,6 +219,19 @@ public class AppNotificationService {
         return notificationRepository.countUnreadUnresolvedForUser(user.getUsername(), State.ENABLED);
     }
 
+    /**
+     * Unread count for the post-login toast: payment declarations and customer orders only
+     * (excludes tontine catch-up / rattrapage notifications).
+     */
+    @Transactional(readOnly = true)
+    public long unreadCountForLoginToast(User user) {
+        assertNotificationAudience(user);
+        if (isPromoterOnly(user)) {
+            return notificationRepository.countUnreadLoginToastForPromoter(user.getUsername(), State.ENABLED);
+        }
+        return notificationRepository.countUnreadLoginToastForUser(user.getUsername(), State.ENABLED);
+    }
+
     @Transactional(readOnly = true)
     public List<AppNotificationGroupDto> listGrouped(User user) {
         assertNotificationAudience(user);
