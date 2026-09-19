@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { TestBed, fakeAsync, tick, flushMicrotasks } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { OnlineListRefreshService } from './online-list-refresh.service';
 import { ConnectivityService } from './connectivity.service';
@@ -47,7 +47,12 @@ describe('OnlineListRefreshService', () => {
       'findAvailableArticlesPaginated'
     ]);
     stockSnapshotRepository = jasmine.createSpyObj('StockSnapshotRepository', ['upsertSnapshot']);
-    articleRepository = jasmine.createSpyObj('ArticleRepository', ['saveAll']);
+    articleRepository = jasmine.createSpyObj('ArticleRepository', [
+      'saveAll',
+      'findByIds',
+      'searchCatalogueArticles',
+      'markMissingEnabledAsDisabled'
+    ]);
     databaseService = jasmine.createSpyObj('DatabaseService', [
       'getUnsyncedCollectionsTotals',
       'getUnsyncedLocalCollectionIds',
@@ -60,6 +65,16 @@ describe('OnlineListRefreshService', () => {
     databaseService.getUnsyncedLocalCollectionIds.and.resolveTo([]);
     databaseService.saveTontineMembers.and.resolveTo();
     databaseService.saveTontineDeliveries.and.resolveTo();
+    articleRepository.findByIds.and.resolveTo([]);
+    articleRepository.saveAll.and.resolveTo();
+    articleRepository.markMissingEnabledAsDisabled.and.resolveTo();
+    articleRepository.searchCatalogueArticles.and.resolveTo({
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      page: 0,
+      size: 20
+    });
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
@@ -107,14 +122,16 @@ describe('OnlineListRefreshService', () => {
     await expectAsync(service.refreshLocalitiesPage(0, 20)).toBeResolvedTo(null);
   });
 
-  it('upserts localities and returns refreshed page when online', async () => {
+  it('upserts localities and returns refreshed page when online', fakeAsync(() => {
     hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
     connectivityService.checkBackendReachable.and.resolveTo(true);
     localityRepository.saveAll.and.resolveTo();
     const refreshedPage = { content: [{ id: '1', name: 'EKPAME' }], totalElements: 1, totalPages: 1, page: 0, size: 20 };
     localityRepositoryExtensions.findAllPaginated.and.resolveTo(refreshedPage as any);
 
-    const refreshPromise = service.refreshLocalitiesPage(0, 20);
+    let result: any;
+    service.refreshLocalitiesPage(0, 20).then((page) => { result = page; });
+    flushMicrotasks();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/api/v1/localities?page=0&size=20&sort=name,asc`);
     expect(req.request.method).toBe('GET');
@@ -126,13 +143,14 @@ describe('OnlineListRefreshService', () => {
         number: 0
       }
     });
+    flushMicrotasks();
 
-    await expectAsync(refreshPromise).toBeResolvedTo(refreshedPage as any);
+    expect(result).toEqual(refreshedPage as any);
     expect(localityRepository.saveAll).toHaveBeenCalled();
     expect(localityRepositoryExtensions.findAllPaginated).toHaveBeenCalledWith(0, 20, undefined);
-  });
+  }));
 
-  it('refreshes tontine members page and preserves unsynced contribution delta', async () => {
+  it('refreshes tontine members page and preserves unsynced contribution delta', fakeAsync(() => {
     hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
     connectivityService.checkBackendReachable.and.resolveTo(true);
     databaseService.getUnsyncedCollectionsTotals.and.resolveTo([
@@ -141,7 +159,9 @@ describe('OnlineListRefreshService', () => {
     const refreshedPage = { content: [{ id: '10' }], totalElements: 1, totalPages: 1, page: 0, size: 20 };
     tontineMemberRepositoryExtensions.findBySessionAndCommercialPaginated.and.resolveTo(refreshedPage as any);
 
-    const refreshPromise = service.refreshTontineMembersPage('session-1', 'com1', 0, 20);
+    let result: any;
+    service.refreshTontineMembersPage('session-1', 'com1', 0, 20).then((page) => { result = page; });
+    flushMicrotasks();
 
     const req = httpMock.expectOne(
       `${environment.apiUrl}/api/v1/tontines/members?page=0&size=20&commercial=com1`
@@ -160,8 +180,9 @@ describe('OnlineListRefreshService', () => {
         page: { number: 0, totalPages: 1, totalElements: 1 }
       }
     });
+    flushMicrotasks();
 
-    await expectAsync(refreshPromise).toBeResolvedTo(refreshedPage as any);
+    expect(result).toEqual(refreshedPage as any);
     expect(databaseService.saveTontineMembers).toHaveBeenCalledWith([
       jasmine.objectContaining({
         id: '10',
@@ -170,9 +191,9 @@ describe('OnlineListRefreshService', () => {
         isLocal: false
       })
     ]);
-  });
+  }));
 
-  it('refreshes commercial stock page and returns reconciled articles when online', async () => {
+  it('refreshes commercial stock page and returns reconciled articles when online', fakeAsync(() => {
     hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
     connectivityService.checkBackendReachable.and.resolveTo(true);
     commercialStockRepository.reconcileServerStock.and.resolveTo();
@@ -185,7 +206,9 @@ describe('OnlineListRefreshService', () => {
     };
     commercialStockRepository.findAvailableArticlesPaginated.and.resolveTo(refreshedPage as any);
 
-    const refreshPromise = service.refreshCommercialStockPage('com1', 0, 20);
+    let result: any;
+    service.refreshCommercialStockPage('com1', 0, 20).then((page) => { result = page; });
+    flushMicrotasks();
 
     const req = httpMock.expectOne(`${environment.apiUrl}/api/commercial-stocks/available/com1`);
     expect(req.request.method).toBe('GET');
@@ -197,11 +220,79 @@ describe('OnlineListRefreshService', () => {
         quantityRemaining: 5
       }
     ]);
+    flushMicrotasks();
 
-    await expectAsync(refreshPromise).toBeResolvedTo(refreshedPage as any);
+    expect(result).toEqual({ ...refreshedPage, page: 0, size: 20 } as any);
     expect(commercialStockRepository.reconcileServerStock).toHaveBeenCalled();
     expect(articleRepository.saveAll).toHaveBeenCalled();
     expect(stockSnapshotRepository.upsertSnapshot).toHaveBeenCalledWith('com1', 5000);
     expect(commercialStockRepository.findAvailableArticlesPaginated).toHaveBeenCalledWith('com1', 0, 20, undefined);
-  });
+  }));
+
+  it('refreshes catalogue from enabled/all on first page and reconciles disabled', fakeAsync(() => {
+    hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
+    connectivityService.checkBackendReachable.and.resolveTo(true);
+    articleRepository.findByIds.and.resolveTo([{ id: '1', stockQuantity: 3 } as any]);
+    const refreshedPage = {
+      content: [{ id: '1', name: 'Article A', creditSalePrice: 1000, state: 'ENABLED' }],
+      totalElements: 1,
+      totalPages: 1,
+      page: 0,
+      size: 20
+    };
+    articleRepository.searchCatalogueArticles.and.resolveTo(refreshedPage as any);
+
+    let result: any;
+    service.refreshArticlesCataloguePage(0, 20).then((page) => { result = page; });
+    flushMicrotasks();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/api/v1/articles/enabled/all`);
+    expect(req.request.method).toBe('GET');
+    req.flush({
+      data: [{ id: 1, name: 'Article A', commercialName: 'Article A', creditSalePrice: 1000, state: 'ENABLED' }]
+    });
+    flushMicrotasks();
+
+    expect(result).toEqual(refreshedPage as any);
+    expect(articleRepository.saveAll).toHaveBeenCalledWith([
+      jasmine.objectContaining({
+        id: '1',
+        stockQuantity: 3,
+        state: 'ENABLED'
+      })
+    ]);
+    expect(articleRepository.markMissingEnabledAsDisabled).toHaveBeenCalledWith(['1']);
+    expect(articleRepository.searchCatalogueArticles).toHaveBeenCalledWith(0, 20, undefined);
+  }));
+
+  it('searches enabled catalogue via elasticsearch when query is set', fakeAsync(() => {
+    hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
+    connectivityService.checkBackendReachable.and.resolveTo(true);
+    articleRepository.findByIds.and.resolveTo([]);
+    const refreshedPage = {
+      content: [{ id: '2', name: 'Moto' }],
+      totalElements: 1,
+      totalPages: 1,
+      page: 0,
+      size: 20
+    };
+    articleRepository.searchCatalogueArticles.and.resolveTo(refreshedPage as any);
+
+    let result: any;
+    service.refreshArticlesCataloguePage(0, 20, { searchQuery: 'moto' }).then((page) => { result = page; });
+    flushMicrotasks();
+
+    const req = httpMock.expectOne(
+      `${environment.apiUrl}/api/v1/articles/elasticsearch/enabled?page=0&size=20`
+    );
+    expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ keyword: 'moto' });
+    req.flush({
+      data: { content: [{ id: 2, name: 'Moto', creditSalePrice: 500, state: 'ENABLED' }] }
+    });
+    flushMicrotasks();
+
+    expect(result).toEqual(refreshedPage as any);
+    expect(articleRepository.markMissingEnabledAsDisabled).not.toHaveBeenCalled();
+  }));
 });

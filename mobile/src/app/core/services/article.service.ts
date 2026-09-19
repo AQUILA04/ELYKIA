@@ -29,10 +29,12 @@ export class ArticleService {
         if (isOnline) {
           return this.fetchArticlesFromApi().pipe(
             tap(async (articles) => {
-              // Set stockQuantity to 0 for all articles before saving
+              // Keep stockQuantity at 0 on seed; preserve state from API (ENABLED + DISABLED).
               const articlesWithZeroStock = articles.map(article => ({
                 ...article,
-                stockQuantity: 0
+                id: String(article.id),
+                stockQuantity: 0,
+                state: article.state || article.status || 'ENABLED'
               }));
               await this.articleRepository.saveAll(articlesWithZeroStock);
             }),
@@ -49,6 +51,7 @@ export class ArticleService {
   }
 
   private fetchArticlesFromApi(): Observable<Article[]> {
+    // Locked decision: keep /articles (non-DELETED) so DISABLED stay available for references.
     const url = `${environment.apiUrl}/api/v1/articles?page=0&size=1000`;
     return this.http.get<ApiResponse<any>>(url).pipe(
       map(response => response.data.content)
@@ -66,5 +69,9 @@ export class ArticleService {
 
   searchArticlesPaginated(query: string, page: number, size: number): Observable<Page<Article>> {
     return from(this.articleRepository.searchArticles(query, page, size));
+  }
+
+  searchCataloguePaginated(page: number, size: number, searchQuery?: string): Observable<Page<Article>> {
+    return from(this.articleRepository.searchCatalogueArticles(page, size, { searchQuery }));
   }
 }

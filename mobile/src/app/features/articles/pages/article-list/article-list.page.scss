@@ -22,6 +22,34 @@
   padding-bottom: 36px;
 }
 
+.segment-wrap {
+  background: var(--elyk-bg);
+  padding: 4px 16px 12px;
+}
+
+.elyk-segment {
+  --background: #fff;
+  border: 1px solid var(--elyk-border);
+  border-radius: 999px;
+  overflow: hidden;
+
+  ion-segment-button {
+    --color: var(--elyk-muted);
+    --color-checked: var(--elyk-navy);
+    --indicator-color: var(--elyk-navy-pale);
+    --indicator-height: 100%;
+    --indicator-box-shadow: none;
+    --border-radius: 999px;
+    font-weight: 600;
+    text-transform: none;
+    min-height: 40px;
+
+    ion-label {
+      font-size: 12px;
+    }
+  }
+}
+
 .articles-list {
   padding: 8px 0 24px;
 }

@@ -21,6 +21,21 @@
     </ion-searchbar>
   </div>
 
+  <div class="segment-wrap">
+    <ion-segment
+      mode="md"
+      [value]="activeSegment"
+      (ionChange)="onSegmentChange($event)"
+      class="elyk-segment">
+      <ion-segment-button value="stock">
+        <ion-label>Mon Stock</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="catalogue">
+        <ion-label>Catalogue</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
   <div class="articles-list">
     <div *ngIf="(isLoading$ | async) && !(articles$ | async)?.length" class="elyk-empty">
       <ion-spinner name="crescent"></ion-spinner>
@@ -29,8 +44,14 @@
 
     <div *ngIf="!(isLoading$ | async) && (articles$ | async)?.length === 0" class="elyk-empty">
       <ion-icon name="cube-outline"></ion-icon>
-      <h3>Aucun article</h3>
-      <p>Aucun article trouvé.</p>
+      <ng-container *ngIf="activeSegment === 'stock'; else catalogueEmpty">
+        <h3>Aucun article en stock</h3>
+        <p>Aucun article disponible dans votre stock commercial.</p>
+      </ng-container>
+      <ng-template #catalogueEmpty>
+        <h3>Aucun article dans le catalogue</h3>
+        <p>Aucun article actif trouvé.</p>
+      </ng-template>
     </div>
 
     <ion-card *ngFor="let article of articles$ | async; trackBy: trackByArticleId" class="elyk-card article-card">
@@ -38,7 +59,9 @@
         <div class="article-info">
           <h3 class="article-name">{{ article.commercialName || article.name }}</h3>
           <p class="article-details">{{ article.type }} · {{ article.marque }}</p>
-          <p class="stock-info">Stock disponible: {{ article.stockQuantity }} unités</p>
+          <p *ngIf="activeSegment === 'stock'" class="stock-info">
+            Stock disponible: {{ article.stockQuantity }} unités
+          </p>
           <span class="unit-price elyk-amount">{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
         </div>
       </ion-card-content>

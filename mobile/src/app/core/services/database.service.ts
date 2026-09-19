@@ -101,7 +101,7 @@ export class DatabaseService {
     // 2. Migrations incrémentielles (natif uniquement).
     // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
     const currentVersion = await this.db.getVersion();
-    const targetVersion = 31; // tontine delivery needsDeliverSync (commande → livré)
+    const targetVersion = 32; // articles.state for Catalogue filter (ENABLED/DISABLED)
     const dbVersion = currentVersion.version ?? 2;
     const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -220,6 +220,7 @@ export class DatabaseService {
             type TEXT,
             creditSalePrice REAL,
             stockQuantity INTEGER,
+            state TEXT DEFAULT 'ENABLED',
             isSync BOOLEAN DEFAULT 0,
             lastUpdate DATETIME,
             syncHash TEXT
@@ -797,12 +798,12 @@ export class DatabaseService {
     }
 
     const keysToInclude = [
-      'id', 'name', 'commercialName', 'creditSalePrice', 'stockQuantity'
+      'id', 'name', 'commercialName', 'creditSalePrice', 'stockQuantity', 'state'
     ];
 
-    const existingRows = await this.db.query('SELECT id, syncHash FROM articles');
-    const existingArticleMap = new Map<string, string>(
-      existingRows.values?.map(row => [String(row.id), row.syncHash]) ?? []
+    const existingRows = await this.db.query('SELECT id, syncHash, state FROM articles');
+    const existingArticleMap = new Map<string, { syncHash: string; state: string | null }>(
+      existingRows.values?.map(row => [String(row.id), { syncHash: row.syncHash, state: row.state ?? null }]) ?? []
     );
 
     const articlesToInsert: any[][] = [];
@@ -825,14 +826,17 @@ export class DatabaseService {
         continue;
       }
 
-      const newHash = this.generateHash(article, keysToInclude);
-      const isExisting = existingArticleMap.has(articleIdStr);
-      const needsUpdate = isExisting && existingArticleMap.get(articleIdStr) !== newHash;
+      const existing = existingArticleMap.get(articleIdStr);
+      const resolvedState = article.state || article.status || existing?.state || 'ENABLED';
+      const articleForHash = { ...article, id: articleIdStr, state: resolvedState };
+      const newHash = this.generateHash(articleForHash, keysToInclude);
+      const isExisting = !!existing;
+      const needsUpdate = isExisting && existing!.syncHash !== newHash;
 
       if (needsUpdate) {
         const updateParams = [
           article.name, article.commercialName, article.marque, article.model,
-          article.type, article.creditSalePrice, article.stockQuantity,
+          article.type, article.creditSalePrice, article.stockQuantity, resolvedState,
           1, now, newHash, articleIdStr
         ];
         articlesToUpdate.push(updateParams);
@@ -841,7 +845,7 @@ export class DatabaseService {
         const insertParams = [
           articleIdStr, article.name, article.commercialName, article.marque,
           article.model, article.type, article.creditSalePrice,
-          article.stockQuantity, 1, now, newHash
+          article.stockQuantity, resolvedState, 1, now, newHash
         ];
         articlesToInsert.push(insertParams);
         processedIds.add(articleIdStr);
@@ -853,7 +857,7 @@ export class DatabaseService {
         const updateSet: capSQLiteSet[] = [];
         const sql = `UPDATE articles SET
                     name = ?, commercialName = ?, marque = ?, model = ?,
-                    type = ?, creditSalePrice = ?, stockQuantity = ?,
+                    type = ?, creditSalePrice = ?, stockQuantity = ?, state = ?,
                     isSync = ?, lastUpdate = ?, syncHash = ?
                    WHERE id = ?`;
         for (const params of articlesToUpdate) {
@@ -866,8 +870,8 @@ export class DatabaseService {
         const insertSet: capSQLiteSet[] = [];
         const sql = `INSERT INTO articles (
                     id, name, commercialName, marque, model, type,
-                    creditSalePrice, stockQuantity, isSync, lastUpdate, syncHash
-                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    creditSalePrice, stockQuantity, state, isSync, lastUpdate, syncHash
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         for (const params of articlesToInsert) {
           insertSet.push({ statement: sql, values: params });
         }

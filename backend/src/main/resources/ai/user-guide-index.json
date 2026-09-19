@@ -87,7 +87,37 @@
       "commercial",
       "manager"
     ],
-    "content": "Application mobile de terrain\n\nL’application mobile propose un parcours commercial et un parcours dédié au chef de recouvrement. Elle privilégie l’écriture en ligne lorsque le serveur est joignable, avec possibilité d’enregistrer hors ligne lorsque l’interface le propose. La synchronisation reste indispensable pour remonter les opérations locales.\nParcours commercial\n\nAprès connexion, le chargement initial prépare les données nécessaires aux onglets de travail. Les parcours disponibles incluent les clients, distributions, recouvrements, stock, commandes, tontine, rapport et synchronisation, selon le compte connecté.\n\n Action Comportement à retenir \n --- --- \n Créer ou modifier un client Tentative en ligne en priorité ; l’application peut proposer un enregistrement hors ligne en cas d’indisponibilité. \n Distribution et encaissement Tentative en ligne puis repli local proposé selon l’erreur rencontrée. \n Tontine Inscription, collecte et livraison suivent la même logique hybride ; les collectes locales sont synchronisées ultérieurement. \n Synchroniser Les pages de synchronisation manuelle, automatique et d’erreurs permettent de contrôler les opérations en attente. \n\n \n\nUne collecte tontine hors ligne peut afficher une estimation. Après reconnexion, lancez la synchronisation et vérifiez que l’opération a bien quitté la file d’attente avant de la considérer comme définitive.\nParcours chef de recouvrement\n\nLe profil Chef de recouvrement dispose d’un espace terrain distinct, accessible après le plan du jour, avec les onglets Retards , Terrain , Clients et Plus . Son parcours complet — contrôles de carnet, clôtures, réaffectations, pack hors ligne et synchronisation — est documenté dans le Guide Chef de recouvrement.\nSécurité et mise à jour\n\nAprès une réinitialisation de mot de passe, le changement est obligatoire avant de poursuivre. Si la gestion d’appareils mobiles est activée par l’organisation, seuls les appareils autorisés peuvent se connecter. La page Plus peut afficher la version installée et le bouton Mettre à jour l’application ; installez uniquement les mises à jour proposées par l’application ou par la procédure officielle de l’organisation."
+    "content": "Application mobile de terrain\n\nL’application mobile propose un parcours commercial et un parcours dédié au chef de recouvrement. Elle privilégie l’écriture en ligne lorsque le serveur est joignable, avec possibilité d’enregistrer hors ligne lorsque l’interface le propose. La synchronisation reste indispensable pour remonter les opérations locales."
+  },
+  {
+    "id": "commercial_mobile_app__parcours_commercial",
+    "title": "Application mobile de terrain — Parcours commercial",
+    "path": "/user-guide/commercial/mobile_app.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Application mobile de terrain\nParcours commercial\n\nAprès connexion, le chargement initial prépare les données nécessaires aux onglets de travail. Les parcours disponibles incluent les clients, distributions, recouvrements, stock, commandes, tontine, rapport et synchronisation, selon le compte connecté.\n\n Action Comportement à retenir \n --- --- \n Créer ou modifier un client Tentative en ligne en priorité ; l’application peut proposer un enregistrement hors ligne en cas d’indisponibilité. \n Distribution et encaissement Tentative en ligne puis repli local proposé selon l’erreur rencontrée. \n Tontine Inscription, collecte et livraison suivent la même logique hybride ; les collectes locales sont synchronisées ultérieurement. \n Synchroniser Les pages de synchronisation manuelle, automatique et d’erreurs permettent de contrôler les opérations en attente. \n\nArticles (Plus → Articles)\n\nDepuis Plus → Articles , consultez deux onglets :\n\n Onglet Contenu \n --- --- \n Mon Stock Articles de votre stock commercial avec quantité disponible et prix de vente à crédit. \n Catalogue Articles actifs du catalogue (prix de vente à crédit uniquement, sans quantité). \n\nLa barre de recherche filtre l’onglet actif. Hors ligne, chaque onglet s’appuie sur le cache local ; en ligne, la liste se rafraîchit en arrière-plan sans bloquer l’affichage.\n\n \n\nUne collecte tontine hors ligne peut afficher une estimation. Après reconnexion, lancez la synchronisation et vérifiez que l’opération a bien quitté la file d’attente avant de la considérer comme définitive."
+  },
+  {
+    "id": "commercial_mobile_app__parcours_chef_de_recouvrement",
+    "title": "Application mobile de terrain — Parcours chef de recouvrement",
+    "path": "/user-guide/commercial/mobile_app.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Application mobile de terrain\nParcours chef de recouvrement\n\nLe profil Chef de recouvrement dispose d’un espace terrain distinct, accessible après le plan du jour, avec les onglets Retards , Terrain , Clients et Plus . Son parcours complet — contrôles de carnet, clôtures, réaffectations, pack hors ligne et synchronisation — est documenté dans le Guide Chef de recouvrement."
+  },
+  {
+    "id": "commercial_mobile_app__s_curit_et_mise_jour",
+    "title": "Application mobile de terrain — Sécurité et mise à jour",
+    "path": "/user-guide/commercial/mobile_app.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Application mobile de terrain\nSécurité et mise à jour\n\nAprès une réinitialisation de mot de passe, le changement est obligatoire avant de poursuivre. Si la gestion d’appareils mobiles est activée par l’organisation, seuls les appareils autorisés peuvent se connecter. La page Plus peut afficher la version installée et le bouton Mettre à jour l’application ; installez uniquement les mises à jour proposées par l’application ou par la procédure officielle de l’organisation."
   },
   {
     "id": "commercial_reporting",

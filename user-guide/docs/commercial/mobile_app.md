@@ -15,6 +15,19 @@ Après connexion, le chargement initial prépare les données nécessaires aux o
 
 <!-- CAPTURE À INSÉRER : Onglet Plus de l’application mobile commerciale avec l’état de synchronisation et les actions disponibles. -->
 
+### Articles (Plus → Articles)
+
+Depuis **Plus → Articles**, consultez deux onglets :
+
+| Onglet | Contenu |
+|---|---|
+| **Mon Stock** | Articles de votre stock commercial avec quantité disponible et prix de vente à crédit. |
+| **Catalogue** | Articles actifs du catalogue (prix de vente à crédit uniquement, sans quantité). |
+
+La barre de recherche filtre l’onglet actif. Hors ligne, chaque onglet s’appuie sur le cache local ; en ligne, la liste se rafraîchit en arrière-plan sans bloquer l’affichage.
+
+<!-- CAPTURE À INSÉRER : Écran Articles avec le segment Mon Stock | Catalogue. -->
+
 Une collecte tontine hors ligne peut afficher une estimation. Après reconnexion, lancez la synchronisation et vérifiez que l’opération a bien quitté la file d’attente avant de la considérer comme définitive.
 
 ## Parcours chef de recouvrement

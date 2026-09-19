@@ -39,3 +39,21 @@ describe('MigrationService v31', () => {
     expect(executes.some(sql => sql.includes('ALTER TABLE tontine_deliveries ADD COLUMN needsDeliverSync'))).toBeTrue();
   });
 });
+
+describe('MigrationService v32', () => {
+  it('adds articles.state and backfills ENABLED', async () => {
+    const executes: string[] = [];
+    const db = {
+      query: async () => ({ values: [] }),
+      execute: async (sql: string) => {
+        executes.push(sql);
+      }
+    } as any;
+
+    const service = new MigrationService({ log: () => undefined } as unknown as LoggerService);
+    await service.runMigrations(db, 31, 32);
+
+    expect(executes.some(sql => sql.includes("ALTER TABLE articles ADD COLUMN state TEXT DEFAULT 'ENABLED'"))).toBeTrue();
+    expect(executes.some(sql => sql.includes("UPDATE articles SET state = 'ENABLED'"))).toBeTrue();
+  });
+});
