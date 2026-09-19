@@ -120,6 +120,17 @@ docker compose \
   --env-file "$ENV_FILE" \
   pull
 
+# Host logs/photos must match image user app (UID 999). Alpine leftovers (100:101)
+# crash-loop Logback after CD and Traefik then serves the SPA on /api.
+FIX_MOUNTS="$ROOT_DIR/fix-backend-bind-mounts.sh"
+if [[ -x "$FIX_MOUNTS" ]]; then
+  "$FIX_MOUNTS" "$ENV" "$ENV_FILE"
+elif [[ -f "$FIX_MOUNTS" ]]; then
+  bash "$FIX_MOUNTS" "$ENV" "$ENV_FILE"
+else
+  echo "Warning: $FIX_MOUNTS not found; bind-mount UIDs may be stale." >&2
+fi
+
 echo "Starting services..."
 docker compose \
   -f "$COMPOSE_FILE" \

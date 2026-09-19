@@ -33,6 +33,8 @@ services:
     image: ${BACKEND_IMAGE:?BACKEND_IMAGE required}
     container_name: elykia-test-backend
     restart: unless-stopped
+    # Entrypoint starts as root to chown bind mounts, then drops to app (UID 999).
+    # Do not set `user:` — that would skip the chown and crash-loop Logback.
     depends_on:
       db:
         condition: service_healthy

@@ -17,6 +17,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - **Mon Stock** : liste stock commercial inchangée (quantité + prix crédit), SWR + infinite scroll.
 - **Catalogue** : articles actifs (`state=ENABLED`), prix crédit seul, sans quantité ; SWR via `/articles/enabled` + cache SQLite.
 - Colonne SQLite `articles.state` (migration v32) ; l’init reste sur `GET /articles` (ENABLED + DISABLED syncés pour références).
+## Backend — [1.18.1] — 2026-09-19
+
+### Fixed
+
+- Crash-loop Logback après CD : UID `app` figé à **999**, entrypoint qui `chown` les volumes logs/photos puis passe en utilisateur non-root.
+
+## Docs & Infra — 2026-09-19
+
+### Fixed
+
+- **Deploy —** `deploy.sh` / `rollback.sh` / `setup-server.sh` réalignent les bind mounts hôte sur UID 999 avant `up` (`fix-backend-bind-mounts.sh`) ; plus de `chown 100:101` Alpine dans la migration Contabo.
 
 ## Mobile — [2.29.1] — 2026-09-18
 

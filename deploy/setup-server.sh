@@ -209,6 +209,12 @@ if id "deploy" &>/dev/null; then
   chown -R deploy:deploy /opt/elykia
 fi
 
+# Logs/photos must be writable by backend user app (UID 999), not deploy.
+if [[ -f "$DEPLOY_DIR/fix-backend-bind-mounts.sh" ]]; then
+  bash "$DEPLOY_DIR/fix-backend-bind-mounts.sh" test /opt/elykia/test/.env || true
+  bash "$DEPLOY_DIR/fix-backend-bind-mounts.sh" prod /opt/elykia/prod/.env || true
+fi
+
 # --- 7. Optional: rclone for off-site DB backup replication ---
 if [[ -n "${RCLONE_CONF:-}" || -n "${RCLONE_CONF_FILE:-}" ]]; then
   echo "[7/7] Setting up rclone (off-site backup upload)..."

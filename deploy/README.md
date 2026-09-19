@@ -148,6 +148,8 @@ Une fois le serveur configuré, le déploiement se fait via le script `deploy.sh
 > **Astuce :** Vous pouvez ajouter l'option `-fu` (ou `--force-update`) en tout premier paramètre pour forcer la mise à jour des scripts de déploiement (le dossier `deploy` complet) depuis GitHub avant de lancer le déploiement :
 > `./deploy.sh -fu prod ghcr.io/OWNER/ELYKIA-frontend:TAG ghcr.io/OWNER/ELYKIA-backend:TAG`
 
+Avant `up -d`, `deploy.sh` (et `rollback.sh`) exécute `fix-backend-bind-mounts.sh` : les répertoires hôte `LOG_PATH` et `PHOTO_FALLBACK_PATH_HOST` sont `chown` vers **UID/GID 999** (`app` dans l’image Debian). L’entrypoint backend refait le même `chown` au démarrage du conteneur, puis passe sous l’utilisateur `app`. Ne pas poser `user:` dans le compose backend.
+
 ### 3. Rollback (en cas de problème)
 ```bash
 # revenir au dernier déploiement précédent
