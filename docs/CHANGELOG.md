@@ -9,6 +9,15 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.30.0] — 2026-09-19
+
+### Added
+
+- Écran **Articles** : segment **Mon Stock** | **Catalogue** (titre inchangé).
+- **Mon Stock** : liste stock commercial inchangée (quantité + prix crédit), SWR + infinite scroll.
+- **Catalogue** : articles actifs (`state=ENABLED`), prix crédit seul, sans quantité ; SWR via `/articles/enabled` + cache SQLite.
+- Colonne SQLite `articles.state` (migration v32) ; l’init reste sur `GET /articles` (ENABLED + DISABLED syncés pour références).
+
 ## Mobile — [2.29.1] — 2026-09-18
 
 ### Added

@@ -486,4 +486,77 @@ export class OnlineListRefreshService {
       return null;
     }
   }
+
+  /**
+   * Hybrid SWR for Catalogue: upsert enabled articles from server, reconcile
+   * local ENABLED set so deleted/disabled server articles leave the Catalogue
+   * (rows stay in SQLite as DISABLED for historical references).
+   */
+  async refreshArticlesCataloguePage(
+    page: number,
+    size: number,
+    filters?: { searchQuery?: string }
+  ): Promise<Page<Article> | null> {
+    if (!await this.shouldRefreshFromServer()) {
+      return null;
+    }
+
+    try {
+      const searchQuery = (filters?.searchQuery || '').trim();
+      let serverArticles: any[] = [];
+
+      if (searchQuery) {
+        const url = `${environment.apiUrl}/api/v1/articles/elasticsearch/enabled?page=${page}&size=${size}`;
+        const response = await firstValueFrom(
+          this.http.post<ApiResponse<{ content: any[]; totalElements?: number; totalPages?: number; number?: number }>>(
+            url,
+            { keyword: searchQuery }
+          )
+        );
+        serverArticles = response.data?.content || [];
+      } else if (page === 0) {
+        const url = `${environment.apiUrl}/api/v1/articles/enabled/all`;
+        const response = await firstValueFrom(this.http.get<ApiResponse<any[]>>(url));
+        serverArticles = Array.isArray(response.data) ? response.data : [];
+      } else {
+        const url = `${environment.apiUrl}/api/v1/articles/enabled?page=${page}&size=${size}&sort=commercialName,asc`;
+        const response = await firstValueFrom(
+          this.http.get<ApiResponse<{ content: any[] }>>(url)
+        );
+        serverArticles = response.data?.content || [];
+      }
+
+      const existing = await this.articleRepository.findByIds(
+        serverArticles.map((a) => String(a.id)).filter(Boolean)
+      );
+      const stockById = new Map(existing.map((a) => [String(a.id), a.stockQuantity ?? 0]));
+
+      const mapped: Article[] = serverArticles
+        .filter((a) => a && a.id !== undefined && a.id !== null)
+        .map((a) => ({
+          id: String(a.id),
+          name: a.name || '',
+          commercialName: a.commercialName || a.name || '',
+          marque: a.marque || '',
+          model: a.model || '',
+          type: a.type || '',
+          creditSalePrice: a.creditSalePrice ?? 0,
+          stockQuantity: stockById.get(String(a.id)) ?? 0,
+          state: a.state || a.status || 'ENABLED'
+        }));
+
+      if (mapped.length > 0) {
+        await this.articleRepository.saveAll(mapped);
+      }
+
+      if (!searchQuery && page === 0) {
+        await this.articleRepository.markMissingEnabledAsDisabled(mapped.map((a) => a.id));
+      }
+
+      return this.articleRepository.searchCatalogueArticles(page, size, filters);
+    } catch (error) {
+      void this.log.log(`[OnlineListRefresh] articles catalogue page ${page} failed: ${String(error)}`);
+      return null;
+    }
+  }
 }

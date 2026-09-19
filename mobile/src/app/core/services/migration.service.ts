@@ -142,6 +142,9 @@ export class MigrationService {
       case 31:
         await this.migrateToV31(db);
         break;
+      case 32:
+        await this.migrateToV32(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -869,6 +872,23 @@ export class MigrationService {
     } catch (error: any) {
       this.log.log(`Error in migration v31: ${error}`);
       console.error('Error in migration v31', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Colonne state sur articles pour filtrer le Catalogue (ENABLED) tout en
+   * conservant les DISABLED en local (références distributions).
+   */
+  private async migrateToV32(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v32: articles.state...');
+      await this.addColumnIfNotExists(db, 'articles', 'state', "TEXT DEFAULT 'ENABLED'");
+      await db.execute(`UPDATE articles SET state = 'ENABLED' WHERE state IS NULL OR state = ''`);
+      this.log.log('Migration to v32 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v32: ${error}`);
+      console.error('Error in migration v32', error);
       throw error;
     }
   }
