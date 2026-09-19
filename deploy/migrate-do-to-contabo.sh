@@ -214,10 +214,10 @@ OCI_MINIO_PASS="$(remote "grep -E '^MINIO_ROOT_PASSWORD=' '$OCI_ENV_PATH' | cut 
 [[ -n "$OCI_MINIO_USER" && -n "$OCI_MINIO_PASS" ]] || die "Could not read MINIO_ROOT_* from Contabo $OCI_ENV_PATH"
 
 log "[3/8] Preparing Contabo directories + syncing deploy scripts…"
-# Backend image runs as user app (uid 100 / gid 101). Root-owned log mounts cause crash-loop
-# (Logback Permission denied) → Traefik only routes FE → POST /api = nginx 405.
+# Backend image user app is pinned to uid 999 / gid 999 (Debian temurin). Alpine was 100:101.
+# Wrong ownership → Logback Permission denied → crash-loop → Traefik serves FE on /api (login 405).
 remote_bash "mkdir -p '$REMOTE_ELYKIA'/{deploy,prod/logs,prod/photos/pending,prod/backups,prod/releases,test/logs,test/photos/pending,test/backups,test/releases}
-chown -R 100:101 '$REMOTE_ELYKIA'/prod/logs '$REMOTE_ELYKIA'/prod/photos/pending \
+chown -R 999:999 '$REMOTE_ELYKIA'/prod/logs '$REMOTE_ELYKIA'/prod/photos/pending \
   '$REMOTE_ELYKIA'/test/logs '$REMOTE_ELYKIA'/test/photos/pending
 chmod -R u+rwX '$REMOTE_ELYKIA'/prod/logs '$REMOTE_ELYKIA'/prod/photos/pending \
   '$REMOTE_ELYKIA'/test/logs '$REMOTE_ELYKIA'/test/photos/pending"
@@ -448,7 +448,7 @@ for env in "${ENV_LIST[@]}"; do
   env="$(echo "$env" | xargs)"
   ccompose="$(contabo_compose_for "$env")"
   proj="$(project_for "$env")"
-  remote_bash "chown -R 100:101 '$REMOTE_ELYKIA/$env/logs' '$REMOTE_ELYKIA/$env/photos/pending' 2>/dev/null || true
+  remote_bash "chown -R 999:999 '$REMOTE_ELYKIA/$env/logs' '$REMOTE_ELYKIA/$env/photos/pending' 2>/dev/null || true
 chmod -R u+rwX '$REMOTE_ELYKIA/$env/logs' '$REMOTE_ELYKIA/$env/photos/pending' 2>/dev/null || true
 cd '$REMOTE_ELYKIA/deploy'
 docker compose -f '$ccompose' --project-name '$proj' --env-file '$REMOTE_ELYKIA/$env/.env' up -d

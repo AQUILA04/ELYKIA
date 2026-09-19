@@ -45,7 +45,7 @@ Options utiles :
 |-------|--------|
 | 1 | SSH Contabo, vérifie `traefik-public` + `optimizesolux-common` |
 | 2 | Lit `MINIO_ROOT_*` depuis `/opt/optimizesolux/common-infra/.env` |
-| 3 | Sync `deploy/` → `/opt/elykia/deploy` + `chown 100:101` sur logs/photos (user `app`) |
+| 3 | Sync `deploy/` → `/opt/elykia/deploy` + `chown 999:999` sur logs/photos (user `app`, UID Debian pinée) |
 | 4 | Génère `.env` Contabo (MinIO → OCI, OTel → collector) |
 | 5 | `pg_dump` DO → restore Postgres Contabo (`docker compose exec -T -i`, backup sous `/opt/elykia/$env/backups/`, vérif counts) |
 | 6 | `mc mirror` buckets MinIO DO → MinIO OCI |

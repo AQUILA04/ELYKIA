@@ -125,6 +125,13 @@ docker compose \
   --env-file "$ENV_FILE" \
   pull
 
+FIX_MOUNTS="$ROOT_DIR/fix-backend-bind-mounts.sh"
+if [[ -x "$FIX_MOUNTS" ]]; then
+  "$FIX_MOUNTS" "$ENV" "$ENV_FILE"
+elif [[ -f "$FIX_MOUNTS" ]]; then
+  bash "$FIX_MOUNTS" "$ENV" "$ENV_FILE"
+fi
+
 echo "Applying rollback: bringing services up with selected images"
 docker compose \
   -f "$COMPOSE_FILE" \

@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.18.1] — 2026-09-19
+
+### Fixed
+
+- Crash-loop Logback après CD : UID `app` figé à **999**, entrypoint qui `chown` les volumes logs/photos puis passe en utilisateur non-root.
+
+## Docs & Infra — 2026-09-19
+
+### Fixed
+
+- **Deploy —** `deploy.sh` / `rollback.sh` / `setup-server.sh` réalignent les bind mounts hôte sur UID 999 avant `up` (`fix-backend-bind-mounts.sh`) ; plus de `chown 100:101` Alpine dans la migration Contabo.
+
 ## Mobile — [2.29.1] — 2026-09-18
 
 ### Added
