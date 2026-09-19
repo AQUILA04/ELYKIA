@@ -20,6 +20,10 @@ public class CommercialStockMovement extends Auditable<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** Multi-agency scope (FK agency.id). */
+    @Column(name = "agency_id")
+    private Long agencyId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "stock_item_id", nullable = false)
     private CommercialMonthlyStockItem stockItem;

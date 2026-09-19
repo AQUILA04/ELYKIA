@@ -63,6 +63,11 @@ public class Client extends Auditable<String> {
     private String cardPhotoThumbUrl;
     private String tontineCollector;
     private String agencyCollector;
+
+    /** Multi-agency scope (FK agency.id). */
+    @Column(name = "agency_id")
+    private Long agencyId;
+
     private String recoveryCollector;
     @Column(columnDefinition = "boolean default false")
     private boolean isTontineMember;

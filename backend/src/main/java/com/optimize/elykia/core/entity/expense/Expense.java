@@ -23,6 +23,10 @@ public class Expense extends Auditable<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** Multi-agency scope (FK agency.id). */
+    @Column(name = "agency_id")
+    private Long agencyId;
+
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "expense_type_id", nullable = false)
