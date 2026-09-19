@@ -1,0 +1,10 @@
+---
+description: Guide de construction des composants UI/UX pour le module mobile de gestion des stocks
+globs: mobile/**
+alwaysApply: false
+---
+
+# ELYKIA Stock Components Build
+
+Ce skill définit les tokens de design, les règles de styling, la structure des composants et les normes d'accessibilité pour le module mobile de gestion des stocks (Angular/Ionic).
+Voir le skill `.cursor/skills/elykia-stock-components-build/SKILL.md` pour les règles complètes.

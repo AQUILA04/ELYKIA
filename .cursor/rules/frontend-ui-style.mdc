@@ -1,0 +1,10 @@
+---
+description: Impose le style UI standard du frontend ELYKIA
+globs: frontend/src/app/**/*.html, frontend/src/app/**/*.scss
+alwaysApply: false
+---
+
+# Frontend UI Style
+
+Appliquer le style UI standard du frontend ELYKIA pour les pages de liste, rapports, tableaux, et états vides.
+Voir le skill `.cursor/skills/frontend-ui-style/SKILL.md` pour les règles complètes, la palette, et la structure HTML obligatoire.

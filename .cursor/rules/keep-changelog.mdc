@@ -1,0 +1,10 @@
+---
+description: Met à jour docs/CHANGELOG.md après chaque tâche
+globs: *
+alwaysApply: true
+---
+
+# Keep Changelog
+
+Après l'exécution de toute tâche modifiant le code ou la configuration, incrémenter la version du composant concerné (Frontend, Mobile, Backend, Customer-space) et documenter les changements dans `docs/CHANGELOG.md`.
+Voir le skill `.cursor/skills/keep-changelog/SKILL.md` pour le workflow complet et les règles de nommage.

@@ -7,7 +7,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,7 +23,6 @@ public class PhotoOutboxRetryScheduler {
     private final ClientService clientService;
 
     @Scheduled(fixedDelay = 300_000)
-    @Transactional
     public void retryPendingPhotos() {
         if (!minioStorageService.isAvailable()) {
             log.debug("MinIO indisponible, report de la tentative outbox");
