@@ -16,6 +16,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Déclaration Mobile Money de cotisation tontine : route `/tontines/:id/payment`, CTA sur le détail, API recipients/submit, affichage `INITIE` dans la timeline.
 - E2E déclaration cotisation tontine (mocks recipients + POST).
 
+## Frontend — [2.21.1] — 2026-09-19
+
+### Changed
+
+- Toast de connexion (5 min) : déclenché uniquement s’il reste des déclarations de paiement clients ou des commandes non lues — les rattrapages tontine ne le déclenchent plus.
+
+## Backend — [1.17.1] — 2026-09-19
+
+### Added
+
+- Endpoint `GET /api/v1/app-notifications/unread-count/login-toast` : compteur non lu limité aux types `PAYMENT_DECLARATION`, `CUSTOMER_ORDER`, `TONTINE_PAYMENT_DECLARATION` (exclut `TONTINE_CATCHUP`).
+
 ## Frontend — [2.21.0] — 2026-09-17
 
 ### Added
