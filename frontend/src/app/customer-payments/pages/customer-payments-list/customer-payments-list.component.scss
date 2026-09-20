@@ -1,1 +1,379 @@
-/* customer payments list */
+/* ============================================================
+   customer-payments-list.component.scss
+   ViewEncapsulation.None  →  styles globaux pour tous les
+   sous-composants (kpi, filter, table).
+   ============================================================ */
+
+.customer-payments-list-page {
+  /* Projet */
+  --navy:          #003366;
+  --navy-dark:     #002244;
+  --navy-pale:     #e8eef6;
+  --navy-xpale:    #f0f4f9;
+
+  /* Fonds */
+  --bg-page:       #f2f4f8;
+  --bg-white:      #ffffff;
+
+  /* Bordures */
+  --border:        #dde3ec;
+  --border-dark:   #c5cfe0;
+
+  /* Textes */
+  --text-body:     #333333;
+  --text-muted:    #6b7a99;
+  --text-light:    #9aacc4;
+
+  /* Statuts */
+  --green:         #1d8a3c;
+  --orange:        #c75000;
+  --red:           #dc2626;
+
+  /* Ombres */
+  --shadow-sm:  0 1px 3px rgba(0, 51, 102, 0.08);
+  --shadow-md:  0 4px 16px rgba(0, 51, 102, 0.10);
+
+  /* Rayons */
+  --radius:     12px;
+  --radius-sm:  8px;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.customer-payments-list-page.a1 { animation: fadeUp .3s .00s ease both; }
+.customer-payments-list-page .a2 { animation: fadeUp .3s .05s ease both; }
+.customer-payments-list-page .a4 { animation: fadeUp .3s .15s ease both; }
+.customer-payments-list-page .a5 { animation: fadeUp .3s .20s ease both; }
+
+.customer-payments-list-page.main-container {
+  display: flex;
+  flex-direction: column;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 16px 24px 48px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-page);
+  min-height: calc(100vh - 80px);
+}
+
+.customer-payments-list-page .breadcrumb-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.customer-payments-list-page .breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.customer-payments-list-page .breadcrumb-link:hover { color: var(--navy); }
+.customer-payments-list-page .breadcrumb-link svg { width: 16px; height: 16px; }
+
+.customer-payments-list-page .date-display {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.customer-payments-list-page .page-header-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 26px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 18px;
+}
+
+.customer-payments-list-page .header-card-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.customer-payments-list-page .header-surtitle {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-light);
+  font-family: 'DM Mono', monospace;
+}
+
+.customer-payments-list-page .last-update {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.customer-payments-list-page .header-card-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+
+.customer-payments-list-page .title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.customer-payments-list-page .page-icon {
+  width: 22px;
+  height: 22px;
+  color: var(--navy);
+  flex-shrink: 0;
+}
+
+.customer-payments-list-page .page-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy);
+  margin: 0 !important;
+}
+
+.customer-payments-list-page .page-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.customer-payments-list-page .btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--navy);
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+.customer-payments-list-page .btn-refresh:hover {
+  background: var(--navy-dark);
+}
+.customer-payments-list-page .btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.customer-payments-list-page .btn-refresh svg { width: 14px; height: 14px; }
+
+.customer-payments-list-page .toolbar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.customer-payments-list-page .filter-fields {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  flex: 1;
+}
+
+.customer-payments-list-page .filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.customer-payments-list-page .toolbar-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.customer-payments-list-page .type-tabs {
+  display: flex;
+  background: var(--navy-xpale);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.customer-payments-list-page .tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.customer-payments-list-page .tab-btn:hover {
+  color: var(--navy);
+}
+
+.customer-payments-list-page .tab-btn.active {
+  background: var(--bg-white);
+  color: var(--navy);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+}
+
+.customer-payments-list-page .filter-actions {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.customer-payments-list-page .result-count {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.customer-payments-list-page .result-count strong { color: var(--navy); }
+
+.customer-payments-list-page .table-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.customer-payments-list-page .table-wrapper { overflow-x: auto; min-height: 120px; }
+
+.customer-payments-list-page .data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.customer-payments-list-page .data-table thead th {
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--navy);
+  background: var(--navy-xpale);
+  border-bottom: 2px solid var(--navy-pale);
+  text-align: left;
+}
+
+.customer-payments-list-page .data-table tbody td {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.customer-payments-list-page .data-table tbody tr {
+  transition: background .12s;
+}
+.customer-payments-list-page .data-table tbody tr:hover td {
+  background-color: var(--navy-xpale);
+}
+.customer-payments-list-page .data-table tbody tr.highlighted-row td {
+  background-color: #f0f7ff;
+}
+
+.customer-payments-list-page .btn-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--navy-xpale);
+  color: var(--navy);
+  border: 1px solid var(--navy-pale);
+  cursor: pointer;
+  transition: all .18s;
+  white-space: nowrap;
+}
+.customer-payments-list-page .btn-detail:hover {
+  background: var(--navy);
+  color: white;
+  border-color: var(--navy);
+}
+
+.customer-payments-list-page .btn-success-solid {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--green);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all .18s;
+}
+.customer-payments-list-page .btn-success-solid:hover {
+  background: #166e30;
+}
+
+.customer-payments-list-page .btn-danger-outline {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  background: transparent;
+  color: var(--red);
+  border: 1px solid var(--red);
+  cursor: pointer;
+  transition: all .18s;
+}
+.customer-payments-list-page .btn-danger-outline:hover {
+  background: #fef2f2;
+}
+
+.customer-payments-list-page .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.customer-payments-list-page .empty-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+  opacity: 0.8;
+}
+
+.customer-payments-list-page .empty-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--navy);
+  margin-bottom: 4px;
+}
+
+.customer-payments-list-page .empty-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+}

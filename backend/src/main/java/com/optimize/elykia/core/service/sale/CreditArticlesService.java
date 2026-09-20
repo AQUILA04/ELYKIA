@@ -15,8 +15,11 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class CreditArticlesService extends GenericService<CreditArticles, Long> {
 
-    protected CreditArticlesService(CreditArticlesRepository repository) {
+    private final org.thymeleaf.TemplateEngine templateEngine;
+
+    protected CreditArticlesService(CreditArticlesRepository repository, org.thymeleaf.TemplateEngine templateEngine) {
         super(repository);
+        this.templateEngine = templateEngine;
     }
 
     public void delete(CreditArticles creditArticles) {
@@ -43,5 +46,36 @@ public class CreditArticlesService extends GenericService<CreditArticles, Long> 
 
     public org.springframework.data.domain.Page<com.optimize.elykia.core.dto.SoldArticleDto> searchSoldArticles(com.optimize.elykia.core.dto.SoldArticleSearchDto dto, Pageable pageable) {
         return getRepository().findSoldArticles(dto.getStartDate(), dto.getEndDate(), dto.getCommercial(), pageable);
+    }
+
+    public byte[] generatePdfExport(com.optimize.elykia.core.dto.SoldArticleSearchDto dto) {
+        if (dto.getStartDate() != null && dto.getEndDate() != null) {
+            long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(dto.getStartDate(), dto.getEndDate());
+            if (daysBetween > 31) {
+                throw new IllegalArgumentException("La plage de dates ne doit pas dépasser un mois.");
+            }
+        }
+
+        // Fetch all articles matching the filter without pagination
+        List<com.optimize.elykia.core.dto.SoldArticleDto> articles = getRepository()
+            .findSoldArticles(dto.getStartDate(), dto.getEndDate(), dto.getCommercial(), org.springframework.data.domain.Pageable.unpaged())
+            .getContent();
+
+        long totalQuantity = articles.stream().mapToLong(a -> a.getTotalQuantity() != null ? a.getTotalQuantity() : 0L).sum();
+
+        org.thymeleaf.context.Context context = new org.thymeleaf.context.Context();
+        context.setVariable("articles", articles);
+        context.setVariable("articlesEmpty", articles.isEmpty());
+        context.setVariable("collectorName", dto.getCommercial() != null && !dto.getCommercial().isBlank() ? dto.getCommercial() : "Tous");
+        context.setVariable("startDate", dto.getStartDate() != null ? dto.getStartDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A");
+        context.setVariable("endDate", dto.getEndDate() != null ? dto.getEndDate().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "N/A");
+        context.setVariable("generationDate", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        context.setVariable("totalQuantity", totalQuantity);
+
+        String html = templateEngine.process("articles-vendus-export", context);
+
+        java.io.ByteArrayOutputStream target = new java.io.ByteArrayOutputStream();
+        com.itextpdf.html2pdf.HtmlConverter.convertToPdf(html, target);
+        return target.toByteArray();
     }
 }

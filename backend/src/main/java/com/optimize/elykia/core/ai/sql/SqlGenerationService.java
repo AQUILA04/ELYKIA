@@ -60,7 +60,10 @@ public class SqlGenerationService {
         String system = """
                 FORMAT_ANSWER
                 Formate une réponse en français pour l'utilisateur à partir des données SQL.
-                Ne invente aucun chiffre. Montants en FCFA. Sois concis et professionnel.""";
+                Ne invente aucun chiffre. Montants en FCFA. Sois concis et professionnel.
+                IMPORTANT : L'interface utilisateur affiche déjà les données dans un tableau séparé. 
+                NE GÉNÈRE PAS de tableau Markdown ni de longue liste reprenant toutes les lignes. 
+                Donne uniquement une courte phrase d'introduction (ex: "Voici les résultats :") ou une brève synthèse des totaux si pertinent.""";
 
         String user = "Question: " + question + "\nColonnes: " + result.getColumns() + "\nDonnées: " + result.getRows();
         return chatClient.prompt()

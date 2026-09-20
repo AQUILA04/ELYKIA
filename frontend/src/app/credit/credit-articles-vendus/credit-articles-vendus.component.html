@@ -1,4 +1,4 @@
-<div class="main-container credit-list-page a1">
+<div class="main-container credit-articles-vendus-page a1">
   <div class="breadcrumb-bar">
     <a routerLink="/dashboard" class="breadcrumb-link">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
@@ -12,6 +12,7 @@
   <div class="page-header-card a2">
     <div class="header-card-top">
       <span class="header-surtitle">GESTION DES VENTES</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
     </div>
     <div class="header-card-main">
       <div class="title-group">
@@ -20,7 +21,7 @@
           <path d="M3 6h18"/>
           <path d="M16 10a4 4 0 0 1-8 0"/>
         </svg>
-        <h1 class="page-title">Articles Vendus</h1>
+        <h1 class="page-title" style="margin:0 !important;padding:0;line-height:1">Articles Vendus</h1>
       </div>
       <button class="btn-refresh" (click)="loadArticles()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -30,45 +31,57 @@
     <p class="page-subtitle">Vue globale des articles vendus par les commerciaux sur une période donnée.</p>
   </div>
 
-  <div class="toolbar-shell a4">
-    <div class="toolbar toolbar-top">
-      <div class="filter-group filter-group-period">
+  <div class="toolbar a4">
+    <div class="filter-fields">
+      <div class="filter-field">
         <span class="toolbar-label">Période</span>
-        <div class="period-buttons">
-          <button type="button" class="period-btn" [class.active]="periodPreset === 'TODAY'" (click)="onPeriodPresetChange('TODAY')">Ce jour</button>
-          <button type="button" class="period-btn" [class.active]="periodPreset === 'WEEK'" (click)="onPeriodPresetChange('WEEK')">Cette semaine</button>
-          <button type="button" class="period-btn" [class.active]="periodPreset === 'MONTH'" (click)="onPeriodPresetChange('MONTH')">Ce mois</button>
-          <button type="button" class="period-btn" [class.active]="periodPreset === 'CUSTOM'" (click)="onPeriodPresetChange('CUSTOM')">Personnalisé</button>
+        <div class="type-tabs">
+          <button type="button" class="tab-btn" [class.active]="periodPreset === 'TODAY'" (click)="onPeriodPresetChange('TODAY')">Ce jour</button>
+          <button type="button" class="tab-btn" [class.active]="periodPreset === 'WEEK'" (click)="onPeriodPresetChange('WEEK')">Cette semaine</button>
+          <button type="button" class="tab-btn" [class.active]="periodPreset === 'MONTH'" (click)="onPeriodPresetChange('MONTH')">Ce mois</button>
+          <button type="button" class="tab-btn" [class.active]="periodPreset === 'CUSTOM'" (click)="onPeriodPresetChange('CUSTOM')">Personnalisé</button>
         </div>
       </div>
 
-      <div class="filter-group filter-group-dates" *ngIf="periodPreset === 'CUSTOM'">
+      <div class="filter-field" *ngIf="periodPreset === 'CUSTOM'">
         <span class="toolbar-label">Du</span>
-        <input type="date" class="date-input" [(ngModel)]="startDate" (change)="onCustomPeriodChange()">
+        <input type="date" class="search-input" [(ngModel)]="startDate" (change)="onCustomPeriodChange()" style="width:140px;">
+      </div>
+      
+      <div class="filter-field" *ngIf="periodPreset === 'CUSTOM'">
         <span class="toolbar-label">Au</span>
-        <input type="date" class="date-input" [(ngModel)]="endDate" (change)="onCustomPeriodChange()">
+        <input type="date" class="search-input" [(ngModel)]="endDate" (change)="onCustomPeriodChange()" style="width:140px;">
       </div>
 
-      <div class="filter-group">
+      <div class="filter-field filter-field-commercial">
         <span class="toolbar-label">Commercial</span>
-        <select class="form-select form-select-sm" [(ngModel)]="selectedCommercial" (change)="loadArticles()" style="width: 200px; display: inline-block;">
+        <select class="filter-select form-select" [(ngModel)]="selectedCommercial" (change)="loadArticles()">
           <option [ngValue]="null">Tous les commerciaux</option>
           <option *ngFor="let c of collectors" [value]="c.username">{{c.firstname}} {{c.lastname}}</option>
         </select>
       </div>
     </div>
+    <div class="filter-actions" style="display: flex; align-items: center; gap: 16px;">
+      <span class="result-count"><strong>{{ totalElements }}</strong> article(s)</span>
+      <button class="btn-refresh" (click)="onDownloadClicked()" [disabled]="isDownloading" style="border-radius: 8px; padding: 8px 16px; min-width: 130px; justify-content: center;">
+        <svg *ngIf="!isDownloading" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+        <svg *ngIf="isDownloading" style="animation: spin 1s linear infinite;" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+        <span *ngIf="!isDownloading">Télécharger</span>
+        <span *ngIf="isDownloading">En cours...</span>
+      </button>
+    </div>
   </div>
 
   <div class="table-card a5">
     <div class="table-wrapper">
-      <div *ngIf="isLoading" class="table-loading">
+      <div *ngIf="isLoading" class="table-loading" style="padding: 40px 0;">
         <div class="empty-state">
           <div class="empty-icon">⏳</div>
           <div class="empty-title">Chargement…</div>
         </div>
       </div>
 
-      <div *ngIf="!isLoading && articles.length === 0" class="table-empty-static">
+      <div *ngIf="!isLoading && articles.length === 0" class="table-empty-static" style="padding: 40px 0;">
         <div class="empty-state">
           <div class="empty-icon">📋</div>
           <div class="empty-title">Aucun article vendu trouvé</div>
@@ -83,15 +96,18 @@
               <th>#</th>
               <th>Article</th>
               <th>Commercial</th>
-              <th>Quantité Totale</th>
+              <th style="text-align: center">Quantité Totale</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let item of articles; let i = index">
               <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
-              <td>{{ item.articleName }}</td>
-              <td>{{ item.commercial || 'Sans commercial' }}</td>
-              <td>{{ item.totalQuantity }}</td>
+              <td style="font-weight: 500; color: var(--navy)">{{ item.articleName }}</td>
+              <td>
+                <span *ngIf="item.commercial">{{ item.commercial }}</span>
+                <span *ngIf="!item.commercial" style="color: var(--text-light); font-style: italic">Sans commercial</span>
+              </td>
+              <td style="text-align: center; font-weight: 700; font-family: 'DM Mono', monospace; font-size: 15px;">{{ item.totalQuantity }}</td>
             </tr>
           </tbody>
         </table>

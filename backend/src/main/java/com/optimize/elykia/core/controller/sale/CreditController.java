@@ -62,6 +62,18 @@ public class CreditController {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditArticlesService.searchSoldArticles(dto, pageable)), HttpStatus.OK);
     }
 
+    @PostMapping("/articles-vendus/export")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'RECOVERY_MANAGER', 'REPORT', 'CONSULT_DASHBOARD')")
+    public ResponseEntity<byte[]> exportSoldArticles(@RequestBody com.optimize.elykia.core.dto.SoldArticleSearchDto dto) {
+        byte[] pdfBytes = creditArticlesService.generatePdfExport(dto);
+        
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("filename", "articles_vendus.pdf");
+        
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
     @PostMapping("/list-summary")
     @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_VENTE + "')")
     public ResponseEntity<Response> listSummary(@RequestBody @Valid CreditListSummaryRequestDto request) {

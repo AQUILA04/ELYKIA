@@ -1,120 +1,151 @@
-<div class="container-fluid py-3" data-testid="e2e-customer-payments-page">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h2 class="mb-1">Déclarations de paiement</h2>
-      <p class="text-muted mb-0">Soumissions Mobile Money en attente de validation (customer-space).</p>
-    </div>
-    <button type="button" class="btn btn-outline-primary" (click)="load()" [disabled]="loading">
-      Actualiser
-    </button>
+<div class="main-container customer-payments-list-page a1" data-testid="e2e-customer-payments-page">
+  <div class="breadcrumb-bar">
+    <a routerLink="/dashboard" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Tableau de bord
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
   </div>
 
-  <ul class="nav nav-tabs mb-3">
-    <li class="nav-item">
-      <button type="button" class="nav-link" [class.active]="tab === 'credit'"
-        data-testid="e2e-customer-payments-tab-credit"
-        (click)="setTab('credit')">Recouvrement crédit</button>
-    </li>
-    <li class="nav-item">
-      <button type="button" class="nav-link" [class.active]="tab === 'tontine'"
-        data-testid="e2e-customer-payments-tab-tontine"
-        (click)="setTab('tontine')">Cotisations tontine</button>
-    </li>
-  </ul>
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">PAIEMENTS CLIENTS</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+          <rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/>
+        </svg>
+        <h1 class="page-title" style="margin:0 !important;padding:0;line-height:1">Déclarations de paiement</h1>
+      </div>
+      <button class="btn-refresh" (click)="load()" [disabled]="loading">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Actualiser
+      </button>
+    </div>
+    <p class="page-subtitle">Soumissions Mobile Money en attente de validation (customer-space).</p>
+  </div>
 
-  <div *ngIf="loading" class="text-muted py-4">Chargement…</div>
+  <div class="toolbar a4">
+    <div class="filter-fields">
+      <div class="filter-field">
+        <span class="toolbar-label">Type de déclaration</span>
+        <div class="type-tabs">
+          <button type="button" class="tab-btn" [class.active]="tab === 'credit'" (click)="setTab('credit')" data-testid="e2e-customer-payments-tab-credit">Recouvrement crédit</button>
+          <button type="button" class="tab-btn" [class.active]="tab === 'tontine'" (click)="setTab('tontine')" data-testid="e2e-customer-payments-tab-tontine">Cotisations tontine</button>
+        </div>
+      </div>
+    </div>
+    <div class="filter-actions">
+      <span class="result-count">
+        <strong>{{ tab === 'credit' ? submissions.length : tontineSubmissions.length }}</strong> déclaration(s)
+      </span>
+    </div>
+  </div>
 
-  <ng-container *ngIf="!loading && tab === 'credit'">
-    <div *ngIf="submissions.length === 0" class="alert alert-light border">
-      Aucune déclaration crédit en attente.
-    </div>
-    <div class="table-responsive" *ngIf="submissions.length > 0">
-      <table class="table table-hover align-middle">
-        <thead>
-          <tr>
-            <th>Client</th>
-            <th>Commercial</th>
-            <th>Crédit</th>
-            <th>Échéance</th>
-            <th>Montant</th>
-            <th>Téléphone</th>
-            <th>Référence</th>
-            <th>Date</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of submissions"
-              [class.table-primary]="highlightId === row.id"
-              [attr.data-testid]="'e2e-customer-payment-row'"
-              [attr.data-submission-id]="row.id">
-            <td>{{ row.clientName || ('#' + row.clientId) }}</td>
-            <td>{{ row.targetCollector || '—' }}</td>
-            <td>
-              <button type="button" class="btn btn-link p-0" (click)="openCredit(row)">
-                #{{ row.creditId }}
-              </button>
-            </td>
-            <td>{{ row.installmentNumber }}</td>
-            <td>{{ row.mobileMoneyAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
-            <td>{{ row.mobileMoneyPhone }}</td>
-            <td>{{ row.mobileMoneyReference }}</td>
-            <td>{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td class="text-nowrap">
-              <button type="button" class="btn btn-sm btn-success me-1"
-                data-testid="e2e-customer-payment-validate"
-                (click)="validate(row)">Valider</button>
-              <button type="button" class="btn btn-sm btn-outline-danger"
-                data-testid="e2e-customer-payment-reject"
-                (click)="reject(row)">Rejeter</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </ng-container>
+  <div class="table-card a5">
+    <div class="table-wrapper">
+      <div *ngIf="loading" class="table-loading" style="padding: 40px 0;">
+        <div class="empty-state">
+          <div class="empty-icon">⏳</div>
+          <div class="empty-title">Chargement…</div>
+        </div>
+      </div>
 
-  <ng-container *ngIf="!loading && tab === 'tontine'">
-    <div *ngIf="tontineSubmissions.length === 0" class="alert alert-light border">
-      Aucune cotisation tontine en attente.
+      <!-- Credit Table -->
+      <ng-container *ngIf="!loading && tab === 'credit'">
+        <div *ngIf="submissions.length === 0" class="table-empty-static" style="padding: 40px 0;">
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">Aucune déclaration en attente</div>
+            <div class="empty-sub">Toutes les soumissions de crédit ont été traitées.</div>
+          </div>
+        </div>
+
+        <div class="desktop-table-wrap" *ngIf="submissions.length > 0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Commercial</th>
+                <th>Crédit</th>
+                <th>Échéance</th>
+                <th>Montant</th>
+                <th>Téléphone</th>
+                <th>Référence</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of submissions" [class.highlighted-row]="highlightId === row.id" [attr.data-testid]="'e2e-customer-payment-row'" [attr.data-submission-id]="row.id">
+                <td style="font-weight: 500; color: var(--navy)">{{ row.clientName || ('#' + row.clientId) }}</td>
+                <td>{{ row.targetCollector || '—' }}</td>
+                <td>
+                  <button type="button" class="btn-detail" (click)="openCredit(row)">
+                    #{{ row.creditId }}
+                  </button>
+                </td>
+                <td style="font-family: 'DM Mono', monospace;">{{ row.installmentNumber }}</td>
+                <td style="font-weight: 700; font-family: 'DM Mono', monospace; font-size: 15px; color: var(--navy)">{{ row.mobileMoneyAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                <td style="font-family: 'DM Mono', monospace; color: var(--text-muted)">{{ row.mobileMoneyPhone }}</td>
+                <td style="font-family: 'DM Mono', monospace;">{{ row.mobileMoneyReference }}</td>
+                <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="text-nowrap" style="display: flex; gap: 8px;">
+                  <button type="button" class="btn-success-solid" data-testid="e2e-customer-payment-validate" (click)="validate(row)">Valider</button>
+                  <button type="button" class="btn-danger-outline" data-testid="e2e-customer-payment-reject" (click)="reject(row)">Rejeter</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
+
+      <!-- Tontine Table -->
+      <ng-container *ngIf="!loading && tab === 'tontine'">
+        <div *ngIf="tontineSubmissions.length === 0" class="table-empty-static" style="padding: 40px 0;">
+          <div class="empty-state">
+            <div class="empty-icon">📋</div>
+            <div class="empty-title">Aucune cotisation en attente</div>
+            <div class="empty-sub">Toutes les cotisations tontine ont été traitées.</div>
+          </div>
+        </div>
+
+        <div class="desktop-table-wrap" *ngIf="tontineSubmissions.length > 0">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Commercial tontine</th>
+                <th>Membre</th>
+                <th>Montant</th>
+                <th>Téléphone</th>
+                <th>Référence</th>
+                <th>Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let row of tontineSubmissions" [class.highlighted-row]="highlightId === row.id" [attr.data-testid]="'e2e-customer-tontine-payment-row'" [attr.data-submission-id]="row.id">
+                <td style="font-weight: 500; color: var(--navy)">{{ row.clientName || ('#' + row.clientId) }}</td>
+                <td>{{ row.tontineCollector || '—' }}</td>
+                <td style="font-family: 'DM Mono', monospace;">#{{ row.tontineMemberId }}</td>
+                <td style="font-weight: 700; font-family: 'DM Mono', monospace; font-size: 15px; color: var(--navy)">{{ row.mobileMoneyAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+                <td style="font-family: 'DM Mono', monospace; color: var(--text-muted)">{{ row.mobileMoneyPhone }}</td>
+                <td style="font-family: 'DM Mono', monospace;">{{ row.mobileMoneyReference }}</td>
+                <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="text-nowrap" style="display: flex; gap: 8px;">
+                  <button type="button" class="btn-success-solid" data-testid="e2e-customer-tontine-payment-validate" (click)="validateTontine(row)">Valider</button>
+                  <button type="button" class="btn-danger-outline" data-testid="e2e-customer-tontine-payment-reject" (click)="rejectTontine(row)">Rejeter</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </ng-container>
     </div>
-    <div class="table-responsive" *ngIf="tontineSubmissions.length > 0">
-      <table class="table table-hover align-middle">
-        <thead>
-          <tr>
-            <th>Client</th>
-            <th>Commercial tontine</th>
-            <th>Membre</th>
-            <th>Montant</th>
-            <th>Téléphone</th>
-            <th>Référence</th>
-            <th>Date</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let row of tontineSubmissions"
-              [class.table-primary]="highlightId === row.id"
-              [attr.data-testid]="'e2e-customer-tontine-payment-row'"
-              [attr.data-submission-id]="row.id">
-            <td>{{ row.clientName || ('#' + row.clientId) }}</td>
-            <td>{{ row.tontineCollector || '—' }}</td>
-            <td>#{{ row.tontineMemberId }}</td>
-            <td>{{ row.mobileMoneyAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
-            <td>{{ row.mobileMoneyPhone }}</td>
-            <td>{{ row.mobileMoneyReference }}</td>
-            <td>{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-            <td class="text-nowrap">
-              <button type="button" class="btn btn-sm btn-success me-1"
-                data-testid="e2e-customer-tontine-payment-validate"
-                (click)="validateTontine(row)">Valider</button>
-              <button type="button" class="btn btn-sm btn-outline-danger"
-                data-testid="e2e-customer-tontine-payment-reject"
-                (click)="rejectTontine(row)">Rejeter</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </ng-container>
+  </div>
 </div>

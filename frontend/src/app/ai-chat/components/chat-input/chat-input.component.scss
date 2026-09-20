@@ -85,8 +85,22 @@
   }
 }
 
-.input-hint {
-  margin: 0.35rem 0 0;
+.footer-hints {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.4rem;
+  gap: 1rem;
+}
+
+.input-hint, .ai-disclaimer {
+  margin: 0;
   font-size: 0.72rem;
   color: var(--text-muted);
+}
+
+.ai-disclaimer {
+  text-align: right;
+  flex-shrink: 0;
+  font-style: italic;
 }

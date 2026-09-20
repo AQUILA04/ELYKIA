@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import {
@@ -15,14 +15,20 @@ type PaymentTab = 'credit' | 'tontine';
 @Component({
   selector: 'app-customer-payments-list',
   templateUrl: './customer-payments-list.component.html',
-  styleUrls: ['./customer-payments-list.component.scss']
+  styleUrls: ['./customer-payments-list.component.scss'],
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
-export class CustomerPaymentsListComponent implements OnInit {
+export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
   tab: PaymentTab = 'credit';
   submissions: CustomerMobileMoneySubmission[] = [];
   tontineSubmissions: CustomerTontineMmSubmission[] = [];
   loading = false;
   highlightId: number | null = null;
+  
+  currentDate = new Date();
+  lastUpdate = new Date();
+  private dateIntervalId?: ReturnType<typeof setInterval>;
 
   constructor(
     private creditService: CustomerMobileMoneySubmissionService,
@@ -37,7 +43,18 @@ export class CustomerPaymentsListComponent implements OnInit {
     this.tab = tabParam === 'tontine' ? 'tontine' : 'credit';
     const idParam = this.route.snapshot.queryParamMap.get('id');
     this.highlightId = idParam ? Number(idParam) : null;
+    
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
+    
     this.load();
+  }
+
+  ngOnDestroy(): void {
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
   }
 
   setTab(tab: PaymentTab): void {
@@ -57,6 +74,7 @@ export class CustomerPaymentsListComponent implements OnInit {
         next: (rows) => {
           this.tontineSubmissions = rows;
           this.loading = false;
+          this.lastUpdate = new Date();
         },
         error: () => {
           this.loading = false;
@@ -69,6 +87,7 @@ export class CustomerPaymentsListComponent implements OnInit {
       next: (rows) => {
         this.submissions = rows;
         this.loading = false;
+        this.lastUpdate = new Date();
       },
       error: () => {
         this.loading = false;

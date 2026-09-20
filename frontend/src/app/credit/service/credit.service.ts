@@ -158,6 +158,11 @@ export class CreditService extends BaseHttpService {
     return this.http.post(`${this.apiUrl}/articles-vendus/search`, searchDto, { headers, params });
   }
 
+  exportSoldArticlesPdf(searchDto: any): Observable<Blob> {
+    const headers = this.getHeader();
+    return this.http.post(`${this.apiUrl}/articles-vendus/export`, searchDto, { headers, responseType: 'blob' });
+  }
+
   getListSummary(request: CreditListSummaryRequest): Observable<any> {
     const headers = this.getHeader();
     return this.http.post(`${this.apiUrl}/list-summary`, request, { headers });
