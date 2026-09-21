@@ -38,6 +38,19 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - **Navigation Recouvrement** : Correction de la route appelée depuis la fiche client (`client-detail.page.ts`) redirigeant désormais vers `/recovery` avec les paramètres `clientId` et `creditId` au lieu de la route inexistante `/recouvrement`.
 - **Support Sélection Crédit** : Prise en compte du paramètre d'URL `creditId` dans `RecoveryPage` pour pré-sélectionner automatiquement le crédit ciblé.
 
+## Docs & Infra — 2026-09-22
+
+### Added
+
+- **User Guide (Frontend Web - Tableaux de bord & BI)** : Refonte et enrichissement exhaustif de la documentation du Tableau de bord gestionnaire dans `user-guide/docs/manager/dashboard.md` :
+  1. *Dashboard Opérationnel V2 (`/home`)* : Horloge dynamique en temps réel, horodatage d'actualisation, sélecteur de mois civil (`startView="year"`), bouton de rafraîchissement instantané.
+  2. *5 Cartes KPIs Financières & Opérationnelles* (`ROLE_KPI_FINANCIER_DASHBOARD`) : Crédits en cours avec calcul de marge conditionnel (masqué pour le profil promoteur), Recouvrement encours avec recouvré & restant net, Tontine avec cotisations brutes / mises / part société V1-V2, Clients actifs & avec crédit, Stock magasin (valorisation vente crédit & articles en stock) vs Stock commercial personnel.
+  3. *Graphiques Dynamiques* : Évolution comparée ventes à crédit vs encaissements avec bascule de granularité en un clic (*Mois / Trimestre / Année*), et graphique donut de statut de stock (En stock, Stock faible, Rupture, % de disponibilité).
+  4. *Panneaux de Traçabilité* : 5 dernières ventes avec statut coloré (`CREATED`, `VALIDATED`, `INPROGRESS`, `SETTLED`) et fil d'activité récente système avec heure relative.
+  5. *Alertes Stock Magasin* (`ROLE_STOREKEEPER`) : Tables paginées d'articles en rupture et en rupture imminente avec pastilles d'alerte et redirection vers le catalogue.
+  6. *Dashboard Décisionnel BI (`/bi`)* : Filtres temporels rapides (*Aujourd'hui, Cette semaine, Ce mois, Cette année, Personnalisé*), indicateurs stratégiques de rentabilité (`ROLE_KPI_FINANCIER_BI_DASHBOARD`), raccourcis vers l'analyse des ventes, des recouvrements et du stock, et centre d'alertes en temps réel.
+- **Générateur & RAG Index** : Compilation du guide imprimable `guide_complet_manager.md` et mise à jour de l'index RAG IA (77 fragments) dans `backend/src/main/resources/ai/user-guide-index.json`.
+
 ## Docs & Infra — 2026-09-21
 
 ### Added
