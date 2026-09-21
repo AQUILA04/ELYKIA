@@ -588,10 +588,79 @@ Le bouton flottant s'adapte automatiquement au contexte et à l'onglet sélectio
 
 ## 7. Synchronisation hybride et fonctionnement hors-ligne
 
-L'application stocke l'intégralité des créations et modifications en local. La transmission au serveur central s'effectue via les mécanismes de l'onglet **Plus** :
-* **Synchronisation automatique** : lorsqu'elle est activée, l'application transmet en arrière-plan les opérations locales dès qu'une connexion Internet stable est détectée.
-* **Synchronisation manuelle** : accessible via l'icône de synchronisation du tableau de bord ou depuis **Plus → Synchronisation manuelle**. Elle permet de visualiser la file d'attente détaillée des transactions en attente (*Clients, Distributions, Recouvrements, Cotisations, Livraisons*) et de forcer leur téléversement en bloc.
-* **Gestion des erreurs et conflits** : si une opération est rejetée par le serveur (ex. règle métier non respectée au bureau), elle est isolée dans l'écran des erreurs de synchronisation afin de permettre au commercial de corriger la saisie sans perdre ses autres données.
+L'application mobile ELYKIA repose sur un moteur de synchronisation bidirectionnel hautement résilient (`SyncMasterService`), conçu pour garantir une autonomie totale sur le terrain tout en assurant l'intégrité comptable et financière des données centrales.
+
+### A. Architecture Locale-d'abord (Local-First) & Autonomie terrain
+* **Fonctionnement hors ligne permanent** : toutes les opérations (création de client, vente à crédit, encaissement de mise, cotisation tontine, remise de lot) s'écrivent d'abord de manière synchrone et sécurisée dans la base de données locale SQLite du terminal mobile.
+* **Repères visuels de statut** :
+  * Badge **Local** (orange) : l'opération a été enregistrée sur le smartphone mais n'a pas encore été transmise au serveur central. Les opérations locales bénéficient d'un droit à l'erreur (possibilité de modification ou d'annulation sur place).
+  * Badge **Sync** (bleu) : la transaction a été réceptionnée, validée et scellée sur le serveur central. Elle ne peut plus être altérée ou supprimée depuis le smartphone.
+* **Bulle de notification dans l'en-tête** : sur le tableau de bord, une bulle chiffrée sur l'icône de synchronisation indique en permanence le nombre exact d'opérations locales en attente d'envoi vers le serveur.
+
+### B. Protocole de Sécurité & Consentement de Synchronisation
+Transférer des encaissements financiers et des mouvements de stocks engage la responsabilité formelle du commercial. Avant d'exécuter la synchronisation des flux d'argent, l'application déclenche une modale de sécurité obligatoire en 3 étapes :
+
+1. **Étape 1 : Confirmation par mot de passe** :
+   * Le commercial doit saisir son mot de passe de session personnelle afin de certifier son identité et d'éviter tout envoi non consenti en cas d'accès au téléphone par un tiers.
+2. **Étape 2 : Challenge de sécurité (Code à recopier)** :
+   * L'application affiche un code alphanumérique unique généré aléatoirement. Le commercial doit obligatoirement le recopier dans le champ de vérification pour confirmer qu'il s'agit d'une démarche volontaire et réfléchie.
+3. **Étape 3 : Engagement et responsabilité légale** :
+   * Une case à cocher obligatoire atteste que le vendeur a vérifié l'exactitude des fonds perçus et assume la responsabilité comptable des montants transmis.
+4. **Contrôle automatique de Caisse** :
+   * Dès le consentement validé, le système interroge le serveur pour s'assurer que la caisse financière journalière de l'agence est ouverte (`cash-check`). Si la caisse est fermée, le système tente une ouverture automatique autorisée ou alerte le vendeur afin d'éviter tout rejet des encaissements.
+
+<!-- CAPTURE À INSÉRER : Modale de consentement de synchronisation avec saisie de mot de passe, code challenge et case d'engagement. -->
+
+### C. Écran de Synchronisation Manuelle (`/sync/manual`)
+Accessible depuis l'icône de synchronisation du tableau de bord ou via **Plus → Synchronisation manuelle** :
+
+Cet écran offre un contrôle granulaire sur l'ensemble des données locales en attente :
+
+* **Navigation par onglets d'entités** :
+  * Une barre de segments à défilement horizontal permet d'isoler les éléments en attente par catégorie métier :
+    * **Clients** : nouvelles fiches, modifications, coordonnées GPS et photos.
+    * **Distributions** : contrats de vente à crédit.
+    * **Recouvrements** : encaissements de mises journalières.
+    * **Membres** : adhésions à la tontine.
+    * **Collectes** : versements d'épargne tontine.
+    * **Livraisons** : remises de commandes ou de lots tontine.
+* **Sélection personnalisée & Envoi en masse** :
+  * Le commercial peut cocher individuellement les lignes de son choix ou utiliser l'action **« Tout sélectionner »**.
+  * Le bouton flottant **FAB** en bas à droite affiche une pastille avec le nombre d'éléments sélectionnés (`selectedCount`) et permet de déclencher le téléversement du lot sélectionné d'un seul appui.
+* **Synchronisation unitaire prioritaire** :
+  * Sur chaque carte d'entité, un bouton de synchronisation individuel permet de téléverser immédiatement une opération urgente sans attendre les autres.
+* **Résolution des blocages de dépendances (« Éditer le Parent »)** :
+  * Si une opération (ex. un contrat de distribution ou un recouvrement) ne peut être synchronisée parce que la fiche cliente associée comporte une erreur, un bouton **« Éditer le parent »** ouvre directement le dossier de la cliente pour corriger l'anomalie sans avoir à chercher manuellement dans les menus.
+
+<!-- CAPTURE À INSÉRER : Écran de synchronisation manuelle avec onglets d'entités, cases à cocher et bouton flottant de synchronisation de la sélection. -->
+
+### D. Suivi des Erreurs et Résolution des Conflits (`/sync-errors`)
+Accessible depuis l'icône d'alerte en haut de la synchronisation manuelle ou depuis **Plus → Erreurs de synchronisation** :
+
+Lorsqu'une opération locale est rejetée par le serveur (ex. règle métier non respectée au bureau, problème d'attribution de zone), elle n'est jamais supprimée : elle est mise en quarantaine dans la boîte des erreurs.
+
+* **Liste des erreurs de synchronisation** :
+  * Présente chaque transaction en échec avec le nom de l'entité concernée, le type d'opération (`CREATE` ou `UPDATE`), la date de tentative et le motif explicite du rejet.
+* **Fiche détaillée de diagnostic technique (`/sync-errors/:id`)** :
+  * **Synthèse de l'incident** : nom de l'entité, type, date précise, libellé de l'erreur, code d'erreur officiel et nombre de tentatives automatiques effectuées (`retryCount`).
+  * **Données de la requête (*Request Data*)** : affiche le flux JSON exact envoyé au serveur pour contrôle des champs transmis.
+  * **Données de la réponse (*Response Data*)** : présente la réponse technique renvoyée par l'API pour faciliter l'assistance avec le support technique ou l'administrateur.
+  * **Détails de l'entité locale (*Entity Details*)** : état actuel de la donnée stockée dans la base SQLite du téléphone.
+
+<!-- CAPTURE À INSÉRER : Liste des erreurs de synchronisation et fiche détaillée avec visualiseur technique des données JSON. -->
+
+### E. Paramètres et Optimisation des Données (Onglet Plus)
+Depuis l'onglet **Plus**, le commercial configure le comportement réseau selon ses conditions de travail et la qualité de son forfait Internet mobile :
+
+* **Synchronisation automatique** :
+  * Interrupteur permettant d'autoriser l'application à synchroniser automatiquement les opérations en arrière-plan lorsque l'application est ouverte et qu'une connexion Internet stable est établie.
+* **Économie de données cellulaires (Forfaits Data)** :
+  * **Synchronisation des photos de profil** (Interrupteur) : permet de suspendre le téléchargement des photos de clientes sur le réseau mobile pour préserver le forfait data.
+  * **Synchronisation des pièces d'identité** (Interrupteur) : permet de différer le téléversement des images lourdes de cartes d'identité et de passeports pour les effectuer au bureau sous connexion Wi-Fi.
+* **Fréquence de synchronisation automatique** :
+  * Sélecteur de cadence au choix : **30 minutes**, **1 heure**, **2 heures** ou **4 heures**.
+* **Filtre de date de synchronisation** :
+  * Permet de choisir la profondeur d'historique synchronisée pour alléger la bande passante : **Aujourd'hui**, **2 derniers jours**, **3 derniers jours**, **1 semaine**, **2 semaines** ou **1 mois**.
 
 ---
 
