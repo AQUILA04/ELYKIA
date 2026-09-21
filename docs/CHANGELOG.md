@@ -42,7 +42,8 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Added
 
-- **User Guide (Application Mobile)** : Documentation exhaustive du module Recouvrement pour le commercial de terrain dans `user-guide/docs/commercial/mobile_app.md` (tournée « Clients à recouvrer », sélection des mises par pastilles, gestion des reliquats, aperçu et QR Code du reçu, impression thermique Bluetooth, historique et annulation locale).
+- **User Guide (Application Mobile - Distribution)** : Documentation exhaustive du module Distribution de ventes à crédit sur mobile dans `user-guide/docs/commercial/mobile_app.md` (vue d'ensemble de l'onglet Distributions, KPIs et filtres, lecture des cartes, fiche détaillée du crédit avec jauge et historique des remboursements, droit à l'erreur avec modification/suppression locale et réintégration du stock, règles financières de calcul de la mise à 200 FCFA min et arrondi à 50 FCFA, gestion de l'avance résiduelle, contrôles anti-surendettement, et impression Bluetooth du contrat avec QR Code).
+- **User Guide (Application Mobile - Recouvrement)** : Documentation exhaustive du module Recouvrement pour le commercial de terrain dans `user-guide/docs/commercial/mobile_app.md` (tournée « Clients à recouvrer », sélection des mises par pastilles, gestion des reliquats, aperçu et QR Code du reçu, impression thermique Bluetooth, historique et annulation locale).
 - **User Guide (Chef de Recouvrement)** : Précision des raccourcis de montant (`10 000`, `½`, `Net`) et de l'impact du reliquat client dans `user-guide/docs/recovery-manager/mobile.md`.
 - **Générateur & RAG Index** : Mise à jour du script `generate_print_docs.py` pour compiler `mobile_app.md` et le profil `recovery_manager`, et régénération de l'index RAG IA (`backend/src/main/resources/ai/user-guide-index.json`).
 
