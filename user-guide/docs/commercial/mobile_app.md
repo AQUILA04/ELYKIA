@@ -15,6 +15,96 @@ Après connexion, le chargement initial prépare les données nécessaires aux o
 
 <!-- CAPTURE À INSÉRER : Onglet Plus de l’application mobile commerciale avec l’état de synchronisation et les actions disponibles. -->
 
+## Clients et gestion du portefeuille (« Mes clientes »)
+
+Le module **Clients** permet au commercial de gérer l'ensemble de son portefeuille terrain, d'enregistrer de nouveaux clients avec géolocalisation et pièces d'identité, et de consulter l'historique complet de chaque cliente.
+
+### 1. L’onglet « Mes clientes » : consultation, recherche et filtres rapides
+
+Accessible depuis la barre d’onglets principale (**Clients**) :
+
+* **Menu contextuel d'en-tête (Action Sheet)** :
+  * Touchez l'icône d'options (trois points verticaux) en haut à droite pour ouvrir le menu d'actions.
+  * Sélectionnez **« Clients à Recouvrer »** : ce raccourci contextuel essentiel permet de basculer instantanément de la liste générale vers la liste de tournée ciblée, regroupant par quartier les clientes ayant des crédits actifs non encore encaissés le jour même.
+* **Barre de recherche dynamique** : saisissez un nom, un prénom ou un numéro de téléphone pour filtrer instantanément la liste en temps réel.
+* **Filtres rapides d'un appui (Chips)** :
+  * **Tous** : affiche l’intégralité des clients du portefeuille attribué au commercial.
+  * **Crédit en cours** : isole immédiatement les clientes ayant au moins une vente à crédit active (`hasActiveDistribution: true`).
+  * **Nouveau** : liste les clientes enregistrées localement sur le terminal (`isLocal: true`), en attente de synchronisation avec le serveur.
+  * **Par Quartier** : organise le tri alphabétique selon l’ordre géographique des quartiers pour faciliter la prospection et les visites.
+* **Lecture des cartes clientes** :
+  * **Avatar** : photo réelle prise sur le terrain (mise en cache localement via Capacitor pour un affichage instantané hors ligne) ou initiales de la cliente.
+  * **Identité & contact** : nom complet, adresse et quartier (`Adresse · Quartier`), et numéro de téléphone.
+  * **Solde du compte** : solde comptable affiché en devise XOF.
+  * **Badges d'état** : `Crédit` (dette active en cours), `Local` (orange, création locale non synchronisée), `Sync` (bleu, fiche confirmée au bureau).
+* **Bouton d'ajout rapide (FAB +)** : situé en bas à droite de l'écran pour ouvrir immédiatement le formulaire de création d'un nouveau client.
+
+<!-- CAPTURE À INSÉRER : Écran Mes clientes avec les filtres rapides, les badges et le menu contextuel Clients à Recouvrer. -->
+
+### 2. Consulter la fiche détaillée d’un client (3 onglets)
+
+Touchez n'importe quelle carte de la liste pour ouvrir le dossier complet de la cliente :
+
+#### En-tête de la fiche
+* Photo agrandie (toucher pour afficher en grand).
+* Nom complet, adresse, quartier et numéro de téléphone.
+* **Appel direct en un clic** : touchez l'icône téléphone pour composer immédiatement le numéro de la cliente sur votre smartphone afin de convenir d'un rendez-vous ou vérifier sa présence avant une visite.
+* **Menu d'options (trois points)** : permet d'accéder à l'action **Modifier** (`/edit-client/:id`) ou de **Supprimer** un client local créé par erreur.
+
+#### Onglet 1 : Informations
+* **État civil** : prénom, nom, date de naissance, profession et code client attribué.
+* **Contact** : téléphone (avec bouton d'appel direct), adresse complète et zone/quartier.
+* **Pièce d'identité** : type de document, numéro officiel et bouton **« Voir la photo de la pièce »** permettant d'afficher en plein écran la capture de la pièce enregistrée.
+* **Personne à contacter (Garant)** : nom, téléphone et adresse du garant ou de la personne ressource.
+* **Compte financier** : numéro de compte, solde comptable et **Reliquat disponible** affiché en vert (avoir en FCFA utilisable pour solder les mises).
+* **Géolocalisation interactive** : coordonnées GPS (latitude et longitude) et bouton **« Voir sur la carte »** ouvrant la carte Leaflet interactive avec un marqueur précis sur la position enregistrée du domicile ou du commerce de la cliente.
+
+#### Onglet 2 : Crédits
+* **Bandeau de reliquat** : rappel du montant d'avoir disponible sur le compte de la cliente.
+* **Liste des contrats de crédit** : référence, dates de début et d'échéance, montant total, montant déjà payé, solde restant dû et mise journalière.
+* **Jauge de progression** : pourcentage de remboursement affiché avec une barre de progression visuelle.
+* **Raccourci vers le recouvrement** : touchez une carte de crédit pour basculer directement sur le formulaire de recouvrement avec la cliente et le contrat concerné pré-sélectionnés.
+
+#### Onglet 3 : Historique
+* **Timeline chronologique** : historique complet de tous les flux financiers enregistrés sur le dossier client.
+* **Repères visuels** : flèche bleue pour une distribution (livraison de marchandise) et flèche verte pour un encaissement (paiement de mise).
+* Dates, heures précises, références des reçus et montants en FCFA.
+
+<!-- CAPTURE À INSÉRER : Fiche client avec les 3 onglets Informations, Crédits (jauges) et Historique (timeline). -->
+
+### 3. Enregistrer un nouveau client sur le terrain
+
+Touchez le bouton **+** ou l'action **Nouveau Client** du tableau de bord pour ouvrir le formulaire :
+
+1. **Photo de profil** :
+   * Touchez **Prendre une photo** pour capturer le visage de la cliente avec l'appareil photo du smartphone.
+   * L'application prévisualise le cliché et génère automatiquement une vignette optimisée pour les listes.
+2. **Informations personnelles & Contrôles bloquants** :
+   * Prénom, nom et profession.
+   * **Contrôle d'âge strict (18 ans minimum)** : renseignez la date de naissance. L'application bloque la validation si la personne est mineure (`minAge`).
+   * **Contrôle du téléphone** : saisie d'un numéro togolais valide à 8 chiffres avec contrôle d'unicité automatique en base locale pour empêcher la création de doublons.
+3. **Pièce d'identité numérisée** :
+   * Choisissez le type de document : *CNI*, *Passeport*, *Carte d'électeur (CENI)*, ou *Carte e-ID (NIU)*.
+   * Renseignez le numéro officiel de la pièce.
+   * Touchez **Prendre une photo de la pièce** pour capturer le document d'identité recto/verso.
+4. **Adresse et Géolocalisation GPS native** :
+   * Renseignez l'adresse complète.
+   * Touchez **Zone** pour sélectionner le quartier dans la liste paginée des localités de l'agence.
+   * Touchez **« Obtenir la position GPS »** : l'application sollicite le récepteur GPS du smartphone et enregistre automatiquement les coordonnées exactes (latitude et longitude) du lieu où vous vous trouvez avec la cliente. En cas d'indisponibilité du signal, activez l'interrupteur *Saisie manuelle* pour entrer les coordonnées.
+5. **Personne à contacter (Garant)** :
+   * Nom complet, téléphone et adresse du garant ou de la personne à joindre en cas d'urgence.
+6. **Compte & Enregistrement** :
+   * Renseignez le solde initial (0 FCFA par défaut).
+   * Touchez **Enregistrer** : l'application enregistre le dossier dans la base locale SQLite avec un identifiant unique temporaire. La fiche est immédiatement disponible pour distribuer des marchandises ou percevoir des mises sans attendre le réseau. Lors de la synchronisation, l'identifiant local est remplacé par le matricule définitif délivré par le serveur.
+
+<!-- CAPTURE À INSÉRER : Formulaire Nouveau client avec capture photo, saisie d'identité, sélection de localité et capture GPS. -->
+
+### 4. Modifier un client existant
+
+Depuis la fiche détaillée d'un client, touchez le menu d'options (trois points) en haut à droite puis **Modifier** :
+* Permet d'actualiser le numéro de téléphone, l'adresse, la zone, les coordonnées du garant ou de mettre à jour la position GPS du client.
+* Possibilité de reprendre la photo de profil ou la photo de la pièce d'identité si le document a été renouvelé.
+
 ## Distribution de ventes à crédit
 
 La distribution représente l’acte de vente à crédit direct sur le terrain : le commercial remet immédiatement la marchandise au client depuis sa dotation de stock mobile, établit le contrat avec sa mise journalière et encaisse l’éventuelle avance initiale.
