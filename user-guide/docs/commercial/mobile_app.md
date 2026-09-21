@@ -310,12 +310,79 @@ Au moment de valider le panier, un menu d'action propose deux modes opérationne
 
 ---
 
-## 6. Stock commercial, commandes et réapprovisionnement
+## 6. Articles, commandes clients et gestion des stocks
 
-Accessible depuis **Plus → Articles** ou via l'action rapide **Stock** du tableau de bord :
-* **Onglet « Mon Stock »** : présente la dotation physique actuellement présente dans la sacoche ou le véhicule du vendeur (articles, quantités disponibles et prix de vente à crédit). Ce stock est automatiquement mis à jour lors des distributions, des livraisons tontine ou des retours.
-* **Onglet « Catalogue »** : présente l'ensemble des articles actifs commercialisés par l'agence pour consultation des prix et présentation aux clientes.
-* **Commandes de réapprovisionnement** : permet de saisir une demande de dotation auprès du magasin central pour recharger son stock commercial avant la prochaine tournée.
+Ce domaine regroupe trois fonctionnalités complémentaires : la consultation du catalogue de marchandises, la prise de commandes clients à crédit, et les échanges logistiques de réapprovisionnement ou de retour avec le magasin central.
+
+### A. Consultation des articles et du catalogue (`/tabs/article-list`)
+Accessible depuis **Plus → Articles** :
+* **Double segment commutable** :
+  * **« Mon Stock »** : affiche exclusivement les articles physiquement disponibles dans la dotation mobile du vendeur (sacoche ou véhicule). Chaque carte indique la désignation, le type, la marque, le **Stock disponible en unités** et le prix de vente à crédit en FCFA. Ce stock diminue lors des distributions et livraisons directes tontine, et augmente lors des réapprovisionnements validés par le magasinier.
+  * **« Catalogue »** : présente l'intégralité des articles actifs commercialisés par l'organisation, avec leur prix de vente à crédit officiel. Cet onglet permet au commercial de présenter les nouveautés aux clientes et de vérifier les tarifs même pour des articles qu'il ne transporte pas sur lui.
+* **Recherche et fonctionnement hors ligne** :
+  * La barre de recherche filtre instantanément par désignation commerciale, marque ou référence.
+  * Les données sont synchronisées et mises en cache dans la base SQLite locale, garantissant une consultation rapide même sans réseau Internet.
+
+<!-- CAPTURE À INSÉRER : Écran Articles avec le segment commutable Mon Stock (avec quantités disponibles) et Catalogue. -->
+
+### B. Commandes clients à crédit (`/tabs/orders`)
+Le module **Commandes** (accessible sous réserve d'activation sur le compte commercial) offre un parcours distinct de la distribution directe :
+* **Différence clé entre Distribution et Commande** :
+  * *La Distribution directe* implique que le commercial possède physiquement la marchandise en sacoche et la remet immédiatement à la cliente (déduction immédiate de stock et calcul imposé de la mise journalière).
+  * *La Commande client* permet d'enregistrer une réservation ou un souhait d'achat d'une cliente sur l'ensemble du catalogue de l'agence, **sans que le commercial n'ait besoin d'avoir l'article en stock sur lui**, sans avance obligatoire exigée et sans calcul de mise imposé à cette étape. La marchandise sera approvisionnée ou livrée ultérieurement.
+* **Liste et historique des commandes** :
+  * Recherche par référence de commande ou par nom de cliente.
+  * Compteur total des commandes et geste de tirage vers le bas (*pull-to-refresh*) pour actualiser.
+* **Créer une nouvelle commande (`/orders/new`)** :
+  1. Touchez le bouton **+** ou l'action **Créer une commande**.
+  2. Sélectionnez la cliente via la modale de recherche de clientes.
+  3. Choisissez les articles souhaités dans le catalogue général et définissez les quantités commandées.
+  4. Touchez **Créer la commande** : la commande est enregistrée localement avec le statut `PENDING` et porte le badge `Local` en attente de synchronisation.
+* **Fiche détaillée d'une commande (`/orders/detail/:id`)** :
+  * Affiche la date, la référence officielle, les coordonnées de la cliente, le statut, le badge de synchronisation, le montant total en FCFA et la liste détaillée des articles avec quantités et prix unitaires.
+* **Droit à l'erreur (Modification & Annulation)** :
+  * Tant qu'une commande est à l'état modifiable (`canModify`), le commercial peut toucher **Modifier** pour ajuster les articles et quantités, ou toucher l'icône corbeille rouge en haut pour **Supprimer définitivement la commande**.
+
+<!-- CAPTURE À INSÉRER : Liste des commandes clients et formulaire de nouvelle commande sur catalogue. -->
+
+### C. Gestion des stocks et opérations avec le magasin central (`/tabs/stock`)
+Accessible depuis l'action rapide **Stock** du tableau de bord d'accueil ou depuis l'onglet **Plus** :
+
+Le module de stock mobile adopte une ergonomie avancée à double dimension : **le contexte métier** en haut et **le type d'opération** en bas.
+
+#### 1. Sélecteur de contexte en en-tête (Context Pills)
+Deux pilules permettent de basculer instantanément l'environnement de gestion :
+* **Standard** : opérations de stock liées aux ventes à crédit ordinaires du commercial.
+* **Tontine** : opérations de stock dédiées à l'approvisionnement des marchandises pour les livraisons d'épargne collective.
+
+#### 2. Double flux logistique (Barre d'onglets inférieure)
+* **Onglet Demandes (Sorties de stock)** :
+  * Liste l'ensemble des demandes de réapprovisionnement transmises au magasin central.
+  * Permet au vendeur de demander une dotation de marchandises au magasinier avant d'entamer sa tournée.
+* **Onglet Retours (Restitutions au magasinier)** :
+  * Liste les opérations de retour de marchandises vers le dépôt central.
+  * Utilisé en fin de tournée ou lors des inventaires pour restituer des invendus, des articles défectueux ou des produits retournés par des clientes.
+
+#### 3. Filtres de suivi par statut (Status Pills)
+Une barre horizontale de filtres permet de suivre l'avancement logistique de chaque demande ou retour :
+* **Tous** : historique complet des opérations.
+* **En attente (`PENDING`)** : opération créée par le commercial, en attente de prise en charge par le magasinier.
+* **Validé (`VALIDATED`)** : demande approuvée par le magasinier, colis en préparation.
+* **Livré (`DELIVERED`)** : marchandise physiquement remise ou réintégrée au dépôt ; le stock commercial mobile du vendeur est automatiquement crédité ou débité.
+* **Annulé (`CANCELLED`)** : opération annulée par le commercial ou rejetée par le magasinier.
+
+#### 4. Enregistrer une nouvelle opération de stock (Bouton flottant FAB +)
+Le bouton flottant s'adapte automatiquement au contexte et à l'onglet sélectionné :
+* **Nouvelle Sortie Standard** : sélection des articles du magasinier et des quantités désirées pour la tournée de vente.
+* **Nouveau Retour Standard** : sélection des articles à restituer avec saisie d'un **commentaire/motif obligatoire** (ex. *Invendus fin de semaine*, *Emballage abîmé*).
+* **Nouvelle Sortie Tontine** : sélection des articles avec champ de **date de livraison demandée** pour synchroniser la dotation avec les remises prévues aux membres épargnants.
+* **Nouveau Retour Tontine** : restitution d'articles tontine excédentaires avec motif explicatif.
+
+#### 5. Consultation détaillée et Droit d'annulation
+* Touchez n'importe quelle opération dans la liste pour ouvrir sa fiche détaillée : référence, date, statut du magasinier, motif et détail complet des articles et quantités.
+* **Annulation d'une demande erronée** : tant qu'une demande ou un retour porte le statut **En attente** (`PENDING`), un bouton rouge **« Annuler la demande »** ou **« Annuler le retour »** permet au commercial de révoquer immédiatement l'opération avant que le magasinier ne commence à préparer le colis.
+
+<!-- CAPTURE À INSÉRER : Tableau de bord Stock avec les pilules de contexte Standard/Tontine et les onglets Demandes/Retours. -->
 
 ---
 
