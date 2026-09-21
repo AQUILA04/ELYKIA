@@ -49,7 +49,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
   4. *Panneaux de Traçabilité* : 5 dernières ventes avec statut coloré (`CREATED`, `VALIDATED`, `INPROGRESS`, `SETTLED`) et fil d'activité récente système avec heure relative.
   5. *Alertes Stock Magasin* (`ROLE_STOREKEEPER`) : Tables paginées d'articles en rupture et en rupture imminente avec pastilles d'alerte et redirection vers le catalogue.
   6. *Dashboard Décisionnel BI (`/bi`)* : Filtres temporels rapides (*Aujourd'hui, Cette semaine, Ce mois, Cette année, Personnalisé*), indicateurs stratégiques de rentabilité (`ROLE_KPI_FINANCIER_BI_DASHBOARD`), raccourcis vers l'analyse des ventes, des recouvrements et du stock, et centre d'alertes en temps réel.
-- **Générateur & RAG Index** : Compilation du guide imprimable `guide_complet_manager.md` et mise à jour de l'index RAG IA (77 fragments) dans `backend/src/main/resources/ai/user-guide-index.json`.
+- **User Guide (Frontend Web - Opérations quotidiennes, Caisse & Clients)** : Refonte complète de `user-guide/docs/manager/operations.md` et `user-guide/docs/commercial/clients_accounts.md` :
+  1. *Journée comptable (`/accounting-day`)* : Verrou d'intégrité, date comptable non modifiable, ouverture/fermeture et tableau de monitoring des caisses agents ouvertes (contrôle bloquant).
+  2. *Caisse agent (`/open-cashDesk`)* : Ouverture et fermeture individuelle par collecteur/agent guichet avec nom d'utilisateur connecté.
+  3. *Billetage physique (`/billetage`)* : Grille complète des coupures UMOA/BCEAO avec visuels officiels des billets (10k, 5k, 2k, 1k, 500) et des pièces (500 à 5 FCFA), saisie des quantités, sous-totaux dynamiques et total calculé en temps réel.
+  4. *Opération journalière (`/daily-operation`)* : Suivi des crédits du jour, mise journalière, reste à payer, accès direct TFJ et export PDF de tournée.
+  5. *Répertoire et Enrôlement client (`/client/add`)* : Formulaire à 7 sections (Photo de profil JPG/PNG carré en base64, Nom/Prénom/Adresse/Tél 8 chiffres, Pièce d'identité CENI/Passport/CNI/NIU/Permis avec document numérisé, Date de naissance avec contrôle d'âge 16 ans, Localité avec autocomplétion, Garant/Contact, Géolocalisation GPS native ou saisie manuelle, Commercial crédit et tontine obligatoires, Type CLIENT/PROMOTER, Compte avec solde initial entre 500 et 2 000 000 FCFA).
+  6. *Fiche client détaillée (`/client/view/:id`)* : Vue 360°, 6 KPIs financiers (achats en cours, dû à date, payé à date, retards), et 3 onglets chronologiques (*Achats*, *Historiques*, *En Attente*).
+  7. *Réaffectation en masse de portefeuille (`ROLE_ASSIGN_CLIENT_COLLECTOR`)* : Sélection multiple, affectation distincte commercial crédit / commercial tontine, case conditionnelle de transfert automatique des crédits en cours, et gestion de l'autorisation de Crédit Business (badge B).
+- **Générateur & RAG Index** : Compilation des guides imprimables `guide_complet_manager.md` et `guide_complet_commercial.md`, et mise à jour de l'index RAG IA (80 fragments) dans `backend/src/main/resources/ai/user-guide-index.json`.
 
 ## Docs & Infra — 2026-09-21
 

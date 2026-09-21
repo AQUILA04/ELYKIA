@@ -11,53 +11,63 @@
   },
   {
     "id": "commercial_clients_accounts",
-    "title": "Clients et comptes",
+    "title": "Clients et comptes (Répertoire, Enrôlement & Suivi)",
     "path": "/user-guide/commercial/clients_accounts.html",
     "roles": [
       "commercial",
       "manager"
     ],
-    "content": "Clients et comptes\n\nLe module Clients centralise les données nécessaires aux ventes et à la tontine. Recherchez toujours un dossier existant avant de créer un client afin d’éviter les doublons."
+    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\n\nLe module Clients est le socle de l'ensemble des opérations commerciales et financières d'ELYKIA. Il centralise les données d'identité, les coordonnées géographiques, les pièces justificatives, les affectations commerciales ainsi que l'historique complet des crédits et de la tontine.\n\n---"
   },
   {
-    "id": "commercial_clients_accounts__rechercher_et_consulter",
-    "title": "Clients et comptes — Rechercher et consulter",
+    "id": "commercial_clients_accounts__1_rechercher_et_consulter_la_client_le_client_li",
+    "title": "Clients et comptes (Répertoire, Enrôlement & Suivi) — 1. Rechercher et consulter la clientèle (`/client/list`)",
     "path": "/user-guide/commercial/clients_accounts.html",
     "roles": [
       "commercial",
       "manager"
     ],
-    "content": "Clients et comptes\nRechercher et consulter\n\nLa liste affiche des KPI de portefeuille, une recherche par nom, prénom, téléphone ou localité, un filtre commercial et une pagination. Cliquez sur le nom ou sur Voir pour ouvrir la fiche. La fiche peut montrer les badges de crédit actif, membre tontine ou commande en cours, les informations de contact, une photo et les historiques disponibles.\n\n \n\nSi un commercial est sélectionné, le bouton Fiche Client PDF permet l’export du portefeuille correspondant. L’export ne remplace pas la vérification de la période ou du commercial choisi."
+    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nRechercher et consulter la clientèle (/client/list)\n\nAccessible via le menu latéral Clients , la vue liste fournit un accès direct à l'ensemble du portefeuille.\n\nA. Outils de filtrage et recherche\n Recherche instantanée : Saisissez un nom, un prénom, un numéro de téléphone (8 chiffres) ou un nom de localité dans le champ de recherche, puis appuyez sur Entrée ou cliquez sur la loupe.\n Sélecteur de commercial : Permet d'isoler en un clic le portefeuille géré par un commercial précis.\n Persistance de navigation : La recherche, le commercial sélectionné et la pagination sont conservés dans l'état de l'application lorsque vous ouvrez une fiche client et revenez à la liste.\n Fiche Client PDF : Dès qu'un commercial est filtré, le bouton « Fiche Client PDF » devient actif pour générer le document imprimable de son portefeuille clients.\nB. Indicateurs du bandeau supérieur\nQuatre cartes KPIs résument la dynamique du portefeuille affiché :\n Clients enregistrés : Nombre total de clients actifs (hors dossiers supprimés).\n Crédit en cours : Nombre de clients ayant au moins une vente à crédit active (INPROGRESS).\n Membres tontine : Nombre de clients souscripteurs d'un cycle d'épargne tontine.\n Sans crédit ni tontine : Prospects ou clients n'ayant aucun engagement financier actif.\n\n---"
   },
   {
-    "id": "commercial_clients_accounts__cr_er_ou_modifier_un_client",
-    "title": "Clients et comptes — Créer ou modifier un client",
+    "id": "commercial_clients_accounts__2_enr_lement_d_un_nouveau_client_client_add",
+    "title": "Clients et comptes (Répertoire, Enrôlement & Suivi) — 2. Enrôlement d'un nouveau client (`/client/add`)",
     "path": "/user-guide/commercial/clients_accounts.html",
     "roles": [
       "commercial",
       "manager"
     ],
-    "content": "Clients et comptes\nCréer ou modifier un client\n\nCliquez sur Ajouter puis remplissez les sections du formulaire. Les champs obligatoires affichent un astérisque.\n\n Section Informations principales \n --- --- \n Identité Nom, prénom, adresse, téléphone à huit chiffres et photo de profil facultative. \n Pièce d’identité Type de pièce, numéro et document facultatif au format autorisé. \n Informations personnelles Date de naissance, occupation et localité recherchable. \n Contact Personne à contacter, si nécessaire. \n Géolocalisation Position GPS obtenue depuis l’appareil ou latitude/longitude saisies manuellement. \n Commerciaux associés Commercial crédit, commercial tontine et commercial agence. \n Type et compte Type client ou commercial ; solde initial lorsque la section compte est affichée. \n\nValidez avec Enregistrer . En modification, les champs liés aux commerciaux peuvent être restreints : seul un compte autorisé à l’affectation peut changer les responsables crédit ou tontine."
+    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nEnrôlement d'un nouveau client (/client/add)\n\nPour créer un nouveau client, cliquez sur le bouton bleu « + Ajouter » en haut à droite de la liste (ROLE_EDIT_CLIENT ou ROLE_PROMOTER). Le formulaire est structuré en 7 sections normées :\n\nSection 1 : Identité\n Photo de profil :\nCliquez sur l'icône de l'appareil photo pour téléverser une photo d'identité (format JPG ou PNG, recadrage carré recommandé).\nLa photo est automatiquement convertie et enregistrée en base de données. Un bouton permet de la retirer ou de la remplacer si besoin.\n Nom & Prénom (Obligatoires) : Identité civile du client.\n Adresse (Obligatoire) : Adresse physique de résidence ou de commerce.\n Numéro de téléphone (Obligatoire) : Numéro principal du client (exactement 8 chiffres requis selon la numérotation nationale).\nSection 2 : Pièce d'identité\n Type de pièce (Obligatoire) : Sélection parmi les formats d'identification légaux autorisés :\nCarte d'électeur (CENI)\nPassport\nCarte nationale d'identité (ID Card)\nCarte e-ID / Numéro d'Identification Unique (NIU)\nPermis de conduire (Driver License)\n Numéro de pièce (Obligatoire) : Numéro officiel d'enregistrement de la pièce d'identité.\n Document numérisé (Fichier) : Téléversement du scan ou de la photo de la pièce d'identité (formats acceptés : PDF, JPEG, PNG).\nSection 3 : Informations personnelles\n Date de naissance (Obligatoire) :\n Contrôle d'âge minimum (16 ans) : L'application vérifie automatiquement que le client est âgé d'au moins 16 ans révolus à la date du jour.…"
   },
   {
-    "id": "commercial_clients_accounts__r_affecter_plusieurs_clients",
-    "title": "Clients et comptes — Réaffecter plusieurs clients",
+    "id": "commercial_clients_accounts__3_consultation_d_taill_e_du_client_client_view_i",
+    "title": "Clients et comptes (Répertoire, Enrôlement & Suivi) — 3. Consultation détaillée du client (`/client/view/:id`)",
     "path": "/user-guide/commercial/clients_accounts.html",
     "roles": [
       "commercial",
       "manager"
     ],
-    "content": "Clients et comptes\nRéaffecter plusieurs clients\n\nLes comptes ayant la permission d’affectation voient des cases à cocher et le bouton Changer de commercial . Sélectionnez les clients, puis choisissez le commercial crédit, le commercial tontine ou les deux. L’option Transférer automatiquement les ventes du commercial devient disponible après sélection d’un commercial crédit ; elle transfère les ventes crédit INPROGRESS du portefeuille vers le nouveau commercial.\nVérifiez la sélection avant validation. L’historique conserve la traçabilité des changements de commercial."
+    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nConsultation détaillée du client (/client/view/:id)\n\nEn cliquant sur le nom d'un client dans la liste, vous accédez à sa Fiche Client Détaillée , structurée pour offrir une vue à 360 degrés de sa solvabilité :\n\nA. Synthèse d'en-tête\n Informations de profil : Nom, téléphone, adresse, profession, numéro de compte et lien vers le commercial référent.\n Indicateurs financiers en temps réel :\n Achats en cours : Nombre de crédits actifs.\n Montant total de l'achat en cours (FCFA).\n Montant total dû à date (FCFA) : Montant théorique qui devrait être remboursé selon le calendrier d'échéances.\n Montant total payé à date (FCFA) : Somme réelle des remboursements déjà perçus.\n Achats terminés : Nombre de crédits entièrement soldés avec succès.\n Achats en retard : Nombre de crédits en défaut de paiement.\nB. Les 3 Onglets chronologiques d'opérations\n Onglet « Achats » : Liste détaillée des crédits actuellement en cours (INPROGRESS), avec la référence, les articles associés, la mise journalière, le montant total et le reste à payer.\n Onglet « Historiques » : Archives de l'ensemble des crédits soldés (SETTLED) ou annulés dans le passé, permettant d'apprécier la ponctualité historique du client.\n Onglet « En Attente » : Dossiers de vente créés (CREATED) ou validés (VALIDATED) en attente de démarrage ou de livraison de marchandise.\n\n---"
   },
   {
-    "id": "commercial_clients_accounts__comptes",
-    "title": "Clients et comptes — Comptes",
+    "id": "commercial_clients_accounts__4_r_affectation_en_masse_de_portefeuille_role_as",
+    "title": "Clients et comptes (Répertoire, Enrôlement & Suivi) — 4. Réaffectation en masse de portefeuille (`ROLE_ASSIGN_CLIENT_COLLECTOR`)",
     "path": "/user-guide/commercial/clients_accounts.html",
     "roles": [
       "commercial",
       "manager"
     ],
-    "content": "Clients et comptes\nComptes\n\nLe menu Comptes , lorsqu’il est visible, est distinct de la fiche client. Utilisez-le pour consulter les comptes et leurs soldes avec les droits prévus. Ne créez pas un nouveau client uniquement pour corriger une information de compte : revenez à la fiche client ou suivez la procédure de gestion de compte de votre organisation."
+    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nRéaffectation en masse de portefeuille (ROLE_ASSIGN_CLIENT_COLLECTOR)\n\nLorsque les tournées sont réorganisées, les gestionnaires peuvent transférer un groupe de clients vers un nouveau commercial :\nCochez les cases des clients concernés dans la liste.\nCliquez sur le bouton d'action « Changer de commercial (N) » .\nSélectionnez le nouveau Commercial crédit et/ou le nouveau Commercial tontine .\n Transfert automatique des ventes : Cochez la case « Transférer automatiquement les ventes du commercial vers le nouveau commercial » pour que tous les crédits en cours suivent instantanément le client chez le nouvel agent.\nValidez l'opération.\n\n---"
+  },
+  {
+    "id": "commercial_clients_accounts__5_gestion_des_comptes_financiers_accountlist",
+    "title": "Clients et comptes (Répertoire, Enrôlement & Suivi) — 5. Gestion des comptes financiers (`/accountlist`)",
+    "path": "/user-guide/commercial/clients_accounts.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nGestion des comptes financiers (/accountlist)\n\nLe sous-menu Comptes offre une vue d'ensemble des comptes de monnaie électronique ou de dépôt rattachés aux clients et aux agents :\nAffiche pour chaque compte : le numéro de compte unique, le titulaire (client ou commercial), le type de compte et le solde actuel disponible en FCFA.\nLa fiche de détail d'un compte (/accountdetails/:id) permet de tracer l'ensemble des écritures de débit (achats, prélèvements) et de crédit (approvisionnements, remboursements)."
   },
   {
     "id": "commercial",
@@ -445,39 +455,57 @@
   },
   {
     "id": "manager_operations",
-    "title": "Opérations quotidiennes",
+    "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)",
     "path": "/user-guide/manager/operations.html",
     "roles": [
       "manager"
     ],
-    "content": "Opérations quotidiennes\n\nCette page rassemble les gestes de contrôle du jour : journée comptable, caisse, clients, comptes et versements. Les libellés et boutons dépendent des permissions de la session."
+    "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\n\nCe guide décrit l'ensemble des procédures opérationnelles et des gestes de contrôle quotidiens : ouverture et fermeture de la journée comptable, gestion des caisses agents, décompte physique par billetage, suivi de l'opération journalière et réaffectation stratégique des portefeuilles clients.\n\n---"
   },
   {
-    "id": "manager_operations__journ_e_comptable_et_caisse",
-    "title": "Opérations quotidiennes — Journée comptable et caisse",
+    "id": "manager_operations__1_gestion_de_la_journ_e_comptable_accounting_day",
+    "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 1. Gestion de la journée comptable (`/accounting-day`)",
     "path": "/user-guide/manager/operations.html",
     "roles": [
       "manager"
     ],
-    "content": "Opérations quotidiennes\nJournée comptable et caisse\n\nLa page Gestion de la journée comptable affiche la date comptable, en lecture seule, et l’action Ouvrir ou Fermer selon son état. Lorsqu’elle est ouverte, la liste Caisses Ouvertes identifie les collecteurs encore en service. Cette page peut être réservée aux comptes chargés de l’ouverture ou de la fermeture.\n\nLe menu Caisse > Ouverture / Fermeture permet à l’agent autorisé d’ouvrir ou de fermer sa caisse. L’écran indique le nom de l’utilisateur concerné et ne demande pas de saisie supplémentaire.\n\n \n\n Action Précondition Résultat attendu \n --- --- --- \n Ouvrir la journée Permission d’ouverture et date comptable proposée. Les opérations du jour peuvent être réalisées. \n Ouvrir une caisse Journée comptable ouverte et permission de caisse. L’agent peut enregistrer ses opérations. \n Fermer une caisse Fin des opérations de l’agent. La caisse ne doit plus recevoir de nouvelle opération. \n Fermer la journée Contrôle préalable des caisses encore ouvertes. La journée est clôturée selon la procédure de l’organisation. \n\nLe billetage peut être accessible selon le déploiement. Il consiste à renseigner les quantités de billets et de pièces ; le total est calculé avant la validation. Comparez le total obtenu avec les opérations enregistrées, sans modifier artificiellement les montants pour faire disparaître un écart."
+    "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nGestion de la journée comptable (/accounting-day)\n\nLa Journée comptable est le verrou d'intégrité central d'ELYKIA. Aucune opération financière (décaissement, encaissement, vente, collecte) ne peut être initiée sans qu'une journée comptable ne soit préalablement ouverte.\n\nA. Cycle d'ouverture et de fermeture (ROLE_OPEN_ACCOUNTING_DAY)\n Date comptable proposée : La date affichée correspond à la date du jour système. Elle est verrouillée en lecture seule pour interdire toute antidatation artificielle.\n Ouverture de la journée :\nSi la journée est fermée, le gestionnaire clique sur le bouton bleu « Ouvrir » .\nLe système enregistre l'ouverture et autorise l'initialisation des caisses individuelles.\n Fermeture de la journée :\nEn fin de journée d'exploitation, le bouton rouge « Fermer » permet de clôturer la journée comptable.\n Contrôle préventif bloquant : L'écran affiche en temps réel la liste des Caisses Ouvertes (nom du collecteur et heure d'ouverture). Toutes les caisses des agents doivent impérativement être fermées avant de pouvoir clore la journée générale.\n\n Statut Journée Bouton Disponible Condition d'Exécution Conséquence Système \n --- --- --- --- \n Fermée Ouvrir Date comptable du jour valide. Active la possibilité d'ouvrir les caisses individuelles. \n Ouverte Fermer Aucune caisse agent ne doit rester ouverte dans la table de monitoring. Fige les écritures comptables du jour. \n\n---"
   },
   {
-    "id": "manager_operations__clients_et_comptes",
-    "title": "Opérations quotidiennes — Clients et comptes",
+    "id": "manager_operations__2_gestion_de_la_caisse_agent_open_cashdesk",
+    "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 2. Gestion de la caisse agent (`/open-cashDesk`)",
     "path": "/user-guide/manager/operations.html",
     "roles": [
       "manager"
     ],
-    "content": "Opérations quotidiennes\nClients et comptes\n\nDans Clients , recherchez d’abord par nom, prénom, téléphone ou localité. Un filtre commercial peut être appliqué, et les KPI indiquent notamment les clients avec crédit actif ou membres tontine. La création exige les informations d’identité, la pièce, les coordonnées, la localité et les commerciaux associés. La géolocalisation peut être obtenue par GPS ou saisie manuellement.\n\nLa réaffectation d’un portefeuille par cases à cocher est réservée aux comptes habilités. Le responsable peut choisir séparément un commercial crédit et un commercial tontine ; la case de transfert automatique ne concerne que les ventes crédit en cours et n’est disponible qu’après sélection d’un commercial crédit."
+    "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nGestion de la caisse agent (/open-cashDesk)\n\nChaque collecteur, commercial ou caissier au siège doit disposer d'une caisse ouverte pour enregistrer ses opérations de vente et d'encaissement.\n Accès au module : Menu latéral Caisse > Ouverture / Fermeture (ROLE_OPEN_CASH_DESK, ROLE_CLOSE_CASH_DESK).\n Fonctionnement unitaire :\nL'écran affiche automatiquement l'identifiant de l'agent connecté : Ouvrir la caisse de l'utilisateur : [username].\nUn clic sur « Ouvrir Caisse » attribue un numéro de caisse actif pour la journée en cours.\nEn fin de tournée ou de journée guichet, l'utilisateur revient sur cet écran pour cliquer sur « Fermer Caisse » .\n\n---"
   },
   {
-    "id": "manager_operations__suivre_l_op_ration_journali_re_et_les_versements",
-    "title": "Opérations quotidiennes — Suivre l’opération journalière et les versements",
+    "id": "manager_operations__3_billetage_physique_des_esp_ces_billetage",
+    "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 3. Billetage physique des espèces (`/billetage`)",
     "path": "/user-guide/manager/operations.html",
     "roles": [
       "manager"
     ],
-    "content": "Opérations quotidiennes\nSuivre l’opération journalière et les versements\n\nLe sous-menu Caisse > Opération Journalière affiche des crédits avec le client, la localité, la mise journalière et le reste à payer. Il fournit un accès aux détails et, selon l’habilitation, à des documents de suivi.\n\nLes versements ne se lisent plus comme un total unique. Dans le Rapport Journalier , le segment Versements sépare les montants crédit, tontine, solde de nouveaux comptes, surplus et total. Les règles de création, d’annulation et de réception sont précisées dans le guide Rapports et configuration."
+    "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nBilletage physique des espèces (/billetage)\n\nLe Billetage permet de réaliser le comptage contradictoire et rigoureux des espèces physiques (billets et pièces de monnaie en Francs CFA) avant tout versement ou clôture.\n\nA. Grille de décomposition des coupures\nL'interface présente deux colonnes distinctes avec les reproductions visuelles officielles des billets et pièces de la zone UMOA / BCEAO :\n Colonne Billets (Badge B) :\n10 000 FCFA\n5 000 FCFA\n2 000 FCFA\n1 000 FCFA\n500 FCFA\n Colonne Pièces (Badge P) :\n500 FCFA\n250 FCFA\n200 FCFA\n100 FCFA\n50 FCFA\n25 FCFA\n20 FCFA\n10 FCFA\n5 FCFA\nB. Saisie et calcul instantané\nL'utilisateur saisit uniquement le nombre d'unités physiques constatées dans le champ qté.\n Sous-total par ligne : Dès la frappe, la ligne affiche le montant monétaire calculé (ex : 15 billets de 10 000 FCFA = 150 000 F).\n Total Billetage en pied de page : Un encadré met en évidence la somme totale en FCFA en temps réel.\nCliquez sur « Suivant » pour valider et transmettre le bordereau de billetage aux états financiers.\n Règle d'or. Le billetage doit refléter exactement les espèces contenues dans la sacoche ou le tiroir-caisse. Il ne doit jamais être ajusté arbitrairement pour compenser un écart avec les montants du système.\n\n---"
+  },
+  {
+    "id": "manager_operations__4_op_ration_journali_re_et_feuille_de_route_dail",
+    "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 4. Opération journalière et feuille de route (`/daily-operation`)",
+    "path": "/user-guide/manager/operations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nOpération journalière et feuille de route (/daily-operation)\n\nAccessible via Caisse > Opération Journalière , cette interface permet de superviser l'ensemble des crédits actifs dont les mises sont attendues sur la journée.\n Indicateurs par ligne :\nNom et prénom du client.\nLocalité / Quartier.\n Mise journalière contractuelle en FCFA.\n Reste à payer global sur le crédit.\n Actions et documents :\n Détails (visibility) : Ouverture de la fiche complète du crédit ciblé.\n Bouton TFJ (payment) : Accès direct à la Table Financière Journalière.\n Télécharger PDF (picture_as_pdf) : Génération immédiate de la fiche de tournée et de contrôle journalier pour les agents de recouvrement.\n\n---"
+  },
+  {
+    "id": "manager_operations__5_portefeuille_clients_r_affectation_de_masse_cl",
+    "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 5. Portefeuille Clients & Réaffectation de masse (`/client/list`)",
+    "path": "/user-guide/manager/operations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nPortefeuille Clients & Réaffectation de masse (/client/list)\n\nLe module Clients regroupe l'annuaire centralisé des clients et prospects, enrichi de contrôles de gestion de portefeuille.\nA. Bandeau KPI du portefeuille\nEn haut de page, 4 cartes synthétiques donnent une photographie immédiate du portefeuille :\n Clients enregistrés : Nombre total de clients actifs enregistrés dans la base (hors fiches supprimées).\n Crédit en cours : Nombre de clients détenant actuellement au moins une vente à crédit non soldée.\n Membres tontine : Nombre de clients inscrits à au moins un cycle de tontine.\n Sans crédit ni tontine : Clients inactifs ou prospects n'ayant aucun engagement financier en cours.\nB. Outils de recherche et filtres\n Recherche universelle : Recherche en texte libre par nom, prénom, numéro de téléphone (8 chiffres) ou quartier/localité.\n Filtre Commercial : Permet d'isoler en un clic le portefeuille attribué à un commercial spécifique.\n Export Fiche Client PDF : Dès qu'un commercial est sélectionné, un bouton de téléchargement permet d'éditer la liste complète de ses clients au format PDF.\n\n---\nC. Réaffectation en masse de portefeuille (ROLE_ASSIGN_CLIENT_COLLECTOR)\n\nLorsqu'un commercial quitte l'entreprise, change de zone ou qu'un rééquilibrage de tournée est nécessaire, les gestionnaires autorisés peuvent réaffecter plusieurs clients en un seul geste :\n Sélection des clients :\nCochez les cases individuelles devant les noms des clients souhaités, ou utilisez la case d'en-tête pour sélectionner l'ensemble des lignes de la page.\nLe bouton d'action contextuelle « Changer de commercial (N) » apparaît automatiquement.\n Configuration dans la fenêtre modale :\n Commercial crédit : Choisissez le nouveau commercial responsable du suivi des crédits.\n Commercial tontine : Choisissez le nouveau commercial chargé des collectes de tontine (peut être identique ou différent du commercial crédit).\n Option stratégique : Transfert automatique des ventes :\nLa case à cocher « Transférer automatiquement les ventes du commercial vers le nouveau commercial » s'active dès qu'un commercial crédit est sélectionné.…"
   },
   {
     "id": "manager_reporting_config",
