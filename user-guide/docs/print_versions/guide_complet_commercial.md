@@ -664,17 +664,59 @@ Depuis l'onglet **Plus**, le commercial configure le comportement réseau selon 
 
 ---
 
-## 8. Parcours chef de recouvrement
+## 8. Clôture journalière, rapport d'activité et versement de caisse
 
-Le profil Chef de recouvrement dispose d’un espace terrain distinct, accessible après le plan du jour, avec les onglets **Retards**, **Terrain**, **Clients** et **Plus**. Son parcours complet — contrôles de carnet, clôtures, réaffectations, pack hors ligne et synchronisation — est documenté dans le [Guide Chef de recouvrement](../recovery-manager/mobile.md).
+En fin de tournée, avant de remettre les fonds à la caisse de l'agence et d'exécuter la synchronisation finale, le commercial établit son bilan journalier grâce au module **Rapport Journalier** (`/features/rapport-journalier`).
+
+### A. Accéder au rapport d'activité
+* Accessible directement depuis l'action rapide **Rapport** du tableau de bord d'accueil ou via l'onglet **Plus**.
+* **En-tête du rapport** : affiche la date de la journée concernée. Lorsque l'option de consultation d'antériorité est activée (`allowPastDailyReports`), un sélecteur de date permet de rééditer les rapports de tournées passées.
+
+### B. Synthèse d'activité : les 6 indicateurs de la journée
+Le haut de l'écran présente six cartes synthétiques qui dressent le compte-rendu exhaustif des opérations réalisées :
+1. **Distributions** : nombre de ventes à crédit octroyées et montant total distribué en FCFA.
+2. **Recouvrements** : nombre de clients encaissés et montant total des mises collectées.
+3. **Nouveaux clients** : nombre de nouvelles clientes enrôlées dans la journée et cumul des soldes initiaux.
+4. **Avances encaissées** : nombre et montant total des acomptes initiaux perçus en espèces lors des distributions.
+5. **Tontine** : nombre de versements et montant total des cotisations d'épargne collective collectées.
+6. **Reliquats nets** : solde net des monnaies et avoirs gérés sur la journée (`Reliquats générés - Reliquats consommés`).
+
+### C. La règle financière centrale : « Montant total à verser »
+Une carte mise en évidence en grand au centre de l'écran calcule automatiquement la somme physique exacte en espèces que le commercial doit verser entre les mains du caissier de l'agence :
+
+$$\text{Montant total à verser} = \text{Recouvrements} + \text{Avances perçues} + \text{Cotisations Tontine} + \text{Reliquats conservés (monnaie)} - \text{Reliquats utilisés (avoirs)}$$
+
+Cette formule rigoureuse garantit un contrôle sans faille entre les écritures saisies sur le terminal et les espèces physiques rapportées de la tournée.
+
+### D. Contrôle du détail chronologique des opérations (6 onglets)
+Sous les indicateurs, six onglets permettent au vendeur de pointer chaque transaction enregistrée au cours de la journée avec son heure, le nom de la cliente, les détails du contrat ou de l'article, le montant, et son état de synchronisation :
+* **Distributions** : liste des crédits accordés avec badge `Local` ou `Sync`.
+* **Recouvrements** : détail de chaque reçu de mise perçu.
+* **Clients** : fiches des clientes créées avec numéro de compte attribué.
+* **Membres** : nouvelles adhésions tontine validées.
+* **Collectes** : historique unitaire des versements d'épargne.
+* **Livraisons** : remises de commandes ou lots tontine effectuées.
+
+### E. Impression thermique Bluetooth et Export PDF de décharge
+* **Impression thermique Bluetooth (Ticket récapitulatif)** : touchez le bouton **Imprimer le Rapport** en bas de l'écran ou l'icône imprimante en en-tête. Le smartphone transmet l'ordre à l'imprimante thermique de ceinture (ESC/POS) qui édite un ticket officiel de clôture détaillant la date, le nom du commercial, les totaux par catégorie, le montant net à verser et les zones de signature pour le commercial et le caissier.
+* **Export PDF officiel** : touchez l'icône de téléchargement en en-tête pour générer et archiver un fichier PDF propre dans la mémoire du téléphone, partageable par messagerie ou imprimable sur feuille A4 au secrétariat.
+
+<!-- CAPTURE À INSÉRER : Écran du Rapport Journalier avec les 6 KPIs de synthèse, la carte Montant total à verser et le bouton d'impression. -->
 
 ---
 
-## 9. Sécurité et mise à jour
+## 9. Sécurité, conformité et profil Chef de recouvrement
 
-* **Code de consentement journalier** : un code unique est requis chaque matin pour déverrouiller les actes d'encaissement et de sortie de stock sur le terminal.
-* **Changement de mot de passe** : après une réinitialisation par l'administrateur, le changement de mot de passe est obligatoire dès la première connexion.
-* **Mises à jour applicatives** : l'écran **Plus** affiche la version courante de l'application et permet de vérifier la disponibilité d'une nouvelle version distribuée par l'organisation.
+### A. Sécurités opérationnelles sur le terminal
+* **Code de consentement journalier** : chaque matin, avant d'effectuer son premier acte commercial, encaissement ou mouvement de stock, le commercial doit valider son code de consentement journalier (`DailyConsentGuard`). Ce code sécurise la traçabilité de l'ensemble des transactions de la journée.
+* **Protection par mot de passe & Renouvellement obligatoire** : après toute réinitialisation de compte effectuée par l'administrateur, le changement immédiat du mot de passe est obligatoire dès l'écran de connexion pour sécuriser l'accès aux données financières de l'agence.
+* **Identification de l'appareil (Device ID)** : si la politique de gestion d'appareils de l'organisation est active, seuls les smartphones préalablement autorisés et identifiés par leur empreinte numérique peuvent se connecter au serveur ELYKIA, empêchant toute connexion depuis un appareil non homologué.
+* **Mises à jour applicatives intégrées** : l'écran **Plus** affiche en permanence la version courante de l'application (ex. `v2.30.1`) et permet de vérifier la disponibilité d'une nouvelle version distribuée par l'organisation pour garantir la compatibilité des protocoles de synchronisation.
+
+### B. Délimitation avec le parcours Chef de recouvrement
+L'application mobile ELYKIA adapte dynamiquement son interface selon le profil de l'utilisateur connecté :
+* **Profil Commercial** : accès à l'espace documenté dans ce guide (Dashboard commercial, Portefeuille clientes, Distributions de crédit, Recouvrement des mises, Tontine collective, Gestion du stock personnel et Rapport journalier).
+* **Profil Chef de recouvrement** : si le compte connecté possède le rôle de supervision de recouvrement, l'application le dirige automatiquement vers un espace terrain distinct composé de ses propres outils : *Plan du jour par commercial et localité*, *Téléchargement du pack hors ligne*, *Traitement prioritaire des retards*, *Contrôle physique des carnets crédit et tontine*, *Clôtures totales ou partielles* et *Réaffectation des portefeuilles*. Ce parcours spécialisé fait l'objet d'un manuel dédié : [Guide mobile Chef de recouvrement](../recovery-manager/mobile.md).
 
 
 \newpage
