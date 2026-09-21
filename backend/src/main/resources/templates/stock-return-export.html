@@ -27,7 +27,10 @@
             <strong>Période :</strong>
             <span th:text="${context.startDate}"></span> au <span th:text="${context.endDate}"></span>
         </p>
-        <p><strong>Commercial :</strong> <span th:text="${context.collector}"></span></p>
+        <p>
+            <strong th:text="${context.collector != null && context.collector.contains(',') ? 'Commerciaux :' : 'Commercial :'}">Commercial :</strong>
+            <span th:text="${context.collector != null && !#strings.isEmpty(context.collector) ? context.collector : 'Tous'}"></span>
+        </p>
         <p><strong>Date de génération :</strong> <span th:text="${context.generationDate}"></span></p>
         <p th:unless="${context.selectionMode}">
             <em>Basé sur la date de réception des retours réceptionnés.</em>

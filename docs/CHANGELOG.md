@@ -16,6 +16,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Sous-menu **Articles Vendus** (ou **Articles**) sous le menu Ventes pour afficher la liste globale des quantités vendues par article et par commercial.
 - Filtres de période (Ce jour, Cette semaine, Ce mois, Personnalisé) et filtre par commercial sur la liste des articles vendus.
 
+## Backend — [1.19.1] — 2026-09-21
+
+### Fixed
+
+- **Export PDF Stock & Tontine** : Résolution automatique du ou des commerciaux dans les fiches PDF lors des téléchargements unitaires ou multi-sélection (demandes et retours stock standard et tontine), évitant l'affichage par défaut de `Commercial : Tous` lorsque des lignes spécifiques sont sélectionnées.
+- **Templates Thymeleaf Stock** : Adaptation dynamique du libellé (`Commercial :` ou `Commerciaux :`) et sécurisation du fallback dans `stock-request-sortie-export.html` et `stock-return-export.html`.
+
 ## Backend — [1.19.0] — 2026-09-19
 
 ### Added

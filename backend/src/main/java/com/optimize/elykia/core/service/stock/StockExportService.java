@@ -14,6 +14,10 @@ import com.optimize.elykia.core.dto.StockRequestExportDTO;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
+import com.optimize.elykia.core.entity.stock.StockRequest;
+import com.optimize.elykia.core.entity.stock.StockReturn;
+import com.optimize.elykia.core.entity.stock.StockTontineRequest;
+import com.optimize.elykia.core.entity.stock.StockTontineReturn;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.StockRequestRepository;
@@ -150,19 +154,24 @@ public class StockExportService {
                         StockRequestStatus.CANCELLED, StockRequestStatus.REFUSED)
                 : List.of(StockRequestStatus.DELIVERED);
 
+        List<StockRequest> selectedRequests = selectionMode ? stockRequestRepository.findAllById(requestIds) : List.of();
+        String references = selectionMode ? resolveStockRequestReferences(selectedRequests) : null;
+        String resolvedCollector = selectionMode
+                ? resolveSelectionCollector(selectedRequests.stream().map(StockRequest::getCollector).toList(), collector)
+                : (collector != null && !collector.isBlank() ? collector : "Tous");
+
         List<StockRequestExportDTO> data = stockRequestRepository.findAggregatedStockRequests(
                 startDate, endDate, collector, statuses, requestIds);
         data.sort(ArticleSortOrder.forExportDto());
 
         long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
         double totalAmount = data.stream().mapToDouble(StockRequestExportDTO::getTotalAmount).sum();
-        String references = selectionMode ? resolveStockRequestReferences(requestIds) : null;
 
         StockExportPdfContextDto contextDto = StockExportPdfContextDto.builder()
                 .title(selectionMode ? "Fiche de demande(s) de sortie stock" : "Fiche des demandes de sortie stock")
                 .startDate(formatDate(startDate))
                 .endDate(formatDate(endDate))
-                .collector(collector != null ? collector : "Tous")
+                .collector(resolvedCollector)
                 .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
                 .references(references)
                 .selectionMode(selectionMode)
@@ -182,19 +191,24 @@ public class StockExportService {
                         StockReturnStatus.CANCELLED, StockReturnStatus.REFUSED)
                 : List.of(StockReturnStatus.RECEIVED);
 
+        List<StockReturn> selectedReturns = selectionMode ? stockReturnRepository.findAllById(requestIds) : List.of();
+        String references = selectionMode ? resolveStockReturnReferences(selectedReturns) : null;
+        String resolvedCollector = selectionMode
+                ? resolveSelectionCollector(selectedReturns.stream().map(StockReturn::getCollector).toList(), collector)
+                : (collector != null && !collector.isBlank() ? collector : "Tous");
+
         List<StockRequestExportDTO> data = stockReturnRepository.findAggregatedStockReturns(
                 startDate, endDate, collector, statuses, requestIds);
         data.sort(ArticleSortOrder.forExportDto());
 
         long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
         double totalAmount = data.stream().mapToDouble(StockRequestExportDTO::getTotalAmount).sum();
-        String references = selectionMode ? resolveStockReturnReferences(requestIds) : null;
 
         StockExportPdfContextDto contextDto = StockExportPdfContextDto.builder()
                 .title(selectionMode ? "Fiche de retour(s) stock" : "Fiche des retours stock")
                 .startDate(formatDate(startDate))
                 .endDate(formatDate(endDate))
-                .collector(collector != null ? collector : "Tous")
+                .collector(resolvedCollector)
                 .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
                 .references(references)
                 .selectionMode(selectionMode)
@@ -214,19 +228,24 @@ public class StockExportService {
                         StockRequestStatus.CANCELLED, StockRequestStatus.REFUSED)
                 : List.of(StockRequestStatus.DELIVERED);
 
+        List<StockTontineRequest> selectedRequests = selectionMode ? stockTontineRequestRepository.findAllById(requestIds) : List.of();
+        String references = selectionMode ? resolveStockTontineRequestReferences(selectedRequests) : null;
+        String resolvedCollector = selectionMode
+                ? resolveSelectionCollector(selectedRequests.stream().map(StockTontineRequest::getCollector).toList(), collector)
+                : (collector != null && !collector.isBlank() ? collector : "Tous");
+
         List<StockRequestExportDTO> data = stockTontineRequestRepository.findAggregatedStockRequests(
                 startDate, endDate, collector, statuses, requestIds);
         data.sort(ArticleSortOrder.forExportDto());
 
         long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
         double totalAmount = data.stream().mapToDouble(StockRequestExportDTO::getTotalAmount).sum();
-        String references = selectionMode ? resolveStockTontineRequestReferences(requestIds) : null;
 
         StockExportPdfContextDto contextDto = StockExportPdfContextDto.builder()
                 .title(selectionMode ? "Fiche de demande(s) de sortie stock tontine" : "Fiche des demandes de sortie stock tontine")
                 .startDate(formatDate(startDate))
                 .endDate(formatDate(endDate))
-                .collector(collector != null ? collector : "Tous")
+                .collector(resolvedCollector)
                 .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
                 .references(references)
                 .selectionMode(selectionMode)
@@ -246,19 +265,24 @@ public class StockExportService {
                         StockReturnStatus.CANCELLED, StockReturnStatus.REFUSED)
                 : List.of(StockReturnStatus.RECEIVED);
 
+        List<StockTontineReturn> selectedReturns = selectionMode ? stockTontineReturnRepository.findAllById(requestIds) : List.of();
+        String references = selectionMode ? resolveStockTontineReturnReferences(selectedReturns) : null;
+        String resolvedCollector = selectionMode
+                ? resolveSelectionCollector(selectedReturns.stream().map(StockTontineReturn::getCollector).toList(), collector)
+                : (collector != null && !collector.isBlank() ? collector : "Tous");
+
         List<StockRequestExportDTO> data = stockTontineReturnRepository.findAggregatedStockReturns(
                 startDate, endDate, collector, statuses, requestIds);
         data.sort(ArticleSortOrder.forExportDto());
 
         long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
         double totalAmount = data.stream().mapToDouble(StockRequestExportDTO::getTotalAmount).sum();
-        String references = selectionMode ? resolveStockTontineReturnReferences(requestIds) : null;
 
         StockExportPdfContextDto contextDto = StockExportPdfContextDto.builder()
                 .title(selectionMode ? "Fiche de retour(s) stock tontine" : "Fiche des retours stock tontine")
                 .startDate(formatDate(startDate))
                 .endDate(formatDate(endDate))
-                .collector(collector != null ? collector : "Tous")
+                .collector(resolvedCollector)
                 .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
                 .references(references)
                 .selectionMode(selectionMode)
@@ -329,8 +353,8 @@ public class StockExportService {
         return collector;
     }
 
-    private String resolveStockRequestReferences(List<Long> requestIds) {
-        return stockRequestRepository.findAllById(requestIds).stream()
+    private String resolveStockRequestReferences(List<StockRequest> requests) {
+        return requests.stream()
                 .map(r -> r.getReference() != null && !r.getReference().isBlank()
                         ? r.getReference()
                         : "#" + r.getId())
@@ -339,8 +363,8 @@ public class StockExportService {
                 .orElse("—");
     }
 
-    private String resolveStockReturnReferences(List<Long> requestIds) {
-        return stockReturnRepository.findAllById(requestIds).stream()
+    private String resolveStockReturnReferences(List<StockReturn> returns) {
+        return returns.stream()
                 .map(r -> r.getReference() != null && !r.getReference().isBlank()
                         ? r.getReference()
                         : "Retour #" + r.getId())
@@ -349,8 +373,8 @@ public class StockExportService {
                 .orElse("—");
     }
 
-    private String resolveStockTontineRequestReferences(List<Long> requestIds) {
-        return stockTontineRequestRepository.findAllById(requestIds).stream()
+    private String resolveStockTontineRequestReferences(List<StockTontineRequest> requests) {
+        return requests.stream()
                 .map(r -> r.getReference() != null && !r.getReference().isBlank()
                         ? r.getReference()
                         : "#" + r.getId())
@@ -359,12 +383,24 @@ public class StockExportService {
                 .orElse("—");
     }
 
-    private String resolveStockTontineReturnReferences(List<Long> requestIds) {
-        return stockTontineReturnRepository.findAllById(requestIds).stream()
+    private String resolveStockTontineReturnReferences(List<StockTontineReturn> returns) {
+        return returns.stream()
                 .map(r -> "Retour #" + r.getId())
                 .sorted()
                 .reduce((a, b) -> a + ", " + b)
                 .orElse("—");
+    }
+
+    private String resolveSelectionCollector(List<String> entityCollectors, String fallbackCollector) {
+        List<String> distinctCollectors = entityCollectors.stream()
+                .filter(c -> c != null && !c.isBlank())
+                .distinct()
+                .sorted()
+                .toList();
+        if (!distinctCollectors.isEmpty()) {
+            return String.join(", ", distinctCollectors);
+        }
+        return (fallbackCollector != null && !fallbackCollector.isBlank()) ? fallbackCollector : "Tous";
     }
 
     private String formatDate(LocalDate date) {

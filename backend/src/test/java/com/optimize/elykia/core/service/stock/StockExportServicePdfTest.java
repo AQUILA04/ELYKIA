@@ -7,7 +7,12 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
+import com.optimize.elykia.core.dto.StockExportPdfContextDto;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
+import com.optimize.elykia.core.entity.stock.StockRequest;
+import com.optimize.elykia.core.entity.stock.StockReturn;
+import com.optimize.elykia.core.entity.stock.StockTontineRequest;
+import com.optimize.elykia.core.entity.stock.StockTontineReturn;
 import com.optimize.elykia.core.repository.StockRequestRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.repository.StockTontineRequestRepository;
@@ -26,6 +31,7 @@ import org.thymeleaf.context.Context;
 
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -120,6 +126,82 @@ class StockExportServicePdfTest {
         assertThat(dto.getItems().get(0).getArticleName()).contains("Article Test");
         assertThat(dto.getTotalTaken()).isEqualTo(12L);
         assertThat(dto.getTotalSold()).isEqualTo(5L);
+    }
+
+    @Test
+    void stockRequestSelectionResolvesCommercialFromEntity() {
+        StockRequest req = new StockRequest();
+        req.setId(161L);
+        req.setReference("REQ-2026-09-00000161");
+        req.setCollector("COM002");
+
+        when(stockRequestRepository.findAllById(List.of(161L))).thenReturn(List.of(req));
+        when(stockRequestRepository.findAggregatedStockRequests(any(), any(), any(), any(), any()))
+                .thenReturn(new ArrayList<>());
+        when(templateEngine.process(eq("stock-request-sortie-export"), any(Context.class)))
+                .thenReturn(twoPageHtml());
+
+        service.generateStockRequestSortiePdfExport(null, null, null, List.of(161L));
+
+        ArgumentCaptor<Context> captor = ArgumentCaptor.forClass(Context.class);
+        verify(templateEngine).process(eq("stock-request-sortie-export"), captor.capture());
+        StockExportPdfContextDto dto = (StockExportPdfContextDto) captor.getValue().getVariable("context");
+
+        assertThat(dto.getCollector()).isEqualTo("COM002");
+        assertThat(dto.getReferences()).isEqualTo("REQ-2026-09-00000161");
+        assertThat(dto.isSelectionMode()).isTrue();
+    }
+
+    @Test
+    void stockRequestSelectionWithMultipleCommercialsJoinsDistinctSorted() {
+        StockRequest req1 = new StockRequest();
+        req1.setId(1L);
+        req1.setReference("REQ-001");
+        req1.setCollector("COM002");
+
+        StockRequest req2 = new StockRequest();
+        req2.setId(2L);
+        req2.setReference("REQ-002");
+        req2.setCollector("COM001");
+
+        when(stockRequestRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(req1, req2));
+        when(stockRequestRepository.findAggregatedStockRequests(any(), any(), any(), any(), any()))
+                .thenReturn(new ArrayList<>());
+        when(templateEngine.process(eq("stock-request-sortie-export"), any(Context.class)))
+                .thenReturn(twoPageHtml());
+
+        service.generateStockRequestSortiePdfExport(null, null, null, List.of(1L, 2L));
+
+        ArgumentCaptor<Context> captor = ArgumentCaptor.forClass(Context.class);
+        verify(templateEngine).process(eq("stock-request-sortie-export"), captor.capture());
+        StockExportPdfContextDto dto = (StockExportPdfContextDto) captor.getValue().getVariable("context");
+
+        assertThat(dto.getCollector()).isEqualTo("COM001, COM002");
+        assertThat(dto.getReferences()).isEqualTo("REQ-001, REQ-002");
+    }
+
+    @Test
+    void stockReturnSelectionResolvesCommercialFromEntity() {
+        StockReturn ret = new StockReturn();
+        ret.setId(50L);
+        ret.setReference("RET-050");
+        ret.setCollector("COM005");
+
+        when(stockReturnRepository.findAllById(List.of(50L))).thenReturn(List.of(ret));
+        when(stockReturnRepository.findAggregatedStockReturns(any(), any(), any(), any(), any()))
+                .thenReturn(new ArrayList<>());
+        when(templateEngine.process(eq("stock-return-export"), any(Context.class)))
+                .thenReturn(twoPageHtml());
+
+        service.generateStockReturnPdfExport(null, null, null, List.of(50L));
+
+        ArgumentCaptor<Context> captor = ArgumentCaptor.forClass(Context.class);
+        verify(templateEngine).process(eq("stock-return-export"), captor.capture());
+        StockExportPdfContextDto dto = (StockExportPdfContextDto) captor.getValue().getVariable("context");
+
+        assertThat(dto.getCollector()).isEqualTo("COM005");
+        assertThat(dto.getReferences()).isEqualTo("RET-050");
+        assertThat(dto.isSelectionMode()).isTrue();
     }
 
     private CommercialMonthlyStock sampleMonthlyStock() {
