@@ -31,6 +31,21 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Requête paginée `findSoldArticles` dans `CreditArticlesRepository` avec `GROUP BY` sur article et commercial.
 - Endpoint `POST /api/v1/credits/articles-vendus/search` pour exposer les données agrégées.
 
+## Mobile — [2.30.1] — 2026-09-21
+
+### Fixed
+
+- **Navigation Recouvrement** : Correction de la route appelée depuis la fiche client (`client-detail.page.ts`) redirigeant désormais vers `/recovery` avec les paramètres `clientId` et `creditId` au lieu de la route inexistante `/recouvrement`.
+- **Support Sélection Crédit** : Prise en compte du paramètre d'URL `creditId` dans `RecoveryPage` pour pré-sélectionner automatiquement le crédit ciblé.
+
+## Docs & Infra — 2026-09-21
+
+### Added
+
+- **User Guide (Application Mobile)** : Documentation exhaustive du module Recouvrement pour le commercial de terrain dans `user-guide/docs/commercial/mobile_app.md` (tournée « Clients à recouvrer », sélection des mises par pastilles, gestion des reliquats, aperçu et QR Code du reçu, impression thermique Bluetooth, historique et annulation locale).
+- **User Guide (Chef de Recouvrement)** : Précision des raccourcis de montant (`10 000`, `½`, `Net`) et de l'impact du reliquat client dans `user-guide/docs/recovery-manager/mobile.md`.
+- **Générateur & RAG Index** : Mise à jour du script `generate_print_docs.py` pour compiler `mobile_app.md` et le profil `recovery_manager`, et régénération de l'index RAG IA (`backend/src/main/resources/ai/user-guide-index.json`).
+
 ## Mobile — [2.30.0] — 2026-09-19
 
 ### Added

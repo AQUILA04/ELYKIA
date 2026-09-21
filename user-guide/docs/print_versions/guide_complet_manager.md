@@ -1,8 +1,10 @@
-# Guide Gestionnaire — édition imprimable
+# Guide Utilisateur - Profil Manager
 
-Cette édition regroupe les pages canoniques du guide utilisateur. Vérifiez la date de mise à jour du site avant toute impression ou diffusion.
+_Ce document est une compilation de la documentation pour impression._
 
-## Guide Gestionnaire
+\newpage
+
+# Guide Gestionnaire
 
 Ce guide accompagne les gestionnaires, secrétaires et administrateurs dans les tâches de pilotage. Les responsabilités exactes restent déterminées par les permissions attribuées au compte : la présence d’un menu ou d’un bouton confirme qu’il est autorisé pour votre session.
 
@@ -25,13 +27,20 @@ La gestion d’une opération doit toujours suivre son statut. Une demande de so
 
 Consultez les pages suivantes selon la tâche à accomplir :
 
-- Tableaux de bord pour lire les KPI sans confondre les périodes.
-- Opérations quotidiennes pour les caisses, clients, comptes et versements.
-- Stocks, ventes et commandes pour les flux de marchandises et de crédits.
-- Finances et tontines pour les dépenses, remises et contrôles tontine.
-- Rapports et configuration pour l’analyse et les référentiels.
+- [Tableaux de bord](dashboard.md) pour lire les KPI sans confondre les périodes.
+- [Opérations quotidiennes](operations.md) pour les caisses, clients, comptes et versements.
+- [Stocks, ventes et commandes](stock_sales.md) pour les flux de marchandises et de crédits.
+- [Finances et tontines](finance.md) pour les dépenses, remises et contrôles tontine.
+- [Rapports et configuration](reporting_config.md) pour l’analyse et les référentiels.
 
-## Tableaux de bord
+
+\newpage
+
+
+
+---
+
+# Tableaux de bord
 
 Les tableaux de bord permettent de suivre une situation opérationnelle ou financière. Ils ne remplacent pas le contrôle des opérations détaillées : utilisez les cartes comme points d’entrée, puis ouvrez la liste ou le rapport concerné lorsque vous devez expliquer un montant, un stock ou un écart.
 
@@ -54,7 +63,14 @@ Utilisez les liens, cartes cliquables ou boutons **Voir** plutôt que de tirer u
 
 > **Bon réflexe.** Actualisez l’écran après une validation, une livraison, une annulation ou un versement avant de communiquer un total.
 
-## Opérations quotidiennes
+
+\newpage
+
+
+
+---
+
+# Opérations quotidiennes
 
 Cette page rassemble les gestes de contrôle du jour : journée comptable, caisse, clients, comptes et versements. Les libellés et boutons dépendent des permissions de la session.
 
@@ -85,9 +101,16 @@ La réaffectation d’un portefeuille par cases à cocher est réservée aux com
 
 Le sous-menu **Caisse > Opération Journalière** affiche des crédits avec le client, la localité, la mise journalière et le reste à payer. Il fournit un accès aux détails et, selon l’habilitation, à des documents de suivi.
 
-Les versements ne se lisent plus comme un total unique. Dans le **Rapport Journalier**, le segment **Versements** sépare les montants crédit, tontine, solde de nouveaux comptes, surplus et total. Les règles de création, d’annulation et de réception sont précisées dans le guide Rapports et configuration.
+Les versements ne se lisent plus comme un total unique. Dans le **Rapport Journalier**, le segment **Versements** sépare les montants crédit, tontine, solde de nouveaux comptes, surplus et total. Les règles de création, d’annulation et de réception sont précisées dans le guide [Rapports et configuration](reporting_config.md).
 
-## Stocks, ventes et commandes
+
+\newpage
+
+
+
+---
+
+# Stocks, ventes et commandes
 
 Les marchandises suivent un circuit tracé : référentiel article, entrée de stock, demande de sortie, validation, livraison, retour éventuel, puis vente ou livraison tontine. Chaque étape comporte un statut ; ne passez pas directement à l’étape suivante.
 
@@ -114,7 +137,7 @@ Le menu **Historique Entrée** permet de rechercher une réception par référen
 
 Une demande de sortie suit le circuit **Créée → Validée → Livrée**. Depuis **Stock Commercial > Demandes Sortie**, les commerciaux ou gestionnaires habilités créent une demande en sélectionnant le commercial et les articles. Le gestionnaire valide une demande créée ; le magasinier livre une demande validée. Les listes proposent les filtres de période et commercial ainsi que des exports PDF par période, demande ou sélection.
 
-Après livraison, la vente apparaît dans **Ventes > Liste**. Pour une vente à crédit, le responsable valide l’enregistrement puis le magasinier démarre la vente validée. Seules les ventes `INPROGRESS` sont candidates à l’encaissement régulier. Consultez le parcours commercial pour le détail du crédit, des retards et des recouvrements.
+Après livraison, la vente apparaît dans **Ventes > Liste**. Pour une vente à crédit, le responsable valide l’enregistrement puis le magasinier démarre la vente validée. Seules les ventes `INPROGRESS` sont candidates à l’encaissement régulier. Consultez [le parcours commercial](../commercial/sales_orders.md) pour le détail du crédit, des retards et des recouvrements.
 
 ## Stock tontine et commandes
 
@@ -122,7 +145,14 @@ Le stock tontine suit le même principe de demande, validation, livraison et ret
 
 Le menu **Commandes** est disponible selon les rôles. Utilisez les statuts et les détails de la commande pour traiter le dossier dans l’ordre prévu par l’interface ; n’enregistrez pas de vente ou de livraison avant que le statut n’y autorise l’action.
 
-## Finances et tontines
+
+\newpage
+
+
+
+---
+
+# Finances et tontines
 
 Ce guide couvre les dépenses, les versements et le contrôle de la tontine depuis le point de vue de gestion. Les montants présentés par l’application restent soumis aux permissions KPI financières de la page.
 
@@ -151,7 +181,14 @@ Le Rapport Journalier affiche, pour le commercial sélectionné et si les KPI so
 
 La vérification de carnet est une action dédiée : elle ne modifie pas les montants. Elle ajoute ou retire le badge **Carnet vérifié** et conserve la date ainsi que l’auteur de la vérification. L’export PDF des membres ou d’un membre ne s’affiche qu’aux comptes autorisés.
 
-## Rapports et configuration
+
+\newpage
+
+
+
+---
+
+# Rapports et configuration
 
 Le **Rapport Journalier** et le menu **Configuration** sont les deux points de contrôle les plus utiles pour un gestionnaire. Le premier explique ce qui s’est passé ; le second maîtrise les référentiels et règles appliqués aux futurs dossiers.
 
@@ -186,3 +223,11 @@ Les listes de localités et de types d’article proposent recherche, pagination
 Les paramètres sont sensibles. Modifiez une valeur uniquement après validation de la procédure interne. En particulier, `TONTINE_SOCIETY_SHARE_VERSION` est proposé sous la forme d’un choix contrôlé **V1** ou **V2** ; le passage de version peut déclencher un recalcul des parts société et bloquer temporairement les écritures tontine pendant le traitement.
 
 Dans **Mobile Money**, les numéros saisis par commercial prévalent sur les numéros globaux affichés en haut de page. Laissez un champ vide pour conserver le repli sur la configuration globale ; vérifiez la colonne **Effectif** avant d’enregistrer.
+
+
+\newpage
+
+
+
+---
+

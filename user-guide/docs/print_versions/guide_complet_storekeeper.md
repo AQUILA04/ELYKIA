@@ -1,8 +1,10 @@
-# Guide Magasinier — édition imprimable
+# Guide Utilisateur - Profil Storekeeper
 
-Cette édition regroupe les pages canoniques du guide utilisateur. Vérifiez la date de mise à jour du site avant toute impression ou diffusion.
+_Ce document est une compilation de la documentation pour impression._
 
-## Guide Magasinier
+\newpage
+
+# Guide Magasinier
 
 Le magasinier sécurise la circulation physique de la marchandise : catalogue, réceptions, inventaires, sorties, retours et stock tontine. Il ne valide pas automatiquement chaque étape ; les boutons disponibles dans les listes indiquent les actions autorisées à son profil.
 
@@ -18,9 +20,16 @@ Le magasinier sécurise la circulation physique de la marchandise : catalogue, r
 | Traiter les retours | Réceptionner les retours autorisés et conserver leur traçabilité. |
 | Contrôler le physique | Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. |
 
-Consultez les pages dédiées pour les articles, les inventaires et entrées, le stock commercial et le stock tontine.
+Consultez les pages dédiées pour [les articles](articles.md), [les inventaires et entrées](inventory.md), [le stock commercial](stock_commercial.md) et [le stock tontine](stock_tontine.md).
 
-## Gestion des articles
+
+\newpage
+
+
+
+---
+
+# Gestion des articles
 
 Le catalogue d’articles est la référence commune aux entrées, demandes de sortie, ventes et livraisons tontine. Créez ou modifiez une fiche avec rigueur : une erreur de prix ou de type se répercute dans plusieurs flux.
 
@@ -44,7 +53,14 @@ Le formulaire demande l’identification de l’article, son type, ses prix et l
 
 Ne supprimez pas une fiche qui a déjà été utilisée par une opération sans validation de la procédure interne. Préférez la consultation de l’historique pour comprendre une variation de stock.
 
-## Inventaires et entrées de stock
+
+\newpage
+
+
+
+---
+
+# Inventaires et entrées de stock
 
 Le menu **Inventaires** réunit la consultation du stock, l’inventaire physique et l’entrée de marchandises. Il ne faut pas confondre une **entrée** avec un **inventaire** : l’entrée enregistre une réception attendue ; l’inventaire compare le stock système au comptage physique.
 
@@ -72,7 +88,41 @@ Quand aucune session d’inventaire n’est en cours, choisissez **Créer un inv
 
 L’**Historique inventaires** et la trajectoire d’un article sont visibles uniquement aux comptes dotés de la permission de consultation correspondante.
 
-## Stock commercial
+
+\newpage
+
+
+
+---
+
+# Stock tontine
+
+Le **Stock Tontine** sépare les articles destinés au cycle tontine du stock commercial. Les gestes restent proches : demande, validation, livraison et retour, mais les stocks ainsi alimentés servent ensuite aux livraisons de fin d’année des membres.
+
+## Demandes et livraisons
+
+Dans **Stock Tontine > Demandes Sortie**, créez ou consultez les demandes de sortie, appliquez les filtres de période et de commercial, puis contrôlez le statut. Une demande créée doit être validée avant que le magasinier puisse la livrer. La sélection multiple et les exports PDF permettent d’éditer une fiche pour une ou plusieurs demandes.
+
+<!-- CAPTURE À INSÉRER : Liste des demandes de stock tontine avec filtres de période, statut et action Livrer. -->
+
+## Retours tontine
+
+Le sous-menu **Retours** enregistre les articles retournés au stock tontine. Utilisez le détail de la demande pour vérifier les articles, les quantités, la date de demande et la date de réception. Les exports PDF sont disponibles par période, sélection ou ligne selon les droits du compte.
+
+> **À distinguer.** La livraison de stock tontine à un commercial n’est pas la livraison finale au membre. La livraison finale est préparée et validée depuis la fiche du membre dans le module **Tontines**.
+
+## Stock annuel
+
+Le sous-menu **Stock** présente le stock tontine par commercial et par année, lorsque le profil y est autorisé. Le rapport PDF associé doit être lu avec l’année et le commercial affichés sur le panneau.
+
+
+\newpage
+
+
+
+---
+
+# Stock commercial
 
 Le stock commercial alimente les agents chargés de la vente. Les opérations sont centralisées dans **Stock Commercial > Demandes Sortie**, **Stock** et **Retours**.
 
@@ -98,22 +148,10 @@ Dans **Stock Commercial > Retours**, créez un retour pour les articles autoris�
 
 Le sous-menu **Stock** est accessible aux profils qui ne sont pas magasinier uniquement. Il présente les quantités prises, vendues, retournées et restantes par article, avec les valeurs de stock et de recouvrement. Les panneaux mensuels peuvent fournir un rapport PDF et le KPI de valeur vendue ouvre le détail des ventes liées.
 
-## Stock tontine
 
-Le **Stock Tontine** sépare les articles destinés au cycle tontine du stock commercial. Les gestes restent proches : demande, validation, livraison et retour, mais les stocks ainsi alimentés servent ensuite aux livraisons de fin d’année des membres.
+\newpage
 
-## Demandes et livraisons
 
-Dans **Stock Tontine > Demandes Sortie**, créez ou consultez les demandes de sortie, appliquez les filtres de période et de commercial, puis contrôlez le statut. Une demande créée doit être validée avant que le magasinier puisse la livrer. La sélection multiple et les exports PDF permettent d’éditer une fiche pour une ou plusieurs demandes.
 
-<!-- CAPTURE À INSÉRER : Liste des demandes de stock tontine avec filtres de période, statut et action Livrer. -->
+---
 
-## Retours tontine
-
-Le sous-menu **Retours** enregistre les articles retournés au stock tontine. Utilisez le détail de la demande pour vérifier les articles, les quantités, la date de demande et la date de réception. Les exports PDF sont disponibles par période, sélection ou ligne selon les droits du compte.
-
-> **À distinguer.** La livraison de stock tontine à un commercial n’est pas la livraison finale au membre. La livraison finale est préparée et validée depuis la fiche du membre dans le module **Tontines**.
-
-## Stock annuel
-
-Le sous-menu **Stock** présente le stock tontine par commercial et par année, lorsque le profil y est autorisé. Le rapport PDF associé doit être lu avec l’année et le commercial affichés sur le panneau.

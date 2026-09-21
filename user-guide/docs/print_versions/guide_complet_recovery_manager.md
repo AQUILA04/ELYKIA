@@ -1,8 +1,10 @@
-# Guide Chef de recouvrement — édition imprimable
+# Guide Utilisateur - Profil Recovery_manager
 
-Cette édition regroupe les pages canoniques du guide Chef de recouvrement. Vérifiez la date de mise à jour du site avant toute impression ou diffusion.
+_Ce document est une compilation de la documentation pour impression._
 
-## Guide Chef de recouvrement
+\newpage
+
+# Guide Chef de recouvrement
 
 Ce guide s’adresse au **Chef de recouvrement** chargé de suivre les crédits en retard, de contrôler les carnets sur le terrain, de clôturer les dossiers autorisés et d’assurer la synchronisation des opérations mobiles. Le profil dispose d’un parcours spécifique sur l’application web et d’un espace terrain dédié sur l’application mobile.
 
@@ -25,13 +27,20 @@ Ce guide s’adresse au **Chef de recouvrement** chargé de suivre les crédits 
 
 Le **web** est adapté au pilotage, à la recherche dans les retards, à la consultation des fiches et au rapport de recouvrement. Le **mobile** est conçu pour la préparation du plan du jour, les visites terrain et le travail avec un pack local lorsque le réseau est limité.
 
-Consultez le parcours web pour les retards, contrôles et rapports, puis le parcours mobile pour le plan du jour, les quatre onglets terrain et la synchronisation.
+Consultez le [parcours web](web.md) pour les retards, contrôles et rapports, puis le [parcours mobile](mobile.md) pour le plan du jour, les quatre onglets terrain et la synchronisation.
 
 ## Règles à respecter
 
 Les contrôles de carnet doivent refléter le montant réellement observé, avec une note lorsqu’un écart doit être expliqué. Une clôture ne doit être confirmée qu’après vérification du montant encaissé, du montant restant net et des informations affichées par le formulaire. Lorsqu’une opération est en attente de synchronisation, ne la saisissez pas une seconde fois : utilisez l’onglet **Plus** pour la synchroniser et traiter les éventuelles erreurs.
 
-## Chef de recouvrement — application web
+
+\newpage
+
+
+
+---
+
+# Chef de recouvrement — application web
 
 L’application web permet au Chef de recouvrement de préparer et contrôler les dossiers avant, pendant ou après une tournée. Les actions particulières de ce profil apparaissent principalement dans **Ventes > Retards**, la fiche crédit, la fiche membre tontine et le segment **Recouvrement** du Rapport Journalier.
 
@@ -85,6 +94,7 @@ Ouvrez **Rapport Journalier**, appliquez la période et, lorsque l’interface l
 
 | Partie du rapport | Contenu |
 |---|---|
+| Taux du mois | Pourcentage de recouvrement du chef sur le mois de fin de période : encaissé terrain / dû live de **tous les retards délai** de l’application. |
 | KPI | Total collecté, nombre d’opérations et nombre de commerciaux concernés. |
 | À remettre par commercial | Nombre d’opérations et montant à remettre pour chaque commercial. |
 | Détail des opérations | Date, référence crédit, client, commercial, montant et type **Partiel** ou **Total**. |
@@ -92,7 +102,14 @@ Ouvrez **Rapport Journalier**, appliquez la période et, lorsque l’interface l
 
 Utilisez l’export uniquement après contrôle de la période et des filtres. Un montant de recouvrement terrain n’est pas automatiquement une remise au gestionnaire : la remise suit son propre circuit de trésorerie.
 
-## Chef de recouvrement — application mobile
+
+\newpage
+
+
+
+---
+
+# Chef de recouvrement — application mobile
 
 L’application mobile fournit un espace terrain dédié au Chef de recouvrement. Après la connexion, le profil accède au **Plan du jour**, puis au shell composé de quatre onglets : **Retards**, **Terrain**, **Clients** et **Plus**. L’identité de l’utilisateur et l’état **En ligne / Hors ligne** sont affichés dans le parcours afin d’indiquer si les opérations seront envoyées immédiatement ou placées en attente de synchronisation.
 
@@ -112,7 +129,9 @@ Le pack est nécessaire pour travailler hors ligne. Si l’onglet **Retards** in
 
 ## Onglet Retards : prioriser, contrôler et clôturer
 
-L’onglet **Retards** affiche les KPI **Retards**, **Dû** et **Clôturé**, puis les dossiers regroupés par localité. Des filtres par commercial sélectionné dans le plan permettent de concentrer la tournée.
+L’onglet **Retards** affiche les KPI **Retards**, **Dû** et **Clôturé** (périmètre du **plan du jour**), puis un bandeau distinct **Taux du mois** : le taux de recouvrement du chef sur **tous les retards délai** de l’application (pas seulement le pack). Ce bandeau nécessite le réseau ; hors ligne, la dernière valeur mise en cache peut s’afficher, sinon un message indique que le taux est disponible en ligne uniquement. Un sélecteur de mois simple permet de consulter le mois courant ou un mois passé.
+
+Les dossiers sont regroupés par localité. Des filtres par commercial sélectionné dans le plan permettent de concentrer la tournée.
 
 Chaque carte affiche le client, la référence, le commercial, le téléphone lorsque disponible, le montant restant et les jours de retard. Les boutons **Contrôle** et **Clôturer** ouvrent les formulaires correspondants.
 
@@ -122,7 +141,12 @@ Le formulaire compare le montant payé dans le système au montant observé sur 
 
 ### Clôture totale ou partielle
 
-Le formulaire de clôture rappelle le client, la référence, le commercial, le restant dû et le reliquat appliqué, le cas échéant. Choisissez **Total** ou **Partiel**, puis saisissez le montant encaissé. Les raccourcis de montant peuvent aider à renseigner la valeur, mais le montant final doit toujours correspondre à l’encaissement réel.
+Le formulaire de clôture rappelle le client, la référence, le commercial, le restant dû brut et le reliquat appliqué, le cas échéant. Choisissez **Total** ou **Partiel**, puis saisissez le montant encaissé. En mode partiel, des raccourcis facilitent la saisie rapide :
+* **10 000** : applique directement un palier rond de 10 000 FCFA (si le restant dû le permet).
+* **½** : pré-remplit la moitié exacte du montant net dû.
+* **Net** : bascule immédiatement sur le solde net restant après déduction du reliquat client.
+
+Le montant final saisi doit toujours correspondre à l’encaissement physique réel.
 
 > **Ne doublez pas une clôture hors ligne.** Après confirmation, consultez l’onglet **Plus** pour vérifier si l’opération a été synchronisée ou placée dans la file d’attente.
 
@@ -159,3 +183,11 @@ L’onglet **Plus** est le point de contrôle de la journée. Il présente le pl
 | **Mettre à jour l’application** | Lorsqu’une version officielle est proposée par l’application. |
 
 Traitez les erreurs affichées avant de recommencer une opération. Une opération placée dans la file est déjà enregistrée localement ; la ressaisie créerait un risque de doublon. La synchronisation priorise les données de contact et les contrôles avant les clôtures, afin de conserver la cohérence du compte rendu terrain.
+
+
+\newpage
+
+
+
+---
+

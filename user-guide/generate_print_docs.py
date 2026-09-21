@@ -23,7 +23,12 @@ PROFILES = {
         'commercial/stock.md',
         'commercial/sales_orders.md',
         'commercial/tontine.md',
-        'commercial/mobile.md'
+        'commercial/mobile_app.md'
+    ],
+    'recovery_manager': [
+        'recovery-manager/index.md',
+        'recovery-manager/web.md',
+        'recovery-manager/mobile.md'
     ]
 }
 

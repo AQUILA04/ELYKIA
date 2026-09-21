@@ -30,7 +30,12 @@ Le formulaire compare le montant payé dans le système au montant observé sur 
 
 ### Clôture totale ou partielle
 
-Le formulaire de clôture rappelle le client, la référence, le commercial, le restant dû et le reliquat appliqué, le cas échéant. Choisissez **Total** ou **Partiel**, puis saisissez le montant encaissé. Les raccourcis de montant peuvent aider à renseigner la valeur, mais le montant final doit toujours correspondre à l’encaissement réel.
+Le formulaire de clôture rappelle le client, la référence, le commercial, le restant dû brut et le reliquat appliqué, le cas échéant. Choisissez **Total** ou **Partiel**, puis saisissez le montant encaissé. En mode partiel, des raccourcis facilitent la saisie rapide :
+* **10 000** : applique directement un palier rond de 10 000 FCFA (si le restant dû le permet).
+* **½** : pré-remplit la moitié exacte du montant net dû.
+* **Net** : bascule immédiatement sur le solde net restant après déduction du reliquat client.
+
+Le montant final saisi doit toujours correspondre à l’encaissement physique réel.
 
 > **Ne doublez pas une clôture hors ligne.** Après confirmation, consultez l’onglet **Plus** pour vérifier si l’opération a été synchronisée ou placée dans la file d’attente.
 

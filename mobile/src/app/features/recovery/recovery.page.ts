@@ -96,6 +96,9 @@ export class RecoveryPage implements OnInit, OnDestroy {
       if (params['clientId']) {
         this.store.dispatch(RecoveryActions.loadAndSelectClient({ clientId: params['clientId'] }));
       }
+      if (params['creditId']) {
+        this.store.dispatch(RecoveryActions.selectCredit({ distributionId: params['creditId'] }));
+      }
     });
 
     this.store.select(RecoverySelectors.selectSelectedClient)

@@ -156,7 +156,7 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   }
 
   goToRecouvrement(credit: any) {
-    this.router.navigate(['/recouvrement', credit.id]);
+    this.router.navigate(['/recovery'], { queryParams: { clientId: this.clientId, creditId: credit?.id } });
   }
 
   getDisplayDate(credit: any): string {
