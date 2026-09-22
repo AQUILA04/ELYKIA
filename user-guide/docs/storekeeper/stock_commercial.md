@@ -6,7 +6,7 @@ Le magasinier est l'acteur clé de la délivrance physique des articles aux comm
 
 ## 1. Servir et livrer une demande de sortie (`/stock/request`)
 
-Toutes les demandes de sortie validées par la gestion arrivent dans **Stock Commercial > Demandes Sortie** (`ROLE_STOREKEEPER`).
+Toutes les demandes de sortie validées par la gestion arrivent dans **Stock Commercial > Demandes Sortie** (accessible si vous disposez des habilitations requises).
 
 <!-- CAPTURE À INSÉRER : Demande de sortie au statut VALIDATED avec le bouton Livrer visible pour le magasinier. -->
 

@@ -6,7 +6,7 @@ Le catalogue **Articles** est la base de données centrale de référence pour t
 
 ## 1. Consulter et rechercher dans le catalogue (`/article/list`)
 
-Accessible depuis le menu latéral **Articles** (`ROLE_STOREKEEPER` ou `ROLE_EDIT_ARTICLE`), la liste présente l'ensemble des articles enregistrés.
+Accessible depuis le menu latéral **Articles** (si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises), la liste présente l'ensemble des articles enregistrés.
 
 <!-- CAPTURE À INSÉRER : Catalogue des articles avec recherche dynamique, filtre par type, quantités en stock et boutons de consultation. -->
 

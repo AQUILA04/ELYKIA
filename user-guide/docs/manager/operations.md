@@ -10,14 +10,14 @@ La **Journée comptable** est le verrou d'intégrité central d'ELYKIA. Aucune o
 
 <!-- CAPTURE À INSÉRER : Écran de gestion de la journée comptable avec date comptable, bouton Ouvrir/Fermer et liste des caisses ouvertes. -->
 
-### A. Cycle d'ouverture et de fermeture (`ROLE_OPEN_ACCOUNTING_DAY`)
+### A. Cycle d'ouverture et de fermeture
 * **Date comptable proposée** : La date affichée correspond à la date du jour système. Elle est verrouillée en lecture seule pour interdire toute antidatation artificielle.
 * **Ouverture de la journée** :
   * Si la journée est fermée, le gestionnaire clique sur le bouton bleu **« Ouvrir »**.
   * Le système enregistre l'ouverture et autorise l'initialisation des caisses individuelles.
 * **Fermeture de la journée** :
   * En fin de journée d'exploitation, le bouton rouge **« Fermer »** permet de clôturer la journée comptable.
-  * **Contrôle préventif bloquant** : L'écran affiche en temps réel la liste des **Caisses Ouvertes** (nom du collecteur et heure d'ouverture). Toutes les caisses des agents doivent impérativement être fermées avant de pouvoir clore la journée générale.
+  * **Contrôle préventif bloquant** : L'écran affiche en temps réel la liste des **Caisses Ouvertes** (nom du commercial et heure d'ouverture). Toutes les caisses des agents doivent impérativement être fermées avant de pouvoir clore la journée générale.
 
 | Statut Journée | Bouton Disponible | Condition d'Exécution | Conséquence Système |
 |---|---|---|---|
@@ -28,9 +28,9 @@ La **Journée comptable** est le verrou d'intégrité central d'ELYKIA. Aucune o
 
 ## 2. Gestion de la caisse agent (`/open-cashDesk`)
 
-Chaque collecteur, commercial ou caissier au siège doit disposer d'une caisse ouverte pour enregistrer ses opérations de vente et d'encaissement.
+Chaque commercial ou caissier au siège doit disposer d'une caisse ouverte pour enregistrer ses opérations de vente et d'encaissement.
 
-* **Accès au module** : Menu latéral **Caisse > Ouverture / Fermeture** (`ROLE_OPEN_CASH_DESK`, `ROLE_CLOSE_CASH_DESK`).
+* **Accès au module** : Menu latéral **Caisse > Ouverture / Fermeture** (selon vos habilitations de caisse).
 * **Fonctionnement unitaire** :
   * L'écran affiche automatiquement l'identifiant de l'agent connecté : `Ouvrir la caisse de l'utilisateur : [username]`.
   * Un clic sur **« Ouvrir Caisse »** attribue un numéro de caisse actif pour la journée en cours.
@@ -108,7 +108,7 @@ En haut de page, 4 cartes synthétiques donnent une photographie immédiate du p
 
 ---
 
-### C. Réaffectation en masse de portefeuille (`ROLE_ASSIGN_CLIENT_COLLECTOR`)
+### C. Réaffectation en masse de portefeuille
 
 Lorsqu'un commercial quitte l'entreprise, change de zone ou qu'un rééquilibrage de tournée est nécessaire, les gestionnaires autorisés peuvent réaffecter plusieurs clients en un seul geste :
 

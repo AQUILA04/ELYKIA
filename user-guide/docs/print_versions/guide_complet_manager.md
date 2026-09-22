@@ -65,22 +65,10 @@ En tête de page, la barre de navigation et le bandeau de pilotage affichent :
 
 ---
 
-### B. Les 5 Cartes KPIs Financières et Opérationnelles
-La grille supérieure regroupe 5 indicateurs clés synthétiques. Ces indicateurs financiers sont soumis à l'habilitation `ROLE_KPI_FINANCIER_DASHBOARD`.
+### B. La grille supérieure regroupe 5 indicateurs clés synthétiques. Ces indicateurs financiers s'affichent si vous disposez des habilitations de consultation financière.
 
-| Indicateur | Visuel / Couleur | Métrique Principale | Sous-titre & Détails | Particularité selon Profil |
+| Carte KPI | Visuel & Teinte | Métrique principale affichée | Sous-indicateurs & Détails | Particularités métier |
 |---|---|---|---|---|
-| **Crédits en cours** | Icône `credit_card`<br>Bleu Marine (`#003366`) | **Montant total en cours** (FCFA)<br>Total des crédits au statut `INPROGRESS`. | Nombre de crédits actifs et **marge bénéficiaire brute** calculée. | La marge bénéficiaire est **automatiquement masquée** si l'utilisateur connecté est un commercial / promoteur. |
-| **Recouvrement encours** | Icône `payments`<br>Cyan (`#0095c8`) | **Montant recouvré** (FCFA)<br>Cumul des encaissements enregistrés sur les crédits actifs. | **Reste à recouvrer** (FCFA)<br>Différence nette restant due par les clients. | Permet d'évaluer le taux d'avancement des remboursements du mois. |
-| **Tontine** | Icône `savings`<br>Vert Émeraude (`#00a86b`) | **Total cotisé** (FCFA)<br>Montant brut des collectes tontine du mois civil. | Nombre total de **mises** enregistrées et **Part Société** calculée. | La Part Société affichée s'adapte à la version d'algorithme active (V1 ou V2). |
-| **Clients** | Icône `groups`<br>Orange (`#f39c12`) | **Total clients inscrits**<br>Effectif global du fichier clients. | Nombre de clients **actifs** et nombre de clients **avec crédit en cours**. | Met en lumière le taux d'engagement du portefeuille clients. |
-| **Stock** | Icône `inventory_2`<br>Violet (`#8e44ad`) | **Valorisation du stock** (FCFA)<br>Valeur totale valorisée au prix de vente crédit. | Nombre d'articles / lignes en stock et statut de disponibilité. | **Mode Magasin** (gestionnaire/magasinier : vision centrale) vs **Mode Commercial** (promoteur : vision de son stock personnel embarqué). |
-
----
-
-### C. Graphiques dynamiques d'analyse d'activité
-
-Sous les cartes KPIs, deux graphiques interactifs permettent de suivre le rythme opérationnel :
 
 #### 1. Évolution des Ventes et Recouvrements
 * **Courbes comparatives** : Affiche sur le même axe la courbe des **Ventes à crédit** (bleu marine) et la courbe des **Recouvrements / Encaissements** (bleu cyan).
@@ -119,8 +107,8 @@ Deux panneaux situés sous les graphiques permettent un audit visuel direct des 
 
 ---
 
-### E. Section Alertes Stock Magasin (`ROLE_STOREKEEPER`)
-Réservée aux magasiniers et aux gestionnaires de stock, cette section s'affiche au bas du tableau de bord pour prévenir tout arrêt de distribution :
+### E. Section Alertes Stock Magasin
+Cette section s'affiche au bas du tableau de bord pour les profils en charge du stock (si vous ne voyez pas cette section, vous ne disposez pas des habilitations requises) afin de prévenir tout arrêt de distribution :
 * **Tableau Rupture de Stock (Rouge)** : Liste paginée des articles dont le stock physique est tombé à zéro (numéro d'ordre, nom de l'article, catégorie/type).
 * **Tableau Rupture Imminente (Orange)** : Liste paginée des articles dont le niveau de stock est critique, avec affichage d'une pastille numérique d'alerte.
 * **Lien direct** : Le bouton **« Voir le catalogue »** permet de basculer immédiatement sur la gestion des articles (`/article/list`).
@@ -129,7 +117,7 @@ Réservée aux magasiniers et aux gestionnaires de stock, cette section s'affich
 
 ## 2. Tableau de bord décisionnel BI (`/bi`)
 
-Accessible via le menu **Dashboard BI** pour les profils analystes, directeurs et gestionnaires (`ROLE_REPORT`), ce module est conçu pour l'analyse stratégique approfondie et le pilotage de la performance.
+Accessible via le menu **Dashboard BI** pour les profils d'analyse, directeurs et gestionnaires, ce module est conçu pour l'analyse stratégique approfondie et le pilotage de la performance.
 
 <!-- CAPTURE À INSÉRER : Page Dashboard BI avec filtres Aujourd'hui/Semaine/Mois/Année/Personnalisé, cartes de rentabilité et centre d'alertes. -->
 
@@ -141,7 +129,7 @@ Le Dashboard BI propose une barre de sélection temporelle rapide à 5 options :
 4. **Cette année** : Bilan annuel cumulé.
 5. **Personnalisé** : Déploiement de deux sélecteurs de calendrier permettant de définir une plage de dates libre (`Date début` et `Date fin`).
 
-### B. Indicateurs stratégiques de rentabilité (`ROLE_KPI_FINANCIER_BI_DASHBOARD`)
+### B. Indicateurs stratégiques de rentabilité
 Le bandeau BI présente 4 cartes de performance avancée :
 * **Chiffre d'Affaires Ventes** : Volume total des ventes conclues sur la période et taux de variation par rapport à la période précédente.
 * **Marge Brute Dégagée** : Marge commerciale nette réalisée en FCFA et pourcentage de marge sur coût d'achat.
@@ -190,14 +178,14 @@ La **Journée comptable** est le verrou d'intégrité central d'ELYKIA. Aucune o
 
 <!-- CAPTURE À INSÉRER : Écran de gestion de la journée comptable avec date comptable, bouton Ouvrir/Fermer et liste des caisses ouvertes. -->
 
-### A. Cycle d'ouverture et de fermeture (`ROLE_OPEN_ACCOUNTING_DAY`)
+### A. Cycle d'ouverture et de fermeture
 * **Date comptable proposée** : La date affichée correspond à la date du jour système. Elle est verrouillée en lecture seule pour interdire toute antidatation artificielle.
 * **Ouverture de la journée** :
   * Si la journée est fermée, le gestionnaire clique sur le bouton bleu **« Ouvrir »**.
   * Le système enregistre l'ouverture et autorise l'initialisation des caisses individuelles.
 * **Fermeture de la journée** :
   * En fin de journée d'exploitation, le bouton rouge **« Fermer »** permet de clôturer la journée comptable.
-  * **Contrôle préventif bloquant** : L'écran affiche en temps réel la liste des **Caisses Ouvertes** (nom du collecteur et heure d'ouverture). Toutes les caisses des agents doivent impérativement être fermées avant de pouvoir clore la journée générale.
+  * **Contrôle préventif bloquant** : L'écran affiche en temps réel la liste des **Caisses Ouvertes** (nom du commercial et heure d'ouverture). Toutes les caisses des agents doivent impérativement être fermées avant de pouvoir clore la journée générale.
 
 | Statut Journée | Bouton Disponible | Condition d'Exécution | Conséquence Système |
 |---|---|---|---|
@@ -208,9 +196,9 @@ La **Journée comptable** est le verrou d'intégrité central d'ELYKIA. Aucune o
 
 ## 2. Gestion de la caisse agent (`/open-cashDesk`)
 
-Chaque collecteur, commercial ou caissier au siège doit disposer d'une caisse ouverte pour enregistrer ses opérations de vente et d'encaissement.
+Chaque commercial ou caissier au siège doit disposer d'une caisse ouverte pour enregistrer ses opérations de vente et d'encaissement.
 
-* **Accès au module** : Menu latéral **Caisse > Ouverture / Fermeture** (`ROLE_OPEN_CASH_DESK`, `ROLE_CLOSE_CASH_DESK`).
+* **Accès au module** : Menu latéral **Caisse > Ouverture / Fermeture** (selon vos habilitations de caisse).
 * **Fonctionnement unitaire** :
   * L'écran affiche automatiquement l'identifiant de l'agent connecté : `Ouvrir la caisse de l'utilisateur : [username]`.
   * Un clic sur **« Ouvrir Caisse »** attribue un numéro de caisse actif pour la journée en cours.
@@ -288,7 +276,7 @@ En haut de page, 4 cartes synthétiques donnent une photographie immédiate du p
 
 ---
 
-### C. Réaffectation en masse de portefeuille (`ROLE_ASSIGN_CLIENT_COLLECTOR`)
+### C. Réaffectation en masse de portefeuille
 
 Lorsqu'un commercial quitte l'entreprise, change de zone ou qu'un rééquilibrage de tournée est nécessaire, les gestionnaires autorisés peuvent réaffecter plusieurs clients en un seul geste :
 
@@ -333,7 +321,7 @@ L'organisation repose sur **trois niveaux étanches de stock** :
 
 ## 1. Référentiel Articles et Valorisation du Stock (`/article/list`)
 
-Le catalogue centralise les articles commercialisables, leurs grilles tarifaires et leurs seuils d'alerte logistique (`ROLE_EDIT_ARTICLE`, `ROLE_STOREKEEPER`).
+Le catalogue centralise les articles commercialisables, leurs grilles tarifaires et leurs seuils d'alerte logistique.
 
 <!-- CAPTURE À INSÉRER : Liste du catalogue d'articles avec filtres de type, prix d'achat/vente et seuils de réapprovisionnement. -->
 
@@ -358,7 +346,7 @@ Toute livraison de marchandise par un fournisseur doit faire l'objet d'une saisi
 ### A. Circuit d'approbation d'une réception
 1. **Saisie de l'entrée** : Le magasinier saisit les articles et quantités reçus via le bouton **« Entrées stock »** d'Inventaires (`/inventory/list`).
 2. **Statut `PENDING` (En attente)** : Une référence de réception unique est générée. Les articles ne sont **pas encore intégrés** au stock vendable.
-3. **Contrôle et Validation gestionnaire (`ROLE_REPORT` ou profil Gestionnaire)** :
+3. **Contrôle et Validation gestionnaire** :
    * Ouvrez **Historique Entrée** (`/stock/receptions`).
    * Cliquez sur **« Voir »** pour contrôler la concordance entre le bon de livraison fournisseur et les quantités saisies.
    * **Valider** : Confirme la conformité de la réception. Le stock magasin est **instantanément augmenté**.
@@ -436,7 +424,7 @@ graph LR
 1. **Création de session** : Cliquez sur **« Créer un inventaire »**. La session passe à l'état `IN_PROGRESS` et affiche la date, le statut et l'auteur.
 2. **Impression de la feuille de comptage** : Cliquez sur **« Télécharger PDF »** pour éditer le document de comptage vierge destiné aux équipes de magasin.
 3. **Saisie des quantités réelles** : Cliquez sur **« Saisir quantités physiques »**. Dans la fenêtre modale, saisissez les quantités effectivement dénombrées pour chaque référence d'article.
-4. **Réconciliation des écarts (`ROLE_RECONCILE_INVENTORY`)** :
+4. **Réconciliation des écarts** :
    * Cliquez sur **« Réconcilier les écarts »** pour afficher la balance comparative : `Quantité Théorique Système` vs `Quantité Physique Constatée` = `Écart (Surplus ou Manquant)`.
    * Enregistrez les motifs d'écart (casse, avarie, vol, erreur de saisie).
 5. **Clôture définitive** : Cliquez sur **« Clôturer l'inventaire »**. Les stocks théoriques sont automatiquement réalignés sur le comptage physique approuvé et la session est archivée dans l'**Historique inventaires** (`/inventory/history`).

@@ -23,22 +23,10 @@ En tête de page, la barre de navigation et le bandeau de pilotage affichent :
 
 ---
 
-### B. Les 5 Cartes KPIs Financières et Opérationnelles
-La grille supérieure regroupe 5 indicateurs clés synthétiques. Ces indicateurs financiers sont soumis à l'habilitation `ROLE_KPI_FINANCIER_DASHBOARD`.
+### B. La grille supérieure regroupe 5 indicateurs clés synthétiques. Ces indicateurs financiers s'affichent si vous disposez des habilitations de consultation financière.
 
-| Indicateur | Visuel / Couleur | Métrique Principale | Sous-titre & Détails | Particularité selon Profil |
+| Carte KPI | Visuel & Teinte | Métrique principale affichée | Sous-indicateurs & Détails | Particularités métier |
 |---|---|---|---|---|
-| **Crédits en cours** | Icône `credit_card`<br>Bleu Marine (`#003366`) | **Montant total en cours** (FCFA)<br>Total des crédits au statut `INPROGRESS`. | Nombre de crédits actifs et **marge bénéficiaire brute** calculée. | La marge bénéficiaire est **automatiquement masquée** si l'utilisateur connecté est un commercial / promoteur. |
-| **Recouvrement encours** | Icône `payments`<br>Cyan (`#0095c8`) | **Montant recouvré** (FCFA)<br>Cumul des encaissements enregistrés sur les crédits actifs. | **Reste à recouvrer** (FCFA)<br>Différence nette restant due par les clients. | Permet d'évaluer le taux d'avancement des remboursements du mois. |
-| **Tontine** | Icône `savings`<br>Vert Émeraude (`#00a86b`) | **Total cotisé** (FCFA)<br>Montant brut des collectes tontine du mois civil. | Nombre total de **mises** enregistrées et **Part Société** calculée. | La Part Société affichée s'adapte à la version d'algorithme active (V1 ou V2). |
-| **Clients** | Icône `groups`<br>Orange (`#f39c12`) | **Total clients inscrits**<br>Effectif global du fichier clients. | Nombre de clients **actifs** et nombre de clients **avec crédit en cours**. | Met en lumière le taux d'engagement du portefeuille clients. |
-| **Stock** | Icône `inventory_2`<br>Violet (`#8e44ad`) | **Valorisation du stock** (FCFA)<br>Valeur totale valorisée au prix de vente crédit. | Nombre d'articles / lignes en stock et statut de disponibilité. | **Mode Magasin** (gestionnaire/magasinier : vision centrale) vs **Mode Commercial** (promoteur : vision de son stock personnel embarqué). |
-
----
-
-### C. Graphiques dynamiques d'analyse d'activité
-
-Sous les cartes KPIs, deux graphiques interactifs permettent de suivre le rythme opérationnel :
 
 #### 1. Évolution des Ventes et Recouvrements
 * **Courbes comparatives** : Affiche sur le même axe la courbe des **Ventes à crédit** (bleu marine) et la courbe des **Recouvrements / Encaissements** (bleu cyan).
@@ -77,8 +65,8 @@ Deux panneaux situés sous les graphiques permettent un audit visuel direct des 
 
 ---
 
-### E. Section Alertes Stock Magasin (`ROLE_STOREKEEPER`)
-Réservée aux magasiniers et aux gestionnaires de stock, cette section s'affiche au bas du tableau de bord pour prévenir tout arrêt de distribution :
+### E. Section Alertes Stock Magasin
+Cette section s'affiche au bas du tableau de bord pour les profils en charge du stock (si vous ne voyez pas cette section, vous ne disposez pas des habilitations requises) afin de prévenir tout arrêt de distribution :
 * **Tableau Rupture de Stock (Rouge)** : Liste paginée des articles dont le stock physique est tombé à zéro (numéro d'ordre, nom de l'article, catégorie/type).
 * **Tableau Rupture Imminente (Orange)** : Liste paginée des articles dont le niveau de stock est critique, avec affichage d'une pastille numérique d'alerte.
 * **Lien direct** : Le bouton **« Voir le catalogue »** permet de basculer immédiatement sur la gestion des articles (`/article/list`).
@@ -87,7 +75,7 @@ Réservée aux magasiniers et aux gestionnaires de stock, cette section s'affich
 
 ## 2. Tableau de bord décisionnel BI (`/bi`)
 
-Accessible via le menu **Dashboard BI** pour les profils analystes, directeurs et gestionnaires (`ROLE_REPORT`), ce module est conçu pour l'analyse stratégique approfondie et le pilotage de la performance.
+Accessible via le menu **Dashboard BI** pour les profils d'analyse, directeurs et gestionnaires, ce module est conçu pour l'analyse stratégique approfondie et le pilotage de la performance.
 
 <!-- CAPTURE À INSÉRER : Page Dashboard BI avec filtres Aujourd'hui/Semaine/Mois/Année/Personnalisé, cartes de rentabilité et centre d'alertes. -->
 
@@ -99,7 +87,7 @@ Le Dashboard BI propose une barre de sélection temporelle rapide à 5 options :
 4. **Cette année** : Bilan annuel cumulé.
 5. **Personnalisé** : Déploiement de deux sélecteurs de calendrier permettant de définir une plage de dates libre (`Date début` et `Date fin`).
 
-### B. Indicateurs stratégiques de rentabilité (`ROLE_KPI_FINANCIER_BI_DASHBOARD`)
+### B. Indicateurs stratégiques de rentabilité
 Le bandeau BI présente 4 cartes de performance avancée :
 * **Chiffre d'Affaires Ventes** : Volume total des ventes conclues sur la période et taux de variation par rapport à la période précédente.
 * **Marge Brute Dégagée** : Marge commerciale nette réalisée en FCFA et pourcentage de marge sur coût d'achat.

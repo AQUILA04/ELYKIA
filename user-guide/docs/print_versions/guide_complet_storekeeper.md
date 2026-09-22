@@ -37,7 +37,7 @@ Le catalogue **Articles** est la base de données centrale de référence pour t
 
 ## 1. Consulter et rechercher dans le catalogue (`/article/list`)
 
-Accessible depuis le menu latéral **Articles** (`ROLE_STOREKEEPER` ou `ROLE_EDIT_ARTICLE`), la liste présente l'ensemble des articles enregistrés.
+Accessible depuis le menu latéral **Articles** (si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises), la liste présente l'ensemble des articles enregistrés.
 
 <!-- CAPTURE À INSÉRER : Catalogue des articles avec recherche dynamique, filtre par type, quantités en stock et boutons de consultation. -->
 
@@ -151,7 +151,7 @@ Le module **Stock Tontine** (`/stock-tontine`) applique les mêmes exigences de 
 <!-- CAPTURE À INSÉRER : Liste des demandes de sortie de stock tontine avec filtres et bouton Livrer pour le magasinier. -->
 
 ### A. Contrôle et délivrance physique
-1. Ouvrez **Stock Tontine > Demandes Sortie** (`ROLE_STOREKEEPER`).
+1. Ouvrez **Stock Tontine > Demandes Sortie** (accessible si vous disposez des habilitations nécessaires).
 2. Repérez la demande au statut **`VALIDATED` (Validée)**.
 3. Cliquez sur **« Voir »** pour examiner le panier d'articles réservés pour les membres de la zone.
 4. Rassemblez les colis correspondants et vérifiez les références avec le commercial au guichet.
@@ -187,7 +187,7 @@ Le magasinier est l'acteur clé de la délivrance physique des articles aux comm
 
 ## 1. Servir et livrer une demande de sortie (`/stock/request`)
 
-Toutes les demandes de sortie validées par la gestion arrivent dans **Stock Commercial > Demandes Sortie** (`ROLE_STOREKEEPER`).
+Toutes les demandes de sortie validées par la gestion arrivent dans **Stock Commercial > Demandes Sortie** (accessible si vous disposez des habilitations requises).
 
 <!-- CAPTURE À INSÉRER : Demande de sortie au statut VALIDATED avec le bouton Livrer visible pour le magasinier. -->
 

@@ -58,7 +58,7 @@ Quatre cartes KPIs résument la dynamique du portefeuille affiché :
 
 ## 2. Enrôlement d'un nouveau client (`/client/add`)
 
-Pour créer un nouveau client, cliquez sur le bouton bleu **« + Ajouter »** en haut à droite de la liste (`ROLE_EDIT_CLIENT` ou `ROLE_PROMOTER`). Le formulaire est structuré en 7 sections normées :
+Pour créer un nouveau client, cliquez sur le bouton bleu **« + Ajouter »** en haut à droite de la liste. Le formulaire est structuré en 7 sections normées :
 
 <!-- CAPTURE À INSÉRER : Formulaire d'ajout client montrant l'envoi de la photo de profil, la saisie d'identité, la pièce justificative et les commerciaux. -->
 
@@ -101,7 +101,7 @@ L'application sépare strictement les responsabilités commerciales pour une tra
 * **Commercial agence** : Commercial référent rattaché à l'agence.
 
 ### Section 7 : Type & Compte
-* **Type de client** *(Obligatoire)* : Choix entre `Client` (client final bénéficiaire) ou `Commercial` (compte interne promoteur).
+* **Type de client** *(Obligatoire)* : Choix entre `Client` (client final bénéficiaire) ou `Commercial` (compte interne pour un commercial).
 * **Compte associé & Solde initial** :
   * **Numéro de compte** : Généré automatiquement par le système.
   * **Solde initial en FCFA** *(Obligatoire)* : Saisie du montant d'ouverture de compte, soumis à un plancher et un plafond réglementaires :
@@ -135,7 +135,7 @@ En cliquant sur le nom d'un client dans la liste, vous accédez à sa **Fiche Cl
 
 ---
 
-## 4. Réaffectation en masse de portefeuille (`ROLE_ASSIGN_CLIENT_COLLECTOR`)
+## 4. Réaffectation en masse de portefeuille
 
 Lorsque les tournées sont réorganisées, les gestionnaires peuvent transférer un groupe de clients vers un nouveau commercial :
 
@@ -174,8 +174,8 @@ Pour s'approvisionner, le commercial ou son responsable initie une **Demande de 
 <!-- CAPTURE À INSÉRER : Formulaire Nouvelle demande de sortie stock avec sélection des articles, quantités et bouton d'envoi. -->
 
 ### A. Création de la demande (`/stock/request/create`)
-1. Ouvrez **Stock Commercial > Demandes Sortie** et cliquez sur le bouton bleu **« + Nouvelle demande »** (`ROLE_PROMOTER` ou `ROLE_GESTIONNAIRE`).
-2. Sélectionnez le commercial destinataire.
+1. Ouvrez **Stock Commercial > Demandes Sortie** et cliquez sur le bouton bleu **« + Nouvelle demande »** (si ce bouton n'apparaît pas, vous ne disposez pas des habilitations requises). En tant que commercial, vous visualisez uniquement vos propres demandes ; en tant que gestionnaire, vous avez la visibilité sur l'ensemble des commerciaux de l'agence.
+2. Sélectionnez le commercial destinataire (pré-rempli à votre nom pour un commercial).
 3. Ajoutez les articles souhaités dans la grille et indiquez pour chacun la quantité requise.
 4. Cliquez sur **« Enregistrer »**.
 
@@ -247,7 +247,7 @@ Lorsqu'un commercial souhaite réintégrer un article invendu, défectueux ou fa
 ## 4. Retour de stock antérieur (`/stock/return/historique`)
 
 Pour les situations où des articles confiés lors d'un mois civil antérieur doivent être restitués plusieurs semaines après la clôture du mois d'origine :
-* Le bouton **« Retour stock antérieur »** (`ROLE_PROMOTER`, `ROLE_GESTIONNAIRE`, `ROLE_ADMIN`) permet d'enregistrer un retour rattaché spécifiquement au mois d'origine de la dotation.
+* Le bouton **« Retour stock antérieur »** (accessible sous réserve de disposer des habilitations requises) permet d'enregistrer un retour rattaché spécifiquement au mois d'origine de la dotation.
 * Cela garantit que les bilans mensuels d'ouverture et de clôture ne subissent aucun décalage d'imputation comptable.
 
 
@@ -258,307 +258,248 @@ Pour les situations où des articles confiés lors d'un mois civil antérieur do
 
 ---
 
-# Ventes, crédits, recouvrements et commandes
+# Guide des Ventes, Crédits, Recouvrements et Commandes
 
-Le module **Ventes** (`ROLE_CONSULT_CREDIT`) et le module **Commandes** (`ROLE_CONSULT_ORDER`) constituent le cœur commercial et transactionnel de la plateforme ELYKIA. Ils permettent de piloter tout le cycle de vie des ventes à crédit et au comptant, d'organiser les encaissements quotidiens, de gérer les retards et les échéances, d'auditer les passations de portefeuille entre commerciaux, d'injecter des ventes de rattrapage et de convertir des réservations en ventes effectives.
+Le module **Ventes** et le module **Commandes** constituent le moteur commercial de la plateforme ELYKIA. Ils permettent d'enregistrer des ventes au comptant ou à crédit, de suivre le remboursement quotidien des contrats, de gérer les retards et les échéances, d'organiser les réaffectations de dossiers entre commerciaux, de régulariser des ventes de rattrapage et de transformer les réservations clients en ventes effectives.
+
+> [!NOTE]
+> **Visibilité selon votre profil d'utilisateur** :
+> - **En tant que commercial** : vous visualisez exclusivement vos propres ventes, vos clients rattachés et les articles présents dans votre stock commercial.
+> - **En tant que gestionnaire ou responsable d'agence** : vous avez accès à l'ensemble des ventes de l'agence avec la possibilité de filtrer sur n'importe quel commercial.
+> - **Habilitations** : si certaines fonctionnalités, boutons ou indicateurs décrits dans ce manuel ne s'affichent pas sur votre écran, c'est que vous ne disposez pas des habilitations nécessaires (contactez votre administrateur).
 
 ---
 
 ## 1. Vue d'ensemble de la navigation commerciale
 
-Le menu latéral gauche donne accès aux sous-modules suivants selon les permissions du compte utilisateur :
+Le menu latéral gauche vous donne accès aux espaces de vente selon vos attributions :
 
-| Menu / Sous-menu | Route Frontend | Permission requise | Description opérationnelle |
-|---|---|---|---|
-| **Ventes > Liste** | `/credit/list` | `ROLE_CONSULT_CREDIT` | Tableau de bord principal des ventes, recherche avancée, actions sur cycle de vie, fusion et réassignation en lot. |
-| **Ventes > Retards** | `/credit/late` | `ROLE_CONSULT_CREDIT` | Suivi des crédits accusant un retard (délai dépassé ou échéance), clôtures d'urgence et contrôles terrain. |
-| **Ventes > Échéances** | `/credit/echeance` | `ROLE_CONSULT_CREDIT` | Calendrier des échéances de paiement attendues aujourd'hui, cette semaine ou sur date ciblée. |
-| **Ventes > Recouvrements** | `/credit/recouvrements` | `ROLE_CONSULT_CREDIT` | Journal chronologique de toutes les mises encaissées avec droit d'annulation contrôlé. |
-| **Ventes > Transfert Ventes** | `/credit/transferts-commerciaux` | `ROLE_KPI_FINANCIER_TRANSFERT_VENTE` | Audit et statistiques des transferts de dossiers de crédit entre commerciaux sortants et entrants. |
-| **Ventes > Rattrapages** | `/stock/credit/rattrapage` | `ROLE_RATTRAPAGE` | Régularisation de ventes passées adossées à des stocks mensuels résiduels sans déduction du stock central physique actuel. |
-| **Ventes > Articles** | `/credit/articles-vendus` | `ROLE_CONSULT_CREDIT` | Analyse consolidée des quantités et montants vendus par article et par commercial sur une période. |
-| **Commandes** | `/orders` | `ROLE_CONSULT_ORDER` | Gestion du pipeline des commandes clients (réservations) depuis l'enregistrement jusqu'à la conversion en vente. |
+| Menu / Écran | Ce que vous y trouvez | Utilisation au quotidien |
+|---|---|---|
+| **Ventes > Liste** | Le tableau de bord principal des ventes, la recherche multicritères, le suivi des statuts, la fusion de crédits et les réaffectations. | Suivre les contrats en cours, valider les dossiers, enregistrer les encaissements ou réassigner des portefeuilles. |
+| **Ventes > Retards** | La liste des crédits présentant des impayés (délais dépassés ou échéances dues). | Prioriser les visites de relance, consigner les contrôles terrain et clôturer les dossiers compromis. |
+| **Ventes > Échéances** | Le calendrier des montants attendus aujourd'hui, cette semaine ou sur une date précise. | Anticiper les rentrées de fonds et préparer les tournées quotidiennes. |
+| **Ventes > Recouvrements** | Le journal chronologique de tous les encaissements perçus. | Contrôler la traçabilité des règlements et rectifier d'éventuelles erreurs de saisie. |
+| **Ventes > Transfert Ventes** | Le rapport de passation de portefeuilles entre commerciaux. | Auditer les transferts de contrats entre un commercial cédant et un commercial repreneur. |
+| **Ventes > Rattrapages** | L'outil de régularisation de ventes passées. | Enregistrer des ventes historiques adossées à d'anciens stocks résiduels sans toucher au stock central actuel. |
+| **Ventes > Articles** | Le tableau récapitulatif des volumes vendus par article et par commercial. | Analyser les performances de vente sur une période donnée (jour, semaine, mois). |
+| **Commandes** | Le registre des précommandes et réservations clients. | Traiter les demandes d'achat des clients et les convertir en ventes réelles en un clic. |
 
 ---
 
-## 2. Liste des ventes et cycle de vie (`/credit/list`)
+## 2. Tableau de bord des ventes (`/credit/list`)
 
-L'écran `/credit/list` centralise l'ensemble des ventes de l'agence.
+L'écran principal rassemble la totalité des opérations de vente de votre périmètre.
 
-### Bandeau des KPIs Financiers Vente (`ROLE_KPI_FINANCIER_VENTE`)
-En haut de la page, un bandeau financier dynamique consolide les chiffres clés sur la période active :
+### Les indicateurs financiers de vente
+En haut de page, les cartes synthétiques vous présentent la situation financière sur la période choisie :
 - **Total Ventes** : Nombre d'opérations de vente enregistrées.
-- **Montant Total** : Valeur faciale totale des contrats de vente (FCFA).
-- **Montant Encaissé** : Cumul des acomptes initiaux et des mises journalières perçues.
-- **Solde Restant** : Montant global restant à recouvrer.
-- **Taux de Recouvrement** : Pourcentage financier recouvré (`Encaissé / Montant Total`).
+- **Montant Total** : Valeur totale cumulée des contrats signés (en FCFA).
+- **Montant Encaissé** : Somme des acomptes initiaux et de l'ensemble des mises journalières perçues.
+- **Solde Restant** : Montant global qui reste à recouvrer.
+- **Taux de Recouvrement** : Pourcentage financier recouvré (`Montant Encaissé / Montant Total`).
 
-> [!NOTE]
-> L'affichage du bandeau KPI requiert la permission `ROLE_KPI_FINANCIER_VENTE`. Si l'utilisateur ne dispose pas de ce droit, la liste des crédits s'affiche directement sans le bandeau récapitulatif.
-
-### Filtres temporels rapides et recherche avancée
-1. **Sélecteur de période prédéfinie** :
-   - `Aujourd'hui` : Ventes créées le jour même.
+### Filtres temporels et recherche avancée
+1. **Filtres de période rapides** :
+   - `Aujourd'hui` : Ventes du jour.
    - `Cette semaine` : Ventes du lundi au dimanche en cours.
-   - `Ce mois` : Ventes depuis le 1er jour du mois courant.
-   - `Personnalisée` : Définition d'un intervalle de dates (`Date début` $\rightarrow$ `Date fin`).
-2. **Recherche rapide** : Champ de saisie instantanée pour filtrer par référence contrat ou nom de client.
-3. **Recherche avancée multi-critères** :
-   - Mot-clé général (nom client, référence de rattrapage ou contrat).
-   - Type de client (`Individuel`, `Entreprise`, etc.).
-   - Type de vente (`Crédit` ou `Comptant`).
-   - Statut du crédit (`CREATED`, `VALIDATED`, `INPROGRESS`, `SETTLED`).
-   - Commercial assigné (filtrage sur un agent spécifique).
+   - `Ce mois` : Ventes depuis le premier jour du mois civil.
+   - `Personnalisée` : Choix libre d'une date de début et d'une date de fin.
+2. **Recherche rapide** : Tapez directement une référence de contrat ou le nom d'un client.
+3. **Recherche avancée multicritères** :
+   - Mot-clé général (nom client, référence contrat ou référence de rattrapage).
+   - Type de client (particulier, entreprise).
+   - Type de vente (Crédit ou Comptant).
+   - Statut du contrat (Enregistré, Validé, En cours, Soldé).
+   - Commercial (pour un gestionnaire, sélection du commercial à auditer).
 
-### Indicateurs de criticité d'échéance (Badges colorés)
-Chaque ligne de vente affiche un badge visuel sur les jours restants avant l'échéance contractuelle :
-- 🟢 **Vert** (`days-success`) : Plus de 5 jours restants avant la date limite.
-- 🟡 **Orange** (`days-warning`) : Moins de 5 jours restants (alerte échéance imminente).
-- 🔴 **Rouge** (`days-danger`) : 0 jour restant ou date de fin contractuelle dépassée.
+### Indicateurs visuels d'échéance (Pastilles colorées)
+Chaque ligne de vente affiche une pastille colorée indiquant le nombre de jours restants avant l'échéance :
+- 🟢 **Vert** : Plus de 5 jours restants avant la fin du contrat (situation normale).
+- 🟡 **Orange** : Moins de 5 jours restants (alerte échéance imminente).
+- 🔴 **Rouge** : 0 jour restant ou date d'échéance dépassée (retard contractuel).
 
-### Tableau des statuts et transitions du cycle de vente
-Une vente évolue selon un cycle strict d'autorisations et d'actions physiques :
+### Les étapes de vie d'un contrat de vente
+Une vente progresse selon des étapes claires garantissant la sécurité des marchandises et des fonds :
 
-| Statut | Signification métier | Actions disponibles dans l'interface | Rôle / Permission |
-|---|---|---|---|
-| `CREATED` | Vente nouvellement saisie en attente d'approbation. La marchandise n'est pas encore sortie du stock. | - **Valider** : Approuve le contrat et le plan de paiement.<br>- **Modifier** (`/credit/add/:id`) : Corrige les articles, acomptes ou client.<br>- **Supprimer** : Annule et supprime la saisie erronée. | Responsable d'agence / Gestionnaire |
-| `VALIDATED` | Vente approuvée administrativement. Prête pour la livraison physique au client. | - **Démarrer** : Confirme la remise physique des articles au client et effectue la sortie effective du stock commercial.<br>- **Détails** (`/credit/details/:id`). | Magasinier / Promoteur habilité |
-| `INPROGRESS` | Marchandise livrée, crédit actif. Le contrat est en cours de remboursement. | - **Encaisser** : Ouvre la boîte de dialogue de saisie d'une mise journalière avec affichage automatique du reliquat disponible.<br>- **Modifier la mise** (`/credit/change-daily-stake/:id`) : Ajuste l'échéancier.<br>- **Détails** : Consultation 360°. | Commercial, Chef de recouvrement, Caissier |
-| `SETTLED` | Crédit entièrement soldé. Le solde restant dû est égal à zéro. | - **Consulter les détails** : Historique complet, date de clôture effective, archivage. Les crédits soldés ne sont plus modifiables ni réassignables. | Tout utilisateur autorisé |
+| Statut du contrat | Ce que cela signifie | Actions disponibles |
+|---|---|---|
+| **Enregistré** (`CREATED`) | La vente vient d'être saisie. La marchandise n'est pas encore sortie du stock. | - **Valider** : Approuve le contrat de vente.<br>- **Modifier** : Corrige les articles, acomptes ou informations client.<br>- **Supprimer** : Annule la saisie erronée. |
+| **Validé** (`VALIDATED`) | Le contrat est approuvé administrativement. Les articles sont prêts à être remis au client. | - **Démarrer** : Confirme la remise physique des articles au client et déstocke automatiquement le matériel du stock du commercial.<br>- **Détails** : Ouvre la fiche complète du dossier. |
+| **En cours** (`INPROGRESS`) | La marchandise a été livrée, le crédit est actif et en cours de remboursement. | - **Encaisser** : Ouvre directement la fenêtre de paiement pour saisir une mise quotidienne (avec rappel du reliquat disponible).<br>- **Modifier la mise** : Réajuste le montant journalier convenu.<br>- **Détails** : Consultation 360°. |
+| **Soldé** (`SETTLED`) | Le client a remboursé la totalité de son crédit. Le solde restant dû est à zéro. | - **Consulter** : Historique complet, date de clôture effective et archivage. Les dossiers soldés ne sont plus modifiables. |
 
-### Actions groupées : Réaffectation commerciale et Fusion de crédits
-- **Réaffectation commerciale en lot** (`ROLE_ASSIGN_CLIENT_COLLECTOR`) :
-  1. Cochez les cases des crédits en cours à transférer (les crédits `SETTLED` sont automatiquement exclus de la sélection).
+### Actions groupées : Réaffectation et Fusion de crédits
+- **Changer de commercial en lot** :
+  1. Cochez les cases des ventes en cours que vous souhaitez réaffecter (les dossiers déjà soldés ne sont pas sélectionnables).
   2. Cliquez sur **Changer le commercial**.
-  3. Dans la boîte de dialogue, sélectionnez le nouveau commercial parmi les agents actifs.
-  4. Le système vérifie que le commercial choisi est distinct du commercial actuel et met à jour l'affectation de tous les dossiers sélectionnés en une seule transaction.
-- **Fusion de crédits** :
+  3. Sélectionnez le nouveau commercial dans la liste déroulante.
+  4. Validez : l'ensemble des contrats cochés est transféré au nouveau commercial en une seule opération.
+- **Fusionner plusieurs crédits** :
   1. Cliquez sur le bouton **Fusionner**.
   2. Sélectionnez le commercial concerné.
   3. Choisissez entre **2 et 10 crédits en cours** appartenant à ce commercial pour un même client.
   4. Cliquez sur **Confirmer la fusion**.
-  5. Le système consolide les soldes restants et les articles en un seul contrat avec une nouvelle référence générée, puis clôture les anciens dossiers.
+  5. Le système consolide les soldes restants et les articles en un contrat unique avec une nouvelle référence, puis clôture proprement les anciens dossiers.
 
 ---
 
-## 3. Formulaire de création d'une vente (`/credit/add`)
+## 3. Enregistrer une nouvelle vente (`/credit/add`)
 
-L'enregistrement d'une nouvelle vente se fait via la route `/credit/add` (ou `/credit/add/:id` pour la modification d'un dossier en statut `CREATED`).
+Pour créer une vente, cliquez sur **Nouvelle vente** (ou ouvrez `/credit/add`).
 
-<!-- CAPTURE À INSÉRER : Formulaire de création de vente avec sélecteur Crédit / Comptant, sélection du commercial, client et panier d'articles. -->
+### Choisir entre Vente à Crédit et Vente au Comptant
 
-### Choix du type de vente : Crédit vs Comptant
-
-| Caractéristique | Vente à Crédit (`CREDIT`) | Vente au Comptant (`CASH`) |
+| Critère | Vente à Crédit | Vente au Comptant |
 |---|---|---|
-| **Commercial responsable** | **Obligatoire**. Si l'utilisateur connecté est un Promoteur, le champ est automatiquement pré-rempli avec son compte et verrouillé. | Non requis (désactivé). La vente est directe en boutique. |
-| **Sélection du Client** | Filtrée automatiquement sur le portefeuille rattaché au commercial sélectionné. | Recherche universelle parmi tous les clients actifs de l'agence. |
-| **Catalogue Articles & Stock** | Déduit du **Stock Commercial** de l'agent (`CommercialStockService`). Seuls les articles actuellement en possession du commercial sont sélectionnables avec leur stock restant. | Chargement à la demande (lazy-loading) sur l'ensemble des articles du magasin général. |
-| **Tarification appliquée** | Prix de vente crédit (`creditSalePrice`). | Prix de vente comptant (`sellingPrice`). |
-| **Échéancier & Avance** | Saisie d'une avance optionnelle, calcul du solde restant et de la mise journalière, définition de la date de début et calcul automatique de la date de fin prévue. | Paiement intégral immédiat. Aucun suivi de mise journalière. |
-| **Finalité du Crédit** | Sélecteur **Personnel** ou **Professionnel** si le client bénéficie du badge `businessCreditAuthorized` et que le feature flag `DualCreditAuthorization` est actif. | Sans objet. |
+| **Commercial responsable** | **Obligatoire**. En tant que commercial, votre nom est automatiquement renseigné. En tant que gestionnaire, vous choisissez le commercial qui portera la vente. | Non requis. La vente est une opération directe en boutique. |
+| **Choix du client** | La liste propose les clients déjà rattachés au commercial sélectionné. | Recherche universelle parmi l'ensemble des clients de l'agence. |
+| **Articles et stock disponible** | Les articles sont déduits du **Stock Commercial** de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus. | Les articles sont recherchés directement dans le stock général du magasin. |
+| **Prix appliqué** | Prix de vente à crédit (prix contractuel avec marge tontine/crédit). | Prix de vente au comptant. |
+| **Paiement et échéances** | Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue. | Règlement intégral immédiat au comptoir. Aucun échéancier journalier. |
+| **Usage du crédit** | Choix entre usage **Personnel** ou **Professionnel** si le client bénéficie de l'habilitation crédit professionnel. | Sans objet. |
 
-### Reçu de vente thermique et impression immédiate
-Si l'option de configuration `PrintReceiptAfterSale` est active :
-1. Dès validation du formulaire, une boîte de dialogue s'ouvre avec l'aperçu du ticket de caisse thermique (format 80 mm).
-2. Le ticket récapitule :
-   - L'en-tête ELYKIA (contact, agence, date et heure).
-   - La référence unique de la transaction.
-   - Les coordonnées du client (nom, code, téléphone, adresse).
-   - Le nom du commercial.
-   - Le détail des articles (quantités, prix unitaires, sous-totaux).
-   - Le montant total, l'acompte versé, le reste à payer et la mise journalière convenue.
-3. Le bouton **Imprimer** déclenche l'impression vers l'imprimante thermique de caisse ou génère le reçu papier client.
+### Reçu de caisse et impression immédiate
+Si l'impression immédiate est activée dans votre agence :
+1. Dès que vous enregistrez la vente, une fenêtre affiche l'aperçu du ticket de caisse thermique (format 80 mm).
+2. Le reçu détaille : l'en-tête ELYKIA, la référence unique du contrat, le nom et téléphone du client, le nom du commercial, la liste des articles avec prix et quantités, le total, l'acompte versé, le solde restant et la mise journalière convenue.
+3. Cliquez sur **Imprimer** pour sortir le ticket destiné au client.
 
 ---
 
-## 4. Fiche 360° Détail du Crédit (`/credit/details/:id`)
+## 4. Fiche détaillée 360° d'un crédit (`/credit/details/:id`)
 
-La vue détaillée d'un crédit regroupe toutes les informations contractuelles, logistiques, financières et de contrôle sur un écran unique :
+En ouvrant un crédit, vous accédez à un dossier complet regroupant l'ensemble des aspects contractuels, financiers et logistiques :
 
-### 1. Barre de progression visuelle du remboursement
-- Jauge d'avancement exprimée en pourcentage (`Montant Payé / Montant Total`).
+### 1. Jauge de progression du remboursement
+- Barre graphique indiquant le pourcentage remboursé à date.
 - Rappel du montant déjà payé par rapport au montant total du contrat.
 - Décompte du montant restant dû et du nombre de jours contractuels restants.
-- Rappel de la date de début et de la date de fin prévue (ou date de clôture effective si soldé).
+- Date de début et date de fin prévue (ou date de fin effective si le crédit est soldé).
 
-### 2. Cartes KPIs financières
-- **Montant Total** : Valeur globale du crédit (FCFA).
-- **Déjà Payé** : Cumul des règlements enregistrés, avec mention explicite de l'acompte initial.
-- **Restant Dû** : Solde net restant à recouvrer.
-- **Mise Journalière** : Montant quotidien exigé selon le contrat.
+### 2. Indicateurs financiers du contrat
+- **Montant Total** : Valeur totale de la vente en FCFA.
+- **Déjà Payé** : Somme de l'acompte initial et des règlements journaliers perçus.
+- **Restant Dû** : Montant net qui reste à percevoir.
+- **Mise Journalière** : Somme quotidienne attendue selon le contrat.
 
-### 3. Bloc Client & Reliquat
-- Identité complète du client (Nom, Prénom, CNI, Téléphone, Adresse).
-- Lien hypertexte cliquable menant directement à sa fiche 360° (`/client/details/:id`).
-- **Affichage du Reliquat** : Le solde reliquat du client est mis en évidence (affiché en vert vif et gras s'il est supérieur à 0 FCFA), permettant de savoir immédiatement si le client dispose d'un avoir mobilisable.
+### 3. Informations sur le client et reliquat
+- Nom, prénom, pièce d'identité, téléphone et adresse.
+- Lien direct vers sa fiche client complète.
+- **Affichage du Reliquat** : Le solde disponible en reliquat chez ce client apparaît en vert s'il est positif. Cela permet de savoir immédiatement si le client possède un avoir qui peut être utilisé pour régler sa mise.
 
-### 4. Bloc Agent Collecteur & Historique des transferts
-- Identité du commercial actuellement en charge du contrat.
-- Bouton **Modifier** (`ROLE_ASSIGN_CREDIT_COLLECTOR`) : Permet de réassigner ce crédit spécifique à un autre agent avec journalisation.
-- **Lien vers le stock mensuel source** : Bouton cliquable menant vers `/stock/my-stock?collector=...&year=...&month=...&openSales=1` pour identifier le lot mensuel exact duquel les articles distribués proviennent.
-- **Timeline de l'historique des transferts** : Historique chronologique de chaque passation indiquant la date, l'ancien commercial, le repreneur, et le solde restant au moment du transfert.
+### 4. Commercial responsable et historique des transferts
+- Nom du commercial actuellement en charge du dossier.
+- Bouton **Modifier** : Permet à un responsable de réassigner ce crédit à un autre commercial.
+- **Lien vers le stock source** : Permet de retrouver en un clic le lot mensuel d'origine duquel proviennent les articles livrés.
+- **Historique des transferts** : Frise chronologique retraçant tous les changements de commercial intervenus sur ce contrat (date, ancien commercial, nouveau commercial, solde restant au moment de la passation).
 
 ### 5. Consentement numérique et Contrôle terrain
-- **Bloc Consentement** : Affiche le Code de Consentement Opération, le Code de Synchronisation et le Montant Confirmé par le client lors des opérations mobiles.
-- **Bloc Contrôle Terrain** :
-  - Montant total payé enregistré dans le système ELYKIA.
-  - Montant total constaté sur le **carnet physique du client**.
-  - Écart calculé (`Système - Carnet`).
-  - Statut : 🟢 **Conforme** (écart = 0) ou 🔴 **Disparité** (écart $\ne$ 0).
-  - Date de vérification, nom du contrôleur et observations saisies.
+- **Codes de consentement** : Affiche les codes de confirmation générés lors des opérations mobiles pour garantir l'accord du client.
+- **Contrôle terrain** : Si un chef de recouvrement a inspecté le carnet du client, cette section affiche le montant système, le montant noté sur le carnet papier, l'écart éventuel, le statut (🟢 **Conforme** ou 🔴 **Disparité**) ainsi que les observations de l'auditeur.
 
-### 6. Articles et Détail logistique
-Tableau complet listant pour chaque article : nom commercial, catégorie/type, quantité livrée, prix unitaire appliqué, et sous-total de la ligne.
+### 6. Articles livrés
+Tableau listant chaque article avec sa désignation, sa catégorie, la quantité livrée, son prix unitaire et le montant total de la ligne.
 
-### 7. Suivi du recouvrement et compteurs de retard
-Un bandeau dynamique évalue la situation de paiement du client à l'instant T :
-- **Bandeau de statut** :
-  - 🟢 *À jour — aucun retard* (0 jour de retard).
-  - 🟡 *Léger retard de paiement* (1 à 5 jours de retard).
-  - 🔴 *Retard significatif* (> 5 jours de retard).
-- **Les 4 compteurs clés** :
-  1. *Jours écoulés* : Nombre de jours passés depuis la date de début (plafonné à la durée totale).
-  2. *Jours payés* : Ratio `Total Montant Payé / Mise Journalière`.
-  3. *Jours de retard* : Formule `Jours Écoulés - Jours Payés` (minimum 0).
-  4. *Jours restants* : Jours restants avant l'échéance finale.
+### 7. Situation de recouvrement et compteurs de retard
+Un bandeau évalue la ponctualité des règlements du client :
+- 🟢 *À jour — aucun retard* (0 jour de retard).
+- 🟡 *Léger retard de paiement* (1 à 5 jours de retard).
+- 🔴 *Retard significatif* (plus de 5 jours de retard).
+- **Les 4 compteurs de contrôle** :
+  1. *Jours écoulés* : Nombre de jours passés depuis la signature.
+  2. *Jours payés* : Nombre de jours de mise effectivement couverts par les paiements du client.
+  3. *Jours de retard* : Différence entre les jours écoulés et les jours payés.
+  4. *Jours restants* : Nombre de jours restant avant l'échéance finale.
 
-### 8. Historique chronologique des recouvrements & Droit d'annulation
-Chaque encaissement apparaît dans une timeline détaillée :
-- Date et heure précise du versement, référence de quittance, agent collecteur.
-- Badge indicateur : **Mise normale** (montant égal à la mise journalière) ou **Mise spéciale** (montant supérieur ou partiel).
-- Cumul payé et reste à payer actualisé après l'opération.
-- **Annulation de recouvrement** (`ROLE_CANCEL_RECOVERY` ou `ROLE_ADMIN`) :
-  - Un bouton **Annuler** permet d'annuler un encaissement erroné.
-  - Une boîte de confirmation rappelle la référence du reçu et prévient que les montants du crédit ainsi que le Rapport Journalier de caisse seront immédiatement recalculés pour préserver l'intégrité comptable.
+### 8. Historique des paiements et droit d'annulation
+Chaque mise encaissée apparaît dans la liste chronologique avec sa date, son heure, la référence du reçu et le nom du commercial qui a perçu l'argent.
+- Un badge indique si le montant correspond à la **Mise normale** ou à une **Mise spéciale** (paiement partiel ou avance de plusieurs jours).
+- En cas d'erreur de saisie, un utilisateur habilité peut cliquer sur **Annuler** : le système demande confirmation et corrige immédiatement le solde du crédit ainsi que le journal de caisse.
 
-### 9. Historique des changements de mise journalière
-Timeline chronologique enregistrant chaque modification de mise : ancienne mise $\rightarrow$ nouvelle mise, solde restant à ce moment-là, auteur de la modification et date.
+### 9. Historique des changements de mise
+Si la mise quotidienne a été renégociée, un tableau consigne chaque modification : ancienne mise $\rightarrow$ nouvelle mise, solde restant à ce moment-là, auteur et date du changement.
 
 ---
 
-## 5. Gestion des retards de paiement (`/credit/late`)
+## 5. Gestion des impayés et retards (`/credit/late`)
 
-L'écran `/credit/late` est l'outil quotidien du Chef de recouvrement et du Gestionnaire pour traiter les impayés.
-
-### KPIs Retards (`ROLE_KPI_FINANCIER_RETARD`)
-- **Total Retards** : Nombre total de dossiers en retard.
-- **Total Délai Dépassé** : Crédits dont la date d'échéance finale est dépassée.
-- **Total Échéances du Jour** : Crédits dont l'échéance arrive à terme aujourd'hui.
-- **Montant Restant Retards** : Somme des soldes restant dus sur les dossiers en retard.
-- **Montant Restant Délais** : Somme des soldes sur les contrats dont le délai contractuel est expiré.
-
-### Filtres et fonctionnalités opérationnelles
-- **Filtres** : Par commercial, par mois, par localité géographique et par type (`Tous`, `Délai dépassé`, `Échéance`).
-- **Clôture exceptionnelle** : Boîte de dialogue permettant de clôturer un ou plusieurs crédits compromis (avec sélection du motif administratif ou financier).
-- **Contrôle terrain direct** : Saisie rapide du montant relevé sur le carnet client directement depuis la liste des retards.
-- **Export PDF** : Génération d'une fiche de tournée pour le recouvrement terrain avec les adresses, téléphones et montants dus.
+L'écran **Retards** est l'outil principal de pilotage pour le chef de recouvrement et le gestionnaire :
+- **Indicateurs clés** : Nombre total de dossiers en retard, nombre de délais dépassés, nombre d'échéances du jour et montants financiers correspondants.
+- **Filtres de travail** : Filtrage par commercial, par mois, par quartier/localité et par type de retard (délai expiré ou échéance du jour).
+- **Clôture exceptionnelle** : Permet de solder administrativement un crédit irrécouvrable en consignant le motif.
+- **Saisie de contrôle terrain** : Permet au chef de recouvrement d'enregistrer directement le montant constaté sur le carnet du client.
+- **Export PDF** : Génère une feuille de route pour la tournée de recouvrement avec les adresses, numéros de téléphone et montants exigibles.
 
 ---
 
 ## 6. Calendrier des échéances (`/credit/echeance`)
 
-L'écran `/credit/echeance` permet d'anticiper les encaissements à venir :
-- **KPIs Échéances** (`ROLE_KPI_FINANCIER_ECHEANCE`) : Total aujourd'hui, total de la semaine, total non soldé, montant global restant dû.
-- **Filtres de période** :
-  - `Aujourd'hui` : Échéances du jour.
-  - `Cette semaine` : Vue hebdomadaire.
-  - `Date personnalisée` : Sélection d'un jour précis sur calendrier.
-- **Filtre commercial** : Permet d'isoler la charge de recouvrement d'un commercial donné.
+Le sous-menu **Échéances** permet d'anticiper les règlements attendus :
+- Visualisation des échéances du jour, de la semaine ou d'une date choisie sur calendrier.
+- Filtre par commercial pour mesurer la charge d'encaissement de chaque collaborateur.
 
 ---
 
 ## 7. Journal des recouvrements (`/credit/recouvrements`)
 
-L'écran `/credit/recouvrements` fournit la traçabilité intégrale des flux d'encaissement :
-- **Bandeau KPIs** : Nombre total de mises encaissées et volume financier total collecté sur la période sélectionnée.
-- **Filtres** : Intervalle de dates (`Du` ... `Au` ...) et filtre commercial (pour un Promoteur connecté, ce filtre est automatiquement verrouillé sur son propre compte).
-- **Tableau des encaissements** : Affiche la date/heure, la référence de reçu, le client, le commercial encaisseur, le montant versé et les détails d'imputation.
-- **Action Annuler** : Réservée aux profils dotés de `ROLE_CANCEL_RECOVERY` ou `ROLE_ADMIN`. L'annulation recalcule instantanément le solde du crédit et le journal de caisse.
+Le sous-menu **Recouvrements** est le registre des encaissements de crédits :
+- Il présente la totalité des versements perçus jour après jour.
+- Vous pouvez filtrer par plage de dates (*du ... au ...*) et par commercial.
+- Pour chaque ligne, vous retrouvez la référence, le client, le commercial, le montant versé et l'heure exacte.
+- Les profils autorisés peuvent annuler un encaissement erroné avec recalcul instantané des soldes.
 
 ---
 
 ## 8. Rapport de transfert des ventes (`/credit/transferts-commerciaux`)
 
-Le rapport de passation (`ROLE_KPI_FINANCIER_TRANSFERT_VENTE`) permet d'auditer les mouvements de dossiers entre commerciaux sortants et entrants.
-
-### Critères et matrice de passation
-- **Filtres** : Commercial cédant (`oldCollector`), Commercial repreneur (`newCollector`), Date début, Date fin.
-- **Cartes KPIs globales** :
-  - *Nombre de crédits transférés*.
-  - *Montant total des ventes concernées*.
-  - *Cumul déjà payé au moment du transfert*.
-  - *Solde total restant transféré*.
-- **Sélecteur de paires d'agents** : Liste interactive de toutes les paires actives (ex. `agent_A → agent_B`). Un clic sur une paire filtre instantanément le tableau détaillé des dossiers concernés.
-
-> [!IMPORTANT]
-> **Règle d'unicité et de déduplication** : Si un même dossier de crédit a fait l'objet de plusieurs transferts successifs au cours de la même période d'analyse, il n'est comptabilisé **qu'une seule fois**, sur sa passation la plus récente, garantissant ainsi l'exactitude des totaux financiers.
+Le rapport de passation permet de suivre avec précision les mouvements de portefeuille :
+- Filtres par commercial cédant, commercial repreneur et période.
+- Statistiques globales : nombre de dossiers transférés, valeur totale des contrats, montants déjà payés et soldes restants transférés.
+- Sélecteur de paires : permet de cliquer sur une passation spécifique (par exemple *Commercial A $\rightarrow$ Commercial B*) pour afficher le détail des dossiers concernés.
+- **Règle d'exactitude** : Si un contrat a changé de main plusieurs fois sur la période, il n'est comptabilisé qu'une seule fois, sur son transfert le plus récent, pour éviter tout double comptage.
 
 ---
 
 ## 9. Rattrapage de ventes antérieures (`/stock/credit/rattrapage`)
 
-Le sous-module de rattrapage (`ROLE_RATTRAPAGE`) est une procédure exceptionnelle destinée à régulariser des ventes historiques :
-1. **Contexte métier** : Permet de saisir une vente effectuée dans le passé sans impacter négativement les stocks physiques actuels du magasin central.
-2. **Fonctionnement en 3 étapes** :
-   - *Étape 1* : Sélection du commercial et choix d'un **stock mensuel résiduel archivé** (`residualStocks`).
-   - *Étape 2* : Choix des articles vendus parmi ceux présents dans ce stock résiduel, avec quantité et prix.
-   - *Étape 3* : Sélection du client, enregistrement de l'avance, calcul de la mise journalière et validation du contrat.
-3. Les ventes de rattrapage portent une référence spécifique permettant de les identifier dans les recherches et les états comptables.
+Cette procédure exceptionnelle est réservée aux régularisations :
+1. Elle permet d'enregistrer une vente réalisée dans le passé sans impacter le stock physique actuel du magasin central.
+2. Déroulement en 3 étapes :
+   - Sélection du commercial et choix de son **stock résiduel archivé**.
+   - Sélection des articles et quantités vendus à l'époque dans ce lot.
+   - Sélection du client, saisie de l'acompte éventuel et validation de l'échéancier.
+3. Les ventes de rattrapage reçoivent une référence distinctive pour faciliter leur suivi comptable.
 
 ---
 
 ## 10. Rapport des articles vendus (`/credit/articles-vendus`)
 
-L'écran `/credit/articles-vendus` offre une vision agrégée des sorties commerciales :
+Cet écran synthétise les sorties commerciales de l'agence :
 - Regroupement des ventes par **Article** et par **Commercial**.
-- Affichage des quantités totales vendues, des prix unitaires moyens et du chiffre d'affaires généré par article.
-- Filtres par période prédéfinie (`Aujourd'hui`, `Cette semaine`, `Ce mois`, `Personnalisée`) et par commercial.
-- Export des données vers Excel / PDF pour les revues commerciales de fin de mois.
+- Affichage des quantités totales écoulées et des montants générés.
+- Filtres temporels rapides (aujourd'hui, semaine, mois, personnalisé) et filtre par commercial.
+- Export des données vers Excel ou PDF pour les réunions de bilan commercial.
 
 ---
 
 ## 11. Gestion des commandes clients (`/orders`)
 
-Le module Commandes (`ROLE_CONSULT_ORDER`, `ROLE_EDIT_ORDER`) permet de gérer les précommandes et réservations clients avant leur contractualisation définitive.
+Le module **Commandes** gère les précommandes et réservations avant leur contractualisation définitive.
 
-<!-- CAPTURE À INSÉRER : Tableau de bord des commandes avec onglets de statuts PENDING, ACCEPTED, DENIED, CANCEL, SOLD et bouton Créer une commande. -->
+### Le tableau de bord des commandes
+Les commandes sont réparties dans 6 onglets selon leur avancement :
+- **En attente** : Nouvelles demandes enregistrées nécessitant une confirmation.
+- **Acceptée** : Commandes validées dont la marchandise et les modalités de paiement sont convenues.
+- **Refusée** : Demandes rejetées (stock indisponible, client non éligible).
+- **Annulée** : Commandes annulées par le client ou le commercial.
+- **Vendue** : Commandes converties avec succès en ventes réelles.
+- **Toutes** : Vue d'ensemble du registre.
 
-### Onglets de navigation par statut
-Le tableau de bord `/orders` organise le flux des commandes par statut :
-- **En attente** (`PENDING`) : Nouvelles commandes saisies en attente d'approbation commerciale.
-- **Acceptée** (`ACCEPTED`) : Commandes validées dont le stock et les conditions de paiement sont confirmés.
-- **Refusée** (`DENIED`) : Commandes rejetées (client insolvable, rupture d'approvisionnement).
-- **Annulée** (`CANCEL`) : Commandes annulées par le client ou le commercial.
-- **Vendue** (`SOLD`) : Commandes converties avec succès en vente effective.
-- **Toutes** (`ALL`) : Vue d'ensemble du registre des commandes.
-
-### KPIs du pipeline de commandes
-- **Commandes en attente** : Nombre de demandes nécessitant une décision.
-- **Valeur potentielle** : Montant total prévisionnel des commandes `PENDING`.
-- **Taux d'acceptation** : Pourcentage des commandes approuvées sur la période.
-- **Pipeline accepté** : Chiffre d'affaires sécurisé en attente de livraison.
-- **Marge potentielle** : Marge brute estimée sur les commandes en cours.
-- **Croissance mensuelle** : Évolution relative par rapport au mois précédent.
-
-### Cycle opérationnel d'une commande
-```mermaid
-flowchart LR
-    A[Création : PENDING] --> B{Décision}
-    B -->|Accepter| C[ACCEPTED]
-    B -->|Refuser| D[DENIED]
-    C -->|Action Vendre| E[Vente effective : SOLD]
-    C -->|Désistement| F[CANCEL]
-```
-
-1. **Création d'une commande** (`/orders/create`) :
-   - Sélection du client (avec rappel de ses coordonnées et de son statut crédit).
-   - Ajout des articles du catalogue avec quantité souhaitée et prix unitaire proposé.
-   - Enregistrement de la commande avec horodatage et auteur.
-2. **Approbation ou Refus** :
-   - Les responsables peuvent valider (**Accepter**) ou rejeter (**Refuser**) une commande individuellement ou par sélection groupée.
-3. **Conversion en vente (Action "Vendre")** :
-   - Depuis une commande en statut `ACCEPTED`, l'action **Vendre** bascule directement les articles vers le formulaire de vente (`/credit/add`) pour créer le contrat crédit ou la vente comptant sans ressaisie, puis passe la commande au statut `SOLD`.
+### Traitement et conversion d'une commande en vente
+1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités et prix.
+2. **Décision** : Les responsables peuvent accepter ou refuser la commande (individuellement ou par lot).
+3. **Action « Vendre »** : Dès qu'une commande est acceptée, le bouton **Vendre** bascule directement l'ensemble des articles vers le formulaire de vente (`/credit/add`) pour créer le contrat crédit ou comptant sans aucune ressaisie manuelle, puis marque la commande comme **Vendue**.
 
 
 \newpage
@@ -567,40 +508,196 @@ flowchart LR
 
 ---
 
-# Tontines
+# Guide Tontines
 
-Le module **Tontines** suit les membres, collectes, livraisons et archives de collectes. Les actions d’écriture concernent la session active ; une session historique est affichée en lecture seule.
+Le module **Tontines** gère l'épargne collective et les cotisations annuelles des clients ELYKIA. Il permet d'inscrire des membres, de suivre leurs versements quotidiens sur un cycle annuel de 10 mois (de février à novembre), de vérifier la conformité de leurs carnets physiques, d'effectuer des contrôles sur le terrain, d'organiser la remise des articles de fin d'année et d'assurer l'archivage propre des campagnes passées.
 
-## Tableau de bord de la session
+> [!NOTE]
+> **Visibilité selon votre profil d'utilisateur** :
+> - **En tant que commercial** : vous accédez exclusivement aux membres, cotisations et livraisons de votre propre portefeuille.
+> - **En tant que gestionnaire ou responsable d'agence** : vous bénéficiez d'une vision d'ensemble sur toute l'agence et pouvez filtrer les données pour chaque commercial.
+> - **Habilitations** : si certaines actions, boutons ou indicateurs décrits dans ce guide ne s'affichent pas sur votre écran, c'est que vous ne disposez pas des droits d'accès correspondants.
 
-Dans **Tontines > Liste**, choisissez la session puis utilisez les filtres pour limiter les membres par recherche, commercial, localité ou statut de carnet. Le tableau peut fournir les exports PDF par commercial et, pour les comptes habilités, les exports de carnets vérifiés ou à vérifier. Les boutons **Ajouter un Membre** et **Ajout Multiple** sont indisponibles en session historique ou pendant un recalcul de part société.
+---
 
-<!-- CAPTURE À INSÉRER : Gestion des Tontines avec sélecteur de session, filtres, Ajout Multiple et barre de vérification de carnet. -->
+## 1. Vue d'ensemble de la navigation
 
-La vérification en masse s’effectue en sélectionnant les membres puis en choisissant **Vérifier la sélection**. Sur la fiche membre, le badge précise `Carnet vérifié` ou `Carnet non vérifié`, ainsi que la date et l’auteur lorsqu’une vérification existe. Cette action est réservée à la permission dédiée ; elle peut être annulée par les mêmes comptes habilités.
+Le menu **Tontines** propose quatre espaces de travail adaptés au déroulement de la campagne :
 
-## Inscrire et modifier un membre
+| Menu / Écran | Ce que vous y trouvez | Utilisation au quotidien |
+|---|---|---|
+| **Tontines > Liste** | Le tableau de bord de la session active, les indicateurs d'épargne, la liste des membres et les outils de vérification. | Inscrire de nouveaux membres, suivre les adhésions, vérifier les carnets et consulter la progression. |
+| **Tontines > Collectes** | Le journal chronologique de l'ensemble des cotisations enregistrées. | Contrôler les versements perçus, rechercher un paiement par période ou par commercial. |
+| **Tontines > Livraison** | Le suivi des commandes de marchandises de fin d'année. | Suivre les colis à préparer, valider les livraisons et confirmer la remise aux membres. |
+| **Tontines > Archives collectes** | L'historique des campagnes annuelles clôturées. | Consulter et télécharger les récapitulatifs PDF par commercial et par quartier des années antérieures. |
 
-Utilisez **Ajouter un Membre** pour sélectionner un client et définir sa mise. L’ajout multiple permet de créer plusieurs inscriptions quand le rôle le permet. Ouvrez ensuite une ligne pour consulter la fiche : montant contribué, solde disponible, part société, collectes à la livraison, progression des mois et historique des montants de mise.
+---
 
-## Enregistrer une collecte
+## 2. Tableau de bord de la session
 
-Sur la fiche membre active, choisissez **Enregistrer une Collecte** pour une collecte normale ou **Collecte de rattrapage** pour une date antérieure à aujourd’hui. Le rattrapage demande de vérifier le mois ciblé et la mise journalière applicable avant confirmation. Le récapitulatif mensuel et l’historique des collectes se mettent à jour après l’enregistrement.
+L'écran principal de la liste vous donne une vue synthétique sur la campagne en cours.
 
-| Écran de contrôle | Ce qu’il permet de vérifier |
-|---|---|
-| Cotisations par commercial | Répartition des collectes selon l’agent qui les a réellement enregistrées ; le commercial actuel est signalé. |
-| Synthèse mensuelle | Nombre de collectes, montant et équivalent en jours de mise. |
-| Historique des montants de mise | Montant journalier applicable par période. |
-| Contrôle terrain | Comparaison système, carnet et écart, lorsque le chef de recouvrement a saisi un contrôle. |
+### Les indicateurs clés de la campagne
+En haut de l'écran, les cartes récapitulatives vous informent en temps réel sur la santé de la tontine :
+- **Membres Actifs** : Nombre total d'adhérents inscrits cette année.
+- **Montant Total Collecté** : Somme globale des cotisations versées par les membres (en FCFA).
+- **Revenu Total (Part Société)** : Rémunération statutaire acquise par ELYKIA pour la gestion de la tontine.
+- **En Attente de Livraison** : Nombre de membres éligibles qui attendent encore leurs articles de fin d'année (avec le nombre de colis déjà livrés).
+- **Contribution Moyenne** : Montant moyen épargné par adhérent.
+- **Collectes à la livraison** : Montants perçus lors de la délivrance des articles.
 
-L’annulation d’une collecte est réservée aux comptes autorisés et peut être limitée au profil administrateur. Ne corrigez pas une collecte par une nouvelle collecte inverse sans suivre la procédure interne.
+### Session en cours vs Sessions antérieures
+- **Session en cours (Active)** : La campagne annuelle est ouverte. Toutes les opérations quotidiennes (inscriptions, cotisations, ajustements de mise, vérifications de carnet) sont accessibles.
+- **Sessions passées (Historiques)** : Permet de consulter les campagnes précédentes en mode consultation seule. Un bandeau d'information rappelle que les modifications y sont désactivées. Le bouton **« Session actuelle »** vous ramène immédiatement à l'année en cours.
+- **Comparaison pluriannuelle** : Le bouton **Comparer** vous permet de sélectionner de 2 à 5 années pour observer l'évolution du nombre d'adhérents et des montants collectés.
 
-## Préparer et finaliser une livraison
+### Trouver rapidement un membre
+La barre de recherche et de filtres vous permet de cibler des dossiers précis :
+- **Par texte** : Tapez le nom, prénom, numéro de téléphone ou code du client.
+- **Par commercial** : Pour un gestionnaire, sélectionnez un commercial dans la liste déroulante pour isoler son secteur. Pour un commercial, votre secteur est pré-sélectionné.
+- **Par statut de livraison** : Filtrez les membres en cours de session, ceux dont la livraison est en attente, validée ou déjà terminée.
+- **Par état du carnet** : Affichez uniquement les membres dont le carnet est vérifié ou ceux restant à contrôler.
 
-Lorsque la session est fermée et que le statut de livraison le permet, utilisez **Préparer la Livraison** pour choisir les articles. Le dossier passe alors en `PENDING`. Un gestionnaire ou administrateur autorisé utilise **Valider la Livraison** ; ensuite, un compte autorisé par le rôle rapport ou édition tontine peut **Marquer comme Livré**. La fiche affiche alors les articles, le montant, la date, le commercial et le solde non utilisé éventuel.
+### Téléchargements et exports PDF
+La barre d'outils propose des exports prêts à imprimer :
+- **Export des membres par commercial** : Génère un document récapitulant les coordonnées, la mise journalière et le total cotisé pour le portefeuille choisi.
+- **Export des vérifications de carnets** : Produit la liste des carnets déjà vérifiés ou en attente de vérification, idéal pour organiser les tournées de contrôle.
 
-> La livraison n’est pas réservée au seul magasinier : l’action est disponible selon les permissions `ROLE_REPORT` ou `ROLE_EDIT_TONTINE` de l’application actuelle.
+### Vérifier les carnets en masse
+Pour les utilisateurs habilités à viser les carnets physiques :
+1. Cochez les cases des membres dont vous avez inspecté les carnets.
+2. Cliquez sur le bouton **Vérifier la sélection** dans la barre d'actions groupées.
+3. Confirmez l'opération : la date, l'heure et votre nom sont automatiquement enregistrés sur chacun des dossiers cochés.
+
+### Inscrire un nouveau membre
+- **Inscription individuelle** : Cliquez sur **Ajouter un Membre**, sélectionnez le client dans la liste, indiquez le montant de sa mise journalière (par exemple 500 ou 1 000 FCFA) et enregistrez.
+- **Inscriptions multiples** : En début de campagne, le bouton **Ajout Multiple** permet d'enrôler rapidement plusieurs adhérents à la chaîne.
+
+---
+
+## 3. Fiche détaillée d'un membre
+
+En cliquant sur un membre, vous ouvrez sa fiche complète à 360°, véritable dossier de suivi pour toute la durée de la campagne.
+
+### 1. En-tête du dossier et statut du carnet
+- Rappel du nom, du code client et du commercial assigné.
+- **Badge d'état du carnet** :
+  - 🟢 **Carnet vérifié** : Indique la date, l'heure et le nom de l'agent qui a certifié le carnet.
+  - ⚪ **Carnet non vérifié** : Indique que le carnet physique n'a pas encore été visé.
+- **Bouton Vérifier / Annuler la vérification** : Permet à un utilisateur habilité d'apposer ou de retirer la certification du carnet en un clic.
+- **Bouton Télécharger** : Génère une attestation PDF complète des cotisations du membre.
+- **Bouton Contrôle terrain** : Permet au chef de recouvrement de consigner un audit contradictoire.
+
+### 2. Situation financière du membre
+Quatre indicateurs résument sa position :
+- **Total Contribué** : Montant brut total de ses cotisations depuis le début de la session.
+- **Solde Disponible** : Somme réellement utilisable pour choisir les marchandises de fin d'année (après déduction de la part société).
+- **Part Société (Payé / Dû)** : Montant de la cotisation société versée par rapport au montant théorique attendu. Le montant dû se calcule selon les mois validés et les jours entamés. Si le montant versé est insuffisant, l'indicateur apparaît en orange.
+- **Collectes à la livraison** : Montants additionnels encaissés au moment de la livraison.
+
+### 3. Répartition des cotisations par commercial
+Si le membre a cotisé auprès de plusieurs commerciaux au cours de l'année (remplacement de tournée, déménagement de quartier), une grille affiche pour chaque commercial :
+- Son nom et ses initiales.
+- Le nombre de fois où il a encaissé pour ce membre.
+- Le total perçu.
+- Un badge **Actuel** met en avant le commercial officiellement affecté au dossier aujourd'hui.
+
+### 4. Contrôle terrain contradictoire
+Lorsqu'un chef de recouvrement contrôle le carnet au domicile du client, un volet dédié compare les deux sources :
+- **Total système** : Somme enregistrée dans l'application sur les mois audités.
+- **Total carnet** : Montant écrit de la main du commercial sur le carnet papier.
+- **Écart constaté** : Différence entre le système et le carnet.
+- **Statut** : 🟢 **Conforme** (aucun écart) ou 🔴 **Disparité** (différence constatée).
+- Date, nom du contrôleur, remarques éventuelles et décomposition mois par mois pour localiser précisément tout écart.
+
+### 5. Progression sur les 10 mois (Février à Novembre)
+Le cycle annuel de tontine compte exactement 10 mois d'épargne. Chaque mois nécessite **31 jours de mise** pour être considéré comme validé :
+- Une grille présente les 10 mois de l'année (*Février, Mars, Avril, Mai, Juin, Juillet, Août, Septembre, Octobre, Novembre*).
+- **Mois validé** : Pastille verte cochée dès que les 31 jours de cotisation sont atteints.
+- **Mois en cours** : Jauge animée montrant l'avancement exact (ex. `21/31 j`).
+- **Mois à venir** : Mois futurs en attente.
+
+### 6. Synthèse des collectes et pastilles journalières
+Un tableau liste chaque mois avec :
+- Le nombre de cotisations et le montant total en FCFA.
+- **Des pastilles numérotées** : Chaque pastille représente un jour complet de mise acquis par le membre, calculé d'après sa mise journalière en vigueur.
+
+### 7. Historique des changements de mise
+Si la mise quotidienne du membre est modifiée en cours d'année (par exemple de 500 à 1 000 FCFA), un tableau retrace chaque période : date de début, date de fin éventuelle, montant de la mise et statut en cours ou clôturé.
+
+### 8. Enregistrer une cotisation
+Deux boutons vous permettent d'enregistrer des versements :
+- **Enregistrer une Collecte** : Pour un encaissement réalisé le jour même.
+- **Collecte de rattrapage** : Si une cotisation d'un jour antérieur n'avait pas pu être saisie à temps. Vous choisissez la date concernée, confirmez la mise applicable à ce moment-là, et visualisez immédiatement l'effet sur le solde et les mois validés avant de confirmer.
+
+### 9. Annulation d'une collecte
+En cas d'erreur de saisie, les utilisateurs habilités peuvent annuler une ligne de collecte directement dans l'historique. Après confirmation, l'application recalcule automatiquement le total épargné, le solde disponible, la part société et les compteurs de jours.
+
+---
+
+## 4. Livraisons de fin d'année
+
+En fin de campagne, lorsque la session arrive à son terme, les membres utilisent leur épargne pour retirer des marchandises (appareils, vivres, équipements).
+
+### Le cycle d'une livraison
+
+```mermaid
+flowchart LR
+    A[Campagne fermée : En attente] -->|Préparer livraison| B[Choix des articles au catalogue]
+    B -->|Validation administrative| C[Livraison validée]
+    C -->|Remise physique| D[Livraison terminée]
+```
+
+1. **Préparer la Livraison** :
+   - Lorsque la session de collecte est fermée, le bouton **Préparer la Livraison** devient actif sur la fiche du membre.
+   - Une fenêtre s'ouvre avec le **Solde Disponible** mobilisable.
+   - Choisissez les articles souhaités dans le catalogue en indiquant les quantités.
+   - Le système vérifie en direct que le montant total des articles ne dépasse pas le solde disponible du membre.
+   - Si les articles choisis coûtent moins que l'épargne, la différence reste conservée comme **Solde non utilisé** au profit du client.
+   - Le dossier passe au statut **En attente**.
+
+2. **Valider la Livraison** :
+   - Un responsable examine la sélection et clique sur **Valider la Livraison**. Le statut passe à **Validé**.
+
+3. **Marquer comme Livré** :
+   - Au moment de la remise en mains propres des articles au membre, le commercial ou le magasinier clique sur **Marquer comme Livré**.
+   - Cette action déduit définitivement les articles du stock tontine et clôture le dossier du membre.
+   - La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.
+
+### Consulter l'ensemble des livraisons (`/tontine/livraisons`)
+Le sous-menu **Livraison** centralise toutes les opérations de distribution de l'agence :
+- Indicateurs globaux : nombre de colis livrés, montant total distribué, livraisons restant à honorer, soldes non utilisés.
+- Filtres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.
+- Recherche instantanée par nom ou référence de client.
+
+---
+
+## 5. Journal des collectes (`/tontine/collectes`)
+
+Le sous-menu **Collectes** est le grand livre de caisse de la tontine :
+- Il présente la totalité des encaissements enregistrés jour après jour.
+- Vous pouvez filtrer les résultats par période (*du ... au ...*) et par commercial.
+- Chaque ligne affiche l'heure exacte, le montant, le commercial encaisseur, le membre concerné et les codes de confirmation client.
+
+---
+
+## 6. Archives et transition annuelle (`/tontine/reset-collectes`)
+
+Cet espace est réservé aux responsables de l'agence pour réaliser la clôture administrative de fin d'année et préparer la plateforme pour la nouvelle campagne.
+
+### Bibliothèque des archives PDF
+Toutes les archives générées sont rangées dans une arborescence par année :
+- **Par année** : Par exemple `2025`, `2026`.
+- **Par exécution** : Horodatage précis de l'opération d'archivage avec le statut.
+- **Par fichier** : Les récapitulatifs PDF sont découpés **par commercial et par quartier**. Un bouton de téléchargement permet d'ouvrir chaque document pour impression ou classement.
+
+### Les deux actions disponibles
+1. **Archiver uniquement** : Génère l'ensemble des documents PDF de sauvegarde pour tous les commerciaux sans modifier aucune donnée dans l'application. Recommandé pour préparer les bilans de fin d'année.
+2. **Archiver et réinitialiser** :
+   - Opération majeure réalisée une seule fois par an, au changement de session.
+   - L'application sauvegarde d'abord l'intégralité des collectes en PDF.
+   - Puis elle remet à zéro les compteurs d'épargne de la session active pour ouvrir la nouvelle année.
+   - **Tous les membres, leurs coordonnées et leurs affectations commerciales restent précieusement conservés** : les clients n'ont pas besoin d'être réenrôlés pour la nouvelle campagne.
 
 
 \newpage
@@ -820,7 +917,7 @@ Accessible via l'action rapide **Tontine** du tableau de bord ou depuis le menu 
 Depuis le bouton **+** du tableau de bord tontine :
 1. **Sélection de la cliente** :
    * Appuyez sur **Sélectionner un client** pour ouvrir la modale de recherche.
-   * La liste est automatiquement filtrée sur les clientes affectées au commercial connecté (`filterByTontineCollector`).
+   * La liste est automatiquement filtrée sur les clientes affectées au commercial connecté (en tant que commercial, vous visualisez uniquement votre propre portefeuille).
    * La cliente sélectionnée apparaît avec son avatar, son quartier et son numéro de téléphone.
 2. **Fréquence de cotisation** :
    * Choisissez la cadence convenue : **Quotidien** (`DAILY`), **Hebdomadaire** (`WEEKLY`), ou **Mensuel** (`MONTHLY`).

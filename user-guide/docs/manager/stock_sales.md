@@ -11,7 +11,7 @@ L'organisation repose sur **trois niveaux étanches de stock** :
 
 ## 1. Référentiel Articles et Valorisation du Stock (`/article/list`)
 
-Le catalogue centralise les articles commercialisables, leurs grilles tarifaires et leurs seuils d'alerte logistique (`ROLE_EDIT_ARTICLE`, `ROLE_STOREKEEPER`).
+Le catalogue centralise les articles commercialisables, leurs grilles tarifaires et leurs seuils d'alerte logistique.
 
 <!-- CAPTURE À INSÉRER : Liste du catalogue d'articles avec filtres de type, prix d'achat/vente et seuils de réapprovisionnement. -->
 
@@ -36,7 +36,7 @@ Toute livraison de marchandise par un fournisseur doit faire l'objet d'une saisi
 ### A. Circuit d'approbation d'une réception
 1. **Saisie de l'entrée** : Le magasinier saisit les articles et quantités reçus via le bouton **« Entrées stock »** d'Inventaires (`/inventory/list`).
 2. **Statut `PENDING` (En attente)** : Une référence de réception unique est générée. Les articles ne sont **pas encore intégrés** au stock vendable.
-3. **Contrôle et Validation gestionnaire (`ROLE_REPORT` ou profil Gestionnaire)** :
+3. **Contrôle et Validation gestionnaire** :
    * Ouvrez **Historique Entrée** (`/stock/receptions`).
    * Cliquez sur **« Voir »** pour contrôler la concordance entre le bon de livraison fournisseur et les quantités saisies.
    * **Valider** : Confirme la conformité de la réception. Le stock magasin est **instantanément augmenté**.
@@ -114,7 +114,7 @@ graph LR
 1. **Création de session** : Cliquez sur **« Créer un inventaire »**. La session passe à l'état `IN_PROGRESS` et affiche la date, le statut et l'auteur.
 2. **Impression de la feuille de comptage** : Cliquez sur **« Télécharger PDF »** pour éditer le document de comptage vierge destiné aux équipes de magasin.
 3. **Saisie des quantités réelles** : Cliquez sur **« Saisir quantités physiques »**. Dans la fenêtre modale, saisissez les quantités effectivement dénombrées pour chaque référence d'article.
-4. **Réconciliation des écarts (`ROLE_RECONCILE_INVENTORY`)** :
+4. **Réconciliation des écarts** :
    * Cliquez sur **« Réconcilier les écarts »** pour afficher la balance comparative : `Quantité Théorique Système` vs `Quantité Physique Constatée` = `Écart (Surplus ou Manquant)`.
    * Enregistrez les motifs d'écart (casse, avarie, vol, erreur de saisie).
 5. **Clôture définitive** : Cliquez sur **« Clôturer l'inventaire »**. Les stocks théoriques sont automatiquement réalignés sur le comptage physique approuvé et la session est archivée dans l'**Historique inventaires** (`/inventory/history`).

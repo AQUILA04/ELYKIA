@@ -27,7 +27,7 @@ Quatre cartes KPIs résument la dynamique du portefeuille affiché :
 
 ## 2. Enrôlement d'un nouveau client (`/client/add`)
 
-Pour créer un nouveau client, cliquez sur le bouton bleu **« + Ajouter »** en haut à droite de la liste (`ROLE_EDIT_CLIENT` ou `ROLE_PROMOTER`). Le formulaire est structuré en 7 sections normées :
+Pour créer un nouveau client, cliquez sur le bouton bleu **« + Ajouter »** en haut à droite de la liste. Le formulaire est structuré en 7 sections normées :
 
 <!-- CAPTURE À INSÉRER : Formulaire d'ajout client montrant l'envoi de la photo de profil, la saisie d'identité, la pièce justificative et les commerciaux. -->
 
@@ -70,7 +70,7 @@ L'application sépare strictement les responsabilités commerciales pour une tra
 * **Commercial agence** : Commercial référent rattaché à l'agence.
 
 ### Section 7 : Type & Compte
-* **Type de client** *(Obligatoire)* : Choix entre `Client` (client final bénéficiaire) ou `Commercial` (compte interne promoteur).
+* **Type de client** *(Obligatoire)* : Choix entre `Client` (client final bénéficiaire) ou `Commercial` (compte interne pour un commercial).
 * **Compte associé & Solde initial** :
   * **Numéro de compte** : Généré automatiquement par le système.
   * **Solde initial en FCFA** *(Obligatoire)* : Saisie du montant d'ouverture de compte, soumis à un plancher et un plafond réglementaires :
@@ -104,7 +104,7 @@ En cliquant sur le nom d'un client dans la liste, vous accédez à sa **Fiche Cl
 
 ---
 
-## 4. Réaffectation en masse de portefeuille (`ROLE_ASSIGN_CLIENT_COLLECTOR`)
+## 4. Réaffectation en masse de portefeuille
 
 Lorsque les tournées sont réorganisées, les gestionnaires peuvent transférer un groupe de clients vers un nouveau commercial :
 

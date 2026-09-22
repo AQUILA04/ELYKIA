@@ -11,8 +11,8 @@ Pour s'approvisionner, le commercial ou son responsable initie une **Demande de 
 <!-- CAPTURE À INSÉRER : Formulaire Nouvelle demande de sortie stock avec sélection des articles, quantités et bouton d'envoi. -->
 
 ### A. Création de la demande (`/stock/request/create`)
-1. Ouvrez **Stock Commercial > Demandes Sortie** et cliquez sur le bouton bleu **« + Nouvelle demande »** (`ROLE_PROMOTER` ou `ROLE_GESTIONNAIRE`).
-2. Sélectionnez le commercial destinataire.
+1. Ouvrez **Stock Commercial > Demandes Sortie** et cliquez sur le bouton bleu **« + Nouvelle demande »** (si ce bouton n'apparaît pas, vous ne disposez pas des habilitations requises). En tant que commercial, vous visualisez uniquement vos propres demandes ; en tant que gestionnaire, vous avez la visibilité sur l'ensemble des commerciaux de l'agence.
+2. Sélectionnez le commercial destinataire (pré-rempli à votre nom pour un commercial).
 3. Ajoutez les articles souhaités dans la grille et indiquez pour chacun la quantité requise.
 4. Cliquez sur **« Enregistrer »**.
 
@@ -84,6 +84,6 @@ Lorsqu'un commercial souhaite réintégrer un article invendu, défectueux ou fa
 ## 4. Retour de stock antérieur (`/stock/return/historique`)
 
 Pour les situations où des articles confiés lors d'un mois civil antérieur doivent être restitués plusieurs semaines après la clôture du mois d'origine :
-* Le bouton **« Retour stock antérieur »** (`ROLE_PROMOTER`, `ROLE_GESTIONNAIRE`, `ROLE_ADMIN`) permet d'enregistrer un retour rattaché spécifiquement au mois d'origine de la dotation.
+* Le bouton **« Retour stock antérieur »** (accessible sous réserve de disposer des habilitations requises) permet d'enregistrer un retour rattaché spécifiquement au mois d'origine de la dotation.
 * Cela garantit que les bilans mensuels d'ouverture et de clôture ne subissent aucun décalage d'imputation comptable.
 

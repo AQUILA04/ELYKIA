@@ -209,7 +209,7 @@ Accessible via l'action rapide **Tontine** du tableau de bord ou depuis le menu 
 Depuis le bouton **+** du tableau de bord tontine :
 1. **Sélection de la cliente** :
    * Appuyez sur **Sélectionner un client** pour ouvrir la modale de recherche.
-   * La liste est automatiquement filtrée sur les clientes affectées au commercial connecté (`filterByTontineCollector`).
+   * La liste est automatiquement filtrée sur les clientes affectées au commercial connecté (en tant que commercial, vous visualisez uniquement votre propre portefeuille).
    * La cliente sélectionnée apparaît avec son avatar, son quartier et son numéro de téléphone.
 2. **Fréquence de cotisation** :
    * Choisissez la cadence convenue : **Quotidien** (`DAILY`), **Hebdomadaire** (`WEEKLY`), ou **Mensuel** (`MONTHLY`).

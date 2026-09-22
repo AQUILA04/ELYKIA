@@ -11,7 +11,7 @@ Le module **Stock Tontine** (`/stock-tontine`) applique les mêmes exigences de 
 <!-- CAPTURE À INSÉRER : Liste des demandes de sortie de stock tontine avec filtres et bouton Livrer pour le magasinier. -->
 
 ### A. Contrôle et délivrance physique
-1. Ouvrez **Stock Tontine > Demandes Sortie** (`ROLE_STOREKEEPER`).
+1. Ouvrez **Stock Tontine > Demandes Sortie** (accessible si vous disposez des habilitations nécessaires).
 2. Repérez la demande au statut **`VALIDATED` (Validée)**.
 3. Cliquez sur **« Voir »** pour examiner le panier d'articles réservés pour les membres de la zone.
 4. Rassemblez les colis correspondants et vérifiez les références avec le commercial au guichet.
