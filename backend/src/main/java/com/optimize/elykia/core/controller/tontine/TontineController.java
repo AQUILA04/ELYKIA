@@ -3,6 +3,7 @@ package com.optimize.elykia.core.controller.tontine;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.common.securities.models.User;
+import com.optimize.elykia.core.dto.BulkTontineAssignCollectorDto;
 import com.optimize.elykia.core.dto.BulkTontineMemberCarnetVerificationDto;
 import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlDto;
 import com.optimize.elykia.core.dto.TontineCollectionDto;
@@ -244,6 +245,15 @@ public class TontineController {
                 "carnets_" + statusPart + "_" + commercialPart + "_" + LocalDate.now() + ".pdf");
         headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
         return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
+    }
+
+    @PostMapping("/members/bulk-assign-collector")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.ASSIGN_CLIENT_COLLECTOR + "', '" + UserPermissionConstant.ADMIN + "')")
+    @Operation(summary = "Changer le commercial tontine pour une liste de membres")
+    public ResponseEntity<Response> bulkAssignCollector(
+            @RequestBody @Valid BulkTontineAssignCollectorDto dto) {
+        tontineService.bulkAssignCollector(dto);
+        return new ResponseEntity<>(ResponseUtil.successResponse(true), HttpStatus.OK);
     }
 
     @PutMapping("/members/{id}")

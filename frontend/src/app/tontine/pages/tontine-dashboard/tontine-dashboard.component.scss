@@ -543,6 +543,38 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--navy);
+
+  .btn-change-collector {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--bg-white);
+    color: var(--navy);
+    border: 1px solid var(--navy);
+    border-radius: var(--radius-sm);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .18s;
+    white-space: nowrap;
+
+    .btn-icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    &:hover:not(:disabled) {
+      background: var(--navy);
+      color: #fff;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
 }
 
 .tontine-page .carnet-badge {
@@ -890,4 +922,153 @@
 
 @media (max-width: 480px) {
   .tontine-page .tontine-kpi-strip { grid-template-columns: 1fr; }
+}
+
+/* Modal changement commercial tontine */
+.tontine-bulk-modal {
+  --navy: #003366;
+  --navy-dark: #002244;
+  --border: #dde3ec;
+  --text-muted: #6b7a99;
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+.tontine-bulk-modal.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.tontine-bulk-modal .bulk-modal-dialog {
+  width: 100%;
+  max-width: 480px;
+  margin: 16px;
+}
+
+.tontine-bulk-modal .bulk-modal-content {
+  background: #ffffff;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  box-shadow: 0 8px 32px rgba(0, 51, 102, 0.18);
+  overflow: hidden;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.tontine-bulk-modal .bulk-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: #f0f4f9;
+}
+
+.tontine-bulk-modal .bulk-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.tontine-bulk-modal .bulk-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0 4px;
+}
+
+.tontine-bulk-modal .bulk-modal-close:hover {
+  color: var(--navy);
+}
+
+.tontine-bulk-modal .bulk-modal-body {
+  padding: 18px 20px;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.tontine-bulk-modal .bulk-form-group {
+  margin-top: 14px;
+}
+
+.tontine-bulk-modal .bulk-form-group label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.tontine-bulk-modal .bulk-form-control {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  color: var(--navy);
+  background: #f0f4f9;
+}
+
+.tontine-bulk-modal .bulk-form-control:focus {
+  outline: none;
+  border-color: var(--navy);
+  background: #ffffff;
+}
+
+.tontine-bulk-modal .bulk-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: #f8fafc;
+}
+
+.tontine-bulk-modal .btn-cancel {
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .18s;
+}
+
+.tontine-bulk-modal .btn-cancel:hover {
+  border-color: var(--text-muted);
+  color: #333;
+}
+
+.tontine-bulk-modal .btn-validate {
+  padding: 8px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--navy);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .18s;
+}
+
+.tontine-bulk-modal .btn-validate:hover:not(:disabled) {
+  background: var(--navy-dark);
+}
+
+.tontine-bulk-modal .btn-validate:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }

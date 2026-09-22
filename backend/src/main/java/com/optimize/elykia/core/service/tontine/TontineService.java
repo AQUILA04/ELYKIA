@@ -8,6 +8,7 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.client.dto.BulkAssignCollectorsDto;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.*;
 import com.optimize.elykia.core.entity.report.TontineAllocationMigrationRun;
@@ -822,6 +823,41 @@ public class TontineService extends GenericService<TontineMember, Long> {
         Double totalDeliveryCollections = tontineCollectionRepository.sumDeliveryCollectionsByMember(id, State.ENABLED);
         member.setTotalDeliveryCollections(totalDeliveryCollections != null ? totalDeliveryCollections : 0.0);
         return member;
+    }
+
+    @Transactional
+    public void bulkAssignCollector(BulkTontineAssignCollectorDto dto) {
+        if (dto.getMemberIds() == null || dto.getMemberIds().isEmpty()) {
+            throw new CustomValidationException("La liste des membres ne peut pas être vide.");
+        }
+        if (!StringUtils.hasText(dto.getTontineCollector())) {
+            throw new CustomValidationException("Le commercial tontine est obligatoire.");
+        }
+
+        List<TontineMember> members = getRepository().findAllById(dto.getMemberIds());
+        if (members.isEmpty()) {
+            throw new CustomValidationException("Aucun membre trouvé pour les identifiants fournis.");
+        }
+
+        List<Long> clientIds = members.stream()
+                .map(TontineMember::getClient)
+                .filter(Objects::nonNull)
+                .map(Client::getId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        if (clientIds.isEmpty()) {
+            throw new CustomValidationException("Aucun client associé aux membres sélectionnés.");
+        }
+
+        BulkAssignCollectorsDto bulkDto = new BulkAssignCollectorsDto();
+        bulkDto.setClientIds(clientIds);
+        bulkDto.setTontineCollector(dto.getTontineCollector().trim());
+        bulkDto.setTransferInProgressCredits(false);
+
+        String currentUsername = userService.getCurrentUser().getUsername();
+        clientService.bulkAssignCollectors(bulkDto, currentUsername);
     }
 
     @Override

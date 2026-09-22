@@ -16,6 +16,7 @@ export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
   @Input() currentPage: number = 0;
   @Input() totalElements: number = 0;
   @Input() canVerify = false;
+  @Input() selectable = false;
   @Input() selectedIds: Set<number> = new Set();
 
   @Output() memberClick = new EventEmitter<TontineMember>();
@@ -30,8 +31,9 @@ export class TontineMemberTableComponent implements OnChanges, AfterViewInit {
   dataSource = new MatTableDataSource<TontineMember>([]);
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['canVerify'] || !this.displayedColumns.length) {
-      this.displayedColumns = this.canVerify
+    if (changes['canVerify'] || changes['selectable'] || !this.displayedColumns.length) {
+      const showSelect = this.canVerify || this.selectable;
+      this.displayedColumns = showSelect
         ? ['select', 'client', 'totalContribution', 'commercial', 'deliveryStatus', 'carnet', 'registrationDate', 'actions']
         : ['client', 'totalContribution', 'commercial', 'deliveryStatus', 'carnet', 'registrationDate', 'actions'];
     }

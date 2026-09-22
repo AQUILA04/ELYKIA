@@ -453,6 +453,15 @@ export class TontineService {
     ).pipe(catchError(this.handleApiError.bind(this)));
   }
 
+  bulkAssignCollector(memberIds: number[], tontineCollector: string): Observable<ApiResponse<boolean>> {
+    const headers = this.getHeaders();
+    return this.http.post<ApiResponse<boolean>>(
+      `${this.apiUrl}/members/bulk-assign-collector`,
+      { memberIds, tontineCollector },
+      { headers }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
   exportCarnetVerificationPdf(verified: boolean, commercial?: string): Observable<Blob> {
     const headers = this.getHeaders();
     let params = new HttpParams().set('verified', String(verified));

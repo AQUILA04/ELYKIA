@@ -78,13 +78,20 @@
     (downloadCarnetPdf)="onExportCarnetPdf($event)">
   </app-tontine-filter-bar>
 
-  <div class="bulk-carnet-bar a4" *ngIf="canVerify && selectedMemberIds.size > 0">
+  <div class="bulk-carnet-bar a4" *ngIf="(canVerify || canAssignCollector) && selectedMemberIds.size > 0">
     <span>{{ selectedMemberIds.size }} membre(s) sélectionné(s)</span>
-    <button class="btn-primary" type="button"
+    <button *ngIf="canVerify" class="btn-primary" type="button"
             (click)="onBulkVerify()"
             [disabled]="verifyingBulk || isHistoricalView"
             data-testid="e2e-tontine-carnet-bulk-verify">
       {{ verifyingBulk ? 'Enregistrement…' : 'Vérifier la sélection (' + selectedMemberIds.size + ')' }}
+    </button>
+    <button *ngIf="canAssignCollector" class="btn-change-collector" type="button"
+            (click)="openBulkAssignCollectorModal()"
+            [disabled]="isHistoricalView"
+            data-testid="e2e-tontine-bulk-assign-collector">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-icon"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="m16 11 2 2 4-4"/></svg>
+      Changer de commercial ({{ selectedMemberIds.size }})
     </button>
     <button class="btn-clear" type="button" (click)="clearSelection()">Effacer la sélection</button>
   </div>
@@ -97,10 +104,44 @@
     [currentPage]="memberQueryParams.page || 0"
     [totalElements]="paginatedMembers?.page?.totalElements || paginatedMembers?.totalElements || 0"
     [canVerify]="canVerify && !isHistoricalView"
+    [selectable]="canSelectMembers"
     [selectedIds]="selectedMemberIds"
     (memberClick)="onMemberClick($event)"
     (pageChange)="onPageChange($event)"
     (sortChange)="onSortChange($event)"
     (selectionChange)="onSelectionChange($event)">
   </app-tontine-member-table>
+</div>
+
+<div class="tontine-bulk-modal modal-overlay" *ngIf="showBulkAssignCollectorModal" (click)="closeBulkAssignCollectorModal()"
+     data-testid="e2e-tontine-bulk-assign-modal">
+  <div class="bulk-modal-dialog" role="dialog" (click)="$event.stopPropagation()">
+    <div class="bulk-modal-content">
+      <div class="bulk-modal-header">
+        <h5 class="bulk-modal-title">Changer le commercial tontine</h5>
+        <button type="button" class="bulk-modal-close" aria-label="Fermer" (click)="closeBulkAssignCollectorModal()">&times;</button>
+      </div>
+      <div class="bulk-modal-body">
+        <p>Sélectionnez le nouveau commercial tontine pour les {{ selectedMemberIds.size }} membre(s) sélectionné(s).</p>
+        <div class="bulk-form-group">
+          <label for="tontineCollectorSelect">Commercial tontine</label>
+          <select class="bulk-form-control" id="tontineCollectorSelect" [(ngModel)]="selectedTontineCollector"
+                  data-testid="e2e-tontine-bulk-collector-select">
+            <option value="" disabled selected>Choisir un commercial</option>
+            <option *ngFor="let collector of collectors" [value]="collector.username">
+              {{ collector.firstname }} {{ collector.lastname }} ({{ collector.username }})
+            </option>
+          </select>
+        </div>
+      </div>
+      <div class="bulk-modal-footer">
+        <button type="button" class="btn-cancel" (click)="closeBulkAssignCollectorModal()">Annuler</button>
+        <button type="button" class="btn-validate" (click)="confirmBulkAssignCollector()"
+                [disabled]="!selectedTontineCollector || assigningCollector"
+                data-testid="e2e-tontine-bulk-validate">
+          {{ assigningCollector ? 'Enregistrement…' : 'Valider' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

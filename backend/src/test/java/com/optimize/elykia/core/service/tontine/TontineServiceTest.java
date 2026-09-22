@@ -34,6 +34,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.securities.models.User;
+import com.optimize.elykia.client.dto.BulkAssignCollectorsDto;
+import com.optimize.elykia.core.dto.BulkTontineAssignCollectorDto;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -229,6 +234,58 @@ class TontineServiceTest {
                 ArgumentCaptor.forClass(TontineCollectionCancelledEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         assertEquals("COM_A", eventCaptor.getValue().getCollector());
+    }
+
+    @Test
+    void bulkAssignCollector_updatesCollectorForMembersClients() {
+        Client client1 = new Client();
+        client1.setId(101L);
+        TontineMember member1 = new TontineMember();
+        member1.setId(1L);
+        member1.setClient(client1);
+
+        Client client2 = new Client();
+        client2.setId(102L);
+        TontineMember member2 = new TontineMember();
+        member2.setId(2L);
+        member2.setClient(client2);
+
+        when(tontineMemberRepository.findAllById(List.of(1L, 2L))).thenReturn(List.of(member1, member2));
+
+        User currentUser = org.mockito.Mockito.mock(User.class);
+        when(currentUser.getUsername()).thenReturn("admin.user");
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+
+        BulkTontineAssignCollectorDto dto = new BulkTontineAssignCollectorDto();
+        dto.setMemberIds(List.of(1L, 2L));
+        dto.setTontineCollector("new.collector");
+
+        service.bulkAssignCollector(dto);
+
+        ArgumentCaptor<BulkAssignCollectorsDto> captor = ArgumentCaptor.forClass(BulkAssignCollectorsDto.class);
+        verify(clientService).bulkAssignCollectors(captor.capture(), eq("admin.user"));
+
+        BulkAssignCollectorsDto capturedDto = captor.getValue();
+        assertEquals(List.of(101L, 102L), capturedDto.getClientIds());
+        assertEquals("new.collector", capturedDto.getTontineCollector());
+    }
+
+    @Test
+    void bulkAssignCollector_throwsWhenMemberIdsEmpty() {
+        BulkTontineAssignCollectorDto dto = new BulkTontineAssignCollectorDto();
+        dto.setMemberIds(List.of());
+        dto.setTontineCollector("collector.a");
+
+        assertThrows(CustomValidationException.class, () -> service.bulkAssignCollector(dto));
+    }
+
+    @Test
+    void bulkAssignCollector_throwsWhenCollectorBlank() {
+        BulkTontineAssignCollectorDto dto = new BulkTontineAssignCollectorDto();
+        dto.setMemberIds(List.of(1L));
+        dto.setTontineCollector("   ");
+
+        assertThrows(CustomValidationException.class, () -> service.bulkAssignCollector(dto));
     }
 
     private TontineSession session(Long id, int year, TontineSessionStatus status) {

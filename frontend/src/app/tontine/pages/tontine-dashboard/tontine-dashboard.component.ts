@@ -21,10 +21,12 @@ import {
 import { AddMemberModalComponent } from '../../components/modals/add-member-modal/add-member-modal.component';
 import { SessionSettingsModalComponent } from '../../components/modals/session-settings-modal/session-settings-modal.component';
 import { AddMultipleMembersModalComponent } from '../../components/modals/add-multiple-members-modal/add-multiple-members-modal.component';
-import {UserService} from "../../../user/service/user.service";
-import {UserProfile} from "../../../shared/models/user-profile.enum";
+import { UserService } from "../../../user/service/user.service";
+import { UserProfile } from "../../../shared/models/user-profile.enum";
 import { NgxPermissionsService } from 'ngx-permissions';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { ClientService } from 'src/app/client/service/client.service';
+import { CollectorAssignmentPermissions } from 'src/app/shared/constants/collector-assignment-permission.constant';
 
 @Component({
   selector: 'app-tontine-dashboard',
@@ -54,8 +56,17 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   exportingPdf = false;
   exportingCarnetPdf = false;
   canVerify = false;
+  canAssignCollector = false;
+  showBulkAssignCollectorModal = false;
+  selectedTontineCollector = '';
+  assigningCollector = false;
+  collectors: any[] = [];
   selectedMemberIds = new Set<number>();
   verifyingBulk = false;
+
+  get canSelectMembers(): boolean {
+    return (this.canVerify || this.canAssignCollector) && !this.isHistoricalView;
+  }
 
   constructor(
     public readonly tontineService: TontineService,
@@ -65,7 +76,8 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     private readonly snackBar: MatSnackBar,
     private readonly userService: UserService,
     private readonly permissionsService: NgxPermissionsService,
-    private readonly alertService: AlertService
+    private readonly alertService: AlertService,
+    private readonly clientService: ClientService
   ) {
     this.state$ = this.tontineService.state$;
     this.currentSession$ = this.sessionService.currentSession$;
@@ -78,6 +90,9 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     void this.permissionsService.hasPermission(['ROLE_TONTINE_CARNET_VERIFY', 'ROLE_ADMIN']).then((has) => {
       this.canVerify = !!has;
+    });
+    void this.permissionsService.hasPermission([CollectorAssignmentPermissions.Client, 'ROLE_ADMIN']).then((has) => {
+      this.canAssignCollector = !!has;
     });
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
@@ -312,6 +327,73 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
           this.showError(err?.message || 'Erreur lors de la vérification en masse');
         }
       });
+    });
+  }
+
+  openBulkAssignCollectorModal(): void {
+    if (this.selectedMemberIds.size === 0) {
+      this.alertService.showWarning('Veuillez sélectionner au moins un membre.');
+      return;
+    }
+    this.loadCollectors();
+    this.showBulkAssignCollectorModal = true;
+  }
+
+  closeBulkAssignCollectorModal(): void {
+    this.showBulkAssignCollectorModal = false;
+    this.selectedTontineCollector = '';
+  }
+
+  confirmBulkAssignCollector(): void {
+    if (!this.selectedTontineCollector) {
+      this.alertService.showWarning('Veuillez sélectionner un commercial.');
+      return;
+    }
+
+    const selectedMembersList = (this.paginatedMembers?.content || [])
+      .filter(m => this.selectedMemberIds.has(m.id));
+
+    const allAlreadyAssigned = selectedMembersList.length > 0 &&
+      selectedMembersList.every(m => m.client?.tontineCollector === this.selectedTontineCollector);
+
+    if (allAlreadyAssigned) {
+      this.alertService.showWarning('Le commercial sélectionné est déjà assigné aux membres choisis.');
+      return;
+    }
+
+    this.assigningCollector = true;
+    this.tontineService.bulkAssignCollector(
+      Array.from(this.selectedMemberIds),
+      this.selectedTontineCollector
+    ).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => this.assigningCollector = false)
+    ).subscribe({
+      next: () => {
+        this.alertService.showSuccess('Changement de commercial tontine effectué avec succès.');
+        this.closeBulkAssignCollectorModal();
+        this.selectedMemberIds = new Set();
+        this.loadMembers();
+      },
+      error: (error) => {
+        this.alertService.showError(error?.message || 'Erreur lors du changement de commercial tontine.');
+      }
+    });
+  }
+
+  private loadCollectors(): void {
+    if (this.collectors.length > 0) {
+      return;
+    }
+    this.clientService.getAgents().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (data) => {
+        this.collectors = data || [];
+      },
+      error: (error) => {
+        console.error('Erreur lors du chargement des commerciaux', error);
+      }
     });
   }
 

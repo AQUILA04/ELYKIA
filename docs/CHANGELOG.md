@@ -9,6 +9,17 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.2] — 2026-09-22
+
+### Added
+
+- **Changement de commercial tontine groupé (`tontine-dashboard`)** :
+  - Sélection multiple de membres de tontine par cases à cocher sur le tableau de bord tontine (`/tontine`) pour les profils autorisés (`ROLE_ASSIGN_CLIENT_COLLECTOR` ou `ROLE_ADMIN`).
+  - Découplage de la sélection par case à cocher dans `app-tontine-member-table` via `@Input() selectable`, permettant l'accès aux opérations groupées aux gestionnaires sans le rôle de vérification des carnets.
+  - Bouton d'action groupée dédié *Changer de commercial (N)* dans la barre d'actions.
+  - Modal spécifique de réaffectation du commercial tontine avec liste déroulante des commerciaux actifs et validation anti-redondance.
+  - Prise en compte immédiate avec réactualisation de la table et des fiches membres.
+
 ## Frontend — [2.22.1] — 2026-09-22
 
 ### Fixed
@@ -24,6 +35,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Sous-menu **Articles Vendus** (ou **Articles**) sous le menu Ventes pour afficher la liste globale des quantités vendues par article et par commercial.
 - Filtres de période (Ce jour, Cette semaine, Ce mois, Personnalisé) et filtre par commercial sur la liste des articles vendus.
+
+## Backend — [1.19.2] — 2026-09-22
+
+### Added
+
+- **Changement de commercial tontine groupé (`TontineMember`)** :
+  - DTO `BulkTontineAssignCollectorDto` avec validations `@NotEmpty` et `@NotBlank`.
+  - Endpoint `POST /api/v1/tontines/members/bulk-assign-collector` protégé par `@PreAuthorize("hasAnyRole('ROLE_ASSIGN_CLIENT_COLLECTOR', 'ROLE_ADMIN')")`.
+  - Méthode `bulkAssignCollector` dans `TontineService` mappant les membres tontine vers leurs clients associés et exécutant la réaffectation atomique via `ClientService.bulkAssignCollectors` avec traçabilité complète dans `client_collector_history` (`ClientCollectorType.TONTINE`) et invalidation des caches de listes clients.
 
 ## Backend — [1.19.1] — 2026-09-21
 
