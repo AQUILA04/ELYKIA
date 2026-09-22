@@ -80,6 +80,33 @@
           (commercialSelected)="onCommercialSelected($event)">
         </app-commercial-selector>
       </div>
+
+      <div class="filter-field filter-field-collector-type" *ngIf="selectedCommercial">
+        <span class="toolbar-label">Rôle commercial</span>
+        <div class="collector-type-pills" role="group" aria-label="Rôle commercial">
+          <button
+            type="button"
+            class="pill-btn"
+            [class.active]="selectedCollectorType === 'ALL'"
+            (click)="onCollectorTypeChange('ALL')">
+            Tous
+          </button>
+          <button
+            type="button"
+            class="pill-btn pill-btn-credit"
+            [class.active]="selectedCollectorType === 'CREDIT'"
+            (click)="onCollectorTypeChange('CREDIT')">
+            Crédit
+          </button>
+          <button
+            type="button"
+            class="pill-btn pill-btn-tontine"
+            [class.active]="selectedCollectorType === 'TONTINE'"
+            (click)="onCollectorTypeChange('TONTINE')">
+            Tontine
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="filter-actions">
@@ -160,6 +187,7 @@
             <th>Prénom</th>
             <th>Localité</th>
             <th>Téléphone</th>
+            <th>Commercial</th>
             <th>Action</th>
           </tr>
         </thead>
@@ -167,7 +195,8 @@
           <tr *ngFor="let client of clients; let i = index" class="table-row"
               data-testid="e2e-client-row"
               [attr.data-client-id]="client.id"
-              [attr.data-collector]="client.collector">
+              [attr.data-collector]="client.collector"
+              [attr.data-tontine-collector]="client.tontineCollector">
             <td *ngxPermissionsOnly="['ROLE_ASSIGN_CLIENT_COLLECTOR']" class="col-select">
               <mat-checkbox (change)="toggleSelection(client.id)" [checked]="isSelected(client.id)"></mat-checkbox>
             </td>
@@ -179,6 +208,17 @@
             <td><span class="col-client">{{ client.firstname }}</span></td>
             <td>{{ client.address || client.quarter || '—' }}</td>
             <td><span class="col-phone">{{ client.phone }}</span></td>
+            <td class="col-commercial">
+              <div class="commercial-badges">
+                <span *ngIf="client.collector" class="badge-collector badge-credit" title="Commercial Crédit">
+                  <span class="badge-tag">Crédit</span> {{ client.collector }}
+                </span>
+                <span *ngIf="client.tontineCollector" class="badge-collector badge-tontine" title="Commercial Tontine">
+                  <span class="badge-tag">Tontine</span> {{ client.tontineCollector }}
+                </span>
+                <span *ngIf="!client.collector && !client.tontineCollector" class="commercial-none">—</span>
+              </div>
+            </td>
             <td class="col-actions">
               <ng-container *ngTemplateOutlet="clientActions; context: { $implicit: client }"></ng-container>
             </td>
@@ -208,7 +248,14 @@
           <div class="mobile-card-meta">
             <span>{{ client.phone || '—' }}</span>
             <span>{{ client.address || client.quarter || '—' }}</span>
-            <span *ngIf="client.collector">{{ client.collector }}</span>
+            <div class="commercial-badges" *ngIf="client.collector || client.tontineCollector">
+              <span *ngIf="client.collector" class="badge-collector badge-credit" title="Commercial Crédit">
+                <span class="badge-tag">Crédit</span> {{ client.collector }}
+              </span>
+              <span *ngIf="client.tontineCollector" class="badge-collector badge-tontine" title="Commercial Tontine">
+                <span class="badge-tag">Tontine</span> {{ client.tontineCollector }}
+              </span>
+            </div>
           </div>
           <div class="mobile-card-actions">
             <ng-container *ngTemplateOutlet="clientActions; context: { $implicit: client }"></ng-container>

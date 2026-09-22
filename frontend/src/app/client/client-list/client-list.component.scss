@@ -284,6 +284,62 @@
   z-index: 200;
 }
 
+.client-page .filter-field-collector-type {
+  flex: 0 0 auto;
+}
+
+.client-page .collector-type-pills {
+  display: inline-flex;
+  align-items: center;
+  background: var(--navy-xpale);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 3px;
+  gap: 3px;
+  height: 40px;
+  box-sizing: border-box;
+
+  .pill-btn {
+    border: none;
+    background: transparent;
+    padding: 0 12px;
+    height: 100%;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover:not(.active) {
+      background: rgba(0, 51, 102, 0.06);
+      color: var(--navy);
+    }
+
+    &.active {
+      background: var(--bg-white);
+      color: var(--navy);
+      box-shadow: 0 1px 3px rgba(0, 51, 102, 0.12);
+    }
+
+    &.pill-btn-credit.active {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(2, 132, 199, 0.25);
+    }
+
+    &.pill-btn-tontine.active {
+      background: #16a34a;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(22, 163, 74, 0.25);
+    }
+  }
+}
+
 .client-page .filter-actions {
   display: flex;
   align-items: center;
@@ -481,6 +537,62 @@
 .client-page .col-phone {
   font-family: 'DM Mono', monospace;
   font-size: 12px;
+}
+
+.client-page .col-commercial {
+  min-width: 130px;
+}
+
+.client-page .commercial-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.client-page .badge-collector {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+
+  .badge-tag {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    opacity: 0.85;
+  }
+
+  &.badge-credit {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+
+    .badge-tag {
+      color: #0284c7;
+    }
+  }
+
+  &.badge-tontine {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+
+    .badge-tag {
+      color: #16a34a;
+    }
+  }
+}
+
+.client-page .commercial-none {
+  color: var(--text-light);
+  font-size: 13px;
 }
 
 .client-page .col-actions {
@@ -879,10 +991,19 @@
   }
 
   .client-page .filter-field-search,
-  .client-page .filter-field-commercial {
+  .client-page .filter-field-commercial,
+  .client-page .filter-field-collector-type {
     width: 100%;
     max-width: none;
     flex: none;
+  }
+
+  .client-page .collector-type-pills {
+    width: 100%;
+    .pill-btn {
+      flex: 1;
+      text-align: center;
+    }
   }
 
   .client-page .search-input {

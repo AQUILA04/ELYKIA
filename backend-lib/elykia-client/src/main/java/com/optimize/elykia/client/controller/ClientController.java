@@ -72,8 +72,9 @@ public class ClientController {
     }
 
     @GetMapping("/kpis")
-    public ResponseEntity<Response> getClientKpis(@RequestParam(required = false) String username) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getClientKpis(username)), HttpStatus.OK);
+    public ResponseEntity<Response> getClientKpis(@RequestParam(required = false) String username,
+                                                   @RequestParam(required = false) String collectorType) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getClientKpis(username, collectorType)), HttpStatus.OK);
     }
 
     @GetMapping(value = "{id}")
@@ -85,8 +86,9 @@ public class ClientController {
     public ResponseEntity<Response> getAll(Pageable pageable,
                                            @RequestParam(required = false) String username,
                                            @RequestParam(required = false) Boolean tontine,
-                                           @RequestParam(required = false) Boolean mobile) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getAll(username, tontine, mobile, pageable)), HttpStatus.OK);
+                                           @RequestParam(required = false) Boolean mobile,
+                                           @RequestParam(required = false) String collectorType) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getAll(username, tontine, mobile, collectorType, pageable)), HttpStatus.OK);
     }
 
     @GetMapping(value = "all")
@@ -142,8 +144,12 @@ public class ClientController {
     }
 
     @PostMapping(value = "elasticsearch")
-    public ResponseEntity<Response> elasticSearch(@RequestBody ElasticSearchWrapper wrapper, String username, Boolean tontine, Pageable pageable) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.elasticsearch(wrapper.getKeyword(), username, tontine, pageable)), HttpStatus.OK);
+    public ResponseEntity<Response> elasticSearch(@RequestBody ElasticSearchWrapper wrapper,
+                                                   @RequestParam(required = false) String username,
+                                                   @RequestParam(required = false) Boolean tontine,
+                                                   @RequestParam(required = false) String collectorType,
+                                                   Pageable pageable) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.elasticsearch(wrapper.getKeyword(), username, tontine, collectorType, pageable)), HttpStatus.OK);
     }
 
     @PostMapping(value = "check-missing-photos")

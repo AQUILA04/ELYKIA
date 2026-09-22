@@ -610,23 +610,33 @@ public class ClientService extends GenericService<Client, Long> {
                         + conflict.getFirstname() + " " + conflict.getLastname() + ")");
     }
 
-    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(com.optimize.elykia.client.config.ClientCacheKeyHelper).commercialFilterKey(#username) + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
-    public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, Pageable pageable) {
+    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(com.optimize.elykia.client.config.ClientCacheKeyHelper).commercialFilterKey(#username) + '-' + T(java.util.Objects).toString(#collectorType, '') + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
+    public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, String collectorType, Pageable pageable) {
         return getRepository().findClientsDto(
                 ClientCacheKeyHelper.resolveCommercialUsername(username),
                 tontine,
                 mobile,
+                collectorType,
                 pageable);
+    }
+
+    public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, Pageable pageable) {
+        return getAll(username, tontine, mobile, null, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.Map<String, Long> getClientKpis(String username, String collectorType) {
+        String effectiveUsername = resolveCommercialUsername(username);
+        return java.util.Map.of(
+                "totalRegistered", getRepository().countActiveClients(effectiveUsername, collectorType),
+                "withActiveCredit", getRepository().countClientsWithCreditInProgress(effectiveUsername, collectorType),
+                "tontineMembers", getRepository().countTontineMembers(effectiveUsername, collectorType),
+                "withoutCreditNorTontine", getRepository().countClientsWithoutCreditNorTontine(effectiveUsername, collectorType));
     }
 
     @Transactional(readOnly = true)
     public java.util.Map<String, Long> getClientKpis(String username) {
-        String effectiveUsername = resolveCommercialUsername(username);
-        return java.util.Map.of(
-                "totalRegistered", getRepository().countActiveClients(effectiveUsername),
-                "withActiveCredit", getRepository().countClientsWithCreditInProgress(effectiveUsername),
-                "tontineMembers", getRepository().countTontineMembers(effectiveUsername),
-                "withoutCreditNorTontine", getRepository().countClientsWithoutCreditNorTontine(effectiveUsername));
+        return getClientKpis(username, null);
     }
 
     private String resolveCommercialUsername(String username) {
@@ -925,8 +935,12 @@ public class ClientService extends GenericService<Client, Long> {
         return Boolean.TRUE;
     }
 
+    public Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType, Pageable pageable) {
+        return getRepository().elasticsearch(keyword, username, tontine, collectorType, pageable);
+    }
+
     public Page<Client> elasticsearch(String keyword, String username, Boolean tontine, Pageable pageable) {
-        return getRepository().elasticsearch(keyword, username, tontine, pageable);
+        return elasticsearch(keyword, username, tontine, null, pageable);
     }
 
     @Transactional

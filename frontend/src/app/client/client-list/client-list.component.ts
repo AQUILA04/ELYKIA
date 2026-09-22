@@ -17,6 +17,7 @@ interface ClientListState {
   pageSize: number;
   sortField: string;
   selectedCommercial: string | null;
+  selectedCollectorType?: 'ALL' | 'CREDIT' | 'TONTINE';
 }
 
 @Component({
@@ -37,6 +38,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
   sortField = 'id,desc';
   searchTerm = '';
   selectedCommercial: string | null = null;
+  selectedCollectorType: 'ALL' | 'CREDIT' | 'TONTINE' = 'ALL';
 
   currentDate = new Date();
   lastUpdate = new Date();
@@ -92,7 +94,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
 
   loadClientKpis(): void {
     const username = this.getEffectiveUsername();
-    this.clientService.getClientKpis(username).subscribe({
+    this.clientService.getClientKpis(username, this.selectedCollectorType).subscribe({
       next: (kpis) => {
         this.clientKpis = kpis;
       },
@@ -106,7 +108,15 @@ export class ClientListComponent implements OnInit, OnDestroy {
     this.isLoading = true;
     const usernameToUse = this.getEffectiveUsername();
 
-    this.clientService.getClients(this.currentPage, this.pageSize, this.sortField, usernameToUse, this.searchTerm).subscribe({
+    this.clientService.getClients(
+      this.currentPage,
+      this.pageSize,
+      this.sortField,
+      usernameToUse,
+      this.searchTerm,
+      false,
+      this.selectedCollectorType
+    ).subscribe({
       next: (data) => {
         if (data.statusCode === 200) {
           this.clients = data.data.content;
@@ -174,6 +184,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
   resetFilters(): void {
     this.searchTerm = '';
     this.selectedCommercial = null;
+    this.selectedCollectorType = 'ALL';
     this.currentPage = 0;
     this.saveState();
     this.loadClientKpis();
@@ -251,6 +262,17 @@ export class ClientListComponent implements OnInit, OnDestroy {
 
   onCommercialSelected(commercial: string | null): void {
     this.selectedCommercial = commercial;
+    this.currentPage = 0;
+    this.selectedClients.clear();
+    this.isAllSelected = false;
+    this.saveState();
+    this.loadClientKpis();
+    this.loadClient();
+  }
+
+  onCollectorTypeChange(type: 'ALL' | 'CREDIT' | 'TONTINE'): void {
+    if (this.selectedCollectorType === type) return;
+    this.selectedCollectorType = type;
     this.currentPage = 0;
     this.selectedClients.clear();
     this.isAllSelected = false;
@@ -375,7 +397,8 @@ export class ClientListComponent implements OnInit, OnDestroy {
       currentPage: this.currentPage,
       pageSize: this.pageSize,
       sortField: this.sortField,
-      selectedCommercial: this.selectedCommercial
+      selectedCommercial: this.selectedCommercial,
+      selectedCollectorType: this.selectedCollectorType
     };
     sessionStorage.setItem(this.STATE_KEY, JSON.stringify(state));
   }
@@ -390,6 +413,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
       this.pageSize = state.pageSize ?? 10;
       this.sortField = state.sortField ?? 'id,desc';
       this.selectedCommercial = state.selectedCommercial ?? null;
+      this.selectedCollectorType = state.selectedCollectorType ?? 'ALL';
     } catch (e) {
       console.error('Erreur restauration état liste clients', e);
     }

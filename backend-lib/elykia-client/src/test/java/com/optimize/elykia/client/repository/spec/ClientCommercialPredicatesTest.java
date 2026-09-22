@@ -37,6 +37,20 @@ class ClientCommercialPredicatesTest {
     }
 
     @Test
+    void matchesSpecificCollectorType() {
+        assertThat(ClientCommercialPredicates.matches(
+                "COM_CREDIT", "COM_CREDIT", "COM_TONTINE", null, null, "CREDIT")).isTrue();
+        assertThat(ClientCommercialPredicates.matches(
+                "COM_TONTINE", "COM_CREDIT", "COM_TONTINE", null, null, "CREDIT")).isFalse();
+        assertThat(ClientCommercialPredicates.matches(
+                "COM_TONTINE", "COM_CREDIT", "COM_TONTINE", null, null, "TONTINE")).isTrue();
+        assertThat(ClientCommercialPredicates.matches(
+                "COM_CREDIT", "COM_CREDIT", "COM_TONTINE", null, null, "TONTINE")).isFalse();
+        assertThat(ClientCommercialPredicates.matches(
+                "COM_TONTINE", "COM_CREDIT", "COM_TONTINE", null, null, "ALL")).isTrue();
+    }
+
+    @Test
     void blankUsernameMatchesEveryone() {
         assertThat(ClientCommercialPredicates.matches(null, "COM_CREDIT", null, null, null)).isTrue();
         assertThat(ClientCommercialPredicates.matches("  ", "COM_CREDIT", null, null, null)).isTrue();

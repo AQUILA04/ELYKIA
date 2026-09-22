@@ -28,10 +28,18 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
             Pageable pageable);
 
     default Page<Client> elasticsearch(String keyword, String username, Boolean tontine, Pageable pageable) {
-        return findAll(getElasticsearchCriteria(keyword, username, tontine), pageable);
+        return elasticsearch(keyword, username, tontine, null, pageable);
+    }
+
+    default Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType, Pageable pageable) {
+        return findAll(getElasticsearchCriteria(keyword, username, Boolean.TRUE.equals(tontine), collectorType), pageable);
     }
 
     default Specification<Client> getElasticsearchCriteria(String keyword, String username, boolean tontine) {
+        return getElasticsearchCriteria(keyword, username, tontine, null);
+    }
+
+    default Specification<Client> getElasticsearchCriteria(String keyword, String username, boolean tontine, String collectorType) {
         final String searchKeyword = String.format("%%%s%%", keyword.toLowerCase());
 
         return (root, query, cb) -> {
@@ -57,7 +65,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                     return cb.and(p2, cb.notEqual(root.get("state"), State.DELETED));
                 }
                 jakarta.persistence.criteria.Predicate p2 = cb.and(p,
-                        ClientCommercialPredicates.anyCollectorEquals(root, cb, username));
+                        ClientCommercialPredicates.collectorEquals(root, cb, username, collectorType));
                 return cb.and(p2, cb.notEqual(root.get("state"), State.DELETED));
             }
 
@@ -157,41 +165,86 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
        "AND (:#{#username == null} = true OR ( " +
        "    (:#{#tontine == true} = true AND c.tontineCollector = :username) OR " +
        "    (:#{#mobile == true} = true AND " + ClientCommercialPredicates.ANY_EQUALS_C_USERNAME + ") OR " +
-       "    (:#{#tontine != true AND #mobile != true} = true AND " + ClientCommercialPredicates.ANY_EQUALS_C_USERNAME + ")" +
+       "    (:#{#tontine != true AND #mobile != true} = true AND (" +
+       "        (:#{#collectorType == 'CREDIT'} = true AND c.collector = :username) OR " +
+       "        (:#{#collectorType == 'TONTINE'} = true AND c.tontineCollector = :username) OR " +
+       "        (:#{#collectorType != 'CREDIT' AND #collectorType != 'TONTINE'} = true AND " + ClientCommercialPredicates.ANY_EQUALS_C_USERNAME + ")" +
+       "    ))" +
        "))")
-    Page<ClientRespDto> findClientsDto(@Param("username") String username, @Param("tontine") Boolean tontine, @Param("mobile") Boolean mobile, Pageable pageable);
+    Page<ClientRespDto> findClientsDto(
+            @Param("username") String username,
+            @Param("tontine") Boolean tontine,
+            @Param("mobile") Boolean mobile,
+            @Param("collectorType") String collectorType,
+            Pageable pageable);
+
+    default Page<ClientRespDto> findClientsDto(String username, Boolean tontine, Boolean mobile, Pageable pageable) {
+        return findClientsDto(username, tontine, mobile, null, pageable);
+    }
 
     @Query("""
             SELECT COUNT(c) FROM Client c
             WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
-            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
+            AND (:#{#username == null} = true OR (
+                (:#{#collectorType == 'CREDIT'} = true AND c.collector = :username) OR
+                (:#{#collectorType == 'TONTINE'} = true AND c.tontineCollector = :username) OR
+                (:#{#collectorType != 'CREDIT' AND #collectorType != 'TONTINE'} = true AND (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
+            ))
             """)
-    long countActiveClients(@Param("username") String username);
+    long countActiveClients(@Param("username") String username, @Param("collectorType") String collectorType);
+
+    default long countActiveClients(String username) {
+        return countActiveClients(username, null);
+    }
 
     @Query("""
             SELECT COUNT(c) FROM Client c
             WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
             AND c.creditInProgress = true
-            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
+            AND (:#{#username == null} = true OR (
+                (:#{#collectorType == 'CREDIT'} = true AND c.collector = :username) OR
+                (:#{#collectorType == 'TONTINE'} = true AND c.tontineCollector = :username) OR
+                (:#{#collectorType != 'CREDIT' AND #collectorType != 'TONTINE'} = true AND (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
+            ))
             """)
-    long countClientsWithCreditInProgress(@Param("username") String username);
+    long countClientsWithCreditInProgress(@Param("username") String username, @Param("collectorType") String collectorType);
+
+    default long countClientsWithCreditInProgress(String username) {
+        return countClientsWithCreditInProgress(username, null);
+    }
 
     @Query("""
             SELECT COUNT(c) FROM Client c
             WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
             AND c.isTontineMember = true
-            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
+            AND (:#{#username == null} = true OR (
+                (:#{#collectorType == 'CREDIT'} = true AND c.collector = :username) OR
+                (:#{#collectorType == 'TONTINE'} = true AND c.tontineCollector = :username) OR
+                (:#{#collectorType != 'CREDIT' AND #collectorType != 'TONTINE'} = true AND (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
+            ))
             """)
-    long countTontineMembers(@Param("username") String username);
+    long countTontineMembers(@Param("username") String username, @Param("collectorType") String collectorType);
+
+    default long countTontineMembers(String username) {
+        return countTontineMembers(username, null);
+    }
 
     @Query("""
             SELECT COUNT(c) FROM Client c
             WHERE c.state <> com.optimize.common.entities.enums.State.DELETED
             AND (c.creditInProgress IS NULL OR c.creditInProgress = false)
             AND c.isTontineMember = false
-            AND (:#{#username == null} = true OR (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
+            AND (:#{#username == null} = true OR (
+                (:#{#collectorType == 'CREDIT'} = true AND c.collector = :username) OR
+                (:#{#collectorType == 'TONTINE'} = true AND c.tontineCollector = :username) OR
+                (:#{#collectorType != 'CREDIT' AND #collectorType != 'TONTINE'} = true AND (c.collector = :username OR c.tontineCollector = :username OR c.agencyCollector = :username OR c.recoveryCollector = :username))
+            ))
             """)
-    long countClientsWithoutCreditNorTontine(@Param("username") String username);
+    long countClientsWithoutCreditNorTontine(@Param("username") String username, @Param("collectorType") String collectorType);
+
+    default long countClientsWithoutCreditNorTontine(String username) {
+        return countClientsWithoutCreditNorTontine(username, null);
+    }
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""

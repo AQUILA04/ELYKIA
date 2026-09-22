@@ -9,6 +9,16 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.3] — 2026-09-22
+
+### Added
+
+- **Badges commerciaux et filtrage par rôle sur la liste des clients (`client-list`)** :
+  - Ajout d'une colonne dédiée **Commercial** dans le tableau desktop affichant sous forme de badges stylisés aux couleurs distinctes le commercial crédit (`client.collector`, bleu cyan doux `#e0f2fe`) et le commercial tontine (`client.tontineCollector`, vert émeraude doux `#dcfce7`).
+  - Affichage similaire des deux badges dans les métadonnées de chaque carte mobile (`.mobile-card-meta`).
+  - Ajout d'un sélecteur de rôle (pills : *Tous*, *Crédit*, *Tontine*) dans la barre d'outils dès qu'un commercial est sélectionné pour clarifier et affiner la recherche.
+  - Transmission du paramètre `collectorType` au backend et conservation du filtre dans l'état de session (`sessionStorage`).
+
 ## Frontend — [2.22.2] — 2026-09-22
 
 ### Added
@@ -35,6 +45,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Sous-menu **Articles Vendus** (ou **Articles**) sous le menu Ventes pour afficher la liste globale des quantités vendues par article et par commercial.
 - Filtres de période (Ce jour, Cette semaine, Ce mois, Personnalisé) et filtre par commercial sur la liste des articles vendus.
+
+## Backend — [1.19.3] — 2026-09-22
+
+### Added
+
+- **Filtrage par rôle commercial dans les API clients (`ClientController`, `ClientService`, `ClientRepository`)** :
+  - Paramètre de requête optionnel `collectorType` (`CREDIT`, `TONTINE`, `ALL`) sur `GET /api/v1/clients`, `GET /api/v1/clients/kpis` et `POST /api/v1/clients/elasticsearch`.
+  - Conditionnement de la clause WHERE dans `findClientsDto`, `getElasticsearchCriteria` et les requêtes de comptage KPI pour cibler précisément `c.collector = :username` pour le rôle Crédit ou `c.tontineCollector = :username` pour le rôle Tontine, évitant ainsi l'inclusion inattendue de clients lorsque l'utilisateur affine par rôle.
+  - Surcharges par défaut garantissant la rétrocompatibilité totale avec les appelants existants.
+  - Tests unitaires dans `ClientCommercialPredicatesTest`.
 
 ## Backend — [1.19.2] — 2026-09-22
 

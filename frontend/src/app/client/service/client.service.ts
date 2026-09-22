@@ -110,15 +110,18 @@ export class ClientService {
     return headers;
   }
 
-  // #### MÉTHODE MODIFIÉE POUR LA RECHERCHE ####
-  getClients(page: number, size: number, sort: string, username: any, search: string = '', tontine = false): Observable<any> {
+  getClients(page: number, size: number, sort: string, username: any, search: string = '', tontine = false, collectorType?: string): Observable<any> {
     const headers = this.getHeader();
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
       .set('sort', sort)
       .set('username', username ?? '')
       .set('tontine', String(tontine));
+
+    if (collectorType && collectorType !== 'ALL') {
+      params = params.set('collectorType', collectorType);
+    }
 
     // Si une recherche est en cours, on utilise l'endpoint POST /elasticsearch
     if (search && search.trim() !== '') {
@@ -202,11 +205,14 @@ export class ClientService {
     );
   }
 
-  getClientKpis(username?: string | null): Observable<ClientKpis> {
+  getClientKpis(username?: string | null, collectorType?: string): Observable<ClientKpis> {
     const headers = this.getHeader();
     let params = new HttpParams();
     if (username) {
       params = params.set('username', username);
+    }
+    if (collectorType && collectorType !== 'ALL') {
+      params = params.set('collectorType', collectorType);
     }
     return this.http.get<ApiResponse<ClientKpis>>(`${this.apiUrl}/kpis`, { headers, params }).pipe(
       map(response => response.data)

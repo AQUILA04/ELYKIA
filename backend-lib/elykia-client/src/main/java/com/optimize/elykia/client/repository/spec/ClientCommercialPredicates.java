@@ -32,13 +32,34 @@ public final class ClientCommercialPredicates {
 
     public static boolean matches(String username, String collector, String tontineCollector,
             String agencyCollector, String recoveryCollector) {
+        return matches(username, collector, tontineCollector, agencyCollector, recoveryCollector, null);
+    }
+
+    public static boolean matches(String username, String collector, String tontineCollector,
+            String agencyCollector, String recoveryCollector, String collectorType) {
         if (username == null || username.isBlank()) {
             return true;
+        }
+        if ("CREDIT".equalsIgnoreCase(collectorType)) {
+            return username.equals(collector);
+        }
+        if ("TONTINE".equalsIgnoreCase(collectorType)) {
+            return username.equals(tontineCollector);
         }
         return username.equals(collector)
                 || username.equals(tontineCollector)
                 || username.equals(agencyCollector)
                 || username.equals(recoveryCollector);
+    }
+
+    public static Predicate collectorEquals(Root<Client> root, CriteriaBuilder cb, String username, String collectorType) {
+        if ("CREDIT".equalsIgnoreCase(collectorType)) {
+            return cb.equal(root.get("collector"), username);
+        }
+        if ("TONTINE".equalsIgnoreCase(collectorType)) {
+            return cb.equal(root.get("tontineCollector"), username);
+        }
+        return anyCollectorEquals(root, cb, username);
     }
 
     public static Predicate anyCollectorEquals(Root<Client> root, CriteriaBuilder cb, String username) {
