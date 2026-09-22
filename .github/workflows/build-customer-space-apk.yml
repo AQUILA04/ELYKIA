@@ -128,16 +128,14 @@ jobs:
 
           resolve_target_from_cd_run() {
             local run_id="$1"
-            local jobs_json prod promote test
+            local jobs_json prod test
             jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
               "https://api.github.com/repos/${REPO}/actions/runs/${run_id}/jobs")
             prod=$(echo "$jobs_json" | jq -r \
               '.jobs[] | select(.name=="Deploy to PROD after CI") | .conclusion' | head -n1 || true)
-            promote=$(echo "$jobs_json" | jq -r \
-              '.jobs[] | select(.name=="Promote test -> prod") | .conclusion' | head -n1 || true)
             test=$(echo "$jobs_json" | jq -r \
               '.jobs[] | select(.name=="Deploy to TEST after CI") | .conclusion' | head -n1 || true)
-            if [ "$prod" = "success" ] || [ "$promote" = "success" ]; then
+            if [ "$prod" = "success" ]; then
               echo "prod"
             elif [ "$test" = "success" ]; then
               echo "test"
@@ -146,21 +144,17 @@ jobs:
 
           resolve_target_from_cd_run_id() {
             local cd_run_id="$1"
-            local jobs_json promote_conclusion prod_conclusion test_conclusion
+            local jobs_json prod_conclusion test_conclusion
             jobs_json=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
               "https://api.github.com/repos/${REPO}/actions/runs/${cd_run_id}/jobs")
             echo "CD run $cd_run_id jobs:" >&2
             echo "$jobs_json" | jq -r '.jobs[] | "\(.name): \(.conclusion)"' >&2
-            promote_conclusion=$(echo "$jobs_json" | jq -r \
-              '.jobs[] | select(.name=="Promote test -> prod") | .conclusion' | head -n1 || true)
             prod_conclusion=$(echo "$jobs_json" | jq -r \
               '.jobs[] | select(.name=="Deploy to PROD after CI") | .conclusion' | head -n1 || true)
             test_conclusion=$(echo "$jobs_json" | jq -r \
               '.jobs[] | select(.name=="Deploy to TEST after CI") | .conclusion' | head -n1 || true)
             if [ "$prod_conclusion" = "success" ]; then
               echo "prod|prod"
-            elif [ "$promote_conclusion" = "success" ]; then
-              echo "prod|promote"
             elif [ "$test_conclusion" = "success" ]; then
               echo "test|test"
             fi
@@ -218,7 +212,6 @@ jobs:
               case "$SHA_SOURCE" in
                 test) BUILD_SHA=$(find_ci_sha_before "main" "$CD_STARTED") ;;
                 prod) BUILD_SHA=$(find_ci_sha_before "prod" "$CD_STARTED") ;;
-                promote) BUILD_SHA=$(resolve_promote_test_apk_sha) ;;
               esac
               echo "Resolved CI commit ($SHA_SOURCE): $BUILD_SHA" >&2
             fi

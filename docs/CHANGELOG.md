@@ -49,6 +49,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra — 2026-09-22
 
+### Fixed
+
+- **Pipelines CI/CD APK (Customer-space & Mobile)** : Suppression du déclenchement automatique du build APK lors d'une promotion CD (`Promote test -> prod`). La promotion CD (`cd.yml`) concerne exclusivement le déploiement des conteneurs web/serveur (backend, frontend). Les APKs restent compilés lors des commits directs sur les branches ou manuellement via leur workflow dispatch dédié (`build-customer-space-apk.yml`, `build-mobile-apk.yml`).
+
 ### Added
 
 - **User Guide (Frontend Web - Tableaux de bord & BI)** : Refonte et enrichissement exhaustif de la documentation du Tableau de bord gestionnaire dans `user-guide/docs/manager/dashboard.md` :
