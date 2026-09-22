@@ -201,53 +201,123 @@
   },
   {
     "id": "commercial_sales_orders",
-    "title": "Ventes, crédits et commandes",
+    "title": "Ventes, crédits, recouvrements et commandes",
     "path": "/user-guide/commercial/sales_orders.html",
     "roles": [
       "commercial",
       "manager"
     ],
-    "content": "Ventes, crédits et commandes\n\nLe menu Ventes rassemble la liste des crédits, les retards, échéances, recouvrements, transferts de ventes et rattrapages selon les permissions. Une vente est une opération suivie par statut ; créez-la correctement avant de solliciter une validation ou une livraison."
+    "content": "Ventes, crédits, recouvrements et commandes\n\nLe module Ventes (ROLE_CONSULT_CREDIT) et le module Commandes (ROLE_CONSULT_ORDER) constituent le cœur commercial et transactionnel de la plateforme ELYKIA. Ils permettent de piloter tout le cycle de vie des ventes à crédit et au comptant, d'organiser les encaissements quotidiens, de gérer les retards et les échéances, d'auditer les passations de portefeuille entre commerciaux, d'injecter des ventes de rattrapage et de convertir des réservations en ventes effectives.\n\n---"
   },
   {
-    "id": "commercial_sales_orders__cr_er_une_vente",
-    "title": "Ventes, crédits et commandes — Créer une vente",
+    "id": "commercial_sales_orders__1_vue_d_ensemble_de_la_navigation_commerciale",
+    "title": "Ventes, crédits, recouvrements et commandes — 1. Vue d'ensemble de la navigation commerciale",
     "path": "/user-guide/commercial/sales_orders.html",
     "roles": [
       "commercial",
       "manager"
     ],
-    "content": "Ventes, crédits et commandes\nCréer une vente\n\nDans Ventes > Liste , cliquez sur Nouvelle vente . Le formulaire permet de choisir le type Crédit ou Comptant , puis le client et les articles. Pour une vente à crédit, sélectionnez également le commercial et renseignez une avance éventuelle. Si l’option de finalité est active, le crédit peut être déclaré personnel ou professionnel pour les clients habilités.\n\n \n\n Type de vente Données et résultat \n --- --- \n Crédit Client, commercial, articles, avance optionnelle ; une mise journalière et un solde sont ensuite suivis. \n Comptant Client et articles ; aucun suivi de mise journalière n’est affiché sur le reçu. \n\nLe sélecteur de client et le sélecteur d’articles utilisent une recherche et un chargement progressif. Saisissez quelques caractères et attendez les résultats plutôt que de conclure qu’un dossier n’existe pas."
+    "content": "Ventes, crédits, recouvrements et commandes\nVue d'ensemble de la navigation commerciale\n\nLe menu latéral gauche donne accès aux sous-modules suivants selon les permissions du compte utilisateur :\n\n Menu / Sous-menu Route Frontend Permission requise Description opérationnelle \n --- --- --- --- \n Ventes > Liste /credit/list ROLE_CONSULT_CREDIT Tableau de bord principal des ventes, recherche avancée, actions sur cycle de vie, fusion et réassignation en lot. \n Ventes > Retards /credit/late ROLE_CONSULT_CREDIT Suivi des crédits accusant un retard (délai dépassé ou échéance), clôtures d'urgence et contrôles terrain. \n Ventes > Échéances /credit/echeance ROLE_CONSULT_CREDIT Calendrier des échéances de paiement attendues aujourd'hui, cette semaine ou sur date ciblée. \n Ventes > Recouvrements /credit/recouvrements ROLE_CONSULT_CREDIT Journal chronologique de toutes les mises encaissées avec droit d'annulation contrôlé. \n Ventes > Transfert Ventes /credit/transferts-commerciaux ROLE_KPI_FINANCIER_TRANSFERT_VENTE Audit et statistiques des transferts de dossiers de crédit entre commerciaux sortants et entrants. \n Ventes > Rattrapages /stock/credit/rattrapage ROLE_RATTRAPAGE Régularisation de ventes passées adossées à des stocks mensuels résiduels sans déduction du stock central physique actuel. \n Ventes > Articles /credit/articles-vendus ROLE_CONSULT_CREDIT Analyse consolidée des quantités et montants vendus par article et par commercial sur une période. \n Commandes /orders ROLE_CONSULT_ORDER Gestion du pipeline des commandes clients (réservations) depuis l'enregistrement jusqu'à la conversion en vente. \n\n---"
   },
   {
-    "id": "commercial_sales_orders__suivre_le_cycle_du_cr_dit",
-    "title": "Ventes, crédits et commandes — Suivre le cycle du crédit",
+    "id": "commercial_sales_orders__2_liste_des_ventes_et_cycle_de_vie_credit_list",
+    "title": "Ventes, crédits, recouvrements et commandes — 2. Liste des ventes et cycle de vie (`/credit/list`)",
     "path": "/user-guide/commercial/sales_orders.html",
     "roles": [
       "commercial",
       "manager"
     ],
-    "content": "Ventes, crédits et commandes\nSuivre le cycle du crédit\n\n Statut Signification et action courante \n --- --- \n CREATED Vente enregistrée ; un responsable habilité peut Valider . \n VALIDATED Vente validée ; le magasinier peut Démarrer après remise de la marchandise. \n INPROGRESS Crédit en cours ; l’action Encaisser permet la mise, selon les droits. \n SETTLED Crédit soldé ; il n’est plus sélectionnable pour une réaffectation en lot. \n\nLa liste propose les filtres de période KPI et une Recherche avancée . La case de recherche par référence permet de cibler une référence, notamment une référence de rattrapage. La fiche crédit peut afficher le stock mensuel source, l’historique des transferts de commercial et, lorsque le rôle l’autorise, le contrôle terrain."
+    "content": "Ventes, crédits, recouvrements et commandes\nListe des ventes et cycle de vie (/credit/list)\n\nL'écran /credit/list centralise l'ensemble des ventes de l'agence.\nBandeau des KPIs Financiers Vente (ROLE_KPI_FINANCIER_VENTE)\nEn haut de la page, un bandeau financier dynamique consolide les chiffres clés sur la période active :\n Total Ventes : Nombre d'opérations de vente enregistrées.\n Montant Total : Valeur faciale totale des contrats de vente (FCFA).\n Montant Encaissé : Cumul des acomptes initiaux et des mises journalières perçues.\n Solde Restant : Montant global restant à recouvrer.\n Taux de Recouvrement : Pourcentage financier recouvré (Encaissé / Montant Total).\n[!NOTE]\nL'affichage du bandeau KPI requiert la permission ROLE_KPI_FINANCIER_VENTE. Si l'utilisateur ne dispose pas de ce droit, la liste des crédits s'affiche directement sans le bandeau récapitulatif.\nFiltres temporels rapides et recherche avancée\n Sélecteur de période prédéfinie :\nAujourd'hui : Ventes créées le jour même.\nCette semaine : Ventes du lundi au dimanche en cours.\nCe mois : Ventes depuis le 1er jour du mois courant.\nPersonnalisée : Définition d'un intervalle de dates (Date début $\\rightarrow$ Date fin).\n Recherche rapide : Champ de saisie instantanée pour filtrer par référence contrat ou nom de client.\n Recherche avancée multi-critères :\nMot-clé général (nom client, référence de rattrapage ou contrat).\nType de client (Individuel, Entreprise, etc.).\nType de vente (Crédit ou Comptant).\nStatut du crédit (CREATED, VALIDATED, INPROGRESS, SETTLED).\nCommercial assigné (filtrage sur un agent spécifique).\nIndicateurs de criticité d'échéance (Badges colorés)\nChaque ligne de vente affiche un badge visuel sur les jours restants avant l'échéance contractuelle :\n🟢 Vert (days-success) : Plus de 5 jours restants avant la date limite.\n🟡 Orange (days-warning) : Moins de 5 jours restants (alerte échéance imminente).\n🔴 Rouge (days-danger) : 0 jour restant ou date de fin contractuelle dépassée.\nTableau des statuts et transitions du cycle de vente\nUne vente évolue selon un cycle strict d'autorisations et d'actions physiques :\n\n Statut Signification métier Actions disponibles dans l'interface Rôle / Permission…"
   },
   {
-    "id": "commercial_sales_orders__encaissements_retards_et_transfert",
-    "title": "Ventes, crédits et commandes — Encaissements, retards et transfert",
+    "id": "commercial_sales_orders__3_formulaire_de_cr_ation_d_une_vente_credit_add",
+    "title": "Ventes, crédits, recouvrements et commandes — 3. Formulaire de création d'une vente (`/credit/add`)",
     "path": "/user-guide/commercial/sales_orders.html",
     "roles": [
       "commercial",
       "manager"
     ],
-    "content": "Ventes, crédits et commandes\nEncaissements, retards et transfert\n\nUtilisez Retards pour identifier les crédits en retard et Échéances pour suivre les périodes dues. Les encaissements apparaissent dans Recouvrements ; leur annulation est réservée à une permission spécifique. La liste principale permet de modifier la mise d’un crédit admissible et de réaffecter plusieurs ventes non soldées si le compte dispose de la permission correspondante.\n\nLe menu Transfert Ventes est un rapport de passations. Il filtre les commerciaux sortant et entrant ainsi que la période, puis présente les agrégats et le détail paginé. Une vente est comptée une seule fois dans cette lecture, sur la dernière passation pertinente.\n\nLe sous-menu Articles Vendus (ou Articles ) permet d'obtenir une vue globale des quantités totales vendues par article. Les résultats sont groupés par article et par commercial, et vous pouvez filtrer la liste sur une période donnée (aujourd'hui, cette semaine, ce mois, etc.) ou l'isoler pour un commercial spécifique."
+    "content": "Ventes, crédits, recouvrements et commandes\nFormulaire de création d'une vente (/credit/add)\n\nL'enregistrement d'une nouvelle vente se fait via la route /credit/add (ou /credit/add/:id pour la modification d'un dossier en statut CREATED).\n\nChoix du type de vente : Crédit vs Comptant\n\n Caractéristique Vente à Crédit (CREDIT) Vente au Comptant (CASH) \n --- --- --- \n Commercial responsable Obligatoire . Si l'utilisateur connecté est un Promoteur, le champ est automatiquement pré-rempli avec son compte et verrouillé. Non requis (désactivé). La vente est directe en boutique. \n Sélection du Client Filtrée automatiquement sur le portefeuille rattaché au commercial sélectionné. Recherche universelle parmi tous les clients actifs de l'agence. \n Catalogue Articles & Stock Déduit du Stock Commercial de l'agent (CommercialStockService). Seuls les articles actuellement en possession du commercial sont sélectionnables avec leur stock restant. Chargement à la demande (lazy-loading) sur l'ensemble des articles du magasin général. \n Tarification appliquée Prix de vente crédit (creditSalePrice). Prix de vente comptant (sellingPrice). \n Échéancier & Avance Saisie d'une avance optionnelle, calcul du solde restant et de la mise journalière, définition de la date de début et calcul automatique de la date de fin prévue. Paiement intégral immédiat. Aucun suivi de mise journalière. \n Finalité du Crédit Sélecteur Personnel ou Professionnel si le client bénéficie du badge businessCreditAuthorized et que le feature flag DualCreditAuthorization est actif. Sans objet.…"
   },
   {
-    "id": "commercial_sales_orders__commandes",
-    "title": "Ventes, crédits et commandes — Commandes",
+    "id": "commercial_sales_orders__4_fiche_360_d_tail_du_cr_dit_credit_details_id",
+    "title": "Ventes, crédits, recouvrements et commandes — 4. Fiche 360° Détail du Crédit (`/credit/details/:id`)",
     "path": "/user-guide/commercial/sales_orders.html",
     "roles": [
       "commercial",
       "manager"
     ],
-    "content": "Ventes, crédits et commandes\nCommandes\n\nLe menu Commandes est un parcours distinct, présent uniquement pour les comptes autorisés. Créez, consultez ou mettez à jour une commande dans l’ordre permis par ses statuts. Ne confondez pas une commande avec une vente crédit déjà démarrée."
+    "content": "Ventes, crédits, recouvrements et commandes\nFiche 360° Détail du Crédit (/credit/details/:id)\n\nLa vue détaillée d'un crédit regroupe toutes les informations contractuelles, logistiques, financières et de contrôle sur un écran unique :\nBarre de progression visuelle du remboursement\nJauge d'avancement exprimée en pourcentage (Montant Payé / Montant Total).\nRappel du montant déjà payé par rapport au montant total du contrat.\nDécompte du montant restant dû et du nombre de jours contractuels restants.\nRappel de la date de début et de la date de fin prévue (ou date de clôture effective si soldé).\nCartes KPIs financières\n Montant Total : Valeur globale du crédit (FCFA).\n Déjà Payé : Cumul des règlements enregistrés, avec mention explicite de l'acompte initial.\n Restant Dû : Solde net restant à recouvrer.\n Mise Journalière : Montant quotidien exigé selon le contrat.\nBloc Client & Reliquat\nIdentité complète du client (Nom, Prénom, CNI, Téléphone, Adresse).\nLien hypertexte cliquable menant directement à sa fiche 360° (/client/details/:id).\n Affichage du Reliquat : Le solde reliquat du client est mis en évidence (affiché en vert vif et gras s'il est supérieur à 0 FCFA), permettant de savoir immédiatement si le client dispose d'un avoir mobilisable.\nBloc Agent Collecteur & Historique des transferts\nIdentité du commercial actuellement en charge du contrat.\nBouton Modifier (ROLE_ASSIGN_CREDIT_COLLECTOR) : Permet de réassigner ce crédit spécifique à un autre agent avec journalisation.\n Lien vers le stock mensuel source : Bouton cliquable menant vers /stock/my-stock?collector=...&year=...&month=...&openSales=1 pour identifier le lot mensuel exact duquel les articles distribués proviennent.\n Timeline de l'historique des transferts : Historique chronologique de chaque passation indiquant la date, l'ancien commercial, le repreneur, et le solde restant au moment du transfert.\nConsentement numérique et Contrôle terrain\n Bloc Consentement : Affiche le Code de Consentement Opération, le Code de Synchronisation et le Montant Confirmé par le client lors des opérations mobiles.\n Bloc Contrôle Terrain :\nMontant total payé enregistré dans le système ELYKIA.…"
+  },
+  {
+    "id": "commercial_sales_orders__5_gestion_des_retards_de_paiement_credit_late",
+    "title": "Ventes, crédits, recouvrements et commandes — 5. Gestion des retards de paiement (`/credit/late`)",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits, recouvrements et commandes\nGestion des retards de paiement (/credit/late)\n\nL'écran /credit/late est l'outil quotidien du Chef de recouvrement et du Gestionnaire pour traiter les impayés.\nKPIs Retards (ROLE_KPI_FINANCIER_RETARD)\n Total Retards : Nombre total de dossiers en retard.\n Total Délai Dépassé : Crédits dont la date d'échéance finale est dépassée.\n Total Échéances du Jour : Crédits dont l'échéance arrive à terme aujourd'hui.\n Montant Restant Retards : Somme des soldes restant dus sur les dossiers en retard.\n Montant Restant Délais : Somme des soldes sur les contrats dont le délai contractuel est expiré.\nFiltres et fonctionnalités opérationnelles\n Filtres : Par commercial, par mois, par localité géographique et par type (Tous, Délai dépassé, Échéance).\n Clôture exceptionnelle : Boîte de dialogue permettant de clôturer un ou plusieurs crédits compromis (avec sélection du motif administratif ou financier).\n Contrôle terrain direct : Saisie rapide du montant relevé sur le carnet client directement depuis la liste des retards.\n Export PDF : Génération d'une fiche de tournée pour le recouvrement terrain avec les adresses, téléphones et montants dus.\n\n---"
+  },
+  {
+    "id": "commercial_sales_orders__6_calendrier_des_ch_ances_credit_echeance",
+    "title": "Ventes, crédits, recouvrements et commandes — 6. Calendrier des échéances (`/credit/echeance`)",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits, recouvrements et commandes\nCalendrier des échéances (/credit/echeance)\n\nL'écran /credit/echeance permet d'anticiper les encaissements à venir :\n KPIs Échéances (ROLE_KPI_FINANCIER_ECHEANCE) : Total aujourd'hui, total de la semaine, total non soldé, montant global restant dû.\n Filtres de période :\nAujourd'hui : Échéances du jour.\nCette semaine : Vue hebdomadaire.\nDate personnalisée : Sélection d'un jour précis sur calendrier.\n Filtre commercial : Permet d'isoler la charge de recouvrement d'un commercial donné.\n\n---"
+  },
+  {
+    "id": "commercial_sales_orders__7_journal_des_recouvrements_credit_recouvrements",
+    "title": "Ventes, crédits, recouvrements et commandes — 7. Journal des recouvrements (`/credit/recouvrements`)",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits, recouvrements et commandes\nJournal des recouvrements (/credit/recouvrements)\n\nL'écran /credit/recouvrements fournit la traçabilité intégrale des flux d'encaissement :\n Bandeau KPIs : Nombre total de mises encaissées et volume financier total collecté sur la période sélectionnée.\n Filtres : Intervalle de dates (Du ... Au ...) et filtre commercial (pour un Promoteur connecté, ce filtre est automatiquement verrouillé sur son propre compte).\n Tableau des encaissements : Affiche la date/heure, la référence de reçu, le client, le commercial encaisseur, le montant versé et les détails d'imputation.\n Action Annuler : Réservée aux profils dotés de ROLE_CANCEL_RECOVERY ou ROLE_ADMIN. L'annulation recalcule instantanément le solde du crédit et le journal de caisse.\n\n---"
+  },
+  {
+    "id": "commercial_sales_orders__8_rapport_de_transfert_des_ventes_credit_transfe",
+    "title": "Ventes, crédits, recouvrements et commandes — 8. Rapport de transfert des ventes (`/credit/transferts-commerciaux`)",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits, recouvrements et commandes\nRapport de transfert des ventes (/credit/transferts-commerciaux)\n\nLe rapport de passation (ROLE_KPI_FINANCIER_TRANSFERT_VENTE) permet d'auditer les mouvements de dossiers entre commerciaux sortants et entrants.\nCritères et matrice de passation\n Filtres : Commercial cédant (oldCollector), Commercial repreneur (newCollector), Date début, Date fin.\n Cartes KPIs globales :\n Nombre de crédits transférés .\n Montant total des ventes concernées .\n Cumul déjà payé au moment du transfert .\n Solde total restant transféré .\n Sélecteur de paires d'agents : Liste interactive de toutes les paires actives (ex. agent_A → agent_B). Un clic sur une paire filtre instantanément le tableau détaillé des dossiers concernés.\n[!IMPORTANT]\n Règle d'unicité et de déduplication : Si un même dossier de crédit a fait l'objet de plusieurs transferts successifs au cours de la même période d'analyse, il n'est comptabilisé qu'une seule fois , sur sa passation la plus récente, garantissant ainsi l'exactitude des totaux financiers.\n\n---"
+  },
+  {
+    "id": "commercial_sales_orders__9_rattrapage_de_ventes_ant_rieures_stock_credit_",
+    "title": "Ventes, crédits, recouvrements et commandes — 9. Rattrapage de ventes antérieures (`/stock/credit/rattrapage`)",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits, recouvrements et commandes\nRattrapage de ventes antérieures (/stock/credit/rattrapage)\n\nLe sous-module de rattrapage (ROLE_RATTRAPAGE) est une procédure exceptionnelle destinée à régulariser des ventes historiques :\n Contexte métier : Permet de saisir une vente effectuée dans le passé sans impacter négativement les stocks physiques actuels du magasin central.\n Fonctionnement en 3 étapes :\n Étape 1 : Sélection du commercial et choix d'un stock mensuel résiduel archivé (residualStocks).\n Étape 2 : Choix des articles vendus parmi ceux présents dans ce stock résiduel, avec quantité et prix.\n Étape 3 : Sélection du client, enregistrement de l'avance, calcul de la mise journalière et validation du contrat.\nLes ventes de rattrapage portent une référence spécifique permettant de les identifier dans les recherches et les états comptables.\n\n---"
+  },
+  {
+    "id": "commercial_sales_orders__10_rapport_des_articles_vendus_credit_articles_v",
+    "title": "Ventes, crédits, recouvrements et commandes — 10. Rapport des articles vendus (`/credit/articles-vendus`)",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits, recouvrements et commandes\nRapport des articles vendus (/credit/articles-vendus)\n\nL'écran /credit/articles-vendus offre une vision agrégée des sorties commerciales :\nRegroupement des ventes par Article et par Commercial .\nAffichage des quantités totales vendues, des prix unitaires moyens et du chiffre d'affaires généré par article.\nFiltres par période prédéfinie (Aujourd'hui, Cette semaine, Ce mois, Personnalisée) et par commercial.\nExport des données vers Excel / PDF pour les revues commerciales de fin de mois.\n\n---"
+  },
+  {
+    "id": "commercial_sales_orders__11_gestion_des_commandes_clients_orders",
+    "title": "Ventes, crédits, recouvrements et commandes — 11. Gestion des commandes clients (`/orders`)",
+    "path": "/user-guide/commercial/sales_orders.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Ventes, crédits, recouvrements et commandes\nGestion des commandes clients (/orders)\n\nLe module Commandes (ROLE_CONSULT_ORDER, ROLE_EDIT_ORDER) permet de gérer les précommandes et réservations clients avant leur contractualisation définitive.\n\nOnglets de navigation par statut\nLe tableau de bord /orders organise le flux des commandes par statut :\n En attente (PENDING) : Nouvelles commandes saisies en attente d'approbation commerciale.\n Acceptée (ACCEPTED) : Commandes validées dont le stock et les conditions de paiement sont confirmés.\n Refusée (DENIED) : Commandes rejetées (client insolvable, rupture d'approvisionnement).\n Annulée (CANCEL) : Commandes annulées par le client ou le commercial.\n Vendue (SOLD) : Commandes converties avec succès en vente effective.\n Toutes (ALL) : Vue d'ensemble du registre des commandes.\nKPIs du pipeline de commandes\n Commandes en attente : Nombre de demandes nécessitant une décision.\n Valeur potentielle : Montant total prévisionnel des commandes PENDING.\n Taux d'acceptation : Pourcentage des commandes approuvées sur la période.\n Pipeline accepté : Chiffre d'affaires sécurisé en attente de livraison.\n Marge potentielle : Marge brute estimée sur les commandes en cours.\n Croissance mensuelle : Évolution relative par rapport au mois précédent.\nCycle opérationnel d'une commande\n Création d'une commande (/orders/create) :\nSélection du client (avec rappel de ses coordonnées et de son statut crédit).\nAjout des articles du catalogue avec quantité souhaitée et prix unitaire proposé.\nEnregistrement de la commande avec horodatage et auteur.\n Approbation ou Refus :\nLes responsables peuvent valider ( Accepter ) ou rejeter ( Refuser ) une commande individuellement ou par sélection groupée.\n Conversion en vente (Action \"Vendre\") :\nDepuis une commande en statut ACCEPTED, l'action Vendre bascule directement les articles vers le formulaire de vente (/credit/add) pour créer le contrat crédit ou la vente comptant sans ressaisie, puis passe la commande au statut SOLD."
   },
   {
     "id": "commercial_stock",
