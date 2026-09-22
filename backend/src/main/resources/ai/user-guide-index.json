@@ -540,39 +540,48 @@
   },
   {
     "id": "manager_finance",
-    "title": "Finances et tontines",
+    "title": "Gestion financière, Dépenses & Remises de trésorerie (Guide Gestionnaire)",
     "path": "/user-guide/manager/finance.html",
     "roles": [
       "manager"
     ],
-    "content": "Finances et tontines\n\nCe guide couvre les dépenses, les versements et le contrôle de la tontine depuis le point de vue de gestion. Les montants présentés par l’application restent soumis aux permissions KPI financières de la page."
+    "content": "Gestion financière, Dépenses & Remises de trésorerie (Guide Gestionnaire)\n\nCe guide détaille l'ensemble des mécanismes de gestion financière, de suivi des dépenses d'exploitation et de validation des remises de trésorerie d'agence.\n\n---"
   },
   {
-    "id": "manager_finance__d_penses",
-    "title": "Finances et tontines — Dépenses",
+    "id": "manager_finance__1_tableau_de_bord_des_d_penses_expense_dashboard",
+    "title": "Gestion financière, Dépenses & Remises de trésorerie (Guide Gestionnaire) — 1. Tableau de bord des dépenses (`/expense/dashboard`)",
     "path": "/user-guide/manager/finance.html",
     "roles": [
       "manager"
     ],
-    "content": "Finances et tontines\nDépenses\n\nLe menu Dépenses permet de créer, filtrer et consulter les dépenses par mois et type. Une dépense comporte un type, un montant, une date, une référence éventuelle et une description. Lorsqu’elle est indiquée comme Comptabilisée , les actions de modification et de suppression sont bloquées : elle est liée à une remise déjà reçue."
+    "content": "Gestion financière, Dépenses & Remises de trésorerie (Guide Gestionnaire)\nTableau de bord des dépenses (/expense/dashboard)\n\nLe tableau de bord des dépenses offre une vision synthétique et immédiate des flux de décaissement engagés pour le fonctionnement de l'agence.\n\nA. Présentation et outils rapides\n Horloge en temps réel : Affiche la date et l'heure système en direct.\n Heure d'actualisation : Indique l'horodatage exact de la dernière synchronisation avec le serveur.\n Bouton « Actualiser » : Recharge instantanément les indicateurs et les listes sans recharger la page.\n Bouton « Types » : Raccourci vers la gestion du catalogue des types de dépense (/expense/types).\n Bouton « Nouvelle dépense » : Ouvre immédiatement le formulaire de saisie d'un nouveau décaissement (/expense/add).\nB. Bandeau des indicateurs comparatifs de dépenses\nSous réserve de disposer des habilitations financières requises (si ce bandeau ne s'affiche pas, vous ne disposez pas des autorisations nécessaires) :\nUne série de cartes d'indicateurs met en regard les montants décaissés sur plusieurs périodes de référence (mois en cours, mois précédent, etc.).\nChaque carte précise l'intervalle calendaire exact ( du JJ/MM au JJ/MM/AAAA ) et le montant cumulé en Francs CFA.\nC. Tableau des dernières dépenses\nListe chronologique paginée des 10 dernières opérations enregistrées.\nColonnes : Date, Type de dépense, Montant formaté en FCFA, et bouton d'action.\nUn clic sur une ligne ouvre une modale récapitulative présentant le détail complet de la pièce justificative.\n\n---"
   },
   {
-    "id": "manager_finance__remise_au_gestionnaire",
-    "title": "Finances et tontines — Remise au gestionnaire",
+    "id": "manager_finance__2_registre_et_gestion_des_d_penses_expense_list",
+    "title": "Gestion financière, Dépenses & Remises de trésorerie (Guide Gestionnaire) — 2. Registre et gestion des dépenses (`/expense/list`)",
     "path": "/user-guide/manager/finance.html",
     "roles": [
       "manager"
     ],
-    "content": "Finances et tontines\nRemise au gestionnaire\n\nLa Remise est accessible depuis le Rapport Journalier aux profils autorisés. Elle travaille à l’intérieur d’un mois et peut être limitée par une plage Du / Au . Cette plage permet de remettre uniquement les versements non encore remis dans l’intervalle choisi.\n\n Étape Secrétaire Gestionnaire \n --- --- --- \n Préparer Choisit le mois et, si nécessaire, la plage de dates. Sélectionne les dépenses à déduire. Peut initier une réception directe lorsque l’action est disponible. \n Soumettre Soumet la remise lorsque le montant net est valide. Consulte la remise en attente. \n Contrôler Consulte l’historique. Peut retirer des dépenses tant que la remise est en attente, puis Accuser réception . \n Archiver Consulte les lignes de versements incluses. Après réception, dépenses et montant net sont figés. \n\nLe bandeau KPI distingue le total à remettre, crédit, tontine, solde des nouveaux comptes, dépenses et montant net . Les dépenses de type Approvisionnement ne sont pas proposées à la déduction. Si les dépenses dépassent le montant versé, l’action est bloquée jusqu’à correction."
+    "content": "Gestion financière, Dépenses & Remises de trésorerie (Guide Gestionnaire)\nRegistre et gestion des dépenses (/expense/list)\n\nL'écran Liste des dépenses centralise la totalité des décaissements de l'agence et permet leur filtrage multicritères.\n\nA. Barre de filtres et recherche\n Filtre par Mois : Menu déroulant listant les mois civils de l'année en cours pour isoler rapidement les charges d'une période précise.\n Filtre par Type : Liste déroulante des catégories de dépense (ex: Loyer, Carburant, Fournitures, Électricité, Maintenance, etc.).\n Compteur de résultats : Affiche en direct le nombre de dépenses correspondant aux critères sélectionnés.\nB. Informations détaillées par dépense\n Colonne Description fonctionnelle \n --- --- \n Date Date calendaire à laquelle la charge a été engagée. \n Type & Statut Intitulé de la catégorie et présence éventuelle du badge vert « Comptabilisée » . \n Montant Montant décaissé en Francs CFA. \n Description Motif explicatif et justification opérationnelle de la dépense. \n Référence Numéro de pièce justificative (facture, reçu de caisse, bon de carburant). \n Actions Boutons Éditer (icône crayon) et Supprimer (icône corbeille). \nC. La règle d'intégrité : Dépense Comptabilisée\n Verrou d'intégrité comptable. Lorsqu'une dépense porte le badge vert « Comptabilisée » , elle a été intégrée dans une remise de trésorerie validée par le gestionnaire :\nLes boutons Éditer et Supprimer sont strictement désactivés .\nUne infobulle précise : « Dépense comptabilisée — modification/suppression impossible » .\nCe verrou interdit toute altération rétroactive des comptes une fois la trésorerie actée.\n\n---"
   },
   {
-    "id": "manager_finance__pilotage_tontine",
-    "title": "Finances et tontines — Pilotage tontine",
+    "id": "manager_finance__3_enregistrement_d_une_d_pense_expense_add",
+    "title": "Gestion financière, Dépenses & Remises de trésorerie (Guide Gestionnaire) — 3. Enregistrement d'une dépense (`/expense/add`)",
     "path": "/user-guide/manager/finance.html",
     "roles": [
       "manager"
     ],
-    "content": "Finances et tontines\nPilotage tontine\n\nLe Rapport Journalier affiche, pour le commercial sélectionné et si les KPI sont autorisés, un bilan annuel tontine : collectes enregistrées, versements tontine remis et reste chez le commercial. La fiche d’un membre complète ce contrôle avec la répartition des collectes par commercial, la synthèse mensuelle et les contrôles terrain.\n\nLa vérification de carnet est une action dédiée : elle ne modifie pas les montants. Elle ajoute ou retire le badge Carnet vérifié et conserve la date ainsi que l’auteur de la vérification. L’export PDF des membres ou d’un membre ne s’affiche qu’aux comptes autorisés."
+    "content": "Gestion financière, Dépenses & Remises de trésorerie (Guide Gestionnaire)\nEnregistrement d'une dépense (/expense/add)\n\nAccessible via le bouton « + Nouvelle dépense » :\n Type de dépense (Obligatoire) : Sélectionnez la nature de la charge dans la liste paramétrée.\n Montant en FCFA (Obligatoire) : Saisissez la somme exacte déboursée (montant strictement positif).\n Date de dépense (Obligatoire) : Date d'engagement de la charge.\n Référence de pièce : Numéro officiel de la facture ou du bon de caisse pour audit.\n Description : Commentaire libre détaillant le contexte du décaissement.\nCliquez sur « Enregistrer » pour acter la dépense.\n\n---"
+  },
+  {
+    "id": "manager_finance__4_remise_de_tr_sorerie_au_gestionnaire_rapport_j",
+    "title": "Gestion financière, Dépenses & Remises de trésorerie (Guide Gestionnaire) — 4. Remise de trésorerie au gestionnaire (`Rapport Journalier > Remise`)",
+    "path": "/user-guide/manager/finance.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Gestion financière, Dépenses & Remises de trésorerie (Guide Gestionnaire)\nRemise de trésorerie au gestionnaire (Rapport Journalier > Remise)\n\nLa Remise est le processus formel par lequel le caissier ou la secrétaire verse au gestionnaire de l'agence les espèces collectées sur une période, en déduisant les dépenses d'exploitation autorisées.\n\nA. Paramétrage de la période de remise\nLa remise s'effectue au sein d'un mois civil, avec la possibilité d'isoler un intervalle de dates grâce aux champs « Du » et « Au » :\nPermet d'effectuer des remises intermédiaires (hebdomadaires, décadaires ou de mi-mois).\nN'affiche et ne prend en compte que les encaissements qui n'ont pas encore été remis au gestionnaire.\n\n---\nB. Le bandeau des 6 indicateurs de trésorerie\nDès la sélection de la période, l'application calcule instantanément les masses financières :\n Reste à remettre (ou Montant en attente) : Total brut des versements enregistrés sur la plage de dates qui n'ont pas encore fait l'objet d'une remise acceptée. Si des remises partielles antérieures ont déjà eu lieu sur le mois, la mention « Déjà remis : X FCFA » s'affiche en sous-titre.\n Crédit : Part des versements provenant des acomptes et des remboursements de crédit.\n Tontine : Part des versements provenant des cotisations d'épargne tontine.\n Solde Nouveaux comptes : Dépôts initiaux versés par les nouveaux clients lors de l'ouverture de leur compte.\n Dépenses : Cumul des dépenses cochées pour déduction sur cette remise.\n Montant net : Versements bruts - Dépenses à déduire. C'est le montant physique en espèces que la secrétaire doit remettre en main propre au gestionnaire.\n Contrôle bloquant : Montant net négatif. Si le total des dépenses cochées dépasse le montant des versements collectés, la carte du Montant net vire au rouge et le message d'alerte apparaît : « Le total des dépenses dépasse le montant versé. Retirez des dépenses pour continuer. » Toute soumission est bloquée tant que l'équilibre financier n'est pas rétabli.\n\n---\nC.…"
   },
   {
     "id": "manager",
