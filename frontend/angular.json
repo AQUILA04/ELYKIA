@@ -28,7 +28,7 @@
               "src/assets",
               {
                 "glob": "**/*",
-                "input": "../user-guide/site",
+                "input": "src/user-guide",
                 "output": "/user-guide"
               }
             ],

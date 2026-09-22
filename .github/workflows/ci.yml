@@ -30,6 +30,7 @@ jobs:
         filters: |
           frontend:
             - 'frontend/**'
+            - 'user-guide/**'
           backend:
             - 'backend/**'
             - '.github/workflows/ci.yml'
@@ -59,6 +60,12 @@ jobs:
     - name: Check eager frontend domains lazy-loading migration
       working-directory: .
       run: python .github/scripts/check-frontend-lazy-loading.py
+
+    - name: Sync user-guide site into frontend
+      working-directory: .
+      run: |
+        mkdir -p frontend/src/user-guide
+        cp -r user-guide/site/* frontend/src/user-guide/
 
     - name: Set lowercase image name
       run: |

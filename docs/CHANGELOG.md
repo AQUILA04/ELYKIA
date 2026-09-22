@@ -9,6 +9,15 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.1] — 2026-09-22
+
+### Fixed
+
+- **Guide d'utilisation en ligne (Production & Nginx)** :
+  - Intégration des fichiers statiques MkDocs directement dans `frontend/src/user-guide/` et mise à jour de `angular.json` pour garantir leur inclusion dans le bundle frontend lors des builds Docker (évitant l'absence des assets causée par le contexte de build restreint à `./frontend`).
+  - Ajout d'une directive dédiée `location /user-guide/` dans `nginx.conf` empêchant tout fallback vers le routeur SPA Angular (`index.html`) en cas d'accès direct ou de ressource manquante, éliminant ainsi l'erreur `NG04002: 'user-guide/commercial'`.
+  - Mise à jour de la pipeline CI (`.github/workflows/ci.yml`) pour synchroniser automatiquement `user-guide/site` et déclencher le build frontend lors de modifications apportées à la documentation.
+
 ## Frontend — [2.22.0] — 2026-09-19
 
 ### Added
