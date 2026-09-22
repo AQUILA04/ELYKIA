@@ -449,6 +449,13 @@ Le sous-menu **Recouvrements** est le registre des encaissements de crédits :
 - Pour chaque ligne, vous retrouvez la référence, le client, le commercial, le montant versé et l'heure exacte.
 - Les profils autorisés peuvent annuler un encaissement erroné avec recalcul instantané des soldes.
 
+### Encaissements à distance par Mobile Money (`/customer-payments`)
+Vos clients ont également la faculté de régler leurs échéances sans attendre votre passage grâce à l'Espace Client ELYKIA :
+- Le client effectue son transfert vers le numéro Mobile Money (Mixx by YAS ou Moov Money) attribué à son commercial référent.
+- Il déclare son règlement sur son portail en indiquant le numéro de transaction opérateur.
+- La soumission parvient instantanément dans le menu **Paiements clients** (`/customer-payments`) où elle est rattachée au commercial responsable du dossier.
+- Dès la validation de la déclaration, l'échéance du crédit est automatiquement soldée et le montant s'ajoute à vos recouvrements du jour.
+
 ---
 
 ## 8. Rapport de transfert des ventes (`/credit/transferts-commerciaux`)
@@ -632,6 +639,12 @@ Deux boutons vous permettent d'enregistrer des versements :
 
 ### 9. Annulation d'une collecte
 En cas d'erreur de saisie, les utilisateurs habilités peuvent annuler une ligne de collecte directement dans l'historique. Après confirmation, l'application recalcule automatiquement le total épargné, le solde disponible, la part société et les compteurs de jours.
+
+### Cotisations à distance par Mobile Money
+Les membres peuvent également cotiser en toute autonomie depuis leur Espace Client ELYKIA :
+- Le membre effectue son transfert vers le numéro Mobile Money attribué à son commercial tontine référent.
+- La déclaration est transmise dans le menu **Paiements clients > Cotisations tontine** (`/customer-payments?tab=tontine`).
+- Après validation du paiement, la cotisation s'enregistre sur la session active du membre et son compteur de jours cotisés progresse immédiatement.
 
 ---
 

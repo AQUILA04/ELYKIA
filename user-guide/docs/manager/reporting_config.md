@@ -32,4 +32,30 @@ Les listes de localités et de types d’article proposent recherche, pagination
 
 Les paramètres sont sensibles. Modifiez une valeur uniquement après validation de la procédure interne. En particulier, `TONTINE_SOCIETY_SHARE_VERSION` est proposé sous la forme d’un choix contrôlé **V1** ou **V2** ; le passage de version peut déclencher un recalcul des parts société et bloquer temporairement les écritures tontine pendant le traitement.
 
-Dans **Mobile Money**, les numéros saisis par commercial prévalent sur les numéros globaux affichés en haut de page. Laissez un champ vide pour conserver le repli sur la configuration globale ; vérifiez la colonne **Effectif** avant d’enregistrer.
+## 2. Configuration des numéros Mobile Money (`/configuration/mobile-money`)
+
+Pour permettre aux clients finaux de régler leurs traites ou de cotiser à la tontine directement depuis l'Espace Client ELYKIA, l'application permet de configurer les numéros de réception Mobile Money (Mixx by YAS et Moov Money) attribués aux commerciaux.
+
+<!-- CAPTURE À INSÉRER : Page de configuration Mobile Money avec numéros globaux, KPIs, tableau des commerciaux et colonne Effectif. -->
+
+### A. Numéros globaux par défaut de l'entreprise
+En haut de l'écran, deux cartes récapitulent les numéros institutionnels de la société :
+* **Mixx by YAS (global)** : Numéro de compte entreprise par défaut.
+* **Moov Money (global)** : Numéro de compte entreprise par défaut.
+Ces numéros servent de filet de sécurité automatique lorsqu'un commercial ne possède pas de compte propre.
+
+### B. Indicateurs de configuration
+* **Commerciaux configurables** : Nombre total d'agents commerciaux enregistrés dans l'agence.
+* **Configurations spécifiques** : Nombre d'agents disposant d'au moins un numéro personnel configuré.
+
+### C. Tableau de paramétrage par commercial
+Chaque ligne du tableau correspond à un commercial :
+1. **Identité de l'agent** : Nom complet, identifiant de connexion et numéro de téléphone de contact.
+2. **Mixx by YAS** : Champ de saisie pour renseigner le numéro Mixx spécifique de l'agent.
+3. **Moov Money** : Champ de saisie pour renseigner le numéro Moov spécifique de l'agent.
+4. **Colonne Effectif** : Présente en temps réel les numéros effectifs qui seront présentés aux clients du commercial sur l'application mobile et l'Espace Client :
+   * Si un numéro spécifique est saisi, il devient immédiatement le numéro effectif.
+   * Si le champ est laissé vide, le système applique automatiquement le numéro global de la société comme valeur de repli.
+5. **Action Enregistrer** : Cliquez sur le bouton bleu **« Enregistrer »** situé à l'extrémité de la ligne pour sauvegarder instantanément les coordonnées de l'agent.
+
+> **Accès au module** : Menu latéral **Configuration > Mobile Money**. Si ce sous-menu n'est pas visible, vous ne disposez pas des habilitations requises pour modifier les paramètres financiers de l'agence.

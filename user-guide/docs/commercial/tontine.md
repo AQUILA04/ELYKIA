@@ -123,6 +123,12 @@ Deux boutons vous permettent d'enregistrer des versements :
 ### 9. Annulation d'une collecte
 En cas d'erreur de saisie, les utilisateurs habilités peuvent annuler une ligne de collecte directement dans l'historique. Après confirmation, l'application recalcule automatiquement le total épargné, le solde disponible, la part société et les compteurs de jours.
 
+### Cotisations à distance par Mobile Money
+Les membres peuvent également cotiser en toute autonomie depuis leur Espace Client ELYKIA :
+- Le membre effectue son transfert vers le numéro Mobile Money attribué à son commercial tontine référent.
+- La déclaration est transmise dans le menu **Paiements clients > Cotisations tontine** (`/customer-payments?tab=tontine`).
+- Après validation du paiement, la cotisation s'enregistre sur la session active du membre et son compteur de jours cotisés progresse immédiatement.
+
 ---
 
 ## 4. Livraisons de fin d'année

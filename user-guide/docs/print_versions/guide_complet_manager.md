@@ -300,6 +300,88 @@ Sur chaque ligne client, le gestionnaire habilité dispose d'un bouton d'approba
 * **Badge vert « B »** : Indique que le client est habilité à contracter un **crédit business/professionnel** en plus de son crédit personnel usuel.
 * **Action « Autoriser / Retirer crédit business »** : Permet au gestionnaire d'octroyer ou de révoquer ce privilège après examen de la solvabilité du client.
 
+---
+
+## 6. Traitement des déclarations de paiements clients Mobile Money (`/customer-payments`)
+
+Le module **Paiements clients** permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via **Mobile Money** (Mixx by YAS ou Moov Money).
+
+<!-- CAPTURE À INSÉRER : Écran de gestion des déclarations de paiement Mobile Money avec onglets Recouvrement crédit et Cotisations tontine, et boutons Valider/Rejeter. -->
+
+### A. Présentation générale et indicateurs
+* **Accès au module** : Menu latéral **Paiements clients** (icône carte bancaire). Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises.
+* **Barre d'état** : Heure d'actualisation en direct et bouton **« Actualiser »** pour vérifier l'arrivée de nouveaux versements.
+* **Compteur dynamique** : Affiche le nombre de déclarations actuellement en attente d'instruction.
+* **Visibilité des données** :
+  * **Pour un gestionnaire** : Visualisation globale de toutes les déclarations de l'agence, avec affichage du commercial affecté.
+  * **Pour un commercial** : Consultation restreinte aux seules déclarations de paiement de son portefeuille clients.
+
+---
+
+### B. Traitement des remboursements de crédit (`Onglet Recouvrement crédit`)
+Cet onglet centralise les règlements d'échéances de vente à crédit :
+
+| Information affichée | Description fonctionnelle |
+|---|---|
+| **Client** | Nom et prénom du client ou son numéro d'identifiant. |
+| **Commercial** | Commercial gestionnaire du dossier de crédit. |
+| **Crédit** | Numéro du crédit. Cliquer sur le lien bleu `#ID` ouvre directement la fiche 360° du crédit (`/credit/details/:id`). |
+| **Échéance** | Numéro de l'échéance réglée par le client. |
+| **Montant** | Somme versée en Francs CFA (affichée en gras). |
+| **Téléphone** | Numéro de téléphone Mobile Money utilisé pour le transfert. |
+| **Référence** | Numéro de transaction officiel fourni par l'opérateur (Mixx ou Moov). |
+| **Date** | Date et heure de déclaration du paiement par le client. |
+
+#### Actions de validation ou de rejet :
+1. **Valider (`btn-success-solid`)** :
+   * Après vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur **« Valider »**.
+   * **Conséquences automatiques** : Le paiement est instantanément imputé sur le crédit du client, son solde restant dû diminue, le versement est enregistré dans le journal des recouvrements du commercial et comptabilisé dans les encaissements du jour.
+2. **Rejeter (`btn-danger-outline`)** :
+   * Si la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur **« Rejeter »**.
+   * Une boîte de dialogue vous demande confirmation avant d'annuler définitivement la déclaration.
+
+---
+
+### C. Traitement des cotisations tontine (`Onglet Cotisations tontine`)
+Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine :
+
+| Information affichée | Description fonctionnelle |
+|---|---|
+| **Client** | Nom et identifiant du membre souscripteur. |
+| **Commercial tontine** | Commercial responsable du suivi de la tontine pour ce secteur. |
+| **Membre** | Numéro d'adhésion officiel tontine (`#ID`). |
+| **Montant** | Montant cotisé en Francs CFA. |
+| **Téléphone & Référence** | Coordonnées de l'émetteur et identifiant de transaction opérateur. |
+| **Date** | Date et heure de l'opération. |
+
+#### Décision gestionnaire :
+* **Valider** : Valide l'encaissement, crédite la cagnotte du membre dans la session active, applique la règle de déduction de la part société selon le barème paramétré et met à jour l'état d'avancement de son carnet d'épargne.
+* **Rejeter** : Rejette la déclaration après confirmation et alerte le client.
+
+---
+
+## 7. Centre de notifications et suivi des alertes (`/notifications`)
+
+ELYKIA intègre un système d'alerte multicanal pour avertir immédiatement les équipes des événements requérant une attention rapide.
+
+<!-- CAPTURE À INSÉRER : Centre de notifications avec cloche dans la barre supérieure, badge de notifications non lues et liste chronologique des événements. -->
+
+### A. Cloche de notification (Barre de navigation supérieure)
+* **Pastille numérique rouge** : Indique en temps réel le nombre exact de notifications en attente de traitement.
+* **Menu déroulant instantané** : Un clic sur la cloche ouvre une fenêtre contextuelle présentant les dernières alertes groupées par date.
+* **Raccourci direct** : Cliquer sur une notification la marque automatiquement comme lue et vous redirige directement sur l'écran opérationnel concerné (ex: détail d'une commande client, déclaration de paiement correspondante avec mise en surbrillance de la ligne).
+* **Lien complet** : Le lien en bas de volet **« Voir toutes les notifications »** ouvre la page dédiée (`/notifications`).
+
+### B. Page dédiée du centre de notifications (`/notifications`)
+* **Bouton « Tout lire »** : Permet de basculer l'ensemble des notifications affichées à l'état lu en un seul clic.
+* **Bouton « Actualiser »** : Recharge immédiatement les flux d'alertes sans recharger la page entière.
+* **Classification fonctionnelle des alertes** :
+  * **Paiement** : Déclaration de remboursement de crédit initiée en ligne par un client.
+  * **Cotisation tontine** : Déclaration de cotisation d'épargne par un membre.
+  * **Commande** : Nouvelle réservation ou précommande d'article soumise par un client.
+  * **Rattrapage** : Demande ou régularisation de versement de rattrapage sur un mois antérieur.
+
+
 
 
 \newpage
@@ -507,7 +589,33 @@ Les listes de localités et de types d’article proposent recherche, pagination
 
 Les paramètres sont sensibles. Modifiez une valeur uniquement après validation de la procédure interne. En particulier, `TONTINE_SOCIETY_SHARE_VERSION` est proposé sous la forme d’un choix contrôlé **V1** ou **V2** ; le passage de version peut déclencher un recalcul des parts société et bloquer temporairement les écritures tontine pendant le traitement.
 
-Dans **Mobile Money**, les numéros saisis par commercial prévalent sur les numéros globaux affichés en haut de page. Laissez un champ vide pour conserver le repli sur la configuration globale ; vérifiez la colonne **Effectif** avant d’enregistrer.
+## 2. Configuration des numéros Mobile Money (`/configuration/mobile-money`)
+
+Pour permettre aux clients finaux de régler leurs traites ou de cotiser à la tontine directement depuis l'Espace Client ELYKIA, l'application permet de configurer les numéros de réception Mobile Money (Mixx by YAS et Moov Money) attribués aux commerciaux.
+
+<!-- CAPTURE À INSÉRER : Page de configuration Mobile Money avec numéros globaux, KPIs, tableau des commerciaux et colonne Effectif. -->
+
+### A. Numéros globaux par défaut de l'entreprise
+En haut de l'écran, deux cartes récapitulent les numéros institutionnels de la société :
+* **Mixx by YAS (global)** : Numéro de compte entreprise par défaut.
+* **Moov Money (global)** : Numéro de compte entreprise par défaut.
+Ces numéros servent de filet de sécurité automatique lorsqu'un commercial ne possède pas de compte propre.
+
+### B. Indicateurs de configuration
+* **Commerciaux configurables** : Nombre total d'agents commerciaux enregistrés dans l'agence.
+* **Configurations spécifiques** : Nombre d'agents disposant d'au moins un numéro personnel configuré.
+
+### C. Tableau de paramétrage par commercial
+Chaque ligne du tableau correspond à un commercial :
+1. **Identité de l'agent** : Nom complet, identifiant de connexion et numéro de téléphone de contact.
+2. **Mixx by YAS** : Champ de saisie pour renseigner le numéro Mixx spécifique de l'agent.
+3. **Moov Money** : Champ de saisie pour renseigner le numéro Moov spécifique de l'agent.
+4. **Colonne Effectif** : Présente en temps réel les numéros effectifs qui seront présentés aux clients du commercial sur l'application mobile et l'Espace Client :
+   * Si un numéro spécifique est saisi, il devient immédiatement le numéro effectif.
+   * Si le champ est laissé vide, le système applique automatiquement le numéro global de la société comme valeur de repli.
+5. **Action Enregistrer** : Cliquez sur le bouton bleu **« Enregistrer »** situé à l'extrémité de la ligne pour sauvegarder instantanément les coordonnées de l'agent.
+
+> **Accès au module** : Menu latéral **Configuration > Mobile Money**. Si ce sous-menu n'est pas visible, vous ne disposez pas des habilitations requises pour modifier les paramètres financiers de l'agence.
 
 
 \newpage
