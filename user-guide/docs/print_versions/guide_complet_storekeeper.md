@@ -29,29 +29,44 @@ Consultez les pages dédiées pour [les articles](articles.md), [les inventaires
 
 ---
 
-# Gestion des articles
+# Gestion des articles et seuils de stock (Guide Magasinier)
 
-Le catalogue d’articles est la référence commune aux entrées, demandes de sortie, ventes et livraisons tontine. Créez ou modifiez une fiche avec rigueur : une erreur de prix ou de type se répercute dans plusieurs flux.
+Le catalogue **Articles** est la base de données centrale de référence pour toutes les opérations de stockage, de réapprovisionnement, de distribution et de tontine. Le magasinier s'y réfère quotidiennement pour contrôler les références, surveiller les seuils d'alerte et préparer les commandes.
 
-## Consulter et rechercher
+---
 
-Ouvrez **Articles**. La liste présente les désignations, marques, modèles, types, prix, quantités et statuts selon votre habilitation. Utilisez la recherche et la pagination plutôt que de parcourir les pages sans filtre. La fiche article donne accès à ses informations détaillées et à son historique de mouvements.
+## 1. Consulter et rechercher dans le catalogue (`/article/list`)
 
-<!-- CAPTURE À INSÉRER : Liste Articles avec recherche, colonne de stock et bouton de consultation de la fiche. -->
+Accessible depuis le menu latéral **Articles** (`ROLE_STOREKEEPER` ou `ROLE_EDIT_ARTICLE`), la liste présente l'ensemble des articles enregistrés.
 
-## Créer ou modifier une fiche
+<!-- CAPTURE À INSÉRER : Catalogue des articles avec recherche dynamique, filtre par type, quantités en stock et boutons de consultation. -->
 
-Le formulaire demande l’identification de l’article, son type, ses prix et les valeurs de suivi stock. Renseignez les montants de manière cohérente avec la politique commerciale : prix d’achat, prix de vente comptant et prix de vente à crédit ne doivent pas être confondus. Si la gestion FIFO est active, des informations de lots et de prix d’achat peuvent apparaître dans la fiche.
+### A. Outils de recherche et filtres
+* **Recherche instantanée** : Recherchez par nom d'article, marque ou modèle.
+* **Filtre par Type** : Isolez une catégorie d'articles spécifique (ex: Électroménager, Textile, Téléphonie, etc.).
+* **Fiche détaillée de l'article (`/article/details/:id`)** :
+  * Cliquez sur **« Voir »** pour afficher la fiche complète.
+  * Consultez l'historique chronologique de tous les mouvements de stock ayant affecté cet article (réceptions fournisseurs, sorties vers commerciaux, retours au magasin).
 
-| Information | Utilisation |
-|---|---|
-| Nom, marque, modèle, type | Identifier et filtrer l’article dans les listes. |
-| Prix d’achat | Valoriser le stock et calculer les marges. |
-| Prix vente / crédit | Alimenter les ventes selon le type choisi. |
-| Seuil de réapprovisionnement | Signaler qu’une quantité devient faible. |
-| Stock et historique | Suivre les mouvements sans modifier les quantités hors procédure. |
+---
 
-Ne supprimez pas une fiche qui a déjà été utilisée par une opération sans validation de la procédure interne. Préférez la consultation de l’historique pour comprendre une variation de stock.
+## 2. Seuils logistiques et alertes de stock
+
+Pour éviter toute rupture de distribution sur le terrain, chaque article dispose de paramètres de réapprovisionnement surveillés par le système :
+
+| Paramètre Logistique | Rôle dans l'Application | Comportement en cas de franchissement |
+|---|---|---|
+| **Point de commande** | Seuil critique de sécurité physique (quantité minimale à conserver en réserve). | Dès que le stock réel devient inférieur ou égal à cette valeur, l'article bascule dans la table **« Rupture imminente »** sur le Dashboard d'accueil avec une pastille orange. |
+| **Niveau de stock optimal** | Quantité cible recommandée à détenir en réserve pour couvrir l'activité habituelle. | Sert de référence pour calculer le volume des commandes à passer auprès des fournisseurs. |
+| **Stock physique (0)** | Quantité nulle en magasin. | L'article bascule dans la table **« Rupture de stock »** avec une pastille rouge d'alerte prioritaire. |
+
+---
+
+## 3. Règle de suppression et archivage
+
+* **Intégrité référentielle** : Il est formellement interdit de supprimer un article qui a déjà fait l'objet d'un mouvement de stock, d'une vente ou d'une distribution.
+* En cas d'arrêt de commercialisation d'une référence, modifiez son statut pour le passer à **Inactif** afin qu'il n'apparaisse plus dans les nouveaux formulaires de vente ou de demande de stock, tout en préservant l'historique comptable des opérations passées.
+
 
 
 \newpage
@@ -60,33 +75,61 @@ Ne supprimez pas une fiche qui a déjà été utilisée par une opération sans 
 
 ---
 
-# Inventaires et entrées de stock
+# Inventaires et entrées de stock (Guide Magasinier)
 
-Le menu **Inventaires** réunit la consultation du stock, l’inventaire physique et l’entrée de marchandises. Il ne faut pas confondre une **entrée** avec un **inventaire** : l’entrée enregistre une réception attendue ; l’inventaire compare le stock système au comptage physique.
+Le magasinier est le garant de la sécurité physique des marchandises stockées dans le dépôt principal. Il supervise les entrées de nouveaux articles livrés par les fournisseurs et participe activement aux opérations d'inventaire physique.
 
-## Enregistrer une entrée
+---
 
-Dans **Inventaires**, choisissez **Entrées stock**, sélectionnez les articles et saisissez les quantités. Après validation, l’application confirme que l’entrée est enregistrée en attente de validation et redirige vers l’historique des réceptions.
+## 1. Réceptionner des marchandises et créer une entrée (`/inventory/list`)
 
-<!-- CAPTURE À INSÉRER : Formulaire Entrée de stock avec sélecteur d’articles et bouton Valider l’entrée. -->
+Toute marchandise déchargée au dépôt doit être immédiatement enregistrée dans le système pour amorcer le processus de contrôle.
 
-Ouvrez ensuite **Historique Entrée** pour retrouver la référence. Les filtres portent sur la référence, la date et le statut. Le gestionnaire habilité peut valider ou refuser une réception ; l’abandon concerne une réception en attente et l’annulation d’une réception validée reste réservée à la procédure et aux droits concernés.
+<!-- CAPTURE À INSÉRER : Formulaire Entrées stock avec sélection des articles, quantités reçues et bouton de validation. -->
 
-> **Règle importante.** Une entrée `PENDING` ou en attente ne doit pas être utilisée comme stock disponible. Attendez le statut validé avant de préparer une sortie ou une vente fondée sur cette quantité.
+### A. Procédure d'enregistrement d'une entrée
+1. Ouvrez le menu **Inventaires** et cliquez sur le bouton bleu **« Entrées stock »** (`data-testid="e2e-inventory-add-stock"`).
+2. Sélectionnez l'article reçu dans la liste déroulante.
+3. Saisissez la quantité physique constatée sur le bordereau du transporteur ou du fournisseur.
+4. Répétez l'opération pour chaque ligne du bon de livraison.
+5. Cliquez sur **« Valider l'entrée »**.
 
-## Réaliser un inventaire physique
+### B. Suivi dans l'Historique des Entrées (`/stock/receptions`)
+* Dès la validation de la saisie, l'application génère une référence unique de réception (ex: `REC-2026-0042`) avec le statut initial **`PENDING` (En attente)**.
+* **Consigne de sécurité stricte** : Une entrée en attente **n'augmente pas encore le stock disponible**. Vous ne devez jamais servir une demande de sortie sur la base d'une entrée non encore validée par le gestionnaire.
+* Dès que le gestionnaire valide la réception dans son interface, le statut passe à **`VALIDATED`** et la marchandise devient officiellement disponible pour les sorties.
 
-Quand aucune session d’inventaire n’est en cours, choisissez **Créer un inventaire**. Lors d’une session active, le panneau d’actions propose le téléchargement du support, la saisie des quantités physiques, la réconciliation des écarts et la clôture, selon le statut et les permissions.
+---
 
-| Étape | Action |
-|---|---|
-| Préparer | Créer l’inventaire puis télécharger le support si nécessaire. |
-| Compter | Relever les quantités physiques article par article. |
-| Saisir | Utiliser **Saisir quantités physiques** pour enregistrer le comptage. |
-| Analyser | Ouvrir **Réconcilier les écarts** afin d’examiner les différences. |
-| Terminer | Clôturer seulement après résolution ou justification des écarts. |
+## 2. Réalisation d'un inventaire physique magasin
 
-L’**Historique inventaires** et la trajectoire d’un article sont visibles uniquement aux comptes dotés de la permission de consultation correspondante.
+L'inventaire physique permet de vérifier que le stock réel en rayon correspond rigoureusement aux quantités enregistrées en base de données.
+
+<!-- CAPTURE À INSÉRER : Écran de session d'inventaire avec statut IN_PROGRESS, téléchargement PDF et saisie des quantités physiques. -->
+
+### A. Les 4 étapes de l'inventaire pour le magasinier
+
+```mermaid
+graph TD
+    A["1. Téléchargement du Support PDF<br/>(Feuille de comptage vierge)"] --> B["2. Comptage Physique en Rayon<br/>(Dénombrement manuel par carton/unité)"]
+    B --> C["3. Saisie des Quantités Physiques<br/>(Bouton Saisir quantités physiques)"]
+    C --> D["4. Examen des Écarts avec la Gestion<br/>(Surplus ou Manquants)"]
+```
+
+1. **Étape 1 : Téléchargement du support de comptage** :
+   * Lorsqu'une session est ouverte (`IN_PROGRESS`), cliquez sur **« Télécharger PDF »**.
+   * Ce document liste l'ensemble des références du catalogue sans afficher les quantités théoriques afin de garantir un comptage en aveugle impartial.
+2. **Étape 2 : Comptage physique en rayon** :
+   * Les équipes de magasin parcourent les allées et dénombrent physiquement chaque article (unités, cartons, blisters).
+   * Notez soigneusement les quantités sur la fiche papier.
+3. **Étape 3 : Saisie des quantités constatées** :
+   * Cliquez sur **« Saisir quantités physiques »**.
+   * Renseignez le nombre réel compté en face de chaque référence produit.
+   * Validez la saisie.
+4. **Étape 4 : Analyse contradictoire des écarts** :
+   * En concertation avec le gestionnaire, examinez les écarts éventuels (`Surplus` ou `Manquant`).
+   * Vérifiez si des entrées ou des sorties n'ont pas été omises avant que le gestionnaire ne procède à la clôture définitive de la session.
+
 
 
 \newpage
@@ -95,25 +138,39 @@ L’**Historique inventaires** et la trajectoire d’un article sont visibles un
 
 ---
 
-# Stock tontine
+# Gestion physique du stock tontine (Guide Magasinier)
 
-Le **Stock Tontine** sépare les articles destinés au cycle tontine du stock commercial. Les gestes restent proches : demande, validation, livraison et retour, mais les stocks ainsi alimentés servent ensuite aux livraisons de fin d’année des membres.
+Le module **Stock Tontine** (`/stock-tontine`) applique les mêmes exigences de rigueur logistique que le stock commercial, mais dans un circuit **totalement étanche et isolé**.
 
-## Demandes et livraisons
+---
 
-Dans **Stock Tontine > Demandes Sortie**, créez ou consultez les demandes de sortie, appliquez les filtres de période et de commercial, puis contrôlez le statut. Une demande créée doit être validée avant que le magasinier puisse la livrer. La sélection multiple et les exports PDF permettent d’éditer une fiche pour une ou plusieurs demandes.
+## 1. Servir une sortie de stock tontine (`/stock-tontine/request`)
 
-<!-- CAPTURE À INSÉRER : Liste des demandes de stock tontine avec filtres de période, statut et action Livrer. -->
+À l'approche des fêtes de fin d'année et de la clôture des cycles de cotisation, les commerciaux reçoivent des dotations d'articles pré-commandés par les membres tontine.
 
-## Retours tontine
+<!-- CAPTURE À INSÉRER : Liste des demandes de sortie de stock tontine avec filtres et bouton Livrer pour le magasinier. -->
 
-Le sous-menu **Retours** enregistre les articles retournés au stock tontine. Utilisez le détail de la demande pour vérifier les articles, les quantités, la date de demande et la date de réception. Les exports PDF sont disponibles par période, sélection ou ligne selon les droits du compte.
+### A. Contrôle et délivrance physique
+1. Ouvrez **Stock Tontine > Demandes Sortie** (`ROLE_STOREKEEPER`).
+2. Repérez la demande au statut **`VALIDATED` (Validée)**.
+3. Cliquez sur **« Voir »** pour examiner le panier d'articles réservés pour les membres de la zone.
+4. Rassemblez les colis correspondants et vérifiez les références avec le commercial au guichet.
+5. Cliquez sur le bouton **« Livrer »**.
+   * Le stock dépôt est débité du compte tontine.
+   * Le commercial est crédité de sa dotation de distribution tontine.
+   * La demande passe à **`DELIVERED`**.
 
-> **À distinguer.** La livraison de stock tontine à un commercial n’est pas la livraison finale au membre. La livraison finale est préparée et validée depuis la fiche du membre dans le module **Tontines**.
+> **Distinction fondamentale.** La validation de la sortie par le magasinier décharge le dépôt au profit du commercial. Elle ne marque **PAS** la livraison au client final : c'est le commercial ou le gestionnaire qui actera la remise finale au membre sur la fiche de ce dernier dans le module **Tontines**.
 
-## Stock annuel
+---
 
-Le sous-menu **Stock** présente le stock tontine par commercial et par année, lorsque le profil y est autorisé. Le rapport PDF associé doit être lu avec l’année et le commercial affichés sur le panneau.
+## 2. Retours d'articles tontine (`/stock-tontine/return`)
+
+Si un membre tontine a modifié son choix d'article, s'il a dépassé son solde ou si un reliquat de campagne doit être rapatrié au magasin :
+1. Le commercial dépose les articles au magasin et initie une déclaration dans **Stock Tontine > Retours**.
+2. Le magasinier examine la ligne au statut **`PENDING`**.
+3. Après inspection physique des emballages, le magasinier clique sur **« Réceptionner »** pour réintégrer les articles au stock central tontine.
+
 
 
 \newpage
@@ -122,31 +179,56 @@ Le sous-menu **Stock** présente le stock tontine par commercial et par année, 
 
 ---
 
-# Stock commercial
+# Gestion physique du stock commercial (Sorties & Retours)
 
-Le stock commercial alimente les agents chargés de la vente. Les opérations sont centralisées dans **Stock Commercial > Demandes Sortie**, **Stock** et **Retours**.
+Le magasinier est l'acteur clé de la délivrance physique des articles aux commerciaux. Aucune marchandise ne doit quitter le magasin sans bon de sortie validé, et aucun retour ne doit être réintégré sans contrôle contradictoire de son état physique.
 
-## Livrer une demande de sortie
+---
 
-La liste des demandes affiche des KPI, les filtres de période et de commercial, les statuts, les détails et les exports PDF. Le flux standard est le suivant :
+## 1. Servir et livrer une demande de sortie (`/stock/request`)
 
-| Statut | Acteur et action habituels |
-|---|---|
-| `CREATED` | La demande est créée. Un gestionnaire peut la valider ; l’annulation ou le refus dépend du rôle. |
-| `VALIDATED` | La demande est prête. Le magasinier peut utiliser **Livrer**. |
-| `DELIVERED` | La sortie est effectuée et la date de livraison est renseignée. |
+Toutes les demandes de sortie validées par la gestion arrivent dans **Stock Commercial > Demandes Sortie** (`ROLE_STOREKEEPER`).
 
-Sélectionnez une ligne puis utilisez **Voir** pour contrôler le commercial, les dates, le statut et les articles avant livraison. Le bouton **Fiche sortie PDF** peut exporter une période ; il est aussi possible de télécharger un lot sélectionné ou une demande unique.
+<!-- CAPTURE À INSÉRER : Demande de sortie au statut VALIDATED avec le bouton Livrer visible pour le magasinier. -->
 
-<!-- CAPTURE À INSÉRER : Liste Demandes de sortie stock avec badges CREATED, VALIDATED et DELIVERED, et bouton Livrer. -->
+### A. Contrôle avant remise physique
+1. Filtrez la liste des demandes par statut ou par commercial pour localiser la commande à préparer.
+2. Cliquez sur **« Voir »** pour ouvrir le détail de la demande :
+   * Vérifiez la liste exacte des articles et les quantités commandées.
+   * Assurez-vous que le statut de la ligne est bien **`VALIDATED` (Validée)**.
+3. Prélevez les articles en rayon et regroupez-les dans la zone de délivrance.
 
-## Gérer les retours
+### B. Remise physique et validation du départ (`Livrer`)
+1. Procédez au comptage contradictoire avec le commercial présent au comptoir.
+2. Cliquez sur le bouton **« Livrer »** (`data-testid="e2e-stock-request-deliver"`).
+3. **Conséquences automatiques** :
+   * Le statut de la demande passe définitivement à **`DELIVERED` (Livrée)**.
+   * Le stock physique du magasin est automatiquement débité.
+   * Le stock commercial du destinataire est automatiquement crédité.
+   * La date et l'heure précises de livraison sont horodatées.
+4. Cliquez sur l'icône de téléchargement pour imprimer la **Fiche de sortie PDF** signée par les deux parties.
 
-Dans **Stock Commercial > Retours**, créez un retour pour les articles autorisés, puis suivez son statut. La liste propose des KPI, des filtres de période et de commercial, des exports et, selon l’état de la ligne, les actions **Voir**, **Télécharger**, **Réceptionner**, **Annuler** ou **Refuser**. Une date de réception vide signifie que le retour n’a pas encore été réceptionné.
+> **Consigne absolue.** Ne remettez jamais de marchandise à un commercial sur une demande au statut `CREATED`. Le bouton « Livrer » n'apparaît que sur les demandes expressément validées par la gestion (`VALIDATED`).
 
-## Consulter le stock mensuel
+---
 
-Le sous-menu **Stock** est accessible aux profils qui ne sont pas magasinier uniquement. Il présente les quantités prises, vendues, retournées et restantes par article, avec les valeurs de stock et de recouvrement. Les panneaux mensuels peuvent fournir un rapport PDF et le KPI de valeur vendue ouvre le détail des ventes liées.
+## 2. Traitement physique des retours d'articles (`/stock/return`)
+
+Lorsqu'un commercial restitue des articles au dépôt central (invendus de tournée, emballages détériorés, réajustement de dotation), l'opération est traitée dans **Stock Commercial > Retours**.
+
+### A. Réceptionner un retour conforme
+1. Le commercial présente les articles au magasin avec son numéro de déclaration de retour.
+2. Ouvrez **Stock Commercial > Retours** et identifiez la ligne au statut **`PENDING` (En attente)**.
+3. Vérifiez l'intégrité des produits restitués (état de marche, emballage intact, conformité des références).
+4. Si les articles sont conformes, cliquez sur le bouton vert **« Réceptionner »** (`data-testid="e2e-stock-return-receive"`).
+   * Le statut bascule à **`RECEIVED` (Réceptionné)**.
+   * Le stock central du magasin est réapprovisionné et les articles sont remis en rayon.
+   * Le commercial est déchargé de la marchandise.
+
+### B. Refus d'un retour non conforme
+* Si un article est détérioré par la faute du commercial ou incomplet, le magasinier ou le gestionnaire clique sur **« Refuser »**.
+* Le retour passe au statut **`REFUSED`** : le stock central n'est pas incrémenté et l'article reste sous la responsabilité comptable du commercial jusqu'à règlement du litige.
+
 
 
 \newpage

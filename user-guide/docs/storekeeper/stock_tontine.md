@@ -1,19 +1,33 @@
-# Stock tontine
+# Gestion physique du stock tontine (Guide Magasinier)
 
-Le **Stock Tontine** sépare les articles destinés au cycle tontine du stock commercial. Les gestes restent proches : demande, validation, livraison et retour, mais les stocks ainsi alimentés servent ensuite aux livraisons de fin d’année des membres.
+Le module **Stock Tontine** (`/stock-tontine`) applique les mêmes exigences de rigueur logistique que le stock commercial, mais dans un circuit **totalement étanche et isolé**.
 
-## Demandes et livraisons
+---
 
-Dans **Stock Tontine > Demandes Sortie**, créez ou consultez les demandes de sortie, appliquez les filtres de période et de commercial, puis contrôlez le statut. Une demande créée doit être validée avant que le magasinier puisse la livrer. La sélection multiple et les exports PDF permettent d’éditer une fiche pour une ou plusieurs demandes.
+## 1. Servir une sortie de stock tontine (`/stock-tontine/request`)
 
-<!-- CAPTURE À INSÉRER : Liste des demandes de stock tontine avec filtres de période, statut et action Livrer. -->
+À l'approche des fêtes de fin d'année et de la clôture des cycles de cotisation, les commerciaux reçoivent des dotations d'articles pré-commandés par les membres tontine.
 
-## Retours tontine
+<!-- CAPTURE À INSÉRER : Liste des demandes de sortie de stock tontine avec filtres et bouton Livrer pour le magasinier. -->
 
-Le sous-menu **Retours** enregistre les articles retournés au stock tontine. Utilisez le détail de la demande pour vérifier les articles, les quantités, la date de demande et la date de réception. Les exports PDF sont disponibles par période, sélection ou ligne selon les droits du compte.
+### A. Contrôle et délivrance physique
+1. Ouvrez **Stock Tontine > Demandes Sortie** (`ROLE_STOREKEEPER`).
+2. Repérez la demande au statut **`VALIDATED` (Validée)**.
+3. Cliquez sur **« Voir »** pour examiner le panier d'articles réservés pour les membres de la zone.
+4. Rassemblez les colis correspondants et vérifiez les références avec le commercial au guichet.
+5. Cliquez sur le bouton **« Livrer »**.
+   * Le stock dépôt est débité du compte tontine.
+   * Le commercial est crédité de sa dotation de distribution tontine.
+   * La demande passe à **`DELIVERED`**.
 
-> **À distinguer.** La livraison de stock tontine à un commercial n’est pas la livraison finale au membre. La livraison finale est préparée et validée depuis la fiche du membre dans le module **Tontines**.
+> **Distinction fondamentale.** La validation de la sortie par le magasinier décharge le dépôt au profit du commercial. Elle ne marque **PAS** la livraison au client final : c'est le commercial ou le gestionnaire qui actera la remise finale au membre sur la fiche de ce dernier dans le module **Tontines**.
 
-## Stock annuel
+---
 
-Le sous-menu **Stock** présente le stock tontine par commercial et par année, lorsque le profil y est autorisé. Le rapport PDF associé doit être lu avec l’année et le commercial affichés sur le panneau.
+## 2. Retours d'articles tontine (`/stock-tontine/return`)
+
+Si un membre tontine a modifié son choix d'article, s'il a dépassé son solde ou si un reliquat de campagne doit être rapatrié au magasin :
+1. Le commercial dépose les articles au magasin et initie une déclaration dans **Stock Tontine > Retours**.
+2. Le magasinier examine la ligne au statut **`PENDING`**.
+3. Après inspection physique des emballages, le magasinier clique sur **« Réceptionner »** pour réintégrer les articles au stock central tontine.
+

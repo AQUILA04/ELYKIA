@@ -1,27 +1,55 @@
-# Inventaires et entrées de stock
+# Inventaires et entrées de stock (Guide Magasinier)
 
-Le menu **Inventaires** réunit la consultation du stock, l’inventaire physique et l’entrée de marchandises. Il ne faut pas confondre une **entrée** avec un **inventaire** : l’entrée enregistre une réception attendue ; l’inventaire compare le stock système au comptage physique.
+Le magasinier est le garant de la sécurité physique des marchandises stockées dans le dépôt principal. Il supervise les entrées de nouveaux articles livrés par les fournisseurs et participe activement aux opérations d'inventaire physique.
 
-## Enregistrer une entrée
+---
 
-Dans **Inventaires**, choisissez **Entrées stock**, sélectionnez les articles et saisissez les quantités. Après validation, l’application confirme que l’entrée est enregistrée en attente de validation et redirige vers l’historique des réceptions.
+## 1. Réceptionner des marchandises et créer une entrée (`/inventory/list`)
 
-<!-- CAPTURE À INSÉRER : Formulaire Entrée de stock avec sélecteur d’articles et bouton Valider l’entrée. -->
+Toute marchandise déchargée au dépôt doit être immédiatement enregistrée dans le système pour amorcer le processus de contrôle.
 
-Ouvrez ensuite **Historique Entrée** pour retrouver la référence. Les filtres portent sur la référence, la date et le statut. Le gestionnaire habilité peut valider ou refuser une réception ; l’abandon concerne une réception en attente et l’annulation d’une réception validée reste réservée à la procédure et aux droits concernés.
+<!-- CAPTURE À INSÉRER : Formulaire Entrées stock avec sélection des articles, quantités reçues et bouton de validation. -->
 
-> **Règle importante.** Une entrée `PENDING` ou en attente ne doit pas être utilisée comme stock disponible. Attendez le statut validé avant de préparer une sortie ou une vente fondée sur cette quantité.
+### A. Procédure d'enregistrement d'une entrée
+1. Ouvrez le menu **Inventaires** et cliquez sur le bouton bleu **« Entrées stock »** (`data-testid="e2e-inventory-add-stock"`).
+2. Sélectionnez l'article reçu dans la liste déroulante.
+3. Saisissez la quantité physique constatée sur le bordereau du transporteur ou du fournisseur.
+4. Répétez l'opération pour chaque ligne du bon de livraison.
+5. Cliquez sur **« Valider l'entrée »**.
 
-## Réaliser un inventaire physique
+### B. Suivi dans l'Historique des Entrées (`/stock/receptions`)
+* Dès la validation de la saisie, l'application génère une référence unique de réception (ex: `REC-2026-0042`) avec le statut initial **`PENDING` (En attente)**.
+* **Consigne de sécurité stricte** : Une entrée en attente **n'augmente pas encore le stock disponible**. Vous ne devez jamais servir une demande de sortie sur la base d'une entrée non encore validée par le gestionnaire.
+* Dès que le gestionnaire valide la réception dans son interface, le statut passe à **`VALIDATED`** et la marchandise devient officiellement disponible pour les sorties.
 
-Quand aucune session d’inventaire n’est en cours, choisissez **Créer un inventaire**. Lors d’une session active, le panneau d’actions propose le téléchargement du support, la saisie des quantités physiques, la réconciliation des écarts et la clôture, selon le statut et les permissions.
+---
 
-| Étape | Action |
-|---|---|
-| Préparer | Créer l’inventaire puis télécharger le support si nécessaire. |
-| Compter | Relever les quantités physiques article par article. |
-| Saisir | Utiliser **Saisir quantités physiques** pour enregistrer le comptage. |
-| Analyser | Ouvrir **Réconcilier les écarts** afin d’examiner les différences. |
-| Terminer | Clôturer seulement après résolution ou justification des écarts. |
+## 2. Réalisation d'un inventaire physique magasin
 
-L’**Historique inventaires** et la trajectoire d’un article sont visibles uniquement aux comptes dotés de la permission de consultation correspondante.
+L'inventaire physique permet de vérifier que le stock réel en rayon correspond rigoureusement aux quantités enregistrées en base de données.
+
+<!-- CAPTURE À INSÉRER : Écran de session d'inventaire avec statut IN_PROGRESS, téléchargement PDF et saisie des quantités physiques. -->
+
+### A. Les 4 étapes de l'inventaire pour le magasinier
+
+```mermaid
+graph TD
+    A["1. Téléchargement du Support PDF<br/>(Feuille de comptage vierge)"] --> B["2. Comptage Physique en Rayon<br/>(Dénombrement manuel par carton/unité)"]
+    B --> C["3. Saisie des Quantités Physiques<br/>(Bouton Saisir quantités physiques)"]
+    C --> D["4. Examen des Écarts avec la Gestion<br/>(Surplus ou Manquants)"]
+```
+
+1. **Étape 1 : Téléchargement du support de comptage** :
+   * Lorsqu'une session est ouverte (`IN_PROGRESS`), cliquez sur **« Télécharger PDF »**.
+   * Ce document liste l'ensemble des références du catalogue sans afficher les quantités théoriques afin de garantir un comptage en aveugle impartial.
+2. **Étape 2 : Comptage physique en rayon** :
+   * Les équipes de magasin parcourent les allées et dénombrent physiquement chaque article (unités, cartons, blisters).
+   * Notez soigneusement les quantités sur la fiche papier.
+3. **Étape 3 : Saisie des quantités constatées** :
+   * Cliquez sur **« Saisir quantités physiques »**.
+   * Renseignez le nombre réel compté en face de chaque référence produit.
+   * Validez la saisie.
+4. **Étape 4 : Analyse contradictoire des écarts** :
+   * En concertation avec le gestionnaire, examinez les écarts éventuels (`Surplus` ou `Manquant`).
+   * Vérifiez si des entrées ou des sorties n'ont pas été omises avant que le gestionnaire ne procède à la clôture définitive de la session.
+

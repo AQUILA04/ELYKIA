@@ -1,23 +1,38 @@
-# Gestion des articles
+# Gestion des articles et seuils de stock (Guide Magasinier)
 
-Le catalogue d’articles est la référence commune aux entrées, demandes de sortie, ventes et livraisons tontine. Créez ou modifiez une fiche avec rigueur : une erreur de prix ou de type se répercute dans plusieurs flux.
+Le catalogue **Articles** est la base de données centrale de référence pour toutes les opérations de stockage, de réapprovisionnement, de distribution et de tontine. Le magasinier s'y réfère quotidiennement pour contrôler les références, surveiller les seuils d'alerte et préparer les commandes.
 
-## Consulter et rechercher
+---
 
-Ouvrez **Articles**. La liste présente les désignations, marques, modèles, types, prix, quantités et statuts selon votre habilitation. Utilisez la recherche et la pagination plutôt que de parcourir les pages sans filtre. La fiche article donne accès à ses informations détaillées et à son historique de mouvements.
+## 1. Consulter et rechercher dans le catalogue (`/article/list`)
 
-<!-- CAPTURE À INSÉRER : Liste Articles avec recherche, colonne de stock et bouton de consultation de la fiche. -->
+Accessible depuis le menu latéral **Articles** (`ROLE_STOREKEEPER` ou `ROLE_EDIT_ARTICLE`), la liste présente l'ensemble des articles enregistrés.
 
-## Créer ou modifier une fiche
+<!-- CAPTURE À INSÉRER : Catalogue des articles avec recherche dynamique, filtre par type, quantités en stock et boutons de consultation. -->
 
-Le formulaire demande l’identification de l’article, son type, ses prix et les valeurs de suivi stock. Renseignez les montants de manière cohérente avec la politique commerciale : prix d’achat, prix de vente comptant et prix de vente à crédit ne doivent pas être confondus. Si la gestion FIFO est active, des informations de lots et de prix d’achat peuvent apparaître dans la fiche.
+### A. Outils de recherche et filtres
+* **Recherche instantanée** : Recherchez par nom d'article, marque ou modèle.
+* **Filtre par Type** : Isolez une catégorie d'articles spécifique (ex: Électroménager, Textile, Téléphonie, etc.).
+* **Fiche détaillée de l'article (`/article/details/:id`)** :
+  * Cliquez sur **« Voir »** pour afficher la fiche complète.
+  * Consultez l'historique chronologique de tous les mouvements de stock ayant affecté cet article (réceptions fournisseurs, sorties vers commerciaux, retours au magasin).
 
-| Information | Utilisation |
-|---|---|
-| Nom, marque, modèle, type | Identifier et filtrer l’article dans les listes. |
-| Prix d’achat | Valoriser le stock et calculer les marges. |
-| Prix vente / crédit | Alimenter les ventes selon le type choisi. |
-| Seuil de réapprovisionnement | Signaler qu’une quantité devient faible. |
-| Stock et historique | Suivre les mouvements sans modifier les quantités hors procédure. |
+---
 
-Ne supprimez pas une fiche qui a déjà été utilisée par une opération sans validation de la procédure interne. Préférez la consultation de l’historique pour comprendre une variation de stock.
+## 2. Seuils logistiques et alertes de stock
+
+Pour éviter toute rupture de distribution sur le terrain, chaque article dispose de paramètres de réapprovisionnement surveillés par le système :
+
+| Paramètre Logistique | Rôle dans l'Application | Comportement en cas de franchissement |
+|---|---|---|
+| **Point de commande** | Seuil critique de sécurité physique (quantité minimale à conserver en réserve). | Dès que le stock réel devient inférieur ou égal à cette valeur, l'article bascule dans la table **« Rupture imminente »** sur le Dashboard d'accueil avec une pastille orange. |
+| **Niveau de stock optimal** | Quantité cible recommandée à détenir en réserve pour couvrir l'activité habituelle. | Sert de référence pour calculer le volume des commandes à passer auprès des fournisseurs. |
+| **Stock physique (0)** | Quantité nulle en magasin. | L'article bascule dans la table **« Rupture de stock »** avec une pastille rouge d'alerte prioritaire. |
+
+---
+
+## 3. Règle de suppression et archivage
+
+* **Intégrité référentielle** : Il est formellement interdit de supprimer un article qui a déjà fait l'objet d'un mouvement de stock, d'une vente ou d'une distribution.
+* En cas d'arrêt de commercialisation d'une référence, modifiez son statut pour le passer à **Inactif** afin qu'il n'apparaisse plus dans les nouveaux formulaires de vente ou de demande de stock, tout en préservant l'historique comptable des opérations passées.
+
