@@ -1,7 +1,7 @@
 -- Associate expenses with cash period remittances for net amount calculation
 ALTER TABLE cash_period_remittance
-    ADD COLUMN expense_amount double precision NOT NULL DEFAULT 0,
-    ADD COLUMN net_amount double precision NOT NULL DEFAULT 0;
+    ADD COLUMN IF NOT EXISTS expense_amount double precision NOT NULL DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS net_amount double precision NOT NULL DEFAULT 0;
 
 UPDATE cash_period_remittance SET net_amount = total_amount WHERE net_amount = 0;
 
@@ -18,4 +18,4 @@ CREATE TABLE IF NOT EXISTS cash_period_remittance_expense (
     CONSTRAINT cash_period_remittance_expense_unique UNIQUE (expense_id)
 );
 
-CREATE INDEX idx_cpr_expense_remittance_id ON cash_period_remittance_expense(remittance_id);
+CREATE INDEX IF NOT EXISTS idx_cpr_expense_remittance_id ON cash_period_remittance_expense(remittance_id);

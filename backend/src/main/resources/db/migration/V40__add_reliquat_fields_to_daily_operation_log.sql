@@ -1,7 +1,7 @@
 -- 1. Alter daily_operation_log to add reliquat columns
 ALTER TABLE daily_operation_log
-ADD COLUMN reliquat_generated_amount DOUBLE PRECISION DEFAULT 0.0,
-ADD COLUMN reliquat_used_amount DOUBLE PRECISION DEFAULT 0.0;
+ADD COLUMN IF NOT EXISTS reliquat_generated_amount DOUBLE PRECISION DEFAULT 0.0,
+ADD COLUMN IF NOT EXISTS reliquat_used_amount DOUBLE PRECISION DEFAULT 0.0;
 
 -- 2. Update total_reliquat_generated_amount and total_reliquat_used_amount on daily_commercial_report for today (2026-06-01)
 UPDATE daily_commercial_report dcr

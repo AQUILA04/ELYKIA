@@ -43,7 +43,7 @@
     "ngx-permissions": "^16.0.1",
     "ngx-spinner": "^18.0.0",
     "ngx-toastr": "^17.0.2",
-    "rxjs": "~7.5.0",
+    "rxjs": "^7.8.2",
     "sweetalert2": "^11.12.3",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.10"
