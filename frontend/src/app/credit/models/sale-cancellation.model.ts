@@ -11,6 +11,7 @@ export interface SaleCancellationExecuteRequest {
   endDate: string;
   creditStatus?: string | null;
   cancellationReason: string;
+  eligibleCreditIds?: number[];
 }
 
 export interface EligibleSaleItem {

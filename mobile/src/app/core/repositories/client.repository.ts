@@ -787,7 +787,11 @@ export class ClientRepository extends BaseRepository<Client, string> {
      * Mark client as synced and update ID refs
      */
     async markAsSynced(localId: string, serverId: string, profilPhotoUrl?: string, cardPhotoUrl?: string): Promise<void> {
-        if (!this.databaseService['db'] || localId === serverId) {
+        if (!this.databaseService['db']) {
+            return;
+        }
+        if (localId === serverId) {
+            await this.updateSyncStatus(localId, true);
             return;
         }
         await this.mergeLocalClientIntoServerId(localId, serverId, { profilPhotoUrl, cardPhotoUrl });

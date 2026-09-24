@@ -1107,7 +1107,7 @@
     }
   ],
   "businessRules": [
-    "Le chiffre du jour (ventes crédit) = SUM(credit.total_amount) WHERE date_reg = CURRENT_DATE AND type = 'CREDIT'",
+    "Les ventes CREDIT CANCELLED (state DELETED) sont exclues des agrégats ; l'annulation de masse ne porte que sur type CREDIT et statuts CREATED/VALIDATED/INPROGRESS du mois en cours, sans recouvrement timeline.",
     "Le recouvrement d'un crédit = lignes dans credit_timeline (amount, date_reg, collector) — PAS la table recovery",
     "SUM(credit_timeline.amount) = montant recouvré sur une période",
     "Stock commercial mensuel : commercial_monthly_stock (collector, month, year) + lignes commercial_monthly_stock_item",

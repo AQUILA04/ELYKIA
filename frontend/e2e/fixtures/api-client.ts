@@ -102,9 +102,11 @@ export interface DailyCommercialReport {
   commercialUsername: string;
   creditSalesCount?: number;
   creditSalesAmount?: number;
+  creditSalesMargin?: number;
   collectionsCount?: number;
   collectionsAmount?: number;
   totalAmountToDeposit?: number;
+  totalAdvancesAmount?: number;
   totalAmountDeposited?: number;
   tontineMembersCount?: number;
   tontineCollectionsCount?: number;
@@ -212,6 +214,11 @@ export class ApiClient {
 
   async signInAsRecoveryManager(): Promise<AuthTokenResponse> {
     const { username, password } = await resolveCredentials('recoveryManager');
+    return this.signIn(username, password);
+  }
+
+  async signInAsAdmin(): Promise<AuthTokenResponse> {
+    const { username, password } = await resolveCredentials('admin');
     return this.signIn(username, password);
   }
 
@@ -356,6 +363,9 @@ export class ApiClient {
   async getCreditById(id: number): Promise<Record<string, unknown> & {
     id: number;
     reference?: string;
+    status?: string;
+    state?: string;
+    totalAmount?: number;
     collector?: string;
     client?: { id?: number; lastname?: string; firstname?: string };
     sourceMonthlyStocks?: Array<{ id: number; collector: string; month: number; year: number }>;
@@ -806,4 +816,83 @@ export class ApiClient {
       stockQuantity: minQuantity,
     };
   }
+
+  async previewSaleCancellation(filter: {
+    commercialUsername: string;
+    startDate: string;
+    endDate: string;
+    creditStatus?: string | null;
+  }): Promise<{
+    eligibleCount: number;
+    eligibleAmount: number;
+    excludedCount: number;
+    totalSalesFound: number;
+    eligibleSales: Array<{ creditId: number; reference: string; totalAmount: number }>;
+    excludedSales: Array<{ creditId: number; reference: string; reason?: string }>;
+    stockImpacts: Array<{ articleId: number; quantityToReturn: number }>;
+  }> {
+    const raw = await this.post<Record<string, unknown>>('/api/v1/sales/cancellation/preview', filter);
+    return unwrapApiData(raw);
+  }
+
+  async executeSaleCancellation(body: {
+    commercialUsername: string;
+    startDate: string;
+    endDate: string;
+    creditStatus?: string | null;
+    cancellationReason: string;
+    eligibleCreditIds: number[];
+  }): Promise<{
+    id: number;
+    status: string;
+    cancelledSalesCount: number;
+    cancelledSalesAmount: number;
+    excludedSalesCount: number;
+    pdfFileCount: number;
+    errorMessage?: string;
+  }> {
+    const raw = await this.post<Record<string, unknown>>('/api/v1/sales/cancellation/execute', body);
+    return unwrapApiData(raw);
+  }
+
+  async getSaleCancellationRuns(page = 0, size = 20): Promise<{
+    content: Array<{
+      id: number;
+      status: string;
+      commercialUsername: string;
+      cancelledSalesCount: number;
+      pdfFileCount: number;
+    }>;
+  }> {
+    const raw = await this.get<Record<string, unknown>>(
+      `/api/v1/sales/cancellation/runs?page=${page}&size=${size}`,
+    );
+    const payload = unwrapApiData<Record<string, unknown>>(raw);
+    const content = (payload.content ?? []) as Array<{
+      id: number;
+      status: string;
+      commercialUsername: string;
+      cancelledSalesCount: number;
+      pdfFileCount: number;
+    }>;
+    return { content };
+  }
+
+  async getSaleCancellationRunDetails(runId: number): Promise<{
+    id: number;
+    status: string;
+    cancelledSalesCount: number;
+    pdfFileCount: number;
+    files?: Array<{ id: number; fileName: string; fileType: string }>;
+  }> {
+    const raw = await this.get<Record<string, unknown>>(`/api/v1/sales/cancellation/runs/${runId}`);
+    return unwrapApiData(raw);
+  }
+}
+
+function unwrapApiData<T>(raw: unknown): T {
+  if (raw && typeof raw === 'object' && 'data' in raw && (raw as { data?: unknown }).data != null) {
+    return (raw as { data: T }).data;
+  }
+  return raw as T;
 }

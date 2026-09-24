@@ -25,7 +25,7 @@ export default defineConfig({
     },
     {
       name: 'golden-path',
-      testMatch: /golden-path\.spec\.ts/,
+      testMatch: /golden-path.*\.spec\.ts/,
     },
     {
       name: 'august-2026',

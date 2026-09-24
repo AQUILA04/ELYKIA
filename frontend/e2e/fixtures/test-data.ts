@@ -53,6 +53,15 @@ export const USER_ACCOUNTS = {
     ]),
     label: 'RECOVERY_MANAGER',
   },
+  admin: {
+    username: process.env['E2E_ADMIN_USERNAME'] ?? 'manager',
+    passwordCandidates: uniqueStrings([
+      process.env['E2E_ADMIN_PASSWORD'],
+      'Africa',
+      'Abcd1234',
+    ]),
+    label: 'ADMIN',
+  },
 } as const;
 
 /** Commercial utilisé dans les scénarios métier (ventes, stock, clients). */
@@ -202,5 +211,10 @@ export const USERS = {
     username: USER_ACCOUNTS.recoveryManager.username,
     password: USER_ACCOUNTS.recoveryManager.passwordCandidates[0]!,
     label: USER_ACCOUNTS.recoveryManager.label,
+  },
+  admin: {
+    username: USER_ACCOUNTS.admin.username,
+    password: USER_ACCOUNTS.admin.passwordCandidates[0]!,
+    label: USER_ACCOUNTS.admin.label,
   },
 } as const;

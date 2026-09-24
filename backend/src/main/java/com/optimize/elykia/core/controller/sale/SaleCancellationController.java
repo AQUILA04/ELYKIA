@@ -56,7 +56,9 @@ public class SaleCancellationController {
     public ResponseEntity<Page<SaleCancellationRunDto>> getRuns(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(cancellationService.getRuns(PageRequest.of(page, size)));
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 100);
+        return ResponseEntity.ok(cancellationService.getRuns(PageRequest.of(safePage, safeSize)));
     }
 
     @GetMapping("/runs/{id}")
@@ -71,9 +73,10 @@ public class SaleCancellationController {
     @Operation(summary = "Télécharger un PDF d'audit ou le rapport global de synthèse")
     public ResponseEntity<byte[]> downloadFile(@PathVariable Long fileId) {
         var file = cancellationService.downloadFile(fileId);
+        String safeName = file.fileName() == null ? "audit.pdf" : file.fileName().replaceAll("[^A-Za-z0-9._-]", "_");
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_PDF)
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.fileName() + "\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + safeName + "\"")
                 .body(file.content());
     }
 }

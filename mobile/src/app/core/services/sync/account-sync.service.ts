@@ -8,6 +8,8 @@ import { Account } from '../../../models/account.model';
 import { AccountSyncRequest, AccountSyncResponse, AccountUpdateRequest } from '../../../models/sync.model';
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
+import { Store } from '@ngrx/store';
+import * as AccountActions from '../../../store/account/account.actions';
 
 @Injectable({
     providedIn: 'root'
@@ -18,7 +20,8 @@ export class AccountSyncService extends BaseSyncService<Account, AccountReposito
         protected override http: HttpClient,
         protected override repository: AccountRepository,
         protected override authService: AuthService,
-        protected override syncErrorService: SyncErrorService
+        protected override syncErrorService: SyncErrorService,
+        private readonly store: Store
     ) {
         super(http, repository, authService, syncErrorService, 'account');
     }
@@ -65,11 +68,19 @@ export class AccountSyncService extends BaseSyncService<Account, AccountReposito
 
             await this.repository.saveIdMapping(account.id, serverId, 'account');
             await this.repository.markAsSynced(account.id, serverId);
+            this.store.dispatch(AccountActions.accountSyncSuccess({
+                localId: account.id,
+                serverId
+            }));
 
             return response.data;
         } else {
             const responseData = await this.postUpdateAccount(account, clientIdNumber);
             await this.repository.updateSyncStatus(account.id, true);
+            this.store.dispatch(AccountActions.accountSyncSuccess({
+                localId: account.id,
+                serverId: account.id
+            }));
             return responseData;
         }
     }

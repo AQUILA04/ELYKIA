@@ -97,10 +97,11 @@ export class SaleCancellationComponent implements OnInit {
     this.commercialService.getCommercials(0, 1000).subscribe({
       next: (res: any) => {
         this.loadingCommercials = false;
-        if (res && res.content) {
-          this.commercials = res.content;
-        } else if (Array.isArray(res)) {
-          this.commercials = res;
+        const payload = res?.data ?? res;
+        if (payload?.content) {
+          this.commercials = payload.content;
+        } else if (Array.isArray(payload)) {
+          this.commercials = payload;
         }
       },
       error: () => {
@@ -245,13 +246,19 @@ export class SaleCancellationComponent implements OnInit {
       startDate: this.filterForm.startDate,
       endDate: this.filterForm.endDate,
       creditStatus: this.filterForm.creditStatus,
-      cancellationReason: this.cancellationReason
+      cancellationReason: this.cancellationReason,
+      eligibleCreditIds: this.previewResult?.eligibleSales?.map(s => s.creditId) ?? []
     };
 
     this.executing = true;
     this.cancellationService.execute(request).subscribe({
       next: (run) => {
         this.executing = false;
+        if (run.status !== 'COMPLETED') {
+          Swal.fire('Erreur d\'annulation', run.errorMessage || 'L\'opération n\'a pas abouti.', 'error');
+          this.loadHistory();
+          return;
+        }
         this.closeNewCancellation();
         this.loadHistory();
 

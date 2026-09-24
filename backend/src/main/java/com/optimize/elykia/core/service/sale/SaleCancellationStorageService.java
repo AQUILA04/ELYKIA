@@ -108,6 +108,7 @@ public class SaleCancellationStorageService {
             log.info("Fichier d'audit sauvegardé localement en outbox: {}", localFile.getAbsolutePath());
         } catch (Exception e) {
             log.error("Erreur critique lors de la sauvegarde locale outbox du fichier {}: {}", fileName, e.getMessage(), e);
+            throw new RuntimeException("Impossible d'archiver le PDF d'audit localement : " + fileName, e);
         }
     }
 

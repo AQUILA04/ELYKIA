@@ -272,7 +272,12 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
 
         const serverId = response.data.id.toString();
 
-        await this.repository.markAsSynced(client.id, serverId);
+        await this.repository.markAsSynced(
+            client.id,
+            serverId,
+            response.data.profilPhoto,
+            response.data.iddoc
+        );
         await this.repository.saveIdMapping(client.id, serverId, 'client');
 
         this.store.dispatch(ClientActions.clientSyncSuccess({

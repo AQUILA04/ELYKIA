@@ -1,10 +1,10 @@
 package com.optimize.elykia.core.service.sale;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.*;
@@ -29,11 +29,17 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class SaleCancellationService {
+
+    static final List<CreditStatus> CANCELLABLE_STATUSES = List.of(
+            CreditStatus.CREATED,
+            CreditStatus.VALIDATED,
+            CreditStatus.INPROGRESS);
 
     private final CreditRepository creditRepository;
     private final CreditTimelineRepository creditTimelineRepository;
@@ -52,9 +58,6 @@ public class SaleCancellationService {
     private final SaleCancellationStorageService storageService;
     private final ObjectMapper objectMapper;
 
-    /**
-     * Contrôle strict des dates : mois en cours uniquement et intervalle <= 31 jours.
-     */
     public void validateDates(LocalDate startDate, LocalDate endDate) {
         if (startDate == null || endDate == null) {
             throw new CustomValidationException("Les dates de début et de fin sont obligatoires.");
@@ -72,9 +75,6 @@ public class SaleCancellationService {
         }
     }
 
-    /**
-     * Simulation (Dry-Run) : identifie les ventes éligibles et celles rejetées pour recouvrements existants.
-     */
     @Transactional(readOnly = true)
     public SaleCancellationPreviewDto previewCancellation(SaleCancellationFilterDto filter) {
         validateDates(filter.getStartDate(), filter.getEndDate());
@@ -82,11 +82,13 @@ public class SaleCancellationService {
             throw new CustomValidationException("Le nom d'utilisateur du commercial est obligatoire.");
         }
 
+        List<CreditStatus> statuses = resolveCancellableStatuses(filter.getCreditStatus());
         List<Credit> sales = creditRepository.findSalesForCancellation(
                 filter.getCommercialUsername(),
                 filter.getStartDate(),
                 filter.getEndDate(),
-                filter.getCreditStatus(),
+                OperationType.CREDIT,
+                statuses,
                 State.ENABLED);
 
         List<SaleCancellationPreviewDto.EligibleSaleItemDto> eligibleList = new ArrayList<>();
@@ -97,35 +99,32 @@ public class SaleCancellationService {
         double excludedAmount = 0.0;
 
         for (Credit credit : sales) {
-            double advance = credit.getAdvance() != null ? credit.getAdvance() : 0.0;
-            double paid = credit.getTotalAmountPaid() != null ? credit.getTotalAmountPaid() : 0.0;
-            // Une vente avec une avance initiale a totalAmountPaid = advance à la création.
-            // Le recouvrement réel postérieur correspond au montant payé excédant l'avance, ou à l'existence d'une timeline active.
-            double recoveryAmount = Math.max(0.0, paid - advance);
-            boolean hasRecovery = recoveryAmount > 0.01
-                    || creditTimelineRepository.existsByCredit_IdAndState(credit.getId(), State.ENABLED);
-
-            if (hasRecovery) {
+            RecoveryCheck recovery = evaluateRecovery(credit);
+            if (recovery.hasRecovery()) {
                 excludedList.add(SaleCancellationPreviewDto.ExcludedSaleItemDto.builder()
                         .creditId(credit.getId())
                         .reference(credit.getReference())
                         .clientName(credit.getClient() != null ? credit.getClient().getFullName() : "—")
                         .saleDate(credit.getBeginDate())
-                        .totalAmount(credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0)
-                        .paidAmount(paid)
-                        .reason("Recouvrement perçu après-vente (recouvré : " + String.format("%.0f", (recoveryAmount > 0.01 ? recoveryAmount : paid)) + " FCFA)")
+                        .totalAmount(nz(credit.getTotalAmount()))
+                        .paidAmount(recovery.paid())
+                        .reason("Recouvrement perçu après-vente (recouvré : "
+                                + String.format("%.0f", recovery.displayRecovered()) + " FCFA)")
                         .build());
-                excludedAmount += (credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0);
+                excludedAmount += nz(credit.getTotalAmount());
             } else {
                 StringBuilder articlesSummary = new StringBuilder();
                 if (credit.getArticles() != null) {
                     for (CreditArticles ca : credit.getArticles()) {
-                        String name = ca.getArticles() != null ? ca.getArticles().getCommercialName() : "Article #" + ca.getArticlesId();
+                        String name = ca.getArticles() != null
+                                ? ca.getArticles().getCommercialName()
+                                : "Article #" + ca.getArticlesId();
                         int qty = ca.getQuantity() != null ? ca.getQuantity() : 0;
-                        if (articlesSummary.length() > 0) articlesSummary.append(", ");
+                        if (articlesSummary.length() > 0) {
+                            articlesSummary.append(", ");
+                        }
                         articlesSummary.append(qty).append("x ").append(name);
 
-                        // Accumulation de l'impact stock
                         if (ca.getArticles() != null) {
                             Long artId = ca.getArticles().getId();
                             SaleCancellationPreviewDto.StockImpactItemDto impact = stockImpactMap.computeIfAbsent(artId, id ->
@@ -146,11 +145,11 @@ public class SaleCancellationService {
                         .clientName(credit.getClient() != null ? credit.getClient().getFullName() : "—")
                         .saleDate(credit.getBeginDate())
                         .creditStatus(credit.getStatus() != null ? credit.getStatus().name() : "VALIDATED")
-                        .totalAmount(credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0)
-                        .advance(credit.getAdvance() != null ? credit.getAdvance() : 0.0)
+                        .totalAmount(nz(credit.getTotalAmount()))
+                        .advance(nz(credit.getAdvance()))
                         .articlesSummary(articlesSummary.toString())
                         .build());
-                eligibleAmount += (credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0);
+                eligibleAmount += nz(credit.getTotalAmount());
             }
         }
 
@@ -169,9 +168,6 @@ public class SaleCancellationService {
                 .build();
     }
 
-    /**
-     * Exécution effective de l'annulation des ventes d'un commercial.
-     */
     @Transactional
     public SaleCancellationRunDto executeCancellation(SaleCancellationExecuteDto executeDto) {
         validateDates(executeDto.getStartDate(), executeDto.getEndDate());
@@ -183,15 +179,22 @@ public class SaleCancellationService {
                 ? userService.getCurrentUser().getUsername()
                 : "ADMIN";
 
-        List<Credit> sales = creditRepository.findSalesForCancellation(
+        List<CreditStatus> statuses = resolveCancellableStatuses(executeDto.getCreditStatus());
+        List<Credit> sales = creditRepository.findSalesForCancellationForUpdate(
                 executeDto.getCommercialUsername(),
                 executeDto.getStartDate(),
                 executeDto.getEndDate(),
-                executeDto.getCreditStatus(),
+                OperationType.CREDIT,
+                statuses,
                 State.ENABLED);
 
+        if (executeDto.getEligibleCreditIds() != null) {
+            Set<Long> confirmedIds = new HashSet<>(executeDto.getEligibleCreditIds());
+            sales = sales.stream().filter(c -> confirmedIds.contains(c.getId())).collect(Collectors.toList());
+        }
+
         if (sales.isEmpty()) {
-            throw new CustomValidationException("Aucune vente trouvée pour les critères spécifiés.");
+            throw new CustomValidationException("Aucune vente crédit éligible trouvée pour les critères spécifiés.");
         }
 
         SaleCancellationRun run = new SaleCancellationRun();
@@ -201,7 +204,7 @@ public class SaleCancellationService {
         run.setCreditStatus(executeDto.getCreditStatus());
         run.setCancellationReason(executeDto.getCancellationReason());
         run.setTriggeredBy(adminUsername);
-        run.setStatus(SaleCancellationRunStatus.PENDING);
+        run.setStatus(SaleCancellationRunStatus.PROCESSING);
         run.setTotalSalesFound(sales.size());
         run = runRepository.save(run);
 
@@ -211,205 +214,159 @@ public class SaleCancellationService {
         double cancelledAmount = 0.0;
         double excludedAmount = 0.0;
 
-        try {
-            run.setStatus(SaleCancellationRunStatus.PROCESSING);
-            runRepository.save(run);
+        LocalDate now = LocalDate.now();
+        CommercialMonthlyStock monthlyStock = commercialMonthlyStockRepository
+                .findByCollectorAndMonthAndYear(executeDto.getCommercialUsername(), now.getMonthValue(), now.getYear())
+                .orElseThrow(() -> new CustomValidationException(
+                        "Stock mensuel commercial introuvable pour " + executeDto.getCommercialUsername()
+                                + " (" + now.getMonthValue() + "/" + now.getYear() + ")."));
 
-            LocalDate now = LocalDate.now();
-            // Récupérer le stock mensuel du commercial pour le mois en cours
-            CommercialMonthlyStock monthlyStock = commercialMonthlyStockRepository
-                    .findByCollectorAndMonthAndYear(executeDto.getCommercialUsername(), now.getMonthValue(), now.getYear())
-                    .orElseGet(() -> {
-                        CommercialMonthlyStock newStock = new CommercialMonthlyStock();
-                        newStock.setCollector(executeDto.getCommercialUsername());
-                        newStock.setMonth(now.getMonthValue());
-                        newStock.setYear(now.getYear());
-                        return commercialMonthlyStockRepository.save(newStock);
-                    });
-
-            int pdfCount = 0;
-
-            for (Credit credit : sales) {
-                // Règle 1 : rejet strict si la vente a déjà fait l'objet de recouvrements ultérieurs
-                double advance = credit.getAdvance() != null ? credit.getAdvance() : 0.0;
-                double paid = credit.getTotalAmountPaid() != null ? credit.getTotalAmountPaid() : 0.0;
-                double recoveryAmount = Math.max(0.0, paid - advance);
-                boolean hasRecovery = recoveryAmount > 0.01
-                        || creditTimelineRepository.existsByCredit_IdAndState(credit.getId(), State.ENABLED);
-
-                if (hasRecovery) {
-                    excludedRows.add(new SaleCancellationPdfService.ExcludedSaleRow(
-                            credit.getReference(),
-                            credit.getClient() != null ? credit.getClient().getFullName() : "—",
-                            credit.getBeginDate() != null ? credit.getBeginDate().toString() : "—",
-                            credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0,
-                            paid,
-                            "Recouvrement perçu après-vente (recouvré : " + String.format("%.0f", (recoveryAmount > 0.01 ? recoveryAmount : paid)) + " FCFA)"));
-                    excludedAmount += (credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0);
-                    continue;
-                }
-
-                // Phase A : Archivage PDF de la vente avant modification
-                byte[] salePdf = pdfService.generateSaleAuditPdf(credit, executeDto.getCancellationReason(), adminUsername);
-                String salePdfName = String.format("audit_vente_%s.pdf", credit.getReference());
-                storageService.storeFile(
-                        run,
-                        salePdfName,
-                        SaleCancellationFileType.SALE_AUDIT_PDF,
-                        salePdf,
-                        credit.getId(),
+        List<Credit> toCancel = new ArrayList<>();
+        for (Credit credit : sales) {
+            RecoveryCheck recovery = evaluateRecovery(credit);
+            if (recovery.hasRecovery()) {
+                excludedRows.add(new SaleCancellationPdfService.ExcludedSaleRow(
                         credit.getReference(),
                         credit.getClient() != null ? credit.getClient().getFullName() : "—",
-                        credit.getTotalAmount());
-                pdfCount++;
-
-                // Phase B : Réintégration dans le stock commercial du mois en cours
-                if (credit.getArticles() != null) {
-                    for (CreditArticles ca : credit.getArticles()) {
-                        if (ca.getArticles() == null) continue;
-
-                        CommercialMonthlyStockItem stockItem = monthlyStock.getItems().stream()
-                                .filter(item -> item.getArticle().getId().equals(ca.getArticles().getId()))
-                                .findFirst()
-                                .orElseGet(() -> {
-                                    CommercialMonthlyStockItem newItem = new CommercialMonthlyStockItem();
-                                    newItem.setArticle(ca.getArticles());
-                                    newItem.setMonthlyStock(monthlyStock);
-                                    monthlyStock.addItem(newItem);
-                                    return commercialMonthlyStockItemRepository.save(newItem);
-                                });
-
-                        int qty = ca.getQuantity() != null ? ca.getQuantity() : 0;
-                        int beforeQty = stockItem.getQuantityRemaining();
-                        stockItem.setQuantitySold(Math.max(0, stockItem.getQuantitySold() - qty));
-                        stockItem.updateRemaining();
-                        commercialMonthlyStockItemRepository.save(stockItem);
-
-                        // Mouvement de stock d'annulation
-                        commercialStockMovementService.record(
-                                stockItem.getId(),
-                                credit.getId(),
-                                credit.getReference(),
-                                CommercialStockMovementType.SALE_CANCELLATION,
-                                beforeQty,
-                                qty,
-                                stockItem.getQuantityRemaining(),
-                                null,
-                                monthlyStock.getCollector(),
-                                stockItem.getArticle().getId(),
-                                stockItem.getArticle().getCommercialName(),
-                                stockItem.getWeightedAveragePurchasePrice(),
-                                ca.getUnitPrice(),
-                                0.0,
-                                "CREDIT_CANCEL",
-                                credit.getId()
-                        );
-                    }
-                }
-
-                // Phase C : Décrémentation du DailyCommercialReport de la date de la vente
-                LocalDate saleDate = credit.getBeginDate() != null ? credit.getBeginDate() : now;
-                DailyCommercialReport report = dailyCommercialReportRepository
-                        .findByDateAndCommercialUsername(saleDate, executeDto.getCommercialUsername())
-                        .orElse(null);
-
-                if (report != null) {
-                    report.setCreditSalesCount(Math.max(0, report.getCreditSalesCount() - 1));
-                    double saleAmt = credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0;
-                    report.setCreditSalesAmount(Math.max(0.0, report.getCreditSalesAmount() - saleAmt));
-                    Double totalPurch = credit.getTotalPurchase() != null ? credit.getTotalPurchase() : credit.calculTotalPurchase();
-                    double margin = saleAmt - (totalPurch != null ? totalPurch : 0.0);
-                    report.setCreditSalesMargin(Math.max(0.0, report.getCreditSalesMargin() - margin));
-
-                    Double adv = credit.getAdvance() != null ? credit.getAdvance() : 0.0;
-                    if (adv > 0) {
-                        report.setTotalAdvancesAmount(Math.max(0.0, report.getTotalAdvancesAmount() - adv));
-                        report.setTotalAmountToDeposit(Math.max(0.0, report.getTotalAmountToDeposit() - adv));
-                    }
-                    reportPersistence.save(report);
-                }
-
-                // Phase D : Traçabilité dans le journal d'opérations (DailyOperationLog)
-                dailyOperationService.logOperation(
-                        executeDto.getCommercialUsername(),
-                        OperationType.CREDIT_SALE_CANCEL,
-                        -(credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0),
-                        "ANNUL-" + credit.getReference(),
-                        "Annulation de vente (Ref: " + credit.getReference() + ", Admin: " + adminUsername + ", Motif: " + executeDto.getCancellationReason() + ")",
-                        0.0,
-                        0.0,
-                        now);
-
-                // Phase E : Mise à jour du statut du crédit et du client
-                credit.setStatus(CreditStatus.CANCELLED);
-                credit.setState(State.DELETED);
-                creditRepository.save(credit);
-
-                if (credit.getClientId() != null && ClientType.CLIENT.equals(credit.getClientType())) {
-                    CreditPurpose purpose = credit.getCreditPurpose() != null ? credit.getCreditPurpose() : CreditPurpose.PERSONAL;
-                    if (CreditPurpose.BUSINESS.equals(purpose)) {
-                        if (!creditRepository.hasCreditInProgressForPurpose(credit.getClientId(), CreditPurpose.BUSINESS)) {
-                            clientService.updateBusinessCreditInProgress(credit.getClientId(), Boolean.FALSE);
-                        }
-                    } else {
-                        if (!creditRepository.hasCreditInProgressForPurpose(credit.getClientId(), CreditPurpose.PERSONAL)) {
-                            clientService.updateCreditStatus(credit.getClientId(), Boolean.FALSE);
-                        }
-                    }
-                }
-
-                cancelledAmount += (credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0);
-                StringBuilder summaryArts = new StringBuilder();
-                if (credit.getArticles() != null) {
-                    for (CreditArticles a : credit.getArticles()) {
-                        if (summaryArts.length() > 0) summaryArts.append(", ");
-                        summaryArts.append(a.getQuantity()).append("x ").append(a.getArticles() != null ? a.getArticles().getCommercialName() : "");
-                    }
-                }
-                cancelledRows.add(new SaleCancellationPdfService.CancelledSaleRow(
-                        credit.getReference(),
-                        credit.getClient() != null ? credit.getClient().getFullName() : "—",
-                        saleDate.toString(),
-                        credit.getStatus() != null ? credit.getStatus().name() : "VALIDATED",
-                        credit.getTotalAmount() != null ? credit.getTotalAmount() : 0.0,
-                        summaryArts.toString()));
+                        credit.getBeginDate() != null ? credit.getBeginDate().toString() : "—",
+                        nz(credit.getTotalAmount()),
+                        recovery.paid(),
+                        "Recouvrement perçu après-vente (recouvré : "
+                                + String.format("%.0f", recovery.displayRecovered()) + " FCFA)"));
+                excludedAmount += nz(credit.getTotalAmount());
+                continue;
             }
+            assertStockRestorable(credit, monthlyStock);
+            LocalDate saleDate = credit.getBeginDate() != null ? credit.getBeginDate() : now;
+            dailyCommercialReportRepository
+                    .findByDateAndCommercialUsername(saleDate, executeDto.getCommercialUsername())
+                    .orElseThrow(() -> new CustomValidationException(
+                            "Rapport journalier absent pour le " + saleDate + " / "
+                                    + executeDto.getCommercialUsername()
+                                    + " (vente " + credit.getReference() + "). Annulation interrompue."));
+            toCancel.add(credit);
+        }
 
-            commercialMonthlyStockRepository.save(monthlyStock);
+        int pdfCount = 0;
 
-            // Phase F : Génération du rapport de synthèse global
-            run.setCancelledSalesCount(cancelledRows.size());
-            run.setCancelledSalesAmount(cancelledAmount);
-            run.setExcludedSalesCount(excludedRows.size());
-            run.setExcludedSalesAmount(excludedAmount);
-            run.setPdfFileCount(pdfCount);
+        for (Credit credit : toCancel) {
+            CreditStatus initialStatus = credit.getStatus();
 
-            byte[] summaryPdf = pdfService.generateSummaryReportPdf(run, cancelledRows, excludedRows);
-            String summaryFileName = String.format("rapport_global_annulation_run_%d.pdf", run.getId());
+            byte[] salePdf = pdfService.generateSaleAuditPdf(credit, executeDto.getCancellationReason(), adminUsername);
+            String salePdfName = String.format("audit_vente_%s.pdf", sanitizeFileToken(credit.getReference()));
             storageService.storeFile(
                     run,
-                    summaryFileName,
-                    SaleCancellationFileType.GLOBAL_SUMMARY_PDF,
-                    summaryPdf,
-                    null,
-                    null,
-                    null,
-                    cancelledAmount);
+                    salePdfName,
+                    SaleCancellationFileType.SALE_AUDIT_PDF,
+                    salePdf,
+                    credit.getId(),
+                    credit.getReference(),
+                    credit.getClient() != null ? credit.getClient().getFullName() : "—",
+                    credit.getTotalAmount());
+            pdfCount++;
 
-            run.setArchiveFileName(summaryFileName);
-            run.setStatus(SaleCancellationRunStatus.COMPLETED);
-            run.setExcludedSalesDetails(objectMapper.writeValueAsString(excludedRows));
-            run = runRepository.save(run);
+            restoreCommercialStock(credit, monthlyStock);
 
-            log.info("Annulation de ventes terminée avec succès pour run {}: {} annulées, {} exclues",
-                    run.getId(), cancelledRows.size(), excludedRows.size());
+            LocalDate saleDate = credit.getBeginDate() != null ? credit.getBeginDate() : now;
+            DailyCommercialReport report = dailyCommercialReportRepository
+                    .findByDateAndCommercialUsername(saleDate, executeDto.getCommercialUsername())
+                    .orElseThrow(() -> new CustomValidationException(
+                            "Rapport journalier absent pour le " + saleDate + " / "
+                                    + executeDto.getCommercialUsername()
+                                    + " (vente " + credit.getReference() + "). Annulation interrompue."));
 
-        } catch (Exception e) {
-            log.error("Échec critique lors du traitement du run d'annulation de ventes {}: {}", run.getId(), e.getMessage(), e);
-            run.setStatus(SaleCancellationRunStatus.FAILED);
-            run.setErrorMessage(e.getMessage());
-            run = runRepository.save(run);
+            report.setCreditSalesCount(Math.max(0, nz(report.getCreditSalesCount()) - 1));
+            double saleAmt = nz(credit.getTotalAmount());
+            report.setCreditSalesAmount(Math.max(0.0, nz(report.getCreditSalesAmount()) - saleAmt));
+            Double totalPurch = credit.getTotalPurchase() != null ? credit.getTotalPurchase() : credit.calculTotalPurchase();
+            double margin = saleAmt - nz(totalPurch);
+            report.setCreditSalesMargin(Math.max(0.0, nz(report.getCreditSalesMargin()) - margin));
+
+            double adv = nz(credit.getAdvance());
+            if (adv > 0) {
+                report.setTotalAdvancesAmount(Math.max(0.0, nz(report.getTotalAdvancesAmount()) - adv));
+                report.setTotalAmountToDeposit(Math.max(0.0, nz(report.getTotalAmountToDeposit()) - adv));
+            }
+            reportPersistence.save(report);
+
+            dailyOperationService.logOperationInCurrentTransaction(
+                    executeDto.getCommercialUsername(),
+                    OperationType.CREDIT_SALE_CANCEL,
+                    -saleAmt,
+                    "ANNUL-" + credit.getReference(),
+                    "Annulation de vente (Ref: " + credit.getReference() + ", Admin: " + adminUsername
+                            + ", Motif: " + executeDto.getCancellationReason() + ")",
+                    0.0,
+                    0.0,
+                    saleDate);
+
+            credit.setStatus(CreditStatus.CANCELLED);
+            credit.setState(State.DELETED);
+            creditRepository.save(credit);
+
+            if (credit.getClientId() != null && ClientType.CLIENT.equals(credit.getClientType())) {
+                CreditPurpose purpose = credit.getCreditPurpose() != null ? credit.getCreditPurpose() : CreditPurpose.PERSONAL;
+                if (CreditPurpose.BUSINESS.equals(purpose)) {
+                    if (!creditRepository.hasCreditInProgressForPurpose(credit.getClientId(), CreditPurpose.BUSINESS)) {
+                        clientService.updateBusinessCreditInProgress(credit.getClientId(), Boolean.FALSE);
+                    }
+                } else if (!creditRepository.hasCreditInProgressForPurpose(credit.getClientId(), CreditPurpose.PERSONAL)) {
+                    clientService.updateCreditStatus(credit.getClientId(), Boolean.FALSE);
+                }
+            }
+
+            cancelledAmount += saleAmt;
+            StringBuilder summaryArts = new StringBuilder();
+            if (credit.getArticles() != null) {
+                for (CreditArticles a : credit.getArticles()) {
+                    if (summaryArts.length() > 0) {
+                        summaryArts.append(", ");
+                    }
+                    summaryArts.append(a.getQuantity()).append("x ")
+                            .append(a.getArticles() != null ? a.getArticles().getCommercialName() : "");
+                }
+            }
+            cancelledRows.add(new SaleCancellationPdfService.CancelledSaleRow(
+                    credit.getReference(),
+                    credit.getClient() != null ? credit.getClient().getFullName() : "—",
+                    saleDate.toString(),
+                    initialStatus != null ? initialStatus.name() : "VALIDATED",
+                    saleAmt,
+                    summaryArts.toString()));
         }
+
+        commercialMonthlyStockRepository.save(monthlyStock);
+
+        run.setCancelledSalesCount(cancelledRows.size());
+        run.setCancelledSalesAmount(cancelledAmount);
+        run.setExcludedSalesCount(excludedRows.size());
+        run.setExcludedSalesAmount(excludedAmount);
+
+        byte[] summaryPdf = pdfService.generateSummaryReportPdf(run, cancelledRows, excludedRows);
+        String summaryFileName = String.format("rapport_global_annulation_run_%d.pdf", run.getId());
+        storageService.storeFile(
+                run,
+                summaryFileName,
+                SaleCancellationFileType.GLOBAL_SUMMARY_PDF,
+                summaryPdf,
+                null,
+                null,
+                null,
+                cancelledAmount);
+        pdfCount++;
+
+        run.setPdfFileCount(pdfCount);
+        run.setArchiveFileName(summaryFileName);
+        run.setStatus(SaleCancellationRunStatus.COMPLETED);
+        try {
+            run.setExcludedSalesDetails(objectMapper.writeValueAsString(excludedRows));
+        } catch (JsonProcessingException e) {
+            throw new CustomValidationException("Impossible de sérialiser le détail des exclusions d'annulation.");
+        }
+        run = runRepository.save(run);
+
+        log.info("Annulation de ventes terminée avec succès pour run {}: {} annulées, {} exclues",
+                run.getId(), cancelledRows.size(), excludedRows.size());
 
         return SaleCancellationRunDto.fromEntity(run);
     }
@@ -445,6 +402,126 @@ public class SaleCancellationService {
         byte[] content = storageService.downloadFile(file);
         return new DownloadableFile(file.getFileName(), content);
     }
+
+    List<CreditStatus> resolveCancellableStatuses(CreditStatus filter) {
+        if (filter == null) {
+            return CANCELLABLE_STATUSES;
+        }
+        if (!CANCELLABLE_STATUSES.contains(filter)) {
+            throw new CustomValidationException(
+                    "Seules les ventes CREDIT aux statuts CREATED, VALIDATED ou INPROGRESS peuvent être annulées.");
+        }
+        return List.of(filter);
+    }
+
+    private RecoveryCheck evaluateRecovery(Credit credit) {
+        double advance = nz(credit.getAdvance());
+        double paid = nz(credit.getTotalAmountPaid());
+        double recoveryAmount = Math.max(0.0, paid - advance);
+        boolean hasRecovery = recoveryAmount > 0.01
+                || creditTimelineRepository.existsByCredit_IdAndState(credit.getId(), State.ENABLED);
+        return new RecoveryCheck(hasRecovery, paid, recoveryAmount > 0.01 ? recoveryAmount : paid);
+    }
+
+    private void assertStockRestorable(Credit credit, CommercialMonthlyStock monthlyStock) {
+        if (credit.getArticles() == null || credit.getArticles().isEmpty()) {
+            throw new CustomValidationException(
+                    "La vente " + credit.getReference() + " n'a aucun article à réintégrer en stock.");
+        }
+        if (monthlyStock.getItems() == null) {
+            throw new CustomValidationException("Le stock mensuel du commercial n'a aucune ligne d'article.");
+        }
+        for (CreditArticles ca : credit.getArticles()) {
+            resolveStockItem(credit, monthlyStock, ca);
+        }
+    }
+
+    private CommercialMonthlyStockItem resolveStockItem(
+            Credit credit, CommercialMonthlyStock monthlyStock, CreditArticles ca) {
+        if (ca.getArticles() == null) {
+            throw new CustomValidationException(
+                    "Article introuvable sur la vente " + credit.getReference() + " : restitution stock impossible.");
+        }
+        CommercialMonthlyStockItem stockItem = monthlyStock.getItems().stream()
+                .filter(item -> item.getArticle() != null
+                        && item.getArticle().getId().equals(ca.getArticles().getId()))
+                .findFirst()
+                .orElseThrow(() -> new CustomValidationException(
+                        "Article non trouvé dans le stock du commercial : "
+                                + ca.getArticles().getCommercialName()
+                                + " (vente " + credit.getReference() + ")."));
+        int qty = ca.getQuantity() != null ? ca.getQuantity() : 0;
+        int sold = stockItem.getQuantitySold() != null ? stockItem.getQuantitySold() : 0;
+        if (sold < qty) {
+            throw new CustomValidationException(
+                    "Quantité vendue insuffisante pour restituer " + qty + " x "
+                            + ca.getArticles().getCommercialName()
+                            + " (stock vendu actuel : " + sold + ").");
+        }
+        return stockItem;
+    }
+
+    private void restoreCommercialStock(Credit credit, CommercialMonthlyStock monthlyStock) {
+        for (CreditArticles ca : credit.getArticles()) {
+            CommercialMonthlyStockItem stockItem = resolveStockItem(credit, monthlyStock, ca);
+            int qty = ca.getQuantity() != null ? ca.getQuantity() : 0;
+            int sold = stockItem.getQuantitySold() != null ? stockItem.getQuantitySold() : 0;
+
+            int beforeQty = stockItem.getQuantityRemaining() != null ? stockItem.getQuantityRemaining() : 0;
+            stockItem.setQuantitySold(sold - qty);
+
+            double unitSale = ca.getUnitPrice() != null && ca.getUnitPrice() > 0
+                    ? ca.getUnitPrice()
+                    : nz(stockItem.getWeightedAverageUnitPrice());
+            double lineSold = qty * unitSale;
+            stockItem.setTotalSoldValue(Math.max(0.0, nz(stockItem.getTotalSoldValue()) - lineSold));
+
+            double purchasePmp = ca.getUnitPurchaseCost() != null && ca.getUnitPurchaseCost() > 0
+                    ? ca.getUnitPurchaseCost()
+                    : nz(stockItem.getWeightedAveragePurchasePrice());
+            double lineMargin = qty * (unitSale - purchasePmp);
+            stockItem.setTotalMargeValue(Math.max(0.0, nz(stockItem.getTotalMargeValue()) - lineMargin));
+
+            stockItem.updateRemaining();
+            commercialMonthlyStockItemRepository.save(stockItem);
+
+            commercialStockMovementService.record(
+                    stockItem.getId(),
+                    credit.getId(),
+                    credit.getReference(),
+                    CommercialStockMovementType.SALE_CANCELLATION,
+                    beforeQty,
+                    qty,
+                    stockItem.getQuantityRemaining(),
+                    null,
+                    monthlyStock.getCollector(),
+                    stockItem.getArticle().getId(),
+                    stockItem.getArticle().getCommercialName(),
+                    stockItem.getWeightedAveragePurchasePrice(),
+                    unitSale,
+                    -lineMargin,
+                    "CREDIT_CANCEL",
+                    credit.getId()
+            );
+        }
+    }
+
+    private static String sanitizeFileToken(String value) {
+        if (!StringUtils.hasText(value)) {
+            return "sans_ref";
+        }
+        return value.replaceAll("[^A-Za-z0-9._-]", "_");
+    }
+
+    private static double nz(Double value) {
+        return value != null ? value : 0.0;
+    }
+
+    private static int nz(Integer value) {
+        return value != null ? value : 0;
+    }
+
+    private record RecoveryCheck(boolean hasRecovery, double paid, double displayRecovered) {}
 
     public record DownloadableFile(String fileName, byte[] content) {}
 }

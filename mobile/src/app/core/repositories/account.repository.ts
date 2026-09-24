@@ -86,7 +86,13 @@ export class AccountRepository extends BaseRepository<Account, string> {
     }
 
     async markAsSynced(localId: string, serverId: string): Promise<void> {
-        if (!this.databaseService['db'] || localId === serverId) return;
+        if (!this.databaseService['db']) {
+            return;
+        }
+        if (localId === serverId) {
+            await this.updateSyncStatus(localId, true);
+            return;
+        }
         await this.databaseService.execute(
             `UPDATE accounts SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now') WHERE id = ?`,
             [serverId, localId]

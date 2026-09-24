@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Builder
@@ -28,4 +29,7 @@ public class SaleCancellationExecuteDto {
 
     @NotBlank(message = "Le motif d'annulation est obligatoire pour l'audit")
     private String cancellationReason;
+
+    /** Identifiants des ventes éligibles confirmés par la simulation ; ignore les ventes apparues entre-temps. */
+    private List<Long> eligibleCreditIds;
 }

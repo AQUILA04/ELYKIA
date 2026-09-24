@@ -61,5 +61,24 @@ export const accountReducer = createReducer(
       }));
     if (updates.length === 0) return state;
     return accountAdapter.updateMany(updates, state);
+  }),
+  on(AccountActions.accountSyncSuccess, (state, { localId, serverId }) => {
+    const localIdStr = String(localId);
+    const serverIdStr = String(serverId);
+    const existing = state.entities[localIdStr] || state.entities[serverIdStr];
+    if (!existing) {
+      return state;
+    }
+    const synced: Account = {
+      ...existing,
+      id: serverIdStr,
+      isSync: true,
+      isLocal: false
+    };
+    let next = state;
+    if (localIdStr !== serverIdStr) {
+      next = accountAdapter.removeOne(localIdStr, next);
+    }
+    return accountAdapter.upsertOne(synced, { ...next, error: null });
   })
 );

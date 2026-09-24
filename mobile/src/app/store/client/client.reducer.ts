@@ -315,20 +315,10 @@ export const clientReducer = createReducer(
     const localIdStr = String(localId);
     const existing = state.entities[localIdStr] || state.entities[serverIdStr];
 
-    const updatedClient: Client = {
-      ...(existing || {} as Client),
-      id: serverIdStr,
-      isSync: true,
-      isLocal: false,
+    const photoPatch = {
       ...(profilPhotoUrl ? { profilPhotoUrl } : {}),
       ...(cardPhotoUrl ? { cardPhotoUrl } : {})
     };
-
-    let newState = state;
-    if (localIdStr !== serverIdStr) {
-      newState = adapter.removeOne(localIdStr, newState);
-    }
-    newState = adapter.upsertOne(updatedClient, newState);
 
     const updatedItems = state.pagination.items.map(item => {
       if (String(item.id) === localIdStr || String(item.id) === serverIdStr) {
@@ -337,12 +327,35 @@ export const clientReducer = createReducer(
           id: serverIdStr,
           isSync: true,
           isLocal: false,
-          ...(profilPhotoUrl ? { profilPhotoUrl } : {}),
-          ...(cardPhotoUrl ? { cardPhotoUrl } : {})
+          ...photoPatch
         };
       }
       return item;
     });
+
+    if (!existing) {
+      return {
+        ...state,
+        pagination: {
+          ...state.pagination,
+          items: updatedItems
+        }
+      };
+    }
+
+    const updatedClient: Client = {
+      ...existing,
+      id: serverIdStr,
+      isSync: true,
+      isLocal: false,
+      ...photoPatch
+    };
+
+    let newState = state;
+    if (localIdStr !== serverIdStr) {
+      newState = adapter.removeOne(localIdStr, newState);
+    }
+    newState = adapter.upsertOne(updatedClient, newState);
 
     return {
       ...newState,

@@ -31,7 +31,8 @@ public class SaleCancellationOutboxRetryScheduler {
         }
 
         List<SaleCancellationOutboxEntry> entries = outboxRepository.findByStatusInAndRetryCountLessThan(
-                List.of(MonthlyReportOutboxStatus.PENDING, MonthlyReportOutboxStatus.FAILED),
+                List.of(MonthlyReportOutboxStatus.PENDING, MonthlyReportOutboxStatus.FAILED,
+                        MonthlyReportOutboxStatus.UPLOADING),
                 MAX_RETRIES);
 
         if (entries.isEmpty()) {

@@ -9,6 +9,24 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.8] — 2026-09-24
+
+### Fixed
+
+- Annulation de ventes : chargement de la liste des commerciaux via `/api/v1/promoters` (typo `prometers`) et lecture de `data.content` pour alimenter le sélecteur de simulation.
+
+## Frontend — [2.22.7] — 2026-09-24
+
+### Added
+
+- Golden path Playwright **annulation de ventes** : création de deux ventes crédit COM020 sans recouvrement, simulation admin, exécution bornée aux deux IDs, puis assertions stock, rapport journalier, run `COMPLETED` et PDF d'audit (`npm run test:e2e:golden`).
+
+## Frontend — [2.22.6] — 2026-09-24
+
+### Fixed
+
+- **Annulation de ventes** : succès affiché uniquement si le run est `COMPLETED` ; exécution limitée aux ventes confirmées par la simulation ; filtres de statut restreints à CREATED / VALIDATED / INPROGRESS ; enum `CreditStatus.CANCELLED` aligné sur le backend.
+
 ## Frontend — [2.22.5] — 2026-09-24
 
 ### Added
@@ -65,6 +83,23 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Sous-menu **Articles Vendus** (ou **Articles**) sous le menu Ventes pour afficher la liste globale des quantités vendues par article et par commercial.
 - Filtres de période (Ce jour, Cette semaine, Ce mois, Personnalisé) et filtre par commercial sur la liste des articles vendus.
+
+## Backend — [1.19.8] — 2026-09-24
+
+### Fixed
+
+- PDF d'audit d'annulation de vente : le libellé « Date & Heure » cassait le parseur XHTML (entité XML) et faisait échouer `POST /execute` en HTTP 500.
+- Contraintes CHECK : `SALE_CANCELLATION` sur `commercial_stock_movement.movement_type` et `CANCELLED` sur `credit.status`.
+
+## Backend — [1.19.7] — 2026-09-24
+
+### Fixed
+
+- **Annulation de ventes** : rollback transactionnel complet en cas d'échec (plus de ventes partiellement annulées avec HTTP 200) ; périmètre limité aux crédits `CREDIT` CREATED/VALIDATED/INPROGRESS ; restitution de `totalSoldValue`/`totalMargeValue` ; refus si stock ou rapport journalier manquant ; journal d'annulation à la date de vente dans la même transaction ; table outbox alignée sur `Auditable` ; retry des fichiers `UPLOADING` ; exécution bornée aux IDs de la simulation.
+
+### Added
+
+- Tests unitaires `SaleCancellationServiceTest` (éligibilité recouvrement, restitution stock, rapport journalier obligatoire, IDs de preview).
 
 ## Backend — [1.19.6] — 2026-09-24
 
@@ -138,6 +173,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - DTOs `SoldArticleDto` et `SoldArticleSearchDto` pour la recherche agrégée des articles vendus.
 - Requête paginée `findSoldArticles` dans `CreditArticlesRepository` avec `GROUP BY` sur article et commercial.
 - Endpoint `POST /api/v1/credits/articles-vendus/search` pour exposer les données agrégées.
+
+## Mobile — [2.30.3] — 2026-09-24
+
+### Fixed
+
+- Sync client : transmission des URLs photo à `markAsSynced` ; plus d'upsert NgRx d'un client vide si l'entité locale n'est pas chargée ; `isLocal` mis à jour même si l'id local égale l'id serveur.
+- Sync compte : action `accountSyncSuccess` pour réécrire l'id et les drapeaux de sync dans le store après création ou mise à jour.
 
 ## Mobile — [2.30.2] — 2026-09-24
 

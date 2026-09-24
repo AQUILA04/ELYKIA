@@ -1,4 +1,4 @@
-<div class="sale-cancellation-container">
+<div class="sale-cancellation-container" data-testid="e2e-sale-cancellation-page">
 
   <!-- EN-TÊTE / BREADCRUMB -->
   <div class="page-breadcrumb">
@@ -22,6 +22,7 @@
     <div class="toolbar-right">
       <!-- BOUTON DÉCLENCHEUR : VISIBLE UNIQUEMENT POUR ROLE_ADMIN -->
       <button class="btn btn-danger btn-new-cancellation"
+              data-testid="e2e-sale-cancellation-new-btn"
               *ngxPermissionsOnly="['ROLE_ADMIN']"
               (click)="openNewCancellation()">
         <mat-icon>remove_circle_outline</mat-icon>
@@ -54,7 +55,10 @@
         </tr>
         </thead>
         <tbody>
-        <tr *ngFor="let run of runs">
+        <tr *ngFor="let run of runs"
+            [attr.data-testid]="'e2e-sale-cancellation-run-row'"
+            [attr.data-run-id]="run.id"
+            [attr.data-status]="run.status">
           <td class="font-weight-bold">#{{ run.id }}</td>
           <td>{{ run.createdDate | date:'dd/MM/yyyy HH:mm' }}</td>
           <td>
@@ -222,7 +226,9 @@
           <div class="row-fields">
             <div class="field-group">
               <label>Commercial : <span class="req">*</span></label>
-              <select class="form-control" [(ngModel)]="filterForm.commercialUsername">
+              <select class="form-control"
+                      data-testid="e2e-sale-cancellation-commercial"
+                      [(ngModel)]="filterForm.commercialUsername">
                 <option value="">Sélectionner un commercial...</option>
                 <option *ngFor="let c of commercials" [value]="c.username || c.login || c.collector">
                   {{ c.fullName || (c.firstname + ' ' + c.lastname) || c.username }} ({{ c.username || c.login }})
@@ -234,6 +240,7 @@
               <label>Date Début (Mois en cours) : <span class="req">*</span></label>
               <input type="date"
                      class="form-control"
+                     data-testid="e2e-sale-cancellation-start"
                      [(ngModel)]="filterForm.startDate"
                      [min]="minDateString"
                      [max]="maxDateString">
@@ -243,6 +250,7 @@
               <label>Date Fin (Mois en cours) : <span class="req">*</span></label>
               <input type="date"
                      class="form-control"
+                     data-testid="e2e-sale-cancellation-end"
                      [(ngModel)]="filterForm.endDate"
                      [min]="minDateString"
                      [max]="maxDateString">
@@ -251,17 +259,16 @@
             <div class="field-group">
               <label>Statut de vente :</label>
               <select class="form-control" [(ngModel)]="filterForm.creditStatus">
-                <option [ngValue]="null">Tous les statuts</option>
+                <option [ngValue]="null">Tous (CREATED, VALIDATED, INPROGRESS)</option>
                 <option value="CREATED">CREATED</option>
                 <option value="VALIDATED">VALIDATED</option>
                 <option value="INPROGRESS">INPROGRESS</option>
-                <option value="DELIVERED">DELIVERED</option>
-                <option value="ENDED">ENDED</option>
               </select>
             </div>
 
             <div class="field-group btn-col">
               <button class="btn btn-primary btn-block"
+                      data-testid="e2e-sale-cancellation-simulate"
                       (click)="onSimulate()"
                       [disabled]="loadingPreview">
                 <mat-icon [class.spin]="loadingPreview">search</mat-icon>
@@ -280,7 +287,7 @@
               <span class="title">Total Ventes Détectées</span>
               <span class="value">{{ previewResult.totalSalesFound }}</span>
             </div>
-            <div class="sim-kpi-box box-green">
+            <div class="sim-kpi-box box-green" data-testid="e2e-sale-cancellation-eligible-kpi">
               <span class="title">Ventes Éligibles à l'Annulation</span>
               <span class="value">{{ previewResult.eligibleCount }}</span>
               <span class="sub">{{ previewResult.eligibleAmount | number:'1.0-0' }} FCFA</span>
@@ -312,7 +319,9 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <tr *ngFor="let s of previewResult.eligibleSales">
+                    <tr *ngFor="let s of previewResult.eligibleSales"
+                        [attr.data-testid]="'e2e-sale-cancellation-eligible-row'"
+                        [attr.data-credit-reference]="s.reference">
                       <td class="font-weight-bold">{{ s.reference }}</td>
                       <td>{{ s.clientName }}</td>
                       <td>{{ s.saleDate | date:'dd/MM/yyyy' }}</td>
@@ -397,6 +406,7 @@
               Motif obligatoire de l'annulation (consigné pour l'audit financier) : <span class="req">*</span>
             </label>
             <textarea class="form-control"
+                      data-testid="e2e-sale-cancellation-reason"
                       rows="2"
                       [(ngModel)]="cancellationReason"
                       placeholder="Ex: Erreur de commercialisation, doublon de saisie, vente annulée par accord direction..."></textarea>
@@ -408,6 +418,7 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" (click)="closeNewCancellation()" [disabled]="executing">Fermer</button>
         <button class="btn btn-danger"
+                data-testid="e2e-sale-cancellation-confirm"
                 *ngIf="previewResult && previewResult.eligibleCount > 0"
                 (click)="onConfirmExecution()"
                 [disabled]="executing || !cancellationReason.trim()">

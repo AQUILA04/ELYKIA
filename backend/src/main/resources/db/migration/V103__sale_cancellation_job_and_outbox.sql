@@ -49,7 +49,11 @@ CREATE TABLE IF NOT EXISTS sale_cancellation_file (
 -- 3. Table Outbox pour retry des uploads MinIO
 CREATE TABLE IF NOT EXISTS sale_cancellation_outbox_entry (
     id BIGSERIAL PRIMARY KEY,
-    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    reg_user_id VARCHAR(50) NOT NULL,
+    date_reg TIMESTAMP(6) WITHOUT TIME ZONE NOT NULL,
+    mod_user_id VARCHAR(50),
+    date_mod TIMESTAMP(6) WITHOUT TIME ZONE,
+    visibility VARCHAR(255) NOT NULL DEFAULT 'ENABLED',
     run_id BIGINT REFERENCES sale_cancellation_run(id) ON DELETE CASCADE,
     file_type VARCHAR(50) NOT NULL,
     storage_key VARCHAR(500) NOT NULL,
