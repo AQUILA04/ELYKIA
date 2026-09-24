@@ -15,7 +15,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { BreadcrumbComponent } from './bread/breadcrumb/breadcrumb.component';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { LocalityListComponent } from './locality/localitylist/localitylist.component';
@@ -87,7 +86,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     AppComponent,
     HeaderComponent,
     SidebarComponent,
-    BreadcrumbComponent,
     LocalityListComponent,
     LocalityDetailsComponent,
     AccountAddComponent,

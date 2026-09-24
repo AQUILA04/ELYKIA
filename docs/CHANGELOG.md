@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.11] — 2026-09-25
+
+### Fixed
+
+- `app-breadcrumb` exporté via `SharedComponentsModule` pour le module lazy `commercial` (build prod NG8001).
+
 ## Frontend — [2.22.10] — 2026-09-24
 
 ### Changed
