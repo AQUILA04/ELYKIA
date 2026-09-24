@@ -71,6 +71,19 @@ export interface TontineMemberAmountHistory {
   readonly creationDate?: string;
 }
 
+export interface TontineMemberAmountHistoryArchive {
+  readonly id: number;
+  readonly memberId?: number;
+  readonly batchId: string;
+  readonly amount: number;
+  readonly startDate: string;
+  readonly endDate?: string | null;
+  readonly originalCreationDate?: string;
+  readonly archivedAt: string;
+  readonly archivedBy: string;
+  readonly newAmount: number;
+}
+
 export interface TontineClient {
   readonly id: number;
   readonly code?: string;

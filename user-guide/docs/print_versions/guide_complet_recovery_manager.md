@@ -84,7 +84,7 @@ Avant de choisir **Confirmer l’opération**, contrôlez le résumé financier.
 
 La fiche membre tontine donne accès au bouton **Contrôle terrain** pour le Chef de recouvrement. Le contrôle se réalise mois par mois : l’utilisateur sélectionne les mois, saisit les montants indiqués sur le carnet et peut ajouter une note. La fiche conserve ensuite le total système, le total carnet, l’écart, le statut **Conforme** ou **Disparité**, la date et l’auteur.
 
-La vérification administrative du carnet est une action distincte du contrôle terrain. Le badge **Carnet vérifié** peut être appliqué ou retiré seulement par les rôles dotés de la permission de vérification ; il atteste la vérification du carnet sans changer les collectes ni l’état du contrôle terrain.
+La vérification administrative du carnet est une action distincte du contrôle terrain. Le badge **Carnet vérifié** peut être appliqué ou retiré seulement si vous disposez des habilitations nécessaires ; il atteste la vérification physique du carnet sans modifier les montants des collectes ni l’état du contrôle terrain.
 
 ## Suivre le rapport de recouvrement
 

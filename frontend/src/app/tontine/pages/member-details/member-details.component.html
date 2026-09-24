@@ -405,6 +405,53 @@
         </table>
       </div>
     </div>
+
+    <!-- Archives des mises antérieures (Visible uniquement au rôle ADMIN) -->
+    <div class="archive-history-section" *ngIf="isAdmin && amountHistoryArchives.length > 0">
+      <div class="archive-toggle-bar" (click)="showArchives = !showArchives">
+        <div class="archive-toggle-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/>
+          </svg>
+          <span>Archives des mises antérieures (Reset Global)</span>
+          <span class="archive-count-badge">{{ amountHistoryArchives.length }} tranche(s)</span>
+        </div>
+        <button type="button" class="btn-toggle-archive">
+          {{ showArchives ? 'Masquer' : 'Afficher' }}
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.rotated]="showArchives">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+      </div>
+
+      <div class="table-wrapper archive-table-wrapper" *ngIf="showArchives">
+        <table class="data-table amount-history-archive-table">
+          <thead>
+            <tr>
+              <th>Date d'archivage</th>
+              <th>Opérateur</th>
+              <th>Période appliquée</th>
+              <th>Ancienne mise</th>
+              <th>Mise post-reset</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let arch of amountHistoryArchives">
+              <td><span class="date-ok">{{ formatDateTime(arch.archivedAt) }}</span></td>
+              <td><span class="badge-operator">{{ arch.archivedBy }}</span></td>
+              <td>
+                <span class="date-ok">{{ formatDateOnly(arch.startDate) }}</span>
+                <span class="text-muted"> → </span>
+                <span *ngIf="arch.endDate" class="date-ok">{{ formatDateOnly(arch.endDate) }}</span>
+                <span *ngIf="!arch.endDate" class="text-muted">—</span>
+              </td>
+              <td><span class="col-amount text-archive">{{ formatCurrency(arch.amount) }}</span></td>
+              <td><span class="col-amount text-new-amount">{{ formatCurrency(arch.newAmount) }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- Consent -->

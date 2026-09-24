@@ -38,8 +38,16 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.client.dto.BulkAssignCollectorsDto;
 import com.optimize.elykia.core.dto.BulkTontineAssignCollectorDto;
+import com.optimize.elykia.core.dto.TontineMemberAmountHistoryArchiveDto;
+import com.optimize.elykia.core.dto.TontineMemberDto;
+import com.optimize.elykia.core.dto.TontineMemberRespDto;
+import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistory;
+import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistoryArchive;
+import com.optimize.elykia.core.enumaration.TontineMemberUpdateScope;
+import com.optimize.elykia.core.repository.TontineMemberAmountHistoryArchiveRepository;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
@@ -69,6 +77,8 @@ class TontineServiceTest {
     private TontineAllocationPolicy allocationPolicy;
     @Mock
     private DailyTontineReportReconciler dailyTontineReportReconciler;
+    @Mock
+    private TontineMemberAmountHistoryArchiveRepository tontineMemberAmountHistoryArchiveRepository;
 
     private TontineService service;
 
@@ -84,6 +94,7 @@ class TontineServiceTest {
                 eventPublisher);
         service.setAllocationPolicyResolver(allocationPolicyResolver);
         service.setDailyTontineReportReconciler(dailyTontineReportReconciler);
+        service.setTontineMemberAmountHistoryArchiveRepository(tontineMemberAmountHistoryArchiveRepository);
     }
 
     @Test
@@ -286,6 +297,162 @@ class TontineServiceTest {
         dto.setTontineCollector("   ");
 
         assertThrows(CustomValidationException.class, () -> service.bulkAssignCollector(dto));
+    }
+
+    @Test
+    void updateMember_withGlobalScope_andUseRegistrationDateTrue_usesMemberRegistrationDate() {
+        int year = LocalDate.now().getYear();
+        LocalDate sessionStart = LocalDate.of(year, 2, 1);
+        LocalDate registrationDate = LocalDate.of(year, 5, 10);
+
+        TontineSession session = session(10L, year, TontineSessionStatus.ACTIVE);
+        session.setStartDate(sessionStart);
+
+        TontineMember member = member(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
+        member.setId(100L);
+        member.setAmount(1000.0);
+        member.setTontineSession(session);
+        member.setRegistrationDate(registrationDate.atTime(10, 0));
+
+        TontineMemberAmountHistory initialHistory = new TontineMemberAmountHistory();
+        initialHistory.setStartDate(sessionStart);
+        initialHistory.setAmount(1000.0);
+        initialHistory.setTontineMember(member);
+        member.getAmountHistory().add(initialHistory);
+
+        when(tontineMemberRepository.findById(100L)).thenReturn(Optional.of(member));
+        when(parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE")).thenReturn(true);
+        when(allocationPolicyResolver.resolve()).thenReturn(allocationPolicy);
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(100L, State.ENABLED))
+                .thenReturn(List.of());
+        when(tontineMemberRepository.sumSocietyShareByTontineSessionId(10L, State.ENABLED)).thenReturn(0.0);
+        when(tontineMemberRepository.saveAndFlush(any(TontineMember.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TontineMemberDto dto = new TontineMemberDto();
+        dto.setAmount(2000.0);
+        dto.setUpdateScope(TontineMemberUpdateScope.GLOBAL);
+
+        service.updateMember(100L, dto);
+
+        assertEquals(1, member.getAmountHistory().size());
+        TontineMemberAmountHistory newHistory = member.getAmountHistory().get(0);
+        assertEquals(registrationDate, newHistory.getStartDate());
+        assertEquals(2000.0, newHistory.getAmount());
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<TontineMemberAmountHistoryArchive>> archiveCaptor = ArgumentCaptor.forClass(List.class);
+        verify(tontineMemberAmountHistoryArchiveRepository).saveAll(archiveCaptor.capture());
+        assertEquals(1, archiveCaptor.getValue().size());
+        TontineMemberAmountHistoryArchive arch = archiveCaptor.getValue().get(0);
+        assertEquals(1000.0, arch.getAmount());
+        assertEquals(sessionStart, arch.getStartDate());
+        assertEquals(2000.0, arch.getNewAmount());
+        assertNotNull(arch.getBatchId());
+    }
+
+    @Test
+    void updateMember_withGlobalScope_andUseRegistrationDateFalse_usesSessionStartDate() {
+        int year = LocalDate.now().getYear();
+        LocalDate sessionStart = LocalDate.of(year, 2, 1);
+        LocalDate registrationDate = LocalDate.of(year, 5, 10);
+
+        TontineSession session = session(10L, year, TontineSessionStatus.ACTIVE);
+        session.setStartDate(sessionStart);
+
+        TontineMember member = member(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
+        member.setId(100L);
+        member.setAmount(1000.0);
+        member.setTontineSession(session);
+        member.setRegistrationDate(registrationDate.atTime(10, 0));
+
+        TontineMemberAmountHistory initialHistory = new TontineMemberAmountHistory();
+        initialHistory.setStartDate(sessionStart);
+        initialHistory.setAmount(1000.0);
+        initialHistory.setTontineMember(member);
+        member.getAmountHistory().add(initialHistory);
+
+        when(tontineMemberRepository.findById(100L)).thenReturn(Optional.of(member));
+        when(parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE")).thenReturn(false);
+        when(allocationPolicyResolver.resolve()).thenReturn(allocationPolicy);
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(100L, State.ENABLED))
+                .thenReturn(List.of());
+        when(tontineMemberRepository.sumSocietyShareByTontineSessionId(10L, State.ENABLED)).thenReturn(0.0);
+        when(tontineMemberRepository.saveAndFlush(any(TontineMember.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TontineMemberDto dto = new TontineMemberDto();
+        dto.setAmount(2000.0);
+        dto.setUpdateScope(TontineMemberUpdateScope.GLOBAL);
+
+        service.updateMember(100L, dto);
+
+        assertEquals(1, member.getAmountHistory().size());
+        TontineMemberAmountHistory newHistory = member.getAmountHistory().get(0);
+        assertEquals(sessionStart, newHistory.getStartDate());
+        assertEquals(2000.0, newHistory.getAmount());
+    }
+
+    @Test
+    void createMember_withUseRegistrationDateTrue_usesMemberRegistrationDate() {
+        int year = LocalDate.now().getYear();
+        LocalDate sessionStart = LocalDate.of(year, 2, 1);
+
+        TontineSession session = session(10L, year, TontineSessionStatus.ACTIVE);
+        session.setStartDate(sessionStart);
+
+        Client client = new Client();
+        client.setId(55L);
+        client.setFirstname("Jean");
+        client.setLastname("Dupont");
+        client.setCollector("COM001");
+
+        when(clientService.getById(55L)).thenReturn(client);
+        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(session));
+        when(tontineMemberRepository.findByTontineSession_YearAndClient_Id(year, 55L)).thenReturn(Optional.empty());
+        when(parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE")).thenReturn(true);
+        when(tontineMemberRepository.save(any(TontineMember.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TontineMemberDto dto = new TontineMemberDto();
+        dto.setClientId(55L);
+        dto.setAmount(1500.0);
+
+        TontineMemberRespDto resp = service.registerMember(dto);
+
+        ArgumentCaptor<TontineMember> captor = ArgumentCaptor.forClass(TontineMember.class);
+        verify(tontineMemberRepository).save(captor.capture());
+        TontineMember created = captor.getValue();
+
+        assertEquals(1, created.getAmountHistory().size());
+        TontineMemberAmountHistory history = created.getAmountHistory().get(0);
+        assertEquals(LocalDate.now(), history.getStartDate());
+        assertEquals(1500.0, history.getAmount());
+    }
+
+    @Test
+    void getMemberAmountHistoryArchives_returnsMappedList() {
+        TontineMember member = member(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
+        member.setId(100L);
+        when(tontineMemberRepository.findById(100L)).thenReturn(Optional.of(member));
+
+        TontineMemberAmountHistoryArchive arch = new TontineMemberAmountHistoryArchive();
+        arch.setId(1L);
+        arch.setTontineMember(member);
+        arch.setAmount(1000.0);
+        arch.setStartDate(LocalDate.of(2026, 2, 1));
+        arch.setBatchId("BATCH-123");
+        arch.setArchivedBy("admin");
+        arch.setArchivedAt(LocalDateTime.now());
+        arch.setNewAmount(2500.0);
+
+        when(tontineMemberAmountHistoryArchiveRepository
+                .findByTontineMember_IdOrderByArchivedAtDescStartDateAsc(100L))
+                .thenReturn(List.of(arch));
+
+        List<TontineMemberAmountHistoryArchiveDto> result = service.getMemberAmountHistoryArchives(100L);
+
+        assertEquals(1, result.size());
+        assertEquals("BATCH-123", result.get(0).batchId());
+        assertEquals(1000.0, result.get(0).amount());
+        assertEquals(2500.0, result.get(0).newAmount());
     }
 
     private TontineSession session(Long id, int year, TontineSessionStatus status) {

@@ -27,7 +27,7 @@ Le menu latéral gauche vous donne accès aux espaces de vente selon vos attribu
 
 ---
 
-## 2. Tableau de bord des ventes (`/credit/list`)
+## 2. Tableau de bord des ventes (Menu Ventes > Liste des ventes)
 
 L'écran principal rassemble la totalité des opérations de vente de votre périmètre.
 
@@ -64,10 +64,10 @@ Une vente progresse selon des étapes claires garantissant la sécurité des mar
 
 | Statut du contrat | Ce que cela signifie | Actions disponibles |
 |---|---|---|
-| **Enregistré** (`CREATED`) | La vente vient d'être saisie. La marchandise n'est pas encore sortie du stock. | - **Valider** : Approuve le contrat de vente.<br>- **Modifier** : Corrige les articles, acomptes ou informations client.<br>- **Supprimer** : Annule la saisie erronée. |
-| **Validé** (`VALIDATED`) | Le contrat est approuvé administrativement. Les articles sont prêts à être remis au client. | - **Démarrer** : Confirme la remise physique des articles au client et déstocke automatiquement le matériel du stock du commercial.<br>- **Détails** : Ouvre la fiche complète du dossier. |
-| **En cours** (`INPROGRESS`) | La marchandise a été livrée, le crédit est actif et en cours de remboursement. | - **Encaisser** : Ouvre directement la fenêtre de paiement pour saisir une mise quotidienne (avec rappel du reliquat disponible).<br>- **Modifier la mise** : Réajuste le montant journalier convenu.<br>- **Détails** : Consultation 360°. |
-| **Soldé** (`SETTLED`) | Le client a remboursé la totalité de son crédit. Le solde restant dû est à zéro. | - **Consulter** : Historique complet, date de clôture effective et archivage. Les dossiers soldés ne sont plus modifiables. |
+| **Enregistré** | La vente vient d'être saisie. La marchandise n'est pas encore sortie du stock. | - **Valider** : Approuve le contrat de vente.<br>- **Modifier** : Corrige les articles, acomptes ou informations client.<br>- **Supprimer** : Annule la saisie erronée. |
+| **Validé** | Le contrat est approuvé administrativement. Les articles sont prêts à être remis au client. | - **Démarrer** : Confirme la remise physique des articles au client et déstocke automatiquement le matériel du stock du commercial.<br>- **Détails** : Ouvre la fiche complète du dossier. |
+| **En cours** | La marchandise a été livrée, le crédit est actif et en cours de remboursement. | - **Encaisser** : Ouvre directement la fenêtre de paiement pour saisir une mise quotidienne (avec rappel du reliquat disponible).<br>- **Modifier la mise** : Réajuste le montant journalier convenu.<br>- **Détails** : Consultation 360°. |
+| **Soldé** | Le client a remboursé la totalité de son crédit. Le solde restant dû est à zéro. | - **Consulter** : Historique complet, date de clôture effective et archivage. Les dossiers soldés ne sont plus modifiables. |
 
 ### Actions groupées : Réaffectation et Fusion de crédits
 - **Changer de commercial en lot** :
@@ -84,9 +84,9 @@ Une vente progresse selon des étapes claires garantissant la sécurité des mar
 
 ---
 
-## 3. Enregistrer une nouvelle vente (`/credit/add`)
+## 3. Enregistrer une nouvelle vente (Bouton Nouvelle vente)
 
-Pour créer une vente, cliquez sur **Nouvelle vente** (ou ouvrez `/credit/add`).
+Pour créer une vente, cliquez sur le bouton bleu **« + Nouvelle vente »** en haut à droite (ou depuis le menu **Ventes > Nouvelle vente**).
 
 ### Choisir entre Vente à Crédit et Vente au Comptant
 
@@ -107,7 +107,7 @@ Si l'impression immédiate est activée dans votre agence :
 
 ---
 
-## 4. Fiche détaillée 360° d'un crédit (`/credit/details/:id`)
+## 4. Fiche détaillée 360° d'un crédit
 
 En ouvrant un crédit, vous accédez à un dossier complet regroupant l'ensemble des aspects contractuels, financiers et logistiques :
 
@@ -162,7 +162,7 @@ Si la mise quotidienne a été renégociée, un tableau consigne chaque modifica
 
 ---
 
-## 5. Gestion des impayés et retards (`/credit/late`)
+## 5. Gestion des impayés et retards (Menu Ventes > Retards)
 
 L'écran **Retards** est l'outil principal de pilotage pour le chef de recouvrement et le gestionnaire :
 - **Indicateurs clés** : Nombre total de dossiers en retard, nombre de délais dépassés, nombre d'échéances du jour et montants financiers correspondants.
@@ -173,7 +173,7 @@ L'écran **Retards** est l'outil principal de pilotage pour le chef de recouvrem
 
 ---
 
-## 6. Calendrier des échéances (`/credit/echeance`)
+## 6. Calendrier des échéances (Menu Ventes > Échéances)
 
 Le sous-menu **Échéances** permet d'anticiper les règlements attendus :
 - Visualisation des échéances du jour, de la semaine ou d'une date choisie sur calendrier.
@@ -181,7 +181,7 @@ Le sous-menu **Échéances** permet d'anticiper les règlements attendus :
 
 ---
 
-## 7. Journal des recouvrements (`/credit/recouvrements`)
+## 7. Journal des recouvrements (Menu Ventes > Recouvrements)
 
 Le sous-menu **Recouvrements** est le registre des encaissements de crédits :
 - Il présente la totalité des versements perçus jour après jour.
@@ -189,16 +189,16 @@ Le sous-menu **Recouvrements** est le registre des encaissements de crédits :
 - Pour chaque ligne, vous retrouvez la référence, le client, le commercial, le montant versé et l'heure exacte.
 - Les profils autorisés peuvent annuler un encaissement erroné avec recalcul instantané des soldes.
 
-### Encaissements à distance par Mobile Money (`/customer-payments`)
+### Encaissements à distance par Mobile Money
 Vos clients ont également la faculté de régler leurs échéances sans attendre votre passage grâce à l'Espace Client ELYKIA :
 - Le client effectue son transfert vers le numéro Mobile Money (Mixx by YAS ou Moov Money) attribué à son commercial référent.
 - Il déclare son règlement sur son portail en indiquant le numéro de transaction opérateur.
-- La soumission parvient instantanément dans le menu **Paiements clients** (`/customer-payments`) où elle est rattachée au commercial responsable du dossier.
+- La soumission parvient instantanément dans le menu latéral gauche **Paiements clients** où elle est rattachée au commercial responsable du dossier.
 - Dès la validation de la déclaration, l'échéance du crédit est automatiquement soldée et le montant s'ajoute à vos recouvrements du jour.
 
 ---
 
-## 8. Rapport de transfert des ventes (`/credit/transferts-commerciaux`)
+## 8. Rapport de transfert des ventes (Menu Ventes > Transferts)
 
 Le rapport de passation permet de suivre avec précision les mouvements de portefeuille :
 - Filtres par commercial cédant, commercial repreneur et période.
@@ -208,7 +208,7 @@ Le rapport de passation permet de suivre avec précision les mouvements de porte
 
 ---
 
-## 9. Rattrapage de ventes antérieures (`/stock/credit/rattrapage`)
+## 9. Rattrapage de ventes antérieures (Menu Ventes > Rattrapage)
 
 Cette procédure exceptionnelle est réservée aux régularisations :
 1. Elle permet d'enregistrer une vente réalisée dans le passé sans impacter le stock physique actuel du magasin central.
@@ -220,7 +220,7 @@ Cette procédure exceptionnelle est réservée aux régularisations :
 
 ---
 
-## 10. Rapport des articles vendus (`/credit/articles-vendus`)
+## 10. Rapport des articles vendus (Menu Ventes > Articles)
 
 Cet écran synthétise les sorties commerciales de l'agence :
 - Regroupement des ventes par **Article** et par **Commercial**.
@@ -230,7 +230,7 @@ Cet écran synthétise les sorties commerciales de l'agence :
 
 ---
 
-## 11. Gestion des commandes clients (`/orders`)
+## 11. Gestion des commandes clients (Menu Commandes)
 
 Le module **Commandes** gère les précommandes et réservations avant leur contractualisation définitive.
 
@@ -246,4 +246,4 @@ Les commandes sont réparties dans 6 onglets selon leur avancement :
 ### Traitement et conversion d'une commande en vente
 1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités et prix.
 2. **Décision** : Les responsables peuvent accepter ou refuser la commande (individuellement ou par lot).
-3. **Action « Vendre »** : Dès qu'une commande est acceptée, le bouton **Vendre** bascule directement l'ensemble des articles vers le formulaire de vente (`/credit/add`) pour créer le contrat crédit ou comptant sans aucune ressaisie manuelle, puis marque la commande comme **Vendue**.
+3. **Action « Vendre »** : Dès qu'une commande est acceptée, le bouton **Vendre** bascule directement l'ensemble des articles vers le formulaire de nouvelle vente pour créer le contrat crédit ou comptant sans aucune ressaisie manuelle, puis marque la commande comme **Vendue**.

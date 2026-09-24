@@ -15,12 +15,14 @@ import com.optimize.elykia.core.entity.report.TontineAllocationMigrationRun;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistory;
+import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistoryArchive;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineMemberUpdateScope;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.event.TontineCollectionCancelledEvent;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
+import com.optimize.elykia.core.repository.TontineMemberAmountHistoryArchiveRepository;
 import com.optimize.elykia.core.repository.TontineMemberAmountHistoryRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
@@ -53,6 +55,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     private final TontineSessionRepository tontineSessionRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
     private TontineMemberAmountHistoryRepository tontineMemberAmountHistoryRepository;
+    private TontineMemberAmountHistoryArchiveRepository tontineMemberAmountHistoryArchiveRepository;
     private final ClientService clientService;
     private final UserService userService;
     private final ParameterService parameterService;
@@ -82,6 +85,11 @@ public class TontineService extends GenericService<TontineMember, Long> {
     @Autowired
     public void setTontineMemberAmountHistoryRepository(TontineMemberAmountHistoryRepository tontineMemberAmountHistoryRepository) {
         this.tontineMemberAmountHistoryRepository = tontineMemberAmountHistoryRepository;
+    }
+
+    @Autowired(required = false)
+    public void setTontineMemberAmountHistoryArchiveRepository(TontineMemberAmountHistoryArchiveRepository tontineMemberAmountHistoryArchiveRepository) {
+        this.tontineMemberAmountHistoryArchiveRepository = tontineMemberAmountHistoryArchiveRepository;
     }
 
     @Autowired(required = false)
@@ -245,7 +253,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
         TontineMemberAmountHistory history = new TontineMemberAmountHistory();
         history.setTontineMember(newMember);
         history.setAmount(dto.getAmount());
-        history.setStartDate(activeSession.getStartDate()); 
+        history.setStartDate(getEffectiveMemberStartDate(newMember)); 
         
         newMember.getAmountHistory().add(history);
 
@@ -315,12 +323,14 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         switch (scope) {
             case GLOBAL:
+                // Archive previous history before clearing
+                archiveCurrentHistoryBeforeGlobalReset(member, newAmount);
                 // Clear history and create a single new entry from the beginning
                 history.clear();
                 TontineMemberAmountHistory globalEntry = new TontineMemberAmountHistory();
                 globalEntry.setTontineMember(member);
                 globalEntry.setAmount(newAmount);
-                globalEntry.setStartDate(member.getTontineSession().getStartDate()); // Or earliest relevant date
+                globalEntry.setStartDate(getEffectiveMemberStartDate(member));
                 history.add(globalEntry);
                 break;
 
@@ -803,6 +813,50 @@ public class TontineService extends GenericService<TontineMember, Long> {
         TontineMember member = getById(memberId);
         return TontineMemberAmountHistoryItemDto.fromList(
                 tontineMemberAmountHistoryRepository.findByTontineMember_IdOrderByStartDateAsc(member.getId()));
+    }
+
+    public List<TontineMemberAmountHistoryArchiveDto> getMemberAmountHistoryArchives(Long memberId) {
+        TontineMember member = getById(memberId);
+        if (tontineMemberAmountHistoryArchiveRepository == null) {
+            return List.of();
+        }
+        return TontineMemberAmountHistoryArchiveDto.fromList(
+                tontineMemberAmountHistoryArchiveRepository
+                        .findByTontineMember_IdOrderByArchivedAtDescStartDateAsc(member.getId()));
+    }
+
+    private void archiveCurrentHistoryBeforeGlobalReset(TontineMember member, Double newAmount) {
+        List<TontineMemberAmountHistory> currentHistory = member.getAmountHistory();
+        if (currentHistory == null || currentHistory.isEmpty() || tontineMemberAmountHistoryArchiveRepository == null) {
+            return;
+        }
+
+        String batchId = UUID.randomUUID().toString();
+        String archivedBy = "SYSTEM";
+        if (userService != null && userService.getCurrentUser() != null) {
+            archivedBy = userService.getCurrentUser().getUsername();
+        }
+        LocalDateTime now = LocalDateTime.now();
+
+        List<TontineMemberAmountHistoryArchive> archives = new ArrayList<>();
+        for (TontineMemberAmountHistory h : currentHistory) {
+            TontineMemberAmountHistoryArchive arch = new TontineMemberAmountHistoryArchive();
+            arch.setTontineMember(member);
+            arch.setBatchId(batchId);
+            arch.setAmount(h.getAmount());
+            arch.setStartDate(h.getStartDate());
+            arch.setEndDate(h.getEndDate());
+            arch.setOriginalCreationDate(h.getCreationDate());
+            arch.setArchivedAt(now);
+            arch.setArchivedBy(archivedBy);
+            arch.setNewAmount(newAmount);
+            arch.setState(State.ENABLED);
+            archives.add(arch);
+        }
+
+        tontineMemberAmountHistoryArchiveRepository.saveAll(archives);
+        log.info("Archivé {} tranches d'historique de mise pour le membre {} (batchId: {}, par: {}) avant reset GLOBAL.",
+                archives.size(), member.getId(), batchId, archivedBy);
     }
 
     public Page<TontineCollectionRespDto> getCollections(Pageable pageable) {

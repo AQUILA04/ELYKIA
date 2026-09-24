@@ -9,6 +9,15 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.4] — 2026-09-24
+
+### Added
+
+- **Consultation des archives d'historique de mise tontine (`member-details`)** :
+  - Ajout d'une section repliable « Archives des mises antérieures (Reset Global) » dans la fiche membre tontine, réservée exclusivement aux utilisateurs ayant le rôle `ADMIN`.
+  - Affichage de la date d'archivage, de l'opérateur responsable, des dates de validité antérieures et des montants avant/après reset.
+  - Intégration de l'appel au service `getMemberAmountHistoryArchives` dans le cycle de vie de la page et lors des modifications de membres.
+
 ## Frontend — [2.22.3] — 2026-09-22
 
 ### Added
@@ -45,6 +54,25 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Sous-menu **Articles Vendus** (ou **Articles**) sous le menu Ventes pour afficher la liste globale des quantités vendues par article et par commercial.
 - Filtres de période (Ce jour, Cette semaine, Ce mois, Personnalisé) et filtre par commercial sur la liste des articles vendus.
+
+## Backend — [1.19.5] — 2026-09-24
+
+### Added
+
+- **Archivage automatique avant reset global de mise tontine (`TontineService`)** :
+  - Création de la table `tontine_member_amount_history_archive` (migration Flyway `V102__create_tontine_member_amount_history_archive.sql`) et de l'entité JPA associée `TontineMemberAmountHistoryArchive`.
+  - Archivage automatique par lot (`batch_id` UUID, utilisateur connecté `archived_by`, horodatage `archived_at`, `new_amount`) de toutes les tranches actives antérieures dans `TontineService.handleAmountChange()` dès que le scope `GLOBAL` est sélectionné, avant purge de l'historique actif.
+  - Ajout de l'endpoint sécurisé `GET /api/v1/tontine/members/{id}/amount-history-archives` protégé par `@PreAuthorize("hasRole('ADMIN')")`.
+  - Tests unitaires complets dans `TontineServiceTest`.
+
+## Backend — [1.19.4] — 2026-09-23
+
+### Fixed
+
+- **Prise en compte de la date d'adhésion pour l'historique des montants tontine (`TontineService`)** :
+  - Lors du changement de mise avec la portée `GLOBAL` (tout recalculer), la date de début de la nouvelle tranche d'historique utilise désormais la date effective d'adhésion du membre (`getEffectiveMemberStartDate(member)` prenant en compte le paramètre `USE_MEMBER_REGISTRATION_DATE_FOR_SHARE` et `member.registrationDate`), au lieu d'imposer systématiquement la date de début de session (1er février).
+  - Lors de la création initiale du membre (`createMember`), initialisation de la première tranche d'historique avec cette même date effective.
+  - Ajout des tests unitaires correspondants dans `TontineServiceTest`.
 
 ## Backend — [1.19.3] — 2026-09-22
 
@@ -86,6 +114,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Navigation Recouvrement** : Correction de la route appelée depuis la fiche client (`client-detail.page.ts`) redirigeant désormais vers `/recovery` avec les paramètres `clientId` et `creditId` au lieu de la route inexistante `/recouvrement`.
 - **Support Sélection Crédit** : Prise en compte du paramètre d'URL `creditId` dans `RecoveryPage` pour pré-sélectionner automatiquement le crédit ciblé.
+
+## Docs & Infra — 2026-09-23
+
+### Changed
+
+- **Révision pédagogique globale des Guides Utilisateurs & Élimination des routes techniques** :
+  - **Suppression intégrale des URLs et routes techniques Angular** (ex: `(/tontine/member-registration)`, `(/credit/list)`, `(/stock/request)`, etc.) sur l'ensemble des guides (commercial, magasinier, gestionnaire, chef de recouvrement), en particulier sur l'application mobile (APK).
+  - **Refonte pas-à-pas style tutoriel en direct (pédagogique, clair et intuitif)** : guidage à travers les éléments concrets de l'interface (barre de navigation basse, menus et sous-menus latéraux, boutons colorés, bouton flottant jaune `+`, menus d'options `⋮`).
+  - **Traduction systématique des statuts en langage naturel utilisateur** : élimination de tous les enums et codes techniques (`PENDING`, `VALIDATED`, `INPROGRESS`, `SETTLED`, `DELIVERED`, `CANCELLED`, etc.) au profit des libellés affichés (**En attente**, **Validé**, **En cours**, **Soldé**, **Livré**, **Annulé**).
+  - **Suppression des mentions de permissions informatiques** au profit d'un discours fonctionnel par profil ("si vous ne voyez pas cette action, vous ne disposez pas des habilitations nécessaires").
+  - **Régénération des guides consolidés pour impression** (`user-guide/docs/print_versions/`) pour les profils Gestionnaire, Magasinier, Commercial et Chef de recouvrement.
+  - **Mise à jour de l'index RAG IA** (`backend/src/main/resources/ai/user-guide-index.json`, 107 segments indexés).
 
 ## Docs & Infra — 2026-09-22
 

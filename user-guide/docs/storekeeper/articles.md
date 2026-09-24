@@ -4,16 +4,16 @@ Le catalogue **Articles** est la base de données centrale de référence pour t
 
 ---
 
-## 1. Consulter et rechercher dans le catalogue (`/article/list`)
+## 1. Consulter et rechercher dans le catalogue (Menu Articles > Liste)
 
-Accessible depuis le menu latéral **Articles** (si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises), la liste présente l'ensemble des articles enregistrés.
+Accessible depuis le menu latéral gauche **Articles** (si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises), la liste présente l'ensemble des articles enregistrés.
 
 <!-- CAPTURE À INSÉRER : Catalogue des articles avec recherche dynamique, filtre par type, quantités en stock et boutons de consultation. -->
 
 ### A. Outils de recherche et filtres
 * **Recherche instantanée** : Recherchez par nom d'article, marque ou modèle.
 * **Filtre par Type** : Isolez une catégorie d'articles spécifique (ex: Électroménager, Textile, Téléphonie, etc.).
-* **Fiche détaillée de l'article (`/article/details/:id`)** :
+* **Fiche détaillée de l'article** :
   * Cliquez sur **« Voir »** pour afficher la fiche complète.
   * Consultez l'historique chronologique de tous les mouvements de stock ayant affecté cet article (réceptions fournisseurs, sorties vers commerciaux, retours au magasin).
 

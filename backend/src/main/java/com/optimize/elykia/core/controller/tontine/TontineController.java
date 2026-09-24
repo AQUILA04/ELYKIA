@@ -182,6 +182,13 @@ public class TontineController {
                 tontineService.getMemberAmountHistory(id)), HttpStatus.OK);
     }
 
+    @GetMapping("/members/{id}/amount-history-archives")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Response> getMemberAmountHistoryArchives(@PathVariable Long id) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(
+                tontineService.getMemberAmountHistoryArchives(id)), HttpStatus.OK);
+    }
+
     @PostMapping("/members/{id}/field-controls")
     @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
     public ResponseEntity<Response> createMemberFieldControl(

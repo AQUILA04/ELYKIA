@@ -45,12 +45,12 @@ Consultez les pages suivantes selon la tâche à accomplir :
 Le module **Tableaux de bord** constitue le centre de contrôle opérationnel et stratégique d'ELYKIA. Il offre aux gestionnaires, secrétaires, chefs d'agence et magasiniers une visibilité immédiate et en temps réel sur la santé financière, le recouvrement des créances, la mobilisation de l'épargne tontine, l'activité commerciale et la gestion des stocks.
 
 L'application web propose deux niveaux de pilotage complémentaires :
-1. **Le Tableau de bord opérationnel V2 (`/home`)** : Suivi au mois le mois des flux d'exploitation, des crédits en cours, des cotisations tontine, des alertes de rupture et des transactions récentes.
-2. **Le Dashboard décisionnel BI (`/bi`)** : Plateforme de Business Intelligence offrant une analyse multi-périodique des tendances de vente, de la rentabilité commerciale, de la solvabilité du portefeuille et de la rotation des stocks.
+1. **Le Tableau de bord opérationnel V2 (Menu Accueil)** : Suivi au mois le mois des flux d'exploitation, des crédits en cours, des cotisations tontine, des alertes de rupture et des transactions récentes.
+2. **Le Dashboard décisionnel BI (Menu Dashboard BI)** : Plateforme de Business Intelligence offrant une analyse multi-périodique des tendances de vente, de la rentabilité commerciale, de la solvabilité du portefeuille et de la rotation des stocks.
 
 ---
 
-## 1. Tableau de bord opérationnel V2 (`/home`)
+## 1. Tableau de bord opérationnel V2 (Menu Accueil)
 
 Accessible dès la connexion via l'icône d'accueil de la barre latérale, le **Dashboard V2** consolide l'ensemble des données d'exploitation en temps réel.
 
@@ -58,9 +58,9 @@ Accessible dès la connexion via l'icône d'accueil de la barre latérale, le **
 
 ### A. Bandeau de contrôle temporel et actualisation
 En tête de page, la barre de navigation et le bandeau de pilotage affichent :
-* **Horloge temps réel** : Affichage permanent de la date et de l'heure à la seconde près (`dd/MM/yyyy - HH:mm:ss`).
+* **Horloge temps réel** : Affichage permanent de la date et de l'heure à la seconde près.
 * **Horodatage de synchronisation** : Indication de la dernière actualisation des données (`Actualisation : HH:mm:ss`).
-* **Sélecteur de mois civil** : Un contrôle interactif muni d'un calendrier annuel (`startView="year"`) permettant de sélectionner n'importe quel mois de l'exercice en cours ou passé. Dès la sélection, l'ensemble des indicateurs, graphiques et listes se recalculent instantanément sur le mois cible.
+* **Sélecteur de mois civil** : Un contrôle interactif muni d'un calendrier annuel permettant de sélectionner n'importe quel mois de l'exercice en cours ou passé. Dès la sélection, l'ensemble des indicateurs, graphiques et listes se recalculent instantanément sur le mois cible.
 * **Bouton « Actualiser »** : Permet de recharger immédiatement l'ensemble des métriques sans recharger la page entière du navigateur.
 
 ---
@@ -91,19 +91,19 @@ En tête de page, la barre de navigation et le bandeau de pilotage affichent :
 
 Deux panneaux situés sous les graphiques permettent un audit visuel direct des flux :
 
-#### 1. Dernières Ventes (`app-recent-sales-panel`)
+#### 1. Dernières Ventes
 * Liste les 5 dernières ventes à crédit conclues dans l'application.
 * Présente pour chaque ligne :
   * L'avatar et le nom complet du client avec sa référence de dossier (`#REF`).
   * Le montant total de la vente en FCFA.
-  * Le badge de statut coloré : `CREATED` (Gris - en attente de validation), `VALIDATED` (Bleu - validée par la gestion), `INPROGRESS` (Vert - marchandise livrée, crédit en cours de remboursement) ou `SETTLED` (Pourpre - crédit intégralement soldé).
+  * Le badge de statut coloré : **Nouveau** (Gris - en attente de validation), **Validé** (Bleu - validé par la gestion), **En cours** (Vert - marchandise livrée, crédit en cours de remboursement) ou **Soldé** (Pourpre - crédit intégralement soldé).
   * La date de démarrage de la vente.
-* Un lien direct **« Voir tout »** redirige vers la liste complète des ventes (`/credit/list`).
+* Un lien direct **« Voir tout »** redirige vers la liste complète des ventes (menu latéral **Ventes > Liste des ventes**).
 
-#### 2. Activité Récente (`app-recent-activity-panel`)
+#### 2. Activité Récente
 * Fil chronologique des 5 dernières opérations administratives et financières (ouvertures/fermetures de caisse, versements bancaires, modifications de portefeuille).
 * Affiche un message explicatif, une icône thématique et le temps écoulé en langage naturel (`il y a 10 min`, `il y a 2 h`).
-* Un lien direct **« Voir tout l'historique »** redirige vers le [Rapport Journalier](reporting_config.md) (`/report/daily`).
+* Un lien direct **« Voir tout l'historique »** redirige vers le [Rapport Journalier](reporting_config.md) (menu **Rapports > Rapport Journalier**).
 
 ---
 
@@ -111,13 +111,13 @@ Deux panneaux situés sous les graphiques permettent un audit visuel direct des 
 Cette section s'affiche au bas du tableau de bord pour les profils en charge du stock (si vous ne voyez pas cette section, vous ne disposez pas des habilitations requises) afin de prévenir tout arrêt de distribution :
 * **Tableau Rupture de Stock (Rouge)** : Liste paginée des articles dont le stock physique est tombé à zéro (numéro d'ordre, nom de l'article, catégorie/type).
 * **Tableau Rupture Imminente (Orange)** : Liste paginée des articles dont le niveau de stock est critique, avec affichage d'une pastille numérique d'alerte.
-* **Lien direct** : Le bouton **« Voir le catalogue »** permet de basculer immédiatement sur la gestion des articles (`/article/list`).
+* **Lien direct** : Le bouton **« Voir le catalogue »** permet de basculer immédiatement sur la gestion des articles (menu **Articles > Liste**).
 
 ---
 
-## 2. Tableau de bord décisionnel BI (`/bi`)
+## 2. Tableau de bord décisionnel BI (Menu Dashboard BI)
 
-Accessible via le menu **Dashboard BI** pour les profils d'analyse, directeurs et gestionnaires, ce module est conçu pour l'analyse stratégique approfondie et le pilotage de la performance.
+Accessible via le menu latéral **Dashboard BI** pour les profils d'analyse, directeurs et gestionnaires, ce module est conçu pour l'analyse stratégique approfondie et le pilotage de la performance.
 
 <!-- CAPTURE À INSÉRER : Page Dashboard BI avec filtres Aujourd'hui/Semaine/Mois/Année/Personnalisé, cartes de rentabilité et centre d'alertes. -->
 
@@ -138,15 +138,15 @@ Le bandeau BI présente 4 cartes de performance avancée :
 
 ### C. Liens rapides d'analyse spécialisée
 Trois raccourcis permettent de plonger dans les sous-modules de Business Intelligence :
-* **Analyse des Ventes (`/bi/sales`)** : Analyse détaillée du chiffre d'affaires ventilé par commercial, par article et par catégorie.
-* **Analyse des Recouvrements (`/bi/collections`)** : Analyse fine des créances en souffrance, pyramide des retards de paiement et distribution de solvabilité des clients.
-* **Analyse du Stock (`/bi/stock`)** : Matrice de rotation des stocks, détection des articles dormants et suivi des alertes d'approvisionnement.
+* **Analyse des Ventes** : Analyse détaillée du chiffre d'affaires ventilé par commercial, par article et par catégorie.
+* **Analyse des Recouvrements** : Analyse fine des créances en souffrance, pyramide des retards de paiement et distribution de solvabilité des clients.
+* **Analyse du Stock** : Matrice de rotation des stocks, détection des articles dormants et suivi des alertes d'approvisionnement.
 
 ### D. Centre d'Alertes et Notifications BI
 Le module BI analyse automatiquement les risques opérationnels et génère des cartes d'avertissement en temps réel :
 * **Alerte Ruptures** : Notification rouge dès qu'un article passe en rupture avec lien vers le détail.
 * **Alerte Stock Faible** : Notification jaune listant les articles sous le seuil critique.
-* **Alerte Créances en Souffrance** : Avertissement rouge indiquant le montant cumulé des échéances impayées (`totalOverdue`) nécessitant une relance du chef de recouvrement.
+* **Alerte Créances en Souffrance** : Avertissement rouge indiquant le montant cumulé des échéances impayées nécessitant une relance du chef de recouvrement.
 * **Indicateur d'Efficacité de Recouvrement** : Pastille de notation automatique (Excellente, Bonne, Vigilance) selon le ratio montant collecté / montant attendu.
 
 ---
@@ -172,7 +172,7 @@ Ce guide décrit l'ensemble des procédures opérationnelles et des gestes de co
 
 ---
 
-## 1. Gestion de la journée comptable (`/accounting-day`)
+## 1. Gestion de la journée comptable (Menu Opérations > Journée comptable)
 
 La **Journée comptable** est le verrou d'intégrité central d'ELYKIA. Aucune opération financière (décaissement, encaissement, vente, collecte) ne peut être initiée sans qu'une journée comptable ne soit préalablement ouverte.
 
@@ -194,7 +194,7 @@ La **Journée comptable** est le verrou d'intégrité central d'ELYKIA. Aucune o
 
 ---
 
-## 2. Gestion de la caisse agent (`/open-cashDesk`)
+## 2. Gestion de la caisse agent (Menu Caisse > Ouverture / Fermeture)
 
 Chaque commercial ou caissier au siège doit disposer d'une caisse ouverte pour enregistrer ses opérations de vente et d'encaissement.
 
@@ -206,7 +206,7 @@ Chaque commercial ou caissier au siège doit disposer d'une caisse ouverte pour 
 
 ---
 
-## 3. Billetage physique des espèces (`/billetage`)
+## 3. Billetage physique des espèces (Menu Caisse > Billetage)
 
 Le **Billetage** permet de réaliser le comptage contradictoire et rigoureux des espèces physiques (billets et pièces de monnaie en Francs CFA) avant tout versement ou clôture.
 
@@ -242,9 +242,9 @@ L'interface présente deux colonnes distinctes avec les reproductions visuelles 
 
 ---
 
-## 4. Opération journalière et feuille de route (`/daily-operation`)
+## 4. Opération journalière et feuille de route (Menu Caisse > Opération Journalière)
 
-Accessible via **Caisse > Opération Journalière**, cette interface permet de superviser l'ensemble des crédits actifs dont les mises sont attendues sur la journée.
+Accessible via le menu **Caisse > Opération Journalière**, cette interface permet de superviser l'ensemble des crédits actifs dont les mises sont attendues sur la journée.
 
 * **Indicateurs par ligne** :
   * Nom et prénom du client.
@@ -252,13 +252,13 @@ Accessible via **Caisse > Opération Journalière**, cette interface permet de s
   * **Mise journalière** contractuelle en FCFA.
   * **Reste à payer** global sur le crédit.
 * **Actions et documents** :
-  * **Détails (`visibility`)** : Ouverture de la fiche complète du crédit ciblé.
-  * **Bouton TFJ (`payment`)** : Accès direct à la Table Financière Journalière.
-  * **Télécharger PDF (`picture_as_pdf`)** : Génération immédiate de la fiche de tournée et de contrôle journalier pour les agents de recouvrement.
+  * **Détails** : Ouverture de la fiche complète du crédit ciblé.
+  * **Bouton TFJ** : Accès direct à la Table Financière Journalière.
+  * **Télécharger PDF** : Génération immédiate de la fiche de tournée et de contrôle journalier pour les agents de recouvrement.
 
 ---
 
-## 5. Portefeuille Clients & Réaffectation de masse (`/client/list`)
+## 5. Portefeuille Clients & Réaffectation de masse (Menu Clients > Liste)
 
 Le module **Clients** regroupe l'annuaire centralisé des clients et prospects, enrichi de contrôles de gestion de portefeuille.
 
@@ -290,7 +290,7 @@ Lorsqu'un commercial quitte l'entreprise, change de zone ou qu'un rééquilibrag
    * **Commercial tontine** : Choisissez le nouveau commercial chargé des collectes de tontine (peut être identique ou différent du commercial crédit).
 3. **Option stratégique : Transfert automatique des ventes** :
    * La case à cocher **« Transférer automatiquement les ventes du commercial vers le nouveau commercial »** s'active dès qu'un commercial crédit est sélectionné.
-   * **Effet opérationnel** : Si cette case est cochée, l'ensemble des crédits actifs (`INPROGRESS`) des clients sélectionnés sont automatiquement transférés au nouveau commercial, garantissant la continuité des tournées et la justesse des bilans de passation.
+   * **Effet opérationnel** : Si cette case est cochée, l'ensemble des crédits actifs des clients sélectionnés sont automatiquement transférés au nouveau commercial, garantissant la continuité des tournées et la justesse des bilans de passation.
 4. **Validation** : Cliquez sur **« Valider »** pour appliquer les réaffectations. L'historique des changements de commercial est intégralement archivé pour audit.
 
 ---
@@ -302,7 +302,7 @@ Sur chaque ligne client, le gestionnaire habilité dispose d'un bouton d'approba
 
 ---
 
-## 6. Traitement des déclarations de paiements clients Mobile Money (`/customer-payments`)
+## 6. Traitement des déclarations de paiements clients Mobile Money (Menu Paiements clients)
 
 Le module **Paiements clients** permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via **Mobile Money** (Mixx by YAS ou Moov Money).
 
@@ -318,14 +318,14 @@ Le module **Paiements clients** permet d'arbitrer les déclarations d'encaisseme
 
 ---
 
-### B. Traitement des remboursements de crédit (`Onglet Recouvrement crédit`)
+### B. Traitement des remboursements de crédit (Onglet Recouvrement crédit)
 Cet onglet centralise les règlements d'échéances de vente à crédit :
 
 | Information affichée | Description fonctionnelle |
 |---|---|
 | **Client** | Nom et prénom du client ou son numéro d'identifiant. |
 | **Commercial** | Commercial gestionnaire du dossier de crédit. |
-| **Crédit** | Numéro du crédit. Cliquer sur le lien bleu `#ID` ouvre directement la fiche 360° du crédit (`/credit/details/:id`). |
+| **Crédit** | Numéro du crédit. Cliquer sur le lien bleu `#ID` ouvre directement la fiche 360° du crédit. |
 | **Échéance** | Numéro de l'échéance réglée par le client. |
 | **Montant** | Somme versée en Francs CFA (affichée en gras). |
 | **Téléphone** | Numéro de téléphone Mobile Money utilisé pour le transfert. |
@@ -333,16 +333,16 @@ Cet onglet centralise les règlements d'échéances de vente à crédit :
 | **Date** | Date et heure de déclaration du paiement par le client. |
 
 #### Actions de validation ou de rejet :
-1. **Valider (`btn-success-solid`)** :
-   * Après vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur **« Valider »**.
+1. **Valider** :
+   * Après vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur le bouton vert **« Valider »**.
    * **Conséquences automatiques** : Le paiement est instantanément imputé sur le crédit du client, son solde restant dû diminue, le versement est enregistré dans le journal des recouvrements du commercial et comptabilisé dans les encaissements du jour.
-2. **Rejeter (`btn-danger-outline`)** :
-   * Si la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur **« Rejeter »**.
+2. **Rejeter** :
+   * Si la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur le bouton rouge **« Rejeter »**.
    * Une boîte de dialogue vous demande confirmation avant d'annuler définitivement la déclaration.
 
 ---
 
-### C. Traitement des cotisations tontine (`Onglet Cotisations tontine`)
+### C. Traitement des cotisations tontine (Onglet Cotisations tontine)
 Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine :
 
 | Information affichée | Description fonctionnelle |
@@ -360,7 +360,7 @@ Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par le
 
 ---
 
-## 7. Centre de notifications et suivi des alertes (`/notifications`)
+## 7. Centre de notifications et suivi des alertes
 
 ELYKIA intègre un système d'alerte multicanal pour avertir immédiatement les équipes des événements requérant une attention rapide.
 
@@ -370,9 +370,9 @@ ELYKIA intègre un système d'alerte multicanal pour avertir immédiatement les 
 * **Pastille numérique rouge** : Indique en temps réel le nombre exact de notifications en attente de traitement.
 * **Menu déroulant instantané** : Un clic sur la cloche ouvre une fenêtre contextuelle présentant les dernières alertes groupées par date.
 * **Raccourci direct** : Cliquer sur une notification la marque automatiquement comme lue et vous redirige directement sur l'écran opérationnel concerné (ex: détail d'une commande client, déclaration de paiement correspondante avec mise en surbrillance de la ligne).
-* **Lien complet** : Le lien en bas de volet **« Voir toutes les notifications »** ouvre la page dédiée (`/notifications`).
+* **Lien complet** : Le lien en bas de volet **« Voir toutes les notifications »** ouvre la page dédiée.
 
-### B. Page dédiée du centre de notifications (`/notifications`)
+### B. Page dédiée du centre de notifications
 * **Bouton « Tout lire »** : Permet de basculer l'ensemble des notifications affichées à l'état lu en un seul clic.
 * **Bouton « Actualiser »** : Recharge immédiatement les flux d'alertes sans recharger la page entière.
 * **Classification fonctionnelle des alertes** :
@@ -392,23 +392,25 @@ ELYKIA intègre un système d'alerte multicanal pour avertir immédiatement les 
 
 # Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)
 
-Dans l'architecture ELYKIA, la marchandise suit un circuit d'approvisionnement et de distribution hautement sécurisé. Chaque mouvement physique est tracé par un statut informatique strict, interdisant toute entrée ou sortie non autorisée.
+Dans l'application ELYKIA, la marchandise suit un circuit d'approvisionnement et de distribution hautement sécurisé. Chaque mouvement physique est tracé par une étape de validation stricte, interdisant toute entrée ou sortie non autorisée.
 
 L'organisation repose sur **trois niveaux étanches de stock** :
 1. **Stock Central Magasin** : Stock physique détenu au dépôt principal, administré par le magasinier et audité par les inventaires.
-2. **Stock Commercial (`/stock`)** : Stock opérationnel attribué aux commerciaux pour les ventes directes au comptant et à crédit.
-3. **Stock Tontine (`/stock-tontine`)** : Stock tampon strictement réservé aux livraisons de fin d'année des membres épargnants de la tontine, interdisant tout mélange avec le flux commercial standard.
+2. **Stock Commercial** (accessible via le menu latéral **Stock Commercial**) : Stock opérationnel attribué aux commerciaux pour les ventes directes au comptant et à crédit.
+3. **Stock Tontine** (accessible via le menu latéral **Stock Tontine**) : Stock tampon strictement réservé aux livraisons de fin d'exercice des membres épargnants de la tontine, interdisant tout mélange avec le flux commercial standard.
 
 ---
 
-## 1. Référentiel Articles et Valorisation du Stock (`/article/list`)
+## 1. Référentiel Articles et Valorisation du Stock
+
+Pour consulter l'ensemble des articles, rendez-vous dans le menu latéral puis cliquez sur **Articles**.
 
 Le catalogue centralise les articles commercialisables, leurs grilles tarifaires et leurs seuils d'alerte logistique.
 
 <!-- CAPTURE À INSÉRER : Liste du catalogue d'articles avec filtres de type, prix d'achat/vente et seuils de réapprovisionnement. -->
 
-### A. Données obligatoires de la fiche article (`/article/add`)
-* **Identification produit** : Nom de l'article, Marque, Modèle et Catégorie/Type (`/article-type`).
+### A. Données obligatoires de la fiche article (Bouton « Nouvel Article »)
+* **Identification produit** : Nom de l'article, Marque, Modèle et Catégorie / Famille de produits.
 * **Grille tarifaire à 3 niveaux** :
   * **Prix d'achat fournisseur** : Coût d'acquisition servant de base au calcul de valorisation du stock et aux marges brutes.
   * **Prix de vente comptant** : Montant appliqué lors des règlements immédiats en espèces.
@@ -419,59 +421,63 @@ Le catalogue centralise les articles commercialisables, leurs grilles tarifaires
 
 ---
 
-## 2. Entrées Fournisseurs & Historique des Réceptions (`/stock/receptions`)
+## 2. Entrées Fournisseurs & Historique des Réceptions
 
 Toute livraison de marchandise par un fournisseur doit faire l'objet d'une saisie d'entrée, soumise à une **validation préalable obligatoire** du gestionnaire avant d'impacter le stock disponible.
+
+Pour accéder à la liste des réceptions, ouvrez le menu latéral **Stock Commercial**, puis cliquez sur **Historique Entrée**.
 
 <!-- CAPTURE À INSÉRER : Page Historique des réceptions avec les filtres de recherche, les statuts et les boutons Valider / Refuser / Abandonner. -->
 
 ### A. Circuit d'approbation d'une réception
-1. **Saisie de l'entrée** : Le magasinier saisit les articles et quantités reçus via le bouton **« Entrées stock »** d'Inventaires (`/inventory/list`).
-2. **Statut `PENDING` (En attente)** : Une référence de réception unique est générée. Les articles ne sont **pas encore intégrés** au stock vendable.
-3. **Contrôle et Validation gestionnaire** :
-   * Ouvrez **Historique Entrée** (`/stock/receptions`).
-   * Cliquez sur **« Voir »** pour contrôler la concordance entre le bon de livraison fournisseur et les quantités saisies.
+1. **Saisie de l'entrée** : Le magasinier saisit les articles et quantités reçus via le bouton **« Entrées stock »** de la page **Inventaires**.
+2. **Étape « En attente »** : Une référence de réception unique est générée. Les articles ne sont **pas encore intégrés** au stock vendable.
+3. **Contrôle et Validation par le gestionnaire** :
+   * Rendez-vous dans **Stock Commercial > Historique Entrée**.
+   * Cliquez sur **« Voir »** pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran.
    * **Valider** : Confirme la conformité de la réception. Le stock magasin est **instantanément augmenté**.
-   * **Refuser** : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à `REFUSED`.
-   * **Abandonner** : Permet au créateur de la réception en attente de supprimer sa saisie avant validation (`canAbandonPending`).
-   * **Annuler** : Réservé aux gestionnaires pour annuler une réception déjà validée suite à une régularisation comptable (`canCancelValidated`), décrémentant le stock du magasin.
+   * **Refuser** : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à **Refusé**.
+   * **Abandonner** : Permet au créateur de la réception en attente de supprimer sa saisie avant validation si une erreur a été commise.
+   * **Annuler** : Réservé aux gestionnaires habilités pour annuler une réception déjà validée suite à une régularisation comptable, décrémentant le stock du magasin.
 
 | Statut Réception | Badge Couleur | Impact sur le Stock Magasin | Actions Disponibles |
 |---|---|---|---|
-| `PENDING` | Jaune | **Aucun impact** (en cours de contrôle) | Valider, Refuser, Abandonner |
-| `VALIDATED` | Vert | **Stock magasin augmenté** | Voir, Annuler (si habilité) |
-| `REFUSED` | Rouge | Aucun impact (rejeté) | Voir |
-| `CANCELLED` | Gris | Stock préalablement ajouté est **retiré** | Voir |
+| **En attente** | Jaune | **Aucun impact** (en cours de contrôle) | Valider, Refuser, Abandonner |
+| **Validée** | Vert | **Stock magasin augmenté** | Voir, Annuler (selon vos droits) |
+| **Refusée** | Rouge | Aucun impact (réception rejetée) | Voir |
+| **Annulée** | Gris | Le stock préalablement ajouté est **retiré** | Voir |
 
 ---
 
-## 3. Demandes de Sortie de Stock Commercial (`/stock/request`)
+## 3. Demandes de Sortie de Stock Commercial
 
-Le réapprovisionnement des commerciaux suit un flux rigoureux en 3 étapes : **Création $\rightarrow$ Validation $\rightarrow$ Livraison**.
+Pour suivre les mouvements de réapprovisionnement des commerciaux, rendez-vous dans le menu latéral **Stock Commercial**, puis cliquez sur **Demandes Sortie**.
 
-<!-- CAPTURE À INSÉRER : Liste des demandes de sortie de stock commercial avec statuts CREATED, VALIDATED, DELIVERED et boutons d'action. -->
+Le réapprovisionnement suit un flux rigoureux en 3 étapes : **Création $\rightarrow$ Validation $\rightarrow$ Livraison**.
 
-### A. Les étapes de traitement
-1. **Étape 1 : Création (`CREATED`)** :
-   * Le commercial (ou le gestionnaire) soumet une demande via **« Nouvelle demande »** en sélectionnant le commercial destinataire, les articles et les quantités voulues.
-   * La demande est en attente d'approbation hiérarchique. Le commercial ou le gestionnaire peut encore la **Modifier** ou l'**Annuler**.
-2. **Étape 2 : Validation gestionnaire (`VALIDATED`)** :
-   * Le gestionnaire contrôle la disponibilité physique en magasin et les encours du commercial, puis clique sur le bouton vert **« Valider »** (`data-testid="e2e-stock-request-validate"`).
-   * La demande passe au statut `VALIDATED`. La marchandise est alors réservée au magasin.
-3. **Étape 3 : Livraison magasinier (`DELIVERED`)** :
-   * Le magasinier physique remet les articles au commercial et clique sur le bouton **« Livrer »** (`data-testid="e2e-stock-request-deliver"`).
+<!-- CAPTURE À INSÉRER : Liste des demandes de sortie de stock commercial avec statuts Créée, Validée, Livrée et boutons d'action. -->
+
+### A. Les étapes de traitement pas à pas
+1. **Étape 1 : Création (Statut « Créée »)** :
+   * Le commercial (ou le gestionnaire) soumet une demande via le bouton **« Nouvelle demande »** en sélectionnant le commercial destinataire, les articles et les quantités voulues.
+   * La demande est en attente d'approbation hiérarchique. Le créateur ou le gestionnaire peut encore la **Modifier** ou l'**Annuler**.
+2. **Étape 2 : Validation gestionnaire (Statut « Validée »)** :
+   * Le gestionnaire contrôle la disponibilité physique en magasin et les encours du commercial, puis clique sur le bouton vert **« Valider »**.
+   * La demande passe à l'état **Validée**. La marchandise est alors réservée au magasin.
+3. **Étape 3 : Livraison magasinier (Statut « Livrée »)** :
+   * Le magasinier physique remet les articles au commercial et clique sur le bouton bleu **« Livrer »**.
    * **Conséquence instantanée** : Le stock magasin est débité et le stock personnel du commercial est crédité. La date de livraison est horodatée.
 
 ### B. Téléchargements et exports PDF
 * **Fiche de sortie unitaire** : Téléchargement du bon de sortie physique signé pour une demande précise.
-* **Télécharger sélection (N)** : Sélection multiple de demandes par cases à cocher et génération groupée d'un PDF d'approvisionnement consolidé.
+* **Télécharger sélection (N)** : Cochez plusieurs demandes dans la liste pour générer en un clic un PDF d'approvisionnement consolidé.
 * **Fiche sortie PDF globale** : Export synthétique sur la période active (*Aujourd'hui, Cette semaine, Ce mois, Mois précédents*).
 
 ---
 
-## 4. Module Stock Tontine (`/stock-tontine`)
+## 4. Module Stock Tontine
 
-Le **Stock Tontine** dispose de son propre sous-menu indépendant (**Stock Tontine > Demandes Sortie**, **Stock** et **Retours**).
+Le **Stock Tontine** dispose de son propre sous-menu indépendant dans la barre latérale (**Stock Tontine > Demandes Sortie**, **Stock** et **Retours**).
 
 * **Étanche et dédié** : Les articles sortis sous ce module ne peuvent en aucun cas être vendus à crédit dans le circuit commercial régulier.
 * **Finalité opérationnelle** : Ce stock est constitué en fin d'année pour préparer les paniers de distribution de fin d'exercice des membres de la tontine ayant cotisé régulièrement.
@@ -479,9 +485,9 @@ Le **Stock Tontine** dispose de son propre sous-menu indépendant (**Stock Tonti
 
 ---
 
-## 5. Inventaires physiques et réconciliation des écarts (`/inventory/list`)
+## 5. Inventaires physiques et réconciliation des écarts
 
-Accessible via le menu **Inventaires**, ce module permet de confronter le stock théorique calculé par l'informatique au stock physique réel compté sur les étagères du magasin dépôt.
+Accessible via le menu latéral **Inventaires**, ce module permet de confronter le stock théorique calculé par l'informatique au stock physique réel compté sur les étagères du magasin dépôt.
 
 <!-- CAPTURE À INSÉRER : Panneau d'actions inventaire avec boutons Créer un inventaire, Saisir quantités physiques, Réconcilier les écarts et Clôturer. -->
 
@@ -498,19 +504,18 @@ Une session d'inventaire se déroule en 4 étapes séquentielles :
 
 ```mermaid
 graph LR
-    A["1. Créer l'inventaire<br/>(DRAFT / IN_PROGRESS)"] --> B["2. Télécharger PDF<br/>& Compter en rayon"]
+    A["1. Créer l'inventaire<br/>(En cours)"] --> B["2. Télécharger PDF<br/>& Compter en rayon"]
     B --> C["3. Saisir quantités<br/>physiques constatées"]
     C --> D["4. Réconcilier les écarts<br/>& Clôturer"]
 ```
 
-1. **Création de session** : Cliquez sur **« Créer un inventaire »**. La session passe à l'état `IN_PROGRESS` et affiche la date, le statut et l'auteur.
+1. **Création de session** : Cliquez sur le bouton vert **« Créer un inventaire »**. La session passe à l'état **En cours** et affiche la date, le statut et l'auteur.
 2. **Impression de la feuille de comptage** : Cliquez sur **« Télécharger PDF »** pour éditer le document de comptage vierge destiné aux équipes de magasin.
-3. **Saisie des quantités réelles** : Cliquez sur **« Saisir quantités physiques »**. Dans la fenêtre modale, saisissez les quantités effectivement dénombrées pour chaque référence d'article.
+3. **Saisie des quantités réelles** : Cliquez sur **« Saisir quantités physiques »**. Dans la fenêtre qui s'ouvre, saisissez les quantités effectivement dénombrées pour chaque référence d'article.
 4. **Réconciliation des écarts** :
    * Cliquez sur **« Réconcilier les écarts »** pour afficher la balance comparative : `Quantité Théorique Système` vs `Quantité Physique Constatée` = `Écart (Surplus ou Manquant)`.
    * Enregistrez les motifs d'écart (casse, avarie, vol, erreur de saisie).
-5. **Clôture définitive** : Cliquez sur **« Clôturer l'inventaire »**. Les stocks théoriques sont automatiquement réalignés sur le comptage physique approuvé et la session est archivée dans l'**Historique inventaires** (`/inventory/history`).
-
+5. **Clôture définitive** : Cliquez sur **« Clôturer l'inventaire »**. Les stocks théoriques sont automatiquement réalignés sur le comptage physique approuvé et la session est archivée dans l'**Historique des inventaires** (accessible via l'onglet ou le bouton Historique).
 
 
 \newpage
@@ -525,7 +530,9 @@ Ce guide détaille l'ensemble des mécanismes de gestion financière, de suivi d
 
 ---
 
-## 1. Tableau de bord des dépenses (`/expense/dashboard`)
+## 1. Tableau de bord des dépenses
+
+Pour y accéder, rendez-vous dans le menu latéral puis cliquez sur **Finances > Tableau de bord** (ou directement **Dépenses** selon la configuration de votre menu).
 
 Le tableau de bord des dépenses offre une vision synthétique et immédiate des flux de décaissement engagés pour le fonctionnement de l'agence.
 
@@ -535,8 +542,8 @@ Le tableau de bord des dépenses offre une vision synthétique et immédiate des
 * **Horloge en temps réel** : Affiche la date et l'heure système en direct.
 * **Heure d'actualisation** : Indique l'horodatage exact de la dernière synchronisation avec le serveur.
 * **Bouton « Actualiser »** : Recharge instantanément les indicateurs et les listes sans recharger la page.
-* **Bouton « Types »** : Raccourci vers la gestion du catalogue des types de dépense (`/expense/types`).
-* **Bouton « Nouvelle dépense »** : Ouvre immédiatement le formulaire de saisie d'un nouveau décaissement (`/expense/add`).
+* **Bouton « Types »** : Raccourci vers la gestion du catalogue des types de dépense.
+* **Bouton « + Nouvelle dépense »** : Ouvre immédiatement le formulaire de saisie d'un nouveau décaissement.
 
 ### B. Bandeau des indicateurs comparatifs de dépenses
 Sous réserve de disposer des habilitations financières requises (si ce bandeau ne s'affiche pas, vous ne disposez pas des autorisations nécessaires) :
@@ -546,13 +553,15 @@ Sous réserve de disposer des habilitations financières requises (si ce bandeau
 ### C. Tableau des dernières dépenses
 * Liste chronologique paginée des 10 dernières opérations enregistrées.
 * Colonnes : Date, Type de dépense, Montant formaté en FCFA, et bouton d'action.
-* Un clic sur une ligne ouvre une modale récapitulative présentant le détail complet de la pièce justificative.
+* Un clic sur une ligne ouvre une fenêtre récapitulative présentant le détail complet de la pièce justificative.
 
 ---
 
-## 2. Registre et gestion des dépenses (`/expense/list`)
+## 2. Registre et gestion des dépenses
 
-L'écran **Liste des dépenses** centralise la totalité des décaissements de l'agence et permet leur filtrage multicritères.
+Pour consulter le registre complet, ouvrez le menu latéral et cliquez sur **Finances > Liste des dépenses** (ou l'onglet **Dépenses**).
+
+Cet écran centralise la totalité des décaissements de l'agence et permet leur filtrage multicritères.
 
 <!-- CAPTURE À INSÉRER : Liste complète des dépenses avec sélecteurs de mois et de type, badge Comptabilisée et actions Éditer/Supprimer. -->
 
@@ -579,11 +588,11 @@ L'écran **Liste des dépenses** centralise la totalité des décaissements de l
 
 ---
 
-## 3. Enregistrement d'une dépense (`/expense/add`)
+## 3. Enregistrement d'une dépense
 
-Accessible via le bouton **« + Nouvelle dépense »** :
+Pour saisir une nouvelle dépense, cliquez sur le bouton bleu **« + Nouvelle dépense »** :
 
-1. **Type de dépense** *(Obligatoire)* : Sélectionnez la nature de la charge dans la liste paramétrée.
+1. **Type de dépense** *(Obligatoire)* : Sélectionnez la nature de la charge dans la liste paramétrée (ex: Carburant, Fournitures).
 2. **Montant en FCFA** *(Obligatoire)* : Saisissez la somme exacte déboursée (montant strictement positif).
 3. **Date de dépense** *(Obligatoire)* : Date d'engagement de la charge.
 4. **Référence de pièce** : Numéro officiel de la facture ou du bon de caisse pour audit.
@@ -592,7 +601,9 @@ Accessible via le bouton **« + Nouvelle dépense »** :
 
 ---
 
-## 4. Remise de trésorerie au gestionnaire (`Rapport Journalier > Remise`)
+## 4. Remise de trésorerie au gestionnaire
+
+Pour y accéder, rendez-vous dans le menu latéral **Rapport Journalier**, puis cliquez sur l'onglet **Remise**.
 
 La **Remise** est le processus formel par lequel le caissier ou la secrétaire verse au gestionnaire de l'agence les espèces collectées sur une période, en déduisant les dépenses d'exploitation autorisées.
 
@@ -640,10 +651,10 @@ flowchart LR
 | Étape | Rôle opérationnel | Action dans l'application | Conséquence système |
 |---|---|---|---|
 | **1. Préparation** | Secrétaire / Caissier | Sélectionne les dates et coche les dépenses justificatives. | Le montant net se calcule automatiquement. |
-| **2. Soumission** | Secrétaire / Caissier | Clique sur le bouton bleu **« Soumettre la remise »**. | La remise passe au statut **`PENDING` (En attente)**. Les dates de la remise sont verrouillées. |
+| **2. Soumission** | Secrétaire / Caissier | Clique sur le bouton bleu **« Soumettre la remise »**. | La remise passe au statut **En attente**. Les dates de la remise sont verrouillées. |
 | **3. Contrôle contradictoire** | Gestionnaire | Reçoit les espèces et les pièces justificatives au bureau. | Le gestionnaire examine les dépenses associées. Tant que la remise est en attente, il peut décocher une dépense non admise. |
-| **4. Accusé de réception** | Gestionnaire | Clique sur le bouton vert **« Accuser réception »**. | La remise passe au statut **`SETTLED` (Réceptionnée)**. Les dépenses cochées deviennent définitivement **Comptabilisées**. |
-| **Option directe** | Gestionnaire | Clique sur **« Initier la réception »**. | Permet au gestionnaire de préparer et d'acter la remise en une seule étape sans attendre la soumission secrétaire. |
+| **4. Accusé de réception** | Gestionnaire | Clique sur le bouton vert **« Accuser réception »**. | La remise passe au statut **Réceptionnée**. Les dépenses cochées deviennent définitivement **Comptabilisées**. |
+| **Option directe** | Gestionnaire | Clique sur le bouton **« Initier la réception »**. | Permet au gestionnaire de préparer et d'acter la remise en une seule étape sans attendre la soumission secrétaire. |
 
 ---
 
@@ -651,9 +662,9 @@ flowchart LR
 Le bas de page conserve le journal exhaustif de toutes les remises passées :
 * **Période** : Mois et année concernés.
 * **Ventilation financière** : Total brut, Crédit, Tontine, Nouveaux comptes, Dépenses, Montant net remis.
-* **Statut** : Badge coloré `PENDING` (En attente) ou `SETTLED` (Réceptionné).
+* **Statut** : Badge coloré **En attente** (jaune) ou **Réceptionnée** (vert).
 * **Traçabilité** : Nom de la personne ayant soumis la remise et nom du gestionnaire ayant accusé réception avec horodatage.
-* **Déploiement accordéon (flèche)** : Permet d'ouvrir le détail de tous les versements individuels inclus dans la remise pour un contrôle pièce par pièce.
+* **Déploiement accordéon (petite flèche)** : Permet d'ouvrir le détail de tous les versements individuels inclus dans la remise pour un contrôle pièce par pièce.
 
 
 \newpage
@@ -668,7 +679,9 @@ Ce guide détaille l'ensemble des modules d'analyse, d'archivage mensuel, d'inte
 
 ---
 
-## 1. Rapport Journalier d'activité (`/report/daily`)
+## 1. Rapport Journalier d'activité
+
+Pour y accéder, rendez-vous dans le menu latéral et cliquez sur **Rapport Journalier**.
 
 Le **Rapport Journalier** est l'outil central de pilotage opérationnel d'ELYKIA. Il synthétise l'ensemble des flux d'exploitation sur la période sélectionnée et propose 5 onglets thématiques spécialisés.
 
@@ -678,7 +691,7 @@ Le **Rapport Journalier** est l'outil central de pilotage opérationnel d'ELYKIA
 Les filtres définis dans la barre supérieure s'appliquent automatiquement à l'ensemble des onglets du rapport :
 * **Période** : Boutons rapides **« Aujourd'hui »**, **« Cette semaine »**, **« Ce mois »**, ou **« Personnalisé »** (avec calendrier interactif pour choisir une plage *Du ... Au ...*).
 * **Filtre Commercial** :
-  * **Pour un commercial** : Votre compte est pré-sélectionné automatiquement. Vous visualisez uniquement vos propres données d'activité (vos ventes, vos recouvrements, vos collectes).
+  * **Pour un commercial** : Votre nom est pré-sélectionné automatiquement. Vous visualisez uniquement vos propres données d'activité (vos ventes, vos recouvrements, vos collectes).
   * **Pour un gestionnaire** : Vous pouvez laisser le champ vide pour obtenir la consolidation globale de toute l'agence, ou sélectionner un commercial dans la liste pour auditer son portefeuille spécifique.
 * **Bouton « Voir marges » / « Masquer marges »** : Disponible pour les profils habilités, ce bouton permet d'afficher ou de masquer les indicateurs de marge commerciale brute calculée sur les ventes.
 * **Bouton « Réinitialiser »** : Remet les filtres sur la période par défaut.
@@ -746,9 +759,11 @@ Cet onglet permet de réaliser le versement des fonds collectés de la période 
 
 ---
 
-## 2. Rapports Mensuels consolidés (`/report/monthly-reports`)
+## 2. Rapports Mensuels consolidés
 
-Le module **Rapports mensuels** gère la conservation et le téléchargement des archives comptables officielles d'ELYKIA.
+Pour accéder aux archives mensuelles, ouvrez le menu latéral et cliquez sur **Rapports Mensuels**.
+
+Ce module gère la conservation et le téléchargement des archives comptables officielles d'ELYKIA.
 
 <!-- CAPTURE À INSÉRER : Arborescence des rapports mensuels avec dossiers Années, sous-dossiers Mois et liste des fichiers PDF téléchargeables. -->
 
@@ -771,7 +786,7 @@ L'écran présente une vue hiérarchique dépliable :
 
 ---
 
-## 3. Assistant Décisionnel ELYKIA IA (`/ai-chat`)
+## 3. Assistant Décisionnel ELYKIA IA
 
 L'application intègre un assistant d'intelligence artificielle conversationnelle permettant d'interroger instantanément l'ensemble des données d'exploitation en langage naturel.
 
@@ -779,12 +794,12 @@ L'application intègre un assistant d'intelligence artificielle conversationnell
 
 ### A. Accès et présentation
 * **Accès au module** : Menu latéral **Elykia IA** (icône intelligence artificielle). Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises pour votre profil.
-* **Bandeau de statut** : Affiche en bas de page l'état de santé du moteur IA et le modèle actif.
+* **Bandeau de statut** : Affiche en bas de page l'état de fonctionnement du moteur IA.
 
 ### B. Organisation des discussions
 * **Volet latéral des sessions** : Retrouvez l'historique complet de vos conversations antérieures, automatiquement renommées en fonction du sujet abordé.
 * **Bouton « Nouvelle discussion »** : Ouvre un fil de dialogue vierge.
-* **Suppression de session** : Permet de purger les discussions devenues obsolètes.
+* **Suppression de session** : Permet de purger les discussions devenues obsolètes via l'icône corbeille.
 
 ### C. Interroger l'IA en langage naturel
 Vous pouvez poser vos questions courantes en français tel que vous le feriez avec un analyste d'exploitation :
@@ -796,22 +811,22 @@ Vous pouvez poser vos questions courantes en français tel que vous le feriez av
 
 ### D. Réponses structurées et transparence
 * **Tableaux de données clairs** : Les résultats chiffrés sont restitués sous forme de tableaux lisibles et directement exploitables.
-* **Transparence pour audit** : Pour les utilisateurs habilités, un bouton permet d'afficher la formule de calcul ou la requête d'interrogation générée en arrière-plan, ainsi que le temps de traitement en millisecondes, garantissant l'exactitude des chiffres avancés.
-* **Onglet Statistiques** : Permet de consulter les métriques d'utilisation de l'assistant (nombre de requêtes, temps moyen de réponse, domaines métier les plus sollicités).
+* **Transparence pour audit** : Pour les utilisateurs habilités, un bouton permet d'afficher la formule de calcul ou la requête d'interrogation générée en arrière-plan, garantissant l'exactitude des chiffres avancés.
+* **Onglet Statistiques** : Permet de consulter les métriques d'utilisation de l'assistant (nombre de questions posées, temps de réponse, thématiques les plus sollicitées).
 
 ---
 
-## 4. Référentiels et Configuration de l'agence (`/configuration`)
+## 4. Référentiels et Configuration de l'agence
 
-Le menu **Configuration** regroupe les paramètres fondamentaux qui régissent les calculs et les nomenclatures de l'application :
+Pour les profils administrateurs ou gestionnaires autorisés, le menu latéral **Configuration** regroupe les paramètres fondamentaux qui régissent les calculs et les nomenclatures de l'application :
 
-| Sous-menu | Rôle fonctionnel |
+| Rubrique du menu | Rôle fonctionnel |
 |---|---|
-| **Localités (`/locality`)** | Gestion du répertoire des zones, communes et quartiers. Permet d'harmoniser les adresses des clients et d'organiser les tournées de recouvrement. |
-| **Types d'Articles (`/article-type`)** | Définition des catégories du catalogue de marchandises (Électroménager, Multimédia, Mobilier, etc.). |
-| **Types de Dépense (`/expense/types`)** | Référentiel des motifs de décaissement d'exploitation (Carburant, Loyer, Maintenance, etc.). |
-| **Mobile Money (`/configuration/mobile-money`)** | Configuration des numéros de transfert d'argent (Mixx by YAS et Moov Money) attribués à chaque commercial pour les règlements clients à distance. |
-| **Paramètres généraux (`/parameters`)** | Réglage des clés système fondamentales, notamment la version du calcul de la part société tontine (`TONTINE_SOCIETY_SHARE_VERSION` V1 ou V2). |
+| **Localités** | Gestion du répertoire des zones, communes et quartiers. Permet d'harmoniser les adresses des clients et d'organiser les tournées de recouvrement. |
+| **Types d'Articles** | Définition des catégories du catalogue de marchandises (Électroménager, Multimédia, Mobilier, etc.). |
+| **Types de Dépense** | Référentiel des motifs de décaissement d'exploitation (Carburant, Loyer, Maintenance, etc.). |
+| **Mobile Money** | Configuration des numéros de transfert d'argent (Mixx by YAS et Moov Money) attribués à chaque commercial pour les règlements clients à distance. |
+| **Paramètres généraux** | Réglage des clés système fondamentales, notamment le mode de calcul de la part société de la tontine. |
 
 > **Prudence d'administration.** La modification d'un paramètre général est une opération sensible qui engage la cohérence des écritures passées et futures. Toute modification doit respecter les consignes strictes de la direction. Si vous n'avez pas accès à ces écrans, vous ne disposez pas des habilitations nécessaires.
 
