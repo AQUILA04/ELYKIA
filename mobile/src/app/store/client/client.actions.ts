@@ -178,3 +178,13 @@ export const loadNextPageClientsFailure = createAction(
 export const resetClientPagination = createAction(
   '[Client] Reset Client Pagination'
 );
+
+export const clientSyncSuccess = createAction(
+  '[Client] Client Sync Success',
+  props<{
+    localId: string;
+    serverId: number | string;
+    profilPhotoUrl?: string | null;
+    cardPhotoUrl?: string | null;
+  }>()
+);

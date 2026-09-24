@@ -308,6 +308,49 @@ export const clientReducer = createReducer(
         items: state.pagination.items.map(c => c.id === client.id ? sanitizedClient : c)
       }
     });
+  }),
+
+  on(ClientActions.clientSyncSuccess, (state, { localId, serverId, profilPhotoUrl, cardPhotoUrl }) => {
+    const serverIdStr = String(serverId);
+    const localIdStr = String(localId);
+    const existing = state.entities[localIdStr] || state.entities[serverIdStr];
+
+    const updatedClient: Client = {
+      ...(existing || {} as Client),
+      id: serverIdStr,
+      isSync: true,
+      isLocal: false,
+      ...(profilPhotoUrl ? { profilPhotoUrl } : {}),
+      ...(cardPhotoUrl ? { cardPhotoUrl } : {})
+    };
+
+    let newState = state;
+    if (localIdStr !== serverIdStr) {
+      newState = adapter.removeOne(localIdStr, newState);
+    }
+    newState = adapter.upsertOne(updatedClient, newState);
+
+    const updatedItems = state.pagination.items.map(item => {
+      if (String(item.id) === localIdStr || String(item.id) === serverIdStr) {
+        return {
+          ...item,
+          id: serverIdStr,
+          isSync: true,
+          isLocal: false,
+          ...(profilPhotoUrl ? { profilPhotoUrl } : {}),
+          ...(cardPhotoUrl ? { cardPhotoUrl } : {})
+        };
+      }
+      return item;
+    });
+
+    return {
+      ...newState,
+      pagination: {
+        ...state.pagination,
+        items: updatedItems
+      }
+    };
   })
 );
 

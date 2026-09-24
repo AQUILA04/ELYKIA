@@ -64,7 +64,7 @@ export class AccountSyncService extends BaseSyncService<Account, AccountReposito
             const serverId = response.data.id.toString();
 
             await this.repository.saveIdMapping(account.id, serverId, 'account');
-            await this.repository.updateSyncStatus(account.id, true);
+            await this.repository.markAsSynced(account.id, serverId);
 
             return response.data;
         } else {

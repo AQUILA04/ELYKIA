@@ -139,6 +139,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Requête paginée `findSoldArticles` dans `CreditArticlesRepository` avec `GROUP BY` sur article et commercial.
 - Endpoint `POST /api/v1/credits/articles-vendus/search` pour exposer les données agrégées.
 
+## Mobile — [2.30.2] — 2026-09-24
+
+### Fixed
+
+- **Statut de synchronisation des nouveaux clients ("Local" persistant)** :
+  - **Mise à jour immédiate du Store NgRx** : Ajout de l'action `ClientActions.clientSyncSuccess` dispatchée à la synchronisation d'un client par `ClientSyncService` pour mettre à jour l'entité SQLite synchronisée dans le Store NgRx (`isSync: true`, `isLocal: false`, bascule de l'ID temporaire UUID vers l'ID serveur numérique, mise à jour des URLs de photos).
+  - **Réconciliation des comptes dans le Store** : Ajout de l'action `AccountActions.updateAccountClientId` pour associer immédiatement le compte du client au nouvel identifiant serveur du client dans le Store.
+  - **Marquage synchronisé des comptes (`AccountSyncService`)** : Remplacement de l'appel `updateSyncStatus` par `markAsSynced(account.id, serverId)` lors de la création d'un compte local pour persister le nouvel ID serveur, `isSync = 1` et `isLocal = 0` dans la table SQLite `accounts`.
+  - **Persistance SQLite `isLocal = 0`** : Surcharge de `updateSyncStatus` dans `ClientRepository` et `AccountRepository` pour s'assurer que `isLocal` bascule à 0 dès qu'une entité passe à `isSync = 1`.
+  - **Rapport Journalier & Export PDF** : Évaluation du badge `isSync` des clients basée directement sur l'état réel du client (`client.isSync`) plutôt que sur le seul compte, avec fallbacks sur `client.fullName`.
+  - **Actualisation automatique post-synchronisation** : Rechargement forcé des onglets filtrés par date dans le Rapport Journalier dès l'émission de `SyncStatus.COMPLETED`.
+
 ## Mobile — [2.30.1] — 2026-09-21
 
 ### Fixed

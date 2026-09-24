@@ -55,3 +55,8 @@ export const updateAccountFailure = createAction(
   '[Account] Update Account Failure',
   props<{ error: any }>()
 );
+
+export const updateAccountClientId = createAction(
+  '[Account] Update Account Client Id',
+  props<{ oldClientId: string; newClientId: string }>()
+);

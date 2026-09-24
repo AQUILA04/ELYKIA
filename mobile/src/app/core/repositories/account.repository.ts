@@ -77,6 +77,14 @@ export class AccountRepository extends BaseRepository<Account, string> {
         console.log(`[AccountRepository] Synced accounts purged for ${commercialUsername} before re-initialization.`);
     }
 
+    override async updateSyncStatus(id: string, isSync: boolean): Promise<void> {
+        const syncDate = isSync ? new Date().toISOString() : null;
+        await this.databaseService.execute(
+            `UPDATE accounts SET isSync = ?, isLocal = ?, syncDate = ? WHERE id = ?`,
+            [isSync ? 1 : 0, isSync ? 0 : 1, syncDate, id]
+        );
+    }
+
     async markAsSynced(localId: string, serverId: string): Promise<void> {
         if (!this.databaseService['db'] || localId === serverId) return;
         await this.databaseService.execute(

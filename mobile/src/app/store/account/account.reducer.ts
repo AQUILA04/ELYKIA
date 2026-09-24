@@ -51,5 +51,15 @@ export const accountReducer = createReducer(
   ),
   on(AccountActions.updateAccountSuccess, (state, { account }) =>
     accountAdapter.updateOne({ id: account.id, changes: account }, state)
-  )
+  ),
+  on(AccountActions.updateAccountClientId, (state, { oldClientId, newClientId }) => {
+    const updates = Object.values(state.entities)
+      .filter((acc): acc is Account => !!acc && String(acc.clientId) === String(oldClientId))
+      .map(acc => ({
+        id: acc.id,
+        changes: { clientId: newClientId }
+      }));
+    if (updates.length === 0) return state;
+    return accountAdapter.updateMany(updates, state);
+  })
 );

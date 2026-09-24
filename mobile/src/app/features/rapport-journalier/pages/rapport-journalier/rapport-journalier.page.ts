@@ -165,7 +165,7 @@ export class RapportJournalierPage implements OnDestroy {
       map(items => items.map(c => ({
         id: c.id,
         time: c.createdAt ? new Date(c.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '',
-        clientName: (c as any).firstname ? `${(c as any).firstname} ${(c as any).lastname}` : 'Client inconnu', // Client model has firstname/lastname
+        clientName: (c as any).firstname ? `${(c as any).firstname} ${(c as any).lastname}`.trim() : (c.fullName || 'Client inconnu'),
         accountNumber: c.account?.accountNumber || 'N/A',
         balance: c.account?.accountBalance || 0,
         isSync: c.isSync
@@ -571,12 +571,19 @@ export class RapportJournalierPage implements OnDestroy {
    * Écoute la fin de la synchronisation pour générer automatiquement le PDF
    */
   private listenToSyncCompletion() {
-    this.store.select(selectAutomaticSyncStatus).subscribe(status => {
-      if (status === SyncStatus.COMPLETED) {
-        // Générer automatiquement le PDF après synchronisation
-        this.generatePDFAfterSync();
-      }
-    });
+    this.subscriptions.add(
+      this.store.select(selectAutomaticSyncStatus).subscribe(status => {
+        if (status === SyncStatus.COMPLETED) {
+          // Recharger les onglets pour rafraîchir les listes avec les statuts synchronisés
+          this.loadTab(this.activeTab, true);
+          if (this.activeTab !== 'clients') {
+            this.loadTab('clients', true);
+          }
+          // Générer automatiquement le PDF après synchronisation
+          this.generatePDFAfterSync();
+        }
+      })
+    );
   }
 
   /**
