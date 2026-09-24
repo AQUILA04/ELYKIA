@@ -58,6 +58,47 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         await this.databaseService.executeSet(updateSet);
     }
 
+    /**
+     * Deletes pending Local UUID rows that already have a synced server-id twin
+     * (via id_mappings). Heals devices after hybrid sync that inserted a server
+     * row without rewriting the local UUID.
+     */
+    async purgeSyncedOrphans(): Promise<number> {
+        if (!this.databaseService['db']) {
+            return 0;
+        }
+
+        const result = await this.databaseService.query(
+            `SELECT td.id AS localId
+             FROM tontine_deliveries td
+             INNER JOIN id_mappings m
+               ON m.localId = td.id AND m.entityType = 'tontine-delivery'
+             WHERE td.isLocal = 1 AND td.isSync = 0
+               AND EXISTS (
+                 SELECT 1 FROM tontine_deliveries d2 WHERE d2.id = m.serverId
+               )`
+        );
+
+        const orphanIds: string[] = (result.values || []).map((row: any) => String(row.localId));
+        if (orphanIds.length === 0) {
+            return 0;
+        }
+
+        for (const localId of orphanIds) {
+            await this.databaseService.execute(
+                `DELETE FROM tontine_delivery_items WHERE tontineDeliveryId = ?`,
+                [localId]
+            );
+            await this.databaseService.execute(
+                `DELETE FROM tontine_deliveries WHERE id = ? AND isLocal = 1 AND isSync = 0`,
+                [localId]
+            );
+        }
+
+        console.log(`[TontineDeliveryRepository] Purged ${orphanIds.length} synced orphan delivery(ies).`);
+        return orphanIds.length;
+    }
+
     async markDeliverSynced(deliveryId: string): Promise<void> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
         await this.databaseService.execute(

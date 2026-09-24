@@ -11,6 +11,8 @@ import { DistributionSyncRequest, DistributionSyncResponse } from '../../../mode
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
 import { DateFilter } from '../../models/date-filter.model';
+import { Store } from '@ngrx/store';
+import * as DistributionActions from '../../../store/distribution/distribution.actions';
 
 @Injectable({
     providedIn: 'root'
@@ -24,7 +26,8 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
         protected override repository: DistributionRepository,
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
-        private readonly distributionRepositoryExtensions: DistributionRepositoryExtensions
+        private readonly distributionRepositoryExtensions: DistributionRepositoryExtensions,
+        private readonly store: Store
     ) {
         super(http, repository, authService, syncErrorService, 'distribution');
     }
@@ -126,9 +129,14 @@ export class DistributionSyncService extends BaseSyncService<Distribution, Distr
         }
 
         const syncedDistribution = response.data;
+        const serverId = syncedDistribution.id.toString();
 
-        await this.repository.saveIdMapping(distribution.id, syncedDistribution.id.toString(), 'distribution');
-        await this.repository.updateSyncStatus(distribution.id, true);
+        await this.repository.saveIdMapping(distribution.id, serverId, 'distribution');
+        await this.repository.markAsSynced(distribution.id, serverId);
+        this.store.dispatch(DistributionActions.distributionSyncSuccess({
+            localId: distribution.id,
+            serverId
+        }));
 
         return syncedDistribution;
     }

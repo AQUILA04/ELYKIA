@@ -43,7 +43,8 @@ describe('TontineDeliverySyncService', () => {
       'markAsSynced',
       'markDeliverSynced',
       'getItems',
-      'findUnsynced'
+      'findUnsynced',
+      'purgeSyncedOrphans'
     ]);
     repository.getServerId.and.callFake(async (localId: string, entityType: string) => {
       if (entityType === 'tontine-member') {
@@ -59,6 +60,7 @@ describe('TontineDeliverySyncService', () => {
     repository.markDeliverSynced.and.resolveTo();
     repository.getItems.and.resolveTo([]);
     repository.findUnsynced.and.resolveTo([]);
+    repository.purgeSyncedOrphans.and.resolveTo(0);
 
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],

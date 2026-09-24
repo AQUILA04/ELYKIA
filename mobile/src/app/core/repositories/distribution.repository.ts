@@ -207,13 +207,182 @@ export class DistributionRepository extends BaseRepository<Distribution, string>
     }
 
     async markAsSynced(localId: string, serverId: string): Promise<void> {
-        if (!this.databaseService['db'] || localId === serverId) return;
+        if (!this.databaseService['db']) {
+            return;
+        }
+        if (localId === serverId) {
+            await this.databaseService.execute(
+                `UPDATE distributions SET isSync = 1, isLocal = 0, syncDate = datetime('now', 'localtime') WHERE id = ?`,
+                [localId]
+            );
+            return;
+        }
         const updateSet = [
             { statement: `UPDATE recoveries SET distributionId = ? WHERE distributionId = ?`, values: [serverId, localId] },
             { statement: `UPDATE distribution_items SET distributionId = ? WHERE distributionId = ?`, values: [serverId, localId] },
             { statement: `UPDATE distributions SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`, values: [serverId, localId] }
         ];
         await this.databaseService.executeSet(updateSet);
+    }
+
+    /**
+     * Avant un pull serveur : réécrit ou fusionne les UUID locaux déjà liés au crédit
+     * (id_mappings / creditId / reference) pour éviter uuid + id numérique côte à côte.
+     */
+    async reconcileIncomingServerDistributions(distributions: Distribution[]): Promise<number> {
+        if (!this.databaseService['db'] || !distributions?.length) {
+            return 0;
+        }
+
+        let merged = 0;
+        for (const dist of distributions) {
+            const serverId = dist?.id != null ? String(dist.id) : '';
+            if (!serverId) {
+                continue;
+            }
+
+            const existingAtServerId = await this.findById(serverId);
+            if (existingAtServerId) {
+                continue;
+            }
+
+            const mappedLocalId = await this.findLocalIdByServerId(serverId, 'distribution');
+            if (mappedLocalId && mappedLocalId !== serverId) {
+                const localRow = await this.findById(mappedLocalId);
+                if (localRow) {
+                    await this.mergeLocalRowIntoServerId(mappedLocalId, serverId);
+                    merged++;
+                    continue;
+                }
+            }
+
+            const creditId = dist.creditId != null ? String(dist.creditId) : null;
+            if (creditId) {
+                const byCredit = await this.findLocalRowByBusinessKey('creditId', creditId, serverId);
+                if (byCredit) {
+                    await this.mergeLocalRowIntoServerId(String(byCredit.id), serverId);
+                    merged++;
+                    continue;
+                }
+            }
+
+            const reference = dist.reference ? String(dist.reference).trim() : '';
+            if (reference) {
+                const byRef = await this.findLocalRowByBusinessKey('reference', reference, serverId);
+                if (byRef) {
+                    await this.mergeLocalRowIntoServerId(String(byRef.id), serverId);
+                    merged++;
+                }
+            }
+        }
+        return merged;
+    }
+
+    /**
+     * Guérit les doublons déjà présents : UUID local + ligne serveur (même client/montant INPROGRESS).
+     * Déplace recoveries/items vers l'id serveur puis supprime l'UUID — jamais de cascade-delete recoveries.
+     */
+    async healSyncedLocalDuplicates(commercialUsername: string): Promise<number> {
+        if (!this.databaseService['db'] || !commercialUsername) {
+            return 0;
+        }
+
+        const sql = `
+            SELECT d_local.id AS localId, d_sync.id AS serverId
+            FROM distributions d_local
+            INNER JOIN distributions d_sync
+              ON d_local.clientId = d_sync.clientId
+              AND d_local.totalAmount = d_sync.totalAmount
+              AND d_local.status = 'INPROGRESS'
+              AND d_sync.status = 'INPROGRESS'
+            WHERE d_local.isLocal = 1
+              AND d_sync.isSync = 1
+              AND d_local.id != d_sync.id
+              AND d_local.commercialId = ?
+              AND d_sync.commercialId = ?
+        `;
+        const result = await this.databaseService.query(sql, [commercialUsername, commercialUsername]);
+        const pairs: Array<{ localId: string; serverId: string }> = (result.values || []).map(
+            (row: { localId: string; serverId: string }) => ({
+                localId: String(row.localId),
+                serverId: String(row.serverId)
+            })
+        );
+
+        let healed = 0;
+        for (const pair of pairs) {
+            // Prefer treating non-numeric id as the local twin
+            const localLooksUuid = !/^\d+$/.test(pair.localId);
+            const localId = localLooksUuid ? pair.localId : pair.serverId;
+            const serverId = localLooksUuid ? pair.serverId : pair.localId;
+            if (localId === serverId) {
+                continue;
+            }
+            await this.mergeLocalRowIntoServerId(localId, serverId);
+            healed++;
+        }
+        return healed;
+    }
+
+    /**
+     * Si la ligne serveur existe déjà : déplace les FKs puis supprime l'UUID.
+     * Sinon : réécrit la PK locale vers l'id serveur (markAsSynced).
+     */
+    async mergeLocalRowIntoServerId(localId: string, serverId: string): Promise<void> {
+        if (!this.databaseService['db'] || localId === serverId) {
+            if (localId === serverId) {
+                await this.markAsSynced(localId, serverId);
+            }
+            return;
+        }
+
+        const serverExists = await this.findById(serverId);
+        if (!serverExists) {
+            await this.saveIdMapping(localId, serverId, 'distribution');
+            await this.markAsSynced(localId, serverId);
+            return;
+        }
+
+        const updateSet: capSQLiteSet[] = [
+            {
+                statement: `UPDATE recoveries SET distributionId = ? WHERE distributionId = ?`,
+                values: [serverId, localId]
+            },
+            {
+                statement: `DELETE FROM distribution_items WHERE distributionId = ?`,
+                values: [localId]
+            },
+            {
+                statement: `DELETE FROM distributions WHERE id = ?`,
+                values: [localId]
+            }
+        ];
+        await this.databaseService.executeSet(updateSet);
+        await this.saveIdMapping(localId, serverId, 'distribution');
+    }
+
+    private async findLocalIdByServerId(serverId: string, entityType: string): Promise<string | null> {
+        const result = await this.databaseService.query(
+            `SELECT localId FROM id_mappings WHERE serverId = ? AND entityType = ? LIMIT 1`,
+            [serverId, entityType]
+        );
+        if (result.values?.length) {
+            return String(result.values[0].localId);
+        }
+        return null;
+    }
+
+    private async findLocalRowByBusinessKey(
+        column: 'creditId' | 'reference',
+        value: string,
+        excludeServerId: string
+    ): Promise<Distribution | null> {
+        const sql = `SELECT * FROM distributions WHERE ${column} = ? AND id != ? LIMIT 1`;
+        const result = await this.databaseService.query(sql, [value, excludeServerId]);
+        if (result.values?.length) {
+            return this.mapRowToDistribution(result.values[0]);
+        }
+        return null;
     }
 
     // ==================== SPECIFIC UPDATE METHODS ====================

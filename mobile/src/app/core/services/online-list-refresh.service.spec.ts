@@ -8,6 +8,7 @@ import { ClientRepositoryExtensions } from '../repositories/client.repository.ex
 import { RecoveryRepository } from '../repositories/recovery.repository';
 import { RecoveryRepositoryExtensions } from '../repositories/recovery.repository.extensions';
 import { DistributionRepositoryExtensions } from '../repositories/distribution.repository.extensions';
+import { DistributionRepository } from '../repositories/distribution.repository';
 import { LocalityRepository } from '../repositories/locality.repository';
 import { LocalityRepositoryExtensions } from '../repositories/locality.repository.extensions';
 import { TontineMemberRepositoryExtensions } from '../repositories/tontine-member.repository.extensions';
@@ -86,6 +87,13 @@ describe('OnlineListRefreshService', () => {
         { provide: ClientRepositoryExtensions, useValue: {} },
         { provide: RecoveryRepository, useValue: {} },
         { provide: RecoveryRepositoryExtensions, useValue: {} },
+        {
+          provide: DistributionRepository,
+          useValue: {
+            reconcileIncomingServerDistributions: jasmine.createSpy('reconcile').and.resolveTo(0),
+            healSyncedLocalDuplicates: jasmine.createSpy('heal').and.resolveTo(0)
+          }
+        },
         { provide: DistributionRepositoryExtensions, useValue: {} },
         { provide: LocalityRepository, useValue: localityRepository },
         { provide: LocalityRepositoryExtensions, useValue: localityRepositoryExtensions },

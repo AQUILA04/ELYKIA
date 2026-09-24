@@ -94,5 +94,21 @@ export const reducer = createReducer(
     on(OrderActions.resetOrderPagination, (state) => ({
         ...state,
         pagination: createInitialPaginationState<OrderView>()
-    }))
+    })),
+
+    on(OrderActions.orderSyncSuccess, (state, { localId, serverId }) => {
+        const localIdStr = String(localId);
+        const serverIdStr = String(serverId);
+        return {
+            ...state,
+            pagination: {
+                ...state.pagination,
+                items: state.pagination.items.map((order) =>
+                    String(order.id) === localIdStr
+                        ? { ...order, id: serverIdStr, isSync: true, isLocal: false }
+                        : order
+                )
+            }
+        };
+    })
 );

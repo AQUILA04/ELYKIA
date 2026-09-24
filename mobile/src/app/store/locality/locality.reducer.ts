@@ -64,5 +64,17 @@ export const localityReducer = createReducer(
     ...state,
     error,
     loading: false,
-  }))
+  })),
+  on(LocalityActions.localitySyncSuccess, (state, { localId, serverId }) => {
+    const localIdStr = String(localId);
+    const serverIdStr = String(serverId);
+    return {
+      ...state,
+      localities: state.localities.map((locality) =>
+        String(locality.id) === localIdStr
+          ? { ...locality, id: serverIdStr, isSync: true, isLocal: false }
+          : locality
+      )
+    };
+  })
 );

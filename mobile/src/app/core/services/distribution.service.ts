@@ -164,7 +164,10 @@ export class DistributionService {
         console.log(`DistributionService: Saving ${uniqueDistributions.length} unique distributions from page ${currentPage + 1}...`);
 
         // Use Repository to save
-        return from(this.dbService.saveDistributionsAndItems(uniqueDistributions)).pipe(
+        return from((async () => {
+          await this.distributionRepository.reconcileIncomingServerDistributions(uniqueDistributions);
+          await this.dbService.saveDistributionsAndItems(uniqueDistributions);
+        })()).pipe(
           tap(() => console.log(`DistributionService: Page ${currentPage + 1} saved successfully.`)),
           switchMap(() => {
             if (currentPage < totalPages - 1) {
@@ -914,7 +917,8 @@ export class DistributionService {
       throw new Error('Commercial user not identified.');
     }
     try {
-      await this.distributionRepository.updateSyncStatus(distributionId, true);
+      // Same id: flags only. Different id handled by sync services via markAsSynced(local, server).
+      await this.distributionRepository.markAsSynced(distributionId, distributionId);
       return true;
     } catch (error) {
       console.error('Failed to mark distribution as synced:', error);

@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.30.5] — 2026-09-24
+
+### Fixed
+
+- **Sync offline** : après upload, les distributions et commandes réécrivent désormais la PK locale (UUID → id serveur) via `markAsSynced`, comme les clients — plus de jumeau après un refresh paginé. Le pull des distributions fusionne d’abord via `id_mappings` / `creditId` / `reference` et guérit les UUID orphelins sans supprimer les recouvrements. Même traitement pour les localités (réécriture PK + dédup par nom), les comptes (merge par `clientId`) et les livraisons tontine (`purgeSyncedOrphans`).
+
 ## Backend — [1.19.11] — 2026-09-24
 
 ### Fixed

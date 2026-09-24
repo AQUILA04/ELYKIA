@@ -13,6 +13,7 @@ import { ClientRepositoryExtensions, ClientRepositoryFilters } from '../reposito
 import { RecoveryRepository } from '../repositories/recovery.repository';
 import { RecoveryRepositoryExtensions, RecoveryRepositoryFilters } from '../repositories/recovery.repository.extensions';
 import { DistributionRepositoryExtensions, DistributionRepositoryFilters } from '../repositories/distribution.repository.extensions';
+import { DistributionRepository } from '../repositories/distribution.repository';
 import { LocalityRepository } from '../repositories/locality.repository';
 import { LocalityRepositoryExtensions, LocalityRepositoryFilters } from '../repositories/locality.repository.extensions';
 import { Locality } from '../../models/locality.model';
@@ -54,6 +55,7 @@ export class OnlineListRefreshService {
     private readonly clientRepositoryExtensions: ClientRepositoryExtensions,
     private readonly recoveryRepository: RecoveryRepository,
     private readonly recoveryRepositoryExtensions: RecoveryRepositoryExtensions,
+    private readonly distributionRepository: DistributionRepository,
     private readonly distributionRepositoryExtensions: DistributionRepositoryExtensions,
     private readonly localityRepository: LocalityRepository,
     private readonly localityRepositoryExtensions: LocalityRepositoryExtensions,
@@ -158,6 +160,8 @@ export class OnlineListRefreshService {
       const distributions: Distribution[] = response.data?.content || [];
 
       if (distributions.length > 0) {
+        await this.distributionRepository.reconcileIncomingServerDistributions(distributions);
+        await this.distributionRepository.healSyncedLocalDuplicates(commercialUsername);
         await this.databaseService.saveDistributionsAndItems(distributions);
       }
 

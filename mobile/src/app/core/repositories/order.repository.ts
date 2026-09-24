@@ -117,7 +117,16 @@ export class OrderRepository extends BaseRepository<Order, string> {
     }
 
     async markAsSynced(localId: string, serverId: string): Promise<void> {
-        if (!this.databaseService['db'] || localId === serverId) return;
+        if (!this.databaseService['db']) {
+            return;
+        }
+        if (localId === serverId) {
+            await this.databaseService.execute(
+                `UPDATE orders SET isSync = 1, isLocal = 0, syncDate = datetime('now', 'localtime') WHERE id = ?`,
+                [localId]
+            );
+            return;
+        }
         const updateSet = [
             { statement: `UPDATE order_items SET orderId = ? WHERE orderId = ?`, values: [serverId, localId] },
             { statement: `UPDATE orders SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now', 'localtime') WHERE id = ?`, values: [serverId, localId] }

@@ -127,6 +127,26 @@ export class AccountRepository extends BaseRepository<Account, string> {
                 continue;
             }
 
+            // Incoming server row: if an unsynced/local UUID account already exists for this client,
+            // rewrite that PK instead of inserting a second account.
+            if (!existingAccountMap.has(accountIdStr)) {
+                const existingForClient = await this.findByClientId(clientIdStr);
+                if (existingForClient && String(existingForClient.id) !== accountIdStr) {
+                    const existingId = String(existingForClient.id);
+                    const shouldMerge =
+                        (existingForClient.isLocal && !existingForClient.isSync) ||
+                        !/^\d+$/.test(existingId);
+                    if (shouldMerge) {
+                        await this.markAsSynced(existingId, accountIdStr);
+                        existingAccountMap.delete(existingId);
+                        existingAccountMap.set(accountIdStr, existingAccountMap.get(accountIdStr) ?? '');
+                    } else {
+                        // Client already has another synced account — skip duplicate insert
+                        continue;
+                    }
+                }
+            }
+
             const normalizedAcc = { ...acc, accountBalance, clientId };
             const newHash = this.generateHash(normalizedAcc, keysToInclude);
 
