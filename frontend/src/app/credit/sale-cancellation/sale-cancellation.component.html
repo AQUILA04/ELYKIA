@@ -1,0 +1,439 @@
+<div class="sale-cancellation-container" data-testid="e2e-sale-cancellation-page">
+
+  <!-- EN-TÊTE / BREADCRUMB -->
+  <div class="page-breadcrumb">
+    <div class="breadcrumb-nav">
+      <span>Accueil</span>
+      <mat-icon>chevron_right</mat-icon>
+      <span>Ventes</span>
+      <mat-icon>chevron_right</mat-icon>
+      <span class="active">Annulations de ventes</span>
+    </div>
+  </div>
+
+  <!-- TOOLBAR PRINCIPALE -->
+  <div class="elykia-toolbar">
+    <div class="toolbar-left">
+      <div class="page-title">
+        <mat-icon class="title-icon">history_edu</mat-icon>
+        <h2>Rapports & Archives d'Annulations de Ventes</h2>
+      </div>
+    </div>
+    <div class="toolbar-right">
+      <!-- BOUTON DÉCLENCHEUR : VISIBLE UNIQUEMENT POUR ROLE_ADMIN -->
+      <button class="btn btn-danger btn-new-cancellation"
+              data-testid="e2e-sale-cancellation-new-btn"
+              *ngxPermissionsOnly="['ROLE_ADMIN']"
+              (click)="openNewCancellation()">
+        <mat-icon>remove_circle_outline</mat-icon>
+        <span>Nouvelle annulation</span>
+      </button>
+
+      <button class="btn btn-outline-secondary" (click)="loadHistory()" [disabled]="loadingHistory">
+        <mat-icon [class.spin]="loadingHistory">refresh</mat-icon>
+        <span>Actualiser</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- TABLE DES OPÉRATIONS (HISTORIQUE ACCESSIBLE ADMIN ET GESTIONNAIRE) -->
+  <div class="table-card">
+    <div class="table-responsive" *ngIf="!loadingHistory && runs.length > 0">
+      <table class="table elykia-table">
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>Date de l'opération</th>
+          <th>Commercial</th>
+          <th>Période ciblée</th>
+          <th>Statut du run</th>
+          <th class="text-right">Ventes annulées</th>
+          <th class="text-right">Montant réversé</th>
+          <th class="text-right">Ventes rejetées</th>
+          <th>Initié par</th>
+          <th class="text-center">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr *ngFor="let run of runs"
+            [attr.data-testid]="'e2e-sale-cancellation-run-row'"
+            [attr.data-run-id]="run.id"
+            [attr.data-status]="run.status">
+          <td class="font-weight-bold">#{{ run.id }}</td>
+          <td>{{ run.createdDate | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <span class="badge badge-collector">{{ run.commercialUsername }}</span>
+          </td>
+          <td>{{ run.startDate | date:'dd/MM/yyyy' }} au {{ run.endDate | date:'dd/MM/yyyy' }}</td>
+          <td>
+            <span class="badge" [ngClass]="{
+              'badge-success': run.status === 'COMPLETED',
+              'badge-warning': run.status === 'PROCESSING' || run.status === 'ARCHIVING',
+              'badge-danger': run.status === 'FAILED',
+              'badge-secondary': run.status === 'PENDING'
+            }">
+              {{ run.status }}
+            </span>
+          </td>
+          <td class="text-right font-weight-bold text-success">
+            {{ run.cancelledSalesCount }} vente(s)
+          </td>
+          <td class="text-right font-weight-bold text-primary">
+            {{ run.cancelledSalesAmount | number:'1.0-0' }} FCFA
+          </td>
+          <td class="text-right font-weight-bold" [class.text-danger]="run.excludedSalesCount > 0">
+            {{ run.excludedSalesCount }} vente(s)
+          </td>
+          <td>{{ run.triggeredBy }}</td>
+          <td class="text-center">
+            <button class="btn-action btn-view" (click)="openRunDetails(run)" matTooltip="Consulter les pièces d'audit">
+              <mat-icon>visibility</mat-icon>
+            </button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ÉTAT VIDE -->
+    <div class="empty-state" *ngIf="!loadingHistory && runs.length === 0">
+      <mat-icon class="empty-icon">inbox</mat-icon>
+      <h3>Aucune opération d'annulation enregistrée</h3>
+      <p>L'historique des opérations et les rapports d'audit apparaîtront ici.</p>
+    </div>
+
+    <!-- SPINNER CHARGEMENT -->
+    <div class="loading-state" *ngIf="loadingHistory">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Chargement des opérations en cours...</p>
+    </div>
+
+    <!-- PAGINATION -->
+    <mat-paginator [length]="totalRuns"
+                   [pageSize]="pageSize"
+                   [pageSizeOptions]="[5, 10, 25, 50]"
+                   (page)="onPageChange($event)">
+    </mat-paginator>
+  </div>
+
+  <!-- MODAL : DÉTAILS D'UN RUN D'AUDIT (CONSULTABLE PAR ADMIN ET GESTIONNAIRE) -->
+  <div class="elykia-modal-backdrop" *ngIf="selectedRun">
+    <div class="elykia-modal modal-lg">
+      <div class="modal-header">
+        <div class="modal-title">
+          <mat-icon>verified</mat-icon>
+          <h3>Détail de l'opération d'annulation #{{ selectedRun.id }}</h3>
+        </div>
+        <button class="btn-close-modal" (click)="closeRunDetails()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="run-summary-strip">
+          <div class="strip-item">
+            <span class="label">Commercial :</span>
+            <span class="val">{{ selectedRun.commercialUsername }}</span>
+          </div>
+          <div class="strip-item">
+            <span class="label">Période :</span>
+            <span class="val">{{ selectedRun.startDate | date:'dd/MM/yyyy' }} au {{ selectedRun.endDate | date:'dd/MM/yyyy' }}</span>
+          </div>
+          <div class="strip-item">
+            <span class="label">Exécuté par :</span>
+            <span class="val">{{ selectedRun.triggeredBy }}</span>
+          </div>
+          <div class="strip-item">
+            <span class="label">Date :</span>
+            <span class="val">{{ selectedRun.createdDate | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+
+        <div class="reason-alert">
+          <strong>Motif d'audit déclaré :</strong> {{ selectedRun.cancellationReason }}
+        </div>
+
+        <!-- STATISTIQUES -->
+        <div class="kpi-mini-grid">
+          <div class="mini-kpi card-green">
+            <span class="kpi-title">Ventes annulées</span>
+            <span class="kpi-num">{{ selectedRun.cancelledSalesCount }}</span>
+            <span class="kpi-sub">{{ selectedRun.cancelledSalesAmount | number:'1.0-0' }} FCFA</span>
+          </div>
+          <div class="mini-kpi card-orange">
+            <span class="kpi-title">Ventes rejetées (Recouvrements)</span>
+            <span class="kpi-num">{{ selectedRun.excludedSalesCount }}</span>
+            <span class="kpi-sub">{{ selectedRun.excludedSalesAmount | number:'1.0-0' }} FCFA</span>
+          </div>
+          <div class="mini-kpi card-blue">
+            <span class="kpi-title">Fichiers d'audit (MinIO)</span>
+            <span class="kpi-num">{{ selectedRun.pdfFileCount }}</span>
+            <span class="kpi-sub">Archivés</span>
+          </div>
+        </div>
+
+        <!-- LISTE DES FICHIERS PDF À TÉLÉCHARGER -->
+        <h4 class="section-title">
+          <mat-icon>picture_as_pdf</mat-icon>
+          Pièces justificatives et rapports d'audit
+        </h4>
+
+        <div class="files-list" *ngIf="selectedRun.files && selectedRun.files.length > 0">
+          <div class="file-item" *ngFor="let file of selectedRun.files">
+            <div class="file-info">
+              <mat-icon class="pdf-icon">description</mat-icon>
+              <div>
+                <div class="file-name">{{ file.fileName }}</div>
+                <div class="file-meta" *ngIf="file.creditReference">
+                  Vente : <b>{{ file.creditReference }}</b> — Client : {{ file.clientName }} ({{ file.amount | number:'1.0-0' }} FCFA)
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-outline-primary"
+                    [disabled]="downloadingFileId === file.id"
+                    (click)="downloadFile(file.id, file.fileName)">
+              <mat-icon [class.spin]="downloadingFileId === file.id">download</mat-icon>
+              <span>Télécharger</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeRunDetails()">Fermer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL / PANNEAU : NOUVELLE ANNULATION (RÉSERVÉ ROLE_ADMIN) -->
+  <ng-container *ngxPermissionsOnly="['ROLE_ADMIN']">
+    <div class="elykia-modal-backdrop" *ngIf="showNewCancellationModal">
+      <div class="elykia-modal modal-xl">
+      <div class="modal-header header-danger">
+        <div class="modal-title">
+          <mat-icon>cancel_presentation</mat-icon>
+          <h3>Nouvelle Annulation de Ventes (Mois en cours)</h3>
+        </div>
+        <button class="btn-close-modal" (click)="closeNewCancellation()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <div class="modal-body">
+
+        <!-- FORMULAIRE DE RECHERCHE / FILTRAGE -->
+        <div class="filter-panel">
+          <div class="row-fields">
+            <div class="field-group">
+              <label for="sale-cancellation-commercial">Commercial : <span class="req">*</span></label>
+              <select id="sale-cancellation-commercial"
+                      class="form-control"
+                      data-testid="e2e-sale-cancellation-commercial"
+                      [(ngModel)]="filterForm.commercialUsername">
+                <option value="">Sélectionner un commercial...</option>
+                <option *ngFor="let c of commercials" [value]="c.username || c.login || c.collector">
+                  {{ c.fullName || (c.firstname + ' ' + c.lastname) || c.username }} ({{ c.username || c.login }})
+                </option>
+              </select>
+            </div>
+
+            <div class="field-group">
+              <label for="sale-cancellation-start">Date Début (Mois en cours) : <span class="req">*</span></label>
+              <input id="sale-cancellation-start"
+                     type="date"
+                     class="form-control"
+                     data-testid="e2e-sale-cancellation-start"
+                     [(ngModel)]="filterForm.startDate"
+                     [min]="minDateString"
+                     [max]="maxDateString">
+            </div>
+
+            <div class="field-group">
+              <label for="sale-cancellation-end">Date Fin (Mois en cours) : <span class="req">*</span></label>
+              <input id="sale-cancellation-end"
+                     type="date"
+                     class="form-control"
+                     data-testid="e2e-sale-cancellation-end"
+                     [(ngModel)]="filterForm.endDate"
+                     [min]="minDateString"
+                     [max]="maxDateString">
+            </div>
+
+            <div class="field-group">
+              <label for="sale-cancellation-status">Statut de vente :</label>
+              <select id="sale-cancellation-status"
+                      class="form-control"
+                      [(ngModel)]="filterForm.creditStatus">
+                <option [ngValue]="null">Tous (CREATED, VALIDATED, INPROGRESS)</option>
+                <option value="CREATED">CREATED</option>
+                <option value="VALIDATED">VALIDATED</option>
+                <option value="INPROGRESS">INPROGRESS</option>
+              </select>
+            </div>
+
+            <div class="field-group btn-col">
+              <button class="btn btn-primary btn-block"
+                      data-testid="e2e-sale-cancellation-simulate"
+                      (click)="onSimulate()"
+                      [disabled]="loadingPreview">
+                <mat-icon [class.spin]="loadingPreview">search</mat-icon>
+                <span>Simuler l'impact (Dry-Run)</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RÉSULTAT DE LA SIMULATION -->
+        <div class="simulation-section" *ngIf="previewResult">
+
+          <!-- BANDEAU KPI DE SIMULATION -->
+          <div class="simulation-kpis">
+            <div class="sim-kpi-box box-blue">
+              <span class="title">Total Ventes Détectées</span>
+              <span class="value">{{ previewResult.totalSalesFound }}</span>
+            </div>
+            <div class="sim-kpi-box box-green" data-testid="e2e-sale-cancellation-eligible-kpi">
+              <span class="title">Ventes Éligibles à l'Annulation</span>
+              <span class="value">{{ previewResult.eligibleCount }}</span>
+              <span class="sub">{{ previewResult.eligibleAmount | number:'1.0-0' }} FCFA</span>
+            </div>
+            <div class="sim-kpi-box box-orange">
+              <span class="title">Ventes Rejetées (Recouvrements perçus)</span>
+              <span class="value">{{ previewResult.excludedCount }}</span>
+              <span class="sub">{{ previewResult.excludedAmount | number:'1.0-0' }} FCFA</span>
+            </div>
+          </div>
+
+          <!-- ONGLETS DE SIMULATION -->
+          <mat-tab-group class="sim-tabs" animationDuration="0ms">
+
+            <!-- TAB 1 : VENTES ÉLIGIBLES -->
+            <mat-tab label="Ventes Éligibles ({{ previewResult.eligibleCount }})">
+              <div class="tab-content-area">
+                <div class="table-responsive" *ngIf="previewResult.eligibleSales.length > 0">
+                  <table class="table elykia-table-sm">
+                    <thead>
+                    <tr>
+                      <th>Réf. Vente</th>
+                      <th>Client</th>
+                      <th>Date</th>
+                      <th>Statut</th>
+                      <th class="text-right">Montant (FCFA)</th>
+                      <th class="text-right">Avance (FCFA)</th>
+                      <th>Articles restitués au stock commercial</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr *ngFor="let s of previewResult.eligibleSales"
+                        [attr.data-testid]="'e2e-sale-cancellation-eligible-row'"
+                        [attr.data-credit-reference]="s.reference">
+                      <td class="font-weight-bold">{{ s.reference }}</td>
+                      <td>{{ s.clientName }}</td>
+                      <td>{{ s.saleDate | date:'dd/MM/yyyy' }}</td>
+                      <td><span class="badge badge-secondary">{{ s.creditStatus }}</span></td>
+                      <td class="text-right font-weight-bold text-success">{{ s.totalAmount | number:'1.0-0' }}</td>
+                      <td class="text-right text-muted">{{ (s.advance && s.advance > 0) ? (s.advance | number:'1.0-0') : '—' }}</td>
+                      <td><small class="text-muted">{{ s.articlesSummary }}</small></td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div *ngIf="previewResult.eligibleSales.length === 0" class="text-center py-3 text-muted">
+                  Aucune vente éligible à annuler.
+                </div>
+              </div>
+            </mat-tab>
+
+            <!-- TAB 2 : VENTES EXCLUES / BLOQUÉES -->
+            <mat-tab label="Ventes Rejetées ({{ previewResult.excludedCount }})">
+              <div class="tab-content-area">
+                <div class="alert alert-warning mb-2" *ngIf="previewResult.excludedSales.length > 0">
+                  <mat-icon>warning</mat-icon>
+                  <span>Ces ventes <b>ne seront pas annulées</b> car des paiements ont déjà été perçus (garantie de cohérence de caisse).</span>
+                </div>
+                <div class="table-responsive" *ngIf="previewResult.excludedSales.length > 0">
+                  <table class="table elykia-table-sm">
+                    <thead>
+                    <tr>
+                      <th>Réf. Vente</th>
+                      <th>Client</th>
+                      <th>Date</th>
+                      <th class="text-right">Montant Total</th>
+                      <th class="text-right">Déjà Payé</th>
+                      <th>Motif de non-annulation</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr *ngFor="let ex of previewResult.excludedSales">
+                      <td class="font-weight-bold">{{ ex.reference }}</td>
+                      <td>{{ ex.clientName }}</td>
+                      <td>{{ ex.saleDate | date:'dd/MM/yyyy' }}</td>
+                      <td class="text-right">{{ ex.totalAmount | number:'1.0-0' }} FCFA</td>
+                      <td class="text-right font-weight-bold text-danger">{{ ex.paidAmount | number:'1.0-0' }} FCFA</td>
+                      <td><span class="badge badge-danger">{{ ex.reason }}</span></td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div *ngIf="previewResult.excludedSales.length === 0" class="text-center py-3 text-success">
+                  ✓ Aucune vente rejetée pour cause de recouvrements existants.
+                </div>
+              </div>
+            </mat-tab>
+
+            <!-- TAB 3 : IMPACT SUR LE STOCK DU COMMERCIAL -->
+            <mat-tab label="Impact Stock ({{ previewResult.stockImpacts.length }} articles)">
+              <div class="tab-content-area">
+                <p class="text-muted small">Quantités qui seront réintégrées dans le stock mensuel en cours du commercial :</p>
+                <table class="table elykia-table-sm" *ngIf="previewResult.stockImpacts.length > 0">
+                  <thead>
+                  <tr>
+                    <th>Code Article</th>
+                    <th>Désignation Article</th>
+                    <th class="text-right">Quantité à Réintégrer</th>
+                  </tr>
+                  </thead>
+                  <tbody>
+                  <tr *ngFor="let imp of previewResult.stockImpacts">
+                    <td>{{ imp.articleCode || '—' }}</td>
+                    <td class="font-weight-bold">{{ imp.articleName }}</td>
+                    <td class="text-right font-weight-bold text-success">+ {{ imp.quantityToReturn }}</td>
+                  </tr>
+                  </tbody>
+                </table>
+              </div>
+            </mat-tab>
+          </mat-tab-group>
+
+          <!-- CONFIRMATION & MOTIF -->
+          <div class="confirmation-box" *ngIf="previewResult.eligibleCount > 0">
+            <label class="font-weight-bold" for="sale-cancellation-reason">
+              Motif obligatoire de l'annulation (consigné pour l'audit financier) : <span class="req">*</span>
+            </label>
+            <textarea id="sale-cancellation-reason"
+                      class="form-control"
+                      data-testid="e2e-sale-cancellation-reason"
+                      rows="2"
+                      [(ngModel)]="cancellationReason"
+                      placeholder="Ex: Erreur de commercialisation, doublon de saisie, vente annulée par accord direction..."></textarea>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeNewCancellation()" [disabled]="executing">Fermer</button>
+        <button class="btn btn-danger"
+                data-testid="e2e-sale-cancellation-confirm"
+                *ngIf="previewResult && previewResult.eligibleCount > 0"
+                (click)="onConfirmExecution()"
+                [disabled]="executing || !cancellationReason.trim()">
+          <mat-icon [class.spin]="executing">check_circle</mat-icon>
+          <span>{{ executing ? 'Annulation en cours...' : 'Confirmer l\'annulation (' + previewResult.eligibleCount + ' ventes)' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+  </ng-container>
+
+</div>

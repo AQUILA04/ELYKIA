@@ -126,7 +126,7 @@ En cas d'erreur de saisie, les utilisateurs habilités peuvent annuler une ligne
 ### Cotisations à distance par Mobile Money
 Les membres peuvent également cotiser en toute autonomie depuis leur Espace Client ELYKIA :
 - Le membre effectue son transfert vers le numéro Mobile Money attribué à son commercial tontine référent.
-- La déclaration est transmise dans le menu **Paiements clients > Cotisations tontine** (`/customer-payments?tab=tontine`).
+- La déclaration est transmise dans le menu latéral gauche **Paiements clients**, puis onglet **Cotisations tontine**.
 - Après validation du paiement, la cotisation s'enregistre sur la session active du membre et son compteur de jours cotisés progresse immédiatement.
 
 ---
@@ -160,26 +160,26 @@ flowchart LR
    - Cette action déduit définitivement les articles du stock tontine et clôture le dossier du membre.
    - La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.
 
-### Consulter l'ensemble des livraisons (`/tontine/livraisons`)
-Le sous-menu **Livraison** centralise toutes les opérations de distribution de l'agence :
+### Consulter l'ensemble des livraisons (Menu Tontines > Livraison)
+Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. Cet espace centralise toutes les opérations de distribution de l'agence :
 - Indicateurs globaux : nombre de colis livrés, montant total distribué, livraisons restant à honorer, soldes non utilisés.
 - Filtres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.
 - Recherche instantanée par nom ou référence de client.
 
 ---
 
-## 5. Journal des collectes (`/tontine/collectes`)
+## 5. Journal des collectes (Menu Tontines > Collectes)
 
-Le sous-menu **Collectes** est le grand livre de caisse de la tontine :
+Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Collectes**. C'est le grand livre de caisse de la tontine :
 - Il présente la totalité des encaissements enregistrés jour après jour.
 - Vous pouvez filtrer les résultats par période (*du ... au ...*) et par commercial.
 - Chaque ligne affiche l'heure exacte, le montant, le commercial encaisseur, le membre concerné et les codes de confirmation client.
 
 ---
 
-## 6. Archives et transition annuelle (`/tontine/reset-collectes`)
+## 6. Archives et transition annuelle (Menu Tontines > Archives collectes)
 
-Cet espace est réservé aux responsables de l'agence pour réaliser la clôture administrative de fin d'année et préparer la plateforme pour la nouvelle campagne.
+Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Archives collectes**. Cet espace est réservé aux responsables de l'agence pour réaliser la clôture administrative de fin d'année et préparer la plateforme pour la nouvelle campagne.
 
 ### Bibliothèque des archives PDF
 Toutes les archives générées sont rangées dans une arborescence par année :

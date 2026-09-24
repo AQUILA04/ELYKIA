@@ -77,8 +77,22 @@ export class AccountRepository extends BaseRepository<Account, string> {
         console.log(`[AccountRepository] Synced accounts purged for ${commercialUsername} before re-initialization.`);
     }
 
+    override async updateSyncStatus(id: string, isSync: boolean): Promise<void> {
+        const syncDate = isSync ? new Date().toISOString() : null;
+        await this.databaseService.execute(
+            `UPDATE accounts SET isSync = ?, isLocal = ?, syncDate = ? WHERE id = ?`,
+            [isSync ? 1 : 0, isSync ? 0 : 1, syncDate, id]
+        );
+    }
+
     async markAsSynced(localId: string, serverId: string): Promise<void> {
-        if (!this.databaseService['db'] || localId === serverId) return;
+        if (!this.databaseService['db']) {
+            return;
+        }
+        if (localId === serverId) {
+            await this.updateSyncStatus(localId, true);
+            return;
+        }
         await this.databaseService.execute(
             `UPDATE accounts SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now') WHERE id = ?`,
             [serverId, localId]
@@ -111,6 +125,26 @@ export class AccountRepository extends BaseRepository<Account, string> {
             const clientIdStr = String(clientId);
             if (clientId === undefined) {
                 continue;
+            }
+
+            // Incoming server row: if an unsynced/local UUID account already exists for this client,
+            // rewrite that PK instead of inserting a second account.
+            if (!existingAccountMap.has(accountIdStr)) {
+                const existingForClient = await this.findByClientId(clientIdStr);
+                if (existingForClient && String(existingForClient.id) !== accountIdStr) {
+                    const existingId = String(existingForClient.id);
+                    const shouldMerge =
+                        (existingForClient.isLocal && !existingForClient.isSync) ||
+                        !/^\d+$/.test(existingId);
+                    if (shouldMerge) {
+                        await this.markAsSynced(existingId, accountIdStr);
+                        existingAccountMap.delete(existingId);
+                        existingAccountMap.set(accountIdStr, existingAccountMap.get(accountIdStr) ?? '');
+                    } else {
+                        // Client already has another synced account — skip duplicate insert
+                        continue;
+                    }
+                }
             }
 
             const normalizedAcc = { ...acc, accountBalance, clientId };

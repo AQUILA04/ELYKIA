@@ -10,6 +10,7 @@ import {
   TontineMember,
   TontineCollection,
   TontineMemberAmountHistory,
+  TontineMemberAmountHistoryArchive,
   CreateDeliveryDto,
   formatCurrency,
   formatDate,
@@ -64,6 +65,9 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
 
   member: TontineMember | null = null;
   amountHistory: TontineMemberAmountHistory[] = [];
+  amountHistoryArchives: TontineMemberAmountHistoryArchive[] = [];
+  loadingAmountHistoryArchives = false;
+  showArchives = false;
   collectionsDataSource = new MatTableDataSource<TontineCollection>([]);
   displayedColumns: string[] = ['date', 'amount', 'commercial', 'consent', 'actions'];
   loadingCollections = false;
@@ -97,11 +101,15 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    this.isAdmin = this.authService.hasRole(UserProfilConstant.ADMIN);
+    this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
+
     const memberId = Number(this.route.snapshot.paramMap.get('id'));
     if (memberId) {
       this.loadMemberDetails(memberId);
       this.loadCollections(memberId);
       this.loadAmountHistory(memberId);
+      this.loadAmountHistoryArchives(memberId);
       this.loadContributionsByCommercial(memberId);
       this.loadFieldControl(memberId);
     }
@@ -116,8 +124,6 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
 
     // Ensure current session is loaded in the service if it's not already
     this.tontineService.getCurrentSession().pipe(takeUntil(this.destroy$)).subscribe();
-    this.isAdmin = this.authService.hasRole(UserProfilConstant.ADMIN);
-    this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
 
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
@@ -137,6 +143,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     this.loadMemberDetails(this.member.id);
     this.loadCollections(this.member.id);
     this.loadAmountHistory(this.member.id);
+    this.loadAmountHistoryArchives(this.member.id);
     this.loadContributionsByCommercial(this.member.id);
     this.loadFieldControl(this.member.id);
     this.lastUpdate = new Date();
@@ -218,6 +225,25 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       error: () => {
         this.amountHistory = [];
         this.loadingAmountHistory = false;
+      }
+    });
+  }
+
+  loadAmountHistoryArchives(memberId: number): void {
+    if (!this.isAdmin) {
+      return;
+    }
+    this.loadingAmountHistoryArchives = true;
+    this.tontineService.getMemberAmountHistoryArchives(memberId).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (response) => {
+        this.amountHistoryArchives = response.data ?? [];
+        this.loadingAmountHistoryArchives = false;
+      },
+      error: () => {
+        this.amountHistoryArchives = [];
+        this.loadingAmountHistoryArchives = false;
       }
     });
   }
@@ -658,6 +684,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       if (result && this.member) {
         this.loadMemberDetails(this.member.id);
         this.loadAmountHistory(this.member.id);
+        this.loadAmountHistoryArchives(this.member.id);
         this.showSuccess('Membre modifié avec succès');
       }
     });

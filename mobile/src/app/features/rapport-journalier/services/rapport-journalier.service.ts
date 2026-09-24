@@ -194,7 +194,7 @@ export class RapportJournalierService {
       clients: from(this.databaseService.getClients(currentCommercialId))
     }).pipe(
       map(({ accounts, clients }: { accounts: Account[], clients: Client[] }) => {
-        const clientMap = new Map(clients.map(c => [c.id, c.fullName]));
+        const clientMap = new Map(clients.map(c => [c.id, c]));
 
         const todayNewAccounts = accounts.filter((a: Account) => a.createdAt && a.createdAt.startsWith(dateString));
         const todayUpdatedAccounts = accounts.filter((a: Account) => a.updated && a.old_balance && a.accountBalance > a.old_balance && a.syncDate && a.syncDate.startsWith(dateString));
@@ -204,21 +204,29 @@ export class RapportJournalierService {
 
         const totalBalance = newAccountsBalance + updatedAccountsBalance;
 
-        const newAccountItems = todayNewAccounts.map((acc: Account) => ({
-          time: acc.createdAt ? new Date(acc.createdAt).toLocaleTimeString('fr-FR') : '',
-          clientName: clientMap.get(acc.clientId) || 'Client inconnu',
-          accountNumber: acc.accountNumber || 'N/A',
-          balance: acc.accountBalance || 0,
-          isSync: acc.isSync || false
-        }));
+        const newAccountItems = todayNewAccounts.map((acc: Account) => {
+          const client = clientMap.get(acc.clientId);
+          const isSync = client ? (!!client.isSync && !client.isLocal) : (!!acc.isSync && !acc.isLocal);
+          return {
+            time: acc.createdAt ? new Date(acc.createdAt).toLocaleTimeString('fr-FR') : '',
+            clientName: client?.fullName || (client ? `${client.firstname || ''} ${client.lastname || ''}`.trim() : 'Client inconnu'),
+            accountNumber: acc.accountNumber || 'N/A',
+            balance: acc.accountBalance || 0,
+            isSync
+          };
+        });
 
-        const updatedAccountItems = todayUpdatedAccounts.map((acc: Account) => ({
-          time: acc.syncDate ? new Date(acc.syncDate).toLocaleTimeString('fr-FR') : '',
-          clientName: clientMap.get(acc.clientId) || 'Client inconnu',
-          accountNumber: acc.accountNumber || 'N/A',
-          balance: (acc.accountBalance || 0) - (acc.old_balance || 0),
-          isSync: acc.isSync || false
-        }));
+        const updatedAccountItems = todayUpdatedAccounts.map((acc: Account) => {
+          const client = clientMap.get(acc.clientId);
+          const isSync = client ? (!!client.isSync && !client.isLocal) : (!!acc.isSync && !acc.isLocal);
+          return {
+            time: acc.syncDate ? new Date(acc.syncDate).toLocaleTimeString('fr-FR') : '',
+            clientName: client?.fullName || (client ? `${client.firstname || ''} ${client.lastname || ''}`.trim() : 'Client inconnu'),
+            accountNumber: acc.accountNumber || 'N/A',
+            balance: (acc.accountBalance || 0) - (acc.old_balance || 0),
+            isSync
+          };
+        });
 
         const items = [...newAccountItems, ...updatedAccountItems];
 

@@ -59,6 +59,10 @@ export async function loginAsRecoveryManager(page: Page): Promise<void> {
   await loginAs(page, 'recoveryManager');
 }
 
+export async function loginAsAdmin(page: Page): Promise<void> {
+  await loginAs(page, 'admin');
+}
+
 /** Vérifie que les identifiants fonctionnent sur l'API du environnement courant. */
 export async function canSignIn(userKey: E2eUserKey): Promise<boolean> {
   try {

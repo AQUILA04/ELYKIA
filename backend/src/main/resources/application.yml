@@ -57,7 +57,7 @@ spring:
 
   # Configuration Flyway pour la gestion des migrations de base de données
   flyway:
-    enabled: false
+    enabled: true
     baseline-on-migrate: true
     baseline-version: 0
     locations: classpath:db/migration
@@ -504,6 +504,12 @@ elykia:
     conversation:
       max-history-messages: 20
       retention-days: 90
+    # Throttles fournisseur (Vertex AI 429 / RESOURCE_EXHAUSTED) : réessais avant de rendre un 503.
+    retry:
+      max-attempts: 3
+      initial-backoff-ms: 1000
+      backoff-multiplier: 2.0
+      max-backoff-ms: 5000
     sql:
       max-rows: 500
       timeout-seconds: 10

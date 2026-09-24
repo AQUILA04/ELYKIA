@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.ai.config;
 
+import com.optimize.elykia.core.ai.llm.ResilientChatModel;
 import com.optimize.elykia.core.ai.llm.StubChatModel;
 import org.springframework.ai.anthropic.AnthropicChatModel;
 import org.springframework.ai.chat.client.ChatClient;
@@ -62,7 +63,7 @@ public class AiConfiguration {
     }
 
     @Bean
-    public ChatClient elykiaChatClient(ChatModel chatModel) {
-        return ChatClient.builder(chatModel).build();
+    public ChatClient elykiaChatClient(ChatModel chatModel, AiProperties aiProperties) {
+        return ChatClient.builder(new ResilientChatModel(chatModel, aiProperties.getRetry())).build();
     }
 }

@@ -100,7 +100,7 @@ export class SidebarComponent implements OnInit {
       '/home', '/accounting-day', '/open-cashDesk', '/daily-operation',
       '/article', '/localitylist', '/credit', '/out-list', '/tontine-list',
       '/accountlist', '/client/list', '/report', '/inventory/list', '/gestion-list',
-      '/operation-list', '/deposit-list', '/user/list', '/commercial-list',
+      '/operation-list', '/deposit-list', '/user/list', '/commercial/list',
       '/article-type', '/expense/types', '/parameters', '/stock', '/stock-tontine'
     ];
 

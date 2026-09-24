@@ -66,3 +66,8 @@ export const loadNextPageOrdersFailure = createAction(
 export const resetOrderPagination = createAction(
     '[Order] Reset Order Pagination'
 );
+
+export const orderSyncSuccess = createAction(
+    '[Order] Order Sync Success',
+    props<{ localId: string; serverId: string }>()
+);

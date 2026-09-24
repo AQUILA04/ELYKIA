@@ -62,14 +62,14 @@ public abstract class IntegrationTestSupport {
     }
 
     private static NoWaitGenericContainer minioContainer() {
-        // Docker Hub minio/minio est devenu inaccessible (404 / pull denied) ; Quay reste public.
+        // Docker Hub minio/minio: pull denied. Quay: unauthorized on GHA.
+        // bitnamilegacy/minio remains anonymously pullable.
         DockerImageName image = DockerImageName
-                .parse("quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z")
+                .parse("bitnamilegacy/minio:2025.3.12-debian-12-r1")
                 .asCompatibleSubstituteFor("minio/minio");
         NoWaitGenericContainer container = noWaitContainer(image)
                 .withEnv("MINIO_ROOT_USER", "elykia-test-access-key")
                 .withEnv("MINIO_ROOT_PASSWORD", "elykia-test-secret-key")
-                .withCommand("server", "/data", "--console-address", ":9001")
                 .withNetworkMode(networkMode());
         if (!HOST_NETWORK) {
             container.withExposedPorts(MINIO_API_PORT);

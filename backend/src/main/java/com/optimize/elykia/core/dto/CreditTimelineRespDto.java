@@ -21,6 +21,8 @@ public record CreditTimelineRespDto(
         String operationConsentCode,
         Double confirmedAmount,
         String syncConsentCode,
+        Double reliquatGeneratedAmount,
+        Double reliquatUsedAmount,
         Long creditId) {
 
     /** Alias attendu par certains écrans frontend. */
@@ -32,7 +34,8 @@ public record CreditTimelineRespDto(
         if (id == null) {
             return null;
         }
-        return new CreditTimelineRespDto(id, null, null, null, null, null, null, null, null, null, null, null);
+        return new CreditTimelineRespDto(
+                id, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public static CreditTimelineRespDto fromEntity(CreditTimeline timeline) {
@@ -52,6 +55,8 @@ public record CreditTimelineRespDto(
                 timeline.getOperationConsentCode(),
                 timeline.getConfirmedAmount(),
                 timeline.getSyncConsentCode(),
+                timeline.getReliquatGeneratedAmount(),
+                timeline.getReliquatUsedAmount(),
                 creditId);
     }
 

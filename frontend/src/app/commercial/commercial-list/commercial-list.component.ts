@@ -72,21 +72,21 @@ export class CommercialListComponent implements OnInit {
   }
   
   addCommercial(): void {
-    this.router.navigate(['/commercial-add']);
+    this.router.navigate(['/commercial/list']);
   }
 
   viewDetails(id: number): void {
     // Trouver le commercial correspondant à l'id pour obtenir son username
     const commercial = this.commercials.find(c => c.id === id);
     if (commercial) {
-      this.router.navigate(['/commercial-view', id, commercial.username]);
+      this.router.navigate(['/commercial/view', id, commercial.username]);
     } else {
-      this.router.navigate(['/commercial-view', id]);
+      this.router.navigate(['/commercial/view', id]);
     }
   }
 
   editCommercial(id: number): void {
-    this.router.navigate(['/commercial-add', id]);
+    this.router.navigate(['/commercial/view', id]);
   }
 
   deleteCommercial(id: number): void {

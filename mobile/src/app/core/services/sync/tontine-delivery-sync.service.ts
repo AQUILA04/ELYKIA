@@ -36,6 +36,7 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
     }
 
     override async syncBatch(limit: number = 50, dateFilter?: DateFilter): Promise<{ success: number; errors: number; failedIds: string[] }> {
+        await this.repository.purgeSyncedOrphans();
         const unsyncedDeliveries = await this.fetchUnsynced(limit, dateFilter);
 
         let success = 0;

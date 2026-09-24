@@ -3,12 +3,12 @@
 Le module **Tableaux de bord** constitue le centre de contrôle opérationnel et stratégique d'ELYKIA. Il offre aux gestionnaires, secrétaires, chefs d'agence et magasiniers une visibilité immédiate et en temps réel sur la santé financière, le recouvrement des créances, la mobilisation de l'épargne tontine, l'activité commerciale et la gestion des stocks.
 
 L'application web propose deux niveaux de pilotage complémentaires :
-1. **Le Tableau de bord opérationnel V2 (`/home`)** : Suivi au mois le mois des flux d'exploitation, des crédits en cours, des cotisations tontine, des alertes de rupture et des transactions récentes.
-2. **Le Dashboard décisionnel BI (`/bi`)** : Plateforme de Business Intelligence offrant une analyse multi-périodique des tendances de vente, de la rentabilité commerciale, de la solvabilité du portefeuille et de la rotation des stocks.
+1. **Le Tableau de bord opérationnel V2 (Menu Accueil)** : Suivi au mois le mois des flux d'exploitation, des crédits en cours, des cotisations tontine, des alertes de rupture et des transactions récentes.
+2. **Le Dashboard décisionnel BI (Menu Dashboard BI)** : Plateforme de Business Intelligence offrant une analyse multi-périodique des tendances de vente, de la rentabilité commerciale, de la solvabilité du portefeuille et de la rotation des stocks.
 
 ---
 
-## 1. Tableau de bord opérationnel V2 (`/home`)
+## 1. Tableau de bord opérationnel V2 (Menu Accueil)
 
 Accessible dès la connexion via l'icône d'accueil de la barre latérale, le **Dashboard V2** consolide l'ensemble des données d'exploitation en temps réel.
 
@@ -16,9 +16,9 @@ Accessible dès la connexion via l'icône d'accueil de la barre latérale, le **
 
 ### A. Bandeau de contrôle temporel et actualisation
 En tête de page, la barre de navigation et le bandeau de pilotage affichent :
-* **Horloge temps réel** : Affichage permanent de la date et de l'heure à la seconde près (`dd/MM/yyyy - HH:mm:ss`).
+* **Horloge temps réel** : Affichage permanent de la date et de l'heure à la seconde près.
 * **Horodatage de synchronisation** : Indication de la dernière actualisation des données (`Actualisation : HH:mm:ss`).
-* **Sélecteur de mois civil** : Un contrôle interactif muni d'un calendrier annuel (`startView="year"`) permettant de sélectionner n'importe quel mois de l'exercice en cours ou passé. Dès la sélection, l'ensemble des indicateurs, graphiques et listes se recalculent instantanément sur le mois cible.
+* **Sélecteur de mois civil** : Un contrôle interactif muni d'un calendrier annuel permettant de sélectionner n'importe quel mois de l'exercice en cours ou passé. Dès la sélection, l'ensemble des indicateurs, graphiques et listes se recalculent instantanément sur le mois cible.
 * **Bouton « Actualiser »** : Permet de recharger immédiatement l'ensemble des métriques sans recharger la page entière du navigateur.
 
 ---
@@ -49,19 +49,19 @@ En tête de page, la barre de navigation et le bandeau de pilotage affichent :
 
 Deux panneaux situés sous les graphiques permettent un audit visuel direct des flux :
 
-#### 1. Dernières Ventes (`app-recent-sales-panel`)
+#### 1. Dernières Ventes
 * Liste les 5 dernières ventes à crédit conclues dans l'application.
 * Présente pour chaque ligne :
   * L'avatar et le nom complet du client avec sa référence de dossier (`#REF`).
   * Le montant total de la vente en FCFA.
-  * Le badge de statut coloré : `CREATED` (Gris - en attente de validation), `VALIDATED` (Bleu - validée par la gestion), `INPROGRESS` (Vert - marchandise livrée, crédit en cours de remboursement) ou `SETTLED` (Pourpre - crédit intégralement soldé).
+  * Le badge de statut coloré : **Nouveau** (Gris - en attente de validation), **Validé** (Bleu - validé par la gestion), **En cours** (Vert - marchandise livrée, crédit en cours de remboursement) ou **Soldé** (Pourpre - crédit intégralement soldé).
   * La date de démarrage de la vente.
-* Un lien direct **« Voir tout »** redirige vers la liste complète des ventes (`/credit/list`).
+* Un lien direct **« Voir tout »** redirige vers la liste complète des ventes (menu latéral **Ventes > Liste des ventes**).
 
-#### 2. Activité Récente (`app-recent-activity-panel`)
+#### 2. Activité Récente
 * Fil chronologique des 5 dernières opérations administratives et financières (ouvertures/fermetures de caisse, versements bancaires, modifications de portefeuille).
 * Affiche un message explicatif, une icône thématique et le temps écoulé en langage naturel (`il y a 10 min`, `il y a 2 h`).
-* Un lien direct **« Voir tout l'historique »** redirige vers le [Rapport Journalier](reporting_config.md) (`/report/daily`).
+* Un lien direct **« Voir tout l'historique »** redirige vers le [Rapport Journalier](reporting_config.md) (menu **Rapports > Rapport Journalier**).
 
 ---
 
@@ -69,13 +69,13 @@ Deux panneaux situés sous les graphiques permettent un audit visuel direct des 
 Cette section s'affiche au bas du tableau de bord pour les profils en charge du stock (si vous ne voyez pas cette section, vous ne disposez pas des habilitations requises) afin de prévenir tout arrêt de distribution :
 * **Tableau Rupture de Stock (Rouge)** : Liste paginée des articles dont le stock physique est tombé à zéro (numéro d'ordre, nom de l'article, catégorie/type).
 * **Tableau Rupture Imminente (Orange)** : Liste paginée des articles dont le niveau de stock est critique, avec affichage d'une pastille numérique d'alerte.
-* **Lien direct** : Le bouton **« Voir le catalogue »** permet de basculer immédiatement sur la gestion des articles (`/article/list`).
+* **Lien direct** : Le bouton **« Voir le catalogue »** permet de basculer immédiatement sur la gestion des articles (menu **Articles > Liste**).
 
 ---
 
-## 2. Tableau de bord décisionnel BI (`/bi`)
+## 2. Tableau de bord décisionnel BI (Menu Dashboard BI)
 
-Accessible via le menu **Dashboard BI** pour les profils d'analyse, directeurs et gestionnaires, ce module est conçu pour l'analyse stratégique approfondie et le pilotage de la performance.
+Accessible via le menu latéral **Dashboard BI** pour les profils d'analyse, directeurs et gestionnaires, ce module est conçu pour l'analyse stratégique approfondie et le pilotage de la performance.
 
 <!-- CAPTURE À INSÉRER : Page Dashboard BI avec filtres Aujourd'hui/Semaine/Mois/Année/Personnalisé, cartes de rentabilité et centre d'alertes. -->
 
@@ -96,15 +96,15 @@ Le bandeau BI présente 4 cartes de performance avancée :
 
 ### C. Liens rapides d'analyse spécialisée
 Trois raccourcis permettent de plonger dans les sous-modules de Business Intelligence :
-* **Analyse des Ventes (`/bi/sales`)** : Analyse détaillée du chiffre d'affaires ventilé par commercial, par article et par catégorie.
-* **Analyse des Recouvrements (`/bi/collections`)** : Analyse fine des créances en souffrance, pyramide des retards de paiement et distribution de solvabilité des clients.
-* **Analyse du Stock (`/bi/stock`)** : Matrice de rotation des stocks, détection des articles dormants et suivi des alertes d'approvisionnement.
+* **Analyse des Ventes** : Analyse détaillée du chiffre d'affaires ventilé par commercial, par article et par catégorie.
+* **Analyse des Recouvrements** : Analyse fine des créances en souffrance, pyramide des retards de paiement et distribution de solvabilité des clients.
+* **Analyse du Stock** : Matrice de rotation des stocks, détection des articles dormants et suivi des alertes d'approvisionnement.
 
 ### D. Centre d'Alertes et Notifications BI
 Le module BI analyse automatiquement les risques opérationnels et génère des cartes d'avertissement en temps réel :
 * **Alerte Ruptures** : Notification rouge dès qu'un article passe en rupture avec lien vers le détail.
 * **Alerte Stock Faible** : Notification jaune listant les articles sous le seuil critique.
-* **Alerte Créances en Souffrance** : Avertissement rouge indiquant le montant cumulé des échéances impayées (`totalOverdue`) nécessitant une relance du chef de recouvrement.
+* **Alerte Créances en Souffrance** : Avertissement rouge indiquant le montant cumulé des échéances impayées nécessitant une relance du chef de recouvrement.
 * **Indicateur d'Efficacité de Recouvrement** : Pastille de notation automatique (Excellente, Bonne, Vigilance) selon le ratio montant collecté / montant attendu.
 
 ---

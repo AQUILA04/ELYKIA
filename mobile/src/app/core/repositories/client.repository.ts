@@ -773,10 +773,25 @@ export class ClientRepository extends BaseRepository<Client, string> {
     }
 
     /**
+     * Update sync status of a client (ensuring isLocal is also updated)
+     */
+    override async updateSyncStatus(id: string, isSync: boolean): Promise<void> {
+        const syncDate = isSync ? new Date().toISOString() : null;
+        await this.databaseService.execute(
+            `UPDATE clients SET isSync = ?, isLocal = ?, syncDate = ? WHERE id = ?`,
+            [isSync ? 1 : 0, isSync ? 0 : 1, syncDate, id]
+        );
+    }
+
+    /**
      * Mark client as synced and update ID refs
      */
     async markAsSynced(localId: string, serverId: string, profilPhotoUrl?: string, cardPhotoUrl?: string): Promise<void> {
-        if (!this.databaseService['db'] || localId === serverId) {
+        if (!this.databaseService['db']) {
+            return;
+        }
+        if (localId === serverId) {
+            await this.updateSyncStatus(localId, true);
             return;
         }
         await this.mergeLocalClientIntoServerId(localId, serverId, { profilPhotoUrl, cardPhotoUrl });

@@ -4,7 +4,9 @@ Ce guide détaille l'ensemble des modules d'analyse, d'archivage mensuel, d'inte
 
 ---
 
-## 1. Rapport Journalier d'activité (`/report/daily`)
+## 1. Rapport Journalier d'activité
+
+Pour y accéder, rendez-vous dans le menu latéral et cliquez sur **Rapport Journalier**.
 
 Le **Rapport Journalier** est l'outil central de pilotage opérationnel d'ELYKIA. Il synthétise l'ensemble des flux d'exploitation sur la période sélectionnée et propose 5 onglets thématiques spécialisés.
 
@@ -14,7 +16,7 @@ Le **Rapport Journalier** est l'outil central de pilotage opérationnel d'ELYKIA
 Les filtres définis dans la barre supérieure s'appliquent automatiquement à l'ensemble des onglets du rapport :
 * **Période** : Boutons rapides **« Aujourd'hui »**, **« Cette semaine »**, **« Ce mois »**, ou **« Personnalisé »** (avec calendrier interactif pour choisir une plage *Du ... Au ...*).
 * **Filtre Commercial** :
-  * **Pour un commercial** : Votre compte est pré-sélectionné automatiquement. Vous visualisez uniquement vos propres données d'activité (vos ventes, vos recouvrements, vos collectes).
+  * **Pour un commercial** : Votre nom est pré-sélectionné automatiquement. Vous visualisez uniquement vos propres données d'activité (vos ventes, vos recouvrements, vos collectes).
   * **Pour un gestionnaire** : Vous pouvez laisser le champ vide pour obtenir la consolidation globale de toute l'agence, ou sélectionner un commercial dans la liste pour auditer son portefeuille spécifique.
 * **Bouton « Voir marges » / « Masquer marges »** : Disponible pour les profils habilités, ce bouton permet d'afficher ou de masquer les indicateurs de marge commerciale brute calculée sur les ventes.
 * **Bouton « Réinitialiser »** : Remet les filtres sur la période par défaut.
@@ -82,9 +84,11 @@ Cet onglet permet de réaliser le versement des fonds collectés de la période 
 
 ---
 
-## 2. Rapports Mensuels consolidés (`/report/monthly-reports`)
+## 2. Rapports Mensuels consolidés
 
-Le module **Rapports mensuels** gère la conservation et le téléchargement des archives comptables officielles d'ELYKIA.
+Pour accéder aux archives mensuelles, ouvrez le menu latéral et cliquez sur **Rapports Mensuels**.
+
+Ce module gère la conservation et le téléchargement des archives comptables officielles d'ELYKIA.
 
 <!-- CAPTURE À INSÉRER : Arborescence des rapports mensuels avec dossiers Années, sous-dossiers Mois et liste des fichiers PDF téléchargeables. -->
 
@@ -107,7 +111,7 @@ L'écran présente une vue hiérarchique dépliable :
 
 ---
 
-## 3. Assistant Décisionnel ELYKIA IA (`/ai-chat`)
+## 3. Assistant Décisionnel ELYKIA IA
 
 L'application intègre un assistant d'intelligence artificielle conversationnelle permettant d'interroger instantanément l'ensemble des données d'exploitation en langage naturel.
 
@@ -115,12 +119,12 @@ L'application intègre un assistant d'intelligence artificielle conversationnell
 
 ### A. Accès et présentation
 * **Accès au module** : Menu latéral **Elykia IA** (icône intelligence artificielle). Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises pour votre profil.
-* **Bandeau de statut** : Affiche en bas de page l'état de santé du moteur IA et le modèle actif.
+* **Bandeau de statut** : Affiche en bas de page l'état de fonctionnement du moteur IA.
 
 ### B. Organisation des discussions
 * **Volet latéral des sessions** : Retrouvez l'historique complet de vos conversations antérieures, automatiquement renommées en fonction du sujet abordé.
 * **Bouton « Nouvelle discussion »** : Ouvre un fil de dialogue vierge.
-* **Suppression de session** : Permet de purger les discussions devenues obsolètes.
+* **Suppression de session** : Permet de purger les discussions devenues obsolètes via l'icône corbeille.
 
 ### C. Interroger l'IA en langage naturel
 Vous pouvez poser vos questions courantes en français tel que vous le feriez avec un analyste d'exploitation :
@@ -132,22 +136,22 @@ Vous pouvez poser vos questions courantes en français tel que vous le feriez av
 
 ### D. Réponses structurées et transparence
 * **Tableaux de données clairs** : Les résultats chiffrés sont restitués sous forme de tableaux lisibles et directement exploitables.
-* **Transparence pour audit** : Pour les utilisateurs habilités, un bouton permet d'afficher la formule de calcul ou la requête d'interrogation générée en arrière-plan, ainsi que le temps de traitement en millisecondes, garantissant l'exactitude des chiffres avancés.
-* **Onglet Statistiques** : Permet de consulter les métriques d'utilisation de l'assistant (nombre de requêtes, temps moyen de réponse, domaines métier les plus sollicités).
+* **Transparence pour audit** : Pour les utilisateurs habilités, un bouton permet d'afficher la formule de calcul ou la requête d'interrogation générée en arrière-plan, garantissant l'exactitude des chiffres avancés.
+* **Onglet Statistiques** : Permet de consulter les métriques d'utilisation de l'assistant (nombre de questions posées, temps de réponse, thématiques les plus sollicitées).
 
 ---
 
-## 4. Référentiels et Configuration de l'agence (`/configuration`)
+## 4. Référentiels et Configuration de l'agence
 
-Le menu **Configuration** regroupe les paramètres fondamentaux qui régissent les calculs et les nomenclatures de l'application :
+Pour les profils administrateurs ou gestionnaires autorisés, le menu latéral **Configuration** regroupe les paramètres fondamentaux qui régissent les calculs et les nomenclatures de l'application :
 
-| Sous-menu | Rôle fonctionnel |
+| Rubrique du menu | Rôle fonctionnel |
 |---|---|
-| **Localités (`/locality`)** | Gestion du répertoire des zones, communes et quartiers. Permet d'harmoniser les adresses des clients et d'organiser les tournées de recouvrement. |
-| **Types d'Articles (`/article-type`)** | Définition des catégories du catalogue de marchandises (Électroménager, Multimédia, Mobilier, etc.). |
-| **Types de Dépense (`/expense/types`)** | Référentiel des motifs de décaissement d'exploitation (Carburant, Loyer, Maintenance, etc.). |
-| **Mobile Money (`/configuration/mobile-money`)** | Configuration des numéros de transfert d'argent (Mixx by YAS et Moov Money) attribués à chaque commercial pour les règlements clients à distance. |
-| **Paramètres généraux (`/parameters`)** | Réglage des clés système fondamentales, notamment la version du calcul de la part société tontine (`TONTINE_SOCIETY_SHARE_VERSION` V1 ou V2). |
+| **Localités** | Gestion du répertoire des zones, communes et quartiers. Permet d'harmoniser les adresses des clients et d'organiser les tournées de recouvrement. |
+| **Types d'Articles** | Définition des catégories du catalogue de marchandises (Électroménager, Multimédia, Mobilier, etc.). |
+| **Types de Dépense** | Référentiel des motifs de décaissement d'exploitation (Carburant, Loyer, Maintenance, etc.). |
+| **Mobile Money** | Configuration des numéros de transfert d'argent (Mixx by YAS et Moov Money) attribués à chaque commercial pour les règlements clients à distance. |
+| **Paramètres généraux** | Réglage des clés système fondamentales, notamment le mode de calcul de la part société de la tontine. |
 
 > **Prudence d'administration.** La modification d'un paramètre général est une opération sensible qui engage la cohérence des écritures passées et futures. Toute modification doit respecter les consignes strictes de la direction. Si vous n'avez pas accès à ces écrans, vous ne disposez pas des habilitations nécessaires.
 

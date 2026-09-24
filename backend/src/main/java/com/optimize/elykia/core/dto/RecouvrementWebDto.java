@@ -23,4 +23,6 @@ public class RecouvrementWebDto {
     private String operationConsentCode;
     private Double confirmedAmount;
     private String syncConsentCode;
+    private Double reliquatGeneratedAmount;
+    private Double reliquatUsedAmount;
 }

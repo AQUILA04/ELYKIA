@@ -21,7 +21,7 @@ fi
 
 export PGPASSWORD
 
-# E2E tourne avec flyway disabled + Hibernate ddl-auto=update : la colonne
+# E2E : Flyway V000+V001 sur une base existante, ou Hibernate ddl-auto=update en local.
 # packaging_type est NOT NULL sans DEFAULT PostgreSQL. Les INSERT V14 ne la
 # renseignent pas — on pose le défaut avant le seed.
 psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$PGDATABASE" -v ON_ERROR_STOP=1 <<'SQL'

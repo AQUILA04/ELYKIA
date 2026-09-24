@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Rapport Global de Fin d'Opération - Annulation de Ventes</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; font-size: 11px; color: #333; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #003366; padding-bottom: 10px; }
+        .header h1 { margin: 0; font-size: 18px; color: #003366; }
+        .header h2 { margin: 4px 0 0; font-size: 13px; color: #555; }
+        .meta { margin-bottom: 15px; background: #f0f4f9; padding: 12px; border-radius: 4px; border-left: 4px solid #003366; }
+        .meta-table { width: 100%; border-collapse: collapse; }
+        .meta-table td { width: 50%; vertical-align: top; padding: 4px 15px 4px 0; font-size: 11px; }
+        .meta-label { font-weight: bold; color: #003366; margin-right: 6px; }
+        .meta-value { color: #222; }
+        .kpi-row { display: table; width: 100%; margin-bottom: 15px; }
+        .kpi-card { display: table-cell; width: 33.33%; padding: 8px; text-align: center; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; }
+        .kpi-val { font-size: 14px; font-weight: bold; margin-top: 4px; }
+        .kpi-success { color: #27ae60; }
+        .kpi-danger { color: #c0392b; }
+        .kpi-primary { color: #003366; }
+        table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 20px; }
+        th { background: #003366; color: white; padding: 6px 5px; text-align: left; font-size: 10px; }
+        th.th-warning { background: #d35400; }
+        td { padding: 5px; border-bottom: 1px solid #dde3ec; font-size: 9.5px; }
+        tr:nth-child(even) { background: #f9fbfd; }
+        .total-row td { font-weight: bold; background: #e8eef6; border-top: 2px solid #003366; }
+        .total-warning td { font-weight: bold; background: #fef5e7; border-top: 2px solid #d35400; color: #d35400; }
+        .badge-excluded { color: #d35400; font-weight: bold; }
+        .footer { margin-top: 25px; text-align: center; font-size: 9px; color: #888; border-top: 1px solid #ddd; padding-top: 8px; }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>RAPPORT GLOBAL DE FIN D'OPÉRATION</h1>
+    <h2>TRAITEMENT D'ANNULATION DES VENTES D'UN COMMERCIAL (MOIS EN COURS)</h2>
+</div>
+
+<div class="meta">
+    <table class="meta-table">
+        <thead>
+        <tr>
+            <th scope="col">Contexte opération</th>
+            <th scope="col">Détails</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>
+                <span class="meta-label">Commercial concerné :</span>
+                <span class="meta-value" th:text="${commercialUsername}">COM001</span>
+            </td>
+            <td>
+                <span class="meta-label">Période traitée :</span>
+                <span class="meta-value" th:text="${period}">01/09/2026 au 24/09/2026</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="meta-label">Opération exécutée par :</span>
+                <span class="meta-value" th:text="${adminUsername}">ADMIN</span>
+            </td>
+            <td>
+                <span class="meta-label">Date d'exécution :</span>
+                <span class="meta-value" th:text="${executionDate}">24/09/2026 15:45</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="padding-top: 6px;">
+                <span class="meta-label">Motif déclaré :</span>
+                <span class="meta-value" th:text="${cancellationReason}">Régularisation</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<table style="margin-bottom: 20px;">
+    <thead>
+    <tr>
+        <th scope="col">Ventes annulées</th>
+        <th scope="col">Ventes rejetées</th>
+        <th scope="col">Fichiers d'audit</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td style="width: 33%; text-align: center; background: #eafaf1; padding: 10px; border: 1px solid #a3e4d7;">
+            <div style="font-size: 10px; color: #27ae60; font-weight: bold;">VENTES ANNULÉES AVEC SUCCÈS</div>
+            <div style="font-size: 16px; font-weight: bold; color: #1e8449;" th:text="${cancelledCount} + ' vente(s)'">0 vente(s)</div>
+            <div style="font-size: 11px; color: #1e8449;" th:text="${#numbers.formatDecimal(cancelledAmount, 0, 'COMMA', 0, 'POINT')} + ' FCFA'">0 FCFA</div>
+        </td>
+        <td style="width: 33%; text-align: center; background: #fef9e7; padding: 10px; border: 1px solid #f9e79f;">
+            <div style="font-size: 10px; color: #d35400; font-weight: bold;">VENTES REJETÉES / BLOQUÉES</div>
+            <div style="font-size: 16px; font-weight: bold; color: #ba4a00;" th:text="${excludedCount} + ' vente(s)'">0 vente(s)</div>
+            <div style="font-size: 11px; color: #ba4a00;" th:text="${#numbers.formatDecimal(excludedAmount, 0, 'COMMA', 0, 'POINT')} + ' FCFA'">0 FCFA</div>
+        </td>
+        <td style="width: 33%; text-align: center; background: #ebf5fb; padding: 10px; border: 1px solid #aed6f1;">
+            <div style="font-size: 10px; color: #003366; font-weight: bold;">FICHIERS D'AUDIT GÉNÉRÉS</div>
+            <div style="font-size: 16px; font-weight: bold; color: #003366;" th:text="${pdfCount} + ' fiches PDF'">0 fiches PDF</div>
+            <div style="font-size: 10px; color: #555;">Archivées sur MinIO</div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- SECTION 1 : VENTES REJETÉES (RECOUVREMENTS PERÇUS) -->
+<h3 style="color: #d35400; font-size: 12px; margin-bottom: 4px;">1. LISTE DES VENTES REJETÉES (NON ANNULÉES CAR RECOUVREMENTS DÉJÀ PERÇUS)</h3>
+<p style="font-size: 9.5px; color: #666; margin-top: 0;">Ces ventes n'ont pas été modifiées afin de préserver la comptabilité et la caisse journalière :</p>
+<table th:if="${not #lists.isEmpty(excludedSales)}">
+    <thead>
+    <tr>
+        <th class="th-warning">Réf. Vente</th>
+        <th class="th-warning">Client</th>
+        <th class="th-warning">Date Vente</th>
+        <th class="th-warning" style="text-align:right">Montant Vente</th>
+        <th class="th-warning" style="text-align:right">Montant Déjà Payé</th>
+        <th class="th-warning">Motif de rejet</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="ex : ${excludedSales}">
+        <td style="font-weight: bold;" th:text="${ex.reference}">REF-001</td>
+        <td th:text="${ex.clientName}">Client A</td>
+        <td th:text="${ex.saleDate}">05/09/2026</td>
+        <td style="text-align:right" th:text="${#numbers.formatDecimal(ex.totalAmount, 0, 'COMMA', 0, 'POINT')}">100 000</td>
+        <td style="text-align:right; font-weight: bold; color: #d35400;" th:text="${#numbers.formatDecimal(ex.paidAmount, 0, 'COMMA', 0, 'POINT')}">25 000</td>
+        <td class="badge-excluded" th:text="${ex.reason}">Paiements déjà perçus</td>
+    </tr>
+    <tr class="total-warning">
+        <td colspan="3">TOTAL DES VENTES REJETÉES</td>
+        <td style="text-align:right" th:text="${#numbers.formatDecimal(excludedAmount, 0, 'COMMA', 0, 'POINT')}">0</td>
+        <td style="text-align:right" th:text="${#numbers.formatDecimal(excludedPaidAmount, 0, 'COMMA', 0, 'POINT')}">0</td>
+        <td></td>
+    </tr>
+    </tbody>
+</table>
+<div th:if="${#lists.isEmpty(excludedSales)}" style="font-size: 10px; color: #27ae60; margin-bottom: 15px;">
+    ✓ Aucune vente n'a été rejetée pour cause de recouvrements existants.
+</div>
+
+<!-- SECTION 2 : VENTES ANNULÉES -->
+<h3 style="color: #003366; font-size: 12px; margin-bottom: 4px; margin-top: 15px;">2. LISTE DES VENTES ANNULÉES ET RÉINTÉGRÉES DANS LE STOCK COMMERCIAL</h3>
+<table>
+    <thead>
+    <tr>
+        <th>Réf. Vente</th>
+        <th>Client</th>
+        <th>Date Vente</th>
+        <th>Statut Initial</th>
+        <th style="text-align:right">Montant Vente (FCFA)</th>
+        <th style="text-align:right">Articles Restitués</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="c : ${cancelledSales}">
+        <td style="font-weight: bold;" th:text="${c.reference}">REF-002</td>
+        <td th:text="${c.clientName}">Client B</td>
+        <td th:text="${c.saleDate}">10/09/2026</td>
+        <td th:text="${c.initialStatus}">VALIDATED</td>
+        <td style="text-align:right" th:text="${#numbers.formatDecimal(c.totalAmount, 0, 'COMMA', 0, 'POINT')}">40 000</td>
+        <td style="text-align:right" th:text="${c.articlesSummary}">2 art.</td>
+    </tr>
+    <tr class="total-row">
+        <td colspan="4">TOTAL GÉNÉRAL RÉVERSÉ</td>
+        <td style="text-align:right; color: #27ae60;" th:text="${#numbers.formatDecimal(cancelledAmount, 0, 'COMMA', 0, 'POINT')} + ' FCFA'">0 FCFA</td>
+        <td></td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="footer">
+    AMENOUVEVE - YAVEH, TOKOIN HÔPITAL — Rapport d'audit global ELYKIA certifié conforme
+</div>
+</body>
+</html>

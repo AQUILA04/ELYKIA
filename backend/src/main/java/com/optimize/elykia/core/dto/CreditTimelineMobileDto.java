@@ -26,8 +26,13 @@ public class CreditTimelineMobileDto {
     private String operationConsentCode;
     private Double confirmedAmount;
     private String syncConsentCode;
+    private Double reliquatGeneratedAmount;
+    private Double reliquatUsedAmount;
 
-    public CreditTimelineMobileDto(Long id, Double amount, LocalDateTime createdDate, Boolean normalStake, String collector, Long creditId, Long clientId, String reference, String operationConsentCode, Double confirmedAmount, String syncConsentCode) {
+    public CreditTimelineMobileDto(Long id, Double amount, LocalDateTime createdDate, Boolean normalStake,
+            String collector, Long creditId, Long clientId, String reference, String operationConsentCode,
+            Double confirmedAmount, String syncConsentCode, Double reliquatGeneratedAmount,
+            Double reliquatUsedAmount) {
         this.id = id != null ? id.toString() : null;
         this.amount = amount;
         this.paymentDate = createdDate;
@@ -42,5 +47,7 @@ public class CreditTimelineMobileDto {
         this.operationConsentCode = operationConsentCode;
         this.confirmedAmount = confirmedAmount;
         this.syncConsentCode = syncConsentCode;
+        this.reliquatGeneratedAmount = reliquatGeneratedAmount != null ? reliquatGeneratedAmount : 0.0;
+        this.reliquatUsedAmount = reliquatUsedAmount != null ? reliquatUsedAmount : 0.0;
     }
 }

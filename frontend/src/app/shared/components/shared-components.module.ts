@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,6 +22,7 @@ import { StockExportFilterComponent } from './stock-export-filter/stock-export-f
 import { CommercialSelectorComponent } from './commercial-selector/commercial-selector.component';
 import { ClientSelectComponent } from './client-select/client-select.component';
 import { StatusBadgePipe } from '../pipes/status-badge.pipe';
+import { BreadcrumbComponent } from '../../bread/breadcrumb/breadcrumb.component';
 
 @NgModule({
     declarations: [
@@ -32,12 +34,14 @@ import { StatusBadgePipe } from '../pipes/status-badge.pipe';
         StockExportFilterComponent,
         CommercialSelectorComponent,
         ClientSelectComponent,
-        StatusBadgePipe
+        StatusBadgePipe,
+        BreadcrumbComponent,
     ],
     imports: [
         CommonModule,
         FormsModule,
         ReactiveFormsModule,
+        RouterModule,
         MatListModule,
         MatButtonModule,
         MatIconModule,
@@ -59,6 +63,7 @@ import { StatusBadgePipe } from '../pipes/status-badge.pipe';
         CommercialSelectorComponent,
         ClientSelectComponent,
         StatusBadgePipe,
+        BreadcrumbComponent,
         NgxSpinnerModule
     ]
 })

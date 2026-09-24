@@ -9,6 +9,7 @@ import {
   TontineMember,
   TontineCollection,
   TontineMemberAmountHistory,
+  TontineMemberAmountHistoryArchive,
   TontineClient,
   TontineKPI,
   CreateTontineMemberDto,
@@ -157,6 +158,14 @@ export class TontineService {
     const headers = this.getHeaders();
     return this.http.get<ApiResponse<TontineMemberAmountHistory[]>>(
       `${this.apiUrl}/members/${memberId}/amount-history`,
+      { headers }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
+  getMemberAmountHistoryArchives(memberId: number): Observable<ApiResponse<TontineMemberAmountHistoryArchive[]>> {
+    const headers = this.getHeaders();
+    return this.http.get<ApiResponse<TontineMemberAmountHistoryArchive[]>>(
+      `${this.apiUrl}/members/${memberId}/amount-history-archives`,
       { headers }
     ).pipe(catchError(this.handleApiError.bind(this)));
   }

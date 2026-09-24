@@ -51,5 +51,34 @@ export const accountReducer = createReducer(
   ),
   on(AccountActions.updateAccountSuccess, (state, { account }) =>
     accountAdapter.updateOne({ id: account.id, changes: account }, state)
-  )
+  ),
+  on(AccountActions.updateAccountClientId, (state, { oldClientId, newClientId }) => {
+    const updates = Object.values(state.entities)
+      .filter((acc): acc is Account => !!acc && String(acc.clientId) === String(oldClientId))
+      .map(acc => ({
+        id: acc.id,
+        changes: { clientId: newClientId }
+      }));
+    if (updates.length === 0) return state;
+    return accountAdapter.updateMany(updates, state);
+  }),
+  on(AccountActions.accountSyncSuccess, (state, { localId, serverId }) => {
+    const localIdStr = String(localId);
+    const serverIdStr = String(serverId);
+    const existing = state.entities[localIdStr] || state.entities[serverIdStr];
+    if (!existing) {
+      return state;
+    }
+    const synced: Account = {
+      ...existing,
+      id: serverIdStr,
+      isSync: true,
+      isLocal: false
+    };
+    let next = state;
+    if (localIdStr !== serverIdStr) {
+      next = accountAdapter.removeOne(localIdStr, next);
+    }
+    return accountAdapter.upsertOne(synced, { ...next, error: null });
+  })
 );

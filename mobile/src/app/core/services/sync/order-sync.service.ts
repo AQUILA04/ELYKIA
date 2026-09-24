@@ -11,6 +11,8 @@ import { OrderSyncRequest, OrderSyncResponse } from '../../../models/sync.model'
 import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
 import { DateFilter } from '../../models/date-filter.model';
+import { Store } from '@ngrx/store';
+import * as OrderActions from '../../../store/order/order.actions';
 
 @Injectable({
     providedIn: 'root'
@@ -24,7 +26,8 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
         protected override repository: OrderRepository,
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
-        private readonly orderRepositoryExtensions: OrderRepositoryExtensions
+        private readonly orderRepositoryExtensions: OrderRepositoryExtensions,
+        private readonly store: Store
     ) {
         super(http, repository, authService, syncErrorService, 'order');
     }
@@ -126,9 +129,14 @@ export class OrderSyncService extends BaseSyncService<Order, OrderRepository> {
         }
 
         const syncedOrder = response.data;
+        const serverId = syncedOrder.id.toString();
 
-        await this.repository.saveIdMapping(order.id, syncedOrder.id.toString(), 'order');
-        await this.repository.updateSyncStatus(order.id, true);
+        await this.repository.saveIdMapping(order.id, serverId, 'order');
+        await this.repository.markAsSynced(order.id, serverId);
+        this.store.dispatch(OrderActions.orderSyncSuccess({
+            localId: order.id,
+            serverId
+        }));
 
         return syncedOrder;
     }

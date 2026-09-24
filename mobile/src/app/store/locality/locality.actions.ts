@@ -38,3 +38,8 @@ export const addLocalityFailure = createAction(
   '[Locality] Add Locality Failure',
   props<{ error: any }>()
 );
+
+export const localitySyncSuccess = createAction(
+  '[Locality] Locality Sync Success',
+  props<{ localId: string; serverId: string }>()
+);

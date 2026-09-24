@@ -4,9 +4,9 @@ Le module **Clients** est le socle de l'ensemble des opérations commerciales et
 
 ---
 
-## 1. Rechercher et consulter la clientèle (`/client/list`)
+## 1. Rechercher et consulter la clientèle (Menu Clients > Liste)
 
-Accessible via le menu latéral **Clients**, la vue liste fournit un accès direct à l'ensemble du portefeuille.
+Accessible via le menu latéral gauche **Clients**, la vue liste fournit un accès direct à l'ensemble du portefeuille.
 
 <!-- CAPTURE À INSÉRER : Liste web des clients avec la barre de recherche, le filtre commercial, les KPI et les boutons d'action. -->
 
@@ -19,13 +19,13 @@ Accessible via le menu latéral **Clients**, la vue liste fournit un accès dire
 ### B. Indicateurs du bandeau supérieur
 Quatre cartes KPIs résument la dynamique du portefeuille affiché :
 1. **Clients enregistrés** : Nombre total de clients actifs (hors dossiers supprimés).
-2. **Crédit en cours** : Nombre de clients ayant au moins une vente à crédit active (`INPROGRESS`).
+2. **Crédit en cours** : Nombre de clients ayant au moins une vente à crédit active en cours de remboursement.
 3. **Membres tontine** : Nombre de clients souscripteurs d'un cycle d'épargne tontine.
 4. **Sans crédit ni tontine** : Prospects ou clients n'ayant aucun engagement financier actif.
 
 ---
 
-## 2. Enrôlement d'un nouveau client (`/client/add`)
+## 2. Enrôlement d'un nouveau client (Bouton + Ajouter)
 
 Pour créer un nouveau client, cliquez sur le bouton bleu **« + Ajouter »** en haut à droite de la liste. Le formulaire est structuré en 7 sections normées :
 
@@ -81,7 +81,7 @@ Cliquez sur **« Enregistrer »** pour créer le dossier client.
 
 ---
 
-## 3. Consultation détaillée du client (`/client/view/:id`)
+## 3. Consultation détaillée du client (Fiche client 360°)
 
 En cliquant sur le nom d'un client dans la liste, vous accédez à sa **Fiche Client Détaillée**, structurée pour offrir une vue à 360 degrés de sa solvabilité :
 
@@ -98,9 +98,9 @@ En cliquant sur le nom d'un client dans la liste, vous accédez à sa **Fiche Cl
   * **Achats en retard** : Nombre de crédits en défaut de paiement.
 
 ### B. Les 3 Onglets chronologiques d'opérations
-1. **Onglet « Achats »** : Liste détaillée des crédits actuellement en cours (`INPROGRESS`), avec la référence, les articles associés, la mise journalière, le montant total et le reste à payer.
-2. **Onglet « Historiques »** : Archives de l'ensemble des crédits soldés (`SETTLED`) ou annulés dans le passé, permettant d'apprécier la ponctualité historique du client.
-3. **Onglet « En Attente »** : Dossiers de vente créés (`CREATED`) ou validés (`VALIDATED`) en attente de démarrage ou de livraison de marchandise.
+1. **Onglet « Achats »** : Liste détaillée des crédits actuellement en cours de remboursement, avec la référence, les articles associés, la mise journalière, le montant total et le reste à payer.
+2. **Onglet « Historiques »** : Archives de l'ensemble des crédits soldés (entièrement remboursés) ou annulés dans le passé, permettant d'apprécier la ponctualité historique du client.
+3. **Onglet « En Attente »** : Dossiers de vente créés ou validés par la gestion en attente de démarrage ou de livraison de marchandise.
 
 ---
 
@@ -116,9 +116,9 @@ Lorsque les tournées sont réorganisées, les gestionnaires peuvent transférer
 
 ---
 
-## 5. Gestion des comptes financiers (`/accountlist`)
+## 5. Gestion des comptes financiers (Menu Comptes)
 
 Le sous-menu **Comptes** offre une vue d'ensemble des comptes de monnaie électronique ou de dépôt rattachés aux clients et aux agents :
 * Affiche pour chaque compte : le numéro de compte unique, le titulaire (client ou commercial), le type de compte et le solde actuel disponible en FCFA.
-* La fiche de détail d'un compte (`/accountdetails/:id`) permet de tracer l'ensemble des écritures de débit (achats, prélèvements) et de crédit (approvisionnements, remboursements).
+* La fiche de détail d'un compte permet de tracer l'ensemble des écritures de débit (achats, prélèvements) et de crédit (approvisionnements, remboursements).
 

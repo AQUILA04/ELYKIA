@@ -4,7 +4,7 @@ Ce guide décrit l'ensemble des procédures opérationnelles et des gestes de co
 
 ---
 
-## 1. Gestion de la journée comptable (`/accounting-day`)
+## 1. Gestion de la journée comptable (Menu Opérations > Journée comptable)
 
 La **Journée comptable** est le verrou d'intégrité central d'ELYKIA. Aucune opération financière (décaissement, encaissement, vente, collecte) ne peut être initiée sans qu'une journée comptable ne soit préalablement ouverte.
 
@@ -26,7 +26,7 @@ La **Journée comptable** est le verrou d'intégrité central d'ELYKIA. Aucune o
 
 ---
 
-## 2. Gestion de la caisse agent (`/open-cashDesk`)
+## 2. Gestion de la caisse agent (Menu Caisse > Ouverture / Fermeture)
 
 Chaque commercial ou caissier au siège doit disposer d'une caisse ouverte pour enregistrer ses opérations de vente et d'encaissement.
 
@@ -38,7 +38,7 @@ Chaque commercial ou caissier au siège doit disposer d'une caisse ouverte pour 
 
 ---
 
-## 3. Billetage physique des espèces (`/billetage`)
+## 3. Billetage physique des espèces (Menu Caisse > Billetage)
 
 Le **Billetage** permet de réaliser le comptage contradictoire et rigoureux des espèces physiques (billets et pièces de monnaie en Francs CFA) avant tout versement ou clôture.
 
@@ -74,9 +74,9 @@ L'interface présente deux colonnes distinctes avec les reproductions visuelles 
 
 ---
 
-## 4. Opération journalière et feuille de route (`/daily-operation`)
+## 4. Opération journalière et feuille de route (Menu Caisse > Opération Journalière)
 
-Accessible via **Caisse > Opération Journalière**, cette interface permet de superviser l'ensemble des crédits actifs dont les mises sont attendues sur la journée.
+Accessible via le menu **Caisse > Opération Journalière**, cette interface permet de superviser l'ensemble des crédits actifs dont les mises sont attendues sur la journée.
 
 * **Indicateurs par ligne** :
   * Nom et prénom du client.
@@ -84,13 +84,13 @@ Accessible via **Caisse > Opération Journalière**, cette interface permet de s
   * **Mise journalière** contractuelle en FCFA.
   * **Reste à payer** global sur le crédit.
 * **Actions et documents** :
-  * **Détails (`visibility`)** : Ouverture de la fiche complète du crédit ciblé.
-  * **Bouton TFJ (`payment`)** : Accès direct à la Table Financière Journalière.
-  * **Télécharger PDF (`picture_as_pdf`)** : Génération immédiate de la fiche de tournée et de contrôle journalier pour les agents de recouvrement.
+  * **Détails** : Ouverture de la fiche complète du crédit ciblé.
+  * **Bouton TFJ** : Accès direct à la Table Financière Journalière.
+  * **Télécharger PDF** : Génération immédiate de la fiche de tournée et de contrôle journalier pour les agents de recouvrement.
 
 ---
 
-## 5. Portefeuille Clients & Réaffectation de masse (`/client/list`)
+## 5. Portefeuille Clients & Réaffectation de masse (Menu Clients > Liste)
 
 Le module **Clients** regroupe l'annuaire centralisé des clients et prospects, enrichi de contrôles de gestion de portefeuille.
 
@@ -122,7 +122,7 @@ Lorsqu'un commercial quitte l'entreprise, change de zone ou qu'un rééquilibrag
    * **Commercial tontine** : Choisissez le nouveau commercial chargé des collectes de tontine (peut être identique ou différent du commercial crédit).
 3. **Option stratégique : Transfert automatique des ventes** :
    * La case à cocher **« Transférer automatiquement les ventes du commercial vers le nouveau commercial »** s'active dès qu'un commercial crédit est sélectionné.
-   * **Effet opérationnel** : Si cette case est cochée, l'ensemble des crédits actifs (`INPROGRESS`) des clients sélectionnés sont automatiquement transférés au nouveau commercial, garantissant la continuité des tournées et la justesse des bilans de passation.
+   * **Effet opérationnel** : Si cette case est cochée, l'ensemble des crédits actifs des clients sélectionnés sont automatiquement transférés au nouveau commercial, garantissant la continuité des tournées et la justesse des bilans de passation.
 4. **Validation** : Cliquez sur **« Valider »** pour appliquer les réaffectations. L'historique des changements de commercial est intégralement archivé pour audit.
 
 ---
@@ -134,7 +134,7 @@ Sur chaque ligne client, le gestionnaire habilité dispose d'un bouton d'approba
 
 ---
 
-## 6. Traitement des déclarations de paiements clients Mobile Money (`/customer-payments`)
+## 6. Traitement des déclarations de paiements clients Mobile Money (Menu Paiements clients)
 
 Le module **Paiements clients** permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via **Mobile Money** (Mixx by YAS ou Moov Money).
 
@@ -150,14 +150,14 @@ Le module **Paiements clients** permet d'arbitrer les déclarations d'encaisseme
 
 ---
 
-### B. Traitement des remboursements de crédit (`Onglet Recouvrement crédit`)
+### B. Traitement des remboursements de crédit (Onglet Recouvrement crédit)
 Cet onglet centralise les règlements d'échéances de vente à crédit :
 
 | Information affichée | Description fonctionnelle |
 |---|---|
 | **Client** | Nom et prénom du client ou son numéro d'identifiant. |
 | **Commercial** | Commercial gestionnaire du dossier de crédit. |
-| **Crédit** | Numéro du crédit. Cliquer sur le lien bleu `#ID` ouvre directement la fiche 360° du crédit (`/credit/details/:id`). |
+| **Crédit** | Numéro du crédit. Cliquer sur le lien bleu `#ID` ouvre directement la fiche 360° du crédit. |
 | **Échéance** | Numéro de l'échéance réglée par le client. |
 | **Montant** | Somme versée en Francs CFA (affichée en gras). |
 | **Téléphone** | Numéro de téléphone Mobile Money utilisé pour le transfert. |
@@ -165,16 +165,16 @@ Cet onglet centralise les règlements d'échéances de vente à crédit :
 | **Date** | Date et heure de déclaration du paiement par le client. |
 
 #### Actions de validation ou de rejet :
-1. **Valider (`btn-success-solid`)** :
-   * Après vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur **« Valider »**.
+1. **Valider** :
+   * Après vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur le bouton vert **« Valider »**.
    * **Conséquences automatiques** : Le paiement est instantanément imputé sur le crédit du client, son solde restant dû diminue, le versement est enregistré dans le journal des recouvrements du commercial et comptabilisé dans les encaissements du jour.
-2. **Rejeter (`btn-danger-outline`)** :
-   * Si la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur **« Rejeter »**.
+2. **Rejeter** :
+   * Si la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur le bouton rouge **« Rejeter »**.
    * Une boîte de dialogue vous demande confirmation avant d'annuler définitivement la déclaration.
 
 ---
 
-### C. Traitement des cotisations tontine (`Onglet Cotisations tontine`)
+### C. Traitement des cotisations tontine (Onglet Cotisations tontine)
 Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine :
 
 | Information affichée | Description fonctionnelle |
@@ -192,7 +192,7 @@ Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par le
 
 ---
 
-## 7. Centre de notifications et suivi des alertes (`/notifications`)
+## 7. Centre de notifications et suivi des alertes
 
 ELYKIA intègre un système d'alerte multicanal pour avertir immédiatement les équipes des événements requérant une attention rapide.
 
@@ -202,9 +202,9 @@ ELYKIA intègre un système d'alerte multicanal pour avertir immédiatement les 
 * **Pastille numérique rouge** : Indique en temps réel le nombre exact de notifications en attente de traitement.
 * **Menu déroulant instantané** : Un clic sur la cloche ouvre une fenêtre contextuelle présentant les dernières alertes groupées par date.
 * **Raccourci direct** : Cliquer sur une notification la marque automatiquement comme lue et vous redirige directement sur l'écran opérationnel concerné (ex: détail d'une commande client, déclaration de paiement correspondante avec mise en surbrillance de la ligne).
-* **Lien complet** : Le lien en bas de volet **« Voir toutes les notifications »** ouvre la page dédiée (`/notifications`).
+* **Lien complet** : Le lien en bas de volet **« Voir toutes les notifications »** ouvre la page dédiée.
 
-### B. Page dédiée du centre de notifications (`/notifications`)
+### B. Page dédiée du centre de notifications
 * **Bouton « Tout lire »** : Permet de basculer l'ensemble des notifications affichées à l'état lu en un seul clic.
 * **Bouton « Actualiser »** : Recharge immédiatement les flux d'alertes sans recharger la page entière.
 * **Classification fonctionnelle des alertes** :

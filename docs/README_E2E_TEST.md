@@ -32,6 +32,7 @@ frontend/
 │   │   │   ├── login.spec.ts           # Auth ges003 / mag001
 │   │   │   └── navigation.spec.ts      # Sidebar, routes protégées
 │   │   └── golden-path.spec.ts         # 31 étapes séquentielles
+│   │   └── golden-path-sale-cancellation.spec.ts  # 2 ventes COM020 → annulation
 │   └── fixtures/
 │       ├── auth.ts                     # loginAs*, logout
 │       ├── api-client.ts               # Client HTTP (seed, vérifications API)
@@ -52,6 +53,7 @@ Comptes initialisés par le backend (`application.yml`, profil `prod`) :
 | Rôle | Username | Mot de passe par défaut | Usage golden path |
 |------|----------|-------------------------|-------------------|
 | Gestionnaire | `ges003` | `Abcd1234` | Validation stock, tontine, rapports |
+| Administrateur | `manager` | `Africa` | Annulation de ventes (`ROLE_ADMIN`) |
 | Magasinier | `mag001` | `Maga1234` ou `Abcd1234` | Livraison sorties stock |
 | Commercial terrain | `COM020` | `ChangeMe020` | Ventes, collectes, livraison tontine, rattrapage |
 | Commercial agence | `COM001` | (voir config) | Ventes comptant (`CSH-`) |
@@ -60,6 +62,8 @@ Les mots de passe sont résolus automatiquement (`resolveCredentials`) avec repl
 
 ```bash
 E2E_GES003_PASSWORD=...
+E2E_ADMIN_PASSWORD=...
+E2E_ADMIN_USERNAME=manager
 E2E_MAG001_PASSWORD=...
 E2E_COMM001_PASSWORD=...
 E2E_COMMERCIAL_PASSWORD=...
@@ -78,6 +82,18 @@ Parcours séquentiel (`test.describe.serial`) : chaque étape dépend des préc�
 | Retour / comptant | 12–16 | Retour stock, vente comptant (COM001), KPI rapport agence |
 | Tontine | 17–27 | Membre, collecte COM020, stock tontine, clôture session, livraison, KPIs |
 | Rattrapage | 28–30 | Seed stock résiduel API, distribution RAT-, vérification stock |
+
+### Golden path — annulation de ventes (`golden-path-sale-cancellation.spec.ts`)
+
+Parcours **Given / When / Then** isolé (`npm run test:e2e:golden`) :
+
+| Phase | Description |
+|-------|-------------|
+| Given | Localité + 2 clients COM020, stock mensuel ≥ 2, **deux ventes crédit sans recouvrement** |
+| When | Admin `manager` simule l'annulation (UI) puis exécute l'API bornée aux **deux IDs** |
+| Then | Statut `CANCELLED`, stock et rapport journalier restaurés, run `COMPLETED`, 3 PDF, ligne d'historique UI |
+
+L'exécution API utilise `eligibleCreditIds` pour ne pas annuler d'autres ventes COM020 éligibles du mois.
 
 ### Règles métier importantes
 

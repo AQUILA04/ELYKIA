@@ -288,6 +288,30 @@ export const distributionReducer = createReducer(
     createDistributionError: null
   })),
 
+  on(DistributionActions.distributionSyncSuccess, (state, { localId, serverId }) => {
+    const localIdStr = String(localId);
+    const serverIdStr = String(serverId);
+    const rewrite = <T extends { id?: string | number; isSync?: boolean; isLocal?: boolean }>(row: T): T => {
+      if (String(row.id) !== localIdStr) {
+        return row;
+      }
+      return {
+        ...row,
+        id: serverIdStr,
+        isSync: true,
+        isLocal: false
+      };
+    };
+    return {
+      ...state,
+      distributions: state.distributions.map(rewrite),
+      pagination: {
+        ...state.pagination,
+        items: state.pagination.items.map((item) => rewrite(item as any) as DistributionView)
+      }
+    };
+  }),
+
   on(DistributionActions.createDistributionFailure, (state, { error }) => ({
     ...state,
     creatingDistribution: false,

@@ -15,7 +15,6 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule } from '@angular/material/paginator';
-import { BreadcrumbComponent } from './bread/breadcrumb/breadcrumb.component';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { LocalityListComponent } from './locality/localitylist/localitylist.component';
@@ -59,8 +58,6 @@ import { HistoryComponent } from './history/history.component';
 import { OutDetailsComponent } from './out/out-details/out-details.component';
 import { HistoryDetailsComponent } from './history/history-details/history-details.component';
 import { Back2StoreComponent } from './history/back2-store/back2-store.component';
-import { CommercialListComponent } from './commercial/commercial-list/commercial-list.component';
-import { CommercialViewComponent } from './commercial/commercial-view/commercial-view.component';
 import { OutPdfListComponent } from './out/out-pdf-list/out-pdf-list.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { LicenseKeyFormatterPipe } from './shared/pipe/license-key-formatter.pipe'; // Ajustez le chemin si nécessaire
@@ -89,7 +86,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     AppComponent,
     HeaderComponent,
     SidebarComponent,
-    BreadcrumbComponent,
     LocalityListComponent,
     LocalityDetailsComponent,
     AccountAddComponent,
@@ -117,8 +113,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     OutDetailsComponent,
     HistoryDetailsComponent,
     Back2StoreComponent,
-    CommercialListComponent,
-    CommercialViewComponent,
     OutPdfListComponent,
     LicenseKeyFormatterPipe,
     OldReleaseListComponent,

@@ -32,6 +32,7 @@ import { User } from '../../models/auth.model';
 import { RestoreResult } from '../models/restore.models';
 import { ParameterService } from './parameter.service';
 import { TontineCollectionRepository } from '../repositories/tontine-collection.repository';
+import { TontineDeliveryRepository } from '../repositories/tontine-delivery.repository';
 
 @Injectable({
   providedIn: 'root'
@@ -56,7 +57,8 @@ export class DataInitializationService {
     private tontineService: TontineService,
     private commercialStockService: CommercialStockService,
     private parameterService: ParameterService,
-    private tontineCollectionRepository: TontineCollectionRepository
+    private tontineCollectionRepository: TontineCollectionRepository,
+    private tontineDeliveryRepository: TontineDeliveryRepository
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -261,6 +263,7 @@ export class DataInitializationService {
 
   initializeTontine(): Observable<boolean> {
     return from(this.tontineCollectionRepository.purgeSyncedOrphans()).pipe(
+      switchMap(() => from(this.tontineDeliveryRepository.purgeSyncedOrphans())),
       switchMap(() => this.store.select(selectAuthUser)),
       take(1),
       filter((user): user is User => !!user),

@@ -35,9 +35,9 @@ Le module **Clients** est le socle de l'ensemble des opérations commerciales et
 
 ---
 
-## 1. Rechercher et consulter la clientèle (`/client/list`)
+## 1. Rechercher et consulter la clientèle (Menu Clients > Liste)
 
-Accessible via le menu latéral **Clients**, la vue liste fournit un accès direct à l'ensemble du portefeuille.
+Accessible via le menu latéral gauche **Clients**, la vue liste fournit un accès direct à l'ensemble du portefeuille.
 
 <!-- CAPTURE À INSÉRER : Liste web des clients avec la barre de recherche, le filtre commercial, les KPI et les boutons d'action. -->
 
@@ -50,13 +50,13 @@ Accessible via le menu latéral **Clients**, la vue liste fournit un accès dire
 ### B. Indicateurs du bandeau supérieur
 Quatre cartes KPIs résument la dynamique du portefeuille affiché :
 1. **Clients enregistrés** : Nombre total de clients actifs (hors dossiers supprimés).
-2. **Crédit en cours** : Nombre de clients ayant au moins une vente à crédit active (`INPROGRESS`).
+2. **Crédit en cours** : Nombre de clients ayant au moins une vente à crédit active en cours de remboursement.
 3. **Membres tontine** : Nombre de clients souscripteurs d'un cycle d'épargne tontine.
 4. **Sans crédit ni tontine** : Prospects ou clients n'ayant aucun engagement financier actif.
 
 ---
 
-## 2. Enrôlement d'un nouveau client (`/client/add`)
+## 2. Enrôlement d'un nouveau client (Bouton + Ajouter)
 
 Pour créer un nouveau client, cliquez sur le bouton bleu **« + Ajouter »** en haut à droite de la liste. Le formulaire est structuré en 7 sections normées :
 
@@ -112,7 +112,7 @@ Cliquez sur **« Enregistrer »** pour créer le dossier client.
 
 ---
 
-## 3. Consultation détaillée du client (`/client/view/:id`)
+## 3. Consultation détaillée du client (Fiche client 360°)
 
 En cliquant sur le nom d'un client dans la liste, vous accédez à sa **Fiche Client Détaillée**, structurée pour offrir une vue à 360 degrés de sa solvabilité :
 
@@ -129,9 +129,9 @@ En cliquant sur le nom d'un client dans la liste, vous accédez à sa **Fiche Cl
   * **Achats en retard** : Nombre de crédits en défaut de paiement.
 
 ### B. Les 3 Onglets chronologiques d'opérations
-1. **Onglet « Achats »** : Liste détaillée des crédits actuellement en cours (`INPROGRESS`), avec la référence, les articles associés, la mise journalière, le montant total et le reste à payer.
-2. **Onglet « Historiques »** : Archives de l'ensemble des crédits soldés (`SETTLED`) ou annulés dans le passé, permettant d'apprécier la ponctualité historique du client.
-3. **Onglet « En Attente »** : Dossiers de vente créés (`CREATED`) ou validés (`VALIDATED`) en attente de démarrage ou de livraison de marchandise.
+1. **Onglet « Achats »** : Liste détaillée des crédits actuellement en cours de remboursement, avec la référence, les articles associés, la mise journalière, le montant total et le reste à payer.
+2. **Onglet « Historiques »** : Archives de l'ensemble des crédits soldés (entièrement remboursés) ou annulés dans le passé, permettant d'apprécier la ponctualité historique du client.
+3. **Onglet « En Attente »** : Dossiers de vente créés ou validés par la gestion en attente de démarrage ou de livraison de marchandise.
 
 ---
 
@@ -147,11 +147,11 @@ Lorsque les tournées sont réorganisées, les gestionnaires peuvent transférer
 
 ---
 
-## 5. Gestion des comptes financiers (`/accountlist`)
+## 5. Gestion des comptes financiers (Menu Comptes)
 
 Le sous-menu **Comptes** offre une vue d'ensemble des comptes de monnaie électronique ou de dépôt rattachés aux clients et aux agents :
 * Affiche pour chaque compte : le numéro de compte unique, le titulaire (client ou commercial), le type de compte et le solde actuel disponible en FCFA.
-* La fiche de détail d'un compte (`/accountdetails/:id`) permet de tracer l'ensemble des écritures de débit (achats, prélèvements) et de crédit (approvisionnements, remboursements).
+* La fiche de détail d'un compte permet de tracer l'ensemble des écritures de débit (achats, prélèvements) et de crédit (approvisionnements, remboursements).
 
 
 
@@ -167,35 +167,35 @@ Le **Stock Commercial** représente la marchandise physique effectivement confi�
 
 ---
 
-## 1. Demander du stock au magasin (`/stock/request`)
+## 1. Demander du stock au magasin (Menu Stock Commercial > Demandes Sortie)
 
 Pour s'approvisionner, le commercial ou son responsable initie une **Demande de sortie stock**.
 
 <!-- CAPTURE À INSÉRER : Formulaire Nouvelle demande de sortie stock avec sélection des articles, quantités et bouton d'envoi. -->
 
-### A. Création de la demande (`/stock/request/create`)
-1. Ouvrez **Stock Commercial > Demandes Sortie** et cliquez sur le bouton bleu **« + Nouvelle demande »** (si ce bouton n'apparaît pas, vous ne disposez pas des habilitations requises). En tant que commercial, vous visualisez uniquement vos propres demandes ; en tant que gestionnaire, vous avez la visibilité sur l'ensemble des commerciaux de l'agence.
+### A. Création de la demande (Bouton + Nouvelle demande)
+1. Dans le menu latéral gauche, ouvrez **Stock Commercial > Demandes Sortie** et cliquez sur le bouton bleu **« + Nouvelle demande »** (si ce bouton n'apparaît pas, vous ne disposez pas des habilitations requises). En tant que commercial, vous visualisez uniquement vos propres demandes ; en tant que gestionnaire, vous avez la visibilité sur l'ensemble des commerciaux de l'agence.
 2. Sélectionnez le commercial destinataire (pré-rempli à votre nom pour un commercial).
 3. Ajoutez les articles souhaités dans la grille et indiquez pour chacun la quantité requise.
 4. Cliquez sur **« Enregistrer »**.
 
 ### B. Cycle de vie de la demande
-* **Statut `CREATED` (Créée / En attente)** :
+* **Statut En attente (Créée)** :
   * La demande est enregistrée et transmise pour arbitrage.
   * Tant qu'elle n'est pas validée, le commercial ou le gestionnaire peut la **Modifier** (icône crayon) ou l'**Annuler** (icône croix rouge).
   * Le gestionnaire peut la **Valider** (icône coche verte) ou la **Refuser**.
-* **Statut `VALIDATED` (Validée)** :
+* **Statut Validée** :
   * Le gestionnaire a autorisé la sortie. La demande est transmise au magasin dépôt.
   * Les articles sont physiquement préparés par le magasinier.
-* **Statut `DELIVERED` (Livrée)** :
+* **Statut Livrée** :
   * Le magasinier remet la marchandise au commercial et clique sur **« Livrer »**.
   * **Effet immédiat** : Les articles sont instantanément crédités dans le **Stock Mensuel** du commercial. La date et l'heure de remise physique sont figées.
 
 ---
 
-## 2. Tableau de bord « Mon Stock » mensuel (`/stock/my-stock`)
+## 2. Tableau de bord « Mon Stock » mensuel (Menu Stock Commercial > Stock)
 
-Accessible via **Stock Commercial > Stock**, ce tableau de bord offre une analyse comptable exhaustive de la tournée du commercial, mois par mois.
+Accessible via le menu latéral gauche **Stock Commercial > Stock**, ce tableau de bord offre une analyse comptable exhaustive de la tournée du commercial, mois par mois.
 
 <!-- CAPTURE À INSÉRER : Tableau de bord Mon Stock montrant l'accordéon mensuel, les 6 cartes de KPI et le tableau des mouvements d'articles. -->
 
@@ -227,24 +227,24 @@ Au sein de chaque panneau mensuel, le tableau détaille pour chaque référence 
 
 ---
 
-## 3. Retours de marchandise au magasin (`/stock/return`)
+## 3. Retours de marchandise au magasin (Menu Stock Commercial > Retours)
 
 Lorsqu'un commercial souhaite réintégrer un article invendu, défectueux ou faire une fin de tournée, il crée une opération de retour dans **Stock Commercial > Retours**.
 
-### A. Déclaration du retour (`/stock/return/create`)
-1. Cliquez sur **« + Nouveau retour »**.
+### A. Déclaration du retour (Bouton + Nouveau retour)
+1. Cliquez sur le bouton bleu **« + Nouveau retour »**.
 2. Sélectionnez le commercial, l'article et la quantité à restituer.
 3. Renseignez obligatoirement le **motif du retour** (invendu, emballage détérioré, demande du client annulée).
-4. Enregistrez. Le retour passe au statut **`PENDING` (En attente)**.
+4. Enregistrez. Le retour passe au statut **En attente**.
 
 ### B. Réception magasin
 * Le magasinier vérifie l'état physique de l'article au dépôt.
-* Dès que le magasinier clique sur **« Réceptionner »**, le statut bascule à **`RECEIVED`**.
+* Dès que le magasinier clique sur **« Réceptionner »**, le statut bascule à **Réceptionné**.
 * **Impact comptable immédiat** : Le stock commercial de l'agent est automatiquement déchargé de la quantité retournée, et le stock central du magasin est réapprovisionné.
 
 ---
 
-## 4. Retour de stock antérieur (`/stock/return/historique`)
+## 4. Retour de stock antérieur (Bouton Retour stock antérieur)
 
 Pour les situations où des articles confiés lors d'un mois civil antérieur doivent être restitués plusieurs semaines après la clôture du mois d'origine :
 * Le bouton **« Retour stock antérieur »** (accessible sous réserve de disposer des habilitations requises) permet d'enregistrer un retour rattaché spécifiquement au mois d'origine de la dotation.
@@ -287,7 +287,7 @@ Le menu latéral gauche vous donne accès aux espaces de vente selon vos attribu
 
 ---
 
-## 2. Tableau de bord des ventes (`/credit/list`)
+## 2. Tableau de bord des ventes (Menu Ventes > Liste des ventes)
 
 L'écran principal rassemble la totalité des opérations de vente de votre périmètre.
 
@@ -324,10 +324,10 @@ Une vente progresse selon des étapes claires garantissant la sécurité des mar
 
 | Statut du contrat | Ce que cela signifie | Actions disponibles |
 |---|---|---|
-| **Enregistré** (`CREATED`) | La vente vient d'être saisie. La marchandise n'est pas encore sortie du stock. | - **Valider** : Approuve le contrat de vente.<br>- **Modifier** : Corrige les articles, acomptes ou informations client.<br>- **Supprimer** : Annule la saisie erronée. |
-| **Validé** (`VALIDATED`) | Le contrat est approuvé administrativement. Les articles sont prêts à être remis au client. | - **Démarrer** : Confirme la remise physique des articles au client et déstocke automatiquement le matériel du stock du commercial.<br>- **Détails** : Ouvre la fiche complète du dossier. |
-| **En cours** (`INPROGRESS`) | La marchandise a été livrée, le crédit est actif et en cours de remboursement. | - **Encaisser** : Ouvre directement la fenêtre de paiement pour saisir une mise quotidienne (avec rappel du reliquat disponible).<br>- **Modifier la mise** : Réajuste le montant journalier convenu.<br>- **Détails** : Consultation 360°. |
-| **Soldé** (`SETTLED`) | Le client a remboursé la totalité de son crédit. Le solde restant dû est à zéro. | - **Consulter** : Historique complet, date de clôture effective et archivage. Les dossiers soldés ne sont plus modifiables. |
+| **Enregistré** | La vente vient d'être saisie. La marchandise n'est pas encore sortie du stock. | - **Valider** : Approuve le contrat de vente.<br>- **Modifier** : Corrige les articles, acomptes ou informations client.<br>- **Supprimer** : Annule la saisie erronée. |
+| **Validé** | Le contrat est approuvé administrativement. Les articles sont prêts à être remis au client. | - **Démarrer** : Confirme la remise physique des articles au client et déstocke automatiquement le matériel du stock du commercial.<br>- **Détails** : Ouvre la fiche complète du dossier. |
+| **En cours** | La marchandise a été livrée, le crédit est actif et en cours de remboursement. | - **Encaisser** : Ouvre directement la fenêtre de paiement pour saisir une mise quotidienne (avec rappel du reliquat disponible).<br>- **Modifier la mise** : Réajuste le montant journalier convenu.<br>- **Détails** : Consultation 360°. |
+| **Soldé** | Le client a remboursé la totalité de son crédit. Le solde restant dû est à zéro. | - **Consulter** : Historique complet, date de clôture effective et archivage. Les dossiers soldés ne sont plus modifiables. |
 
 ### Actions groupées : Réaffectation et Fusion de crédits
 - **Changer de commercial en lot** :
@@ -344,9 +344,9 @@ Une vente progresse selon des étapes claires garantissant la sécurité des mar
 
 ---
 
-## 3. Enregistrer une nouvelle vente (`/credit/add`)
+## 3. Enregistrer une nouvelle vente (Bouton Nouvelle vente)
 
-Pour créer une vente, cliquez sur **Nouvelle vente** (ou ouvrez `/credit/add`).
+Pour créer une vente, cliquez sur le bouton bleu **« + Nouvelle vente »** en haut à droite (ou depuis le menu **Ventes > Nouvelle vente**).
 
 ### Choisir entre Vente à Crédit et Vente au Comptant
 
@@ -367,7 +367,7 @@ Si l'impression immédiate est activée dans votre agence :
 
 ---
 
-## 4. Fiche détaillée 360° d'un crédit (`/credit/details/:id`)
+## 4. Fiche détaillée 360° d'un crédit
 
 En ouvrant un crédit, vous accédez à un dossier complet regroupant l'ensemble des aspects contractuels, financiers et logistiques :
 
@@ -422,7 +422,7 @@ Si la mise quotidienne a été renégociée, un tableau consigne chaque modifica
 
 ---
 
-## 5. Gestion des impayés et retards (`/credit/late`)
+## 5. Gestion des impayés et retards (Menu Ventes > Retards)
 
 L'écran **Retards** est l'outil principal de pilotage pour le chef de recouvrement et le gestionnaire :
 - **Indicateurs clés** : Nombre total de dossiers en retard, nombre de délais dépassés, nombre d'échéances du jour et montants financiers correspondants.
@@ -433,7 +433,7 @@ L'écran **Retards** est l'outil principal de pilotage pour le chef de recouvrem
 
 ---
 
-## 6. Calendrier des échéances (`/credit/echeance`)
+## 6. Calendrier des échéances (Menu Ventes > Échéances)
 
 Le sous-menu **Échéances** permet d'anticiper les règlements attendus :
 - Visualisation des échéances du jour, de la semaine ou d'une date choisie sur calendrier.
@@ -441,7 +441,7 @@ Le sous-menu **Échéances** permet d'anticiper les règlements attendus :
 
 ---
 
-## 7. Journal des recouvrements (`/credit/recouvrements`)
+## 7. Journal des recouvrements (Menu Ventes > Recouvrements)
 
 Le sous-menu **Recouvrements** est le registre des encaissements de crédits :
 - Il présente la totalité des versements perçus jour après jour.
@@ -449,16 +449,16 @@ Le sous-menu **Recouvrements** est le registre des encaissements de crédits :
 - Pour chaque ligne, vous retrouvez la référence, le client, le commercial, le montant versé et l'heure exacte.
 - Les profils autorisés peuvent annuler un encaissement erroné avec recalcul instantané des soldes.
 
-### Encaissements à distance par Mobile Money (`/customer-payments`)
+### Encaissements à distance par Mobile Money
 Vos clients ont également la faculté de régler leurs échéances sans attendre votre passage grâce à l'Espace Client ELYKIA :
 - Le client effectue son transfert vers le numéro Mobile Money (Mixx by YAS ou Moov Money) attribué à son commercial référent.
 - Il déclare son règlement sur son portail en indiquant le numéro de transaction opérateur.
-- La soumission parvient instantanément dans le menu **Paiements clients** (`/customer-payments`) où elle est rattachée au commercial responsable du dossier.
+- La soumission parvient instantanément dans le menu latéral gauche **Paiements clients** où elle est rattachée au commercial responsable du dossier.
 - Dès la validation de la déclaration, l'échéance du crédit est automatiquement soldée et le montant s'ajoute à vos recouvrements du jour.
 
 ---
 
-## 8. Rapport de transfert des ventes (`/credit/transferts-commerciaux`)
+## 8. Rapport de transfert des ventes (Menu Ventes > Transferts)
 
 Le rapport de passation permet de suivre avec précision les mouvements de portefeuille :
 - Filtres par commercial cédant, commercial repreneur et période.
@@ -468,7 +468,7 @@ Le rapport de passation permet de suivre avec précision les mouvements de porte
 
 ---
 
-## 9. Rattrapage de ventes antérieures (`/stock/credit/rattrapage`)
+## 9. Rattrapage de ventes antérieures (Menu Ventes > Rattrapage)
 
 Cette procédure exceptionnelle est réservée aux régularisations :
 1. Elle permet d'enregistrer une vente réalisée dans le passé sans impacter le stock physique actuel du magasin central.
@@ -480,7 +480,7 @@ Cette procédure exceptionnelle est réservée aux régularisations :
 
 ---
 
-## 10. Rapport des articles vendus (`/credit/articles-vendus`)
+## 10. Rapport des articles vendus (Menu Ventes > Articles)
 
 Cet écran synthétise les sorties commerciales de l'agence :
 - Regroupement des ventes par **Article** et par **Commercial**.
@@ -490,7 +490,7 @@ Cet écran synthétise les sorties commerciales de l'agence :
 
 ---
 
-## 11. Gestion des commandes clients (`/orders`)
+## 11. Gestion des commandes clients (Menu Commandes)
 
 Le module **Commandes** gère les précommandes et réservations avant leur contractualisation définitive.
 
@@ -506,7 +506,7 @@ Les commandes sont réparties dans 6 onglets selon leur avancement :
 ### Traitement et conversion d'une commande en vente
 1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités et prix.
 2. **Décision** : Les responsables peuvent accepter ou refuser la commande (individuellement ou par lot).
-3. **Action « Vendre »** : Dès qu'une commande est acceptée, le bouton **Vendre** bascule directement l'ensemble des articles vers le formulaire de vente (`/credit/add`) pour créer le contrat crédit ou comptant sans aucune ressaisie manuelle, puis marque la commande comme **Vendue**.
+3. **Action « Vendre »** : Dès qu'une commande est acceptée, le bouton **Vendre** bascule directement l'ensemble des articles vers le formulaire de nouvelle vente pour créer le contrat crédit ou comptant sans aucune ressaisie manuelle, puis marque la commande comme **Vendue**.
 
 
 \newpage
@@ -643,7 +643,7 @@ En cas d'erreur de saisie, les utilisateurs habilités peuvent annuler une ligne
 ### Cotisations à distance par Mobile Money
 Les membres peuvent également cotiser en toute autonomie depuis leur Espace Client ELYKIA :
 - Le membre effectue son transfert vers le numéro Mobile Money attribué à son commercial tontine référent.
-- La déclaration est transmise dans le menu **Paiements clients > Cotisations tontine** (`/customer-payments?tab=tontine`).
+- La déclaration est transmise dans le menu latéral gauche **Paiements clients**, puis onglet **Cotisations tontine**.
 - Après validation du paiement, la cotisation s'enregistre sur la session active du membre et son compteur de jours cotisés progresse immédiatement.
 
 ---
@@ -677,26 +677,26 @@ flowchart LR
    - Cette action déduit définitivement les articles du stock tontine et clôture le dossier du membre.
    - La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.
 
-### Consulter l'ensemble des livraisons (`/tontine/livraisons`)
-Le sous-menu **Livraison** centralise toutes les opérations de distribution de l'agence :
+### Consulter l'ensemble des livraisons (Menu Tontines > Livraison)
+Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. Cet espace centralise toutes les opérations de distribution de l'agence :
 - Indicateurs globaux : nombre de colis livrés, montant total distribué, livraisons restant à honorer, soldes non utilisés.
 - Filtres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.
 - Recherche instantanée par nom ou référence de client.
 
 ---
 
-## 5. Journal des collectes (`/tontine/collectes`)
+## 5. Journal des collectes (Menu Tontines > Collectes)
 
-Le sous-menu **Collectes** est le grand livre de caisse de la tontine :
+Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Collectes**. C'est le grand livre de caisse de la tontine :
 - Il présente la totalité des encaissements enregistrés jour après jour.
 - Vous pouvez filtrer les résultats par période (*du ... au ...*) et par commercial.
 - Chaque ligne affiche l'heure exacte, le montant, le commercial encaisseur, le membre concerné et les codes de confirmation client.
 
 ---
 
-## 6. Archives et transition annuelle (`/tontine/reset-collectes`)
+## 6. Archives et transition annuelle (Menu Tontines > Archives collectes)
 
-Cet espace est réservé aux responsables de l'agence pour réaliser la clôture administrative de fin d'année et préparer la plateforme pour la nouvelle campagne.
+Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Archives collectes**. Cet espace est réservé aux responsables de l'agence pour réaliser la clôture administrative de fin d'année et préparer la plateforme pour la nouvelle campagne.
 
 ### Bibliothèque des archives PDF
 Toutes les archives générées sont rangées dans une arborescence par année :
@@ -721,523 +721,361 @@ Toutes les archives générées sont rangées dans une arborescence par année :
 
 # Application mobile de terrain
 
-L’application mobile ELYKIA est l'outil quotidien du commercial sur le terrain. Conçue selon une architecture **hybride et locale-d'abord (Local-First)**, elle permet de réaliser l'intégralité des opérations commerciales, logistiques et financières même en cas de coupure totale de connexion Internet. Les données sont enregistrées instantanément dans la base locale SQLite du smartphone et sont synchronisées de manière sécurisée avec le serveur central dès que le réseau est disponible.
+L’application mobile ELYKIA est l'outil indispensable du commercial sur le terrain. Conçue pour fonctionner **partout, même sans aucune connexion Internet**, elle vous permet d'enregistrer toutes vos clientes, vos ventes, vos encaissements et vos cotisations de tontine directement sur votre smartphone. Dès que vous retrouvez du réseau ou rentrez à l'agence, vous pouvez synchroniser toutes vos opérations avec le serveur central en toute sécurité.
 
 ---
 
-## 1. Tableau de bord principal (Dashboard d'accueil)
+## 1. Tableau de bord principal (Accueil)
 
-Dès l'ouverture de session, le commercial accède au **Tableau de Bord**, véritable tour de contrôle de son activité quotidienne.
+Dès que vous vous connectez avec votre identifiant et votre mot de passe, vous arrivez sur le **Tableau de Bord**. C'est votre écran d'accueil, votre tour de contrôle pour suivre toute votre journée.
 
-### A. En-tête et profil commercial
-* **Identité du commercial** : affichage du nom complet et du nom d'utilisateur du commercial connecté.
-* **Indicateur de connectivité** : pastille d'état dynamique indiquant **En ligne** (vert) lorsque le serveur central est joignable ou **Hors ligne** (gris/orange) lorsque l'application fonctionne sur sa base locale autonome.
-* **Bouton de synchronisation** : situé en haut à droite, il déclenche la synchronisation manuelle des données. Une bulle de notification chiffrée (*badge*) signale le nombre exact d'opérations locales en attente d'envoi vers le serveur.
-* **Sélecteur de période temporelle** : quatre filtres rapides sous forme de pastilles (*chips*) permettent de recalculer instantanément l'ensemble des indicateurs du tableau de bord :
-  * **Jour** : activité de la journée en cours.
-  * **Semaine** : cumul de la semaine calendaire.
-  * **Mois** : cumul du mois en cours.
-  * **Année** : synthèse de l'année d'exercice.
+### A. Ce que vous voyez en haut de l'écran
+* **Votre nom** : votre nom et prénom s'affichent en haut à gauche.
+* **Le témoin de connexion** :
+  * Une pastille **Verte (En ligne)** : votre téléphone est bien connecté au serveur central.
+  * Une pastille **Grise ou Orange (Hors ligne)** : vous travaillez sans Internet. Pas d'inquiétude, l'application continue de fonctionner normalement et enregistre tout sur votre téléphone !
+* **Le bouton de synchronisation (en haut à droite)** : une petite icône avec des flèches en cercle. Un chiffre dans une bulle orange vous indique exactement le nombre d'opérations enregistrées sur votre téléphone qui attendent d'être envoyées au bureau.
+* **Les 4 pastilles de période** : d'un simple toucher du doigt, vous recalculez tous les chiffres de l'écran :
+  * **Jour** : ce que vous avez fait aujourd'hui.
+  * **Semaine** : le cumul de votre semaine.
+  * **Mois** : le cumul du mois en cours.
+  * **Année** : le bilan complet de l'année.
 
-### B. Bandeau des indicateurs clés (6 KPIs financiers)
-1. **Ventes (FCFA)** : valeur totale des marchandises distribuées à crédit sur la période sélectionnée.
-2. **Recouvrements (FCFA)** : montant total des encaissements de mises perçus en espèces ou mobile money, avec le détail des **Reliquats nets** gérés sur les comptes clients.
-3. **Sorties stock (FCFA)** : valeur marchande des articles déstockés pour les ventes et les livraisons directes.
-4. **Restant à recouvrer** : solde cumulé des créances en cours restant à percevoir auprès des clients.
-5. **Non distribué (FCFA)** : valeur des articles en possession du commercial non encore vendus.
-6. **Tontine (FCFA)** : montant total des cotisations d'épargne collective collectées sur la période.
+### B. Les 6 compteurs clés (Indicateurs financiers)
+1. **Ventes (FCFA)** : montant total des marchandises que vous avez vendues à crédit sur la période.
+2. **Recouvrements (FCFA)** : montant total des mises quotidiennes que vous avez encaissées en espèces ou par transfert d'argent.
+3. **Sorties stock (FCFA)** : valeur des articles sortis de votre sacoche pour les remettre aux clients.
+4. **Restant à recouvrer** : total de l'argent que vos clientes vous doivent encore.
+5. **Non distribué (FCFA)** : valeur des articles en votre possession non encore vendus.
+6. **Tontine (FCFA)** : montant total des cotisations d'épargne collective que vous avez collectées.
 
-### C. Graphique de tendances interactif
-* Un graphique comparatif visuel met en miroir les **Ventes** (courbe marine) et les **Recouvrements** (courbe verte) pour suivre l'équilibre financier de la tournée en un coup d'œil.
+### C. Le graphique des tendances
+Deux courbes vous montrent l'évolution de votre activité :
+* La courbe **Marine** montre vos **Ventes**.
+* La courbe **Verte** montre vos **Recouvrements** (l'argent encaissé).
+L'objectif est d'avoir une courbe verte qui suit toujours de très près la courbe marine !
 
-### D. Grille des Actions Rapides
-Sous les indicateurs, six cartes d'accès rapide permettent de lancer immédiatement les actions prioritaires sans passer par les menus :
-* **Nouvelle Distribution** : ouvre le formulaire de vente à crédit directe avec sortie de stock.
-* **Recouvrement** : ouvre la saisie rapide des encaissements de mises journalières.
-* **Nouveau Client** : ouvre le formulaire d'enrôlement d'une nouvelle cliente avec géolocalisation.
-* **Rapport** : génère et affiche le rapport journalier d'activité du commercial.
-* **Tontine** : ouvre le tableau de bord complet de gestion de l'épargne collective.
-* **Stock** : consulte l'état des articles en dotation dans le véhicule ou la sacoche.
+### D. Les 6 boutons d'Actions Rapides
+Au centre de l'écran, six grandes cartes colorées vous permettent de lancer directement une tâche sans chercher dans les menus :
+* **Nouvelle Distribution** : pour faire une vente à crédit tout de suite.
+* **Recouvrement** : pour encaisser la mise d'une cliente.
+* **Nouveau Client** : pour enregistrer une nouvelle cliente dans votre portefeuille.
+* **Rapport** : pour consulter votre bilan du jour et voir combien d'espèces vous devez verser au caissier.
+* **Tontine** : pour ouvrir tout le carnet de tontine (adhésions, collectes, livraisons).
+* **Stock** : pour voir ce que vous avez dans votre sacoche ou demander du matériel au magasinier.
 
-### E. Navigation inférieure globale (Tabs)
-En bas de l'écran, une barre de navigation permanente propose 4 onglets majeurs :
-* **Tableau de Bord** : retour à l'écran d'accueil général.
-* **Clients** : gestion complète du portefeuille clients.
-* **Distributions** : suivi des ventes à crédit et des contrats actifs.
-* **Plus** : paramètres, synchronisation manuelle et automatique, filtres, historique des versements et outils de diagnostic.
-
-<!-- CAPTURE À INSÉRER : Tableau de bord mobile avec bandeau profil, 6 KPIs, graphique des tendances et grille des actions rapides. -->
+### E. La barre de navigation en bas de l'écran
+Tout en bas de l'écran de votre téléphone, 4 onglets restent toujours visibles :
+1. **Tableau de Bord** : pour revenir à cet écran d'accueil à tout moment.
+2. **Clients** : pour voir la liste de toutes vos clientes, leurs adresses et leurs téléphones.
+3. **Distributions** : pour suivre tous vos contrats de vente à crédit en cours.
+4. **Plus** : pour régler vos options, lancer la synchronisation manuelle ou consulter vos outils d'aide.
 
 ---
 
-## 2. Module Clients et gestion du portefeuille (« Mes clientes »)
+## 2. Module Clients : gérer vos clientes sur le terrain
 
-Le module **Clients** est le point de départ incontournable : il est impossible d'effectuer une distribution ou d'inscrire un membre en tontine sans disposer d'une fiche cliente enregistrée.
+Avant de vendre un article ou d'inscrire quelqu'un à la tontine, la personne doit obligatoirement être enregistrée dans votre liste de clientes.
 
-### A. L’onglet « Mes clientes » : consultation, recherche et filtres
-Accessible depuis l'onglet **Clients** de la barre inférieure :
-* **Menu contextuel d'en-tête (trois points)** :
-  * Touchez l'icône d'options en haut à droite.
-  * Sélectionnez **« Clients à Recouvrer »** : ce raccourci contextuel essentiel bascule instantanément de la liste globale vers la liste ciblée de tournée, regroupant par quartier les clientes ayant un crédit en cours non encore encaissé aujourd'hui.
-* **Barre de recherche dynamique** : filtre en temps réel par nom, prénom ou numéro de téléphone.
-* **Filtres rapides d'un appui (Chips)** :
-  * **Tous** : totalité du portefeuille affecté au commercial.
-  * **Crédit en cours** : isole les clientes ayant au moins une vente à crédit active.
-  * **Nouveau** : liste les clientes créées localement sur le téléphone en attente de synchronisation.
-  * **Par Quartier** : organise le tri par ordre alphabétique des localités.
-* **Cartes clientes** :
-  * **Avatar** : photo réelle ou initiales.
-  * **Coordonnées** : nom complet, téléphone, adresse et quartier.
-  * **Solde** : solde comptable du compte.
-  * **Badges** : `Crédit` (crédit actif), `Local` (création locale non synchronisée), `Sync` (synchronisé).
-* **Bouton flottant (FAB +)** : situé en bas à droite pour enrôler immédiatement une nouvelle cliente.
+### A. Consulter et rechercher une cliente
+1. Dans la barre du bas de l'écran, touchez l'onglet **Clients**.
+2. Vous voyez la liste complète de toutes vos clientes avec leur photo, leur nom, leur numéro de téléphone et leur quartier.
+3. **Pour retrouver une cliente rapidement** : tapez simplement son nom, son prénom ou son numéro de téléphone dans la barre de recherche tout en haut.
+4. **Utiliser les filtres rapides (pastilles sous la recherche)** :
+   * **Tous** : affiche l'ensemble de vos clientes.
+   * **Crédit en cours** : n'affiche que les clientes qui ont un achat à crédit en train d'être remboursé.
+   * **Nouveau** : affiche les clientes que vous venez d'inscrire sur votre téléphone et qui ne sont pas encore synchronisées.
+   * **Par Quartier** : classe vos clientes par ordre alphabétique de quartier pour organiser votre tournée.
+5. **Comprendre les badges colorés sur chaque fiche cliente** :
+   * Badge **Crédit** : la cliente a une vente en cours de remboursement.
+   * Badge **Local (Orange)** : la cliente est enregistrée sur votre smartphone mais pas encore envoyée au serveur central.
+   * Badge **Synchronisé (Bleu)** : la cliente est validée et enregistrée sur le serveur de l'agence.
 
-<!-- CAPTURE À INSÉRER : Écran Mes clientes avec recherche, filtres rapides et menu contextuel Clients à Recouvrer. -->
-
-### B. Fiche détaillée d’un client (3 onglets)
-Un appui sur une cliente ouvre son dossier complet :
-* **En-tête** : photo agrandie, nom, adresse et **bouton d'appel direct en 1 clic** (icône téléphone) pour joindre la cliente sans quitter l'application.
-* **Menu d'options (trois points)** : accès aux actions **Modifier** ou **Supprimer** (pour les fiches locales non synchronisées).
+### B. Voir le dossier complet d'une cliente
+Touchez le nom d'une cliente dans la liste pour ouvrir son dossier. Vous y trouvez trois onglets faciles à lire :
+* **Appel en un clic** : touchez l'icône bleue de téléphone à côté de son nom pour composer directement son numéro sans quitter l'application !
 * **Onglet 1 : Informations** :
-  * État civil, profession, contact et pièce d'identité avec bouton **« Voir la photo de la pièce »**.
-  * Nom et contact du garant (personne à contacter).
-  * Numéro de compte et **Reliquat disponible** affiché en vert (avoir en FCFA utilisable pour solder les mises).
-  * Coordonnées GPS et bouton **« Voir sur la carte »** ouvrant la carte Leaflet hors ligne avec marqueur précis sur la position enregistrée.
+  * Son état civil, son métier, son adresse et sa photo de pièce d'identité (touchez **« Voir la photo de la pièce »** pour la vérifier).
+  * Le nom et le numéro de sa personne de confiance (le garant).
+  * Son **Reliquat disponible** (affiché en vert) : c'est la monnaie ou l'avoir en FCFA que la cliente a laissé chez vous et qui peut servir à payer ses prochaines mises !
+  * Sa position géographique : touchez **« Voir sur la carte »** pour voir précisément où se trouve sa maison ou sa boutique sur le plan.
 * **Onglet 2 : Crédits** :
-  * Contrats de crédit en cours, montants totaux, montants déjà payés, soldes restants et jauges de progression en pourcentage.
-  * Clic direct sur un crédit pour basculer en recouvrement avec contrat pré-sélectionné.
+  * La liste de tous ses achats à crédit avec une jauge colorée qui montre le pourcentage déjà remboursé et le montant qui reste à payer.
+  * Si vous touchez un crédit ici, l'application vous amène directement sur l'écran pour encaisser sa mise !
 * **Onglet 3 : Historique** :
-  * Timeline chronologique complète des flux financiers (distributions en bleu, encaissements en vert) avec dates, heures et références de reçus.
+  * La liste de toutes les opérations passées avec la date, l'heure et le numéro de reçu : en bleu les marchandises remises, en vert l'argent encaissé.
 
-<!-- CAPTURE À INSÉRER : Fiche client avec les 3 onglets Informations, Crédits et Historique. -->
+### C. Inscrire une nouvelle cliente pas à pas (Tutoriel en direct)
+Voici comment enregistrer une nouvelle cliente en moins de deux minutes :
 
-### C. Enregistrer un nouveau client sur le terrain
-Depuis le bouton **+** ou l'action rapide **Nouveau Client** :
-1. **Photo de profil** : capture du visage via l'appareil photo du smartphone.
-2. **Identité & Contrôles stricts** :
-   * Nom, prénom et profession.
-   * **Contrôle d'âge strict (18 ans minimum)** : l'application bloque l'enregistrement si la cliente est mineure.
-   * **Contrôle du téléphone** : saisie d'un numéro togolais valide à 8 chiffres avec détection anti-doublon en base locale.
-3. **Pièce d'identité numérisée** : choix du type (*CNI*, *Passeport*, *Carte d'électeur*, *Carte e-ID*), saisie du numéro officiel et capture photo du document.
-4. **Adresse et Géolocalisation GPS native** :
-   * Adresse complète et sélection de la localité/quartier.
-   * Bouton **« Obtenir la position GPS »** : acquisition automatique des coordonnées de latitude et longitude du commerce ou du domicile.
-5. **Garant & Compte** : coordonnées de la personne ressource et solde initial (0 FCFA).
-6. **Enregistrement Local-First** : la fiche est stockée immédiatement dans SQLite avec un identifiant temporaire UUID. Elle est instantanément utilisable pour des ventes ou cotisations hors ligne.
-
----
-
-## 3. Module Distribution (Ventes à crédit)
-
-Une fois la cliente enregistrée dans le portefeuille, le commercial peut procéder à la vente à crédit de marchandises depuis sa dotation physique.
-
-### A. L’onglet Distributions : suivi et historique
-Accessible depuis l'onglet **Distributions** de la barre inférieure :
-* **Bandeau de KPIs** : Total des ventes, Nombre de crédits en cours (`INPROGRESS`), Montant global distribué en FCFA.
-* **Barre de recherche** : par nom de cliente ou référence contrat (`DIST-...`).
-* **Cartes de distribution** : date d'octroi, référence, nom cliente, articles remis, mise journalière (ex. *2 articles · 1 200 FCFA/jour*), montant total, badge d'état (*En cours*, *Terminé*, *En retard*) et badge de synchronisation (*Local* ou *Sync*).
-
-### B. Fiche détaillée d’une distribution
-Affiche la synthèse du contrat, la jauge visuelle de progression, la ventilation financière (mise journalière, avance versée, montant payé, restant dû, total), la liste détaillée des articles remis avec prix unitaire, et l'historique complet des recouvrements déjà perçus sur ce contrat.
-
-### C. Droit à l’erreur : Modification ou Annulation locale
-Tant qu'une distribution porte le badge **Local** (non synchronisée) :
-* **Bouton Modifier** : réajuste les articles, quantités ou avances saisies.
-* **Bouton Supprimer** : annule la vente, supprime la dette cliente et **réintègre immédiatement et automatiquement les articles dans le stock commercial du vendeur**.
-* *Dès que la distribution porte le badge Sync, toute modification ou suppression sur le mobile est définitivement verrouillée.*
-
-### D. Enregistrer une nouvelle distribution
-Depuis **Nouvelle Distribution** :
-1. **Sélection et vérification de la cliente** :
-   * **Règle anti-surendettement** : un client ne peut cumuler plusieurs crédits standard. Si un crédit est déjà actif, la saisie est bloquée.
-   * **Option Crédit Professionnel** : permet de distinguer un contrat *Personnel* d'un contrat *Professionnel* pour les clientes autorisées.
-2. **Choix des articles et contrôle du stock** :
-   * Seuls les articles avec stock disponible > 0 dans la dotation du vendeur sont sélectionnables.
-   * Sélection des quantités avec les touches **+** et **-** (interdiction de dépasser le stock physique embarqué).
-3. **Calcul financier automatique de la mise (Règles AMENOUVEVE-YAVEH)** :
-   * **Durée de référence** : calculée sur 30 jours (`Total / 30`).
-   * **Arrondi supérieur** : arrondi automatique au multiple de 50 FCFA supérieur (ex. 833 FCFA devient 850 FCFA).
-   * **Plancher minimum strict** : la mise ne peut jamais être inférieure à **200 FCFA/jour**.
-   * **Avance résiduelle automatique** : le solde non couvert par les jours entiers constitue l'avance initiale exigée.
-4. **Personnalisation de l’avance** : saisie facultative d'un acompte en espèces supérieur avec recalcul immédiat de la durée.
-5. **Contrôle Stock Snapshot** : vérification que les ventes du jour ne dépassent pas la dotation autorisée le matin.
-6. **Validation et impression Bluetooth** :
-   * Confirmation du récapitulatif.
-   * Écriture locale instantanée et décrémentation du stock.
-   * Affichage du contrat complet avec **QR Code sécurisé**.
-   * Impression papier immédiate sur l'imprimante thermique portable Bluetooth de ceinture (ESC/POS).
-
-<!-- CAPTURE À INSÉRER : Écran de confirmation de distribution et ticket de vente avec QR code. -->
+1. **Ouvrez le formulaire** :
+   * Soit depuis l'accueil, en touchant la case **Nouveau Client**.
+   * Soit depuis l'onglet **Clients** en bas, en touchant le gros bouton rond jaune avec un plus (**+**) en bas à droite.
+2. **Prenez la cliente en photo** : touchez le cadre de photo pour ouvrir l'appareil photo du smartphone et prenez un portrait net du visage de la cliente.
+3. **Remplissez son identité** :
+   * Tapez son Nom, son Prénom et son Métier.
+   * Indiquez sa date de naissance : l'application vérifie automatiquement que la cliente est majeure (18 ans minimum).
+   * Écrivez son numéro de téléphone (8 chiffres). L'application vérifie immédiatement que ce numéro n'appartient pas déjà à une autre cliente.
+4. **Photographiez sa pièce d'identité** :
+   * Choisissez le type de pièce : Carte Nationale d'Identité (*CNI*), *Passeport*, *Carte d'électeur* ou *Carte e-ID*.
+   * Tapez le numéro inscrit sur sa pièce.
+   * Touchez le bouton photo pour photographier le document recto-verso.
+5. **Enregistrez son adresse et sa position géographique** :
+   * Tapez son adresse exacte et choisissez son quartier dans la liste déroulante.
+   * Appuyez sur le bouton vert **« Obtenir la position GPS »** : le téléphone capte automatiquement les coordonnées précises de son domicile ou de sa boutique.
+6. **Indiquez son garant** : écrivez le nom et le numéro de téléphone de sa personne garante.
+7. **Validez l'inscription** : appuyez sur le bouton vert **Enregistrer** tout en bas.
+   * La cliente est instantanément créée sur votre téléphone avec le badge **Local**. Vous pouvez immédiatement lui faire une vente ou l'inscrire à la tontine, même au fin fond d'un village sans réseau Internet !
 
 ---
 
-## 4. Module Recouvrement des ventes à crédit (Mises journalières)
+## 3. Module Ventes à crédit (Distributions de marchandises)
 
-Dès lors que des ventes à crédit sont actives, le commercial entame sa tournée de recouvrement des mises quotidiennes.
+Une fois la cliente enregistrée, vous pouvez lui remettre des articles à crédit prélevés directement dans votre sacoche ou votre coffre.
 
-### A. Préparer la tournée : « Clients à recouvrer »
-* Accessible depuis **Clients → Options (trois points) → Clients à Recouvrer** ou via l'action rapide **Recouvrement**.
-* Affiche exclusivement les clientes ayant des crédits en cours (`INPROGRESS`).
-* **Masquage automatique** : les clientes ayant déjà payé leur mise du jour disparaissent automatiquement de la liste pour fluidifier la tournée.
-* **Organisation par quartier** : regroupement géographique des clientes avec affichage du montant restant dû en rouge.
-* Touchez une cliente pour ouvrir directement son formulaire de paiement.
+### A. Consulter vos contrats de vente
+1. Dans la barre du bas de l'écran, touchez l'onglet **Distributions**.
+2. Vous retrouvez toutes les ventes que vous avez réalisées avec le nom de la cliente, les articles remis, le montant total et la mise à payer chaque jour.
+3. Les statuts affichés :
+   * **En cours** : la cliente a reçu sa marchandise et rembourse ses mises tous les jours.
+   * **Terminé (Soldé)** : la cliente a totalement remboursé sa dette. Bravo !
+   * **En retard** : la cliente n'a pas versé ses dernières échéances.
+   * Badge **Local** : la vente est enregistrée sur votre téléphone en attente de synchronisation.
+   * Badge **Synchronisé** : la vente est scellée sur le serveur central.
 
-### B. Saisie de l'encaissement et sélection des mises par pastilles
-1. **Sélection du crédit** : rappel de la référence, de la mise journalière et de la jauge de progression.
-2. **Grille de pastilles numériques** : pas besoin de saisir un chiffre au clavier. Touchez simplement le numéro de mise souhaité (ex. pastille 3) : l'application sélectionne automatiquement les 3 mises et calcule le montant exact dû.
+### B. Enregistrer une nouvelle vente à crédit pas à pas
+1. **Ouvrez la vente** :
+   * Sur l'accueil, touchez la case **Nouvelle Distribution**, ou dans l'onglet **Distributions**, appuyez sur le bouton rond jaune (**+**).
+2. **Choisissez la cliente** :
+   * Touchez **Sélectionner un client**.
+   * Tapez son nom et touchez sa fiche.
+   * *Règle de protection* : si la cliente a déjà un crédit standard non terminé, l'application vous avertit pour éviter qu'elle ne s'endette au-delà de ses capacités.
+3. **Choisissez les articles dans votre sacoche** :
+   * La liste affiche les articles que vous avez physiquement sur vous.
+   * Appuyez sur **+** ou **-** pour régler les quantités. Vous ne pouvez pas vendre plus d'articles que ce que vous avez réellement dans votre stock.
+4. **Regardez le calcul automatique de la mise par jour** :
+   * Vous n'avez aucun calcul à faire dans votre tête ! L'application calcule automatiquement la mise journalière sur 30 jours, arrondie aux 50 FCFA supérieurs, avec un plancher minimum de 200 FCFA par jour.
+   * Elle calcule aussi l'avance minimale requise si nécessaire.
+5. **Si la cliente donne une avance en espèces plus importante** :
+   * Écrivez simplement la somme versée dans le champ **Avance**. L'application recalcule aussitôt le reste à payer et raccourcit la durée du crédit.
+6. **Confirmez et imprimez le ticket** :
+   * Touchez le bouton vert **Confirmer la distribution**.
+   * Les articles sont automatiquement déduits du stock de votre sacoche.
+   * Le contrat s'affiche sur votre écran avec un code sécurisé (QR code).
+   * Touchez **Imprimer** : votre imprimante portable Bluetooth de ceinture sort immédiatement le reçu officiel en double exemplaire pour la cliente et pour vous !
 
-### C. Gestion financière du Reliquat (Avoirs et monnaie)
-* **Reliquat existant** : si la cliente a un avoir, activez **Utiliser ce reliquat pour payer** pour le déduire immédiatement de la mise. Si le reliquat couvre la totalité, la saisie espèces passe à 0 FCFA et le bouton devient **CLÔTURER AVEC LE RELIQUAT**.
-* **Nouveau reliquat généré** : si la cliente remet un billet supérieur à la mise (ex. 2 000 FCFA pour 1 500 FCFA dus), activez **Conserver ce reliquat pour le client** pour créditer automatiquement son compte de l'excédent (+ 500 FCFA).
-
-### D. Sécurités & Consentement
-* **Consentement journalier** : vérification du code de sécurité de la journée (`operationConsentCode`).
-* **Anti-doublon** : alerte de confirmation explicite si un recouvrement a déjà été perçu le jour même.
-* **Double confirmation** : modale de vérification du montant saisi avant écriture locale.
-
-### E. Reçu thermique Bluetooth et Droit à l'erreur
-* **Ticket de caisse avec QR Code** : affichage immédiat des mentions officielles, montants, reliquats et solde restant avec QR Code d'authentification.
-* **Impression Bluetooth** : sortie papier instantanée sur l'imprimante portable. Duplicata PDF stocké sur l'appareil.
-* **Suppression locale** : dans la liste d'historique des recouvrements, touchez l'icône corbeille sur un encaissement **Local** pour l'annuler en cas d'erreur de saisie (le solde client et les reliquats sont instantanément rétablis).
-
-<!-- CAPTURE À INSÉRER : Reçu de recouvrement thermique avec QR code et bouton Imprimer. -->
-
----
-
-## 5. Module Tontine (Épargne collective)
-
-Le module **Tontine** permet aux clientes d'épargner régulièrement pour acquérir des marchandises ou des lots d'équipements en fin de cycle. Il s'articule dans un ordre rigoureux : **Adhésion du membre**, **Collecte des cotisations**, puis **Livraison (Commande ou Livraison directe)**.
-
-### A. Tableau de bord Tontine (`/tontine/dashboard`)
-Accessible via l'action rapide **Tontine** du tableau de bord ou depuis le menu :
-* **Bandeau de 4 KPIs** :
-  1. **Membres actifs** : nombre de clientes souscrivant à la session en cours.
-  2. **Total collecté** : somme globale des cotisations en FCFA épargnées sur la session.
-  3. **Session** : millésime de l'exercice en cours (ex. 2026).
-  4. **En attente livraison** : nombre de membres ayant terminé leur cycle ou en attente de remise des marchandises.
-* **Filtres rapides d'un appui (Chips)** :
-  * **Tous** : liste globale paginée de tous les adhérents.
-  * **Actifs** : membres en cours d'épargne active.
-  * **En attente** : membres ayant une commande de livraison en attente (`PENDING`).
-  * **À faire (`todo`) — Outil stratégique de tournée** : ce filtre regroupe automatiquement les adhérents **par quartier** et n'affiche que les membres **n'ayant pas encore cotisé aujourd'hui**. Le commercial suit ainsi sa tournée rue par rue sans risque d'oubli.
-* **Cartes membres** : initiale, nom complet, téléphone, périodicité, montant total cumulé, badges de livraison (*ACTIF*, *Commande*, *Validée*, *Livré*) et badges de synchronisation (*Local* / *Sync*).
-* **Bouton flottant (FAB +)** : présent uniquement si la session est `ACTIVE` pour inscrire un nouvel adhérent.
-* **Menu d'options (trois points)** : permet de consulter les rapports de session ou de forcer la synchronisation.
-
-<!-- CAPTURE À INSÉRER : Tableau de bord Tontine avec les 4 KPIs et la vue groupée par quartier du filtre À faire. -->
-
-### B. Adhésion et inscription d'un membre (`/tontine/member-registration`)
-Depuis le bouton **+** du tableau de bord tontine :
-1. **Sélection de la cliente** :
-   * Appuyez sur **Sélectionner un client** pour ouvrir la modale de recherche.
-   * La liste est automatiquement filtrée sur les clientes affectées au commercial connecté (en tant que commercial, vous visualisez uniquement votre propre portefeuille).
-   * La cliente sélectionnée apparaît avec son avatar, son quartier et son numéro de téléphone.
-2. **Fréquence de cotisation** :
-   * Choisissez la cadence convenue : **Quotidien** (`DAILY`), **Hebdomadaire** (`WEEKLY`), ou **Mensuel** (`MONTHLY`).
-3. **Montant par échéance** :
-   * Renseignez le montant de la mise périodique en FCFA (minimum 100 FCFA, pas de 100 FCFA).
-4. **Contrôle d'unicité strict** :
-   * Un client ne peut être inscrit qu'une seule fois par session de tontine. Si le client existe déjà, l'application bloque l'inscription avec une alerte explicite.
-5. **Consentement journalier obligatoire** :
-   * L'application exige la validation du consentement journalier avant l'enregistrement.
-6. **Mode Modification & Portée du changement (`updateScope`)** :
-   * Lors de la modification d'un membre existant, si le montant de la cotisation est modifié, une section obligatoire **« Portée de la modification »** apparaît pour choisir l'impact financier :
-     * **Mois en cours et futurs** : applique le nouveau montant à partir du mois courant.
-     * **Mois futurs uniquement** : ne modifie le montant qu'à compter du mois prochain.
-     * **Rétroactif (Tout recalculer)** : recalcule l'intégralité des échéances de la session avec ce nouveau montant.
-7. **Notes / Observations** : champ libre facultatif pour consigner des instructions particulières.
-8. **Enregistrement Local-First** : le membre est sauvegardé immédiatement avec un statut `PENDING` et un badge `Local` en attente de synchronisation.
-
-<!-- CAPTURE À INSÉRER : Formulaire d'inscription d'un membre tontine avec choix de fréquence et sélecteur de portée de modification. -->
-
-### C. Fiche détaillée du membre tontine (`/tontine/member-detail/:id`)
-En touchant un membre depuis la liste :
-* **En-tête** : avatar, nom complet, date d'adhésion et badge de statut de livraison coloré (*ACTIF*, *Commande*, *Validée*, *Livré*).
-* **Carte Informations Tontine** : fréquence de cotisation, montant par échéance, total cotisé cumulé à ce jour (en vert) et total attendu.
-* **Carte Informations Client** : téléphone, adresse, quartier et profession.
-* **Carte Livraison (si existante)** : affiche le statut de la commande de biens, la date de demande, la liste des articles choisis avec quantités et prix totaux.
-* **Historique des cotisations** : liste chronologique numérotée de tous les versements perçus avec dates, montants et indicateurs `Local` ou `Sync`.
-* **Droit à l'erreur (Suppression d'une cotisation locale)** : sur une cotisation portant le badge `Local`, touchez l'icône corbeille rouge pour la supprimer immédiatement en cas de faute de saisie. Le total cotisé est instantanément recalculé.
-* **Menu contextuel d'actions (trois points)** :
-  * **Enregistrer une cotisation** : ouvre directement la collecte pour ce membre.
-  * **Voir le client** : bascule vers la fiche cliente globale du module Clients.
-  * **Livraison Fin d'Année** : ouvre le catalogue pour préparer la remise des articles (disponible si aucune livraison n'est en cours).
-  * **Marquer comme livré** : confirme la remise physique des articles au client pour une commande validée.
-  * **Modifier** : ouvre la fiche d'inscription pour ajuster le montant ou la fréquence.
-  * **Supprimer** : retire le membre de la session (si aucune cotisation synchronisée ne s'y oppose).
-
-### D. Enregistrement d'une cotisation tontine (`/tontine/collection-recording`)
-Accessible via le bouton **Cotiser** de la fiche membre ou depuis le raccourci du menu :
-1. **Sélection du membre** : pré-sélectionné automatiquement si lancé depuis la fiche membre, ou accessible via la barre de recherche textuelle par nom ou quartier.
-2. **Montant de la cotisation** :
-   * Le montant attendu est pré-rempli d'office selon la mise paramétrée du membre.
-   * Le commercial peut ajuster la somme perçue (minimum 100 FCFA).
-3. **Sécurités et contrôles financiers** :
-   * **Contrôle de session** : si la session est fermée (`CLOSED`), toute collecte est bloquée.
-   * **Code de consentement journalier** : validation obligatoire du consentement opérateur.
-   * **Double confirmation du montant** : une boîte de dialogue demande confirmation de la somme physique encaissée.
-4. **Attribution automatique** : calcul du mois de cotisation (`contributionMonth`) et affectation des avances éventuelles sur les mois suivants.
-5. **Reçu thermique Bluetooth immédiat** :
-   * Une modale présente le reçu officiel : référence de collecte, nom du membre, téléphone, montant versé, année de session, nom du commercial et **Total cotisé à ce jour** (`totalToDate`).
-   * Si l'opération est réalisée hors connexion, la mention explicite **« Budget estimé hors-ligne »** est apposée.
-   * Touchez **Imprimer** pour sortir le ticket thermique Bluetooth ou le partager au client.
-
-<!-- CAPTURE À INSÉRER : Reçu thermique de cotisation tontine avec total cotisé cumulé et bouton Imprimer Bluetooth. -->
-
-### E. Livraison de fin d'année tontine (`/tontine/delivery-creation`)
-La livraison représente la concrétisation de l'épargne : le membre utilise son capital cotisé pour choisir des articles du catalogue. Accessible depuis la fiche membre via **Livraison Fin d'Année** :
-
-#### 1. Contrôle préalable d'unicité
-* Un membre ne peut bénéficier que d'une seule livraison par session. Si une livraison existe déjà pour ce membre, l'accès est strictement verrouillé.
-
-#### 2. Calcul du budget épargné et de la « Part Société »
-* Le système additionne l'ensemble des cotisations perçues pour établir le **Total épargné**.
-* En fonction des paramètres de l'agence (moteur de calcul V1 ou V2), la **Part Société** (frais de gestion de la tontine prévus au contrat) est automatiquement déduite pour dégager le **Budget disponible net** dédié aux achats.
-* Si des cotisations locales non synchronisées existent, un bandeau d'avertissement indique : *« Budget estimé hors-ligne — des collectes ne sont pas encore synchronisées »*.
-
-#### 3. Bandeau de contrôle budgétaire
-Trois compteurs guident la sélection en temps réel :
-* **Total épargné** : budget net total du membre.
-* **Sélectionné** : valeur cumulée des articles ajoutés au panier.
-* **Restant** : solde d'épargne résiduel (`Budget disponible - Sélectionné`).
-
-#### 4. Bouton intelligent « Compléter le solde »
-* Le commercial peut sélectionner des articles dont la valeur dépasse légèrement le budget disponible.
-* Lorsque le restant devient négatif (`remainingBudget < 0`), un bouton dédié apparaît en haut de page : **« Compléter le solde (X FCFA) »**.
-* En touchant ce bouton, l'application bascule automatiquement sur l'écran d'enregistrement de cotisation avec le membre et **le montant manquant exact pré-remplis**. Dès la cotisation validée, le commercial est automatiquement ramené sur son panier de livraison avec un budget parfaitement équilibré.
-
-#### 5. Sélection des articles en stock
-* Catalogue interactif des stocks disponibles avec recherche textuelle.
-* Pour chaque article : désignation, prix unitaire en FCFA et stock disponible chez le commercial.
-* Ajustement des quantités avec les touches **+** et **-** (impossible de sélectionner au-delà du stock réel disponible).
-
-#### 6. Validation : Choix du Mode d'Opération
-Au moment de valider le panier, un menu d'action propose deux modes opérationnels :
-* **Mode Commande (Pré-commande / `ORDER`)** :
-  * Utilisé lorsque la marchandise n'est pas remise immédiatement au client (ex. préparation des colis de Noël au magasin central).
-  * Enregistre le dossier avec le statut `PENDING`.
-  * **Le stock commercial n'est pas décompté immédiatement.**
-* **Mode Livraison directe (`DIRECT`)** :
-  * Utilisé lorsque le commercial remet immédiatement les articles au client depuis son stock physique.
-  * Enregistre le dossier avec le statut `DELIVERED`.
-  * **Le stock commercial local est décrémenté immédiatement.**
-  * Un reçu thermique officiel de livraison avec détail complet des articles remis, totaux et solde restant est immédiatement imprimé via Bluetooth.
-
-#### 7. Clôture ultérieure : « Marquer comme livré »
-* Pour les dossiers enregistrés en mode *Commande*, le commercial ou le gestionnaire retourne sur la fiche détaillée du membre une fois le colis remis physiquement.
-* Il touche le bouton **« Marquer comme livré »** : l'application exige le consentement journalier, bascule le statut en `DELIVERED`, déduit définitivement les quantités du stock commercial et clôture le cycle de tontine.
-
-<!-- CAPTURE À INSÉRER : Écran de sélection des articles de livraison tontine avec bandeau de budget et modalité Commande vs Livraison directe. -->
+### C. Droit à l'erreur (Corriger ou annuler une vente)
+Vous vous êtes trompé d'article ou de quantité ? Pas de panique :
+* Tant que la vente porte le badge **Local** (non synchronisée), ouvrez la vente et touchez **Modifier** pour corriger, ou touchez la corbeille rouge **Supprimer**.
+* En cas de suppression, la dette de la cliente est effacée et **les articles retournent automatiquement dans votre stock sur le téléphone** !
 
 ---
 
-## 6. Articles, commandes clients et gestion des stocks
+## 4. Module Recouvrement : encaisser les mises journalières
 
-Ce domaine regroupe trois fonctionnalités complémentaires : la consultation du catalogue de marchandises, la prise de commandes clients à crédit, et les échanges logistiques de réapprovisionnement ou de retour avec le magasin central.
+C'est votre tâche principale lors de votre tournée quotidienne : collecter l'argent des clientes qui ont une vente en cours.
 
-### A. Consultation des articles et du catalogue (`/tabs/article-list`)
-Accessible depuis **Plus → Articles** :
-* **Double segment commutable** :
-  * **« Mon Stock »** : affiche exclusivement les articles physiquement disponibles dans la dotation mobile du vendeur (sacoche ou véhicule). Chaque carte indique la désignation, le type, la marque, le **Stock disponible en unités** et le prix de vente à crédit en FCFA. Ce stock diminue lors des distributions et livraisons directes tontine, et augmente lors des réapprovisionnements validés par le magasinier.
-  * **« Catalogue »** : présente l'intégralité des articles actifs commercialisés par l'organisation, avec leur prix de vente à crédit officiel. Cet onglet permet au commercial de présenter les nouveautés aux clientes et de vérifier les tarifs même pour des articles qu'il ne transporte pas sur lui.
-* **Recherche et fonctionnement hors ligne** :
-  * La barre de recherche filtre instantanément par désignation commerciale, marque ou référence.
-  * Les données sont synchronisées et mises en cache dans la base SQLite locale, garantissant une consultation rapide même sans réseau Internet.
+### A. Préparer votre tournée avec « Clients à Recouvrer »
+Ne perdez pas de temps à chercher qui doit payer aujourd'hui :
+1. Dans la barre du bas, allez sur l'onglet **Clients**.
+2. Touchez les **trois petits points (⋮)** tout en haut à droite.
+3. Choisissez **« Clients à Recouvrer »** (vous pouvez aussi toucher directement la case **Recouvrement** sur l'écran d'accueil).
+4. Cette liste magique classe vos clientes **par quartier** et n'affiche que celles qui ont une dette active.
+5. Dès que vous encaissez une cliente, **elle disparaît automatiquement de la liste du jour** ! Vous voyez votre liste diminuer au fur et à mesure de votre tournée.
 
-<!-- CAPTURE À INSÉRER : Écran Articles avec le segment commutable Mon Stock (avec quantités disponibles) et Catalogue. -->
-
-### B. Commandes clients à crédit (`/tabs/orders`)
-Le module **Commandes** (accessible sous réserve d'activation sur le compte commercial) offre un parcours distinct de la distribution directe :
-* **Différence clé entre Distribution et Commande** :
-  * *La Distribution directe* implique que le commercial possède physiquement la marchandise en sacoche et la remet immédiatement à la cliente (déduction immédiate de stock et calcul imposé de la mise journalière).
-  * *La Commande client* permet d'enregistrer une réservation ou un souhait d'achat d'une cliente sur l'ensemble du catalogue de l'agence, **sans que le commercial n'ait besoin d'avoir l'article en stock sur lui**, sans avance obligatoire exigée et sans calcul de mise imposé à cette étape. La marchandise sera approvisionnée ou livrée ultérieurement.
-* **Liste et historique des commandes** :
-  * Recherche par référence de commande ou par nom de cliente.
-  * Compteur total des commandes et geste de tirage vers le bas (*pull-to-refresh*) pour actualiser.
-* **Créer une nouvelle commande (`/orders/new`)** :
-  1. Touchez le bouton **+** ou l'action **Créer une commande**.
-  2. Sélectionnez la cliente via la modale de recherche de clientes.
-  3. Choisissez les articles souhaités dans le catalogue général et définissez les quantités commandées.
-  4. Touchez **Créer la commande** : la commande est enregistrée localement avec le statut `PENDING` et porte le badge `Local` en attente de synchronisation.
-* **Fiche détaillée d'une commande (`/orders/detail/:id`)** :
-  * Affiche la date, la référence officielle, les coordonnées de la cliente, le statut, le badge de synchronisation, le montant total en FCFA et la liste détaillée des articles avec quantités et prix unitaires.
-* **Droit à l'erreur (Modification & Annulation)** :
-  * Tant qu'une commande est à l'état modifiable (`canModify`), le commercial peut toucher **Modifier** pour ajuster les articles et quantités, ou toucher l'icône corbeille rouge en haut pour **Supprimer définitivement la commande**.
-
-<!-- CAPTURE À INSÉRER : Liste des commandes clients et formulaire de nouvelle commande sur catalogue. -->
-
-### C. Gestion des stocks et opérations avec le magasin central (`/tabs/stock`)
-Accessible depuis l'action rapide **Stock** du tableau de bord d'accueil ou depuis l'onglet **Plus** :
-
-Le module de stock mobile adopte une ergonomie avancée à double dimension : **le contexte métier** en haut et **le type d'opération** en bas.
-
-#### 1. Sélecteur de contexte en en-tête (Context Pills)
-Deux pilules permettent de basculer instantanément l'environnement de gestion :
-* **Standard** : opérations de stock liées aux ventes à crédit ordinaires du commercial.
-* **Tontine** : opérations de stock dédiées à l'approvisionnement des marchandises pour les livraisons d'épargne collective.
-
-#### 2. Double flux logistique (Barre d'onglets inférieure)
-* **Onglet Demandes (Sorties de stock)** :
-  * Liste l'ensemble des demandes de réapprovisionnement transmises au magasin central.
-  * Permet au vendeur de demander une dotation de marchandises au magasinier avant d'entamer sa tournée.
-* **Onglet Retours (Restitutions au magasinier)** :
-  * Liste les opérations de retour de marchandises vers le dépôt central.
-  * Utilisé en fin de tournée ou lors des inventaires pour restituer des invendus, des articles défectueux ou des produits retournés par des clientes.
-
-#### 3. Filtres de suivi par statut (Status Pills)
-Une barre horizontale de filtres permet de suivre l'avancement logistique de chaque demande ou retour :
-* **Tous** : historique complet des opérations.
-* **En attente (`PENDING`)** : opération créée par le commercial, en attente de prise en charge par le magasinier.
-* **Validé (`VALIDATED`)** : demande approuvée par le magasinier, colis en préparation.
-* **Livré (`DELIVERED`)** : marchandise physiquement remise ou réintégrée au dépôt ; le stock commercial mobile du vendeur est automatiquement crédité ou débité.
-* **Annulé (`CANCELLED`)** : opération annulée par le commercial ou rejetée par le magasinier.
-
-#### 4. Enregistrer une nouvelle opération de stock (Bouton flottant FAB +)
-Le bouton flottant s'adapte automatiquement au contexte et à l'onglet sélectionné :
-* **Nouvelle Sortie Standard** : sélection des articles du magasinier et des quantités désirées pour la tournée de vente.
-* **Nouveau Retour Standard** : sélection des articles à restituer avec saisie d'un **commentaire/motif obligatoire** (ex. *Invendus fin de semaine*, *Emballage abîmé*).
-* **Nouvelle Sortie Tontine** : sélection des articles avec champ de **date de livraison demandée** pour synchroniser la dotation avec les remises prévues aux membres épargnants.
-* **Nouveau Retour Tontine** : restitution d'articles tontine excédentaires avec motif explicatif.
-
-#### 5. Consultation détaillée et Droit d'annulation
-* Touchez n'importe quelle opération dans la liste pour ouvrir sa fiche détaillée : référence, date, statut du magasinier, motif et détail complet des articles et quantités.
-* **Annulation d'une demande erronée** : tant qu'une demande ou un retour porte le statut **En attente** (`PENDING`), un bouton rouge **« Annuler la demande »** ou **« Annuler le retour »** permet au commercial de révoquer immédiatement l'opération avant que le magasinier ne commence à préparer le colis.
-
-<!-- CAPTURE À INSÉRER : Tableau de bord Stock avec les pilules de contexte Standard/Tontine et les onglets Demandes/Retours. -->
+### B. Encaisser une cliente pas à pas
+1. Dans la liste, touchez le nom de la cliente devant laquelle vous vous trouvez.
+2. Son dossier s'ouvre avec le montant de sa mise par jour (par exemple 1 000 FCFA) et ce qu'elle doit encore au total.
+3. **Choisissez le nombre de jours payés avec les pastilles numérotées** :
+   * Vous n'avez pas besoin de taper le montant au clavier !
+   * Si la cliente paie pour 1 jour : appuyez simplement sur la pastille **1**.
+   * Si la cliente paie pour 3 jours d'un coup : appuyez sur la pastille **3**. L'application calcule immédiatement la somme exacte (par exemple 3 000 FCFA).
+4. **Gérer facilement la monnaie et les avoirs (Reliquat)** :
+   * *Cas 1 : La cliente a déjà un avoir chez vous* : une option **« Utiliser ce reliquat pour payer »** apparaît. Cochez-la pour déduire son avoir de ce qu'elle doit payer aujourd'hui.
+   * *Cas 2 : La cliente vous donne un billet trop gros* (par exemple un billet de 2 000 FCFA pour une mise de 1 500 FCFA) : cochez la case **« Conserver ce reliquat pour le client »**. Le surplus (500 FCFA) est mis de côté sur son compte pour sa prochaine visite !
+5. **Confirmez l'encaissement** :
+   * Touchez le bouton vert **Encaisser**.
+   * Une petite fenêtre vous demande de vérifier le montant physique en espèces que vous tenez dans votre main. Touchez **Oui, confirmer**.
+6. **Sortez le reçu papier** :
+   * Le ticket de caisse s'affiche avec la date, l'heure, le montant payé et le solde restant.
+   * Touchez **Imprimer** : votre imprimante Bluetooth de ceinture imprime le ticket officiel pour la cliente.
 
 ---
 
-## 7. Synchronisation hybride et fonctionnement hors-ligne
+## 5. Module Tontine : l'épargne collective
 
-L'application mobile ELYKIA repose sur un moteur de synchronisation bidirectionnel hautement résilient (`SyncMasterService`), conçu pour garantir une autonomie totale sur le terrain tout en assurant l'intégrité comptable et financière des données centrales.
+Le module **Tontine** permet aux clientes de mettre de l'argent de côté chaque jour ou chaque semaine pour s'offrir des vivres, des appareils électroménagers ou des cadeaux en fin d'année.
 
-### A. Architecture Locale-d'abord (Local-First) & Autonomie terrain
-* **Fonctionnement hors ligne permanent** : toutes les opérations (création de client, vente à crédit, encaissement de mise, cotisation tontine, remise de lot) s'écrivent d'abord de manière synchrone et sécurisée dans la base de données locale SQLite du terminal mobile.
-* **Repères visuels de statut** :
-  * Badge **Local** (orange) : l'opération a été enregistrée sur le smartphone mais n'a pas encore été transmise au serveur central. Les opérations locales bénéficient d'un droit à l'erreur (possibilité de modification ou d'annulation sur place).
-  * Badge **Sync** (bleu) : la transaction a été réceptionnée, validée et scellée sur le serveur central. Elle ne peut plus être altérée ou supprimée depuis le smartphone.
-* **Bulle de notification dans l'en-tête** : sur le tableau de bord, une bulle chiffrée sur l'icône de synchronisation indique en permanence le nombre exact d'opérations locales en attente d'envoi vers le serveur.
+### A. Le tableau de bord de la Tontine
+* **Comment y accéder** : sur votre écran d'accueil, touchez la case **Tontine**.
+* **Ce que vous voyez en haut** :
+  * **Membres actifs** : le nombre de clientes inscrites dans votre tontine cette année.
+  * **Total collecté** : le montant total en FCFA épargné par toutes vos membres.
+  * **Session** : l'année en cours (par exemple 2026).
+  * **En attente livraison** : le nombre de membres prêtes à recevoir leurs cadeaux.
+* **Le filtre « À faire » pour votre tournée tontine** :
+  * Sous les compteurs, touchez la pastille **À faire**.
+  * Vos membres sont automatiquement classées par quartier, et seules celles **qui n'ont pas encore cotisé aujourd'hui** sont affichées. Vous avancez rue par rue sans jamais oublier personne !
 
-### B. Protocole de Sécurité & Consentement de Synchronisation
-Transférer des encaissements financiers et des mouvements de stocks engage la responsabilité formelle du commercial. Avant d'exécuter la synchronisation des flux d'argent, l'application déclenche une modale de sécurité obligatoire en 3 étapes :
+### B. Inscrire une nouvelle membre à la tontine pas à pas
+1. **Ouvrez le formulaire** : dans l'écran Tontine, touchez le bouton rond jaune avec un plus (**+**) en bas à droite.
+2. **Choisissez la cliente** :
+   * Touchez **Sélectionner un client**.
+   * Choisissez la cliente parmi celles qui vous sont affectées (en tant que commercial, vous visualisez uniquement votre propre portefeuille).
+3. **Choisissez la fréquence de cotisation** :
+   * **Quotidien** : si elle cotise tous les jours.
+   * **Hebdomadaire** : si elle verse son épargne chaque semaine.
+   * **Mensuel** : si elle cotise une fois par mois.
+4. **Indiquez le montant de la mise** : écrivez la somme versée à chaque échéance (par exemple 500 ou 1 000 FCFA).
+5. **Si vous modifiez une membre existante** : un choix **« Portée de la modification »** vous demande à quel moment appliquer le nouveau montant (*Mois en cours et futurs*, *Mois futurs uniquement* ou *Tout recalculer depuis le début*).
+6. **Enregistrez** : touchez le bouton vert **Enregistrer**. La membre apparaît immédiatement dans votre carnet tontine avec le badge **Local** !
 
-1. **Étape 1 : Confirmation par mot de passe** :
-   * Le commercial doit saisir son mot de passe de session personnelle afin de certifier son identité et d'éviter tout envoi non consenti en cas d'accès au téléphone par un tiers.
-2. **Étape 2 : Challenge de sécurité (Code à recopier)** :
-   * L'application affiche un code alphanumérique unique généré aléatoirement. Le commercial doit obligatoirement le recopier dans le champ de vérification pour confirmer qu'il s'agit d'une démarche volontaire et réfléchie.
-3. **Étape 3 : Engagement et responsabilité légale** :
-   * Une case à cocher obligatoire atteste que le vendeur a vérifié l'exactitude des fonds perçus et assume la responsabilité comptable des montants transmis.
-4. **Contrôle automatique de Caisse** :
-   * Dès le consentement validé, le système interroge le serveur pour s'assurer que la caisse financière journalière de l'agence est ouverte (`cash-check`). Si la caisse est fermée, le système tente une ouverture automatique autorisée ou alerte le vendeur afin d'éviter tout rejet des encaissements.
+### C. Consulter la fiche complète d'une membre tontine
+Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
+* Vous voyez le montant de sa mise, le total déjà cotisé en vert et son quartier.
+* **L'historique des cotisations** : la liste numérotée de tous ses versements passés.
+* **Droit à l'erreur** : si vous venez d'enregistrer une cotisation par erreur avec le badge **Local**, touchez la petite corbeille rouge sur la ligne pour l'annuler aussitôt. Le total est recalculé sans aucune fausse note.
+* **Le menu d'options (trois petits points ⋮ en haut à droite)** :
+  * **Cotiser** : pour enregistrer un versement.
+  * **Voir le client** : pour voir la fiche générale de la cliente.
+  * **Livraison Fin d'Année** : pour lui commander ou lui remettre ses articles.
 
-<!-- CAPTURE À INSÉRER : Modale de consentement de synchronisation avec saisie de mot de passe, code challenge et case d'engagement. -->
+### D. Enregistrer une cotisation de tontine pas à pas
+1. **Ouvrez la saisie** :
+   * Sur la fiche de la membre, touchez le bouton vert **Cotiser** (ou utilisez le menu d'actions rapides).
+2. **Le montant habituel est déjà renseigné** :
+   * Si la membre donne son montant habituel, vous n'avez rien à modifier.
+   * Si elle donne le double ou une avance, vous pouvez changer le montant au clavier.
+3. **Validez l'argent reçu** :
+   * Touchez le bouton **Confirmer la cotisation**.
+   * Une boîte de confirmation vous rappelle le montant : touchez **Oui, encaisser**.
+4. **Imprimez le reçu de cotisation** :
+   * Le reçu officiel s'affiche avec le nom de la membre, la somme du jour et le **Total cotisé à ce jour**.
+   * Touchez le bouton bleu **Imprimer** pour donner son ticket papier à la membre.
 
-### C. Écran de Synchronisation Manuelle (`/sync/manual`)
-Accessible depuis l'icône de synchronisation du tableau de bord ou via **Plus → Synchronisation manuelle** :
+### E. Remettre les articles de fin d'année (Livraison tontine)
+Quand la fin de la campagne arrive, la membre utilise son argent épargné pour choisir des articles au catalogue.
 
-Cet écran offre un contrôle granulaire sur l'ensemble des données locales en attente :
-
-* **Navigation par onglets d'entités** :
-  * Une barre de segments à défilement horizontal permet d'isoler les éléments en attente par catégorie métier :
-    * **Clients** : nouvelles fiches, modifications, coordonnées GPS et photos.
-    * **Distributions** : contrats de vente à crédit.
-    * **Recouvrements** : encaissements de mises journalières.
-    * **Membres** : adhésions à la tontine.
-    * **Collectes** : versements d'épargne tontine.
-    * **Livraisons** : remises de commandes ou de lots tontine.
-* **Sélection personnalisée & Envoi en masse** :
-  * Le commercial peut cocher individuellement les lignes de son choix ou utiliser l'action **« Tout sélectionner »**.
-  * Le bouton flottant **FAB** en bas à droite affiche une pastille avec le nombre d'éléments sélectionnés (`selectedCount`) et permet de déclencher le téléversement du lot sélectionné d'un seul appui.
-* **Synchronisation unitaire prioritaire** :
-  * Sur chaque carte d'entité, un bouton de synchronisation individuel permet de téléverser immédiatement une opération urgente sans attendre les autres.
-* **Résolution des blocages de dépendances (« Éditer le Parent »)** :
-  * Si une opération (ex. un contrat de distribution ou un recouvrement) ne peut être synchronisée parce que la fiche cliente associée comporte une erreur, un bouton **« Éditer le parent »** ouvre directement le dossier de la cliente pour corriger l'anomalie sans avoir à chercher manuellement dans les menus.
-
-<!-- CAPTURE À INSÉRER : Écran de synchronisation manuelle avec onglets d'entités, cases à cocher et bouton flottant de synchronisation de la sélection. -->
-
-### D. Suivi des Erreurs et Résolution des Conflits (`/sync-errors`)
-Accessible depuis l'icône d'alerte en haut de la synchronisation manuelle ou depuis **Plus → Erreurs de synchronisation** :
-
-Lorsqu'une opération locale est rejetée par le serveur (ex. règle métier non respectée au bureau, problème d'attribution de zone), elle n'est jamais supprimée : elle est mise en quarantaine dans la boîte des erreurs.
-
-* **Liste des erreurs de synchronisation** :
-  * Présente chaque transaction en échec avec le nom de l'entité concernée, le type d'opération (`CREATE` ou `UPDATE`), la date de tentative et le motif explicite du rejet.
-* **Fiche détaillée de diagnostic technique (`/sync-errors/:id`)** :
-  * **Synthèse de l'incident** : nom de l'entité, type, date précise, libellé de l'erreur, code d'erreur officiel et nombre de tentatives automatiques effectuées (`retryCount`).
-  * **Données de la requête (*Request Data*)** : affiche le flux JSON exact envoyé au serveur pour contrôle des champs transmis.
-  * **Données de la réponse (*Response Data*)** : présente la réponse technique renvoyée par l'API pour faciliter l'assistance avec le support technique ou l'administrateur.
-  * **Détails de l'entité locale (*Entity Details*)** : état actuel de la donnée stockée dans la base SQLite du téléphone.
-
-<!-- CAPTURE À INSÉRER : Liste des erreurs de synchronisation et fiche détaillée avec visualiseur technique des données JSON. -->
-
-### E. Paramètres et Optimisation des Données (Onglet Plus)
-Depuis l'onglet **Plus**, le commercial configure le comportement réseau selon ses conditions de travail et la qualité de son forfait Internet mobile :
-
-* **Synchronisation automatique** :
-  * Interrupteur permettant d'autoriser l'application à synchroniser automatiquement les opérations en arrière-plan lorsque l'application est ouverte et qu'une connexion Internet stable est établie.
-* **Économie de données cellulaires (Forfaits Data)** :
-  * **Synchronisation des photos de profil** (Interrupteur) : permet de suspendre le téléchargement des photos de clientes sur le réseau mobile pour préserver le forfait data.
-  * **Synchronisation des pièces d'identité** (Interrupteur) : permet de différer le téléversement des images lourdes de cartes d'identité et de passeports pour les effectuer au bureau sous connexion Wi-Fi.
-* **Fréquence de synchronisation automatique** :
-  * Sélecteur de cadence au choix : **30 minutes**, **1 heure**, **2 heures** ou **4 heures**.
-* **Filtre de date de synchronisation** :
-  * Permet de choisir la profondeur d'historique synchronisée pour alléger la bande passante : **Aujourd'hui**, **2 derniers jours**, **3 derniers jours**, **1 semaine**, **2 semaines** ou **1 mois**.
+1. **Ouvrez la livraison** :
+   * Sur la fiche de la membre, touchez les trois petits points (**⋮**) en haut à droite et choisissez **Livraison Fin d'Année**.
+2. **Regardez le bandeau de budget en haut** :
+   * Il vous indique le budget net disponible de la membre (le total épargné moins les frais de gestion statutaires de la tontine).
+3. **Choisissez les articles avec la cliente** :
+   * Parcourez le catalogue et touchez **+** pour ajouter les articles qu'elle désire.
+   * Au fur et à mesure, le compteur **Sélectionné** monte et le compteur **Restant** diminue.
+4. **Que faire si la cliente veut un article un peu plus cher que son épargne ?**
+   * L'application est intelligente ! Si le total des articles dépasse son épargne, un bouton bleu apparaît en haut : **« Compléter le solde (X FCFA) »**.
+   * Touchez ce bouton : l'application ouvre aussitôt l'écran de cotisation avec le montant manquant pré-rempli. Dès que la cliente vous donne la différence, vous revenez automatiquement sur son panier parfaitement équilibré !
+5. **Choisissez comment vous remettez les articles** :
+   * **Mode Commande (Pré-commande)** : choisissez ce mode si vous n'avez pas les marchandises sur vous (par exemple pour préparer des cartons au dépôt de l'agence). Le dossier passe au statut **En attente** et votre stock n'est pas encore touché.
+   * **Mode Livraison directe** : choisissez ce mode si vous avez les articles dans votre véhicule et que vous les donnez immédiatement en mains propres à la cliente. Les articles sortent aussitôt de votre stock, le dossier passe au statut **Livré** et vous imprimez le bon de remise !
+6. **Marquer comme livré plus tard** :
+   * Si vous aviez enregistré une pré-commande, le jour où vous donnez enfin les cartons à la cliente, retournez sur sa fiche tontine et touchez le bouton vert **« Marquer comme livré »**. Le stock est décompté et la session de la cliente est terminée avec succès !
 
 ---
 
-## 8. Clôture journalière, rapport d'activité et versement de caisse
+## 6. Articles, commandes clients et stock de la sacoche
 
-En fin de tournée, avant de remettre les fonds à la caisse de l'agence et d'exécuter la synchronisation finale, le commercial établit son bilan journalier grâce au module **Rapport Journalier** (`/features/rapport-journalier`).
+Ce module vous permet de surveiller votre dotation de marchandises et d'échanger avec le magasinier de l'agence.
 
-### A. Accéder au rapport d'activité
-* Accessible directement depuis l'action rapide **Rapport** du tableau de bord d'accueil ou via l'onglet **Plus**.
-* **En-tête du rapport** : affiche la date de la journée concernée. Lorsque l'option de consultation d'antériorité est activée (`allowPastDailyReports`), un sélecteur de date permet de rééditer les rapports de tournées passées.
+### A. Consulter les articles et votre stock disponible
+1. Dans la barre du bas, appuyez sur l'onglet **Plus**, puis touchez **Articles** (ou sur l'accueil, touchez la case **Stock**).
+2. Deux onglets vous permettent de tout voir :
+   * **Onglet « Mon Stock »** : affiche uniquement ce que vous avez physiquement sur vous dans votre sacoche ou votre voiture. Pour chaque article, vous voyez la quantité exacte disponible et son prix de vente.
+   * **Onglet « Catalogue »** : affiche tous les articles vendus par l'agence avec leurs prix officiels. Très pratique pour montrer les nouveautés aux clientes sans avoir besoin de tout transporter !
 
-### B. Synthèse d'activité : les 6 indicateurs de la journée
-Le haut de l'écran présente six cartes synthétiques qui dressent le compte-rendu exhaustif des opérations réalisées :
-1. **Distributions** : nombre de ventes à crédit octroyées et montant total distribué en FCFA.
-2. **Recouvrements** : nombre de clients encaissés et montant total des mises collectées.
-3. **Nouveaux clients** : nombre de nouvelles clientes enrôlées dans la journée et cumul des soldes initiaux.
-4. **Avances encaissées** : nombre et montant total des acomptes initiaux perçus en espèces lors des distributions.
-5. **Tontine** : nombre de versements et montant total des cotisations d'épargne collective collectées.
-6. **Reliquats nets** : solde net des monnaies et avoirs gérés sur la journée (`Reliquats générés - Reliquats consommés`).
+### B. Prendre une commande client sur catalogue
+Parfois, une cliente veut un congélateur ou une télévision que vous n'avez pas sur vous. Vous pouvez lui réserver l'article grâce aux **Commandes** :
+1. Dans la barre du bas, allez dans **Plus**, puis touchez **Commandes**.
+2. Touchez le bouton rond jaune (**+**) en bas à droite.
+3. Sélectionnez votre cliente, choisissez les articles dans le catalogue général et validez.
+4. La commande est enregistrée avec le statut **En attente**. Dès que le magasinier prépare le produit et que la vente est conclue, un simple appui sur le bouton **Vendre** transformera la commande en contrat de vente sans rien avoir à retaper !
 
-### C. La règle financière centrale : « Montant total à verser »
-Une carte mise en évidence en grand au centre de l'écran calcule automatiquement la somme physique exacte en espèces que le commercial doit verser entre les mains du caissier de l'agence :
+### C. Gérer vos échanges avec le magasinier (Demandes et Retours)
+Sur votre écran d'accueil, touchez la case **Stock** :
 
-$$\text{Montant total à verser} = \text{Recouvrements} + \text{Avances perçues} + \text{Cotisations Tontine} + \text{Reliquats conservés (monnaie)} - \text{Reliquats utilisés (avoirs)}$$
-
-Cette formule rigoureuse garantit un contrôle sans faille entre les écritures saisies sur le terminal et les espèces physiques rapportées de la tournée.
-
-### D. Contrôle du détail chronologique des opérations (6 onglets)
-Sous les indicateurs, six onglets permettent au vendeur de pointer chaque transaction enregistrée au cours de la journée avec son heure, le nom de la cliente, les détails du contrat ou de l'article, le montant, et son état de synchronisation :
-* **Distributions** : liste des crédits accordés avec badge `Local` ou `Sync`.
-* **Recouvrements** : détail de chaque reçu de mise perçu.
-* **Clients** : fiches des clientes créées avec numéro de compte attribué.
-* **Membres** : nouvelles adhésions tontine validées.
-* **Collectes** : historique unitaire des versements d'épargne.
-* **Livraisons** : remises de commandes ou lots tontine effectuées.
-
-### E. Impression thermique Bluetooth et Export PDF de décharge
-* **Impression thermique Bluetooth (Ticket récapitulatif)** : touchez le bouton **Imprimer le Rapport** en bas de l'écran ou l'icône imprimante en en-tête. Le smartphone transmet l'ordre à l'imprimante thermique de ceinture (ESC/POS) qui édite un ticket officiel de clôture détaillant la date, le nom du commercial, les totaux par catégorie, le montant net à verser et les zones de signature pour le commercial et le caissier.
-* **Export PDF officiel** : touchez l'icône de téléchargement en en-tête pour générer et archiver un fichier PDF propre dans la mémoire du téléphone, partageable par messagerie ou imprimable sur feuille A4 au secrétariat.
-
-<!-- CAPTURE À INSÉRER : Écran du Rapport Journalier avec les 6 KPIs de synthèse, la carte Montant total à verser et le bouton d'impression. -->
+1. **Les deux types de stock en haut (Pastilles de contexte)** :
+   * **Standard** : vos articles pour vos ventes à crédit habituelles.
+   * **Tontine** : les articles destinés exclusivement aux colis de fin d'année des membres d'épargne.
+2. **Les deux flux en bas** :
+   * **Onglet Demandes** : pour demander de nouveaux articles au magasinier le matin avant de partir en tournée.
+   * **Onglet Retours** : pour rendre au magasinier le soir des articles invendus, des emballages abîmés ou des marchandises retournées.
+3. **Faire une nouvelle demande au magasinier pas à pas** :
+   * Choisissez **Standard** ou **Tontine** en haut.
+   * Touchez l'onglet **Demandes** en bas.
+   * Appuyez sur le bouton rond jaune (**+**) en bas à droite.
+   * Choisissez les articles et les quantités dont vous avez besoin pour votre tournée.
+   * Touchez **Envoyer la demande**.
+   * Votre demande s'affiche avec le statut **En attente**. Quand le magasinier prépare le carton, elle passe au statut **Validé**, et dès qu'il vous remet physiquement les articles, elle passe au statut **Livré** et votre stock mobile augmente automatiquement !
+4. **Annuler une demande faite par erreur** :
+   * Tant que votre demande est au statut **En attente**, un bouton rouge **« Annuler la demande »** vous permet de la supprimer avant que le magasinier ne commence à préparer le matériel.
 
 ---
 
-## 9. Sécurité, conformité et profil Chef de recouvrement
+## 7. Synchronisation : envoyer vos données au bureau
 
-### A. Sécurités opérationnelles sur le terminal
-* **Code de consentement journalier** : chaque matin, avant d'effectuer son premier acte commercial, encaissement ou mouvement de stock, le commercial doit valider son code de consentement journalier (`DailyConsentGuard`). Ce code sécurise la traçabilité de l'ensemble des transactions de la journée.
-* **Protection par mot de passe & Renouvellement obligatoire** : après toute réinitialisation de compte effectuée par l'administrateur, le changement immédiat du mot de passe est obligatoire dès l'écran de connexion pour sécuriser l'accès aux données financières de l'agence.
-* **Identification de l'appareil (Device ID)** : si la politique de gestion d'appareils de l'organisation est active, seuls les smartphones préalablement autorisés et identifiés par leur empreinte numérique peuvent se connecter au serveur ELYKIA, empêchant toute connexion depuis un appareil non homologué.
-* **Mises à jour applicatives intégrées** : l'écran **Plus** affiche en permanence la version courante de l'application (ex. `v2.30.1`) et permet de vérifier la disponibilité d'une nouvelle version distribuée par l'organisation pour garantir la compatibilité des protocoles de synchronisation.
+Tout ce que vous faites sur le terrain s'enregistre d'abord sur votre téléphone avec le badge **Local (Orange)**. La synchronisation permet de téléverser vos opérations sur les serveurs de l'agence.
 
-### B. Délimitation avec le parcours Chef de recouvrement
-L'application mobile ELYKIA adapte dynamiquement son interface selon le profil de l'utilisateur connecté :
-* **Profil Commercial** : accès à l'espace documenté dans ce guide (Dashboard commercial, Portefeuille clientes, Distributions de crédit, Recouvrement des mises, Tontine collective, Gestion du stock personnel et Rapport journalier).
-* **Profil Chef de recouvrement** : si le compte connecté possède le rôle de supervision de recouvrement, l'application le dirige automatiquement vers un espace terrain distinct composé de ses propres outils : *Plan du jour par commercial et localité*, *Téléchargement du pack hors ligne*, *Traitement prioritaire des retards*, *Contrôle physique des carnets crédit et tontine*, *Clôtures totales ou partielles* et *Réaffectation des portefeuilles*. Ce parcours spécialisé fait l'objet d'un manuel dédié : [Guide mobile Chef de recouvrement](../recovery-manager/mobile.md).
+### A. La bulle de notification
+Sur l'écran d'accueil, l'icône de synchronisation en haut à droite affiche une bulle avec un chiffre (par exemple `12`). Cela signifie que vous avez 12 opérations enregistrées sur votre téléphone qui attendent de partir vers le serveur central.
+
+### B. Comment lancer la synchronisation pas à pas
+1. **Ouvrez l'écran de synchronisation** :
+   * Touchez l'icône de synchronisation en haut à droite du tableau de bord (ou allez dans **Plus > Synchronisation manuelle**).
+2. **Sélectionnez les données à envoyer** :
+   * Vous voyez des onglets pour chaque catégorie : *Clients*, *Distributions*, *Recouvrements*, *Membres*, *Collectes*, *Livraisons*.
+   * Vous pouvez cocher individuellement les lignes de votre choix, ou simplement appuyer sur **« Tout sélectionner »**.
+3. **Lancez l'envoi** :
+   * Touchez le gros bouton rond de synchronisation en bas à droite.
+4. **La sécurité en 3 étapes simples** :
+   Transférer de l'argent et des contrats est un acte important. L'application vous demande trois confirmations rapides :
+   * Tapez votre mot de passe de session.
+   * Recopiez le petit code à l'écran.
+   * Cochez la case certifiant que vous avez bien vérifié vos montants.
+   * Touchez **Valider** : une jauge défile pendant que vos données partent vers le serveur.
+5. **Résultat immédiat** :
+   * Toutes vos opérations validées prennent le badge **Synchronisé (Bleu)**. Elles sont désormais enregistrées pour toujours à l'agence !
+
+### C. Que faire en cas d'erreur de synchronisation ?
+Si une opération n'a pas pu partir (par exemple si un numéro de téléphone manquait sur une cliente) :
+* L'opération n'est jamais perdue : elle est placée dans la boîte **Erreurs de synchronisation** (accessible via **Plus > Erreurs de synchronisation**).
+* Touchez la ligne en échec : un bouton **« Éditer le parent »** vous amène directement sur la fiche à corriger. Dès que vous avez corrigé le champ manquant, relancez la synchronisation : tout rentrera dans l'ordre !
+
+---
+
+## 8. Fin de journée : bilan, rapport et versement de caisse
+
+En fin de tournée, avant de remettre les espèces au caissier de l'agence, vous devez imprimer votre feuille de clôture journalière.
+
+### A. Ouvrir votre rapport d'activité
+* Sur l'écran d'accueil, touchez la case **Rapport** (ou allez dans **Plus > Rapport Journalier**).
+* L'écran affiche la date du jour et calcule instantanément le résumé de tout ce que vous avez accompli :
+  1. **Distributions** : nombre de ventes et valeur totale des marchandises remises.
+  2. **Recouvrements** : nombre de clientes encaissées et total des mises perçues.
+  3. **Nouveaux clients** : nombre de nouvelles personnes enrôlées dans la journée.
+  4. **Avances encaissées** : acomptes en espèces perçus lors des ventes.
+  5. **Tontine** : cotisations d'épargne collectées aujourd'hui.
+  6. **Reliquats nets** : solde des monnaies laissées ou déduites.
+
+### B. Le chiffre le plus important : « Montant total à verser »
+Au milieu de l'écran, un grand encadré bleu clair calcule automatiquement la somme exacte en espèces que vous devez avoir dans votre sacoche et remettre au caissier :
+
+$$\text{Montant total à verser} = \text{Recouvrements} + \text{Avances} + \text{Tontine} + \text{Monnaie conservée} - \text{Avoirs utilisés}$$
+
+Ce montant correspond très exactement aux espèces physiques que le caissier va compter dans vos mains. Aucun litige possible !
+
+### C. Imprimer le ticket de clôture
+1. En bas de l'écran, touchez le gros bouton vert **« Imprimer le Rapport »** (ou l'icône d'imprimante en haut).
+2. Votre imprimante Bluetooth sort un ticket récapitulatif détaillé avec les totaux par catégorie, le montant net à verser et deux lignes de signature en bas : une pour vous, une pour le caissier.
+3. Donnez les espèces et le ticket au caissier : votre journée de tournée est officiellement et parfaitement clôturée !
+
+---
+
+## 9. Sécurité et conseils pratiques pour le terrain
+
+* **Chaque matin au démarrage** : l'application vous demande de valider votre **Code de consentement journalier**. C'est une signature numérique qui sécurise toutes les opérations que vous ferez au cours de la journée.
+* **Batterie et imprimante Bluetooth** : pensez à recharger votre smartphone et votre imprimante thermique chaque soir. Si l'imprimante n'a plus de batterie pendant la tournée, pas de panique : les reçus restent enregistrés dans le téléphone et vous pourrez les réimprimer plus tard dès que l'imprimante sera branchée.
+* **Mot de passe personnel** : ne donnez jamais votre mot de passe à un tiers. Toutes les opérations effectuées avec votre compte sur le téléphone engagent votre responsabilité financière personnelle.
 
 
 \newpage

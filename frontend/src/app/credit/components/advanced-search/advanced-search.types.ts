@@ -21,7 +21,8 @@ export enum CreditStatus {
   DELIVERED = 'DELIVERED',
   ENDED = 'ENDED',
   SETTLED = 'SETTLED',
-  MERGED = 'MERGED'
+  MERGED = 'MERGED',
+  CANCELLED = 'CANCELLED'
 }
 
 export interface CreditSearchDto {

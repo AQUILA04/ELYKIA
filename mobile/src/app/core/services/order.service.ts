@@ -417,8 +417,8 @@ export class OrderService {
       throw new Error('Commercial user not identified.');
     }
     try {
-      // Use Repository
-      await this.orderRepository.updateSyncStatus(orderId, true);
+      // Same id: flags only. Different id handled by sync services via markAsSynced(local, server).
+      await this.orderRepository.markAsSynced(orderId, orderId);
       return true;
     } catch (error) {
       console.error('Failed to mark order as synced:', error);

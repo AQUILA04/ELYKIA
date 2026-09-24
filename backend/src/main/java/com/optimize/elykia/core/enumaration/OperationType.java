@@ -15,6 +15,7 @@ public enum OperationType {
     STOCK_TONTINE_RETURN,  // Nouveau
     TONTINE_DELIVERY,
     CREDIT_SALES,
+    CREDIT_SALE_CANCEL,
     NEW_CLIENT,
     TONTINE_MEMBER_ENROLLMENT,
     CREDIT,

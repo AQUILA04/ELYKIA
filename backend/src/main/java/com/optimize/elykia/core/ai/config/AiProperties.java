@@ -20,6 +20,7 @@ public class AiProperties {
     private final Conversation conversation = new Conversation();
     private final Sql sql = new Sql();
     private final Help help = new Help();
+    private final Retry retry = new Retry();
 
     @Getter
     @Setter
@@ -37,6 +38,16 @@ public class AiProperties {
         private boolean exposeSqlToUser = false;
         private String examplesPath = "classpath:ai/sql-examples.json";
         private int maxFewShotExamples = 3;
+    }
+
+    /** Réessais sur throttle du fournisseur LLM (429 / RESOURCE_EXHAUSTED, UNAVAILABLE, DEADLINE_EXCEEDED). */
+    @Getter
+    @Setter
+    public static class Retry {
+        private int maxAttempts = 3;
+        private long initialBackoffMs = 1000;
+        private double backoffMultiplier = 2.0;
+        private long maxBackoffMs = 5000;
     }
 
     @Getter

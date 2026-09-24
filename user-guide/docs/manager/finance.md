@@ -4,7 +4,9 @@ Ce guide détaille l'ensemble des mécanismes de gestion financière, de suivi d
 
 ---
 
-## 1. Tableau de bord des dépenses (`/expense/dashboard`)
+## 1. Tableau de bord des dépenses
+
+Pour y accéder, rendez-vous dans le menu latéral puis cliquez sur **Finances > Tableau de bord** (ou directement **Dépenses** selon la configuration de votre menu).
 
 Le tableau de bord des dépenses offre une vision synthétique et immédiate des flux de décaissement engagés pour le fonctionnement de l'agence.
 
@@ -14,8 +16,8 @@ Le tableau de bord des dépenses offre une vision synthétique et immédiate des
 * **Horloge en temps réel** : Affiche la date et l'heure système en direct.
 * **Heure d'actualisation** : Indique l'horodatage exact de la dernière synchronisation avec le serveur.
 * **Bouton « Actualiser »** : Recharge instantanément les indicateurs et les listes sans recharger la page.
-* **Bouton « Types »** : Raccourci vers la gestion du catalogue des types de dépense (`/expense/types`).
-* **Bouton « Nouvelle dépense »** : Ouvre immédiatement le formulaire de saisie d'un nouveau décaissement (`/expense/add`).
+* **Bouton « Types »** : Raccourci vers la gestion du catalogue des types de dépense.
+* **Bouton « + Nouvelle dépense »** : Ouvre immédiatement le formulaire de saisie d'un nouveau décaissement.
 
 ### B. Bandeau des indicateurs comparatifs de dépenses
 Sous réserve de disposer des habilitations financières requises (si ce bandeau ne s'affiche pas, vous ne disposez pas des autorisations nécessaires) :
@@ -25,13 +27,15 @@ Sous réserve de disposer des habilitations financières requises (si ce bandeau
 ### C. Tableau des dernières dépenses
 * Liste chronologique paginée des 10 dernières opérations enregistrées.
 * Colonnes : Date, Type de dépense, Montant formaté en FCFA, et bouton d'action.
-* Un clic sur une ligne ouvre une modale récapitulative présentant le détail complet de la pièce justificative.
+* Un clic sur une ligne ouvre une fenêtre récapitulative présentant le détail complet de la pièce justificative.
 
 ---
 
-## 2. Registre et gestion des dépenses (`/expense/list`)
+## 2. Registre et gestion des dépenses
 
-L'écran **Liste des dépenses** centralise la totalité des décaissements de l'agence et permet leur filtrage multicritères.
+Pour consulter le registre complet, ouvrez le menu latéral et cliquez sur **Finances > Liste des dépenses** (ou l'onglet **Dépenses**).
+
+Cet écran centralise la totalité des décaissements de l'agence et permet leur filtrage multicritères.
 
 <!-- CAPTURE À INSÉRER : Liste complète des dépenses avec sélecteurs de mois et de type, badge Comptabilisée et actions Éditer/Supprimer. -->
 
@@ -58,11 +62,11 @@ L'écran **Liste des dépenses** centralise la totalité des décaissements de l
 
 ---
 
-## 3. Enregistrement d'une dépense (`/expense/add`)
+## 3. Enregistrement d'une dépense
 
-Accessible via le bouton **« + Nouvelle dépense »** :
+Pour saisir une nouvelle dépense, cliquez sur le bouton bleu **« + Nouvelle dépense »** :
 
-1. **Type de dépense** *(Obligatoire)* : Sélectionnez la nature de la charge dans la liste paramétrée.
+1. **Type de dépense** *(Obligatoire)* : Sélectionnez la nature de la charge dans la liste paramétrée (ex: Carburant, Fournitures).
 2. **Montant en FCFA** *(Obligatoire)* : Saisissez la somme exacte déboursée (montant strictement positif).
 3. **Date de dépense** *(Obligatoire)* : Date d'engagement de la charge.
 4. **Référence de pièce** : Numéro officiel de la facture ou du bon de caisse pour audit.
@@ -71,7 +75,9 @@ Accessible via le bouton **« + Nouvelle dépense »** :
 
 ---
 
-## 4. Remise de trésorerie au gestionnaire (`Rapport Journalier > Remise`)
+## 4. Remise de trésorerie au gestionnaire
+
+Pour y accéder, rendez-vous dans le menu latéral **Rapport Journalier**, puis cliquez sur l'onglet **Remise**.
 
 La **Remise** est le processus formel par lequel le caissier ou la secrétaire verse au gestionnaire de l'agence les espèces collectées sur une période, en déduisant les dépenses d'exploitation autorisées.
 
@@ -119,10 +125,10 @@ flowchart LR
 | Étape | Rôle opérationnel | Action dans l'application | Conséquence système |
 |---|---|---|---|
 | **1. Préparation** | Secrétaire / Caissier | Sélectionne les dates et coche les dépenses justificatives. | Le montant net se calcule automatiquement. |
-| **2. Soumission** | Secrétaire / Caissier | Clique sur le bouton bleu **« Soumettre la remise »**. | La remise passe au statut **`PENDING` (En attente)**. Les dates de la remise sont verrouillées. |
+| **2. Soumission** | Secrétaire / Caissier | Clique sur le bouton bleu **« Soumettre la remise »**. | La remise passe au statut **En attente**. Les dates de la remise sont verrouillées. |
 | **3. Contrôle contradictoire** | Gestionnaire | Reçoit les espèces et les pièces justificatives au bureau. | Le gestionnaire examine les dépenses associées. Tant que la remise est en attente, il peut décocher une dépense non admise. |
-| **4. Accusé de réception** | Gestionnaire | Clique sur le bouton vert **« Accuser réception »**. | La remise passe au statut **`SETTLED` (Réceptionnée)**. Les dépenses cochées deviennent définitivement **Comptabilisées**. |
-| **Option directe** | Gestionnaire | Clique sur **« Initier la réception »**. | Permet au gestionnaire de préparer et d'acter la remise en une seule étape sans attendre la soumission secrétaire. |
+| **4. Accusé de réception** | Gestionnaire | Clique sur le bouton vert **« Accuser réception »**. | La remise passe au statut **Réceptionnée**. Les dépenses cochées deviennent définitivement **Comptabilisées**. |
+| **Option directe** | Gestionnaire | Clique sur le bouton **« Initier la réception »**. | Permet au gestionnaire de préparer et d'acter la remise en une seule étape sans attendre la soumission secrétaire. |
 
 ---
 
@@ -130,6 +136,6 @@ flowchart LR
 Le bas de page conserve le journal exhaustif de toutes les remises passées :
 * **Période** : Mois et année concernés.
 * **Ventilation financière** : Total brut, Crédit, Tontine, Nouveaux comptes, Dépenses, Montant net remis.
-* **Statut** : Badge coloré `PENDING` (En attente) ou `SETTLED` (Réceptionné).
+* **Statut** : Badge coloré **En attente** (jaune) ou **Réceptionnée** (vert).
 * **Traçabilité** : Nom de la personne ayant soumis la remise et nom du gestionnaire ayant accusé réception avec horodatage.
-* **Déploiement accordéon (flèche)** : Permet d'ouvrir le détail de tous les versements individuels inclus dans la remise pour un contrôle pièce par pièce.
+* **Déploiement accordéon (petite flèche)** : Permet d'ouvrir le détail de tous les versements individuels inclus dans la remise pour un contrôle pièce par pièce.

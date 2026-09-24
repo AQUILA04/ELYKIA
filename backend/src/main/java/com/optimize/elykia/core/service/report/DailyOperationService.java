@@ -39,6 +39,24 @@ public class DailyOperationService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logOperation(String commercialUsername, OperationType type, Double amount, String reference,
             String description, Double reliquatGeneratedAmount, Double reliquatUsedAmount, LocalDate operationDate) {
+        persistOperationLog(commercialUsername, type, amount, reference, description,
+                reliquatGeneratedAmount, reliquatUsedAmount, operationDate);
+    }
+
+    /**
+     * Même écriture que {@link #logOperation} mais dans la transaction appelante
+     * (annulation de vente : rollback global si l'opération échoue ensuite).
+     */
+    @Transactional(propagation = Propagation.REQUIRED)
+    public void logOperationInCurrentTransaction(String commercialUsername, OperationType type, Double amount,
+            String reference, String description, Double reliquatGeneratedAmount, Double reliquatUsedAmount,
+            LocalDate operationDate) {
+        persistOperationLog(commercialUsername, type, amount, reference, description,
+                reliquatGeneratedAmount, reliquatUsedAmount, operationDate);
+    }
+
+    private void persistOperationLog(String commercialUsername, OperationType type, Double amount, String reference,
+            String description, Double reliquatGeneratedAmount, Double reliquatUsedAmount, LocalDate operationDate) {
         LocalDate date = operationDate != null ? operationDate : LocalDate.now();
         DailyOperationLog log = new DailyOperationLog(
                 date,

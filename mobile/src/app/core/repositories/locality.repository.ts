@@ -28,11 +28,23 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
             }
             const localityIdStr = String(locality.id);
 
-            // INSERT OR REPLACE pour mettre à jour ou insérer la localité
-            // On ne compare plus les hashs, on écrase systématiquement avec les données du serveur
-            const sql = `INSERT OR REPLACE INTO localities (
+            // Skip / merge if a local UUID (or mapping) already represents the same normalized name
+            const conflict = await this.findLocalConflictForIncoming(locality);
+            if (conflict && String(conflict.id) !== localityIdStr) {
+                await this.mergeLocalRowIntoServerId(String(conflict.id), localityIdStr);
+            }
+
+            const sql = `INSERT INTO localities (
                 id, name, region, isActive, isLocal, isSync, syncDate, createdAt, syncHash
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                name = excluded.name,
+                region = excluded.region,
+                isActive = excluded.isActive,
+                isLocal = excluded.isLocal,
+                isSync = excluded.isSync,
+                syncDate = excluded.syncDate,
+                syncHash = excluded.syncHash`;
 
             const params = [
                 localityIdStr,
@@ -43,7 +55,7 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
                 locality.isSync ? 1 : 0,
                 now,
                 locality.createdAt ?? now,
-                null // Plus de hash
+                null
             ];
 
             sqlSet.push({ statement: sql, values: params });
@@ -52,7 +64,7 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
         try {
             if (sqlSet.length > 0) {
                 await this.databaseService.executeSet(sqlSet);
-                console.log(`Successfully saved ${entities.length} localities (INSERT OR REPLACE).`);
+                console.log(`Successfully saved ${entities.length} localities (UPSERT).`);
             }
         } catch (error) {
             console.error('Failed to save localities in repository.', error);
@@ -92,9 +104,7 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
     }
 
     /**
-     * Mark a locality as synchronized with the server
-     * @param localId Local ID of the locality
-     * @param serverId Server ID assigned to the locality
+     * Mark a locality as synchronized with the server (rewrite PK when localId !== serverId).
      */
     async markAsSynced(localId: string, serverId: string): Promise<void> {
         if (!this.databaseService['db']) {
@@ -102,12 +112,81 @@ export class LocalityRepository extends BaseRepository<Locality, string> {
             return;
         }
         const now = new Date().toISOString();
-        const updateSql = `UPDATE localities SET isSync = 1, isLocal = 0, syncDate = ? WHERE id = ?`;
-        await this.databaseService.execute(updateSql, [now, localId]);
+        if (localId === serverId) {
+            await this.databaseService.execute(
+                `UPDATE localities SET isSync = 1, isLocal = 0, syncDate = ? WHERE id = ?`,
+                [now, localId]
+            );
+            return;
+        }
 
-        const mappingSql = `INSERT INTO id_mappings (localId, serverId, entityType) VALUES (?, ?, 'locality')`;
-        await this.databaseService.execute(mappingSql, [localId, serverId.toString()]);
+        const serverExists = await this.findById(serverId);
+        if (serverExists) {
+            await this.mergeLocalRowIntoServerId(localId, serverId);
+            return;
+        }
 
+        await this.databaseService.execute(
+            `UPDATE localities SET isSync = 1, isLocal = 0, id = ?, syncDate = ? WHERE id = ?`,
+            [serverId, now, localId]
+        );
+        await this.saveIdMapping(localId, serverId, 'locality');
         console.log(`Locality ${localId} marked as synced with server ID ${serverId}.`);
+    }
+
+    private normalizeName(name: string | null | undefined): string {
+        return (name ?? '').trim().toLowerCase().replace(/\s+/g, ' ');
+    }
+
+    private async findLocalConflictForIncoming(incoming: Locality): Promise<Locality | null> {
+        const serverId = String(incoming.id);
+        const mapped = await this.databaseService.query(
+            `SELECT localId FROM id_mappings WHERE serverId = ? AND entityType = 'locality' LIMIT 1`,
+            [serverId]
+        );
+        if (mapped.values?.length) {
+            const localId = String(mapped.values[0].localId);
+            if (localId !== serverId) {
+                const row = await this.findById(localId);
+                if (row) {
+                    return { ...row, isLocal: (row as any).isLocal === 1 || (row as any).isLocal === true, isSync: (row as any).isSync === 1 || (row as any).isSync === true };
+                }
+            }
+        }
+
+        const normalized = this.normalizeName(incoming.name);
+        if (!normalized) {
+            return null;
+        }
+
+        const result = await this.databaseService.query(`SELECT * FROM localities WHERE id != ?`, [serverId]);
+        for (const row of result.values || []) {
+            if (this.normalizeName(row.name) === normalized) {
+                return {
+                    ...row,
+                    isLocal: row.isLocal === 1,
+                    isSync: row.isSync === 1
+                };
+            }
+        }
+        return null;
+    }
+
+    private async mergeLocalRowIntoServerId(localId: string, serverId: string): Promise<void> {
+        if (localId === serverId) {
+            await this.markAsSynced(localId, serverId);
+            return;
+        }
+        const serverExists = await this.findById(serverId);
+        if (!serverExists) {
+            await this.databaseService.execute(
+                `UPDATE localities SET isSync = 1, isLocal = 0, id = ?, syncDate = ? WHERE id = ?`,
+                [serverId, new Date().toISOString(), localId]
+            );
+            await this.saveIdMapping(localId, serverId, 'locality');
+            return;
+        }
+        await this.databaseService.execute(`DELETE FROM localities WHERE id = ?`, [localId]);
+        await this.saveIdMapping(localId, serverId, 'locality');
     }
 }

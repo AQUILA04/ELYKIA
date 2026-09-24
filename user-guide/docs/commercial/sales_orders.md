@@ -23,11 +23,12 @@ Le menu latéral gauche vous donne accès aux espaces de vente selon vos attribu
 | **Ventes > Transfert Ventes** | Le rapport de passation de portefeuilles entre commerciaux. | Auditer les transferts de contrats entre un commercial cédant et un commercial repreneur. |
 | **Ventes > Rattrapages** | L'outil de régularisation de ventes passées. | Enregistrer des ventes historiques adossées à d'anciens stocks résiduels sans toucher au stock central actuel. |
 | **Ventes > Articles** | Le tableau récapitulatif des volumes vendus par article et par commercial. | Analyser les performances de vente sur une période donnée (jour, semaine, mois). |
+| **Ventes > Annulation Ventes** | Outil d'audit et d'annulation de ventes commerciales avec restitution de stock. | Simuler et exécuter l'annulation de ventes sans recouvrement (ADMIN), consulter l'historique et les rapports PDF (ADMIN, GESTIONNAIRE). |
 | **Commandes** | Le registre des précommandes et réservations clients. | Traiter les demandes d'achat des clients et les convertir en ventes réelles en un clic. |
 
 ---
 
-## 2. Tableau de bord des ventes (`/credit/list`)
+## 2. Tableau de bord des ventes (Menu Ventes > Liste des ventes)
 
 L'écran principal rassemble la totalité des opérations de vente de votre périmètre.
 
@@ -64,10 +65,10 @@ Une vente progresse selon des étapes claires garantissant la sécurité des mar
 
 | Statut du contrat | Ce que cela signifie | Actions disponibles |
 |---|---|---|
-| **Enregistré** (`CREATED`) | La vente vient d'être saisie. La marchandise n'est pas encore sortie du stock. | - **Valider** : Approuve le contrat de vente.<br>- **Modifier** : Corrige les articles, acomptes ou informations client.<br>- **Supprimer** : Annule la saisie erronée. |
-| **Validé** (`VALIDATED`) | Le contrat est approuvé administrativement. Les articles sont prêts à être remis au client. | - **Démarrer** : Confirme la remise physique des articles au client et déstocke automatiquement le matériel du stock du commercial.<br>- **Détails** : Ouvre la fiche complète du dossier. |
-| **En cours** (`INPROGRESS`) | La marchandise a été livrée, le crédit est actif et en cours de remboursement. | - **Encaisser** : Ouvre directement la fenêtre de paiement pour saisir une mise quotidienne (avec rappel du reliquat disponible).<br>- **Modifier la mise** : Réajuste le montant journalier convenu.<br>- **Détails** : Consultation 360°. |
-| **Soldé** (`SETTLED`) | Le client a remboursé la totalité de son crédit. Le solde restant dû est à zéro. | - **Consulter** : Historique complet, date de clôture effective et archivage. Les dossiers soldés ne sont plus modifiables. |
+| **Enregistré** | La vente vient d'être saisie. La marchandise n'est pas encore sortie du stock. | - **Valider** : Approuve le contrat de vente.<br>- **Modifier** : Corrige les articles, acomptes ou informations client.<br>- **Supprimer** : Annule la saisie erronée. |
+| **Validé** | Le contrat est approuvé administrativement. Les articles sont prêts à être remis au client. | - **Démarrer** : Confirme la remise physique des articles au client et déstocke automatiquement le matériel du stock du commercial.<br>- **Détails** : Ouvre la fiche complète du dossier. |
+| **En cours** | La marchandise a été livrée, le crédit est actif et en cours de remboursement. | - **Encaisser** : Ouvre directement la fenêtre de paiement pour saisir une mise quotidienne (avec rappel du reliquat disponible).<br>- **Modifier la mise** : Réajuste le montant journalier convenu.<br>- **Détails** : Consultation 360°. |
+| **Soldé** | Le client a remboursé la totalité de son crédit. Le solde restant dû est à zéro. | - **Consulter** : Historique complet, date de clôture effective et archivage. Les dossiers soldés ne sont plus modifiables. |
 
 ### Actions groupées : Réaffectation et Fusion de crédits
 - **Changer de commercial en lot** :
@@ -84,9 +85,9 @@ Une vente progresse selon des étapes claires garantissant la sécurité des mar
 
 ---
 
-## 3. Enregistrer une nouvelle vente (`/credit/add`)
+## 3. Enregistrer une nouvelle vente (Bouton Nouvelle vente)
 
-Pour créer une vente, cliquez sur **Nouvelle vente** (ou ouvrez `/credit/add`).
+Pour créer une vente, cliquez sur le bouton bleu **« + Nouvelle vente »** en haut à droite (ou depuis le menu **Ventes > Nouvelle vente**).
 
 ### Choisir entre Vente à Crédit et Vente au Comptant
 
@@ -107,9 +108,9 @@ Si l'impression immédiate est activée dans votre agence :
 
 ---
 
-## 4. Fiche détaillée 360° d'un crédit (`/credit/details/:id`)
+## 4. Fiche détaillée 360° d'un crédit
 
-En ouvrant un crédit, vous accédez à un dossier complet regroupant l'ensemble des aspects contractuels, financiers et logistiques :
+En ouvrant un crédit, vous accédez à un dossier complet regroupant l'ensemble des aspects contractuels, financiers et logistiques. Dans l'historique des paiements, chaque mise concernée indique le **reliquat généré** et/ou le **reliquat utilisé**, ce qui permet de rapprocher la mise imputée au crédit des espèces réellement encaissées :
 
 ### 1. Jauge de progression du remboursement
 - Barre graphique indiquant le pourcentage remboursé à date.
@@ -155,6 +156,7 @@ Un bandeau évalue la ponctualité des règlements du client :
 ### 8. Historique des paiements et droit d'annulation
 Chaque mise encaissée apparaît dans la liste chronologique avec sa date, son heure, la référence du reçu et le nom du commercial qui a perçu l'argent.
 - Un badge indique si le montant correspond à la **Mise normale** ou à une **Mise spéciale** (paiement partiel ou avance de plusieurs jours).
+- Lorsqu'une mise crée ou consomme un avoir client, la ligne précise **Reliquat généré** et/ou **Reliquat utilisé**. Ces montants expliquent l'écart éventuel entre la mise imputée au crédit et les espèces réellement encaissées.
 - En cas d'erreur de saisie, un utilisateur habilité peut cliquer sur **Annuler** : le système demande confirmation et corrige immédiatement le solde du crédit ainsi que le journal de caisse.
 
 ### 9. Historique des changements de mise
@@ -162,7 +164,7 @@ Si la mise quotidienne a été renégociée, un tableau consigne chaque modifica
 
 ---
 
-## 5. Gestion des impayés et retards (`/credit/late`)
+## 5. Gestion des impayés et retards (Menu Ventes > Retards)
 
 L'écran **Retards** est l'outil principal de pilotage pour le chef de recouvrement et le gestionnaire :
 - **Indicateurs clés** : Nombre total de dossiers en retard, nombre de délais dépassés, nombre d'échéances du jour et montants financiers correspondants.
@@ -173,7 +175,7 @@ L'écran **Retards** est l'outil principal de pilotage pour le chef de recouvrem
 
 ---
 
-## 6. Calendrier des échéances (`/credit/echeance`)
+## 6. Calendrier des échéances (Menu Ventes > Échéances)
 
 Le sous-menu **Échéances** permet d'anticiper les règlements attendus :
 - Visualisation des échéances du jour, de la semaine ou d'une date choisie sur calendrier.
@@ -181,7 +183,7 @@ Le sous-menu **Échéances** permet d'anticiper les règlements attendus :
 
 ---
 
-## 7. Journal des recouvrements (`/credit/recouvrements`)
+## 7. Journal des recouvrements (Menu Ventes > Recouvrements)
 
 Le sous-menu **Recouvrements** est le registre des encaissements de crédits :
 - Il présente la totalité des versements perçus jour après jour.
@@ -189,16 +191,16 @@ Le sous-menu **Recouvrements** est le registre des encaissements de crédits :
 - Pour chaque ligne, vous retrouvez la référence, le client, le commercial, le montant versé et l'heure exacte.
 - Les profils autorisés peuvent annuler un encaissement erroné avec recalcul instantané des soldes.
 
-### Encaissements à distance par Mobile Money (`/customer-payments`)
+### Encaissements à distance par Mobile Money
 Vos clients ont également la faculté de régler leurs échéances sans attendre votre passage grâce à l'Espace Client ELYKIA :
 - Le client effectue son transfert vers le numéro Mobile Money (Mixx by YAS ou Moov Money) attribué à son commercial référent.
 - Il déclare son règlement sur son portail en indiquant le numéro de transaction opérateur.
-- La soumission parvient instantanément dans le menu **Paiements clients** (`/customer-payments`) où elle est rattachée au commercial responsable du dossier.
+- La soumission parvient instantanément dans le menu latéral gauche **Paiements clients** où elle est rattachée au commercial responsable du dossier.
 - Dès la validation de la déclaration, l'échéance du crédit est automatiquement soldée et le montant s'ajoute à vos recouvrements du jour.
 
 ---
 
-## 8. Rapport de transfert des ventes (`/credit/transferts-commerciaux`)
+## 8. Rapport de transfert des ventes (Menu Ventes > Transferts)
 
 Le rapport de passation permet de suivre avec précision les mouvements de portefeuille :
 - Filtres par commercial cédant, commercial repreneur et période.
@@ -208,7 +210,7 @@ Le rapport de passation permet de suivre avec précision les mouvements de porte
 
 ---
 
-## 9. Rattrapage de ventes antérieures (`/stock/credit/rattrapage`)
+## 9. Rattrapage de ventes antérieures (Menu Ventes > Rattrapage)
 
 Cette procédure exceptionnelle est réservée aux régularisations :
 1. Elle permet d'enregistrer une vente réalisée dans le passé sans impacter le stock physique actuel du magasin central.
@@ -220,7 +222,7 @@ Cette procédure exceptionnelle est réservée aux régularisations :
 
 ---
 
-## 10. Rapport des articles vendus (`/credit/articles-vendus`)
+## 10. Rapport des articles vendus (Menu Ventes > Articles)
 
 Cet écran synthétise les sorties commerciales de l'agence :
 - Regroupement des ventes par **Article** et par **Commercial**.
@@ -230,7 +232,7 @@ Cet écran synthétise les sorties commerciales de l'agence :
 
 ---
 
-## 11. Gestion des commandes clients (`/orders`)
+## 11. Gestion des commandes clients (Menu Commandes)
 
 Le module **Commandes** gère les précommandes et réservations avant leur contractualisation définitive.
 
@@ -246,4 +248,28 @@ Les commandes sont réparties dans 6 onglets selon leur avancement :
 ### Traitement et conversion d'une commande en vente
 1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités et prix.
 2. **Décision** : Les responsables peuvent accepter ou refuser la commande (individuellement ou par lot).
-3. **Action « Vendre »** : Dès qu'une commande est acceptée, le bouton **Vendre** bascule directement l'ensemble des articles vers le formulaire de vente (`/credit/add`) pour créer le contrat crédit ou comptant sans aucune ressaisie manuelle, puis marque la commande comme **Vendue**.
+3. **Action « Vendre »** : Dès qu'une commande est acceptée, le bouton **Vendre** bascule directement l'ensemble des articles vers le formulaire de nouvelle vente pour créer le contrat crédit ou comptant sans aucune ressaisie manuelle, puis marque la commande comme **Vendue**.
+
+---
+
+## 12. Annulation de ventes d'un commercial (Menu Ventes > Annulation Ventes)
+
+Cette fonctionnalité d'exception permet de corriger des erreurs de saisie ou d'annuler les ventes erronées d'un commercial sur une période ciblée. Elle garantit l'intégrité comptable et logistique complète du système en automatisant les contre-passations nécessaires.
+
+### A. Rôles et niveaux d'accès
+* **Administrateur (`ROLE_ADMIN`)** : Accès complet. L'administrateur peut configurer les filtres, exécuter une **simulation (Dry-run)** pour prévisualiser les impacts, puis déclencher l'**annulation effective** avec saisie d'un motif obligatoire.
+* **Gestionnaire (`ROLE_GESTIONNAIRE`)** : Accès en **consultation seule**. Le gestionnaire peut visualiser l'historique complet des sessions d'annulation, consulter les statistiques et télécharger les pièces d'audit PDF (le formulaire et les boutons d'exécution ne lui sont pas présentés).
+
+### B. Règles et garde-fous stricts
+1. **Période restreinte au mois civil en cours** : Seules les ventes enregistrées durant le mois en cours peuvent être annulées. L'intervalle sélectionné ne peut pas excéder 31 jours.
+2. **Ventes crédit uniquement** : les ventes comptant et les livraisons tontine sont hors périmètre. Seuls les statuts **CREATED**, **VALIDATED** et **INPROGRESS** sont annulables.
+3. **Exclusion absolue des ventes avec recouvrement ultérieur** : Toute vente ayant fait l'objet d'au moins un encaissement postérieur à la conclusion du contrat (`Montant Encaissé > Avance` ou timeline de paiement active) est **strictement exclue** de l'annulation pour préserver la comptabilité de caisse. Ces dossiers sont répertoriés dans la section de rejet avec le motif explicite. En revanche, **une vente comportant uniquement une avance initiale** (sans recouvrement ultérieur) **peut être annulée** : le stock est restitué et l'avance est rétroactivement décrémentée du rapport journalier (`DailyCommercialReport` : montants d'avances et total à verser).
+4. **Restitution physique et valorisation du stock commercial** : les quantités vendues, la valeur vendue et la marge associée sont réintégrées dans le stock commercial du mois. L'opération est refusée si le stock mensuel, la ligne d'article ou le rapport journalier de la date de vente est manquant.
+5. **Décrémentation des rapports d'activité (`DailyCommercialReport`)** : Pour chaque date d'opération concernée, les compteurs de vente, le montant des ventes, la marge brute, les acomptes éventuels et le total à verser sont décrémentés de manière rétroactive. L'absence de rapport journalier interrompt tout le lot (aucune annulation partielle).
+6. **Traçabilité dans le journal des opérations (`DailyOperationLog`)** : Une écriture en contre-passation (montant négatif, type `CREDIT_SALE_CANCEL`) est générée **à la date de la vente**, dans la même transaction que l'annulation.
+7. **Archivage et audit PDF automatique** :
+   - Un **bordereau individuel d'annulation** (format A4 certifié avec détails des articles réintégrés, signatures et motif) est généré pour chaque vente annulée.
+   - Un **rapport de synthèse consolidé** récapitule l'ensemble du lot, les totaux régularisés et la liste des dossiers exclus.
+   - Les documents sont stockés de façon pérenne sur le serveur d'objets sécurisé MinIO (avec relance automatique en tâche de fond en cas d'indisponibilité temporaire).
+8. **Exécution alignée sur la simulation** : seules les ventes confirmées comme éligibles lors du dry-run sont annulées ; un échec annule toute la transaction (aucun crédit déjà modifié n'est conservé).
+

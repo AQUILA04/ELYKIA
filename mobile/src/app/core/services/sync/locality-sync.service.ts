@@ -9,6 +9,8 @@ import { AuthService } from '../auth.service';
 import { SyncErrorService } from '../sync-error.service';
 import { ApiResponse } from '../../../models/api-response.model';
 import { DateFilter } from '../../models/date-filter.model';
+import { Store } from '@ngrx/store';
+import * as LocalityActions from '../../../store/locality/locality.actions';
 
 @Injectable({
     providedIn: 'root'
@@ -20,7 +22,8 @@ export class LocalitySyncService extends BaseSyncService<Locality, LocalityRepos
         protected override repository: LocalityRepository,
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
-        private readonly localityRepositoryExtensions: LocalityRepositoryExtensions
+        private readonly localityRepositoryExtensions: LocalityRepositoryExtensions,
+        private readonly store: Store
     ) {
         super(http, repository, authService, syncErrorService, 'locality');
     }
@@ -65,6 +68,10 @@ export class LocalitySyncService extends BaseSyncService<Locality, LocalityRepos
         const syncedLocality = await this.postCreateLocality(locality);
         await this.repository.saveIdMapping(locality.id, syncedLocality.id, 'locality');
         await this.repository.markAsSynced(locality.id, syncedLocality.id);
+        this.store.dispatch(LocalityActions.localitySyncSuccess({
+            localId: locality.id,
+            serverId: syncedLocality.id
+        }));
         return syncedLocality;
     }
 

@@ -12,6 +12,8 @@ import { ChangeDailyStakeComponent } from './change-daily-stake/change-daily-sta
 import { CreateTontineComponent } from './components/create-tontine/create-tontine.component';
 import { CollectorTransfersComponent } from './collector-transfers/collector-transfers.component';
 import { CreditArticlesVendusComponent } from './credit-articles-vendus/credit-articles-vendus.component';
+import { SaleCancellationComponent } from './sale-cancellation/sale-cancellation.component';
+import { NgxPermissionsGuard } from 'ngx-permissions';
 
 const routes: Routes = [
   { path: 'list', component: CreditListComponent },
@@ -27,6 +29,17 @@ const routes: Routes = [
   { path: 'create-tontine', component: CreateTontineComponent },
   { path: 'distribute/:id', component: DistributionComponent },
   { path: 'articles-vendus', component: CreditArticlesVendusComponent },
+  {
+    path: 'annulation',
+    component: SaleCancellationComponent,
+    canActivate: [NgxPermissionsGuard],
+    data: {
+      permissions: {
+        only: ['ROLE_ADMIN', 'ROLE_GESTIONNAIRE'],
+        redirectTo: '/home'
+      }
+    }
+  },
   { path: '', redirectTo: 'list', pathMatch: 'full' },
 ];
 

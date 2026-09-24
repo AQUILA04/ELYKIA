@@ -58,6 +58,7 @@ public class CommercialStockTraceabilityService {
             case STOCK_IN -> "Entrée stock";
             case RETURN -> "Retour";
             case ADJUSTMENT -> "Ajustement";
+            case SALE_CANCELLATION -> "Annulation vente";
         };
     }
 }

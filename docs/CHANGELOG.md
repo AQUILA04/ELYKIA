@@ -9,6 +9,107 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.11] — 2026-09-25
+
+### Fixed
+
+- `app-breadcrumb` exporté via `SharedComponentsModule` pour le module lazy `commercial` (build prod NG8001).
+
+## Frontend — [2.22.10] — 2026-09-24
+
+### Changed
+
+- Domaine `commercial` migré en lazy-loading (`/commercial/list`, `/commercial/view/:id`).
+
+### Fixed
+
+- Annulation de ventes : labels associés aux champs du formulaire (gate Sonar a11y).
+
+## Docs & Infra
+
+### Fixed
+
+- SonarCloud : exclusion de `db/legacy/**` et CPD du dump `V000` ; suppression des dumps schéma redondants (`NAV01*`, `01_oec_schema.sql`) qui poussaient la duplication new-code à ~24 %.
+
+## Backend — [1.19.12] — 2026-09-24
+
+### Fixed
+
+- Tests d’intégration : image MinIO remplacée par `bitnamilegacy/minio` (Quay/Docker Hub inaccessibles sur GHA).
+- Templates PDF d’annulation de ventes : `lang="fr"` et en-têtes de tableaux pour le gate Sonar a11y.
+
+## Mobile — [2.30.5] — 2026-09-24
+
+### Fixed
+
+- **Sync offline** : après upload, les distributions et commandes réécrivent désormais la PK locale (UUID → id serveur) via `markAsSynced`, comme les clients — plus de jumeau après un refresh paginé. Le pull des distributions fusionne d’abord via `id_mappings` / `creditId` / `reference` et guérit les UUID orphelins sans supprimer les recouvrements. Même traitement pour les localités (réécriture PK + dédup par nom), les comptes (merge par `clientId`) et les livraisons tontine (`purgeSyncedOrphans`).
+
+## Backend — [1.19.11] — 2026-09-24
+
+### Fixed
+
+- Recouvrements : les DTO mobile, détail crédit et liste web exposent désormais les montants de reliquat généré et utilisé persistés sur chaque mise, au lieu de les perdre lors du rechargement.
+
+## Backend — [1.19.10] — 2026-09-24
+
+### Fixed
+
+- **Elykia IA** : une saturation du fournisseur LLM (Vertex AI `RESOURCE_EXHAUSTED` / 429) renvoyait un 500 opaque au navigateur. `ResilientChatModel` réessaie désormais avec backoff exponentiel (`elykia.ai.retry.*`, 3 tentatives par défaut) sur `RESOURCE_EXHAUSTED`, `UNAVAILABLE` et `DEADLINE_EXCEEDED`, puis `AiExceptionAdvice` rend un **503** avec un message lisible au lieu du 500 générique. Les erreurs non liées à un throttle remontent inchangées.
+
+## Backend — [1.19.9] — 2026-09-24
+
+### Changed
+
+- Flyway **activé** : baseline `V000__init_schema.sql` (dump schéma-only de la prod du 2026-09-24), anciennes migrations déplacées dans `db/legacy/`, nouvelles versions à partir de `V001`. Hibernate `ddl-auto=none` en profil prod. Sur une base existante : `TRUNCATE flyway_schema_history` avant le premier boot (`db/ops/reset_flyway_history_for_v000.sql`).
+
+### Added
+
+- `V001__sale_cancellation_job_and_outbox.sql` (tables d’annulation + CHECK `CREDIT_SALE_CANCEL` / `SALE_CANCELLATION` / `CANCELLED`, absents du snapshot prod).
+
+## Frontend — [2.22.9] — 2026-09-24
+
+### Added
+
+- Détail crédit : l'historique des recouvrements affiche le reliquat généré et le reliquat utilisé sur chaque mise concernée, afin de rapprocher la mise imputée et le cash réellement encaissé.
+
+## Frontend — [2.22.8] — 2026-09-24
+
+### Fixed
+
+- Annulation de ventes : chargement de la liste des commerciaux via `/api/v1/promoters` (typo `prometers`) et lecture de `data.content` pour alimenter le sélecteur de simulation.
+
+## Frontend — [2.22.7] — 2026-09-24
+
+### Added
+
+- Golden path Playwright **annulation de ventes** : création de deux ventes crédit COM020 sans recouvrement, simulation admin, exécution bornée aux deux IDs, puis assertions stock, rapport journalier, run `COMPLETED` et PDF d'audit (`npm run test:e2e:golden`).
+
+## Frontend — [2.22.6] — 2026-09-24
+
+### Fixed
+
+- **Annulation de ventes** : succès affiché uniquement si le run est `COMPLETED` ; exécution limitée aux ventes confirmées par la simulation ; filtres de statut restreints à CREATED / VALIDATED / INPROGRESS ; enum `CreditStatus.CANCELLED` aligné sur le backend.
+
+## Frontend — [2.22.5] — 2026-09-24
+
+### Added
+
+- **Module d'annulation de ventes commerciales (`SaleCancellationComponent`)** :
+  - Nouveau composant d'annulation et d'audit des ventes accessible via la route `/credit/annulation` (menu latéral *Ventes > Annulation Ventes*), protégé par `NgxPermissionsGuard` pour `ROLE_ADMIN` et `ROLE_GESTIONNAIRE`.
+  - Contrôle d'accès adaptatif : interface complète de configuration, simulation préalable (dry-run) et modal d'exécution avec saisie de motif obligatoire pour `ROLE_ADMIN` ; mode consultation en lecture seule (historique des runs, métadonnées, téléchargement des bordereaux unitaires et synthèses PDF) pour `ROLE_GESTIONNAIRE` sans affichage des éléments d'action.
+  - Filtres stricts limités au mois en cours avec vérification d'intervalle <= 31 jours, sélecteur de commercial, statut (ou tous).
+  - Tableau d'audit interactif avec détection visuelle des ventes éligibles et des ventes exclues (en raison de recouvrements existants), aperçu des pièces jointes et pagination.
+  - Service Angular `SaleCancellationService` intégré aux endpoints REST backend avec téléchargement direct des fichiers PDF générés.
+
+## Frontend — [2.22.4] — 2026-09-24
+
+### Added
+
+- **Consultation des archives d'historique de mise tontine (`member-details`)** :
+  - Ajout d'une section repliable « Archives des mises antérieures (Reset Global) » dans la fiche membre tontine, réservée exclusivement aux utilisateurs ayant le rôle `ADMIN`.
+  - Affichage de la date d'archivage, de l'opérateur responsable, des dates de validité antérieures et des montants avant/après reset.
+  - Intégration de l'appel au service `getMemberAmountHistoryArchives` dans le cycle de vie de la page et lors des modifications de membres.
+
 ## Frontend — [2.22.3] — 2026-09-22
 
 ### Added
@@ -46,6 +147,62 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Sous-menu **Articles Vendus** (ou **Articles**) sous le menu Ventes pour afficher la liste globale des quantités vendues par article et par commercial.
 - Filtres de période (Ce jour, Cette semaine, Ce mois, Personnalisé) et filtre par commercial sur la liste des articles vendus.
 
+## Backend — [1.19.8] — 2026-09-24
+
+### Fixed
+
+- PDF d'audit d'annulation de vente : le libellé « Date & Heure » cassait le parseur XHTML (entité XML) et faisait échouer `POST /execute` en HTTP 500.
+- Contraintes CHECK : `SALE_CANCELLATION` sur `commercial_stock_movement.movement_type` et `CANCELLED` sur `credit.status`.
+
+## Backend — [1.19.7] — 2026-09-24
+
+### Fixed
+
+- **Annulation de ventes** : rollback transactionnel complet en cas d'échec (plus de ventes partiellement annulées avec HTTP 200) ; périmètre limité aux crédits `CREDIT` CREATED/VALIDATED/INPROGRESS ; restitution de `totalSoldValue`/`totalMargeValue` ; refus si stock ou rapport journalier manquant ; journal d'annulation à la date de vente dans la même transaction ; table outbox alignée sur `Auditable` ; retry des fichiers `UPLOADING` ; exécution bornée aux IDs de la simulation.
+
+### Added
+
+- Tests unitaires `SaleCancellationServiceTest` (éligibilité recouvrement, restitution stock, rapport journalier obligatoire, IDs de preview).
+
+## Backend — [1.19.6] — 2026-09-24
+
+### Added
+
+- **Fonctionnalité d'annulation en masse de ventes d'un commercial avec intégrité comptable et archivage MinIO (`SaleCancellationService`)** :
+  - Création des tables `sale_cancellation_run`, `sale_cancellation_file`, `sale_cancellation_outbox_entry` et mise à jour de la contrainte `daily_operation_log_type_check` via migration Flyway `V103__sale_cancellation_job_and_outbox.sql`.
+  - Nouveaux statuts et types : `CreditStatus.CANCELLED`, `OperationType.CREDIT_SALE_CANCEL`, `CommercialStockMovementType.SALE_CANCELLATION`, `SaleCancellationRunStatus`, `SaleCancellationFileType`.
+  - Service complet `SaleCancellationService` avec simulation `previewCancellation()` et exécution transactionnelle `executeCancellation()` :
+    - Restitution des quantités d'articles vendus dans le stock commercial du mois.
+    - Décrémentation rétroactive des agrégats dans `DailyCommercialReport` pour les dates d'opération respectives.
+    - Traçabilité avec montants négatifs dans `DailyOperationLog` (type `CREDIT_SALE_CANCEL`).
+    - Garde-fou strict excluant toute vente ayant des recouvrements perçus (`totalAmountPaid > 0` ou encaissement timeline).
+    - Validation stricte de la période sur le mois en cours (`YearMonth.now()`) et durée <= 31 jours.
+  - Génération de documents PDF certifiés via Flying Saucer et Thymeleaf :
+    - Bordereau unitaire d'annulation par vente (`sale-cancellation-item-audit.html`) avec articles restitués, motif et signatures.
+    - Rapport d'audit global de session (`sale-cancellation-summary-report.html`) avec liste détaillée des ventes annulées et des ventes exclues avec motif.
+  - Stockage des pièces sur MinIO (`SaleCancellationStorageService`) avec fallback automatique sur le système de fichiers local et scheduler outbox asynchrone (`SaleCancellationOutboxRetryScheduler`).
+  - Endpoints REST sécurisés dans `SaleCancellationController` avec `@PreAuthorize("hasRole('ADMIN')")` pour simulation/exécution et `@PreAuthorize("hasAnyRole('ADMIN', 'GESTIONNAIRE')")` pour consultation et téléchargement de documents.
+  - Mise à jour du catalogue de schéma IA `backend/src/main/resources/ai/schema-catalog.json`.
+
+## Backend — [1.19.5] — 2026-09-24
+
+### Added
+
+- **Archivage automatique avant reset global de mise tontine (`TontineService`)** :
+  - Création de la table `tontine_member_amount_history_archive` (migration Flyway `V102__create_tontine_member_amount_history_archive.sql`) et de l'entité JPA associée `TontineMemberAmountHistoryArchive`.
+  - Archivage automatique par lot (`batch_id` UUID, utilisateur connecté `archived_by`, horodatage `archived_at`, `new_amount`) de toutes les tranches actives antérieures dans `TontineService.handleAmountChange()` dès que le scope `GLOBAL` est sélectionné, avant purge de l'historique actif.
+  - Ajout de l'endpoint sécurisé `GET /api/v1/tontine/members/{id}/amount-history-archives` protégé par `@PreAuthorize("hasRole('ADMIN')")`.
+  - Tests unitaires complets dans `TontineServiceTest`.
+
+## Backend — [1.19.4] — 2026-09-23
+
+### Fixed
+
+- **Prise en compte de la date d'adhésion pour l'historique des montants tontine (`TontineService`)** :
+  - Lors du changement de mise avec la portée `GLOBAL` (tout recalculer), la date de début de la nouvelle tranche d'historique utilise désormais la date effective d'adhésion du membre (`getEffectiveMemberStartDate(member)` prenant en compte le paramètre `USE_MEMBER_REGISTRATION_DATE_FOR_SHARE` et `member.registrationDate`), au lieu d'imposer systématiquement la date de début de session (1er février).
+  - Lors de la création initiale du membre (`createMember`), initialisation de la première tranche d'historique avec cette même date effective.
+  - Ajout des tests unitaires correspondants dans `TontineServiceTest`.
+
 ## Backend — [1.19.3] — 2026-09-22
 
 ### Added
@@ -80,12 +237,49 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Requête paginée `findSoldArticles` dans `CreditArticlesRepository` avec `GROUP BY` sur article et commercial.
 - Endpoint `POST /api/v1/credits/articles-vendus/search` pour exposer les données agrégées.
 
+## Mobile — [2.30.4] — 2026-09-24
+
+### Fixed
+
+- Rapport journalier : l'initialisation des recouvrements depuis le serveur conserve désormais les montants de reliquat généré et utilisé ; les indicateurs mobile restent alignés avec le rapport web après synchronisation.
+
+## Mobile — [2.30.3] — 2026-09-24
+
+### Fixed
+
+- Sync client : transmission des URLs photo à `markAsSynced` ; plus d'upsert NgRx d'un client vide si l'entité locale n'est pas chargée ; `isLocal` mis à jour même si l'id local égale l'id serveur.
+- Sync compte : action `accountSyncSuccess` pour réécrire l'id et les drapeaux de sync dans le store après création ou mise à jour.
+
+## Mobile — [2.30.2] — 2026-09-24
+
+### Fixed
+
+- **Statut de synchronisation des nouveaux clients ("Local" persistant)** :
+  - **Mise à jour immédiate du Store NgRx** : Ajout de l'action `ClientActions.clientSyncSuccess` dispatchée à la synchronisation d'un client par `ClientSyncService` pour mettre à jour l'entité SQLite synchronisée dans le Store NgRx (`isSync: true`, `isLocal: false`, bascule de l'ID temporaire UUID vers l'ID serveur numérique, mise à jour des URLs de photos).
+  - **Réconciliation des comptes dans le Store** : Ajout de l'action `AccountActions.updateAccountClientId` pour associer immédiatement le compte du client au nouvel identifiant serveur du client dans le Store.
+  - **Marquage synchronisé des comptes (`AccountSyncService`)** : Remplacement de l'appel `updateSyncStatus` par `markAsSynced(account.id, serverId)` lors de la création d'un compte local pour persister le nouvel ID serveur, `isSync = 1` et `isLocal = 0` dans la table SQLite `accounts`.
+  - **Persistance SQLite `isLocal = 0`** : Surcharge de `updateSyncStatus` dans `ClientRepository` et `AccountRepository` pour s'assurer que `isLocal` bascule à 0 dès qu'une entité passe à `isSync = 1`.
+  - **Rapport Journalier & Export PDF** : Évaluation du badge `isSync` des clients basée directement sur l'état réel du client (`client.isSync`) plutôt que sur le seul compte, avec fallbacks sur `client.fullName`.
+  - **Actualisation automatique post-synchronisation** : Rechargement forcé des onglets filtrés par date dans le Rapport Journalier dès l'émission de `SyncStatus.COMPLETED`.
+
 ## Mobile — [2.30.1] — 2026-09-21
 
 ### Fixed
 
 - **Navigation Recouvrement** : Correction de la route appelée depuis la fiche client (`client-detail.page.ts`) redirigeant désormais vers `/recovery` avec les paramètres `clientId` et `creditId` au lieu de la route inexistante `/recouvrement`.
 - **Support Sélection Crédit** : Prise en compte du paramètre d'URL `creditId` dans `RecoveryPage` pour pré-sélectionner automatiquement le crédit ciblé.
+
+## Docs & Infra — 2026-09-23
+
+### Changed
+
+- **Révision pédagogique globale des Guides Utilisateurs & Élimination des routes techniques** :
+  - **Suppression intégrale des URLs et routes techniques Angular** (ex: `(/tontine/member-registration)`, `(/credit/list)`, `(/stock/request)`, etc.) sur l'ensemble des guides (commercial, magasinier, gestionnaire, chef de recouvrement), en particulier sur l'application mobile (APK).
+  - **Refonte pas-à-pas style tutoriel en direct (pédagogique, clair et intuitif)** : guidage à travers les éléments concrets de l'interface (barre de navigation basse, menus et sous-menus latéraux, boutons colorés, bouton flottant jaune `+`, menus d'options `⋮`).
+  - **Traduction systématique des statuts en langage naturel utilisateur** : élimination de tous les enums et codes techniques (`PENDING`, `VALIDATED`, `INPROGRESS`, `SETTLED`, `DELIVERED`, `CANCELLED`, etc.) au profit des libellés affichés (**En attente**, **Validé**, **En cours**, **Soldé**, **Livré**, **Annulé**).
+  - **Suppression des mentions de permissions informatiques** au profit d'un discours fonctionnel par profil ("si vous ne voyez pas cette action, vous ne disposez pas des habilitations nécessaires").
+  - **Régénération des guides consolidés pour impression** (`user-guide/docs/print_versions/`) pour les profils Gestionnaire, Magasinier, Commercial et Chef de recouvrement.
+  - **Mise à jour de l'index RAG IA** (`backend/src/main/resources/ai/user-guide-index.json`, 107 segments indexés).
 
 ## Docs & Infra — 2026-09-22
 

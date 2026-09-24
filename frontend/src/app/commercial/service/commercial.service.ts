@@ -8,7 +8,7 @@ import { environment } from 'src/environments/environment';
 })
 export class CommercialService {
   private apiUrl = environment.apiUrl;
-  private baseUrl = `${this.apiUrl}/api/v1/prometers`;
+  private baseUrl = `${this.apiUrl}/api/v1/promoters`;
   private creditsUrl = `${this.apiUrl}/api/v1/credits`; // Add the credits URL her
 
   constructor(private http: HttpClient) { }

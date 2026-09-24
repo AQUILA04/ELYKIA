@@ -14,6 +14,9 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { ClientPhotoUrlUpdateDto } from '../../../models/client-photo-url-update.dto';
 import { DateFilter } from '../../models/date-filter.model';
 import { DistributionRepository } from '../../repositories/distribution.repository';
+import { Store } from '@ngrx/store';
+import * as ClientActions from '../../../store/client/client.actions';
+import * as AccountActions from '../../../store/account/account.actions';
 
 @Injectable({
     providedIn: 'root'
@@ -26,7 +29,8 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
         protected override authService: AuthService,
         protected override syncErrorService: SyncErrorService,
         private readonly clientRepositoryExtensions: ClientRepositoryExtensions,
-        private readonly distributionRepository: DistributionRepository
+        private readonly distributionRepository: DistributionRepository,
+        private readonly store: Store
     ) {
         super(http, repository, authService, syncErrorService, 'client');
     }
@@ -268,8 +272,24 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
 
         const serverId = response.data.id.toString();
 
-        await this.repository.markAsSynced(client.id, serverId);
+        await this.repository.markAsSynced(
+            client.id,
+            serverId,
+            response.data.profilPhoto,
+            response.data.iddoc
+        );
         await this.repository.saveIdMapping(client.id, serverId, 'client');
+
+        this.store.dispatch(ClientActions.clientSyncSuccess({
+            localId: client.id,
+            serverId,
+            profilPhotoUrl: response.data.profilPhoto,
+            cardPhotoUrl: response.data.iddoc
+        }));
+        this.store.dispatch(AccountActions.updateAccountClientId({
+            oldClientId: client.id,
+            newClientId: serverId
+        }));
 
         return response.data;
     }
@@ -290,6 +310,13 @@ export class ClientSyncService extends BaseSyncService<Client, ClientRepository>
         }
 
         await this.repository.updateSyncStatus(client.id, true);
+
+        this.store.dispatch(ClientActions.clientSyncSuccess({
+            localId: client.id,
+            serverId: client.id,
+            profilPhotoUrl: response.data.profilPhoto,
+            cardPhotoUrl: response.data.iddoc
+        }));
 
         return response.data;
     }

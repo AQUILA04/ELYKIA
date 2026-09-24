@@ -89,6 +89,11 @@ export const syncPendingDistributionsSuccess = createAction(
   props<{ syncedCount: number }>()
 );
 
+export const distributionSyncSuccess = createAction(
+  '[Distribution] Distribution Sync Success',
+  props<{ localId: string; serverId: string }>()
+);
+
 export const syncPendingDistributionsFailure = createAction(
   '[Distribution] Sync Pending Distributions Failure',
   props<{ error: string }>()
