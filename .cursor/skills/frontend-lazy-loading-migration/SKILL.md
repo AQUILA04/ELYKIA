@@ -48,11 +48,11 @@ Pour les agents travaillant sur le projet ELYKIA, frontend, il faut qu'il adopte
 
 ### Déjà lazy-loaded (`loadChildren` dans `app-routing.module.ts`)
 
-`orders`, `bi`, `ai-chat`, `tontine`, `stock`, `stock-tontine`, `article-type`, `article`, `expense`, `security`, `user`, `credit`, `dashboard` (URL conservée : `/home`)
+`orders`, `bi`, `ai-chat`, `tontine`, `stock`, `stock-tontine`, `article-type`, `article`, `expense`, `security`, `user`, `credit`, `dashboard` (URL conservée : `/home`), `client`, `commercial`
 
 ### Encore eager (déclarés dans `app.module.ts`)
 
-`locality`, `account`, `client`, `dashboard-chart`, `accounting-day`, `cash-desk`, `inventory`, `gestion`, `operation`, `deposit`, `report`, `history`, `out`, `commercial`, `parameters`, `auth` (login — laisser eager sauf demande explicite)
+`locality`, `account`, `dashboard-chart`, `accounting-day`, `cash-desk`, `inventory`, `gestion`, `operation`, `deposit`, `report`, `history`, `out`, `parameters`, `auth` (login — laisser eager sauf demande explicite)
 
 > Vérifier `app-routing.module.ts` et `app.module.ts` avant migration : l'état peut avoir évolué.
 

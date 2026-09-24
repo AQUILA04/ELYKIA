@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <title>Rapport Global de Fin d'Opération - Annulation de Ventes</title>
@@ -38,6 +38,13 @@
 
 <div class="meta">
     <table class="meta-table">
+        <thead>
+        <tr>
+            <th scope="col">Contexte opération</th>
+            <th scope="col">Détails</th>
+        </tr>
+        </thead>
+        <tbody>
         <tr>
             <td>
                 <span class="meta-label">Commercial concerné :</span>
@@ -64,10 +71,19 @@
                 <span class="meta-value" th:text="${cancellationReason}">Régularisation</span>
             </td>
         </tr>
+        </tbody>
     </table>
 </div>
 
 <table style="margin-bottom: 20px;">
+    <thead>
+    <tr>
+        <th scope="col">Ventes annulées</th>
+        <th scope="col">Ventes rejetées</th>
+        <th scope="col">Fichiers d'audit</th>
+    </tr>
+    </thead>
+    <tbody>
     <tr>
         <td style="width: 33%; text-align: center; background: #eafaf1; padding: 10px; border: 1px solid #a3e4d7;">
             <div style="font-size: 10px; color: #27ae60; font-weight: bold;">VENTES ANNULÉES AVEC SUCCÈS</div>
@@ -85,6 +101,7 @@
             <div style="font-size: 10px; color: #555;">Archivées sur MinIO</div>
         </td>
     </tr>
+    </tbody>
 </table>
 
 <!-- SECTION 1 : VENTES REJETÉES (RECOUVREMENTS PERÇUS) -->

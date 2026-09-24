@@ -59,8 +59,6 @@ import { HistoryComponent } from './history/history.component';
 import { OutDetailsComponent } from './out/out-details/out-details.component';
 import { HistoryDetailsComponent } from './history/history-details/history-details.component';
 import { Back2StoreComponent } from './history/back2-store/back2-store.component';
-import { CommercialListComponent } from './commercial/commercial-list/commercial-list.component';
-import { CommercialViewComponent } from './commercial/commercial-view/commercial-view.component';
 import { OutPdfListComponent } from './out/out-pdf-list/out-pdf-list.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { LicenseKeyFormatterPipe } from './shared/pipe/license-key-formatter.pipe'; // Ajustez le chemin si nécessaire
@@ -117,8 +115,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     OutDetailsComponent,
     HistoryDetailsComponent,
     Back2StoreComponent,
-    CommercialListComponent,
-    CommercialViewComponent,
     OutPdfListComponent,
     LicenseKeyFormatterPipe,
     OldReleaseListComponent,

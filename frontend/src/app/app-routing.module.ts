@@ -27,8 +27,6 @@ import { OutListComponent } from './out/out-list/out-list.component';
 import { HistoryComponent } from './history/history.component';
 import { OutDetailsComponent } from './out/out-details/out-details.component';
 import { Back2StoreComponent } from './history/back2-store/back2-store.component';
-import { CommercialListComponent } from './commercial/commercial-list/commercial-list.component';
-import { CommercialViewComponent } from './commercial/commercial-view/commercial-view.component';
 import { OutPdfListComponent } from './out/out-pdf-list/out-pdf-list.component';
 import { OldReleaseListComponent } from "./out/old-release-list/old-release-list.component";
 import { AuthGuard } from "./auth/guards/auth.guard";
@@ -212,19 +210,9 @@ const routes: Routes = [
 
   // Commerciaux
   {
-    path: 'commercial-list',
-    component: CommercialListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'commercial-view/:id',
-    component: CommercialViewComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'commercial-view/:id/:username',
-    component: CommercialViewComponent,
-    canActivate: [AuthGuard]
+    path: 'commercial',
+    loadChildren: () => import('./commercial/commercial.module').then(m => m.CommercialModule),
+    canActivate: [AuthGuard],
   },
 
   // Caisse

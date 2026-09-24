@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <title>Fiche d'Audit - Annulation de Vente</title>
@@ -40,6 +40,13 @@
 
 <div class="meta">
     <table class="meta-table">
+        <thead>
+        <tr>
+            <th scope="col">Informations vente</th>
+            <th scope="col">Informations opération</th>
+        </tr>
+        </thead>
+        <tbody>
         <tr>
             <td>
                 <span class="meta-label">Référence Vente :</span>
@@ -90,6 +97,7 @@
                 <span class="meta-value" th:text="${operationTimestamp}">24/09/2026 15:30</span>
             </td>
         </tr>
+        </tbody>
     </table>
 </div>
 
@@ -120,6 +128,13 @@
 </table>
 
 <table class="signatures">
+    <thead>
+    <tr>
+        <th scope="col">Visa Commercial</th>
+        <th scope="col">Visa Administrateur</th>
+    </tr>
+    </thead>
+    <tbody>
     <tr>
         <td>
             <div class="sign-title">Visa Commercial :</div>
@@ -130,6 +145,7 @@
             <div>Validé par : <span th:text="${adminUsername}"></span></div>
         </td>
     </tr>
+    </tbody>
 </table>
 
 <div class="footer">

@@ -28,7 +28,7 @@
         <tr *ngFor="let commercial of commercials; let i = index">
           <td>{{ (currentPage * pageSize) + (i + 1) }}</td>
           <td>
-            <a [routerLink]="['/commercial-view', commercial.id, commercial.username]" class="username-link">{{ commercial.username }}</a>
+            <a [routerLink]="['/commercial/view', commercial.id, commercial.username]" class="username-link">{{ commercial.username }}</a>
           </td>
           <td>{{ commercial.firstname }} {{ commercial.lastname }}</td>
           <td>{{ commercial.phone }}</td>

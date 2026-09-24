@@ -225,8 +225,9 @@
         <div class="filter-panel">
           <div class="row-fields">
             <div class="field-group">
-              <label>Commercial : <span class="req">*</span></label>
-              <select class="form-control"
+              <label for="sale-cancellation-commercial">Commercial : <span class="req">*</span></label>
+              <select id="sale-cancellation-commercial"
+                      class="form-control"
                       data-testid="e2e-sale-cancellation-commercial"
                       [(ngModel)]="filterForm.commercialUsername">
                 <option value="">Sélectionner un commercial...</option>
@@ -237,8 +238,9 @@
             </div>
 
             <div class="field-group">
-              <label>Date Début (Mois en cours) : <span class="req">*</span></label>
-              <input type="date"
+              <label for="sale-cancellation-start">Date Début (Mois en cours) : <span class="req">*</span></label>
+              <input id="sale-cancellation-start"
+                     type="date"
                      class="form-control"
                      data-testid="e2e-sale-cancellation-start"
                      [(ngModel)]="filterForm.startDate"
@@ -247,8 +249,9 @@
             </div>
 
             <div class="field-group">
-              <label>Date Fin (Mois en cours) : <span class="req">*</span></label>
-              <input type="date"
+              <label for="sale-cancellation-end">Date Fin (Mois en cours) : <span class="req">*</span></label>
+              <input id="sale-cancellation-end"
+                     type="date"
                      class="form-control"
                      data-testid="e2e-sale-cancellation-end"
                      [(ngModel)]="filterForm.endDate"
@@ -257,8 +260,10 @@
             </div>
 
             <div class="field-group">
-              <label>Statut de vente :</label>
-              <select class="form-control" [(ngModel)]="filterForm.creditStatus">
+              <label for="sale-cancellation-status">Statut de vente :</label>
+              <select id="sale-cancellation-status"
+                      class="form-control"
+                      [(ngModel)]="filterForm.creditStatus">
                 <option [ngValue]="null">Tous (CREATED, VALIDATED, INPROGRESS)</option>
                 <option value="CREATED">CREATED</option>
                 <option value="VALIDATED">VALIDATED</option>
@@ -402,10 +407,11 @@
 
           <!-- CONFIRMATION & MOTIF -->
           <div class="confirmation-box" *ngIf="previewResult.eligibleCount > 0">
-            <label class="font-weight-bold">
+            <label class="font-weight-bold" for="sale-cancellation-reason">
               Motif obligatoire de l'annulation (consigné pour l'audit financier) : <span class="req">*</span>
             </label>
-            <textarea class="form-control"
+            <textarea id="sale-cancellation-reason"
+                      class="form-control"
                       data-testid="e2e-sale-cancellation-reason"
                       rows="2"
                       [(ngModel)]="cancellationReason"

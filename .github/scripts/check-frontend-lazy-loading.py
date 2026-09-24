@@ -34,7 +34,6 @@ EAGER_DOMAINS = frozenset({
     "report",
     "history",
     "out",
-    "commercial",
     "parameters",
 })
 

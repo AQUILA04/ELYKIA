@@ -9,6 +9,23 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.10] — 2026-09-24
+
+### Changed
+
+- Domaine `commercial` migré en lazy-loading (`/commercial/list`, `/commercial/view/:id`).
+
+### Fixed
+
+- Annulation de ventes : labels associés aux champs du formulaire (gate Sonar a11y).
+
+## Backend — [1.19.12] — 2026-09-24
+
+### Fixed
+
+- Tests d’intégration : image MinIO remplacée par `bitnamilegacy/minio` (Quay/Docker Hub inaccessibles sur GHA).
+- Templates PDF d’annulation de ventes : `lang="fr"` et en-têtes de tableaux pour le gate Sonar a11y.
+
 ## Mobile — [2.30.5] — 2026-09-24
 
 ### Fixed
