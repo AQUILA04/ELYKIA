@@ -47,13 +47,21 @@ spring:
 ### 3. Structure des Migrations
 
 ```
-src/main/resources/
-└── db/
-    └── migration/
-        ├── 03_V1__bi_dashboard_entities.sql
-        ├── V2__future_migration.sql
-        └── V3__another_migration.sql
+src/main/resources/db/
+├── migration/
+│   ├── V000__init_schema.sql          # snapshot schéma prod (2026-09-24)
+│   └── V001__sale_cancellation_....sql
+├── legacy/                            # anciennes V04–V104 (non exécutées)
+└── ops/reset_flyway_history_for_v000.sql
 ```
+
+Sur une base **déjà peuplée** (prod/test) qui a encore `flyway_schema_history` (baseline 0 + V04…V20) :
+
+```sql
+TRUNCATE TABLE flyway_schema_history;
+```
+
+Puis démarrer l’API (`baseline-on-migrate` + `baseline-version: 0`) : V000 n’est pas rejoué, V001+ s’appliquent.
 
 ---
 

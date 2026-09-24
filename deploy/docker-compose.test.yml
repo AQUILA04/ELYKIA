@@ -47,7 +47,7 @@ services:
       SPRINGDOC_SWAGGER_UI_DISABLE_SWAGGER_DEFAULT_URL: "true"
       SERVER_PORT: ${SERVER_PORT:-8080}
       LOKI_API_KEY: ${LOKI_API_KEY:-}
-      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-false}
+      SPRING_FLYWAY_ENABLED: ${SPRING_FLYWAY_ENABLED:-true}
       SECURITY_CONFIG_ALLOW_ORIGIN: ${SECURITY_ALLOWED_ORIGINS:-https://elykia-test.amenouveve-yaveh.com,https://www.amenouveve-yaveh.com,https://amenouveve-yaveh.com,http://localhost,capacitor://localhost,http://localhost:8100,https://localhost,ionic://localhost}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT:-http://minio:9000}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:?MINIO_ACCESS_KEY required}

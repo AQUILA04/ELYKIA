@@ -15,6 +15,22 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Recouvrements : les DTO mobile, détail crédit et liste web exposent désormais les montants de reliquat généré et utilisé persistés sur chaque mise, au lieu de les perdre lors du rechargement.
 
+## Backend — [1.19.10] — 2026-09-24
+
+### Fixed
+
+- **Elykia IA** : une saturation du fournisseur LLM (Vertex AI `RESOURCE_EXHAUSTED` / 429) renvoyait un 500 opaque au navigateur. `ResilientChatModel` réessaie désormais avec backoff exponentiel (`elykia.ai.retry.*`, 3 tentatives par défaut) sur `RESOURCE_EXHAUSTED`, `UNAVAILABLE` et `DEADLINE_EXCEEDED`, puis `AiExceptionAdvice` rend un **503** avec un message lisible au lieu du 500 générique. Les erreurs non liées à un throttle remontent inchangées.
+
+## Backend — [1.19.9] — 2026-09-24
+
+### Changed
+
+- Flyway **activé** : baseline `V000__init_schema.sql` (dump schéma-only de la prod du 2026-09-24), anciennes migrations déplacées dans `db/legacy/`, nouvelles versions à partir de `V001`. Hibernate `ddl-auto=none` en profil prod. Sur une base existante : `TRUNCATE flyway_schema_history` avant le premier boot (`db/ops/reset_flyway_history_for_v000.sql`).
+
+### Added
+
+- `V001__sale_cancellation_job_and_outbox.sql` (tables d’annulation + CHECK `CREDIT_SALE_CANCEL` / `SALE_CANCELLATION` / `CANCELLED`, absents du snapshot prod).
+
 ## Frontend — [2.22.9] — 2026-09-24
 
 ### Added
