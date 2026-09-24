@@ -1028,4 +1028,16 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("collector") String collector,
             @Param("asOfDate") LocalDate asOfDate,
             @Param("asOfDateTime") java.time.LocalDateTime asOfDateTime);
+
+    @Query("SELECT c FROM Credit c WHERE (c.collector = :collector OR c.agencyCommercial = :collector) " +
+           "AND c.state = :state " +
+           "AND c.beginDate >= :startDate AND c.beginDate <= :endDate " +
+           "AND (:status IS NULL OR c.status = :status) " +
+           "ORDER BY c.beginDate ASC, c.id ASC")
+    List<Credit> findSalesForCancellation(
+            @Param("collector") String collector,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("status") CreditStatus status,
+            @Param("state") com.optimize.common.entities.enums.State state);
 }

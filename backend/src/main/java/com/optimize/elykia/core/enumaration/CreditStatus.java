@@ -7,6 +7,6 @@ public enum CreditStatus {
     DELIVERED,
     ENDED,
     SETTLED,
-    MERGED
-
+    MERGED,
+    CANCELLED
 }

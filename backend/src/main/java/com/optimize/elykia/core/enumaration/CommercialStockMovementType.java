@@ -5,5 +5,6 @@ public enum CommercialStockMovementType {
     CASH_SALE,
     STOCK_IN,
     RETURN,
-    ADJUSTMENT
+    ADJUSTMENT,
+    SALE_CANCELLATION
 }

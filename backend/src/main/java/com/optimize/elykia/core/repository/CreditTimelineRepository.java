@@ -145,4 +145,9 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
             @Param("dateFrom") LocalDateTime dateFrom,
             @Param("dateTo") LocalDateTime dateTo,
             Pageable pageable);
+
+    boolean existsByCredit_IdAndState(Long creditId, com.optimize.common.entities.enums.State state);
+
+    long countByCredit_IdAndState(Long creditId, com.optimize.common.entities.enums.State state);
 }
+

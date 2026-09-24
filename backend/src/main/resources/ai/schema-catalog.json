@@ -1052,6 +1052,52 @@
           "type": "double"
         }
       ]
+    },
+    {
+      "name": "sale_cancellation_run",
+      "description": "Historique des opérations d'annulation de ventes commerciales (ADMIN)",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "commercial_username",
+          "type": "varchar"
+        },
+        {
+          "name": "start_date",
+          "type": "date"
+        },
+        {
+          "name": "end_date",
+          "type": "date"
+        },
+        {
+          "name": "status",
+          "type": "varchar"
+        },
+        {
+          "name": "cancelled_sales_count",
+          "type": "integer"
+        },
+        {
+          "name": "cancelled_sales_amount",
+          "type": "double"
+        },
+        {
+          "name": "excluded_sales_count",
+          "type": "integer"
+        },
+        {
+          "name": "cancellation_reason",
+          "type": "text"
+        },
+        {
+          "name": "triggered_by",
+          "type": "varchar"
+        }
+      ]
     }
   ],
   "views": [

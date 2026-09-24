@@ -22,6 +22,7 @@ import { MatStepperModule } from '@angular/material/stepper';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatCardModule } from '@angular/material/card';
 import { MatListModule } from '@angular/material/list';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { SharedComponentsModule } from '../shared/components/shared-components.module';
 import { CreditRoutingModule } from './credit-routing.module';
 import { CreditAddComponent } from './credit-add/credit-add.component';
@@ -49,6 +50,7 @@ import { RecouvrementFilterComponent } from './recouvrement/components/recouvrem
 import { RecouvrementTableComponent } from './recouvrement/components/recouvrement-table/recouvrement-table.component';
 import { CollectorTransfersComponent } from './collector-transfers/collector-transfers.component';
 import { CreditArticlesVendusComponent } from './credit-articles-vendus/credit-articles-vendus.component';
+import { SaleCancellationComponent } from './sale-cancellation/sale-cancellation.component';
 
 @NgModule({
   declarations: [
@@ -77,6 +79,7 @@ import { CreditArticlesVendusComponent } from './credit-articles-vendus/credit-a
     RecouvrementTableComponent,
     CollectorTransfersComponent,
     CreditArticlesVendusComponent,
+    SaleCancellationComponent,
   ],
   imports: [
     CommonModule,
@@ -105,6 +108,7 @@ import { CreditArticlesVendusComponent } from './credit-articles-vendus/credit-a
     MatAutocompleteModule,
     MatCardModule,
     MatListModule,
+    MatProgressSpinnerModule,
   ],
 })
 export class CreditModule {}

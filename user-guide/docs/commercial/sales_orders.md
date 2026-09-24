@@ -23,6 +23,7 @@ Le menu latéral gauche vous donne accès aux espaces de vente selon vos attribu
 | **Ventes > Transfert Ventes** | Le rapport de passation de portefeuilles entre commerciaux. | Auditer les transferts de contrats entre un commercial cédant et un commercial repreneur. |
 | **Ventes > Rattrapages** | L'outil de régularisation de ventes passées. | Enregistrer des ventes historiques adossées à d'anciens stocks résiduels sans toucher au stock central actuel. |
 | **Ventes > Articles** | Le tableau récapitulatif des volumes vendus par article et par commercial. | Analyser les performances de vente sur une période donnée (jour, semaine, mois). |
+| **Ventes > Annulation Ventes** | Outil d'audit et d'annulation de ventes commerciales avec restitution de stock. | Simuler et exécuter l'annulation de ventes sans recouvrement (ADMIN), consulter l'historique et les rapports PDF (ADMIN, GESTIONNAIRE). |
 | **Commandes** | Le registre des précommandes et réservations clients. | Traiter les demandes d'achat des clients et les convertir en ventes réelles en un clic. |
 
 ---
@@ -247,3 +248,25 @@ Les commandes sont réparties dans 6 onglets selon leur avancement :
 1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités et prix.
 2. **Décision** : Les responsables peuvent accepter ou refuser la commande (individuellement ou par lot).
 3. **Action « Vendre »** : Dès qu'une commande est acceptée, le bouton **Vendre** bascule directement l'ensemble des articles vers le formulaire de nouvelle vente pour créer le contrat crédit ou comptant sans aucune ressaisie manuelle, puis marque la commande comme **Vendue**.
+
+---
+
+## 12. Annulation de ventes d'un commercial (Menu Ventes > Annulation Ventes)
+
+Cette fonctionnalité d'exception permet de corriger des erreurs de saisie ou d'annuler les ventes erronées d'un commercial sur une période ciblée. Elle garantit l'intégrité comptable et logistique complète du système en automatisant les contre-passations nécessaires.
+
+### A. Rôles et niveaux d'accès
+* **Administrateur (`ROLE_ADMIN`)** : Accès complet. L'administrateur peut configurer les filtres, exécuter une **simulation (Dry-run)** pour prévisualiser les impacts, puis déclencher l'**annulation effective** avec saisie d'un motif obligatoire.
+* **Gestionnaire (`ROLE_GESTIONNAIRE`)** : Accès en **consultation seule**. Le gestionnaire peut visualiser l'historique complet des sessions d'annulation, consulter les statistiques et télécharger les pièces d'audit PDF (le formulaire et les boutons d'exécution ne lui sont pas présentés).
+
+### B. Règles et garde-fous stricts
+1. **Période restreinte au mois civil en cours** : Seules les ventes enregistrées durant le mois en cours peuvent être annulées. L'intervalle sélectionné ne peut pas excéder 31 jours.
+2. **Exclusion absolue des ventes avec recouvrement ultérieur** : Toute vente ayant fait l'objet d'au moins un encaissement postérieur à la conclusion du contrat (`Montant Encaissé > Avance` ou timeline de paiement active) est **strictement exclue** de l'annulation pour préserver la comptabilité de caisse. Ces dossiers sont répertoriés dans la section de rejet avec le motif explicite. En revanche, **une vente comportant uniquement une avance initiale** (sans recouvrement ultérieur) **peut être annulée** : le stock est restitué et l'avance est rétroactivement décrémentée du rapport journalier (`DailyCommercialReport` : montants d'avances et total à verser).
+3. **Restitution physique du stock commercial** : Les quantités vendues de chaque article sont immédiatement réintégrées dans le stock commercial du mois de l'agent.
+4. **Décrémentation des rapports d'activité (`DailyCommercialReport`)** : Pour chaque date d'opération concernée, les compteurs de vente, le montant des ventes, la marge brute, les acomptes éventuels et le total à verser sont décrémentés de manière rétroactive.
+5. **Traçabilité dans le journal des opérations (`DailyOperationLog`)** : Une écriture en contre-passation (montant négatif, type `CREDIT_SALE_CANCEL`) est générée pour chaque vente annulée.
+6. **Archivage et audit PDF automatique** :
+   - Un **bordereau individuel d'annulation** (format A4 certifié avec détails des articles réintégrés, signatures et motif) est généré pour chaque vente annulée.
+   - Un **rapport de synthèse consolidé** récapitule l'ensemble du lot, les totaux régularisés et la liste des dossiers exclus.
+   - Les documents sont stockés de façon pérenne sur le serveur d'objets sécurisé MinIO (avec relance automatique en tâche de fond en cas d'indisponibilité temporaire).
+

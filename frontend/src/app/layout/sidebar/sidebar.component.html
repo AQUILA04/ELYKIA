@@ -242,6 +242,14 @@
                 <span class="hide-menu">Articles</span>
               </a>
             </li>
+            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_ADMIN', 'ROLE_GESTIONNAIRE']">
+              <a class="sidebar-link" routerLink="/credit/annulation"
+                 data-testid="e2e-sidebar-credit-annulation"
+                 [ngClass]="{ 'active': isSubRouteActive('/credit/annulation') }">
+                <span class="material-icons">cancel_presentation</span>
+                <span class="hide-menu">Annulation Ventes</span>
+              </a>
+            </li>
           </ul>
         </li>
 

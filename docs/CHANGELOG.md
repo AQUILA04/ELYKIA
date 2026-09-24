@@ -9,6 +9,17 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.5] — 2026-09-24
+
+### Added
+
+- **Module d'annulation de ventes commerciales (`SaleCancellationComponent`)** :
+  - Nouveau composant d'annulation et d'audit des ventes accessible via la route `/credit/annulation` (menu latéral *Ventes > Annulation Ventes*), protégé par `NgxPermissionsGuard` pour `ROLE_ADMIN` et `ROLE_GESTIONNAIRE`.
+  - Contrôle d'accès adaptatif : interface complète de configuration, simulation préalable (dry-run) et modal d'exécution avec saisie de motif obligatoire pour `ROLE_ADMIN` ; mode consultation en lecture seule (historique des runs, métadonnées, téléchargement des bordereaux unitaires et synthèses PDF) pour `ROLE_GESTIONNAIRE` sans affichage des éléments d'action.
+  - Filtres stricts limités au mois en cours avec vérification d'intervalle <= 31 jours, sélecteur de commercial, statut (ou tous).
+  - Tableau d'audit interactif avec détection visuelle des ventes éligibles et des ventes exclues (en raison de recouvrements existants), aperçu des pièces jointes et pagination.
+  - Service Angular `SaleCancellationService` intégré aux endpoints REST backend avec téléchargement direct des fichiers PDF générés.
+
 ## Frontend — [2.22.4] — 2026-09-24
 
 ### Added
@@ -54,6 +65,26 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Sous-menu **Articles Vendus** (ou **Articles**) sous le menu Ventes pour afficher la liste globale des quantités vendues par article et par commercial.
 - Filtres de période (Ce jour, Cette semaine, Ce mois, Personnalisé) et filtre par commercial sur la liste des articles vendus.
+
+## Backend — [1.19.6] — 2026-09-24
+
+### Added
+
+- **Fonctionnalité d'annulation en masse de ventes d'un commercial avec intégrité comptable et archivage MinIO (`SaleCancellationService`)** :
+  - Création des tables `sale_cancellation_run`, `sale_cancellation_file`, `sale_cancellation_outbox_entry` et mise à jour de la contrainte `daily_operation_log_type_check` via migration Flyway `V103__sale_cancellation_job_and_outbox.sql`.
+  - Nouveaux statuts et types : `CreditStatus.CANCELLED`, `OperationType.CREDIT_SALE_CANCEL`, `CommercialStockMovementType.SALE_CANCELLATION`, `SaleCancellationRunStatus`, `SaleCancellationFileType`.
+  - Service complet `SaleCancellationService` avec simulation `previewCancellation()` et exécution transactionnelle `executeCancellation()` :
+    - Restitution des quantités d'articles vendus dans le stock commercial du mois.
+    - Décrémentation rétroactive des agrégats dans `DailyCommercialReport` pour les dates d'opération respectives.
+    - Traçabilité avec montants négatifs dans `DailyOperationLog` (type `CREDIT_SALE_CANCEL`).
+    - Garde-fou strict excluant toute vente ayant des recouvrements perçus (`totalAmountPaid > 0` ou encaissement timeline).
+    - Validation stricte de la période sur le mois en cours (`YearMonth.now()`) et durée <= 31 jours.
+  - Génération de documents PDF certifiés via Flying Saucer et Thymeleaf :
+    - Bordereau unitaire d'annulation par vente (`sale-cancellation-item-audit.html`) avec articles restitués, motif et signatures.
+    - Rapport d'audit global de session (`sale-cancellation-summary-report.html`) avec liste détaillée des ventes annulées et des ventes exclues avec motif.
+  - Stockage des pièces sur MinIO (`SaleCancellationStorageService`) avec fallback automatique sur le système de fichiers local et scheduler outbox asynchrone (`SaleCancellationOutboxRetryScheduler`).
+  - Endpoints REST sécurisés dans `SaleCancellationController` avec `@PreAuthorize("hasRole('ADMIN')")` pour simulation/exécution et `@PreAuthorize("hasAnyRole('ADMIN', 'GESTIONNAIRE')")` pour consultation et téléchargement de documents.
+  - Mise à jour du catalogue de schéma IA `backend/src/main/resources/ai/schema-catalog.json`.
 
 ## Backend — [1.19.5] — 2026-09-24
 
