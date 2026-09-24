@@ -19,6 +19,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Annulation de ventes : labels associés aux champs du formulaire (gate Sonar a11y).
 
+## Docs & Infra
+
+### Fixed
+
+- SonarCloud : exclusion de `db/legacy/**` et CPD du dump `V000` ; suppression des dumps schéma redondants (`NAV01*`, `01_oec_schema.sql`) qui poussaient la duplication new-code à ~24 %.
+
 ## Backend — [1.19.12] — 2026-09-24
 
 ### Fixed
