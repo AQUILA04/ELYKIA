@@ -454,6 +454,15 @@
               <span *ngIf="tl.totalAmountPaid !== undefined"> · Cumul payé : <strong>{{ tl.totalAmountPaid | number }}
                   FCFA</strong></span>
             </div>
+            <div class="rt-meta" *ngIf="(tl.reliquatGeneratedAmount || 0) > 0 || (tl.reliquatUsedAmount || 0) > 0">
+              <span *ngIf="(tl.reliquatGeneratedAmount || 0) > 0">
+                Reliquat généré : <strong>{{ tl.reliquatGeneratedAmount | number }} FCFA</strong>
+              </span>
+              <span *ngIf="(tl.reliquatUsedAmount || 0) > 0">
+                <span *ngIf="(tl.reliquatGeneratedAmount || 0) > 0"> · </span>
+                Reliquat utilisé : <strong>{{ tl.reliquatUsedAmount | number }} FCFA</strong>
+              </span>
+            </div>
             <div class="rt-meta" *ngIf="tl.operationConsentCode || tl.syncConsentCode || tl.confirmedAmount !== null" style="margin-top: 4px; padding-top: 4px; border-top: 1px dashed var(--border-color);">
               <span *ngIf="tl.operationConsentCode">Op. : <strong style="color: var(--navy);">{{ tl.operationConsentCode }}</strong></span>
               <span *ngIf="tl.syncConsentCode"> <span *ngIf="tl.operationConsentCode">· </span>Sync. : <strong style="color: var(--navy);">{{ tl.syncConsentCode }}</strong></span>

@@ -110,7 +110,7 @@ Si l'impression immédiate est activée dans votre agence :
 
 ## 4. Fiche détaillée 360° d'un crédit
 
-En ouvrant un crédit, vous accédez à un dossier complet regroupant l'ensemble des aspects contractuels, financiers et logistiques :
+En ouvrant un crédit, vous accédez à un dossier complet regroupant l'ensemble des aspects contractuels, financiers et logistiques. Dans l'historique des paiements, chaque mise concernée indique le **reliquat généré** et/ou le **reliquat utilisé**, ce qui permet de rapprocher la mise imputée au crédit des espèces réellement encaissées :
 
 ### 1. Jauge de progression du remboursement
 - Barre graphique indiquant le pourcentage remboursé à date.
@@ -156,6 +156,7 @@ Un bandeau évalue la ponctualité des règlements du client :
 ### 8. Historique des paiements et droit d'annulation
 Chaque mise encaissée apparaît dans la liste chronologique avec sa date, son heure, la référence du reçu et le nom du commercial qui a perçu l'argent.
 - Un badge indique si le montant correspond à la **Mise normale** ou à une **Mise spéciale** (paiement partiel ou avance de plusieurs jours).
+- Lorsqu'une mise crée ou consomme un avoir client, la ligne précise **Reliquat généré** et/ou **Reliquat utilisé**. Ces montants expliquent l'écart éventuel entre la mise imputée au crédit et les espèces réellement encaissées.
 - En cas d'erreur de saisie, un utilisateur habilité peut cliquer sur **Annuler** : le système demande confirmation et corrige immédiatement le solde du crédit ainsi que le journal de caisse.
 
 ### 9. Historique des changements de mise

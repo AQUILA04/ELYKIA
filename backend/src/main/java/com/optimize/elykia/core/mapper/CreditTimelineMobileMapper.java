@@ -53,6 +53,10 @@ public class CreditTimelineMobileMapper {
         dto.setOperationConsentCode(creditTimeline.getOperationConsentCode());
         dto.setConfirmedAmount(creditTimeline.getConfirmedAmount());
         dto.setSyncConsentCode(creditTimeline.getSyncConsentCode());
+        dto.setReliquatGeneratedAmount(
+                creditTimeline.getReliquatGeneratedAmount() != null ? creditTimeline.getReliquatGeneratedAmount() : 0.0);
+        dto.setReliquatUsedAmount(
+                creditTimeline.getReliquatUsedAmount() != null ? creditTimeline.getReliquatUsedAmount() : 0.0);
         
         // IDs du crédit et du client
         if (creditTimeline.getCredit() != null) {

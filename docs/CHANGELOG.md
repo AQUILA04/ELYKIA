@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.19.11] — 2026-09-24
+
+### Fixed
+
+- Recouvrements : les DTO mobile, détail crédit et liste web exposent désormais les montants de reliquat généré et utilisé persistés sur chaque mise, au lieu de les perdre lors du rechargement.
+
+## Frontend — [2.22.9] — 2026-09-24
+
+### Added
+
+- Détail crédit : l'historique des recouvrements affiche le reliquat généré et le reliquat utilisé sur chaque mise concernée, afin de rapprocher la mise imputée et le cash réellement encaissé.
+
 ## Frontend — [2.22.8] — 2026-09-24
 
 ### Fixed
@@ -173,6 +185,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - DTOs `SoldArticleDto` et `SoldArticleSearchDto` pour la recherche agrégée des articles vendus.
 - Requête paginée `findSoldArticles` dans `CreditArticlesRepository` avec `GROUP BY` sur article et commercial.
 - Endpoint `POST /api/v1/credits/articles-vendus/search` pour exposer les données agrégées.
+
+## Mobile — [2.30.4] — 2026-09-24
+
+### Fixed
+
+- Rapport journalier : l'initialisation des recouvrements depuis le serveur conserve désormais les montants de reliquat généré et utilisé ; les indicateurs mobile restent alignés avec le rapport web après synchronisation.
 
 ## Mobile — [2.30.3] — 2026-09-24
 
