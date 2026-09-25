@@ -18,6 +18,7 @@ Avant de considérer le travail **livré** (fin de tâche, PR, commit de feature
 - Source canonique : `user-guide/docs/**/*.md` (structure MkDocs / profils)
 - Aligner libellés d’écran, menus, boutons, prérequis de rôle et enchaînements sur l’UI **réelle**
 - Ne pas inventer de captures : laisser `<!-- CAPTURE À INSÉRER : … -->` si besoin
+- **Style rédactionnel** : règle `user-guide-writing-style` (pas à pas métier ; ne pas spoiler les masquages ni le jargon technique)
 
 ## Chaîne obligatoire
 

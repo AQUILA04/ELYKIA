@@ -7,6 +7,7 @@ import com.optimize.elykia.core.dto.StockEntry;
 import com.optimize.elykia.core.dto.StockReceptionDto;
 import com.optimize.elykia.core.dto.StockReceptionItemDto;
 import com.optimize.elykia.core.dto.StockReceptionListDto;
+import com.optimize.elykia.core.dto.StockReceptionsDailyPdfDto;
 import com.optimize.elykia.core.entity.article.ArticleHistory;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.expense.ExpenseType;
@@ -23,6 +24,7 @@ import com.optimize.elykia.core.service.expense.ExpenseService;
 import com.optimize.elykia.core.service.store.ArticleHistoryService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.util.ArticleSortOrder;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
@@ -37,6 +39,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -118,6 +121,7 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         LinkedHashSet<StockReceptionItemDto> sortedItems = reception.getItems().stream()
                 .sorted(ArticleSortOrder.forStockReceptionItems())
                 .map(mapper::toItemDto)
+                .map(this::redactItemPurchasePricesIfNeeded)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         dto.setItems(sortedItems);
         return dto;
@@ -127,7 +131,86 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         getById(id);
         return stockReceptionItemRepository
                 .findByStockReceptionIdSorted(id, pageable)
-                .map(mapper::toItemDto);
+                .map(mapper::toItemDto)
+                .map(this::redactItemPurchasePricesIfNeeded);
+    }
+
+    /**
+     * Builds a daily PDF context: all receptions of {@code date}, quantities aggregated by article,
+     * plus the sum of reception total amounts for the day.
+     */
+    public StockReceptionsDailyPdfDto buildDailyReceptionsPdf(LocalDate date) {
+        List<StockReception> receptions = ((StockReceptionRepository) getRepository())
+                .findAllByReceptionDateWithItems(date);
+        if (receptions.isEmpty()) {
+            throw new ResourceNotFoundException("Aucune entrée de stock pour la date sélectionnée.");
+        }
+
+        Map<Long, Integer> quantityByArticle = new LinkedHashMap<>();
+        Map<Long, Articles> articlesById = new LinkedHashMap<>();
+        double dayTotal = 0.0;
+
+        for (StockReception reception : receptions) {
+            if (reception.getTotalAmount() != null) {
+                dayTotal += reception.getTotalAmount();
+            }
+            if (reception.getItems() == null) {
+                continue;
+            }
+            for (StockReceptionItem item : reception.getItems()) {
+                Articles article = item.getArticle();
+                if (article == null) {
+                    continue;
+                }
+                int qty = item.getQuantity() != null ? item.getQuantity() : 0;
+                quantityByArticle.merge(article.getId(), qty, Integer::sum);
+                articlesById.putIfAbsent(article.getId(), article);
+            }
+        }
+
+        List<StockReceptionsDailyPdfDto.DailyItem> items = articlesById.values().stream()
+                .sorted(ArticleSortOrder.byTypeMarqueModelName())
+                .map(article -> StockReceptionsDailyPdfDto.DailyItem.builder()
+                        .articleId(article.getId())
+                        .articleName(resolveArticleDisplayName(article))
+                        .quantity(quantityByArticle.getOrDefault(article.getId(), 0))
+                        .build())
+                .collect(Collectors.toList());
+
+        return StockReceptionsDailyPdfDto.builder()
+                .receptionDate(date)
+                .dayTotalAmount(dayTotal)
+                .items(items)
+                .build();
+    }
+
+    private String resolveArticleDisplayName(Articles article) {
+        if (article == null) {
+            return "—";
+        }
+        String commercial = article.getCommercialName() != null ? article.getCommercialName() : "";
+        String name = article.getName() != null ? article.getName() : "";
+        String full = (commercial + " " + name).trim();
+        return full.isEmpty() ? "—" : full;
+    }
+
+    private StockReceptionItemDto redactItemPurchasePricesIfNeeded(StockReceptionItemDto item) {
+        if (canShowPurchasePrice()) {
+            return item;
+        }
+        item.setUnitPrice(null);
+        item.setTotalPrice(null);
+        item.setPackagePrice(null);
+        return item;
+    }
+
+    private boolean canShowPurchasePrice() {
+        User currentUser = userService.getCurrentUser();
+        if (currentUser == null || currentUser.getPermissions() == null) {
+            return false;
+        }
+        return currentUser.getPermissions().stream()
+                .anyMatch(p -> UserPermissionConstant.SHOW_PURCHASE_PRICE.equals(p.getName()));
     }
 
     @Transactional

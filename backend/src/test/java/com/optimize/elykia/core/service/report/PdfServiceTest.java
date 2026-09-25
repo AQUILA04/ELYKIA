@@ -6,6 +6,7 @@ import com.optimize.elykia.core.dto.InventoryControlPdfDto;
 import com.optimize.elykia.core.dto.ItemReleaseSheetDto;
 import com.optimize.elykia.core.dto.PrintOperationDto;
 import com.optimize.elykia.core.dto.StockReceptionDto;
+import com.optimize.elykia.core.dto.StockReceptionsDailyPdfDto;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.sale.CreditService;
@@ -19,6 +20,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -132,6 +134,35 @@ class PdfServiceTest {
         assertEquals(stockReception, context.getVariable("reception"));
         assertEquals("AMENOUVEVE - YAVEH", context.getVariable("companyName"));
         assertTrue(context.getVariable("generationDate").toString().matches("\\d{2}/\\d{2}/\\d{4} \\d{2}:\\d{2}"));
+    }
+
+    @Test
+    void generateStockReceptionsDailyHtmlFromTemplate_rejectsNullDateAndPassesPopulatedDaily() {
+        // Given
+        PdfService service = service();
+        StockReceptionsDailyPdfDto daily = StockReceptionsDailyPdfDto.builder()
+                .receptionDate(LocalDate.of(2026, 9, 25))
+                .dayTotalAmount(1500.0)
+                .items(List.of(StockReceptionsDailyPdfDto.DailyItem.builder()
+                        .articleId(1L)
+                        .articleName("Article A")
+                        .quantity(3)
+                        .build()))
+                .build();
+        ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
+        when(templateEngine.process(eq("stock-receptions-daily-sheet"), contextCaptor.capture()))
+                .thenReturn("<html>daily</html>");
+
+        // When
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> service.generateStockReceptionsDailyHtmlFromTemplate(null));
+        String html = service.generateStockReceptionsDailyHtmlFromTemplate(daily);
+
+        // Then
+        assertTrue(exception.getMessage().contains("Aucune donnée"));
+        assertEquals("<html>daily</html>", html);
+        assertEquals(daily, contextCaptor.getValue().getVariable("daily"));
+        assertEquals("AMENOUVEVE - YAVEH", contextCaptor.getValue().getVariable("companyName"));
     }
 
     @Test

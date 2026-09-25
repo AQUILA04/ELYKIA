@@ -118,6 +118,16 @@
 }
 .result-count strong { color: var(--navy); }
 
+.btn-download {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border: none; border-radius: var(--radius-sm);
+  background: #15803d; color: #fff; font-size: 12px; font-weight: 600;
+  cursor: pointer; font-family: 'Inter', sans-serif; transition: background .15s;
+}
+.btn-download:hover:not(:disabled) { background: #166534; }
+.btn-download:disabled { opacity: .55; cursor: not-allowed; }
+.btn-download svg { width: 14px; height: 14px; }
+
 /* TABLE */
 .table-card {
   background: var(--bg-white); border: 1px solid var(--border);

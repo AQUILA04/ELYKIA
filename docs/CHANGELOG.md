@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.12] — 2026-09-25
+
+### Changed
+
+- Historique des entrées : prix d'achat (PU / total ligne) masqués sans `ROLE_SHOW_PURCHASE_PRICE` ; bouton **PDF du jour** actif dès qu'une date est filtrée.
+
 ## Frontend — [2.22.11] — 2026-09-25
 
 ### Fixed
@@ -27,6 +33,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra — 2026-09-25
 
+### Changed
+
+- Guide Historique des entrées (magasinier / gestionnaire) : procédures pas à pas uniquement (écran, boutons, PDF) ; formulation métier, sans détail de masquage technique.
+
 ### Fixed
 
 - **E2E Web** : le `build_sha` ne parcourt plus les 30 derniers runs CI (pouvait résoudre un vieux SHA, ex. `1d7c304` avec `optimize:` YAML en double → Spring boot fail). Il utilise `workflow_run.head_sha` du CD déclencheur.
@@ -40,6 +50,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Seed E2E articles : chemin mis à jour vers `db/legacy/V14__insert_articles.sql` après le rebaseline Flyway.
 - SonarCloud : exclusion de `db/legacy/**` et CPD du dump `V000` ; suppression des dumps schéma redondants (`NAV01*`, `01_oec_schema.sql`) qui poussaient la duplication new-code à ~24 %.
+
+## Backend — [1.19.13] — 2026-09-25
+
+### Changed
+
+- Réceptions stock : prix d'achat ligne masqués en API sans `ROLE_SHOW_PURCHASE_PRICE` ; PDF fiche sans colonnes PU/PT ; nouveau PDF journalier agrégé (`/pdf/download-receptions-by-date`).
 
 ## Backend — [1.19.12] — 2026-09-24
 

@@ -12,8 +12,10 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
 import java.io.*;
 import java.nio.file.*;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -155,6 +157,17 @@ public class PdfController {
         InputStream resource = pdfService.generateStockReceptionPdf(id);
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=RECEPTION_" + id + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(new InputStreamResource(resource));
+    }
+
+    @GetMapping("/download-receptions-by-date")
+    public ResponseEntity<Resource> downloadStockReceptionsByDate(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) throws DocumentException {
+        InputStream resource = pdfService.generateStockReceptionsDailyPdf(date);
+        String filename = "RECEPTIONS_" + date + ".pdf";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
                 .contentType(MediaType.APPLICATION_PDF)
                 .body(new InputStreamResource(resource));
     }

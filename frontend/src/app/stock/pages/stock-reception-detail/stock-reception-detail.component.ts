@@ -26,6 +26,7 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
 
   isAdmin = false;
   isManager = false;
+  canShowPurchasePrice = false;
   currentUsername: string | null = null;
 
   constructor(
@@ -42,6 +43,7 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
     this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE)
       || this.userService.hasProfile(UserProfile.ADMIN)
       || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
+    this.canShowPurchasePrice = this.authService.hasRole('ROLE_SHOW_PURCHASE_PRICE');
     this.currentUsername = this.authService.getUsername();
 
     const id = this.route.snapshot.paramMap.get('id');

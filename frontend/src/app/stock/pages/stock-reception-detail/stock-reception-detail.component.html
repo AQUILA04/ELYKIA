@@ -90,13 +90,13 @@
             <th>#</th>
             <th>Article</th>
             <th>Quantité</th>
-            <th>Prix unitaire</th>
-            <th>Prix total</th>
+            <th *ngIf="canShowPurchasePrice">Prix unitaire</th>
+            <th *ngIf="canShowPurchasePrice">Prix total</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngIf="!isItemsLoading && receptionItems.length === 0">
-            <td colspan="5">
+            <td [attr.colspan]="canShowPurchasePrice ? 5 : 3">
               <div class="empty-state">
                 <div class="empty-icon">📦</div>
                 <div class="empty-title">Aucun article</div>
@@ -112,8 +112,8 @@
             <td>
               <span class="qty-badge">{{ item.quantity }}</span>
             </td>
-            <td><div class="col-amount">{{ item.unitPrice | number }} FCFA</div></td>
-            <td><div class="col-amount col-total">{{ item.totalPrice | number }} FCFA</div></td>
+            <td *ngIf="canShowPurchasePrice"><div class="col-amount">{{ item.unitPrice | number }} FCFA</div></td>
+            <td *ngIf="canShowPurchasePrice"><div class="col-amount col-total">{{ item.totalPrice | number }} FCFA</div></td>
           </tr>
         </tbody>
       </table>

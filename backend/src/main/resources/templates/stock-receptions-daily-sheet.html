@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="fr">
 <head>
     <meta charset="UTF-8"/>
-    <title>Fiche de Réception de Stock - AMENOUVEVE - YAVEH</title>
+    <title>Entrées de stock du jour - AMENOUVEVE - YAVEH</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -91,13 +91,11 @@
 </head>
 <body>
 <div class="company-name" th:text="${companyName}">AMENOUVEVE - YAVEH</div>
-<h1>Fiche de Réception de Stock</h1>
+<h1>Entrées de stock du jour</h1>
 
 <div class="header-info">
-    <p><strong>Référence :</strong> <span th:text="${reception.reference}"></span></p>
-    <p><strong>Date de réception :</strong>
-        <span th:text="${#temporals.format(reception.receptionDate, 'dd/MM/yyyy')}"></span></p>
-    <p><strong>Reçu par :</strong> <span th:text="${reception.receivedBy}"></span></p>
+    <p><strong>Date :</strong>
+        <span th:text="${#temporals.format(daily.receptionDate, 'dd/MM/yyyy')}"></span></p>
 </div>
 
 <table class="items-table">
@@ -109,7 +107,7 @@
     </tr>
     </thead>
     <tbody>
-    <tr th:each="item, iterStat : ${reception.items}">
+    <tr th:each="item, iterStat : ${daily.items}">
         <td class="num" th:text="${iterStat.count}"></td>
         <td th:text="${item.articleName}"></td>
         <td class="num" th:text="${item.quantity}"></td>
@@ -118,7 +116,8 @@
 </table>
 
 <div class="total-row">
-    Montant total : <span th:text="${#numbers.formatDecimal(reception.totalAmount, 1, 'COMMA', 0, 'POINT') + ' FCFA'}"></span>
+    Montant total du jour :
+    <span th:text="${#numbers.formatDecimal(daily.dayTotalAmount, 1, 'COMMA', 0, 'POINT') + ' FCFA'}"></span>
 </div>
 
 <div class="footer">

@@ -56,6 +56,14 @@ export class StockReceptionService {
     return this.http.get(`${this.pdfUrl}/download-reception/${id}`, { responseType: 'blob' });
   }
 
+  downloadDailyPdf(receptionDate: string): Observable<Blob> {
+    const params = new HttpParams().set('date', receptionDate);
+    return this.http.get(`${this.pdfUrl}/download-receptions-by-date`, {
+      params,
+      responseType: 'blob'
+    });
+  }
+
   validateReception(id: number): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${id}/validate`, {});
   }

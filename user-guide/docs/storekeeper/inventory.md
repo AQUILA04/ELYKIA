@@ -22,6 +22,21 @@ Toute marchandise déchargée au dépôt doit être immédiatement enregistrée 
 * **Consigne de sécurité stricte** : Une entrée en attente **n'augmente pas encore le stock disponible**. Vous ne devez jamais servir une demande de sortie sur la base d'une entrée non encore validée par le gestionnaire.
 * Dès que le gestionnaire valide la réception dans son interface, le statut passe à **Validé** et la marchandise devient officiellement disponible pour les sorties.
 
+#### Consulter une entrée
+1. Ouvrez **Historique Entrée**.
+2. Repérez la ligne dans la liste (référence, date, montant total, statut).
+3. Cliquez sur **« Voir »** pour afficher le détail : articles reçus et quantités.
+
+#### Télécharger la fiche d'une entrée
+1. Ouvrez le détail de l'entrée.
+2. Cliquez sur **« Télécharger PDF »**.
+3. Le document reprend la référence, la date, le reçu par, la liste des articles avec leurs quantités, et le montant total.
+
+#### Télécharger le récapitulatif d'une journée
+1. Sur **Historique Entrée**, choisissez une **date** dans le filtre.
+2. Cliquez sur **« PDF du jour »** (le bouton devient disponible une fois la date sélectionnée).
+3. Le fichier regroupe toutes les entrées de ce jour, avec les quantités cumulées par article et le montant total de la journée.
+
 ---
 
 ## 2. Réalisation d'un inventaire physique magasin

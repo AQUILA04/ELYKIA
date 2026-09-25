@@ -55,6 +55,14 @@ Pour accéder à la liste des réceptions, ouvrez le menu latéral **Stock Comme
 | **Refusée** | Rouge | Aucun impact (réception rejetée) | Voir |
 | **Annulée** | Gris | Le stock préalablement ajouté est **retiré** | Voir |
 
+### B. Consulter le détail et télécharger les documents
+1. **Ouvrir le détail** : cliquez sur **« Voir »**. Vous retrouvez la référence, la date, le reçu par, le montant total, puis la liste des articles avec quantité, prix unitaire d'achat et prix total de chaque ligne.
+2. **Télécharger la fiche d'une entrée** : depuis le détail, cliquez sur **« Télécharger PDF »**. Le document reprend les articles, les quantités et le montant total de l'entrée.
+3. **Télécharger le récapitulatif d'une journée** :
+   * Sur **Historique Entrée**, choisissez une **date** dans le filtre.
+   * Cliquez sur **« PDF du jour »**.
+   * Le fichier regroupe toutes les entrées de ce jour, avec les quantités cumulées par article et le montant total de la journée.
+
 ---
 
 ## 3. Demandes de Sortie de Stock Commercial

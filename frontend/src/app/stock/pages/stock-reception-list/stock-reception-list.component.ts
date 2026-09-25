@@ -43,6 +43,7 @@ export class StockReceptionListComponent implements OnInit, OnDestroy {
 
   currentDate: Date = new Date();
   lastUpdate: Date = new Date();
+  isDailyPdfLoading = false;
 
   readonly statusOptions: { value: StockReceptionStatus | ''; label: string }[] = [
     { value: '', label: 'Tous les statuts' },
@@ -206,6 +207,43 @@ export class StockReceptionListComponent implements OnInit, OnDestroy {
   viewDetails(id: number): void {
     this.saveState();
     this.router.navigate(['/stock/receptions', id]);
+  }
+
+  downloadDailyPdf(): void {
+    if (!this.searchDate || this.isDailyPdfLoading) {
+      return;
+    }
+    this.isDailyPdfLoading = true;
+    this.stockReceptionService.downloadDailyPdf(this.searchDate).subscribe({
+      next: (response) => {
+        const blob = new Blob([response], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `RECEPTIONS_${this.searchDate}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.isDailyPdfLoading = false;
+      },
+      error: async (err) => {
+        this.isDailyPdfLoading = false;
+        let message = 'Aucune entrée à télécharger pour cette date.';
+        if (err?.error instanceof Blob) {
+          try {
+            const text = await err.error.text();
+            const parsed = JSON.parse(text);
+            if (parsed?.message) {
+              message = parsed.message;
+            }
+          } catch {
+            // keep default message
+          }
+        } else if (err?.error?.message) {
+          message = err.error.message;
+        }
+        this.alertService.showError(message, 'Téléchargement');
+      }
+    });
   }
 
   validateReception(reception: StockReceptionListItem): void {

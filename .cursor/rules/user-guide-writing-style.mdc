@@ -1,0 +1,41 @@
+---
+description: Style rédactionnel du user-guide — langage métier, pas à pas, sans spoiler technique
+alwaysApply: true
+---
+
+# User-guide : rédaction pour l’utilisateur métier
+
+Quand tu **rédiges ou modifies** `user-guide/docs/**/*.md`, le lecteur est un **utilisateur métier** (magasinier, gestionnaire, commercial…), pas un développeur. Le guide décrit **ce qu’il voit** et **comment faire** ce qu’il est autorisé à faire.
+
+## Principes
+
+1. **Pas à pas** : menus, boutons, écrans, enchaînements réels (numérotés si une procédure).
+2. **Langage métier** : libellés d’UI tels qu’à l’écran. Aucun jargon code (`ROLE_*`, endpoint, DTO, permission technique, « colonne retirée », « nullifié », « API »).
+3. **Un guide par profil** : dans la page d’un rôle, ne décrire que **son** parcours et **ce qu’il voit**. Ne pas comparer aux autres profils (« le magasinier ne voit pas… », « réservé au gestionnaire »).
+4. **Ne pas spoiler les masquages** : si une info est cachée à un rôle, **ne pas le mentionner**. Décrire positivement le contenu visible (ex. détail = articles et quantités), sans dire qu’un prix « a été masqué » ou qu’une colonne « n’est plus là ».
+5. **Pas d’instructions techniques internes** : ne pas coller le brief / le plan de dev (permissions, décisions produit, « pour tous / pour personne »).
+
+## Exemples
+
+```markdown
+❌ Mauvais (révèle un masquage / du technique)
+Les prix unitaires d'achat ne sont pas affichés pour le magasinier (ROLE_SHOW_PURCHASE_PRICE).
+Le PDF n'a plus les colonnes prix unitaire / prix total par ligne.
+
+✅ Bon (ce que l'utilisateur voit et fait)
+1. Cliquez sur « Voir » : le détail liste les articles reçus et les quantités.
+2. Cliquez sur « Télécharger PDF » : le document reprend la référence, les articles,
+   les quantités et le montant total.
+```
+
+```markdown
+❌ Mauvais (compare les rôles dans le guide magasinier)
+Contrairement au gestionnaire, vous ne voyez pas les prix d'achat.
+
+✅ Bon (guide magasinier = son écran seulement)
+Sur la liste, chaque ligne affiche la référence, la date, le montant total et le statut.
+```
+
+## Après toute maj guide
+
+Appliquer aussi `update-user-guide-on-ui-or-business-change` et `user-guide-rag-index-sync` (régénérer l’index RAG).

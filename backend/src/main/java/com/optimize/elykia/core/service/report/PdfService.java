@@ -10,6 +10,7 @@ import com.optimize.elykia.core.dto.ItemReleaseSheetDto;
 import com.optimize.elykia.core.dto.PrintOperationDto;
 import com.optimize.elykia.core.dto.DailyUnrecoveredCreditDto;
 import com.optimize.elykia.core.dto.StockReceptionDto;
+import com.optimize.elykia.core.dto.StockReceptionsDailyPdfDto;
 import com.optimize.elykia.core.entity.inventory.Inventory;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.service.sale.CreditService;
@@ -119,6 +120,18 @@ public class PdfService {
         return templateEngine.process("stock-reception-sheet", context);
     }
 
+    public String generateStockReceptionsDailyHtmlFromTemplate(StockReceptionsDailyPdfDto dto) {
+        if (Objects.isNull(dto) || Objects.isNull(dto.getReceptionDate())) {
+            throw new ResourceNotFoundException("Aucune donnée disponible pour télécharger !");
+        }
+        Context context = new Context();
+        context.setVariable("daily", dto);
+        context.setVariable("companyName", "AMENOUVEVE - YAVEH");
+        context.setVariable("generationDate",
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        return templateEngine.process("stock-receptions-daily-sheet", context);
+    }
+
     public InputStream printDailyOperationPdf() throws DocumentException {
         List<DailyUnrecoveredCreditDto> credits = creditService.getCreditByCollector();
         PrintOperationDto dto = PrintOperationDto.from(credits, userService.getCurrentUser().getUsername());
@@ -136,6 +149,13 @@ public class PdfService {
         StockReceptionDto dto = stockReceptionService.getReceptionByIdWithItems(receptionId);
         String html = generateStockReceptionHtmlFromTemplate(dto);
         return generatePdfFromHtml(html, "RECEPTION_" + dto.getReference());
+    }
+
+    public InputStream generateStockReceptionsDailyPdf(LocalDate date) throws DocumentException {
+        StockReceptionsDailyPdfDto dto = stockReceptionService.buildDailyReceptionsPdf(date);
+        String html = generateStockReceptionsDailyHtmlFromTemplate(dto);
+        String filename = "RECEPTIONS_" + date.format(DateTimeFormatter.ISO_LOCAL_DATE);
+        return generatePdfFromHtml(html, filename);
     }
 
     /**
