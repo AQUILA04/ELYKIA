@@ -59,13 +59,8 @@ jobs:
 
       - name: Resolve CI commit
         id: build_sha
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          sudo apt-get update -y && sudo apt-get install -y jq
-
-          REPO='${{ github.repository }}'
 
           if [ '${{ github.event_name }}' = 'workflow_dispatch' ]; then
             SHA='${{ github.sha }}'
@@ -74,21 +69,16 @@ jobs:
             exit 0
           fi
 
-          CD_STARTED='${{ github.event.workflow_run.run_started_at }}'
-          runs=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
-            "https://api.github.com/repos/${REPO}/actions/workflows/ci.yml/runs?status=completed&per_page=30")
-          SHA=$(echo "$runs" | jq -r --arg cd "$CD_STARTED" '
-            [.workflow_runs[]
-              | select(.head_branch == "main" and .conclusion == "success")
-              | select(.run_started_at <= $cd)
-            ] | sort_by(.run_started_at) | last | .head_sha // empty')
-
+          # Use the CD run's head_sha (same commit that triggered the upstream CI → CD).
+          # Do NOT walk recent ci.yml runs: per_page + conclusion filters can resolve to an
+          # ancient success (e.g. a pre-fix SHA with duplicate YAML keys) and break E2E.
+          SHA='${{ github.event.workflow_run.head_sha }}'
           if [ -z "$SHA" ]; then
-            echo "Could not resolve CI commit for E2E" >&2
+            echo "Could not resolve CD head_sha for E2E" >&2
             exit 2
           fi
 
-          echo "Resolved CI commit: $SHA"
+          echo "Resolved E2E commit from CD head_sha: $SHA"
           echo "build_sha=$SHA" >> "$GITHUB_OUTPUT"
 
       - name: Check if web stack changed in CI
