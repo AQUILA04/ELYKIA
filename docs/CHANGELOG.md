@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.13] — 2026-09-25
+
+### Changed
+
+- **Annulation de ventes** : refonte UI alignée sur le design system (header-card, tableau, badges) ; alertes via `AlertService` (plus de SweetAlert brut) ; titres modales en blanc sur navy/rouge ; boutons Fermer / Actualiser / Télécharger en navy ou gris (plus de bleu ciel Bootstrap).
+
 ## Frontend — [2.22.12] — 2026-09-25
 
 ### Changed

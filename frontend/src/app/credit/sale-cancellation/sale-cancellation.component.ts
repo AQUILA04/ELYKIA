@@ -1,7 +1,7 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
-import Swal from 'sweetalert2';
 import { CommercialService } from 'src/app/commercial/service/commercial.service';
+import { AlertService } from 'src/app/shared/service/alert.service';
 import { SaleCancellationService } from '../service/sale-cancellation.service';
 import {
   SaleCancellationExecuteRequest,
@@ -17,25 +17,21 @@ import {
   encapsulation: ViewEncapsulation.None,
   standalone: false
 })
-export class SaleCancellationComponent implements OnInit {
+export class SaleCancellationComponent implements OnInit, OnDestroy {
 
-  // Données de l'historique
   runs: SaleCancellationRun[] = [];
   totalRuns = 0;
   currentPage = 0;
   pageSize = 10;
   loadingHistory = false;
 
-  // Détails d'un run sélectionné (modal de consultation)
   selectedRun: SaleCancellationRun | null = null;
   loadingDetails = false;
 
-  // Modal / Panneau Nouvelle Annulation (ADMIN uniquement)
   showNewCancellationModal = false;
   commercials: any[] = [];
   loadingCommercials = false;
 
-  // Filtres de simulation
   filterForm: SaleCancellationFilter = {
     commercialUsername: '',
     startDate: '',
@@ -43,44 +39,52 @@ export class SaleCancellationComponent implements OnInit {
     creditStatus: null
   };
 
-  // Contraintes de dates du mois en cours
-  minDateString: string = '';
-  maxDateString: string = '';
+  minDateString = '';
+  maxDateString = '';
 
-  // Résultat de simulation (Dry-Run)
   previewResult: SaleCancellationPreview | null = null;
   loadingPreview = false;
 
-  // Exécution
   cancellationReason = '';
   executing = false;
   downloadingFileId: number | null = null;
 
+  currentDate = new Date();
+  lastUpdate = new Date();
+  private dateIntervalId?: ReturnType<typeof setInterval>;
+
   constructor(
     private readonly cancellationService: SaleCancellationService,
-    private readonly commercialService: CommercialService
+    private readonly commercialService: CommercialService,
+    private readonly alertService: AlertService
   ) {}
 
   ngOnInit(): void {
     this.initCurrentMonthDates();
     this.loadHistory();
     this.loadCommercials();
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
   }
 
   private initCurrentMonthDates(): void {
     const now = new Date();
     const year = now.getFullYear();
-    const month = now.getMonth(); // 0-indexed
+    const month = now.getMonth();
 
-    // 1er jour du mois courant
     const firstDay = new Date(year, month, 1);
     this.minDateString = this.formatDate(firstDay);
 
-    // Dernier jour du mois courant
     const lastDay = new Date(year, month + 1, 0);
     this.maxDateString = this.formatDate(lastDay);
 
-    // Par défaut : du 1er au jour actuel
     this.filterForm.startDate = this.minDateString;
     this.filterForm.endDate = this.formatDate(now);
   }
@@ -122,14 +126,14 @@ export class SaleCancellationComponent implements OnInit {
           this.runs = res;
           this.totalRuns = res.length;
         }
+        this.lastUpdate = new Date();
       },
       error: () => {
         this.loadingHistory = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          text: 'Impossible de charger l\'historique des annulations.'
-        });
+        this.alertService.showError(
+          'Impossible de charger l\'historique des annulations.',
+          'Erreur'
+        );
       }
     });
   }
@@ -150,11 +154,10 @@ export class SaleCancellationComponent implements OnInit {
       },
       error: () => {
         this.loadingDetails = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          text: 'Impossible de récupérer le détail de cette opération.'
-        });
+        this.alertService.showError(
+          'Impossible de récupérer le détail de cette opération.',
+          'Erreur'
+        );
       }
     });
   }
@@ -177,11 +180,14 @@ export class SaleCancellationComponent implements OnInit {
 
   onSimulate(): void {
     if (!this.filterForm.commercialUsername) {
-      Swal.fire('Attention', 'Veuillez sélectionner un commercial.', 'warning');
+      this.alertService.showWarning('Veuillez sélectionner un commercial.', 'Attention');
       return;
     }
     if (!this.filterForm.startDate || !this.filterForm.endDate) {
-      Swal.fire('Attention', 'Veuillez renseigner les dates de début et de fin.', 'warning');
+      this.alertService.showWarning(
+        'Veuillez renseigner les dates de début et de fin.',
+        'Attention'
+      );
       return;
     }
 
@@ -193,51 +199,61 @@ export class SaleCancellationComponent implements OnInit {
         this.loadingPreview = false;
         this.previewResult = preview;
         if (preview.totalSalesFound === 0) {
-          Swal.fire('Information', 'Aucune vente trouvée pour cette période et ce commercial.', 'info');
+          this.alertService.showInfo(
+            'Aucune vente trouvée pour cette période et ce commercial.',
+            'Information'
+          );
         }
       },
       error: (err) => {
         this.loadingPreview = false;
         const msg = err?.error?.message || 'Erreur lors de la simulation.';
-        Swal.fire('Erreur de simulation', msg, 'error');
+        this.alertService.showError(msg, 'Erreur de simulation');
       }
     });
   }
 
   onConfirmExecution(): void {
     if (!this.previewResult || this.previewResult.eligibleCount === 0) {
-      Swal.fire('Action impossible', 'Aucune vente éligible à annuler.', 'warning');
+      this.alertService.showWarning('Aucune vente éligible à annuler.', 'Action impossible');
       return;
     }
 
     if (!this.cancellationReason.trim()) {
-      Swal.fire('Motif requis', 'Veuillez saisir obligatoirement un motif d\'audit pour confirmer.', 'warning');
+      this.alertService.showWarning(
+        'Veuillez saisir obligatoirement un motif d\'audit pour confirmer.',
+        'Motif requis'
+      );
       return;
     }
 
-    Swal.fire({
-      title: 'Confirmer l\'annulation ?',
-      html: `
-        Vous êtes sur le point d'annuler <b>${this.previewResult.eligibleCount} vente(s)</b> 
-        pour un montant total de <b>${this.previewResult.eligibleAmount.toLocaleString()} FCFA</b>.<br><br>
-        <ul style="text-align: left; font-size: 13px;">
-          <li>Le stock sera réintégré dans le stock du commercial du mois en cours.</li>
-          <li>Les rapports journaliers des dates d'opération seront décrémentés.</li>
-          <li>Des fiches d'audit PDF seront générées et archivées sur MinIO.</li>
-          ${this.previewResult.excludedCount > 0 ? `<li style="color: #d35400;"><b>${this.previewResult.excludedCount} vente(s) avec paiements perçus seront préservées et non annulées.</b></li>` : ''}
-        </ul>
-      `,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Oui, exécuter l\'annulation',
-      cancelButtonText: 'Annuler'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.executeCancellation();
-      }
-    });
+    const excludedNote = this.previewResult.excludedCount > 0
+      ? `<li style="color: #c75000;"><b>${this.previewResult.excludedCount} vente(s) avec paiements perçus seront préservées et non annulées.</b></li>`
+      : '';
+
+    const html = `
+      Vous êtes sur le point d'annuler <b>${this.previewResult.eligibleCount} vente(s)</b>
+      pour un montant total de <b>${this.previewResult.eligibleAmount.toLocaleString()} FCFA</b>.<br><br>
+      <ul style="text-align: left; font-size: 13px;">
+        <li>Le stock sera réintégré dans le stock du commercial du mois en cours.</li>
+        <li>Les rapports journaliers des dates d'opération seront décrémentés.</li>
+        <li>Des fiches d'audit PDF seront générées et archivées sur MinIO.</li>
+        ${excludedNote}
+      </ul>
+    `;
+
+    this.alertService
+      .showConfirmation(
+        'Confirmer l\'annulation ?',
+        html,
+        'Oui, exécuter l\'annulation',
+        'Annuler'
+      )
+      .then((confirmed) => {
+        if (confirmed) {
+          this.executeCancellation();
+        }
+      });
   }
 
   private executeCancellation(): void {
@@ -255,28 +271,30 @@ export class SaleCancellationComponent implements OnInit {
       next: (run) => {
         this.executing = false;
         if (run.status !== 'COMPLETED') {
-          Swal.fire('Erreur d\'annulation', run.errorMessage || 'L\'opération n\'a pas abouti.', 'error');
+          this.alertService.showError(
+            run.errorMessage || 'L\'opération n\'a pas abouti.',
+            'Erreur d\'annulation'
+          );
           this.loadHistory();
           return;
         }
         this.closeNewCancellation();
         this.loadHistory();
 
-        Swal.fire({
-          icon: 'success',
-          title: 'Annulation réussie',
-          html: `
+        this.alertService.showSuccess(
+          `
             L'opération s'est terminée avec succès.<br>
             - <b>${run.cancelledSalesCount}</b> vente(s) annulée(s)<br>
             - <b>${run.excludedSalesCount}</b> vente(s) rejetée(s) pour recouvrements<br>
             - <b>${run.pdfFileCount}</b> pièce(s) d'audit archivée(s)
-          `
-        });
+          `,
+          'Annulation réussie'
+        );
       },
       error: (err) => {
         this.executing = false;
         const msg = err?.error?.message || 'Erreur lors de l\'exécution de l\'annulation.';
-        Swal.fire('Erreur d\'annulation', msg, 'error');
+        this.alertService.showError(msg, 'Erreur d\'annulation');
       }
     });
   }
@@ -297,7 +315,10 @@ export class SaleCancellationComponent implements OnInit {
       },
       error: () => {
         this.downloadingFileId = null;
-        Swal.fire('Erreur', 'Impossible de télécharger la pièce d\'audit.', 'error');
+        this.alertService.showError(
+          'Impossible de télécharger la pièce d\'audit.',
+          'Erreur'
+        );
       }
     });
   }
