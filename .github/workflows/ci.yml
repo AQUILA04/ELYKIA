@@ -2,6 +2,11 @@ name: ELYKIA CI Pipeline
 
 # Deploy gate: frontend + backend only. Mobile runs in ci-mobile.yml and does not block CD.
 # Customer-space runs in ci-customer-space.yml and does not block CD.
+#
+# Path detection:
+#   pull_request → dorny/paths-filter vs PR base
+#   push → since last successful component job (not last push only), so a CI-failed
+#          commit that touched a path is still rebuilt when a later fix lands outside it.
 
 on:
   push:
@@ -16,16 +21,23 @@ env:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
     outputs:
-      frontend: ${{ steps.filter.outputs.frontend }}
-      backend: ${{ steps.filter.outputs.backend }}
-      backend_lib: ${{ steps.filter.outputs.backend_lib }}
-      mobile: ${{ steps.filter.outputs.mobile }}
-      website: ${{ steps.filter.outputs.website }}
+      frontend: ${{ steps.filter.outputs.frontend || steps.push.outputs.frontend }}
+      backend: ${{ steps.filter.outputs.backend || steps.push.outputs.backend }}
+      backend_lib: ${{ steps.filter.outputs.backend_lib || steps.push.outputs.backend_lib }}
+      mobile: ${{ steps.filter.outputs.mobile || steps.push.outputs.mobile }}
+      website: ${{ steps.filter.outputs.website || steps.push.outputs.website }}
     steps:
     - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
     - uses: dorny/paths-filter@v4
       id: filter
+      if: github.event_name == 'pull_request'
       with:
         filters: |
           frontend:
@@ -40,6 +52,34 @@ jobs:
             - 'mobile/**'
           website:
             - 'website/**'
+
+    - name: Detect path changes since last successful CI job
+      id: push
+      if: github.event_name == 'push'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        WORKFLOW_FILE: ci.yml
+        HEAD_SHA: ${{ github.sha }}
+        HEAD_BRANCH: ${{ github.ref_name }}
+      run: |
+        set -euo pipefail
+        chmod +x .github/scripts/detect-path-changes-since-last-success.sh
+        detect() {
+          local out_name="$1"
+          local job_name="$2"
+          shift 2
+          JOB_NAME="$job_name" \
+            .github/scripts/detect-path-changes-since-last-success.sh "$@" \
+            | tee "/tmp/detect-${out_name}.txt"
+          echo "${out_name}=$(cat "/tmp/detect-${out_name}.txt")" >> "$GITHUB_OUTPUT"
+        }
+        detect frontend build-frontend 'frontend/**' 'user-guide/**'
+        detect backend build-backend 'backend/**' '.github/workflows/ci.yml'
+        detect backend_lib build-backend-lib 'backend-lib/**'
+        # No build job in this workflow for mobile/website — use last successful CI run.
+        detect mobile "" 'mobile/**'
+        detect website "" 'website/**'
 
   build-frontend:
     needs: changes

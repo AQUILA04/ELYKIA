@@ -2,6 +2,10 @@ name: ELYKIA CI Mobile Pipeline
 
 # Mobile CI is decoupled from the deploy gate (ci.yml).
 # A mobile failure does not block CD; build-mobile-apk.yml waits for both CD and this workflow.
+#
+# Path detection:
+#   pull_request → dorny/paths-filter vs PR base
+#   push → since last successful build-mobile job (not last push only).
 
 on:
   push:
@@ -12,16 +16,39 @@ on:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
     outputs:
-      mobile: ${{ steps.filter.outputs.mobile }}
+      mobile: ${{ steps.filter.outputs.mobile || steps.push.outputs.mobile }}
     steps:
     - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
     - uses: dorny/paths-filter@v4
       id: filter
+      if: github.event_name == 'pull_request'
       with:
         filters: |
           mobile:
             - 'mobile/**'
+
+    - name: Detect mobile changes since last successful build
+      id: push
+      if: github.event_name == 'push'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        WORKFLOW_FILE: ci-mobile.yml
+        HEAD_SHA: ${{ github.sha }}
+        HEAD_BRANCH: ${{ github.ref_name }}
+        JOB_NAME: build-mobile
+      run: |
+        set -euo pipefail
+        chmod +x .github/scripts/detect-path-changes-since-last-success.sh
+        result=$(.github/scripts/detect-path-changes-since-last-success.sh 'mobile/**')
+        echo "mobile=$result" >> "$GITHUB_OUTPUT"
 
   build-mobile:
     needs: changes

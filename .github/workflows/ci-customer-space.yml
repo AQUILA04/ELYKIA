@@ -2,6 +2,10 @@ name: ELYKIA CI Customer Space Pipeline
 
 # Customer-space CI is decoupled from the deploy gate (ci.yml).
 # A customer-space failure does not block CD.
+#
+# Path detection:
+#   pull_request → dorny/paths-filter vs PR base
+#   push → since last successful build-customer-space job (not last push only).
 
 on:
   push:
@@ -12,12 +16,19 @@ on:
 jobs:
   changes:
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
     outputs:
-      customer_space: ${{ steps.filter.outputs.customer_space }}
+      customer_space: ${{ steps.filter.outputs.customer_space || steps.push.outputs.customer_space }}
     steps:
     - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
     - uses: dorny/paths-filter@v4
       id: filter
+      if: github.event_name == 'pull_request'
       with:
         filters: |
           customer_space:
@@ -29,6 +40,30 @@ jobs:
             - '.github/scripts/publish-customer-space-apk.sh'
             - '.github/scripts/validate-customer-space-pipeline.sh'
             - '.github/scripts/install-customer-space-app-update-plugin.sh'
+
+    - name: Detect customer-space changes since last successful build
+      id: push
+      if: github.event_name == 'push'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        WORKFLOW_FILE: ci-customer-space.yml
+        HEAD_SHA: ${{ github.sha }}
+        HEAD_BRANCH: ${{ github.ref_name }}
+        JOB_NAME: build-customer-space
+      run: |
+        set -euo pipefail
+        chmod +x .github/scripts/detect-path-changes-since-last-success.sh
+        result=$(.github/scripts/detect-path-changes-since-last-success.sh \
+          'customer-space/**' \
+          '.github/workflows/ci-customer-space.yml' \
+          '.github/workflows/build-customer-space-apk.yml' \
+          '.github/actions/build-customer-space-apk/**' \
+          '.github/workflows/android-config-customer-space/**' \
+          '.github/scripts/publish-customer-space-apk.sh' \
+          '.github/scripts/validate-customer-space-pipeline.sh' \
+          '.github/scripts/install-customer-space-app-update-plugin.sh')
+        echo "customer_space=$result" >> "$GITHUB_OUTPUT"
 
   test-customer-space:
     needs: changes

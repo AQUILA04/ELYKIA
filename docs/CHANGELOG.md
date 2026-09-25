@@ -29,6 +29,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Fixed
 
+- **CI path detection** : sur `push`, `ci.yml` / `ci-mobile.yml` / `ci-customer-space.yml` ne se limitent plus au diff du dernier push (`dorny/paths-filter`). Ils comparent les paths au `head_sha` du dernier job de build réussi (script `.github/scripts/detect-path-changes-since-last-success.sh`), pour qu’un CI rouge suivi d’un fix hors path rebuild bien l’image / l’APK. Les **pull_request** gardent dorny vs base de PR.
 - **CD `-fu`** : la détection ne s’appuie plus sur l’API Events (`PushEvent.before`, faux négatifs sur merges PR). Elle compare désormais `deploy/` entre le `head_sha` du dernier CD réussi (job TEST ou PROD selon la branche) et le commit courant, ce qui couvre aussi le cas « push `deploy/` + CI rouge, puis fix CI sans toucher `deploy/` ». Logs explicites (BASE, HEAD, fichiers). Promote : mêmes logs sur la fenêtre image-TEST → `origin/main`.
 
 ## Docs & Infra
