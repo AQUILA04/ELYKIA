@@ -1,4 +1,8 @@
 # Monitoring stack — Prometheus + Grafana + Node Exporter + Loki + Promtail
+#
+# LEGACY DigitalOcean only. On Contabo, use optimize-common-infra observability
+# (https://grafana.optimizesolux.com). Do NOT start this compose on Contabo.
+#
 # Start:  docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring up -d
 # Stop:   docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring down
 #

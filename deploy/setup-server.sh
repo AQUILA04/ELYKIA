@@ -217,7 +217,7 @@ fi
 
 # --- 7. Optional: rclone for off-site DB backup replication ---
 if [[ -n "${RCLONE_CONF:-}" || -n "${RCLONE_CONF_FILE:-}" ]]; then
-  echo "[7/7] Setting up rclone (off-site backup upload)..."
+  echo "[7/8] Setting up rclone (off-site backup upload)..."
   chmod +x "$DEPLOY_DIR/setup-rclone.sh"
   if [[ -n "${RCLONE_CONF_FILE:-}" ]]; then
     "$DEPLOY_DIR/setup-rclone.sh" --rclone-conf-file "$RCLONE_CONF_FILE"
@@ -225,7 +225,65 @@ if [[ -n "${RCLONE_CONF:-}" || -n "${RCLONE_CONF_FILE:-}" ]]; then
     "$DEPLOY_DIR/setup-rclone.sh"
   fi
 else
-  echo "[7/7] Skipping rclone setup (RCLONE_CONF not provided)."
+  echo "[7/8] Skipping rclone setup (RCLONE_CONF not provided)."
+fi
+
+# --- 8. Cron: local DB backups + evening Google Drive upload (Mon–Sat) ---
+echo "[8/8] Setting up cron jobs for DB backups (08:00 / 19:00 local Mon-Sat)..."
+CRON_USER="${CRON_USER:-deploy}"
+DEPLOY_PATH="/opt/elykia"
+CRON_BACKUP_MORNING="0 8 * * 1-6 cd $DEPLOY_PATH/deploy && $DEPLOY_PATH/deploy/db_backup.sh prod >> /var/log/elykia_db_backup.log 2>&1"
+CRON_BACKUP_EVENING="0 19 * * 1-6 cd $DEPLOY_PATH/deploy && $DEPLOY_PATH/deploy/db_backup.sh prod >> /var/log/elykia_db_backup.log 2>&1 && $DEPLOY_PATH/deploy/db_backup_upload.sh >> /var/log/elykia_db_backup_upload.log 2>&1"
+
+if ! command -v crontab &>/dev/null; then
+  echo "      Installing cron..."
+  apt-get update -qq && apt-get install -y -qq cron
+fi
+if systemctl list-unit-files cron.service &>/dev/null; then
+  systemctl enable --now cron 2>/dev/null || true
+elif systemctl list-unit-files crond.service &>/dev/null; then
+  systemctl enable --now crond 2>/dev/null || true
+fi
+
+# Contabo / fresh VPS often has no deploy user (migration skips it). Create if missing.
+if ! id "$CRON_USER" &>/dev/null; then
+  echo "      Creating user '$CRON_USER' for backups/rclone..."
+  useradd -m -s /bin/bash "$CRON_USER"
+  if getent group docker &>/dev/null; then
+    usermod -aG docker "$CRON_USER"
+  fi
+fi
+if id "$CRON_USER" &>/dev/null && getent group docker &>/dev/null; then
+  usermod -aG docker "$CRON_USER" 2>/dev/null || true
+fi
+
+touch /var/log/elykia_db_backup.log /var/log/elykia_db_backup_upload.log
+chmod 664 /var/log/elykia_db_backup.log /var/log/elykia_db_backup_upload.log
+mkdir -p /var/backups/elykia
+if id "$CRON_USER" &>/dev/null; then
+  chown "$CRON_USER:$CRON_USER" /var/log/elykia_db_backup.log /var/log/elykia_db_backup_upload.log 2>/dev/null || true
+  chown -R "$CRON_USER:$CRON_USER" /var/backups/elykia 2>/dev/null || true
+  if [[ -f /opt/elykia/prod/.env ]]; then
+    chgrp "$CRON_USER" /opt/elykia/prod/.env 2>/dev/null || true
+    chmod 640 /opt/elykia/prod/.env 2>/dev/null || true
+  fi
+  chmod +x "$DEPLOY_DIR/db_backup.sh" "$DEPLOY_DIR/db_backup_upload.sh" 2>/dev/null || true
+  EXISTING_CRONTAB=$(crontab -u "$CRON_USER" -l 2>/dev/null || true)
+  UPDATED_CRONTAB="$EXISTING_CRONTAB"
+  for CRON_CMD in "$CRON_BACKUP_MORNING" "$CRON_BACKUP_EVENING"; do
+    if ! echo "$UPDATED_CRONTAB" | grep -F "$CRON_CMD" >/dev/null 2>&1; then
+      UPDATED_CRONTAB=$(printf "%s\n%s\n" "$UPDATED_CRONTAB" "$CRON_CMD" | sed '/^$/d')
+    fi
+  done
+  if [[ "$UPDATED_CRONTAB" != "$EXISTING_CRONTAB" ]]; then
+    printf "%s\n" "$UPDATED_CRONTAB" | crontab -u "$CRON_USER" -
+    echo "      Cron jobs installed for user $CRON_USER"
+  else
+    echo "      Cron jobs already present for user $CRON_USER"
+  fi
+else
+  echo "      User '$CRON_USER' does not exist; skipping crontab install."
+  echo "      Create the user then re-run setup, or install manually (see EXPLOITATION.md)."
 fi
 
 echo ""
@@ -243,12 +301,13 @@ echo "  5. Deploy stacks via the CD pipeline or manually:"
 echo "       cd $DEPLOY_DIR"
 echo "       ./deploy.sh test  <frontend-image> <backend-image>"
 echo "       ./deploy.sh prod  <frontend-image> <backend-image>"
-echo "  6. Start the Tools stack (PgAdmin 4):"
+echo "  6. Start the Tools stack (PgAdmin 4) if still used on this host:"
 echo "       docker compose -f docker-compose.tools.yml --project-name elykia-tools --env-file /opt/elykia/tools/.env up -d"
-echo "  7. Start the Monitoring stack (Prometheus, Grafana, Loki):"
-echo "       docker compose -f monitoring/docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env up -d"
+echo "  7. Observability on Contabo: use shared Grafana (optimize-common-infra),"
+echo "       https://grafana.optimizesolux.com — do NOT start monitoring/docker-compose.monitoring.yml"
+echo "       (legacy DigitalOcean only). Ensure: install.sh --force-update prometheus grafana"
 if [[ -z "${RCLONE_CONF:-}" && -z "${RCLONE_CONF_FILE:-}" ]]; then
-echo "  8. (Optional) Configure off-site DB backup upload to Google Drive:"
+echo "  8. Configure off-site DB backup upload to Google Drive (required for Drive replication):"
 echo "       sudo RCLONE_CONF=\"\$(cat /path/to/rclone.conf)\" $DEPLOY_DIR/setup-rclone.sh"
 fi
 echo ""

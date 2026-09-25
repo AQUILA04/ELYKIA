@@ -250,61 +250,41 @@ RCLONE_CONFIG=/home/deploy/.config/rclone/rclone.conf ./db_restore_from_drive.sh
 
 ## Monitoring et Alerting
 
-Un stack de monitoring complet (Prometheus + Grafana + Loki + Node Exporter) est disponible dans `monitoring/`.
+### Contabo (production actuelle)
 
-### Composition
-| Service | Description | Accès |
+Observabilité via **optimize-common-infra** (ne pas démarrer le stack produit ci-dessous) :
+
+| Couche | Où |
+|--------|-----|
+| UI | `https://grafana.optimizesolux.com` — dossiers **OptimizeSolux** (infra) + **Elykia** (métier) |
+| Actuator | Job Prometheus OCI `elykia-backend` → `elykia-backend:8080/actuator/prometheus` |
+| Conteneurs / logs | cAdvisor + Promtail → Loki (automatique sur le VPS) |
+| Dashboard métier + alertes | Provisionnés dans common-infra (`deploy/observability/grafana/`) |
+
+Après maj common-infra sur le VPS : `install.sh --force-update prometheus` puis `grafana`.
+
+### Legacy DigitalOcean uniquement — `monitoring/`
+
+Le dossier [`monitoring/`](monitoring/) + `docker-compose.monitoring.yml` est le **ancien** stack produit (Prometheus/Grafana/Loki ELYKIA sur `*.amenouveve-yaveh.com`). **Ne pas le lancer sur Contabo** (doublon / conflit avec OCI).
+
+| Service | Description | Accès (DO only) |
 |---|---|---|
-| **Prometheus** | Collecte des métriques Spring Boot via `/actuator/prometheus` + métriques système | `prometheus.amenouveve-yaveh.com` (auth basique) |
-| **Loki** | Base de données de logs centralisés (requêtable via Grafana) | Réseau interne uniquement |
-| **Promtail** | Agent de collecte des logs Docker envoyant vers Loki | Réseau interne uniquement |
-| **Grafana** | Dashboards métier, exploration des logs Loki + alerting | `grafana.amenouveve-yaveh.com` |
-| **Node Exporter** | Métriques système (CPU, RAM, disque) | Réseau interne uniquement |
+| **Prometheus** | `/actuator/prometheus` + système | `prometheus.amenouveve-yaveh.com` |
+| **Loki** / **Promtail** | Logs Docker | Interne |
+| **Grafana** | Dashboards + alerting | `grafana.amenouveve-yaveh.com` |
+| **Node Exporter** | CPU/RAM/disque | Interne |
 
-### Démarrage
 ```bash
-# Démarrer le stack monitoring
+# DO only — jamais sur Contabo
 docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env up -d
-
-# Arrêter
-docker compose -f docker-compose.monitoring.yml --project-name elykia-monitoring --env-file /opt/elykia/monitoring/.env down
 ```
 
-### Alertes configurées (Grafana-managed)
-Les règles d'alerting sont provisionnées automatiquement dans `monitoring/grafana/alerting/alertrules.yml`.
-
-**Critiques (P1) :**
-- Échec création de crédit (`elykia_credit_creation_failed_total`)
-- Stock insuffisant pour démarrer/distribuer un crédit
-- Livraison de stock impossible (aucun article disponible)
-- Conflit de prix bloquant une demande de stock
-- Retour de stock excédentaire
-
-**Warning (P2) :**
-- Changements de commercial fréquents (>5/h)
-- Erreurs d'agrégation BI
-- Livraisons partielles de stock
-- Stock insuffisant pour rattrapage
-- Livraison tontine > contribution disponible
-
-**Info (P3) :**
-- Articles en rupture / stock faible
-- Inventaire bloqué (écarts non réconciliés)
-- Demandes de stock auto-annulées
+Les règles d’alerting métier (crédit / stock / tontine) vivent désormais aussi dans **common-infra** pour Contabo. Source historique : `monitoring/grafana/alerting/alertrules.yml`.
 
 ### Backend : métriques custom
 Les métriques sont exposées via `io.micrometer:micrometer-registry-prometheus` :
 - Package : `com.optimize.elykia.core.monitoring.BusinessMetricsPublisher`
-- Endpoint : `GET /actuator/prometheus` (interne, réseau Docker `elykia-prod-internal`)
-
-### Variables d'environnement requises
-| Variable | Description |
-|---|---|
-| `GRAFANA_ADMIN_USER` | Admin Grafana (défaut: `admin`) |
-| `GRAFANA_ADMIN_PASSWORD` | Mot de passe admin Grafana (défaut: `admin`) |
-| `ALERT_EMAIL_TO` | Destinataire alertes email |
-| `SLACK_WEBHOOK_URL` | Webhook Slack pour notifications |
-| `ALERT_WEBHOOK_URL` | Webhook HTTP personnalisé |
+- Endpoint : `GET /actuator/prometheus` (réseau Docker `optimizesolux-common` sur Contabo)
 
 ## Outils — PgAdmin 4
 

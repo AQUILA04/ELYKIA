@@ -40,6 +40,7 @@ elykia_load_stack_env() {
 elykia_compose() {
   local root_dir="${1:?root dir required}"
   local env="${2:?env required}"
+  shift 2
   local env_file
   env_file="$(elykia_stack_env_file "$env")"
 

@@ -63,6 +63,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra — 2026-09-25
 
+## Docs & Infra — 2026-09-25
+
+### Added
+
+- **Deploy —** `setup-server.sh` installe désormais le crontab `deploy` (backup prod 08h / 19h + upload Google Drive le soir) et prépare les logs `/var/log/elykia_db_backup*.log` ; checklist post-migration Contabo rclone+cron dans `CONTABO_MIGRATION.md` et vérif one-shot dans `EXPLOITATION.md`.
+- **Deploy / OCI —** observabilité métier Contabo : dashboard + alertes ELYKIA provisionnés dans `optimize-common-infra` (Grafana folder Elykia) ; docs ELYKIA marquées legacy DO pour `deploy/monitoring`.
+
+### Fixed
+
+- **Deploy —** `elykia_compose` dans `lib/stack.sh` : `shift 2` après `root_dir`/`env` pour que `docker compose` reçoive uniquement la sous-commande (sinon `db_backup.sh` échouait à résoudre le container).
+
 ### Changed
 
 - Guide gestionnaire (opérations) : parcours pas à pas de la page Notifications (KPI Total / Non lues, Tout lire, Actualiser) ; index RAG synchronisé.

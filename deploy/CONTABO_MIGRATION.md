@@ -59,6 +59,8 @@ Options utiles :
 
 **Non migrés** (volontairement) : Traefik produit, MinIO produit, monitoring produit, pgAdmin produit.
 
+**Non migrés (à refaire sur Contabo)** : crontab backups (`deploy`), `rclone` + `rclone.conf` Google Drive — voir § Après migration point 5.
+
 ## Compose Contabo
 
 - `docker-compose.prod.yml` — Contabo FE + BE + DB (`elykia-db` sur `optimizesolux-common`, MinIO partagé)
@@ -92,11 +94,25 @@ Buckets prod → mêmes noms ; buckets test → `*-test`.
 2. **pgAdmin** `https://pgadmin.optimizesolux.com` :
    - Host `elykia-db` (prod) ou `elykia-test-db` (test), port `5432`, credentials `/opt/elykia/{prod,test}/.env`
 3. **Grafana** `https://grafana.optimizesolux.com` :
-   - Conteneurs / logs déjà visibles (cAdvisor, Promtail)
-   - Métriques actuator via job Prometheus `elykia-backend`
-   - Importer au besoin les dashboards `deploy/monitoring/grafana/dashboards/`
-4. Secrets GitHub Actions : `TEST_SERVER_HOST` / `PROD_SERVER_HOST` → IP Contabo
-5. Smoke, puis arrêt des stacks DO
+   - Conteneurs / logs : cAdvisor + Promtail (OCI)
+   - Métriques actuator : job Prometheus `elykia-backend` — `install.sh --force-update prometheus`
+   - Dashboard métier + alertes : provisionnés dans common-infra (folder **Elykia**) — `install.sh --force-update grafana`
+   - **Ne pas** démarrer `deploy/monitoring` (stack produit legacy DO)4. Secrets GitHub Actions : `TEST_SERVER_HOST` / `PROD_SERVER_HOST` → IP Contabo
+5. **Backups DB → Google Drive (obligatoire)** — la migration **ne copie pas** crontab ni `rclone.conf` :
+   ```bash
+   # Sur Contabo, après sync de deploy/
+   cd /opt/elykia/deploy
+   # rclone.conf = secret GitHub RCLONE_CONF (ou copie depuis DO)
+   sudo RCLONE_CONF="$(cat /tmp/rclone.conf)" ./setup-rclone.sh
+   # Pose crontab deploy (08h / 19h + upload Drive) si pas déjà fait via setup-server.sh
+   sudo ./setup-server.sh   # ou installer manuellement les lignes cron (EXPLOITATION.md)
+   # Vérif rapide
+   crontab -u deploy -l
+   test -f /home/deploy/.config/rclone/rclone.conf && echo rclone.conf OK
+   ./db_backup.sh prod && ./db_backup_upload.sh
+   rclone ls gdrive:ELYKIA/backup/ --config /home/deploy/.config/rclone/rclone.conf | head
+   ```
+6. Smoke, puis arrêt des stacks DO
 
 ## Rollback
 
