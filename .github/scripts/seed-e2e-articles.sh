@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Seed articles de référence pour les tests E2E (environnement vierge).
-# Idempotent : les INSERT utilisent ON CONFLICT DO NOTHING (migration Flyway V14).
+# Idempotent : les INSERT utilisent ON CONFLICT DO NOTHING (ex-migration Flyway V14, archivée dans db/legacy).
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-SQL_FILE="$REPO_ROOT/backend/src/main/resources/db/migration/V14__insert_articles.sql"
+SQL_FILE="$REPO_ROOT/backend/src/main/resources/db/legacy/V14__insert_articles.sql"
 
 PGHOST="${PGHOST:-localhost}"
 PGPORT="${PGPORT:-5432}"
