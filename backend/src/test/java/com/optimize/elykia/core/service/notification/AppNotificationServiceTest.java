@@ -84,6 +84,37 @@ class AppNotificationServiceTest {
     }
 
     @Test
+    void unreadCountExcludingCatchup_secretaryUsesExcludingQuery() {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn("SEC");
+        when(user.is(UserProfilConstant.SECRETARY)).thenReturn(true);
+        when(notificationRepository.countUnreadUnresolvedExcludingCatchupForUser("SEC", State.ENABLED))
+                .thenReturn(3L);
+
+        assertEquals(3L, service.unreadCountExcludingCatchup(user));
+        verify(notificationRepository).countUnreadUnresolvedExcludingCatchupForUser("SEC", State.ENABLED);
+        verify(notificationRepository, never()).countUnreadUnresolvedForUser(any(), any());
+        verify(notificationRepository, never()).countUnreadUnresolvedExcludingCatchupForPromoter(any(), any());
+    }
+
+    @Test
+    void unreadCountExcludingCatchup_promoterUsesExcludingQuery() {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn("COM003");
+        when(user.is(UserProfilConstant.SECRETARY)).thenReturn(false);
+        when(user.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(user.is(UserProfilConstant.ADMIN)).thenReturn(false);
+        when(user.is(UserProfilConstant.PROMOTER)).thenReturn(true);
+        when(notificationRepository.countUnreadUnresolvedExcludingCatchupForPromoter("COM003", State.ENABLED))
+                .thenReturn(1L);
+
+        assertEquals(1L, service.unreadCountExcludingCatchup(user));
+        verify(notificationRepository).countUnreadUnresolvedExcludingCatchupForPromoter("COM003", State.ENABLED);
+        verify(notificationRepository, never()).countUnreadUnresolvedForPromoter(any(), any());
+        verify(notificationRepository, never()).countUnreadUnresolvedExcludingCatchupForUser(any(), any());
+    }
+
+    @Test
     void createPaymentDeclaration_persistsNotification() {
         when(notificationRepository.findByTypeAndEntityIdAndResolvedAtIsNull(
                 AppNotificationType.PAYMENT_DECLARATION, 11L)).thenReturn(Optional.empty());

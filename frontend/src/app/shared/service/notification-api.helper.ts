@@ -17,6 +17,13 @@ export function fetchUnreadNotificationCount(http: HttpClient, apiUrl: string): 
     .pipe(map((res) => res?.data?.count ?? 0));
 }
 
+/** Unread count excluding TONTINE_CATCHUP — for login toast only. */
+export function fetchUnreadNotificationCountForToast(http: HttpClient, apiUrl: string): Observable<number> {
+  return http
+    .get<ApiResponse<{ count: number }>>(`${apiUrl}/unread-count-for-toast`)
+    .pipe(map((res) => res?.data?.count ?? 0));
+}
+
 export function markNotificationRead(http: HttpClient, apiUrl: string, id: number): Observable<boolean> {
   return http
     .post<ApiResponse<boolean>>(`${apiUrl}/${id}/read`, {})

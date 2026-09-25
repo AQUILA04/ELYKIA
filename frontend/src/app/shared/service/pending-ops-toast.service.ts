@@ -26,7 +26,7 @@ export class PendingOpsToastService {
     if (sessionStorage.getItem(SESSION_KEY) === '1') {
       return;
     }
-    this.notificationService.unreadCount().subscribe({
+    this.notificationService.unreadCountForToast().subscribe({
       next: (count) => {
         if (count <= 0) {
           return;

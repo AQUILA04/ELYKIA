@@ -205,12 +205,17 @@ ELYKIA intègre un système d'alerte multicanal pour avertir immédiatement les 
 * **Lien complet** : Le lien en bas de volet **« Voir toutes les notifications »** ouvre la page dédiée.
 
 ### B. Page dédiée du centre de notifications
-* **Bouton « Tout lire »** : Permet de basculer l'ensemble des notifications affichées à l'état lu en un seul clic.
-* **Bouton « Actualiser »** : Recharge immédiatement les flux d'alertes sans recharger la page entière.
-* **Classification fonctionnelle des alertes** :
-  * **Paiement** : Déclaration de remboursement de crédit initiée en ligne par un client.
-  * **Cotisation tontine** : Déclaration de cotisation d'épargne par un membre.
-  * **Commande** : Nouvelle réservation ou précommande d'article soumise par un client.
-  * **Rattrapage** : Demande ou régularisation de versement de rattrapage sur un mois antérieur.
+
+1. Ouvrez la page via **« Voir toutes les notifications »** (cloche) ou le menu correspondant.
+2. En haut de page, les indicateurs **Total** et **Non lues** résument le volume d’alertes.
+3. Cliquez sur **« Tout lire »** pour marquer toutes les alertes affichées comme lues.
+4. Cliquez sur **« Actualiser »** pour recharger la liste sans quitter la page.
+5. Les alertes sont regroupées par date. Cliquez sur une ligne pour l’ouvrir (elle est marquée lue) et accéder à l’écran concerné.
+
+**Types d’alertes :**
+* **Paiement** : déclaration de remboursement de crédit initiée en ligne par un client.
+* **Cotisation tontine** : déclaration de cotisation d’épargne par un membre.
+* **Commande** : nouvelle réservation ou précommande d’article soumise par un client.
+* **Rattrapage** : régularisation de versement de rattrapage sur un mois antérieur.
 
 

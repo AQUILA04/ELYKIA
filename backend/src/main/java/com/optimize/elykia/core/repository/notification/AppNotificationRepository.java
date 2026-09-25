@@ -87,4 +87,47 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
             """)
     long countUnreadUnresolvedForPromoter(
             @Param("username") String username, @Param("state") State state);
+
+    /**
+     * Same as {@link #countUnreadUnresolvedForUser} but excludes {@code TONTINE_CATCHUP}
+     * (used by the login toast — catchups alone must not trigger it).
+     */
+    @Query("""
+            SELECT COUNT(n) FROM AppNotification n
+            WHERE n.state = :state
+              AND n.resolvedAt IS NULL
+              AND n.type <> com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_CATCHUP
+              AND n.id NOT IN (
+                  SELECT r.notificationId FROM AppNotificationRead r
+                  WHERE UPPER(r.username) = UPPER(:username)
+              )
+            """)
+    long countUnreadUnresolvedExcludingCatchupForUser(
+            @Param("username") String username, @Param("state") State state);
+
+    /**
+     * Same as {@link #countUnreadUnresolvedForPromoter} but excludes {@code TONTINE_CATCHUP}.
+     */
+    @Query("""
+            SELECT COUNT(n) FROM AppNotification n
+            WHERE n.state = :state
+              AND n.resolvedAt IS NULL
+              AND n.type <> com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_CATCHUP
+              AND (
+                    (n.type IN (com.optimize.elykia.core.enumaration.AppNotificationType.PAYMENT_DECLARATION,
+                                com.optimize.elykia.core.enumaration.AppNotificationType.CUSTOMER_ORDER)
+                     AND UPPER(n.targetCollector) = UPPER(:username))
+                 OR (n.type = com.optimize.elykia.core.enumaration.AppNotificationType.TONTINE_PAYMENT_DECLARATION
+                     AND (
+                          UPPER(n.tontineCollector) = UPPER(:username)
+                          OR (n.tontineCollector IS NULL AND UPPER(n.targetCollector) = UPPER(:username))
+                     ))
+              )
+              AND n.id NOT IN (
+                  SELECT r.notificationId FROM AppNotificationRead r
+                  WHERE UPPER(r.username) = UPPER(:username)
+              )
+            """)
+    long countUnreadUnresolvedExcludingCatchupForPromoter(
+            @Param("username") String username, @Param("state") State state);
 }

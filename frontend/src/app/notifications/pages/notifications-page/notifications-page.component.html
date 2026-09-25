@@ -1,36 +1,103 @@
-<div class="container-fluid py-3" data-testid="e2e-notifications-page">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <div>
-      <h2 class="mb-1">Notifications</h2>
-      <p class="text-muted mb-0">Opérations en attente de validation.</p>
+<div class="main-container notifications-page a1" data-testid="e2e-notifications-page">
+
+  <div class="breadcrumb-bar">
+    <a routerLink="/dashboard" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Tableau de bord
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">NOTIFICATIONS · CENTRE D'ALERTES</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
     </div>
-    <div class="d-flex gap-2">
-      <button type="button" class="btn btn-outline-secondary" (click)="markAllRead()">Tout lire</button>
-      <button type="button" class="btn btn-outline-primary" (click)="load()" [disabled]="loading">Actualiser</button>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon" aria-hidden="true">
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+        </svg>
+        <h1 class="page-title">Notifications</h1>
+      </div>
+      <div class="header-actions">
+        <button type="button"
+                class="btn-primary"
+                (click)="markAllRead()"
+                [disabled]="loading || unreadCount === 0">
+          Tout lire
+        </button>
+        <button type="button"
+                class="btn-refresh"
+                (click)="load()"
+                [disabled]="loading">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.spin]="loading" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+            <path d="M3 3v5h5"/>
+          </svg>
+          Actualiser
+        </button>
+      </div>
+    </div>
+    <p class="page-subtitle">Opérations en attente de validation.</p>
+  </div>
+
+  <div class="kpi-strip a3" *ngIf="!loading || totalCount > 0">
+    <div class="kpi-card kpi-total">
+      <div class="kpi-label">Total</div>
+      <div class="kpi-value">{{ totalCount }}</div>
+      <div class="kpi-sub">notification(s)</div>
+    </div>
+    <div class="kpi-card kpi-amount">
+      <div class="kpi-label">Non lues</div>
+      <div class="kpi-value">{{ unreadCount }}</div>
+      <div class="kpi-sub">à traiter</div>
     </div>
   </div>
 
-  <div *ngIf="loading" class="text-muted py-4">Chargement…</div>
-  <div *ngIf="!loading && groups.length === 0" class="alert alert-light border">
-    Aucune notification en attente.
+  <div class="table-card a5">
+    <div class="empty-state" *ngIf="loading">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="empty-icon-svg spin" aria-hidden="true">
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+      <div class="empty-title">Chargement…</div>
+      <div class="empty-sub">Récupération des notifications en cours</div>
+    </div>
+
+    <div class="empty-state" *ngIf="!loading && groups.length === 0">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon-svg" aria-hidden="true">
+        <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+        <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+      </svg>
+      <div class="empty-title">Aucune notification en attente</div>
+      <div class="empty-sub">Les alertes à traiter apparaîtront ici</div>
+    </div>
+
+    <div class="notif-groups" *ngIf="!loading && groups.length > 0">
+      <section class="notif-group" *ngFor="let group of groups">
+        <h2 class="notif-group-date">{{ group.operationDate | date:'dd/MM/yyyy' }}</h2>
+        <ul class="notif-list">
+          <li *ngFor="let item of group.items">
+            <button type="button"
+                    class="notif-item"
+                    [class.unread]="!item.read"
+                    [attr.data-testid]="'e2e-notifications-item'"
+                    (click)="open(item)">
+              <div class="notif-item-main">
+                <span class="notif-title">{{ item.title }}</span>
+                <span class="notif-message" *ngIf="item.message">{{ item.message }}</span>
+                <span class="notif-amount" *ngIf="item.amount != null">{{ item.amount | number:'1.0-0' }} FCFA</span>
+              </div>
+              <span class="type-pill" [attr.data-type]="item.type">{{ typeLabel(item.type) }}</span>
+            </button>
+          </li>
+        </ul>
+      </section>
+    </div>
   </div>
 
-  <ng-container *ngFor="let group of groups">
-    <h6 class="text-uppercase text-muted mt-3">{{ group.operationDate | date:'dd/MM/yyyy' }}</h6>
-    <div class="list-group mb-2">
-      <button type="button"
-        class="list-group-item list-group-item-action"
-        *ngFor="let item of group.items"
-        [class.list-group-item-primary]="!item.read"
-        [attr.data-testid]="'e2e-notifications-item'"
-        (click)="open(item)">
-        <div class="d-flex justify-content-between">
-          <strong>{{ item.title }}</strong>
-          <span class="badge bg-light text-dark">{{ typeLabel(item.type) }}</span>
-        </div>
-        <div class="small text-muted">{{ item.message }}</div>
-        <div class="small" *ngIf="item.amount != null">{{ item.amount | currency:'XOF':'symbol':'1.0-0' }}</div>
-      </button>
-    </div>
-  </ng-container>
 </div>

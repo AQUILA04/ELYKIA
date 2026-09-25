@@ -219,6 +219,21 @@ public class AppNotificationService {
         return notificationRepository.countUnreadUnresolvedForUser(user.getUsername(), State.ENABLED);
     }
 
+    /**
+     * Unread unresolved count excluding {@code TONTINE_CATCHUP}.
+     * Login toast must not fire when only catchups remain.
+     */
+    @Transactional(readOnly = true)
+    public long unreadCountExcludingCatchup(User user) {
+        assertNotificationAudience(user);
+        if (isPromoterOnly(user)) {
+            return notificationRepository.countUnreadUnresolvedExcludingCatchupForPromoter(
+                    user.getUsername(), State.ENABLED);
+        }
+        return notificationRepository.countUnreadUnresolvedExcludingCatchupForUser(
+                user.getUsername(), State.ENABLED);
+    }
+
     @Transactional(readOnly = true)
     public List<AppNotificationGroupDto> listGrouped(User user) {
         assertNotificationAudience(user);

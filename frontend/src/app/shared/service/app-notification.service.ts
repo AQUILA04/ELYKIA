@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import {
   fetchUnreadNotificationCount,
+  fetchUnreadNotificationCountForToast,
   listNotificationGroups,
   markAllNotificationsRead,
   markNotificationRead
@@ -51,6 +52,11 @@ export class AppNotificationService {
 
   unreadCount(): Observable<number> {
     return fetchUnreadNotificationCount(this.http, this.apiUrl);
+  }
+
+  /** Login toast: excludes TONTINE_CATCHUP (rattrapages). */
+  unreadCountForToast(): Observable<number> {
+    return fetchUnreadNotificationCountForToast(this.http, this.apiUrl);
   }
 
   markRead(id: number): Observable<boolean> {

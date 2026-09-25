@@ -38,6 +38,14 @@ public class AppNotificationController {
         return ResponseEntity.ok(ResponseUtil.successResponse(Map.of("count", count)));
     }
 
+    /** Count for login toast — excludes TONTINE_CATCHUP (rattrapages). */
+    @GetMapping("/unread-count-for-toast")
+    public ResponseEntity<?> unreadCountForToast() {
+        User user = userService.getCurrentUser();
+        long count = notificationService.unreadCountExcludingCatchup(user);
+        return ResponseEntity.ok(ResponseUtil.successResponse(Map.of("count", count)));
+    }
+
     @PostMapping("/{id}/read")
     public ResponseEntity<?> markRead(@PathVariable Long id) {
         User user = userService.getCurrentUser();

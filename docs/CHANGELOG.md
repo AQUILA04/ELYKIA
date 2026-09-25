@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.15] — 2026-09-25
+
+### Changed
+
+- Page **Notifications** (`/notifications`) alignée sur le design system : breadcrumb, header-card, KPI Total / Non lues, liste groupée par date, états vide/chargement (plus de Bootstrap `list-group`).
+
+## Frontend — [2.22.14] — 2026-09-25
+
+### Fixed
+
+- Toast login « opérations en attente de validation » : ne s’affiche plus s’il ne reste que des rattrapages (`TONTINE_CATCHUP`) ; la cloche continue de les compter.
+
 ## Frontend — [2.22.13] — 2026-09-25
 
 ### Changed
@@ -41,6 +53,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Changed
 
+- Guide gestionnaire (opérations) : parcours pas à pas de la page Notifications (KPI Total / Non lues, Tout lire, Actualiser) ; index RAG synchronisé.
 - Guide Historique des entrées (magasinier / gestionnaire) : procédures pas à pas uniquement (écran, boutons, PDF) ; formulation métier, sans détail de masquage technique.
 
 ### Fixed
@@ -56,6 +69,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Seed E2E articles : chemin mis à jour vers `db/legacy/V14__insert_articles.sql` après le rebaseline Flyway.
 - SonarCloud : exclusion de `db/legacy/**` et CPD du dump `V000` ; suppression des dumps schéma redondants (`NAV01*`, `01_oec_schema.sql`) qui poussaient la duplication new-code à ~24 %.
+
+## Backend — [1.19.14] — 2026-09-25
+
+### Fixed
+
+- Endpoint `GET /api/v1/app-notifications/unread-count-for-toast` : compte les non-lus hors `TONTINE_CATCHUP` pour le toast login (badge `/unread-count` inchangé).
 
 ## Backend — [1.19.13] — 2026-09-25
 

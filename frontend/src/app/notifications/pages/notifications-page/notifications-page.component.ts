@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import {
@@ -10,11 +10,16 @@ import {
 @Component({
   selector: 'app-notifications-page',
   templateUrl: './notifications-page.component.html',
-  styleUrls: ['./notifications-page.component.scss']
+  styleUrls: ['./notifications-page.component.scss'],
+  encapsulation: ViewEncapsulation.None,
+  standalone: false
 })
-export class NotificationsPageComponent implements OnInit {
+export class NotificationsPageComponent implements OnInit, OnDestroy {
   groups: AppNotificationGroup[] = [];
   loading = false;
+  currentDate = new Date();
+  lastUpdate = new Date();
+  private dateIntervalId?: ReturnType<typeof setInterval>;
 
   constructor(
     private notificationService: AppNotificationService,
@@ -24,6 +29,26 @@ export class NotificationsPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.load();
+    this.dateIntervalId = setInterval(() => {
+      this.currentDate = new Date();
+    }, 1000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.dateIntervalId) {
+      clearInterval(this.dateIntervalId);
+    }
+  }
+
+  get totalCount(): number {
+    return this.groups.reduce((sum, g) => sum + g.items.length, 0);
+  }
+
+  get unreadCount(): number {
+    return this.groups.reduce(
+      (sum, g) => sum + g.items.filter((i) => !i.read).length,
+      0
+    );
   }
 
   load(): void {
@@ -32,6 +57,7 @@ export class NotificationsPageComponent implements OnInit {
       next: (groups) => {
         this.groups = groups;
         this.loading = false;
+        this.lastUpdate = new Date();
       },
       error: () => {
         this.loading = false;
