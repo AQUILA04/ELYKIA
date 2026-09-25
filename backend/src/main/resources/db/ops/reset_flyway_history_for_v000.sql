@@ -2,6 +2,8 @@
 -- démarrage avec spring.flyway.enabled=true et le nouveau V000.
 --
 -- L’ancienne flyway_schema_history (baseline 0 + V04…V20) ne correspond plus au classpath.
--- TRUNCATE : Flyway recree un baseline version 0 (sans rejouer V000), puis applique V001+.
+-- DROP (pas TRUNCATE) : baseline-on-migrate ne s’active que si la table d’historique
+-- est absente. Avec une table vide, Flyway rejoue V000 et échoue sur les objets existants.
+-- Après DROP : baseline version 0 (V000 non rejoué), puis V001+.
 
-TRUNCATE TABLE flyway_schema_history;
+DROP TABLE IF EXISTS flyway_schema_history;

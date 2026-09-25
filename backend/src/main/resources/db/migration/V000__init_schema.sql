@@ -1,7 +1,8 @@
 -- ELYKIA baseline schema (production snapshot 2026-09-24)
 -- Source: elykia-prod-db / elykia_prod_db — schema-only, no data, no flyway_schema_history.
 -- Empty databases: Flyway applies this as V000.
--- Existing databases: TRUNCATE flyway_schema_history then baseline-on-migrate at version 0 (this file is not re-executed).
+-- Existing databases: DROP flyway_schema_history then baseline-on-migrate at version 0
+-- (this file is not re-executed; TRUNCATE alone is wrong — empty history table still runs V000).
 -- Next versioned migrations start at V001.
 
 --

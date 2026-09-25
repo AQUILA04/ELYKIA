@@ -58,8 +58,12 @@ src/main/resources/db/
 Sur une base **déjà peuplée** (prod/test) qui a encore `flyway_schema_history` (baseline 0 + V04…V20) :
 
 ```sql
-TRUNCATE TABLE flyway_schema_history;
+DROP TABLE IF EXISTS flyway_schema_history;
 ```
+
+**Important :** ne pas utiliser `TRUNCATE`. `baseline-on-migrate` ne se déclenche que si la
+table d’historique est **absente**. Une table vide fait rejouer `V000` sur le schéma existant
+(erreurs du type « function already exists »).
 
 Puis démarrer l’API (`baseline-on-migrate` + `baseline-version: 0`) : V000 n’est pas rejoué, V001+ s’appliquent.
 

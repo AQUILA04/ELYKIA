@@ -82,6 +82,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Seed E2E articles : chemin mis à jour vers `db/legacy/V14__insert_articles.sql` après le rebaseline Flyway.
 - SonarCloud : exclusion de `db/legacy/**` et CPD du dump `V000` ; suppression des dumps schéma redondants (`NAV01*`, `01_oec_schema.sql`) qui poussaient la duplication new-code à ~24 %.
 
+## Backend — [1.19.15] — 2026-09-25
+
+### Fixed
+
+- Flyway rebaseline sur base peuplée : `db/ops/reset_flyway_history_for_v000.sql` fait désormais `DROP TABLE` (plus `TRUNCATE`). `baseline-on-migrate` ne s’active que si la table d’historique est absente ; un `TRUNCATE` laissait Flyway rejouer `V000` et échouer (`function already exists`).
+
 ## Backend — [1.19.14] — 2026-09-25
 
 ### Fixed
