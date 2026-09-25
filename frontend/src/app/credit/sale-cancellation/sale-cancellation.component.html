@@ -343,104 +343,128 @@
               </div>
             </div>
 
-            <mat-tab-group class="sim-tabs" animationDuration="0ms">
-              <mat-tab label="Ventes Éligibles ({{ previewResult.eligibleCount }})">
-                <div class="tab-content-area">
-                  <div class="table-wrapper" *ngIf="previewResult.eligibleSales.length > 0">
-                    <table class="data-table data-table-sm">
-                      <thead>
-                        <tr>
-                          <th>Réf. Vente</th>
-                          <th>Client</th>
-                          <th>Date</th>
-                          <th>Statut</th>
-                          <th class="col-num">Montant (FCFA)</th>
-                          <th class="col-num">Avance (FCFA)</th>
-                          <th>Articles restitués au stock commercial</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let s of previewResult.eligibleSales"
-                            [attr.data-testid]="'e2e-sale-cancellation-eligible-row'"
-                            [attr.data-credit-reference]="s.reference">
-                          <td class="cell-strong">{{ s.reference }}</td>
-                          <td>{{ s.clientName }}</td>
-                          <td>{{ s.saleDate | date:'dd/MM/yyyy' }}</td>
-                          <td><span class="status-pill status-pending">{{ s.creditStatus }}</span></td>
-                          <td class="col-num cell-green">{{ s.totalAmount | number:'1.0-0' }}</td>
-                          <td class="col-num cell-muted">{{ (s.advance && s.advance > 0) ? (s.advance | number:'1.0-0') : '—' }}</td>
-                          <td class="cell-muted">{{ s.articlesSummary }}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div *ngIf="previewResult.eligibleSales.length === 0" class="tab-empty">
-                    Aucune vente éligible à annuler.
-                  </div>
-                </div>
-              </mat-tab>
+            <div class="sim-tabs-card">
+              <nav class="sim-segment" role="tablist" aria-label="Résultats de la simulation">
+                <button type="button"
+                        role="tab"
+                        class="segment-btn"
+                        [class.active]="simulationTab === 'eligible'"
+                        [attr.aria-selected]="simulationTab === 'eligible'"
+                        (click)="simulationTab = 'eligible'">
+                  Ventes éligibles
+                  <span class="segment-count">{{ previewResult.eligibleCount }}</span>
+                </button>
+                <button type="button"
+                        role="tab"
+                        class="segment-btn"
+                        [class.active]="simulationTab === 'excluded'"
+                        [attr.aria-selected]="simulationTab === 'excluded'"
+                        (click)="simulationTab = 'excluded'">
+                  Ventes rejetées
+                  <span class="segment-count">{{ previewResult.excludedCount }}</span>
+                </button>
+                <button type="button"
+                        role="tab"
+                        class="segment-btn"
+                        [class.active]="simulationTab === 'stock'"
+                        [attr.aria-selected]="simulationTab === 'stock'"
+                        (click)="simulationTab = 'stock'">
+                  Impact stock
+                  <span class="segment-count">{{ previewResult.stockImpacts.length }}</span>
+                </button>
+              </nav>
 
-              <mat-tab label="Ventes Rejetées ({{ previewResult.excludedCount }})">
-                <div class="tab-content-area">
-                  <div class="inline-warn" *ngIf="previewResult.excludedSales.length > 0">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-                      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
-                    </svg>
-                    <span>Ces ventes <b>ne seront pas annulées</b> car des paiements ont déjà été perçus (garantie de cohérence de caisse).</span>
-                  </div>
-                  <div class="table-wrapper" *ngIf="previewResult.excludedSales.length > 0">
-                    <table class="data-table data-table-sm">
-                      <thead>
-                        <tr>
-                          <th>Réf. Vente</th>
-                          <th>Client</th>
-                          <th>Date</th>
-                          <th class="col-num">Montant Total</th>
-                          <th class="col-num">Déjà Payé</th>
-                          <th>Motif de non-annulation</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr *ngFor="let ex of previewResult.excludedSales">
-                          <td class="cell-strong">{{ ex.reference }}</td>
-                          <td>{{ ex.clientName }}</td>
-                          <td>{{ ex.saleDate | date:'dd/MM/yyyy' }}</td>
-                          <td class="col-num">{{ ex.totalAmount | number:'1.0-0' }} FCFA</td>
-                          <td class="col-num cell-danger">{{ ex.paidAmount | number:'1.0-0' }} FCFA</td>
-                          <td><span class="status-pill status-fail">{{ ex.reason }}</span></td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                  <div *ngIf="previewResult.excludedSales.length === 0" class="tab-empty tab-empty-ok">
-                    Aucune vente rejetée pour cause de recouvrements existants.
-                  </div>
-                </div>
-              </mat-tab>
-
-              <mat-tab label="Impact Stock ({{ previewResult.stockImpacts.length }} articles)">
-                <div class="tab-content-area">
-                  <p class="tab-hint">Quantités qui seront réintégrées dans le stock mensuel en cours du commercial :</p>
-                  <table class="data-table data-table-sm" *ngIf="previewResult.stockImpacts.length > 0">
+              <div class="tab-content-area" *ngIf="simulationTab === 'eligible'" role="tabpanel">
+                <div class="table-wrapper" *ngIf="previewResult.eligibleSales.length > 0">
+                  <table class="data-table data-table-sm">
                     <thead>
                       <tr>
-                        <th>Code Article</th>
-                        <th>Désignation Article</th>
-                        <th class="col-num">Quantité à Réintégrer</th>
+                        <th>Réf. Vente</th>
+                        <th>Client</th>
+                        <th>Date</th>
+                        <th>Statut</th>
+                        <th class="col-num">Montant (FCFA)</th>
+                        <th class="col-num">Avance (FCFA)</th>
+                        <th>Articles restitués au stock commercial</th>
                       </tr>
                     </thead>
                     <tbody>
-                      <tr *ngFor="let imp of previewResult.stockImpacts">
-                        <td>{{ imp.articleCode || '—' }}</td>
-                        <td class="cell-strong">{{ imp.articleName }}</td>
-                        <td class="col-num cell-green">+ {{ imp.quantityToReturn }}</td>
+                      <tr *ngFor="let s of previewResult.eligibleSales"
+                          [attr.data-testid]="'e2e-sale-cancellation-eligible-row'"
+                          [attr.data-credit-reference]="s.reference">
+                        <td class="cell-strong">{{ s.reference }}</td>
+                        <td>{{ s.clientName }}</td>
+                        <td>{{ s.saleDate | date:'dd/MM/yyyy' }}</td>
+                        <td><span class="status-pill status-pending">{{ s.creditStatus }}</span></td>
+                        <td class="col-num cell-green">{{ s.totalAmount | number:'1.0-0' }}</td>
+                        <td class="col-num cell-muted">{{ (s.advance && s.advance > 0) ? (s.advance | number:'1.0-0') : '—' }}</td>
+                        <td class="cell-muted">{{ s.articlesSummary }}</td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
-              </mat-tab>
-            </mat-tab-group>
+                <div *ngIf="previewResult.eligibleSales.length === 0" class="tab-empty">
+                  Aucune vente éligible à annuler.
+                </div>
+              </div>
+
+              <div class="tab-content-area" *ngIf="simulationTab === 'excluded'" role="tabpanel">
+                <div class="inline-warn" *ngIf="previewResult.excludedSales.length > 0">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  <span>Ces ventes <b>ne seront pas annulées</b> car des paiements ont déjà été perçus (garantie de cohérence de caisse).</span>
+                </div>
+                <div class="table-wrapper" *ngIf="previewResult.excludedSales.length > 0">
+                  <table class="data-table data-table-sm">
+                    <thead>
+                      <tr>
+                        <th>Réf. Vente</th>
+                        <th>Client</th>
+                        <th>Date</th>
+                        <th class="col-num">Montant Total</th>
+                        <th class="col-num">Déjà Payé</th>
+                        <th>Motif de non-annulation</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let ex of previewResult.excludedSales">
+                        <td class="cell-strong">{{ ex.reference }}</td>
+                        <td>{{ ex.clientName }}</td>
+                        <td>{{ ex.saleDate | date:'dd/MM/yyyy' }}</td>
+                        <td class="col-num">{{ ex.totalAmount | number:'1.0-0' }} FCFA</td>
+                        <td class="col-num cell-danger">{{ ex.paidAmount | number:'1.0-0' }} FCFA</td>
+                        <td><span class="status-pill status-fail">{{ ex.reason }}</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div *ngIf="previewResult.excludedSales.length === 0" class="tab-empty tab-empty-ok">
+                  Aucune vente rejetée pour cause de recouvrements existants.
+                </div>
+              </div>
+
+              <div class="tab-content-area" *ngIf="simulationTab === 'stock'" role="tabpanel">
+                <p class="tab-hint">Quantités qui seront réintégrées dans le stock mensuel en cours du commercial :</p>
+                <table class="data-table data-table-sm" *ngIf="previewResult.stockImpacts.length > 0">
+                  <thead>
+                    <tr>
+                      <th>Code Article</th>
+                      <th>Désignation Article</th>
+                      <th class="col-num">Quantité à Réintégrer</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let imp of previewResult.stockImpacts">
+                      <td>{{ imp.articleCode || '—' }}</td>
+                      <td class="cell-strong">{{ imp.articleName }}</td>
+                      <td class="col-num cell-green">+ {{ imp.quantityToReturn }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
 
             <div class="confirmation-box" *ngIf="previewResult.eligibleCount > 0">
               <label class="font-weight-bold" for="sale-cancellation-reason">

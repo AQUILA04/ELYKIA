@@ -774,12 +774,71 @@
   color: var(--text-muted);
 }
 
-.sale-cancellation-page .sim-tabs {
+.sale-cancellation-page .sim-tabs-card {
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
   background: var(--bg-white);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
+
+.sale-cancellation-page .sim-segment {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  background: var(--navy-xpale);
+  border-bottom: 1px solid var(--border);
+}
+
+.sale-cancellation-page .segment-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, color .15s, box-shadow .15s;
+  text-align: center;
+}
+.sale-cancellation-page .segment-btn:hover {
+  color: var(--navy);
+  background: rgba(255, 255, 255, 0.75);
+}
+.sale-cancellation-page .segment-btn.active {
+  background: var(--navy);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
+}
+.sale-cancellation-page .segment-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(0, 51, 102, 0.1);
+  color: var(--navy);
+}
+.sale-cancellation-page .segment-btn.active .segment-count {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+}
+
 .sale-cancellation-page .tab-content-area {
   padding: 1rem;
 }
@@ -874,5 +933,14 @@
   }
   .sale-cancellation-page .file-item .btn-download {
     width: 100%;
+  }
+  .sale-cancellation-page .sim-segment {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+  .sale-cancellation-page .segment-btn {
+    flex: none;
+    justify-content: space-between;
   }
 }

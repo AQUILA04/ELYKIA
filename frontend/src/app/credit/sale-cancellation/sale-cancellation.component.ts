@@ -44,6 +44,8 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
 
   previewResult: SaleCancellationPreview | null = null;
   loadingPreview = false;
+  /** Onglet actif de la simulation (segment custom, pas mat-tab). */
+  simulationTab: 'eligible' | 'excluded' | 'stock' = 'eligible';
 
   cancellationReason = '';
   executing = false;
@@ -170,12 +172,14 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
     this.showNewCancellationModal = true;
     this.previewResult = null;
     this.cancellationReason = '';
+    this.simulationTab = 'eligible';
   }
 
   closeNewCancellation(): void {
     this.showNewCancellationModal = false;
     this.previewResult = null;
     this.cancellationReason = '';
+    this.simulationTab = 'eligible';
   }
 
   onSimulate(): void {
@@ -193,6 +197,7 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
 
     this.loadingPreview = true;
     this.previewResult = null;
+    this.simulationTab = 'eligible';
 
     this.cancellationService.preview(this.filterForm).subscribe({
       next: (preview) => {

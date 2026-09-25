@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.16] — 2026-09-25
+
+### Changed
+
+- Annulation de ventes : onglets de simulation remplacés par un segment navy (style rapport journalier), avec compteurs en pastille — plus de `mat-tab` Material brut.
+
 ## Frontend — [2.22.15] — 2026-09-25
 
 ### Changed
