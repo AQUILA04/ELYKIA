@@ -189,7 +189,7 @@ jobs:
           tail -n 80 backend-e2e.log || true
           exit 1
 
-      - name: Seed reference articles (Flyway V14)
+      - name: Seed reference articles (legacy V14)
         working-directory: .
         env:
           PGHOST: localhost

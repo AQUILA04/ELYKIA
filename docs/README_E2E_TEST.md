@@ -133,7 +133,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 
 # Ou directement avec psql
 PGPASSWORD=APP2024 psql -h localhost -U oec -d oec \
-  -f backend/src/main/resources/db/migration/V14__insert_articles.sql
+  -f backend/src/main/resources/db/legacy/V14__insert_articles.sql
 ```
 
 Le script est idempotent (`ON CONFLICT DO NOTHING`). En CI, il est lancé automatiquement après le démarrage du backend.
@@ -206,7 +206,7 @@ Workflow : [`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml) — **ELY
 | Exécution manuelle | `workflow_dispatch` |
 | Condition | Changements `frontend/` ou `backend/` dans le CI associé |
 | Infrastructure | PostgreSQL service + backend JAR + seed articles V14 + Playwright Chromium |
-| Seed données | `.github/scripts/seed-e2e-articles.sh` (migration `V14__insert_articles.sql`) |
+| Seed données | `.github/scripts/seed-e2e-articles.sh` (INSERT depuis `db/legacy/V14__insert_articles.sql`) |
 | Artefacts | Rapport HTML Playwright + logs backend (14 jours) |
 
 Pipeline global :
