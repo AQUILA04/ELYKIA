@@ -25,6 +25,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Annulation de ventes : labels associés aux champs du formulaire (gate Sonar a11y).
 
+## Docs & Infra — 2026-09-25
+
+### Fixed
+
+- **CD `-fu`** : la détection ne s’appuie plus sur l’API Events (`PushEvent.before`, faux négatifs sur merges PR). Elle compare désormais `deploy/` entre le `head_sha` du dernier CD réussi (job TEST ou PROD selon la branche) et le commit courant, ce qui couvre aussi le cas « push `deploy/` + CI rouge, puis fix CI sans toucher `deploy/` ». Logs explicites (BASE, HEAD, fichiers). Promote : mêmes logs sur la fenêtre image-TEST → `origin/main`.
+
 ## Docs & Infra
 
 ### Fixed
