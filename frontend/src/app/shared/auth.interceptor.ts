@@ -5,11 +5,15 @@ import { catchError } from 'rxjs/operators';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 
+/** Soft background endpoints: 401 must not block UI with SweetAlert. */
+const TOAST_ON_401_URL_MARKERS = [
+  'app-notifications/unread-count'
+];
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   constructor(
-    private tokenStorage: TokenStorageService, 
+    private tokenStorage: TokenStorageService,
     private errorHandler: ErrorHandlerService
   ) {}
 
@@ -25,20 +29,20 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        // Gérer les erreurs critiques au niveau global
         if (error.status === 401) {
-          // Afficher le message d'erreur complet du backend pour les erreurs 401
-          this.errorHandler.showError(error, 'Authentification Requise');
-          // Optionnel: déconnexion automatique
-          // this.tokenStorage.signOut();
-          // window.location.reload();
+          if (this.isSoftAuthEndpoint(error.url || req.url)) {
+            this.errorHandler.showErrorToast(error, 'Authentification Requise');
+          } else {
+            this.errorHandler.showError(error, 'Authentification Requise');
+          }
         }
-        
-        // Pour toutes les autres erreurs, on laisse les composants les gérer
-        // mais on s'assure que l'erreur complète est disponible
+
         return throwError(() => error);
       })
     );
   }
-}
 
+  private isSoftAuthEndpoint(url: string): boolean {
+    return TOAST_ON_401_URL_MARKERS.some((marker) => url.includes(marker));
+  }
+}

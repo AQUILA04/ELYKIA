@@ -4,6 +4,7 @@ import { ToastrService, ActiveToast } from 'ngx-toastr';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { AppNotificationService } from './app-notification.service';
+import { TokenStorageService } from './token-storage.service';
 
 const SESSION_KEY = 'pending-ops-toast-shown';
 const TOAST_MS = 5 * 60 * 1000;
@@ -16,14 +17,21 @@ export class PendingOpsToastService {
     private toastr: ToastrService,
     private userService: UserService,
     private notificationService: AppNotificationService,
-    private router: Router
+    private router: Router,
+    private tokenStorage: TokenStorageService
   ) {}
 
-  maybeShowAfterLogin(): void {
+  maybeShowAfterLogin(retries = 3): void {
     if (!this.isAudience()) {
       return;
     }
     if (sessionStorage.getItem(SESSION_KEY) === '1') {
+      return;
+    }
+    if (!this.tokenStorage.getToken()) {
+      if (retries > 0) {
+        setTimeout(() => this.maybeShowAfterLogin(retries - 1), 300);
+      }
       return;
     }
     this.notificationService.unreadCountForToast().subscribe({

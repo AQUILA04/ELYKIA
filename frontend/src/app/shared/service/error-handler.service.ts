@@ -83,16 +83,20 @@ export class ErrorHandlerService {
   showError(error: HttpErrorResponse | any, customTitle?: string): void {
     const errorInfo = this.extractErrorMessage(error);
     const title = customTitle || this.getErrorTitle(errorInfo.statusCode);
-    
-    // Log pour debug (sans informations sensibles)
-    console.error('Error Details:', {
-      message: errorInfo.message,
-      code: errorInfo.code,
-      statusCode: errorInfo.statusCode,
-      timestamp: new Date().toISOString()
-    });
 
+    this.logErrorDetails(errorInfo);
     this.alertService.showError(errorInfo.message, title);
+  }
+
+  /**
+   * Affiche une erreur en toast non bloquant (ex. appels de fond / compteurs).
+   */
+  showErrorToast(error: HttpErrorResponse | any, customTitle?: string): void {
+    const errorInfo = this.extractErrorMessage(error);
+    const title = customTitle || this.getErrorTitle(errorInfo.statusCode);
+
+    this.logErrorDetails(errorInfo);
+    this.alertService.toastError(errorInfo.message, title);
   }
 
   /**
@@ -102,6 +106,15 @@ export class ErrorHandlerService {
    */
   getErrorMessage(error: HttpErrorResponse | any): string {
     return this.extractErrorMessage(error).message;
+  }
+
+  private logErrorDetails(errorInfo: ErrorInfo): void {
+    console.error('Error Details:', {
+      message: errorInfo.message,
+      code: errorInfo.code,
+      statusCode: errorInfo.statusCode,
+      timestamp: new Date().toISOString()
+    });
   }
 
   /**

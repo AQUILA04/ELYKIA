@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.22.17] — 2026-09-25
+
+### Fixed
+
+- 401 sur `app-notifications/unread-count` : toast non bloquant au lieu du SweetAlert ; l’appel attend la disponibilité du token (retry court) pour éviter la course au chargement du dashboard.
+
 ## Frontend — [2.22.16] — 2026-09-25
 
 ### Changed

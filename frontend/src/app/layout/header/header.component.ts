@@ -84,8 +84,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
     });
   }
 
-  refreshUnreadCount(): void {
+  refreshUnreadCount(retries = 3): void {
     if (!this.showNotifications) {
+      return;
+    }
+    if (!this.tokenStorage.getToken()) {
+      if (retries > 0) {
+        setTimeout(() => this.refreshUnreadCount(retries - 1), 300);
+      }
       return;
     }
     this.appNotificationService.unreadCount().subscribe({

@@ -8,7 +8,7 @@ describe('ErrorHandlerService', () => {
   let alertServiceSpy: jasmine.SpyObj<AlertService>;
 
   beforeEach(() => {
-    const spy = jasmine.createSpyObj('AlertService', ['showError']);
+    const spy = jasmine.createSpyObj('AlertService', ['showError', 'toastError']);
 
     TestBed.configureTestingModule({
       providers: [
@@ -133,6 +133,25 @@ describe('ErrorHandlerService', () => {
         jasmine.any(String),
         'Erreur Serveur'
       );
+    });
+  });
+
+  describe('showErrorToast', () => {
+    it('should call AlertService.toastError with extracted message', () => {
+      const error = {
+        status: 401,
+        error: {
+          message: 'Full authentication is required to access this resource'
+        }
+      };
+
+      service.showErrorToast(error, 'Authentification Requise');
+
+      expect(alertServiceSpy.toastError).toHaveBeenCalledWith(
+        'Full authentication is required to access this resource',
+        'Authentification Requise'
+      );
+      expect(alertServiceSpy.showError).not.toHaveBeenCalled();
     });
   });
 
