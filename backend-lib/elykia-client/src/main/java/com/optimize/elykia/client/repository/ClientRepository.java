@@ -5,6 +5,7 @@ import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.client.dto.ClientPhotoDto;
 import com.optimize.elykia.client.dto.ClientRespDto;
 import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.client.enumeration.ClientActivationStatus;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.repository.spec.ClientCommercialPredicates;
 import org.springframework.data.domain.Page;
@@ -158,6 +159,16 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
     List<Client> findByClientTypeAndState(ClientType clientType, State state);
 
     Optional<Client> findFirstByPhoneAndClientTypeAndState(String phone, ClientType clientType, State state);
+
+    Page<Client> findByActivationStatusAndClientTypeAndState(
+            ClientActivationStatus activationStatus, ClientType clientType, State state, Pageable pageable);
+
+    List<Client> findByActivationStatusAndClientTypeAndState(
+            ClientActivationStatus activationStatus, ClientType clientType, State state);
+
+    boolean existsByPhone(String phone);
+
+    boolean existsByCardID(String cardID);
 
     @Query("SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id, c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth, c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector, c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude, c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl) " +
        "FROM Client c " +

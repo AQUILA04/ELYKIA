@@ -82,8 +82,29 @@ public class CustomerUserProvisioningService {
             log.warn("Téléphone {} déjà utilisé — compte non créé pour client {}", username, client.getId());
             return false;
         }
-        createUserForClient(client, username);
+        createUserForClient(client, username, false, null);
         return true;
+    }
+
+    /**
+     * Provisionne le compte espace client pour une auto-inscription (PIN déjà choisi).
+     */
+    @Transactional
+    public void provisionSelfRegistered(Client client, String rawPin) {
+        if (!ClientType.CLIENT.equals(client.getClientType())) {
+            throw new CustomValidationException("Seuls les clients peuvent s'inscrire.");
+        }
+        if (mappingRepository.existsByClientId(client.getId())) {
+            throw new CustomValidationException("Un compte existe déjà pour ce client.");
+        }
+        String username = PhoneNormalizer.toUsername(client.getPhone());
+        if (!StringUtils.hasText(username)) {
+            throw new CustomValidationException("Numéro de téléphone invalide.");
+        }
+        if (mappingRepository.existsByUsername(username) || userAccountService.existsByUsername(username)) {
+            throw new CustomValidationException("Ce numéro est déjà utilisé.");
+        }
+        createUserForClient(client, username, true, rawPin);
     }
 
     @EventListener
@@ -115,16 +136,21 @@ public class CustomerUserProvisioningService {
         userRepository.save(user);
     }
 
-    private void createUserForClient(Client client, String username) {
+    private void createUserForClient(Client client, String username, boolean pinConfigured, String rawPin) {
         UserProfil profil = userProfilService.getByName(ProfilConstant.CLIENT_PROFIL);
         UserAccount account = new UserAccount();
         account.setUsername(username);
-        account.setPassword(UUID.randomUUID().toString());
+        if (pinConfigured && StringUtils.hasText(rawPin)) {
+            account.setPassword(rawPin);
+            account.setPinConfigured(Boolean.TRUE);
+        } else {
+            account.setPassword(UUID.randomUUID().toString());
+            account.setPinConfigured(Boolean.FALSE);
+        }
         account.setUserProfil(profil);
         account.setActive(Boolean.TRUE);
-        account.setPinConfigured(Boolean.FALSE);
         account.setState(State.ENABLED);
-        account.setCreatedBy("System");
+        account.setCreatedBy(pinConfigured ? username : "System");
         account = userAccountService.create(account);
 
         User user = new User(
@@ -135,15 +161,16 @@ public class CustomerUserProvisioningService {
                 username,
                 account);
         user.setState(State.ENABLED);
-        user.setCreatedBy("System");
+        user.setCreatedBy(pinConfigured ? username : "System");
         userRepository.save(user);
 
         CustomerUserMapping mapping = new CustomerUserMapping();
         mapping.setClientId(client.getId());
         mapping.setUsername(username);
-        mapping.setCreatedBy("System");
+        mapping.setCreatedBy(pinConfigured ? username : "System");
         mapping.setState(State.ENABLED);
         mappingRepository.save(mapping);
-        log.info("Compte espace client créé pour client {} (username={})", client.getId(), username);
+        log.info("Compte espace client créé pour client {} (username={}, pinConfigured={})",
+                client.getId(), username, pinConfigured);
     }
 }

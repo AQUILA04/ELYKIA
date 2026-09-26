@@ -26,6 +26,41 @@ export interface CustomerDashboard {
   nextInstallmentNumber?: number;
   progressPercent: number;
   recentActivities: CustomerActivity[];
+  activationStatus?: string;
+  idDocumentUploaded?: boolean;
+  initialDepositStatus?: string;
+}
+
+export interface CustomerOnboardingStatus {
+  clientId: string;
+  fullName: string;
+  phone: string;
+  activationStatus: string;
+  idDocumentUploaded: boolean;
+  profilPhotoUrl?: string;
+  cardPhotoUrl?: string;
+  cardType?: string;
+  cardID?: string;
+  initialDepositStatus: string;
+  initialDepositAmount?: number;
+  activationRejectionReason?: string;
+}
+
+export interface CustomerInitialDepositRequest {
+  mobileMoneyPhone: string;
+  mobileMoneyAmount: number;
+  mobileMoneyReference: string;
+  notes?: string;
+}
+
+export interface CustomerInitialDeposit {
+  id: number;
+  clientId: number;
+  mobileMoneyPhone: string;
+  mobileMoneyAmount: number;
+  mobileMoneyReference: string;
+  notes?: string;
+  status: string;
 }
 
 export interface CustomerActivity {

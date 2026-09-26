@@ -22,4 +22,9 @@ public class CustomerDashboardDto {
     private int nextInstallmentNumber;
     private double progressPercent;
     private List<CustomerActivityDto> recentActivities;
+    /** PENDING | ACTIVE | REJECTED */
+    private String activationStatus;
+    private boolean idDocumentUploaded;
+    /** NONE | INITIE | VALIDE | REJETE */
+    private String initialDepositStatus;
 }

@@ -324,6 +324,17 @@
             <span class="hide-menu">Paiements clients</span>
           </a>
         </li>
+        <li class="sidebar-item"
+            *ngxPermissionsOnly="['ROLE_VALIDATE_CLIENT_REGISTRATION','ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT','ROLE_ADMIN']">
+          <a class="sidebar-link" routerLink="/client-registrations" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/client-registrations') }"
+             data-testid="e2e-sidebar-client-registrations">
+            <span>
+              <mat-icon>person_add</mat-icon>
+            </span>
+            <span class="hide-menu">Inscriptions clients</span>
+          </a>
+        </li>
         <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">
           <a class="sidebar-link" routerLink="/notifications" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/notifications') }"

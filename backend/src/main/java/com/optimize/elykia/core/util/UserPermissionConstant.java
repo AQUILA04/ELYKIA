@@ -95,6 +95,9 @@ public class UserPermissionConstant {
     public static final String ASSIGN_CLIENT_COLLECTOR = "ROLE_ASSIGN_CLIENT_COLLECTOR";
     public static final String ASSIGN_CREDIT_COLLECTOR = "ROLE_ASSIGN_CREDIT_COLLECTOR";
 
+    /** Validation des auto-inscriptions espace client. */
+    public static final String VALIDATE_CLIENT_REGISTRATION = "ROLE_VALIDATE_CLIENT_REGISTRATION";
+
     public static final String KPI_FINANCIER_VENTE = "ROLE_KPI_FINANCIER_VENTE";
     public static final String KPI_FINANCIER_RETARD = "ROLE_KPI_FINANCIER_RETARD";
     public static final String KPI_FINANCIER_ECHEANCE = "ROLE_KPI_FINANCIER_ECHEANCE";

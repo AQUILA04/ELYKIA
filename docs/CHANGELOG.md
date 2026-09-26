@@ -9,6 +9,47 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.23.1] — 2026-09-26
+
+### Added
+
+- E2E smoke : validation d'une inscription PENDING (`70155169`) depuis **Inscriptions clients** (commercial + dépôt).
+
+## Frontend — [2.23.0] — 2026-09-26
+
+### Added
+
+- Page **Inscriptions clients** (`/client-registrations`) : file d’attente des auto-inscriptions espace client, filtre avec/sans dépôt initial, association commercial crédit/tontine et validation ou refus.
+
+## Customer-space — [0.5.1] — 2026-09-26
+
+### Added
+
+- E2E Playwright : parcours complet auto-inscription (`70155169`) → OTP mock → fiche → PIN → onboarding pièce + dépôt. OTP Notification Hub court-circuité via `window.__E2E__` (code mock `123456` loggé).
+
+## Customer-space — [0.5.0] — 2026-09-26
+
+### Added
+
+- Auto-inscription si le numéro est inconnu : OTP SMS, fiche client + photo de profil, création du PIN.
+- Écran **Mon dossier** : photo de pièce d’identité et déclaration de dépôt initial pour accélérer l’activation.
+- Tableau de bord limité tant que le compte est en attente de validation agence.
+
+## Backend — [1.20.1] — 2026-09-26
+
+### Fixed
+
+- Couverture JaCoCo du package `service.customer` : tests unitaires auth / onboarding / registration / admin inscriptions pour repasser le quality gate (≥ 0,30).
+
+## Backend — [1.20.0] — 2026-09-26
+
+### Added
+
+- Auto-inscription customer-space (`POST /api/customer/auth/register`) avec OTP, statut `activation_status` (`PENDING` / `ACTIVE` / `REJECTED`).
+- Onboarding portal : upload pièce, dépôt initial déclaratif (`customer_initial_deposit_submission`).
+- API admin `/api/v1/client-registrations` : liste, activation (commercial + solde), refus ; permission `ROLE_VALIDATE_CLIENT_REGISTRATION`.
+- Schema catalog IA et index RAG user-guide synchronisés.
+
 ## Frontend — [2.22.17] — 2026-09-25
 
 ### Fixed

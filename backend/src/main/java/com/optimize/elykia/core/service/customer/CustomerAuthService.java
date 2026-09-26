@@ -6,6 +6,8 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.repository.UserRepository;
 import com.optimize.common.securities.security.jwt.JwtUtils;
 import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.client.enumeration.ClientActivationStatus;
+import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.core.dto.customer.*;
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
 import com.optimize.elykia.core.util.PhoneNormalizer;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +35,8 @@ public class CustomerAuthService {
     private final PasswordEncoder passwordEncoder;
     private final CustomerContextService contextService;
     private final CustomerOtpService customerOtpService;
+    private final ClientRepository clientRepository;
+    private final CustomerRegistrationService customerRegistrationService;
 
     @Value("${bezkoder.app.jwtExpirationMs:86400000}")
     private long jwtExpirationMs;
@@ -39,17 +44,30 @@ public class CustomerAuthService {
     @Transactional(readOnly = true)
     public CustomerCheckPhoneResponse checkPhone(CustomerPhoneRequest request) {
         String username = PhoneNormalizer.toUsername(request.getPhone());
-        return userRepository.findByUserAccount_usernameIgnoreCase(username)
-                .flatMap(user -> contextService.findClientIdOptional(username)
-                        .map(ignored -> CustomerCheckPhoneResponse.builder()
-                                .exists(true)
-                                .pinConfigured(Boolean.TRUE.equals(user.getUserAccount().getPinConfigured()))
-                                .maskedName(maskName(user))
-                                .build()))
-                .orElse(CustomerCheckPhoneResponse.builder()
-                        .exists(false)
-                        .pinConfigured(false)
-                        .build());
+        Optional<User> userOpt = userRepository.findByUserAccount_usernameIgnoreCase(username);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            Optional<Long> clientId = contextService.findClientIdOptional(username);
+            if (clientId.isPresent()) {
+                Client client = clientRepository.findById(clientId.get()).orElse(null);
+                String activation = client != null && client.getActivationStatus() != null
+                        ? client.getActivationStatus().name()
+                        : ClientActivationStatus.ACTIVE.name();
+                return CustomerCheckPhoneResponse.builder()
+                        .exists(true)
+                        .canRegister(false)
+                        .pinConfigured(Boolean.TRUE.equals(user.getUserAccount().getPinConfigured()))
+                        .maskedName(maskName(user))
+                        .activationStatus(activation)
+                        .build();
+            }
+        }
+        boolean phoneTakenByClient = clientRepository.existsByPhone(username);
+        return CustomerCheckPhoneResponse.builder()
+                .exists(false)
+                .pinConfigured(false)
+                .canRegister(!phoneTakenByClient)
+                .build();
     }
 
     @Transactional
@@ -60,10 +78,12 @@ public class CustomerAuthService {
         if (!Boolean.TRUE.equals(user.getUserAccount().getPinConfigured())) {
             throw new CustomValidationException("Veuillez configurer votre code PIN.");
         }
+        Client client = contextService.requireClient(username);
+        assertNotRejected(client);
         try {
             Authentication auth = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, request.getPin()));
-            return buildLoginResponse(user, auth);
+            return buildLoginResponse(user, auth, client);
         } catch (BadCredentialsException e) {
             throw new CustomValidationException("Code PIN incorrect.");
         }
@@ -72,15 +92,21 @@ public class CustomerAuthService {
     @Transactional(readOnly = true)
     public CustomerOtpSendResponse sendOtp(CustomerPhoneRequest request) {
         String username = PhoneNormalizer.toUsername(request.getPhone());
-        User user = userRepository.findByUserAccount_usernameIgnoreCase(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Compte introuvable pour ce numéro."));
-        if (Boolean.TRUE.equals(user.getUserAccount().getPinConfigured())) {
-            throw new CustomValidationException("Le code PIN est déjà configuré. Connectez-vous avec votre PIN.");
+        Optional<User> userOpt = userRepository.findByUserAccount_usernameIgnoreCase(username);
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (Boolean.TRUE.equals(user.getUserAccount().getPinConfigured())) {
+                throw new CustomValidationException("Le code PIN est déjà configuré. Connectez-vous avec votre PIN.");
+            }
+            if (contextService.findClientIdOptional(username).isEmpty()) {
+                throw new ResourceNotFoundException(
+                        "Aucun dossier client associé à ce numéro. Contactez votre agence.");
+            }
+        } else if (clientRepository.existsByPhone(username)) {
+            throw new CustomValidationException(
+                    "Ce numéro est déjà associé à un dossier. Contactez votre agence.");
         }
-        if (contextService.findClientIdOptional(username).isEmpty()) {
-            throw new ResourceNotFoundException(
-                    "Aucun dossier client associé à ce numéro. Contactez votre agence.");
-        }
+        // Inscription (pas de user) ou première activation (user sans PIN)
         OtpSendResponse hub = customerOtpService.sendOtp(username);
         return CustomerOtpSendResponse.builder()
                 .sessionId(hub.sessionId())
@@ -92,10 +118,14 @@ public class CustomerAuthService {
     @Transactional(readOnly = true)
     public CustomerOtpVerifyResponse verifyOtp(CustomerOtpVerifyRequest request) {
         String username = PhoneNormalizer.toUsername(request.getPhone());
-        User user = userRepository.findByUserAccount_usernameIgnoreCase(username)
-                .orElseThrow(() -> new ResourceNotFoundException("Compte introuvable pour ce numéro."));
-        if (Boolean.TRUE.equals(user.getUserAccount().getPinConfigured())) {
-            throw new CustomValidationException("Le code PIN est déjà configuré.");
+        Optional<User> userOpt = userRepository.findByUserAccount_usernameIgnoreCase(username);
+        if (userOpt.isPresent()) {
+            if (Boolean.TRUE.equals(userOpt.get().getUserAccount().getPinConfigured())) {
+                throw new CustomValidationException("Le code PIN est déjà configuré.");
+            }
+        } else if (clientRepository.existsByPhone(username)) {
+            throw new CustomValidationException(
+                    "Ce numéro est déjà associé à un dossier. Contactez votre agence.");
         }
         String proof = customerOtpService.verifyOtp(username, request.getCode());
         return CustomerOtpVerifyResponse.builder()
@@ -120,7 +150,9 @@ public class CustomerAuthService {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(username, request.getPin()));
         try {
-            return buildLoginResponse(user, auth);
+            Client client = contextService.requireClient(username);
+            assertNotRejected(client);
+            return buildLoginResponse(user, auth, client);
         } catch (ResourceNotFoundException e) {
             if ("client.not.found".equals(e.getMessage())) {
                 throw new ResourceNotFoundException(
@@ -130,17 +162,39 @@ public class CustomerAuthService {
         }
     }
 
-    private CustomerLoginResponse buildLoginResponse(User user, Authentication auth) {
+    @Transactional
+    public CustomerLoginResponse register(CustomerRegisterRequest request) {
+        return customerRegistrationService.register(request);
+    }
+
+    private CustomerLoginResponse buildLoginResponse(User user, Authentication auth, Client client) {
         String jwt = jwtUtils.generateJwtToken(auth);
-        Client client = contextService.requireClient(user.getUsername());
         Instant expires = Instant.now().plus(jwtExpirationMs, ChronoUnit.MILLIS);
+        ClientActivationStatus status = client.getActivationStatus() != null
+                ? client.getActivationStatus()
+                : ClientActivationStatus.ACTIVE;
         return CustomerLoginResponse.builder()
                 .token(jwt)
                 .clientId(String.valueOf(client.getId()))
                 .fullName(client.getFullName())
                 .phone(user.getUsername())
                 .expiresAt(expires.toString())
+                .activationStatus(status.name())
                 .build();
+    }
+
+    private static void assertNotRejected(Client client) {
+        if (client != null && client.isActivationRejected()) {
+            String reason = client.getActivationRejectionReason();
+            throw new CustomValidationException(
+                    StringUtilsHasText(reason)
+                            ? "Inscription refusée : " + reason + " Contactez votre agence."
+                            : "Inscription refusée. Contactez votre agence.");
+        }
+    }
+
+    private static boolean StringUtilsHasText(String value) {
+        return value != null && !value.isBlank();
     }
 
     private static String maskName(User user) {

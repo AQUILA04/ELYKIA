@@ -5,8 +5,6 @@
       <span class="logo-sub">Espace Client</span>
     </div>
 
-    <!-- OTP SMS via Notification Hub (plus de reCAPTCHA Firebase) -->
-
     <div class="auth-card elyk-animate">
       <button type="button" class="back-btn" *ngIf="step !== 'phone'" (click)="goBack()">
         <ion-icon name="arrow-back-outline"></ion-icon>
@@ -37,7 +35,7 @@
         </ion-button>
       </form>
 
-      <!-- Étape 2 : PIN existant -->
+      <!-- PIN existant -->
       <form *ngIf="step === 'pin'" [formGroup]="pinForm" (ngSubmit)="submitPin()">
         <div class="field">
           <label>Code PIN</label>
@@ -52,8 +50,8 @@
         </ion-button>
       </form>
 
-      <!-- Étape 3 : OTP SMS (Notification Hub) -->
-      <form *ngIf="step === 'otp'" [formGroup]="otpForm" (ngSubmit)="submitOtp()">
+      <!-- OTP (activation ou inscription) -->
+      <form *ngIf="step === 'otp' || step === 'register-otp'" [formGroup]="otpForm" (ngSubmit)="submitOtp()">
         <div class="field">
           <label>Code reçu par SMS</label>
           <ion-input formControlName="otp" type="text" inputmode="numeric"
@@ -67,7 +65,7 @@
         </ion-button>
       </form>
 
-      <!-- Étape 4 : Définir PIN -->
+      <!-- Setup PIN (activation) -->
       <form *ngIf="step === 'setup-pin'" [formGroup]="setupPinForm" (ngSubmit)="submitSetupPin()">
         <div class="field">
           <label>Nouveau code PIN</label>
@@ -84,6 +82,79 @@
           [disabled]="setupPinForm.invalid || isLoading" data-testid="e2e-auth-setup-pin-submit">
           <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading">Activer mon compte</span>
+        </ion-button>
+      </form>
+
+      <!-- Formulaire d'inscription -->
+      <form *ngIf="step === 'register-form'" [formGroup]="registerForm" (ngSubmit)="submitRegisterForm()"
+        data-testid="e2e-auth-register-form">
+        <div class="field">
+          <label for="profilPhoto">Photo de profil</label>
+          <div class="photo-capture">
+            <img *ngIf="profilPhotoDataUrl" [src]="profilPhotoDataUrl" alt="Aperçu photo de profil" class="photo-preview" />
+            <input id="profilPhoto" type="file" accept="image/*" capture="user"
+              (change)="onProfilPhotoSelected($event)" data-testid="e2e-auth-register-photo" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Prénom</label>
+          <ion-input formControlName="firstname" data-testid="e2e-auth-register-firstname"></ion-input>
+        </div>
+        <div class="field">
+          <label>Nom</label>
+          <ion-input formControlName="lastname" data-testid="e2e-auth-register-lastname"></ion-input>
+        </div>
+        <div class="field">
+          <label>Adresse</label>
+          <ion-input formControlName="address" data-testid="e2e-auth-register-address"></ion-input>
+        </div>
+        <div class="field">
+          <label>Quartier</label>
+          <ion-input formControlName="quarter" data-testid="e2e-auth-register-quarter"></ion-input>
+        </div>
+        <div class="field">
+          <label>Date de naissance</label>
+          <ion-input formControlName="dateOfBirth" type="date" data-testid="e2e-auth-register-dob"></ion-input>
+        </div>
+        <div class="field">
+          <label>Occupation</label>
+          <ion-input formControlName="occupation" data-testid="e2e-auth-register-occupation"></ion-input>
+        </div>
+        <div class="field">
+          <label>Type de pièce</label>
+          <ion-select formControlName="cardType" interface="popover" placeholder="Sélectionnez"
+            data-testid="e2e-auth-register-card-type">
+            <ion-select-option *ngFor="let t of cardTypes" [value]="t.value">{{ t.label }}</ion-select-option>
+          </ion-select>
+        </div>
+        <div class="field">
+          <label>Numéro de pièce</label>
+          <ion-input formControlName="cardID" data-testid="e2e-auth-register-card-id"></ion-input>
+        </div>
+        <div class="error" *ngIf="error">{{ error }}</div>
+        <ion-button type="submit" expand="block" class="elyk-btn-primary"
+          [disabled]="registerForm.invalid || isLoading" data-testid="e2e-auth-register-continue">
+          Continuer
+        </ion-button>
+      </form>
+
+      <!-- PIN inscription -->
+      <form *ngIf="step === 'register-pin'" [formGroup]="registerPinForm" (ngSubmit)="submitRegisterPin()">
+        <div class="field">
+          <label>Nouveau code PIN</label>
+          <ion-input formControlName="pin" type="password" inputmode="numeric"
+            maxlength="6" placeholder="••••" data-testid="e2e-auth-register-pin"></ion-input>
+        </div>
+        <div class="field">
+          <label>Confirmer le PIN</label>
+          <ion-input formControlName="confirmPin" type="password" inputmode="numeric"
+            maxlength="6" placeholder="••••" data-testid="e2e-auth-register-pin-confirm"></ion-input>
+        </div>
+        <div class="error" *ngIf="error">{{ error }}</div>
+        <ion-button type="submit" expand="block" class="elyk-btn-primary"
+          [disabled]="registerPinForm.invalid || isLoading" data-testid="e2e-auth-register-submit">
+          <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+          <span *ngIf="!isLoading">Créer mon compte</span>
         </ion-button>
       </form>
     </div>

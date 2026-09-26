@@ -13,4 +13,6 @@ public class CustomerLoginResponse {
     private String fullName;
     private String phone;
     private String expiresAt;
+    /** PENDING | ACTIVE | REJECTED */
+    private String activationStatus;
 }
