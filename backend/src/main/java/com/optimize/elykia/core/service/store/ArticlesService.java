@@ -526,6 +526,28 @@ public class ArticlesService extends GenericService<Articles, Long> {
         if (metricsPublisher != null) {
             metricsPublisher.setArticlesOutOfStock((int) outOfStock);
             metricsPublisher.setArticlesLowStock((int) lowStock);
+
+            List<BusinessMetricsPublisher.ArticleStockMetricRow> lowRows = getRepository()
+                    .findLowStockByReorderPoint()
+                    .stream()
+                    .map(a -> new BusinessMetricsPublisher.ArticleStockMetricRow(
+                            a.getId(),
+                            a.getCommercialName(),
+                            a.getStockQuantity() != null ? a.getStockQuantity() : 0,
+                            a.getReorderPoint()))
+                    .toList();
+            metricsPublisher.setLowStockArticleRows(lowRows);
+
+            List<BusinessMetricsPublisher.ArticleStockMetricRow> outRows = getRepository()
+                    .findOutOfStock()
+                    .stream()
+                    .map(a -> new BusinessMetricsPublisher.ArticleStockMetricRow(
+                            a.getId(),
+                            a.getCommercialName(),
+                            0,
+                            a.getReorderPoint()))
+                    .toList();
+            metricsPublisher.setOutOfStockArticleRows(outRows);
         }
 
         return new StockMetricsDto(

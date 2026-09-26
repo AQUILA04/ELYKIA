@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ArticlesRepository extends GenericRepository<Articles, Long> {
@@ -101,6 +102,22 @@ public interface ArticlesRepository extends GenericRepository<Articles, Long> {
               AND a.stockQuantity <= a.reorderPoint
             """)
     long countLowStockByReorderPoint();
+
+    @Query("""
+            SELECT a FROM Articles a
+            WHERE a.stockQuantity > 0
+              AND a.reorderPoint IS NOT NULL
+              AND a.stockQuantity <= a.reorderPoint
+            ORDER BY a.stockQuantity ASC, a.marque ASC, a.model ASC
+            """)
+    List<Articles> findLowStockByReorderPoint();
+
+    @Query("""
+            SELECT a FROM Articles a
+            WHERE a.stockQuantity = 0
+            ORDER BY a.marque ASC, a.model ASC
+            """)
+    List<Articles> findOutOfStock();
 
     @Query("SELECT AVG(a.stockTurnoverRate) FROM Articles a")
     Double getAverageTurnoverRate();

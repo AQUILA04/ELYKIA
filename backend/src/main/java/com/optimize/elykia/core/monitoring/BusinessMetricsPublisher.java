@@ -2,22 +2,36 @@ package com.optimize.elykia.core.monitoring;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.MultiGauge;
+import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class BusinessMetricsPublisher {
 
+    /** Cap cardinality of per-article gauges exposed to Prometheus. */
+    public static final int MAX_ARTICLE_GAUGE_ROWS = 50;
+
     private final MeterRegistry meterRegistry;
     private final AtomicInteger articlesOutOfStock = new AtomicInteger(0);
     private final AtomicInteger articlesLowStock = new AtomicInteger(0);
+    private final MultiGauge lowStockArticles;
+    private final MultiGauge outOfStockArticles;
 
     public BusinessMetricsPublisher(MeterRegistry meterRegistry) {
         this.meterRegistry = meterRegistry;
         meterRegistry.gauge("elykia.articles.outofstock", articlesOutOfStock);
         meterRegistry.gauge("elykia.articles.lowstock", articlesLowStock);
+        this.lowStockArticles = MultiGauge.builder("elykia.article.lowstock")
+                .description("Stock quantity for articles at or below reorder point (excl. zero)")
+                .register(meterRegistry);
+        this.outOfStockArticles = MultiGauge.builder("elykia.article.outofstock")
+                .description("Flag (1) for articles with zero stock")
+                .register(meterRegistry);
     }
 
     // ========= CREDIT METRICS =========
@@ -231,6 +245,50 @@ public class BusinessMetricsPublisher {
     public void setArticlesLowStock(int count) {
         articlesLowStock.set(count);
     }
+
+    /**
+     * Replaces per-article low-stock series. Value = current stock quantity.
+     * Labels: article_id, article_name, reorder_point.
+     */
+    public void setLowStockArticleRows(List<ArticleStockMetricRow> rows) {
+        List<MultiGauge.Row<?>> gaugeRows = new java.util.ArrayList<>();
+        rows.stream()
+                .limit(MAX_ARTICLE_GAUGE_ROWS)
+                .forEach(r -> gaugeRows.add(MultiGauge.Row.of(
+                        Tags.of(
+                                "article_id", String.valueOf(r.articleId()),
+                                "article_name", sanitizeLabel(r.articleName()),
+                                "reorder_point", String.valueOf(r.reorderPoint() != null ? r.reorderPoint() : 0)
+                        ),
+                        r.stockQuantity())));
+        lowStockArticles.register(gaugeRows, true);
+    }
+
+    /**
+     * Replaces per-article out-of-stock series. Value = 1 (present = rupture).
+     */
+    public void setOutOfStockArticleRows(List<ArticleStockMetricRow> rows) {
+        List<MultiGauge.Row<?>> gaugeRows = new java.util.ArrayList<>();
+        rows.stream()
+                .limit(MAX_ARTICLE_GAUGE_ROWS)
+                .forEach(r -> gaugeRows.add(MultiGauge.Row.of(
+                        Tags.of(
+                                "article_id", String.valueOf(r.articleId()),
+                                "article_name", sanitizeLabel(r.articleName())
+                        ),
+                        1)));
+        outOfStockArticles.register(gaugeRows, true);
+    }
+
+    private static String sanitizeLabel(String name) {
+        if (name == null || name.isBlank()) {
+            return "unknown";
+        }
+        String cleaned = name.replaceAll("[\\n\\r\"]", " ").trim();
+        return cleaned.length() > 80 ? cleaned.substring(0, 80) : cleaned;
+    }
+
+    public record ArticleStockMetricRow(long articleId, String articleName, int stockQuantity, Integer reorderPoint) {}
 
     // ========= TIMERS =========
 

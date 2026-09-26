@@ -93,6 +93,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Seed E2E articles : chemin mis à jour vers `db/legacy/V14__insert_articles.sql` après le rebaseline Flyway.
 - SonarCloud : exclusion de `db/legacy/**` et CPD du dump `V000` ; suppression des dumps schéma redondants (`NAV01*`, `01_oec_schema.sql`) qui poussaient la duplication new-code à ~24 %.
 
+## Backend — [1.19.17] — 2026-09-26
+
+### Added
+
+- Métriques Prometheus par article `elykia_article_lowstock` / `elykia_article_outofstock` (id, nom, stock, seuil) pour des alertes Grafana avec le libellé de l’article.
+
+### Changed
+
+- Alertes stock faible / rupture : une instance par article (nom + quantité + seuil) au lieu d’un compteur opaque.
+
 ## Backend — [1.19.16] — 2026-09-26
 
 ### Changed
