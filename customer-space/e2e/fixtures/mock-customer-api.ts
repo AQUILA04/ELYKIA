@@ -6,6 +6,24 @@ export const MOCK_SESSION = {
   fullName: 'Jean K. Mensah',
   phone: '90123456',
   expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+  activationStatus: 'ACTIVE',
+};
+
+/** Numéro utilisé par le parcours E2E d'auto-inscription. */
+export const E2E_REGISTER_PHONE = '70155169';
+
+/** Code OTP mock affiché / saisi en E2E (Notification Hub court-circuité via window.__E2E__). */
+export const E2E_MOCK_OTP_CODE = '123456';
+
+export const MOCK_REGISTER_SESSION = {
+  token: 'e2e-mock-jwt-pending',
+  refreshToken: 'e2e-refresh-pending',
+  tokenType: 'Bearer',
+  clientId: '701',
+  fullName: 'Awa Mensah',
+  phone: E2E_REGISTER_PHONE,
+  expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+  activationStatus: 'PENDING',
 };
 
 export const MOCK_PURCHASE_ID = '101';

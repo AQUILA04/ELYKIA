@@ -9,11 +9,23 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.23.1] — 2026-09-26
+
+### Added
+
+- E2E smoke : validation d'une inscription PENDING (`70155169`) depuis **Inscriptions clients** (commercial + dépôt).
+
 ## Frontend — [2.23.0] — 2026-09-26
 
 ### Added
 
 - Page **Inscriptions clients** (`/client-registrations`) : file d’attente des auto-inscriptions espace client, filtre avec/sans dépôt initial, association commercial crédit/tontine et validation ou refus.
+
+## Customer-space — [0.5.1] — 2026-09-26
+
+### Added
+
+- E2E Playwright : parcours complet auto-inscription (`70155169`) → OTP mock → fiche → PIN → onboarding pièce + dépôt. OTP Notification Hub court-circuité via `window.__E2E__` (code mock `123456` loggé).
 
 ## Customer-space — [0.5.0] — 2026-09-26
 

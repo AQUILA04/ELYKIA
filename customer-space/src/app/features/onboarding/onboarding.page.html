@@ -99,15 +99,18 @@
 
       <div class="field">
         <label>Numéro utilisé pour le transfert</label>
-        <ion-input formControlName="mobileMoneyPhone" inputmode="numeric"></ion-input>
+        <ion-input formControlName="mobileMoneyPhone" inputmode="numeric"
+          data-testid="e2e-onboarding-deposit-phone"></ion-input>
       </div>
       <div class="field">
         <label>Montant (FCFA)</label>
-        <ion-input formControlName="mobileMoneyAmount" type="number" inputmode="numeric"></ion-input>
+        <ion-input formControlName="mobileMoneyAmount" type="number" inputmode="numeric"
+          data-testid="e2e-onboarding-deposit-amount"></ion-input>
       </div>
       <div class="field">
         <label>Référence du transfert</label>
-        <ion-input formControlName="mobileMoneyReference"></ion-input>
+        <ion-input formControlName="mobileMoneyReference"
+          data-testid="e2e-onboarding-deposit-reference"></ion-input>
       </div>
       <div class="field">
         <label>Note (optionnel)</label>

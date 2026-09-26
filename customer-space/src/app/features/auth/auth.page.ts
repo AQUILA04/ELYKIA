@@ -183,6 +183,9 @@ export class AuthPage implements ViewWillEnter {
   private async startOtp(nextStep: 'otp' | 'register-otp'): Promise<void> {
     try {
       if (isE2eMode()) {
+        // OTP réel non disponible en CI : Notification Hub court-circuité.
+        // Code mock à saisir dans le formulaire (pour aligner le parcours UI).
+        console.info('[E2E] OTP mock pour', this.phone, '→ saisir 123456 (bypass window.__E2E__)');
         this.step = nextStep;
         return;
       }
@@ -200,6 +203,7 @@ export class AuthPage implements ViewWillEnter {
     this.error = '';
     try {
       if (isE2eMode()) {
+        console.info('[E2E] verify OTP court-circuité — preuve mock (code saisi:', this.otpForm.value.otp, ')');
         this.otpProofToken = 'e2e-mock-otp-proof';
         this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
         return;
