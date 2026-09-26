@@ -23,6 +23,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Écran **Mon dossier** : photo de pièce d’identité et déclaration de dépôt initial pour accélérer l’activation.
 - Tableau de bord limité tant que le compte est en attente de validation agence.
 
+## Backend — [1.20.1] — 2026-09-26
+
+### Fixed
+
+- Couverture JaCoCo du package `service.customer` : tests unitaires auth / onboarding / registration / admin inscriptions pour repasser le quality gate (≥ 0,30).
+
 ## Backend — [1.20.0] — 2026-09-26
 
 ### Added
