@@ -8,11 +8,13 @@ public class StockTontineReturnedEvent extends ApplicationEvent {
     private final Double amount;
     private final String collector;
     private final Long returnId;
+    private final int totalArticles;
 
-    public StockTontineReturnedEvent(Object source, Double amount, String collector, Long returnId) {
+    public StockTontineReturnedEvent(Object source, Double amount, String collector, Long returnId, int totalArticles) {
         super(source);
         this.amount = amount;
         this.collector = collector;
         this.returnId = returnId;
+        this.totalArticles = totalArticles;
     }
 }

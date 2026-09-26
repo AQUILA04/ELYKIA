@@ -167,6 +167,9 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         double totalReturnAmount = stockReturn.getItems().stream()
                 .mapToDouble(item -> item.getQuantity() * item.getArticle().getSellingPrice())
                 .sum();
+        int totalArticles = stockReturn.getItems().stream()
+                .mapToInt(item -> item.getQuantity() != null ? item.getQuantity() : 0)
+                .sum();
 
         // Publish event
         if (eventPublisher != null) {
@@ -174,7 +177,8 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                     this,
                     totalReturnAmount,
                     stockReturn.getCollector(),
-                    stockReturn.getId()));
+                    stockReturn.getId(),
+                    totalArticles));
         }
 
         return saved;
@@ -345,11 +349,15 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
                 double totalReturnAmount = stockReturn.getItems().stream()
                         .mapToDouble(item -> item.getQuantity() * item.getArticle().getSellingPrice())
                         .sum();
+                int totalArticles = stockReturn.getItems().stream()
+                        .mapToInt(item -> item.getQuantity() != null ? item.getQuantity() : 0)
+                        .sum();
                 eventPublisher.publishEvent(new com.optimize.elykia.core.event.StockReturnedEvent(
                         this,
                         totalReturnAmount,
                         stockReturn.getCollector(),
-                        stockReturn.getId()));
+                        stockReturn.getId(),
+                        totalArticles));
             }
         }
 

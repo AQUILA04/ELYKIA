@@ -185,12 +185,16 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
         double totalAmount = returnRequest.getItems().stream()
                 .mapToDouble(item -> item.getQuantity() * item.getArticle().getSellingPrice())
                 .sum();
+        int totalArticles = returnRequest.getItems().stream()
+                .mapToInt(item -> item.getQuantity() != null ? item.getQuantity() : 0)
+                .sum();
 
         eventPublisher.publishEvent(new com.optimize.elykia.core.event.StockTontineReturnedEvent(
                 this,
                 totalAmount,
                 returnRequest.getCollector(),
-                returnRequest.getId()));
+                returnRequest.getId(),
+                totalArticles));
     }
 
     private void reintegrateToWarehouse(StockTontineReturn stockReturn, String actingUsername) {

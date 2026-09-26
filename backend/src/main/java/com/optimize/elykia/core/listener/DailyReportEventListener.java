@@ -64,7 +64,11 @@ public class DailyReportEventListener {
                                 com.optimize.elykia.core.enumaration.OperationType.STOCK_RETURN,
                                 event.getAmount(),
                                 "Stock Return",
-                                "Retour de stock (ID: " + event.getReturnId() + ")");
+                                String.format("Retour de stock par %s (ID: %d, Montant: %.0f, Articles: %d)",
+                                                event.getCollector() != null ? event.getCollector() : "N/A",
+                                                event.getReturnId(),
+                                                event.getAmount() != null ? event.getAmount() : 0.0,
+                                                event.getTotalArticles()));
         }
 
         @EventListener
@@ -99,7 +103,11 @@ public class DailyReportEventListener {
                                 com.optimize.elykia.core.enumaration.OperationType.STOCK_TONTINE_RETURN,
                                 event.getAmount(),
                                 "Stock Tontine Return",
-                                "Retour de stock Tontine (ID: " + event.getReturnId() + ")");
+                                String.format("Retour de stock Tontine par %s (ID: %d, Montant: %.0f, Articles: %d)",
+                                                event.getCollector() != null ? event.getCollector() : "N/A",
+                                                event.getReturnId(),
+                                                event.getAmount() != null ? event.getAmount() : 0.0,
+                                                event.getTotalArticles()));
         }
 
         @EventListener

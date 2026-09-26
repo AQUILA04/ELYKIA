@@ -84,8 +84,9 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         CashDeposit saved = cashDepositRepository.save(deposit);
 
         String logDetail = String.format(
-                "Versement effectué par %s pour la date du %s (Crédit: %.0f, Tontine: %.0f, Solde Nx: %.0f%s)",
+                "Versement effectué par %s pour le commercial %s pour la date du %s (Crédit: %.0f, Tontine: %.0f, Solde Nx: %.0f%s)",
                 currentUser.getUsername(),
+                deposit.getCommercialUsername() != null ? deposit.getCommercialUsername() : "N/A",
                 deposit.getDate(),
                 deposit.getCreditAmount(),
                 deposit.getTontineAmount(),

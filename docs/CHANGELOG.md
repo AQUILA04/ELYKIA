@@ -93,6 +93,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Seed E2E articles : chemin mis à jour vers `db/legacy/V14__insert_articles.sql` après le rebaseline Flyway.
 - SonarCloud : exclusion de `db/legacy/**` et CPD du dump `V000` ; suppression des dumps schéma redondants (`NAV01*`, `01_oec_schema.sql`) qui poussaient la duplication new-code à ~24 %.
 
+## Backend — [1.19.16] — 2026-09-26
+
+### Changed
+
+- Activité récente : logs retour de stock (et tontine) enrichis avec le commercial, le montant total et le nombre d’articles ; logs versement avec le commercial concerné.
+
 ## Backend — [1.19.15] — 2026-09-25
 
 ### Fixed
