@@ -10,6 +10,16 @@
 </ion-header>
 <ion-content class="page-content" data-testid="e2e-dashboard-page">
   <div class="page-inner" *ngIf="!isLoading && dashboard && !loadError">
+    <div class="pending-banner" *ngIf="dashboard.activationStatus === 'PENDING'" data-testid="e2e-dashboard-pending">
+      <ion-icon name="hourglass-outline" aria-hidden="true"></ion-icon>
+      <div>
+        <strong>Compte en attente de validation</strong>
+        <p>Complétez votre dossier pour accélérer l'activation.</p>
+        <a routerLink="/onboarding" data-testid="e2e-dashboard-onboarding-link">Compléter mon dossier</a>
+      </div>
+    </div>
+
+    <ng-container *ngIf="dashboard.activationStatus !== 'PENDING'; else pendingOnly">
     <app-credit-progress-card
       data-testid="e2e-dashboard-credit-card"
       [reference]="creditReference"
@@ -63,6 +73,19 @@
       <p class="empty-title">Aucune activité récente</p>
       <p class="empty-sub">Vos paiements et commandes apparaîtront ici.</p>
     </div>
+    </ng-container>
+
+    <ng-template #pendingOnly>
+      <div class="empty-state">
+        <ion-icon name="person-outline" class="empty-icon"></ion-icon>
+        <p class="empty-title">Votre espace sera disponible après validation</p>
+        <p class="empty-sub">En attendant, ajoutez la photo de votre pièce et déclarez un dépôt initial si vous le souhaitez.</p>
+        <ion-button expand="block" class="elyk-btn-primary" routerLink="/onboarding"
+          data-testid="e2e-dashboard-complete-btn">
+          Compléter mon dossier
+        </ion-button>
+      </div>
+    </ng-template>
   </div>
 
   <div class="page-inner" *ngIf="!isLoading && loadError">

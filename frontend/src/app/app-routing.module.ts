@@ -78,6 +78,18 @@ const routes: Routes = [
   },
 
   {
+    path: 'client-registrations',
+    loadChildren: () => import('./client-registrations/client-registrations.module').then(m => m.ClientRegistrationsModule),
+    canActivate: [AuthGuard, NgxPermissionsGuard],
+    data: {
+      permissions: {
+        only: ['ROLE_VALIDATE_CLIENT_REGISTRATION', 'ROLE_CONSULT_CLIENT', 'ROLE_EDIT_CLIENT', 'ROLE_ADMIN'],
+        redirectTo: '/home'
+      }
+    }
+  },
+
+  {
     path: 'notifications',
     loadChildren: () => import('./notifications/notifications.module').then(m => m.NotificationsModule),
     canActivate: [AuthGuard]

@@ -8,6 +8,7 @@ import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import {
   AuthStep,
+  CARD_TYPE_OPTIONS,
   CustomerLoginResponse,
 } from '../../shared/models/customer-auth.model';
 import { environment } from '../../../environments/environment';
@@ -16,7 +17,7 @@ import { FeatureFlagService } from '../../shared/services/feature-flag.service';
 import { APP_UNAVAILABLE_MESSAGE } from '../../shared/constants/app-availability';
 import { isE2eMode } from '../../shared/utils/e2e';
 
-/** Page Connexion — wizard téléphone → PIN ou OTP (Notification Hub) + PIN. */
+/** Page Connexion / Inscription — wizard téléphone → PIN, OTP ou inscription. */
 @Component({
   selector: 'app-auth',
   standalone: true,
@@ -29,16 +30,21 @@ export class AuthPage implements ViewWillEnter {
   phone = '';
   maskedName = '';
   otpProofToken = '';
+  profilPhotoDataUrl = '';
   isLoading = false;
   error = '';
   appUnavailable = false;
   readonly appUnavailableMessage = APP_UNAVAILABLE_MESSAGE;
+  readonly cardTypes = CARD_TYPE_OPTIONS;
   appVersion = environment.version;
+  isRegistrationFlow = false;
 
   phoneForm: FormGroup;
   pinForm: FormGroup;
   otpForm: FormGroup;
   setupPinForm: FormGroup;
+  registerForm: FormGroup;
+  registerPinForm: FormGroup;
 
   constructor(
     private fb: FormBuilder,
@@ -60,6 +66,20 @@ export class AuthPage implements ViewWillEnter {
       pin: ['', [Validators.required, Validators.pattern(/^\d{4,6}$/)]],
       confirmPin: ['', [Validators.required]],
     }, { validators: this.pinMatchValidator });
+    this.registerForm = this.fb.group({
+      firstname: ['', [Validators.required, Validators.maxLength(100)]],
+      lastname: ['', [Validators.required, Validators.maxLength(100)]],
+      address: ['', [Validators.required, Validators.maxLength(255)]],
+      quarter: ['', [Validators.required, Validators.maxLength(100)]],
+      dateOfBirth: ['', Validators.required],
+      occupation: ['', [Validators.required, Validators.maxLength(100)]],
+      cardType: ['', Validators.required],
+      cardID: ['', [Validators.required, Validators.maxLength(100)]],
+    });
+    this.registerPinForm = this.fb.group({
+      pin: ['', [Validators.required, Validators.pattern(/^\d{4,6}$/)]],
+      confirmPin: ['', [Validators.required]],
+    }, { validators: this.pinMatchValidator });
   }
 
   ionViewWillEnter(): void {
@@ -73,13 +93,17 @@ export class AuthPage implements ViewWillEnter {
     this.phone = '';
     this.maskedName = '';
     this.otpProofToken = '';
+    this.profilPhotoDataUrl = '';
     this.error = '';
     this.appUnavailable = false;
     this.isLoading = false;
+    this.isRegistrationFlow = false;
     this.phoneForm.reset();
     this.pinForm.reset();
     this.otpForm.reset();
     this.setupPinForm.reset();
+    this.registerForm.reset();
+    this.registerPinForm.reset();
   }
 
   private pinMatchValidator(group: FormGroup) {
@@ -92,8 +116,11 @@ export class AuthPage implements ViewWillEnter {
     switch (this.step) {
       case 'phone': return 'Connexion';
       case 'pin': return 'Code PIN';
-      case 'otp': return 'Vérification SMS';
+      case 'otp':
+      case 'register-otp': return 'Vérification SMS';
       case 'setup-pin': return 'Créer votre PIN';
+      case 'register-form': return 'Inscription';
+      case 'register-pin': return 'Créer votre PIN';
       default: return 'Connexion';
     }
   }
@@ -102,8 +129,11 @@ export class AuthPage implements ViewWillEnter {
     switch (this.step) {
       case 'phone': return 'Entrez votre numéro de téléphone';
       case 'pin': return this.maskedName ? `Bonjour ${this.maskedName}` : 'Saisissez votre code PIN';
-      case 'otp': return 'Un code a été envoyé par SMS';
+      case 'otp':
+      case 'register-otp': return 'Un code a été envoyé par SMS';
       case 'setup-pin': return 'Choisissez un code PIN à 4-6 chiffres';
+      case 'register-form': return 'Renseignez vos informations et votre photo';
+      case 'register-pin': return 'Choisissez un code PIN à 4-6 chiffres';
       default: return '';
     }
   }
@@ -123,14 +153,20 @@ export class AuthPage implements ViewWillEnter {
       this.phone = toUsername(this.phoneForm.value.phone);
       const res = await firstValueFrom(this.api.checkPhone({ phone: this.phone }));
       if (!res.exists) {
+        if (res.canRegister) {
+          this.isRegistrationFlow = true;
+          await this.startOtp('register-otp');
+          return;
+        }
         this.error = 'Numéro non reconnu. Contactez votre agence.';
         return;
       }
+      this.isRegistrationFlow = false;
       this.maskedName = res.maskedName ?? '';
       if (res.pinConfigured) {
         this.step = 'pin';
       } else {
-        await this.startOtp();
+        await this.startOtp('otp');
       }
     } catch (e: unknown) {
       this.error = this.extractError(e);
@@ -144,14 +180,14 @@ export class AuthPage implements ViewWillEnter {
     await this.completeLogin(this.api.login({ phone: this.phone, pin: this.pinForm.value.pin }));
   }
 
-  private async startOtp(): Promise<void> {
+  private async startOtp(nextStep: 'otp' | 'register-otp'): Promise<void> {
     try {
       if (isE2eMode()) {
-        this.step = 'otp';
+        this.step = nextStep;
         return;
       }
       await firstValueFrom(this.api.sendOtp({ phone: this.phone }));
-      this.step = 'otp';
+      this.step = nextStep;
     } catch (e: unknown) {
       console.error('[Auth] Échec envoi OTP Notification Hub', e);
       this.error = this.extractError(e) || 'Impossible d\'envoyer le SMS.';
@@ -165,7 +201,7 @@ export class AuthPage implements ViewWillEnter {
     try {
       if (isE2eMode()) {
         this.otpProofToken = 'e2e-mock-otp-proof';
-        this.step = 'setup-pin';
+        this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
         return;
       }
       const res = await firstValueFrom(this.api.verifyOtp({
@@ -173,7 +209,7 @@ export class AuthPage implements ViewWillEnter {
         code: this.otpForm.value.otp,
       }));
       this.otpProofToken = res.otpProofToken;
-      this.step = 'setup-pin';
+      this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
     } catch (e: unknown) {
       this.error = this.extractError(e) || 'Code incorrect. Réessayez.';
     } finally {
@@ -194,6 +230,62 @@ export class AuthPage implements ViewWillEnter {
     }));
   }
 
+  onProfilPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      this.error = 'Veuillez sélectionner une image.';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.profilPhotoDataUrl = typeof reader.result === 'string' ? reader.result : '';
+      this.error = '';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  submitRegisterForm(): void {
+    if (this.registerForm.invalid) {
+      this.registerForm.markAllAsTouched();
+      return;
+    }
+    if (!this.profilPhotoDataUrl) {
+      this.error = 'La photo de profil est obligatoire.';
+      return;
+    }
+    this.error = '';
+    this.step = 'register-pin';
+  }
+
+  async submitRegisterPin(): Promise<void> {
+    if (this.registerPinForm.invalid) return;
+    if (this.registerPinForm.hasError('pinMismatch')) {
+      this.error = 'Les codes PIN ne correspondent pas.';
+      return;
+    }
+    if (!this.profilPhotoDataUrl) {
+      this.error = 'La photo de profil est obligatoire.';
+      return;
+    }
+    const form = this.registerForm.value;
+    await this.completeLogin(this.api.register({
+      phone: this.phone,
+      otpProofToken: this.otpProofToken,
+      firstname: form.firstname,
+      lastname: form.lastname,
+      address: form.address,
+      quarter: form.quarter,
+      dateOfBirth: form.dateOfBirth,
+      occupation: form.occupation,
+      cardType: form.cardType,
+      cardID: form.cardID,
+      profilPhoto: this.profilPhotoDataUrl,
+      pin: this.registerPinForm.value.pin,
+    }));
+  }
+
   private async completeLogin(request: Observable<CustomerLoginResponse>): Promise<void> {
     this.isLoading = true;
     this.error = '';
@@ -211,10 +303,15 @@ export class AuthPage implements ViewWillEnter {
   goBack(): void {
     this.error = '';
     this.appUnavailable = false;
-    if (this.step === 'pin' || this.step === 'otp') {
+    if (this.step === 'pin' || this.step === 'otp' || this.step === 'register-otp') {
       this.step = 'phone';
+      this.isRegistrationFlow = false;
     } else if (this.step === 'setup-pin') {
       this.step = 'otp';
+    } else if (this.step === 'register-form') {
+      this.step = 'register-otp';
+    } else if (this.step === 'register-pin') {
+      this.step = 'register-form';
     }
   }
 

@@ -22,6 +22,9 @@ export const MOCK_DASHBOARD = {
   nextPaymentCreditId: MOCK_PURCHASE_ID,
   nextInstallmentNumber: 3,
   progressPercent: 34.3,
+  activationStatus: 'ACTIVE',
+  idDocumentUploaded: true,
+  initialDepositStatus: 'NONE',
   recentActivities: [
     {
       id: '1',

@@ -10,5 +10,8 @@ import lombok.Getter;
 public class CustomerCheckPhoneResponse {
     private boolean exists;
     private boolean pinConfigured;
+    private boolean canRegister;
     private String maskedName;
+    /** PENDING | ACTIVE | REJECTED — renseigné si le compte existe. */
+    private String activationStatus;
 }

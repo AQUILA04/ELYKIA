@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.customer;
 
+import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.client.enumeration.ClientActivationStatus;
 import com.optimize.elykia.core.dto.customer.CustomerArticleDto;
 import com.optimize.elykia.core.dto.customer.CustomerArticleTypeDto;
 import com.optimize.elykia.core.entity.article.Articles;
@@ -11,6 +13,7 @@ import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.store.ArticlesService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -23,6 +26,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,6 +45,17 @@ class CustomerPortalServiceTest {
     @Mock private CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
     @Mock private com.optimize.elykia.core.service.notification.AppNotificationService appNotificationService;
     @Mock private com.optimize.elykia.core.repository.customer.CustomerTontineMmSubmissionRepository tontineMmSubmissionRepository;
+    @Mock private CustomerOnboardingService onboardingService;
+
+    @BeforeEach
+    void stubActiveClient() {
+        Client client = new Client();
+        client.setId(1L);
+        client.setActivationStatus(ClientActivationStatus.ACTIVE);
+        when(contextService.currentUsername()).thenReturn("90123456");
+        when(contextService.requireClient("90123456")).thenReturn(client);
+        doNothing().when(onboardingService).assertPortalFeatureAllowed(any(Client.class));
+    }
 
     @Test
     void getTopArticleTypes_capsRequestedLimitAndNormalizesNullSoldQuantity() {
@@ -100,7 +115,8 @@ class CustomerPortalServiceTest {
                 tontineCollectionRepository,
                 commercialMobileMoneyConfigService,
                 appNotificationService,
-                tontineMmSubmissionRepository);
+                tontineMmSubmissionRepository,
+                onboardingService);
     }
 
     private Articles article(Long id, String type, String commercialName, String name, int stock) {

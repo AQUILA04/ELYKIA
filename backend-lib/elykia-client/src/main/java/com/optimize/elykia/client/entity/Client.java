@@ -6,6 +6,7 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.client.enumeration.AccountStatus;
+import com.optimize.elykia.client.enumeration.ClientActivationStatus;
 import com.optimize.elykia.client.enumeration.ClientType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -81,6 +82,18 @@ public class Client extends Auditable<String> {
     @Column(name = "business_credit_authorized_at")
     private java.time.LocalDateTime businessCreditAuthorizedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "activation_status", nullable = false, length = 20)
+    private ClientActivationStatus activationStatus = ClientActivationStatus.ACTIVE;
+
+    @Column(name = "activation_rejection_reason", length = 500)
+    private String activationRejectionReason;
+
+    @Column(name = "activation_rejected_by", length = 100)
+    private String activationRejectedBy;
+
+    @Column(name = "activation_rejected_at")
+    private java.time.LocalDateTime activationRejectedAt;
 
     public Long getAccountId() {
         if (Objects.nonNull(account)) {
@@ -98,6 +111,18 @@ public class Client extends Auditable<String> {
         if (Objects.nonNull(getAccountId()) && !AccountStatus.ACTIF.equals(account.getStatus())) {
             throw new ApplicationException("Le compte du client n'est pas actif !");
         }
+    }
+
+    public boolean isActivationPending() {
+        return ClientActivationStatus.PENDING.equals(activationStatus);
+    }
+
+    public boolean isActivationRejected() {
+        return ClientActivationStatus.REJECTED.equals(activationStatus);
+    }
+
+    public boolean isActivationActive() {
+        return activationStatus == null || ClientActivationStatus.ACTIVE.equals(activationStatus);
     }
 
     public void allowCreditAmountControl(Double amount, int dividend) {

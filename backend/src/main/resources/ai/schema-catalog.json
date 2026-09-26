@@ -180,6 +180,56 @@
         {
           "name": "collector",
           "type": "varchar"
+        },
+        {
+          "name": "activation_status",
+          "type": "varchar",
+          "description": "Statut d'activation du dossier client (PENDING, ACTIVE, REJECTED)",
+          "synonyms": ["inscription", "activation", "en attente"]
+        }
+      ]
+    },
+    {
+      "name": "customer_initial_deposit_submission",
+      "description": "Déclarations de dépôt initial Mobile Money pour accélérer l'activation d'une inscription client",
+      "synonyms": ["dépôt initial", "solde initial", "inscription dépôt"],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "client_id",
+          "type": "bigint",
+          "description": "Client concerné"
+        },
+        {
+          "name": "mobile_money_amount",
+          "type": "double",
+          "description": "Montant déclaré du dépôt"
+        },
+        {
+          "name": "mobile_money_phone",
+          "type": "varchar",
+          "description": "Numéro Mobile Money utilisé"
+        },
+        {
+          "name": "mobile_money_reference",
+          "type": "varchar",
+          "description": "Référence du transfert"
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "INITIE, VALIDE ou REJETE"
+        }
+      ],
+      "relations": [
+        {
+          "column": "client_id",
+          "refTable": "client",
+          "refColumn": "id"
         }
       ]
     },

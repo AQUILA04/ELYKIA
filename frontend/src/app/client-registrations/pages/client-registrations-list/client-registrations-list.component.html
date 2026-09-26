@@ -1,0 +1,157 @@
+<div class="main-container client-registrations-page a1" data-testid="e2e-client-registrations-page">
+  <div class="breadcrumb-bar">
+    <a class="breadcrumb-link" routerLink="/home">Tableau de bord</a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">Espace client</span>
+      <span class="last-update">MAJ {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg class="page-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+        <h1 class="page-title">Inscriptions clients</h1>
+      </div>
+      <button type="button" class="btn-refresh" (click)="load()" data-testid="e2e-client-registrations-refresh">
+        Actualiser
+      </button>
+    </div>
+    <p class="page-subtitle">Validez les auto-inscriptions, associez un commercial et créditez le dépôt initial le cas échéant.</p>
+  </div>
+
+  <div class="kpi-strip a3">
+    <div class="kpi-card kpi-total">
+      <span class="kpi-label">En attente</span>
+      <span class="kpi-value">{{ registrations.length }}</span>
+    </div>
+    <div class="kpi-card kpi-amount">
+      <span class="kpi-label">Avec dépôt</span>
+      <span class="kpi-value">{{ withDepositCount }}</span>
+    </div>
+  </div>
+
+  <div class="toolbar a4">
+    <button type="button" class="btn-filter" [class.active]="depositFilter === 'all'" (click)="setDepositFilter('all')">Toutes</button>
+    <button type="button" class="btn-filter" [class.active]="depositFilter === 'with'" (click)="setDepositFilter('with')"
+      data-testid="e2e-client-registrations-filter-deposit">Avec dépôt</button>
+    <button type="button" class="btn-filter" [class.active]="depositFilter === 'without'" (click)="setDepositFilter('without')">Sans dépôt</button>
+  </div>
+
+  <div class="table-card a5">
+    <div class="table-wrapper">
+      <div class="loading-state" *ngIf="loading">Chargement…</div>
+      <div class="empty-state" *ngIf="!loading && registrations.length === 0">
+        <p>Aucune inscription en attente.</p>
+      </div>
+      <table *ngIf="!loading && registrations.length > 0">
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Téléphone</th>
+            <th>Pièce</th>
+            <th>Dépôt</th>
+            <th>Inscrit le</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of registrations" [class.has-deposit]="row.hasInitialDeposit"
+            data-testid="e2e-client-registration-row">
+            <td>
+              <div class="client-cell">
+                <img *ngIf="row.profilPhotoUrl" [src]="row.profilPhotoUrl" alt="" class="thumb" />
+                <span>{{ row.fullName }}</span>
+              </div>
+            </td>
+            <td>{{ row.phone }}</td>
+            <td>
+              <span *ngIf="row.cardPhotoUrl" class="badge ok">Photo OK</span>
+              <span *ngIf="!row.cardPhotoUrl" class="badge warn">Manquante</span>
+            </td>
+            <td>
+              <ng-container *ngIf="row.hasInitialDeposit; else noDeposit">
+                {{ row.initialDepositAmount | number:'1.0-0' }} F
+                <span class="muted">({{ row.initialDepositStatus }})</span>
+              </ng-container>
+              <ng-template #noDeposit>—</ng-template>
+            </td>
+            <td>{{ row.registeredAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            <td>
+              <button type="button" class="btn-detail" (click)="openDetail(row)"
+                data-testid="e2e-client-registration-open">Voir</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="detail-panel" *ngIf="selected" data-testid="e2e-client-registration-detail">
+    <div class="detail-backdrop" (click)="closeDetail()"></div>
+    <div class="detail-card">
+      <div class="detail-header">
+        <h2>{{ selected.fullName }}</h2>
+        <button type="button" class="btn-clear" (click)="closeDetail()">Fermer</button>
+      </div>
+      <div class="detail-photos">
+        <div>
+          <span class="label">Profil</span>
+          <img *ngIf="selected.profilPhotoUrl" [src]="selected.profilPhotoUrl" alt="Photo profil" />
+        </div>
+        <div>
+          <span class="label">Pièce</span>
+          <img *ngIf="selected.cardPhotoUrl" [src]="selected.cardPhotoUrl" alt="Photo pièce" />
+          <span *ngIf="!selected.cardPhotoUrl" class="muted">Non fournie</span>
+        </div>
+      </div>
+      <dl class="detail-grid">
+        <div><dt>Téléphone</dt><dd>{{ selected.phone }}</dd></div>
+        <div><dt>Adresse</dt><dd>{{ selected.address }} — {{ selected.quarter }}</dd></div>
+        <div><dt>Naissance</dt><dd>{{ selected.dateOfBirth | date:'dd/MM/yyyy' }}</dd></div>
+        <div><dt>Occupation</dt><dd>{{ selected.occupation }}</dd></div>
+        <div><dt>Pièce</dt><dd>{{ selected.cardType }} — {{ selected.cardID }}</dd></div>
+        <div *ngIf="selected.hasInitialDeposit">
+          <dt>Dépôt initial</dt>
+          <dd>
+            {{ selected.initialDepositAmount | number:'1.0-0' }} F
+            · {{ selected.initialDepositPhone }}
+            · réf. {{ selected.initialDepositReference }}
+          </dd>
+        </div>
+      </dl>
+
+      <form [formGroup]="activateForm" (ngSubmit)="activate()" class="activate-form">
+        <label>
+          Commercial crédit
+          <select formControlName="collector" data-testid="e2e-client-registration-collector">
+            <option value="" disabled>Sélectionner</option>
+            <option *ngFor="let a of agents" [value]="a.username">{{ agentLabel(a) }}</option>
+          </select>
+        </label>
+        <label>
+          Commercial tontine (optionnel)
+          <select formControlName="tontineCollector">
+            <option value="">Aucun</option>
+            <option *ngFor="let a of agents" [value]="a.username">{{ agentLabel(a) }}</option>
+          </select>
+        </label>
+        <label class="checkbox" *ngIf="selected.initialDepositStatus === 'INITIE'">
+          <input type="checkbox" formControlName="validateInitialDeposit" />
+          Valider le dépôt initial et créditer le solde
+        </label>
+        <div class="detail-actions">
+          <button type="submit" class="btn-primary" data-testid="e2e-client-registration-activate">
+            Valider l'inscription
+          </button>
+          <button type="button" class="btn-clear" (click)="reject()" data-testid="e2e-client-registration-reject">
+            Refuser
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

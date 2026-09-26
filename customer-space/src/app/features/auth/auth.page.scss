@@ -144,3 +144,8 @@ ion-button {
   color: var(--elyk-gray-text);
   text-align: center;
 }
+
+.photo-capture { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+.photo-preview { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 2px solid var(--elyk-gold); }
+.photo-capture input[type=file] { font-size: 14px; }
+.field ion-select { --background: var(--elyk-cream); min-height: 48px; border: 1px solid var(--elyk-border); border-radius: var(--elyk-radius-input); }

@@ -1,0 +1,124 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/dashboard"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Mon dossier</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page-content" data-testid="e2e-onboarding-page">
+  <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
+
+  <div class="page-inner" *ngIf="!isLoading && status">
+    <div class="banner banner-pending" *ngIf="status.activationStatus === 'PENDING'" data-testid="e2e-onboarding-pending">
+      <ion-icon name="hourglass-outline" aria-hidden="true"></ion-icon>
+      <div>
+        <strong>Compte en attente de validation</strong>
+        <p>Complétez votre pièce d'identité et, si vous le souhaitez, déclarez un dépôt initial pour accélérer l'activation.</p>
+      </div>
+    </div>
+
+    <div class="banner banner-rejected" *ngIf="status.activationStatus === 'REJECTED'">
+      <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+      <div>
+        <strong>Inscription refusée</strong>
+        <p>{{ status.activationRejectionReason || 'Contactez votre agence.' }}</p>
+      </div>
+    </div>
+
+    <div class="error" *ngIf="error">{{ error }}</div>
+    <div class="success" *ngIf="success">{{ success }}</div>
+
+    <div *ngIf="section === 'menu'">
+      <div class="status-card">
+        <div class="row">
+          <span>Pièce d'identité</span>
+          <span class="badge" [class.ok]="status.idDocumentUploaded">
+            {{ status.idDocumentUploaded ? 'Fournie' : 'À compléter' }}
+          </span>
+        </div>
+        <div class="row">
+          <span>Dépôt initial</span>
+          <span class="badge" [class.ok]="status.initialDepositStatus === 'INITIE' || status.initialDepositStatus === 'VALIDE'">
+            {{ status.initialDepositStatus === 'NONE' ? 'Non déclaré' : status.initialDepositStatus }}
+          </span>
+        </div>
+      </div>
+
+      <ion-button expand="block" class="elyk-btn-primary" (click)="openId()" data-testid="e2e-onboarding-id-btn">
+        {{ status.idDocumentUploaded ? 'Mettre à jour la pièce' : 'Ajouter la photo de ma pièce' }}
+      </ion-button>
+
+      <ion-button *ngIf="isPending && status.initialDepositStatus === 'NONE'"
+        expand="block" fill="outline" (click)="openDeposit()" data-testid="e2e-onboarding-deposit-btn">
+        Déposer pour accélérer l'activation
+      </ion-button>
+
+      <div class="deposit-summary" *ngIf="deposit">
+        <h3>Dépôt déclaré</h3>
+        <p>{{ deposit.mobileMoneyAmount | number:'1.0-0' }} F — {{ deposit.mobileMoneyReference }}</p>
+        <p class="muted">Statut : {{ deposit.status }}</p>
+      </div>
+    </div>
+
+    <form *ngIf="section === 'id'" [formGroup]="idForm" (ngSubmit)="submitIdDocument()">
+      <h3>Photo de la pièce d'identité</h3>
+      <div class="field">
+        <label for="cardPhoto">Photo</label>
+        <input id="cardPhoto" type="file" accept="image/*" capture="environment"
+          (change)="onCardPhotoSelected($event)" data-testid="e2e-onboarding-card-photo" />
+        <img *ngIf="cardPhotoDataUrl" [src]="cardPhotoDataUrl" alt="Aperçu pièce" class="preview" />
+      </div>
+      <div class="field">
+        <label>Type de pièce</label>
+        <ion-select formControlName="cardType" interface="popover">
+          <ion-select-option *ngFor="let t of cardTypes" [value]="t.value">{{ t.label }}</ion-select-option>
+        </ion-select>
+      </div>
+      <div class="field">
+        <label>Numéro de pièce</label>
+        <ion-input formControlName="cardID"></ion-input>
+      </div>
+      <ion-button type="submit" expand="block" class="elyk-btn-primary" [disabled]="isSaving"
+        data-testid="e2e-onboarding-id-submit">
+        Enregistrer
+      </ion-button>
+      <ion-button expand="block" fill="clear" type="button" (click)="backToMenu()">Retour</ion-button>
+    </form>
+
+    <form *ngIf="section === 'deposit'" [formGroup]="depositForm" (ngSubmit)="submitDeposit()"
+      data-testid="e2e-onboarding-deposit-form">
+      <h3>Déclaration de dépôt initial</h3>
+      <p class="muted">Effectuez un transfert Mobile Money vers le numéro indiqué, puis renseignez les détails.</p>
+
+      <div class="recipients" *ngIf="recipients">
+        <p *ngIf="recipients.mixxNumber"><strong>Mixx :</strong> {{ recipients.mixxNumber }}</p>
+        <p *ngIf="recipients.moovNumber"><strong>Moov :</strong> {{ recipients.moovNumber }}</p>
+      </div>
+
+      <div class="field">
+        <label>Numéro utilisé pour le transfert</label>
+        <ion-input formControlName="mobileMoneyPhone" inputmode="numeric"></ion-input>
+      </div>
+      <div class="field">
+        <label>Montant (FCFA)</label>
+        <ion-input formControlName="mobileMoneyAmount" type="number" inputmode="numeric"></ion-input>
+      </div>
+      <div class="field">
+        <label>Référence du transfert</label>
+        <ion-input formControlName="mobileMoneyReference"></ion-input>
+      </div>
+      <div class="field">
+        <label>Note (optionnel)</label>
+        <ion-input formControlName="notes"></ion-input>
+      </div>
+      <ion-button type="submit" expand="block" class="elyk-btn-primary" [disabled]="isSaving || depositForm.invalid"
+        data-testid="e2e-onboarding-deposit-submit">
+        Envoyer la déclaration
+      </ion-button>
+      <ion-button expand="block" fill="clear" type="button" (click)="backToMenu()">Retour</ion-button>
+    </form>
+  </div>
+</ion-content>
+<app-customer-tab-bar></app-customer-tab-bar>

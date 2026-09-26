@@ -36,7 +36,29 @@ export async function mockCustomerApi(page: Page): Promise<void> {
       await route.fulfill(jsonResponse({
         exists: true,
         pinConfigured: true,
+        canRegister: false,
         maskedName: 'Jean K.',
+        activationStatus: 'ACTIVE',
+      }));
+      return;
+    }
+
+    if (url.includes('/auth/register') && method === 'POST') {
+      await route.fulfill(jsonResponse({
+        ...MOCK_SESSION,
+        activationStatus: 'PENDING',
+      }));
+      return;
+    }
+
+    if (url.includes('/onboarding/status') && method === 'GET') {
+      await route.fulfill(jsonResponse({
+        clientId: MOCK_SESSION.clientId,
+        fullName: MOCK_SESSION.fullName,
+        phone: MOCK_SESSION.phone,
+        activationStatus: 'ACTIVE',
+        idDocumentUploaded: true,
+        initialDepositStatus: 'NONE',
       }));
       return;
     }
