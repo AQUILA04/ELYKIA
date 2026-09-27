@@ -39,4 +39,9 @@ public class CustomerAuthController {
     public ResponseEntity<CustomerLoginResponse> setupPin(@Valid @RequestBody CustomerSetupPinRequest request) {
         return ResponseEntity.ok(customerAuthService.setupPin(request));
     }
+
+    @PostMapping("/register")
+    public ResponseEntity<CustomerLoginResponse> register(@Valid @RequestBody CustomerRegisterRequest request) {
+        return ResponseEntity.ok(customerAuthService.register(request));
+    }
 }

@@ -1,0 +1,110 @@
+.page-inner {
+  padding: 16px;
+  padding-bottom: 96px;
+}
+
+.banner {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.banner-pending {
+  background: #FEF3C7;
+  color: #92400E;
+}
+
+.banner-rejected {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.banner ion-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.banner p {
+  margin: 4px 0 0;
+  font-size: 14px;
+}
+
+.status-card {
+  background: var(--elyk-white, #fff);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #FEF3C7;
+  color: #D97706;
+}
+
+.badge.ok {
+  background: #D1FAE5;
+  color: #059669;
+}
+
+.field {
+  margin-bottom: 14px;
+}
+
+.field label {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: #64748B;
+}
+
+.preview {
+  margin-top: 10px;
+  max-width: 100%;
+  border-radius: 12px;
+}
+
+.recipients {
+  background: #F8FAFC;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.muted {
+  color: #64748B;
+  font-size: 14px;
+}
+
+.error {
+  color: #DC2626;
+  margin-bottom: 12px;
+}
+
+.success {
+  color: #059669;
+  margin-bottom: 12px;
+}
+
+.center-spinner {
+  display: block;
+  margin: 48px auto;
+}
+
+.deposit-summary {
+  margin-top: 20px;
+}

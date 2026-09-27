@@ -89,6 +89,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/profile/profile.page').then(m => m.ProfilePage),
   },
   {
+    path: 'onboarding',
+    canActivate: [CustomerAuthGuard],
+    loadComponent: () => import('./features/onboarding/onboarding.page').then(m => m.OnboardingPage),
+  },
+  {
     path: '**',
     redirectTo: 'auth',
   },

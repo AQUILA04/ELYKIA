@@ -11,6 +11,7 @@ import {
   CustomerOtpVerifyRequest,
   CustomerOtpVerifyResponse,
   CustomerSetupPinRequest,
+  CustomerRegisterRequest,
 } from '../models/customer-auth.model';
 import {
   CustomerDashboard,
@@ -27,6 +28,9 @@ import {
   CustomerTontinePayment,
   CustomerTontinePaymentPage,
   TontineMobileMoneyPaymentRequest,
+  CustomerOnboardingStatus,
+  CustomerInitialDeposit,
+  CustomerInitialDepositRequest,
 } from '../models/customer.model';
 
 /**
@@ -60,6 +64,32 @@ export class CustomerApiService {
 
   setupPin(payload: CustomerSetupPinRequest): Observable<CustomerLoginResponse> {
     return this.http.post<CustomerLoginResponse>(`${this.base}/auth/setup-pin`, payload);
+  }
+
+  register(payload: CustomerRegisterRequest): Observable<CustomerLoginResponse> {
+    return this.http.post<CustomerLoginResponse>(`${this.base}/auth/register`, payload);
+  }
+
+  // ─── ONBOARDING ──────────────────────────────────────────────────────────
+
+  getOnboardingStatus(): Observable<CustomerOnboardingStatus> {
+    return this.http.get<CustomerOnboardingStatus>(`${this.base}/onboarding/status`);
+  }
+
+  uploadIdDocument(payload: { cardType?: string; cardID?: string; cardPhoto: string }): Observable<CustomerOnboardingStatus> {
+    return this.http.post<CustomerOnboardingStatus>(`${this.base}/onboarding/id-document`, payload);
+  }
+
+  getInitialDepositRecipients(): Observable<MobileMoneyRecipient> {
+    return this.http.get<MobileMoneyRecipient>(`${this.base}/onboarding/mobile-money-recipients`);
+  }
+
+  submitInitialDeposit(payload: CustomerInitialDepositRequest): Observable<CustomerInitialDeposit> {
+    return this.http.post<CustomerInitialDeposit>(`${this.base}/onboarding/initial-deposit`, payload);
+  }
+
+  getInitialDeposit(): Observable<CustomerInitialDeposit> {
+    return this.http.get<CustomerInitialDeposit>(`${this.base}/onboarding/initial-deposit`);
   }
 
   // ─── DASHBOARD ───────────────────────────────────────────────────────────

@@ -23,6 +23,7 @@ Consultez les pages suivantes selon la tâche à accomplir :
 
 - [Tableaux de bord](dashboard.md) pour lire les KPI sans confondre les périodes.
 - [Opérations quotidiennes](operations.md) pour les caisses, clients, comptes et versements.
+- [Inscriptions clients](client_registrations.md) pour valider les demandes de l’espace client.
 - [Stocks, ventes et commandes](stock_sales.md) pour les flux de marchandises et de crédits.
 - [Finances et tontines](finance.md) pour les dépenses, remises et contrôles tontine.
 - [Rapports et configuration](reporting_config.md) pour l’analyse et les référentiels.

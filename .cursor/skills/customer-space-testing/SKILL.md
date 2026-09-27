@@ -63,7 +63,7 @@ cd customer-space && npm run test:e2e:smoke   # tag @smoke
 | Feature | Unit | E2E |
 |---------|------|-----|
 | Splash / boot | `app.component.spec.ts` | `smoke/app-boot.spec.ts` |
-| Auth | guard, session, phone-normalizer, auth.page | `auth/login-pin.spec.ts` |
+| Auth | guard, session, phone-normalizer, auth.page | `auth/login-pin.spec.ts`, `auth/setup-pin.spec.ts`, `auth/register-onboarding.spec.ts` |
 | Dashboard | dashboard.page, credit-progress-card | `dashboard/dashboard.spec.ts` |
 | Achats | purchases, recovery-pills | `purchases/purchases-flow.spec.ts` |
 | Paiement | payment.page | `payment/mobile-money.spec.ts` |

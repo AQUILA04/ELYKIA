@@ -64,9 +64,32 @@ public class CustomerPortalService {
     private final CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
     private final AppNotificationService appNotificationService;
     private final CustomerTontineMmSubmissionRepository tontineMmSubmissionRepository;
+    private final CustomerOnboardingService customerOnboardingService;
 
     public CustomerDashboardDto getDashboard() {
         Client client = contextService.requireClient(contextService.currentUsername());
+        CustomerOnboardingStatusDto onboarding = customerOnboardingService.getStatus();
+
+        if (client.isActivationPending() || client.isActivationRejected()) {
+            return CustomerDashboardDto.builder()
+                    .clientId(String.valueOf(client.getId()))
+                    .fullName(client.getFullName())
+                    .activeCreditCount(0)
+                    .totalCreditAmount(0)
+                    .totalPaidAmount(0)
+                    .totalRemainingAmount(0)
+                    .nextPaymentAmount(0)
+                    .nextPaymentDate(null)
+                    .nextPaymentCreditId(null)
+                    .nextInstallmentNumber(0)
+                    .progressPercent(0)
+                    .recentActivities(List.of())
+                    .activationStatus(onboarding.getActivationStatus())
+                    .idDocumentUploaded(onboarding.isIdDocumentUploaded())
+                    .initialDepositStatus(onboarding.getInitialDepositStatus())
+                    .build();
+        }
+
         List<Credit> credits = creditRepository.findByClient_IdAndTypeOrderByBeginDateDesc(client.getId(), OperationType.CREDIT);
         List<Credit> active = credits.stream()
                 .filter(c -> CreditStatus.INPROGRESS.equals(c.getStatus()))
@@ -94,11 +117,14 @@ public class CustomerPortalService {
                 .nextInstallmentNumber(nextPayment != null ? nextPayment.installmentNumber() : 0)
                 .progressPercent(Math.min(100, progress))
                 .recentActivities(activities)
+                .activationStatus(onboarding.getActivationStatus())
+                .idDocumentUploaded(onboarding.isIdDocumentUploaded())
+                .initialDepositStatus(onboarding.getInitialDepositStatus())
                 .build();
     }
 
     public List<CustomerPurchaseDto> getPurchases() {
-        Client client = contextService.requireClient(contextService.currentUsername());
+        Client client = requireActiveClient();
         return creditRepository.findByClient_IdAndTypeOrderByBeginDateDesc(client.getId(), OperationType.CREDIT)
                 .stream()
                 .map(this::toPurchaseSummary)
@@ -120,7 +146,7 @@ public class CustomerPortalService {
     }
 
     public List<CustomerTontineContributionSummaryDto> getTontineContributions() {
-        Client client = contextService.requireClient(contextService.currentUsername());
+        Client client = requireActiveClient();
         return tontineMemberRepository.findCustomerContributionSummariesByClientId(
                 client.getId(),
                 com.optimize.common.entities.enums.State.ENABLED);
@@ -301,6 +327,7 @@ public class CustomerPortalService {
     }
 
     public List<CustomerArticleDto> getArticles(String search, String category) {
+        requireActiveClient();
         var page = StringUtils.hasText(search)
                 ? articlesService.elasticSearchEnabled(search, PageRequest.of(0, 200))
                 : articlesService.getAllEnabled(PageRequest.of(0, 200));
@@ -311,6 +338,7 @@ public class CustomerPortalService {
     }
 
     public List<CustomerArticleTypeDto> getTopArticleTypes(int limit) {
+        requireActiveClient();
         int size = Math.min(Math.max(limit, 1), 20);
         return creditArticlesRepository.findTopArticleTypesBySoldQuantity(PageRequest.of(0, size))
                 .stream()
@@ -324,7 +352,7 @@ public class CustomerPortalService {
 
     @Transactional
     public CustomerOrderResponse submitOrder(CustomerOrderRequest request) {
-        Client client = contextService.requireClient(contextService.currentUsername());
+        Client client = requireActiveClient();
         OrderDto dto = new OrderDto();
         dto.setClientId(client.getId());
         Set<OrderItemDto> items = request.getItems().stream().map(item -> {
@@ -344,8 +372,14 @@ public class CustomerPortalService {
                 .build();
     }
 
-    private Credit requireOwnedCredit(Long creditId) {
+    private Client requireActiveClient() {
         Client client = contextService.requireClient(contextService.currentUsername());
+        customerOnboardingService.assertPortalFeatureAllowed(client);
+        return client;
+    }
+
+    private Credit requireOwnedCredit(Long creditId) {
+        Client client = requireActiveClient();
         Credit credit = creditRepository.findById(creditId)
                 .orElseThrow(() -> new ResourceNotFoundException("credit.not.found"));
         if (credit.getClient() == null || !client.getId().equals(credit.getClient().getId())) {
@@ -355,7 +389,7 @@ public class CustomerPortalService {
     }
 
     private TontineMember requireOwnedTontineMember(Long memberId) {
-        Client client = contextService.requireClient(contextService.currentUsername());
+        Client client = requireActiveClient();
         TontineMember member = tontineMemberRepository.findById(memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("tontine.member.not.found"));
         if (member.getState() != com.optimize.common.entities.enums.State.ENABLED) {

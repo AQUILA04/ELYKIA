@@ -154,3 +154,7 @@ ion-title {
   --border-radius: var(--elyk-radius-btn, 12px);
   font-weight: 600;
 }
+
+.pending-banner { display: flex; gap: 12px; padding: 14px; border-radius: 12px; margin-bottom: 16px; background: #FEF3C7; color: #92400E; }
+.pending-banner a { color: #1E40AF; font-weight: 600; }
+.pending-banner p { margin: 4px 0 8px; font-size: 14px; }

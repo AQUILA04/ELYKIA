@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.controller.customer;
 
 import com.optimize.elykia.core.dto.customer.*;
+import com.optimize.elykia.core.service.customer.CustomerOnboardingService;
 import com.optimize.elykia.core.service.customer.CustomerPortalService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import java.util.List;
 public class CustomerApiController {
 
     private final CustomerPortalService customerPortalService;
+    private final CustomerOnboardingService customerOnboardingService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<CustomerDashboardDto> getDashboard() {
@@ -99,5 +101,35 @@ public class CustomerApiController {
     @PostMapping("/orders")
     public ResponseEntity<CustomerOrderResponse> submitOrder(@Valid @RequestBody CustomerOrderRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(customerPortalService.submitOrder(request));
+    }
+
+    @GetMapping("/onboarding/status")
+    public ResponseEntity<CustomerOnboardingStatusDto> getOnboardingStatus() {
+        return ResponseEntity.ok(customerOnboardingService.getStatus());
+    }
+
+    @PostMapping("/onboarding/id-document")
+    public ResponseEntity<CustomerOnboardingStatusDto> uploadIdDocument(
+            @Valid @RequestBody CustomerIdDocumentRequest request) {
+        return ResponseEntity.ok(customerOnboardingService.uploadIdDocument(request));
+    }
+
+    @GetMapping("/onboarding/mobile-money-recipients")
+    public ResponseEntity<CustomerMobileMoneyRecipientDto> getInitialDepositRecipients() {
+        return ResponseEntity.ok(customerOnboardingService.getInitialDepositRecipients());
+    }
+
+    @PostMapping("/onboarding/initial-deposit")
+    public ResponseEntity<CustomerInitialDepositDto> submitInitialDeposit(
+            @Valid @RequestBody CustomerInitialDepositRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(customerOnboardingService.submitInitialDeposit(request));
+    }
+
+    @GetMapping("/onboarding/initial-deposit")
+    public ResponseEntity<CustomerInitialDepositDto> getInitialDeposit() {
+        return customerOnboardingService.getInitialDeposit()
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 }
