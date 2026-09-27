@@ -37,6 +37,14 @@ export interface ClientRegistration {
   activationRejectionReason?: string;
 }
 
+export interface ClientRegistrationPage {
+  content: ClientRegistration[];
+  totalElements: number;
+  number: number;
+  size: number;
+  totalPages: number;
+}
+
 interface ApiResponse<T> {
   data: T;
 }
@@ -44,6 +52,9 @@ interface ApiResponse<T> {
 interface PageResponse<T> {
   content: T[];
   totalElements?: number;
+  number?: number;
+  size?: number;
+  totalPages?: number;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -57,8 +68,8 @@ export class ClientRegistrationService {
     status: ClientActivationStatus = 'PENDING',
     hasInitialDeposit?: boolean | null,
     page = 0,
-    size = 50
-  ): Observable<ClientRegistration[]> {
+    size = 20
+  ): Observable<ClientRegistrationPage> {
     let params = new HttpParams()
       .set('status', status)
       .set('page', String(page))
@@ -71,9 +82,26 @@ export class ClientRegistrationService {
       .pipe(map((res) => {
         const data = res?.data as PageResponse<ClientRegistration> | ClientRegistration[] | undefined;
         if (Array.isArray(data)) {
-          return data;
+          return {
+            content: data,
+            totalElements: data.length,
+            number: page,
+            size,
+            totalPages: 1,
+          };
         }
-        return data?.content ?? [];
+        const content = data?.content ?? [];
+        const totalElements = data?.totalElements ?? content.length;
+        const pageSize = data?.size ?? size;
+        const totalPages = data?.totalPages
+          ?? Math.max(1, Math.ceil(totalElements / Math.max(pageSize, 1)));
+        return {
+          content,
+          totalElements,
+          number: data?.number ?? page,
+          size: pageSize,
+          totalPages,
+        };
       }));
   }
 

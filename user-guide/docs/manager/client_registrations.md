@@ -9,7 +9,8 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 1. Dans le menu latéral, cliquez sur **Inscriptions clients**.
 2. L’écran affiche les dossiers **en attente**, avec le nom, le téléphone, l’état de la pièce d’identité et le dépôt initial s’il a été déclaré.
 3. Utilisez les filtres **Toutes**, **Avec dépôt** ou **Sans dépôt** pour prioriser les dossiers.
-4. Cliquez sur **Actualiser** pour recharger la liste.
+4. Naviguez entre les pages avec **Précédent** / **Suivant** si la liste dépasse une page.
+5. Cliquez sur **Actualiser** pour recharger la liste.
 
 <!-- CAPTURE À INSÉRER : Liste Inscriptions clients avec filtres et badge dépôt -->
 
@@ -18,7 +19,7 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 ## 2. Examiner un dossier
 
 1. Cliquez sur **Voir** sur la ligne du client.
-2. Vérifiez la photo de profil (ou l’avatar avec les initiales si elle n’est pas encore disponible), la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.
+2. Vérifiez la photo de profil (à gauche du nom en haut du panneau, ou les initiales si elle n’est pas encore disponible), la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.
 3. Cliquez sur la photo de profil ou sur la carte de la pièce pour afficher l’original en grand, puis fermez l’aperçu.
 4. Si un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.
 

@@ -26,7 +26,7 @@
   <div class="kpi-strip a3">
     <div class="kpi-card kpi-total">
       <span class="kpi-label">En attente</span>
-      <span class="kpi-value">{{ registrations.length }}</span>
+      <span class="kpi-value">{{ totalElements }}</span>
     </div>
     <div class="kpi-card kpi-amount">
       <span class="kpi-label">Avec dépôt</span>
@@ -79,8 +79,8 @@
             </td>
             <td>{{ row.phone }}</td>
             <td>
-              <span *ngIf="row.cardPhotoUrl" class="badge ok">Photo OK</span>
-              <span *ngIf="!row.cardPhotoUrl" class="badge warn">Manquante</span>
+              <span *ngIf="row.cardPhotoUrl || row.cardPhotoThumbUrl" class="badge ok">Photo OK</span>
+              <span *ngIf="!row.cardPhotoUrl && !row.cardPhotoThumbUrl" class="badge warn">Manquante</span>
             </td>
             <td>
               <ng-container *ngIf="row.hasInitialDeposit; else noDeposit">
@@ -97,6 +97,20 @@
           </tr>
         </tbody>
       </table>
+      <div class="table-pagination" *ngIf="!loading && totalElements > 0"
+        data-testid="e2e-client-registrations-pagination">
+        <span class="pagination-label">{{ pageLabel }}</span>
+        <div class="pagination-actions">
+          <button type="button" class="btn-clear" (click)="goToPrevPage()"
+            [disabled]="!canGoPrev" data-testid="e2e-client-registrations-prev">
+            Précédent
+          </button>
+          <button type="button" class="btn-clear" (click)="goToNextPage()"
+            [disabled]="!canGoNext" data-testid="e2e-client-registrations-next">
+            Suivant
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -104,57 +118,53 @@
     <div class="detail-backdrop" (click)="closeDetail()"></div>
     <div class="detail-card">
       <div class="detail-header">
-        <h2>{{ selected.fullName }}</h2>
-        <button type="button" class="btn-clear" (click)="closeDetail()">Fermer</button>
-      </div>
-      <div class="detail-photos">
-        <div class="profil-slot">
-          <span class="label">Profil</span>
-          <ng-container *ngIf="profilThumbSrc(selected) as thumb; else profilAvatar">
+        <div class="detail-identity">
+          <ng-container *ngIf="profilThumbSrc(selected) as thumb; else headerAvatar">
             <button
               type="button"
-              class="profil-avatar-btn"
+              class="header-avatar-btn"
               (click)="openPhotoPreview(profilPreviewSrc(selected), 'Photo de profil')"
               data-testid="e2e-client-registration-profil-photo"
               aria-label="Agrandir la photo de profil">
-              <img [src]="thumb" alt="" class="profil-avatar-img" />
+              <img [src]="thumb" alt="" class="header-avatar-img" />
             </button>
           </ng-container>
-          <ng-template #profilAvatar>
+          <ng-template #headerAvatar>
             <div
-              class="profil-avatar profil-avatar--initials"
+              class="header-avatar header-avatar--initials"
               [attr.data-tone]="avatarTone(selected)"
               [attr.aria-label]="'Avatar ' + selected.fullName"
               data-testid="e2e-client-registration-profil-avatar">
-              <span class="profil-avatar-initials">{{ getInitials(selected) }}</span>
+              {{ getInitials(selected) }}
             </div>
           </ng-template>
-          <span class="profil-avatar-caption">{{ selected.fullName }}</span>
+          <h2>{{ selected.fullName }}</h2>
         </div>
+        <button type="button" class="btn-clear" (click)="closeDetail()">Fermer</button>
+      </div>
 
-        <div class="card-slot">
-          <span class="label">Pièce</span>
-          <ng-container *ngIf="cardThumbSrc(selected) as thumb; else cardEmpty">
-            <button
-              type="button"
-              class="card-doc-btn"
-              (click)="openPhotoPreview(cardPreviewSrc(selected), 'Photo de la pièce')"
-              data-testid="e2e-client-registration-card-photo"
-              aria-label="Agrandir la photo de la pièce">
-              <img [src]="thumb" alt="Miniature pièce" class="card-doc-thumb" />
-              <span class="card-doc-hint">Voir l’original</span>
-            </button>
-          </ng-container>
-          <ng-template #cardEmpty>
-            <div class="card-doc-empty" aria-label="Aucune photo de pièce">
-              <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                <path fill="currentColor"
-                  d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
-              </svg>
-              <span class="muted">Non fournie</span>
-            </div>
-          </ng-template>
-        </div>
+      <div class="detail-card-doc">
+        <span class="label">Pièce d’identité</span>
+        <ng-container *ngIf="cardThumbSrc(selected) as thumb; else cardEmpty">
+          <button
+            type="button"
+            class="card-doc-btn"
+            (click)="openPhotoPreview(cardPreviewSrc(selected), 'Photo de la pièce')"
+            data-testid="e2e-client-registration-card-photo"
+            aria-label="Agrandir la photo de la pièce">
+            <img [src]="thumb" alt="Miniature pièce" class="card-doc-thumb" />
+            <span class="card-doc-hint">Voir l’original</span>
+          </button>
+        </ng-container>
+        <ng-template #cardEmpty>
+          <div class="card-doc-empty" aria-label="Aucune photo de pièce">
+            <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+              <path fill="currentColor"
+                d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+            </svg>
+            <span class="muted">Non fournie</span>
+          </div>
+        </ng-template>
       </div>
       <dl class="detail-grid">
         <div><dt>Téléphone</dt><dd>{{ selected.phone }}</dd></div>

@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.23.5] — 2026-09-27
+
+### Changed
+
+- Inscriptions clients : avatar (photo ou initiales) à gauche du nom dans le header du détail.
+- Liste paginée visible (20 / page, Précédent / Suivant) — l’API était déjà paginée sans contrôles UI.
+
 ## Frontend — [2.23.4] — 2026-09-27
 
 ### Changed

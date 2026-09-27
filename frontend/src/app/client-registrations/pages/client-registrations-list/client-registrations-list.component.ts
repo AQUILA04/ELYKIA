@@ -24,6 +24,10 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
   lastUpdate = new Date();
   photoPreviewUrl: string | null = null;
   photoPreviewTitle = '';
+  pageIndex = 0;
+  pageSize = 20;
+  totalElements = 0;
+  totalPages = 1;
   private dateIntervalId?: ReturnType<typeof setInterval>;
 
   constructor(
@@ -59,8 +63,42 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
     return this.registrations.filter((r) => r.hasInitialDeposit).length;
   }
 
+  get canGoPrev(): boolean {
+    return this.pageIndex > 0;
+  }
+
+  get canGoNext(): boolean {
+    return this.pageIndex + 1 < this.totalPages;
+  }
+
+  get pageLabel(): string {
+    if (this.totalElements === 0) {
+      return '0 inscription';
+    }
+    const from = this.pageIndex * this.pageSize + 1;
+    const to = Math.min((this.pageIndex + 1) * this.pageSize, this.totalElements);
+    return `${from}–${to} sur ${this.totalElements}`;
+  }
+
   setDepositFilter(filter: 'all' | 'with' | 'without'): void {
     this.depositFilter = filter;
+    this.pageIndex = 0;
+    this.load();
+  }
+
+  goToPrevPage(): void {
+    if (!this.canGoPrev) {
+      return;
+    }
+    this.pageIndex -= 1;
+    this.load();
+  }
+
+  goToNextPage(): void {
+    if (!this.canGoNext) {
+      return;
+    }
+    this.pageIndex += 1;
     this.load();
   }
 
@@ -70,9 +108,13 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
       this.depositFilter === 'with' ? true :
       this.depositFilter === 'without' ? false :
       null;
-    this.registrationService.list('PENDING', hasDeposit).subscribe({
-      next: (rows) => {
-        this.registrations = rows;
+    this.registrationService.list('PENDING', hasDeposit, this.pageIndex, this.pageSize).subscribe({
+      next: (page) => {
+        this.registrations = page.content;
+        this.totalElements = page.totalElements;
+        this.totalPages = Math.max(1, page.totalPages);
+        this.pageIndex = page.number;
+        this.pageSize = page.size || this.pageSize;
         this.loading = false;
         this.lastUpdate = new Date();
       },
