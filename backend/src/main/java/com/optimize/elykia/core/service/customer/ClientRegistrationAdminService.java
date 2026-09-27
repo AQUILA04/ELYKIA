@@ -119,18 +119,16 @@ public class ClientRegistrationAdminService {
 
         CustomerInitialDepositSubmission deposit = latestDeposit(clientId);
         double balance = 0;
-        boolean activateAccount = false;
         if (deposit != null && CustomerSubmissionStatus.INITIE.equals(deposit.getStatus())
                 && request.isValidateInitialDeposit()) {
             markDepositValidated(user, deposit);
             balance = deposit.getMobileMoneyAmount() != null ? deposit.getMobileMoneyAmount() : 0;
-            activateAccount = true;
         } else if (deposit != null && CustomerSubmissionStatus.VALIDE.equals(deposit.getStatus())) {
             balance = deposit.getMobileMoneyAmount() != null ? deposit.getMobileMoneyAmount() : 0;
-            activateAccount = true;
         }
 
-        ensureAccount(client, balance, activateAccount);
+        // Toujours ACTIF à la validation BO, même avec solde 0
+        ensureAccount(client, balance, true);
         return toDto(clientRepository.findById(clientId).orElse(client), latestDeposit(clientId));
     }
 
@@ -213,7 +211,8 @@ public class ClientRegistrationAdminService {
         dto.setClientId(fresh.getId());
         dto.setAccountNumber(accountNumber);
         dto.setAccountBalance(Math.max(balance, 0));
-        if (actif && balance > 0) {
+        // Validation BO : toujours ACTIF (syncAccount), y compris solde 0
+        if (actif) {
             accountService.syncAccount(dto);
         } else {
             accountService.createAccount(dto);

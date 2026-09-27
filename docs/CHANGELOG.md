@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.23.8] — 2026-09-27
+
+### Changed
+
+- Liste des comptes : détail en panneau latéral (style inscriptions) ; plus de page détail séparée (`/accountdetails/:id` redirige vers la liste).
+
+## Backend — [1.20.6] — 2026-09-27
+
+### Changed
+
+- Validation inscription BO : compte toujours créé en **ACTIF**, même avec solde 0.
+
 ## Frontend — [2.23.7] — 2026-09-27
 
 ### Changed

@@ -41,6 +41,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -145,6 +146,30 @@ class ClientRegistrationAdminServiceTest {
         ArgumentCaptor<AccountDto> accountCaptor = ArgumentCaptor.forClass(AccountDto.class);
         verify(accountService).syncAccount(accountCaptor.capture());
         assertEquals(75_000.0, accountCaptor.getValue().getAccountBalance());
+    }
+
+    @Test
+    void activate_withoutDeposit_createsActifAccountWithZeroBalance() {
+        when(clientService.getById(7L)).thenReturn(pendingClient);
+        when(clientRepository.save(pendingClient)).thenReturn(pendingClient);
+        when(depositRepository.findByClientIdInAndState(List.of(7L), State.ENABLED)).thenReturn(List.of());
+        when(clientRepository.findById(7L)).thenReturn(Optional.of(pendingClient));
+        AccountRepository accountRepository = mock(AccountRepository.class);
+        when(accountService.getRepository()).thenReturn(accountRepository);
+        when(accountRepository.count()).thenReturn(3L);
+        when(accountService.syncAccount(any(AccountDto.class))).thenReturn(mock(AccountRespDto.class));
+
+        ClientRegistrationActivateRequest request = new ClientRegistrationActivateRequest();
+        request.setCollector("COM001");
+        request.setTontineCollector("COM002");
+
+        service.activate(admin, 7L, request);
+
+        ArgumentCaptor<AccountDto> accountCaptor = ArgumentCaptor.forClass(AccountDto.class);
+        verify(accountService).syncAccount(accountCaptor.capture());
+        verify(accountService, never()).createAccount(any(AccountDto.class));
+        assertEquals(0.0, accountCaptor.getValue().getAccountBalance());
+        assertEquals("0021020004", accountCaptor.getValue().getAccountNumber());
     }
 
     @Test

@@ -31,7 +31,8 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 2. Choisissez le **commercial tontine**.
 3. Si un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.
 4. Cliquez sur **Valider l’inscription** (le bouton devient actif seulement quand les deux commerciaux sont choisis).
-5. Le client peut alors utiliser pleinement l’espace client.
+5. Un compte client est créé automatiquement avec le statut **Actif** : solde égal au dépôt initial s’il a été validé, sinon 0.
+6. Le client peut alors utiliser pleinement l’espace client.
 
 ---
 
