@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.23.9] — 2026-09-27
+
+### Changed
+
+- Menu latéral : nouveau groupe **Services en ligne** (sous-menus **Inscriptions**, **Paiements**) ; retrait des entrées isolées.
+- Correctif : `/client-registrations` n’active plus le menu **Clients**.
+
 ## Frontend — [2.23.8] — 2026-09-27
 
 ### Changed
