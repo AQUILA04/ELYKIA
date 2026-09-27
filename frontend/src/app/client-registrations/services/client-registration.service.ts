@@ -18,8 +18,12 @@ export interface ClientRegistration {
   occupation?: string;
   cardType?: string;
   cardID?: string;
+  /** URL MinIO photo originale (aperçu agrandi). */
   profilPhotoUrl?: string;
+  /** URL MinIO miniature — préférée pour liste / vignette. */
+  profilPhotoThumbUrl?: string;
   cardPhotoUrl?: string;
+  cardPhotoThumbUrl?: string;
   activationStatus: ClientActivationStatus;
   collector?: string;
   tontineCollector?: string;

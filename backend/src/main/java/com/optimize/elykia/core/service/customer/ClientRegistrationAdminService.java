@@ -244,7 +244,9 @@ public class ClientRegistrationAdminService {
                 .cardType(client.getCardType())
                 .cardID(client.getCardID())
                 .profilPhotoUrl(client.getProfilPhotoUrl())
+                .profilPhotoThumbUrl(client.getProfilPhotoThumbUrl())
                 .cardPhotoUrl(client.getCardPhotoUrl())
+                .cardPhotoThumbUrl(client.getCardPhotoThumbUrl())
                 .activationStatus(client.getActivationStatus() != null
                         ? client.getActivationStatus().name()
                         : ClientActivationStatus.ACTIVE.name())

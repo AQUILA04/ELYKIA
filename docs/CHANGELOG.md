@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.23.3] — 2026-09-27
+
+### Added
+
+- Inscriptions clients : avatar « bonhomme » si pas de photo ; vignettes via `profilPhotoThumbUrl` (original pour l’aperçu agrandi).
+
+## Backend — [1.20.4] — 2026-09-27
+
+### Added
+
+- DTO inscriptions clients : expose `profilPhotoThumbUrl` / `cardPhotoThumbUrl` en plus des URLs originales.
+
 ## Customer-space — [0.5.3] — 2026-09-27
 
 ### Added

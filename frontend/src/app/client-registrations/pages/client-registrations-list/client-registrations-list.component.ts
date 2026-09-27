@@ -110,6 +110,29 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
     this.photoPreviewTitle = '';
   }
 
+  /** Miniature pour liste / vignette (thumb prioritaire, sinon original). */
+  listPhotoSrc(row: ClientRegistration): string | null {
+    return row.profilPhotoThumbUrl || row.profilPhotoUrl || null;
+  }
+
+  /** Miniature détail profil. */
+  profilThumbSrc(row: ClientRegistration): string | null {
+    return row.profilPhotoThumbUrl || row.profilPhotoUrl || null;
+  }
+
+  /** Original pour lightbox (fallback thumb si original absent). */
+  profilPreviewSrc(row: ClientRegistration): string | null {
+    return row.profilPhotoUrl || row.profilPhotoThumbUrl || null;
+  }
+
+  cardThumbSrc(row: ClientRegistration): string | null {
+    return row.cardPhotoThumbUrl || row.cardPhotoUrl || null;
+  }
+
+  cardPreviewSrc(row: ClientRegistration): string | null {
+    return row.cardPhotoUrl || row.cardPhotoThumbUrl || null;
+  }
+
   @HostListener('document:keydown.escape')
   onEscapeKey(): void {
     if (this.photoPreviewUrl) {

@@ -63,7 +63,17 @@
             data-testid="e2e-client-registration-row">
             <td>
               <div class="client-cell">
-                <img *ngIf="row.profilPhotoUrl" [src]="row.profilPhotoUrl" alt="" class="thumb" />
+                <ng-container *ngIf="listPhotoSrc(row) as src; else listAvatar">
+                  <img [src]="src" alt="" class="thumb" />
+                </ng-container>
+                <ng-template #listAvatar>
+                  <span class="thumb thumb-avatar" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path fill="currentColor"
+                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                  </span>
+                </ng-template>
                 <span>{{ row.fullName }}</span>
               </div>
             </td>
@@ -100,29 +110,47 @@
       <div class="detail-photos">
         <div>
           <span class="label">Profil</span>
-          <button
-            *ngIf="selected.profilPhotoUrl"
-            type="button"
-            class="photo-thumb-btn"
-            (click)="openPhotoPreview(selected.profilPhotoUrl, 'Photo de profil')"
-            data-testid="e2e-client-registration-profil-photo"
-            aria-label="Agrandir la photo de profil">
-            <img [src]="selected.profilPhotoUrl" alt="Photo profil" />
-          </button>
-          <span *ngIf="!selected.profilPhotoUrl" class="muted">Non disponible</span>
+          <ng-container *ngIf="profilThumbSrc(selected) as thumb; else profilEmpty">
+            <button
+              type="button"
+              class="photo-thumb-btn"
+              (click)="openPhotoPreview(profilPreviewSrc(selected), 'Photo de profil')"
+              data-testid="e2e-client-registration-profil-photo"
+              aria-label="Agrandir la photo de profil">
+              <img [src]="thumb" alt="Photo profil" />
+            </button>
+          </ng-container>
+          <ng-template #profilEmpty>
+            <div class="photo-empty" aria-label="Aucune photo de profil">
+              <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                <path fill="currentColor"
+                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+              <span class="muted">Non disponible</span>
+            </div>
+          </ng-template>
         </div>
         <div>
           <span class="label">Pièce</span>
-          <button
-            *ngIf="selected.cardPhotoUrl"
-            type="button"
-            class="photo-thumb-btn"
-            (click)="openPhotoPreview(selected.cardPhotoUrl, 'Photo de la pièce')"
-            data-testid="e2e-client-registration-card-photo"
-            aria-label="Agrandir la photo de la pièce">
-            <img [src]="selected.cardPhotoUrl" alt="Photo pièce" />
-          </button>
-          <span *ngIf="!selected.cardPhotoUrl" class="muted">Non fournie</span>
+          <ng-container *ngIf="cardThumbSrc(selected) as thumb; else cardEmpty">
+            <button
+              type="button"
+              class="photo-thumb-btn"
+              (click)="openPhotoPreview(cardPreviewSrc(selected), 'Photo de la pièce')"
+              data-testid="e2e-client-registration-card-photo"
+              aria-label="Agrandir la photo de la pièce">
+              <img [src]="thumb" alt="Photo pièce" />
+            </button>
+          </ng-container>
+          <ng-template #cardEmpty>
+            <div class="photo-empty" aria-label="Aucune photo de pièce">
+              <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
+                <path fill="currentColor"
+                  d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+              </svg>
+              <span class="muted">Non fournie</span>
+            </div>
+          </ng-template>
         </div>
       </div>
       <dl class="detail-grid">

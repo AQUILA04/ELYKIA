@@ -519,7 +519,52 @@
     "roles": [
       "manager"
     ],
-    "content": "Inscriptions clients (espace client)\n\nCette page explique comment valider les demandes d’inscription faites par les clients depuis l’application Espace Client .\n\n---\nAccéder à la liste\nDans le menu latéral, cliquez sur Inscriptions clients .\nL’écran affiche les dossiers en attente , avec le nom, le téléphone, l’état de la pièce d’identité et le dépôt initial s’il a été déclaré.\nUtilisez les filtres Toutes , Avec dépôt ou Sans dépôt pour prioriser les dossiers.\nCliquez sur Actualiser pour recharger la liste.\n\n \n\n---\nExaminer un dossier\nCliquez sur Voir sur la ligne du client.\nVérifiez la photo de profil, la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.\nCliquez sur une photo pour l’afficher en grand, puis fermez l’aperçu.\nSi un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.\n\n---\nValider l’inscription\nChoisissez le commercial crédit (obligatoire).\nChoisissez éventuellement le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription .\nLe client peut alors utiliser pleinement l’espace client.\n\n---\nRefuser une inscription\nDepuis le détail du dossier, cliquez sur Refuser .\nIndiquez le motif du refus.\nLe client verra un message l’invitant à contacter l’agence.\n\n---\nCôté client (Espace Client)\n\nUn nouveau client qui saisit un numéro encore inconnu :\nReçoit un code SMS pour confirmer son téléphone.\nRemplit sa fiche (prénom, nom, adresse, votre zone , date de naissance, occupation) et ajoute sa photo de profil (le visage doit être bien visible). La date de naissance doit correspondre à un client majeur (18 ans ou plus). L’application enregistre automatiquement sa position lors de la validation.\nCrée son code PIN, puis se connecte.\nComplète son dossier ( Mon dossier ) avec le type et le numéro de pièce d’identité, plus la photo de la pièce.\nPeut déclarer un dépôt initial (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.\nAttend la validation de l’agence avant d’accéder aux crédits, commandes et paiements."
+    "content": "Inscriptions clients (espace client)\n\nCette page explique comment valider les demandes d’inscription faites par les clients depuis l’application Espace Client .\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__1_acc_der_la_liste",
+    "title": "Inscriptions clients (espace client) — 1. Accéder à la liste",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nAccéder à la liste\nDans le menu latéral, cliquez sur Inscriptions clients .\nL’écran affiche les dossiers en attente , avec le nom, le téléphone, l’état de la pièce d’identité et le dépôt initial s’il a été déclaré.\nUtilisez les filtres Toutes , Avec dépôt ou Sans dépôt pour prioriser les dossiers.\nCliquez sur Actualiser pour recharger la liste.\n\n \n\n---"
+  },
+  {
+    "id": "manager_client_registrations__2_examiner_un_dossier",
+    "title": "Inscriptions clients (espace client) — 2. Examiner un dossier",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nExaminer un dossier\nCliquez sur Voir sur la ligne du client.\nVérifiez la photo de profil (ou l’avatar si elle n’est pas encore disponible), la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.\nCliquez sur une photo pour l’afficher en grand, puis fermez l’aperçu.\nSi un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__3_valider_l_inscription",
+    "title": "Inscriptions clients (espace client) — 3. Valider l’inscription",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nValider l’inscription\nChoisissez le commercial crédit (obligatoire).\nChoisissez éventuellement le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription .\nLe client peut alors utiliser pleinement l’espace client.\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__4_refuser_une_inscription",
+    "title": "Inscriptions clients (espace client) — 4. Refuser une inscription",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nRefuser une inscription\nDepuis le détail du dossier, cliquez sur Refuser .\nIndiquez le motif du refus.\nLe client verra un message l’invitant à contacter l’agence.\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__5_c_t_client_espace_client",
+    "title": "Inscriptions clients (espace client) — 5. Côté client (Espace Client)",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nCôté client (Espace Client)\n\nUn nouveau client qui saisit un numéro encore inconnu :\nReçoit un code SMS pour confirmer son téléphone.\nRemplit sa fiche (prénom, nom, adresse, votre zone , date de naissance, occupation) et ajoute sa photo de profil (le visage doit être bien visible). La date de naissance doit correspondre à un client majeur (18 ans ou plus). L’application enregistre automatiquement sa position lors de la validation.\nCrée son code PIN, puis se connecte.\nComplète son dossier ( Mon dossier ) avec le type et le numéro de pièce d’identité, plus la photo de la pièce.\nPeut déclarer un dépôt initial (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.\nAttend la validation de l’agence avant d’accéder aux crédits, commandes et paiements."
   },
   {
     "id": "manager_dashboard",
