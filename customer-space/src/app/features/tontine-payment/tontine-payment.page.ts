@@ -10,12 +10,19 @@ import {
   createMobileMoneyPaymentForm,
   mobileMoneySubmitErrorMessage,
 } from '../../shared/utils/mobile-money-form';
+import { MobileMoneyRecipientsCardComponent } from '../../shared/components/mobile-money-recipients-card/mobile-money-recipients-card.component';
 
 /** Déclaration Mobile Money cotisation tontine. */
 @Component({
   selector: 'app-tontine-payment',
   standalone: true,
-  imports: [CommonModule, IonicModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    CommonModule,
+    IonicModule,
+    ReactiveFormsModule,
+    RouterModule,
+    MobileMoneyRecipientsCardComponent,
+  ],
   templateUrl: './tontine-payment.page.html',
   styleUrls: ['./tontine-payment.page.scss'],
 })
@@ -62,10 +69,6 @@ export class TontinePaymentPage implements OnInit {
     } finally {
       this.recipientsLoading = false;
     }
-  }
-
-  hasRecipientNumbers(): boolean {
-    return !!(this.recipients?.mixxNumber || this.recipients?.moovNumber);
   }
 
   async submit(): Promise<void> {

@@ -11,6 +11,8 @@ theme:
 
 nav:
   - Accueil: index.md
+  - Guide Espace Client:
+    - Tontine: customer/tontine.md
   - Guide Gestionnaire:
     - Introduction & Connexion: manager/index.md
     - Tableaux de Bord: manager/dashboard.md

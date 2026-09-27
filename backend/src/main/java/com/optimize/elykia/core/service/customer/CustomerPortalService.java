@@ -15,12 +15,17 @@ import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
+import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.OrderStatus;
+import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
+import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
+import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
+import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
@@ -29,6 +34,8 @@ import com.optimize.elykia.core.repository.CreditArticlesRepository;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.core.service.tontine.TontineService;
+import com.optimize.elykia.core.dto.TontineMemberDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -61,10 +68,14 @@ public class CustomerPortalService {
     private final CreditArticlesRepository creditArticlesRepository;
     private final TontineMemberRepository tontineMemberRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
+    private final TontineSessionRepository tontineSessionRepository;
+    private final TontineService tontineService;
     private final CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
     private final AppNotificationService appNotificationService;
     private final CustomerTontineMmSubmissionRepository tontineMmSubmissionRepository;
     private final CustomerOnboardingService customerOnboardingService;
+
+    public static final double TONTINE_MIN_DAILY_STAKE = 100.0;
 
     public CustomerDashboardDto getDashboard() {
         Client client = contextService.requireClient(contextService.currentUsername());
@@ -150,6 +161,100 @@ public class CustomerPortalService {
         return tontineMemberRepository.findCustomerContributionSummariesByClientId(
                 client.getId(),
                 com.optimize.common.entities.enums.State.ENABLED);
+    }
+
+    /**
+     * Session tontine de l'année en cours (lecture seule — ne crée jamais de session).
+     */
+    public CustomerTontineSessionDto getCurrentTontineSession() {
+        Client client = requireActiveClient();
+        int currentYear = LocalDate.now().getYear();
+        Optional<TontineSession> sessionOpt = tontineSessionRepository.findByYear(currentYear);
+        if (sessionOpt.isEmpty()) {
+            return CustomerTontineSessionDto.builder()
+                    .available(false)
+                    .joinable(false)
+                    .alreadyMember(false)
+                    .minDailyStake(TONTINE_MIN_DAILY_STAKE)
+                    .build();
+        }
+
+        TontineSession session = sessionOpt.get();
+        Optional<TontineMember> memberOpt = tontineMemberRepository
+                .findByTontineSession_YearAndClient_Id(currentYear, client.getId());
+        boolean alreadyMember = memberOpt.isPresent()
+                && memberOpt.get().getState() == com.optimize.common.entities.enums.State.ENABLED;
+        LocalDate today = LocalDate.now();
+        boolean joinable = session.getStatus() == TontineSessionStatus.ACTIVE
+                && session.getEndDate() != null
+                && !today.isAfter(session.getEndDate())
+                && !alreadyMember;
+
+        return CustomerTontineSessionDto.builder()
+                .available(true)
+                .year(session.getYear())
+                .startDate(session.getStartDate() != null ? session.getStartDate().toString() : null)
+                .endDate(session.getEndDate() != null ? session.getEndDate().toString() : null)
+                .status(session.getStatus() != null ? session.getStatus().name() : null)
+                .joinable(joinable)
+                .alreadyMember(alreadyMember)
+                .memberId(alreadyMember ? String.valueOf(memberOpt.get().getId()) : null)
+                .minDailyStake(TONTINE_MIN_DAILY_STAKE)
+                .build();
+    }
+
+    /**
+     * Destinataires Mobile Money tontine sans être déjà membre (résolution tontineCollector → collector).
+     */
+    public CustomerMobileMoneyRecipientDto getTontineJoinRecipients() {
+        Client client = requireActiveClient();
+        String collector = client.getTontineCollector();
+        if (!StringUtils.hasText(collector)) {
+            collector = client.getCollector();
+        }
+        return commercialMobileMoneyConfigService.resolveForCollector(collector);
+    }
+
+    @Transactional
+    public CustomerTontineJoinResponse joinTontineSession(CustomerTontineJoinRequest request) {
+        Client client = requireActiveClient();
+        CustomerTontineSessionDto sessionView = getCurrentTontineSession();
+        if (sessionView.isAlreadyMember()) {
+            throw new CustomValidationException(
+                    "Vous êtes déjà inscrit à la session de tontine de cette année.");
+        }
+        if (!sessionView.isAvailable() || !sessionView.isJoinable()) {
+            throw new CustomValidationException("Aucune session de tontine ouverte.");
+        }
+
+        TontineMemberDto memberDto = new TontineMemberDto();
+        memberDto.setClientId(client.getId());
+        memberDto.setFrequency(TontineMemberFrequency.DAILY);
+        memberDto.setAmount(request.getDailyStake());
+
+        var registered = tontineService.registerMember(memberDto, TontineMemberRegistrationSource.CUSTOMER_SPACE);
+        Long memberId = registered.id();
+
+        String initialPaymentStatus = null;
+        if (request.getInitialPayment() != null) {
+            CustomerTontineInitialPaymentRequest payment = request.getInitialPayment();
+            createTontineMmSubmission(
+                    client,
+                    memberId,
+                    payment.getMobileMoneyAmount(),
+                    payment.getMobileMoneyPhone(),
+                    payment.getMobileMoneyAmount(),
+                    payment.getMobileMoneyReference(),
+                    payment.getNotes());
+            initialPaymentStatus = CustomerSubmissionStatus.INITIE.name();
+        }
+
+        return CustomerTontineJoinResponse.builder()
+                .memberId(String.valueOf(memberId))
+                .sessionYear(sessionView.getYear())
+                .dailyStake(request.getDailyStake())
+                .initialPaymentStatus(initialPaymentStatus)
+                .build();
     }
 
     public CustomerTontineContributionDetailDto getTontineContribution(Long memberId) {
@@ -239,20 +344,14 @@ public class CustomerPortalService {
         TontineMember member = requireOwnedTontineMember(memberId);
         Client client = contextService.requireClient(contextService.currentUsername());
 
-        CustomerTontineMmSubmission submission = new CustomerTontineMmSubmission();
-        submission.setClientId(client.getId());
-        submission.setTontineMemberId(member.getId());
-        submission.setExpectedAmount(request.getExpectedAmount());
-        submission.setMobileMoneyPhone(request.getMobileMoneyPhone());
-        submission.setMobileMoneyAmount(request.getMobileMoneyAmount());
-        submission.setMobileMoneyReference(request.getMobileMoneyReference());
-        submission.setNotes(request.getNotes());
-        submission.setOperationDate(LocalDate.now());
-        submission.setStatus(CustomerSubmissionStatus.INITIE);
-        submission.setCreatedBy(client.getFullName());
-        submission = tontineMmSubmissionRepository.save(submission);
-
-        appNotificationService.createTontinePaymentDeclaration(submission, client);
+        CustomerTontineMmSubmission submission = createTontineMmSubmission(
+                client,
+                member.getId(),
+                request.getExpectedAmount(),
+                request.getMobileMoneyPhone(),
+                request.getMobileMoneyAmount(),
+                request.getMobileMoneyReference(),
+                request.getNotes());
 
         return new CustomerTontinePaymentDto(
                 submission.getId(),
@@ -262,6 +361,30 @@ public class CustomerPortalService {
                 Boolean.FALSE,
                 0.0,
                 "INITIE");
+    }
+
+    private CustomerTontineMmSubmission createTontineMmSubmission(
+            Client client,
+            Long memberId,
+            Double expectedAmount,
+            String mobileMoneyPhone,
+            Double mobileMoneyAmount,
+            String mobileMoneyReference,
+            String notes) {
+        CustomerTontineMmSubmission submission = new CustomerTontineMmSubmission();
+        submission.setClientId(client.getId());
+        submission.setTontineMemberId(memberId);
+        submission.setExpectedAmount(expectedAmount);
+        submission.setMobileMoneyPhone(mobileMoneyPhone);
+        submission.setMobileMoneyAmount(mobileMoneyAmount);
+        submission.setMobileMoneyReference(mobileMoneyReference);
+        submission.setNotes(notes);
+        submission.setOperationDate(LocalDate.now());
+        submission.setStatus(CustomerSubmissionStatus.INITIE);
+        submission.setCreatedBy(client.getFullName());
+        submission = tontineMmSubmissionRepository.save(submission);
+        appNotificationService.createTontinePaymentDeclaration(submission, client);
+        return submission;
     }
 
     public List<CustomerRecoveryDto> getRecoveries(Long creditId) {

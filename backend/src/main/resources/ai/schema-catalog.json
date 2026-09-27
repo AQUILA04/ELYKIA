@@ -302,6 +302,10 @@
     {
       "name": "tontine_member",
       "description": "Membre inscrit à une session tontine",
+      "synonyms": [
+        "adhérent tontine",
+        "membre tontine"
+      ],
       "columns": [
         {
           "name": "id",
@@ -318,6 +322,16 @@
         {
           "name": "total_contribution",
           "type": "double"
+        },
+        {
+          "name": "registration_source",
+          "type": "varchar",
+          "description": "Origine de l'inscription : STAFF (agence/commercial) ou CUSTOMER_SPACE (auto-inscription Espace Client)",
+          "synonyms": [
+            "auto-inscrit",
+            "inscrit depuis l'espace client",
+            "source d'inscription"
+          ]
         }
       ]
     },

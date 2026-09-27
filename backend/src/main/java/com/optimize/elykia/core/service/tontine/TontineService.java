@@ -18,6 +18,7 @@ import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistory;
 import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistoryArchive;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
+import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
 import com.optimize.elykia.core.enumaration.TontineMemberUpdateScope;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.event.TontineCollectionCancelledEvent;
@@ -228,6 +229,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     public TontineMemberRespDto registerMember(TontineMemberDto dto) {
+        return registerMember(dto, TontineMemberRegistrationSource.STAFF);
+    }
+
+    public TontineMemberRespDto registerMember(TontineMemberDto dto, TontineMemberRegistrationSource registrationSource) {
         assertTontineWritesAllowed();
         Client client = clientService.getById(dto.getClientId());
         TontineSession activeSession = getActiveSession();
@@ -240,11 +245,16 @@ public class TontineService extends GenericService<TontineMember, Long> {
                     "Ce client est déjà enregistré pour la session de tontine de cette année.");
         }
 
+        TontineMemberRegistrationSource source = registrationSource != null
+                ? registrationSource
+                : TontineMemberRegistrationSource.STAFF;
+
         TontineMember newMember = new TontineMember();
         newMember.setClient(client);
         newMember.setTontineSession(activeSession);
         newMember.setFrequency(dto.getFrequency());
         newMember.setRegistrationDate(LocalDateTime.now());
+        newMember.setRegistrationSource(source);
         newMember.setAmount(dto.getAmount());
         newMember.setOperationConsentCode(dto.getOperationConsentCode());
         newMember.setSyncConsentCode(dto.getSyncConsentCode());

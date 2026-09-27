@@ -47,6 +47,23 @@ public class CustomerApiController {
         return ResponseEntity.ok(customerPortalService.getTontineContributions());
     }
 
+    @GetMapping("/tontine/session/current")
+    public ResponseEntity<CustomerTontineSessionDto> getCurrentTontineSession() {
+        return ResponseEntity.ok(customerPortalService.getCurrentTontineSession());
+    }
+
+    @GetMapping("/tontine/mobile-money-recipients")
+    public ResponseEntity<CustomerMobileMoneyRecipientDto> getTontineJoinRecipients() {
+        return ResponseEntity.ok(customerPortalService.getTontineJoinRecipients());
+    }
+
+    @PostMapping("/tontine/join")
+    public ResponseEntity<CustomerTontineJoinResponse> joinTontineSession(
+            @Valid @RequestBody CustomerTontineJoinRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(customerPortalService.joinTontineSession(request));
+    }
+
     @GetMapping("/tontine/contributions/{memberId}")
     public ResponseEntity<CustomerTontineContributionDetailDto> getTontineContribution(
             @PathVariable Long memberId) {

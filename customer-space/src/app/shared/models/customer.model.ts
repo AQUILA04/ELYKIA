@@ -193,6 +193,37 @@ export interface CustomerTontinePaymentPage {
   totalPages: number;
 }
 
+export interface CustomerTontineSession {
+  available: boolean;
+  year?: number;
+  startDate?: string;
+  endDate?: string;
+  status?: TontineSessionStatus;
+  joinable: boolean;
+  alreadyMember: boolean;
+  memberId?: string;
+  minDailyStake: number;
+}
+
+export interface CustomerTontineInitialPaymentRequest {
+  mobileMoneyPhone: string;
+  mobileMoneyAmount: number;
+  mobileMoneyReference: string;
+  notes?: string;
+}
+
+export interface CustomerTontineJoinRequest {
+  dailyStake: number;
+  initialPayment?: CustomerTontineInitialPaymentRequest;
+}
+
+export interface CustomerTontineJoinResponse {
+  memberId: string;
+  sessionYear: number;
+  dailyStake: number;
+  initialPaymentStatus?: string | null;
+}
+
 // ─── COMMANDES ──────────────────────────────────────────────────────────────
 
 export interface CustomerArticle {

@@ -9,6 +9,29 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.0] — 2026-09-27
+
+### Added
+
+- Écran **Mes tontines** enrichi : carte session en cours, progression, CTA **Rejoindre la session** et section « Comment ça marche ».
+- Parcours **Rejoindre la session** : choix de la mise (dès 100 FCFA), premier paiement Mobile Money facultatif, écran de bienvenue.
+- Header Type C (`app-elyk-page-header`) et carte partagée des destinataires Mobile Money.
+
+### Changed
+
+- Tokens design system v2 (`--elyk-space-*`, `--elyk-gold-soft`, …) et classes globales (chips, steps, progress, sticky CTA) sur les écrans tontine.
+
+## Backend — [1.21.0] — 2026-09-27
+
+### Added
+
+- Colonne `registration_source` sur `tontine_member` (STAFF / CUSTOMER_SPACE) pour identifier les auto-inscriptions Espace Client.
+- API client : `GET /api/customer/tontine/session/current`, `GET /api/customer/tontine/mobile-money-recipients`, `POST /api/customer/tontine/join`.
+
+### Changed
+
+- `TontineService.registerMember` accepte une source d’inscription (défaut STAFF) ; schema catalog IA mis à jour.
+
 ## Frontend — [2.23.1] — 2026-09-26
 
 ### Added

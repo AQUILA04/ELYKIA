@@ -8,8 +8,9 @@ Référence technique pour **tous** les écrans `customer-space/`. À lire avant
 |------|------------------|--------|---------|
 | **A — Decor** | Écrans « vitrine » premium (auth, dashboard, accueil crédit) | `app-elyk-decor-header` + motif SVG | `app-elyk-overlap-card` ou `.page-inner` sous header |
 | **B — Plain** | Listes, détails, formulaires secondaires | `ion-header` + `elyk-toolbar-plain` | `.page-inner` classique |
+| **C — Hero header (v2, pilote tontine)** | Écrans tontine (liste + inscription) | `app-elyk-page-header` (navy + grille, eyebrow gold, titre Playfair, coins bas arrondis) | Première carte qui chevauche le header ; classes globales `.elyk-chip`, `.elyk-steps`, `.elyk-progress`, `.elyk-sticky-cta` |
 
-**Règle :** ne jamais inventer un 3ᵉ layout. Choisir A ou B selon la maquette PNG.
+**Règle :** ne pas inventer un layout hors A/B/C. Type C est le pilote v2 — l'appliquer d'abord aux écrans tontine avant généralisation.
 
 ## Composants obligatoires (`shared/ui/`)
 
@@ -60,6 +61,27 @@ Champ outlined, label flottant, icône gold. Projeter `ion-input` à l'intérieu
   <ion-input formControlName="phone" type="tel"></ion-input>
 </app-elyk-outlined-field>
 ```
+
+### `app-elyk-page-header` — Type C (v2, pilote tontine)
+
+Hero navy avec motif `header-grid.svg`, coins bas arrondis (`--elyk-header-radius`), eyebrow uppercase gold, titre Playfair et sous-titre.
+
+| Input | Usage |
+|-------|-------|
+| `eyebrow` | Ex. « ESPACE TONTINE » |
+| `title` | Titre émotionnel Playfair |
+| `subtitle` | Phrase de soutien |
+| `showBack` | Bouton retour circulaire |
+
+```html
+<app-elyk-page-header
+  eyebrow="ESPACE TONTINE"
+  title="Mes tontines"
+  subtitle="Épargnez un peu chaque jour, recevez vos vivres en fin d'année">
+</app-elyk-page-header>
+```
+
+Tokens v2 associés : `--elyk-space-*`, `--elyk-text-*`, `--elyk-gold-soft`, `--elyk-green-soft`, `--elyk-surface-muted`, `--elyk-shadow-soft`.
 
 ## Boutons (classes globales)
 

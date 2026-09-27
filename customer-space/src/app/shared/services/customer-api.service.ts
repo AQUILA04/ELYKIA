@@ -27,6 +27,9 @@ import {
   CustomerTontineContributionDetail,
   CustomerTontinePayment,
   CustomerTontinePaymentPage,
+  CustomerTontineSession,
+  CustomerTontineJoinRequest,
+  CustomerTontineJoinResponse,
   TontineMobileMoneyPaymentRequest,
   CustomerOnboardingStatus,
   CustomerInitialDeposit,
@@ -126,6 +129,18 @@ export class CustomerApiService {
 
   getTontineContributions(): Observable<CustomerTontineContributionSummary[]> {
     return this.http.get<CustomerTontineContributionSummary[]>(`${this.base}/tontine/contributions`);
+  }
+
+  getCurrentTontineSession(): Observable<CustomerTontineSession> {
+    return this.http.get<CustomerTontineSession>(`${this.base}/tontine/session/current`);
+  }
+
+  getTontineJoinRecipients(): Observable<MobileMoneyRecipient> {
+    return this.http.get<MobileMoneyRecipient>(`${this.base}/tontine/mobile-money-recipients`);
+  }
+
+  joinTontineSession(payload: CustomerTontineJoinRequest): Observable<CustomerTontineJoinResponse> {
+    return this.http.post<CustomerTontineJoinResponse>(`${this.base}/tontine/join`, payload);
   }
 
   getTontineContributionById(memberId: string): Observable<CustomerTontineContributionDetail> {

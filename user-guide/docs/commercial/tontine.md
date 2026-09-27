@@ -62,6 +62,7 @@ Pour les utilisateurs habilités à viser les carnets physiques :
 ### Inscrire un nouveau membre
 - **Inscription individuelle** : Cliquez sur **Ajouter un Membre**, sélectionnez le client dans la liste, indiquez le montant de sa mise journalière (par exemple 500 ou 1 000 FCFA) et enregistrez.
 - **Inscriptions multiples** : En début de campagne, le bouton **Ajout Multiple** permet d'enrôler rapidement plusieurs adhérents à la chaîne.
+- **Auto-inscription Espace Client** : Les clients peuvent aussi rejoindre la session depuis l’application **Espace Client** (écran **Mes tontines** → **Rejoindre la session**). Leur premier paiement Mobile Money éventuel apparaît dans **Paiements clients** > **Cotisations tontine** pour validation.
 
 ---
 

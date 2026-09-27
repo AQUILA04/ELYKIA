@@ -425,6 +425,43 @@ class TontineServiceTest {
         TontineMemberAmountHistory history = created.getAmountHistory().get(0);
         assertEquals(LocalDate.now(), history.getStartDate());
         assertEquals(1500.0, history.getAmount());
+        assertEquals(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.STAFF,
+                created.getRegistrationSource());
+    }
+
+    @Test
+    void registerMember_withCustomerSpaceSource_setsRegistrationSource() {
+        int year = LocalDate.now().getYear();
+        TontineSession session = session(1L, year, TontineSessionStatus.ACTIVE);
+        session.setStartDate(LocalDate.of(year, 2, 1));
+
+        Client client = new Client();
+        client.setId(55L);
+        client.setFirstname("Afi");
+        client.setLastname("Koffi");
+        client.setCollector("COM001");
+
+        when(clientService.getById(55L)).thenReturn(client);
+        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(session));
+        when(tontineMemberRepository.findByTontineSession_YearAndClient_Id(year, 55L)).thenReturn(Optional.empty());
+        when(parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE")).thenReturn(true);
+        when(tontineMemberRepository.save(any(TontineMember.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TontineMemberDto dto = new TontineMemberDto();
+        dto.setClientId(55L);
+        dto.setAmount(100.0);
+        dto.setFrequency(com.optimize.elykia.core.enumaration.TontineMemberFrequency.DAILY);
+
+        TontineMemberRespDto resp = service.registerMember(
+                dto, com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE);
+
+        ArgumentCaptor<TontineMember> captor = ArgumentCaptor.forClass(TontineMember.class);
+        verify(tontineMemberRepository).save(captor.capture());
+        assertEquals(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE,
+                captor.getValue().getRegistrationSource());
+        assertEquals(Boolean.TRUE, resp.selfRegistered());
+        assertEquals(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE,
+                resp.registrationSource());
     }
 
     @Test

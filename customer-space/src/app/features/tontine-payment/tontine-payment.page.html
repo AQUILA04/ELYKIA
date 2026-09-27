@@ -11,30 +11,12 @@
       <p>Mise journalière attendue : {{ expectedAmount | number:'1.0-0' }} FCFA</p>
     </div>
 
-    <div class="recipients-card" *ngIf="recipientsLoading" data-testid="e2e-tontine-payment-recipients-loading">
-      <ion-spinner name="crescent"></ion-spinner>
-      <span>Chargement des numéros de paiement…</span>
-    </div>
-
-    <div class="info-box warning" *ngIf="!recipientsLoading && recipientsError">
-      <ion-icon name="alert-circle-outline"></ion-icon>
-      <p>{{ recipientsError }}</p>
-    </div>
-
-    <div class="recipients-card" *ngIf="!recipientsLoading && hasRecipientNumbers()" data-testid="e2e-tontine-payment-recipients">
-      <h3>Effectuez votre transfert vers :</h3>
-      <p class="collector-line" *ngIf="recipients?.collectorName || recipients?.collector">
-        Commercial tontine : <strong>{{ recipients?.collectorName || recipients?.collector }}</strong>
-      </p>
-      <div class="recipient-row" *ngIf="recipients?.mixxNumber" data-testid="e2e-tontine-payment-mixx-number">
-        <span class="recipient-label">Mixx by YAS</span>
-        <span class="recipient-number">{{ recipients?.mixxNumber }}</span>
-      </div>
-      <div class="recipient-row" *ngIf="recipients?.moovNumber" data-testid="e2e-tontine-payment-moov-number">
-        <span class="recipient-label">Moov Money</span>
-        <span class="recipient-number">{{ recipients?.moovNumber }}</span>
-      </div>
-    </div>
+    <app-mobile-money-recipients-card
+      [recipients]="recipients"
+      [loading]="recipientsLoading"
+      [error]="recipientsError"
+      testIdPrefix="e2e-tontine-payment-recipients">
+    </app-mobile-money-recipients-card>
 
     <div class="info-box">
       <ion-icon name="information-circle-outline"></ion-icon>
@@ -42,20 +24,20 @@
     </div>
     <form [formGroup]="form" (ngSubmit)="submit()">
       <div class="field">
-        <label>Numéro d'envoi</label>
-        <ion-input formControlName="mobileMoneyPhone" type="tel" data-testid="e2e-tontine-payment-phone" placeholder="+229 XX XX XX XX"></ion-input>
+        <label for="tontine-payment-phone">Numéro d'envoi</label>
+        <ion-input id="tontine-payment-phone" formControlName="mobileMoneyPhone" type="tel" inputmode="tel" data-testid="e2e-tontine-payment-phone" placeholder="+229 XX XX XX XX"></ion-input>
       </div>
       <div class="field">
-        <label>Montant envoyé (FCFA)</label>
-        <ion-input formControlName="mobileMoneyAmount" type="number" data-testid="e2e-tontine-payment-amount" placeholder="Ex: 500"></ion-input>
+        <label for="tontine-payment-amount">Montant envoyé (FCFA)</label>
+        <ion-input id="tontine-payment-amount" formControlName="mobileMoneyAmount" type="number" inputmode="numeric" data-testid="e2e-tontine-payment-amount" placeholder="Ex: 500"></ion-input>
       </div>
       <div class="field">
-        <label>Référence du transfert</label>
-        <ion-input formControlName="mobileMoneyReference" type="text" data-testid="e2e-tontine-payment-reference" placeholder="Ex: TXN-TONTINE-XXXX"></ion-input>
+        <label for="tontine-payment-reference">Référence du transfert</label>
+        <ion-input id="tontine-payment-reference" formControlName="mobileMoneyReference" type="text" data-testid="e2e-tontine-payment-reference" placeholder="Ex: TXN-TONTINE-XXXX"></ion-input>
       </div>
       <div class="field">
-        <label>Notes (optionnel)</label>
-        <ion-textarea formControlName="notes" rows="3" placeholder="Informations complémentaires..."></ion-textarea>
+        <label for="tontine-payment-notes">Notes (optionnel)</label>
+        <ion-textarea id="tontine-payment-notes" formControlName="notes" rows="3" placeholder="Informations complémentaires..."></ion-textarea>
       </div>
       <div class="error" *ngIf="error">{{ error }}</div>
       <ion-button type="submit" expand="block" class="elyk-btn-primary" data-testid="e2e-tontine-payment-submit" [disabled]="form.invalid || isLoading">

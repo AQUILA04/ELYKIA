@@ -6,6 +6,7 @@ import com.optimize.common.entities.entity.BaseEntity;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
+import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,6 +43,10 @@ public class TontineMember extends BaseEntity<String> {
 
     @Column(nullable = false)
     private LocalDateTime registrationDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "registration_source", nullable = false, length = 30)
+    private TontineMemberRegistrationSource registrationSource = TontineMemberRegistrationSource.STAFF;
 
     @OneToOne(mappedBy = "tontineMember", cascade = CascadeType.ALL)
     @JsonManagedReference

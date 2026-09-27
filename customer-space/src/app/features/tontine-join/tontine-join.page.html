@@ -1,0 +1,157 @@
+<ion-content class="page-content join-page" data-testid="e2e-tontine-join-page">
+  <app-elyk-page-header
+    eyebrow="ESPACE TONTINE"
+    title="Rejoindre la session"
+    [subtitle]="session?.year ? ('Session ' + session?.year) : 'Inscription tontine'"
+    [showBack]="true"
+    (back)="goBack()">
+  </app-elyk-page-header>
+
+  <div class="join-body" *ngIf="!success">
+    <div class="elyk-skeleton-card" *ngIf="isLoadingSession" data-testid="e2e-tontine-join-loading">
+      <ion-skeleton-text animated class="skeleton-line skeleton-line--title"></ion-skeleton-text>
+      <ion-skeleton-text animated class="skeleton-line skeleton-line--wide"></ion-skeleton-text>
+    </div>
+
+    <ng-container *ngIf="!isLoadingSession">
+      <section class="join-card elyk-animate" data-testid="e2e-tontine-join-stake">
+        <div class="elyk-section-head">
+          <h2>Votre mise journalière</h2>
+          <p>Choisissez le montant que vous souhaitez cotiser chaque jour (minimum 100 FCFA).</p>
+        </div>
+
+        <div class="stake-chips" role="group" aria-label="Montants suggérés">
+          <button
+            type="button"
+            class="stake-chip"
+            *ngFor="let amount of stakeShortcuts"
+            [class.stake-chip--active]="selectedShortcut === amount"
+            [attr.data-testid]="'e2e-tontine-stake-' + amount"
+            (click)="selectShortcut(amount)">
+            {{ amount | number:'1.0-0' }}
+          </button>
+        </div>
+
+        <form [formGroup]="stakeForm">
+          <app-elyk-outlined-field
+            label="Montant libre (FCFA)"
+            icon="cash-outline"
+            [error]="fieldError('dailyStake', stakeForm)">
+            <ion-input
+              formControlName="dailyStake"
+              type="number"
+              inputmode="numeric"
+              data-testid="e2e-tontine-stake-input"
+              (ionInput)="onStakeInput()">
+            </ion-input>
+          </app-elyk-outlined-field>
+        </form>
+
+        <p class="stake-recap" data-testid="e2e-tontine-stake-recap" *ngIf="dailyStake >= 100">
+          Soit environ <strong>{{ monthlyEstimate | number:'1.0-0' }} FCFA</strong> par mois
+        </p>
+      </section>
+
+      <section class="join-card elyk-animate" data-testid="e2e-tontine-join-payment">
+        <div class="payment-toggle">
+          <div>
+            <h2>Premier paiement (facultatif)</h2>
+            <p>Déclarez dès maintenant un transfert Mobile Money si vous l’avez déjà effectué.</p>
+          </div>
+          <ion-toggle
+            [checked]="includeInitialPayment"
+            data-testid="e2e-tontine-payment-toggle"
+            (ionChange)="toggleInitialPayment($any($event).detail.checked)"
+            aria-label="Inclure un premier paiement">
+          </ion-toggle>
+        </div>
+
+        <ng-container *ngIf="includeInitialPayment">
+          <app-mobile-money-recipients-card
+            [recipients]="recipients"
+            [loading]="recipientsLoading"
+            [error]="recipientsError"
+            testIdPrefix="e2e-tontine-join-recipients">
+          </app-mobile-money-recipients-card>
+
+          <form [formGroup]="paymentForm" class="payment-form">
+            <app-elyk-outlined-field
+              label="Numéro d'envoi"
+              icon="call-outline"
+              [error]="fieldError('mobileMoneyPhone')">
+              <ion-input
+                formControlName="mobileMoneyPhone"
+                type="tel"
+                inputmode="tel"
+                data-testid="e2e-tontine-join-phone">
+              </ion-input>
+            </app-elyk-outlined-field>
+
+            <app-elyk-outlined-field
+              label="Montant envoyé (FCFA)"
+              icon="cash-outline"
+              [error]="fieldError('mobileMoneyAmount')">
+              <ion-input
+                formControlName="mobileMoneyAmount"
+                type="number"
+                inputmode="numeric"
+                data-testid="e2e-tontine-join-amount">
+              </ion-input>
+            </app-elyk-outlined-field>
+
+            <app-elyk-outlined-field
+              label="Numéro de la transaction"
+              icon="receipt-outline"
+              [error]="fieldError('mobileMoneyReference')">
+              <ion-input
+                formControlName="mobileMoneyReference"
+                type="text"
+                data-testid="e2e-tontine-join-reference">
+              </ion-input>
+            </app-elyk-outlined-field>
+
+            <app-elyk-outlined-field label="Notes (optionnel)" icon="create-outline">
+              <ion-textarea formControlName="notes" rows="2" auto-grow="true"></ion-textarea>
+            </app-elyk-outlined-field>
+          </form>
+        </ng-container>
+      </section>
+
+      <p class="form-error" *ngIf="error" data-testid="e2e-tontine-join-error">{{ error }}</p>
+
+      <div class="elyk-sticky-cta">
+        <ion-button
+          expand="block"
+          class="elyk-btn-gold"
+          data-testid="e2e-tontine-join-submit"
+          [disabled]="!canSubmit()"
+          (click)="submit()">
+          <ion-spinner *ngIf="isSubmitting" name="crescent"></ion-spinner>
+          <span *ngIf="!isSubmitting">Confirmer mon inscription</span>
+        </ion-button>
+      </div>
+    </ng-container>
+  </div>
+
+  <div class="join-body success-panel elyk-animate" *ngIf="success" data-testid="e2e-tontine-join-success">
+    <div class="success-card">
+      <div class="success-icon" aria-hidden="true">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+      </div>
+      <h2>Bienvenue dans la tontine {{ success.sessionYear }}</h2>
+      <p>
+        Votre inscription est confirmée avec une mise de
+        <strong>{{ success.dailyStake | number:'1.0-0' }} FCFA</strong> par jour.
+      </p>
+      <p *ngIf="success.initialPaymentStatus === 'INITIE'" class="payment-pending">
+        Votre premier paiement est en cours de vérification.
+      </p>
+      <ion-button expand="block" class="elyk-btn-gold" data-testid="e2e-tontine-join-see" (click)="goToTontine()">
+        Voir ma tontine
+      </ion-button>
+      <ion-button expand="block" fill="outline" class="elyk-btn-outline" data-testid="e2e-tontine-join-home" (click)="goHome()">
+        Accueil
+      </ion-button>
+    </div>
+  </div>
+</ion-content>
