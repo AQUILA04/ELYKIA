@@ -35,6 +35,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Écran **Mon dossier** : photo de pièce d’identité et déclaration de dépôt initial pour accélérer l’activation.
 - Tableau de bord limité tant que le compte est en attente de validation agence.
 
+## Backend — [1.20.3] — 2026-09-27
+
+### Fixed
+
+- OTP Notification Hub : message d’erreur explicite si le hub répond **404** sur `/v1/otp/*` (binaire sans module OTP) ; logs avec corps de réponse ; guide local enrichi (matrice d’alignement + diagnostic curl).
+
 ## Backend — [1.20.2] — 2026-09-27
 
 ### Added
