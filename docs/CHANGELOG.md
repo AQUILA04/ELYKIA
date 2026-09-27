@@ -35,6 +35,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Écran **Mon dossier** : photo de pièce d’identité et déclaration de dépôt initial pour accélérer l’activation.
 - Tableau de bord limité tant que le compte est en attente de validation agence.
 
+## Backend — [1.20.2] — 2026-09-27
+
+### Added
+
+- Profil `francis` : Notification Hub activé en local (`http://localhost:8088`, `X-Tenant-Id`, OAuth2 désactivé, `environment: test`) ; guide `backend/docs/NOTIFICATION_HUB_LOCAL.md`.
+
 ## Backend — [1.20.1] — 2026-09-26
 
 ### Fixed
