@@ -107,6 +107,7 @@
             </button>
             <input #profilPhotoInput id="profilPhoto" type="file" accept="image/*" capture="user"
               class="photo-input-hidden"
+              aria-label="Photo de profil"
               (change)="onProfilPhotoSelected($event)" data-testid="e2e-auth-register-photo" />
             <p class="photo-hint">Format jpg ou png — le visage doit être bien visible</p>
           </div>
@@ -124,8 +125,8 @@
           <ion-input formControlName="address" data-testid="e2e-auth-register-address"></ion-input>
         </div>
         <div class="field">
-          <label>Votre zone</label>
-          <ion-select formControlName="quarter" interface="popover" placeholder="Sélectionnez votre zone"
+          <label for="register-zone">Votre zone</label>
+          <ion-select id="register-zone" formControlName="quarter" interface="popover" placeholder="Sélectionnez votre zone"
             data-testid="e2e-auth-register-zone"
             [disabled]="localitiesLoading || localities.length === 0">
             <ion-select-option *ngFor="let loc of localities" [value]="loc.name">{{ loc.name }}</ion-select-option>

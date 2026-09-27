@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -21,7 +21,7 @@ import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/cu
   templateUrl: './onboarding.page.html',
   styleUrls: ['./onboarding.page.scss'],
 })
-export class OnboardingPage implements OnInit, ViewWillEnter {
+export class OnboardingPage implements ViewWillEnter {
   status: CustomerOnboardingStatus | null = null;
   deposit: CustomerInitialDeposit | null = null;
   recipients: MobileMoneyRecipient | null = null;
@@ -52,10 +52,6 @@ export class OnboardingPage implements OnInit, ViewWillEnter {
       mobileMoneyReference: ['', Validators.required],
       notes: [''],
     });
-  }
-
-  ngOnInit(): void {
-    // Chargement via ionViewWillEnter (page mise en cache par ion-router-outlet).
   }
 
   ionViewWillEnter(): void {

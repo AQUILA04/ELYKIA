@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { IonicModule, RefresherCustomEvent, ViewWillEnter } from '@ionic/angular';
@@ -15,7 +15,7 @@ import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/cu
   templateUrl: './notifications.page.html',
   styleUrls: ['./notifications.page.scss'],
 })
-export class NotificationsPage implements OnInit, ViewWillEnter {
+export class NotificationsPage implements ViewWillEnter {
   notifications: CustomerNotification[] = [];
   isLoading = true;
   loadError = false;
@@ -26,10 +26,6 @@ export class NotificationsPage implements OnInit, ViewWillEnter {
     private inbox: CustomerNotificationInboxService,
     private router: Router,
   ) {}
-
-  ngOnInit(): void {
-    // Chargement via ionViewWillEnter
-  }
 
   ionViewWillEnter(): void {
     void this.load();

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AlertController, IonicModule, RefresherCustomEvent, ViewWillEnter } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
@@ -29,7 +29,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
 })
-export class DashboardPage implements OnInit, ViewWillEnter {
+export class DashboardPage implements ViewWillEnter {
   dashboard: CustomerDashboard | null = null;
   isLoading = true;
   loadError = false;
@@ -79,11 +79,6 @@ export class DashboardPage implements OnInit, ViewWillEnter {
           installment: dashboard.nextInstallmentNumber ?? 0,
         }
       : null;
-  }
-
-  ngOnInit(): void {
-    // Chargement initial ; les reprises de vue passent par ionViewWillEnter
-    // (ion-router-outlet conserve la page en cache).
   }
 
   ionViewWillEnter(): void {

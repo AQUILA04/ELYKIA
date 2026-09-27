@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.1] — 2026-09-27
+
+### Fixed
+
+- Accessibilité : `aria-label` sur les inputs fichier photo (inscription / pièce) pour passer le Quality Gate Sonar (Reliability).
+- Labels associés pour « Votre zone » ; suppression des `ngOnInit` vides.
+
 ## Customer-space — [0.6.0] — 2026-09-27
 
 ### Added

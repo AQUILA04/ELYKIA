@@ -82,19 +82,20 @@
           </button>
           <input #cardPhotoInput id="cardPhoto" type="file" accept="image/*" capture="environment"
             class="photo-input-hidden"
+            aria-label="Photo de la pièce d'identité"
             (change)="onCardPhotoSelected($event)" data-testid="e2e-onboarding-card-photo" />
         </div>
       </div>
       <div class="field">
-        <label>Type de pièce</label>
-        <ion-select formControlName="cardType" interface="popover" placeholder="Sélectionnez"
+        <label for="onboarding-card-type">Type de pièce</label>
+        <ion-select id="onboarding-card-type" formControlName="cardType" interface="popover" placeholder="Sélectionnez"
           data-testid="e2e-onboarding-card-type">
           <ion-select-option *ngFor="let t of cardTypes" [value]="t.value">{{ t.label }}</ion-select-option>
         </ion-select>
       </div>
       <div class="field">
-        <label>Numéro de pièce</label>
-        <ion-input formControlName="cardID" data-testid="e2e-onboarding-card-id"></ion-input>
+        <label for="onboarding-card-id">Numéro de pièce</label>
+        <ion-input id="onboarding-card-id" formControlName="cardID" data-testid="e2e-onboarding-card-id"></ion-input>
       </div>
       <ion-button type="submit" expand="block" class="elyk-btn-primary" [disabled]="isSaving || idForm.invalid"
         data-testid="e2e-onboarding-id-submit">
