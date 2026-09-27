@@ -6,7 +6,7 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 
 ## 1. Accéder à la liste
 
-1. Dans le menu latéral, cliquez sur **Inscriptions clients**.
+1. Dans le menu latéral, ouvrez **Services en ligne**, puis cliquez sur **Inscriptions**.
 2. L’écran affiche les dossiers **en attente**, avec le nom, le téléphone, l’état de la pièce d’identité et le dépôt initial s’il a été déclaré.
 3. Utilisez les filtres **Toutes**, **Avec dépôt** ou **Sans dépôt** pour prioriser les dossiers.
 4. Naviguez entre les pages avec **Précédent** / **Suivant** si la liste dépasse une page.
