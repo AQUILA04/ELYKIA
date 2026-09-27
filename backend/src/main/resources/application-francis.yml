@@ -79,6 +79,20 @@ minio:
   reports-bucket: ${MINIO_REPORTS_BUCKET:elykia-reports}
   public-url: ${MINIO_PUBLIC_URL:http://localhost:19000}
 
+# Notification Hub local — connexion directe (X-Tenant-Id), sans OAuth2 / Keycloak.
+# Prérequis : hub démarré avec profil Spring `local` sur :8088
+# (voir backend/docs/NOTIFICATION_HUB_LOCAL.md).
+optimize:
+  notification:
+    hub:
+      enabled: true
+      base-url: http://localhost:8088
+      tenant-id: elykia
+      app-id: elykia-customer-space
+      environment: test
+      oauth2:
+        enabled: false
+
 #swagger: '2.0'
 #info:
 #  version: 1.0.0
