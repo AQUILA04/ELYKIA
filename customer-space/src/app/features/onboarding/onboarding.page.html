@@ -65,22 +65,38 @@
     <form *ngIf="section === 'id'" [formGroup]="idForm" (ngSubmit)="submitIdDocument()">
       <h3>Photo de la pièce d'identité</h3>
       <div class="field">
-        <label for="cardPhoto">Photo</label>
-        <input id="cardPhoto" type="file" accept="image/*" capture="environment"
-          (change)="onCardPhotoSelected($event)" data-testid="e2e-onboarding-card-photo" />
-        <img *ngIf="cardPhotoDataUrl" [src]="cardPhotoDataUrl" alt="Aperçu pièce" class="preview" />
+        <span class="field-label">Photo</span>
+        <div class="photo-picker">
+          <button type="button" class="photo-picker-btn"
+            (click)="cardPhotoInput.click()"
+            data-testid="e2e-onboarding-card-photo-btn"
+            [attr.aria-label]="cardPhotoDataUrl ? 'Changer la photo de la pièce' : 'Ajouter la photo de la pièce'">
+            <img *ngIf="cardPhotoDataUrl" [src]="cardPhotoDataUrl" alt="" class="preview-thumb" />
+            <span *ngIf="!cardPhotoDataUrl" class="photo-placeholder" aria-hidden="true">
+              <ion-icon name="id-card-outline"></ion-icon>
+            </span>
+            <span class="photo-picker-cta">
+              <ion-icon [name]="cardPhotoDataUrl ? 'refresh-outline' : 'camera-outline'" aria-hidden="true"></ion-icon>
+              {{ cardPhotoDataUrl ? 'Changer la photo' : 'Photographier ma pièce' }}
+            </span>
+          </button>
+          <input #cardPhotoInput id="cardPhoto" type="file" accept="image/*" capture="environment"
+            class="photo-input-hidden"
+            (change)="onCardPhotoSelected($event)" data-testid="e2e-onboarding-card-photo" />
+        </div>
       </div>
       <div class="field">
         <label>Type de pièce</label>
-        <ion-select formControlName="cardType" interface="popover">
+        <ion-select formControlName="cardType" interface="popover" placeholder="Sélectionnez"
+          data-testid="e2e-onboarding-card-type">
           <ion-select-option *ngFor="let t of cardTypes" [value]="t.value">{{ t.label }}</ion-select-option>
         </ion-select>
       </div>
       <div class="field">
         <label>Numéro de pièce</label>
-        <ion-input formControlName="cardID"></ion-input>
+        <ion-input formControlName="cardID" data-testid="e2e-onboarding-card-id"></ion-input>
       </div>
-      <ion-button type="submit" expand="block" class="elyk-btn-primary" [disabled]="isSaving"
+      <ion-button type="submit" expand="block" class="elyk-btn-primary" [disabled]="isSaving || idForm.invalid"
         data-testid="e2e-onboarding-id-submit">
         Enregistrer
       </ion-button>

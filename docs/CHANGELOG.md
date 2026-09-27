@@ -9,6 +9,20 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.5.2] — 2026-09-27
+
+### Changed
+
+- Inscription : sélecteur photo de profil soigné (plus d'input fichier natif) ; type et numéro de pièce uniquement dans **Mon dossier**.
+- Inscription : champ **Votre zone** (liste des localités) à la place de « Quartier » ; erreur d’âge mineur affichée dès la saisie de la date de naissance.
+
+## Backend — [1.20.2] — 2026-09-27
+
+### Changed
+
+- Inscription espace client : `cardType` / `cardID` optionnels (renseignés à l'onboarding pièce d'identité).
+- Inscription : âge minimum **18 ans** ; endpoint public `GET /api/customer/auth/localities` pour le sélecteur de zone.
+
 ## Frontend — [2.23.1] — 2026-09-26
 
 ### Added

@@ -42,11 +42,11 @@ public class CustomerRegisterRequest {
     @Size(max = 100)
     private String occupation;
 
-    @NotBlank
+    /** Optionnel à l'inscription — renseigné via onboarding pièce d'identité. */
     @Size(max = 50)
     private String cardType;
 
-    @NotBlank
+    /** Optionnel à l'inscription — renseigné via onboarding pièce d'identité. */
     @Size(max = 100)
     private String cardID;
 

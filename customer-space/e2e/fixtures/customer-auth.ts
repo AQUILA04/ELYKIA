@@ -259,6 +259,15 @@ export async function mockRegistrationOnboardingFlow(page: Page): Promise<void> 
       return;
     }
 
+    if (url.includes('/auth/localities') && method === 'GET') {
+      await route.fulfill(jsonResponse([
+        { id: 1, name: 'Tokoin' },
+        { id: 2, name: 'Bè' },
+        { id: 3, name: 'Agoè' },
+      ]));
+      return;
+    }
+
     if (url.includes('/auth/register') && method === 'POST') {
       await route.fulfill(jsonResponse({ ...MOCK_REGISTER_SESSION }));
       return;

@@ -46,8 +46,8 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 Un nouveau client qui saisit un numéro encore inconnu :
 
 1. Reçoit un code SMS pour confirmer son téléphone.
-2. Remplit sa fiche et prend sa photo de profil.
+2. Remplit sa fiche (prénom, nom, adresse, **votre zone**, date de naissance, occupation) et ajoute sa **photo de profil**. La date de naissance doit correspondre à un client majeur (18 ans ou plus).
 3. Crée son code PIN, puis se connecte.
-4. Complète son dossier avec la photo de sa pièce d’identité.
+4. Complète son dossier (**Mon dossier**) avec le **type** et le **numéro** de pièce d’identité, plus la photo de la pièce.
 5. Peut déclarer un **dépôt initial** (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.
 6. Attend la validation de l’agence avant d’accéder aux crédits, commandes et paiements.

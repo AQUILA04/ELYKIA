@@ -41,8 +41,8 @@ export class OnboardingPage implements OnInit {
     private router: Router,
   ) {
     this.idForm = this.fb.group({
-      cardType: [''],
-      cardID: [''],
+      cardType: ['', Validators.required],
+      cardID: ['', [Validators.required, Validators.maxLength(100)]],
     });
     this.depositForm = this.fb.group({
       mobileMoneyPhone: ['', [Validators.required, Validators.minLength(8)]],
@@ -114,6 +114,11 @@ export class OnboardingPage implements OnInit {
   }
 
   async submitIdDocument(): Promise<void> {
+    if (this.idForm.invalid) {
+      this.idForm.markAllAsTouched();
+      this.error = 'Indiquez le type et le numéro de votre pièce d\'identité.';
+      return;
+    }
     if (!this.cardPhotoDataUrl) {
       this.error = 'La photo de la pièce est obligatoire.';
       return;
@@ -123,8 +128,8 @@ export class OnboardingPage implements OnInit {
     this.success = '';
     try {
       this.status = await firstValueFrom(this.api.uploadIdDocument({
-        cardType: this.idForm.value.cardType || undefined,
-        cardID: this.idForm.value.cardID || undefined,
+        cardType: this.idForm.value.cardType,
+        cardID: this.idForm.value.cardID,
         cardPhoto: this.cardPhotoDataUrl,
       }));
       this.success = 'Pièce d\'identité enregistrée.';

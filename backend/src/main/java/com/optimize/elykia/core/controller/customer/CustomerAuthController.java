@@ -1,11 +1,15 @@
 package com.optimize.elykia.core.controller.customer;
 
+import com.optimize.elykia.core.dto.LocalityDto;
 import com.optimize.elykia.core.dto.customer.*;
 import com.optimize.elykia.core.service.customer.CustomerAuthService;
+import com.optimize.elykia.core.service.masterdata.LocalityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/customer/auth")
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class CustomerAuthController {
 
     private final CustomerAuthService customerAuthService;
+    private final LocalityService localityService;
 
     @PostMapping("/check-phone")
     public ResponseEntity<CustomerCheckPhoneResponse> checkPhone(@Valid @RequestBody CustomerPhoneRequest request) {
@@ -43,5 +48,11 @@ public class CustomerAuthController {
     @PostMapping("/register")
     public ResponseEntity<CustomerLoginResponse> register(@Valid @RequestBody CustomerRegisterRequest request) {
         return ResponseEntity.ok(customerAuthService.register(request));
+    }
+
+    /** Référentiel public pour le sélecteur « Votre zone » à l'inscription. */
+    @GetMapping("/localities")
+    public ResponseEntity<List<LocalityDto>> listLocalities() {
+        return ResponseEntity.ok(localityService.listEnabledForCustomer());
     }
 }
