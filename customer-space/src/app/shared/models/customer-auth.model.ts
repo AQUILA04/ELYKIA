@@ -51,10 +51,20 @@ export interface CustomerRegisterRequest {
   quarter: string;
   dateOfBirth: string;
   occupation: string;
-  cardType: string;
-  cardID: string;
+  /** Renseignés à l'étape « Mon dossier », pas à l'inscription. */
+  cardType?: string;
+  cardID?: string;
   profilPhoto: string;
   pin: string;
+  /** GPS capturé automatiquement à l'inscription. */
+  latitude?: number;
+  longitude?: number;
+  mll?: string;
+}
+
+export interface CustomerLocality {
+  id: number;
+  name: string;
 }
 
 export interface CustomerLoginResponse {

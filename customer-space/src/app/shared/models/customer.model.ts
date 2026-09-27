@@ -231,3 +231,29 @@ export interface OrderResponse {
   totalAmount: number;
   createdAt: string;
 }
+
+// ─── NOTIFICATIONS ──────────────────────────────────────────────────────────
+
+export type CustomerNotificationType =
+  | 'REGISTRATION_ACTIVATED'
+  | 'REGISTRATION_REJECTED'
+  | 'CREDIT_PAYMENT_VALIDATED'
+  | 'CREDIT_PAYMENT_REJECTED'
+  | 'TONTINE_PAYMENT_VALIDATED'
+  | 'TONTINE_PAYMENT_REJECTED'
+  | 'ORDER_STATUS_CHANGED';
+
+export interface CustomerNotification {
+  id: number;
+  type: CustomerNotificationType;
+  entityId?: number;
+  entityReference?: string;
+  title: string;
+  message: string;
+  amount?: number;
+  operationDate?: string;
+  linkPath?: string;
+  linkQuery?: string;
+  read: boolean;
+  createdAt?: string;
+}

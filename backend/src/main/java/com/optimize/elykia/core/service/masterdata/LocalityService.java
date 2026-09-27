@@ -11,6 +11,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+import java.util.List;
+
 @Service
 @Transactional(readOnly = true)
 public class LocalityService extends GenericService<Locality, Long> {
@@ -40,6 +43,14 @@ public class LocalityService extends GenericService<Locality, Long> {
 
     public Page<Locality> elasticsearch(String keyword, Pageable pageable) {
         return getRepository().elasticsearch(keyword, pageable);
+    }
+
+    /** Liste des localités actives (inscription espace client, etc.). */
+    public List<LocalityDto> listEnabledForCustomer() {
+        return getAll().stream()
+                .sorted(Comparator.comparing(Locality::getName, String.CASE_INSENSITIVE_ORDER))
+                .map(localityMapper::toDto)
+                .toList();
     }
 
     @Override

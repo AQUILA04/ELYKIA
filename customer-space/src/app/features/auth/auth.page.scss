@@ -65,7 +65,8 @@ h1 {
 
 .field { margin-bottom: 16px; }
 
-.field label {
+.field label,
+.field-label {
   display: block;
   font-size: 12px;
   font-weight: 600;
@@ -108,6 +109,27 @@ ion-input {
   margin-bottom: 12px;
 }
 
+.field-error {
+  color: var(--elyk-red);
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+
+.field-hint {
+  color: var(--elyk-gray-text);
+  font-size: 12px;
+  margin: 6px 0 0;
+}
+
+.field ion-select {
+  --background: var(--elyk-gray-bg);
+  --padding-start: 14px;
+  --padding-end: 14px;
+  min-height: 48px;
+  border-radius: var(--elyk-radius-input);
+  width: 100%;
+}
+
 .unavailable {
   display: flex;
   gap: 10px;
@@ -138,14 +160,96 @@ ion-button {
   font-weight: 600;
 }
 
+.photo-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.photo-picker-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1.5px dashed rgba(201, 146, 42, 0.55);
+  border-radius: var(--elyk-radius-input);
+  background: var(--elyk-cream);
+  color: var(--elyk-navy);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.photo-picker-btn:hover,
+.photo-picker-btn:focus-visible {
+  border-color: var(--elyk-gold);
+  background: #fff;
+  outline: none;
+}
+
+.photo-preview {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--elyk-gold);
+  flex-shrink: 0;
+}
+
+.photo-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(13, 27, 42, 0.06);
+  color: var(--elyk-gold);
+  flex-shrink: 0;
+}
+
+.photo-placeholder ion-icon {
+  font-size: 28px;
+}
+
+.photo-picker-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--elyk-navy);
+}
+
+.photo-picker-cta ion-icon {
+  font-size: 18px;
+  color: var(--elyk-gold);
+}
+
+.photo-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--elyk-gray-text);
+}
+
+.photo-input-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .auth-footer {
   margin-top: 24px;
   font-size: 12px;
   color: var(--elyk-gray-text);
   text-align: center;
 }
-
-.photo-capture { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
-.photo-preview { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; border: 2px solid var(--elyk-gold); }
-.photo-capture input[type=file] { font-size: 14px; }
-.field ion-select { --background: var(--elyk-cream); min-height: 48px; border: 1px solid var(--elyk-border); border-radius: var(--elyk-radius-input); }

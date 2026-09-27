@@ -98,6 +98,24 @@ class LocalityServiceTest {
         verify(localityRepository).elasticsearch("dou", pageable);
     }
 
+    @Test
+    void listEnabledForCustomer_returnsSortedDtos() {
+        Locality be = locality(2L, "Bè");
+        Locality tokoin = locality(1L, "Tokoin");
+        LocalityDto beDto = localityDto("Bè");
+        beDto.setId(2L);
+        LocalityDto tokoinDto = localityDto("Tokoin");
+        tokoinDto.setId(1L);
+        when(localityRepository.findByState(com.optimize.common.entities.enums.State.ENABLED))
+                .thenReturn(List.of(tokoin, be));
+        when(localityMapper.toDto(be)).thenReturn(beDto);
+        when(localityMapper.toDto(tokoin)).thenReturn(tokoinDto);
+
+        List<LocalityDto> result = localityService.listEnabledForCustomer();
+
+        assertEquals(List.of("Bè", "Tokoin"), result.stream().map(LocalityDto::getName).toList());
+    }
+
     private LocalityDto localityDto(String name) {
         LocalityDto dto = new LocalityDto();
         dto.setName(name);

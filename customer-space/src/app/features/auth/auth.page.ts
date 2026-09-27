@@ -8,14 +8,23 @@ import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import {
   AuthStep,
-  CARD_TYPE_OPTIONS,
   CustomerLoginResponse,
+  CustomerLocality,
 } from '../../shared/models/customer-auth.model';
 import { environment } from '../../../environments/environment';
 import { toUsername } from '../../shared/utils/phone-normalizer';
 import { FeatureFlagService } from '../../shared/services/feature-flag.service';
 import { APP_UNAVAILABLE_MESSAGE } from '../../shared/constants/app-availability';
 import { isE2eMode } from '../../shared/utils/e2e';
+import {
+  adultDateOfBirthValidator,
+  underageErrorMessage,
+} from '../../shared/utils/adult-dob.validator';
+import { captureRegistrationLocation } from '../../shared/utils/registration-location';
+import {
+  pickProfilPhotoWithFaceValidation,
+  shouldUseHtmlFilePickerForPhoto,
+} from '../../shared/utils/profil-photo-face';
 
 /** Page Connexion / Inscription — wizard téléphone → PIN, OTP ou inscription. */
 @Component({
@@ -35,9 +44,10 @@ export class AuthPage implements ViewWillEnter {
   error = '';
   appUnavailable = false;
   readonly appUnavailableMessage = APP_UNAVAILABLE_MESSAGE;
-  readonly cardTypes = CARD_TYPE_OPTIONS;
   appVersion = environment.version;
   isRegistrationFlow = false;
+  localities: CustomerLocality[] = [];
+  localitiesLoading = false;
 
   phoneForm: FormGroup;
   pinForm: FormGroup;
@@ -71,10 +81,8 @@ export class AuthPage implements ViewWillEnter {
       lastname: ['', [Validators.required, Validators.maxLength(100)]],
       address: ['', [Validators.required, Validators.maxLength(255)]],
       quarter: ['', [Validators.required, Validators.maxLength(100)]],
-      dateOfBirth: ['', Validators.required],
+      dateOfBirth: ['', [Validators.required, adultDateOfBirthValidator()]],
       occupation: ['', [Validators.required, Validators.maxLength(100)]],
-      cardType: ['', Validators.required],
-      cardID: ['', [Validators.required, Validators.maxLength(100)]],
     });
     this.registerPinForm = this.fb.group({
       pin: ['', [Validators.required, Validators.pattern(/^\d{4,6}$/)]],
@@ -98,6 +106,8 @@ export class AuthPage implements ViewWillEnter {
     this.appUnavailable = false;
     this.isLoading = false;
     this.isRegistrationFlow = false;
+    this.localities = [];
+    this.localitiesLoading = false;
     this.phoneForm.reset();
     this.pinForm.reset();
     this.otpForm.reset();
@@ -136,6 +146,29 @@ export class AuthPage implements ViewWillEnter {
       case 'register-pin': return 'Choisissez un code PIN à 4-6 chiffres';
       default: return '';
     }
+  }
+
+  get dateOfBirthError(): string {
+    const control = this.registerForm.get('dateOfBirth');
+    if (!control || !(control.touched || control.dirty)) {
+      return '';
+    }
+    if (control.hasError('required')) {
+      return 'La date de naissance est obligatoire.';
+    }
+    if (control.hasError('underage')) {
+      return underageErrorMessage();
+    }
+    if (control.hasError('invalidDate')) {
+      return 'Date de naissance invalide.';
+    }
+    return '';
+  }
+
+  onDateOfBirthChanged(): void {
+    const control = this.registerForm.get('dateOfBirth');
+    control?.markAsTouched();
+    control?.updateValueAndValidity({ emitEvent: false });
   }
 
   async submitPhone(): Promise<void> {
@@ -183,8 +216,6 @@ export class AuthPage implements ViewWillEnter {
   private async startOtp(nextStep: 'otp' | 'register-otp'): Promise<void> {
     try {
       if (isE2eMode()) {
-        // OTP réel non disponible en CI : Notification Hub court-circuité.
-        // Code mock à saisir dans le formulaire (pour aligner le parcours UI).
         console.info('[E2E] OTP mock pour', this.phone, '→ saisir 123456 (bypass window.__E2E__)');
         this.step = nextStep;
         return;
@@ -205,7 +236,11 @@ export class AuthPage implements ViewWillEnter {
       if (isE2eMode()) {
         console.info('[E2E] verify OTP court-circuité — preuve mock (code saisi:', this.otpForm.value.otp, ')');
         this.otpProofToken = 'e2e-mock-otp-proof';
-        this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
+        if (this.isRegistrationFlow) {
+          await this.goToRegisterForm();
+        } else {
+          this.step = 'setup-pin';
+        }
         return;
       }
       const res = await firstValueFrom(this.api.verifyOtp({
@@ -213,11 +248,32 @@ export class AuthPage implements ViewWillEnter {
         code: this.otpForm.value.otp,
       }));
       this.otpProofToken = res.otpProofToken;
-      this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
+      if (this.isRegistrationFlow) {
+        await this.goToRegisterForm();
+      } else {
+        this.step = 'setup-pin';
+      }
     } catch (e: unknown) {
       this.error = this.extractError(e) || 'Code incorrect. Réessayez.';
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  private async goToRegisterForm(): Promise<void> {
+    this.step = 'register-form';
+    await this.loadLocalities();
+  }
+
+  private async loadLocalities(): Promise<void> {
+    this.localitiesLoading = true;
+    try {
+      this.localities = await firstValueFrom(this.api.listLocalities());
+    } catch (e: unknown) {
+      this.localities = [];
+      this.error = this.extractError(e) || 'Impossible de charger les zones.';
+    } finally {
+      this.localitiesLoading = false;
     }
   }
 
@@ -232,6 +288,28 @@ export class AuthPage implements ViewWillEnter {
       pin: this.setupPinForm.value.pin,
       otpProofToken: this.otpProofToken,
     }));
+  }
+
+  async onProfilPhotoClick(fileInput: HTMLInputElement): Promise<void> {
+    this.error = '';
+    if (shouldUseHtmlFilePickerForPhoto()) {
+      fileInput.click();
+      return;
+    }
+    this.isLoading = true;
+    try {
+      const result = await pickProfilPhotoWithFaceValidation();
+      this.profilPhotoDataUrl = result.dataUrl;
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : '';
+      if (message.toLowerCase().includes('cancel') || message.toLowerCase().includes('annul')) {
+        return;
+      }
+      this.error = message || 'Impossible de prendre une photo.';
+      this.profilPhotoDataUrl = '';
+    } finally {
+      this.isLoading = false;
+    }
   }
 
   onProfilPhotoSelected(event: Event): void {
@@ -251,8 +329,11 @@ export class AuthPage implements ViewWillEnter {
   }
 
   submitRegisterForm(): void {
+    this.registerForm.markAllAsTouched();
     if (this.registerForm.invalid) {
-      this.registerForm.markAllAsTouched();
+      if (this.registerForm.get('dateOfBirth')?.hasError('underage')) {
+        this.error = underageErrorMessage();
+      }
       return;
     }
     if (!this.profilPhotoDataUrl) {
@@ -274,6 +355,18 @@ export class AuthPage implements ViewWillEnter {
       return;
     }
     const form = this.registerForm.value;
+    this.isLoading = true;
+    this.error = '';
+    let location;
+    try {
+      location = await captureRegistrationLocation();
+    } catch (e: unknown) {
+      this.error = e instanceof Error
+        ? e.message
+        : "Impossible d'obtenir la localisation. Activez le GPS et réessayez.";
+      this.isLoading = false;
+      return;
+    }
     await this.completeLogin(this.api.register({
       phone: this.phone,
       otpProofToken: this.otpProofToken,
@@ -283,10 +376,11 @@ export class AuthPage implements ViewWillEnter {
       quarter: form.quarter,
       dateOfBirth: form.dateOfBirth,
       occupation: form.occupation,
-      cardType: form.cardType,
-      cardID: form.cardID,
       profilPhoto: this.profilPhotoDataUrl,
       pin: this.registerPinForm.value.pin,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      mll: location.mll,
     }));
   }
 

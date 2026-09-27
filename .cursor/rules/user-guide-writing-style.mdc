@@ -11,6 +11,7 @@ Quand tu **rédiges ou modifies** `user-guide/docs/**/*.md`, le lecteur est un *
 
 1. **Pas à pas** : menus, boutons, écrans, enchaînements réels (numérotés si une procédure).
 2. **Langage métier** : libellés d’UI tels qu’à l’écran. Aucun jargon code (`ROLE_*`, endpoint, DTO, permission technique, « colonne retirée », « nullifié », « API »).
+   Aussi : pas de jargon média/stockage côté utilisateur (« original », « thumb », « MinIO », « URL ») — préférer **Aperçu**, **Agrandir**, **photo**, **miniature** selon le libellé réel à l’écran.
 3. **Un guide par profil** : dans la page d’un rôle, ne décrire que **son** parcours et **ce qu’il voit**. Ne pas comparer aux autres profils (« le magasinier ne voit pas… », « réservé au gestionnaire »).
 4. **Ne pas spoiler les masquages** : si une info est cachée à un rôle, **ne pas le mentionner**. Décrire positivement le contenu visible (ex. détail = articles et quantités), sans dire qu’un prix « a été masqué » ou qu’une colonne « n’est plus là ».
 5. **Pas d’instructions techniques internes** : ne pas coller le brief / le plan de dev (permissions, décisions produit, « pour tous / pour personne »).

@@ -89,11 +89,27 @@
       <form *ngIf="step === 'register-form'" [formGroup]="registerForm" (ngSubmit)="submitRegisterForm()"
         data-testid="e2e-auth-register-form">
         <div class="field">
-          <label for="profilPhoto">Photo de profil</label>
-          <div class="photo-capture">
-            <img *ngIf="profilPhotoDataUrl" [src]="profilPhotoDataUrl" alt="Aperçu photo de profil" class="photo-preview" />
-            <input id="profilPhoto" type="file" accept="image/*" capture="user"
+          <span class="field-label">Photo de profil</span>
+          <div class="photo-picker">
+            <button type="button" class="photo-picker-btn"
+              (click)="onProfilPhotoClick(profilPhotoInput)"
+              data-testid="e2e-auth-register-photo-btn"
+              [disabled]="isLoading"
+              [attr.aria-label]="profilPhotoDataUrl ? 'Changer la photo de profil' : 'Ajouter une photo de profil'">
+              <img *ngIf="profilPhotoDataUrl" [src]="profilPhotoDataUrl" alt="" class="photo-preview" />
+              <span *ngIf="!profilPhotoDataUrl" class="photo-placeholder" aria-hidden="true">
+                <ion-icon name="camera-outline"></ion-icon>
+              </span>
+              <span class="photo-picker-cta">
+                <ion-icon [name]="profilPhotoDataUrl ? 'refresh-outline' : 'image-outline'" aria-hidden="true"></ion-icon>
+                {{ profilPhotoDataUrl ? 'Changer la photo' : 'Ajouter une photo' }}
+              </span>
+            </button>
+            <input #profilPhotoInput id="profilPhoto" type="file" accept="image/*" capture="user"
+              class="photo-input-hidden"
+              aria-label="Photo de profil"
               (change)="onProfilPhotoSelected($event)" data-testid="e2e-auth-register-photo" />
+            <p class="photo-hint">Format jpg ou png — le visage doit être bien visible</p>
           </div>
         </div>
         <div class="field">
@@ -109,27 +125,29 @@
           <ion-input formControlName="address" data-testid="e2e-auth-register-address"></ion-input>
         </div>
         <div class="field">
-          <label>Quartier</label>
-          <ion-input formControlName="quarter" data-testid="e2e-auth-register-quarter"></ion-input>
+          <label for="register-zone">Votre zone</label>
+          <ion-select id="register-zone" formControlName="quarter" interface="popover" placeholder="Sélectionnez votre zone"
+            data-testid="e2e-auth-register-zone"
+            [disabled]="localitiesLoading || localities.length === 0">
+            <ion-select-option *ngFor="let loc of localities" [value]="loc.name">{{ loc.name }}</ion-select-option>
+          </ion-select>
+          <p class="field-hint" *ngIf="localitiesLoading">Chargement des zones…</p>
+          <p class="field-error" *ngIf="!localitiesLoading && localities.length === 0">
+            Aucune zone disponible. Réessayez plus tard.
+          </p>
         </div>
         <div class="field">
           <label>Date de naissance</label>
-          <ion-input formControlName="dateOfBirth" type="date" data-testid="e2e-auth-register-dob"></ion-input>
+          <ion-input formControlName="dateOfBirth" type="date"
+            (ionChange)="onDateOfBirthChanged()"
+            data-testid="e2e-auth-register-dob"></ion-input>
+          <p class="field-error" *ngIf="dateOfBirthError" data-testid="e2e-auth-register-dob-error">
+            {{ dateOfBirthError }}
+          </p>
         </div>
         <div class="field">
           <label>Occupation</label>
           <ion-input formControlName="occupation" data-testid="e2e-auth-register-occupation"></ion-input>
-        </div>
-        <div class="field">
-          <label>Type de pièce</label>
-          <ion-select formControlName="cardType" interface="popover" placeholder="Sélectionnez"
-            data-testid="e2e-auth-register-card-type">
-            <ion-select-option *ngFor="let t of cardTypes" [value]="t.value">{{ t.label }}</ion-select-option>
-          </ion-select>
-        </div>
-        <div class="field">
-          <label>Numéro de pièce</label>
-          <ion-input formControlName="cardID" data-testid="e2e-auth-register-card-id"></ion-input>
         </div>
         <div class="error" *ngIf="error">{{ error }}</div>
         <ion-button type="submit" expand="block" class="elyk-btn-primary"

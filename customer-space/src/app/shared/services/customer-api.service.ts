@@ -12,6 +12,7 @@ import {
   CustomerOtpVerifyResponse,
   CustomerSetupPinRequest,
   CustomerRegisterRequest,
+  CustomerLocality,
 } from '../models/customer-auth.model';
 import {
   CustomerDashboard,
@@ -31,6 +32,7 @@ import {
   CustomerOnboardingStatus,
   CustomerInitialDeposit,
   CustomerInitialDepositRequest,
+  CustomerNotification,
 } from '../models/customer.model';
 
 /**
@@ -68,6 +70,10 @@ export class CustomerApiService {
 
   register(payload: CustomerRegisterRequest): Observable<CustomerLoginResponse> {
     return this.http.post<CustomerLoginResponse>(`${this.base}/auth/register`, payload);
+  }
+
+  listLocalities(): Observable<CustomerLocality[]> {
+    return this.http.get<CustomerLocality[]>(`${this.base}/auth/localities`);
   }
 
   // ─── ONBOARDING ──────────────────────────────────────────────────────────
@@ -178,5 +184,25 @@ export class CustomerApiService {
 
   getOrders(): Observable<CustomerPurchase[]> {
     return this.http.get<CustomerPurchase[]>(`${this.base}/orders`);
+  }
+
+  // ─── NOTIFICATIONS ───────────────────────────────────────────────────────
+
+  getNotifications(limit = 50): Observable<CustomerNotification[]> {
+    return this.http.get<CustomerNotification[]>(`${this.base}/notifications`, {
+      params: { limit: String(limit) },
+    });
+  }
+
+  getUnreadNotificationCount(): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(`${this.base}/notifications/unread-count`);
+  }
+
+  markNotificationRead(id: number): Observable<CustomerNotification> {
+    return this.http.post<CustomerNotification>(`${this.base}/notifications/${id}/read`, {});
+  }
+
+  markAllNotificationsRead(): Observable<{ updated: number }> {
+    return this.http.post<{ updated: number }>(`${this.base}/notifications/read-all`, {});
   }
 }

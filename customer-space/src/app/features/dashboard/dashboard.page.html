@@ -2,6 +2,7 @@
   <ion-toolbar>
     <ion-title>Bonjour, {{ displayName }}</ion-title>
     <ion-buttons slot="end">
+      <app-notification-bell></app-notification-bell>
       <ion-button routerLink="/profile" data-testid="e2e-dashboard-profile-btn">
         <ion-icon name="person-circle-outline" size="large"></ion-icon>
       </ion-button>
@@ -9,6 +10,9 @@
   </ion-toolbar>
 </ion-header>
 <ion-content class="page-content" data-testid="e2e-dashboard-page">
+  <ion-refresher slot="fixed" (ionRefresh)="loadDashboard($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
   <div class="page-inner" *ngIf="!isLoading && dashboard && !loadError">
     <div class="pending-banner" *ngIf="dashboard.activationStatus === 'PENDING'" data-testid="e2e-dashboard-pending">
       <ion-icon name="hourglass-outline" aria-hidden="true"></ion-icon>

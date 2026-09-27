@@ -40,6 +40,7 @@ class CustomerMobileMoneySubmissionAdminServiceTest {
     @Mock private CreditRepository creditRepository;
     @Mock private ClientService clientService;
     @Mock private AppNotificationService appNotificationService;
+    @Mock private CustomerNotificationService customerNotificationService;
 
     @InjectMocks
     private CustomerMobileMoneySubmissionAdminService service;

@@ -9,6 +9,128 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.1] — 2026-09-27
+
+### Fixed
+
+- Accessibilité : `aria-label` sur les inputs fichier photo (inscription / pièce) pour passer le Quality Gate Sonar (Reliability).
+- Labels associés pour « Votre zone » ; suppression des `ngOnInit` vides.
+
+## Customer-space — [0.6.0] — 2026-09-27
+
+### Added
+
+- Centre de **notifications** : cloche Accueil / Profil avec badge non-lus, page liste, marquage lu / tout lu, deep-links vers Accueil, Achats, Tontine, commandes.
+- Polling du badge toutes les 60 s + refresh à l’entrée Accueil.
+
+## Backend — [1.21.0] — 2026-09-27
+
+### Added
+
+- Notifications client : table `customer_notification`, API `/api/customer/notifications` (liste, unread-count, read, read-all).
+- Hooks BO : activation / refus inscription, validation / refus paiements crédit & tontine, changement de statut commande.
+
+## Frontend — [2.23.9] — 2026-09-27
+
+### Changed
+
+- Menu latéral : nouveau groupe **Services en ligne** (sous-menus **Inscriptions**, **Paiements**) ; retrait des entrées isolées.
+- Correctif : `/client-registrations` n’active plus le menu **Clients**.
+
+## Frontend — [2.23.8] — 2026-09-27
+
+### Changed
+
+- Liste des comptes : détail en panneau latéral (style inscriptions) ; plus de page détail séparée (`/accountdetails/:id` redirige vers la liste).
+
+## Backend — [1.20.6] — 2026-09-27
+
+### Changed
+
+- Validation inscription BO : compte toujours créé en **ACTIF**, même avec solde 0.
+
+## Frontend — [2.23.7] — 2026-09-27
+
+### Changed
+
+- Inscriptions clients : **Valider l’inscription** actif seulement si commercial crédit et commercial tontine sont tous deux choisis.
+
+## Backend — [1.20.5] — 2026-09-27
+
+### Changed
+
+- Activation inscription : `tontineCollector` obligatoire (comme le commercial crédit).
+
+## Frontend — [2.23.6] — 2026-09-27
+
+### Changed
+
+- Inscriptions clients : libellé pièce « Agrandir » (plus de « Voir l’original »).
+
+## Frontend — [2.23.5] — 2026-09-27
+
+### Changed
+
+- Inscriptions clients : avatar (photo ou initiales) à gauche du nom dans le header du détail.
+- Liste paginée visible (20 / page, Précédent / Suivant) — l’API était déjà paginée sans contrôles UI.
+
+## Frontend — [2.23.4] — 2026-09-27
+
+### Changed
+
+- Inscriptions clients : avatar circulaire avec initiales (liste + détail) ; pièce en vignette thumb, original uniquement à l’aperçu au clic.
+
+## Frontend — [2.23.3] — 2026-09-27
+
+### Added
+
+- Inscriptions clients : avatar « bonhomme » si pas de photo ; vignettes via `profilPhotoThumbUrl` (original pour l’aperçu agrandi).
+
+## Backend — [1.20.4] — 2026-09-27
+
+### Added
+
+- DTO inscriptions clients : expose `profilPhotoThumbUrl` / `cardPhotoThumbUrl` en plus des URLs originales.
+
+## Customer-space — [0.5.4] — 2026-09-27
+
+### Fixed
+
+- Accueil / Mon dossier : rechargement du statut d’activation à chaque entrée d’écran (`ionViewWillEnter`) et pull-to-refresh, pour faire disparaître le bandeau « compte en attente » dès que l’agence a validé l’inscription.
+
+## Customer-space — [0.5.3] — 2026-09-27
+
+### Added
+
+- Inscription : capture GPS automatique (latitude, longitude, lien Maps) avec demande de permission Android.
+- Inscription native : validation qu’un visage est présent sur la photo de profil (ML Kit, comme l’app mobile).
+
+## Frontend — [2.23.2] — 2026-09-27
+
+### Added
+
+- Inscriptions clients : clic sur la photo de profil / pièce pour un aperçu agrandi.
+
+## Backend — [1.20.3] — 2026-09-27
+
+### Added
+
+- Inscription espace client : persistance optionnelle de `latitude` / `longitude` / `mll` à l’enregistrement.
+
+## Customer-space — [0.5.2] — 2026-09-27
+
+### Changed
+
+- Inscription : sélecteur photo de profil soigné (plus d'input fichier natif) ; type et numéro de pièce uniquement dans **Mon dossier**.
+- Inscription : champ **Votre zone** (liste des localités) à la place de « Quartier » ; erreur d’âge mineur affichée dès la saisie de la date de naissance.
+
+## Backend — [1.20.2] — 2026-09-27
+
+### Changed
+
+- Inscription espace client : `cardType` / `cardID` optionnels (renseignés à l'onboarding pièce d'identité).
+- Inscription : âge minimum **18 ans** ; endpoint public `GET /api/customer/auth/localities` pour le sélecteur de zone.
+
 ## Frontend — [2.23.1] — 2026-09-26
 
 ### Added

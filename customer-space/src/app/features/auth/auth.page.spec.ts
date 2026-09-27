@@ -17,9 +17,10 @@ describe('AuthPage', () => {
 
   beforeEach(async () => {
     api = jasmine.createSpyObj('CustomerApiService', [
-      'checkPhone', 'login', 'setupPin', 'sendOtp', 'verifyOtp',
+      'checkPhone', 'login', 'setupPin', 'sendOtp', 'verifyOtp', 'register', 'listLocalities',
     ]);
     api.checkPhone.and.returnValue(of({ exists: true, pinConfigured: true, maskedName: 'Jean' }));
+    api.listLocalities.and.returnValue(of([{ id: 1, name: 'Tokoin' }, { id: 2, name: 'Bè' }]));
     api.login.and.returnValue(of({
       token: 't',
       clientId: '1',

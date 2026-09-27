@@ -55,7 +55,8 @@ public class CustomerRegistrationService {
                 || clientRepository.existsByPhone(username)) {
             throw new CustomValidationException("Ce numéro est déjà enregistré. Connectez-vous.");
         }
-        if (clientRepository.existsByCardID(request.getCardID().trim())) {
+        String cardId = StringUtils.hasText(request.getCardID()) ? request.getCardID().trim() : null;
+        if (cardId != null && clientRepository.existsByCardID(cardId)) {
             throw new CustomValidationException("Ce numéro de pièce d'identité est déjà utilisé.");
         }
         validateIdentity(request);
@@ -73,8 +74,13 @@ public class CustomerRegistrationService {
         client.setPhone(username);
         client.setDateOfBirth(request.getDateOfBirth());
         client.setOccupation(request.getOccupation().trim());
-        client.setCardType(request.getCardType().trim());
-        client.setCardID(request.getCardID().trim());
+        if (StringUtils.hasText(request.getCardType())) {
+            client.setCardType(request.getCardType().trim());
+        }
+        if (cardId != null) {
+            client.setCardID(cardId);
+        }
+        applyRegistrationLocation(client, request);
         client.setClientType(ClientType.CLIENT);
         client.setActivationStatus(ClientActivationStatus.PENDING);
         client.setCreditInProgress(false);
@@ -95,11 +101,26 @@ public class CustomerRegistrationService {
     }
 
     private void validateIdentity(CustomerRegisterRequest request) {
-        if (request.getDateOfBirth().isAfter(LocalDate.now().minusYears(16))) {
-            throw new CustomValidationException("La date de naissance n'est pas valide.");
+        if (request.getDateOfBirth().isAfter(LocalDate.now().minusYears(18))) {
+            throw new CustomValidationException("Vous devez être majeur (18 ans ou plus).");
         }
         if (!StringUtils.hasText(request.getPin()) || request.getPin().length() < 4) {
             throw new CustomValidationException("Le code PIN doit contenir 4 à 6 chiffres.");
+        }
+    }
+
+    private void applyRegistrationLocation(Client client, CustomerRegisterRequest request) {
+        Double lat = request.getLatitude();
+        Double lng = request.getLongitude();
+        if (lat == null || lng == null) {
+            return;
+        }
+        client.setLatitude(lat);
+        client.setLongitude(lng);
+        if (StringUtils.hasText(request.getMll())) {
+            client.setMll(request.getMll().trim());
+        } else {
+            client.setMll("https://www.google.com/maps/search/?api=1&query=" + lat + "," + lng);
         }
     }
 

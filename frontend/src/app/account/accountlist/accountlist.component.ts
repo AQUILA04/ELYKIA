@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { AccountService, Account, AccountKpis } from '../service/account.service';
 import { PageEvent } from '@angular/material/paginator';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { Observable } from 'rxjs';
 import { AlertService } from 'src/app/shared/service/alert.service';
@@ -31,6 +31,8 @@ export class AccountListComponent implements OnInit, OnDestroy {
   totalPages = 0;
   searchTerm = '';
   isLoading = false;
+  selected: Account | null = null;
+  detailLoading = false;
 
   currentDate = new Date();
   lastUpdate = new Date();
@@ -38,6 +40,7 @@ export class AccountListComponent implements OnInit, OnDestroy {
   constructor(
     private accountService: AccountService,
     private router: Router,
+    private route: ActivatedRoute,
     private tokenStorage: TokenStorageService,
     private alertService: AlertService
   ) {
@@ -51,6 +54,10 @@ export class AccountListComponent implements OnInit, OnDestroy {
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
     }, 1000);
+    const openId = Number(this.route.snapshot.queryParamMap.get('open'));
+    if (Number.isFinite(openId) && openId > 0) {
+      this.viewDetails(openId);
+    }
   }
 
   ngOnDestroy(): void {
@@ -169,6 +176,9 @@ export class AccountListComponent implements OnInit, OnDestroy {
               );
               this.loadAccounts();
               this.loadAccountKpis();
+              if (this.selected?.id === id) {
+                this.viewDetails(id);
+              }
             },
             error: () => {
               this.alertService.showError('Erreur', `Erreur lors de la ${action} du compte`);
@@ -184,8 +194,50 @@ export class AccountListComponent implements OnInit, OnDestroy {
   }
 
   viewDetails(accountId: number): void {
+    this.detailLoading = true;
+    this.selected = this.accounts.find((a) => a.id === accountId) ?? null;
+    this.accountService.getAccountById(accountId).subscribe({
+      next: (response: any) => {
+        this.detailLoading = false;
+        if (response?.data) {
+          this.selected = response.data;
+        }
+      },
+      error: () => {
+        this.detailLoading = false;
+        this.alertService.showError('Impossible de charger le détail du compte.');
+      }
+    });
+  }
+
+  closeDetail(): void {
+    this.selected = null;
+    this.detailLoading = false;
+  }
+
+  editSelected(): void {
+    if (!this.selected?.id) {
+      return;
+    }
     this.saveState();
-    this.router.navigate(['/accountdetails', accountId]);
+    this.router.navigate(['/account-add', this.selected.id]);
+  }
+
+  clientFullName(account: Account | null): string {
+    if (!account?.client) {
+      return '—';
+    }
+    return `${account.client.firstname || ''} ${account.client.lastname || ''}`.trim() || '—';
+  }
+
+  getInitials(account: Account | null): string {
+    if (!account?.client) {
+      return '?';
+    }
+    const first = (account.client.firstname || '').trim().charAt(0);
+    const last = (account.client.lastname || '').trim().charAt(0);
+    const pair = `${first}${last}`.toUpperCase();
+    return pair.trim() || '?';
   }
 
   editAccount(accountId: number): void {
