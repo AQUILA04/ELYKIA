@@ -37,6 +37,7 @@ public class CustomerMobileMoneySubmissionAdminService {
     private final CreditRepository creditRepository;
     private final ClientService clientService;
     private final AppNotificationService appNotificationService;
+    private final CustomerNotificationService customerNotificationService;
 
     @Transactional(readOnly = true)
     public Page<CustomerMobileMoneySubmissionDto> list(User user, CustomerSubmissionStatus status, Pageable pageable) {
@@ -102,6 +103,7 @@ public class CustomerMobileMoneySubmissionAdminService {
         }
         submission = submissionRepository.save(submission);
         appNotificationService.resolveByTypeAndEntityId(AppNotificationType.PAYMENT_DECLARATION, submission.getId());
+        customerNotificationService.notifyCreditPayment(submission, newStatus);
         return toDto(submission, client, targetCollector, tontineCollector);
     }
 

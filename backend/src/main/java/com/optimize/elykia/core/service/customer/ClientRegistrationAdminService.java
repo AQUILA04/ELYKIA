@@ -49,6 +49,7 @@ public class ClientRegistrationAdminService {
     private final ClientService clientService;
     private final AccountService accountService;
     private final CustomerInitialDepositSubmissionRepository depositRepository;
+    private final CustomerNotificationService customerNotificationService;
 
     @Transactional(readOnly = true)
     public Page<ClientRegistrationDto> list(
@@ -129,6 +130,7 @@ public class ClientRegistrationAdminService {
 
         // Toujours ACTIF à la validation BO, même avec solde 0
         ensureAccount(client, balance, true);
+        customerNotificationService.notifyRegistrationActivated(client);
         return toDto(clientRepository.findById(clientId).orElse(client), latestDeposit(clientId));
     }
 
@@ -145,6 +147,7 @@ public class ClientRegistrationAdminService {
             client.setLastModifiedBy(user.getUsername());
         }
         client = clientRepository.save(client);
+        customerNotificationService.notifyRegistrationRejected(client, request.getReason());
         return toDto(client, latestDeposit(clientId));
     }
 

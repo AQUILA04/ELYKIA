@@ -8,22 +8,22 @@ overview: >
 todos:
   - id: model-customer-notif
     content: "Migration + entité CustomerNotification (audience client) + types d'événements"
-    status: pending
+    status: completed
   - id: hooks-bo-events
     content: "Hooks create/resolve sur activate/reject inscription, validate/reject MM crédit/tontine, order status"
-    status: pending
+    status: completed
   - id: api-customer-notif
     content: "API GET /api/customer/notifications (+ unread-count, mark-read, mark-all-read)"
-    status: pending
+    status: completed
   - id: cs-ui-bell
     content: "Cloche header Accueil/Profil + badge non-lus + page /notifications + deep-links"
-    status: pending
+    status: completed
   - id: push-optional
     content: "Phase 2 optionnelle — push FCM / Capacitor Push (hors v1 polling)"
     status: pending
   - id: guide-tests
     content: "Guide utilisateur client + e2e badge/liste + index RAG"
-    status: pending
+    status: completed
 isProject: false
 ---
 

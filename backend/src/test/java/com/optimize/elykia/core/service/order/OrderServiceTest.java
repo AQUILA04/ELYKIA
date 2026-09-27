@@ -64,6 +64,7 @@ class OrderServiceTest {
     @Mock private OrderStatusHistoryRepository orderStatusHistoryRepository;
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private com.optimize.elykia.core.service.notification.AppNotificationService appNotificationService;
+    @Mock private com.optimize.elykia.core.service.customer.CustomerNotificationService customerNotificationService;
     @Mock private Client client;
     @Mock private User currentUser;
 
@@ -321,7 +322,8 @@ class OrderServiceTest {
 
     private OrderService service() {
         return new OrderService(orderRepository, orderItemRepository, clientService, articlesService, historyService,
-                userService, creditService, orderStatusHistoryRepository, eventPublisher, appNotificationService);
+                userService, creditService, orderStatusHistoryRepository, eventPublisher, appNotificationService,
+                customerNotificationService);
     }
 
     private Articles article(Long id, double creditSalePrice, double purchasePrice) {

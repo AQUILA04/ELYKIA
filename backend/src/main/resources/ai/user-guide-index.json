@@ -450,6 +450,26 @@
     "content": "Guide Tontines\nArchives et transition annuelle (Menu Tontines > Archives collectes)\n\nDans le menu latéral gauche, cliquez sur Tontines puis sur Archives collectes . Cet espace est réservé aux responsables de l'agence pour réaliser la clôture administrative de fin d'année et préparer la plateforme pour la nouvelle campagne.\nBibliothèque des archives PDF\nToutes les archives générées sont rangées dans une arborescence par année :\n Par année : Par exemple 2025, 2026.\n Par exécution : Horodatage précis de l'opération d'archivage avec le statut.\n Par fichier : Les récapitulatifs PDF sont découpés par commercial et par quartier . Un bouton de téléchargement permet d'ouvrir chaque document pour impression ou classement.\nLes deux actions disponibles\n Archiver uniquement : Génère l'ensemble des documents PDF de sauvegarde pour tous les commerciaux sans modifier aucune donnée dans l'application. Recommandé pour préparer les bilans de fin d'année.\n Archiver et réinitialiser :\nOpération majeure réalisée une seule fois par an, au changement de session.\nL'application sauvegarde d'abord l'intégralité des collectes en PDF.\nPuis elle remet à zéro les compteurs d'épargne de la session active pour ouvrir la nouvelle année.\n Tous les membres, leurs coordonnées et leurs affectations commerciales restent précieusement conservés : les clients n'ont pas besoin d'être réenrôlés pour la nouvelle campagne."
   },
   {
+    "id": "customer",
+    "title": "Espace client — Vue d’ensemble",
+    "path": "/user-guide/customer/index.html",
+    "roles": [
+      "customer",
+      "client"
+    ],
+    "content": "Espace client — Vue d’ensemble\n\nCe guide s’adresse aux clients qui utilisent l’application Espace Client ELYKIA (téléphone).\n\nCe que vous pouvez faire\nConsulter vos crédits et votre prochain paiement sur Accueil \nDéclarer un paiement Mobile Money depuis Achats \nSuivre vos cotisations dans Tontine \nPasser une commande depuis Commander \nCompléter votre dossier dans Mon dossier (pièce d’identité, dépôt initial)\nConsulter vos alertes dans Notifications (cloche en haut à droite)\nPremière connexion\nOuvrez l’application Espace Client.\nSaisissez votre numéro de téléphone.\nSuivez les étapes (code reçu par SMS, création du code secret, fiche d’inscription si besoin).\nSur Accueil , si votre compte est encore en cours de validation, complétez Mon dossier pour accélérer l’activation.\n\nUne fois votre compte validé par l’agence, l’Accueil affiche vos crédits et actions habituelles.\nVoir aussi\nNotifications"
+  },
+  {
+    "id": "customer_notifications",
+    "title": "Notifications (espace client)",
+    "path": "/user-guide/customer/notifications.html",
+    "roles": [
+      "customer",
+      "client"
+    ],
+    "content": "Notifications (espace client)\n\nLes notifications vous informent lorsque l’agence traite votre dossier ou vos paiements.\n\nOuvrir les notifications\nSur Accueil (ou Profil ), touchez la cloche en haut à droite.\nUn chiffre rouge indique le nombre de messages non lus.\nLa liste affiche les messages les plus récents en premier.\nTypes de messages\n\nVous pouvez recevoir notamment :\n Compte activé — votre inscription a été validée\n Inscription non validée — votre dossier n’a pas pu être accepté\n Paiement validé ou refusé — suite à une déclaration Mobile Money sur un crédit\n Cotisation validée ou refusée — suite à une déclaration tontine\n Commande — changement de statut de votre commande\nLire un message\nTouchez un message : il est marqué comme lu.\nL’application ouvre l’écran concerné (Accueil, Achats, Tontine, etc.).\nPour tout marquer comme lu d’un coup, touchez Tout lu en haut à droite.\nAstuce\n\nTirez la liste vers le bas pour actualiser. Les nouveaux messages apparaissent aussi après un retour sur Accueil ."
+  },
+  {
     "id": "daily_cycle",
     "title": "Cycle journalier",
     "path": "/user-guide/daily-cycle.html",
@@ -546,7 +566,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Inscriptions clients (espace client)\nValider l’inscription\nChoisissez le commercial crédit .\nChoisissez le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription (le bouton devient actif seulement quand les deux commerciaux sont choisis).\nUn compte client est créé automatiquement avec le statut Actif : solde égal au dépôt initial s’il a été validé, sinon 0.\nLe client peut alors utiliser pleinement l’espace client.\n\n---"
+    "content": "Inscriptions clients (espace client)\nValider l’inscription\nChoisissez le commercial crédit .\nChoisissez le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription (le bouton devient actif seulement quand les deux commerciaux sont choisis).\nUn compte client est créé automatiquement avec le statut Actif : solde égal au dépôt initial s’il a été validé, sinon 0.\nLe client peut alors utiliser pleinement l’espace client ; une notification lui confirme l’activation.\n\n---"
   },
   {
     "id": "manager_client_registrations__4_refuser_une_inscription",
@@ -564,7 +584,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Inscriptions clients (espace client)\nCôté client (Espace Client)\n\nUn nouveau client qui saisit un numéro encore inconnu :\nReçoit un code SMS pour confirmer son téléphone.\nRemplit sa fiche (prénom, nom, adresse, votre zone , date de naissance, occupation) et ajoute sa photo de profil (le visage doit être bien visible). La date de naissance doit correspondre à un client majeur (18 ans ou plus). L’application enregistre automatiquement sa position lors de la validation.\nCrée son code PIN, puis se connecte.\nComplète son dossier ( Mon dossier ) avec le type et le numéro de pièce d’identité, plus la photo de la pièce.\nPeut déclarer un dépôt initial (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.\nAttend la validation de l’agence avant d’accéder aux crédits, commandes et paiements."
+    "content": "Inscriptions clients (espace client)\nCôté client (Espace Client)\n\nUn nouveau client qui saisit un numéro encore inconnu :\nReçoit un code SMS pour confirmer son téléphone.\nRemplit sa fiche (prénom, nom, adresse, votre zone , date de naissance, occupation) et ajoute sa photo de profil (le visage doit être bien visible). La date de naissance doit correspondre à un client majeur (18 ans ou plus). L’application enregistre automatiquement sa position lors de la validation.\nCrée son code PIN, puis se connecte.\nComplète son dossier ( Mon dossier ) avec le type et le numéro de pièce d’identité, plus la photo de la pièce.\nPeut déclarer un dépôt initial (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.\nAttend la validation de l’agence ; une notification l’informe ensuite que le compte est activé."
   },
   {
     "id": "manager_dashboard",

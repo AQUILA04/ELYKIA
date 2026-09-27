@@ -39,6 +39,7 @@ public class CustomerTontineMmSubmissionAdminService {
     private final TontineMemberRepository tontineMemberRepository;
     private final TontineService tontineService;
     private final AppNotificationService appNotificationService;
+    private final CustomerNotificationService customerNotificationService;
 
     @Transactional(readOnly = true)
     public Page<CustomerTontineMmSubmissionDto> list(User user, CustomerSubmissionStatus status, Pageable pageable) {
@@ -112,6 +113,7 @@ public class CustomerTontineMmSubmissionAdminService {
         submission = submissionRepository.save(submission);
         appNotificationService.resolveByTypeAndEntityId(
                 AppNotificationType.TONTINE_PAYMENT_DECLARATION, submission.getId());
+        customerNotificationService.notifyTontinePayment(submission, CustomerSubmissionStatus.VALIDE);
         return toDto(submission, client, tontineCollector);
     }
 
@@ -143,6 +145,7 @@ public class CustomerTontineMmSubmissionAdminService {
         submission = submissionRepository.save(submission);
         appNotificationService.resolveByTypeAndEntityId(
                 AppNotificationType.TONTINE_PAYMENT_DECLARATION, submission.getId());
+        customerNotificationService.notifyTontinePayment(submission, CustomerSubmissionStatus.REJETE);
         return toDto(submission, client, tontineCollector);
     }
 

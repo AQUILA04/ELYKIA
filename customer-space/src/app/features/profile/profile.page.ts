@@ -6,6 +6,7 @@ import { Capacitor } from '@capacitor/core';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import { AppUpdateService } from '../../shared/services/app-update.service';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
+import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { environment } from '../../../environments/environment';
 import { AppReleaseInfo } from '../../shared/models/app-release.model';
 
@@ -13,7 +14,7 @@ import { AppReleaseInfo } from '../../shared/models/app-release.model';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent],
+  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, NotificationBellComponent],
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
 })

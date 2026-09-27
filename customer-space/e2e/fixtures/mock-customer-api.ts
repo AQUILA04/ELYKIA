@@ -137,6 +137,18 @@ export const MOCK_ORDER_RESPONSE = {
   createdAt: '2026-06-18T12:00:00',
 };
 
+export const MOCK_NOTIFICATIONS = [
+  {
+    id: 1,
+    type: 'REGISTRATION_ACTIVATED',
+    title: 'Compte activé',
+    message: 'Votre compte est activé. Bienvenue !',
+    linkPath: '/dashboard',
+    read: false,
+    createdAt: '2026-09-27T10:00:00',
+  },
+];
+
 export const MOCK_TONTINES = [
   {
     memberId: '77',

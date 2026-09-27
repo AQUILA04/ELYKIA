@@ -6,9 +6,11 @@ import { Capacitor } from '@capacitor/core';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import { AppUpdateService } from '../../shared/services/app-update.service';
+import { CustomerNotificationInboxService } from '../../shared/services/customer-notification-inbox.service';
 import { CustomerDashboard } from '../../shared/models/customer.model';
 import { AppReleaseInfo } from '../../shared/models/app-release.model';
 import { CreditProgressCardComponent } from '../../shared/components/credit-progress-card/credit-progress-card.component';
+import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
 import { environment } from '../../../environments/environment';
 
@@ -16,7 +18,14 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, CreditProgressCardComponent, CustomerTabBarComponent],
+  imports: [
+    CommonModule,
+    IonicModule,
+    RouterModule,
+    CreditProgressCardComponent,
+    NotificationBellComponent,
+    CustomerTabBarComponent,
+  ],
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
 })
@@ -35,6 +44,7 @@ export class DashboardPage implements OnInit, ViewWillEnter {
     private session: CustomerSessionService,
     private appUpdateService: AppUpdateService,
     private alertController: AlertController,
+    private notificationInbox: CustomerNotificationInboxService,
   ) {}
 
   get displayName(): string {
@@ -78,6 +88,7 @@ export class DashboardPage implements OnInit, ViewWillEnter {
 
   ionViewWillEnter(): void {
     this.loadDashboard();
+    this.notificationInbox.refresh();
     if (!this.updateCheckDone) {
       this.updateCheckDone = true;
       void this.checkForAppUpdateOnDashboard();

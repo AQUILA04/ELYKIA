@@ -12,6 +12,7 @@ import {
   MOCK_RECOVERIES,
   MOCK_REGISTER_SESSION,
   MOCK_SESSION,
+  MOCK_NOTIFICATIONS,
   MOCK_TONTINE_DETAIL,
   MOCK_TONTINE_PAYMENTS,
   MOCK_TONTINES,
@@ -201,6 +202,30 @@ export async function mockCustomerApi(page: Page): Promise<void> {
       return;
     }
 
+    if (url.includes('/notifications/unread-count') && method === 'GET') {
+      await route.fulfill(jsonResponse({ count: MOCK_NOTIFICATIONS.filter((n) => !n.read).length }));
+      return;
+    }
+
+    if (url.includes('/notifications/read-all') && method === 'POST') {
+      MOCK_NOTIFICATIONS.forEach((n) => { n.read = true; });
+      await route.fulfill(jsonResponse({ updated: MOCK_NOTIFICATIONS.length }));
+      return;
+    }
+
+    if (url.match(/\/notifications\/\d+\/read$/) && method === 'POST') {
+      const id = Number(url.match(/\/notifications\/(\d+)\/read$/)?.[1]);
+      const item = MOCK_NOTIFICATIONS.find((n) => n.id === id);
+      if (item) item.read = true;
+      await route.fulfill(jsonResponse(item ?? { id, read: true }));
+      return;
+    }
+
+    if (url.includes('/notifications') && method === 'GET') {
+      await route.fulfill(jsonResponse(MOCK_NOTIFICATIONS));
+      return;
+    }
+
     await route.fulfill(jsonResponse({ message: 'Not mocked' }, 404));
   });
 }
@@ -352,6 +377,34 @@ export async function mockRegistrationOnboardingFlow(page: Page): Promise<void> 
         return;
       }
       await route.fulfill(jsonResponse(state.deposit));
+      return;
+    }
+
+    if (url.includes('/notifications/unread-count') && method === 'GET') {
+      await route.fulfill(jsonResponse({ count: state.activated ? 1 : 0 }));
+      return;
+    }
+
+    if (url.includes('/notifications') && method === 'GET') {
+      await route.fulfill(jsonResponse(state.activated ? [{
+        id: 1,
+        type: 'REGISTRATION_ACTIVATED',
+        title: 'Compte activé',
+        message: 'Votre compte est activé. Bienvenue !',
+        linkPath: '/dashboard',
+        read: false,
+        createdAt: new Date().toISOString(),
+      }] : []));
+      return;
+    }
+
+    if (url.includes('/notifications/read-all') && method === 'POST') {
+      await route.fulfill(jsonResponse({ updated: 0 }));
+      return;
+    }
+
+    if (url.match(/\/notifications\/\d+\/read$/) && method === 'POST') {
+      await route.fulfill(jsonResponse({ id: 1, read: true }));
       return;
     }
 

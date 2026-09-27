@@ -94,6 +94,12 @@ export const routes: Routes = [
     loadComponent: () => import('./features/onboarding/onboarding.page').then(m => m.OnboardingPage),
   },
   {
+    path: 'notifications',
+    canActivate: [CustomerAuthGuard],
+    loadComponent: () =>
+      import('./features/notifications/notifications.page').then(m => m.NotificationsPage),
+  },
+  {
     path: '**',
     redirectTo: 'auth',
   },

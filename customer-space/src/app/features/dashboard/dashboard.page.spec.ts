@@ -4,6 +4,7 @@ import { DashboardPage } from './dashboard.page';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import { AppUpdateService } from '../../shared/services/app-update.service';
+import { CustomerNotificationInboxService } from '../../shared/services/customer-notification-inbox.service';
 import { IonicModule, AlertController } from '@ionic/angular';
 import { RouterTestingModule } from '@angular/router/testing';
 
@@ -44,6 +45,12 @@ describe('DashboardPage', () => {
         {
           provide: AlertController,
           useValue: jasmine.createSpyObj('AlertController', ['create']),
+        },
+        {
+          provide: CustomerNotificationInboxService,
+          useValue: jasmine.createSpyObj('CustomerNotificationInboxService', ['refresh'], {
+            unreadCount$: of(0),
+          }),
         },
       ],
     }).compileComponents();

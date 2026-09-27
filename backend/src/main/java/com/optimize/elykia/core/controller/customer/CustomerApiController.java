@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.controller.customer;
 
 import com.optimize.elykia.core.dto.customer.*;
+import com.optimize.elykia.core.service.customer.CustomerNotificationService;
 import com.optimize.elykia.core.service.customer.CustomerOnboardingService;
 import com.optimize.elykia.core.service.customer.CustomerPortalService;
 import jakarta.validation.Valid;
@@ -11,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/customer")
@@ -21,6 +23,7 @@ public class CustomerApiController {
 
     private final CustomerPortalService customerPortalService;
     private final CustomerOnboardingService customerOnboardingService;
+    private final CustomerNotificationService customerNotificationService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<CustomerDashboardDto> getDashboard() {
@@ -131,5 +134,26 @@ public class CustomerApiController {
         return customerOnboardingService.getInitialDeposit()
                 .map(ResponseEntity::ok)
                 .orElseGet(() -> ResponseEntity.noContent().build());
+    }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<List<CustomerNotificationDto>> listNotifications(
+            @RequestParam(defaultValue = "50") int limit) {
+        return ResponseEntity.ok(customerNotificationService.listMine(limit));
+    }
+
+    @GetMapping("/notifications/unread-count")
+    public ResponseEntity<Map<String, Long>> unreadNotificationCount() {
+        return ResponseEntity.ok(Map.of("count", customerNotificationService.unreadCountMine()));
+    }
+
+    @PostMapping("/notifications/{id}/read")
+    public ResponseEntity<CustomerNotificationDto> markNotificationRead(@PathVariable Long id) {
+        return ResponseEntity.ok(customerNotificationService.markRead(id));
+    }
+
+    @PostMapping("/notifications/read-all")
+    public ResponseEntity<Map<String, Integer>> markAllNotificationsRead() {
+        return ResponseEntity.ok(Map.of("updated", customerNotificationService.markAllRead()));
     }
 }

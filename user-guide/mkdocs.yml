@@ -11,6 +11,9 @@ theme:
 
 nav:
   - Accueil: index.md
+  - Guide Espace client:
+    - Vue d'ensemble: customer/index.md
+    - Notifications: customer/notifications.md
   - Guide Gestionnaire:
     - Introduction & Connexion: manager/index.md
     - Tableaux de Bord: manager/dashboard.md

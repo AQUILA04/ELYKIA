@@ -9,6 +9,20 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.0] — 2026-09-27
+
+### Added
+
+- Centre de **notifications** : cloche Accueil / Profil avec badge non-lus, page liste, marquage lu / tout lu, deep-links vers Accueil, Achats, Tontine, commandes.
+- Polling du badge toutes les 60 s + refresh à l’entrée Accueil.
+
+## Backend — [1.21.0] — 2026-09-27
+
+### Added
+
+- Notifications client : table `customer_notification`, API `/api/customer/notifications` (liste, unread-count, read, read-all).
+- Hooks BO : activation / refus inscription, validation / refus paiements crédit & tontine, changement de statut commande.
+
 ## Frontend — [2.23.9] — 2026-09-27
 
 ### Changed

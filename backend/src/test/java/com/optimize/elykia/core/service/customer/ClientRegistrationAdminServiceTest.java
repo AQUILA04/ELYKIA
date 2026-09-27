@@ -52,6 +52,7 @@ class ClientRegistrationAdminServiceTest {
     @Mock private ClientService clientService;
     @Mock private AccountService accountService;
     @Mock private CustomerInitialDepositSubmissionRepository depositRepository;
+    @Mock private CustomerNotificationService customerNotificationService;
 
     @InjectMocks
     private ClientRegistrationAdminService service;
