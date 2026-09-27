@@ -20,7 +20,7 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 
 1. Cliquez sur **Voir** sur la ligne du client.
 2. Vérifiez la photo de profil (à gauche du nom en haut du panneau, ou les initiales si elle n’est pas encore disponible), la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.
-3. Cliquez sur la photo de profil ou sur la carte de la pièce pour afficher l’original en grand, puis fermez l’aperçu.
+3. Cliquez sur la photo de profil ou sur **Agrandir** sous la pièce pour ouvrir l’aperçu, puis fermez-le.
 4. Si un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.
 
 ---
