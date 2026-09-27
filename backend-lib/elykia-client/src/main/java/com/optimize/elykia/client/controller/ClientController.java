@@ -5,6 +5,7 @@ import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.client.dto.*;
 import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.client.enumeration.ClientRegistrationSource;
 import com.optimize.elykia.client.repository.spec.ClientSpecification;
 import com.optimize.elykia.client.service.ClientService;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -87,8 +89,11 @@ public class ClientController {
                                            @RequestParam(required = false) String username,
                                            @RequestParam(required = false) Boolean tontine,
                                            @RequestParam(required = false) Boolean mobile,
-                                           @RequestParam(required = false) String collectorType) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getAll(username, tontine, mobile, collectorType, pageable)), HttpStatus.OK);
+                                           @RequestParam(required = false) String collectorType,
+                                           @RequestParam(required = false) String registrationSource) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(
+                clientService.getAll(username, tontine, mobile, collectorType,
+                        parseRegistrationSource(registrationSource), pageable)), HttpStatus.OK);
     }
 
     @GetMapping(value = "all")
@@ -148,8 +153,11 @@ public class ClientController {
                                                    @RequestParam(required = false) String username,
                                                    @RequestParam(required = false) Boolean tontine,
                                                    @RequestParam(required = false) String collectorType,
+                                                   @RequestParam(required = false) String registrationSource,
                                                    Pageable pageable) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.elasticsearch(wrapper.getKeyword(), username, tontine, collectorType, pageable)), HttpStatus.OK);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(
+                clientService.elasticsearch(wrapper.getKeyword(), username, tontine, collectorType,
+                        parseRegistrationSource(registrationSource), pageable)), HttpStatus.OK);
     }
 
     @PostMapping(value = "check-missing-photos")
@@ -160,6 +168,17 @@ public class ClientController {
     @PostMapping(value = "photos-batch-update")
     public ResponseEntity<Response> updatePhotosBatch(@RequestBody List<ClientPhotoBatchUpdateDto> dtos) {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.updatePhotosBatch(dtos)), HttpStatus.OK);
+    }
+
+    private static ClientRegistrationSource parseRegistrationSource(String registrationSource) {
+        if (!StringUtils.hasText(registrationSource)) {
+            return null;
+        }
+        try {
+            return ClientRegistrationSource.valueOf(registrationSource.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 
 }

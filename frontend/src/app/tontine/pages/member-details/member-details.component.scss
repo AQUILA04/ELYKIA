@@ -305,6 +305,22 @@
   color: var(--text-muted);
 }
 
+.member-details-page .badge.badge-self {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  text-transform: none;
+  background: #f3e8ff;
+  color: #6d28d9;
+  border: 1px solid #e9d5ff;
+  vertical-align: middle;
+}
+
 .member-details-page .carnet-meta {
   margin: 6px 0 0;
   font-size: 12px;

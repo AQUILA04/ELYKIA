@@ -13,7 +13,8 @@ Accessible via le menu latéral gauche **Clients**, la vue liste fournit un acc�
 ### A. Outils de filtrage et recherche
 * **Recherche instantanée** : Saisissez un nom, un prénom, un numéro de téléphone (8 chiffres) ou un nom de localité dans le champ de recherche, puis appuyez sur Entrée ou cliquez sur la loupe.
 * **Sélecteur de commercial** : Permet d'isoler en un clic le portefeuille géré par un commercial précis.
-* **Persistance de navigation** : La recherche, le commercial sélectionné et la pagination sont conservés dans l'état de l'application lorsque vous ouvrez une fiche client et revenez à la liste.
+* **Origine** : Les pastilles **Tous** / **Espace client** permettent d'afficher uniquement les clients qui se sont inscrits eux-mêmes depuis l'application Espace Client. Dans le tableau, ces clients portent le badge violet **Espace client** à côté de leur nom.
+* **Persistance de navigation** : La recherche, le commercial sélectionné, l'origine et la pagination sont conservés dans l'état de l'application lorsque vous ouvrez une fiche client et revenez à la liste.
 * **Fiche Client PDF** : Dès qu'un commercial est filtré, le bouton **« Fiche Client PDF »** devient actif pour générer le document imprimable de son portefeuille clients.
 
 ### B. Indicateurs du bandeau supérieur
@@ -89,6 +90,7 @@ En cliquant sur le nom d'un client dans la liste, vous accédez à sa **Fiche Cl
 
 ### A. Synthèse d'en-tête
 * **Informations de profil** : Nom, téléphone, adresse, profession, numéro de compte et lien vers le commercial référent.
+* **Badge « Inscrit via l'Espace client »** : Affiché sous le nom lorsque le client a créé son dossier depuis l'application Espace Client.
 * **Indicateurs financiers en temps réel** :
   * **Achats en cours** : Nombre de crédits actifs.
   * **Montant total de l'achat en cours** (FCFA).

@@ -7,6 +7,7 @@ import com.optimize.elykia.core.dto.TontineMemberRespDto;
 import com.optimize.elykia.core.dto.customer.CustomerTontineContributionSummaryDto;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
+import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
@@ -162,7 +163,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized,
                 c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, 
                 null, null, null, null, c.code, c.profilPhotoUrl, 
-                c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl
+                c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl, c.registrationSource
             ),
             tm.totalContribution,
             tm.deliveryStatus,
@@ -196,12 +197,14 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
         AND (:commercial IS NULL OR c.tontineCollector = :commercial)
         AND (:deliveryStatus IS NULL OR tm.deliveryStatus = :deliveryStatus)
         AND (:carnetVerified IS NULL OR tm.carnetVerified = :carnetVerified)
+        AND (:registrationSource IS NULL OR tm.registrationSource = :registrationSource)
         """)
         Page<TontineMemberRespDto> findMembersDto(
                 @Param("year") Integer year,
                 @Param("commercial") String commercial,
                 @Param("deliveryStatus") TontineMemberDeliveryStatus deliveryStatus,
                 @Param("carnetVerified") Boolean carnetVerified,
+                @Param("registrationSource") TontineMemberRegistrationSource registrationSource,
                 Pageable pageable);
 
 
@@ -216,7 +219,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized,
                 c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, 
                 null, null, null, null, c.code, c.profilPhotoUrl, 
-                c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl
+                c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl, c.registrationSource
             ),
             tm.totalContribution,
             tm.deliveryStatus,
@@ -254,6 +257,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%')))     
         AND (:deliveryStatus IS NULL OR tm.deliveryStatus = :deliveryStatus)
         AND (:carnetVerified IS NULL OR tm.carnetVerified = :carnetVerified)
+        AND (:registrationSource IS NULL OR tm.registrationSource = :registrationSource)
         """)
         Page<TontineMemberRespDto> findMembersDtoWithSearch(
                 @Param("year") Integer year,
@@ -261,6 +265,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("search") String search,
                 @Param("deliveryStatus") TontineMemberDeliveryStatus deliveryStatus,
                 @Param("carnetVerified") Boolean carnetVerified,
+                @Param("registrationSource") TontineMemberRegistrationSource registrationSource,
                 Pageable pageable);
 
         @Query("""

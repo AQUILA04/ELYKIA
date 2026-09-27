@@ -50,6 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -462,6 +463,25 @@ class TontineServiceTest {
         assertEquals(Boolean.TRUE, resp.selfRegistered());
         assertEquals(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE,
                 resp.registrationSource());
+    }
+
+    @Test
+    void getMembers_passesRegistrationSourceFilterToRepository() {
+        int year = LocalDate.now().getYear();
+        User user = mock(User.class);
+        when(user.is(any())).thenReturn(false);
+        when(tontineMemberRepository.findMembersDto(
+                eq(year), eq(null), eq(null), eq(null),
+                eq(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE),
+                any()))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        service.getMembers(user, null, null, null, null, "CUSTOMER_SPACE", PageRequest.of(0, 20));
+
+        verify(tontineMemberRepository).findMembersDto(
+                eq(year), eq(null), eq(null), eq(null),
+                eq(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE),
+                any());
     }
 
     @Test

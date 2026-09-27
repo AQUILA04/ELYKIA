@@ -9,6 +9,14 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.24.0] — 2026-09-27
+
+### Added
+
+- Liste clients : filtre **Origine** (Tous / Espace client) et badge **Espace client** pour les auto-inscrits.
+- Fiches client (détails / vue) : badge **Inscrit via l'Espace client**.
+- Tableau de bord tontine : filtre **Origine** (Toutes / Espace client / Personnel) et badge sur la liste et la fiche membre.
+
 ## Customer-space — [0.6.0] — 2026-09-27
 
 ### Added
@@ -26,7 +34,9 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Colonne `registration_source` sur `tontine_member` (STAFF / CUSTOMER_SPACE) pour identifier les auto-inscriptions Espace Client.
+- Colonne `registration_source` sur `client` (STAFF / CUSTOMER_SPACE) ; positionnée à `CUSTOMER_SPACE` à l'auto-inscription Espace Client.
 - API client : `GET /api/customer/tontine/session/current`, `GET /api/customer/tontine/mobile-money-recipients`, `POST /api/customer/tontine/join`.
+- Filtre `registrationSource` sur `GET/POST /api/v1/clients` et `GET /api/v1/tontines/members`.
 
 ### Changed
 

@@ -37,6 +37,9 @@
             <span *ngIf="client.hasOrderInProgress" class="status-chip chip-order">
               <mat-icon>shopping_cart</mat-icon> Commande en cours
             </span>
+            <span *ngIf="client.registrationSource === 'CUSTOMER_SPACE'" class="status-chip chip-self">
+              <mat-icon>smartphone</mat-icon> Inscrit via l'Espace client
+            </span>
           </div>
         </div>
         <div class="details-header-actions">

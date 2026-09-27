@@ -125,6 +125,9 @@ export class TontineService {
     if (queryParams.carnetVerified !== undefined) {
       params = params.set('carnetVerified', String(queryParams.carnetVerified));
     }
+    if (queryParams.registrationSource) {
+      params = params.set('registrationSource', queryParams.registrationSource);
+    }
 
     return this.http.get<ApiResponse<PaginatedResponse<TontineMember>>>(`${this.apiUrl}/members`, { headers, params })
       .pipe(

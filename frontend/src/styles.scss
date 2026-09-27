@@ -233,6 +233,7 @@ h4 { font-size: 14px; font-weight: 600; color: var(--text-primary); }
   &.badge-warning { background: var(--color-warning-bg); color: #d97706; }
   &.badge-danger  { background: var(--color-danger-bg);  color: var(--rose-500); }
   &.badge-info    { background: var(--color-info-bg);    color: var(--navy-500); }
+  &.badge-self    { background: #f3e8ff; color: #6d28d9; border: 1px solid #e9d5ff; }
 
   // Legacy badge styles (kept for compatibility)
   &.badge-primary   { background-color: var(--navy-700); color: white; }

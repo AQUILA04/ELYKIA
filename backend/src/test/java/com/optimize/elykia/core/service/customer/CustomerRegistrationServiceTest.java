@@ -7,6 +7,7 @@ import com.optimize.common.securities.repository.UserRepository;
 import com.optimize.common.securities.security.jwt.JwtUtils;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientActivationStatus;
+import com.optimize.elykia.client.enumeration.ClientRegistrationSource;
 import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.customer.CustomerLoginResponse;
@@ -26,12 +27,12 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.mockito.ArgumentCaptor;
 
 @ExtendWith(MockitoExtension.class)
 class CustomerRegistrationServiceTest {
@@ -132,8 +133,12 @@ class CustomerRegistrationServiceTest {
         assertEquals("jwt-token", response.getToken());
         assertEquals("55", response.getClientId());
         assertEquals("PENDING", response.getActivationStatus());
+        ArgumentCaptor<Client> clientCaptor = ArgumentCaptor.forClass(Client.class);
+        verify(clientRepository).saveAndFlush(clientCaptor.capture());
+        assertEquals(ClientRegistrationSource.CUSTOMER_SPACE, clientCaptor.getValue().getRegistrationSource());
         verify(provisioningService).provisionSelfRegistered(any(Client.class), eq("1234"));
         verify(clientService).uploadClientPhotos(eq(55L), any(byte[].class), eq(null));
+        verify(clientService).evictClientListCaches();
     }
 
     private static CustomerRegisterRequest validRequest() {

@@ -186,6 +186,12 @@
           "type": "varchar",
           "description": "Statut d'activation du dossier client (PENDING, ACTIVE, REJECTED)",
           "synonyms": ["inscription", "activation", "en attente"]
+        },
+        {
+          "name": "registration_source",
+          "type": "varchar",
+          "description": "Source d'inscription du client (STAFF = personnel, CUSTOMER_SPACE = auto-inscrit depuis l'Espace Client)",
+          "synonyms": ["auto-inscrit", "inscrit depuis l'espace client", "source d'inscription", "espace client"]
         }
       ]
     },

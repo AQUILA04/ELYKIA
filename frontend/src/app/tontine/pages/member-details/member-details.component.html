@@ -35,6 +35,12 @@
                   data-testid="e2e-tontine-carnet-badge">
               {{ member.carnetVerified ? 'Carnet vérifié' : 'Carnet non vérifié' }}
             </span>
+            <span *ngIf="member.selfRegistered || member.registrationSource === 'CUSTOMER_SPACE'"
+                  class="badge badge-self"
+                  title="Inscrit via l'Espace client"
+                  data-testid="e2e-tontine-self-registered-badge">
+              Inscrit via l'Espace client
+            </span>
           </p>
           <p class="carnet-meta" *ngIf="member.carnetVerified" data-testid="e2e-tontine-carnet-meta">
             Vérifié le {{ member.carnetVerifiedAt | date:'dd/MM/yyyy HH:mm' }}

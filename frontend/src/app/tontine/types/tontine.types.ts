@@ -40,6 +40,9 @@ export interface TontineMember {
   readonly carnetVerified?: boolean;
   readonly carnetVerifiedAt?: string | null;
   readonly carnetVerifiedBy?: string | null;
+  /** STAFF | CUSTOMER_SPACE — origine d'inscription du membre */
+  readonly registrationSource?: 'STAFF' | 'CUSTOMER_SPACE';
+  readonly selfRegistered?: boolean;
 }
 
 export interface TontineCollection {
@@ -261,6 +264,7 @@ export interface TontineMemberQueryParams {
   deliveryStatus?: TontineMemberDeliveryStatus;
   commercial?: string;
   carnetVerified?: boolean;
+  registrationSource?: 'STAFF' | 'CUSTOMER_SPACE';
 }
 
 // Interface for parameters emitted by the filter bar component
@@ -269,6 +273,7 @@ export interface TontineFilterBarParams {
   deliveryStatus?: TontineMemberDeliveryStatus | 'ALL';
   commercial?: string;
   carnetVerified?: boolean;
+  registrationSource?: 'STAFF' | 'CUSTOMER_SPACE';
 }
 
 // KPIs

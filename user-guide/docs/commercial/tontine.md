@@ -47,6 +47,7 @@ La barre de recherche et de filtres vous permet de cibler des dossiers précis :
 - **Par commercial** : Pour un gestionnaire, sélectionnez un commercial dans la liste déroulante pour isoler son secteur. Pour un commercial, votre secteur est pré-sélectionné.
 - **Par statut de livraison** : Filtrez les membres en cours de session, ceux dont la livraison est en attente, validée ou déjà terminée.
 - **Par état du carnet** : Affichez uniquement les membres dont le carnet est vérifié ou ceux restant à contrôler.
+- **Par origine** : Choisissez **Espace client** pour ne voir que les membres qui se sont inscrits eux-mêmes depuis l'application Espace Client, ou **Personnel** pour ceux inscrits par l'agence. Dans la liste, ces auto-inscrits portent le badge violet **Espace client** sous leur nom.
 
 ### Téléchargements et exports PDF
 La barre d'outils propose des exports prêts à imprimer :
@@ -72,6 +73,7 @@ En cliquant sur un membre, vous ouvrez sa fiche complète à 360°, véritable d
 
 ### 1. En-tête du dossier et statut du carnet
 - Rappel du nom, du code client et du commercial assigné.
+- **Badge « Inscrit via l'Espace client »** : Affiché à côté du statut du carnet lorsque le membre a rejoint la session depuis l'application Espace Client.
 - **Badge d'état du carnet** :
   - 🟢 **Carnet vérifié** : Indique la date, l'heure et le nom de l'agent qui a certifié le carnet.
   - ⚪ **Carnet non vérifié** : Indique que le carnet physique n'a pas encore été visé.

@@ -6,6 +6,7 @@ import com.optimize.elykia.client.dto.ClientPhotoDto;
 import com.optimize.elykia.client.dto.ClientRespDto;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientActivationStatus;
+import com.optimize.elykia.client.enumeration.ClientRegistrationSource;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.repository.spec.ClientCommercialPredicates;
 import org.springframework.data.domain.Page;
@@ -29,18 +30,31 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
             Pageable pageable);
 
     default Page<Client> elasticsearch(String keyword, String username, Boolean tontine, Pageable pageable) {
-        return elasticsearch(keyword, username, tontine, null, pageable);
+        return elasticsearch(keyword, username, tontine, null, null, pageable);
     }
 
-    default Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType, Pageable pageable) {
-        return findAll(getElasticsearchCriteria(keyword, username, Boolean.TRUE.equals(tontine), collectorType), pageable);
+    default Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType,
+            Pageable pageable) {
+        return elasticsearch(keyword, username, tontine, collectorType, null, pageable);
+    }
+
+    default Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType,
+            ClientRegistrationSource registrationSource, Pageable pageable) {
+        return findAll(getElasticsearchCriteria(keyword, username, Boolean.TRUE.equals(tontine), collectorType,
+                registrationSource), pageable);
     }
 
     default Specification<Client> getElasticsearchCriteria(String keyword, String username, boolean tontine) {
-        return getElasticsearchCriteria(keyword, username, tontine, null);
+        return getElasticsearchCriteria(keyword, username, tontine, null, null);
     }
 
-    default Specification<Client> getElasticsearchCriteria(String keyword, String username, boolean tontine, String collectorType) {
+    default Specification<Client> getElasticsearchCriteria(String keyword, String username, boolean tontine,
+            String collectorType) {
+        return getElasticsearchCriteria(keyword, username, tontine, collectorType, null);
+    }
+
+    default Specification<Client> getElasticsearchCriteria(String keyword, String username, boolean tontine,
+            String collectorType, ClientRegistrationSource registrationSource) {
         final String searchKeyword = String.format("%%%s%%", keyword.toLowerCase());
 
         return (root, query, cb) -> {
@@ -59,6 +73,9 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                     cb.like(cb.lower(root.get("recoveryCollector")), searchKeyword),
                     cb.like(cb.lower(root.get("quarter")), searchKeyword),
                     cb.like(cb.lower(root.get("cardType")), searchKeyword));
+            if (registrationSource != null) {
+                p = cb.and(p, cb.equal(root.get("registrationSource"), registrationSource));
+            }
             if (Objects.nonNull(username) && username.startsWith("COM")) {
                 if (tontine) {
                     jakarta.persistence.criteria.Predicate p2 = cb.and(p,
@@ -79,7 +96,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
                 c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude,
-                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl)
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl, c.registrationSource)
                 FROM Client c
                 WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.agencyCollector = :collector OR c.recoveryCollector = :collector) AND c.clientType = :clientType AND c.state = :state
             """)
@@ -91,7 +108,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.tontineCollector,
                 c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude,
-                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl)
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl, c.registrationSource)
                 FROM Client c
                 WHERE c.tontineCollector = :collector AND c.clientType = :clientType AND c.state = :state
             """)
@@ -103,7 +120,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
                 c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude,
-                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl)
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl, c.registrationSource)
                 FROM Client c
                 WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.agencyCollector = :collector OR c.recoveryCollector = :collector) AND c.clientType = :clientType AND c.state = :state
             """)
@@ -115,7 +132,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth,
                 c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector,
                 c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude,
-                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl)
+                c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl, c.registrationSource)
                 FROM Client c
                 WHERE c.state <> :state
 
@@ -170,7 +187,7 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
 
     boolean existsByCardID(String cardID);
 
-    @Query("SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id, c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth, c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector, c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude, c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl) " +
+    @Query("SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id, c.firstname, c.lastname, c.address, c.phone, c.cardID, c.cardType, c.dateOfBirth, c.contactPersonName, c.contactPersonPhone, c.contactPersonAddress, c.collector, c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude, c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl, c.registrationSource) " +
        "FROM Client c " +
        "WHERE c.state <> com.optimize.common.entities.enums.State.DELETED " +
        "AND (:#{#username == null} = true OR ( " +
@@ -181,16 +198,23 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
        "        (:#{#collectorType == 'TONTINE'} = true AND c.tontineCollector = :username) OR " +
        "        (:#{#collectorType != 'CREDIT' AND #collectorType != 'TONTINE'} = true AND " + ClientCommercialPredicates.ANY_EQUALS_C_USERNAME + ")" +
        "    ))" +
-       "))")
+       ")) " +
+       "AND (:#{#registrationSource == null} = true OR c.registrationSource = :registrationSource)")
     Page<ClientRespDto> findClientsDto(
             @Param("username") String username,
             @Param("tontine") Boolean tontine,
             @Param("mobile") Boolean mobile,
             @Param("collectorType") String collectorType,
+            @Param("registrationSource") ClientRegistrationSource registrationSource,
             Pageable pageable);
 
+    default Page<ClientRespDto> findClientsDto(String username, Boolean tontine, Boolean mobile,
+            String collectorType, Pageable pageable) {
+        return findClientsDto(username, tontine, mobile, collectorType, null, pageable);
+    }
+
     default Page<ClientRespDto> findClientsDto(String username, Boolean tontine, Boolean mobile, Pageable pageable) {
-        return findClientsDto(username, tontine, mobile, null, pageable);
+        return findClientsDto(username, tontine, mobile, null, null, pageable);
     }
 
     @Query("""

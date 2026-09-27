@@ -30,6 +30,7 @@ export class ClientViewComponent implements OnInit {
   totalHistoriqueElements = 0;
 
   clientDetails: any = {};
+  registrationSource: 'STAFF' | 'CUSTOMER_SPACE' | null = null;
 
   
   // Variables pour les crédits en attente
@@ -136,6 +137,16 @@ export class ClientViewComponent implements OnInit {
         this.spinner.hide();
         alert(error);
       });
+    this.clientService.getClientById(this.clientId).subscribe({
+      next: (response: any) => {
+        if (response?.data?.registrationSource) {
+          this.registrationSource = response.data.registrationSource;
+        }
+      },
+      error: () => {
+        // badge optionnel — ne pas bloquer la fiche
+      }
+    });
   }
 
   // Méthode pour charger les achats du client

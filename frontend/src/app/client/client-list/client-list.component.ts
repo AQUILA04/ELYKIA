@@ -18,6 +18,7 @@ interface ClientListState {
   sortField: string;
   selectedCommercial: string | null;
   selectedCollectorType?: 'ALL' | 'CREDIT' | 'TONTINE';
+  selectedRegistrationSource?: 'ALL' | 'CUSTOMER_SPACE';
 }
 
 @Component({
@@ -39,6 +40,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
   searchTerm = '';
   selectedCommercial: string | null = null;
   selectedCollectorType: 'ALL' | 'CREDIT' | 'TONTINE' = 'ALL';
+  selectedRegistrationSource: 'ALL' | 'CUSTOMER_SPACE' = 'ALL';
 
   currentDate = new Date();
   lastUpdate = new Date();
@@ -115,7 +117,8 @@ export class ClientListComponent implements OnInit, OnDestroy {
       usernameToUse,
       this.searchTerm,
       false,
-      this.selectedCollectorType
+      this.selectedCollectorType,
+      this.selectedRegistrationSource
     ).subscribe({
       next: (data) => {
         if (data.statusCode === 200) {
@@ -185,10 +188,25 @@ export class ClientListComponent implements OnInit, OnDestroy {
     this.searchTerm = '';
     this.selectedCommercial = null;
     this.selectedCollectorType = 'ALL';
+    this.selectedRegistrationSource = 'ALL';
     this.currentPage = 0;
     this.saveState();
     this.loadClientKpis();
     this.loadClient();
+  }
+
+  onRegistrationSourceChange(source: 'ALL' | 'CUSTOMER_SPACE'): void {
+    if (this.selectedRegistrationSource === source) return;
+    this.selectedRegistrationSource = source;
+    this.currentPage = 0;
+    this.selectedClients.clear();
+    this.isAllSelected = false;
+    this.saveState();
+    this.loadClient();
+  }
+
+  isSelfRegistered(client: Client): boolean {
+    return client.registrationSource === 'CUSTOMER_SPACE';
   }
 
   onPageChange(event: PageEvent): void {
@@ -398,7 +416,8 @@ export class ClientListComponent implements OnInit, OnDestroy {
       pageSize: this.pageSize,
       sortField: this.sortField,
       selectedCommercial: this.selectedCommercial,
-      selectedCollectorType: this.selectedCollectorType
+      selectedCollectorType: this.selectedCollectorType,
+      selectedRegistrationSource: this.selectedRegistrationSource
     };
     sessionStorage.setItem(this.STATE_KEY, JSON.stringify(state));
   }
@@ -414,6 +433,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
       this.sortField = state.sortField ?? 'id,desc';
       this.selectedCommercial = state.selectedCommercial ?? null;
       this.selectedCollectorType = state.selectedCollectorType ?? 'ALL';
+      this.selectedRegistrationSource = state.selectedRegistrationSource ?? 'ALL';
     } catch (e) {
       console.error('Erreur restauration état liste clients', e);
     }

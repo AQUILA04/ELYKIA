@@ -3,6 +3,7 @@ package com.optimize.elykia.client.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.client.enumeration.ClientRegistrationSource;
 import com.optimize.elykia.client.enumeration.ClientType;
 
 import java.time.LocalDate;
@@ -18,7 +19,8 @@ public record ClientRespDto(Long id, String firstname, String lastname, String a
                             Double longitude, String mll, LocalDate syncDate, String code, String profilPhotoUrl,
                             String cardPhotoUrl, String tontineCollector,
                             @JsonFormat(pattern = "yyyy-MM-dd") LocalDateTime createdAt,
-                            String profilPhotoThumbUrl, String cardPhotoThumbUrl
+                            String profilPhotoThumbUrl, String cardPhotoThumbUrl,
+                            ClientRegistrationSource registrationSource
 ) {
 
     @JsonIgnore
@@ -26,7 +28,7 @@ public record ClientRespDto(Long id, String firstname, String lastname, String a
         return new ClientRespDto(id, null, null, null, null, null, null,
                 null, null, null, null, null,
                 null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @JsonIgnore
@@ -34,7 +36,7 @@ public record ClientRespDto(Long id, String firstname, String lastname, String a
         return new ClientRespDto(id, firstname, lastname, null, null, null, null,
                 null, null, null, null, null,
                 null, null, null, null, null, null, null,
-                null, null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     @JsonIgnore
@@ -42,6 +44,9 @@ public record ClientRespDto(Long id, String firstname, String lastname, String a
         if (Objects.isNull(client)) {
             return null;
         }
+        ClientRegistrationSource source = client.getRegistrationSource() != null
+                ? client.getRegistrationSource()
+                : ClientRegistrationSource.STAFF;
         return new ClientRespDto(client.getId(), client.getFirstname(), client.getLastname(), client.getAddress(),
                 client.getPhone(), client.getCardID(), client.getCardType(),
                 client.getDateOfBirth(), null, null, null, client.getCollector(),
@@ -50,6 +55,7 @@ public record ClientRespDto(Long id, String firstname, String lastname, String a
                 client.getBusinessCreditAuthorizedAt(), client.getOccupation(), client.getClientType(),
                 null, null, null, null, client.getCode(), client.getProfilPhotoUrl(), client.getCardPhotoUrl(),
                 client.getTontineCollector(), client.getCreatedDate(),
-                client.getProfilPhotoThumbUrl(), client.getCardPhotoThumbUrl());
+                client.getProfilPhotoThumbUrl(), client.getCardPhotoThumbUrl(),
+                source);
     }
 }
