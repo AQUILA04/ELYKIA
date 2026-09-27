@@ -1,0 +1,27 @@
+---
+description: Prefer Notification Hub Spring Boot starter over handwritten HTTP clients
+alwaysApply: true
+---
+
+# Notification Hub : starter d’abord (pas de client maison)
+
+Quand l’utilisateur évoque **l’intégration de Notification Hub** (OTP SMS, `/v1/otp/*`, `optimize.notification.hub`, envoi/vérification de codes) dans un projet (ELYKIA ou autre) :
+
+## Priorité obligatoire
+
+1. **Utiliser le starter** `sb-notification-hub-starter` (dépôt `AQUILA04/notification-hub`, doc `OTP_CLIENT_INTEGRATION.md`).
+2. **Configurer les propriétés** (`optimize.notification.hub.*` / variables `NOTIFICATION_HUB_*`).
+3. **Injecter et appeler les beans / services** exposés par le starter (send / verify OTP, etc.).
+
+## Interdit (sauf exception explicite)
+
+- Recoder un client HTTP RestClient/WebClient, OAuth2 token provider, DTOs OTP, ou couche `notificationhub/` maison « compatible starter ».
+- Dupliquer le contrat API du hub dans le consommateur alors que le starter le couvre.
+
+## Exception
+
+Uniquement si l’utilisateur **demande explicitement** un client local, ou si le starter est **indisponible prouvé** (artefact non publiable, incompatibilité Java/Spring **documentée** et validée avec l’utilisateur). Dans ce cas : expliquer le blocage et proposer le starter dès que possible.
+
+## Contexte ELYKIA actuel
+
+Le package `backend/.../notificationhub/` (client HTTP local) est un **contournement historique** (starter non publié / Java 21 vs backend Java 17). Pour toute **nouvelle** intégration ou migration : viser le starter + propriétés + appels de service, pas d’étendre le client maison.
