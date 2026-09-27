@@ -7,7 +7,7 @@ spring:
     password: Africa2025
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
@@ -78,6 +78,14 @@ minio:
   bucket: ${MINIO_BUCKET:elykia-clients}
   reports-bucket: ${MINIO_REPORTS_BUCKET:elykia-reports}
   public-url: ${MINIO_PUBLIC_URL:http://localhost:19000}
+
+optimize.notification.hub:
+  enabled: true
+  base-url: http://localhost:8088
+  tenant-id: elykia
+  app-id: elykia-customer-space
+  environment: test
+  oauth2.enabled: false
 
 #swagger: '2.0'
 #info:
