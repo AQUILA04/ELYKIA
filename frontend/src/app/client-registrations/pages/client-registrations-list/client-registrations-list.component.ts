@@ -120,17 +120,50 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
     return row.profilPhotoThumbUrl || row.profilPhotoUrl || null;
   }
 
-  /** Original pour lightbox (fallback thumb si original absent). */
+  /** Original pour lightbox profil. */
   profilPreviewSrc(row: ClientRegistration): string | null {
     return row.profilPhotoUrl || row.profilPhotoThumbUrl || null;
   }
 
+  /** Thumb pièce uniquement (pas l’original). */
   cardThumbSrc(row: ClientRegistration): string | null {
     return row.cardPhotoThumbUrl || row.cardPhotoUrl || null;
   }
 
+  /** Original pièce pour lightbox au clic. */
   cardPreviewSrc(row: ClientRegistration): string | null {
     return row.cardPhotoUrl || row.cardPhotoThumbUrl || null;
+  }
+
+  getInitials(row: ClientRegistration | null | undefined): string {
+    if (!row) {
+      return '?';
+    }
+    const first = (row.firstname || '').trim().charAt(0);
+    const last = (row.lastname || '').trim().charAt(0);
+    const pair = `${first}${last}`.toUpperCase();
+    if (pair.trim()) {
+      return pair;
+    }
+    const fromFull = (row.fullName || '').trim().replace(/\s+/g, ' ');
+    if (!fromFull) {
+      return '?';
+    }
+    const parts = fromFull.split(' ');
+    if (parts.length >= 2) {
+      return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+    }
+    return fromFull.slice(0, 2).toUpperCase();
+  }
+
+  /** Teinte stable d’avatar (0–5) dérivée du nom. */
+  avatarTone(row: ClientRegistration | null | undefined): number {
+    const key = `${row?.firstname || ''}|${row?.lastname || ''}|${row?.fullName || ''}`;
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+      hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+    }
+    return hash % 6;
   }
 
   @HostListener('document:keydown.escape')

@@ -537,7 +537,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Inscriptions clients (espace client)\nExaminer un dossier\nCliquez sur Voir sur la ligne du client.\nVérifiez la photo de profil (ou l’avatar si elle n’est pas encore disponible), la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.\nCliquez sur une photo pour l’afficher en grand, puis fermez l’aperçu.\nSi un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.\n\n---"
+    "content": "Inscriptions clients (espace client)\nExaminer un dossier\nCliquez sur Voir sur la ligne du client.\nVérifiez la photo de profil (ou l’avatar avec les initiales si elle n’est pas encore disponible), la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.\nCliquez sur la photo de profil ou sur la carte de la pièce pour afficher l’original en grand, puis fermez l’aperçu.\nSi un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.\n\n---"
   },
   {
     "id": "manager_client_registrations__3_valider_l_inscription",

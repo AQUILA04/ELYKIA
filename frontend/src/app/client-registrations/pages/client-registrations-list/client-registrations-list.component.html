@@ -67,11 +67,11 @@
                   <img [src]="src" alt="" class="thumb" />
                 </ng-container>
                 <ng-template #listAvatar>
-                  <span class="thumb thumb-avatar" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" focusable="false">
-                      <path fill="currentColor"
-                        d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
+                  <span
+                    class="thumb thumb-avatar"
+                    [attr.data-tone]="avatarTone(row)"
+                    [attr.aria-label]="'Avatar ' + row.fullName">
+                    {{ getInitials(row) }}
                   </span>
                 </ng-template>
                 <span>{{ row.fullName }}</span>
@@ -108,42 +108,45 @@
         <button type="button" class="btn-clear" (click)="closeDetail()">Fermer</button>
       </div>
       <div class="detail-photos">
-        <div>
+        <div class="profil-slot">
           <span class="label">Profil</span>
-          <ng-container *ngIf="profilThumbSrc(selected) as thumb; else profilEmpty">
+          <ng-container *ngIf="profilThumbSrc(selected) as thumb; else profilAvatar">
             <button
               type="button"
-              class="photo-thumb-btn"
+              class="profil-avatar-btn"
               (click)="openPhotoPreview(profilPreviewSrc(selected), 'Photo de profil')"
               data-testid="e2e-client-registration-profil-photo"
               aria-label="Agrandir la photo de profil">
-              <img [src]="thumb" alt="Photo profil" />
+              <img [src]="thumb" alt="" class="profil-avatar-img" />
             </button>
           </ng-container>
-          <ng-template #profilEmpty>
-            <div class="photo-empty" aria-label="Aucune photo de profil">
-              <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
-                <path fill="currentColor"
-                  d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-              </svg>
-              <span class="muted">Non disponible</span>
+          <ng-template #profilAvatar>
+            <div
+              class="profil-avatar profil-avatar--initials"
+              [attr.data-tone]="avatarTone(selected)"
+              [attr.aria-label]="'Avatar ' + selected.fullName"
+              data-testid="e2e-client-registration-profil-avatar">
+              <span class="profil-avatar-initials">{{ getInitials(selected) }}</span>
             </div>
           </ng-template>
+          <span class="profil-avatar-caption">{{ selected.fullName }}</span>
         </div>
-        <div>
+
+        <div class="card-slot">
           <span class="label">Pièce</span>
           <ng-container *ngIf="cardThumbSrc(selected) as thumb; else cardEmpty">
             <button
               type="button"
-              class="photo-thumb-btn"
+              class="card-doc-btn"
               (click)="openPhotoPreview(cardPreviewSrc(selected), 'Photo de la pièce')"
               data-testid="e2e-client-registration-card-photo"
               aria-label="Agrandir la photo de la pièce">
-              <img [src]="thumb" alt="Photo pièce" />
+              <img [src]="thumb" alt="Miniature pièce" class="card-doc-thumb" />
+              <span class="card-doc-hint">Voir l’original</span>
             </button>
           </ng-container>
           <ng-template #cardEmpty>
-            <div class="photo-empty" aria-label="Aucune photo de pièce">
+            <div class="card-doc-empty" aria-label="Aucune photo de pièce">
               <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true">
                 <path fill="currentColor"
                   d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
