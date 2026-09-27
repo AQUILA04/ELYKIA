@@ -115,6 +115,11 @@
   border-color: var(--navy);
 }
 
+.client-registrations-page .btn-primary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .client-registrations-page .btn-filter.active {
   background: var(--navy-pale);
   border-color: var(--navy);

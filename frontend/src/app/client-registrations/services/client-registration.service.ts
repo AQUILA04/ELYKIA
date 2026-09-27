@@ -113,7 +113,7 @@ export class ClientRegistrationService {
 
   activate(clientId: number, body: {
     collector: string;
-    tontineCollector?: string;
+    tontineCollector: string;
     validateInitialDeposit?: boolean;
   }): Observable<ClientRegistration> {
     return this.http

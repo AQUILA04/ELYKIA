@@ -27,10 +27,10 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 
 ## 3. Valider l’inscription
 
-1. Choisissez le **commercial crédit** (obligatoire).
-2. Choisissez éventuellement le **commercial tontine**.
+1. Choisissez le **commercial crédit**.
+2. Choisissez le **commercial tontine**.
 3. Si un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.
-4. Cliquez sur **Valider l’inscription**.
+4. Cliquez sur **Valider l’inscription** (le bouton devient actif seulement quand les deux commerciaux sont choisis).
 5. Le client peut alors utiliser pleinement l’espace client.
 
 ---

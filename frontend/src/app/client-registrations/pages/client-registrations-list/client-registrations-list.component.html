@@ -191,9 +191,9 @@
           </select>
         </label>
         <label>
-          Commercial tontine (optionnel)
-          <select formControlName="tontineCollector">
-            <option value="">Aucun</option>
+          Commercial tontine
+          <select formControlName="tontineCollector" data-testid="e2e-client-registration-tontine-collector">
+            <option value="" disabled>Sélectionner</option>
             <option *ngFor="let a of agents" [value]="a.username">{{ agentLabel(a) }}</option>
           </select>
         </label>
@@ -202,7 +202,8 @@
           Valider le dépôt initial et créditer le solde
         </label>
         <div class="detail-actions">
-          <button type="submit" class="btn-primary" data-testid="e2e-client-registration-activate">
+          <button type="submit" class="btn-primary" data-testid="e2e-client-registration-activate"
+            [disabled]="activateForm.invalid">
             Valider l'inscription
           </button>
           <button type="button" class="btn-clear" (click)="reject()" data-testid="e2e-client-registration-reject">

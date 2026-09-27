@@ -37,7 +37,7 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
   ) {
     this.activateForm = this.fb.group({
       collector: ['', Validators.required],
-      tontineCollector: [''],
+      tontineCollector: ['', Validators.required],
       validateInitialDeposit: [true]
     });
   }
@@ -223,7 +223,7 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
     const body = this.activateForm.value;
     this.registrationService.activate(this.selected.clientId, {
       collector: body.collector,
-      tontineCollector: body.tontineCollector || undefined,
+      tontineCollector: body.tontineCollector,
       validateInitialDeposit: !!body.validateInitialDeposit
     }).subscribe({
       next: () => {

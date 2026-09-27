@@ -159,6 +159,9 @@ test.describe('Inscriptions clients — validation BO', () => {
     await expect(page.getByTestId('e2e-client-registration-photo-preview')).toHaveCount(0);
 
     await page.getByTestId('e2e-client-registration-collector').selectOption('COM001');
+    await expect(page.getByTestId('e2e-client-registration-activate')).toBeDisabled();
+    await page.getByTestId('e2e-client-registration-tontine-collector').selectOption('COM_TONTINE');
+    await expect(page.getByTestId('e2e-client-registration-activate')).toBeEnabled();
 
     const activate = page.waitForResponse(
       (r) => r.url().includes(`/client-registrations/${E2E_CLIENT_ID}/activate`) && r.ok(),

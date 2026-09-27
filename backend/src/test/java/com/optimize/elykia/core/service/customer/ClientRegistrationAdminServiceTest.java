@@ -148,11 +148,23 @@ class ClientRegistrationAdminServiceTest {
     }
 
     @Test
+    void activate_rejectsMissingTontineCollector() {
+        when(clientService.getById(7L)).thenReturn(pendingClient);
+        ClientRegistrationActivateRequest request = new ClientRegistrationActivateRequest();
+        request.setCollector("COM001");
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> service.activate(admin, 7L, request));
+        assertTrue(ex.getMessage().toLowerCase().contains("tontine"));
+    }
+
+    @Test
     void activate_rejectsNonPending() {
         pendingClient.setActivationStatus(ClientActivationStatus.ACTIVE);
         when(clientService.getById(7L)).thenReturn(pendingClient);
         ClientRegistrationActivateRequest request = new ClientRegistrationActivateRequest();
         request.setCollector("COM001");
+        request.setTontineCollector("COM002");
 
         assertThrows(CustomValidationException.class, () -> service.activate(admin, 7L, request));
     }

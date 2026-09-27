@@ -546,7 +546,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Inscriptions clients (espace client)\nValider l’inscription\nChoisissez le commercial crédit (obligatoire).\nChoisissez éventuellement le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription .\nLe client peut alors utiliser pleinement l’espace client.\n\n---"
+    "content": "Inscriptions clients (espace client)\nValider l’inscription\nChoisissez le commercial crédit .\nChoisissez le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription (le bouton devient actif seulement quand les deux commerciaux sont choisis).\nLe client peut alors utiliser pleinement l’espace client.\n\n---"
   },
   {
     "id": "manager_client_registrations__4_refuser_une_inscription",

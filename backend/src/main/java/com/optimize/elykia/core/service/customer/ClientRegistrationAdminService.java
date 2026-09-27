@@ -103,10 +103,11 @@ public class ClientRegistrationAdminService {
         if (!StringUtils.hasText(request.getCollector())) {
             throw new CustomValidationException("Le commercial crédit est obligatoire.");
         }
-        client.setCollector(request.getCollector().trim());
-        if (StringUtils.hasText(request.getTontineCollector())) {
-            client.setTontineCollector(request.getTontineCollector().trim());
+        if (!StringUtils.hasText(request.getTontineCollector())) {
+            throw new CustomValidationException("Le commercial tontine est obligatoire.");
         }
+        client.setCollector(request.getCollector().trim());
+        client.setTontineCollector(request.getTontineCollector().trim());
         client.setActivationStatus(ClientActivationStatus.ACTIVE);
         client.setActivationRejectionReason(null);
         client.setActivationRejectedAt(null);

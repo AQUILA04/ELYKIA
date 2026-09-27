@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.23.7] — 2026-09-27
+
+### Changed
+
+- Inscriptions clients : **Valider l’inscription** actif seulement si commercial crédit et commercial tontine sont tous deux choisis.
+
+## Backend — [1.20.5] — 2026-09-27
+
+### Changed
+
+- Activation inscription : `tontineCollector` obligatoire (comme le commercial crédit).
+
 ## Frontend — [2.23.6] — 2026-09-27
 
 ### Changed
