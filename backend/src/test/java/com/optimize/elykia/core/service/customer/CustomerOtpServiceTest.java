@@ -99,4 +99,18 @@ class CustomerOtpServiceTest {
         properties.setEnabled(false);
         assertThrows(CustomValidationException.class, () -> service.sendOtp("90123456"));
     }
+
+    @Test
+    void sendOtp_maps404ToMissingOtpApiMessage() {
+        when(otpClient.sendOtp(any(), anyString()))
+                .thenThrow(new com.optimize.elykia.core.notificationhub.NotificationHubClientException(
+                        "Notification Hub : POST http://localhost:8088/v1/otp/send → HTTP 404",
+                        404,
+                        "{\"status\":404,\"error\":\"Not Found\"}"));
+
+        CustomValidationException ex =
+                assertThrows(CustomValidationException.class, () -> service.sendOtp("90123456"));
+        assertTrue(ex.getMessage().contains("/v1/otp/send"));
+        assertTrue(ex.getMessage().toLowerCase().contains("otp"));
+    }
 }

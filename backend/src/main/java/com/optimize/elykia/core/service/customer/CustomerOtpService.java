@@ -169,6 +169,7 @@ public class CustomerOtpService {
 
     private CustomValidationException mapSendError(NotificationHubClientException ex) {
         Integer status = ex.getStatusCode();
+        logHubFailure("envoi", ex);
         if (status != null && status == 429) {
             return new CustomValidationException(
                     "Veuillez patienter avant de renvoyer un code SMS.");
@@ -177,13 +178,35 @@ public class CustomerOtpService {
             return new CustomValidationException(
                     "Service SMS temporairement indisponible. Contactez le support.");
         }
-        log.error("Échec envoi OTP Notification Hub: {}", ex.getMessage());
+        if (status != null && status == 404) {
+            return new CustomValidationException(
+                    "Notification Hub joignable mais sans API OTP (/v1/otp/send). "
+                            + "Mettez à jour le hub (branche main) et relancez avec le profil local.");
+        }
         return new CustomValidationException("Impossible d'envoyer le SMS. Réessayez plus tard.");
     }
 
     private CustomValidationException mapVerifyTransportError(NotificationHubClientException ex) {
-        log.error("Échec verify OTP Notification Hub: {}", ex.getMessage());
+        logHubFailure("verify", ex);
+        Integer status = ex.getStatusCode();
+        if (status != null && status == 404) {
+            return new CustomValidationException(
+                    "Notification Hub joignable mais sans API OTP (/v1/otp/verify). "
+                            + "Mettez à jour le hub (branche main) et relancez avec le profil local.");
+        }
         return new CustomValidationException("Vérification SMS impossible. Réessayez plus tard.");
+    }
+
+    private void logHubFailure(String operation, NotificationHubClientException ex) {
+        String body = ex.getResponseBody();
+        if (StringUtils.hasText(body) && body.length() > 500) {
+            body = body.substring(0, 500) + "…";
+        }
+        log.error(
+                "Échec {} OTP Notification Hub: {} | body={}",
+                operation,
+                ex.getMessage(),
+                body != null ? body : "");
     }
 
     private static boolean constantTimeEquals(String a, String b) {
