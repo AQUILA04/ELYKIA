@@ -71,6 +71,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - DTO inscriptions clients : expose `profilPhotoThumbUrl` / `cardPhotoThumbUrl` en plus des URLs originales.
 
+## Customer-space — [0.5.4] — 2026-09-27
+
+### Fixed
+
+- Accueil / Mon dossier : rechargement du statut d’activation à chaque entrée d’écran (`ionViewWillEnter`) et pull-to-refresh, pour faire disparaître le bandeau « compte en attente » dès que l’agence a validé l’inscription.
+
 ## Customer-space — [0.5.3] — 2026-09-27
 
 ### Added

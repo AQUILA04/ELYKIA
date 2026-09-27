@@ -10,6 +10,7 @@ import { RouterTestingModule } from '@angular/router/testing';
 describe('DashboardPage', () => {
   let fixture: ComponentFixture<DashboardPage>;
   let api: jasmine.SpyObj<CustomerApiService>;
+  let session: CustomerSessionService;
 
   const mockDashboard = {
     clientId: '1',
@@ -24,6 +25,7 @@ describe('DashboardPage', () => {
     nextInstallmentNumber: 3,
     progressPercent: 34,
     recentActivities: [],
+    activationStatus: 'ACTIVE',
   };
 
   beforeEach(async () => {
@@ -47,21 +49,46 @@ describe('DashboardPage', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(DashboardPage);
+    session = TestBed.inject(CustomerSessionService);
+    session.saveSession({
+      token: 't',
+      clientId: '1',
+      fullName: 'Jean K.',
+      phone: '70155169',
+      expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
+      isAuthenticated: true,
+      activationStatus: 'PENDING',
+    });
   });
 
-  it('loads dashboard data', () => {
+  it('loads dashboard data on ionViewWillEnter', () => {
+    fixture.componentInstance.ionViewWillEnter();
     fixture.detectChanges();
     expect(fixture.componentInstance.dashboard?.fullName).toBe('Jean K.');
     expect(fixture.componentInstance.isLoading).toBeFalse();
   });
 
+  it('syncs session activationStatus when dashboard becomes ACTIVE', () => {
+    fixture.componentInstance.ionViewWillEnter();
+    fixture.detectChanges();
+    expect(session.currentSession?.activationStatus).toBe('ACTIVE');
+  });
+
+  it('reloads dashboard each time the view enters', () => {
+    fixture.componentInstance.ionViewWillEnter();
+    fixture.componentInstance.ionViewWillEnter();
+    expect(api.getDashboard).toHaveBeenCalledTimes(2);
+  });
+
   it('sets loadError on API failure', () => {
     api.getDashboard.and.returnValue(throwError(() => new Error('fail')));
+    fixture.componentInstance.ionViewWillEnter();
     fixture.detectChanges();
     expect(fixture.componentInstance.loadError).toBeTrue();
   });
 
   it('enables pay action when next payment is available', () => {
+    fixture.componentInstance.ionViewWillEnter();
     fixture.detectChanges();
     expect(fixture.componentInstance.canPayNext).toBeTrue();
     expect(fixture.componentInstance.paymentQueryParams).toEqual({
@@ -76,6 +103,7 @@ describe('DashboardPage', () => {
       nextPaymentCreditId: undefined,
       nextInstallmentNumber: 0,
     }));
+    fixture.componentInstance.ionViewWillEnter();
     fixture.detectChanges();
     expect(fixture.componentInstance.canPayNext).toBeFalse();
     expect(fixture.componentInstance.paymentQueryParams).toBeNull();

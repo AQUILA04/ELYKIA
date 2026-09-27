@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AlertController, IonicModule } from '@ionic/angular';
+import { AlertController, IonicModule, RefresherCustomEvent, ViewWillEnter } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { Capacitor } from '@capacitor/core';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
@@ -20,7 +20,7 @@ import { environment } from '../../../environments/environment';
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
 })
-export class DashboardPage implements OnInit {
+export class DashboardPage implements OnInit, ViewWillEnter {
   dashboard: CustomerDashboard | null = null;
   isLoading = true;
   loadError = false;
@@ -28,6 +28,7 @@ export class DashboardPage implements OnInit {
   paymentQueryParams: Record<string, number> | null = null;
   appVersion = environment.version;
   updateInProgress = false;
+  private updateCheckDone = false;
 
   constructor(
     private api: CustomerApiService,
@@ -71,12 +72,22 @@ export class DashboardPage implements OnInit {
   }
 
   ngOnInit(): void {
-    this.loadDashboard();
-    void this.checkForAppUpdateOnDashboard();
+    // Chargement initial ; les reprises de vue passent par ionViewWillEnter
+    // (ion-router-outlet conserve la page en cache).
   }
 
-  loadDashboard(): void {
-    this.isLoading = true;
+  ionViewWillEnter(): void {
+    this.loadDashboard();
+    if (!this.updateCheckDone) {
+      this.updateCheckDone = true;
+      void this.checkForAppUpdateOnDashboard();
+    }
+  }
+
+  loadDashboard(event?: RefresherCustomEvent): void {
+    if (!event) {
+      this.isLoading = true;
+    }
     this.loadError = false;
     this.canPayNext = false;
     this.paymentQueryParams = null;
@@ -84,11 +95,14 @@ export class DashboardPage implements OnInit {
       next: (d) => {
         this.dashboard = d;
         this.applyPaymentState(d);
+        this.session.updateActivationStatus(d.activationStatus);
         this.isLoading = false;
+        void event?.target.complete();
       },
       error: () => {
         this.isLoading = false;
         this.loadError = true;
+        void event?.target.complete();
       },
     });
   }

@@ -2,9 +2,10 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
+import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import {
   CustomerInitialDeposit,
   CustomerOnboardingStatus,
@@ -20,7 +21,7 @@ import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/cu
   templateUrl: './onboarding.page.html',
   styleUrls: ['./onboarding.page.scss'],
 })
-export class OnboardingPage implements OnInit {
+export class OnboardingPage implements OnInit, ViewWillEnter {
   status: CustomerOnboardingStatus | null = null;
   deposit: CustomerInitialDeposit | null = null;
   recipients: MobileMoneyRecipient | null = null;
@@ -37,6 +38,7 @@ export class OnboardingPage implements OnInit {
 
   constructor(
     private api: CustomerApiService,
+    private session: CustomerSessionService,
     private fb: FormBuilder,
     private router: Router,
   ) {
@@ -53,6 +55,10 @@ export class OnboardingPage implements OnInit {
   }
 
   ngOnInit(): void {
+    // Chargement via ionViewWillEnter (page mise en cache par ion-router-outlet).
+  }
+
+  ionViewWillEnter(): void {
     void this.load();
   }
 
@@ -65,6 +71,7 @@ export class OnboardingPage implements OnInit {
     this.error = '';
     try {
       this.status = await firstValueFrom(this.api.getOnboardingStatus());
+      this.session.updateActivationStatus(this.status.activationStatus);
       this.idForm.patchValue({
         cardType: this.status.cardType ?? '',
         cardID: this.status.cardID ?? '',
