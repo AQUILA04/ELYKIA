@@ -56,6 +56,10 @@ export interface CustomerRegisterRequest {
   cardID?: string;
   profilPhoto: string;
   pin: string;
+  /** GPS capturé automatiquement à l'inscription. */
+  latitude?: number;
+  longitude?: number;
+  mll?: string;
 }
 
 export interface CustomerLocality {

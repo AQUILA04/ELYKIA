@@ -280,6 +280,100 @@
   border-radius: 8px;
   object-fit: cover;
   max-height: 160px;
+  display: block;
+}
+
+.client-registrations-page .photo-thumb-btn {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: zoom-in;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.client-registrations-page .photo-thumb-btn:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.client-registrations-page .photo-preview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.client-registrations-page .photo-preview-modal {
+  width: min(560px, 100%);
+  max-height: min(90vh, 720px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.client-registrations-page .photo-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--navy-xpale);
+}
+
+.client-registrations-page .photo-preview-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.client-registrations-page .photo-preview-close {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.client-registrations-page .photo-preview-close:hover {
+  background: var(--navy-pale);
+  color: var(--navy);
+}
+
+.client-registrations-page .photo-preview-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: #1a1a1a;
+  min-height: 200px;
+}
+
+.client-registrations-page .photo-preview-image {
+  display: block;
+  max-width: 100%;
+  max-height: min(70vh, 560px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 4px;
 }
 
 .client-registrations-page .detail-photos .label {

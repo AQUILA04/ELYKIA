@@ -55,7 +55,7 @@ async function mockClientRegistrationsApi(page: Page): Promise<void> {
     occupation: 'Commerçante',
     cardType: 'CENI',
     cardID: 'E2E-CARD-70155169',
-    profilPhotoUrl: null,
+    profilPhotoUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
     cardPhotoUrl: 'data:image/png;base64,aaa',
     activationStatus: 'PENDING',
     collector: null,
@@ -150,6 +150,11 @@ test.describe('Inscriptions clients — validation BO', () => {
     await expect(page.getByTestId('e2e-client-registration-detail')).toBeVisible();
     await expect(page.getByTestId('e2e-client-registration-detail')).toContainText('Awa Mensah');
     await expect(page.getByTestId('e2e-client-registration-detail')).toContainText('50');
+
+    await page.getByTestId('e2e-client-registration-profil-photo').click();
+    await expect(page.getByTestId('e2e-client-registration-photo-preview')).toBeVisible();
+    await page.getByTestId('e2e-client-registration-photo-preview').getByLabel('Fermer').click();
+    await expect(page.getByTestId('e2e-client-registration-photo-preview')).toHaveCount(0);
 
     await page.getByTestId('e2e-client-registration-collector').selectOption('COM001');
 

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import {
@@ -22,6 +22,8 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
   activateForm: FormGroup;
   currentDate = new Date();
   lastUpdate = new Date();
+  photoPreviewUrl: string | null = null;
+  photoPreviewTitle = '';
   private dateIntervalId?: ReturnType<typeof setInterval>;
 
   constructor(
@@ -92,6 +94,27 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
 
   closeDetail(): void {
     this.selected = null;
+    this.closePhotoPreview();
+  }
+
+  openPhotoPreview(url: string | null | undefined, title: string): void {
+    if (!url) {
+      return;
+    }
+    this.photoPreviewUrl = url;
+    this.photoPreviewTitle = title;
+  }
+
+  closePhotoPreview(): void {
+    this.photoPreviewUrl = null;
+    this.photoPreviewTitle = '';
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscapeKey(): void {
+    if (this.photoPreviewUrl) {
+      this.closePhotoPreview();
+    }
   }
 
   activate(): void {

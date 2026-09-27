@@ -80,6 +80,7 @@ public class CustomerRegistrationService {
         if (cardId != null) {
             client.setCardID(cardId);
         }
+        applyRegistrationLocation(client, request);
         client.setClientType(ClientType.CLIENT);
         client.setActivationStatus(ClientActivationStatus.PENDING);
         client.setCreditInProgress(false);
@@ -105,6 +106,21 @@ public class CustomerRegistrationService {
         }
         if (!StringUtils.hasText(request.getPin()) || request.getPin().length() < 4) {
             throw new CustomValidationException("Le code PIN doit contenir 4 à 6 chiffres.");
+        }
+    }
+
+    private void applyRegistrationLocation(Client client, CustomerRegisterRequest request) {
+        Double lat = request.getLatitude();
+        Double lng = request.getLongitude();
+        if (lat == null || lng == null) {
+            return;
+        }
+        client.setLatitude(lat);
+        client.setLongitude(lng);
+        if (StringUtils.hasText(request.getMll())) {
+            client.setMll(request.getMll().trim());
+        } else {
+            client.setMll("https://www.google.com/maps/search/?api=1&query=" + lat + "," + lng);
         }
     }
 

@@ -100,11 +100,28 @@
       <div class="detail-photos">
         <div>
           <span class="label">Profil</span>
-          <img *ngIf="selected.profilPhotoUrl" [src]="selected.profilPhotoUrl" alt="Photo profil" />
+          <button
+            *ngIf="selected.profilPhotoUrl"
+            type="button"
+            class="photo-thumb-btn"
+            (click)="openPhotoPreview(selected.profilPhotoUrl, 'Photo de profil')"
+            data-testid="e2e-client-registration-profil-photo"
+            aria-label="Agrandir la photo de profil">
+            <img [src]="selected.profilPhotoUrl" alt="Photo profil" />
+          </button>
+          <span *ngIf="!selected.profilPhotoUrl" class="muted">Non disponible</span>
         </div>
         <div>
           <span class="label">Pièce</span>
-          <img *ngIf="selected.cardPhotoUrl" [src]="selected.cardPhotoUrl" alt="Photo pièce" />
+          <button
+            *ngIf="selected.cardPhotoUrl"
+            type="button"
+            class="photo-thumb-btn"
+            (click)="openPhotoPreview(selected.cardPhotoUrl, 'Photo de la pièce')"
+            data-testid="e2e-client-registration-card-photo"
+            aria-label="Agrandir la photo de la pièce">
+            <img [src]="selected.cardPhotoUrl" alt="Photo pièce" />
+          </button>
           <span *ngIf="!selected.cardPhotoUrl" class="muted">Non fournie</span>
         </div>
       </div>
@@ -152,6 +169,30 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <div
+    class="photo-preview-overlay"
+    *ngIf="photoPreviewUrl"
+    (click)="closePhotoPreview()"
+    role="presentation"
+    data-testid="e2e-client-registration-photo-preview">
+    <div
+      class="photo-preview-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="registration-photo-preview-title"
+      (click)="$event.stopPropagation()">
+      <div class="photo-preview-header">
+        <h3 id="registration-photo-preview-title">{{ photoPreviewTitle }}</h3>
+        <button type="button" class="photo-preview-close" (click)="closePhotoPreview()" aria-label="Fermer">
+          ×
+        </button>
+      </div>
+      <div class="photo-preview-body">
+        <img [src]="photoPreviewUrl" [alt]="photoPreviewTitle" class="photo-preview-image" />
+      </div>
     </div>
   </div>
 </div>

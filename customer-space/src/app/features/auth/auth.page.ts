@@ -20,6 +20,11 @@ import {
   adultDateOfBirthValidator,
   underageErrorMessage,
 } from '../../shared/utils/adult-dob.validator';
+import { captureRegistrationLocation } from '../../shared/utils/registration-location';
+import {
+  pickProfilPhotoWithFaceValidation,
+  shouldUseHtmlFilePickerForPhoto,
+} from '../../shared/utils/profil-photo-face';
 
 /** Page Connexion / Inscription — wizard téléphone → PIN, OTP ou inscription. */
 @Component({
@@ -285,6 +290,28 @@ export class AuthPage implements ViewWillEnter {
     }));
   }
 
+  async onProfilPhotoClick(fileInput: HTMLInputElement): Promise<void> {
+    this.error = '';
+    if (shouldUseHtmlFilePickerForPhoto()) {
+      fileInput.click();
+      return;
+    }
+    this.isLoading = true;
+    try {
+      const result = await pickProfilPhotoWithFaceValidation();
+      this.profilPhotoDataUrl = result.dataUrl;
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : '';
+      if (message.toLowerCase().includes('cancel') || message.toLowerCase().includes('annul')) {
+        return;
+      }
+      this.error = message || 'Impossible de prendre une photo.';
+      this.profilPhotoDataUrl = '';
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
   onProfilPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -328,6 +355,18 @@ export class AuthPage implements ViewWillEnter {
       return;
     }
     const form = this.registerForm.value;
+    this.isLoading = true;
+    this.error = '';
+    let location;
+    try {
+      location = await captureRegistrationLocation();
+    } catch (e: unknown) {
+      this.error = e instanceof Error
+        ? e.message
+        : "Impossible d'obtenir la localisation. Activez le GPS et réessayez.";
+      this.isLoading = false;
+      return;
+    }
     await this.completeLogin(this.api.register({
       phone: this.phone,
       otpProofToken: this.otpProofToken,
@@ -339,6 +378,9 @@ export class AuthPage implements ViewWillEnter {
       occupation: form.occupation,
       profilPhoto: this.profilPhotoDataUrl,
       pin: this.registerPinForm.value.pin,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      mll: location.mll,
     }));
   }
 

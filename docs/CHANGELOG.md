@@ -9,6 +9,25 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.5.3] — 2026-09-27
+
+### Added
+
+- Inscription : capture GPS automatique (latitude, longitude, lien Maps) avec demande de permission Android.
+- Inscription native : validation qu’un visage est présent sur la photo de profil (ML Kit, comme l’app mobile).
+
+## Frontend — [2.23.2] — 2026-09-27
+
+### Added
+
+- Inscriptions clients : clic sur la photo de profil / pièce pour un aperçu agrandi.
+
+## Backend — [1.20.3] — 2026-09-27
+
+### Added
+
+- Inscription espace client : persistance optionnelle de `latitude` / `longitude` / `mll` à l’enregistrement.
+
 ## Customer-space — [0.5.2] — 2026-09-27
 
 ### Changed

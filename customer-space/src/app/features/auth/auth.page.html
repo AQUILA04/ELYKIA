@@ -92,8 +92,9 @@
           <span class="field-label">Photo de profil</span>
           <div class="photo-picker">
             <button type="button" class="photo-picker-btn"
-              (click)="profilPhotoInput.click()"
+              (click)="onProfilPhotoClick(profilPhotoInput)"
               data-testid="e2e-auth-register-photo-btn"
+              [disabled]="isLoading"
               [attr.aria-label]="profilPhotoDataUrl ? 'Changer la photo de profil' : 'Ajouter une photo de profil'">
               <img *ngIf="profilPhotoDataUrl" [src]="profilPhotoDataUrl" alt="" class="photo-preview" />
               <span *ngIf="!profilPhotoDataUrl" class="photo-placeholder" aria-hidden="true">
@@ -107,7 +108,7 @@
             <input #profilPhotoInput id="profilPhoto" type="file" accept="image/*" capture="user"
               class="photo-input-hidden"
               (change)="onProfilPhotoSelected($event)" data-testid="e2e-auth-register-photo" />
-            <p class="photo-hint">Format jpg ou png — visage bien visible</p>
+            <p class="photo-hint">Format jpg ou png — le visage doit être bien visible</p>
           </div>
         </div>
         <div class="field">

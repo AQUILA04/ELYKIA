@@ -54,6 +54,15 @@ public class CustomerRegisterRequest {
     @NotBlank
     private String profilPhoto;
 
+    /** Coordonnées GPS capturées à l'inscription (optionnelles si refus permission). */
+    private Double latitude;
+
+    private Double longitude;
+
+    /** Lien Google Maps dérivé (latitude,longitude). */
+    @Size(max = 512)
+    private String mll;
+
     @NotBlank
     @Pattern(regexp = "\\d{4,6}")
     private String pin;

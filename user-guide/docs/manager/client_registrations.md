@@ -19,7 +19,8 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 
 1. Cliquez sur **Voir** sur la ligne du client.
 2. Vérifiez la photo de profil, la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.
-3. Si un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.
+3. Cliquez sur une photo pour l’afficher en grand, puis fermez l’aperçu.
+4. Si un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.
 
 ---
 
@@ -46,7 +47,7 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 Un nouveau client qui saisit un numéro encore inconnu :
 
 1. Reçoit un code SMS pour confirmer son téléphone.
-2. Remplit sa fiche (prénom, nom, adresse, **votre zone**, date de naissance, occupation) et ajoute sa **photo de profil**. La date de naissance doit correspondre à un client majeur (18 ans ou plus).
+2. Remplit sa fiche (prénom, nom, adresse, **votre zone**, date de naissance, occupation) et ajoute sa **photo de profil** (le visage doit être bien visible). La date de naissance doit correspondre à un client majeur (18 ans ou plus). L’application enregistre automatiquement sa position lors de la validation.
 3. Crée son code PIN, puis se connecte.
 4. Complète son dossier (**Mon dossier**) avec le **type** et le **numéro** de pièce d’identité, plus la photo de la pièce.
 5. Peut déclarer un **dépôt initial** (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.

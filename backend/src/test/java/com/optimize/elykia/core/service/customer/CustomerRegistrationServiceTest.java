@@ -127,6 +127,43 @@ class CustomerRegistrationServiceTest {
     }
 
     @Test
+    void register_persistsGpsWhenProvided() {
+        CustomerRegisterRequest request = validRequest();
+        request.setLatitude(6.13145);
+        request.setLongitude(1.22267);
+        request.setMll("https://www.google.com/maps/search/?api=1&query=6.13145,1.22267");
+        doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456"))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(user("90123456")));
+        when(clientRepository.existsByPhone("90123456")).thenReturn(false);
+        when(clientRepository.saveAndFlush(any(Client.class))).thenAnswer(inv -> {
+            Client c = inv.getArgument(0);
+            assertEquals(6.13145, c.getLatitude());
+            assertEquals(1.22267, c.getLongitude());
+            assertTrue(c.getMll().contains("6.13145,1.22267"));
+            c.setId(55L);
+            return c;
+        });
+        when(clientRepository.findById(55L)).thenAnswer(inv -> {
+            Client c = new Client();
+            c.setId(55L);
+            c.setFirstname("Ada");
+            c.setLastname("Lovelace");
+            c.setPhone("90123456");
+            c.setActivationStatus(ClientActivationStatus.PENDING);
+            return Optional.of(c);
+        });
+        Authentication auth = mock(Authentication.class);
+        when(authenticationManager.authenticate(any())).thenReturn(auth);
+        when(jwtUtils.generateJwtToken(auth)).thenReturn("jwt-token");
+
+        service.register(request);
+
+        verify(clientRepository).saveAndFlush(any(Client.class));
+    }
+
+    @Test
     void register_rejectsExistingCardIdWhenProvided() {
         CustomerRegisterRequest request = validRequest();
         request.setCardType("CENI");
