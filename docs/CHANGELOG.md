@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.21.2] — 2026-09-28
+
+### Fixed
+
+- Validation d'une déclaration de paiement crédit Espace Client : crée désormais un **recouvrement** (`credit_timeline`) et met à jour le solde / rapport journalier (comme les cotisations tontine). Colonnes `validated_by`, `validated_at`, `credit_timeline_id`.
+
 ## Customer-space — [0.6.6] — 2026-09-28
 
 ### Fixed
