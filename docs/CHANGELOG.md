@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.12] — 2026-09-28
+
+### Fixed
+
+- Pipeline APK : application des icônes launcher sans `ffmpeg` en CI (pack `resources/android-icons/` pré-généré).
+
 ## Customer-space — [0.6.11] — 2026-09-28
 
 ### Changed
