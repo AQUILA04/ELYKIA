@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.10] — 2026-09-28
+
+### Changed
+
+- Favicon et apple-touch-icon remplacés par le logo ELYKIA (or / bleu).
+
 ## Customer-space — [0.6.9] — 2026-09-28
 
 ### Changed
