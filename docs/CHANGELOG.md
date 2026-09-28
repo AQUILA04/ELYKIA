@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.5] — 2026-09-28
+
+### Fixed
+
+- Catalogue : libellé accessible associé au champ de recherche (Sonar Web:S6853).
+
 ## Customer-space — [0.6.4] — 2026-09-28
 
 ### Changed
