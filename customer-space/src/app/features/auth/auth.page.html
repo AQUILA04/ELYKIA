@@ -1,9 +1,15 @@
 <ion-content class="elyk-page-decor" data-testid="e2e-auth-page">
   <app-elyk-decor-header
+    class="auth-decor"
     decor="ribbons"
-    [title]="headerTitle"
+    [title]="''"
     [showBack]="step !== 'phone'"
     (back)="goBack()">
+    <div class="auth-brand" aria-label="AMENOUVEVE-YAVEH · Elykia · Espace Client">
+      <p class="auth-brand__company">AMENOUVEVE-YAVEH</p>
+      <p class="auth-brand__app">Elykia</p>
+      <p class="auth-brand__module">Espace Client</p>
+    </div>
   </app-elyk-decor-header>
 
   <div class="elyk-page-decor__body">

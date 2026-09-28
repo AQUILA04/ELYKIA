@@ -54,11 +54,14 @@ describe('AuthPage', () => {
     expect(fixture.componentInstance.step).toBe('phone');
   });
 
-  it('renders Type A decor header and welcome copy on phone step', () => {
+  it('renders Type A decor header branding and welcome copy on phone step', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('app-elyk-decor-header')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('app-elyk-overlap-card')).toBeTruthy();
     expect(fixture.nativeElement.querySelector('app-elyk-outlined-field')).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain('AMENOUVEVE-YAVEH');
+    expect(fixture.nativeElement.textContent).toContain('Elykia');
+    expect(fixture.nativeElement.textContent).toContain('Espace Client');
     expect(fixture.nativeElement.textContent).toContain('Bon retour !');
     expect(fixture.nativeElement.textContent).toContain('Connectez-vous à votre espace');
   });

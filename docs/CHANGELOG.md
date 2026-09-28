@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.9] — 2026-09-28
+
+### Changed
+
+- Header **Connexion** : branding AMENOUVEVE-YAVEH / Elykia / Espace Client (hiérarchie visuelle entreprise > app > module).
+
 ## Customer-space — [0.6.8] — 2026-09-28
 
 ### Changed

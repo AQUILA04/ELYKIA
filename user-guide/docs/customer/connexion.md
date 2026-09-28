@@ -4,8 +4,8 @@ Cet écran vous permet d’ouvrir votre Espace Client avec votre numéro de tél
 
 ## Se connecter
 
-1. Ouvrez l’application **Espace Client**.
-2. Sur l’écran **Connexion**, saisissez votre **numéro de téléphone**.
+1. Ouvrez l’application **Elykia — Espace Client**.
+2. Sur l’écran avec **AMENOUVEVE-YAVEH**, **Elykia** et **Espace Client**, saisissez votre **numéro de téléphone**.
 3. Appuyez sur **Continuer**.
 4. Saisissez votre **code PIN**, puis appuyez sur **Se connecter**.
 
