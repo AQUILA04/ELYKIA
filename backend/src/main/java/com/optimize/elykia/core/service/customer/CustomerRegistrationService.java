@@ -8,6 +8,7 @@ import com.optimize.common.securities.repository.UserRepository;
 import com.optimize.common.securities.security.jwt.JwtUtils;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientActivationStatus;
+import com.optimize.elykia.client.enumeration.ClientRegistrationSource;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.client.service.ClientService;
@@ -77,6 +78,7 @@ public class CustomerRegistrationService {
         client.setCardID(request.getCardID().trim());
         client.setClientType(ClientType.CLIENT);
         client.setActivationStatus(ClientActivationStatus.PENDING);
+        client.setRegistrationSource(ClientRegistrationSource.CUSTOMER_SPACE);
         client.setCreditInProgress(false);
         client.setCreatedBy(username);
         client.setState(State.ENABLED);
@@ -84,6 +86,7 @@ public class CustomerRegistrationService {
         Client saved = clientRepository.saveAndFlush(client);
         clientService.uploadClientPhotos(saved.getId(), profilBytes, null);
         saved = clientRepository.findById(saved.getId()).orElse(saved);
+        clientService.evictClientListCaches();
 
         provisioningService.provisionSelfRegistered(saved, request.getPin());
 

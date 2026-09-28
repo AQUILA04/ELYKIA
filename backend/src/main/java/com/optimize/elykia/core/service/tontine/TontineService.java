@@ -18,6 +18,7 @@ import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistory;
 import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistoryArchive;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
+import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
 import com.optimize.elykia.core.enumaration.TontineMemberUpdateScope;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.event.TontineCollectionCancelledEvent;
@@ -228,6 +229,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     public TontineMemberRespDto registerMember(TontineMemberDto dto) {
+        return registerMember(dto, TontineMemberRegistrationSource.STAFF);
+    }
+
+    public TontineMemberRespDto registerMember(TontineMemberDto dto, TontineMemberRegistrationSource registrationSource) {
         assertTontineWritesAllowed();
         Client client = clientService.getById(dto.getClientId());
         TontineSession activeSession = getActiveSession();
@@ -240,11 +245,16 @@ public class TontineService extends GenericService<TontineMember, Long> {
                     "Ce client est déjà enregistré pour la session de tontine de cette année.");
         }
 
+        TontineMemberRegistrationSource source = registrationSource != null
+                ? registrationSource
+                : TontineMemberRegistrationSource.STAFF;
+
         TontineMember newMember = new TontineMember();
         newMember.setClient(client);
         newMember.setTontineSession(activeSession);
         newMember.setFrequency(dto.getFrequency());
         newMember.setRegistrationDate(LocalDateTime.now());
+        newMember.setRegistrationSource(source);
         newMember.setAmount(dto.getAmount());
         newMember.setOperationConsentCode(dto.getOperationConsentCode());
         newMember.setSyncConsentCode(dto.getSyncConsentCode());
@@ -752,7 +762,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     }
 
     public Page<TontineMemberRespDto> getMembers(User currentUser, String search, String deliveryStatus, String commercial,
-                                                 Boolean carnetVerified, Pageable pageable) {
+                                                 Boolean carnetVerified, String registrationSource, Pageable pageable) {
         int currentYear = LocalDate.now().getYear();
 
 
@@ -772,17 +782,33 @@ public class TontineService extends GenericService<TontineMember, Long> {
             }
         }
 
+        TontineMemberRegistrationSource registrationSourceFilter = null;
+        if (StringUtils.hasText(registrationSource)) {
+            try {
+                registrationSourceFilter = TontineMemberRegistrationSource.valueOf(registrationSource.trim().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // Ignore invalid source
+            }
+        }
+
         // Clean up search string
         String searchFilter = StringUtils.hasText(search) ? search : null;
         Page<TontineMemberRespDto> memberRespDtos= null;
         if (Objects.isNull(searchFilter)) {
-            memberRespDtos= getRepository().findMembersDto(currentYear, commercialFilter, statusFilter, carnetVerified, pageable);
+            memberRespDtos= getRepository().findMembersDto(currentYear, commercialFilter, statusFilter, carnetVerified,
+                    registrationSourceFilter, pageable);
             return memberRespDtos;
         } else {
-            memberRespDtos = getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter, statusFilter, carnetVerified, pageable);
+            memberRespDtos = getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter,
+                    statusFilter, carnetVerified, registrationSourceFilter, pageable);
 
             return memberRespDtos;
         }
+    }
+
+    public Page<TontineMemberRespDto> getMembers(User currentUser, String search, String deliveryStatus, String commercial,
+                                                 Boolean carnetVerified, Pageable pageable) {
+        return getMembers(currentUser, search, deliveryStatus, commercial, carnetVerified, null, pageable);
     }
 
     public List<TontineMemberAmountHistoryRespDto> getMembersHistory(String commercial) {

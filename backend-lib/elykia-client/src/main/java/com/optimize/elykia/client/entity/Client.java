@@ -7,6 +7,7 @@ import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.client.enumeration.AccountStatus;
 import com.optimize.elykia.client.enumeration.ClientActivationStatus;
+import com.optimize.elykia.client.enumeration.ClientRegistrationSource;
 import com.optimize.elykia.client.enumeration.ClientType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -85,6 +86,10 @@ public class Client extends Auditable<String> {
     @Enumerated(EnumType.STRING)
     @Column(name = "activation_status", nullable = false, length = 20)
     private ClientActivationStatus activationStatus = ClientActivationStatus.ACTIVE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "registration_source", nullable = false, length = 30)
+    private ClientRegistrationSource registrationSource = ClientRegistrationSource.STAFF;
 
     @Column(name = "activation_rejection_reason", length = 500)
     private String activationRejectionReason;

@@ -15,6 +15,7 @@ export class TontineFilterBarComponent implements OnInit {
   currentSelectedStatus: TontineMemberDeliveryStatus | 'ALL' = 'ALL';
   currentSelectedCommercial: string = 'ALL';
   currentCarnetStatus: 'ALL' | 'VERIFIED' | 'PENDING' = 'ALL';
+  currentRegistrationSource: 'ALL' | 'CUSTOMER_SPACE' | 'STAFF' = 'ALL';
   commerciaux: any[] = [];
 
   @Output() filterChanged = new EventEmitter<TontineFilterBarParams & { commercial?: string }>();
@@ -51,6 +52,11 @@ export class TontineFilterBarComponent implements OnInit {
     this.emitFilterChanges();
   }
 
+  onRegistrationSourceChange(value: 'ALL' | 'CUSTOMER_SPACE' | 'STAFF'): void {
+    this.currentRegistrationSource = value;
+    this.emitFilterChanges();
+  }
+
   onCommercialChange(username: string) {
     this.currentSelectedCommercial = username;
     this.emitFilterChanges();
@@ -61,6 +67,7 @@ export class TontineFilterBarComponent implements OnInit {
     this.currentSelectedStatus = 'ALL';
     this.currentSelectedCommercial = 'ALL';
     this.currentCarnetStatus = 'ALL';
+    this.currentRegistrationSource = 'ALL';
     this.emitFilterChanges();
   }
 
@@ -88,7 +95,10 @@ export class TontineFilterBarComponent implements OnInit {
       commercial: this.currentSelectedCommercial !== 'ALL' ? this.currentSelectedCommercial : undefined,
       carnetVerified: this.currentCarnetStatus === 'ALL'
         ? undefined
-        : this.currentCarnetStatus === 'VERIFIED'
+        : this.currentCarnetStatus === 'VERIFIED',
+      registrationSource: this.currentRegistrationSource !== 'ALL'
+        ? this.currentRegistrationSource
+        : undefined
     });
   }
 }

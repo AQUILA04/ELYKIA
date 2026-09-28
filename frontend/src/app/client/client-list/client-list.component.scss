@@ -337,7 +337,27 @@
       color: #ffffff;
       box-shadow: 0 1px 3px rgba(22, 163, 74, 0.25);
     }
+
+    &.pill-btn-self.active {
+      background: #7c3aed;
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(124, 58, 237, 0.25);
+    }
   }
+}
+
+.client-page .badge.badge-self {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: #f3e8ff;
+  color: #6d28d9;
+  border: 1px solid #e9d5ff;
+  vertical-align: middle;
 }
 
 .client-page .filter-actions {

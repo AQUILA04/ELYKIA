@@ -14,6 +14,7 @@ import {
   MOCK_SESSION,
   MOCK_TONTINE_DETAIL,
   MOCK_TONTINE_PAYMENTS,
+  MOCK_TONTINE_SESSION,
   MOCK_TONTINES,
   MOCK_TOP_ARTICLE_TYPES,
 } from './mock-customer-api';
@@ -139,6 +140,31 @@ export async function mockCustomerApi(page: Page): Promise<void> {
 
     if (url.match(/\/tontine\/contributions\/[^/]+\/payments/) && method === 'GET') {
       await route.fulfill(jsonResponse(MOCK_TONTINE_PAYMENTS));
+      return;
+    }
+
+    if (url.endsWith('/tontine/session/current') && method === 'GET') {
+      await route.fulfill(jsonResponse(MOCK_TONTINE_SESSION));
+      return;
+    }
+
+    if (url.endsWith('/tontine/mobile-money-recipients') && method === 'GET') {
+      await route.fulfill(jsonResponse({
+        collector: 'COM_TONTINE',
+        collectorName: 'Commercial Tontine',
+        mixxNumber: '90001111',
+        moovNumber: '90002222',
+      }));
+      return;
+    }
+
+    if (url.endsWith('/tontine/join') && method === 'POST') {
+      await route.fulfill(jsonResponse({
+        memberId: '88',
+        sessionYear: 2026,
+        dailyStake: 200,
+        initialPaymentStatus: null,
+      }, 201));
       return;
     }
 

@@ -1,0 +1,103 @@
+:host {
+  display: block;
+  position: relative;
+  z-index: 1;
+}
+
+.elyk-page-header {
+  position: relative;
+  min-height: 200px;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: 48px;
+  border-bottom-left-radius: var(--elyk-header-radius);
+  border-bottom-right-radius: var(--elyk-header-radius);
+  overflow: hidden;
+}
+
+.elyk-page-header__bg {
+  position: absolute;
+  inset: 0;
+  background: var(--elyk-header-gradient);
+}
+
+.elyk-page-header__pattern {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: auto;
+  min-height: 55%;
+  object-fit: cover;
+  object-position: bottom center;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.9;
+}
+
+.elyk-page-header__bar {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: var(--elyk-space-2) var(--elyk-space-4) 0;
+}
+
+.elyk-page-header__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+  background: transparent;
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+
+  &:active {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.elyk-page-header__end {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.elyk-page-header__hero {
+  position: relative;
+  z-index: 2;
+  padding: var(--elyk-space-3) var(--elyk-space-5) 0;
+}
+
+.elyk-page-header__eyebrow {
+  margin: 0 0 var(--elyk-space-2);
+  font-size: var(--elyk-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--elyk-gold-light);
+}
+
+.elyk-page-header__title {
+  margin: 0;
+  font-family: 'Playfair Display', serif;
+  font-size: var(--elyk-text-2xl);
+  font-weight: 700;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.elyk-page-header__subtitle {
+  margin: var(--elyk-space-2) 0 0;
+  font-size: var(--elyk-text-sm);
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.78);
+  max-width: 28em;
+}

@@ -182,6 +182,29 @@ export const MOCK_TONTINE_PAYMENTS = {
   totalPages: 1,
 };
 
+export const MOCK_TONTINE_SESSION = {
+  available: true,
+  year: 2026,
+  startDate: '2026-01-01',
+  endDate: '2026-12-31',
+  status: 'ACTIVE',
+  joinable: false,
+  alreadyMember: true,
+  memberId: '77',
+  minDailyStake: 100,
+};
+
+export const MOCK_TONTINE_SESSION_JOINABLE = {
+  available: true,
+  year: 2026,
+  startDate: '2026-02-01',
+  endDate: '2026-11-30',
+  status: 'ACTIVE',
+  joinable: true,
+  alreadyMember: false,
+  minDailyStake: 100,
+};
+
 export function jsonResponse(body: unknown, status = 200) {
   return {
     status,

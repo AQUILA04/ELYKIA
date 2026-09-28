@@ -227,3 +227,124 @@ ion-title {
 .elyk-animate {
   animation: elykFadeUp 0.35s ease both;
 }
+
+// ─── Design system v2 (pilote tontine) ───
+
+.elyk-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: var(--elyk-text-xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.elyk-chip--success {
+  background: var(--elyk-green-soft);
+  color: #15803d;
+}
+
+.elyk-chip--gold {
+  background: var(--elyk-gold-soft);
+  color: var(--elyk-gold);
+}
+
+.elyk-chip--neutral {
+  background: var(--elyk-surface-muted);
+  color: var(--elyk-gray-text);
+}
+
+.elyk-section-head {
+  margin: var(--elyk-space-6) 0 var(--elyk-space-3);
+
+  h2 {
+    margin: 0;
+    font-size: var(--elyk-text-lg);
+    font-weight: 700;
+    color: var(--elyk-navy);
+  }
+
+  p {
+    margin: var(--elyk-space-1) 0 0;
+    font-size: var(--elyk-text-sm);
+    color: var(--elyk-gray-text);
+  }
+}
+
+.elyk-steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--elyk-space-4);
+}
+
+.elyk-step {
+  display: flex;
+  gap: var(--elyk-space-3);
+  align-items: flex-start;
+
+  .elyk-step__index {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--elyk-gold-soft);
+    color: var(--elyk-gold);
+    font-size: var(--elyk-text-sm);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .elyk-step__body {
+    flex: 1;
+
+    h3 {
+      margin: 0 0 2px;
+      font-size: var(--elyk-text-md);
+      font-weight: 600;
+      color: var(--elyk-navy);
+    }
+
+    p {
+      margin: 0;
+      font-size: var(--elyk-text-sm);
+      color: var(--elyk-gray-text);
+      line-height: 1.45;
+    }
+  }
+}
+
+.elyk-progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--elyk-surface-muted);
+  overflow: hidden;
+
+  .elyk-progress__bar {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--elyk-gold) 0%, var(--elyk-gold-light) 100%);
+    transition: width 0.4s ease;
+  }
+}
+
+.elyk-skeleton-card {
+  background: var(--elyk-white);
+  border-radius: var(--elyk-radius-card);
+  box-shadow: var(--elyk-shadow-soft);
+  padding: var(--elyk-space-5);
+  margin-bottom: var(--elyk-space-3);
+}
+
+.elyk-sticky-cta {
+  position: sticky;
+  bottom: calc(64px + env(safe-area-inset-bottom));
+  z-index: 5;
+  padding: var(--elyk-space-3) var(--elyk-space-4);
+  background: linear-gradient(180deg, rgba(250, 246, 238, 0) 0%, var(--elyk-cream) 35%);
+}
+

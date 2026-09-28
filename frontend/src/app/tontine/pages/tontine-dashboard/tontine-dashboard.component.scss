@@ -672,6 +672,20 @@
   margin-top: 2px;
 }
 
+.tontine-page .badge.badge-self {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  background: #f3e8ff;
+  color: #6d28d9;
+  border: 1px solid #e9d5ff;
+}
+
 .tontine-page .col-amount {
   font-family: 'DM Mono', monospace;
   font-size: 13px;

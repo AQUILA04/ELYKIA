@@ -175,7 +175,7 @@ Cet onglet centralise les règlements d'échéances de vente à crédit :
 ---
 
 ### C. Traitement des cotisations tontine (Onglet Cotisations tontine)
-Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine :
+Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine, y compris le **premier paiement** déclaré par un nouveau membre qui s’est inscrit depuis l’Espace Client :
 
 | Information affichée | Description fonctionnelle |
 |---|---|

@@ -15,6 +15,7 @@ import com.optimize.elykia.client.entity.Account;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.entity.PhotoStore;
 import com.optimize.elykia.client.enumeration.AccountStatus;
+import com.optimize.elykia.client.enumeration.ClientRegistrationSource;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.enumeration.PhotoType;
 import com.optimize.elykia.client.event.ClientCollectorChangeRecord;
@@ -610,18 +611,25 @@ public class ClientService extends GenericService<Client, Long> {
                         + conflict.getFirstname() + " " + conflict.getLastname() + ")");
     }
 
-    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(com.optimize.elykia.client.config.ClientCacheKeyHelper).commercialFilterKey(#username) + '-' + T(java.util.Objects).toString(#collectorType, '') + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
-    public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, String collectorType, Pageable pageable) {
+    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(com.optimize.elykia.client.config.ClientCacheKeyHelper).commercialFilterKey(#username) + '-' + T(java.util.Objects).toString(#collectorType, '') + '-' + T(java.util.Objects).toString(#registrationSource, '') + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
+    public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, String collectorType,
+            ClientRegistrationSource registrationSource, Pageable pageable) {
         return getRepository().findClientsDto(
                 ClientCacheKeyHelper.resolveCommercialUsername(username),
                 tontine,
                 mobile,
                 collectorType,
+                registrationSource,
                 pageable);
     }
 
+    public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, String collectorType,
+            Pageable pageable) {
+        return getAll(username, tontine, mobile, collectorType, null, pageable);
+    }
+
     public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, Pageable pageable) {
-        return getAll(username, tontine, mobile, null, pageable);
+        return getAll(username, tontine, mobile, null, null, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -935,12 +943,18 @@ public class ClientService extends GenericService<Client, Long> {
         return Boolean.TRUE;
     }
 
-    public Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType, Pageable pageable) {
-        return getRepository().elasticsearch(keyword, username, tontine, collectorType, pageable);
+    public Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType,
+            ClientRegistrationSource registrationSource, Pageable pageable) {
+        return getRepository().elasticsearch(keyword, username, tontine, collectorType, registrationSource, pageable);
+    }
+
+    public Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType,
+            Pageable pageable) {
+        return elasticsearch(keyword, username, tontine, collectorType, null, pageable);
     }
 
     public Page<Client> elasticsearch(String keyword, String username, Boolean tontine, Pageable pageable) {
-        return elasticsearch(keyword, username, tontine, null, pageable);
+        return elasticsearch(keyword, username, tontine, null, null, pageable);
     }
 
     @Transactional

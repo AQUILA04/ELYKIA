@@ -40,6 +40,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/tontines/tontines.page').then(m => m.TontinesPage),
   },
   {
+    path: 'tontines/join',
+    canActivate: [CustomerAuthGuard],
+    loadComponent: () => import('./features/tontine-join/tontine-join.page').then(m => m.TontineJoinPage),
+  },
+  {
     path: 'tontines/:id',
     canActivate: [CustomerAuthGuard],
     loadComponent: () => import('./features/tontine-detail/tontine-detail.page').then(m => m.TontineDetailPage),

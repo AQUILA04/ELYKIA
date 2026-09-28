@@ -31,6 +31,29 @@
   --elyk-header-gradient: linear-gradient(180deg, #0D1B2A 0%, #1A2E42 100%);
   --elyk-card-overlap: -56px;
 
+  // Design system v2 (pilote tontine — Type C)
+  --elyk-space-1: 4px;
+  --elyk-space-2: 8px;
+  --elyk-space-3: 12px;
+  --elyk-space-4: 16px;
+  --elyk-space-5: 20px;
+  --elyk-space-6: 24px;
+  --elyk-space-7: 32px;
+  --elyk-space-8: 40px;
+
+  --elyk-text-xs: 11px;
+  --elyk-text-sm: 13px;
+  --elyk-text-md: 15px;
+  --elyk-text-lg: 18px;
+  --elyk-text-xl: 22px;
+  --elyk-text-2xl: 28px;
+
+  --elyk-gold-soft: #FBF1DC;
+  --elyk-green-soft: #E8F8EF;
+  --elyk-surface-muted: #F3F0E8;
+  --elyk-header-radius: 28px;
+  --elyk-shadow-soft: 0 8px 24px rgba(13, 27, 42, 0.08);
+
   // Ionic overrides
   --ion-background-color: var(--elyk-cream);
   --ion-text-color: var(--elyk-navy);

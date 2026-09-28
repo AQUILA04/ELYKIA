@@ -107,6 +107,28 @@
           </button>
         </div>
       </div>
+
+      <div class="filter-field filter-field-registration-source">
+        <span class="toolbar-label">Origine</span>
+        <div class="collector-type-pills" role="group" aria-label="Origine d'inscription">
+          <button
+            type="button"
+            class="pill-btn"
+            [class.active]="selectedRegistrationSource === 'ALL'"
+            (click)="onRegistrationSourceChange('ALL')"
+            data-testid="e2e-client-origin-all">
+            Tous
+          </button>
+          <button
+            type="button"
+            class="pill-btn pill-btn-self"
+            [class.active]="selectedRegistrationSource === 'CUSTOMER_SPACE'"
+            (click)="onRegistrationSourceChange('CUSTOMER_SPACE')"
+            data-testid="e2e-client-origin-self">
+            Espace client
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="filter-actions">
@@ -204,6 +226,7 @@
             <td>
               <a class="col-client-link" [routerLink]="['/client/view', client.id]">{{ client.lastname }}</a>
               <span *ngIf="dualCreditEnabled && client.businessCreditAuthorized" class="badge badge-success ml-1" title="Crédit business autorisé">B</span>
+              <span *ngIf="isSelfRegistered(client)" class="badge badge-self ml-1" title="Inscrit via l'Espace client">Espace client</span>
             </td>
             <td><span class="col-client">{{ client.firstname }}</span></td>
             <td>{{ client.address || client.quarter || '—' }}</td>
@@ -241,6 +264,7 @@
             </ng-container>
             <span class="mobile-card-ref">#{{ (currentPage * pageSize) + (i + 1) }}</span>
             <span *ngIf="dualCreditEnabled && client.businessCreditAuthorized" class="badge badge-success" title="Crédit business autorisé">B</span>
+            <span *ngIf="isSelfRegistered(client)" class="badge badge-self" title="Inscrit via l'Espace client">Espace client</span>
           </div>
           <a class="mobile-card-client" [routerLink]="['/client/view', client.id]">
             {{ client.lastname }} {{ client.firstname }}

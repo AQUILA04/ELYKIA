@@ -1,0 +1,59 @@
+<div
+  class="mm-recipients"
+  *ngIf="loading"
+  [attr.data-testid]="testIdPrefix + '-loading'">
+  <ion-spinner name="crescent"></ion-spinner>
+  <span>Chargement des numéros de paiement…</span>
+</div>
+
+<div class="mm-recipients mm-recipients--error" *ngIf="!loading && error">
+  <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+  <p>{{ error }}</p>
+</div>
+
+<div
+  class="mm-recipients"
+  *ngIf="!loading && !error && hasRecipientNumbers()"
+  [attr.data-testid]="testIdPrefix">
+  <h3>Effectuez votre transfert vers :</h3>
+  <p class="mm-recipients__collector" *ngIf="recipients?.collectorName || recipients?.collector">
+    Commercial tontine :
+    <strong>{{ recipients?.collectorName || recipients?.collector }}</strong>
+  </p>
+
+  <div
+    class="mm-recipients__row"
+    *ngIf="recipients?.mixxNumber"
+    [attr.data-testid]="testIdPrefix + '-mixx'">
+    <div class="mm-recipients__info">
+      <span class="mm-recipients__label">Mixx by YAS</span>
+      <span class="mm-recipients__number">{{ recipients?.mixxNumber }}</span>
+    </div>
+    <button
+      type="button"
+      class="mm-recipients__copy"
+      aria-label="Copier le numéro Mixx by YAS"
+      [attr.data-testid]="testIdPrefix + '-mixx-copy'"
+      (click)="copyNumber(recipients?.mixxNumber, 'Mixx by YAS')">
+      <ion-icon name="copy-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+
+  <div
+    class="mm-recipients__row"
+    *ngIf="recipients?.moovNumber"
+    [attr.data-testid]="testIdPrefix + '-moov'">
+    <div class="mm-recipients__info">
+      <span class="mm-recipients__label">Moov Money</span>
+      <span class="mm-recipients__number">{{ recipients?.moovNumber }}</span>
+    </div>
+    <button
+      type="button"
+      class="mm-recipients__copy"
+      aria-label="Copier le numéro Moov Money"
+      [attr.data-testid]="testIdPrefix + '-moov-copy'"
+      (click)="copyNumber(recipients?.moovNumber, 'Moov Money')">
+      <ion-icon name="copy-outline" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+</div>

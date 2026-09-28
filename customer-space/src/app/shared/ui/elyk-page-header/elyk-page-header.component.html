@@ -1,0 +1,30 @@
+<header class="elyk-page-header" data-testid="e2e-elyk-page-header">
+  <div class="elyk-page-header__bg" aria-hidden="true">
+    <img
+      class="elyk-page-header__pattern"
+      src="assets/decor/header-grid.svg"
+      alt=""
+    />
+  </div>
+
+  <div class="elyk-page-header__bar">
+    <button
+      *ngIf="showBack"
+      type="button"
+      class="elyk-page-header__back"
+      aria-label="Retour"
+      data-testid="e2e-elyk-page-header-back"
+      (click)="onBack()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+    </button>
+    <div class="elyk-page-header__end">
+      <ng-content select="[slot=end]"></ng-content>
+    </div>
+  </div>
+
+  <div class="elyk-page-header__hero">
+    <p *ngIf="eyebrow" class="elyk-page-header__eyebrow">{{ eyebrow }}</p>
+    <h1 *ngIf="title" class="elyk-page-header__title">{{ title }}</h1>
+    <p *ngIf="subtitle" class="elyk-page-header__subtitle">{{ subtitle }}</p>
+  </div>
+</header>

@@ -5,6 +5,7 @@ import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
+import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
@@ -27,7 +28,9 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                                    Double totalDeliveryCollections,
                                    Boolean carnetVerified,
                                    LocalDateTime carnetVerifiedAt,
-                                   String carnetVerifiedBy
+                                   String carnetVerifiedBy,
+                                   TontineMemberRegistrationSource registrationSource,
+                                   Boolean selfRegistered
                                    ) {
 
     public static TontineMemberRespDto fromId(Long id) {
@@ -35,13 +38,16 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
             return null;
         }
 
-        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public static TontineMemberRespDto fromTontineMember(TontineMember member) {
         if (Objects.isNull(member)) {
             return null;
         }
+        TontineMemberRegistrationSource source = member.getRegistrationSource() != null
+                ? member.getRegistrationSource()
+                : TontineMemberRegistrationSource.STAFF;
         return new TontineMemberRespDto(member.getId(), member.getTontineSession(), ClientRespDto.fromClient(member.getClient()),
                 member.getTotalContribution(), member.getDeliveryStatus(), member.getRegistrationDate(), TontineDeliveryRespDto.fromTontineDelivery(member.getDelivery()), member.getFrequency(),
                 member.getAmount(), member.getNotes(), member.getSocietyShare(), member.getAvailableContribution(),
@@ -49,7 +55,9 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 member.getTotalDeliveryCollections(),
                 Boolean.TRUE.equals(member.getCarnetVerified()),
                 member.getCarnetVerifiedAt(),
-                member.getCarnetVerifiedBy());
+                member.getCarnetVerifiedBy(),
+                source,
+                source == TontineMemberRegistrationSource.CUSTOMER_SPACE);
     }
 
     public static Page<TontineMemberRespDto> fromTontineMembers(Page<TontineMember> members) {

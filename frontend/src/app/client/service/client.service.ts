@@ -38,6 +38,8 @@ export interface Client {
   profilPhoto?: string;
   latitude?: number;
   longitude?: number;
+  /** STAFF | CUSTOMER_SPACE — origine d'inscription */
+  registrationSource?: 'STAFF' | 'CUSTOMER_SPACE';
 }
 
 // #### INTERFACE NEWCLIENTDATA MISE À JOUR ####
@@ -110,7 +112,16 @@ export class ClientService {
     return headers;
   }
 
-  getClients(page: number, size: number, sort: string, username: any, search: string = '', tontine = false, collectorType?: string): Observable<any> {
+  getClients(
+    page: number,
+    size: number,
+    sort: string,
+    username: any,
+    search: string = '',
+    tontine = false,
+    collectorType?: string,
+    registrationSource?: 'STAFF' | 'CUSTOMER_SPACE' | 'ALL' | null
+  ): Observable<any> {
     const headers = this.getHeader();
     let params = new HttpParams()
       .set('page', page.toString())
@@ -121,6 +132,10 @@ export class ClientService {
 
     if (collectorType && collectorType !== 'ALL') {
       params = params.set('collectorType', collectorType);
+    }
+
+    if (registrationSource && registrationSource !== 'ALL') {
+      params = params.set('registrationSource', registrationSource);
     }
 
     // Si une recherche est en cours, on utilise l'endpoint POST /elasticsearch

@@ -670,7 +670,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                c.type, c.dailyPaid, c.clientType, c.parent.id, c.updatable, c.reference,
                c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference,
                null,
-               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.businessCreditInProgress, cl.businessCreditAuthorized, cl.businessCreditAuthorizedBy, cl.businessCreditAuthorizedAt, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate, cl.profilPhotoThumbUrl, cl.cardPhotoThumbUrl),
+               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.businessCreditInProgress, cl.businessCreditAuthorized, cl.businessCreditAuthorizedBy, cl.businessCreditAuthorizedAt, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate, cl.profilPhotoThumbUrl, cl.cardPhotoThumbUrl, cl.registrationSource),
                c.operationConsentCode, c.confirmedAmount, c.syncConsentCode)
            FROM Credit c
            LEFT JOIN c.client cl
@@ -694,7 +694,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                c.type, c.dailyPaid, c.clientType, c.parent.id, c.updatable, c.reference,
                c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference,
                null,
-               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.businessCreditInProgress, cl.businessCreditAuthorized, cl.businessCreditAuthorizedBy, cl.businessCreditAuthorizedAt, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate, cl.profilPhotoThumbUrl, cl.cardPhotoThumbUrl),
+               new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.businessCreditInProgress, cl.businessCreditAuthorized, cl.businessCreditAuthorizedBy, cl.businessCreditAuthorizedAt, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate, cl.profilPhotoThumbUrl, cl.cardPhotoThumbUrl, cl.registrationSource),
                c.operationConsentCode, c.confirmedAmount, c.syncConsentCode)
            FROM Credit c
            LEFT JOIN c.client cl
