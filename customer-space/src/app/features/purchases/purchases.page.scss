@@ -2,13 +2,6 @@
   --background: var(--elyk-cream);
 }
 
-.purchases-body {
-  position: relative;
-  z-index: 2;
-  margin-top: -40px;
-  padding: 0 var(--elyk-space-4) calc(88px + env(safe-area-inset-bottom));
-}
-
 .filter-card {
   display: flex;
   gap: var(--elyk-space-2);
@@ -121,30 +114,4 @@
   color: var(--elyk-gray-text);
   font-size: 18px;
   flex-shrink: 0;
-}
-
-.empty-state {
-  background: var(--elyk-white);
-  border-radius: var(--elyk-radius-card);
-  box-shadow: var(--elyk-shadow-soft);
-  padding: var(--elyk-space-8) var(--elyk-space-5);
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 56px;
-  color: var(--elyk-gold);
-  margin-bottom: var(--elyk-space-3);
-}
-
-.empty-title {
-  margin: 0 0 var(--elyk-space-2);
-  font-weight: 700;
-  color: var(--elyk-navy);
-}
-
-.empty-sub {
-  margin: 0;
-  font-size: var(--elyk-text-sm);
-  color: var(--elyk-gray-text);
 }

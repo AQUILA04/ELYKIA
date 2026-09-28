@@ -8,7 +8,7 @@
     </a>
   </app-elyk-page-header>
 
-  <div class="dashboard-body">
+  <div class="dashboard-body elyk-typec-body">
     <ng-container *ngIf="!isLoading && dashboard && !loadError">
       <div class="pending-banner elyk-animate" *ngIf="dashboard.activationStatus === 'PENDING'" data-testid="e2e-dashboard-pending">
         <ion-icon name="hourglass-outline" aria-hidden="true"></ion-icon>

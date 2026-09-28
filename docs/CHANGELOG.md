@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.6] — 2026-09-28
+
+### Fixed
+
+- Budget styles composants : panier sous le seuil CI ; empty-state / body Type C partagés en global ; seuils `anyComponentStyle` alignés sur Type C.
+
 ## Customer-space — [0.6.5] — 2026-09-28
 
 ### Fixed

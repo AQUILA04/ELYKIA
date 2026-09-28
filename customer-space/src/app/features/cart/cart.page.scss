@@ -15,16 +15,7 @@
   cursor: pointer;
   padding: 0;
 
-  ion-icon {
-    font-size: 20px;
-  }
-}
-
-.cart-body {
-  position: relative;
-  z-index: 2;
-  margin-top: -40px;
-  padding: 0 var(--elyk-space-4) calc(96px + env(safe-area-inset-bottom));
+  ion-icon { font-size: 20px; }
 }
 
 .cart-line {
@@ -54,10 +45,7 @@
   }
 }
 
-.cl-main {
-  flex: 1;
-  min-width: 0;
-}
+.cl-main { flex: 1; min-width: 0; }
 
 .cl-top {
   display: flex;
@@ -86,9 +74,7 @@
   cursor: pointer;
   padding: 0;
 
-  ion-icon {
-    font-size: 18px;
-  }
+  ion-icon { font-size: 18px; }
 }
 
 .cl-bottom {
@@ -215,50 +201,4 @@
     color: #1e3a5f;
     line-height: 1.45;
   }
-}
-
-.form-error {
-  color: var(--elyk-red);
-  font-size: var(--elyk-text-sm);
-  text-align: center;
-}
-
-.cart-footer {
-  background: var(--elyk-cream);
-  box-shadow: 0 -4px 16px rgba(13, 27, 42, 0.06);
-}
-
-.cart-footer-inner {
-  padding: var(--elyk-space-3) var(--elyk-space-4) calc(var(--elyk-space-3) + env(safe-area-inset-bottom));
-
-  ion-button {
-    min-height: 48px;
-    margin: 0;
-  }
-}
-
-.empty-state {
-  background: var(--elyk-white);
-  border-radius: var(--elyk-radius-card);
-  box-shadow: var(--elyk-shadow-soft);
-  padding: var(--elyk-space-8) var(--elyk-space-5);
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 56px;
-  color: var(--elyk-gold);
-  margin-bottom: var(--elyk-space-3);
-}
-
-.empty-title {
-  margin: 0 0 var(--elyk-space-2);
-  font-weight: 700;
-  color: var(--elyk-navy);
-}
-
-.empty-sub {
-  margin: 0 0 var(--elyk-space-4);
-  font-size: var(--elyk-text-sm);
-  color: var(--elyk-gray-text);
 }

@@ -17,7 +17,7 @@
     </button>
   </app-elyk-page-header>
 
-  <div class="cart-body">
+  <div class="cart-body elyk-typec-body">
     <ng-container *ngIf="lines.length > 0">
       <article
         class="cart-line elyk-animate"
@@ -71,7 +71,7 @@
         <p>Le crédit démarre à la livraison. Votre commande sera validée par l'agence avant livraison.</p>
       </div>
 
-      <p class="form-error" *ngIf="error">{{ error }}</p>
+      <p class="elyk-form-error" *ngIf="error">{{ error }}</p>
     </ng-container>
 
     <div class="empty-state elyk-animate" *ngIf="lines.length === 0" data-testid="e2e-cart-empty">
@@ -85,8 +85,8 @@
   </div>
 </ion-content>
 
-<ion-footer class="cart-footer ion-no-border" *ngIf="lines.length > 0">
-  <div class="cart-footer-inner">
+<ion-footer class="elyk-ion-footer ion-no-border" *ngIf="lines.length > 0">
+  <div class="elyk-footer-inner">
     <ion-button
       expand="block"
       class="elyk-btn-gold"
