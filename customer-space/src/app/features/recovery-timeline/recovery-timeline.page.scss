@@ -2,13 +2,6 @@
   --background: var(--elyk-cream);
 }
 
-.recovery-body {
-  position: relative;
-  z-index: 2;
-  margin-top: -40px;
-  padding: 0 var(--elyk-space-4) calc(96px + env(safe-area-inset-bottom));
-}
-
 .pills-card {
   background: var(--elyk-white);
   border-radius: var(--elyk-radius-card);
@@ -69,18 +62,4 @@
   font-size: var(--elyk-text-xs);
   font-weight: 600;
   color: var(--elyk-gray-text);
-}
-
-.recovery-footer {
-  background: var(--elyk-cream);
-  box-shadow: 0 -4px 16px rgba(13, 27, 42, 0.06);
-}
-
-.recovery-footer-inner {
-  padding: var(--elyk-space-3) var(--elyk-space-4) calc(var(--elyk-space-3) + env(safe-area-inset-bottom));
-
-  ion-button {
-    min-height: 48px;
-    margin: 0;
-  }
 }

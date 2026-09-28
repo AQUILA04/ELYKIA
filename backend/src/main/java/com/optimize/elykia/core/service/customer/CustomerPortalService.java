@@ -728,7 +728,7 @@ public class CustomerPortalService {
     private static String mapCreditStatus(CreditStatus status) {
         if (status == null) return "INITIE";
         return switch (status) {
-            case INPROGRESS -> "VALIDE";
+            case INPROGRESS -> "INPROGRESS";
             case SETTLED -> "LIVRE";
             default -> "INITIE";
         };

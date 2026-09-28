@@ -9,6 +9,22 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.7] — 2026-09-28
+
+### Added
+
+- FAB **Payer une mise** sur **Détail de l'achat** et **Suivi des mises** (y compris timeline vide).
+
+### Changed
+
+- Statut crédit **INPROGRESS** affiché **EN COURS** ; filtre liste **En cours** / **Terminés**.
+
+## Backend — [1.21.3] — 2026-09-28
+
+### Fixed
+
+- API customer : statut crédit `INPROGRESS` exposé tel quel (plus mappé en `VALIDE`) pour l'affichage **EN COURS**.
+
 ## Backend — [1.21.2] — 2026-09-28
 
 ### Fixed

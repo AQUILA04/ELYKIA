@@ -34,7 +34,7 @@
         <div class="pc-body">
           <div class="pc-header">
             <span class="pc-ref">{{ p.reference }}</span>
-            <span class="elyk-chip" [ngClass]="statusChipClass(p.status)">{{ p.status }}</span>
+            <span class="elyk-chip" [ngClass]="statusChipClass(p.status)">{{ statusLabel(p.status) }}</span>
           </div>
           <div class="pc-meta-top">{{ p.articleCount }} article(s)</div>
           <div class="pc-amount">{{ p.totalAmount | number:'1.0-0' }} FCFA</div>

@@ -7,7 +7,7 @@
     (back)="goBack()">
   </app-elyk-page-header>
 
-  <div class="recovery-body">
+  <div class="recovery-body elyk-typec-body">
     <div class="elyk-skeleton-card" *ngIf="isLoading">
       <ion-skeleton-text animated style="width: 60%; height: 16px;"></ion-skeleton-text>
       <ion-skeleton-text animated style="width: 90%; height: 14px; margin-top: 8px;"></ion-skeleton-text>
@@ -43,19 +43,23 @@
         <span class="ti-amount">{{ r.amount | number:'1.0-0' }} FCFA</span>
         <span class="ti-status">{{ r.status }}</span>
       </article>
+
+      <div class="empty-state elyk-animate" *ngIf="recoveries.length === 0" data-testid="e2e-recovery-empty">
+        <ion-icon name="time-outline" class="empty-icon" aria-hidden="true"></ion-icon>
+        <p class="empty-title">Aucune mise enregistrée</p>
+        <p class="empty-sub">Déclarez votre première mise pour démarrer le remboursement.</p>
+      </div>
     </ng-container>
   </div>
 </ion-content>
 
-<ion-footer class="recovery-footer ion-no-border" *ngIf="nextRecovery">
-  <div class="recovery-footer-inner">
-    <ion-button
-      expand="block"
-      class="elyk-btn-gold"
-      [routerLink]="['/payment', distributionId]"
-      [queryParams]="paymentQueryParams()"
-      data-testid="e2e-recovery-pay-btn">
-      Payer la prochaine mise
-    </ion-button>
-  </div>
-</ion-footer>
+<a
+  *ngIf="!isLoading && canPay"
+  class="elyk-pay-fab"
+  [routerLink]="['/payment', distributionId]"
+  [queryParams]="paymentQueryParams()"
+  data-testid="e2e-recovery-pay-btn"
+  aria-label="Payer une mise">
+  <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
+  <span>Payer une mise</span>
+</a>

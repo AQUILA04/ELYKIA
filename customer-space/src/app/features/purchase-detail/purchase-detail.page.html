@@ -7,7 +7,7 @@
     (back)="goBack()">
   </app-elyk-page-header>
 
-  <div class="detail-body">
+  <div class="detail-body elyk-typec-body">
     <div class="elyk-skeleton-card" *ngIf="isLoading">
       <ion-skeleton-text animated style="width: 50%; height: 18px;"></ion-skeleton-text>
       <ion-skeleton-text animated style="width: 80%; height: 14px; margin-top: 8px;"></ion-skeleton-text>
@@ -17,7 +17,7 @@
       <section class="detail-card elyk-animate" data-testid="e2e-purchase-detail-card">
         <div class="dc-header">
           <span class="dc-ref">{{ purchase.reference }}</span>
-          <span class="elyk-chip elyk-chip--gold">{{ purchase.status }}</span>
+          <span class="elyk-chip" [ngClass]="statusChipClass" data-testid="e2e-purchase-status">{{ statusLabel }}</span>
         </div>
         <div class="dc-amount">{{ purchase.totalAmount | number:'1.0-0' }} FCFA</div>
         <div class="elyk-progress" aria-hidden="true">
@@ -43,6 +43,17 @@
     </ng-container>
   </div>
 </ion-content>
+
+<a
+  *ngIf="canPay"
+  class="elyk-pay-fab elyk-pay-fab--with-footer"
+  [routerLink]="['/payment', purchase!.id]"
+  [queryParams]="paymentQueryParams"
+  data-testid="e2e-purchase-pay-fab"
+  aria-label="Payer une mise">
+  <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
+  <span>Payer une mise</span>
+</a>
 
 <ion-footer class="detail-footer ion-no-border" *ngIf="!isLoading && purchase">
   <div class="detail-footer-inner">
