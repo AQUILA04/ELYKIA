@@ -16,12 +16,24 @@ import { toUsername } from '../../shared/utils/phone-normalizer';
 import { FeatureFlagService } from '../../shared/services/feature-flag.service';
 import { APP_UNAVAILABLE_MESSAGE } from '../../shared/constants/app-availability';
 import { isE2eMode } from '../../shared/utils/e2e';
+import {
+  ElykDecorHeaderComponent,
+  ElykOverlapCardComponent,
+  ElykOutlinedFieldComponent,
+} from '../../shared/ui';
 
 /** Page Connexion / Inscription — wizard téléphone → PIN, OTP ou inscription. */
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, IonicModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    IonicModule,
+    ElykDecorHeaderComponent,
+    ElykOverlapCardComponent,
+    ElykOutlinedFieldComponent,
+  ],
   templateUrl: './auth.page.html',
   styleUrls: ['./auth.page.scss'],
 })
@@ -112,22 +124,35 @@ export class AuthPage implements ViewWillEnter {
     return pin === confirm ? null : { pinMismatch: true };
   }
 
+  /** Titre de la barre du header décoratif. */
+  get headerTitle(): string {
+    if (
+      this.step === 'register-form' ||
+      this.step === 'register-otp' ||
+      this.step === 'register-pin'
+    ) {
+      return 'Inscription';
+    }
+    return 'Connexion';
+  }
+
+  /** Titre émotionnel dans la carte (Playfair). */
   get title(): string {
     switch (this.step) {
-      case 'phone': return 'Connexion';
+      case 'phone': return 'Bon retour !';
       case 'pin': return 'Code PIN';
       case 'otp':
       case 'register-otp': return 'Vérification SMS';
       case 'setup-pin': return 'Créer votre PIN';
-      case 'register-form': return 'Inscription';
+      case 'register-form': return 'Bienvenue';
       case 'register-pin': return 'Créer votre PIN';
-      default: return 'Connexion';
+      default: return 'Bon retour !';
     }
   }
 
   get subtitle(): string {
     switch (this.step) {
-      case 'phone': return 'Entrez votre numéro de téléphone';
+      case 'phone': return 'Connectez-vous à votre espace';
       case 'pin': return this.maskedName ? `Bonjour ${this.maskedName}` : 'Saisissez votre code PIN';
       case 'otp':
       case 'register-otp': return 'Un code a été envoyé par SMS';

@@ -1,35 +1,40 @@
-<ion-content class="auth-content" data-testid="e2e-auth-page">
-  <div class="auth-wrapper">
-    <div class="auth-logo">
-      <span class="logo-text">ELYKIA</span>
-      <span class="logo-sub">Espace Client</span>
-    </div>
+<ion-content class="elyk-page-decor" data-testid="e2e-auth-page">
+  <app-elyk-decor-header
+    decor="ribbons"
+    [title]="headerTitle"
+    [showBack]="step !== 'phone'"
+    (back)="goBack()">
+  </app-elyk-decor-header>
 
-    <div class="auth-card elyk-animate">
-      <button type="button" class="back-btn" *ngIf="step !== 'phone'" (click)="goBack()">
-        <ion-icon name="arrow-back-outline"></ion-icon>
-      </button>
-
-      <h1>{{ title }}</h1>
-      <p class="subtitle">{{ subtitle }}</p>
+  <div class="elyk-page-decor__body">
+    <app-elyk-overlap-card>
+      <h2 class="elyk-title-serif auth-title">{{ title }}</h2>
+      <p class="elyk-subtitle auth-subtitle">{{ subtitle }}</p>
 
       <!-- Étape 1 : Téléphone -->
       <form *ngIf="step === 'phone'" [formGroup]="phoneForm" (ngSubmit)="submitPhone()">
-        <div class="field">
-          <label>Numéro de téléphone</label>
-          <div class="phone-input-row">
-            <span class="phone-prefix">+228</span>
-            <ion-input formControlName="phone" type="tel" inputmode="numeric"
-              placeholder="90 XX XX XX XX" data-testid="e2e-auth-phone-input"></ion-input>
-          </div>
-        </div>
+        <app-elyk-outlined-field label="Numéro de téléphone" icon="call-outline">
+          <ion-input
+            formControlName="phone"
+            type="tel"
+            inputmode="numeric"
+            placeholder="90 XX XX XX XX"
+            data-testid="e2e-auth-phone-input">
+          </ion-input>
+        </app-elyk-outlined-field>
+
         <div class="unavailable" *ngIf="appUnavailable" data-testid="e2e-auth-unavailable">
           <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
           <p>{{ appUnavailableMessage }}</p>
         </div>
-        <div class="error" *ngIf="error">{{ error }}</div>
-        <ion-button type="submit" expand="block" class="elyk-btn-primary"
-          [disabled]="phoneForm.invalid || isLoading" data-testid="e2e-auth-phone-submit">
+        <div class="error" *ngIf="error" role="alert">{{ error }}</div>
+
+        <ion-button
+          type="submit"
+          expand="block"
+          class="elyk-btn-navy"
+          [disabled]="phoneForm.invalid || isLoading"
+          data-testid="e2e-auth-phone-submit">
           <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading">Continuer</span>
         </ion-button>
@@ -37,14 +42,25 @@
 
       <!-- PIN existant -->
       <form *ngIf="step === 'pin'" [formGroup]="pinForm" (ngSubmit)="submitPin()">
-        <div class="field">
-          <label>Code PIN</label>
-          <ion-input formControlName="pin" type="password" inputmode="numeric"
-            maxlength="6" placeholder="••••" data-testid="e2e-auth-pin-input"></ion-input>
-        </div>
-        <div class="error" *ngIf="error">{{ error }}</div>
-        <ion-button type="submit" expand="block" class="elyk-btn-primary"
-          [disabled]="pinForm.invalid || isLoading" data-testid="e2e-auth-pin-submit">
+        <app-elyk-outlined-field label="Code PIN" icon="lock-closed-outline">
+          <ion-input
+            formControlName="pin"
+            type="password"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="••••"
+            data-testid="e2e-auth-pin-input">
+          </ion-input>
+        </app-elyk-outlined-field>
+
+        <div class="error" *ngIf="error" role="alert">{{ error }}</div>
+
+        <ion-button
+          type="submit"
+          expand="block"
+          class="elyk-btn-navy"
+          [disabled]="pinForm.invalid || isLoading"
+          data-testid="e2e-auth-pin-submit">
           <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading">Se connecter</span>
         </ion-button>
@@ -52,14 +68,25 @@
 
       <!-- OTP (activation ou inscription) -->
       <form *ngIf="step === 'otp' || step === 'register-otp'" [formGroup]="otpForm" (ngSubmit)="submitOtp()">
-        <div class="field">
-          <label>Code reçu par SMS</label>
-          <ion-input formControlName="otp" type="text" inputmode="numeric"
-            maxlength="6" placeholder="123456" data-testid="e2e-auth-otp-input"></ion-input>
-        </div>
-        <div class="error" *ngIf="error">{{ error }}</div>
-        <ion-button type="submit" expand="block" class="elyk-btn-primary"
-          [disabled]="otpForm.invalid || isLoading" data-testid="e2e-auth-otp-submit">
+        <app-elyk-outlined-field label="Code reçu par SMS" icon="chatbubble-ellipses-outline">
+          <ion-input
+            formControlName="otp"
+            type="text"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="123456"
+            data-testid="e2e-auth-otp-input">
+          </ion-input>
+        </app-elyk-outlined-field>
+
+        <div class="error" *ngIf="error" role="alert">{{ error }}</div>
+
+        <ion-button
+          type="submit"
+          expand="block"
+          class="elyk-btn-navy"
+          [disabled]="otpForm.invalid || isLoading"
+          data-testid="e2e-auth-otp-submit">
           <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading">Vérifier</span>
         </ion-button>
@@ -67,98 +94,159 @@
 
       <!-- Setup PIN (activation) -->
       <form *ngIf="step === 'setup-pin'" [formGroup]="setupPinForm" (ngSubmit)="submitSetupPin()">
-        <div class="field">
-          <label>Nouveau code PIN</label>
-          <ion-input formControlName="pin" type="password" inputmode="numeric"
-            maxlength="6" placeholder="••••" data-testid="e2e-auth-setup-pin-input"></ion-input>
-        </div>
-        <div class="field">
-          <label>Confirmer le PIN</label>
-          <ion-input formControlName="confirmPin" type="password" inputmode="numeric"
-            maxlength="6" placeholder="••••" data-testid="e2e-auth-setup-pin-confirm"></ion-input>
-        </div>
-        <div class="error" *ngIf="error">{{ error }}</div>
-        <ion-button type="submit" expand="block" class="elyk-btn-primary"
-          [disabled]="setupPinForm.invalid || isLoading" data-testid="e2e-auth-setup-pin-submit">
+        <app-elyk-outlined-field label="Nouveau code PIN" icon="lock-closed-outline">
+          <ion-input
+            formControlName="pin"
+            type="password"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="••••"
+            data-testid="e2e-auth-setup-pin-input">
+          </ion-input>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Confirmer le PIN" icon="lock-closed-outline">
+          <ion-input
+            formControlName="confirmPin"
+            type="password"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="••••"
+            data-testid="e2e-auth-setup-pin-confirm">
+          </ion-input>
+        </app-elyk-outlined-field>
+
+        <div class="error" *ngIf="error" role="alert">{{ error }}</div>
+
+        <ion-button
+          type="submit"
+          expand="block"
+          class="elyk-btn-navy"
+          [disabled]="setupPinForm.invalid || isLoading"
+          data-testid="e2e-auth-setup-pin-submit">
           <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading">Activer mon compte</span>
         </ion-button>
       </form>
 
       <!-- Formulaire d'inscription -->
-      <form *ngIf="step === 'register-form'" [formGroup]="registerForm" (ngSubmit)="submitRegisterForm()"
+      <form
+        *ngIf="step === 'register-form'"
+        [formGroup]="registerForm"
+        (ngSubmit)="submitRegisterForm()"
         data-testid="e2e-auth-register-form">
-        <div class="field">
-          <label for="profilPhoto">Photo de profil</label>
+        <div class="photo-field">
+          <span class="photo-field__label">Photo de profil</span>
           <div class="photo-capture">
-            <img *ngIf="profilPhotoDataUrl" [src]="profilPhotoDataUrl" alt="Aperçu photo de profil" class="photo-preview" />
-            <input id="profilPhoto" type="file" accept="image/*" capture="user"
-              (change)="onProfilPhotoSelected($event)" data-testid="e2e-auth-register-photo" />
+            <img
+              *ngIf="profilPhotoDataUrl"
+              [src]="profilPhotoDataUrl"
+              alt="Aperçu photo de profil"
+              class="photo-preview" />
+            <label class="photo-capture__btn" for="profilPhoto">
+              {{ profilPhotoDataUrl ? 'Changer la photo' : 'Prendre une photo' }}
+            </label>
+            <input
+              id="profilPhoto"
+              class="sr-only"
+              type="file"
+              accept="image/*"
+              capture="user"
+              (change)="onProfilPhotoSelected($event)"
+              data-testid="e2e-auth-register-photo" />
           </div>
         </div>
-        <div class="field">
-          <label>Prénom</label>
+
+        <app-elyk-outlined-field label="Prénom" icon="person-outline">
           <ion-input formControlName="firstname" data-testid="e2e-auth-register-firstname"></ion-input>
-        </div>
-        <div class="field">
-          <label>Nom</label>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Nom" icon="person-outline">
           <ion-input formControlName="lastname" data-testid="e2e-auth-register-lastname"></ion-input>
-        </div>
-        <div class="field">
-          <label>Adresse</label>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Adresse" icon="home-outline">
           <ion-input formControlName="address" data-testid="e2e-auth-register-address"></ion-input>
-        </div>
-        <div class="field">
-          <label>Quartier</label>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Quartier" icon="location-outline">
           <ion-input formControlName="quarter" data-testid="e2e-auth-register-quarter"></ion-input>
-        </div>
-        <div class="field">
-          <label>Date de naissance</label>
-          <ion-input formControlName="dateOfBirth" type="date" data-testid="e2e-auth-register-dob"></ion-input>
-        </div>
-        <div class="field">
-          <label>Occupation</label>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Date de naissance" icon="calendar-outline">
+          <ion-input
+            formControlName="dateOfBirth"
+            type="date"
+            data-testid="e2e-auth-register-dob">
+          </ion-input>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Occupation" icon="briefcase-outline">
           <ion-input formControlName="occupation" data-testid="e2e-auth-register-occupation"></ion-input>
-        </div>
-        <div class="field">
-          <label>Type de pièce</label>
-          <ion-select formControlName="cardType" interface="popover" placeholder="Sélectionnez"
+        </app-elyk-outlined-field>
+
+        <div class="select-field">
+          <label class="select-field__label" for="cardType">Type de pièce</label>
+          <ion-select
+            id="cardType"
+            formControlName="cardType"
+            interface="popover"
+            placeholder="Sélectionnez"
             data-testid="e2e-auth-register-card-type">
             <ion-select-option *ngFor="let t of cardTypes" [value]="t.value">{{ t.label }}</ion-select-option>
           </ion-select>
         </div>
-        <div class="field">
-          <label>Numéro de pièce</label>
+
+        <app-elyk-outlined-field label="Numéro de pièce" icon="card-outline">
           <ion-input formControlName="cardID" data-testid="e2e-auth-register-card-id"></ion-input>
-        </div>
-        <div class="error" *ngIf="error">{{ error }}</div>
-        <ion-button type="submit" expand="block" class="elyk-btn-primary"
-          [disabled]="registerForm.invalid || isLoading" data-testid="e2e-auth-register-continue">
+        </app-elyk-outlined-field>
+
+        <div class="error" *ngIf="error" role="alert">{{ error }}</div>
+
+        <ion-button
+          type="submit"
+          expand="block"
+          class="elyk-btn-navy"
+          [disabled]="registerForm.invalid || isLoading"
+          data-testid="e2e-auth-register-continue">
           Continuer
         </ion-button>
       </form>
 
       <!-- PIN inscription -->
       <form *ngIf="step === 'register-pin'" [formGroup]="registerPinForm" (ngSubmit)="submitRegisterPin()">
-        <div class="field">
-          <label>Nouveau code PIN</label>
-          <ion-input formControlName="pin" type="password" inputmode="numeric"
-            maxlength="6" placeholder="••••" data-testid="e2e-auth-register-pin"></ion-input>
-        </div>
-        <div class="field">
-          <label>Confirmer le PIN</label>
-          <ion-input formControlName="confirmPin" type="password" inputmode="numeric"
-            maxlength="6" placeholder="••••" data-testid="e2e-auth-register-pin-confirm"></ion-input>
-        </div>
-        <div class="error" *ngIf="error">{{ error }}</div>
-        <ion-button type="submit" expand="block" class="elyk-btn-primary"
-          [disabled]="registerPinForm.invalid || isLoading" data-testid="e2e-auth-register-submit">
+        <app-elyk-outlined-field label="Nouveau code PIN" icon="lock-closed-outline">
+          <ion-input
+            formControlName="pin"
+            type="password"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="••••"
+            data-testid="e2e-auth-register-pin">
+          </ion-input>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Confirmer le PIN" icon="lock-closed-outline">
+          <ion-input
+            formControlName="confirmPin"
+            type="password"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="••••"
+            data-testid="e2e-auth-register-pin-confirm">
+          </ion-input>
+        </app-elyk-outlined-field>
+
+        <div class="error" *ngIf="error" role="alert">{{ error }}</div>
+
+        <ion-button
+          type="submit"
+          expand="block"
+          class="elyk-btn-navy"
+          [disabled]="registerPinForm.invalid || isLoading"
+          data-testid="e2e-auth-register-submit">
           <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading">Créer mon compte</span>
         </ion-button>
       </form>
-    </div>
+    </app-elyk-overlap-card>
 
-    <div class="auth-footer" data-testid="e2e-auth-version">Version {{ appVersion }}</div>
+    <p class="elyk-page-footer-hint" *ngIf="step === 'phone'">
+      Première connexion ? Contactez votre agence
+    </p>
+    <p class="auth-version" data-testid="e2e-auth-version">Version {{ appVersion }}</p>
   </div>
 </ion-content>
