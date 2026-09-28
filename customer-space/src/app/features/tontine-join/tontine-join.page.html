@@ -56,7 +56,11 @@
         <div class="payment-toggle">
           <div>
             <h2>Premier paiement (facultatif)</h2>
-            <p>Déclarez dès maintenant un transfert Mobile Money si vous l’avez déjà effectué.</p>
+            <p data-testid="e2e-tontine-join-deposit-hint">
+              Vous pouvez envoyer votre premier dépôt sur le numéro
+              <strong>{{ depositDestinationNumber }}</strong>,
+              puis déclarer le transfert ci-dessous.
+            </p>
           </div>
           <ion-toggle
             [checked]="includeInitialPayment"
@@ -118,18 +122,6 @@
       </section>
 
       <p class="form-error" *ngIf="error" data-testid="e2e-tontine-join-error">{{ error }}</p>
-
-      <div class="elyk-sticky-cta">
-        <ion-button
-          expand="block"
-          class="elyk-btn-gold"
-          data-testid="e2e-tontine-join-submit"
-          [disabled]="!canSubmit()"
-          (click)="submit()">
-          <ion-spinner *ngIf="isSubmitting" name="crescent"></ion-spinner>
-          <span *ngIf="!isSubmitting">Confirmer mon inscription</span>
-        </ion-button>
-      </div>
     </ng-container>
   </div>
 
@@ -155,3 +147,18 @@
     </div>
   </div>
 </ion-content>
+
+<!-- Footer hors ion-content : évite le saut du bouton au focus clavier (sticky). -->
+<ion-footer class="join-footer ion-no-border" *ngIf="!success && !isLoadingSession && session?.joinable">
+  <div class="join-footer-inner">
+    <ion-button
+      expand="block"
+      class="elyk-btn-gold"
+      data-testid="e2e-tontine-join-submit"
+      [disabled]="!canSubmit()"
+      (click)="submit()">
+      <ion-spinner *ngIf="isSubmitting" name="crescent"></ion-spinner>
+      <span *ngIf="!isSubmitting">Confirmer mon inscription</span>
+    </ion-button>
+  </div>
+</ion-footer>

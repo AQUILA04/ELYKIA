@@ -6,7 +6,7 @@
   position: relative;
   z-index: 2;
   margin-top: -40px;
-  padding: 0 var(--elyk-space-4) calc(var(--elyk-space-8) + env(safe-area-inset-bottom));
+  padding: 0 var(--elyk-space-4) calc(96px + env(safe-area-inset-bottom));
 }
 
 .join-card,
@@ -102,12 +102,23 @@
   text-align: center;
 }
 
-.elyk-sticky-cta {
-  bottom: env(safe-area-inset-bottom);
+.join-footer {
+  background: var(--elyk-cream);
+  box-shadow: 0 -4px 16px rgba(13, 27, 42, 0.06);
+}
+
+.join-footer-inner {
+  padding: var(--elyk-space-3) var(--elyk-space-4) calc(var(--elyk-space-3) + env(safe-area-inset-bottom));
 
   ion-button {
     min-height: 48px;
+    margin: 0;
   }
+}
+
+.payment-toggle strong {
+  color: var(--elyk-navy);
+  font-variant-numeric: tabular-nums;
 }
 
 .success-panel {

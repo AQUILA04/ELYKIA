@@ -24,18 +24,19 @@ Lorsque une session est ouverte et que vous n’y êtes pas encore inscrit :
 ### Choisir votre mise journalière
 
 1. Choisissez un montant suggéré (**100**, **200**, **500** ou **1 000** FCFA) ou saisissez un montant libre (minimum **100 FCFA**).
-2. Consultez le rappel « soit environ … FCFA par mois ».
+2. Consultez le rappel du montant mensuel (calculé sur **31 jours** par mois).
 
 ### Premier paiement (facultatif)
 
-1. Activez l’option **Premier paiement** si vous avez déjà envoyé un transfert Mobile Money.
-2. Copiez le numéro **Mixx by YAS** ou **Moov Money** affiché, puis effectuez le transfert depuis votre téléphone.
-3. Renseignez :
+1. Lisez le numéro indiqué pour envoyer votre premier dépôt (numéro de votre commercial ou de l’agence).
+2. Activez l’option **Premier paiement** si vous avez déjà effectué le transfert Mobile Money, ou pour le déclarer maintenant.
+3. Si besoin, consultez aussi les numéros **Mixx by YAS** / **Moov Money** affichés sous le formulaire.
+4. Renseignez :
    - le **numéro d’envoi** ;
    - le **montant envoyé** ;
    - le **numéro de la transaction** ;
    - des notes si besoin.
-4. Appuyez sur **Confirmer mon inscription**.
+5. Appuyez sur **Confirmer mon inscription** (bouton en bas de l’écran).
 
 Sans premier paiement, appuyez directement sur **Confirmer mon inscription**.
 
