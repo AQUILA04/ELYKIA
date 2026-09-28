@@ -40,6 +40,7 @@ jobs:
             - '.github/scripts/publish-customer-space-apk.sh'
             - '.github/scripts/validate-customer-space-pipeline.sh'
             - '.github/scripts/install-customer-space-app-update-plugin.sh'
+            - '.github/scripts/apply-customer-space-android-icons.sh'
 
     - name: Detect customer-space changes since last successful build
       id: push
@@ -62,7 +63,8 @@ jobs:
           '.github/workflows/android-config-customer-space/**' \
           '.github/scripts/publish-customer-space-apk.sh' \
           '.github/scripts/validate-customer-space-pipeline.sh' \
-          '.github/scripts/install-customer-space-app-update-plugin.sh')
+          '.github/scripts/install-customer-space-app-update-plugin.sh' \
+          '.github/scripts/apply-customer-space-android-icons.sh')
         echo "customer_space=$result" >> "$GITHUB_OUTPUT"
 
   test-customer-space:
@@ -196,6 +198,7 @@ jobs:
         cp ../.github/workflows/android-config-customer-space/network_security_config.xml android/app/src/main/res/xml/network_security_config.xml
         cp ../.github/workflows/android-config-customer-space/file_paths.xml android/app/src/main/res/xml/file_paths.xml
         ../.github/scripts/install-customer-space-app-update-plugin.sh android
+        ../.github/scripts/apply-customer-space-android-icons.sh android
 
     - name: Grant execute permission for gradlew
       run: chmod +x android/gradlew
