@@ -397,3 +397,31 @@ ion-title {
   background: linear-gradient(180deg, rgba(250, 246, 238, 0) 0%, var(--elyk-cream) 35%);
 }
 
+/** FAB « Payer une mise » (détail achat / suivi des mises). */
+.elyk-pay-fab {
+  position: fixed;
+  right: var(--elyk-space-4);
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  background: var(--elyk-gold);
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: var(--elyk-text-sm);
+  box-shadow: var(--elyk-shadow-btn, 0 8px 20px rgba(201, 146, 42, 0.35));
+
+  ion-icon {
+    font-size: 20px;
+  }
+}
+
+.elyk-pay-fab--with-footer {
+  bottom: calc(120px + env(safe-area-inset-bottom));
+}
+

@@ -6,7 +6,8 @@
 // ─── STATUTS ────────────────────────────────────────────────────────────────
 
 export type RecoveryStatus = 'INITIE' | 'VALIDE' | 'RETARD';
-export type OrderStatus    = 'INITIE' | 'VALIDE' | 'LIVRE';
+/** Statuts crédit/commande exposés par l'API customer (crédits actifs = INPROGRESS). */
+export type OrderStatus    = 'INITIE' | 'VALIDE' | 'LIVRE' | 'INPROGRESS';
 export type TontineDeliveryStatus = 'SESSION_INPROGRESS' | 'PENDING' | 'VALIDATED' | 'DELIVERED';
 export type TontineSessionStatus = 'ACTIVE' | 'CLOSED' | 'ENDED';
 

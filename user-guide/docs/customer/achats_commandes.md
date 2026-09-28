@@ -10,14 +10,15 @@ Cet écran vous permet de suivre vos crédits, commander des produits et déclar
 ## Mes achats
 
 1. Appuyez sur l’onglet **Achats**.
-2. Filtrez par **Tous**, **Livrés**, **Validés** ou **Initiés**.
+2. Filtrez par **Tous**, **En cours**, **Terminés** ou **Initiés**.
 3. Appuyez sur une ligne pour ouvrir le détail.
 
 ### Détail d’un achat
 
-1. Consultez le montant, le payé et le restant.
-2. Appuyez sur **Voir le suivi des mises** pour l’historique des échéances.
-3. Sur le suivi, appuyez sur **Payer la prochaine mise** si une échéance est due.
+1. Consultez le montant, le payé et le restant. Un crédit actif s’affiche avec le statut **EN COURS**.
+2. Appuyez sur **Payer une mise** (bouton flottant) pour déclarer un paiement Mobile Money.
+3. Appuyez sur **Voir le suivi des mises** pour l’historique des échéances.
+4. Sur le suivi, vous pouvez aussi appuyer sur **Payer une mise** même si aucune échéance n’est encore listée.
 
 ### Déclarer un paiement
 

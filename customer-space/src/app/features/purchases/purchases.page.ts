@@ -6,6 +6,7 @@ import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerPurchase, OrderStatus } from '../../shared/models/customer.model';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
 import { ElykPageHeaderComponent } from '../../shared/ui';
+import { creditStatusChipClass, creditStatusLabel } from '../../shared/utils/credit-status-label';
 
 type StatusFilter = 'ALL' | OrderStatus;
 
@@ -25,8 +26,8 @@ export class PurchasesPage implements OnInit {
 
   readonly filters: { value: StatusFilter; label: string }[] = [
     { value: 'ALL', label: 'Tous' },
-    { value: 'LIVRE', label: 'Livrés' },
-    { value: 'VALIDE', label: 'Validés' },
+    { value: 'INPROGRESS', label: 'En cours' },
+    { value: 'LIVRE', label: 'Terminés' },
     { value: 'INITIE', label: 'Initiés' },
   ];
 
@@ -48,10 +49,12 @@ export class PurchasesPage implements OnInit {
     this.applyFilter();
   }
 
+  statusLabel(s: string): string {
+    return creditStatusLabel(s);
+  }
+
   statusChipClass(s: string): string {
-    if (s === 'VALIDE' || s === 'LIVRE') return 'elyk-chip--success';
-    if (s === 'RETARD') return 'elyk-chip--neutral';
-    return 'elyk-chip--gold';
+    return creditStatusChipClass(s);
   }
 
   progressPercent(p: CustomerPurchase): number {

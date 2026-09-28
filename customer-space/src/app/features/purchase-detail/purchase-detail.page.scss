@@ -2,13 +2,6 @@
   --background: var(--elyk-cream);
 }
 
-.detail-body {
-  position: relative;
-  z-index: 2;
-  margin-top: -40px;
-  padding: 0 var(--elyk-space-4) calc(96px + env(safe-area-inset-bottom));
-}
-
 .detail-card,
 .article-card {
   background: var(--elyk-white);

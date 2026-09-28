@@ -18,7 +18,16 @@ describe('PurchaseDetailPage', () => {
           provide: CustomerApiService,
           useValue: {
             getPurchaseById: () => of({
-              id: '1', reference: 'CRD-1', totalAmount: 100, paidAmount: 40, remainingAmount: 60, status: 'LIVRE', items: [],
+              id: '1',
+              reference: 'C26883503',
+              totalAmount: 400,
+              paidAmount: 0,
+              remainingAmount: 400,
+              dailyPayment: 400,
+              status: 'INPROGRESS',
+              items: [],
+              paidInstallmentCount: 0,
+              installmentCount: 12,
             }),
           },
         },
@@ -27,9 +36,11 @@ describe('PurchaseDetailPage', () => {
     fixture = TestBed.createComponent(PurchaseDetailPage);
   });
 
-  it('loads purchase detail', () => {
+  it('loads purchase detail and shows EN COURS for INPROGRESS', () => {
     fixture.detectChanges();
-    expect(fixture.componentInstance.purchase?.reference).toBe('CRD-1');
-    expect(fixture.componentInstance.progressPercent).toBe(40);
+    expect(fixture.componentInstance.purchase?.reference).toBe('C26883503');
+    expect(fixture.componentInstance.statusLabel).toBe('EN COURS');
+    expect(fixture.componentInstance.canPay).toBeTrue();
+    expect(fixture.componentInstance.paymentQueryParams).toEqual({ amount: 400, installment: 1 });
   });
 });

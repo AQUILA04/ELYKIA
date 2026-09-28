@@ -17,9 +17,19 @@ describe('RecoveryTimelinePage', () => {
         {
           provide: CustomerApiService,
           useValue: {
-            getRecoveries: () => of([
-              { id: '1', installmentNumber: 3, amount: 35000, paymentDate: '2026-04-01', status: 'INITIE' },
-            ]),
+            getRecoveries: () => of([]),
+            getPurchaseById: () => of({
+              id: '101',
+              reference: 'C1',
+              totalAmount: 400,
+              paidAmount: 0,
+              remainingAmount: 400,
+              dailyPayment: 400,
+              status: 'INPROGRESS',
+              paidInstallmentCount: 0,
+              installmentCount: 12,
+              items: [],
+            }),
           },
         },
       ],
@@ -27,9 +37,10 @@ describe('RecoveryTimelinePage', () => {
     fixture = TestBed.createComponent(RecoveryTimelinePage);
   });
 
-  it('loads recoveries and finds next payment', () => {
+  it('allows paying next mise even when timeline is empty', () => {
     fixture.detectChanges();
-    expect(fixture.componentInstance.recoveries.length).toBe(1);
-    expect(fixture.componentInstance.nextRecovery?.installmentNumber).toBe(3);
+    expect(fixture.componentInstance.recoveries.length).toBe(0);
+    expect(fixture.componentInstance.canPay).toBeTrue();
+    expect(fixture.componentInstance.paymentQueryParams()).toEqual({ amount: 400, installment: 1 });
   });
 });
