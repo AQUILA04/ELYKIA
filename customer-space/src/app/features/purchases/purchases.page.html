@@ -28,21 +28,25 @@
         *ngFor="let p of filtered"
         [routerLink]="['/purchases', p.id]"
         [attr.data-testid]="'e2e-purchase-row-' + p.id">
-        <div class="pc-header">
-          <span class="pc-ref">{{ p.reference }}</span>
-          <span class="elyk-chip" [ngClass]="statusChipClass(p.status)">{{ p.status }}</span>
+        <div class="pc-icon" aria-hidden="true">
+          <ion-icon name="bag-handle-outline"></ion-icon>
         </div>
-        <div class="pc-amounts">
-          <span class="pc-total">{{ p.totalAmount | number:'1.0-0' }} FCFA</span>
-          <span class="pc-remaining">Restant : {{ p.remainingAmount | number:'1.0-0' }} FCFA</span>
+        <div class="pc-body">
+          <div class="pc-header">
+            <span class="pc-ref">{{ p.reference }}</span>
+            <span class="elyk-chip" [ngClass]="statusChipClass(p.status)">{{ p.status }}</span>
+          </div>
+          <div class="pc-meta-top">{{ p.articleCount }} article(s)</div>
+          <div class="pc-amount">{{ p.totalAmount | number:'1.0-0' }} FCFA</div>
+          <div class="elyk-progress" aria-hidden="true">
+            <div class="elyk-progress__bar" [style.width.%]="progressPercent(p)"></div>
+          </div>
+          <div class="pc-meta">
+            <span>{{ progressLabel(p) }}</span>
+            <span>{{ p.paidInstallmentCount }}/{{ p.installmentCount }} mises</span>
+          </div>
         </div>
-        <div class="elyk-progress" aria-hidden="true">
-          <div class="elyk-progress__bar" [style.width.%]="progressPercent(p)"></div>
-        </div>
-        <div class="pc-meta">
-          <span>{{ p.articleCount }} article(s)</span>
-          <span>{{ p.paidInstallmentCount }}/{{ p.installmentCount }} mises</span>
-        </div>
+        <ion-icon class="pc-chevron" name="chevron-forward-outline" aria-hidden="true"></ion-icon>
       </a>
 
       <div class="empty-state elyk-animate" *ngIf="filtered.length === 0" data-testid="e2e-purchases-empty">

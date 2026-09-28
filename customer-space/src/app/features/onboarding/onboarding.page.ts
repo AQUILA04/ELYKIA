@@ -12,10 +12,11 @@ import {
 } from '../../shared/models/customer.model';
 import { CARD_TYPE_OPTIONS } from '../../shared/models/customer-auth.model';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
-import { ElykPageHeaderComponent } from '../../shared/ui';
+import { ElykOutlinedFieldComponent, ElykPageHeaderComponent } from '../../shared/ui';
 
 const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
+/** Page Mon dossier — Type C. */
 @Component({
   selector: 'app-onboarding',
   standalone: true,
@@ -26,6 +27,7 @@ const FALLBACK_DEPOSIT_NUMBER = '96186822';
     RouterModule,
     CustomerTabBarComponent,
     ElykPageHeaderComponent,
+    ElykOutlinedFieldComponent,
   ],
   templateUrl: './onboarding.page.html',
   styleUrls: ['./onboarding.page.scss'],

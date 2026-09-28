@@ -58,6 +58,11 @@ export class PurchasesPage implements OnInit {
     return p.totalAmount > 0 ? (p.paidAmount / p.totalAmount) * 100 : 0;
   }
 
+  progressLabel(p: CustomerPurchase): string {
+    const pct = Math.round(this.progressPercent(p));
+    return `${pct}% remboursé · Restant ${p.remainingAmount.toLocaleString('fr-FR')} F`;
+  }
+
   private applyFilter(): void {
     this.filtered = this.statusFilter === 'ALL'
       ? this.purchases

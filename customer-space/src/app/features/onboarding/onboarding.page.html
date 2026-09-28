@@ -70,9 +70,9 @@
         </div>
       </div>
 
-      <form class="panel elyk-animate" *ngIf="section === 'id'" [formGroup]="idForm" (ngSubmit)="submitIdDocument()">
+      <form class="panel elyk-animate" *ngIf="section === 'id'" [formGroup]="idForm" id="onboarding-id-form">
         <h3>Photo de la pièce d'identité</h3>
-        <div class="field">
+        <div class="photo-field">
           <label for="cardPhoto">Photo</label>
           <input
             id="cardPhoto"
@@ -83,27 +83,21 @@
             data-testid="e2e-onboarding-card-photo" />
           <img *ngIf="cardPhotoDataUrl" [src]="cardPhotoDataUrl" alt="Aperçu pièce" class="preview" />
         </div>
-        <div class="field">
-          <label>Type de pièce</label>
-          <ion-select formControlName="cardType" interface="popover">
+        <app-elyk-outlined-field label="Type de pièce" icon="card-outline">
+          <ion-select formControlName="cardType" interface="popover" placeholder="Choisir">
             <ion-select-option *ngFor="let t of cardTypes" [value]="t.value">{{ t.label }}</ion-select-option>
           </ion-select>
-        </div>
-        <div class="field">
-          <label>Numéro de pièce</label>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Numéro de pièce" icon="keypad-outline">
           <ion-input formControlName="cardID"></ion-input>
-        </div>
-        <ion-button type="submit" expand="block" class="elyk-btn-gold" [disabled]="isSaving" data-testid="e2e-onboarding-id-submit">
-          Enregistrer
-        </ion-button>
-        <ion-button expand="block" fill="clear" type="button" (click)="backToMenu()">Retour</ion-button>
+        </app-elyk-outlined-field>
       </form>
 
       <form
         class="panel elyk-animate"
         *ngIf="section === 'deposit'"
         [formGroup]="depositForm"
-        (ngSubmit)="submitDeposit()"
+        id="onboarding-deposit-form"
         data-testid="e2e-onboarding-deposit-form">
         <h3>Déclaration de dépôt initial</h3>
         <p class="muted">
@@ -116,33 +110,47 @@
           <p *ngIf="recipients.moovNumber"><strong>Moov :</strong> {{ recipients.moovNumber }}</p>
         </div>
 
-        <div class="field">
-          <label>Numéro utilisé pour le transfert</label>
+        <app-elyk-outlined-field label="Numéro utilisé pour le transfert" icon="call-outline">
           <ion-input formControlName="mobileMoneyPhone" inputmode="tel" placeholder="+228 XX XX XX XX" data-testid="e2e-onboarding-deposit-phone"></ion-input>
-        </div>
-        <div class="field">
-          <label>Montant (FCFA)</label>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Montant (FCFA)" icon="cash-outline">
           <ion-input formControlName="mobileMoneyAmount" type="number" inputmode="numeric" data-testid="e2e-onboarding-deposit-amount"></ion-input>
-        </div>
-        <div class="field">
-          <label>Référence du transfert</label>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Référence du transfert" icon="receipt-outline">
           <ion-input formControlName="mobileMoneyReference" data-testid="e2e-onboarding-deposit-reference"></ion-input>
-        </div>
-        <div class="field">
-          <label>Note (optionnel)</label>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Note (optionnel)" icon="create-outline">
           <ion-input formControlName="notes"></ion-input>
-        </div>
-        <ion-button
-          type="submit"
-          expand="block"
-          class="elyk-btn-gold"
-          [disabled]="isSaving || depositForm.invalid"
-          data-testid="e2e-onboarding-deposit-submit">
-          Envoyer la déclaration
-        </ion-button>
-        <ion-button expand="block" fill="clear" type="button" (click)="backToMenu()">Retour</ion-button>
+        </app-elyk-outlined-field>
       </form>
     </ng-container>
   </div>
 </ion-content>
-<app-customer-tab-bar></app-customer-tab-bar>
+
+<ion-footer class="onboarding-footer ion-no-border" *ngIf="!isLoading && (section === 'id' || section === 'deposit')">
+  <div class="onboarding-footer-inner">
+    <ion-button
+      *ngIf="section === 'id'"
+      expand="block"
+      class="elyk-btn-gold"
+      [disabled]="isSaving"
+      (click)="submitIdDocument()"
+      data-testid="e2e-onboarding-id-submit">
+      <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+      <span *ngIf="!isSaving">Enregistrer</span>
+    </ion-button>
+    <ion-button
+      *ngIf="section === 'deposit'"
+      expand="block"
+      class="elyk-btn-gold"
+      [disabled]="isSaving || depositForm.invalid"
+      (click)="submitDeposit()"
+      data-testid="e2e-onboarding-deposit-submit">
+      <ion-spinner *ngIf="isSaving" name="crescent"></ion-spinner>
+      <span *ngIf="!isSaving">Envoyer la déclaration</span>
+    </ion-button>
+    <ion-button expand="block" fill="clear" type="button" (click)="backToMenu()">Retour</ion-button>
+  </div>
+</ion-footer>
+
+<app-customer-tab-bar *ngIf="section === 'menu'"></app-customer-tab-bar>

@@ -39,14 +39,16 @@
   font-family: inherit;
 
   &--active {
-    background: var(--elyk-gold);
-    border-color: var(--elyk-gold);
+    background: var(--elyk-navy);
+    border-color: var(--elyk-navy);
     color: #fff;
   }
 }
 
 .purchase-card {
-  display: block;
+  display: flex;
+  align-items: stretch;
+  gap: var(--elyk-space-3);
   background: var(--elyk-white);
   border-radius: var(--elyk-radius-card);
   box-shadow: var(--elyk-shadow-soft);
@@ -56,12 +58,33 @@
   color: inherit;
 }
 
+.pc-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: var(--elyk-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  ion-icon {
+    color: var(--elyk-gold);
+    font-size: 22px;
+  }
+}
+
+.pc-body {
+  flex: 1;
+  min-width: 0;
+}
+
 .pc-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: var(--elyk-space-2);
-  margin-bottom: var(--elyk-space-2);
+  margin-bottom: 2px;
 }
 
 .pc-ref {
@@ -70,22 +93,19 @@
   font-size: var(--elyk-text-sm);
 }
 
-.pc-amounts {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: var(--elyk-space-3);
-  font-size: var(--elyk-text-sm);
+.pc-meta-top {
+  font-size: var(--elyk-text-xs);
+  color: var(--elyk-gray-text);
+  margin-bottom: var(--elyk-space-2);
 }
 
-.pc-total {
+.pc-amount {
+  font-family: 'Playfair Display', serif;
   font-weight: 700;
   color: var(--elyk-navy);
   font-variant-numeric: tabular-nums;
-}
-
-.pc-remaining {
-  color: var(--elyk-gray-text);
-  font-variant-numeric: tabular-nums;
+  font-size: var(--elyk-text-lg, 20px);
+  margin-bottom: var(--elyk-space-3);
 }
 
 .pc-meta {
@@ -94,6 +114,13 @@
   margin-top: var(--elyk-space-2);
   font-size: var(--elyk-text-xs);
   color: var(--elyk-gray-text);
+}
+
+.pc-chevron {
+  align-self: center;
+  color: var(--elyk-gray-text);
+  font-size: 18px;
+  flex-shrink: 0;
 }
 
 .empty-state {

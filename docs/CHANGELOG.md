@@ -9,6 +9,14 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.4] — 2026-09-28
+
+### Changed
+
+- **Mon panier** : lignes avec vignette, prix gold Playfair, résumé de commande, bandeau info crédit et actions supprimer / vider.
+- **Mes achats** : cartes enrichies (icône, montant Playfair, progression, chevron).
+- **Mon dossier** : champs outlined et CTA formulaires en `ion-footer`.
+
 ## Customer-space — [0.6.3] — 2026-09-28
 
 ### Changed

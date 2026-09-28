@@ -39,4 +39,14 @@ describe('CartPage', () => {
     expect(router.navigate).toHaveBeenCalled();
     expect(cart.totalItems).toBe(0);
   });
+
+  it('removes a line and clears the cart', () => {
+    fixture.detectChanges();
+    const line = fixture.componentInstance.lines[0];
+    fixture.componentInstance.removeLine(line);
+    expect(cart.totalItems).toBe(0);
+    cart.add(article);
+    fixture.componentInstance.clearCart();
+    expect(cart.totalItems).toBe(0);
+  });
 });

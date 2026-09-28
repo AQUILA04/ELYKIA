@@ -6,7 +6,7 @@
   position: relative;
   z-index: 2;
   margin-top: -40px;
-  padding: 0 var(--elyk-space-4) calc(96px + env(safe-area-inset-bottom));
+  padding: 0 var(--elyk-space-4) calc(120px + env(safe-area-inset-bottom));
 }
 
 .banner {
@@ -70,7 +70,7 @@
   }
 }
 
-.field {
+.photo-field {
   margin-bottom: var(--elyk-space-3);
 
   label {
@@ -81,17 +81,8 @@
     margin-bottom: 6px;
   }
 
-  ion-input,
-  ion-select,
   input[type='file'] {
     width: 100%;
-  }
-
-  ion-input,
-  ion-select {
-    --background: var(--elyk-cream);
-    --padding-start: 12px;
-    border-radius: var(--elyk-radius-input);
   }
 }
 
@@ -146,4 +137,22 @@
   font-size: var(--elyk-text-sm);
   text-align: center;
   margin: 0 0 var(--elyk-space-3);
+}
+
+.onboarding-footer {
+  background: var(--elyk-cream);
+  box-shadow: 0 -4px 16px rgba(13, 27, 42, 0.06);
+}
+
+.onboarding-footer-inner {
+  padding: var(--elyk-space-3) var(--elyk-space-4) calc(var(--elyk-space-3) + env(safe-area-inset-bottom));
+
+  ion-button {
+    min-height: 48px;
+    margin: 0 0 var(--elyk-space-2);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
 }

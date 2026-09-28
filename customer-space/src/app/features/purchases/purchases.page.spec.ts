@@ -28,4 +28,11 @@ describe('PurchasesPage', () => {
     fixture.componentInstance.setFilter('LIVRE');
     expect(fixture.componentInstance.filtered.length).toBe(1);
   });
+
+  it('builds a progress label', () => {
+    fixture.detectChanges();
+    const label = fixture.componentInstance.progressLabel(mockPurchases[0]);
+    expect(label).toContain('50% remboursé');
+    expect(label).toContain('Restant');
+  });
 });

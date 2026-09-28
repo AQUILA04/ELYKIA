@@ -30,4 +30,4 @@ Cet écran vous permet de suivre vos crédits, commander des produits et déclar
 1. Appuyez sur l’onglet **Commander**.
 2. Recherchez un produit ou filtrez par catégorie.
 3. Appuyez sur **Ajouter**, puis ouvrez le panier.
-4. Ajustez les quantités et appuyez sur **Passer la commande**.
+4. Sur **Mon panier**, ajustez les quantités, consultez le **résumé de la commande**, puis appuyez sur **Passer la commande**.

@@ -46,6 +46,14 @@ export class CartPage implements OnInit, OnDestroy {
     this.cart.setQuantity(line.article.id, line.quantity - 1, line.article);
   }
 
+  removeLine(line: CartLine): void {
+    this.cart.setQuantity(line.article.id, 0, line.article);
+  }
+
+  clearCart(): void {
+    this.cart.clear();
+  }
+
   lineTotal(line: CartLine): number {
     return line.article.creditSalePrice * line.quantity;
   }
