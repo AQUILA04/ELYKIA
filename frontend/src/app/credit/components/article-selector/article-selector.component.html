@@ -57,7 +57,7 @@
 
           <span *ngIf="showStock && articleCtrl.get('articleId')?.value" class="stock-indicator"
             [ngClass]="getStockClass(articleCtrl.get('articleId')?.value)">
-            / {{ getArticleStock(articleCtrl.get('articleId')?.value) }}
+            Stock : {{ getArticleStock(articleCtrl.get('articleId')?.value) }}
           </span>
         </div>
         <span class="field-error" *ngIf="articleCtrl.get('quantity')?.hasError('required') && articleCtrl.get('quantity')?.touched">

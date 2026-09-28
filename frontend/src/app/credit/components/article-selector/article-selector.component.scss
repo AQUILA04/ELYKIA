@@ -28,7 +28,7 @@
 
 .elykia-article-selector .article-row {
   display: grid;
-  grid-template-columns: minmax(200px, 2fr) 110px 130px 130px auto;
+  grid-template-columns: minmax(200px, 2fr) 140px 130px 130px auto;
   gap: 14px 16px;
   align-items: start;
   padding: 16px 18px;
@@ -43,7 +43,7 @@
   }
 
   &.simple-layout {
-    grid-template-columns: minmax(200px, 1fr) 110px auto;
+    grid-template-columns: minmax(200px, 1fr) 140px auto;
   }
 
   &.stock-exceeded {
@@ -293,11 +293,12 @@
 
 .elykia-article-selector .quantity-input-wrapper {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
 
-  .field-input { flex: 1; min-width: 0; }
-  .stock-indicator { flex-shrink: 0; }
+  .field-input { width: 100%; min-width: 0; }
+  .stock-indicator { align-self: flex-start; }
 }
 
 .elykia-article-selector .stock-indicator {
@@ -361,10 +362,10 @@
 
 @media (max-width: 1100px) {
   .elykia-article-selector .article-row {
-    grid-template-columns: 1fr 100px 110px 110px auto;
+    grid-template-columns: 1fr 130px 110px 110px auto;
 
     &.simple-layout {
-      grid-template-columns: 1fr 100px auto;
+      grid-template-columns: 1fr 130px auto;
     }
   }
 }

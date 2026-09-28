@@ -107,6 +107,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Carnet mensuel Espace Client : début des mois basé sur la date d’inscription du membre lorsque `USE_MEMBER_REGISTRATION_DATE_FOR_SHARE` est activé.
 
+## Frontend — [2.24.3] — 2026-09-28
+
+### Fixed
+
+- Sélecteur d'articles (vente à crédit / cash, inventaire, demandes et retours de stock, livraison tontine) : le champ **Quantité** affiche toujours la valeur saisie en entier (ex. « 121 » au lieu du seul dernier chiffre). La colonne est élargie et l'indicateur de stock passe sous le champ, avec le libellé « Stock : N ».
+
+## Frontend — [2.24.2] — 2026-09-28
+
+### Added
+
+- Détail d'un crédit : la carte **Restant dû** affiche aussi le **reste effectif chez le client** (montant restant moins le reliquat du client, jamais négatif).
+
 ## Frontend — [2.24.1] — 2026-09-28
 
 ### Changed
@@ -328,6 +340,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tests d’intégration : image MinIO remplacée par `bitnamilegacy/minio` (Quay/Docker Hub inaccessibles sur GHA).
 - Templates PDF d’annulation de ventes : `lang="fr"` et en-têtes de tableaux pour le gate Sonar a11y.
+
+## Mobile — [2.30.6] — 2026-09-28
+
+### Added
+
+- Détail client, onglet crédits : chaque carte crédit affiche le **reste effectif chez le client** (montant restant moins le reliquat disponible, jamais négatif).
 
 ## Mobile — [2.30.5] — 2026-09-24
 

@@ -80,6 +80,7 @@ Touchez le nom d'une cliente dans la liste pour ouvrir son dossier. Vous y trouv
   * Sa position géographique : touchez **« Voir sur la carte »** pour voir précisément où se trouve sa maison ou sa boutique sur le plan.
 * **Onglet 2 : Crédits** :
   * La liste de tous ses achats à crédit avec une jauge colorée qui montre le pourcentage déjà remboursé et le montant qui reste à payer.
+  * Sur chaque carte crédit, la ligne **Reste effectif chez le client** vous donne ce que la cliente doit encore vraiment payer une fois son reliquat déduit (Restant − Reliquat disponible, jamais en dessous de 0).
   * Si vous touchez un crédit ici, l'application vous amène directement sur l'écran pour encaisser sa mise !
 * **Onglet 3 : Historique** :
   * La liste de toutes les opérations passées avec la date, l'heure et le numéro de reçu : en bleu les marchandises remises, en vert l'argent encaissé.

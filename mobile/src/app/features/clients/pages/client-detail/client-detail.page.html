@@ -251,6 +251,11 @@
                     <span class="amount-value">{{ credit.dailyPayment | currency:'XOF':'symbol':'1.0-0' }}</span>
                   </div>
                 </div>
+                <div class="effective-remaining">
+                  <span class="amount-label">Reste effectif chez le client</span>
+                  <span class="amount-value">{{ getEffectiveRemaining(credit, client.reliquatAmount) |
+                    currency:'XOF':'symbol':'1.0-0' }}</span>
+                </div>
                 <div class="credit-dates">
                   <span>Début: {{ credit.startDate | date:'dd/MM/yy' }}</span>
                   <span>Échéance: {{ getDisplayDate(credit) }}</span>

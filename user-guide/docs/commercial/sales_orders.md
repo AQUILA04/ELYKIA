@@ -121,7 +121,7 @@ En ouvrant un crédit, vous accédez à un dossier complet regroupant l'ensemble
 ### 2. Indicateurs financiers du contrat
 - **Montant Total** : Valeur totale de la vente en FCFA.
 - **Déjà Payé** : Somme de l'acompte initial et des règlements journaliers perçus.
-- **Restant Dû** : Montant net qui reste à percevoir.
+- **Restant Dû** : Montant net qui reste à percevoir. Sous ce montant, la ligne **Reste effectif chez le client** indique ce que le client doit encore réellement payer une fois son reliquat déduit (Restant dû − Reliquat, jamais en dessous de 0).
 - **Mise Journalière** : Somme quotidienne attendue selon le contrat.
 
 ### 3. Informations sur le client et reliquat

@@ -141,6 +141,15 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
     this.isLoading = false;
   }
 
+  get clientReliquatAmount(): number {
+    return Number(this.credit?.clientReliquatAmount || this.credit?.client?.reliquatAmount || 0);
+  }
+
+  get effectiveRemainingAmount(): number {
+    const remaining = Number(this.credit?.totalAmountRemaining || 0);
+    return Math.max(0, remaining - this.clientReliquatAmount);
+  }
+
   private daysBetween(a: Date, b: Date): number {
     return Math.floor((b.getTime() - a.getTime()) / 86400000);
   }

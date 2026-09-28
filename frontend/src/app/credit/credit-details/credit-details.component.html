@@ -82,6 +82,10 @@
       <div class="kpi-label">Restant dû</div>
       <div class="kpi-value">{{ credit.totalAmountRemaining | number }}</div>
       <div class="kpi-unit">FCFA · {{ credit.remainingDaysCount }} jours</div>
+      <div class="kpi-effective" data-testid="e2e-credit-details-effective-remaining">
+        Reste effectif chez le client :
+        <strong>{{ effectiveRemainingAmount | number:'1.0-0' }} FCFA</strong>
+      </div>
     </div>
     <div class="cd-kpi-card cd-kpi-info a4">
       <div class="kpi-label">Mise journalière</div>
@@ -153,10 +157,10 @@
       <div class="info-row" *ngIf="credit">
         <span class="info-key">Reliquat</span>
         <span class="info-val"
-              [style.color]="(credit.clientReliquatAmount || credit.client?.reliquatAmount || 0) > 0 ? 'var(--success)' : null"
-              [style.font-weight]="(credit.clientReliquatAmount || credit.client?.reliquatAmount || 0) > 0 ? 'bold' : null"
+              [style.color]="clientReliquatAmount > 0 ? 'var(--success)' : null"
+              [style.font-weight]="clientReliquatAmount > 0 ? 'bold' : null"
               data-testid="e2e-credit-details-reliquat">
-          {{ (credit.clientReliquatAmount || credit.client?.reliquatAmount || 0) | number:'1.0-0' }} FCFA
+          {{ clientReliquatAmount | number:'1.0-0' }} FCFA
         </span>
       </div>
     </div>

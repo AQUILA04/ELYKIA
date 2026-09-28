@@ -159,6 +159,11 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     this.router.navigate(['/recovery'], { queryParams: { clientId: this.clientId, creditId: credit?.id } });
   }
 
+  getEffectiveRemaining(credit: any, reliquatAmount: number | null | undefined): number {
+    const remaining = Number(credit?.remainingAmount) || 0;
+    return Math.max(0, remaining - (Number(reliquatAmount) || 0));
+  }
+
   getDisplayDate(credit: any): string {
     const endDate = new Date(credit.endDate);
     if (this.today > endDate) {
