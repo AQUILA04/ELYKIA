@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "customer_mobile_money_submission")
 @Getter
@@ -44,4 +46,14 @@ public class CustomerMobileMoneySubmission extends BaseEntity<String> {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private CustomerSubmissionStatus status = CustomerSubmissionStatus.INITIE;
+
+    @Column(name = "validated_by", length = 100)
+    private String validatedBy;
+
+    @Column(name = "validated_at")
+    private LocalDateTime validatedAt;
+
+    /** Recouvrement créé à la validation ({@code credit_timeline.id}). */
+    @Column(name = "credit_timeline_id")
+    private Long creditTimelineId;
 }

@@ -22,5 +22,6 @@ public class CustomerMobileMoneySubmissionDto {
     CustomerSubmissionStatus status;
     String targetCollector;
     String tontineCollector;
+    Long creditTimelineId;
     LocalDateTime createdAt;
 }

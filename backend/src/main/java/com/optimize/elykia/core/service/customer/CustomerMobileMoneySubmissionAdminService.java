@@ -6,14 +6,17 @@ import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
+import com.optimize.elykia.core.dto.CreditTimelineDto;
 import com.optimize.elykia.core.dto.customer.CustomerMobileMoneySubmissionDto;
 import com.optimize.elykia.core.entity.customer.CustomerMobileMoneySubmission;
 import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import com.optimize.elykia.core.enumaration.AppNotificationType;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
+import com.optimize.elykia.core.service.sale.CreditTimelineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +41,7 @@ public class CustomerMobileMoneySubmissionAdminService {
     private final CreditRepository creditRepository;
     private final ClientService clientService;
     private final AppNotificationService appNotificationService;
+    private final CreditTimelineService creditTimelineService;
 
     @Transactional(readOnly = true)
     public Page<CustomerMobileMoneySubmissionDto> list(User user, CustomerSubmissionStatus status, Pageable pageable) {
@@ -72,37 +77,81 @@ public class CustomerMobileMoneySubmissionAdminService {
     }
 
     public CustomerMobileMoneySubmissionDto validate(User user, Long id) {
-        return transition(user, id, CustomerSubmissionStatus.VALIDE);
-    }
-
-    public CustomerMobileMoneySubmissionDto reject(User user, Long id) {
-        return transition(user, id, CustomerSubmissionStatus.REJETE);
-    }
-
-    private CustomerMobileMoneySubmissionDto transition(User user, Long id, CustomerSubmissionStatus newStatus) {
         AppNotificationService.assertAudienceOrThrow(user);
-        CustomerMobileMoneySubmission submission = submissionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Soumission introuvable."));
-        if (submission.getStatus() != CustomerSubmissionStatus.INITIE) {
-            throw new CustomValidationException("Seules les déclarations initiées peuvent être traitées.");
-        }
-
+        CustomerMobileMoneySubmission submission = loadInitiated(id);
         Client client = clientService.getById(submission.getClientId());
-        Credit credit = creditRepository.findById(submission.getCreditId()).orElse(null);
+        Credit credit = creditRepository.findById(submission.getCreditId())
+                .orElseThrow(() -> new ResourceNotFoundException("Crédit introuvable pour cette déclaration."));
         String targetCollector = resolveCollector(credit, client);
         String tontineCollector = client != null ? client.getTontineCollector() : null;
-        if (AppNotificationService.isPromoterOnly(user)
-                && !AppNotificationService.matchesCreditCollector(user, targetCollector)) {
-            throw new CustomValidationException("Accès non autorisé à cette déclaration.");
+        assertPromoterAccess(user, targetCollector);
+
+        if (submission.getMobileMoneyAmount() == null || submission.getMobileMoneyAmount() <= 0) {
+            throw new CustomValidationException("Le montant déclaré est invalide.");
         }
 
-        submission.setStatus(newStatus);
+        CreditTimeline timeline = creditTimelineService.makeDailyStake(buildTimelineDto(submission, credit));
+
+        submission.setStatus(CustomerSubmissionStatus.VALIDE);
+        submission.setValidatedBy(user.getUsername());
+        submission.setValidatedAt(LocalDateTime.now());
+        submission.setCreditTimelineId(timeline != null ? timeline.getId() : null);
         if (StringUtils.hasText(user.getUsername())) {
             submission.setLastModifiedBy(user.getUsername());
         }
         submission = submissionRepository.save(submission);
         appNotificationService.resolveByTypeAndEntityId(AppNotificationType.PAYMENT_DECLARATION, submission.getId());
         return toDto(submission, client, targetCollector, tontineCollector);
+    }
+
+    public CustomerMobileMoneySubmissionDto reject(User user, Long id) {
+        AppNotificationService.assertAudienceOrThrow(user);
+        CustomerMobileMoneySubmission submission = loadInitiated(id);
+        Client client = clientService.getById(submission.getClientId());
+        Credit credit = creditRepository.findById(submission.getCreditId()).orElse(null);
+        String targetCollector = resolveCollector(credit, client);
+        String tontineCollector = client != null ? client.getTontineCollector() : null;
+        assertPromoterAccess(user, targetCollector);
+
+        submission.setStatus(CustomerSubmissionStatus.REJETE);
+        submission.setValidatedBy(user.getUsername());
+        submission.setValidatedAt(LocalDateTime.now());
+        if (StringUtils.hasText(user.getUsername())) {
+            submission.setLastModifiedBy(user.getUsername());
+        }
+        submission = submissionRepository.save(submission);
+        appNotificationService.resolveByTypeAndEntityId(AppNotificationType.PAYMENT_DECLARATION, submission.getId());
+        return toDto(submission, client, targetCollector, tontineCollector);
+    }
+
+    private CustomerMobileMoneySubmission loadInitiated(Long id) {
+        CustomerMobileMoneySubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Soumission introuvable."));
+        if (submission.getStatus() != CustomerSubmissionStatus.INITIE) {
+            throw new CustomValidationException("Seules les déclarations initiées peuvent être traitées.");
+        }
+        return submission;
+    }
+
+    private void assertPromoterAccess(User user, String targetCollector) {
+        if (AppNotificationService.isPromoterOnly(user)
+                && !AppNotificationService.matchesCreditCollector(user, targetCollector)) {
+            throw new CustomValidationException("Accès non autorisé à cette déclaration.");
+        }
+    }
+
+    private static CreditTimelineDto buildTimelineDto(CustomerMobileMoneySubmission submission, Credit credit) {
+        CreditTimelineDto dto = new CreditTimelineDto();
+        dto.setCreditId(credit.getId());
+        dto.setAmount(submission.getMobileMoneyAmount());
+        dto.setCollector(credit.getCollector());
+        dto.setConfirmedAmount(submission.getMobileMoneyAmount());
+        dto.setReference("CS-CREDIT-" + submission.getId());
+        Double dailyStake = credit.getDailyStake();
+        boolean normal = dailyStake != null
+                && Math.abs(dailyStake - submission.getMobileMoneyAmount()) < 0.01;
+        dto.setNormalStake(normal);
+        return dto;
     }
 
     private Map<Long, Credit> loadCredits(List<CustomerMobileMoneySubmission> submissions) {
@@ -144,6 +193,7 @@ public class CustomerMobileMoneySubmissionAdminService {
                 .status(submission.getStatus())
                 .targetCollector(targetCollector)
                 .tontineCollector(tontineCollector)
+                .creditTimelineId(submission.getCreditTimelineId())
                 .createdAt(submission.getCreatedDate())
                 .build();
     }
