@@ -17,6 +17,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Fiches client (détails / vue) : badge **Inscrit via l'Espace client**.
 - Tableau de bord tontine : filtre **Origine** (Toutes / Espace client / Personnel) et badge sur la liste et la fiche membre.
 
+### Fixed
+
+- Filtre Origine tontine : `label`/`id` associés (Quality Gate Reliability).
+
 ## Customer-space — [0.6.0] — 2026-09-27
 
 ### Added
