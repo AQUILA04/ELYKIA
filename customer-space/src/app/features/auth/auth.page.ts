@@ -124,18 +124,6 @@ export class AuthPage implements ViewWillEnter {
     return pin === confirm ? null : { pinMismatch: true };
   }
 
-  /** Titre de la barre du header décoratif. */
-  get headerTitle(): string {
-    if (
-      this.step === 'register-form' ||
-      this.step === 'register-otp' ||
-      this.step === 'register-pin'
-    ) {
-      return 'Inscription';
-    }
-    return 'Connexion';
-  }
-
   /** Titre émotionnel dans la carte (Playfair). */
   get title(): string {
     switch (this.step) {

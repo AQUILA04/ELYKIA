@@ -9,6 +9,31 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.12] — 2026-09-28
+
+### Fixed
+
+- Pipeline APK : application des icônes launcher sans `ffmpeg` en CI (pack `resources/android-icons/` pré-généré).
+
+## Customer-space — [0.6.11] — 2026-09-28
+
+### Changed
+
+- Icône launcher Android (APK) générée depuis `resources/icon.png` (1024×1024) à chaque build CI / release.
+- Favicon / apple-touch-icon alignés sur le même logo ELYKIA.
+
+## Customer-space — [0.6.10] — 2026-09-28
+
+### Changed
+
+- Favicon et apple-touch-icon remplacés par le logo ELYKIA (or / bleu).
+
+## Customer-space — [0.6.9] — 2026-09-28
+
+### Changed
+
+- Header **Connexion** : branding AMENOUVEVE-YAVEH / Elykia / Espace Client (hiérarchie visuelle entreprise > app > module).
+
 ## Customer-space — [0.6.8] — 2026-09-28
 
 ### Changed

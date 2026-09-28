@@ -58,6 +58,35 @@ for f in AndroidManifest.xml config.xml network_security_config.xml file_paths.x
 done
 pass "android-config-customer-space files"
 
+ICON_SRC="$ROOT/customer-space/resources/icon.png"
+[ -f "$ICON_SRC" ] || fail "missing $ICON_SRC"
+pass "customer-space resources/icon.png present"
+
+ICON_PACK="$ROOT/customer-space/resources/android-icons"
+[ -d "$ICON_PACK" ] || fail "missing $ICON_PACK"
+for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+  for name in ic_launcher.png ic_launcher_round.png ic_launcher_foreground.png; do
+    [ -f "$ICON_PACK/mipmap-${density}/${name}" ] \
+      || fail "missing $ICON_PACK/mipmap-${density}/${name}"
+  done
+done
+pass "customer-space resources/android-icons pack present"
+
+ICON_WORK="$(mktemp -d)"
+mkdir -p "$ICON_WORK/app/src/main/res"
+# Copie du pack pré-généré — pas de ffmpeg requis en CI
+bash "$ROOT/.github/scripts/apply-customer-space-android-icons.sh" "$ICON_WORK"
+for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+  for name in ic_launcher.png ic_launcher_round.png ic_launcher_foreground.png; do
+    [ -f "$ICON_WORK/app/src/main/res/mipmap-${density}/${name}" ] \
+      || fail "icon missing mipmap-${density}/${name}"
+  done
+done
+grep -q '#0D1B2A' "$ICON_WORK/app/src/main/res/values/ic_launcher_background.xml" \
+  || fail "launcher background color not navy"
+rm -rf "$ICON_WORK"
+pass "apply-customer-space-android-icons.sh"
+
 echo ""
 if [ "$FAILURES" -gt 0 ]; then
   echo "$FAILURES validation(s) failed" >&2

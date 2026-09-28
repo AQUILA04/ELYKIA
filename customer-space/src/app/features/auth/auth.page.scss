@@ -1,3 +1,45 @@
+:host {
+  --elyk-header-height: 260px;
+}
+
+.auth-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 8px 12px 28px;
+  color: #fff;
+}
+
+.auth-brand__company {
+  margin: 0;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(22px, 6.2vw, 28px);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.auth-brand__app {
+  margin: 10px 0 0;
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(17px, 4.6vw, 20px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--elyk-gold-light);
+}
+
+.auth-brand__module {
+  margin: 6px 0 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
 .auth-title {
   font-size: 26px;
   line-height: 1.2;

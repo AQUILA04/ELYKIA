@@ -124,6 +124,7 @@ runs:
         ../.github/scripts/patch-android-status-bar-styles.sh android/app/src/main/res/values/styles.xml
         ../.github/scripts/sync-android-version.sh android
         ../.github/scripts/install-customer-space-app-update-plugin.sh android
+        ../.github/scripts/apply-customer-space-android-icons.sh android
 
     - name: Prepare Android keystore
       shell: bash
