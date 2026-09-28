@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# Remplace les icônes launcher Android Capacitor par le logo ELYKIA (resources/icon.png).
-# Usage: apply-customer-space-android-icons.sh <android-dir> [icon-source.png]
+# Remplace les icônes launcher Android Capacitor par le pack ELYKIA pré-généré
+# (customer-space/resources/android-icons/). Aucune dépendance ffmpeg en CI.
+# Usage: apply-customer-space-android-icons.sh <android-dir> [icons-pack-dir]
 set -euo pipefail
 
 ANDROID_DIR="${1:?android directory required}"
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-SRC="${2:-$ROOT/customer-space/resources/icon.png}"
+PACK="${2:-$ROOT/customer-space/resources/android-icons}"
 RES="$ANDROID_DIR/app/src/main/res"
 
-if [ ! -f "$SRC" ]; then
-  echo "Icon source missing: $SRC" >&2
+if [ ! -d "$PACK" ]; then
+  echo "Icon pack missing: $PACK" >&2
   exit 1
 fi
 if [ ! -d "$RES" ]; then
@@ -17,36 +18,23 @@ if [ ! -d "$RES" ]; then
   exit 1
 fi
 
-if ! command -v ffmpeg >/dev/null 2>&1; then
-  echo "ffmpeg is required to generate Android launcher icons" >&2
-  exit 1
-fi
-
-scale_png() {
-  local size="$1"
-  local out="$2"
-  # -nostdin: évite que ffmpeg consomme le stdin d'une boucle / pipeline
-  ffmpeg -nostdin -y -loglevel error \
-    -i "$SRC" \
-    -vf "scale=${size}:${size}:flags=lanczos" \
-    "$out"
-}
-
-# Densités Android (launcher / foreground adaptatif)
-# mdpi 48/108 · hdpi 72/162 · xhdpi 96/216 · xxhdpi 144/324 · xxxhdpi 192/432
-for spec in \
-  'mdpi:48:108' \
-  'hdpi:72:162' \
-  'xhdpi:96:216' \
-  'xxhdpi:144:324' \
-  'xxxhdpi:192:432'
-do
-  IFS=':' read -r density launcher foreground <<< "$spec"
-  dir="${RES}/mipmap-${density}"
-  mkdir -p "$dir"
-  scale_png "$launcher" "${dir}/ic_launcher.png"
-  scale_png "$launcher" "${dir}/ic_launcher_round.png"
-  scale_png "$foreground" "${dir}/ic_launcher_foreground.png"
+for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+  src_dir="${PACK}/mipmap-${density}"
+  dest_dir="${RES}/mipmap-${density}"
+  if [ ! -d "$src_dir" ]; then
+    echo "Missing density pack: $src_dir" >&2
+    exit 1
+  fi
+  for name in ic_launcher.png ic_launcher_round.png ic_launcher_foreground.png; do
+    if [ ! -f "${src_dir}/${name}" ]; then
+      echo "Missing icon file: ${src_dir}/${name}" >&2
+      exit 1
+    fi
+  done
+  mkdir -p "$dest_dir"
+  cp "${src_dir}/ic_launcher.png" "${dest_dir}/ic_launcher.png"
+  cp "${src_dir}/ic_launcher_round.png" "${dest_dir}/ic_launcher_round.png"
+  cp "${src_dir}/ic_launcher_foreground.png" "${dest_dir}/ic_launcher_foreground.png"
 done
 
 # Fond adaptatif navy (aligné --elyk-navy)
@@ -58,7 +46,7 @@ cat > "${RES}/values/ic_launcher_background.xml" <<'EOF'
 </resources>
 EOF
 
-# S'assurer que les adaptive-icons pointent bien vers les mipmaps PNG
+# Adaptive icons → mipmaps PNG
 mkdir -p "${RES}/mipmap-anydpi-v26"
 cat > "${RES}/mipmap-anydpi-v26/ic_launcher.xml" <<'EOF'
 <?xml version="1.0" encoding="utf-8"?>
@@ -69,4 +57,4 @@ cat > "${RES}/mipmap-anydpi-v26/ic_launcher.xml" <<'EOF'
 EOF
 cp "${RES}/mipmap-anydpi-v26/ic_launcher.xml" "${RES}/mipmap-anydpi-v26/ic_launcher_round.xml"
 
-echo "Applied ELYKIA launcher icons from ${SRC} → ${RES}"
+echo "Applied ELYKIA launcher icons from ${PACK} → ${RES}"

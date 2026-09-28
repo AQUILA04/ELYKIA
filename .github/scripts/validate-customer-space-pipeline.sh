@@ -62,10 +62,20 @@ ICON_SRC="$ROOT/customer-space/resources/icon.png"
 [ -f "$ICON_SRC" ] || fail "missing $ICON_SRC"
 pass "customer-space resources/icon.png present"
 
+ICON_PACK="$ROOT/customer-space/resources/android-icons"
+[ -d "$ICON_PACK" ] || fail "missing $ICON_PACK"
+for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
+  for name in ic_launcher.png ic_launcher_round.png ic_launcher_foreground.png; do
+    [ -f "$ICON_PACK/mipmap-${density}/${name}" ] \
+      || fail "missing $ICON_PACK/mipmap-${density}/${name}"
+  done
+done
+pass "customer-space resources/android-icons pack present"
+
 ICON_WORK="$(mktemp -d)"
-mkdir -p "$ICON_WORK/app/src/main/res/mipmap-mdpi"
-# Minimal tree so the script can write density folders
-bash "$ROOT/.github/scripts/apply-customer-space-android-icons.sh" "$ICON_WORK" "$ICON_SRC"
+mkdir -p "$ICON_WORK/app/src/main/res"
+# Copie du pack pré-généré — pas de ffmpeg requis en CI
+bash "$ROOT/.github/scripts/apply-customer-space-android-icons.sh" "$ICON_WORK"
 for density in mdpi hdpi xhdpi xxhdpi xxxhdpi; do
   for name in ic_launcher.png ic_launcher_round.png ic_launcher_foreground.png; do
     [ -f "$ICON_WORK/app/src/main/res/mipmap-${density}/${name}" ] \
