@@ -107,6 +107,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Carnet mensuel Espace Client : début des mois basé sur la date d’inscription du membre lorsque `USE_MEMBER_REGISTRATION_DATE_FOR_SHARE` est activé.
 
+## Frontend — [2.24.1] — 2026-09-28
+
+### Changed
+
+- Stock mensuel : le commercial sélectionné, le bouton **Historique** et la pagination sont conservés au retour sur l'écran pendant la session, avec une mémorisation propre à chaque utilisateur connecté sur le même navigateur.
+
 ## Frontend — [2.24.0] — 2026-09-27
 
 ### Added

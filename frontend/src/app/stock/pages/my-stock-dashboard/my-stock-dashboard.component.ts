@@ -15,12 +15,21 @@ import { StockMovementDialogComponent } from '../../components/stock-movement-di
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 
+interface MyStockDashboardState {
+  selectedAgent: string | null;
+  isHistoric: boolean;
+  pageIndex: number;
+  pageSize: number;
+}
+
 @Component({
   selector: 'app-my-stock-dashboard',
   templateUrl: './my-stock-dashboard.component.html',
   styleUrls: ['./my-stock-dashboard.component.scss']
 })
 export class MyStockDashboardComponent implements OnInit {
+  private readonly STATE_KEY_PREFIX = 'myStockDashboardState';
+  readonly pageSizeOptions = [5, 10, 20, 50];
 
   stocks: CommercialMonthlyStock[] = [];
   currentUser: any;
@@ -73,6 +82,7 @@ export class MyStockDashboardComponent implements OnInit {
     // Magasinier, secrétaire, gestionnaire, admin, ou tout rôle stock hors commercial
     this.canSelectAllAgents = !this.isPromoter;
     this.showStockReturnHistory = this.featureFlagService.isFeatureEnabled(FeatureFlags.StockReturnHistory);
+    this.restoreState();
     this.loadAgents();
     this.route.queryParams.subscribe(params => {
       const openSales = params['openSales'] === '1' || params['openSales'] === 1 || params['openSales'] === true;
@@ -118,18 +128,21 @@ export class MyStockDashboardComponent implements OnInit {
       this.selectedAgent = agent ? agent.username : null;
     }
     this.pageIndex = 0;
+    this.saveState();
     this.loadCurrentStock();
   }
 
   toggleHistoric() {
     this.isHistoric = !this.isHistoric;
     this.pageIndex = 0;
+    this.saveState();
     this.loadCurrentStock();
   }
 
   onPageChange(event: PageEvent) {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
+    this.saveState();
     this.loadCurrentStock();
   }
 
@@ -140,6 +153,14 @@ export class MyStockDashboardComponent implements OnInit {
         this.stocks = data.content;
         this.totalElements = data.page.totalElements;
         this.spinner.hide();
+        // Page restaurée devenue hors limites : sans résultat, le paginateur est masqué.
+        const lastPageIndex = Math.max(0, Math.ceil(this.totalElements / this.pageSize) - 1);
+        if (!this.stocks?.length && this.totalElements > 0 && this.pageIndex > lastPageIndex) {
+          this.pageIndex = lastPageIndex;
+          this.saveState();
+          this.loadCurrentStock();
+          return;
+        }
         this.tryOpenPendingSalesDialog();
       },
       error: (err) => {
@@ -284,5 +305,46 @@ export class MyStockDashboardComponent implements OnInit {
 
   private stockKey(stock: CommercialMonthlyStock): string {
     return `${stock.collector}-${stock.year}-${stock.month}`;
+  }
+
+  /** Clé propre au compte connecté : un autre utilisateur du même navigateur ne récupère pas ce filtre. */
+  private stateKey(): string | null {
+    const username = this.authService.getUsername();
+    return username ? `${this.STATE_KEY_PREFIX}:${username}` : null;
+  }
+
+  private saveState(): void {
+    const key = this.stateKey();
+    if (!key) return;
+    const state: MyStockDashboardState = {
+      selectedAgent: this.selectedAgent,
+      isHistoric: this.isHistoric,
+      pageIndex: this.pageIndex,
+      pageSize: this.pageSize
+    };
+    sessionStorage.setItem(key, JSON.stringify(state));
+  }
+
+  private restoreState(): void {
+    const key = this.stateKey();
+    if (!key) return;
+    const saved = sessionStorage.getItem(key);
+    if (!saved) return;
+    try {
+      const state = JSON.parse(saved) as Partial<MyStockDashboardState>;
+      if (this.canSelectAllAgents && typeof state.selectedAgent === 'string' && state.selectedAgent) {
+        this.selectedAgent = state.selectedAgent;
+      }
+      this.isHistoric = state.isHistoric === true;
+      if (Number.isInteger(state.pageIndex) && (state.pageIndex as number) >= 0) {
+        this.pageIndex = state.pageIndex as number;
+      }
+      if (this.pageSizeOptions.includes(state.pageSize as number)) {
+        this.pageSize = state.pageSize as number;
+      }
+    } catch (e) {
+      console.error('Erreur restauration état stock mensuel', e);
+      sessionStorage.removeItem(key);
+    }
   }
 }

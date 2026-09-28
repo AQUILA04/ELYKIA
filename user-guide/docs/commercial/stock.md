@@ -39,6 +39,7 @@ Accessible via le menu latéral gauche **Stock Commercial > Stock**, ce tableau 
 ### A. Navigation temporelle et sélection
 * **Accordéon par mois** : Chaque mois d'activité fait l'objet d'un volet déroulant intitulé `[Nom Commercial] - [Mois] [Année]`.
 * **Bouton « Historique »** : Permet d'afficher ou de masquer les mois civils antérieurs clôturés.
+* **Retour sur l'écran** : Si vous quittez le tableau de bord puis y revenez pendant votre session, vous retrouvez le commercial sélectionné, l'état du bouton **« Historique »** et la page de la liste tels que vous les aviez laissés.
 * **Télécharger rapport** : En tête de chaque panneau mensuel, un bouton d'export génère la fiche de stock mensuelle officielle au format PDF.
 
 ### B. Les 6 Indicateurs Financiers KPIs du Stock Mensuel
