@@ -1,48 +1,90 @@
-.summary-card {
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: var(--elyk-shadow);
-  padding: 14px;
-  margin-bottom: 12px;
+.detail-page {
+  --background: var(--elyk-cream);
 }
 
-.summary-card h2 {
-  margin: 0 0 10px;
-  color: var(--elyk-navy);
+.detail-body {
+  position: relative;
+  z-index: 2;
+  margin-top: -40px;
+  padding: 0 var(--elyk-space-4) calc(var(--elyk-space-8) + env(safe-area-inset-bottom));
+}
+
+.summary-card {
+  background: var(--elyk-white);
+  border-radius: var(--elyk-radius-card);
+  box-shadow: var(--elyk-shadow-soft);
+  padding: var(--elyk-space-5);
+  margin-bottom: var(--elyk-space-4);
+}
+
+.summary-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--elyk-space-2);
+  margin-bottom: var(--elyk-space-4);
+
+  h2 {
+    margin: 0;
+    font-size: var(--elyk-text-lg);
+    font-weight: 700;
+    color: var(--elyk-navy);
+  }
 }
 
 .summary-line {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: var(--elyk-space-2);
+  margin-bottom: var(--elyk-space-2);
+  font-size: var(--elyk-text-sm);
   color: var(--elyk-gray-text);
-}
 
-.summary-line strong {
-  color: var(--elyk-navy-mid);
+  strong {
+    color: var(--elyk-navy);
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 .progress-wrap {
-  margin: 10px 0 14px;
+  margin: var(--elyk-space-4) 0 var(--elyk-space-5);
 }
 
 .progress-head {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 12px;
+  margin-bottom: var(--elyk-space-2);
+  font-size: var(--elyk-text-xs);
   color: var(--elyk-gray-text);
 }
 
-.progress-bar {
-  height: 8px;
-  border-radius: 999px;
-  background: #e5e7eb;
-  overflow: hidden;
+.timeline-btn {
+  margin-top: var(--elyk-space-2);
+  min-height: 48px;
+  --border-color: var(--elyk-gold);
+  --color: var(--elyk-gold);
+  text-transform: none;
+  font-weight: 600;
+  letter-spacing: 0;
 }
 
-.progress-fill {
-  height: 100%;
-  background: var(--elyk-gold);
+.skeleton-line {
+  display: block;
+  height: 14px;
+  border-radius: 6px;
+  margin-top: var(--elyk-space-2);
+
+  &--title {
+    width: 45%;
+    height: 18px;
+    margin-top: 0;
+  }
+
+  &--wide {
+    width: 85%;
+  }
+
+  &--mid {
+    width: 60%;
+  }
 }

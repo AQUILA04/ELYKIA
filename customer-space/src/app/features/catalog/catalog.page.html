@@ -1,44 +1,85 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-title>Nouvelle Commande</ion-title>
-    <ion-buttons slot="end">
-      <ion-button routerLink="/cart" data-testid="e2e-catalog-cart-btn">
-        <ion-icon name="cart-outline"></ion-icon>
-        <ion-badge *ngIf="cartCount > 0" color="danger">{{ cartCount }}</ion-badge>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-  <ion-toolbar>
-    <ion-searchbar placeholder="Rechercher un produit..." [value]="searchTerm" (ionInput)="onSearch($event)" debounce="400" data-testid="e2e-catalog-search"></ion-searchbar>
-  </ion-toolbar>
-  <ion-toolbar *ngIf="topTypes.length" class="filter-toolbar">
-    <div class="type-filters" data-testid="e2e-catalog-type-filters">
-      <button type="button" class="type-chip" [class.active]="!selectedCategory" (click)="selectCategory('')" data-testid="e2e-catalog-filter-all">
-        Tous
-      </button>
-      <button type="button" class="type-chip" *ngFor="let t of topTypes"
-        [class.active]="selectedCategory === t.type"
-        (click)="selectCategory(t.type)"
-        [attr.data-testid]="'e2e-catalog-filter-' + t.type">
-        {{ t.label }}
-      </button>
-    </div>
-  </ion-toolbar>
-</ion-header>
-<ion-content class="page-content" data-testid="e2e-catalog-page">
-  <div class="page-inner" *ngIf="!isLoading">
-    <div class="article-grid">
-      <div class="article-card" *ngFor="let a of articles" [attr.data-testid]="'e2e-catalog-article-' + a.id">
-        <div class="ac-img"><ion-icon name="cube-outline"></ion-icon></div>
-        <div class="ac-name">{{ label(a) }}</div>
-        <div class="ac-price">{{ a.creditSalePrice | number:'1.0-0' }} FCFA</div>
-        <div class="ac-actions">
-          <ion-button size="small" fill="outline" (click)="add(a)" [attr.data-testid]="'e2e-catalog-add-' + a.id">+ Ajouter</ion-button>
-          <span class="ac-qty" *ngIf="qty(a.id) > 0">× {{ qty(a.id) }}</span>
-        </div>
+<ion-content class="page-content catalog-page" data-testid="e2e-catalog-page">
+  <app-elyk-page-header
+    eyebrow="ESPACE CLIENT"
+    title="Nouvelle commande"
+    subtitle="Choisissez vos produits alimentaires">
+    <a slot="end" class="catalog-cart-btn" routerLink="/cart" data-testid="e2e-catalog-cart-btn" aria-label="Panier">
+      <ion-icon name="cart-outline" aria-hidden="true"></ion-icon>
+      <span class="catalog-cart-badge" *ngIf="cartCount > 0">{{ cartCount }}</span>
+    </a>
+  </app-elyk-page-header>
+
+  <div class="catalog-body">
+    <div class="catalog-toolbar elyk-animate">
+      <label class="catalog-search" for="catalog-search-input">
+        <span class="sr-only">Rechercher un produit</span>
+        <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+        <input
+          id="catalog-search-input"
+          type="search"
+          placeholder="Rechercher un produit…"
+          [value]="searchTerm"
+          (input)="onSearchInput($event)"
+          data-testid="e2e-catalog-search"
+          autocomplete="off" />
+      </label>
+
+      <div class="type-filters" *ngIf="topTypes.length" data-testid="e2e-catalog-type-filters">
+        <button
+          type="button"
+          class="type-chip"
+          [class.type-chip--active]="!selectedCategory"
+          (click)="selectCategory('')"
+          data-testid="e2e-catalog-filter-all">
+          Tous
+        </button>
+        <button
+          type="button"
+          class="type-chip"
+          *ngFor="let t of topTypes"
+          [class.type-chip--active]="selectedCategory === t.type"
+          (click)="selectCategory(t.type)"
+          [attr.data-testid]="'e2e-catalog-filter-' + t.type">
+          {{ t.label }}
+        </button>
       </div>
     </div>
+
+    <div class="elyk-skeleton-card" *ngIf="isLoading">
+      <ion-skeleton-text animated style="width: 60%; height: 16px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 90%; height: 14px; margin-top: 8px;"></ion-skeleton-text>
+    </div>
+
+    <div class="article-grid" *ngIf="!isLoading">
+      <article
+        class="article-card elyk-animate"
+        *ngFor="let a of articles"
+        [attr.data-testid]="'e2e-catalog-article-' + a.id">
+        <div class="ac-img" aria-hidden="true">
+          <ion-icon name="cube-outline"></ion-icon>
+        </div>
+        <h3 class="ac-name">{{ label(a) }}</h3>
+        <p class="ac-price">{{ a.creditSalePrice | number:'1.0-0' }} FCFA</p>
+        <div class="ac-actions">
+          <button
+            type="button"
+            class="ac-add"
+            (click)="add(a)"
+            [attr.data-testid]="'e2e-catalog-add-' + a.id"
+            [attr.aria-label]="'Ajouter ' + label(a)">
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>
+            <span>Ajouter</span>
+          </button>
+          <span class="ac-qty" *ngIf="qty(a.id) > 0">× {{ qty(a.id) }}</span>
+        </div>
+      </article>
+    </div>
+
+    <div class="empty-state" *ngIf="!isLoading && articles.length === 0" data-testid="e2e-catalog-empty">
+      <ion-icon name="bag-handle-outline" class="empty-icon" aria-hidden="true"></ion-icon>
+      <p class="empty-title">Aucun produit trouvé</p>
+      <p class="empty-sub">Modifiez votre recherche ou choisissez une autre catégorie.</p>
+    </div>
   </div>
-  <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
 </ion-content>
 <app-customer-tab-bar></app-customer-tab-bar>

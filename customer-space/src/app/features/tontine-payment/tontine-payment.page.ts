@@ -11,6 +11,9 @@ import {
   mobileMoneySubmitErrorMessage,
 } from '../../shared/utils/mobile-money-form';
 import { MobileMoneyRecipientsCardComponent } from '../../shared/components/mobile-money-recipients-card/mobile-money-recipients-card.component';
+import { ElykPageHeaderComponent, ElykOutlinedFieldComponent } from '../../shared/ui';
+
+const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
 /** Déclaration Mobile Money cotisation tontine. */
 @Component({
@@ -22,6 +25,8 @@ import { MobileMoneyRecipientsCardComponent } from '../../shared/components/mobi
     ReactiveFormsModule,
     RouterModule,
     MobileMoneyRecipientsCardComponent,
+    ElykPageHeaderComponent,
+    ElykOutlinedFieldComponent,
   ],
   templateUrl: './tontine-payment.page.html',
   styleUrls: ['./tontine-payment.page.scss'],
@@ -53,6 +58,19 @@ export class TontinePaymentPage implements OnInit {
       this.form.patchValue({ mobileMoneyAmount: this.expectedAmount });
     }
     void this.loadRecipients();
+  }
+
+  /** Mixx → Moov → numéro agence par défaut si aucune config. */
+  get depositDestinationNumber(): string {
+    const mixx = this.recipients?.mixxNumber?.trim();
+    if (mixx) {
+      return mixx;
+    }
+    const moov = this.recipients?.moovNumber?.trim();
+    if (moov) {
+      return moov;
+    }
+    return FALLBACK_DEPOSIT_NUMBER;
   }
 
   async loadRecipients(): Promise<void> {
@@ -94,5 +112,9 @@ export class TontinePaymentPage implements OnInit {
 
   goTimeline(): void {
     void this.router.navigate(['/tontines', this.memberId, 'timeline']);
+  }
+
+  goBack(): void {
+    void this.router.navigate(['/tontines', this.memberId]);
   }
 }

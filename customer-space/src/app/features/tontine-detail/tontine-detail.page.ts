@@ -1,15 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerTontineContributionDetail } from '../../shared/models/customer.model';
 import { TontineMonthlyPillsComponent } from '../../shared/components/tontine-monthly-pills/tontine-monthly-pills.component';
+import { ElykPageHeaderComponent } from '../../shared/ui';
 
 @Component({
   selector: 'app-tontine-detail',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, TontineMonthlyPillsComponent],
+  imports: [
+    CommonModule,
+    IonicModule,
+    RouterModule,
+    TontineMonthlyPillsComponent,
+    ElykPageHeaderComponent,
+  ],
   templateUrl: './tontine-detail.page.html',
   styleUrls: ['./tontine-detail.page.scss'],
 })
@@ -18,7 +25,11 @@ export class TontineDetailPage implements OnInit {
   detail: CustomerTontineContributionDetail | null = null;
   isLoading = true;
 
-  constructor(private route: ActivatedRoute, private api: CustomerApiService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private api: CustomerApiService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
     this.memberId = this.route.snapshot.params['id'];
@@ -37,5 +48,9 @@ export class TontineDetailPage implements OnInit {
     if (!this.detail) return 0;
     const validated = this.detail.validatedMonths ?? 0;
     return Math.min(100, (validated / 10) * 100);
+  }
+
+  goBack(): void {
+    void this.router.navigate(['/tontines']);
   }
 }

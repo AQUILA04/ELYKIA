@@ -8,12 +8,13 @@ import { CartService } from '../../shared/services/cart.service';
 import { CustomerArticle, CustomerArticleType } from '../../shared/models/customer.model';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
 import { articleDisplayName } from '../../shared/utils/article-display';
+import { ElykPageHeaderComponent } from '../../shared/ui';
 
-/** Page Catalogue — S-09. */
+/** Page Catalogue — Type C. */
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent],
+  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
   templateUrl: './catalog.page.html',
   styleUrls: ['./catalog.page.scss'],
 })
@@ -25,6 +26,7 @@ export class CatalogPage implements OnInit, OnDestroy {
   isLoading = true;
   cartCount = 0;
   private sub?: Subscription;
+  private searchTimer?: ReturnType<typeof setTimeout>;
 
   constructor(private api: CustomerApiService, private cart: CartService) {}
 
@@ -37,11 +39,20 @@ export class CatalogPage implements OnInit, OnDestroy {
     this.cartCount = this.cart.totalItems;
   }
 
-  ngOnDestroy(): void { this.sub?.unsubscribe(); }
+  ngOnDestroy(): void {
+    this.sub?.unsubscribe();
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+    }
+  }
 
-  onSearch(e: Event): void {
-    this.searchTerm = (e as CustomEvent).detail?.value ?? '';
-    this.loadArticles();
+  onSearchInput(e: Event): void {
+    const value = (e.target as HTMLInputElement)?.value ?? '';
+    this.searchTerm = value;
+    if (this.searchTimer) {
+      clearTimeout(this.searchTimer);
+    }
+    this.searchTimer = setTimeout(() => this.loadArticles(), 400);
   }
 
   selectCategory(category: string): void {

@@ -1,0 +1,20 @@
+<ion-content class="page-content tracking-page" data-testid="e2e-order-tracking-page">
+  <app-elyk-page-header
+    eyebrow="COMMANDES"
+    title="Suivi de commande"
+    subtitle="Suivez l'état de votre livraison"
+    [showBack]="true"
+    (back)="goBack()">
+  </app-elyk-page-header>
+
+  <div class="tracking-body">
+    <div class="empty-state elyk-animate">
+      <ion-icon name="bicycle-outline" class="empty-icon" aria-hidden="true"></ion-icon>
+      <p class="empty-title">Suivi bientôt disponible</p>
+      <p class="empty-sub">Le détail de livraison de vos commandes apparaîtra ici.</p>
+      <ion-button expand="block" fill="outline" class="elyk-btn-outline" routerLink="/purchases">
+        Voir mes achats
+      </ion-button>
+    </div>
+  </div>
+</ion-content>

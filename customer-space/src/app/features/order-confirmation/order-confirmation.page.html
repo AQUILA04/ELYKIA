@@ -1,14 +1,19 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar><ion-title>Commande soumise</ion-title></ion-toolbar>
-</ion-header>
-<ion-content class="page-content ion-text-center" data-testid="e2e-order-confirmation-page">
-  <div class="success-wrapper">
-    <ion-icon name="bag-check-outline" class="success-icon"></ion-icon>
-    <h2>Commande soumise !</h2>
-    <p>Référence : <strong data-testid="e2e-order-reference">{{ reference }}</strong></p>
-    <p *ngIf="totalAmount > 0">Montant : {{ totalAmount | number:'1.0-0' }} FCFA</p>
-    <p>Votre commande est en attente de validation par l'agence. Le crédit démarrera à la livraison.</p>
-    <div class="status-badge">INITIÉ</div>
-    <ion-button expand="block" routerLink="/dashboard" class="elyk-btn-primary">Retour à l'accueil</ion-button>
+<ion-content class="page-content order-confirm-page" data-testid="e2e-order-confirmation-page">
+  <app-elyk-page-header
+    eyebrow="COMMANDES"
+    title="Commande soumise"
+    subtitle="Votre demande est en attente de validation">
+  </app-elyk-page-header>
+
+  <div class="confirm-body">
+    <div class="success-card elyk-animate">
+      <ion-icon name="bag-check-outline" class="success-icon" aria-hidden="true"></ion-icon>
+      <h2>Commande soumise !</h2>
+      <p>Référence : <strong data-testid="e2e-order-reference">{{ reference }}</strong></p>
+      <p *ngIf="totalAmount > 0">Montant : {{ totalAmount | number:'1.0-0' }} FCFA</p>
+      <p class="hint">Le crédit démarrera à la livraison, après validation par l'agence.</p>
+      <span class="elyk-chip elyk-chip--gold">INITIÉ</span>
+      <ion-button expand="block" routerLink="/dashboard" class="elyk-btn-gold">Retour à l'accueil</ion-button>
+    </div>
   </div>
 </ion-content>

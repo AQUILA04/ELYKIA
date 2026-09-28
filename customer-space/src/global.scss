@@ -54,6 +54,18 @@ html, body {
   padding-bottom: calc(16px + env(safe-area-inset-bottom));
 }
 
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 // ─── Toolbar standard (écrans Type B : listes, détails, formulaires) ───
 
 ion-header.ion-no-border ion-toolbar.elyk-toolbar-plain {
@@ -197,26 +209,63 @@ ion-title {
 }
 
 .empty-state {
+  background: var(--elyk-white);
+  border-radius: var(--elyk-radius-card);
+  box-shadow: var(--elyk-shadow-soft);
+  padding: var(--elyk-space-8) var(--elyk-space-5);
   text-align: center;
-  padding: 32px 16px;
   color: var(--elyk-gray-text);
 
-  .empty-icon {
-    font-size: 40px;
-    margin-bottom: 12px;
-    opacity: 0.5;
+  .empty-icon,
+  > .empty-icon {
+    font-size: 56px;
+    color: var(--elyk-gold);
+    margin-bottom: var(--elyk-space-3);
+    opacity: 1;
   }
 
-  .empty-title {
-    font-size: 15px;
-    font-weight: 600;
+  .empty-title,
+  > .empty-title {
+    margin: 0 0 var(--elyk-space-2);
+    font-size: var(--elyk-text-md);
+    font-weight: 700;
     color: var(--elyk-navy);
-    margin-bottom: 4px;
   }
 
-  .empty-sub {
-    font-size: 13px;
+  .empty-sub,
+  > .empty-sub {
+    margin: 0 0 var(--elyk-space-4);
+    font-size: var(--elyk-text-sm);
   }
+}
+
+/** Corps Type C sous le hero (chevauchement header). */
+.elyk-typec-body {
+  position: relative;
+  z-index: 2;
+  margin-top: -40px;
+  padding: 0 var(--elyk-space-4) calc(96px + env(safe-area-inset-bottom));
+}
+
+/** Pied de page formulaire / CTA Type C. */
+.elyk-ion-footer {
+  background: var(--elyk-cream);
+  box-shadow: 0 -4px 16px rgba(13, 27, 42, 0.06);
+}
+
+.elyk-footer-inner {
+  padding: var(--elyk-space-3) var(--elyk-space-4) calc(var(--elyk-space-3) + env(safe-area-inset-bottom));
+
+  ion-button {
+    min-height: 48px;
+    margin: 0;
+  }
+}
+
+.elyk-form-error {
+  color: var(--elyk-red);
+  font-size: var(--elyk-text-sm);
+  text-align: center;
 }
 
 @keyframes elykFadeUp {

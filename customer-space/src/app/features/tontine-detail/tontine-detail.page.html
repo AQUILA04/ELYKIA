@@ -1,58 +1,73 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tontines"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Detail tontine</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content class="page-content detail-page" data-testid="e2e-tontine-detail-page">
+  <app-elyk-page-header
+    eyebrow="ESPACE TONTINE"
+    title="Détail tontine"
+    [subtitle]="detail?.sessionYear ? ('Session ' + detail?.sessionYear) : 'Votre épargne'"
+    [showBack]="true"
+    (back)="goBack()">
+  </app-elyk-page-header>
 
-<ion-content class="page-content" data-testid="e2e-tontine-detail-page">
-  <div class="page-inner" *ngIf="!isLoading && detail">
-    <div class="summary-card">
-      <h2>Session {{ detail.sessionYear }}</h2>
-      <div class="summary-line">
-        <span>Total contribue</span>
-        <strong>{{ detail.totalContribution | number:'1.0-0' }} FCFA</strong>
-      </div>
-      <div class="summary-line">
-        <span>Disponible</span>
-        <strong>{{ detail.availableContribution | number:'1.0-0' }} FCFA</strong>
-      </div>
-      <div class="summary-line">
-        <span>Mise journaliere</span>
-        <strong>{{ detail.dailyStake | number:'1.0-0' }} FCFA</strong>
-      </div>
-      <div class="progress-wrap">
-        <div class="progress-head">
-          <span>Progression mois</span>
-          <span>{{ detail.validatedMonths }}/10</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" [style.width.%]="progressPercent()"></div>
-        </div>
-      </div>
-      <ion-button
-        expand="block"
-        class="elyk-btn-primary"
-        [routerLink]="['/tontines', memberId, 'payment']"
-        [queryParams]="{ amount: detail.dailyStake || 0 }"
-        data-testid="e2e-tontine-detail-pay-btn">
-        Déclarer un paiement
-      </ion-button>
-      <ion-button
-        expand="block"
-        fill="outline"
-        [routerLink]="['/tontines', memberId, 'timeline']"
-        data-testid="e2e-tontine-detail-timeline-btn">
-        Voir la timeline
-      </ion-button>
+  <div class="detail-body">
+    <div class="elyk-skeleton-card" *ngIf="isLoading" data-testid="e2e-tontine-detail-loading">
+      <ion-skeleton-text animated class="skeleton-line skeleton-line--title"></ion-skeleton-text>
+      <ion-skeleton-text animated class="skeleton-line skeleton-line--wide"></ion-skeleton-text>
+      <ion-skeleton-text animated class="skeleton-line skeleton-line--mid"></ion-skeleton-text>
     </div>
 
-    <app-tontine-monthly-pills
-      [summaries]="detail.monthlySummaries"
-      data-testid="e2e-tontine-carnet-pills">
-    </app-tontine-monthly-pills>
+    <ng-container *ngIf="!isLoading && detail">
+      <section class="summary-card elyk-animate">
+        <div class="summary-card__head">
+          <h2>Session {{ detail.sessionYear }}</h2>
+          <span class="elyk-chip elyk-chip--gold">Active</span>
+        </div>
+
+        <div class="summary-line">
+          <span>Total contribué</span>
+          <strong>{{ detail.totalContribution | number:'1.0-0' }} FCFA</strong>
+        </div>
+        <div class="summary-line">
+          <span>Disponible</span>
+          <strong>{{ detail.availableContribution | number:'1.0-0' }} FCFA</strong>
+        </div>
+        <div class="summary-line">
+          <span>Mise journalière</span>
+          <strong>{{ detail.dailyStake | number:'1.0-0' }} FCFA</strong>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-head">
+            <span>Progression mois</span>
+            <span>{{ detail.validatedMonths }}/10</span>
+          </div>
+          <div class="elyk-progress" aria-hidden="true">
+            <div class="elyk-progress__bar" [style.width.%]="progressPercent()"></div>
+          </div>
+        </div>
+
+        <ion-button
+          expand="block"
+          class="elyk-btn-gold"
+          [routerLink]="['/tontines', memberId, 'payment']"
+          [queryParams]="{ amount: detail.dailyStake || 0 }"
+          data-testid="e2e-tontine-detail-pay-btn">
+          Déclarer un paiement
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          class="elyk-btn-outline timeline-btn"
+          [routerLink]="['/tontines', memberId, 'timeline']"
+          data-testid="e2e-tontine-detail-timeline-btn">
+          <ion-icon slot="start" name="time-outline" aria-hidden="true"></ion-icon>
+          Voir la timeline
+        </ion-button>
+      </section>
+
+      <app-tontine-monthly-pills
+        [summaries]="detail.monthlySummaries"
+        data-testid="e2e-tontine-carnet-pills">
+      </app-tontine-monthly-pills>
+    </ng-container>
   </div>
-  <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
 </ion-content>

@@ -1,30 +1,38 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button [defaultHref]="'/tontines/' + memberId"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Timeline des mises</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content class="page-content timeline-page" data-testid="e2e-tontine-timeline-page">
+  <app-elyk-page-header
+    eyebrow="ESPACE TONTINE"
+    title="Timeline des mises"
+    subtitle="Historique de vos cotisations"
+    [showBack]="true"
+    (back)="goBack()">
+  </app-elyk-page-header>
 
-<ion-content class="page-content" data-testid="e2e-tontine-timeline-page">
-  <div class="page-inner" *ngIf="!isLoading">
-    <div class="timeline-item" *ngFor="let p of payments" [attr.data-testid]="'e2e-tontine-payment-row-' + p.id">
-      <div class="ti-main">
-        <span class="ti-date">{{ p.collectionDate | date:'dd/MM/yyyy' }}</span>
-        <span class="ti-ref">{{ p.reference || 'Reference indisponible' }}</span>
-      </div>
-      <div class="ti-side">
-        <strong>{{ p.amount | number:'1.0-0' }} FCFA</strong>
-        <span class="ti-status">{{ p.status }}</span>
-      </div>
+  <div class="timeline-body">
+    <div class="elyk-skeleton-card" *ngIf="isLoading" data-testid="e2e-tontine-timeline-loading">
+      <ion-skeleton-text animated class="skeleton-line skeleton-line--title"></ion-skeleton-text>
+      <ion-skeleton-text animated class="skeleton-line skeleton-line--wide"></ion-skeleton-text>
     </div>
 
-    <div class="empty-state" *ngIf="payments.length === 0" data-testid="e2e-tontine-payments-empty">
-      <ion-icon name="time-outline" class="empty-icon"></ion-icon>
-      <p class="empty-title">Aucune mise enregistree</p>
-      <p class="empty-sub">Vos collectes tontine apparaitront ici.</p>
-    </div>
+    <ng-container *ngIf="!isLoading">
+      <article
+        class="timeline-item elyk-animate"
+        *ngFor="let p of payments"
+        [attr.data-testid]="'e2e-tontine-payment-row-' + p.id">
+        <div class="ti-main">
+          <span class="ti-date">{{ p.collectionDate | date:'dd/MM/yyyy' }}</span>
+          <span class="ti-ref">{{ p.reference || 'Référence indisponible' }}</span>
+        </div>
+        <div class="ti-side">
+          <strong>{{ p.amount | number:'1.0-0' }} FCFA</strong>
+          <span class="ti-status">{{ p.status }}</span>
+        </div>
+      </article>
+
+      <div class="empty-state elyk-animate" *ngIf="payments.length === 0" data-testid="e2e-tontine-payments-empty">
+        <ion-icon name="time-outline" class="empty-icon" aria-hidden="true"></ion-icon>
+        <p class="empty-title">Aucune mise enregistrée</p>
+        <p class="empty-sub">Vos collectes tontine apparaîtront ici.</p>
+      </div>
+    </ng-container>
   </div>
-  <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
 </ion-content>

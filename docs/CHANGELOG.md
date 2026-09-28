@@ -9,6 +9,51 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.6] — 2026-09-28
+
+### Fixed
+
+- Budget styles composants : panier sous le seuil CI ; empty-state / body Type C partagés en global ; seuils `anyComponentStyle` alignés sur Type C.
+
+## Customer-space — [0.6.5] — 2026-09-28
+
+### Fixed
+
+- Catalogue : libellé accessible associé au champ de recherche (Sonar Web:S6853).
+
+## Customer-space — [0.6.4] — 2026-09-28
+
+### Changed
+
+- **Mon panier** : lignes avec vignette, prix gold Playfair, résumé de commande, bandeau info crédit et actions supprimer / vider.
+- **Mes achats** : cartes enrichies (icône, montant Playfair, progression, chevron).
+- **Mon dossier** : champs outlined et CTA formulaires en `ion-footer`.
+
+## Customer-space — [0.6.3] — 2026-09-28
+
+### Changed
+
+- Migration Type C complète des écrans restants : **Accueil**, **Mes achats**, **Détail achat**, **Suivi des mises**, **Paiement Mobile Money**, **Mon panier**, **Confirmation commande**, **Suivi commande**, **Mon dossier**.
+- Filtres achats en chips ; CTAs formulaires en `ion-footer` ; placeholders téléphone `+228`.
+
+## Customer-space — [0.6.2] — 2026-09-28
+
+### Changed
+
+- Headers Type C (`app-elyk-page-header`) sur **Détail tontine**, **Timeline**, **Paiement cotisation**, **Nouvelle commande** et **Mon profil**.
+- Catalogue : barre de recherche pill arrondie, cartes produits et bouton **Ajouter** visible (icône + libellé).
+- Bouton **Voir la timeline** restylé (outline gold + icône).
+
+### Fixed
+
+- Paiement cotisation : numéro de destination explicite (Mixx → Moov → `96186822`), placeholder `+228`, CTA en `ion-footer`.
+
+## Backend — [1.21.1] — 2026-09-28
+
+### Fixed
+
+- Carnet mensuel Espace Client : début des mois basé sur la date d’inscription du membre lorsque `USE_MEMBER_REGISTRATION_DATE_FOR_SHARE` est activé.
+
 ## Frontend — [2.24.0] — 2026-09-27
 
 ### Added

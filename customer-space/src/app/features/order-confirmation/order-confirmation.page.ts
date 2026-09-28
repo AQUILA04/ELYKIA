@@ -2,12 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ElykPageHeaderComponent } from '../../shared/ui';
 
-/** Page Confirmation Commande — S-11. */
+/** Page Confirmation Commande — Type C. */
 @Component({
   selector: 'app-order-confirmation',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule],
+  imports: [CommonModule, IonicModule, RouterModule, ElykPageHeaderComponent],
   templateUrl: './order-confirmation.page.html',
   styleUrls: ['./order-confirmation.page.scss'],
 })

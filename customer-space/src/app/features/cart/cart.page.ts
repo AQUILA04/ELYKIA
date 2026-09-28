@@ -7,12 +7,13 @@ import { CartService, CartLine } from '../../shared/services/cart.service';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { articleDisplayName } from '../../shared/utils/article-display';
 import { CustomerArticle } from '../../shared/models/customer.model';
+import { ElykPageHeaderComponent } from '../../shared/ui';
 
-/** Page Panier — S-10. */
+/** Page Panier — Type C. */
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule],
+  imports: [CommonModule, IonicModule, RouterModule, ElykPageHeaderComponent],
   templateUrl: './cart.page.html',
   styleUrls: ['./cart.page.scss'],
 })
@@ -45,12 +46,24 @@ export class CartPage implements OnInit, OnDestroy {
     this.cart.setQuantity(line.article.id, line.quantity - 1, line.article);
   }
 
+  removeLine(line: CartLine): void {
+    this.cart.setQuantity(line.article.id, 0, line.article);
+  }
+
+  clearCart(): void {
+    this.cart.clear();
+  }
+
   lineTotal(line: CartLine): number {
     return line.article.creditSalePrice * line.quantity;
   }
 
   label(article: CustomerArticle): string {
     return articleDisplayName(article);
+  }
+
+  goBack(): void {
+    void this.router.navigate(['/catalog']);
   }
 
   async submitOrder(): Promise<void> {

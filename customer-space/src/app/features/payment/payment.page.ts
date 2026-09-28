@@ -10,12 +10,22 @@ import {
   createMobileMoneyPaymentForm,
   mobileMoneySubmitErrorMessage,
 } from '../../shared/utils/mobile-money-form';
+import { ElykPageHeaderComponent, ElykOutlinedFieldComponent } from '../../shared/ui';
 
-/** Page Paiement Mobile Money — S-07, S-08. */
+const FALLBACK_DEPOSIT_NUMBER = '96186822';
+
+/** Page Paiement Mobile Money — Type C. */
 @Component({
   selector: 'app-payment',
   standalone: true,
-  imports: [CommonModule, IonicModule, ReactiveFormsModule, RouterModule],
+  imports: [
+    CommonModule,
+    IonicModule,
+    ReactiveFormsModule,
+    RouterModule,
+    ElykPageHeaderComponent,
+    ElykOutlinedFieldComponent,
+  ],
   templateUrl: './payment.page.html',
   styleUrls: ['./payment.page.scss'],
 })
@@ -48,7 +58,15 @@ export class PaymentPage implements OnInit {
     if (this.expectedAmount > 0) {
       this.form.patchValue({ mobileMoneyAmount: this.expectedAmount });
     }
-    this.loadRecipients();
+    void this.loadRecipients();
+  }
+
+  get depositDestinationNumber(): string {
+    const mixx = this.recipients?.mixxNumber?.trim();
+    if (mixx) return mixx;
+    const moov = this.recipients?.moovNumber?.trim();
+    if (moov) return moov;
+    return FALLBACK_DEPOSIT_NUMBER;
   }
 
   async loadRecipients(): Promise<void> {
@@ -92,5 +110,9 @@ export class PaymentPage implements OnInit {
 
   goHome(): void {
     void this.router.navigate(['/dashboard']);
+  }
+
+  goBack(): void {
+    void this.router.navigate(['/purchases', this.distributionId, 'timeline']);
   }
 }

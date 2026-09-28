@@ -12,11 +12,23 @@ import {
 } from '../../shared/models/customer.model';
 import { CARD_TYPE_OPTIONS } from '../../shared/models/customer-auth.model';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
+import { ElykOutlinedFieldComponent, ElykPageHeaderComponent } from '../../shared/ui';
 
+const FALLBACK_DEPOSIT_NUMBER = '96186822';
+
+/** Page Mon dossier — Type C. */
 @Component({
   selector: 'app-onboarding',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, IonicModule, RouterModule, CustomerTabBarComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    IonicModule,
+    RouterModule,
+    CustomerTabBarComponent,
+    ElykPageHeaderComponent,
+    ElykOutlinedFieldComponent,
+  ],
   templateUrl: './onboarding.page.html',
   styleUrls: ['./onboarding.page.scss'],
 })
@@ -58,6 +70,34 @@ export class OnboardingPage implements OnInit {
 
   get isPending(): boolean {
     return this.status?.activationStatus === 'PENDING';
+  }
+
+  get headerTitle(): string {
+    if (this.section === 'id') return 'Pièce d\'identité';
+    if (this.section === 'deposit') return 'Dépôt initial';
+    return 'Compléter mon dossier';
+  }
+
+  get headerSubtitle(): string {
+    if (this.section === 'id') return 'Ajoutez la photo de votre pièce';
+    if (this.section === 'deposit') return 'Déclarez votre transfert Mobile Money';
+    return 'Pièce d\'identité et dépôt pour accélérer l\'activation';
+  }
+
+  get depositDestinationNumber(): string {
+    const mixx = this.recipients?.mixxNumber?.trim();
+    if (mixx) return mixx;
+    const moov = this.recipients?.moovNumber?.trim();
+    if (moov) return moov;
+    return FALLBACK_DEPOSIT_NUMBER;
+  }
+
+  onHeaderBack(): void {
+    if (this.section === 'menu') {
+      this.goDashboard();
+      return;
+    }
+    this.backToMenu();
   }
 
   async load(): Promise<void> {
