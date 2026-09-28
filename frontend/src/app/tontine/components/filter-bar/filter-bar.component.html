@@ -50,8 +50,9 @@
   <div class="divider"></div>
 
   <div class="filter-group">
-    <span class="toolbar-label">Origine</span>
-    <select class="filter-select" [(ngModel)]="currentRegistrationSource"
+    <label class="toolbar-label" for="tontine-origin-filter">Origine</label>
+    <select id="tontine-origin-filter" class="filter-select"
+            [(ngModel)]="currentRegistrationSource"
             (ngModelChange)="onRegistrationSourceChange($event)"
             data-testid="e2e-tontine-origin-filter">
       <option value="ALL">Toutes</option>
