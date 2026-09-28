@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerTontinePayment } from '../../shared/models/customer.model';
+import { ElykPageHeaderComponent } from '../../shared/ui';
 
 @Component({
   selector: 'app-tontine-timeline',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule],
+  imports: [CommonModule, IonicModule, RouterModule, ElykPageHeaderComponent],
   templateUrl: './tontine-timeline.page.html',
   styleUrls: ['./tontine-timeline.page.scss'],
 })
@@ -17,7 +18,11 @@ export class TontineTimelinePage implements OnInit {
   payments: CustomerTontinePayment[] = [];
   isLoading = true;
 
-  constructor(private route: ActivatedRoute, private api: CustomerApiService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private api: CustomerApiService,
+    private router: Router,
+  ) {}
 
   ngOnInit(): void {
     this.memberId = this.route.snapshot.params['id'];
@@ -30,5 +35,9 @@ export class TontineTimelinePage implements OnInit {
         this.isLoading = false;
       },
     });
+  }
+
+  goBack(): void {
+    void this.router.navigate(['/tontines', this.memberId]);
   }
 }

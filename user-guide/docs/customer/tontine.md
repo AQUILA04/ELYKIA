@@ -51,7 +51,20 @@ Sans premier paiement, appuyez directement sur **Confirmer mon inscription**.
 ## Suivre vos tontines
 
 - Si vous êtes déjà inscrit, un bandeau rappelle la session et la fin prévue, suivi de la liste de vos tontines.
-- Appuyez sur une ligne pour consulter le détail et déclarer une cotisation Mobile Money.
+- Appuyez sur une ligne pour ouvrir le **Détail tontine**.
+
+### Détail tontine
+
+1. Consultez le total contribué, le disponible et votre mise journalière.
+2. Appuyez sur **Déclarer un paiement** pour déclarer un transfert Mobile Money.
+3. Appuyez sur **Voir la timeline** pour l’historique des cotisations.
+4. Dans le **Carnet de mises mensuelles**, les mois commencent à votre période d’épargne.
+
+### Déclarer une cotisation
+
+1. Lisez le numéro indiqué pour envoyer votre transfert (commercial ou agence).
+2. Renseignez le **numéro d’envoi**, le **montant**, la **référence du transfert**.
+3. Appuyez sur **Soumettre le paiement** en bas de l’écran.
 
 ## Aucune session ouverte
 

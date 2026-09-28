@@ -9,6 +9,24 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.2] — 2026-09-28
+
+### Changed
+
+- Headers Type C (`app-elyk-page-header`) sur **Détail tontine**, **Timeline**, **Paiement cotisation**, **Nouvelle commande** et **Mon profil**.
+- Catalogue : barre de recherche pill arrondie, cartes produits et bouton **Ajouter** visible (icône + libellé).
+- Bouton **Voir la timeline** restylé (outline gold + icône).
+
+### Fixed
+
+- Paiement cotisation : numéro de destination explicite (Mixx → Moov → `96186822`), placeholder `+228`, CTA en `ion-footer`.
+
+## Backend — [1.21.1] — 2026-09-28
+
+### Fixed
+
+- Carnet mensuel Espace Client : début des mois basé sur la date d’inscription du membre lorsque `USE_MEMBER_REGISTRATION_DATE_FOR_SHARE` est activé.
+
 ## Frontend — [2.24.0] — 2026-09-27
 
 ### Added

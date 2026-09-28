@@ -6,14 +6,15 @@ import { Capacitor } from '@capacitor/core';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import { AppUpdateService } from '../../shared/services/app-update.service';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
+import { ElykPageHeaderComponent } from '../../shared/ui';
 import { environment } from '../../../environments/environment';
 import { AppReleaseInfo } from '../../shared/models/app-release.model';
 
-/** Page Profil Client. */
+/** Page Profil Client — Type C. */
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent],
+  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
 })

@@ -35,6 +35,7 @@ import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.tontine.TontineService;
+import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
 import com.optimize.elykia.core.dto.TontineMemberDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -74,6 +75,7 @@ public class CustomerPortalService {
     private final AppNotificationService appNotificationService;
     private final CustomerTontineMmSubmissionRepository tontineMmSubmissionRepository;
     private final CustomerOnboardingService customerOnboardingService;
+    private final TontineAmountHistoryHelper tontineAmountHistoryHelper;
 
     public static final double TONTINE_MIN_DAILY_STAKE = 100.0;
 
@@ -535,7 +537,9 @@ public class CustomerPortalService {
                 .collect(Collectors.groupingBy(c -> YearMonth.from(c.getCollectionDate()), LinkedHashMap::new, Collectors.toList()));
 
         List<CustomerTontineMonthlySummaryDto> summaries = new ArrayList<>();
-        YearMonth start = YearMonth.from(member.getTontineSession().getStartDate());
+        // Respecte USE_MEMBER_REGISTRATION_DATE_FOR_SHARE : début = inscription si plus tardive.
+        LocalDate effectiveStart = tontineAmountHistoryHelper.getEffectiveMemberStartDate(member);
+        YearMonth start = YearMonth.from(effectiveStart);
         YearMonth end = YearMonth.from(member.getTontineSession().getEndDate());
         YearMonth current = YearMonth.now();
         YearMonth cursor = start;

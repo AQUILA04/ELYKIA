@@ -31,6 +31,7 @@ import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissio
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.tontine.TontineService;
+import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -74,6 +75,7 @@ class CustomerPortalServiceTest {
     @Mock private com.optimize.elykia.core.service.notification.AppNotificationService appNotificationService;
     @Mock private com.optimize.elykia.core.repository.customer.CustomerTontineMmSubmissionRepository tontineMmSubmissionRepository;
     @Mock private CustomerOnboardingService onboardingService;
+    @Mock private TontineAmountHistoryHelper tontineAmountHistoryHelper;
 
     private Client activeClient;
 
@@ -294,7 +296,8 @@ class CustomerPortalServiceTest {
                 commercialMobileMoneyConfigService,
                 appNotificationService,
                 tontineMmSubmissionRepository,
-                onboardingService);
+                onboardingService,
+                tontineAmountHistoryHelper);
     }
 
     private void stubJoinableSession(int year) {

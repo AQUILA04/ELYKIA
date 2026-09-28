@@ -12,9 +12,15 @@ Pour chaque écran : consulter la **maquette PNG**, choisir l'**archétype** (vo
 | S-06 | `06-timeline-recouvrement*.png` | `/purchases/:id/timeline` | `recovery-timeline/` + `recovery-pills/` | B | — | Pastilles couleurs strictes |
 | S-07 | `07-paiement-form.png` | `/payment/:id` | `features/payment/payment.page.*` | B* | ribbons? | Outlined fields, btn navy si maquette |
 | S-08 | `08-paiement-confirme.png` | `/payment/:id` (confirmé) | `features/payment/payment.page.*` | B | — | État succès, btn gold |
-| S-09 | `09-nouvelle-commande.png` | `/catalog` | `features/catalog/catalog.page.*` | B | — | Grille produits, toolbar plain |
+| S-09 | `09-nouvelle-commande.png` | `/catalog` | `features/catalog/catalog.page.*` | **C** | — | `app-elyk-page-header`, search pill, grille produits, bouton Ajouter |
 | S-10 | `10-panier.png` | `/cart` | `features/cart/cart.page.*` | B | — | Liste articles, CTA gold |
 | S-11 | `11-commande-confirmee.png` | `/order-confirmation` | `features/order-confirmation/` | B | — | Confirmation, btn gold |
+| — | (v2) | `/tontines` | `features/tontines/` | **C** | — | Liste + empty join |
+| — | (v2) | `/tontines/join` | `features/tontine-join/` | **C** | — | Formulaire + `ion-footer` CTA |
+| — | (v2) | `/tontines/:id` | `features/tontine-detail/` | **C** | — | Résumé + carnet |
+| — | (v2) | `/tontines/:id/timeline` | `features/tontine-timeline/` | **C** | — | Historique mises |
+| — | (v2) | `/tontines/:id/payment` | `features/tontine-payment/` | **C** | — | Outlined + `ion-footer` |
+| — | (v2) | `/profile` | `features/profile/` | **C** | — | Profil + version |
 
 \* S-07 : vérifier maquette — outlined + navy si formulaire de paiement.
 
