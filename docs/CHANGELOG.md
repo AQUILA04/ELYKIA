@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.8] — 2026-09-28
+
+### Changed
+
+- Écran **Connexion** aligné maquette S-02 (Type A) : header navy + rubans, carte overlap, champs outlined, CTA navy, titre « Bon retour ! ».
+
 ## Customer-space — [0.6.7] — 2026-09-28
 
 ### Added

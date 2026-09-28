@@ -461,6 +461,17 @@
     "content": "Achats et commandes — Espace Client\n\nCet écran vous permet de suivre vos crédits, commander des produits et déclarer vos paiements Mobile Money.\nAccueil\nOuvrez l’application Espace Client.\nSur Accueil , consultez votre crédit en cours et les raccourcis Payer , Commander , Achats , Tontine .\nMes achats\nAppuyez sur l’onglet Achats .\nFiltrez par Tous , En cours , Terminés ou Initiés .\nAppuyez sur une ligne pour ouvrir le détail.\nDétail d’un achat\nConsultez le montant, le payé et le restant. Un crédit actif s’affiche avec le statut EN COURS .\nAppuyez sur Payer une mise (bouton flottant) pour déclarer un paiement Mobile Money.\nAppuyez sur Voir le suivi des mises pour l’historique des échéances.\nSur le suivi, vous pouvez aussi appuyer sur Payer une mise même si aucune échéance n’est encore listée.\nDéclarer un paiement\nLisez le numéro indiqué pour envoyer votre transfert.\nRenseignez le numéro d’envoi , le montant et la référence .\nAppuyez sur Soumettre le paiement en bas de l’écran.\nCommander\nAppuyez sur l’onglet Commander .\nRecherchez un produit ou filtrez par catégorie.\nAppuyez sur Ajouter , puis ouvrez le panier.\nSur Mon panier , ajustez les quantités, consultez le résumé de la commande , puis appuyez sur Passer la commande ."
   },
   {
+    "id": "customer_connexion",
+    "title": "Connexion — Espace Client",
+    "path": "/user-guide/customer/connexion.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Connexion — Espace Client\n\nCet écran vous permet d’ouvrir votre Espace Client avec votre numéro de téléphone et votre code PIN.\nSe connecter\nOuvrez l’application Espace Client .\nSur l’écran Connexion , saisissez votre numéro de téléphone .\nAppuyez sur Continuer .\nSaisissez votre code PIN , puis appuyez sur Se connecter .\nPremière activation\n\nSi votre compte n’a pas encore de code PIN :\nSaisissez votre numéro de téléphone, puis Continuer .\nEntrez le code reçu par SMS , puis appuyez sur Vérifier .\nChoisissez un nouveau code PIN , confirmez-le, puis appuyez sur Activer mon compte .\nCréer un compte\n\nSi votre numéro n’est pas encore connu et que l’inscription est ouverte :\nSaisissez votre numéro, puis Continuer .\nValidez le code SMS.\nRenseignez vos informations (photo, identité, adresse) et appuyez sur Continuer .\nCréez votre code PIN, puis appuyez sur Créer mon compte .\nBesoin d’aide\n\nEn bas de l’écran de connexion, le message Première connexion ? Contactez votre agence vous indique à qui vous adresser si votre numéro n’est pas reconnu."
+  },
+  {
     "id": "customer_tontine",
     "title": "Tontine — Espace Client",
     "path": "/user-guide/customer/tontine.html",
