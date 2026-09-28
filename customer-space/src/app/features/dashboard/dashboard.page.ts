@@ -10,13 +10,21 @@ import { CustomerDashboard } from '../../shared/models/customer.model';
 import { AppReleaseInfo } from '../../shared/models/app-release.model';
 import { CreditProgressCardComponent } from '../../shared/components/credit-progress-card/credit-progress-card.component';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
+import { ElykPageHeaderComponent } from '../../shared/ui';
 import { environment } from '../../../environments/environment';
 
-/** Page Tableau de Bord — S-03. */
+/** Page Tableau de Bord — Type C. */
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, CreditProgressCardComponent, CustomerTabBarComponent],
+  imports: [
+    CommonModule,
+    IonicModule,
+    RouterModule,
+    CreditProgressCardComponent,
+    CustomerTabBarComponent,
+    ElykPageHeaderComponent,
+  ],
   templateUrl: './dashboard.page.html',
   styleUrls: ['./dashboard.page.scss'],
 })

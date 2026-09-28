@@ -1,42 +1,58 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button defaultHref="/purchases"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Détail de l'achat</ion-title>
-  </ion-toolbar>
-</ion-header>
-<ion-content class="page-content" data-testid="e2e-purchase-detail-page">
-  <div class="page-inner" *ngIf="!isLoading && purchase">
-    <div class="detail-card" data-testid="e2e-purchase-detail-card">
-      <div class="dc-header">
-        <span class="dc-ref">{{ purchase.reference }}</span>
-        <span class="dc-status">{{ purchase.status }}</span>
-      </div>
-      <div class="dc-amount">{{ purchase.totalAmount | number:'1.0-0' }} FCFA</div>
-      <div class="progress-bar">
-        <div class="progress-fill" [style.width.%]="progressPercent"></div>
-      </div>
-      <div class="dc-stats">
-        <span>Payé : {{ purchase.paidAmount | number:'1.0-0' }} F</span>
-        <span>Restant : {{ purchase.remainingAmount | number:'1.0-0' }} F</span>
-      </div>
+<ion-content class="page-content purchase-detail-page" data-testid="e2e-purchase-detail-page">
+  <app-elyk-page-header
+    eyebrow="MES ACHATS"
+    title="Détail de l'achat"
+    [subtitle]="purchase?.reference || 'Articles et avancement'"
+    [showBack]="true"
+    (back)="goBack()">
+  </app-elyk-page-header>
+
+  <div class="detail-body">
+    <div class="elyk-skeleton-card" *ngIf="isLoading">
+      <ion-skeleton-text animated style="width: 50%; height: 18px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 80%; height: 14px; margin-top: 8px;"></ion-skeleton-text>
     </div>
-    <h3 class="section-title">Articles</h3>
-    <div class="article-card" *ngFor="let item of purchase.items">
-      <div class="art-name">{{ item.articleName }}</div>
-      <div class="art-meta">
-        {{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }} =
-        {{ item.totalPrice | number:'1.0-0' }} FCFA
+
+    <ng-container *ngIf="!isLoading && purchase">
+      <section class="detail-card elyk-animate" data-testid="e2e-purchase-detail-card">
+        <div class="dc-header">
+          <span class="dc-ref">{{ purchase.reference }}</span>
+          <span class="elyk-chip elyk-chip--gold">{{ purchase.status }}</span>
+        </div>
+        <div class="dc-amount">{{ purchase.totalAmount | number:'1.0-0' }} FCFA</div>
+        <div class="elyk-progress" aria-hidden="true">
+          <div class="elyk-progress__bar" [style.width.%]="progressPercent"></div>
+        </div>
+        <div class="dc-stats">
+          <span>Payé : {{ purchase.paidAmount | number:'1.0-0' }} F</span>
+          <span>Restant : {{ purchase.remainingAmount | number:'1.0-0' }} F</span>
+        </div>
+      </section>
+
+      <div class="elyk-section-head">
+        <h2>Articles</h2>
       </div>
-    </div>
+
+      <div class="article-card elyk-animate" *ngFor="let item of purchase.items">
+        <div class="art-name">{{ item.articleName }}</div>
+        <div class="art-meta">
+          {{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }} =
+          {{ item.totalPrice | number:'1.0-0' }} FCFA
+        </div>
+      </div>
+    </ng-container>
+  </div>
+</ion-content>
+
+<ion-footer class="detail-footer ion-no-border" *ngIf="!isLoading && purchase">
+  <div class="detail-footer-inner">
     <ion-button
       expand="block"
-      class="elyk-btn-primary"
+      class="elyk-btn-gold"
       [routerLink]="['/purchases', purchase.id, 'timeline']"
       data-testid="e2e-purchase-timeline-btn">
+      <ion-icon slot="start" name="time-outline" aria-hidden="true"></ion-icon>
       Voir le suivi des mises
     </ion-button>
   </div>
-  <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
-</ion-content>
+</ion-footer>

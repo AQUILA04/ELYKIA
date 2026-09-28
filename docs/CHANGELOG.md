@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.6.3] — 2026-09-28
+
+### Changed
+
+- Migration Type C complète des écrans restants : **Accueil**, **Mes achats**, **Détail achat**, **Suivi des mises**, **Paiement Mobile Money**, **Mon panier**, **Confirmation commande**, **Suivi commande**, **Mon dossier**.
+- Filtres achats en chips ; CTAs formulaires en `ion-footer` ; placeholders téléphone `+228`.
+
 ## Customer-space — [0.6.2] — 2026-09-28
 
 ### Changed

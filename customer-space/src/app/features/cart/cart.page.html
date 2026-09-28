@@ -1,39 +1,57 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start"><ion-back-button defaultHref="/catalog"></ion-back-button></ion-buttons>
-    <ion-title>Mon Panier</ion-title>
-  </ion-toolbar>
-</ion-header>
-<ion-content class="page-content" data-testid="e2e-cart-page">
-  <div class="page-inner" *ngIf="lines.length > 0">
-    <div class="cart-line" *ngFor="let line of lines" [attr.data-testid]="'e2e-cart-line-' + line.article.id">
-      <div class="cl-info">
-        <div class="cl-name">{{ label(line.article) }}</div>
-        <div class="cl-price">{{ line.article.creditSalePrice | number:'1.0-0' }} FCFA / unité</div>
+<ion-content class="page-content cart-page" data-testid="e2e-cart-page">
+  <app-elyk-page-header
+    eyebrow="ESPACE CLIENT"
+    title="Mon panier"
+    subtitle="Vérifiez vos articles avant de commander"
+    [showBack]="true"
+    (back)="goBack()">
+  </app-elyk-page-header>
+
+  <div class="cart-body">
+    <ng-container *ngIf="lines.length > 0">
+      <article
+        class="cart-line elyk-animate"
+        *ngFor="let line of lines"
+        [attr.data-testid]="'e2e-cart-line-' + line.article.id">
+        <div class="cl-info">
+          <div class="cl-name">{{ label(line.article) }}</div>
+          <div class="cl-price">{{ line.article.creditSalePrice | number:'1.0-0' }} FCFA / unité</div>
+        </div>
+        <div class="cl-qty">
+          <button type="button" class="qty-btn" (click)="decrement(line)" aria-label="Diminuer">−</button>
+          <span>{{ line.quantity }}</span>
+          <button type="button" class="qty-btn" (click)="increment(line)" aria-label="Augmenter">+</button>
+        </div>
+        <div class="cl-total">{{ lineTotal(line) | number:'1.0-0' }} F</div>
+      </article>
+
+      <div class="cart-total elyk-animate" data-testid="e2e-cart-total">
+        Total : <strong>{{ totalAmount | number:'1.0-0' }} FCFA</strong>
       </div>
-      <div class="cl-qty">
-        <ion-button size="small" fill="outline" (click)="decrement(line)">−</ion-button>
-        <span>{{ line.quantity }}</span>
-        <ion-button size="small" fill="outline" (click)="increment(line)">+</ion-button>
-      </div>
-      <div class="cl-total">{{ lineTotal(line) | number:'1.0-0' }} F</div>
+      <p class="form-error" *ngIf="error">{{ error }}</p>
+    </ng-container>
+
+    <div class="empty-state elyk-animate" *ngIf="lines.length === 0" data-testid="e2e-cart-empty">
+      <ion-icon name="cart-outline" class="empty-icon" aria-hidden="true"></ion-icon>
+      <p class="empty-title">Votre panier est vide</p>
+      <p class="empty-sub">Ajoutez des produits depuis le catalogue.</p>
+      <ion-button expand="block" fill="outline" class="elyk-btn-outline" routerLink="/catalog">
+        Parcourir le catalogue
+      </ion-button>
     </div>
-    <div class="cart-total" data-testid="e2e-cart-total">
-      Total : <strong>{{ totalAmount | number:'1.0-0' }} FCFA</strong>
-    </div>
-    <div class="error" *ngIf="error">{{ error }}</div>
-  </div>
-  <div class="empty-state" *ngIf="lines.length === 0" data-testid="e2e-cart-empty">
-    <ion-icon name="cart-outline" class="empty-icon"></ion-icon>
-    <p class="empty-title">Votre panier est vide</p>
-    <ion-button routerLink="/catalog" fill="outline">Parcourir le catalogue</ion-button>
   </div>
 </ion-content>
-<ion-footer *ngIf="lines.length > 0">
-  <ion-toolbar>
-    <ion-button expand="block" class="elyk-btn-primary" data-testid="e2e-cart-submit" [disabled]="isSubmitting" (click)="submitOrder()">
+
+<ion-footer class="cart-footer ion-no-border" *ngIf="lines.length > 0">
+  <div class="cart-footer-inner">
+    <ion-button
+      expand="block"
+      class="elyk-btn-gold"
+      data-testid="e2e-cart-submit"
+      [disabled]="isSubmitting"
+      (click)="submitOrder()">
       <ion-spinner *ngIf="isSubmitting" name="crescent"></ion-spinner>
       <span *ngIf="!isSubmitting">Passer la commande</span>
     </ion-button>
-  </ion-toolbar>
+  </div>
 </ion-footer>

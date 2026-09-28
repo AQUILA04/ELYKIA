@@ -6,15 +6,17 @@ Pour chaque écran : consulter la **maquette PNG**, choisir l'**archétype** (vo
 |---|----------|-------|-----------|------|-------|-----------------|
 | S-01 | `01-splash.png` | (splash / redirect) | `app.component` | A | ribbons | Plein écran, logo centré |
 | S-02 | `02-login.png` | `/auth` | `features/auth/auth.page.*` | A | ribbons | Overlap card, outlined fields, btn navy, footer hint |
-| S-03 | `03-dashboard.png` | `/dashboard` | `features/dashboard/dashboard.page.*` | A | grid | Profil header, overlap carte crédit, quick actions gold |
-| S-04 | `04-historique-achats.png` | `/purchases` | `features/purchases/purchases.page.*` | B | — | Toolbar plain, liste `.elyk-card` |
-| S-05 | `05-detail-achat.png` | `/purchases/:id` | `features/purchase-detail/purchase-detail.page.*` | B | — | Toolbar plain, cartes blanches |
-| S-06 | `06-timeline-recouvrement*.png` | `/purchases/:id/timeline` | `recovery-timeline/` + `recovery-pills/` | B | — | Pastilles couleurs strictes |
-| S-07 | `07-paiement-form.png` | `/payment/:id` | `features/payment/payment.page.*` | B* | ribbons? | Outlined fields, btn navy si maquette |
-| S-08 | `08-paiement-confirme.png` | `/payment/:id` (confirmé) | `features/payment/payment.page.*` | B | — | État succès, btn gold |
-| S-09 | `09-nouvelle-commande.png` | `/catalog` | `features/catalog/catalog.page.*` | **C** | — | `app-elyk-page-header`, search pill, grille produits, bouton Ajouter |
-| S-10 | `10-panier.png` | `/cart` | `features/cart/cart.page.*` | B | — | Liste articles, CTA gold |
-| S-11 | `11-commande-confirmee.png` | `/order-confirmation` | `features/order-confirmation/` | B | — | Confirmation, btn gold |
+| S-03 | `03-dashboard.png` | `/dashboard` | `features/dashboard/dashboard.page.*` | **C** | — | Header Type C + carte crédit navy + quick actions |
+| S-04 | `04-historique-achats.png` | `/purchases` | `features/purchases/purchases.page.*` | **C** | — | Chips filtre + cartes achats |
+| S-05 | `05-detail-achat.png` | `/purchases/:id` | `features/purchase-detail/purchase-detail.page.*` | **C** | — | Détail + footer suivi mises |
+| S-06 | `06-timeline-recouvrement*.png` | `/purchases/:id/timeline` | `recovery-timeline/` + `recovery-pills/` | **C** | — | Pastilles + footer payer |
+| S-07 | `07-paiement-form.png` | `/payment/:id` | `features/payment/payment.page.*` | **C** | — | Outlined + `ion-footer` |
+| S-08 | `08-paiement-confirme.png` | `/payment/:id` (confirmé) | `features/payment/payment.page.*` | **C** | — | État succès |
+| S-09 | `09-nouvelle-commande.png` | `/catalog` | `features/catalog/catalog.page.*` | **C** | — | Search pill, grille, bouton Ajouter |
+| S-10 | `10-panier.png` | `/cart` | `features/cart/cart.page.*` | **C** | — | Lignes + footer commande |
+| S-11 | `11-commande-confirmee.png` | `/order-confirmation` | `features/order-confirmation/` | **C** | — | Confirmation |
+| — | (v2) | `/onboarding` | `features/onboarding/` | **C** | — | Dossier activation |
+| — | (v2) | `/orders/:id` | `features/order-tracking/` | **C** | — | Placeholder suivi |
 | — | (v2) | `/tontines` | `features/tontines/` | **C** | — | Liste + empty join |
 | — | (v2) | `/tontines/join` | `features/tontine-join/` | **C** | — | Formulaire + `ion-footer` CTA |
 | — | (v2) | `/tontines/:id` | `features/tontine-detail/` | **C** | — | Résumé + carnet |

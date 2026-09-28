@@ -5,14 +5,15 @@ import { RouterModule } from '@angular/router';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerPurchase, OrderStatus } from '../../shared/models/customer.model';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
+import { ElykPageHeaderComponent } from '../../shared/ui';
 
 type StatusFilter = 'ALL' | OrderStatus;
 
-/** Page Historique Achats — S-04. */
+/** Page Historique Achats — Type C. */
 @Component({
   selector: 'app-purchases',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent],
+  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
   templateUrl: './purchases.page.html',
   styleUrls: ['./purchases.page.scss'],
 })
@@ -47,11 +48,10 @@ export class PurchasesPage implements OnInit {
     this.applyFilter();
   }
 
-  statusColor(s: string): string {
-    if (s === 'VALIDE') return '#22C55E';
-    if (s === 'LIVRE') return '#60A5FA';
-    if (s === 'RETARD') return '#EF4444';
-    return '#F97316';
+  statusChipClass(s: string): string {
+    if (s === 'VALIDE' || s === 'LIVRE') return 'elyk-chip--success';
+    if (s === 'RETARD') return 'elyk-chip--neutral';
+    return 'elyk-chip--gold';
   }
 
   progressPercent(p: CustomerPurchase): number {

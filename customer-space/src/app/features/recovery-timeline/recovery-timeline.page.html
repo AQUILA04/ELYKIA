@@ -1,48 +1,61 @@
-<ion-header class="ion-no-border">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-back-button [defaultHref]="'/purchases/' + distributionId"></ion-back-button>
-    </ion-buttons>
-    <ion-title>Suivi des mises</ion-title>
-  </ion-toolbar>
-</ion-header>
-<ion-content class="page-content" data-testid="e2e-recovery-timeline-page">
-  <div class="page-inner" *ngIf="!isLoading">
-    <app-recovery-pills
-      data-testid="e2e-recovery-pills"
-      [totalInstallments]="totalInstallments"
-      [recoveries]="recoveries">
-    </app-recovery-pills>
-    <h3 class="section-title">Détail des mises</h3>
-    <div
-      class="timeline-item"
-      *ngFor="let r of recoveries"
-      [attr.data-testid]="'e2e-recovery-row-' + r.installmentNumber">
-      <div
-        class="ti-dot"
-        [class.ti-dot--valide]="r.status === 'VALIDE'"
-        [class.ti-dot--initie]="r.status === 'INITIE'"
-        [class.ti-dot--retard]="r.status === 'RETARD'">
-      </div>
-      <div class="ti-content">
-        <span class="ti-label">Mise #{{ r.installmentNumber }}</span>
-        <span class="ti-date">{{ r.paymentDate | date:'dd/MM/yyyy' }}</span>
-      </div>
-      <span class="ti-amount">{{ r.amount | number:'1.0-0' }} FCFA</span>
-      <span class="ti-status">{{ r.status }}</span>
+<ion-content class="page-content recovery-page" data-testid="e2e-recovery-timeline-page">
+  <app-elyk-page-header
+    eyebrow="MES ACHATS"
+    title="Suivi des mises"
+    subtitle="Visualisez chaque échéance de votre crédit"
+    [showBack]="true"
+    (back)="goBack()">
+  </app-elyk-page-header>
+
+  <div class="recovery-body">
+    <div class="elyk-skeleton-card" *ngIf="isLoading">
+      <ion-skeleton-text animated style="width: 60%; height: 16px;"></ion-skeleton-text>
+      <ion-skeleton-text animated style="width: 90%; height: 14px; margin-top: 8px;"></ion-skeleton-text>
     </div>
+
+    <ng-container *ngIf="!isLoading">
+      <div class="pills-card elyk-animate">
+        <app-recovery-pills
+          data-testid="e2e-recovery-pills"
+          [totalInstallments]="totalInstallments"
+          [recoveries]="recoveries">
+        </app-recovery-pills>
+      </div>
+
+      <div class="elyk-section-head">
+        <h2>Détail des mises</h2>
+      </div>
+
+      <article
+        class="timeline-item elyk-animate"
+        *ngFor="let r of recoveries"
+        [attr.data-testid]="'e2e-recovery-row-' + r.installmentNumber">
+        <div
+          class="ti-dot"
+          [class.ti-dot--valide]="r.status === 'VALIDE'"
+          [class.ti-dot--initie]="r.status === 'INITIE'"
+          [class.ti-dot--retard]="r.status === 'RETARD'">
+        </div>
+        <div class="ti-content">
+          <span class="ti-label">Mise #{{ r.installmentNumber }}</span>
+          <span class="ti-date">{{ r.paymentDate | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <span class="ti-amount">{{ r.amount | number:'1.0-0' }} FCFA</span>
+        <span class="ti-status">{{ r.status }}</span>
+      </article>
+    </ng-container>
   </div>
-  <ion-spinner *ngIf="isLoading" class="center-spinner"></ion-spinner>
 </ion-content>
-<ion-footer *ngIf="nextRecovery">
-  <ion-toolbar>
+
+<ion-footer class="recovery-footer ion-no-border" *ngIf="nextRecovery">
+  <div class="recovery-footer-inner">
     <ion-button
       expand="block"
-      class="elyk-btn-primary"
+      class="elyk-btn-gold"
       [routerLink]="['/payment', distributionId]"
       [queryParams]="paymentQueryParams()"
       data-testid="e2e-recovery-pay-btn">
       Payer la prochaine mise
     </ion-button>
-  </ion-toolbar>
+  </div>
 </ion-footer>

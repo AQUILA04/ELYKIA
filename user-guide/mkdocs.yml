@@ -12,6 +12,7 @@ theme:
 nav:
   - Accueil: index.md
   - Guide Espace Client:
+    - Achats et commandes: customer/achats_commandes.md
     - Tontine: customer/tontine.md
   - Guide Gestionnaire:
     - Introduction & Connexion: manager/index.md

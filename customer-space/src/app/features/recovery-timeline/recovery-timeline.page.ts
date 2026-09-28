@@ -1,16 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { RouterModule, ActivatedRoute } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerRecovery } from '../../shared/models/customer.model';
 import { RecoveryPillsComponent } from '../../shared/components/recovery-pills/recovery-pills.component';
+import { ElykPageHeaderComponent } from '../../shared/ui';
 
-/** Page Timeline Recouvrements — S-06. */
+/** Page Timeline Recouvrements — Type C. */
 @Component({
   selector: 'app-recovery-timeline',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, RecoveryPillsComponent],
+  imports: [CommonModule, IonicModule, RouterModule, RecoveryPillsComponent, ElykPageHeaderComponent],
   templateUrl: './recovery-timeline.page.html',
   styleUrls: ['./recovery-timeline.page.scss'],
 })
@@ -20,7 +21,11 @@ export class RecoveryTimelinePage implements OnInit {
   totalInstallments = 12;
   isLoading = true;
 
-  constructor(private route: ActivatedRoute, private api: CustomerApiService) {}
+  constructor(
+    private route: ActivatedRoute,
+    private api: CustomerApiService,
+    private router: Router,
+  ) {}
 
   get nextRecovery(): CustomerRecovery | undefined {
     return this.recoveries.find((r) => r.status === 'INITIE' || r.status === 'RETARD');
@@ -44,5 +49,9 @@ export class RecoveryTimelinePage implements OnInit {
       amount: next?.amount ?? 0,
       installment: next?.installmentNumber ?? 0,
     };
+  }
+
+  goBack(): void {
+    void this.router.navigate(['/purchases', this.distributionId]);
   }
 }
