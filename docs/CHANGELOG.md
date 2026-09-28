@@ -21,6 +21,19 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Filtre Origine tontine : `label`/`id` associés (Quality Gate Reliability).
 
+## Customer-space — [0.6.1] — 2026-09-28
+
+### Fixed
+
+- Estimation mensuelle de mise : calcul sur **31 jours** (ex. 500 → 15 500 FCFA).
+- Bouton **Confirmer mon inscription** placé en `ion-footer` pour ne plus remonter au focus du clavier.
+- Message du premier dépôt : numéro de destination explicite (Mixx → Moov → `96186822`).
+- Après inscription, rechargement de la session/cotisations à chaque entrée sur **Mes tontines** ; le formulaire de join reconfirme côté API que l’utilisateur n’est pas déjà membre.
+
+### Changed
+
+- Design system Type C (`app-elyk-page-header`) ancré comme **défaut** pour les pages pas encore migrées (skill `customer-space-ui-style`).
+
 ## Customer-space — [0.6.0] — 2026-09-27
 
 ### Added

@@ -39,6 +39,7 @@ describe('TontinesPage', () => {
   });
 
   it('loads session and shows join CTA when joinable', () => {
+    fixture.componentInstance.ionViewWillEnter();
     fixture.detectChanges();
     expect(fixture.componentInstance.session?.joinable).toBeTrue();
     expect(fixture.componentInstance.showJoinHero).toBeTrue();
@@ -64,8 +65,38 @@ describe('TontinesPage', () => {
     api.getTontineContributions.and.returnValue(
       of([{ memberId: '1', sessionYear: 2026, deliveryStatus: 'SESSION_INPROGRESS' }]),
     );
+    fixture.componentInstance.ionViewWillEnter();
     fixture.detectChanges();
     expect(fixture.componentInstance.tontines.length).toBe(1);
+    expect(fixture.componentInstance.showMemberBanner).toBeTrue();
+    expect(fixture.componentInstance.showJoinHero).toBeFalse();
+  });
+
+  it('reloads session and contributions on ionViewWillEnter', () => {
+    fixture.componentInstance.ionViewWillEnter();
+    fixture.detectChanges();
+    api.getCurrentTontineSession.calls.reset();
+    api.getTontineContributions.calls.reset();
+    api.getCurrentTontineSession.and.returnValue(
+      of({
+        available: true,
+        year: 2026,
+        startDate: '2026-02-01',
+        endDate: '2026-11-30',
+        status: 'ACTIVE',
+        joinable: false,
+        alreadyMember: true,
+        memberId: '7',
+        minDailyStake: 100,
+      }),
+    );
+    api.getTontineContributions.and.returnValue(
+      of([{ memberId: '7', sessionYear: 2026, deliveryStatus: 'SESSION_INPROGRESS' }]),
+    );
+    fixture.componentInstance.ionViewWillEnter();
+    expect(api.getCurrentTontineSession).toHaveBeenCalled();
+    expect(api.getTontineContributions).toHaveBeenCalled();
+    expect(fixture.componentInstance.showJoinHero).toBeFalse();
     expect(fixture.componentInstance.showMemberBanner).toBeTrue();
   });
 });

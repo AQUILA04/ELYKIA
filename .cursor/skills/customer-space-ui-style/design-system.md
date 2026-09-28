@@ -2,15 +2,15 @@
 
 Référence technique pour **tous** les écrans `customer-space/`. À lire avant toute page visible.
 
-## Deux archétypes de page
+## Trois archétypes de page
 
 | Type | Quand l'utiliser | Header | Contenu |
 |------|------------------|--------|---------|
-| **A — Decor** | Écrans « vitrine » premium (auth, dashboard, accueil crédit) | `app-elyk-decor-header` + motif SVG | `app-elyk-overlap-card` ou `.page-inner` sous header |
-| **B — Plain** | Listes, détails, formulaires secondaires | `ion-header` + `elyk-toolbar-plain` | `.page-inner` classique |
-| **C — Hero header (v2, pilote tontine)** | Écrans tontine (liste + inscription) | `app-elyk-page-header` (navy + grille, eyebrow gold, titre Playfair, coins bas arrondis) | Première carte qui chevauche le header ; classes globales `.elyk-chip`, `.elyk-steps`, `.elyk-progress`, `.elyk-sticky-cta` |
+| **A — Decor** | Écrans « vitrine » déjà maquettés (auth, dashboard) | `app-elyk-decor-header` + motif SVG | `app-elyk-overlap-card` ou `.page-inner` sous header |
+| **B — Plain** | Écrans wireflow S-04–S-11 déjà en Type B | `ion-header` + `elyk-toolbar-plain` | `.page-inner` classique |
+| **C — Hero header (v2, défaut)** | **Toute nouvelle page** ou refonte d’un écran pas encore migré | `app-elyk-page-header` (navy + grille, eyebrow gold, titre Playfair, coins bas arrondis) | Première carte qui chevauche le header ; classes `.elyk-chip`, `.elyk-steps`, `.elyk-progress` ; CTA formulaire en `ion-footer` |
 
-**Règle :** ne pas inventer un layout hors A/B/C. Type C est le pilote v2 — l'appliquer d'abord aux écrans tontine avant généralisation.
+**Règle :** ne pas inventer un layout hors A/B/C. **Type C est le défaut** dès qu’on touche une page qui n’a pas encore ce design system (ex. tontine déjà migré ; appliquer C automatiquement aux prochaines pages non migrées).
 
 ## Composants obligatoires (`shared/ui/`)
 
@@ -62,7 +62,7 @@ Champ outlined, label flottant, icône gold. Projeter `ion-input` à l'intérieu
 </app-elyk-outlined-field>
 ```
 
-### `app-elyk-page-header` — Type C (v2, pilote tontine)
+### `app-elyk-page-header` — Type C (v2, défaut)
 
 Hero navy avec motif `header-grid.svg`, coins bas arrondis (`--elyk-header-radius`), eyebrow uppercase gold, titre Playfair et sous-titre.
 
@@ -82,6 +82,8 @@ Hero navy avec motif `header-grid.svg`, coins bas arrondis (`--elyk-header-radiu
 ```
 
 Tokens v2 associés : `--elyk-space-*`, `--elyk-text-*`, `--elyk-gold-soft`, `--elyk-green-soft`, `--elyk-surface-muted`, `--elyk-shadow-soft`.
+
+**CTA de formulaire (Type C) :** placer le bouton principal dans un `ion-footer` (hors `ion-content`) pour éviter le saut au focus clavier. Réserver `.elyk-sticky-cta` aux listes sans champs texte.
 
 ## Boutons (classes globales)
 
@@ -167,12 +169,37 @@ Tokens v2 associés : `--elyk-space-*`, `--elyk-text-*`, `--elyk-gold-soft`, `--
 - Recréer les motifs en CSS → utiliser les SVG `assets/decor/`
 - `style="..."` inline
 
+## Structure HTML Type C (modèle)
+
+```html
+<ion-content class="page-content my-page">
+  <app-elyk-page-header
+    eyebrow="ESPACE …"
+    title="Titre"
+    subtitle="Sous-titre"
+    [showBack]="true"
+    (back)="goBack()">
+  </app-elyk-page-header>
+
+  <div class="page-body">
+    <!-- première carte chevauche le header (margin-top négatif) -->
+  </div>
+</ion-content>
+
+<ion-footer class="ion-no-border" *ngIf="showCta">
+  <div class="footer-inner">
+    <ion-button expand="block" class="elyk-btn-gold" (click)="submit()">Confirmer</ion-button>
+  </div>
+</ion-footer>
+```
+
 ## Checklist fidélité (chaque écran)
 
 ```
-- [ ] Maquette PNG S-XX ouverte pendant l'implémentation
-- [ ] Archétype A ou B choisi selon tableau ci-dessus
+- [ ] Maquette PNG S-XX ouverte si elle existe ; sinon Type C par défaut
+- [ ] Archétype A, B ou C choisi selon tableau ci-dessus
 - [ ] Composants shared/ui utilisés (pas de copier-coller SCSS header)
+- [ ] Formulaire + clavier → CTA en ion-footer
 - [ ] Variant bouton correct (navy vs gold)
 - [ ] Typo Playfair sur titres émotionnels uniquement
 - [ ] Tokens --elyk-* (pas de couleurs ad hoc)

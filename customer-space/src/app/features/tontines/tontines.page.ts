@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
@@ -18,7 +18,7 @@ import { ElykPageHeaderComponent } from '../../shared/ui';
   templateUrl: './tontines.page.html',
   styleUrls: ['./tontines.page.scss'],
 })
-export class TontinesPage implements OnInit {
+export class TontinesPage implements ViewWillEnter {
   tontines: CustomerTontineContributionSummary[] = [];
   session: CustomerTontineSession | null = null;
   isLoading = true;
@@ -26,7 +26,8 @@ export class TontinesPage implements OnInit {
 
   constructor(private api: CustomerApiService) {}
 
-  ngOnInit(): void {
+  /** Recharge session + cotisations à chaque entrée (cache Ionic après inscription). */
+  ionViewWillEnter(): void {
     this.load();
   }
 

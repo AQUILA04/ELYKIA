@@ -27,7 +27,10 @@ test.describe('Tontine join flow', () => {
     await page.getByTestId('e2e-tontine-join-btn').click();
 
     await expect(page.getByTestId('e2e-tontine-join-page')).toBeVisible({ timeout: 10_000 });
-    await page.getByTestId('e2e-tontine-stake-200').click();
+    await page.getByTestId('e2e-tontine-stake-500').click();
+    await expect(page.getByTestId('e2e-tontine-stake-recap')).toContainText('15,500');
+    await expect(page.getByTestId('e2e-tontine-join-deposit-hint')).toContainText(/numéro/i);
+    await expect(page.getByTestId('e2e-tontine-join-submit')).toBeVisible();
     await page.getByTestId('e2e-tontine-join-submit').click();
 
     await expect(page.getByTestId('e2e-tontine-join-success')).toBeVisible({ timeout: 10_000 });

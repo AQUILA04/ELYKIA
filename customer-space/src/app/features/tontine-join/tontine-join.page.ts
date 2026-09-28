@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -18,6 +18,8 @@ import { ElykPageHeaderComponent, ElykOutlinedFieldComponent } from '../../share
 import { MobileMoneyRecipientsCardComponent } from '../../shared/components/mobile-money-recipients-card/mobile-money-recipients-card.component';
 
 const STAKE_SHORTCUTS = [100, 200, 500, 1000];
+/** Numéro agence affiché si aucun destinataire Mixx/Moov n'est configuré. */
+const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
 @Component({
   selector: 'app-tontine-join',
@@ -34,7 +36,7 @@ const STAKE_SHORTCUTS = [100, 200, 500, 1000];
   templateUrl: './tontine-join.page.html',
   styleUrls: ['./tontine-join.page.scss'],
 })
-export class TontineJoinPage implements OnInit {
+export class TontineJoinPage implements ViewWillEnter {
   readonly stakeShortcuts = STAKE_SHORTCUTS;
   session: CustomerTontineSession | null = null;
   stakeForm: FormGroup;
@@ -60,7 +62,11 @@ export class TontineJoinPage implements OnInit {
     this.paymentForm = createMobileMoneyPaymentForm(this.fb);
   }
 
-  ngOnInit(): void {
+  /** Reconfirme côté backend que l'utilisateur n'est pas déjà membre avant le formulaire. */
+  ionViewWillEnter(): void {
+    if (this.success) {
+      return;
+    }
     void this.loadSession();
   }
 
@@ -68,16 +74,21 @@ export class TontineJoinPage implements OnInit {
     this.isLoadingSession = true;
     this.error = '';
     try {
+      // Toujours confirmer côté backend avant d'afficher le formulaire d'inscription.
       this.session = await firstValueFrom(this.api.getCurrentTontineSession());
+      if (this.session.alreadyMember && this.session.memberId) {
+        void this.router.navigate(['/tontines', this.session.memberId], { replaceUrl: true });
+        return;
+      }
       if (!this.session.joinable) {
-        this.error = this.session.alreadyMember
-          ? 'Vous êtes déjà inscrit à la session en cours.'
-          : 'Aucune session de tontine ouverte.';
+        this.error = 'Aucune session de tontine ouverte.';
       }
       const min = this.session.minDailyStake || 100;
       this.stakeForm.get('dailyStake')?.setValidators([Validators.required, Validators.min(min)]);
       this.stakeForm.patchValue({ dailyStake: Math.max(100, min) });
       this.selectedShortcut = 100;
+      // Précharger les numéros pour afficher la destination du premier dépôt.
+      void this.loadRecipients();
     } catch {
       this.error = 'Impossible de charger la session.';
     } finally {
@@ -89,8 +100,24 @@ export class TontineJoinPage implements OnInit {
     return Number(this.stakeForm.value.dailyStake) || 0;
   }
 
+  /** Un mois tontine compte toujours 31 jours de mise. */
   get monthlyEstimate(): number {
-    return this.dailyStake * 30;
+    return this.dailyStake * 31;
+  }
+
+  /**
+   * Numéro d'envoi du premier dépôt : Mixx, sinon Moov, sinon numéro agence par défaut.
+   */
+  get depositDestinationNumber(): string {
+    const mixx = this.recipients?.mixxNumber?.trim();
+    if (mixx) {
+      return mixx;
+    }
+    const moov = this.recipients?.moovNumber?.trim();
+    if (moov) {
+      return moov;
+    }
+    return FALLBACK_DEPOSIT_NUMBER;
   }
 
   selectShortcut(amount: number): void {

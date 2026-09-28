@@ -46,12 +46,15 @@ import {
 
 Voir le détail complet dans [design-system.md](design-system.md).
 
-## Deux archétypes de page
+## Trois archétypes de page
 
-| Type | Header | Écrans (maquettes) |
-|------|--------|-------------------|
-| **A — Decor** | `app-elyk-decor-header` + SVG motif | S-01, S-02, S-03 |
-| **B — Plain** | `ion-header` + `elyk-toolbar-plain` | S-04 à S-11 (sauf cas notés) |
+| Type | Header | Quand |
+|------|--------|-------|
+| **A — Decor** | `app-elyk-decor-header` + SVG motif | Auth, dashboard, écrans « vitrine » déjà maquettés (S-01–S-03) |
+| **B — Plain** | `ion-header` + `elyk-toolbar-plain` | Écrans wireflow S-04–S-11 déjà en Type B |
+| **C — Hero header (v2, défaut)** | `app-elyk-page-header` | **Défaut** pour toute nouvelle page ou refonte d’un écran pas encore migré vers A/B/C |
+
+**Règle de choix :** si l’écran cible n’a pas encore le design system v2, appliquer **Type C** automatiquement (ne pas inventer un 4ᵉ layout). Conserver A ou B uniquement quand l’écran est déjà aligné sur sa maquette wireflow.
 
 ## Assets décoratifs
 
@@ -134,8 +137,10 @@ padding-bottom: env(safe-area-inset-bottom);
 
 ## Anti-patterns
 
-- Inventer un layout sans passer par Type A ou B
-- Header décoratif recréé en SCSS local au lieu de `app-elyk-decor-header`
+- Inventer un layout hors Type A / B / C
+- Créer une nouvelle page sans Type C alors qu’elle n’a pas encore de design system
+- Header décoratif recréé en SCSS local au lieu de `app-elyk-decor-header` / `app-elyk-page-header`
+- CTA sticky (`.elyk-sticky-cta`) dans un formulaire avec clavier → préférer `ion-footer`
 - Inputs fond gris sur auth (maquette = outlined)
 - Bouton gold systématique sans vérifier la maquette
 - Palette / composants du back-office (`frontend-ui-style`, Material)
@@ -147,9 +152,10 @@ padding-bottom: env(safe-area-inset-bottom);
 ## Checklist avant livraison
 
 ```
-- [ ] Maquette PNG S-XX consultée pendant l'implémentation
-- [ ] Archétype A ou B conforme à design-system.md
-- [ ] Composants shared/ui utilisés (header, overlap, outlined si formulaire)
+- [ ] Maquette PNG S-XX consultée si elle existe ; sinon Type C par défaut
+- [ ] Archétype A, B ou C conforme à design-system.md
+- [ ] Composants shared/ui utilisés (page-header / decor-header, overlap, outlined si formulaire)
+- [ ] Formulaires à clavier : CTA dans `ion-footer`, pas sticky dans `ion-content`
 - [ ] Variant bouton correct (navy vs gold)
 - [ ] Tokens --elyk-* (pas de couleurs ad hoc)
 - [ ] Playfair uniquement sur titres émotionnels / montants
