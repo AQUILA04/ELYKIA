@@ -25,6 +25,11 @@ elykia_load_stack_env() {
     return 1
   fi
 
+  if [[ ! -r "$env_file" ]]; then
+    echo "Error: $env_file is not readable by $(id -un). Fix with: sudo chgrp deploy $env_file && sudo chmod 640 $env_file" >&2
+    return 1
+  fi
+
   # shellcheck disable=SC1090
   set -a
   # shellcheck source=/dev/null

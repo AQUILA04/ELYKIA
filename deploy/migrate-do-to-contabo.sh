@@ -292,7 +292,7 @@ for env in "${ENV_LIST[@]}"; do
   fi
 
   scp_to "$dest_local" "${REMOTE_USER}@${REMOTE_IP}:${REMOTE_ELYKIA}/${env}/.env"
-  remote "chmod 600 ${REMOTE_ELYKIA}/${env}/.env"
+  remote "if getent group deploy >/dev/null; then chgrp deploy ${REMOTE_ELYKIA}/${env}/.env && chmod 640 ${REMOTE_ELYKIA}/${env}/.env; else chmod 600 ${REMOTE_ELYKIA}/${env}/.env; fi"
   log "  → ${env}/.env synced"
 done
 

@@ -68,7 +68,13 @@ fi
 
 # Ensure .env exists and update only the image variables when CLI args are provided
 touch "$ENV_FILE"
-chmod 600 "$ENV_FILE" || true
+# Cron DB backups run as user deploy and source this file: keep it group-readable.
+if getent group deploy &>/dev/null; then
+  chgrp deploy "$ENV_FILE" 2>/dev/null || true
+  chmod 640 "$ENV_FILE" || true
+else
+  chmod 600 "$ENV_FILE" || true
+fi
 mkdir -p "$(dirname "$ENV_FILE")"
 
 set_env_var() {
