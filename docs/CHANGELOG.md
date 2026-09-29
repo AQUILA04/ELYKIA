@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.7.2] — 2026-09-29
+
+### Fixed
+
+- Quality Gate SonarCloud : suppression du fichier SCSS inutilisé `_breakpoints.scss` (bugs `css:S8776` « Missing scoping root » → Reliability Rating C).
+
 ## Customer-space — [0.7.1] — 2026-09-29
 
 ### Fixed
