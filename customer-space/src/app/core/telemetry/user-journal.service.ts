@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy, inject } from '@angular/core';
+import { Injectable, Injector, OnDestroy, inject } from '@angular/core';
 import { HttpBackend, HttpClient } from '@angular/common/http';
 import { App } from '@capacitor/app';
 import { Capacitor } from '@capacitor/core';
@@ -22,8 +22,13 @@ const FLUSH_INTERVAL_MS = 10_000;
 
 @Injectable({ providedIn: 'root' })
 export class UserJournalService implements OnDestroy {
-  /** HttpClient via HttpBackend : contourne les intercepteurs (évite DI circulaire + boucles). */
-  private readonly http: HttpClient;
+  /**
+   * HttpClient via HttpBackend (lazy) : contourne les intercepteurs
+   * (évite DI circulaire + boucles). Lazy pour ne pas exiger HttpBackend
+   * dans les tests unitaires qui n'appellent pas flush().
+   */
+  private http: HttpClient | null = null;
+  private readonly injector = inject(Injector);
   private readonly ctx = inject(TelemetryContextService);
   private readonly crash = inject(CrashReporterService);
   private readonly analytics = inject(AnalyticsReporterService);
@@ -35,8 +40,11 @@ export class UserJournalService implements OnDestroy {
   private visibilityHandler: (() => void) | null = null;
   private initialized = false;
 
-  constructor() {
-    this.http = new HttpClient(inject(HttpBackend));
+  private getHttp(): HttpClient {
+    if (!this.http) {
+      this.http = new HttpClient(this.injector.get(HttpBackend));
+    }
+    return this.http;
   }
 
   async init(): Promise<void> {
@@ -156,7 +164,7 @@ export class UserJournalService implements OnDestroy {
         const batch = this.queue.slice(0, BATCH_SIZE);
         try {
           await firstValueFrom(
-            this.http.post(`${environment.apiUrl}/api/customer/auth/activity-logs`, {
+            this.getHttp().post(`${environment.apiUrl}/api/customer/auth/activity-logs`, {
               events: batch,
             }),
           );
