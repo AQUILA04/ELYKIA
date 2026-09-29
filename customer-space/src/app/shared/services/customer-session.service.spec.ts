@@ -1,9 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { CustomerSessionService } from './customer-session.service';
 import { CustomerSession } from '../models/customer-auth.model';
+import { UserJournalService } from '../../core/telemetry/user-journal.service';
 
 describe('CustomerSessionService', () => {
   let service: CustomerSessionService;
+  let journal: jasmine.SpyObj<UserJournalService>;
 
   const validSession: CustomerSession = {
     token: 'tok',
@@ -16,7 +18,15 @@ describe('CustomerSessionService', () => {
 
   beforeEach(() => {
     localStorage.clear();
-    TestBed.configureTestingModule({});
+    journal = jasmine.createSpyObj('UserJournalService', [
+      'track', 'bindUser', 'unbindUser', 'flush',
+    ]);
+    journal.bindUser.and.resolveTo();
+    journal.unbindUser.and.resolveTo();
+    journal.flush.and.resolveTo();
+    TestBed.configureTestingModule({
+      providers: [{ provide: UserJournalService, useValue: journal }],
+    });
     service = TestBed.inject(CustomerSessionService);
   });
 
@@ -30,6 +40,7 @@ describe('CustomerSessionService', () => {
     service.saveSession(validSession);
     expect(service.isAuthenticated).toBeTrue();
     expect(service.currentSession?.fullName).toBe('Test User');
+    expect(journal.track).toHaveBeenCalledWith('LOGIN_SUCCESS', 'AUTH', jasmine.any(Object));
   });
 
   it('clears session on logout', () => {
@@ -37,5 +48,6 @@ describe('CustomerSessionService', () => {
     service.clearSession();
     expect(service.isAuthenticated).toBeFalse();
     expect(service.currentSession).toBeNull();
+    expect(journal.track).toHaveBeenCalledWith('LOGOUT', 'AUTH');
   });
 });

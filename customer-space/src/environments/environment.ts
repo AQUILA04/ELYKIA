@@ -11,4 +11,5 @@ export const environment = {
   version: APP_VERSION,
   firebase: firebaseConfig,
   remoteConfigEnabled: true,
+  telemetryEnabled: true,
 };

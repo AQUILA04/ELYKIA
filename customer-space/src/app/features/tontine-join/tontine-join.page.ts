@@ -4,6 +4,7 @@ import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import {
   CustomerTontineJoinResponse,
@@ -41,6 +42,7 @@ import { TontineJoinDesktopComponent } from './desktop/tontine-join-desktop.comp
 })
 export class TontineJoinPage implements ViewWillEnter {
   readonly layout = inject(LayoutService);
+  private readonly journal = inject(UserJournalService);
   readonly stakeShortcuts = STAKE_SHORTCUTS;
   session: CustomerTontineSession | null = null;
   stakeForm: FormGroup;
@@ -200,6 +202,10 @@ export class TontineJoinPage implements ViewWillEnter {
         };
       }
       this.success = await firstValueFrom(this.api.joinTontineSession(payload));
+      this.journal.track('TONTINE_JOIN', 'BUSINESS', {
+        dailyStake: this.dailyStake,
+        withInitialPayment: this.includeInitialPayment,
+      });
     } catch (e: unknown) {
       this.error = mobileMoneySubmitErrorMessage(e, 'Impossible de finaliser l’inscription.');
     } finally {

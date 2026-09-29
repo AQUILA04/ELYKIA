@@ -57,6 +57,7 @@ class CustomerAuthServiceTest {
     @Mock private CustomerOtpService customerOtpService;
     @Mock private ClientRepository clientRepository;
     @Mock private CustomerRegistrationService customerRegistrationService;
+    @Mock private CustomerActivityLogService activityLogService;
 
     @InjectMocks
     private CustomerAuthService customerAuthService;

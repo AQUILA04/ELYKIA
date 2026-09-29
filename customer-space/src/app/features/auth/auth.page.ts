@@ -4,6 +4,8 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router } from '@angular/router';
 import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { firstValueFrom, Observable } from 'rxjs';
+import { UserJournalService } from '../../core/telemetry/user-journal.service';
+import { TelemetryContextService } from '../../core/telemetry/telemetry-context.service';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import {
@@ -42,6 +44,8 @@ import { AuthDesktopComponent } from './desktop/auth-desktop.component';
 })
 export class AuthPage implements ViewWillEnter {
   readonly layout = inject(LayoutService);
+  private readonly journal = inject(UserJournalService);
+  private readonly telemetryCtx = inject(TelemetryContextService);
   step: AuthStep = 'phone';
   phone = '';
   maskedName = '';
@@ -164,10 +168,13 @@ export class AuthPage implements ViewWillEnter {
       await this.featureFlags.refresh();
       if (!this.featureFlags.isCustomerSpaceAvailable()) {
         this.appUnavailable = true;
+        this.journal.track('CUSTOMER_SPACE_UNAVAILABLE', 'AUTH');
         return;
       }
 
       this.phone = toUsername(this.phoneForm.value.phone);
+      this.telemetryCtx.setClient(null, this.phone);
+      this.journal.track('PHONE_SUBMITTED', 'AUTH');
       const res = await firstValueFrom(this.api.checkPhone({ phone: this.phone }));
       if (!res.exists) {
         if (res.canRegister) {
@@ -176,6 +183,7 @@ export class AuthPage implements ViewWillEnter {
           return;
         }
         this.error = 'Numéro non reconnu. Contactez votre agence.';
+        this.journal.track('LOGIN_FAILED', 'AUTH', { reason: 'phone_not_recognized' });
         return;
       }
       this.isRegistrationFlow = false;
@@ -187,6 +195,7 @@ export class AuthPage implements ViewWillEnter {
       }
     } catch (e: unknown) {
       this.error = this.extractError(e);
+      this.journal.track('LOGIN_FAILED', 'AUTH', { reason: this.error });
     } finally {
       this.isLoading = false;
     }
@@ -194,23 +203,28 @@ export class AuthPage implements ViewWillEnter {
 
   async submitPin(): Promise<void> {
     if (this.pinForm.invalid) return;
+    this.journal.track('PIN_LOGIN_ATTEMPT', 'AUTH');
     await this.completeLogin(this.api.login({ phone: this.phone, pin: this.pinForm.value.pin }));
   }
 
   private async startOtp(nextStep: 'otp' | 'register-otp'): Promise<void> {
+    this.journal.track('OTP_SEND_REQUESTED', 'AUTH', { flow: nextStep });
     try {
       if (isE2eMode()) {
         // OTP réel non disponible en CI : Notification Hub court-circuité.
         // Code mock à saisir dans le formulaire (pour aligner le parcours UI).
         console.info('[E2E] OTP mock pour', this.phone, '→ saisir 123456 (bypass window.__E2E__)');
         this.step = nextStep;
+        this.journal.track('OTP_SENT', 'AUTH', { flow: nextStep, mock: true });
         return;
       }
       await firstValueFrom(this.api.sendOtp({ phone: this.phone }));
       this.step = nextStep;
+      this.journal.track('OTP_SENT', 'AUTH', { flow: nextStep });
     } catch (e: unknown) {
       console.error('[Auth] Échec envoi OTP Notification Hub', e);
       this.error = this.extractError(e) || 'Impossible d\'envoyer le SMS.';
+      this.journal.track('OTP_FAILED', 'AUTH', { stage: 'send', reason: this.error });
     }
   }
 
@@ -218,11 +232,13 @@ export class AuthPage implements ViewWillEnter {
     if (this.otpForm.invalid) return;
     this.isLoading = true;
     this.error = '';
+    this.journal.track('OTP_VERIFY_ATTEMPT', 'AUTH');
     try {
       if (isE2eMode()) {
         console.info('[E2E] verify OTP court-circuité — preuve mock (code saisi:', this.otpForm.value.otp, ')');
         this.otpProofToken = 'e2e-mock-otp-proof';
         this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
+        this.journal.track('OTP_VERIFIED', 'AUTH', { mock: true });
         return;
       }
       const res = await firstValueFrom(this.api.verifyOtp({
@@ -231,8 +247,10 @@ export class AuthPage implements ViewWillEnter {
       }));
       this.otpProofToken = res.otpProofToken;
       this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
+      this.journal.track('OTP_VERIFIED', 'AUTH');
     } catch (e: unknown) {
       this.error = this.extractError(e) || 'Code incorrect. Réessayez.';
+      this.journal.track('OTP_FAILED', 'AUTH', { stage: 'verify', reason: this.error });
     } finally {
       this.isLoading = false;
     }
@@ -244,6 +262,7 @@ export class AuthPage implements ViewWillEnter {
       this.error = 'Les codes PIN ne correspondent pas.';
       return;
     }
+    this.journal.track('PIN_SETUP', 'AUTH');
     await this.completeLogin(this.api.setupPin({
       phone: this.phone,
       pin: this.setupPinForm.value.pin,
@@ -291,6 +310,7 @@ export class AuthPage implements ViewWillEnter {
       return;
     }
     const form = this.registerForm.value;
+    this.journal.track('REGISTER_SUBMITTED', 'AUTH');
     await this.completeLogin(this.api.register({
       phone: this.phone,
       otpProofToken: this.otpProofToken,
@@ -316,6 +336,7 @@ export class AuthPage implements ViewWillEnter {
       await this.router.navigate(['/dashboard']);
     } catch (e: unknown) {
       this.error = this.extractError(e);
+      this.journal.track('LOGIN_FAILED', 'AUTH', { reason: this.error });
     } finally {
       this.isLoading = false;
     }

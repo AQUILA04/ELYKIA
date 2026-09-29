@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
+import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { CartService, CartLine } from '../../shared/services/cart.service';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { articleDisplayName } from '../../shared/utils/article-display';
@@ -22,6 +23,7 @@ import { CartDesktopComponent } from './desktop/cart-desktop.component';
 })
 export class CartPage implements OnInit, OnDestroy {
   readonly layout = inject(LayoutService);
+  private readonly journal = inject(UserJournalService);
   lines: CartLine[] = [];
   isSubmitting = false;
   error = '';
@@ -76,6 +78,11 @@ export class CartPage implements OnInit, OnDestroy {
     this.error = '';
     try {
       const res = await firstValueFrom(this.api.submitOrder({ items: this.cart.toOrderItems() }));
+      this.journal.track('ORDER_SUBMITTED', 'BUSINESS', {
+        reference: res.reference,
+        amount: res.totalAmount,
+        itemCount: this.lines.length,
+      });
       this.cart.clear();
       await this.router.navigate(['/order-confirmation'], {
         queryParams: { reference: res.reference, amount: res.totalAmount },
@@ -83,6 +90,7 @@ export class CartPage implements OnInit, OnDestroy {
     } catch (e: unknown) {
       const err = e as { error?: { message?: string } };
       this.error = err?.error?.message ?? 'Impossible de soumettre la commande.';
+      this.journal.track('ORDER_FAILED', 'BUSINESS', { reason: this.error });
     } finally {
       this.isSubmitting = false;
     }

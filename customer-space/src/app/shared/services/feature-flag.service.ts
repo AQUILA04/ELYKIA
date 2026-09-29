@@ -1,5 +1,4 @@
 import { Injectable, isDevMode } from '@angular/core';
-import { getApp, getApps, initializeApp } from 'firebase/app';
 import {
   fetchAndActivate,
   getBoolean,
@@ -8,6 +7,7 @@ import {
 } from 'firebase/remote-config';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { getSharedFirebaseApp } from '../../core/telemetry/firebase-app';
 import { isE2eMode } from '../utils/e2e';
 
 export enum FeatureFlags {
@@ -107,19 +107,13 @@ export class FeatureFlagService {
     return flags[feature];
   }
 
-  private getFirebaseApp() {
-    if (getApps().length === 0) {
-      if (!environment.firebase?.apiKey) {
-        throw new Error('Firebase configuration is missing');
-      }
-      initializeApp(environment.firebase);
-    }
-    return getApp();
-  }
-
   private getRemoteConfigInstance(): RemoteConfig {
     if (!this.remoteConfig) {
-      this.remoteConfig = getRemoteConfig(this.getFirebaseApp());
+      const app = getSharedFirebaseApp();
+      if (!app) {
+        throw new Error('Firebase configuration is missing');
+      }
+      this.remoteConfig = getRemoteConfig(app);
       this.remoteConfig.defaultConfig = { ...this.defaultFlags };
       this.remoteConfig.settings.minimumFetchIntervalMillis = isDevMode() ? 0 : 3_600_000;
     }

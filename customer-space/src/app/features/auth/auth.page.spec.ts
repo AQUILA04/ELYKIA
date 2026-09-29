@@ -7,6 +7,7 @@ import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import { FeatureFlagService } from '../../shared/services/feature-flag.service';
 import { LayoutService } from '../../shared/layout/layout.service';
+import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { APP_UNAVAILABLE_MESSAGE } from '../../shared/constants/app-availability';
 import { IonicModule } from '@ionic/angular';
 
@@ -50,6 +51,12 @@ describe('AuthPage', () => {
         { provide: Router, useValue: router },
         // Force mobile template so Type A decor assertions stay deterministic in wide CI viewports.
         { provide: LayoutService, useValue: { isDesktop: () => false, refresh: () => undefined } },
+        {
+          provide: UserJournalService,
+          useValue: jasmine.createSpyObj('UserJournalService', [
+            'track', 'bindUser', 'unbindUser', 'flush', 'init',
+          ]),
+        },
       ],
     }).compileComponents();
 

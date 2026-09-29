@@ -15,6 +15,38 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Deploy —** backups DB automatiques (cron `deploy`) à nouveau fonctionnels après chaque CD : `deploy.sh` ne remet plus `/opt/elykia/<env>/.env` en `600` root-only mais en `640` groupe `deploy` (le `chmod 600` à chaque déploiement cassait `db_backup.sh` avec `Permission denied` → plus d’upload Google Drive depuis le 26/09). Même règle dans `migrate-do-to-contabo.sh` ; `lib/stack.sh` affiche un message explicite si le `.env` n’est pas lisible.
 
+## Customer-space — [0.8.2] — 2026-09-29
+
+### Security
+
+- Génération d'UUID de corrélation (`deviceId` / `sessionId` / `eventId`) via Web Crypto uniquement (`randomUUID` / `getRandomValues`), sans repli `Math.random` (Sonar `typescript:S2245`).
+- Base URL factice de normalisation des chemins HTTP passée en `https://local.invalid` (Sonar `typescript:S5332`).
+
+## Customer-space — [0.8.1] — 2026-09-29
+
+### Fixed
+
+- Tests unitaires : `UserJournalService` n'exige plus `HttpBackend` au constructeur (résolution lazy au flush), ce qui corrige NG0201 sur les specs pages/services.
+
+## Customer-space — [0.8.0] — 2026-09-29
+
+### Added
+
+- Intégration Firebase Crashlytics (APK) et Analytics (APK + web) avec journal d'actions utilisateur (file persistante, lots vers `/api/customer/auth/activity-logs`).
+- Corrélation `deviceId` / `sessionId` / `clientId`, ErrorHandler global, interception HTTP des erreurs et fil d'Ariane de navigation.
+
+## Backend — [1.22.0] — 2026-09-29
+
+### Added
+
+- Table `customer_activity_log` (Flyway V006), ingestion client anti-usurpation, événements serveur d'auth, API admin de consultation, purge planifiée et entrée schema-catalog IA.
+
+## Docs & Infra — 2026-09-29 (télémétrie Espace Client)
+
+### Changed
+
+- **CI / Customer-space —** câblage Gradle Crashlytics (`configure-android-firebase.sh`) dans le build APK release et le job debug ; validation pipeline mise à jour.
+
 ## Customer-space — [0.7.2] — 2026-09-29
 
 ### Fixed

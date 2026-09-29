@@ -1,11 +1,14 @@
 package com.optimize.elykia.core.controller.customer;
 
 import com.optimize.elykia.core.dto.customer.*;
+import com.optimize.elykia.core.service.customer.CustomerActivityLogService;
 import com.optimize.elykia.core.service.customer.CustomerAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/customer/auth")
@@ -14,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class CustomerAuthController {
 
     private final CustomerAuthService customerAuthService;
+    private final CustomerActivityLogService activityLogService;
 
     @PostMapping("/check-phone")
     public ResponseEntity<CustomerCheckPhoneResponse> checkPhone(@Valid @RequestBody CustomerPhoneRequest request) {
@@ -43,5 +47,17 @@ public class CustomerAuthController {
     @PostMapping("/register")
     public ResponseEntity<CustomerLoginResponse> register(@Valid @RequestBody CustomerRegisterRequest request) {
         return ResponseEntity.ok(customerAuthService.register(request));
+    }
+
+    /**
+     * Journal client (pré-auth inclus). {@code /api/customer/auth/**} est permitAll.
+     * Le clientId n'est accepté que si un Bearer JWT valide est présent.
+     */
+    @PostMapping("/activity-logs")
+    public ResponseEntity<Map<String, Object>> ingestActivityLogs(
+            @Valid @RequestBody CustomerActivityLogBatchRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        int accepted = activityLogService.ingestClientBatch(request, authorization);
+        return ResponseEntity.accepted().body(Map.of("accepted", accepted));
     }
 }
