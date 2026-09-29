@@ -58,6 +58,7 @@ class CustomerAuthServiceTest {
     @Mock private ClientRepository clientRepository;
     @Mock private CustomerRegistrationService customerRegistrationService;
     @Mock private CustomerActivityLogService activityLogService;
+    @Mock private com.optimize.elykia.core.service.masterdata.LocalityService localityService;
 
     @InjectMocks
     private CustomerAuthService customerAuthService;
@@ -65,6 +66,23 @@ class CustomerAuthServiceTest {
     @BeforeEach
     void setUp() {
         ReflectionTestUtils.setField(customerAuthService, "jwtExpirationMs", 86_400_000L);
+    }
+
+    @Test
+    void listLocalities_returnsSortedNames() {
+        com.optimize.elykia.core.entity.Locality b = new com.optimize.elykia.core.entity.Locality();
+        b.setId(2L);
+        b.setName("Bè");
+        com.optimize.elykia.core.entity.Locality a = new com.optimize.elykia.core.entity.Locality();
+        a.setId(1L);
+        a.setName("Agoè");
+        when(localityService.getAll()).thenReturn(java.util.List.of(b, a));
+
+        var list = customerAuthService.listLocalities();
+
+        assertEquals(2, list.size());
+        assertEquals("Agoè", list.get(0).getName());
+        assertEquals("Bè", list.get(1).getName());
     }
 
     @Test
@@ -142,12 +160,13 @@ class CustomerAuthServiceTest {
         UUID sessionId = UUID.fromString("11111111-1111-1111-1111-111111111111");
         when(customerOtpService.sendOtp("90123456"))
                 .thenReturn(new OtpSendResponse(sessionId, Instant.parse("2030-01-01T00:00:00Z"),
-                        null, "SMS", null, null));
+                        null, "SMS", null, null, "Y4GP"));
 
         CustomerOtpSendResponse response = customerAuthService.sendOtp(phone("90123456"));
 
         assertEquals(sessionId, response.getSessionId());
         assertEquals("SMS", response.getChannel());
+        assertEquals("Y4GP", response.getReference());
     }
 
     @Test
@@ -158,7 +177,7 @@ class CustomerAuthServiceTest {
         UUID sessionId = UUID.fromString("22222222-2222-2222-2222-222222222222");
         when(customerOtpService.sendOtp("90123456"))
                 .thenReturn(new OtpSendResponse(sessionId, Instant.parse("2030-01-01T00:00:00Z"),
-                        null, null, null, null));
+                        null, null, null, null, null));
 
         CustomerOtpSendResponse response = customerAuthService.sendOtp(phone("90123456"));
 

@@ -1,2 +1,2 @@
 /** Synchronisé depuis package.json via `npm run sync:version`. */
-export const APP_VERSION = '0.9.3';
+export const APP_VERSION = '0.10.0';

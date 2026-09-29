@@ -50,7 +50,8 @@ test.describe('Auth registration + onboarding', () => {
     await fillIonTestId(page, 'e2e-auth-register-firstname', 'Awa');
     await fillIonTestId(page, 'e2e-auth-register-lastname', 'Mensah');
     await fillIonTestId(page, 'e2e-auth-register-address', 'Rue du Commerce');
-    await fillIonTestId(page, 'e2e-auth-register-quarter', 'Tokoin');
+    await page.getByTestId('e2e-auth-register-quarter').click();
+    await page.getByRole('option', { name: 'Tokoin' }).click();
     await fillIonTestId(page, 'e2e-auth-register-dob', '1995-06-15');
     await fillIonTestId(page, 'e2e-auth-register-occupation', 'Commerçante');
 

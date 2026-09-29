@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -18,6 +19,11 @@ public class CustomerAuthController {
 
     private final CustomerAuthService customerAuthService;
     private final CustomerActivityLogService activityLogService;
+
+    @GetMapping("/localities")
+    public ResponseEntity<List<CustomerLocalityDto>> listLocalities() {
+        return ResponseEntity.ok(customerAuthService.listLocalities());
+    }
 
     @PostMapping("/check-phone")
     public ResponseEntity<CustomerCheckPhoneResponse> checkPhone(@Valid @RequestBody CustomerPhoneRequest request) {

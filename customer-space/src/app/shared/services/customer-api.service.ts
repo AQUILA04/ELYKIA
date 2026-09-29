@@ -12,6 +12,7 @@ import {
   CustomerOtpVerifyResponse,
   CustomerSetupPinRequest,
   CustomerRegisterRequest,
+  CustomerLocality,
 } from '../models/customer-auth.model';
 import {
   CustomerDashboard,
@@ -71,6 +72,10 @@ export class CustomerApiService {
 
   register(payload: CustomerRegisterRequest): Observable<CustomerLoginResponse> {
     return this.http.post<CustomerLoginResponse>(`${this.base}/auth/register`, payload);
+  }
+
+  getLocalities(): Observable<CustomerLocality[]> {
+    return this.http.get<CustomerLocality[]>(`${this.base}/auth/localities`);
   }
 
   // ─── ONBOARDING ──────────────────────────────────────────────────────────

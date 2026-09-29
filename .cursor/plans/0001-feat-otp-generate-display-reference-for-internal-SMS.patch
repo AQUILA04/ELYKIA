@@ -1,0 +1,385 @@
+From 73322b7e24aa993389b1885b65d77c75e7903131 Mon Sep 17 00:00:00 2001
+From: Cursor Agent <cursoragent@cursor.com>
+Date: Tue, 29 Sep 2026 17:49:18 +0000
+Subject: [PATCH] feat(otp): generate display reference for internal SMS OTP
+
+Centralize a 4-char alphanumeric reference (no ambiguous chars) in the
+internal OTP provider, inject {{reference}} into the SMS body template,
+and return it on OtpSendResponse so client apps can show which SMS to use
+after resends. Twilio Verify keeps reference=null; starter DTO updated.
+---
+ backend/docs/OTP_CLIENT_INTEGRATION.md        | 18 +++++++---
+ .../config/NotificationHubProperties.java     |  7 ++--
+ .../otp/api/dto/OtpSendResponse.java          | 17 ++++++++--
+ .../application/OtpReferenceGenerator.java    | 27 +++++++++++++++
+ .../infrastructure/InternalOtpProvider.java   | 24 ++++++++++---
+ .../TwilioVerifyOtpProvider.java              |  3 +-
+ backend/src/main/resources/application.yml    |  3 +-
+ .../OtpReferenceGeneratorTest.java            | 34 +++++++++++++++++++
+ .../otp/application/OtpServiceTest.java       |  3 +-
+ .../InternalOtpProviderTest.java              |  9 ++++-
+ .../OtpProviderRegistryTest.java              |  3 +-
+ .../hub/model/OtpSendResponse.java            |  4 ++-
+ 12 files changed, 133 insertions(+), 19 deletions(-)
+ create mode 100644 backend/src/main/java/com/optimizesolux/notificationhub/otp/application/OtpReferenceGenerator.java
+ create mode 100644 backend/src/test/java/com/optimizesolux/notificationhub/otp/application/OtpReferenceGeneratorTest.java
+
+diff --git a/backend/docs/OTP_CLIENT_INTEGRATION.md b/backend/docs/OTP_CLIENT_INTEGRATION.md
+index 3383cfe..b5f4d14 100644
+--- a/backend/docs/OTP_CLIENT_INTEGRATION.md
++++ b/backend/docs/OTP_CLIENT_INTEGRATION.md
+@@ -124,19 +124,27 @@ Demande l’envoi d’un code OTP au numéro indiqué.
+   "expiresAt": "2026-08-31T20:26:00Z",
+   "notificationId": null,
+   "channel": "SMS",
+-  "provider": "twilio-verify",
+-  "providerReference": "VEaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
++  "provider": "internal",
++  "providerReference": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
++  "reference": "Y4GP"
+ }
+ ```
+ 
+ | Champ | Description |
+ |-------|-------------|
+ | `sessionId` | Identifiant de session côté hub (utile avec le provider `internal`) |
+-| `expiresAt` | Expiration indicative (~10 min avec Twilio Verify) |
++| `expiresAt` | Expiration indicative (~5 min avec provider `internal`, ~10 min avec Twilio Verify) |
+ | `notificationId` | ID notification hub si provider `internal` ; `null` avec Twilio Verify |
+ | `channel` | Canal effectivement utilisé |
+ | `provider` | `twilio-verify` ou `internal` |
+-| `providerReference` | Référence Twilio (`VE…`) — pour le support / logs, pas pour la vérif côté client |
++| `providerReference` | Référence Twilio (`VE…`) ou session interne — pour le support / logs, pas pour la vérif côté client |
++| `reference` | Référence courte alphanumérique (ex. `Y4GP`) générée par le hub (provider `internal`) pour distinguer les SMS en cas de renvois. **Affichez-la** : « Saisissez le code à 6 chiffres associé à la référence Y4GP ». `null` avec Twilio Verify (le SMS est rédigé par Twilio). WhatsApp : renvoyée mais absente du template message. |
++
++Le SMS (provider `internal`) contient aussi cette référence via le placeholder `{{reference}}` du template (`OTP_SMS_BODY_TEMPLATE`). Exemple par défaut :
++
++`Votre code de verification est 131584 (ref. Y4GP). Valide 5 minutes.`
++
++En environnement `test`, la copie email vers `sms@optimizesolux.com` reprend ce corps (référence incluse).
+ 
+ ### Exemple curl (prod)
+ 
+@@ -323,7 +331,7 @@ Renouvelez le JWT avant expiration (typiquement 5–15 min selon la config realm
+ 1. **Format E.164** — normaliser le numéro côté app (`+228…`) avant l’appel.
+ 2. **Idempotency-Key** — un UUID par clic « Envoyer le code » ; réutiliser la même clé seulement en cas de retry réseau identique.
+ 3. **Ne jamais logger le code OTP** ni le renvoyer au frontend depuis votre backend.
+-4. **UX verify** — distinguer `INVALID` (réessayer) et `EXPIRED` (renvoyer).
++4. **UX verify** — distinguer `INVALID` (réessayer) et `EXPIRED` (renvoyer). Afficher la `reference` renvoyée par `/send` pour guider l'utilisateur vers le bon SMS.
+ 5. **Rate limiting UX** — limiter les clics « Renvoyer » côté UI (ex. 60 s) même si le hub autorise plus.
+ 6. **Tenant** — une app = un client Keycloak = un `tenant_id` ; ne pas mélanger les tenants.
+ 7. **Canal** — en prod actuelle le défaut est **SMS** ; passer `"channel": "WHATSAPP"` uniquement quand le sender WhatsApp prod est validé par la plateforme.
+diff --git a/backend/src/main/java/com/optimizesolux/notificationhub/config/NotificationHubProperties.java b/backend/src/main/java/com/optimizesolux/notificationhub/config/NotificationHubProperties.java
+index 0a28735..0bbc17c 100644
+--- a/backend/src/main/java/com/optimizesolux/notificationhub/config/NotificationHubProperties.java
++++ b/backend/src/main/java/com/optimizesolux/notificationhub/config/NotificationHubProperties.java
+@@ -125,7 +125,8 @@ public record NotificationHubProperties(
+                             5,
+                             60,
+                             "SMS",
+-                            "Votre code de verification est {{code}}. Valide {{ttlMinutes}} minutes.");
++                            4,
++                            "Votre code de verification est {{code}} (ref. {{reference}}). Valide {{ttlMinutes}} minutes.");
+         }
+     }
+ 
+@@ -265,7 +266,8 @@ public record NotificationHubProperties(
+      * @param maxVerifyAttempts tentatives verify (provider internal uniquement)
+      * @param resendCooldownSeconds cooldown renvoi (provider internal uniquement)
+      * @param defaultChannel WHATSAPP ou SMS
+-     * @param smsBodyTemplate corps SMS internal provider
++     * @param referenceLength longueur de la référence affichable (provider internal)
++     * @param smsBodyTemplate corps SMS internal provider ({@code {{code}}}, {@code {{ttlMinutes}}}, {@code {{reference}}})
+      */
+     public record Otp(
+             boolean enabled,
+@@ -279,5 +281,6 @@ public record NotificationHubProperties(
+             int maxVerifyAttempts,
+             int resendCooldownSeconds,
+             String defaultChannel,
++            int referenceLength,
+             String smsBodyTemplate) {}
+ }
+diff --git a/backend/src/main/java/com/optimizesolux/notificationhub/otp/api/dto/OtpSendResponse.java b/backend/src/main/java/com/optimizesolux/notificationhub/otp/api/dto/OtpSendResponse.java
+index efd677f..89db9d5 100644
+--- a/backend/src/main/java/com/optimizesolux/notificationhub/otp/api/dto/OtpSendResponse.java
++++ b/backend/src/main/java/com/optimizesolux/notificationhub/otp/api/dto/OtpSendResponse.java
+@@ -11,11 +11,24 @@ public record OtpSendResponse(
+         UUID notificationId,
+         Channel channel,
+         String provider,
+-        String providerReference) {
++        String providerReference,
++        /** Référence courte (ex. Y4GP) pour distinguer les SMS OTP — null si non applicable (Twilio Verify). */
++        String reference) {
+ 
+     /** Backward-compatible constructor without provider metadata. */
+     public OtpSendResponse(
+             UUID sessionId, Instant expiresAt, UUID notificationId, Channel channel) {
+-        this(sessionId, expiresAt, notificationId, channel, null, null);
++        this(sessionId, expiresAt, notificationId, channel, null, null, null);
++    }
++
++    /** Backward-compatible constructor without OTP display reference. */
++    public OtpSendResponse(
++            UUID sessionId,
++            Instant expiresAt,
++            UUID notificationId,
++            Channel channel,
++            String provider,
++            String providerReference) {
++        this(sessionId, expiresAt, notificationId, channel, provider, providerReference, null);
+     }
+ }
+diff --git a/backend/src/main/java/com/optimizesolux/notificationhub/otp/application/OtpReferenceGenerator.java b/backend/src/main/java/com/optimizesolux/notificationhub/otp/application/OtpReferenceGenerator.java
+new file mode 100644
+index 0000000..5d1597d
+--- /dev/null
++++ b/backend/src/main/java/com/optimizesolux/notificationhub/otp/application/OtpReferenceGenerator.java
+@@ -0,0 +1,27 @@
++package com.optimizesolux.notificationhub.otp.application;
++
++import java.security.SecureRandom;
++
++/**
++ * Génère une référence alphanumérique courte associée à un OTP (affichage UX + SMS).
++ * Alphabet sans caractères ambigus (0/O, 1/I/L).
++ */
++public final class OtpReferenceGenerator {
++
++    /** Alphabet sans 0/O, 1/I/L pour limiter les confusions à l'affichage. */
++    static final String ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
++
++    private static final SecureRandom RANDOM = new SecureRandom();
++
++    private OtpReferenceGenerator() {}
++
++    /** Génère une référence de longueur donnée (clampée 4–8). */
++    public static String generate(int length) {
++        int safeLength = Math.max(4, Math.min(length, 8));
++        StringBuilder sb = new StringBuilder(safeLength);
++        for (int i = 0; i < safeLength; i++) {
++            sb.append(ALPHABET.charAt(RANDOM.nextInt(ALPHABET.length())));
++        }
++        return sb.toString();
++    }
++}
+diff --git a/backend/src/main/java/com/optimizesolux/notificationhub/otp/infrastructure/InternalOtpProvider.java b/backend/src/main/java/com/optimizesolux/notificationhub/otp/infrastructure/InternalOtpProvider.java
+index f0b46ae..8b830d0 100644
+--- a/backend/src/main/java/com/optimizesolux/notificationhub/otp/infrastructure/InternalOtpProvider.java
++++ b/backend/src/main/java/com/optimizesolux/notificationhub/otp/infrastructure/InternalOtpProvider.java
+@@ -15,6 +15,7 @@ import com.optimizesolux.notificationhub.otp.api.dto.OtpVerifyRequest;
+ import com.optimizesolux.notificationhub.otp.api.dto.OtpVerifyResponse;
+ import com.optimizesolux.notificationhub.otp.application.OtpCodeGenerator;
+ import com.optimizesolux.notificationhub.otp.application.OtpHasher;
++import com.optimizesolux.notificationhub.otp.application.OtpReferenceGenerator;
+ import com.optimizesolux.notificationhub.otp.application.PhoneNormalizer;
+ import com.optimizesolux.notificationhub.otp.domain.OtpSession;
+ import com.optimizesolux.notificationhub.otp.domain.OtpVerifyReason;
+@@ -74,6 +75,7 @@ public class InternalOtpProvider implements OtpProvider {
+         }
+ 
+         String code = OtpCodeGenerator.generate(otpConfig.length());
++        String reference = OtpReferenceGenerator.generate(otpConfig.referenceLength());
+         UUID sessionId = UUID.randomUUID();
+         Instant expiresAt = Instant.now().plus(ttl);
+         String codeHash = OtpHasher.hash(tenantId, destination, code);
+@@ -90,9 +92,11 @@ public class InternalOtpProvider implements OtpProvider {
+         }
+         metadata.put("otpSessionId", sessionId.toString());
+         metadata.put("messageType", MessageType.OTP.name());
++        metadata.put("otpReference", reference);
+ 
+         CreateNotificationRequest notification =
+-                buildNotificationRequest(channel, destination, code, metadata, otpConfig, environment);
++                buildNotificationRequest(
++                        channel, destination, code, reference, metadata, otpConfig, environment);
+         NotificationResponse sent =
+                 notificationService.create(notification, idempotencyKey, appIdHeader);
+ 
+@@ -100,10 +104,18 @@ public class InternalOtpProvider implements OtpProvider {
+                 tenantId,
+                 "OTP_SEND",
+                 sessionId.toString(),
+-                Map.of("channel", channel.name(), "destination", mask(destination), "provider", id()));
++                Map.of(
++                        "channel",
++                        channel.name(),
++                        "destination",
++                        mask(destination),
++                        "provider",
++                        id(),
++                        "reference",
++                        reference));
+ 
+         return new OtpSendResponse(
+-                sessionId, expiresAt, sent.id(), channel, id(), sessionId.toString());
++                sessionId, expiresAt, sent.id(), channel, id(), sessionId.toString(), reference);
+     }
+ 
+     public boolean hasActiveSession(OtpVerifyRequest request) {
+@@ -171,10 +183,13 @@ public class InternalOtpProvider implements OtpProvider {
+             Channel channel,
+             String destination,
+             String code,
++            String reference,
+             Map<String, Object> metadata,
+             NotificationHubProperties.Otp otpConfig,
+             NotificationEnvironment environment) {
+         if (channel == Channel.WHATSAPP) {
++            // Les templates WhatsApp n'incluent pas {{reference}} ; la référence est
++            // quand même renvoyée dans OtpSendResponse pour l'affichage côté app.
+             return new CreateNotificationRequest(
+                     Channel.WHATSAPP,
+                     null,
+@@ -194,7 +209,8 @@ public class InternalOtpProvider implements OtpProvider {
+                 otpConfig
+                         .smsBodyTemplate()
+                         .replace("{{code}}", code)
+-                        .replace("{{ttlMinutes}}", String.valueOf(otpConfig.ttlSeconds() / 60));
++                        .replace("{{ttlMinutes}}", String.valueOf(otpConfig.ttlSeconds() / 60))
++                        .replace("{{reference}}", reference);
+         String from = properties.sms().defaultFrom();
+         return new CreateNotificationRequest(
+                 Channel.SMS,
+diff --git a/backend/src/main/java/com/optimizesolux/notificationhub/otp/infrastructure/TwilioVerifyOtpProvider.java b/backend/src/main/java/com/optimizesolux/notificationhub/otp/infrastructure/TwilioVerifyOtpProvider.java
+index c412065..af579fb 100644
+--- a/backend/src/main/java/com/optimizesolux/notificationhub/otp/infrastructure/TwilioVerifyOtpProvider.java
++++ b/backend/src/main/java/com/optimizesolux/notificationhub/otp/infrastructure/TwilioVerifyOtpProvider.java
+@@ -105,7 +105,8 @@ public class TwilioVerifyOtpProvider implements OtpProvider {
+                 null,
+                 channel,
+                 id(),
+-                verificationSid);
++                verificationSid,
++                null);
+     }
+ 
+     @Override
+diff --git a/backend/src/main/resources/application.yml b/backend/src/main/resources/application.yml
+index 0f08ccf..1075408 100644
+--- a/backend/src/main/resources/application.yml
++++ b/backend/src/main/resources/application.yml
+@@ -141,7 +141,8 @@ notification-hub:
+     max-verify-attempts: ${OTP_MAX_VERIFY_ATTEMPTS:5}
+     resend-cooldown-seconds: ${OTP_RESEND_COOLDOWN_SECONDS:60}
+     default-channel: ${OTP_DEFAULT_CHANNEL:SMS}
+-    sms-body-template: ${OTP_SMS_BODY_TEMPLATE:Votre code de verification est {{code}}. Valide {{ttlMinutes}} minutes.}
++    reference-length: ${OTP_REFERENCE_LENGTH:4}
++    sms-body-template: ${OTP_SMS_BODY_TEMPLATE:Votre code de verification est {{code}} (ref. {{reference}}). Valide {{ttlMinutes}} minutes.}
+ 
+ logging:
+   level:
+diff --git a/backend/src/test/java/com/optimizesolux/notificationhub/otp/application/OtpReferenceGeneratorTest.java b/backend/src/test/java/com/optimizesolux/notificationhub/otp/application/OtpReferenceGeneratorTest.java
+new file mode 100644
+index 0000000..84aa6a4
+--- /dev/null
++++ b/backend/src/test/java/com/optimizesolux/notificationhub/otp/application/OtpReferenceGeneratorTest.java
+@@ -0,0 +1,34 @@
++package com.optimizesolux.notificationhub.otp.application;
++
++import org.junit.jupiter.api.Test;
++
++import static org.junit.jupiter.api.Assertions.assertEquals;
++import static org.junit.jupiter.api.Assertions.assertTrue;
++
++class OtpReferenceGeneratorTest {
++
++    @Test
++    void generatesAlphanumericReferenceOfRequestedLength() {
++        String ref = OtpReferenceGenerator.generate(4);
++        assertEquals(4, ref.length());
++        assertTrue(ref.chars().allMatch(c -> OtpReferenceGenerator.ALPHABET.indexOf(c) >= 0));
++    }
++
++    @Test
++    void clampsLengthToSupportedRange() {
++        assertEquals(4, OtpReferenceGenerator.generate(2).length());
++        assertEquals(8, OtpReferenceGenerator.generate(20).length());
++    }
++
++    @Test
++    void excludesAmbiguousCharacters() {
++        for (int i = 0; i < 200; i++) {
++            String ref = OtpReferenceGenerator.generate(8);
++            assertTrue(ref.indexOf('0') < 0);
++            assertTrue(ref.indexOf('O') < 0);
++            assertTrue(ref.indexOf('1') < 0);
++            assertTrue(ref.indexOf('I') < 0);
++            assertTrue(ref.indexOf('L') < 0);
++        }
++    }
++}
+diff --git a/backend/src/test/java/com/optimizesolux/notificationhub/otp/application/OtpServiceTest.java b/backend/src/test/java/com/optimizesolux/notificationhub/otp/application/OtpServiceTest.java
+index 4c288b5..e9ef5b6 100644
+--- a/backend/src/test/java/com/optimizesolux/notificationhub/otp/application/OtpServiceTest.java
++++ b/backend/src/test/java/com/optimizesolux/notificationhub/otp/application/OtpServiceTest.java
+@@ -84,7 +84,8 @@ class OtpServiceTest {
+                         5,
+                         60,
+                         "SMS",
+-                        "Code {{code}}"));
++                        4,
++                        "Code {{code}} (ref. {{reference}})");
+     }
+ 
+     private static OtpSendResponse sampleResponse() {
+diff --git a/backend/src/test/java/com/optimizesolux/notificationhub/otp/infrastructure/InternalOtpProviderTest.java b/backend/src/test/java/com/optimizesolux/notificationhub/otp/infrastructure/InternalOtpProviderTest.java
+index 1d076c6..ce1e1e8 100644
+--- a/backend/src/test/java/com/optimizesolux/notificationhub/otp/infrastructure/InternalOtpProviderTest.java
++++ b/backend/src/test/java/com/optimizesolux/notificationhub/otp/infrastructure/InternalOtpProviderTest.java
+@@ -92,11 +92,17 @@ class InternalOtpProviderTest {
+ 
+         assertEquals(Channel.SMS, response.channel());
+         assertEquals("internal", response.provider());
++        assertEquals(4, response.reference().length());
++        assertTrue(
++                response.reference().chars().allMatch(c ->
++                        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".indexOf(c) >= 0));
+ 
+         ArgumentCaptor<CreateNotificationRequest> captor =
+                 ArgumentCaptor.forClass(CreateNotificationRequest.class);
+         verify(notificationService).create(captor.capture(), eq(null), eq(null));
+         assertTrue(captor.getValue().body().contains(captor.getValue().otpCode()));
++        assertTrue(captor.getValue().body().contains(response.reference()));
++        assertEquals(response.reference(), captor.getValue().metadata().get("otpReference"));
+     }
+ 
+     private static NotificationHubProperties properties() {
+@@ -126,6 +132,7 @@ class InternalOtpProviderTest {
+                         5,
+                         60,
+                         "SMS",
+-                        "Code {{code}}"));
++                        4,
++                        "Code {{code}} (ref. {{reference}})");
+     }
+ }
+diff --git a/backend/src/test/java/com/optimizesolux/notificationhub/otp/infrastructure/OtpProviderRegistryTest.java b/backend/src/test/java/com/optimizesolux/notificationhub/otp/infrastructure/OtpProviderRegistryTest.java
+index 5aff3ec..16913c9 100644
+--- a/backend/src/test/java/com/optimizesolux/notificationhub/otp/infrastructure/OtpProviderRegistryTest.java
++++ b/backend/src/test/java/com/optimizesolux/notificationhub/otp/infrastructure/OtpProviderRegistryTest.java
+@@ -71,6 +71,7 @@ class OtpProviderRegistryTest {
+                         5,
+                         60,
+                         "SMS",
+-                        "Code {{code}}"));
++                        4,
++                        "Code {{code}} (ref. {{reference}})");
+     }
+ }
+diff --git a/mvn/sb-notification-hub-autoconfigure/src/main/java/com/optimize/notification/hub/model/OtpSendResponse.java b/mvn/sb-notification-hub-autoconfigure/src/main/java/com/optimize/notification/hub/model/OtpSendResponse.java
+index 746a905..ae25c8f 100644
+--- a/mvn/sb-notification-hub-autoconfigure/src/main/java/com/optimize/notification/hub/model/OtpSendResponse.java
++++ b/mvn/sb-notification-hub-autoconfigure/src/main/java/com/optimize/notification/hub/model/OtpSendResponse.java
+@@ -9,4 +9,6 @@ public record OtpSendResponse(
+         UUID notificationId,
+         Channel channel,
+         String provider,
+-        String providerReference) {}
++        String providerReference,
++        /** Référence courte affichable (ex. Y4GP) — null si le provider ne la fournit pas. */
++        String reference) {}
+-- 
+2.43.0
+

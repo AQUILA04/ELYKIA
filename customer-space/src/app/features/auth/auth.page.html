@@ -1,30 +1,42 @@
 <ng-container *ngIf="layout.isDesktop(); else authMobile">
-  <app-auth-desktop
-    [step]="step"
-    [title]="title"
-    [subtitle]="subtitle"
-    [error]="error"
-    [appUnavailable]="appUnavailable"
-    [appUnavailableMessage]="appUnavailableMessage"
-    [isLoading]="isLoading"
-    [appVersion]="appVersion"
-    [profilPhotoDataUrl]="profilPhotoDataUrl"
-    [cardTypes]="cardTypes"
-    [phoneForm]="phoneForm"
-    [pinForm]="pinForm"
-    [otpForm]="otpForm"
-    [setupPinForm]="setupPinForm"
-    [registerForm]="registerForm"
-    [registerPinForm]="registerPinForm"
-    (submitPhone)="submitPhone()"
-    (submitPin)="submitPin()"
-    (submitOtp)="submitOtp()"
-    (submitSetupPin)="submitSetupPin()"
-    (submitRegisterForm)="submitRegisterForm()"
-    (submitRegisterPin)="submitRegisterPin()"
-    (profilPhotoSelected)="onProfilPhotoSelected($event)"
-    (back)="goBack()">
-  </app-auth-desktop>
+  <ion-content class="auth-desktop-scroll" [fullscreen]="true">
+    <app-auth-desktop
+      [step]="step"
+      [title]="title"
+      [subtitle]="subtitle"
+      [error]="error"
+      [appUnavailable]="appUnavailable"
+      [appUnavailableMessage]="appUnavailableMessage"
+      [isLoading]="isLoading"
+      [appVersion]="appVersion"
+      [profilPhotoDataUrl]="profilPhotoDataUrl"
+      [cardTypes]="cardTypes"
+      [phoneForm]="phoneForm"
+      [pinForm]="pinForm"
+      [otpForm]="otpForm"
+      [setupPinForm]="setupPinForm"
+      [registerForm]="registerForm"
+      [registerPinForm]="registerPinForm"
+      [otpReference]="otpReference"
+      [resendCountdown]="resendCountdown"
+      [resendLabel]="resendLabel"
+      [canResendOtp]="canResendOtp"
+      [phoneHint]="phoneHint"
+      [localities]="localities"
+      [localitiesLoading]="localitiesLoading"
+      [localitiesError]="localitiesError"
+      (submitPhone)="submitPhone()"
+      (submitPin)="submitPin()"
+      (submitOtp)="submitOtp()"
+      (resendOtp)="resendOtp()"
+      (submitSetupPin)="submitSetupPin()"
+      (submitRegisterForm)="submitRegisterForm()"
+      (submitRegisterPin)="submitRegisterPin()"
+      (profilPhotoSelected)="onProfilPhotoSelected($event)"
+      (retryLocalities)="loadLocalities()"
+      (back)="goBack()">
+    </app-auth-desktop>
+  </ion-content>
 </ng-container>
 
 <ng-template #authMobile>
@@ -45,7 +57,13 @@
   <div class="elyk-page-decor__body">
     <app-elyk-overlap-card>
       <h2 class="elyk-title-serif auth-title">{{ title }}</h2>
-      <p class="elyk-subtitle auth-subtitle">{{ subtitle }}</p>
+      <p class="elyk-subtitle auth-subtitle">
+        <ng-container *ngIf="(step === 'otp' || step === 'register-otp') && otpReference; else plainSubtitle">
+          Saisissez le code à 6 chiffres reçu par SMS associé à la référence
+          <strong class="otp-reference" data-testid="e2e-auth-otp-reference">{{ otpReference }}</strong>
+        </ng-container>
+        <ng-template #plainSubtitle>{{ subtitle }}</ng-template>
+      </p>
 
       <!-- Étape 1 : Téléphone -->
       <form *ngIf="step === 'phone'" [formGroup]="phoneForm" (ngSubmit)="submitPhone()">
@@ -126,6 +144,15 @@
           <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading">Vérifier</span>
         </ion-button>
+
+        <button
+          type="button"
+          class="otp-resend"
+          [disabled]="!canResendOtp"
+          (click)="resendOtp()"
+          data-testid="e2e-auth-otp-resend">
+          {{ resendLabel }}
+        </button>
       </form>
 
       <!-- Setup PIN (activation) -->
@@ -201,9 +228,14 @@
         <app-elyk-outlined-field label="Adresse" icon="home-outline">
           <ion-input formControlName="address" data-testid="e2e-auth-register-address"></ion-input>
         </app-elyk-outlined-field>
-        <app-elyk-outlined-field label="Quartier" icon="location-outline">
-          <ion-input formControlName="quarter" data-testid="e2e-auth-register-quarter"></ion-input>
-        </app-elyk-outlined-field>
+        <app-elyk-locality-picker
+          formControlName="quarter"
+          label="Ma zone (Localités)"
+          [localities]="localities"
+          [loading]="localitiesLoading"
+          [loadError]="localitiesError"
+          (retryLoad)="loadLocalities()">
+        </app-elyk-locality-picker>
         <app-elyk-outlined-field label="Date de naissance" icon="calendar-outline">
           <ion-input
             formControlName="dateOfBirth"
@@ -281,7 +313,7 @@
     </app-elyk-overlap-card>
 
     <p class="elyk-page-footer-hint" *ngIf="step === 'phone'">
-      Première connexion ? Contactez votre agence
+      {{ phoneHint }}
     </p>
     <p class="auth-version" data-testid="e2e-auth-version">Version {{ appVersion }}</p>
   </div>

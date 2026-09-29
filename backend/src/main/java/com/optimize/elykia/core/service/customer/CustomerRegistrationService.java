@@ -14,6 +14,7 @@ import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.customer.CustomerLoginResponse;
 import com.optimize.elykia.core.dto.customer.CustomerRegisterRequest;
+import com.optimize.elykia.core.repository.LocalityRepository;
 import com.optimize.elykia.core.util.PhoneNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,6 +41,7 @@ public class CustomerRegistrationService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
+    private final LocalityRepository localityRepository;
 
     @Value("${bezkoder.app.jwtExpirationMs:86400000}")
     private long jwtExpirationMs;
@@ -60,6 +62,10 @@ public class CustomerRegistrationService {
             throw new CustomValidationException("Ce numéro de pièce d'identité est déjà utilisé.");
         }
         validateIdentity(request);
+        String quarter = request.getQuarter().trim();
+        if (!localityRepository.existsByName(quarter)) {
+            throw new CustomValidationException("Veuillez choisir votre zone dans la liste.");
+        }
 
         byte[] profilBytes = Converter.convertToByteImage(Objects.requireNonNull(request.getProfilPhoto()));
         if (profilBytes == null || profilBytes.length == 0) {
@@ -70,7 +76,7 @@ public class CustomerRegistrationService {
         client.setFirstname(request.getFirstname().trim());
         client.setLastname(request.getLastname().trim());
         client.setAddress(request.getAddress().trim());
-        client.setQuarter(request.getQuarter().trim());
+        client.setQuarter(quarter);
         client.setPhone(username);
         client.setDateOfBirth(request.getDateOfBirth());
         client.setOccupation(request.getOccupation().trim());

@@ -52,7 +52,7 @@ class CustomerOtpServiceTest {
     @Test
     void sendOtp_callsHubWithE164() {
         when(otpClient.sendOtp(any(), anyString())).thenReturn(
-                new OtpSendResponse(UUID.randomUUID(), Instant.now().plusSeconds(300), null, "SMS", "internal", null));
+                new OtpSendResponse(UUID.randomUUID(), Instant.now().plusSeconds(300), null, "SMS", "internal", null, null));
 
         service.sendOtp("90123456");
 

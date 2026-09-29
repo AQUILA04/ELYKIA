@@ -21,6 +21,26 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Module **Audit** (`/audit`) : journal espace client avec KPI, filtres avancés, presets ops, drawer détail, timeline de session et export CSV, réservé à `ROLE_AUDIT`.
 
+## Customer-space — [0.10.0] — 2026-09-29
+
+### Added
+
+- Auth OTP : affichage de la **référence** renvoyée par le Notification Hub ; bouton **Renvoyer le code** (délai 60 s) ; message après renvoi indiquant que seul le dernier code est valide.
+- Inscription : sélecteur **Ma zone (Localités)** (`ElykLocalityPickerComponent`) avec recherche, liste fournie par `GET /api/customer/auth/localities`.
+- Message d’accueil : « Pas encore de compte ? Saisissez simplement votre numéro de téléphone et laissez-vous guider. »
+
+### Fixed
+
+- Desktop : formulaire d’inscription défilable (`ion-content` autour de `app-auth-desktop`).
+
+## Backend — [1.24.0] — 2026-09-29
+
+### Added
+
+- OTP espace client : propagation du champ `reference` de la réponse Notification Hub vers `CustomerOtpSendResponse`.
+- `GET /api/customer/auth/localities` : liste publique des localités triée par nom.
+- Inscription : refus si `quarter` n’est pas une localité existante (« Veuillez choisir votre zone dans la liste. »).
+
 ## Backend — [1.23.0] — 2026-09-29
 
 ### Added
@@ -28,6 +48,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Permission `ROLE_AUDIT` (YAML + Flyway V007) attribuée par défaut aux profils SUPER_ADMIN et ADMIN.
 - API admin journal d’activité enrichie : filtres (catégorie, type, source, plateforme, version, HTTP, texte, outcome), `/summary` KPI et `/sessions/{sessionId}` timeline, protégés par `@PreAuthorize(ROLE_AUDIT)`.
 - Indexes de performance sur `customer_activity_log` pour les filtres d’audit.
+
+## Docs & Infra — 2026-09-29 (auth espace client 0.10)
+
+### Added
+
+- Guide client **Connexion** : référence OTP / renvoi, Ma zone (Localités), nouveau message d’accueil ; index RAG synchronisé.
+- Patch Notification Hub (référence OTP 4 car. dans SMS + API) exporté sous `.cursor/plans/` (à pousser sur `AQUILA04/notification-hub` — droits bot insuffisants depuis cet agent).
 
 ## Docs & Infra — 2026-09-29 (module Audit)
 
