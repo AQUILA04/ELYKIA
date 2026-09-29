@@ -38,6 +38,7 @@ class CustomerActivityLogServiceTest {
     @Mock private CustomerActivityLogRepository repository;
     @Mock private JwtUtils jwtUtils;
     @Mock private CustomerContextService contextService;
+    @Mock private jakarta.persistence.EntityManager entityManager;
 
     @InjectMocks
     private CustomerActivityLogService service;

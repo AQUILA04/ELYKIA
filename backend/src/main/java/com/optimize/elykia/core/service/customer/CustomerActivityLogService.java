@@ -5,15 +5,25 @@ import com.optimize.common.securities.security.jwt.JwtUtils;
 import com.optimize.elykia.core.dto.customer.CustomerActivityLogBatchRequest;
 import com.optimize.elykia.core.dto.customer.CustomerActivityLogDto;
 import com.optimize.elykia.core.dto.customer.CustomerActivityLogEventDto;
+import com.optimize.elykia.core.dto.customer.CustomerActivityLogSearchCriteria;
+import com.optimize.elykia.core.dto.customer.CustomerActivityLogSummaryDto;
 import com.optimize.elykia.core.entity.customer.CustomerActivityLog;
 import com.optimize.elykia.core.repository.customer.CustomerActivityLogRepository;
+import com.optimize.elykia.core.repository.customer.CustomerActivityLogSpecs;
 import com.optimize.elykia.core.util.PhoneNormalizer;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -36,6 +46,7 @@ public class CustomerActivityLogService {
     private final CustomerActivityLogRepository repository;
     private final JwtUtils jwtUtils;
     private final CustomerContextService contextService;
+    private final EntityManager entityManager;
 
     @Value("${elykia.customer.activity-log.retention-days:180}")
     private int retentionDays;
@@ -108,9 +119,192 @@ public class CustomerActivityLogService {
     public Page<CustomerActivityLogDto> search(Long clientId, String phone, String deviceId,
                                                String sessionId, Instant from, Instant to,
                                                Pageable pageable) {
-        String normalizedPhone = StringUtils.hasText(phone) ? PhoneNormalizer.toUsername(phone) : null;
-        return repository.search(clientId, normalizedPhone, deviceId, sessionId, from, to, pageable)
+        return search(CustomerActivityLogSearchCriteria.builder()
+                .clientId(clientId)
+                .phone(StringUtils.hasText(phone) ? PhoneNormalizer.toUsername(phone) : null)
+                .deviceId(deviceId)
+                .sessionId(sessionId)
+                .from(from)
+                .to(to)
+                .build(), pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CustomerActivityLogDto> search(CustomerActivityLogSearchCriteria criteria, Pageable pageable) {
+        CustomerActivityLogSearchCriteria normalized = normalize(criteria);
+        return repository.findAll(CustomerActivityLogSpecs.fromCriteria(normalized), pageable)
                 .map(this::toDto);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CustomerActivityLogDto> sessionTimeline(String sessionId, Instant from, Instant to, int limit) {
+        if (!StringUtils.hasText(sessionId)) {
+            return List.of();
+        }
+        int capped = Math.min(Math.max(limit, 1), 500);
+        return repository.findSessionTimeline(sessionId.trim(), from, to, PageRequest.of(0, capped))
+                .stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerActivityLogSummaryDto summarize(CustomerActivityLogSearchCriteria criteria) {
+        CustomerActivityLogSearchCriteria normalized = normalize(criteria);
+        Specification<CustomerActivityLog> base = CustomerActivityLogSpecs.fromCriteria(normalized);
+
+        long totalEvents = repository.count(base);
+        long errorCount = repository.count(base.and(
+                (root, q, cb) -> cb.equal(root.get("category"), "ERROR")));
+        long authFailureCount = repository.count(base.and(
+                (root, q, cb) -> root.get("eventType").in(
+                        List.of("LOGIN_FAILED", "OTP_FAILED", "OTP_SEND_FAILED"))));
+        long loginSuccessCount = repository.count(base.and(
+                (root, q, cb) -> cb.equal(root.get("eventType"), "LOGIN_SUCCESS")));
+
+        return CustomerActivityLogSummaryDto.builder()
+                .from(normalized.getFrom())
+                .to(normalized.getTo())
+                .totalEvents(totalEvents)
+                .errorCount(errorCount)
+                .authFailureCount(authFailureCount)
+                .loginSuccessCount(loginSuccessCount)
+                .uniqueClients(countDistinct(base, "clientId"))
+                .uniqueDevices(countDistinct(base, "deviceId"))
+                .uniqueSessions(countDistinct(base, "sessionId"))
+                .byCategory(groupCount(base, "category"))
+                .bySource(groupCount(base, "source"))
+                .byPlatform(groupCount(base, "platform"))
+                .topEventTypes(topNamed(base, "eventType", 10))
+                .topHttpPaths(topHttpPaths(base, 10))
+                .byAppVersion(appVersionStats(base, 15))
+                .build();
+    }
+
+    private CustomerActivityLogSearchCriteria normalize(CustomerActivityLogSearchCriteria criteria) {
+        if (criteria == null) {
+            return CustomerActivityLogSearchCriteria.builder().build();
+        }
+        String phone = criteria.getPhone();
+        String normalizedPhone = StringUtils.hasText(phone) ? PhoneNormalizer.toUsername(phone) : null;
+        List<String> eventTypes = criteria.getEventTypes() == null || criteria.getEventTypes().isEmpty()
+                ? null
+                : criteria.getEventTypes().stream().filter(StringUtils::hasText).map(String::trim).toList();
+        return CustomerActivityLogSearchCriteria.builder()
+                .clientId(criteria.getClientId())
+                .phone(normalizedPhone)
+                .deviceId(blankToNull(criteria.getDeviceId()))
+                .sessionId(blankToNull(criteria.getSessionId()))
+                .from(criteria.getFrom())
+                .to(criteria.getTo())
+                .category(blankToNull(criteria.getCategory()))
+                .source(blankToNull(criteria.getSource()))
+                .platform(blankToNull(criteria.getPlatform()))
+                .appVersion(blankToNull(criteria.getAppVersion()))
+                .httpStatus(criteria.getHttpStatus())
+                .httpStatusFrom(criteria.getHttpStatusFrom())
+                .httpStatusTo(criteria.getHttpStatusTo())
+                .q(blankToNull(criteria.getQ()))
+                .outcome(blankToNull(criteria.getOutcome()))
+                .eventTypes(eventTypes)
+                .build();
+    }
+
+    private static String blankToNull(String value) {
+        return StringUtils.hasText(value) ? value.trim() : null;
+    }
+
+    private long countDistinct(Specification<CustomerActivityLog> base, String field) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+        Root<CustomerActivityLog> root = cq.from(CustomerActivityLog.class);
+        cq.select(cb.countDistinct(root.get(field)));
+        Predicate pred = base.toPredicate(root, cq, cb);
+        Predicate notNull = cb.isNotNull(root.get(field));
+        cq.where(pred == null ? notNull : cb.and(pred, notNull));
+        Long result = entityManager.createQuery(cq).getSingleResult();
+        return result == null ? 0L : result;
+    }
+
+    private Map<String, Long> groupCount(Specification<CustomerActivityLog> base, String field) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
+        Root<CustomerActivityLog> root = cq.from(CustomerActivityLog.class);
+        cq.multiselect(root.get(field), cb.count(root));
+        Predicate pred = base.toPredicate(root, cq, cb);
+        Predicate notNull = cb.isNotNull(root.get(field));
+        cq.where(pred == null ? notNull : cb.and(pred, notNull));
+        cq.groupBy(root.get(field));
+        Map<String, Long> out = new LinkedHashMap<>();
+        for (Object[] row : entityManager.createQuery(cq).getResultList()) {
+            if (row[0] != null) {
+                out.put(String.valueOf(row[0]), ((Number) row[1]).longValue());
+            }
+        }
+        return out;
+    }
+
+    private List<CustomerActivityLogSummaryDto.NamedCount> topNamed(
+            Specification<CustomerActivityLog> base, String field, int limit) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
+        Root<CustomerActivityLog> root = cq.from(CustomerActivityLog.class);
+        var countExpr = cb.count(root);
+        cq.multiselect(root.get(field), countExpr);
+        Predicate pred = base.toPredicate(root, cq, cb);
+        Predicate notNull = cb.isNotNull(root.get(field));
+        cq.where(pred == null ? notNull : cb.and(pred, notNull));
+        cq.groupBy(root.get(field));
+        cq.orderBy(cb.desc(countExpr));
+        return entityManager.createQuery(cq)
+                .setMaxResults(limit)
+                .getResultList()
+                .stream()
+                .map(row -> CustomerActivityLogSummaryDto.NamedCount.builder()
+                        .name(String.valueOf(row[0]))
+                        .count(((Number) row[1]).longValue())
+                        .build())
+                .toList();
+    }
+
+    private List<CustomerActivityLogSummaryDto.NamedCount> topHttpPaths(
+            Specification<CustomerActivityLog> base, int limit) {
+        Specification<CustomerActivityLog> httpErrors = base.and(
+                (root, q, cb) -> cb.equal(root.get("eventType"), "HTTP_ERROR"));
+        // Best-effort: count by message prefix when metadata path is unavailable via Criteria JSON.
+        return topNamed(httpErrors, "message", limit);
+    }
+
+    private List<CustomerActivityLogSummaryDto.AppVersionStats> appVersionStats(
+            Specification<CustomerActivityLog> base, int limit) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
+        Root<CustomerActivityLog> root = cq.from(CustomerActivityLog.class);
+        var countExpr = cb.count(root);
+        cq.multiselect(root.get("appVersion"), countExpr);
+        Predicate pred = base.toPredicate(root, cq, cb);
+        cq.where(pred);
+        cq.groupBy(root.get("appVersion"));
+        cq.orderBy(cb.desc(countExpr));
+        List<Object[]> rows = entityManager.createQuery(cq).setMaxResults(limit).getResultList();
+        List<CustomerActivityLogSummaryDto.AppVersionStats> out = new ArrayList<>();
+        for (Object[] row : rows) {
+            String version = row[0] == null ? "(inconnu)" : String.valueOf(row[0]);
+            long count = ((Number) row[1]).longValue();
+            Specification<CustomerActivityLog> versionSpec = base.and((r, q, c) -> {
+                if (row[0] == null) {
+                    return c.isNull(r.get("appVersion"));
+                }
+                return c.equal(r.get("appVersion"), row[0]);
+            }).and((r, q, c) -> c.equal(r.get("category"), "ERROR"));
+            long errorCount = repository.count(versionSpec);
+            out.add(CustomerActivityLogSummaryDto.AppVersionStats.builder()
+                    .appVersion(version)
+                    .count(count)
+                    .errorCount(errorCount)
+                    .build());
+        }
+        return out;
     }
 
     @Transactional

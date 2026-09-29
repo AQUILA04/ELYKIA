@@ -9,6 +9,26 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.25.0] — 2026-09-29
+
+### Added
+
+- Module **Audit** (`/audit`) : journal espace client avec KPI, filtres avancés, presets ops, drawer détail, timeline de session et export CSV, réservé à `ROLE_AUDIT`.
+
+## Backend — [1.23.0] — 2026-09-29
+
+### Added
+
+- Permission `ROLE_AUDIT` (YAML + Flyway V007) attribuée par défaut aux profils SUPER_ADMIN et ADMIN.
+- API admin journal d’activité enrichie : filtres (catégorie, type, source, plateforme, version, HTTP, texte, outcome), `/summary` KPI et `/sessions/{sessionId}` timeline, protégés par `@PreAuthorize(ROLE_AUDIT)`.
+- Indexes de performance sur `customer_activity_log` pour les filtres d’audit.
+
+## Docs & Infra — 2026-09-29 (module Audit)
+
+### Added
+
+- Guide manager **Journal espace client (Audit)** + index RAG synchronisé.
+
 ## Docs & Infra — 2026-09-29
 
 ### Fixed

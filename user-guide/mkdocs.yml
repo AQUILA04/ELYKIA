@@ -20,6 +20,7 @@ nav:
     - Tableaux de Bord: manager/dashboard.md
     - Opérations Quotidiennes: manager/operations.md
     - Inscriptions clients: manager/client_registrations.md
+    - Journal espace client (Audit): manager/customer_activity_audit.md
     - Stocks & Ventes: manager/stock_sales.md
     - Finances & Tontines: manager/finance.md
     - Rapports & Configuration: manager/reporting_config.md

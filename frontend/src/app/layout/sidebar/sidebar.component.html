@@ -335,6 +335,16 @@
             <span class="hide-menu">Inscriptions clients</span>
           </a>
         </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_AUDIT']">
+          <a class="sidebar-link" routerLink="/audit" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/audit') }"
+             data-testid="e2e-sidebar-audit">
+            <span>
+              <mat-icon>fact_check</mat-icon>
+            </span>
+            <span class="hide-menu">Audit</span>
+          </a>
+        </li>
         <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">
           <a class="sidebar-link" routerLink="/notifications" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/notifications') }"

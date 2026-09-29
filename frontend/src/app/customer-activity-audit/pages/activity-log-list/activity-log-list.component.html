@@ -1,0 +1,269 @@
+<div class="main-container activity-audit-page a1" data-testid="e2e-activity-audit-page">
+  <div class="breadcrumb-bar">
+    <a class="breadcrumb-link" routerLink="/home">Tableau de bord</a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">Espace client</span>
+      <span class="last-update">MAJ {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg class="page-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M9 5a2 2 0 012-2h2a2 2 0 012 2v0a2 2 0 01-2 2h-2a2 2 0 01-2-2v0z" stroke="currentColor" stroke-width="1.8"/>
+          <path d="M9 12h6M9 16h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <h1 class="page-title">Journal espace client</h1>
+      </div>
+      <button type="button" class="btn-refresh" (click)="load()">Actualiser</button>
+    </div>
+    <p class="page-subtitle">
+      Consultez les actions des clients (connexion, parcours, paiements, erreurs) pour le support et l’exploitation.
+    </p>
+  </div>
+
+  <div class="kpi-strip a3">
+    <div class="kpi-card kpi-total">
+      <span class="kpi-label">Événements</span>
+      <span class="kpi-value">{{ summary?.totalEvents ?? 0 }}</span>
+    </div>
+    <div class="kpi-card kpi-delai">
+      <span class="kpi-label">Erreurs</span>
+      <span class="kpi-value">{{ summary?.errorCount ?? 0 }}</span>
+    </div>
+    <div class="kpi-card kpi-amount">
+      <span class="kpi-label">Échecs auth</span>
+      <span class="kpi-value">{{ summary?.authFailureCount ?? 0 }}</span>
+    </div>
+    <div class="kpi-card kpi-green">
+      <span class="kpi-label">Connexions OK</span>
+      <span class="kpi-value">{{ summary?.loginSuccessCount ?? 0 }}</span>
+    </div>
+    <div class="kpi-card kpi-total">
+      <span class="kpi-label">Clients distincts</span>
+      <span class="kpi-value">{{ summary?.uniqueClients ?? 0 }}</span>
+    </div>
+  </div>
+
+  <div class="toolbar a4">
+    <div class="preset-row">
+      <button type="button" class="btn-filter" (click)="setRangePreset('today')">Aujourd’hui</button>
+      <button type="button" class="btn-filter" (click)="setRangePreset('24h')">24 h</button>
+      <button type="button" class="btn-filter" (click)="setRangePreset('7d')">7 j</button>
+      <button type="button" class="btn-filter" (click)="setRangePreset('30d')">30 j</button>
+      <span class="preset-sep"></span>
+      <button type="button" class="btn-filter" (click)="applyPreset('errors24h')">Erreurs 24 h</button>
+      <button type="button" class="btn-filter" (click)="applyPreset('authFail')">Auth en échec</button>
+      <button type="button" class="btn-filter" (click)="applyPreset('payments')">Paiements / commandes</button>
+      <button type="button" class="btn-filter" (click)="applyPreset('android')">Android</button>
+    </div>
+
+    <div class="filters-grid">
+      <div class="filter-group">
+        <span class="toolbar-label">Recherche</span>
+        <input class="search-input" type="text" [(ngModel)]="filters.q" placeholder="Message ou écran" />
+      </div>
+      <div class="filter-group">
+        <span class="toolbar-label">Téléphone</span>
+        <input class="search-input" type="text" [(ngModel)]="filters.phone" placeholder="90…" />
+      </div>
+      <div class="filter-group">
+        <span class="toolbar-label">Client ID</span>
+        <input class="search-input" type="number" [(ngModel)]="filters.clientId" placeholder="Id" />
+      </div>
+      <div class="filter-group">
+        <span class="toolbar-label">Catégorie</span>
+        <select class="search-input" [(ngModel)]="filters.category">
+          <option value="">Toutes</option>
+          <option value="AUTH">Authentification</option>
+          <option value="NAVIGATION">Navigation</option>
+          <option value="BUSINESS">Métier</option>
+          <option value="ERROR">Erreur</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="toolbar-label">Source</span>
+        <select class="search-input" [(ngModel)]="filters.source">
+          <option value="">Toutes</option>
+          <option value="CLIENT_APP">Client</option>
+          <option value="SERVER">Serveur</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="toolbar-label">Résultat</span>
+        <select class="search-input" [(ngModel)]="filters.outcome">
+          <option value="">Tous</option>
+          <option value="SUCCESS">Succès</option>
+          <option value="FAILURE">Échec</option>
+          <option value="INFO">Info</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="toolbar-label">Plateforme</span>
+        <select class="search-input" [(ngModel)]="filters.platform">
+          <option value="">Toutes</option>
+          <option value="android">Android</option>
+          <option value="ios">iOS</option>
+          <option value="web">Web</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <span class="toolbar-label">Version</span>
+        <input class="search-input" type="text" [(ngModel)]="filters.appVersion" placeholder="0.8.2" />
+      </div>
+      <div class="filter-group">
+        <span class="toolbar-label">Device</span>
+        <input class="search-input" type="text" [(ngModel)]="filters.deviceId" />
+      </div>
+      <div class="filter-group">
+        <span class="toolbar-label">Session</span>
+        <input class="search-input" type="text" [(ngModel)]="filters.sessionId" />
+      </div>
+      <div class="filter-group filter-group-wide">
+        <span class="toolbar-label">Types d’événement</span>
+        <select class="search-input" multiple [(ngModel)]="selectedEventTypes" size="4">
+          <option *ngFor="let opt of eventOptions" [value]="opt.value">
+            {{ opt.label }} ({{ opt.value }})
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <div class="toolbar-actions">
+      <button type="button" class="btn-primary" (click)="applyFilters()">Appliquer</button>
+      <button type="button" class="btn-clear" (click)="clearFilters()">Effacer</button>
+      <button type="button" class="btn-download" (click)="exportCsv()">Export CSV</button>
+      <span class="result-count"><strong>{{ totalElements }}</strong> événement(s)</span>
+    </div>
+  </div>
+
+  <div class="table-card a5">
+    <div class="table-wrapper" *ngIf="loading">
+      <div class="empty-state">
+        <div class="empty-icon">⏳</div>
+        <div class="empty-title">Chargement…</div>
+        <div class="empty-sub">Récupération du journal d’activité</div>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && rows.length === 0">
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">Aucun événement</div>
+        <div class="empty-sub">Modifiez la période ou les filtres, puis cliquez sur Appliquer.</div>
+      </div>
+    </div>
+
+    <div class="table-wrapper" *ngIf="!loading && rows.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Horodatage</th>
+            <th>Source</th>
+            <th>Catégorie</th>
+            <th>Type</th>
+            <th>Client</th>
+            <th>Téléphone</th>
+            <th>Plateforme</th>
+            <th>Message</th>
+            <th>HTTP</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let row of rows"
+              [class.row-danger]="isFailureEvent(row.eventType, row.category)">
+            <td class="mono">{{ row.occurredAt | date:'dd/MM/yy HH:mm:ss' }}</td>
+            <td><span class="chip chip-source">{{ sourceLabel(row.source) }}</span></td>
+            <td><span class="chip" [attr.data-cat]="row.category">{{ categoryLabel(row.category) }}</span></td>
+            <td [title]="row.eventType || ''">{{ auditEventLabel(row.eventType) }}</td>
+            <td>
+              <button *ngIf="row.clientId" type="button" class="link-btn" (click)="openClient(row)">
+                #{{ row.clientId }}
+              </button>
+              <span *ngIf="!row.clientId">—</span>
+            </td>
+            <td class="mono">{{ row.phone || '—' }}</td>
+            <td>{{ row.platform || '—' }}{{ row.appVersion ? ' · ' + row.appVersion : '' }}</td>
+            <td class="msg-cell" [title]="row.message || row.screen || ''">
+              {{ row.message || row.screen || '—' }}
+            </td>
+            <td class="mono">{{ row.httpStatus || '—' }}</td>
+            <td>
+              <button type="button" class="btn-detail" (click)="openDetail(row)">Voir</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <mat-paginator
+        [length]="totalElements"
+        [pageIndex]="pageIndex"
+        [pageSize]="pageSize"
+        [pageSizeOptions]="[25, 50, 100]"
+        (page)="onPage($event)">
+      </mat-paginator>
+    </div>
+  </div>
+
+  <div class="detail-panel" *ngIf="selected" data-testid="e2e-activity-audit-detail">
+    <div class="detail-backdrop" (click)="closeDetail()"></div>
+    <div class="detail-card">
+      <div class="detail-header">
+        <div>
+          <h2>{{ auditEventLabel(selected.eventType) }}</h2>
+          <p class="detail-sub mono">{{ selected.occurredAt | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+        </div>
+        <button type="button" class="btn-clear" (click)="closeDetail()">Fermer</button>
+      </div>
+
+      <div class="detail-actions">
+        <button type="button" class="btn-primary" (click)="openSession(selected)">Voir la session</button>
+        <button type="button" class="btn-clear" (click)="filterByDevice(selected)" [disabled]="!selected.deviceId">
+          Filtrer ce device
+        </button>
+        <button type="button" class="btn-clear" (click)="openClient(selected)" [disabled]="!selected.clientId">
+          Fiche client
+        </button>
+        <button type="button" class="btn-clear" (click)="copyText(selected.eventId)">Copier eventId</button>
+      </div>
+
+      <div class="detail-grid" *ngIf="!showSessionPanel">
+        <div><span class="lbl">Source</span><span>{{ sourceLabel(selected.source) }}</span></div>
+        <div><span class="lbl">Catégorie</span><span>{{ categoryLabel(selected.category) }}</span></div>
+        <div><span class="lbl">Type</span><span class="mono">{{ selected.eventType }}</span></div>
+        <div><span class="lbl">Téléphone</span><span class="mono">{{ selected.phone || '—' }}</span></div>
+        <div><span class="lbl">Client</span><span>{{ selected.clientId || '—' }}</span></div>
+        <div><span class="lbl">Plateforme</span><span>{{ selected.platform || '—' }} / {{ selected.appVersion || '—' }}</span></div>
+        <div><span class="lbl">Device</span><span class="mono">{{ selected.deviceId || '—' }}</span></div>
+        <div><span class="lbl">Session</span><span class="mono">{{ selected.sessionId || '—' }}</span></div>
+        <div><span class="lbl">Écran</span><span>{{ selected.screen || '—' }}</span></div>
+        <div><span class="lbl">HTTP</span><span class="mono">{{ selected.httpStatus || '—' }}</span></div>
+        <div><span class="lbl">IP</span><span class="mono">{{ selected.ip || '—' }}</span></div>
+        <div class="full"><span class="lbl">Message</span><span>{{ selected.message || '—' }}</span></div>
+        <div class="full">
+          <span class="lbl">Métadonnées</span>
+          <pre class="meta-block">{{ metadataJson(selected) }}</pre>
+        </div>
+      </div>
+
+      <div class="session-timeline" *ngIf="showSessionPanel">
+        <h3>Timeline de session</h3>
+        <p class="detail-sub mono" *ngIf="selected.sessionId">{{ selected.sessionId }}</p>
+        <div *ngIf="sessionLoading" class="empty-sub">Chargement…</div>
+        <ul *ngIf="!sessionLoading">
+          <li *ngFor="let ev of sessionEvents"
+              [class.row-danger]="isFailureEvent(ev.eventType, ev.category)">
+            <span class="mono time">{{ ev.occurredAt | date:'HH:mm:ss' }}</span>
+            <span class="chip chip-source">{{ sourceLabel(ev.source) }}</span>
+            <span class="ev-label">{{ auditEventLabel(ev.eventType) }}</span>
+            <span class="ev-msg">{{ ev.message || ev.screen || '' }}</span>
+          </li>
+        </ul>
+        <button type="button" class="btn-clear" (click)="showSessionPanel = false">Retour au détail</button>
+      </div>
+    </div>
+  </div>
+</div>
