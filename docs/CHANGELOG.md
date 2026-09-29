@@ -15,6 +15,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Deploy —** backups DB automatiques (cron `deploy`) à nouveau fonctionnels après chaque CD : `deploy.sh` ne remet plus `/opt/elykia/<env>/.env` en `600` root-only mais en `640` groupe `deploy` (le `chmod 600` à chaque déploiement cassait `db_backup.sh` avec `Permission denied` → plus d’upload Google Drive depuis le 26/09). Même règle dans `migrate-do-to-contabo.sh` ; `lib/stack.sh` affiche un message explicite si le `.env` n’est pas lisible.
 
+## Customer-space — [0.8.2] — 2026-09-29
+
+### Security
+
+- Génération d'UUID de corrélation (`deviceId` / `sessionId` / `eventId`) via Web Crypto uniquement (`randomUUID` / `getRandomValues`), sans repli `Math.random` (Sonar `typescript:S2245`).
+- Base URL factice de normalisation des chemins HTTP passée en `https://local.invalid` (Sonar `typescript:S5332`).
+
 ## Customer-space — [0.8.1] — 2026-09-29
 
 ### Fixed

@@ -76,7 +76,7 @@ export class HttpTelemetryInterceptor implements HttpInterceptor {
 
   private normalizePath(url: string): string {
     try {
-      const u = new URL(url, 'http://local');
+      const u = new URL(url, 'https://local.invalid');
       return u.pathname.replace(/\/\d+/g, '/:id');
     } catch {
       return url.split('?')[0].replace(/\/\d+/g, '/:id');
