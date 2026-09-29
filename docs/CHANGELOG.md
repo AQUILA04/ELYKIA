@@ -47,6 +47,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Fixed
 
+- **Website —** premier healthcheck après 2 s (`--start-interval=2s`) pour limiter la coupure Traefik à chaque déploiement.
 - **Website —** healthcheck de l’image sur `http://127.0.0.1/` (même cause que l’espace client web : `localhost` en IPv6 → conteneur « unhealthy », ignoré par Traefik).
 
 ### Changed
@@ -56,6 +57,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - **Deploy —** backups DB automatiques (cron `deploy`) à nouveau fonctionnels après chaque CD : `deploy.sh` ne remet plus `/opt/elykia/<env>/.env` en `600` root-only mais en `640` groupe `deploy` (le `chmod 600` à chaque déploiement cassait `db_backup.sh` avec `Permission denied` → plus d’upload Google Drive depuis le 26/09). Même règle dans `migrate-do-to-contabo.sh` ; `lib/stack.sh` affiche un message explicite si le `.env` n’est pas lisible.
+
+## Customer-space — [0.9.2] — 2026-09-29
+
+### Fixed
+
+- Image web : premier healthcheck après 2 s (`--start-interval=2s`) au lieu de 30 s. Traefik ne route qu’un conteneur « healthy » ; chaque déploiement provoquait jusqu’à ~30 s de 404 (CSS servi en `text/plain`, favicons introuvables).
 
 ## Customer-space — [0.9.1] — 2026-09-29
 
