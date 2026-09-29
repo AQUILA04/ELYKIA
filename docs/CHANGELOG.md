@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.7.1] — 2026-09-29
+
+### Fixed
+
+- Tests unitaires `AppComponent` : mock de `session$` / `LayoutService` après l’abonnement sidebar desktop (échec CI `session$.subscribe`).
+- Tests unitaires `AuthPage` / `TontineJoinPage` : layout forcé mobile et `Router.events` pour `NavController` (viewport CI large).
+
 ## Customer-space — [0.7.0] — 2026-09-29
 
 ### Added

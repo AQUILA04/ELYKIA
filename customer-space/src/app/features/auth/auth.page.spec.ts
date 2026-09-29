@@ -1,11 +1,12 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { EMPTY, of, throwError } from 'rxjs';
 import { AuthPage } from './auth.page';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import { FeatureFlagService } from '../../shared/services/feature-flag.service';
+import { LayoutService } from '../../shared/layout/layout.service';
 import { APP_UNAVAILABLE_MESSAGE } from '../../shared/constants/app-availability';
 import { IonicModule } from '@ionic/angular';
 
@@ -30,7 +31,10 @@ describe('AuthPage', () => {
     api.sendOtp.and.returnValue(of({ channel: 'SMS' }));
     api.verifyOtp.and.returnValue(of({ verified: true, otpProofToken: 'proof-token' }));
 
-    router = jasmine.createSpyObj('Router', ['navigate']);
+    router = jasmine.createSpyObj('Router', ['navigate'], {
+      events: EMPTY,
+      url: '/',
+    });
     router.navigate.and.returnValue(Promise.resolve(true));
 
     featureFlags = jasmine.createSpyObj('FeatureFlagService', ['refresh', 'isCustomerSpaceAvailable']);
@@ -44,6 +48,8 @@ describe('AuthPage', () => {
         CustomerSessionService,
         { provide: FeatureFlagService, useValue: featureFlags },
         { provide: Router, useValue: router },
+        // Force mobile template so Type A decor assertions stay deterministic in wide CI viewports.
+        { provide: LayoutService, useValue: { isDesktop: () => false, refresh: () => undefined } },
       ],
     }).compileComponents();
 

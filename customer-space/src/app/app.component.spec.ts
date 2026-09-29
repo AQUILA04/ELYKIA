@@ -2,25 +2,37 @@ import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testin
 import { CommonModule } from '@angular/common';
 import { CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { Router } from '@angular/router';
+import { BehaviorSubject } from 'rxjs';
 import { AppComponent } from './app.component';
 import { CustomerSessionService } from './shared/services/customer-session.service';
+import { LayoutService } from './shared/layout/layout.service';
 import { IonicModule } from '@ionic/angular';
 import { RouterTestingModule } from '@angular/router/testing';
+import { CustomerSession } from './shared/models/customer-auth.model';
 
 describe('AppComponent', () => {
   let fixture: ComponentFixture<AppComponent>;
-  let session: jasmine.SpyObj<CustomerSessionService>;
+  let sessionSubject: BehaviorSubject<CustomerSession | null>;
+  let sessionMock: {
+    session$: BehaviorSubject<CustomerSession | null>;
+    isAuthenticated: boolean;
+  };
 
   beforeEach(async () => {
-    session = jasmine.createSpyObj('CustomerSessionService', [], {
+    sessionSubject = new BehaviorSubject<CustomerSession | null>(null);
+    sessionMock = {
+      session$: sessionSubject,
       isAuthenticated: false,
-    });
+    };
 
     await TestBed.configureTestingModule({
       declarations: [AppComponent],
       imports: [CommonModule, IonicModule.forRoot(), RouterTestingModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
-      providers: [{ provide: CustomerSessionService, useValue: session }],
+      providers: [
+        { provide: CustomerSessionService, useValue: sessionMock },
+        LayoutService,
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AppComponent);
@@ -37,7 +49,7 @@ describe('AppComponent', () => {
 
   it('navigates to dashboard when authenticated on auth route after splash', fakeAsync(() => {
     (window as Window & { __E2E__?: boolean }).__E2E__ = true;
-    Object.defineProperty(session, 'isAuthenticated', { get: () => true });
+    sessionMock.isAuthenticated = true;
     const router = TestBed.inject(Router);
     spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
     history.pushState({}, '', '/auth');
@@ -51,7 +63,7 @@ describe('AppComponent', () => {
 
   it('does not redirect to dashboard when authenticated on a deep link', fakeAsync(() => {
     (window as Window & { __E2E__?: boolean }).__E2E__ = true;
-    Object.defineProperty(session, 'isAuthenticated', { get: () => true });
+    sessionMock.isAuthenticated = true;
     const router = TestBed.inject(Router);
     spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
     history.pushState({}, '', '/catalog');
