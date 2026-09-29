@@ -45,6 +45,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - **CI —** `ci.yml` publie enfin l’image `elykia-website:<sha>` (job `build-website`, inclus dans le deploy gate) : le CD redéploie le site vitrine quand `website/` change.
 - **Website —** bouton « Espace client » (en-tête, menu mobile, pied de page) vers la connexion de l’espace client web ; les CTA « Commander » ouvrent le catalogue de l’espace client (URL configurable par `CUSTOMER_SPACE_URL`, `js/config.js` servi sans cache).
 
+### Fixed
+
+- **Website —** healthcheck de l’image sur `http://127.0.0.1/` (même cause que l’espace client web : `localhost` en IPv6 → conteneur « unhealthy », ignoré par Traefik).
+
 ### Changed
 
 - **Deploy —** CORS backend : origine de l’espace client web ajoutée aux valeurs par défaut et ajoutée automatiquement à `SECURITY_ALLOWED_ORIGINS` du `.env` par `deploy.sh` (`CUSTOMER_SPACE_HOSTNAME`).
@@ -52,6 +56,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - **Deploy —** backups DB automatiques (cron `deploy`) à nouveau fonctionnels après chaque CD : `deploy.sh` ne remet plus `/opt/elykia/<env>/.env` en `600` root-only mais en `640` groupe `deploy` (le `chmod 600` à chaque déploiement cassait `db_backup.sh` avec `Permission denied` → plus d’upload Google Drive depuis le 26/09). Même règle dans `migrate-do-to-contabo.sh` ; `lib/stack.sh` affiche un message explicite si le `.env` n’est pas lisible.
+
+## Customer-space — [0.9.1] — 2026-09-29
+
+### Fixed
+
+- Image web : healthcheck sur `http://127.0.0.1/` au lieu de `localhost` (résolu en IPv6 `[::1]` alors que nginx n’écoute qu’en IPv4). Le conteneur restait « unhealthy », Traefik ne créait pas le routeur et `clients-test.amenouveve-yaveh.com` répondait « 404 page not found ».
 
 ## Customer-space — [0.9.0] — 2026-09-29
 
