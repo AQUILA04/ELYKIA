@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.25.1] — 2026-09-29
+
+### Fixed
+
+- Audit : association `label`/`for` + `id` sur tous les champs de filtre (Sonar `Web:InputWithoutLabelCheck`, Reliability Rating New Code).
+
 ## Frontend — [2.25.0] — 2026-09-29
 
 ### Added
