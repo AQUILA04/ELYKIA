@@ -425,3 +425,173 @@ ion-title {
   bottom: calc(120px + env(safe-area-inset-bottom));
 }
 
+// ─── Responsive web / desktop shell ───
+
+body.elyk-web:not(.elyk-desktop) {
+  .page-inner,
+  .elyk-page-decor__body,
+  .elyk-typec-body,
+  .catalog-body,
+  .tontines-body,
+  .profile-body,
+  .payment-body,
+  .detail-body,
+  .cart-body,
+  .purchases-body,
+  .dashboard-body {
+    max-width: var(--elyk-narrow-web-max, 640px);
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+body.elyk-desktop {
+  app-customer-tab-bar,
+  .elyk-pay-fab,
+  .elyk-sticky-cta {
+    display: none !important;
+  }
+
+  .elyk-typec-body,
+  .page-inner {
+    max-width: none;
+    margin-top: 0;
+    padding-bottom: 32px;
+  }
+
+  .empty-state {
+    max-width: 480px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .elyk-card,
+  .purchase-card,
+  .tontine-card,
+  .article-card,
+  .cart-line,
+  .activity-item,
+  a.purchase-card,
+  a.tontine-card {
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+      box-shadow: var(--elyk-shadow-lg);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--elyk-gold);
+      outline-offset: 2px;
+    }
+  }
+
+  a.purchase-card,
+  a.tontine-card,
+  .activity-item,
+  .elyk-table tbody tr[role='button'],
+  .elyk-table tbody tr.clickable {
+    cursor: pointer;
+  }
+
+  ion-button.elyk-btn-gold:hover,
+  ion-button.elyk-btn-navy:hover,
+  ion-button.elyk-btn-outline:hover {
+    opacity: 0.92;
+  }
+}
+
+// Desktop shared layout primitives
+.elyk-desktop-shell {
+  min-height: 100%;
+  background: var(--elyk-cream);
+  padding: 28px 32px 48px;
+  box-sizing: border-box;
+}
+
+.elyk-desktop-shell__inner {
+  max-width: var(--elyk-desktop-max-width, 1280px);
+  margin: 0 auto;
+}
+
+.elyk-desktop-grid {
+  display: grid;
+  gap: 24px;
+}
+
+.elyk-desktop-grid--2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.elyk-desktop-grid--sidebar {
+  grid-template-columns: minmax(0, 1fr) 320px;
+  align-items: start;
+}
+
+.elyk-desktop-grid--filters {
+  grid-template-columns: 220px minmax(0, 1fr) 300px;
+  align-items: start;
+}
+
+.elyk-desktop-grid--auth {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  min-height: 100vh;
+}
+
+.elyk-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.elyk-aside-sticky {
+  position: sticky;
+  top: 24px;
+}
+
+.elyk-table-wrap {
+  background: var(--elyk-white);
+  border-radius: var(--elyk-radius-card);
+  box-shadow: var(--elyk-shadow-soft);
+  overflow: hidden;
+}
+
+.elyk-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--elyk-desktop-text-sm, 14px);
+
+  thead th {
+    text-align: left;
+    padding: 14px 16px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--elyk-gray-text);
+    background: var(--elyk-surface-muted);
+    border-bottom: 1px solid var(--elyk-border);
+  }
+
+  tbody td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--elyk-border);
+    color: var(--elyk-navy);
+    vertical-align: middle;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody tr.clickable:hover,
+  tbody tr[role='button']:hover {
+    background: rgba(201, 146, 42, 0.06);
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    text-align: right;
+  }
+}
+

@@ -9,6 +9,21 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.7.0] — 2026-09-29
+
+### Added
+
+- Expérience desktop web dédiée (≥ 1024px) : barre latérale, pages multi-colonnes, tableaux et panneaux sticky pour tous les écrans (auth, dashboard, achats, catalogue, panier, tontine, profil).
+- `LayoutService` : activation desktop uniquement sur plateforme web (les apps Android / iOS restent en layout mobile).
+- Composants partagés `app-elyk-desktop-page`, `app-elyk-kpi-card`, styles `.elyk-table` / `.elyk-aside-sticky`.
+- Projet Playwright **Desktop Chrome** et suite `e2e/specs/desktop/`.
+
+### Changed
+
+- Web étroit (< 1024px) : contenu mobile centré (max-width 640px) pour éviter l’étirement plein écran.
+- Profil web : le bouton de mise à jour in-app (Android) est masqué.
+- Guide utilisateur Espace Client : sections « Sur ordinateur » (connexion, achats/commandes, tontine) ; index RAG synchronisé.
+
 ## Customer-space — [0.6.12] — 2026-09-28
 
 ### Fixed

@@ -51,3 +51,20 @@
     transform: translateY(0);
   }
 }
+
+ion-split-pane {
+  --side-min-width: var(--elyk-sidebar-width, 264px);
+  --side-max-width: var(--elyk-sidebar-width, 264px);
+  --side-width: var(--elyk-sidebar-width, 264px);
+}
+
+.desktop-menu {
+  --width: var(--elyk-sidebar-width, 264px);
+  --background: var(--elyk-navy);
+  border: none;
+  max-width: var(--elyk-sidebar-width, 264px);
+}
+
+#main-content {
+  background: var(--elyk-cream);
+}

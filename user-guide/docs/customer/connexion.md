@@ -30,4 +30,11 @@ Si votre numéro n’est pas encore connu et que l’inscription est ouverte :
 
 En bas de l’écran de connexion, le message **Première connexion ? Contactez votre agence** vous indique à qui vous adresser si votre numéro n’est pas reconnu.
 
+## Sur ordinateur
+
+1. Ouvrez l’Espace Client dans votre navigateur (fenêtre large).
+2. À gauche, un panneau présente **AMENOUVEVE-YAVEH**, **Elykia** et les avantages de l’espace.
+3. À droite, utilisez le formulaire de connexion comme sur mobile (téléphone, puis PIN ou code SMS).
+4. Pour une inscription, les champs d’identité s’affichent sur deux colonnes ; choisissez votre photo avec **Choisir une photo**.
+
 <!-- CAPTURE À INSÉRER : écran Connexion Espace Client (header navy, carte « Bon retour ! ») -->

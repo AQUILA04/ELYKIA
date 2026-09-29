@@ -1,0 +1,58 @@
+
+<ng-container *ngIf="!isSubmitted(); else ok">
+  <app-elyk-desktop-page
+    eyebrow="TONTINE"
+    title="Déclarer un paiement"
+    subtitle="Transférez puis déclarez votre cotisation"
+    [showBack]="true"
+    (back)="back.emit()"
+    data-testid="e2e-tontine-payment-desktop">
+    <div class="elyk-desktop-grid elyk-desktop-grid--sidebar">
+      <div>
+        <div class="info-box" *ngIf="expectedAmount() > 0">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <p>Montant suggéré : <strong>{{ expectedAmount() | number:'1.0-0' }} FCFA</strong></p>
+        </div>
+        <div class="info-box">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <p>Envoyez sur <strong>{{ depositDestinationNumber() }}</strong></p>
+        </div>
+        <app-mobile-money-recipients-card
+          [recipients]="recipients()"
+          [loading]="recipientsLoading()"
+          [error]="recipientsError()">
+        </app-mobile-money-recipients-card>
+      </div>
+      <aside class="desk-card elyk-aside-sticky">
+        <form [formGroup]="form()">
+          <app-elyk-outlined-field label="Numéro d'envoi" icon="call-outline">
+            <ion-input formControlName="mobileMoneyPhone" type="tel" data-testid="e2e-tontine-payment-phone"></ion-input>
+          </app-elyk-outlined-field>
+          <app-elyk-outlined-field label="Montant envoyé" icon="cash-outline">
+            <ion-input formControlName="mobileMoneyAmount" type="number" data-testid="e2e-tontine-payment-amount"></ion-input>
+          </app-elyk-outlined-field>
+          <app-elyk-outlined-field label="Référence" icon="receipt-outline">
+            <ion-input formControlName="mobileMoneyReference" data-testid="e2e-tontine-payment-reference"></ion-input>
+          </app-elyk-outlined-field>
+          <app-elyk-outlined-field label="Notes" icon="create-outline">
+            <ion-textarea formControlName="notes" rows="2"></ion-textarea>
+          </app-elyk-outlined-field>
+          <p class="elyk-form-error" *ngIf="error()">{{ error() }}</p>
+          <ion-button expand="block" class="elyk-btn-gold" [disabled]="form().invalid || isLoading()" (click)="submit.emit()" data-testid="e2e-tontine-payment-submit">
+            <ion-spinner *ngIf="isLoading()" name="crescent"></ion-spinner>
+            <span *ngIf="!isLoading()">Soumettre</span>
+          </ion-button>
+        </form>
+      </aside>
+    </div>
+  </app-elyk-desktop-page>
+</ng-container>
+<ng-template #ok>
+  <app-elyk-desktop-page eyebrow="TONTINE" title="Paiement soumis" subtitle="En attente de validation">
+    <div class="desk-card success-card">
+      <div class="success-icon"><ion-icon name="checkmark-circle-outline"></ion-icon></div>
+      <h2>Cotisation déclarée</h2>
+      <ion-button expand="block" class="elyk-btn-gold" (click)="goBackSuccess.emit()">Retour</ion-button>
+    </div>
+  </app-elyk-desktop-page>
+</ng-template>

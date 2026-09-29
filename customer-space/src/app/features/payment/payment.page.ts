@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit , inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -15,10 +15,13 @@ import { ElykPageHeaderComponent, ElykOutlinedFieldComponent } from '../../share
 const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
 /** Page Paiement Mobile Money — Type C. */
+import { LayoutService } from '../../shared/layout/layout.service';
+import { PaymentDesktopComponent } from './desktop/payment-desktop.component';
 @Component({
   selector: 'app-payment',
   standalone: true,
   imports: [
+    PaymentDesktopComponent,
     CommonModule,
     IonicModule,
     ReactiveFormsModule,
@@ -30,6 +33,7 @@ const FALLBACK_DEPOSIT_NUMBER = '96186822';
   styleUrls: ['./payment.page.scss'],
 })
 export class PaymentPage implements OnInit {
+  readonly layout = inject(LayoutService);
   form: FormGroup;
   distributionId = '';
   installmentNumber = 0;

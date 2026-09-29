@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -21,6 +21,8 @@ import {
   ElykOverlapCardComponent,
   ElykOutlinedFieldComponent,
 } from '../../shared/ui';
+import { LayoutService } from '../../shared/layout/layout.service';
+import { AuthDesktopComponent } from './desktop/auth-desktop.component';
 
 /** Page Connexion / Inscription — wizard téléphone → PIN, OTP ou inscription. */
 @Component({
@@ -33,11 +35,13 @@ import {
     ElykDecorHeaderComponent,
     ElykOverlapCardComponent,
     ElykOutlinedFieldComponent,
+    AuthDesktopComponent,
   ],
   templateUrl: './auth.page.html',
   styleUrls: ['./auth.page.scss'],
 })
 export class AuthPage implements ViewWillEnter {
+  readonly layout = inject(LayoutService);
   step: AuthStep = 'phone';
   phone = '';
   maskedName = '';

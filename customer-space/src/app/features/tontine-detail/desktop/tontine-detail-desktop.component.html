@@ -1,0 +1,28 @@
+
+<app-elyk-desktop-page
+  eyebrow="ESPACE TONTINE"
+  title="Détail tontine"
+  [subtitle]="detail()?.sessionYear ? ('Session ' + detail()?.sessionYear) : 'Votre épargne'"
+  [showBack]="true"
+  [breadcrumbs]="[{ label: 'Tontines', link: '/tontines' }, { label: 'Détail' }]"
+  (back)="back.emit()"
+  data-testid="e2e-tontine-detail-desktop">
+  <div slot="actions" *ngIf="detail()">
+    <ion-button class="elyk-btn-gold" [routerLink]="['/tontines', memberId(), 'payment']" [queryParams]="{ amount: detail()!.dailyStake || 0 }" data-testid="e2e-tontine-detail-pay-btn">Déclarer un paiement</ion-button>
+    <ion-button fill="outline" class="elyk-btn-outline" [routerLink]="['/tontines', memberId(), 'timeline']" data-testid="e2e-tontine-detail-timeline-btn">Voir la timeline</ion-button>
+  </div>
+
+  <div class="elyk-skeleton-card" *ngIf="isLoading()" data-testid="e2e-tontine-detail-loading"></div>
+  <ng-container *ngIf="!isLoading() && detail()">
+    <div class="elyk-kpi-row">
+      <app-elyk-kpi-card label="Total contribué" [value]="fmt(detail()!.totalContribution)" icon="wallet-outline"></app-elyk-kpi-card>
+      <app-elyk-kpi-card label="Disponible" [value]="fmt(detail()!.availableContribution)" icon="checkmark-circle-outline" variant="success"></app-elyk-kpi-card>
+      <app-elyk-kpi-card label="Mise journalière" [value]="fmt(detail()!.dailyStake)" icon="cash-outline" variant="gold"></app-elyk-kpi-card>
+      <app-elyk-kpi-card label="Progression" [value]="detail()!.validatedMonths + '/10'" [hint]="progressPercent() + ' %'" icon="calendar-outline"></app-elyk-kpi-card>
+    </div>
+    <div class="desk-card" style="margin-top:24px;">
+      <h2 style="margin:0 0 16px;font-size:16px;">Carnet des 10 mois</h2>
+      <app-tontine-monthly-pills [summaries]="detail()!.monthlySummaries" data-testid="e2e-tontine-carnet-pills"></app-tontine-monthly-pills>
+    </div>
+  </ng-container>
+</app-elyk-desktop-page>

@@ -1,0 +1,44 @@
+
+<app-elyk-desktop-page eyebrow="ESPACE CLIENT" title="Nouvelle commande" subtitle="Choisissez vos produits alimentaires" data-testid="e2e-catalog-desktop">
+  <div class="elyk-desktop-grid elyk-desktop-grid--filters">
+    <aside class="desk-card elyk-aside-sticky">
+      <h2 style="margin:0 0 12px;font-size:15px;">Catégories</h2>
+      <div class="cat-filters" data-testid="e2e-catalog-type-filters">
+        <button type="button" class="desk-chip" [class.desk-chip--active]="!selectedCategory()" (click)="selectCategory.emit('')" data-testid="e2e-catalog-filter-all">Tous</button>
+        <button type="button" class="desk-chip" *ngFor="let t of topTypes()" [class.desk-chip--active]="selectedCategory() === t.type" (click)="selectCategory.emit(t.type)" [attr.data-testid]="'e2e-catalog-filter-' + t.type">{{ t.label }}</button>
+      </div>
+    </aside>
+    <div>
+      <label class="search" for="catalog-search-desktop">
+        <ion-icon name="search-outline"></ion-icon>
+        <input id="catalog-search-desktop" type="search" placeholder="Rechercher un produit…" [value]="searchTerm()" (input)="search.emit($event)" data-testid="e2e-catalog-search" />
+      </label>
+      <div class="elyk-skeleton-card" *ngIf="isLoading()"></div>
+      <div class="desk-grid-articles" *ngIf="!isLoading()">
+        <article class="desk-article" *ngFor="let a of articles()" [attr.data-testid]="'e2e-catalog-article-' + a.id">
+          <div class="desk-article__thumb"><ion-icon name="cube-outline"></ion-icon></div>
+          <h3>{{ label()(a) }}</h3>
+          <p class="price">{{ a.creditSalePrice | number:'1.0-0' }} FCFA</p>
+          <button type="button" class="add-btn" (click)="add.emit(a)" [attr.data-testid]="'e2e-catalog-add-' + a.id">
+            <ion-icon name="add-outline"></ion-icon> Ajouter
+          </button>
+          <span *ngIf="qty()(a.id) > 0" class="desk-muted">× {{ qty()(a.id) }}</span>
+        </article>
+      </div>
+      <div class="empty-state" *ngIf="!isLoading() && articles().length === 0" data-testid="e2e-catalog-empty">
+        <ion-icon name="bag-handle-outline" class="empty-icon"></ion-icon>
+        <p class="empty-title">Aucun produit trouvé</p>
+      </div>
+    </div>
+    <aside class="desk-card elyk-aside-sticky">
+      <h2 style="margin:0 0 12px;font-size:15px;">Mini-panier ({{ cartCount() }})</h2>
+      <div *ngIf="cartLines().length === 0" class="desk-muted">Aucun article</div>
+      <div *ngFor="let line of cartLines()" style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--elyk-border);font-size:13px;">
+        <span>{{ label()(line.article) }} × {{ line.quantity }}</span>
+        <strong>{{ line.article.creditSalePrice * line.quantity | number:'1.0-0' }} F</strong>
+      </div>
+      <div class="summary-total" *ngIf="cartLines().length">Total {{ cartTotal() | number:'1.0-0' }} F</div>
+      <ion-button expand="block" class="elyk-btn-gold" style="margin-top:16px;" routerLink="/cart" data-testid="e2e-catalog-cart-btn">Voir le panier</ion-button>
+    </aside>
+  </div>
+</app-elyk-desktop-page>

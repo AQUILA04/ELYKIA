@@ -1,0 +1,73 @@
+
+<ng-container *ngIf="!isSubmitted(); else successTpl">
+  <app-elyk-desktop-page
+    eyebrow="PAIEMENT"
+    title="Mobile Money"
+    subtitle="Transférez puis déclarez votre mise"
+    [showBack]="true"
+    (back)="back.emit()"
+    data-testid="e2e-payment-desktop">
+    <div class="elyk-desktop-grid elyk-desktop-grid--sidebar">
+      <div>
+        <div class="info-box" *ngIf="expectedAmount() > 0">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <p>Mise #{{ installmentNumber() }} — montant attendu : <strong>{{ expectedAmount() | number:'1.0-0' }} FCFA</strong></p>
+        </div>
+        <div class="info-box" data-testid="e2e-payment-deposit-hint">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <p>Envoyez votre mise sur <strong>{{ depositDestinationNumber() }}</strong>, puis renseignez le transfert.</p>
+        </div>
+        <div class="desk-card" *ngIf="recipientsLoading()" data-testid="e2e-payment-recipients-loading">
+          <ion-spinner name="crescent"></ion-spinner> Chargement des numéros…
+        </div>
+        <div class="info-box warning" *ngIf="!recipientsLoading() && recipientsError()">
+          <ion-icon name="alert-circle-outline"></ion-icon><p>{{ recipientsError() }}</p>
+        </div>
+        <div class="desk-card" *ngIf="!recipientsLoading() && hasRecipientNumbers()" data-testid="e2e-payment-recipients">
+          <h3 style="margin:0 0 12px;font-size:15px;">Effectuez votre transfert vers :</h3>
+          <p class="desk-muted" *ngIf="recipients()?.collectorName || recipients()?.collector" style="margin-bottom:12px;">
+            Commercial : <strong>{{ recipients()?.collectorName || recipients()?.collector }}</strong>
+          </p>
+          <div class="recipient-row" *ngIf="recipients()?.mixxNumber" data-testid="e2e-payment-mixx-number">
+            <span>Mixx by YAS</span><strong>{{ recipients()?.mixxNumber }}</strong>
+          </div>
+          <div class="recipient-row" *ngIf="recipients()?.moovNumber" data-testid="e2e-payment-moov-number">
+            <span>Moov Money</span><strong>{{ recipients()?.moovNumber }}</strong>
+          </div>
+        </div>
+      </div>
+      <aside class="desk-card elyk-aside-sticky">
+        <form [formGroup]="form()">
+          <app-elyk-outlined-field label="Numéro d'envoi" icon="call-outline">
+            <ion-input formControlName="mobileMoneyPhone" type="tel" inputmode="tel" placeholder="+228 XX XX XX XX" data-testid="e2e-payment-phone"></ion-input>
+          </app-elyk-outlined-field>
+          <app-elyk-outlined-field label="Montant envoyé (FCFA)" icon="cash-outline">
+            <ion-input formControlName="mobileMoneyAmount" type="number" inputmode="numeric" data-testid="e2e-payment-amount"></ion-input>
+          </app-elyk-outlined-field>
+          <app-elyk-outlined-field label="Référence du transfert" icon="receipt-outline">
+            <ion-input formControlName="mobileMoneyReference" data-testid="e2e-payment-reference"></ion-input>
+          </app-elyk-outlined-field>
+          <app-elyk-outlined-field label="Notes (optionnel)" icon="create-outline">
+            <ion-textarea formControlName="notes" rows="2" auto-grow="true"></ion-textarea>
+          </app-elyk-outlined-field>
+          <p class="elyk-form-error" *ngIf="error()">{{ error() }}</p>
+          <ion-button expand="block" class="elyk-btn-gold" data-testid="e2e-payment-submit" [disabled]="form().invalid || isLoading()" (click)="submit.emit()">
+            <ion-spinner *ngIf="isLoading()" name="crescent"></ion-spinner>
+            <span *ngIf="!isLoading()">Soumettre le paiement</span>
+          </ion-button>
+        </form>
+      </aside>
+    </div>
+  </app-elyk-desktop-page>
+</ng-container>
+<ng-template #successTpl>
+  <app-elyk-desktop-page eyebrow="PAIEMENT" title="Paiement soumis" subtitle="En attente de validation par l'agence">
+    <div class="desk-card success-card" data-testid="e2e-payment-success">
+      <div class="success-icon"><ion-icon name="checkmark-circle-outline"></ion-icon></div>
+      <h2>Paiement soumis !</h2>
+      <p class="desk-muted" style="margin-bottom:16px;">Votre paiement est en attente de validation par l'agence.</p>
+      <span class="elyk-chip elyk-chip--gold">INITIÉ</span>
+      <ion-button expand="block" class="elyk-btn-gold" style="margin-top:20px;" (click)="goHome.emit()">Retour à l'accueil</ion-button>
+    </div>
+  </app-elyk-desktop-page>
+</ng-template>

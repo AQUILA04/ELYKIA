@@ -1,0 +1,61 @@
+
+<app-elyk-desktop-page eyebrow="ESPACE TONTINE" title="Mes tontines" subtitle="Épargnez un peu chaque jour, recevez vos vivres en fin d'année" data-testid="e2e-tontines-desktop">
+  <div class="elyk-skeleton-card" *ngIf="isLoading()" data-testid="e2e-tontines-loading"></div>
+  <div class="desk-card" *ngIf="!isLoading() && hasError()" data-testid="e2e-tontines-error">
+    <p class="empty-title">Impossible de charger vos tontines</p>
+    <ion-button expand="block" class="elyk-btn-gold" data-testid="e2e-tontines-retry" (click)="retry.emit()">Réessayer</ion-button>
+  </div>
+
+  <ng-container *ngIf="!isLoading() && !hasError()">
+    <div class="elyk-desktop-grid elyk-desktop-grid--2" *ngIf="showJoinHero()">
+      <article class="desk-card" data-testid="e2e-tontine-session-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <h2 style="margin:0;font-size:18px;">Session {{ session()?.year }} en cours</h2>
+          <span class="elyk-chip elyk-chip--success" data-testid="e2e-tontine-session-chip">Ouverte</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+          <div><span class="desk-muted">Début</span><div><strong>{{ formatFrDate()(session()?.startDate) }}</strong></div></div>
+          <div><span class="desk-muted">Fin prévue</span><div><strong>{{ formatFrDate()(session()?.endDate) }}</strong></div></div>
+        </div>
+        <div class="elyk-progress" style="margin-bottom:8px;"><div class="elyk-progress__bar" [style.width.%]="progressPercent()"></div></div>
+        <p class="desk-muted" *ngIf="daysRemaining() !== null" style="margin-bottom:16px;">{{ daysRemaining() }} jours restants</p>
+        <ion-button expand="block" class="elyk-btn-gold" routerLink="/tontines/join" data-testid="e2e-tontine-join-btn">Rejoindre la session</ion-button>
+      </article>
+      <section class="desk-card" data-testid="e2e-tontine-how">
+        <h2 style="margin:0 0 16px;font-size:18px;">Comment ça marche</h2>
+        <div class="how-row">
+          <div class="elyk-step"><span class="elyk-step__index">1</span><div class="elyk-step__body"><h3>Choisissez votre mise</h3><p>À partir de 100 FCFA par jour.</p></div></div>
+          <div class="elyk-step"><span class="elyk-step__index">2</span><div class="elyk-step__body"><h3>Cotisez chaque jour</h3><p>Par Mobile Money ou auprès de votre commercial.</p></div></div>
+          <div class="elyk-step"><span class="elyk-step__index">3</span><div class="elyk-step__body"><h3>Recevez vos vivres</h3><p>À la fin de la session, en décembre.</p></div></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="desk-card" *ngIf="showMemberBanner()" data-testid="e2e-tontine-member-banner" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div><strong>Session {{ session()?.year }}</strong><p class="desk-muted">Fin prévue le {{ formatFrDate()(session()?.endDate) }}</p></div>
+      <span class="elyk-chip elyk-chip--gold">Inscrit</span>
+    </div>
+
+    <div class="desk-card" *ngIf="showNoSession() || showClosedSession()" data-testid="e2e-tontine-no-session">
+      <p class="empty-title" *ngIf="showNoSession()">Aucune session ouverte pour le moment</p>
+      <p class="empty-title" *ngIf="showClosedSession()">La session {{ session()?.year }} n’est plus ouverte aux inscriptions</p>
+    </div>
+
+    <div class="elyk-section-head" *ngIf="tontines().length > 0"><h2>Vos tontines</h2></div>
+    <div class="tontine-grid">
+      <a class="tontine-card-d" *ngFor="let t of tontines()" [routerLink]="['/tontines', t.memberId]" [attr.data-testid]="'e2e-tontine-row-' + t.memberId">
+        <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+          <span>Session {{ t.sessionYear }}</span>
+          <span class="elyk-chip elyk-chip--gold">{{ statusLabel()(t.deliveryStatus) }}</span>
+        </div>
+        <div style="font-family:'Playfair Display',serif;font-size:24px;font-weight:700;">{{ t.totalContribution | number:'1.0-0' }} FCFA</div>
+        <p class="desk-muted">Mise : {{ t.dailyStake | number:'1.0-0' }} FCFA/jour</p>
+        <p class="desk-muted">Solde : {{ t.availableContribution | number:'1.0-0' }} FCFA</p>
+      </a>
+    </div>
+    <div class="empty-state" *ngIf="tontines().length === 0 && !showJoinHero()" data-testid="e2e-tontines-empty">
+      <ion-icon name="albums-outline" class="empty-icon"></ion-icon>
+      <p class="empty-title">Aucune tontine active</p>
+    </div>
+  </ng-container>
+</app-elyk-desktop-page>

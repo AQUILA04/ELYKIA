@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AlertController, IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
@@ -14,10 +14,13 @@ import { ElykPageHeaderComponent } from '../../shared/ui';
 import { environment } from '../../../environments/environment';
 
 /** Page Tableau de Bord — Type C. */
+import { LayoutService } from '../../shared/layout/layout.service';
+import { DashboardDesktopComponent } from './desktop/dashboard-desktop.component';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
+    DashboardDesktopComponent,
     CommonModule,
     IonicModule,
     RouterModule,
@@ -29,6 +32,7 @@ import { environment } from '../../../environments/environment';
   styleUrls: ['./dashboard.page.scss'],
 })
 export class DashboardPage implements OnInit {
+  readonly layout = inject(LayoutService);
   dashboard: CustomerDashboard | null = null;
   isLoading = true;
   loadError = false;

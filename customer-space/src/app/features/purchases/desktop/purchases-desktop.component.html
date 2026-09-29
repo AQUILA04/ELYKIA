@@ -1,0 +1,29 @@
+<app-elyk-desktop-page eyebrow="ESPACE CLIENT" title="Mes achats" subtitle="Suivez vos commandes et vos crédits" data-testid="e2e-purchases-desktop">
+  <div class="desk-filters" data-testid="e2e-purchases-filter">
+    <button type="button" class="desk-chip" *ngFor="let f of filters()" [class.desk-chip--active]="statusFilter() === f.value" (click)="setFilter.emit(f.value)">{{ f.label }}</button>
+  </div>
+  <div class="elyk-skeleton-card" *ngIf="isLoading()"></div>
+  <div class="elyk-table-wrap" *ngIf="!isLoading() && filtered().length > 0">
+    <table class="elyk-table">
+      <thead>
+        <tr><th>Référence</th><th>Articles</th><th class="num">Montant</th><th>Progression</th><th>Mises</th><th>Statut</th></tr>
+      </thead>
+      <tbody>
+        <tr class="clickable" *ngFor="let p of filtered()" [routerLink]="['/purchases', p.id]" [attr.data-testid]="'e2e-purchase-row-' + p.id" role="button" tabindex="0">
+          <td><strong>{{ p.reference }}</strong></td>
+          <td>{{ p.articleCount }}</td>
+          <td class="num">{{ p.totalAmount | number:'1.0-0' }} F</td>
+          <td>
+            <div class="elyk-progress" style="min-width:120px;"><div class="elyk-progress__bar" [style.width.%]="progressPercent()(p)"></div></div>
+          </td>
+          <td>{{ p.paidInstallmentCount }}/{{ p.installmentCount }}</td>
+          <td><span class="elyk-chip" [ngClass]="statusChipClass()(p.status)">{{ statusLabel()(p.status) }}</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="empty-state" *ngIf="!isLoading() && filtered().length === 0" data-testid="e2e-purchases-empty">
+    <ion-icon name="receipt-outline" class="empty-icon"></ion-icon>
+    <p class="empty-title">Aucun achat trouvé</p>
+  </div>
+</app-elyk-desktop-page>

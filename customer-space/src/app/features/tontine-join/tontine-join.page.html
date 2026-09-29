@@ -1,3 +1,29 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-tontine-join-desktop
+    [stakeShortcuts]="stakeShortcuts"
+    [session]="session"
+    [stakeForm]="stakeForm"
+    [paymentForm]="paymentForm"
+    [includeInitialPayment]="includeInitialPayment"
+    [recipients]="recipients"
+    [recipientsLoading]="recipientsLoading"
+    [recipientsError]="recipientsError"
+    [isLoadingSession]="isLoadingSession"
+    [isSubmitting]="isSubmitting"
+    [error]="error"
+    [success]="success"
+    [selectedShortcut]="selectedShortcut"
+    [depositDestinationNumber]="depositDestinationNumber"
+    [estimatedTotal]="monthlyEstimate * 10"
+    (back)="goBack()"
+    (selectShortcut)="selectShortcut($event)"
+    (togglePayment)="toggleInitialPayment($event)"
+    (submit)="submit()"
+    (goDetail)="goToTontine()">
+  </app-tontine-join-desktop>
+</ng-container>
+
+<ng-template #mobileView>
 <ion-content class="page-content join-page" data-testid="e2e-tontine-join-page">
   <app-elyk-page-header
     eyebrow="ESPACE TONTINE"
@@ -162,3 +188,5 @@
     </ion-button>
   </div>
 </ion-footer>
+
+</ng-template>

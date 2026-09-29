@@ -1,0 +1,52 @@
+
+:host { display: block; min-height: 100%; }
+.desk-card {
+  background: var(--elyk-white);
+  border-radius: var(--elyk-radius-card);
+  box-shadow: var(--elyk-shadow-soft);
+  padding: 24px;
+}
+.desk-muted { color: var(--elyk-gray-text); font-size: 13px; margin: 0; }
+.desk-actions { display: flex; flex-direction: column; gap: 10px; }
+.desk-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+.desk-chip {
+  min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--elyk-border);
+  background: var(--elyk-white); color: var(--elyk-navy); font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.desk-chip--active { background: var(--elyk-navy); color: #fff; border-color: var(--elyk-navy); }
+.desk-grid-articles {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;
+}
+.desk-article {
+  background: var(--elyk-white); border-radius: 16px; box-shadow: var(--elyk-shadow-soft); padding: 16px; display: flex; flex-direction: column; gap: 8px;
+}
+.desk-article__thumb {
+  height: 88px; border-radius: 12px; background: var(--elyk-surface-muted); display: flex; align-items: center; justify-content: center; color: var(--elyk-gold); font-size: 32px;
+}
+.desk-qty { display: inline-flex; align-items: center; gap: 8px; }
+.desk-qty button {
+  width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--elyk-border); background: #fff; cursor: pointer; font-weight: 700;
+}
+.banner {
+  display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: 14px; margin-bottom: 20px;
+  background: #FEF3C7; color: #92400E;
+}
+.banner ion-icon { font-size: 22px; flex-shrink: 0; }
+.banner strong { display: block; margin-bottom: 4px; }
+.banner p { margin: 0; font-size: 13px; }
+.banner a { color: var(--elyk-gold); font-weight: 700; }
+
+.status-rows .row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--elyk-border); font-size: 14px;
+}
+.status-rows .row:last-child { border-bottom: none; }
+.dropzone {
+  border: 2px dashed var(--elyk-border); border-radius: 16px; padding: 28px; text-align: center;
+  margin-bottom: 16px; background: var(--elyk-cream);
+}
+.dropzone__btn {
+  display: inline-flex; min-height: 40px; align-items: center; padding: 0 16px; border-radius: 10px;
+  background: var(--elyk-navy); color: #fff; font-weight: 600; font-size: 13px; cursor: pointer; margin-top: 8px;
+}
+.preview { max-width: 220px; border-radius: 12px; margin-bottom: 8px; }

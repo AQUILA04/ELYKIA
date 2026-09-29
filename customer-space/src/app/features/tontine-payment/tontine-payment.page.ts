@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit , inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
@@ -16,10 +16,13 @@ import { ElykPageHeaderComponent, ElykOutlinedFieldComponent } from '../../share
 const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
 /** Déclaration Mobile Money cotisation tontine. */
+import { LayoutService } from '../../shared/layout/layout.service';
+import { TontinePaymentDesktopComponent } from './desktop/tontine-payment-desktop.component';
 @Component({
   selector: 'app-tontine-payment',
   standalone: true,
   imports: [
+    TontinePaymentDesktopComponent,
     CommonModule,
     IonicModule,
     ReactiveFormsModule,
@@ -32,6 +35,7 @@ const FALLBACK_DEPOSIT_NUMBER = '96186822';
   styleUrls: ['./tontine-payment.page.scss'],
 })
 export class TontinePaymentPage implements OnInit {
+  readonly layout = inject(LayoutService);
   form: FormGroup;
   recipients: MobileMoneyRecipient | null = null;
   recipientsError = '';

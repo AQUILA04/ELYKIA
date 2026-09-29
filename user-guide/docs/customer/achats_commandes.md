@@ -32,3 +32,10 @@ Cet écran vous permet de suivre vos crédits, commander des produits et déclar
 2. Recherchez un produit ou filtrez par catégorie.
 3. Appuyez sur **Ajouter**, puis ouvrez le panier.
 4. Sur **Mon panier**, ajustez les quantités, consultez le **résumé de la commande**, puis appuyez sur **Passer la commande**.
+
+## Sur ordinateur
+
+1. Utilisez le menu à gauche : **Accueil**, **Achats**, **Commander**, **Panier**, **Profil**.
+2. Sur **Accueil**, les montants de crédit s’affichent en cartes en haut de page, avec les actions rapides à droite.
+3. Sur **Achats**, la liste apparaît en tableau : cliquez une ligne pour le détail. Le panneau de droite propose **Payer une mise** et **Voir le suivi des mises**.
+4. Sur **Commander**, les catégories sont à gauche, les produits au centre, et un mini-panier à droite. Ouvrez **Voir le panier** pour finaliser.

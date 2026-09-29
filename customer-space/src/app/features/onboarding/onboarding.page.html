@@ -1,3 +1,32 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-onboarding-desktop
+    [headerTitle]="headerTitle"
+    [headerSubtitle]="headerSubtitle"
+    [section]="section"
+    [status]="status"
+    [deposit]="deposit"
+    [recipients]="recipients"
+    [isLoading]="isLoading"
+    [isSaving]="isSaving"
+    [isPending]="isPending"
+    [error]="error"
+    [success]="success"
+    [cardPhotoDataUrl]="cardPhotoDataUrl"
+    [cardTypes]="cardTypes"
+    [depositDestinationNumber]="depositDestinationNumber"
+    [idForm]="idForm"
+    [depositForm]="depositForm"
+    (back)="onHeaderBack()"
+    (openId)="openId()"
+    (openDeposit)="openDeposit()"
+    (backToMenu)="backToMenu()"
+    (cardPhotoSelected)="onCardPhotoSelected($event)"
+    (submitId)="submitIdDocument()"
+    (submitDeposit)="submitDeposit()">
+  </app-onboarding-desktop>
+</ng-container>
+
+<ng-template #mobileView>
 <ion-content class="page-content onboarding-page" data-testid="e2e-onboarding-page">
   <app-elyk-page-header
     eyebrow="MON DOSSIER"
@@ -154,3 +183,5 @@
 </ion-footer>
 
 <app-customer-tab-bar *ngIf="section === 'menu'"></app-customer-tab-bar>
+
+</ng-template>

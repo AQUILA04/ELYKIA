@@ -14,12 +14,20 @@ export default defineConfig({
     baseURL: 'http://localhost:8100',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
-    ...devices['Pixel 5'],
   },
   projects: [
     {
       name: 'Mobile Chrome',
+      testIgnore: /desktop\//,
       use: { ...devices['Pixel 5'] },
+    },
+    {
+      name: 'Desktop Chrome',
+      testMatch: /desktop\/.*\.spec\.ts/,
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1440, height: 900 },
+      },
     },
   ],
   webServer: process.env['E2E_SKIP_WEB_SERVER']

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit , inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -10,14 +10,18 @@ import { CustomerArticle } from '../../shared/models/customer.model';
 import { ElykPageHeaderComponent } from '../../shared/ui';
 
 /** Page Panier — Type C. */
+import { LayoutService } from '../../shared/layout/layout.service';
+import { CartDesktopComponent } from './desktop/cart-desktop.component';
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, ElykPageHeaderComponent],
+  imports: [
+    CartDesktopComponent,CommonModule, IonicModule, RouterModule, ElykPageHeaderComponent],
   templateUrl: './cart.page.html',
   styleUrls: ['./cart.page.scss'],
 })
 export class CartPage implements OnInit, OnDestroy {
+  readonly layout = inject(LayoutService);
   lines: CartLine[] = [];
   isSubmitting = false;
   error = '';

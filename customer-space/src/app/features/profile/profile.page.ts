@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AlertController, IonicModule, ToastController } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
@@ -11,14 +11,19 @@ import { environment } from '../../../environments/environment';
 import { AppReleaseInfo } from '../../shared/models/app-release.model';
 
 /** Page Profil Client — Type C. */
+import { LayoutService } from '../../shared/layout/layout.service';
+import { ProfileDesktopComponent } from './desktop/profile-desktop.component';
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
+  imports: [
+    ProfileDesktopComponent,CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
 })
 export class ProfilePage {
+  readonly layout = inject(LayoutService);
+  readonly isWeb = Capacitor.getPlatform() === 'web';
   session = this.sessionService.currentSession;
   appVersion = environment.version;
   updateInProgress = false;

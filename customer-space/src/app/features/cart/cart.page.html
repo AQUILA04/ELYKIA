@@ -1,3 +1,21 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-cart-desktop
+    [lines]="lines"
+    [totalAmount]="totalAmount"
+    [isSubmitting]="isSubmitting"
+    [error]="error"
+    [label]="label.bind(this)"
+    [lineTotal]="lineTotal.bind(this)"
+    (back)="goBack()"
+    (clear)="clearCart()"
+    (increment)="increment($event)"
+    (decrement)="decrement($event)"
+    (remove)="removeLine($event)"
+    (submit)="submitOrder()">
+  </app-cart-desktop>
+</ng-container>
+
+<ng-template #mobileView>
 <ion-content class="page-content cart-page" data-testid="e2e-cart-page">
   <app-elyk-page-header
     eyebrow="ESPACE CLIENT"
@@ -98,3 +116,5 @@
     </ion-button>
   </div>
 </ion-footer>
+
+</ng-template>

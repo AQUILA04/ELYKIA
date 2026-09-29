@@ -1,0 +1,46 @@
+<aside class="desktop-sidebar" data-testid="e2e-desktop-sidebar">
+  <div class="desktop-sidebar__brand">
+    <p class="desktop-sidebar__company">AMENOUVEVE-YAVEH</p>
+    <p class="desktop-sidebar__app">Elykia</p>
+    <p class="desktop-sidebar__module">Espace Client</p>
+  </div>
+
+  <nav class="desktop-sidebar__nav" aria-label="Navigation principale">
+    <a
+      *ngFor="let item of navItems"
+      class="desktop-sidebar__link"
+      [class.desktop-sidebar__link--active]="isActive(item.path)"
+      [routerLink]="item.path"
+      [attr.data-testid]="item.testId">
+      <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
+      <span>{{ item.label }}</span>
+      <span
+        *ngIf="item.badge === 'cart' && cartCount() > 0"
+        class="desktop-sidebar__badge"
+        data-testid="e2e-nav-cart-badge">
+        {{ cartCount() }}
+      </span>
+    </a>
+  </nav>
+
+  <div class="desktop-sidebar__footer">
+    <div class="desktop-sidebar__user" data-testid="e2e-nav-user">
+      <div class="desktop-sidebar__avatar" aria-hidden="true">
+        <ion-icon name="person-outline"></ion-icon>
+      </div>
+      <div class="desktop-sidebar__user-meta">
+        <strong>{{ displayName() }}</strong>
+        <span>{{ phone() }}</span>
+      </div>
+    </div>
+    <button
+      type="button"
+      class="desktop-sidebar__logout"
+      data-testid="e2e-nav-logout"
+      (click)="logout()">
+      <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+      Se déconnecter
+    </button>
+    <p class="desktop-sidebar__version" data-testid="e2e-nav-version">Version {{ appVersion }}</p>
+  </div>
+</aside>

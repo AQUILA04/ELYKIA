@@ -26,6 +26,28 @@ Pour chaque écran : consulter la **maquette PNG**, choisir l'**archétype** (vo
 
 \* S-07 : vérifier maquette — outlined + navy si formulaire de paiement.
 
+## Desktop web (vues dédiées)
+
+Quand `LayoutService.isDesktop()` est vrai, chaque page charge un composant `features/<page>/desktop/<page>-desktop.component.*` (présentation pure : `input()` / `output()`). Mapping :
+
+| Route | Vue desktop |
+|-------|-------------|
+| `/auth` | `auth/desktop/auth-desktop` — split hero + formulaire |
+| `/onboarding` | `onboarding/desktop/onboarding-desktop` |
+| `/dashboard` | `dashboard/desktop/dashboard-desktop` — KPI + tableau |
+| `/purchases` | `purchases/desktop/purchases-desktop` — tableau |
+| `/purchases/:id` | `purchase-detail/desktop/…` — articles + aside |
+| `/purchases/:id/timeline` | `recovery-timeline/desktop/…` |
+| `/payment/:id` | `payment/desktop/…` |
+| `/catalog` | `catalog/desktop/…` — filtres + grille + mini-panier |
+| `/cart` | `cart/desktop/…` |
+| `/order-confirmation` | `order-confirmation/desktop/…` |
+| `/orders/:id` | `order-tracking/desktop/…` |
+| `/tontines`… | `tontines|tontine-join|tontine-detail|tontine-timeline|tontine-payment/desktop/…` |
+| `/profile` | `profile/desktop/…` (pas de CTA mise à jour in-app) |
+
+Coque : `app.component` (`ion-split-pane`) + `shared/layout/desktop-sidebar/`.
+
 ## Imports type pour toute nouvelle page
 
 ```typescript

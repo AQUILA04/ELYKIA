@@ -1,0 +1,29 @@
+
+:host { display: block; min-height: 100%; }
+.desk-card {
+  background: var(--elyk-white);
+  border-radius: var(--elyk-radius-card);
+  box-shadow: var(--elyk-shadow-soft);
+  padding: 24px;
+}
+.desk-muted { color: var(--elyk-gray-text); font-size: 13px; margin: 0; }
+.desk-actions { display: flex; flex-direction: column; gap: 10px; }
+.desk-chip {
+  min-height: 36px; padding: 0 14px; border-radius: 999px; border: 1.5px solid var(--elyk-border);
+  background: var(--elyk-white); color: var(--elyk-navy); font-weight: 600; font-size: 13px; cursor: pointer; font-family: inherit;
+}
+.desk-chip--active { background: var(--elyk-navy); color: #fff; border-color: var(--elyk-navy); }
+.info-box {
+  display: flex; gap: 10px; align-items: flex-start; padding: 14px; border-radius: 12px;
+  background: #EFF6FF; color: #1E3A5F; margin-bottom: 12px; font-size: 13px;
+}
+.info-box p { margin: 0; }
+.success-card { text-align: center; max-width: 480px; margin: 40px auto; }
+.success-icon { font-size: 64px; color: var(--elyk-green); margin-bottom: 12px; }
+.tontine-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.tontine-card-d {
+  display: block; background: var(--elyk-white); border-radius: 16px; box-shadow: var(--elyk-shadow-soft);
+  padding: 20px; text-decoration: none; color: inherit;
+}
+.how-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.stake-shortcuts { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }

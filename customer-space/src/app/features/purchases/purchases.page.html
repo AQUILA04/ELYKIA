@@ -1,3 +1,17 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-purchases-desktop
+    [filtered]="filtered"
+    [isLoading]="isLoading"
+    [statusFilter]="statusFilter"
+    [filters]="filters"
+    [statusLabel]="statusLabel.bind(this)"
+    [statusChipClass]="statusChipClass.bind(this)"
+    [progressPercent]="progressPercent.bind(this)"
+    (setFilter)="setFilter($any($event))">
+  </app-purchases-desktop>
+</ng-container>
+
+<ng-template #mobileView>
 <ion-content class="page-content purchases-page" data-testid="e2e-purchases-page">
   <app-elyk-page-header
     eyebrow="ESPACE CLIENT"
@@ -58,3 +72,5 @@
   </div>
 </ion-content>
 <app-customer-tab-bar></app-customer-tab-bar>
+
+</ng-template>

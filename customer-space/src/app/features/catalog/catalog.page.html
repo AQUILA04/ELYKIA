@@ -1,3 +1,22 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-catalog-desktop
+    [articles]="articles"
+    [topTypes]="topTypes"
+    [selectedCategory]="selectedCategory"
+    [searchTerm]="searchTerm"
+    [isLoading]="isLoading"
+    [cartCount]="cartCount"
+    [cartLines]="cartLines"
+    [cartTotal]="cartTotal"
+    [qty]="qty.bind(this)"
+    [label]="label.bind(this)"
+    (search)="onSearchInput($event)"
+    (selectCategory)="selectCategory($event)"
+    (add)="add($event)">
+  </app-catalog-desktop>
+</ng-container>
+
+<ng-template #mobileView>
 <ion-content class="page-content catalog-page" data-testid="e2e-catalog-page">
   <app-elyk-page-header
     eyebrow="ESPACE CLIENT"
@@ -83,3 +102,5 @@
   </div>
 </ion-content>
 <app-customer-tab-bar></app-customer-tab-bar>
+
+</ng-template>
