@@ -4,6 +4,7 @@ import { IonicModule } from '@ionic/angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { MobileMoneyRecipient } from '../../shared/models/customer.model';
 import {
@@ -34,6 +35,7 @@ import { PaymentDesktopComponent } from './desktop/payment-desktop.component';
 })
 export class PaymentPage implements OnInit {
   readonly layout = inject(LayoutService);
+  private readonly journal = inject(UserJournalService);
   form: FormGroup;
   distributionId = '';
   installmentNumber = 0;
@@ -105,8 +107,16 @@ export class PaymentPage implements OnInit {
         ...this.form.value,
       }));
       this.isSubmitted = true;
+      this.journal.track('MM_PAYMENT_SUBMITTED', 'BUSINESS', {
+        distributionId: this.distributionId,
+        amount: this.expectedAmount,
+      });
     } catch (e: unknown) {
       this.error = mobileMoneySubmitErrorMessage(e, 'Erreur lors de la soumission.');
+      this.journal.track('MM_PAYMENT_FAILED', 'BUSINESS', {
+        distributionId: this.distributionId,
+        reason: this.error,
+      });
     } finally {
       this.isLoading = false;
     }

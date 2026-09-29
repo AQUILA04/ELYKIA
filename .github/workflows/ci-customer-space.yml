@@ -199,6 +199,11 @@ jobs:
         cp ../.github/workflows/android-config-customer-space/file_paths.xml android/app/src/main/res/xml/file_paths.xml
         ../.github/scripts/install-customer-space-app-update-plugin.sh android
         ../.github/scripts/apply-customer-space-android-icons.sh android
+        if [ -f android/app/google-services.json ]; then
+          ../.github/scripts/configure-android-firebase.sh android
+        else
+          echo "Skipping Crashlytics Gradle wiring (no google-services.json)"
+        fi
 
     - name: Grant execute permission for gradlew
       run: chmod +x android/gradlew

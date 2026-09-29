@@ -6,6 +6,7 @@ import { BehaviorSubject } from 'rxjs';
 import { AppComponent } from './app.component';
 import { CustomerSessionService } from './shared/services/customer-session.service';
 import { LayoutService } from './shared/layout/layout.service';
+import { UserJournalService } from './core/telemetry/user-journal.service';
 import { IonicModule } from '@ionic/angular';
 import { RouterTestingModule } from '@angular/router/testing';
 import { CustomerSession } from './shared/models/customer-auth.model';
@@ -16,14 +17,22 @@ describe('AppComponent', () => {
   let sessionMock: {
     session$: BehaviorSubject<CustomerSession | null>;
     isAuthenticated: boolean;
+    currentSession: CustomerSession | null;
   };
+  let journal: jasmine.SpyObj<UserJournalService>;
 
   beforeEach(async () => {
     sessionSubject = new BehaviorSubject<CustomerSession | null>(null);
     sessionMock = {
       session$: sessionSubject,
       isAuthenticated: false,
+      currentSession: null,
     };
+    journal = jasmine.createSpyObj('UserJournalService', [
+      'track', 'setScreen', 'bindUser', 'init',
+    ]);
+    journal.setScreen.and.resolveTo();
+    journal.bindUser.and.resolveTo();
 
     await TestBed.configureTestingModule({
       declarations: [AppComponent],
@@ -31,6 +40,7 @@ describe('AppComponent', () => {
       schemas: [CUSTOM_ELEMENTS_SCHEMA],
       providers: [
         { provide: CustomerSessionService, useValue: sessionMock },
+        { provide: UserJournalService, useValue: journal },
         LayoutService,
       ],
     }).compileComponents();

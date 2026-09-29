@@ -87,6 +87,18 @@ grep -q '#0D1B2A' "$ICON_WORK/app/src/main/res/values/ic_launcher_background.xml
 rm -rf "$ICON_WORK"
 pass "apply-customer-space-android-icons.sh"
 
+# Firebase Crashlytics Gradle wiring (shared with mobile)
+bash "$ROOT/.github/scripts/configure-android-firebase.sh" "$WORK/android"
+grep -q "firebase-crashlytics-gradle" "$WORK/android/build.gradle" \
+  || fail "configure-android-firebase.sh did not add crashlytics classpath"
+grep -q "com.google.firebase.crashlytics" "$WORK/android/app/build.gradle" \
+  || fail "configure-android-firebase.sh did not apply crashlytics plugin"
+grep -q "firebase-crashlytics" "$WORK/android/app/build.gradle" \
+  || fail "configure-android-firebase.sh did not add firebase-crashlytics dep"
+grep -q "configure-android-firebase.sh" "$ROOT/.github/actions/build-customer-space-apk/action.yml" \
+  || fail "build-customer-space-apk action missing configure-android-firebase.sh"
+pass "configure-android-firebase.sh for customer-space"
+
 echo ""
 if [ "$FAILURES" -gt 0 ]; then
   echo "$FAILURES validation(s) failed" >&2

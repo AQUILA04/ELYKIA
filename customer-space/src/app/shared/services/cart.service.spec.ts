@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { CartService } from './cart.service';
 import { CustomerArticle } from '../models/customer.model';
+import { UserJournalService } from '../../core/telemetry/user-journal.service';
 
 describe('CartService', () => {
   let service: CartService;
@@ -10,7 +11,11 @@ describe('CartService', () => {
 
   beforeEach(() => {
     sessionStorage.clear();
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: UserJournalService, useValue: jasmine.createSpyObj('UserJournalService', ['track']) },
+      ],
+    });
     service = TestBed.inject(CartService);
   });
 

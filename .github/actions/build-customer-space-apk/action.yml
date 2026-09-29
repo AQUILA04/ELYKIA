@@ -125,6 +125,7 @@ runs:
         ../.github/scripts/sync-android-version.sh android
         ../.github/scripts/install-customer-space-app-update-plugin.sh android
         ../.github/scripts/apply-customer-space-android-icons.sh android
+        ../.github/scripts/configure-android-firebase.sh android
 
     - name: Prepare Android keystore
       shell: bash

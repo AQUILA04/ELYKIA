@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { CustomerSession } from '../models/customer-auth.model';
 
 const SESSION_KEY = 'elykia_customer_session';
@@ -10,7 +11,7 @@ const SESSION_KEY = 'elykia_customer_session';
  */
 @Injectable({ providedIn: 'root' })
 export class CustomerSessionService {
-
+  private readonly journal = inject(UserJournalService);
   private sessionSubject = new BehaviorSubject<CustomerSession | null>(this.loadSession());
 
   get session$(): Observable<CustomerSession | null> {
@@ -30,11 +31,22 @@ export class CustomerSessionService {
   saveSession(session: CustomerSession): void {
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
     this.sessionSubject.next(session);
+    void this.journal.bindUser(session.clientId, session.phone ?? null);
+    this.journal.track('LOGIN_SUCCESS', 'AUTH', {
+      clientId: session.clientId,
+      activationStatus: session.activationStatus ?? null,
+    });
   }
 
   clearSession(): void {
+    const hadSession = !!this.currentSession;
     localStorage.removeItem(SESSION_KEY);
     this.sessionSubject.next(null);
+    if (hadSession) {
+      this.journal.track('LOGOUT', 'AUTH');
+      void this.journal.unbindUser();
+      void this.journal.flush();
+    }
   }
 
   private loadSession(): CustomerSession | null {

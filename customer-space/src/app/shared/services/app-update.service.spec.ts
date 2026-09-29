@@ -2,6 +2,7 @@ import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { AppUpdateService } from './app-update.service';
 import { CustomerSessionService } from './customer-session.service';
+import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { environment } from '../../../environments/environment';
 
 describe('AppUpdateService', () => {
@@ -16,6 +17,10 @@ describe('AppUpdateService', () => {
         {
           provide: CustomerSessionService,
           useValue: { currentSession: { token: 'jwt-token' } },
+        },
+        {
+          provide: UserJournalService,
+          useValue: jasmine.createSpyObj('UserJournalService', ['track']),
         },
       ],
     });

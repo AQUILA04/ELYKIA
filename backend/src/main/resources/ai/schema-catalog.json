@@ -185,20 +185,33 @@
           "name": "activation_status",
           "type": "varchar",
           "description": "Statut d'activation du dossier client (PENDING, ACTIVE, REJECTED)",
-          "synonyms": ["inscription", "activation", "en attente"]
+          "synonyms": [
+            "inscription",
+            "activation",
+            "en attente"
+          ]
         },
         {
           "name": "registration_source",
           "type": "varchar",
           "description": "Source d'inscription du client (STAFF = personnel, CUSTOMER_SPACE = auto-inscrit depuis l'Espace Client)",
-          "synonyms": ["auto-inscrit", "inscrit depuis l'espace client", "source d'inscription", "espace client"]
+          "synonyms": [
+            "auto-inscrit",
+            "inscrit depuis l'espace client",
+            "source d'inscription",
+            "espace client"
+          ]
         }
       ]
     },
     {
       "name": "customer_initial_deposit_submission",
       "description": "Déclarations de dépôt initial Mobile Money pour accélérer l'activation d'une inscription client",
-      "synonyms": ["dépôt initial", "solde initial", "inscription dépôt"],
+      "synonyms": [
+        "dépôt initial",
+        "solde initial",
+        "inscription dépôt"
+      ],
       "columns": [
         {
           "name": "id",
@@ -1166,6 +1179,129 @@
         {
           "name": "triggered_by",
           "type": "varchar"
+        }
+      ]
+    },
+    {
+      "name": "customer_activity_log",
+      "description": "Journal d'activité de l'Espace Client : tentatives de connexion, navigation, paiements, erreurs remontées par l'application et événements serveur d'authentification",
+      "synonyms": [
+        "journal client",
+        "activité espace client",
+        "logs client",
+        "audit client",
+        "parcours client"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "event_id",
+          "type": "uuid",
+          "description": "UUID unique de l'événement (dédoublonnage)"
+        },
+        {
+          "name": "occurred_at",
+          "type": "timestamp",
+          "description": "Horodatage de l'action côté client ou serveur"
+        },
+        {
+          "name": "received_at",
+          "type": "timestamp",
+          "description": "Horodatage de réception backend"
+        },
+        {
+          "name": "source",
+          "type": "varchar",
+          "description": "CLIENT_APP ou SERVER"
+        },
+        {
+          "name": "category",
+          "type": "varchar",
+          "description": "AUTH, NAVIGATION, BUSINESS, ERROR"
+        },
+        {
+          "name": "event_type",
+          "type": "varchar",
+          "description": "Type d'événement (LOGIN_SUCCESS, SCREEN_VIEW, HTTP_ERROR, etc.)",
+          "synonyms": [
+            "type d'action",
+            "événement"
+          ]
+        },
+        {
+          "name": "client_id",
+          "type": "bigint",
+          "description": "Identifiant client (null avant connexion)"
+        },
+        {
+          "name": "phone",
+          "type": "varchar",
+          "description": "Téléphone normalisé",
+          "synonyms": [
+            "numéro",
+            "téléphone"
+          ]
+        },
+        {
+          "name": "device_id",
+          "type": "varchar",
+          "description": "Identifiant appareil persistant"
+        },
+        {
+          "name": "session_id",
+          "type": "varchar",
+          "description": "Identifiant de session applicative"
+        },
+        {
+          "name": "platform",
+          "type": "varchar",
+          "description": "android, ios ou web"
+        },
+        {
+          "name": "app_version",
+          "type": "varchar",
+          "description": "Version de l'application"
+        },
+        {
+          "name": "screen",
+          "type": "varchar",
+          "description": "Écran / route normalisée"
+        },
+        {
+          "name": "http_status",
+          "type": "integer",
+          "description": "Statut HTTP si erreur réseau"
+        },
+        {
+          "name": "message",
+          "type": "varchar",
+          "description": "Message court"
+        },
+        {
+          "name": "metadata",
+          "type": "jsonb",
+          "description": "Propriétés additionnelles sanitisées"
+        },
+        {
+          "name": "ip",
+          "type": "varchar",
+          "description": "Adresse IP"
+        },
+        {
+          "name": "user_agent",
+          "type": "varchar",
+          "description": "User-Agent"
+        }
+      ],
+      "relations": [
+        {
+          "column": "client_id",
+          "refTable": "client",
+          "refColumn": "id"
         }
       ]
     }

@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router, RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
+import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import {
   CustomerInitialDeposit,
@@ -37,6 +38,7 @@ import { OnboardingDesktopComponent } from './desktop/onboarding-desktop.compone
 })
 export class OnboardingPage implements OnInit {
   readonly layout = inject(LayoutService);
+  private readonly journal = inject(UserJournalService);
   status: CustomerOnboardingStatus | null = null;
   deposit: CustomerInitialDeposit | null = null;
   recipients: MobileMoneyRecipient | null = null;
@@ -174,6 +176,7 @@ export class OnboardingPage implements OnInit {
       this.success = 'Pièce d\'identité enregistrée.';
       this.section = 'menu';
       this.cardPhotoDataUrl = '';
+      this.journal.track('ONBOARDING_DOC_UPLOADED', 'BUSINESS');
     } catch (e: unknown) {
       this.error = this.extractError(e);
     } finally {
@@ -198,6 +201,9 @@ export class OnboardingPage implements OnInit {
       }));
       this.success = 'Déclaration de dépôt envoyée.';
       this.section = 'menu';
+      this.journal.track('INITIAL_DEPOSIT_SUBMITTED', 'BUSINESS', {
+        amount: Number(this.depositForm.value.mobileMoneyAmount),
+      });
       await this.load();
     } catch (e: unknown) {
       this.error = this.extractError(e);

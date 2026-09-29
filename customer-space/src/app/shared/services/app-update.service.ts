@@ -6,6 +6,7 @@ import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
 import { environment } from '../../../environments/environment';
 import { CustomerSessionService } from './customer-session.service';
+import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { AppUpdateNative } from '../plugins/app-update.plugin';
 import {
   ApiResponse,
@@ -20,6 +21,7 @@ export class AppUpdateService {
   constructor(
     private readonly http: HttpClient,
     private readonly session: CustomerSessionService,
+    private readonly journal: UserJournalService,
   ) {}
 
   async getLocalVersionCode(): Promise<number> {
@@ -37,6 +39,11 @@ export class AppUpdateService {
     const response = await firstValueFrom(
       this.http.get<ApiResponse<AppReleaseInfo>>(`${this.releaseApiUrl}/latest`, { params }),
     );
+    this.journal.track('APP_UPDATE_CHECK', 'BUSINESS', {
+      localVersionCode: versionCode,
+      updateAvailable: !!response.data?.updateAvailable,
+      remoteVersion: response.data?.version ?? null,
+    });
     return response.data;
   }
 
@@ -47,6 +54,11 @@ export class AppUpdateService {
     if (Capacitor.getPlatform() === 'web') {
       throw new Error('La mise à jour in-app est disponible uniquement sur Android.');
     }
+
+    this.journal.track('APP_UPDATE_DOWNLOAD', 'BUSINESS', {
+      version: release.version,
+      versionCode: release.versionCode,
+    });
 
     onProgress?.({ phase: 'downloading', percent: 0 });
 

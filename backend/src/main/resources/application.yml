@@ -493,6 +493,9 @@ logging:
 # Elykia IA — providers : stub | ollama | anthropic | openai | gemini | deepseek
 # Voir backend/docs/AI_ASSISTANT.md pour la configuration détaillée.
 elykia:
+  customer:
+    activity-log:
+      retention-days: ${CUSTOMER_ACTIVITY_LOG_RETENTION_DAYS:180}
   ai:
     enabled: true
     provider: stub
