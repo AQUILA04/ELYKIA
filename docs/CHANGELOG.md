@@ -21,6 +21,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Module **Audit** (`/audit`) : journal espace client avec KPI, filtres avancés, presets ops, drawer détail, timeline de session et export CSV, réservé à `ROLE_AUDIT`.
 
+## Customer-space — [0.10.1] — 2026-09-29
+
+### Fixed
+
+- Sélecteur de localité : association `label`/`for` + `id` sur le champ de recherche (Sonar `Web:InputWithoutLabelCheck`, Reliability Rating New Code).
+
 ## Customer-space — [0.10.0] — 2026-09-29
 
 ### Added

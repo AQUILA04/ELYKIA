@@ -38,8 +38,10 @@
   </div>
   <div class="locality-sheet__search">
     <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+    <label class="sr-only" for="elyk-locality-search">Rechercher une zone</label>
     <input
       #searchInput
+      id="elyk-locality-search"
       type="search"
       [(ngModel)]="query"
       placeholder="Rechercher une zone"
