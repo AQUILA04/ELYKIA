@@ -1,3 +1,14 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-tontine-detail-desktop
+    [memberId]="memberId"
+    [detail]="detail"
+    [isLoading]="isLoading"
+    [progressPercent]="progressPercent()"
+    (back)="goBack()">
+  </app-tontine-detail-desktop>
+</ng-container>
+
+<ng-template #mobileView>
 <ion-content class="page-content detail-page" data-testid="e2e-tontine-detail-page">
   <app-elyk-page-header
     eyebrow="ESPACE TONTINE"
@@ -71,3 +82,5 @@
     </ng-container>
   </div>
 </ion-content>
+
+</ng-template>

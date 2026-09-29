@@ -160,7 +160,7 @@ padding-bottom: env(safe-area-inset-bottom);
 - [ ] Tokens --elyk-* (pas de couleurs ad hoc)
 - [ ] Playfair uniquement sur titres émotionnels / montants
 - [ ] ion-content fond cream, cartes blanches radius 16–20px
-- [ ] Responsive 360–430px
+- [ ] Responsive 360–430px ; web desktop ≥ 1024px = vue desktop dédiée (apps natives inchangées)
 - [ ] États chargement et vide présents
 - [ ] Safe areas Capacitor
 ```

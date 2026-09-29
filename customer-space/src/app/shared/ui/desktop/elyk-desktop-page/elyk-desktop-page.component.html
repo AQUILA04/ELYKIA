@@ -1,0 +1,39 @@
+<div class="elyk-desktop-shell" data-testid="e2e-elyk-desktop-page">
+  <div class="elyk-desktop-shell__inner">
+    <header class="elyk-desktop-page__header">
+      <nav class="elyk-desktop-page__crumbs" *ngIf="breadcrumbs().length" aria-label="Fil d'Ariane">
+        <ng-container *ngFor="let crumb of breadcrumbs(); let last = last">
+          <a *ngIf="crumb.link && !last" [routerLink]="crumb.link">{{ crumb.label }}</a>
+          <span *ngIf="!crumb.link || last" [class.current]="last">{{ crumb.label }}</span>
+          <span *ngIf="!last" class="sep" aria-hidden="true">/</span>
+        </ng-container>
+      </nav>
+
+      <div class="elyk-desktop-page__top">
+        <button
+          *ngIf="showBack()"
+          type="button"
+          class="elyk-desktop-page__back"
+          aria-label="Retour"
+          data-testid="e2e-elyk-desktop-back"
+          (click)="onBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+        </button>
+
+        <div class="elyk-desktop-page__titles">
+          <p *ngIf="eyebrow()" class="elyk-desktop-page__eyebrow">{{ eyebrow() }}</p>
+          <h1 *ngIf="title()" class="elyk-desktop-page__title">{{ title() }}</h1>
+          <p *ngIf="subtitle()" class="elyk-desktop-page__subtitle">{{ subtitle() }}</p>
+        </div>
+
+        <div class="elyk-desktop-page__actions">
+          <ng-content select="[slot=actions]"></ng-content>
+        </div>
+      </div>
+    </header>
+
+    <div class="elyk-desktop-page__body">
+      <ng-content></ng-content>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,54 @@
+
+<app-elyk-desktop-page
+  eyebrow="ESPACE CLIENT"
+  title="Mon panier"
+  subtitle="Vérifiez vos articles avant de commander"
+  [showBack]="true"
+  (back)="back.emit()"
+  data-testid="e2e-cart-desktop">
+  <button *ngIf="lines().length" slot="actions" type="button" class="desk-chip" data-testid="e2e-cart-clear" (click)="clear.emit()">Vider</button>
+
+  <div class="empty-state" *ngIf="lines().length === 0" data-testid="e2e-cart-empty">
+    <ion-icon name="cart-outline" class="empty-icon"></ion-icon>
+    <p class="empty-title">Votre panier est vide</p>
+    <ion-button expand="block" fill="outline" class="elyk-btn-outline" routerLink="/catalog">Parcourir le catalogue</ion-button>
+  </div>
+
+  <div class="elyk-desktop-grid elyk-desktop-grid--sidebar" *ngIf="lines().length > 0">
+    <div class="elyk-table-wrap">
+      <table class="elyk-table">
+        <thead><tr><th>Article</th><th>Quantité</th><th class="num">Prix unit.</th><th class="num">Total</th><th></th></tr></thead>
+        <tbody>
+          <tr *ngFor="let line of lines()" [attr.data-testid]="'e2e-cart-line-' + line.article.id">
+            <td>{{ label()(line.article) }}</td>
+            <td>
+              <div class="desk-qty">
+                <button type="button" (click)="decrement.emit(line)">−</button>
+                <span>{{ line.quantity }}</span>
+                <button type="button" (click)="increment.emit(line)">+</button>
+              </div>
+            </td>
+            <td class="num">{{ line.article.creditSalePrice | number:'1.0-0' }} F</td>
+            <td class="num">{{ lineTotal()(line) | number:'1.0-0' }} F</td>
+            <td><button type="button" class="desk-chip" (click)="remove.emit(line)">Retirer</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <aside class="desk-card elyk-aside-sticky" data-testid="e2e-cart-summary">
+      <h2 style="margin:0 0 12px;font-size:16px;">Résumé de la commande</h2>
+      <div class="summary-row"><span>Sous-total</span><span>{{ totalAmount() | number:'1.0-0' }} FCFA</span></div>
+      <div class="summary-row"><span>Frais de livraison</span><span style="color:#15803d;">Gratuit</span></div>
+      <div class="summary-total" data-testid="e2e-cart-total"><span>Total</span><strong>{{ totalAmount() | number:'1.0-0' }} FCFA</strong></div>
+      <div class="info-box" style="margin-top:16px;">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <p>Le crédit démarre à la livraison. Votre commande sera validée par l'agence avant livraison.</p>
+      </div>
+      <p class="elyk-form-error" *ngIf="error()">{{ error() }}</p>
+      <ion-button expand="block" class="elyk-btn-gold" data-testid="e2e-cart-submit" [disabled]="isSubmitting()" (click)="submit.emit()">
+        <ion-spinner *ngIf="isSubmitting()" name="crescent"></ion-spinner>
+        <span *ngIf="!isSubmitting()">Passer la commande</span>
+      </ion-button>
+    </aside>
+  </div>
+</app-elyk-desktop-page>

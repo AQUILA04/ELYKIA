@@ -1,0 +1,35 @@
+
+<app-elyk-desktop-page
+  eyebrow="SUIVI DES MISES"
+  title="Timeline de recouvrement"
+  [subtitle]="purchase()?.reference || 'Historique des paiements'"
+  [showBack]="true"
+  [breadcrumbs]="[{ label: 'Achats', link: '/purchases' }, { label: 'Suivi' }]"
+  (back)="back.emit()"
+  data-testid="e2e-recovery-timeline-desktop">
+  <div class="elyk-skeleton-card" *ngIf="isLoading()"></div>
+  <div class="elyk-desktop-grid elyk-desktop-grid--sidebar" *ngIf="!isLoading()">
+    <div>
+      <app-recovery-pills [recoveries]="recoveries()" [totalInstallments]="totalInstallments()"></app-recovery-pills>
+      <div class="elyk-table-wrap" style="margin-top:20px;" *ngIf="recoveries().length">
+        <table class="elyk-table">
+          <thead><tr><th>#</th><th>Date</th><th class="num">Montant</th><th>Statut</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let r of recoveries()">
+              <td>{{ r.installmentNumber }}</td>
+              <td>{{ r.paymentDate | date:'dd/MM/yyyy' }}</td>
+              <td class="num">{{ r.amount | number:'1.0-0' }} F</td>
+              <td><span class="elyk-chip" [class.elyk-chip--success]="r.status==='VALIDE'" [class.elyk-chip--gold]="r.status==='INITIE'">{{ r.status }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <aside class="desk-card elyk-aside-sticky">
+      <h2 style="margin:0 0 12px;font-size:16px;">Récapitulatif</h2>
+      <p class="desk-muted" *ngIf="purchase()">Restant : {{ purchase()!.remainingAmount | number:'1.0-0' }} F</p>
+      <p class="desk-muted" *ngIf="purchase()" style="margin-bottom:16px;">Mise : {{ purchase()!.dailyPayment | number:'1.0-0' }} F</p>
+      <ion-button *ngIf="canPay()" expand="block" class="elyk-btn-gold" [routerLink]="['/payment', distributionId()]" [queryParams]="paymentQueryParams()">Payer une mise</ion-button>
+    </aside>
+  </div>
+</app-elyk-desktop-page>

@@ -1,0 +1,87 @@
+<app-elyk-desktop-page
+  eyebrow="ESPACE CLIENT"
+  [title]="'Bonjour, ' + displayName()"
+  subtitle="Votre crédit et vos prochaines échéances"
+  data-testid="e2e-dashboard-desktop">
+  <div *ngIf="isLoading()" class="elyk-skeleton-card">
+    <ion-skeleton-text animated style="width:50%;height:18px;"></ion-skeleton-text>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading() && loadError()">
+    <ion-icon name="cloud-offline-outline" class="empty-icon"></ion-icon>
+    <p class="empty-title">Impossible de charger le tableau de bord</p>
+    <ion-button expand="block" class="elyk-btn-gold" (click)="retry.emit()">Réessayer</ion-button>
+  </div>
+
+  <ng-container *ngIf="!isLoading() && dashboard() && !loadError()">
+    <div class="banner" *ngIf="dashboard()!.activationStatus === 'PENDING'" data-testid="e2e-dashboard-pending">
+      <ion-icon name="hourglass-outline"></ion-icon>
+      <div>
+        <strong>Compte en attente de validation</strong>
+        <p>Complétez votre dossier pour accélérer l'activation.</p>
+        <a routerLink="/onboarding" data-testid="e2e-dashboard-onboarding-link">Compléter mon dossier</a>
+      </div>
+    </div>
+
+    <ng-container *ngIf="dashboard()!.activationStatus !== 'PENDING'; else pendingOnly">
+      <div class="elyk-kpi-row" data-testid="e2e-dashboard-kpis">
+        <app-elyk-kpi-card label="Crédit total" [value]="fmt(dashboard()!.totalCreditAmount)" icon="wallet-outline"></app-elyk-kpi-card>
+        <app-elyk-kpi-card label="Déjà payé" [value]="fmt(dashboard()!.totalPaidAmount)" icon="checkmark-circle-outline" variant="success"></app-elyk-kpi-card>
+        <app-elyk-kpi-card label="Restant" [value]="fmt(dashboard()!.totalRemainingAmount)" icon="hourglass-outline" variant="gold"></app-elyk-kpi-card>
+        <app-elyk-kpi-card label="Prochaine échéance" [value]="fmt(dashboard()!.nextPaymentAmount)" [hint]="formattedNextDate()" icon="calendar-outline"></app-elyk-kpi-card>
+      </div>
+
+      <div class="elyk-desktop-grid elyk-desktop-grid--sidebar" style="margin-top:24px;">
+        <app-credit-progress-card
+          data-testid="e2e-dashboard-credit-card"
+          [reference]="creditReference()"
+          [totalAmount]="dashboard()!.totalCreditAmount"
+          [paidAmount]="dashboard()!.totalPaidAmount"
+          [remainingAmount]="dashboard()!.totalRemainingAmount"
+          [progressPercent]="dashboard()!.progressPercent"
+          [nextPaymentAmount]="dashboard()!.nextPaymentAmount"
+          [nextPaymentDate]="formattedNextDate()">
+        </app-credit-progress-card>
+
+        <aside class="desk-card elyk-aside-sticky" data-testid="e2e-dashboard-quick-actions">
+          <h2 style="margin:0 0 14px;font-size:16px;">Actions rapides</h2>
+          <div class="qa-list">
+            <a class="qa-btn" [class.qa-btn--disabled]="!canPayNext()" [routerLink]="canPayNext() ? ['/payment', dashboard()!.nextPaymentCreditId] : null" [queryParams]="paymentQueryParams()" data-testid="e2e-dashboard-pay-btn">
+              <ion-icon name="cash-outline"></ion-icon><span>Payer</span>
+            </a>
+            <a class="qa-btn" routerLink="/catalog"><ion-icon name="bag-add-outline"></ion-icon><span>Commander</span></a>
+            <a class="qa-btn" routerLink="/purchases"><ion-icon name="receipt-outline"></ion-icon><span>Achats</span></a>
+            <a class="qa-btn" routerLink="/tontines" data-testid="e2e-dashboard-tontine-btn"><ion-icon name="albums-outline"></ion-icon><span>Tontine</span></a>
+          </div>
+        </aside>
+      </div>
+
+      <div class="elyk-section-head"><h2>Activités récentes</h2></div>
+      <div class="elyk-table-wrap" *ngIf="dashboard()!.recentActivities.length > 0" data-testid="e2e-dashboard-activities">
+        <table class="elyk-table">
+          <thead><tr><th>Type</th><th>Libellé</th><th>Date</th><th class="num">Montant</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let a of dashboard()!.recentActivities">
+              <td>{{ a.type === 'RECOVERY' ? 'Paiement' : 'Commande' }}</td>
+              <td>{{ a.label }}</td>
+              <td>{{ a.date | date:'dd/MM/yyyy' }}</td>
+              <td class="num">{{ a.amount | number:'1.0-0' }} F</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="empty-state" *ngIf="dashboard()!.recentActivities.length === 0">
+        <ion-icon name="time-outline" class="empty-icon"></ion-icon>
+        <p class="empty-title">Aucune activité récente</p>
+      </div>
+    </ng-container>
+
+    <ng-template #pendingOnly>
+      <div class="empty-state">
+        <ion-icon name="person-outline" class="empty-icon"></ion-icon>
+        <p class="empty-title">Votre espace sera disponible après validation</p>
+        <ion-button expand="block" class="elyk-btn-gold" routerLink="/onboarding" data-testid="e2e-dashboard-complete-btn">Compléter mon dossier</ion-button>
+      </div>
+    </ng-template>
+  </ng-container>
+</app-elyk-desktop-page>

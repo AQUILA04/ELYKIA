@@ -1,3 +1,22 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-tontines-desktop
+    [tontines]="tontines"
+    [session]="session"
+    [isLoading]="isLoading"
+    [hasError]="hasError"
+    [showJoinHero]="showJoinHero"
+    [showMemberBanner]="showMemberBanner"
+    [showNoSession]="showNoSession"
+    [showClosedSession]="showClosedSession"
+    [progressPercent]="progressPercent()"
+    [daysRemaining]="daysRemaining()"
+    [formatFrDate]="formatFrDate.bind(this)"
+    [statusLabel]="statusLabel.bind(this)"
+    (retry)="load()">
+  </app-tontines-desktop>
+</ng-container>
+
+<ng-template #mobileView>
 <ion-content class="page-content tontines-page" data-testid="e2e-tontines-page">
   <app-elyk-page-header
     eyebrow="ESPACE TONTINE"
@@ -153,3 +172,5 @@
 </ion-content>
 
 <app-customer-tab-bar></app-customer-tab-bar>
+
+</ng-template>

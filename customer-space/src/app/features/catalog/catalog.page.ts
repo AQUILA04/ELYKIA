@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit , inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
@@ -11,20 +11,26 @@ import { articleDisplayName } from '../../shared/utils/article-display';
 import { ElykPageHeaderComponent } from '../../shared/ui';
 
 /** Page Catalogue — Type C. */
+import { LayoutService } from '../../shared/layout/layout.service';
+import { CatalogDesktopComponent } from './desktop/catalog-desktop.component';
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
+  imports: [
+    CatalogDesktopComponent,CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
   templateUrl: './catalog.page.html',
   styleUrls: ['./catalog.page.scss'],
 })
 export class CatalogPage implements OnInit, OnDestroy {
+  readonly layout = inject(LayoutService);
   articles: CustomerArticle[] = [];
   topTypes: CustomerArticleType[] = [];
   selectedCategory = '';
   searchTerm = '';
   isLoading = true;
   cartCount = 0;
+  get cartLines() { return this.cart.lines; }
+  get cartTotal() { return this.cart.totalAmount; }
   private sub?: Subscription;
   private searchTimer?: ReturnType<typeof setTimeout>;
 

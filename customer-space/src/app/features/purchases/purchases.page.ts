@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit , inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
@@ -11,14 +11,18 @@ import { creditStatusChipClass, creditStatusLabel } from '../../shared/utils/cre
 type StatusFilter = 'ALL' | OrderStatus;
 
 /** Page Historique Achats — Type C. */
+import { LayoutService } from '../../shared/layout/layout.service';
+import { PurchasesDesktopComponent } from './desktop/purchases-desktop.component';
 @Component({
   selector: 'app-purchases',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
+  imports: [
+    PurchasesDesktopComponent,CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
   templateUrl: './purchases.page.html',
   styleUrls: ['./purchases.page.scss'],
 })
 export class PurchasesPage implements OnInit {
+  readonly layout = inject(LayoutService);
   purchases: CustomerPurchase[] = [];
   filtered: CustomerPurchase[] = [];
   isLoading = true;

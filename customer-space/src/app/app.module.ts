@@ -10,6 +10,7 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { CustomerAuthInterceptor } from './core/interceptors/customer-auth.interceptor';
 import { FeatureFlagService } from './shared/services/feature-flag.service';
+import { DesktopSidebarComponent } from './shared/layout/desktop-sidebar/desktop-sidebar.component';
 
 function initFeatureFlags(featureFlags: FeatureFlagService): () => Promise<void> {
   return () => featureFlags.init();
@@ -17,7 +18,14 @@ function initFeatureFlags(featureFlags: FeatureFlagService): () => Promise<void>
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, CommonModule, HttpClientModule, IonicModule.forRoot(), AppRoutingModule],
+  imports: [
+    BrowserModule,
+    CommonModule,
+    HttpClientModule,
+    IonicModule.forRoot(),
+    AppRoutingModule,
+    DesktopSidebarComponent,
+  ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     { provide: HTTP_INTERCEPTORS, useClass: CustomerAuthInterceptor, multi: true },

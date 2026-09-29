@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component , inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -21,10 +21,13 @@ const STAKE_SHORTCUTS = [100, 200, 500, 1000];
 /** Numéro agence affiché si aucun destinataire Mixx/Moov n'est configuré. */
 const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
+import { LayoutService } from '../../shared/layout/layout.service';
+import { TontineJoinDesktopComponent } from './desktop/tontine-join-desktop.component';
 @Component({
   selector: 'app-tontine-join',
   standalone: true,
   imports: [
+    TontineJoinDesktopComponent,
     CommonModule,
     IonicModule,
     ReactiveFormsModule,
@@ -37,6 +40,7 @@ const FALLBACK_DEPOSIT_NUMBER = '96186822';
   styleUrls: ['./tontine-join.page.scss'],
 })
 export class TontineJoinPage implements ViewWillEnter {
+  readonly layout = inject(LayoutService);
   readonly stakeShortcuts = STAKE_SHORTCUTS;
   session: CustomerTontineSession | null = null;
   stakeForm: FormGroup;

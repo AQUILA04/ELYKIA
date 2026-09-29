@@ -54,6 +54,16 @@
   --elyk-header-radius: 28px;
   --elyk-shadow-soft: 0 8px 24px rgba(13, 27, 42, 0.08);
 
+  // Desktop shell (web ≥ 1024px)
+  --elyk-desktop-max-width: 1280px;
+  --elyk-sidebar-width: 264px;
+  --elyk-narrow-web-max: 640px;
+  --elyk-desktop-text-sm: 14px;
+  --elyk-desktop-text-md: 16px;
+  --elyk-desktop-text-lg: 20px;
+  --elyk-desktop-text-xl: 28px;
+  --elyk-desktop-text-2xl: 34px;
+
   // Ionic overrides
   --ion-background-color: var(--elyk-cream);
   --ion-text-color: var(--elyk-navy);

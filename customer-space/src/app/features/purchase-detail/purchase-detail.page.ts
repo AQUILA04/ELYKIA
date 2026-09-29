@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit , inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -8,14 +8,18 @@ import { ElykPageHeaderComponent } from '../../shared/ui';
 import { creditStatusChipClass, creditStatusLabel } from '../../shared/utils/credit-status-label';
 
 /** Page Détail Achat — Type C. */
+import { LayoutService } from '../../shared/layout/layout.service';
+import { PurchaseDetailDesktopComponent } from './desktop/purchase-detail-desktop.component';
 @Component({
   selector: 'app-purchase-detail',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, ElykPageHeaderComponent],
+  imports: [
+    PurchaseDetailDesktopComponent,CommonModule, IonicModule, RouterModule, ElykPageHeaderComponent],
   templateUrl: './purchase-detail.page.html',
   styleUrls: ['./purchase-detail.page.scss'],
 })
 export class PurchaseDetailPage implements OnInit {
+  readonly layout = inject(LayoutService);
   purchase: CustomerPurchase | null = null;
   isLoading = true;
 

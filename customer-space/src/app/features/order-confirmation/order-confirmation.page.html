@@ -1,3 +1,8 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-order-confirmation-desktop [reference]="reference" [totalAmount]="totalAmount"></app-order-confirmation-desktop>
+</ng-container>
+
+<ng-template #mobileView>
 <ion-content class="page-content order-confirm-page" data-testid="e2e-order-confirmation-page">
   <app-elyk-page-header
     eyebrow="COMMANDES"
@@ -17,3 +22,5 @@
     </div>
   </div>
 </ion-content>
+
+</ng-template>

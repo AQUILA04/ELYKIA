@@ -1,3 +1,33 @@
+<ng-container *ngIf="layout.isDesktop(); else authMobile">
+  <app-auth-desktop
+    [step]="step"
+    [title]="title"
+    [subtitle]="subtitle"
+    [error]="error"
+    [appUnavailable]="appUnavailable"
+    [appUnavailableMessage]="appUnavailableMessage"
+    [isLoading]="isLoading"
+    [appVersion]="appVersion"
+    [profilPhotoDataUrl]="profilPhotoDataUrl"
+    [cardTypes]="cardTypes"
+    [phoneForm]="phoneForm"
+    [pinForm]="pinForm"
+    [otpForm]="otpForm"
+    [setupPinForm]="setupPinForm"
+    [registerForm]="registerForm"
+    [registerPinForm]="registerPinForm"
+    (submitPhone)="submitPhone()"
+    (submitPin)="submitPin()"
+    (submitOtp)="submitOtp()"
+    (submitSetupPin)="submitSetupPin()"
+    (submitRegisterForm)="submitRegisterForm()"
+    (submitRegisterPin)="submitRegisterPin()"
+    (profilPhotoSelected)="onProfilPhotoSelected($event)"
+    (back)="goBack()">
+  </app-auth-desktop>
+</ng-container>
+
+<ng-template #authMobile>
 <ion-content class="elyk-page-decor" data-testid="e2e-auth-page">
   <app-elyk-decor-header
     class="auth-decor"
@@ -256,3 +286,4 @@
     <p class="auth-version" data-testid="e2e-auth-version">Version {{ appVersion }}</p>
   </div>
 </ion-content>
+</ng-template>

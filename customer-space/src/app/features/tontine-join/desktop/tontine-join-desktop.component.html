@@ -1,0 +1,76 @@
+
+<app-elyk-desktop-page
+  eyebrow="ESPACE TONTINE"
+  title="Rejoindre la tontine"
+  subtitle="Choisissez votre mise journalière"
+  [showBack]="true"
+  [breadcrumbs]="[{ label: 'Tontines', link: '/tontines' }, { label: 'Inscription' }]"
+  (back)="back.emit()"
+  data-testid="e2e-tontine-join-desktop">
+
+  <div class="desk-card success-card" *ngIf="success()">
+    <div class="success-icon"><ion-icon name="checkmark-circle-outline"></ion-icon></div>
+    <h2>Inscription réussie</h2>
+    <p class="desk-muted" style="margin-bottom:16px;">Votre participation à la session est enregistrée.</p>
+    <ion-button expand="block" class="elyk-btn-gold" (click)="goDetail.emit()">Voir ma tontine</ion-button>
+  </div>
+
+  <div class="elyk-skeleton-card" *ngIf="isLoadingSession() && !success()"></div>
+
+  <div class="elyk-desktop-grid elyk-desktop-grid--sidebar" *ngIf="!isLoadingSession() && !success()">
+    <div class="desk-card">
+      <form [formGroup]="stakeForm()">
+        <h3 style="margin:0 0 12px;">Mise journalière (FCFA)</h3>
+        <div class="stake-shortcuts">
+          <button type="button" class="desk-chip" *ngFor="let s of stakeShortcuts()" [class.desk-chip--active]="selectedShortcut() === s" (click)="selectShortcut.emit(s)">{{ s }}</button>
+        </div>
+        <app-elyk-outlined-field label="Montant personnalisé" icon="cash-outline">
+          <ion-input formControlName="dailyStake" type="number" inputmode="numeric" data-testid="e2e-tontine-join-stake"></ion-input>
+        </app-elyk-outlined-field>
+      </form>
+
+      <label style="display:flex;align-items:center;gap:10px;margin:16px 0;">
+        <ion-checkbox [checked]="includeInitialPayment()" (ionChange)="togglePayment.emit($any($event).detail.checked)"></ion-checkbox>
+        Déclarer un premier versement maintenant
+      </label>
+
+      <form *ngIf="includeInitialPayment()" [formGroup]="paymentForm()">
+        <div class="info-box" *ngIf="depositDestinationNumber()">
+          <ion-icon name="information-circle-outline"></ion-icon>
+          <p>Envoyez sur <strong>{{ depositDestinationNumber() }}</strong></p>
+        </div>
+        <app-mobile-money-recipients-card
+          [recipients]="recipients()"
+          [loading]="recipientsLoading()"
+          [error]="recipientsError()">
+        </app-mobile-money-recipients-card>
+        <app-elyk-outlined-field label="Numéro d'envoi" icon="call-outline">
+          <ion-input formControlName="mobileMoneyPhone" type="tel" data-testid="e2e-tontine-join-phone"></ion-input>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Montant envoyé" icon="cash-outline">
+          <ion-input formControlName="mobileMoneyAmount" type="number" data-testid="e2e-tontine-join-amount"></ion-input>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Référence" icon="receipt-outline">
+          <ion-input formControlName="mobileMoneyReference" data-testid="e2e-tontine-join-reference"></ion-input>
+        </app-elyk-outlined-field>
+      </form>
+
+      <p class="elyk-form-error" *ngIf="error()">{{ error() }}</p>
+      <ion-button expand="block" class="elyk-btn-gold" [disabled]="isSubmitting() || stakeForm().invalid" (click)="submit.emit()" data-testid="e2e-tontine-join-submit">
+        <ion-spinner *ngIf="isSubmitting()" name="crescent"></ion-spinner>
+        <span *ngIf="!isSubmitting()">Confirmer mon inscription</span>
+      </ion-button>
+    </div>
+
+    <aside class="desk-card elyk-aside-sticky">
+      <h2 style="margin:0 0 12px;font-size:16px;">Récapitulatif</h2>
+      <p class="desk-muted">Session {{ session()?.year }}</p>
+      <p class="desk-muted">Mise / jour : <strong>{{ stakeForm().value.dailyStake | number:'1.0-0' }} F</strong></p>
+      <p class="desk-muted" style="margin-bottom:12px;">Estimation (≈300 j) : <strong>{{ estimatedTotal() | number:'1.0-0' }} F</strong></p>
+      <div class="info-box">
+        <ion-icon name="information-circle-outline"></ion-icon>
+        <p>Les vivres sont livrés en fin de session. Cotisez régulièrement pour maximiser votre livrable.</p>
+      </div>
+    </aside>
+  </div>
+</app-elyk-desktop-page>

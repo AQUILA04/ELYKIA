@@ -205,5 +205,26 @@ Tokens v2 associés : `--elyk-space-*`, `--elyk-text-*`, `--elyk-gold-soft`, `--
 - [ ] Tokens --elyk-* (pas de couleurs ad hoc)
 - [ ] Safe areas Capacitor
 - [ ] États chargement / vide / erreur
-- [ ] Responsive 360–430px
+- [ ] Responsive 360–430px (mobile) + desktop web ≥ 1024px
 ```
+
+## Desktop web (coque ≥ 1024px)
+
+Activation **uniquement** si `Capacitor.getPlatform() === 'web'` **et** viewport ≥ 1024px (`LayoutService.isDesktop()`). Les apps natives (Android / iOS, tablettes comprises) restent toujours en layout mobile.
+
+| Brique | Rôle |
+|--------|------|
+| `LayoutService` | Signal `isDesktop` + classe `body.elyk-desktop` / `body.elyk-web` |
+| `ion-split-pane` + `app-desktop-sidebar` | Navigation latérale (Accueil, Achats, Tontine, Commander, Panier, Profil) |
+| `app-elyk-desktop-page` | Conteneur max-width 1280px, fil d’Ariane, titre Playfair, actions |
+| `app-elyk-kpi-card` | Cartes chiffres clés |
+| `.elyk-table` / `.elyk-aside-sticky` | Tableaux de données et panneau latéral sticky |
+
+### Règles desktop
+
+- Ne **pas** modifier le template mobile : chaque page affiche `*ngIf="layout.isDesktop()"` → vue `desktop/*-desktop.component`, sinon le template mobile inchangé.
+- Masquer `app-customer-tab-bar`, `.elyk-pay-fab`, `.elyk-sticky-cta` via `body.elyk-desktop`.
+- Web étroit (`body.elyk-web:not(.elyk-desktop)`) : contenu mobile centré, max-width 640px.
+- CTA dans la carte / panneau sticky (pas de `ion-footer` sticky mobile).
+- Réutiliser les mêmes `data-testid` métier ; nav sidebar = `e2e-nav-*`.
+- Ne **pas** créer un 4ᵉ archétype mobile : le desktop est une coque + vues de présentation.

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -17,10 +17,13 @@ import { ElykOutlinedFieldComponent, ElykPageHeaderComponent } from '../../share
 const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
 /** Page Mon dossier — Type C. */
+import { LayoutService } from '../../shared/layout/layout.service';
+import { OnboardingDesktopComponent } from './desktop/onboarding-desktop.component';
 @Component({
   selector: 'app-onboarding',
   standalone: true,
   imports: [
+    OnboardingDesktopComponent,
     CommonModule,
     ReactiveFormsModule,
     IonicModule,
@@ -33,6 +36,7 @@ const FALLBACK_DEPOSIT_NUMBER = '96186822';
   styleUrls: ['./onboarding.page.scss'],
 })
 export class OnboardingPage implements OnInit {
+  readonly layout = inject(LayoutService);
   status: CustomerOnboardingStatus | null = null;
   deposit: CustomerInitialDeposit | null = null;
   recipients: MobileMoneyRecipient | null = null;

@@ -69,3 +69,10 @@ Sans premier paiement, appuyez directement sur **Confirmer mon inscription**.
 ## Aucune session ouverte
 
 Si aucune session n’est disponible, un message vous invite à revenir plus tard. Aucun bouton d’inscription n’est proposé dans ce cas.
+
+## Sur ordinateur
+
+1. Dans le menu de gauche, cliquez sur **Tontine**.
+2. La carte de session et la section **Comment ça marche** s’affichent côte à côte.
+3. Pour rejoindre : choisissez votre mise à gauche ; le récapitulatif reste visible à droite.
+4. Sur le détail d’une tontine, les montants s’affichent en cartes ; **Déclarer un paiement** et **Voir la timeline** sont en haut à droite.

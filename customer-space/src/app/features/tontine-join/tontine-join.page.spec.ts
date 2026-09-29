@@ -1,10 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { EMPTY, of } from 'rxjs';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
 import { TontineJoinPage } from './tontine-join.page';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
+import { LayoutService } from '../../shared/layout/layout.service';
 
 describe('TontineJoinPage', () => {
   let fixture: ComponentFixture<TontineJoinPage>;
@@ -40,13 +41,18 @@ describe('TontineJoinPage', () => {
         initialPaymentStatus: null,
       }),
     );
-    router = jasmine.createSpyObj('Router', ['navigate']);
+    // NavController (Ionic) subscribes to router.events at construction.
+    router = jasmine.createSpyObj('Router', ['navigate'], {
+      events: EMPTY,
+      url: '/',
+    });
 
     await TestBed.configureTestingModule({
       imports: [TontineJoinPage, IonicModule.forRoot(), RouterTestingModule],
       providers: [
         { provide: CustomerApiService, useValue: api },
         { provide: Router, useValue: router },
+        { provide: LayoutService, useValue: { isDesktop: () => false, refresh: () => undefined } },
       ],
     }).compileComponents();
 

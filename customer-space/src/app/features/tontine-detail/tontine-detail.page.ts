@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit , inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -7,10 +7,13 @@ import { CustomerTontineContributionDetail } from '../../shared/models/customer.
 import { TontineMonthlyPillsComponent } from '../../shared/components/tontine-monthly-pills/tontine-monthly-pills.component';
 import { ElykPageHeaderComponent } from '../../shared/ui';
 
+import { LayoutService } from '../../shared/layout/layout.service';
+import { TontineDetailDesktopComponent } from './desktop/tontine-detail-desktop.component';
 @Component({
   selector: 'app-tontine-detail',
   standalone: true,
   imports: [
+    TontineDetailDesktopComponent,
     CommonModule,
     IonicModule,
     RouterModule,
@@ -21,6 +24,7 @@ import { ElykPageHeaderComponent } from '../../shared/ui';
   styleUrls: ['./tontine-detail.page.scss'],
 })
 export class TontineDetailPage implements OnInit {
+  readonly layout = inject(LayoutService);
   memberId = '';
   detail: CustomerTontineContributionDetail | null = null;
   isLoading = true;

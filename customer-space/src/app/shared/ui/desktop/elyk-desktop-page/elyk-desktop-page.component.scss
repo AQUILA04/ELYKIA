@@ -1,0 +1,105 @@
+:host {
+  display: block;
+  min-height: 100%;
+}
+
+.elyk-desktop-page__header {
+  margin-bottom: 28px;
+}
+
+.elyk-desktop-page__crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--elyk-gray-text);
+
+  a {
+    color: var(--elyk-gold);
+    text-decoration: none;
+    font-weight: 600;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .current {
+    color: var(--elyk-navy);
+    font-weight: 600;
+  }
+
+  .sep {
+    opacity: 0.5;
+  }
+}
+
+.elyk-desktop-page__top {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.elyk-desktop-page__back {
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--elyk-border);
+  background: var(--elyk-white);
+  color: var(--elyk-navy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+
+  &:hover {
+    border-color: var(--elyk-gold);
+    color: var(--elyk-gold);
+  }
+}
+
+.elyk-desktop-page__titles {
+  flex: 1;
+  min-width: 0;
+}
+
+.elyk-desktop-page__eyebrow {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--elyk-gold);
+}
+
+.elyk-desktop-page__title {
+  margin: 0;
+  font-family: 'Playfair Display', serif;
+  font-size: var(--elyk-desktop-text-2xl, 34px);
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--elyk-navy);
+}
+
+.elyk-desktop-page__subtitle {
+  margin: 8px 0 0;
+  font-size: var(--elyk-desktop-text-sm, 14px);
+  color: var(--elyk-gray-text);
+  max-width: 40em;
+  line-height: 1.45;
+}
+
+.elyk-desktop-page__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.elyk-desktop-page__body {
+  display: block;
+}

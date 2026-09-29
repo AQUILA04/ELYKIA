@@ -6,5 +6,23 @@
       <ion-spinner name="crescent" class="splash-spinner"></ion-spinner>
     </div>
   </div>
-  <ion-router-outlet></ion-router-outlet>
+
+  <ion-split-pane
+    contentId="main-content"
+    [when]="layout.isDesktop() && showSidebar()"
+    [disabled]="!(layout.isDesktop() && showSidebar())">
+    <ion-menu
+      *ngIf="showSidebar()"
+      contentId="main-content"
+      menuId="desktop-nav"
+      type="overlay"
+      [disabled]="!layout.isDesktop()"
+      class="desktop-menu">
+      <app-desktop-sidebar></app-desktop-sidebar>
+    </ion-menu>
+
+    <div class="ion-page" id="main-content">
+      <ion-router-outlet></ion-router-outlet>
+    </div>
+  </ion-split-pane>
 </ion-app>

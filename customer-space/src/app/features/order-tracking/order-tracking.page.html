@@ -1,3 +1,8 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-order-tracking-desktop (back)="goBack()"></app-order-tracking-desktop>
+</ng-container>
+
+<ng-template #mobileView>
 <ion-content class="page-content tracking-page" data-testid="e2e-order-tracking-page">
   <app-elyk-page-header
     eyebrow="COMMANDES"
@@ -18,3 +23,5 @@
     </div>
   </div>
 </ion-content>
+
+</ng-template>

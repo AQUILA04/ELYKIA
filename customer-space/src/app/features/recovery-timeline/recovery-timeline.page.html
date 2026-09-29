@@ -1,3 +1,17 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-recovery-timeline-desktop
+    [distributionId]="distributionId"
+    [recoveries]="recoveries"
+    [purchase]="purchase"
+    [totalInstallments]="totalInstallments"
+    [isLoading]="isLoading"
+    [canPay]="canPay"
+    [paymentQueryParams]="paymentQueryParams()"
+    (back)="goBack()">
+  </app-recovery-timeline-desktop>
+</ng-container>
+
+<ng-template #mobileView>
 <ion-content class="page-content recovery-page" data-testid="e2e-recovery-timeline-page">
   <app-elyk-page-header
     eyebrow="MES ACHATS"
@@ -63,3 +77,5 @@
   <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
   <span>Payer une mise</span>
 </a>
+
+</ng-template>

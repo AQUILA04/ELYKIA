@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component , inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { RouterModule } from '@angular/router';
@@ -11,14 +11,18 @@ import {
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
 import { ElykPageHeaderComponent } from '../../shared/ui';
 
+import { LayoutService } from '../../shared/layout/layout.service';
+import { TontinesDesktopComponent } from './desktop/tontines-desktop.component';
 @Component({
   selector: 'app-tontines',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
+  imports: [
+    TontinesDesktopComponent,CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
   templateUrl: './tontines.page.html',
   styleUrls: ['./tontines.page.scss'],
 })
 export class TontinesPage implements ViewWillEnter {
+  readonly layout = inject(LayoutService);
   tontines: CustomerTontineContributionSummary[] = [];
   session: CustomerTontineSession | null = null;
   isLoading = true;

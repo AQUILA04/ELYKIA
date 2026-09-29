@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit , inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
@@ -10,14 +10,18 @@ import { RecoveryPillsComponent } from '../../shared/components/recovery-pills/r
 import { ElykPageHeaderComponent } from '../../shared/ui';
 
 /** Page Timeline Recouvrements — Type C. */
+import { LayoutService } from '../../shared/layout/layout.service';
+import { RecoveryTimelineDesktopComponent } from './desktop/recovery-timeline-desktop.component';
 @Component({
   selector: 'app-recovery-timeline',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, RecoveryPillsComponent, ElykPageHeaderComponent],
+  imports: [
+    RecoveryTimelineDesktopComponent,CommonModule, IonicModule, RouterModule, RecoveryPillsComponent, ElykPageHeaderComponent],
   templateUrl: './recovery-timeline.page.html',
   styleUrls: ['./recovery-timeline.page.scss'],
 })
 export class RecoveryTimelinePage implements OnInit {
+  readonly layout = inject(LayoutService);
   distributionId = '';
   recoveries: CustomerRecovery[] = [];
   purchase: CustomerPurchase | null = null;

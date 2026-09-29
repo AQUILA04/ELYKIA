@@ -2,3 +2,5 @@ export { ElykDecorHeaderComponent, type ElykDecorVariant } from './elyk-decor-he
 export { ElykOverlapCardComponent } from './elyk-overlap-card/elyk-overlap-card.component';
 export { ElykOutlinedFieldComponent } from './elyk-outlined-field/elyk-outlined-field.component';
 export { ElykPageHeaderComponent } from './elyk-page-header/elyk-page-header.component';
+export { ElykDesktopPageComponent, type ElykBreadcrumb } from './desktop/elyk-desktop-page/elyk-desktop-page.component';
+export { ElykKpiCardComponent } from './desktop/elyk-kpi-card/elyk-kpi-card.component';

@@ -1,0 +1,135 @@
+<app-elyk-desktop-page
+  eyebrow="MON DOSSIER"
+  [title]="headerTitle()"
+  [subtitle]="headerSubtitle()"
+  [showBack]="true"
+  [breadcrumbs]="[{ label: 'Accueil', link: '/dashboard' }, { label: 'Mon dossier' }]"
+  (back)="back.emit()"
+  data-testid="e2e-onboarding-desktop">
+  <div *ngIf="isLoading()" class="elyk-skeleton-card">
+    <ion-skeleton-text animated style="width: 50%; height: 16px;"></ion-skeleton-text>
+  </div>
+
+  <div class="elyk-desktop-grid elyk-desktop-grid--sidebar" *ngIf="!isLoading() && status()">
+    <aside class="desk-card elyk-aside-sticky">
+      <h2 style="margin:0 0 12px;font-size:16px;">Étapes</h2>
+      <ol class="elyk-steps">
+        <li class="elyk-step">
+          <span class="elyk-step__index">1</span>
+          <div class="elyk-step__body">
+            <h3>Pièce d'identité</h3>
+            <p>{{ status()!.idDocumentUploaded ? 'Fournie' : 'À compléter' }}</p>
+          </div>
+        </li>
+        <li class="elyk-step">
+          <span class="elyk-step__index">2</span>
+          <div class="elyk-step__body">
+            <h3>Dépôt initial</h3>
+            <p>{{ status()!.initialDepositStatus === 'NONE' ? 'Optionnel' : status()!.initialDepositStatus }}</p>
+          </div>
+        </li>
+        <li class="elyk-step">
+          <span class="elyk-step__index">3</span>
+          <div class="elyk-step__body">
+            <h3>Validation agence</h3>
+            <p>{{ status()!.activationStatus }}</p>
+          </div>
+        </li>
+      </ol>
+    </aside>
+
+    <div>
+      <div class="banner" *ngIf="status()!.activationStatus === 'PENDING'" data-testid="e2e-onboarding-pending">
+        <ion-icon name="hourglass-outline"></ion-icon>
+        <div>
+          <strong>Compte en attente de validation</strong>
+          <p>Complétez votre pièce d'identité et, si vous le souhaitez, déclarez un dépôt initial.</p>
+        </div>
+      </div>
+      <p class="elyk-form-error" *ngIf="error()">{{ error() }}</p>
+      <p class="desk-muted" *ngIf="success()" style="color:#15803d;margin-bottom:12px;">{{ success() }}</p>
+
+      <div class="desk-card" *ngIf="section() === 'menu'">
+        <div class="status-rows">
+          <div class="row"><span>Pièce d'identité</span>
+            <span class="elyk-chip" [class.elyk-chip--success]="status()!.idDocumentUploaded" [class.elyk-chip--gold]="!status()!.idDocumentUploaded">
+              {{ status()!.idDocumentUploaded ? 'Fournie' : 'À compléter' }}
+            </span>
+          </div>
+          <div class="row"><span>Dépôt initial</span>
+            <span class="elyk-chip" [class.elyk-chip--success]="status()!.initialDepositStatus === 'INITIE' || status()!.initialDepositStatus === 'VALIDE'" [class.elyk-chip--gold]="status()!.initialDepositStatus === 'NONE'">
+              {{ status()!.initialDepositStatus === 'NONE' ? 'Non déclaré' : status()!.initialDepositStatus }}
+            </span>
+          </div>
+        </div>
+        <div class="desk-actions" style="margin-top:20px;">
+          <ion-button expand="block" class="elyk-btn-gold" (click)="openId.emit()" data-testid="e2e-onboarding-id-btn">
+            {{ status()!.idDocumentUploaded ? 'Mettre à jour la pièce' : 'Ajouter la photo de ma pièce' }}
+          </ion-button>
+          <ion-button *ngIf="isPending() && status()!.initialDepositStatus === 'NONE'" expand="block" fill="outline" class="elyk-btn-outline" (click)="openDeposit.emit()" data-testid="e2e-onboarding-deposit-btn">
+            Déposer pour accélérer l'activation
+          </ion-button>
+        </div>
+        <div *ngIf="deposit()" style="margin-top:16px;">
+          <h3 style="margin:0 0 4px;font-size:14px;">Dépôt déclaré</h3>
+          <p class="desk-muted">{{ deposit()!.mobileMoneyAmount | number:'1.0-0' }} F — {{ deposit()!.mobileMoneyReference }} ({{ deposit()!.status }})</p>
+        </div>
+      </div>
+
+      <form class="desk-card" *ngIf="section() === 'id'" [formGroup]="idForm()">
+        <h3 style="margin:0 0 16px;">Photo de la pièce d'identité</h3>
+        <div class="dropzone">
+          <img *ngIf="cardPhotoDataUrl()" [src]="cardPhotoDataUrl()" alt="Aperçu pièce" class="preview" />
+          <p *ngIf="!cardPhotoDataUrl()">Glissez une image ici ou</p>
+          <label class="dropzone__btn" for="cardPhotoDesktop">Importer une photo</label>
+          <input id="cardPhotoDesktop" class="sr-only" type="file" accept="image/*" (change)="cardPhotoSelected.emit($event)" data-testid="e2e-onboarding-card-photo" />
+        </div>
+        <app-elyk-outlined-field label="Type de pièce" icon="card-outline">
+          <ion-select formControlName="cardType" interface="popover" placeholder="Choisir">
+            <ion-select-option *ngFor="let t of cardTypes()" [value]="t.value">{{ t.label }}</ion-select-option>
+          </ion-select>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Numéro de pièce" icon="keypad-outline">
+          <ion-input formControlName="cardID"></ion-input>
+        </app-elyk-outlined-field>
+        <div class="desk-actions">
+          <ion-button expand="block" class="elyk-btn-gold" [disabled]="isSaving()" (click)="submitId.emit()" data-testid="e2e-onboarding-id-submit">
+            <ion-spinner *ngIf="isSaving()" name="crescent"></ion-spinner>
+            <span *ngIf="!isSaving()">Enregistrer</span>
+          </ion-button>
+          <ion-button expand="block" fill="clear" (click)="backToMenu.emit()">Retour</ion-button>
+        </div>
+      </form>
+
+      <form class="desk-card" *ngIf="section() === 'deposit'" [formGroup]="depositForm()" data-testid="e2e-onboarding-deposit-form">
+        <h3 style="margin:0 0 8px;">Déclaration de dépôt initial</h3>
+        <p class="desk-muted" style="margin-bottom:16px;">
+          Envoyez votre dépôt sur <strong>{{ depositDestinationNumber() }}</strong>, puis renseignez les détails.
+        </p>
+        <div *ngIf="recipients()" style="margin-bottom:12px;">
+          <p class="desk-muted" *ngIf="recipients()!.mixxNumber"><strong>Mixx :</strong> {{ recipients()!.mixxNumber }}</p>
+          <p class="desk-muted" *ngIf="recipients()!.moovNumber"><strong>Moov :</strong> {{ recipients()!.moovNumber }}</p>
+        </div>
+        <app-elyk-outlined-field label="Numéro utilisé pour le transfert" icon="call-outline">
+          <ion-input formControlName="mobileMoneyPhone" inputmode="tel" placeholder="+228 XX XX XX XX" data-testid="e2e-onboarding-deposit-phone"></ion-input>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Montant (FCFA)" icon="cash-outline">
+          <ion-input formControlName="mobileMoneyAmount" type="number" inputmode="numeric" data-testid="e2e-onboarding-deposit-amount"></ion-input>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Référence du transfert" icon="receipt-outline">
+          <ion-input formControlName="mobileMoneyReference" data-testid="e2e-onboarding-deposit-reference"></ion-input>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Note (optionnel)" icon="create-outline">
+          <ion-input formControlName="notes"></ion-input>
+        </app-elyk-outlined-field>
+        <div class="desk-actions">
+          <ion-button expand="block" class="elyk-btn-gold" [disabled]="isSaving() || depositForm().invalid" (click)="submitDeposit.emit()" data-testid="e2e-onboarding-deposit-submit">
+            <ion-spinner *ngIf="isSaving()" name="crescent"></ion-spinner>
+            <span *ngIf="!isSaving()">Envoyer la déclaration</span>
+          </ion-button>
+          <ion-button expand="block" fill="clear" (click)="backToMenu.emit()">Retour</ion-button>
+        </div>
+      </form>
+    </div>
+  </div>
+</app-elyk-desktop-page>

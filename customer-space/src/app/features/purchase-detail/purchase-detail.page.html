@@ -1,3 +1,17 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-purchase-detail-desktop
+    [purchase]="purchase"
+    [isLoading]="isLoading"
+    [progressPercent]="progressPercent"
+    [statusLabel]="statusLabel"
+    [statusChipClass]="statusChipClass"
+    [canPay]="canPay"
+    [paymentQueryParams]="paymentQueryParams"
+    (back)="goBack()">
+  </app-purchase-detail-desktop>
+</ng-container>
+
+<ng-template #mobileView>
 <ion-content class="page-content purchase-detail-page" data-testid="e2e-purchase-detail-page">
   <app-elyk-page-header
     eyebrow="MES ACHATS"
@@ -67,3 +81,5 @@
     </ion-button>
   </div>
 </ion-footer>
+
+</ng-template>
