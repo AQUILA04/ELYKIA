@@ -58,6 +58,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Deploy —** backups DB automatiques (cron `deploy`) à nouveau fonctionnels après chaque CD : `deploy.sh` ne remet plus `/opt/elykia/<env>/.env` en `600` root-only mais en `640` groupe `deploy` (le `chmod 600` à chaque déploiement cassait `db_backup.sh` avec `Permission denied` → plus d’upload Google Drive depuis le 26/09). Même règle dans `migrate-do-to-contabo.sh` ; `lib/stack.sh` affiche un message explicite si le `.env` n’est pas lisible.
 
+## Customer-space — [0.9.3] — 2026-09-29
+
+### Fixed
+
+- `apply-firebase-config.mjs` : le secret `CUSTOMER_SPACE_FIREBASE_WEB_CONFIG` est validé (`apiKey`, `authDomain`, `projectId`, `storageBucket`, `messagingSenderId`, `appId`) ; un JSON mal formé fait échouer le build au lieu d’embarquer des valeurs `"undefined"` (erreur Remote Config « API key not valid » sur la version web).
+
 ## Customer-space — [0.9.2] — 2026-09-29
 
 ### Fixed

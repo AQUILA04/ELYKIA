@@ -53,9 +53,22 @@ function webConfigFromGoogleServices(raw) {
   };
 }
 
+const REQUIRED_WEB_KEYS = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+
+function assertWebConfig(config, source) {
+  const missing = REQUIRED_WEB_KEYS.filter((key) => typeof config?.[key] !== 'string' || !config[key].trim());
+  if (missing.length) {
+    throw new Error(
+      `${source} invalide : champs manquants ou vides (${missing.join(', ')}). `
+      + 'Attendu : objet JSON Web SDK { apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId, measurementId? }.',
+    );
+  }
+}
+
 function resolveFirebaseConfig() {
   if (process.env.CUSTOMER_SPACE_FIREBASE_WEB_CONFIG) {
     const config = JSON.parse(process.env.CUSTOMER_SPACE_FIREBASE_WEB_CONFIG);
+    assertWebConfig(config, 'CUSTOMER_SPACE_FIREBASE_WEB_CONFIG');
     return { config, googleServicesRaw: readGoogleServicesRaw() };
   }
 
