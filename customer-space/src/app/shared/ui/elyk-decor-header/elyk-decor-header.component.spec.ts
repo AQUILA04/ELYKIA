@@ -16,7 +16,7 @@ describe('ElykDecorHeaderComponent', () => {
 
   it('uses ribbons asset by default', () => {
     const img = fixture.nativeElement.querySelector('.elyk-decor-header__pattern') as HTMLImageElement;
-    expect(img.src).toContain('header-ribbons.svg');
+    expect(img.src).toContain('header-ribbons.png');
   });
 
   it('emits back when back button clicked', () => {

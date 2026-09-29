@@ -21,6 +21,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Module **Audit** (`/audit`) : journal espace client avec KPI, filtres avancés, presets ops, drawer détail, timeline de session et export CSV, réservé à `ROLE_AUDIT`.
 
+## Customer-space — [0.10.2] — 2026-09-29
+
+### Fixed
+
+- Connexion desktop : le panneau bleu de gauche occupe de nouveau toute la hauteur de l’écran (régression 0.10.0) ; l’inscription reste défilable avec le panneau étiré sur toute la hauteur du formulaire.
+- Décors d’en-tête : `header-ribbons` et `header-grid` étaient des PNG nommés `.svg`, donc non affichés (icône d’image cassée sur la connexion desktop). Renommés en `.png` et références mises à jour ; opacité du décor réduite sur le panneau de connexion desktop pour garder les textes lisibles.
+
 ## Customer-space — [0.10.1] — 2026-09-29
 
 ### Fixed

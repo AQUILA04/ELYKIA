@@ -32,8 +32,8 @@ export class ElykDecorHeaderComponent {
 
   get decorSrc(): string {
     return this.decor === 'grid'
-      ? 'assets/decor/header-grid.svg'
-      : 'assets/decor/header-ribbons.svg';
+      ? 'assets/decor/header-grid.png'
+      : 'assets/decor/header-ribbons.png';
   }
 
   onBack(): void {
