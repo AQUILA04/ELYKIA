@@ -98,6 +98,9 @@ public class UserPermissionConstant {
     /** Validation des auto-inscriptions espace client. */
     public static final String VALIDATE_CLIENT_REGISTRATION = "ROLE_VALIDATE_CLIENT_REGISTRATION";
 
+    /** Consultation du journal d'activité espace client (module Audit). */
+    public static final String AUDIT = "ROLE_AUDIT";
+
     public static final String KPI_FINANCIER_VENTE = "ROLE_KPI_FINANCIER_VENTE";
     public static final String KPI_FINANCIER_RETARD = "ROLE_KPI_FINANCIER_RETARD";
     public static final String KPI_FINANCIER_ECHEANCE = "ROLE_KPI_FINANCIER_ECHEANCE";

@@ -90,6 +90,19 @@ const routes: Routes = [
   },
 
   {
+    path: 'audit',
+    loadChildren: () => import('./customer-activity-audit/customer-activity-audit.module')
+      .then(m => m.CustomerActivityAuditModule),
+    canActivate: [AuthGuard, NgxPermissionsGuard],
+    data: {
+      permissions: {
+        only: ['ROLE_AUDIT'],
+        redirectTo: '/home'
+      }
+    }
+  },
+
+  {
     path: 'notifications',
     loadChildren: () => import('./notifications/notifications.module').then(m => m.NotificationsModule),
     canActivate: [AuthGuard]
