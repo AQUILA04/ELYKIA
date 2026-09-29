@@ -32,11 +32,12 @@ describe('AuthPage', () => {
     api.sendOtp.and.returnValue(of({ channel: 'SMS' }));
     api.verifyOtp.and.returnValue(of({ verified: true, otpProofToken: 'proof-token' }));
 
-    router = jasmine.createSpyObj('Router', ['navigate'], {
+    router = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl'], {
       events: EMPTY,
       url: '/',
     });
     router.navigate.and.returnValue(Promise.resolve(true));
+    router.navigateByUrl.and.returnValue(Promise.resolve(true));
 
     featureFlags = jasmine.createSpyObj('FeatureFlagService', ['refresh', 'isCustomerSpaceAvailable']);
     featureFlags.refresh.and.returnValue(Promise.resolve());
@@ -140,6 +141,37 @@ describe('AuthPage', () => {
   it('does not render Firebase recaptcha container', () => {
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('#recaptcha-container')).toBeNull();
+  });
+
+  describe('redirection after login', () => {
+    afterEach(() => {
+      history.pushState({}, '', '/');
+      localStorage.removeItem('elykia_customer_session');
+    });
+
+    it('goes to dashboard without returnUrl', async () => {
+      history.pushState({}, '', '/auth');
+      fixture.componentInstance.phone = '90123456';
+      fixture.componentInstance.pinForm.patchValue({ pin: '1234' });
+      await fixture.componentInstance.submitPin();
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
+    });
+
+    it('returns to the requested page after login', async () => {
+      history.pushState({}, '', '/auth?returnUrl=%2Fcatalog');
+      fixture.componentInstance.phone = '90123456';
+      fixture.componentInstance.pinForm.patchValue({ pin: '1234' });
+      await fixture.componentInstance.submitPin();
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/catalog');
+    });
+
+    it('ignores an external returnUrl', async () => {
+      history.pushState({}, '', '/auth?returnUrl=https%3A%2F%2Fevil.example');
+      fixture.componentInstance.phone = '90123456';
+      fixture.componentInstance.pinForm.patchValue({ pin: '1234' });
+      await fixture.componentInstance.submitPin();
+      expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
+    });
   });
 
   it('resets wizard on re-entry when session is cleared', () => {

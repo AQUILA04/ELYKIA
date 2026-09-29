@@ -1,0 +1,26 @@
+# CUSTOMER-SPACE WEB — TEST stack — project name: customer-space-test
+# Domain: clients-test.amenouveve-yaveh.com (shared Traefik, Cloudflare DNS-01)
+# Deploy: deploy/deploy-customer-space.sh test <image>  (CI: build-customer-space-apk.yml)
+# Stop:   docker compose -f docker-compose.customer-space-test.yml --project-name customer-space-test \
+#           --env-file /opt/elykia/test/.env down
+services:
+  customer-space:
+    image: ${CUSTOMER_SPACE_IMAGE:?CUSTOMER_SPACE_IMAGE required}
+    container_name: elykia-test-customer-space
+    restart: unless-stopped
+    environment:
+      CUSTOMER_SPACE_API_URL: ${CUSTOMER_SPACE_API_URL:-https://elykia-test.amenouveve-yaveh.com/api}
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.customer-space-test.rule=Host(`${CUSTOMER_SPACE_HOSTNAME:-clients-test.amenouveve-yaveh.com}`)"
+      - "traefik.http.routers.customer-space-test.entrypoints=websecure"
+      - "traefik.http.routers.customer-space-test.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.customer-space-test.priority=5"
+      - "traefik.http.services.customer-space-test.loadbalancer.server.port=80"
+
+networks:
+  traefik-public:
+    external: true

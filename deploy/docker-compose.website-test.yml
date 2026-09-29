@@ -8,6 +8,7 @@ services:
     restart: unless-stopped
     environment:
       ELYKIA_API_BASE: ${ELYKIA_API_BASE:-https://elykia-test.amenouveve-yaveh.com/api}
+      CUSTOMER_SPACE_URL: ${CUSTOMER_SPACE_URL:-https://clients-test.amenouveve-yaveh.com}
     networks:
       - traefik-public
     labels:

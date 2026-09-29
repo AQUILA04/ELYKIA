@@ -27,4 +27,21 @@ test.describe('Auth PIN login', () => {
     await expect(page.getByTestId('e2e-dashboard-page')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('e2e-dashboard-credit-card')).toBeVisible();
   });
+
+  test('catalog deep link while logged out returns to catalog after login', async ({ page }) => {
+    await mockCustomerApi(page);
+    await page.goto('/catalog');
+    await expect(page.getByTestId('e2e-auth-page')).toBeVisible({ timeout: 10_000 });
+    await expect(page).toHaveURL(/\/auth\?returnUrl=%2Fcatalog$/);
+
+    await fillIonTestId(page, 'e2e-auth-phone-input', '90123456');
+    await page.getByTestId('e2e-auth-phone-submit').click();
+
+    await expect(page.getByTestId('e2e-auth-pin-input')).toBeVisible({ timeout: 10_000 });
+    await fillIonTestId(page, 'e2e-auth-pin-input', '1234');
+    await page.getByTestId('e2e-auth-pin-submit').click();
+
+    await expect(page.getByTestId('e2e-catalog-page')).toBeVisible({ timeout: 15_000 });
+    await expect(page).toHaveURL(/\/catalog$/);
+  });
 });

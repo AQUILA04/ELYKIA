@@ -5,6 +5,7 @@ import { UserJournalService } from './core/telemetry/user-journal.service';
 import { CustomerSessionService } from './shared/services/customer-session.service';
 import { LayoutService } from './shared/layout/layout.service';
 import { isE2eMode } from './shared/utils/e2e';
+import { DEFAULT_POST_LOGIN_URL, readReturnUrlFromLocation } from './shared/utils/return-url';
 
 @Component({
   selector: 'app-root',
@@ -52,7 +53,9 @@ export class AppComponent implements OnInit, OnDestroy {
       if (!this.session.isAuthenticated) return;
       const path = window.location.pathname.replace(/\/$/, '') || '/';
       if (path === '/' || path === '/auth') {
-        void this.router.navigateByUrl('/dashboard', { replaceUrl: true });
+        void this.router.navigateByUrl(readReturnUrlFromLocation() ?? DEFAULT_POST_LOGIN_URL, {
+          replaceUrl: true,
+        });
       }
     }, duration);
   }

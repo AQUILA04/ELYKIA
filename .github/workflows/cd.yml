@@ -5,7 +5,8 @@ name: ELYKIA CD Pipeline
 # Customer-space CI (ci-customer-space.yml) is decoupled and does not block deployment.
 # It deploys to 'test' when CI ran on branch 'main', and to 'prod' when CI ran on branches matching 'prod/**'.
 # Mobile APK builds run in build-mobile-apk.yml after CD and ci-mobile both succeed for the same commit.
-# Customer-space APK builds run in build-customer-space-apk.yml after CD and ci-customer-space both succeed.
+# Customer-space APK builds and web deploys (clients[-test].amenouveve-yaveh.com) run in
+# build-customer-space-apk.yml after CD and ci-customer-space both succeed.
 # Web E2E tests (Playwright) run in parallel in e2e.yml after a successful TEST deploy.
 # It also supports a manual 'promote' workflow_dispatch to promote the current test release to prod,
 # then stop the test stack once prod deploy has succeeded.
@@ -439,7 +440,9 @@ jobs:
           echo "Prod promote succeeded → stopping test stack on $TEST_HOST"
           ssh -o StrictHostKeyChecking=no -i private_key "$TEST_USER@$TEST_HOST" \
             "cd '$TEST_PATH/deploy' \
-             && docker compose -f docker-compose.test.yml --project-name elykia-test --env-file /opt/elykia/test/.env down"
+             && docker compose -f docker-compose.test.yml --project-name elykia-test --env-file /opt/elykia/test/.env down \
+             && { [ ! -f docker-compose.customer-space-test.yml ] \
+                  || CUSTOMER_SPACE_IMAGE=unused docker compose -f docker-compose.customer-space-test.yml --project-name customer-space-test --env-file /opt/elykia/test/.env down; }"
 
       - name: Cleanup
         if: always()

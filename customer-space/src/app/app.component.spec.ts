@@ -71,6 +71,20 @@ describe('AppComponent', () => {
     delete (window as Window & { __E2E__?: boolean }).__E2E__;
   }));
 
+  it('navigates to returnUrl when authenticated on auth route after splash', fakeAsync(() => {
+    (window as Window & { __E2E__?: boolean }).__E2E__ = true;
+    sessionMock.isAuthenticated = true;
+    const router = TestBed.inject(Router);
+    spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
+    history.pushState({}, '', '/auth?returnUrl=%2Fcatalog');
+
+    fixture.detectChanges();
+    tick(1);
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/catalog', { replaceUrl: true });
+    history.pushState({}, '', '/');
+    delete (window as Window & { __E2E__?: boolean }).__E2E__;
+  }));
+
   it('does not redirect to dashboard when authenticated on a deep link', fakeAsync(() => {
     (window as Window & { __E2E__?: boolean }).__E2E__ = true;
     sessionMock.isAuthenticated = true;

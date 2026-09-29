@@ -60,6 +60,15 @@ runs:
       run: |
         sed -i "s|apiUrl:.*|apiUrl: '${API_URL}',|" customer-space/src/environments/environment.prod.ts
 
+    - name: Verify API URL before build
+      shell: bash
+      env:
+        API_URL: ${{ inputs.api-url }}
+        TARGET: ${{ inputs.target }}
+      run: |
+        .github/scripts/verify-customer-space-api-url.sh pre-build \
+          customer-space/src/environments/environment.prod.ts "$API_URL" "$TARGET"
+
     - name: Setup Node.js
       uses: actions/setup-node@v6
       with:
@@ -86,6 +95,8 @@ runs:
 
     - name: Install dependencies and build web assets
       shell: bash
+      env:
+        CUSTOMER_SPACE_GOOGLE_SERVICES_JSON: ${{ inputs.google-services-json }}
       run: |
         set -euo pipefail
         cd customer-space
@@ -98,6 +109,19 @@ runs:
         # when npm publishes a broken/incomplete @types/node version.
         # E2E (Playwright) runs in ci-customer-space, not during APK packaging.
         npm run build -- --configuration=production
+
+    # Before cap add/sync so the Android assets embed the verified www/.
+    - name: Verify API URL in built bundle
+      shell: bash
+      env:
+        API_URL: ${{ inputs.api-url }}
+      run: |
+        .github/scripts/verify-customer-space-api-url.sh post-build customer-space/www "$API_URL"
+
+    - name: Add Android platform
+      shell: bash
+      run: |
+        cd customer-space
         ./node_modules/.bin/cap add android
 
     - name: Write google-services.json

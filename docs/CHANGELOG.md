@@ -37,9 +37,32 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra — 2026-09-29
 
+### Added
+
+- **Deploy —** espace client web sur Contabo derrière le Traefik partagé (OCI, réseau `traefik-public`) : `docker-compose.customer-space-{test,prod}.yml` (`clients-test.amenouveve-yaveh.com` / `clients.amenouveve-yaveh.com`) et `deploy-customer-space.sh <env> [image]` (URL d’API issue du secret CI, persistance dans le `.env`, trace de release). Documentation DNS Cloudflare dans `deploy/README.md`.
+- **CI/CD —** `build-customer-space-apk.yml` construit l’image web `elykia-customer-space:<sha>` sur le même commit que l’APK et la déploie en test / prod (promotion réutilisant l’image du SHA promu) avec `TEST_API_URL` / `PROD_API_URL` ; l’arrêt de la stack test lors d’une promotion arrête aussi l’espace client web test.
+- **CI/CD —** APK test / prod : contrôle avant build (ligne `apiUrl` remplacée par l’URL de la cible) et après build (URL présente dans le bundle, `assets/env.js` aligné) via `.github/scripts/verify-customer-space-api-url.sh` ; configuration Firebase injectée avant la compilation.
+- **CI —** `ci.yml` publie enfin l’image `elykia-website:<sha>` (job `build-website`, inclus dans le deploy gate) : le CD redéploie le site vitrine quand `website/` change.
+- **Website —** bouton « Espace client » (en-tête, menu mobile, pied de page) vers la connexion de l’espace client web ; les CTA « Commander » ouvrent le catalogue de l’espace client (URL configurable par `CUSTOMER_SPACE_URL`, `js/config.js` servi sans cache).
+
+### Changed
+
+- **Deploy —** CORS backend : origine de l’espace client web ajoutée aux valeurs par défaut et ajoutée automatiquement à `SECURITY_ALLOWED_ORIGINS` du `.env` par `deploy.sh` (`CUSTOMER_SPACE_HOSTNAME`).
+
 ### Fixed
 
 - **Deploy —** backups DB automatiques (cron `deploy`) à nouveau fonctionnels après chaque CD : `deploy.sh` ne remet plus `/opt/elykia/<env>/.env` en `600` root-only mais en `640` groupe `deploy` (le `chmod 600` à chaque déploiement cassait `db_backup.sh` avec `Permission denied` → plus d’upload Google Drive depuis le 26/09). Même règle dans `migrate-do-to-contabo.sh` ; `lib/stack.sh` affiche un message explicite si le `.env` n’est pas lisible.
+
+## Customer-space — [0.9.0] — 2026-09-29
+
+### Added
+
+- Version web servie par nginx (`Dockerfile`, `nginx.conf` avec retour sur `index.html` pour les routes, `docker-entrypoint.sh`) : l’URL d’API est injectée au démarrage du conteneur dans `assets/env.js` (`CUSTOMER_SPACE_API_URL`).
+- Retour à la page demandée après connexion (`returnUrl`) : un lien vers le catalogue ouvert sans session revient au catalogue une fois connecté (URL interne uniquement, jamais vers `/auth`).
+
+### Changed
+
+- `environment.prod.ts` : URL d’API résolue depuis la configuration runtime (`resolveRuntimeApiUrl`) avec repli sur la prod ; ligne `apiUrl` unique conservée pour le remplacement lors du build APK.
 
 ## Customer-space — [0.8.2] — 2026-09-29
 

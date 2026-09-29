@@ -469,7 +469,73 @@
       "customer",
       "manager"
     ],
-    "content": "Connexion — Espace Client\n\nCet écran vous permet d’ouvrir votre Espace Client avec votre numéro de téléphone et votre code PIN.\nSe connecter\nOuvrez l’application Elykia — Espace Client .\nSur l’écran avec AMENOUVEVE-YAVEH , Elykia et Espace Client , saisissez votre numéro de téléphone .\nAppuyez sur Continuer .\nSaisissez votre code PIN , puis appuyez sur Se connecter .\nPremière activation\n\nSi votre compte n’a pas encore de code PIN :\nSaisissez votre numéro de téléphone, puis Continuer .\nEntrez le code reçu par SMS , puis appuyez sur Vérifier .\nChoisissez un nouveau code PIN , confirmez-le, puis appuyez sur Activer mon compte .\nCréer un compte\n\nSi votre numéro n’est pas encore connu et que l’inscription est ouverte :\nSaisissez votre numéro, puis Continuer .\nValidez le code SMS.\nRenseignez vos informations (photo, identité, adresse) et appuyez sur Continuer .\nCréez votre code PIN, puis appuyez sur Créer mon compte .\nBesoin d’aide\n\nEn bas de l’écran de connexion, le message Première connexion ? Contactez votre agence vous indique à qui vous adresser si votre numéro n’est pas reconnu.\nSur ordinateur\nOuvrez l’Espace Client dans votre navigateur (fenêtre large).\nÀ gauche, un panneau présente AMENOUVEVE-YAVEH , Elykia et les avantages de l’espace.\nÀ droite, utilisez le formulaire de connexion comme sur mobile (téléphone, puis PIN ou code SMS).\nPour une inscription, les champs d’identité s’affichent sur deux colonnes ; choisissez votre photo avec Choisir une photo ."
+    "content": "Connexion — Espace Client\n\nCet écran vous permet d’ouvrir votre Espace Client avec votre numéro de téléphone et votre code PIN."
+  },
+  {
+    "id": "customer_connexion__o_ouvrir_l_espace_client",
+    "title": "Connexion — Espace Client — Où ouvrir l’Espace Client",
+    "path": "/user-guide/customer/connexion.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Connexion — Espace Client\nOù ouvrir l’Espace Client\n\nVous pouvez utiliser l’Espace Client de trois façons, avec le même numéro de téléphone et le même code PIN :\n Sur votre téléphone : ouvrez l’application Elykia — Espace Client .\n Dans un navigateur (téléphone ou ordinateur) : allez sur https://clients.amenouveve-yaveh.com .\n Depuis le site Aménouvévé-Yaveh :\ncliquez sur Espace client en haut de la page (ou Se connecter à l’espace client dans le menu sur téléphone et en bas de la page) pour arriver sur l’écran de connexion ;\ncliquez sur Commander ou Commander maintenant pour ouvrir directement le catalogue . Si vous n’êtes pas encore connecté, l’écran de connexion s’affiche d’abord, puis le catalogue s’ouvre dès que vous êtes connecté."
+  },
+  {
+    "id": "customer_connexion__se_connecter",
+    "title": "Connexion — Espace Client — Se connecter",
+    "path": "/user-guide/customer/connexion.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Connexion — Espace Client\nSe connecter\nOuvrez l’application Elykia — Espace Client ou l’adresse https://clients.amenouveve-yaveh.com dans votre navigateur.\nSur l’écran avec AMENOUVEVE-YAVEH , Elykia et Espace Client , saisissez votre numéro de téléphone .\nAppuyez sur Continuer .\nSaisissez votre code PIN , puis appuyez sur Se connecter .\nVotre tableau de bord s’affiche. Si vous étiez arrivé par un lien vers une page précise (par exemple le catalogue depuis le bouton Commander du site), c’est cette page qui s’ouvre."
+  },
+  {
+    "id": "customer_connexion__premi_re_activation",
+    "title": "Connexion — Espace Client — Première activation",
+    "path": "/user-guide/customer/connexion.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Connexion — Espace Client\nPremière activation\n\nSi votre compte n’a pas encore de code PIN :\nSaisissez votre numéro de téléphone, puis Continuer .\nEntrez le code reçu par SMS , puis appuyez sur Vérifier .\nChoisissez un nouveau code PIN , confirmez-le, puis appuyez sur Activer mon compte ."
+  },
+  {
+    "id": "customer_connexion__cr_er_un_compte",
+    "title": "Connexion — Espace Client — Créer un compte",
+    "path": "/user-guide/customer/connexion.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Connexion — Espace Client\nCréer un compte\n\nSi votre numéro n’est pas encore connu et que l’inscription est ouverte :\nSaisissez votre numéro, puis Continuer .\nValidez le code SMS.\nRenseignez vos informations (photo, identité, adresse) et appuyez sur Continuer .\nCréez votre code PIN, puis appuyez sur Créer mon compte ."
+  },
+  {
+    "id": "customer_connexion__besoin_d_aide",
+    "title": "Connexion — Espace Client — Besoin d’aide",
+    "path": "/user-guide/customer/connexion.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Connexion — Espace Client\nBesoin d’aide\n\nEn bas de l’écran de connexion, le message Première connexion ? Contactez votre agence vous indique à qui vous adresser si votre numéro n’est pas reconnu."
+  },
+  {
+    "id": "customer_connexion__sur_ordinateur",
+    "title": "Connexion — Espace Client — Sur ordinateur",
+    "path": "/user-guide/customer/connexion.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Connexion — Espace Client\nSur ordinateur\nOuvrez https://clients.amenouveve-yaveh.com dans votre navigateur (fenêtre large).\nÀ gauche, un panneau présente AMENOUVEVE-YAVEH , Elykia et les avantages de l’espace.\nÀ droite, utilisez le formulaire de connexion comme sur mobile (téléphone, puis PIN ou code SMS).\nPour une inscription, les champs d’identité s’affichent sur deux colonnes ; choisissez votre photo avec Choisir une photo ."
   },
   {
     "id": "customer_tontine",

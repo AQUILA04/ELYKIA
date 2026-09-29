@@ -129,7 +129,7 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 .btn--ghost { background: rgba(255,255,255,0.12); color: #fff; border: 1.5px solid rgba(255,255,255,0.30); backdrop-filter: blur(8px); }
 .btn--ghost:hover { background: rgba(255,255,255,0.22); transform: translateY(-2px); }
 .btn--full { width: 100%; }
-.btn--sm { padding: 10px 20px; font-size: 14px; }
+.btn--sm { padding: 10px 20px; font-size: 14px; min-height: 44px; }
 .btn--lg { padding: 18px 36px; font-size: 18px; }
 .btn--store { background: var(--color-inverse-surface); color: white; border: 1px solid rgba(255,255,255,0.1); }
 .btn--store:hover { background: #3a4143; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }

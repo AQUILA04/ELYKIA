@@ -18,6 +18,7 @@ import { toUsername } from '../../shared/utils/phone-normalizer';
 import { FeatureFlagService } from '../../shared/services/feature-flag.service';
 import { APP_UNAVAILABLE_MESSAGE } from '../../shared/constants/app-availability';
 import { isE2eMode } from '../../shared/utils/e2e';
+import { DEFAULT_POST_LOGIN_URL, readReturnUrlFromLocation } from '../../shared/utils/return-url';
 import {
   ElykDecorHeaderComponent,
   ElykOverlapCardComponent,
@@ -333,7 +334,7 @@ export class AuthPage implements ViewWillEnter {
     try {
       const res = await firstValueFrom(request);
       this.session.saveSession({ ...res, isAuthenticated: true });
-      await this.router.navigate(['/dashboard']);
+      await this.router.navigateByUrl(readReturnUrlFromLocation() ?? DEFAULT_POST_LOGIN_URL);
     } catch (e: unknown) {
       this.error = this.extractError(e);
       this.journal.track('LOGIN_FAILED', 'AUTH', { reason: this.error });

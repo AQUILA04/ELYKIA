@@ -102,6 +102,21 @@ if [[ -n "$BACKEND_ARG" ]]; then
   set_env_var "BACKEND_IMAGE" "$BACKEND_IMAGE"
 fi
 
+# Customer-space web (clients[-test].amenouveve-yaveh.com) calls the API cross-origin.
+# Existing .env files pin SECURITY_ALLOWED_ORIGINS, so the compose default alone is not enough.
+if [[ "$ENV" == "prod" ]]; then
+  DEFAULT_CUSTOMER_SPACE_HOSTNAME="clients.amenouveve-yaveh.com"
+else
+  DEFAULT_CUSTOMER_SPACE_HOSTNAME="clients-test.amenouveve-yaveh.com"
+fi
+CUSTOMER_SPACE_ORIGIN="https://${CUSTOMER_SPACE_HOSTNAME:-$DEFAULT_CUSTOMER_SPACE_HOSTNAME}"
+if [[ -n "${SECURITY_ALLOWED_ORIGINS:-}" && ",${SECURITY_ALLOWED_ORIGINS}," != *",${CUSTOMER_SPACE_ORIGIN},"* ]]; then
+  SECURITY_ALLOWED_ORIGINS="${SECURITY_ALLOWED_ORIGINS},${CUSTOMER_SPACE_ORIGIN}"
+  export SECURITY_ALLOWED_ORIGINS
+  set_env_var "SECURITY_ALLOWED_ORIGINS" "$SECURITY_ALLOWED_ORIGINS"
+  echo "Added $CUSTOMER_SPACE_ORIGIN to SECURITY_ALLOWED_ORIGINS"
+fi
+
 TIMESTAMP=$(date -u +"%Y%m%dT%H%M%SZ")
 RELEASE_FILE="$RELEASES_DIR/${ENV}_${TIMESTAMP}.txt"
 

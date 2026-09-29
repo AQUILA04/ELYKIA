@@ -320,6 +320,33 @@ Ajoutez des enregistrements **A** dans Cloudflare (proxy activé — nuage orang
 - `minio-test`, `minio-test-api` → IP du serveur (console et API S3 test)
 - `minio`, `minio-api` → IP du serveur (console et API S3 prod)
 
+## Espace client web (customer-space)
+
+La version web de l'espace client est servie par une image nginx (`ghcr.io/<owner>/elykia-customer-space:<sha>`) derrière le Traefik partagé (réseau `traefik-public`, OCI).
+
+| Environnement | URL | Compose | Projet Docker |
+|---|---|---|---|
+| **Test** | `https://clients-test.amenouveve-yaveh.com` | `docker-compose.customer-space-test.yml` | `customer-space-test` |
+| **Prod** | `https://clients.amenouveve-yaveh.com` | `docker-compose.customer-space-prod.yml` | `customer-space-prod` |
+
+- **Pipeline** : `build-customer-space-apk.yml` construit l'image web (même commit que l'APK) puis déploie via `deploy-customer-space.sh <env> <image>`. La promotion prod réutilise l'image du SHA promu.
+- **URL d'API** : injectée au démarrage du conteneur dans `assets/env.js`. Priorité : secret CI `TEST_API_URL` / `PROD_API_URL` → `CUSTOMER_SPACE_API_URL` du `.env` → `API_URL` du `.env`. La valeur doit inclure `/api` (ex. `https://elykia-test.amenouveve-yaveh.com/api`).
+- **CORS** : `deploy.sh` ajoute automatiquement `https://${CUSTOMER_SPACE_HOSTNAME}` (défaut `clients[-test]…`) à `SECURITY_ALLOWED_ORIGINS` dans `/opt/elykia/<env>/.env`.
+- **Déploiement manuel** :
+
+```bash
+cd /opt/elykia
+CUSTOMER_SPACE_API_URL=https://elykia-test.amenouveve-yaveh.com/api \
+  ./deploy/deploy-customer-space.sh test ghcr.io/<owner>/elykia-customer-space:<sha>
+```
+
+### Configuration DNS requise
+Ajoutez des enregistrements **A** dans Cloudflare (proxy activé — nuage orange, SSL/TLS **Full**) :
+- `clients-test` → IP du serveur Contabo
+- `clients` → IP du serveur Contabo
+
+Le certificat est émis par le Traefik partagé (`certresolver=letsencrypt`, DNS-01 Cloudflare).
+
 ---
 
 ## CI / GitHub Actions — secrets nécessaires

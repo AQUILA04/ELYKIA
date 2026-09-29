@@ -41,6 +41,9 @@ jobs:
             - '.github/scripts/validate-customer-space-pipeline.sh'
             - '.github/scripts/install-customer-space-app-update-plugin.sh'
             - '.github/scripts/apply-customer-space-android-icons.sh'
+            - '.github/scripts/verify-customer-space-api-url.sh'
+            - 'deploy/deploy-customer-space.sh'
+            - 'deploy/docker-compose.customer-space-*.yml'
 
     - name: Detect customer-space changes since last successful build
       id: push
@@ -64,7 +67,10 @@ jobs:
           '.github/scripts/publish-customer-space-apk.sh' \
           '.github/scripts/validate-customer-space-pipeline.sh' \
           '.github/scripts/install-customer-space-app-update-plugin.sh' \
-          '.github/scripts/apply-customer-space-android-icons.sh')
+          '.github/scripts/apply-customer-space-android-icons.sh' \
+          '.github/scripts/verify-customer-space-api-url.sh' \
+          'deploy/deploy-customer-space.sh' \
+          'deploy/docker-compose.customer-space-*.yml')
         echo "customer_space=$result" >> "$GITHUB_OUTPUT"
 
   test-customer-space:

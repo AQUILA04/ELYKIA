@@ -1,0 +1,26 @@
+# CUSTOMER-SPACE WEB — PROD stack — project name: customer-space-prod
+# Domain: clients.amenouveve-yaveh.com (shared Traefik, Cloudflare DNS-01)
+# Deploy: deploy/deploy-customer-space.sh prod <image>  (CI: build-customer-space-apk.yml)
+# Stop:   docker compose -f docker-compose.customer-space-prod.yml --project-name customer-space-prod \
+#           --env-file /opt/elykia/prod/.env down
+services:
+  customer-space:
+    image: ${CUSTOMER_SPACE_IMAGE:?CUSTOMER_SPACE_IMAGE required}
+    container_name: elykia-prod-customer-space
+    restart: unless-stopped
+    environment:
+      CUSTOMER_SPACE_API_URL: ${CUSTOMER_SPACE_API_URL:-https://elykia.amenouveve-yaveh.com/api}
+    networks:
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.customer-space-prod.rule=Host(`${CUSTOMER_SPACE_HOSTNAME:-clients.amenouveve-yaveh.com}`)"
+      - "traefik.http.routers.customer-space-prod.entrypoints=websecure"
+      - "traefik.http.routers.customer-space-prod.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.customer-space-prod.priority=5"
+      - "traefik.http.services.customer-space-prod.loadbalancer.server.port=80"
+
+networks:
+  traefik-public:
+    external: true

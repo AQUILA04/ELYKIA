@@ -5,6 +5,13 @@ name: ELYKIA Customer Space APK Build
 #   main  → test APK
 #   prod/** → prod APK (direct, same commit as the prod CI)
 #   promote (manual) → prod APK rebuilt from the last successful TEST APK build (GitHub API only)
+#
+# The same commit also ships the customer-space WEB image (ghcr.io/<repo>-customer-space:<sha>),
+# deployed on Contabo behind the shared Traefik:
+#   test → https://clients-test.amenouveve-yaveh.com
+#   prod → https://clients.amenouveve-yaveh.com
+# Promote reuses the image already built for the promoted TEST commit (no rebuild).
+# Web and APK of a target use the same API URL secret (TEST_API_URL / PROD_API_URL).
 
 on:
   workflow_run:
@@ -338,3 +345,151 @@ jobs:
           minio-access-key: ${{ secrets.PROD_MINIO_ACCESS_KEY }}
           minio-secret-key: ${{ secrets.PROD_MINIO_SECRET_KEY }}
           minio-customer-space-releases-bucket: elykia-customer-space-releases
+
+  build-web-image:
+    needs: prepare
+    if: needs.prepare.outputs.target != '' && needs.prepare.outputs.customer_space_built == 'true'
+    runs-on: ubuntu-latest
+    name: Build web image ${{ needs.prepare.outputs.build_sha }}
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - name: Resolve image name
+        id: image
+        run: |
+          set -euo pipefail
+          REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
+          BASE="ghcr.io/${REPO_LOWER}-customer-space"
+          echo "image=${BASE}:${{ needs.prepare.outputs.build_sha }}" >> "$GITHUB_OUTPUT"
+          echo "image_latest=${BASE}:latest" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if image already exists
+        id: exists
+        env:
+          IMAGE: ${{ steps.image.outputs.image }}
+        run: |
+          if docker manifest inspect "$IMAGE" > /dev/null 2>&1; then
+            echo "Image $IMAGE already published — no rebuild (promote / re-run)"
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v6
+        if: steps.exists.outputs.exists != 'true'
+        with:
+          ref: ${{ needs.prepare.outputs.build_sha }}
+
+      - name: Setup Node.js
+        if: steps.exists.outputs.exists != 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'customer-space/package-lock.json'
+
+      - name: Build web assets
+        if: steps.exists.outputs.exists != 'true'
+        working-directory: customer-space
+        env:
+          CUSTOMER_SPACE_GOOGLE_SERVICES_JSON: ${{ secrets.CUSTOMER_SPACE_GOOGLE_SERVICES_JSON }}
+          CUSTOMER_SPACE_FIREBASE_WEB_CONFIG: ${{ secrets.CUSTOMER_SPACE_FIREBASE_WEB_CONFIG }}
+        run: |
+          set -euo pipefail
+          npm ci
+          node scripts/ensure-firebase-config.mjs
+          node scripts/sync-app-version.mjs
+          node scripts/apply-firebase-config.mjs --profile prod
+          npm run build -- --configuration=production
+          grep -q '__CUSTOMER_SPACE_API_URL__' www/assets/env.js \
+            || { echo "www/assets/env.js must keep the runtime placeholder" >&2; exit 1; }
+
+      - name: Set up Docker Buildx
+        if: steps.exists.outputs.exists != 'true'
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build and push web image
+        if: steps.exists.outputs.exists != 'true'
+        uses: docker/build-push-action@v7
+        with:
+          context: ./customer-space
+          push: true
+          tags: |
+            ${{ steps.image.outputs.image }}
+            ${{ steps.image.outputs.image_latest }}
+
+  deploy-web-test:
+    needs: [prepare, build-web-image]
+    if: needs.prepare.outputs.target == 'test'
+    runs-on: ubuntu-latest
+    environment: test
+    name: Deploy web TEST
+    steps:
+      - name: Prepare SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key
+          chmod 600 private_key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy customer-space web to test
+        env:
+          IMAGE: ${{ needs.build-web-image.outputs.image }}
+          API_URL: ${{ secrets.TEST_API_URL }}
+        run: |
+          set -euo pipefail
+          : "${IMAGE:?Missing web image}"
+          : "${API_URL:?Missing TEST_API_URL secret}"
+          echo "Deploying $IMAGE to test (clients-test.amenouveve-yaveh.com)"
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} \
+            "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' CUSTOMER_SPACE_API_URL='$API_URL' \
+             && cd ${{ secrets.TEST_DEPLOY_PATH }} \
+             && { [ -f deploy/deploy-customer-space.sh ] || curl -sSL https://raw.githubusercontent.com/AQUILA04/ELYKIA/main/deploy/update-deploy.sh | bash; } \
+             && bash ./deploy/deploy-customer-space.sh test '$IMAGE'"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f private_key
+
+  deploy-web-prod:
+    needs: [prepare, build-web-image]
+    if: needs.prepare.outputs.target == 'prod'
+    runs-on: ubuntu-latest
+    environment: prod
+    name: Deploy web PROD
+    steps:
+      - name: Prepare SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key
+          chmod 600 private_key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy customer-space web to prod
+        env:
+          IMAGE: ${{ needs.build-web-image.outputs.image }}
+          API_URL: ${{ secrets.PROD_API_URL }}
+        run: |
+          set -euo pipefail
+          : "${IMAGE:?Missing web image}"
+          : "${API_URL:?Missing PROD_API_URL secret}"
+          echo "Deploying $IMAGE to prod (clients.amenouveve-yaveh.com)"
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
+            "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' CUSTOMER_SPACE_API_URL='$API_URL' \
+             && cd ${{ secrets.PROD_DEPLOY_PATH }} \
+             && { [ -f deploy/deploy-customer-space.sh ] || curl -sSL https://raw.githubusercontent.com/AQUILA04/ELYKIA/main/deploy/update-deploy.sh | bash; } \
+             && bash ./deploy/deploy-customer-space.sh prod '$IMAGE'"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f private_key

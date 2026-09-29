@@ -32,6 +32,14 @@
   if (navOverlay) navOverlay.addEventListener('click', closeMenu);
   navLinks.forEach(link => link.addEventListener('click', closeMenu));
 
+  // ── Customer-space links (base URL from js/config.js) ──────
+  const customerSpaceBase = String(window.ELYKIA_CUSTOMER_SPACE_URL || '').replace(/\/+$/, '');
+  if (/^https?:\/\/[^\s'"<>]+$/.test(customerSpaceBase)) {
+    document.querySelectorAll('[data-customer-space-path]').forEach(link => {
+      link.setAttribute('href', customerSpaceBase + link.getAttribute('data-customer-space-path'));
+    });
+  }
+
   // ── Header glassmorphism on scroll ─────────────────────────
   const header = document.getElementById('header');
   if (header) {

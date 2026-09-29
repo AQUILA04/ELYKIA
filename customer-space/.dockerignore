@@ -1,0 +1,5 @@
+# Seuls www/, nginx.conf et docker-entrypoint.sh sont nécessaires à l'image.
+*
+!www/**
+!nginx.conf
+!docker-entrypoint.sh

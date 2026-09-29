@@ -23,8 +23,64 @@ else
   pass "action.yml sed step uses block scalar"
 fi
 
+ENV_PROD="$ROOT/customer-space/src/environments/environment.prod.ts"
+API_LINES="$(grep -cE 'apiUrl:' "$ENV_PROD" || true)"
+if [ "$API_LINES" = "1" ]; then
+  pass "environment.prod.ts has exactly one apiUrl: line"
+else
+  fail "environment.prod.ts must have exactly one apiUrl: line (found $API_LINES)"
+fi
+
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
+
+# Replay the action sed + pre/post-build checks on a copy.
+SAMPLE_URL="https://elykia-test.amenouveve-yaveh.com/api"
+cp "$ENV_PROD" "$WORK/environment.prod.ts"
+sed -i "s|apiUrl:.*|apiUrl: '${SAMPLE_URL}',|" "$WORK/environment.prod.ts"
+if bash "$ROOT/.github/scripts/verify-customer-space-api-url.sh" pre-build \
+  "$WORK/environment.prod.ts" "$SAMPLE_URL" test >/dev/null; then
+  pass "sed + pre-build API URL check"
+else
+  fail "pre-build API URL check rejects the sed output"
+fi
+if bash "$ROOT/.github/scripts/verify-customer-space-api-url.sh" pre-build \
+  "$ENV_PROD" "$SAMPLE_URL" test >/dev/null 2>&1; then
+  fail "pre-build check must reject an environment.prod.ts without sed"
+else
+  pass "pre-build check rejects un-injected environment.prod.ts"
+fi
+if bash "$ROOT/.github/scripts/verify-customer-space-api-url.sh" pre-build \
+  "$WORK/environment.prod.ts" "" test >/dev/null 2>&1; then
+  fail "pre-build check must reject an empty api-url"
+else
+  pass "pre-build check rejects empty api-url"
+fi
+mkdir -p "$WORK/www/assets"
+printf "const e={apiUrl:'%s'};\n" "$SAMPLE_URL" > "$WORK/www/main.abc.js"
+cp "$ROOT/customer-space/src/assets/env.js" "$WORK/www/assets/env.js"
+if bash "$ROOT/.github/scripts/verify-customer-space-api-url.sh" post-build \
+  "$WORK/www" "$SAMPLE_URL" >/dev/null \
+  && grep -qF "$SAMPLE_URL" "$WORK/www/assets/env.js"; then
+  pass "post-build API URL check aligns assets/env.js"
+else
+  fail "post-build API URL check"
+fi
+printf "const e={apiUrl:'https://elykia.amenouveve-yaveh.com/api'};\n" > "$WORK/www/main.abc.js"
+if bash "$ROOT/.github/scripts/verify-customer-space-api-url.sh" post-build \
+  "$WORK/www" "$SAMPLE_URL" >/dev/null 2>&1; then
+  fail "post-build check must reject a bundle without the target URL"
+else
+  pass "post-build check rejects bundle with another URL"
+fi
+
+APK_WORKFLOW="$ROOT/.github/workflows/build-customer-space-apk.yml"
+if grep -qF 'api-url: ${{ secrets.TEST_API_URL }}' "$APK_WORKFLOW" \
+  && grep -qF 'api-url: ${{ secrets.PROD_API_URL }}' "$APK_WORKFLOW"; then
+  pass "APK jobs pass TEST_API_URL / PROD_API_URL"
+else
+  fail "APK jobs must pass secrets.TEST_API_URL (test) and secrets.PROD_API_URL (prod)"
+fi
 mkdir -p "$WORK/android/app"
 cp "$FIXTURES/app.build.gradle.template" "$WORK/android/app/build.gradle"
 cp "$FIXTURES/root.build.gradle.template" "$WORK/android/build.gradle"
