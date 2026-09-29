@@ -87,6 +87,19 @@ services:
       GOOGLE_APPLICATION_CREDENTIALS: ${GOOGLE_APPLICATION_CREDENTIALS:-/secrets/gcp/vertex-ai-sa.json}
       # Avoid netty-tcnative SIGSEGV (Alpine/musl) when Vertex AI gRPC loads SSL natives
       JAVA_TOOL_OPTIONS: "${JAVA_TOOL_OPTIONS:--Dio.grpc.netty.shaded.io.netty.handler.ssl.noOpenSsl=true -Dio.grpc.netty.shaded.io.netty.transport.noNative=true}"
+      # OTP SMS espace client — Notification Hub (réseau optimizesolux-common, client Keycloak « elykia »)
+      # Activé via le .env (NOTIFICATION_HUB_ENABLED=true) : sans NOTIFICATION_HUB_CLIENT_SECRET le backend ne démarre pas.
+      NOTIFICATION_HUB_ENABLED: ${NOTIFICATION_HUB_ENABLED:-false}
+      NOTIFICATION_HUB_BASE_URL: ${NOTIFICATION_HUB_BASE_URL:-http://notification-hub-prod-api-1:8088}
+      NOTIFICATION_HUB_TENANT_ID: ${NOTIFICATION_HUB_TENANT_ID:-elykia}
+      NOTIFICATION_HUB_APP_ID: ${NOTIFICATION_HUB_APP_ID:-elykia-customer-space}
+      # Vide = dérivé du profil Spring (prod → SMS réel)
+      NOTIFICATION_HUB_ENVIRONMENT: ${NOTIFICATION_HUB_ENVIRONMENT:-}
+      NOTIFICATION_HUB_PROOF_SECRET: ${NOTIFICATION_HUB_PROOF_SECRET:-}
+      NOTIFICATION_HUB_OAUTH2_ENABLED: ${NOTIFICATION_HUB_OAUTH2_ENABLED:-true}
+      NOTIFICATION_HUB_TOKEN_URI: ${NOTIFICATION_HUB_TOKEN_URI:-https://auth.optimizesolux.com/realms/notification-hub/protocol/openid-connect/token}
+      NOTIFICATION_HUB_CLIENT_ID: ${NOTIFICATION_HUB_CLIENT_ID:-elykia}
+      NOTIFICATION_HUB_CLIENT_SECRET: ${NOTIFICATION_HUB_CLIENT_SECRET:-}
     volumes:
       - ${LOG_PATH:-/opt/elykia/prod/logs}:/home/app/.optimize-elykia-core/logs
       - ${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/prod/photos/pending}:/opt/elykia/photos/pending
