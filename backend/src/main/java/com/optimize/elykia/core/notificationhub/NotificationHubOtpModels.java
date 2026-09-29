@@ -29,7 +29,9 @@ public final class NotificationHubOtpModels {
             UUID notificationId,
             String channel,
             String provider,
-            String providerReference) {
+            String providerReference,
+            /** Référence courte hub (ex. Y4GP) — absente si provider sans référence. */
+            String reference) {
     }
 
     public record OtpVerifyRequest(String to, String code, String channel, UUID sessionId) {

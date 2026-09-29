@@ -23,6 +23,13 @@ export interface CustomerOtpSendResponse {
   sessionId?: string;
   expiresAt?: string;
   channel?: string;
+  /** Référence courte hub (ex. Y4GP) pour distinguer les SMS après renvoi. */
+  reference?: string;
+}
+
+export interface CustomerLocality {
+  id: number;
+  name: string;
 }
 
 export interface CustomerOtpVerifyRequest {

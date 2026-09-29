@@ -1,0 +1,65 @@
+<div class="elyk-field" [class.elyk-field--error]="!!loadError">
+  <button
+    type="button"
+    class="elyk-field__box locality-trigger"
+    [attr.data-testid]="testId"
+    [disabled]="disabled || loading"
+    (click)="toggle()"
+    [attr.aria-expanded]="open"
+    aria-haspopup="listbox">
+    <span class="elyk-field__label">{{ label }}</span>
+    <ion-icon *ngIf="icon" class="elyk-field__icon" [name]="icon" aria-hidden="true"></ion-icon>
+    <span class="locality-trigger__value" [class.locality-trigger__value--placeholder]="!value">
+      <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
+      <ng-container *ngIf="!loading">{{ displayLabel }}</ng-container>
+    </span>
+    <ion-icon class="locality-trigger__chevron" name="chevron-down-outline" aria-hidden="true"></ion-icon>
+  </button>
+  <p class="elyk-field__error" *ngIf="loadError">
+    {{ loadError }}
+    <button type="button" class="locality-retry" (click)="onRetryClick()" data-testid="e2e-auth-localities-retry">
+      Réessayer
+    </button>
+  </p>
+</div>
+
+<div class="locality-overlay" *ngIf="open" (click)="close()" role="presentation"></div>
+<div
+  class="locality-sheet"
+  *ngIf="open"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="label">
+  <div class="locality-sheet__header">
+    <h3>{{ label }}</h3>
+    <button type="button" class="locality-sheet__close" (click)="close()" aria-label="Fermer">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+  <div class="locality-sheet__search">
+    <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+    <label class="sr-only" for="elyk-locality-search">Rechercher une zone</label>
+    <input
+      #searchInput
+      id="elyk-locality-search"
+      type="search"
+      [(ngModel)]="query"
+      placeholder="Rechercher une zone"
+      data-testid="e2e-auth-locality-search"
+      autocomplete="off" />
+  </div>
+  <ul class="locality-sheet__list" role="listbox">
+    <li *ngIf="filtered.length === 0" class="locality-sheet__empty">Aucune zone trouvée</li>
+    <li *ngFor="let loc of filtered">
+      <button
+        type="button"
+        role="option"
+        class="locality-sheet__option"
+        [class.locality-sheet__option--selected]="loc.name === value"
+        [attr.aria-selected]="loc.name === value"
+        (click)="select(loc)">
+        {{ loc.name }}
+      </button>
+    </li>
+  </ul>
+</div>

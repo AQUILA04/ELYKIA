@@ -19,7 +19,7 @@ describe('AuthPage', () => {
 
   beforeEach(async () => {
     api = jasmine.createSpyObj('CustomerApiService', [
-      'checkPhone', 'login', 'setupPin', 'sendOtp', 'verifyOtp',
+      'checkPhone', 'login', 'setupPin', 'sendOtp', 'verifyOtp', 'getLocalities',
     ]);
     api.checkPhone.and.returnValue(of({ exists: true, pinConfigured: true, maskedName: 'Jean' }));
     api.login.and.returnValue(of({
@@ -29,8 +29,9 @@ describe('AuthPage', () => {
       phone: '90123456',
       expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
     }));
-    api.sendOtp.and.returnValue(of({ channel: 'SMS' }));
+    api.sendOtp.and.returnValue(of({ channel: 'SMS', reference: 'Y4GP' }));
     api.verifyOtp.and.returnValue(of({ verified: true, otpProofToken: 'proof-token' }));
+    api.getLocalities.and.returnValue(of([{ id: 1, name: 'Tokoin' }, { id: 2, name: 'Agoè' }]));
 
     router = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl'], {
       events: EMPTY,
@@ -113,6 +114,8 @@ describe('AuthPage', () => {
 
     expect(api.sendOtp).toHaveBeenCalledWith({ phone: '90123456' });
     expect(fixture.componentInstance.step).toBe('otp');
+    expect(fixture.componentInstance.otpReference).toBe('Y4GP');
+    expect(fixture.componentInstance.resendCountdown).toBeGreaterThan(0);
   });
 
   it('shows error when OTP send fails', async () => {
@@ -125,6 +128,50 @@ describe('AuthPage', () => {
 
     expect(fixture.componentInstance.error).toBe('Numéro de téléphone invalide.');
     expect(fixture.componentInstance.step).toBe('phone');
+  });
+
+  it('resends OTP when cooldown elapsed', async () => {
+    fixture.componentInstance.phone = '90123456';
+    fixture.componentInstance.step = 'otp';
+    fixture.componentInstance.resendCountdown = 0;
+    api.sendOtp.and.returnValue(of({ channel: 'SMS', reference: 'K9MT' }));
+
+    await fixture.componentInstance.resendOtp();
+
+    expect(api.sendOtp).toHaveBeenCalledWith({ phone: '90123456' });
+    expect(fixture.componentInstance.otpReference).toBe('K9MT');
+    expect(fixture.componentInstance.error).toContain('K9MT');
+    expect(fixture.componentInstance.resendCountdown).toBeGreaterThan(0);
+  });
+
+  it('does not resend OTP while cooldown is active', async () => {
+    fixture.componentInstance.phone = '90123456';
+    fixture.componentInstance.step = 'otp';
+    fixture.componentInstance.resendCountdown = 30;
+    api.sendOtp.calls.reset();
+
+    await fixture.componentInstance.resendOtp();
+
+    expect(api.sendOtp).not.toHaveBeenCalled();
+  });
+
+  it('loads localities after OTP on registration flow', async () => {
+    fixture.componentInstance.phone = '90123456';
+    fixture.componentInstance.step = 'register-otp';
+    fixture.componentInstance.isRegistrationFlow = true;
+    fixture.componentInstance.otpForm.patchValue({ otp: '123456' });
+    await fixture.componentInstance.submitOtp();
+
+    expect(api.getLocalities).toHaveBeenCalled();
+    expect(fixture.componentInstance.localities.length).toBe(2);
+    expect(fixture.componentInstance.step).toBe('register-form');
+  });
+
+  it('shows phone hint for automatic account creation', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Pas encore de compte ? Saisissez simplement votre numéro de téléphone',
+    );
   });
 
   it('verifies OTP then moves to setup-pin', async () => {

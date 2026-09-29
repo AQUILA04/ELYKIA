@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -11,6 +11,7 @@ import { CustomerSessionService } from '../../shared/services/customer-session.s
 import {
   AuthStep,
   CARD_TYPE_OPTIONS,
+  CustomerLocality,
   CustomerLoginResponse,
 } from '../../shared/models/customer-auth.model';
 import { environment } from '../../../environments/environment';
@@ -21,11 +22,18 @@ import { isE2eMode } from '../../shared/utils/e2e';
 import { DEFAULT_POST_LOGIN_URL, readReturnUrlFromLocation } from '../../shared/utils/return-url';
 import {
   ElykDecorHeaderComponent,
+  ElykLocalityPickerComponent,
   ElykOverlapCardComponent,
   ElykOutlinedFieldComponent,
 } from '../../shared/ui';
 import { LayoutService } from '../../shared/layout/layout.service';
 import { AuthDesktopComponent } from './desktop/auth-desktop.component';
+
+/** Délai avant un nouveau renvoi OTP — aligné sur le cooldown hub (60 s). */
+const OTP_RESEND_COOLDOWN_SECONDS = 60;
+const E2E_OTP_REFERENCE = 'E2E1';
+const PHONE_HINT =
+  "Pas encore de compte ? Saisissez simplement votre numéro de téléphone et laissez-vous guider.";
 
 /** Page Connexion / Inscription — wizard téléphone → PIN, OTP ou inscription. */
 @Component({
@@ -38,12 +46,13 @@ import { AuthDesktopComponent } from './desktop/auth-desktop.component';
     ElykDecorHeaderComponent,
     ElykOverlapCardComponent,
     ElykOutlinedFieldComponent,
+    ElykLocalityPickerComponent,
     AuthDesktopComponent,
   ],
   templateUrl: './auth.page.html',
   styleUrls: ['./auth.page.scss'],
 })
-export class AuthPage implements ViewWillEnter {
+export class AuthPage implements ViewWillEnter, OnDestroy {
   readonly layout = inject(LayoutService);
   private readonly journal = inject(UserJournalService);
   private readonly telemetryCtx = inject(TelemetryContextService);
@@ -51,14 +60,20 @@ export class AuthPage implements ViewWillEnter {
   phone = '';
   maskedName = '';
   otpProofToken = '';
+  otpReference = '';
+  resendCountdown = 0;
   profilPhotoDataUrl = '';
   isLoading = false;
   error = '';
   appUnavailable = false;
   readonly appUnavailableMessage = APP_UNAVAILABLE_MESSAGE;
+  readonly phoneHint = PHONE_HINT;
   readonly cardTypes = CARD_TYPE_OPTIONS;
   appVersion = environment.version;
   isRegistrationFlow = false;
+  localities: CustomerLocality[] = [];
+  localitiesLoading = false;
+  localitiesError = '';
 
   phoneForm: FormGroup;
   pinForm: FormGroup;
@@ -66,6 +81,8 @@ export class AuthPage implements ViewWillEnter {
   setupPinForm: FormGroup;
   registerForm: FormGroup;
   registerPinForm: FormGroup;
+
+  private resendTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -103,6 +120,10 @@ export class AuthPage implements ViewWillEnter {
     }, { validators: this.pinMatchValidator });
   }
 
+  ngOnDestroy(): void {
+    this.clearResendTimer();
+  }
+
   ionViewWillEnter(): void {
     if (!this.session.isAuthenticated) {
       this.resetWizard();
@@ -114,11 +135,17 @@ export class AuthPage implements ViewWillEnter {
     this.phone = '';
     this.maskedName = '';
     this.otpProofToken = '';
+    this.otpReference = '';
     this.profilPhotoDataUrl = '';
     this.error = '';
     this.appUnavailable = false;
     this.isLoading = false;
     this.isRegistrationFlow = false;
+    this.localities = [];
+    this.localitiesLoading = false;
+    this.localitiesError = '';
+    this.clearResendTimer();
+    this.resendCountdown = 0;
     this.phoneForm.reset();
     this.pinForm.reset();
     this.otpForm.reset();
@@ -152,12 +179,26 @@ export class AuthPage implements ViewWillEnter {
       case 'phone': return 'Connectez-vous à votre espace';
       case 'pin': return this.maskedName ? `Bonjour ${this.maskedName}` : 'Saisissez votre code PIN';
       case 'otp':
-      case 'register-otp': return 'Un code a été envoyé par SMS';
+      case 'register-otp':
+        return this.otpReference
+          ? `Saisissez le code à 6 chiffres reçu par SMS associé à la référence ${this.otpReference}`
+          : 'Un code a été envoyé par SMS';
       case 'setup-pin': return 'Choisissez un code PIN à 4-6 chiffres';
       case 'register-form': return 'Renseignez vos informations et votre photo';
       case 'register-pin': return 'Choisissez un code PIN à 4-6 chiffres';
       default: return '';
     }
+  }
+
+  get canResendOtp(): boolean {
+    return this.resendCountdown <= 0 && !this.isLoading;
+  }
+
+  get resendLabel(): string {
+    if (this.resendCountdown > 0) {
+      return `Renvoyer le code (${this.resendCountdown} s)`;
+    }
+    return 'Renvoyer le code';
   }
 
   async submitPhone(): Promise<void> {
@@ -212,20 +253,72 @@ export class AuthPage implements ViewWillEnter {
     this.journal.track('OTP_SEND_REQUESTED', 'AUTH', { flow: nextStep });
     try {
       if (isE2eMode()) {
-        // OTP réel non disponible en CI : Notification Hub court-circuité.
-        // Code mock à saisir dans le formulaire (pour aligner le parcours UI).
         console.info('[E2E] OTP mock pour', this.phone, '→ saisir 123456 (bypass window.__E2E__)');
+        this.otpReference = E2E_OTP_REFERENCE;
         this.step = nextStep;
-        this.journal.track('OTP_SENT', 'AUTH', { flow: nextStep, mock: true });
+        this.startResendCooldown();
+        this.journal.track('OTP_SENT', 'AUTH', { flow: nextStep, mock: true, reference: this.otpReference });
         return;
       }
-      await firstValueFrom(this.api.sendOtp({ phone: this.phone }));
+      const res = await firstValueFrom(this.api.sendOtp({ phone: this.phone }));
+      this.otpReference = res.reference?.trim() || '';
       this.step = nextStep;
-      this.journal.track('OTP_SENT', 'AUTH', { flow: nextStep });
+      this.startResendCooldown();
+      this.journal.track('OTP_SENT', 'AUTH', { flow: nextStep, reference: this.otpReference });
     } catch (e: unknown) {
       console.error('[Auth] Échec envoi OTP Notification Hub', e);
       this.error = this.extractError(e) || 'Impossible d\'envoyer le SMS.';
       this.journal.track('OTP_FAILED', 'AUTH', { stage: 'send', reason: this.error });
+    }
+  }
+
+  async resendOtp(): Promise<void> {
+    if (!this.canResendOtp) return;
+    if (this.step !== 'otp' && this.step !== 'register-otp') return;
+    this.isLoading = true;
+    this.error = '';
+    this.journal.track('OTP_SEND_REQUESTED', 'AUTH', { resend: true });
+    try {
+      if (isE2eMode()) {
+        this.otpReference = E2E_OTP_REFERENCE;
+        this.otpForm.reset();
+        this.error = `Nouveau code envoyé. Seul le code de référence ${this.otpReference} est valide.`;
+        this.startResendCooldown();
+        this.journal.track('OTP_SENT', 'AUTH', { resend: true, mock: true, reference: this.otpReference });
+        return;
+      }
+      const res = await firstValueFrom(this.api.sendOtp({ phone: this.phone }));
+      this.otpReference = res.reference?.trim() || '';
+      this.otpForm.reset();
+      this.error = this.otpReference
+        ? `Nouveau code envoyé. Seul le code de référence ${this.otpReference} est valide.`
+        : 'Nouveau code envoyé.';
+      this.startResendCooldown();
+      this.journal.track('OTP_SENT', 'AUTH', { resend: true, reference: this.otpReference });
+    } catch (e: unknown) {
+      this.error = this.extractError(e) || 'Impossible de renvoyer le SMS.';
+      this.journal.track('OTP_FAILED', 'AUTH', { stage: 'resend', reason: this.error });
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private startResendCooldown(): void {
+    this.clearResendTimer();
+    this.resendCountdown = OTP_RESEND_COOLDOWN_SECONDS;
+    this.resendTimer = setInterval(() => {
+      this.resendCountdown -= 1;
+      if (this.resendCountdown <= 0) {
+        this.clearResendTimer();
+        this.resendCountdown = 0;
+      }
+    }, 1000);
+  }
+
+  private clearResendTimer(): void {
+    if (this.resendTimer) {
+      clearInterval(this.resendTimer);
+      this.resendTimer = null;
     }
   }
 
@@ -239,6 +332,9 @@ export class AuthPage implements ViewWillEnter {
         console.info('[E2E] verify OTP court-circuité — preuve mock (code saisi:', this.otpForm.value.otp, ')');
         this.otpProofToken = 'e2e-mock-otp-proof';
         this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
+        if (this.isRegistrationFlow) {
+          await this.loadLocalities();
+        }
         this.journal.track('OTP_VERIFIED', 'AUTH', { mock: true });
         return;
       }
@@ -248,12 +344,28 @@ export class AuthPage implements ViewWillEnter {
       }));
       this.otpProofToken = res.otpProofToken;
       this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
+      if (this.isRegistrationFlow) {
+        await this.loadLocalities();
+      }
       this.journal.track('OTP_VERIFIED', 'AUTH');
     } catch (e: unknown) {
       this.error = this.extractError(e) || 'Code incorrect. Réessayez.';
       this.journal.track('OTP_FAILED', 'AUTH', { stage: 'verify', reason: this.error });
     } finally {
       this.isLoading = false;
+    }
+  }
+
+  async loadLocalities(): Promise<void> {
+    this.localitiesLoading = true;
+    this.localitiesError = '';
+    try {
+      this.localities = await firstValueFrom(this.api.getLocalities());
+    } catch (e: unknown) {
+      this.localities = [];
+      this.localitiesError = this.extractError(e) || 'Impossible de charger les zones.';
+    } finally {
+      this.localitiesLoading = false;
     }
   }
 
@@ -349,6 +461,9 @@ export class AuthPage implements ViewWillEnter {
     if (this.step === 'pin' || this.step === 'otp' || this.step === 'register-otp') {
       this.step = 'phone';
       this.isRegistrationFlow = false;
+      this.otpReference = '';
+      this.clearResendTimer();
+      this.resendCountdown = 0;
     } else if (this.step === 'setup-pin') {
       this.step = 'otp';
     } else if (this.step === 'register-form') {

@@ -80,13 +80,12 @@ export async function mockCustomerApi(page: Page): Promise<void> {
     }
 
     if (url.includes('/auth/send-otp') && method === 'POST') {
-      // Contournement OTP : en mode __E2E__ l'app n'appelle pas cet endpoint,
-      // mais on logue quand même un code fixe pour les parcours qui l'utilisent.
       console.log(`[E2E] send-otp mock — phone OTP code=${E2E_MOCK_OTP_CODE}`);
       await route.fulfill(jsonResponse({
         sessionId: '00000000-0000-0000-0000-000000000001',
         expiresAt: new Date(Date.now() + 300_000).toISOString(),
         channel: 'SMS',
+        reference: 'E2E1',
         // Champ informatif pour les tests / debug (non consommé par l'API réelle)
         debugOtpCode: E2E_MOCK_OTP_CODE,
       }, 202));
@@ -272,8 +271,17 @@ export async function mockRegistrationOnboardingFlow(page: Page): Promise<void> 
         sessionId: '00000000-0000-0000-0000-000000000069',
         expiresAt: new Date(Date.now() + 300_000).toISOString(),
         channel: 'SMS',
+        reference: 'E2E1',
         debugOtpCode: E2E_MOCK_OTP_CODE,
       }, 202));
+      return;
+    }
+
+    if (url.includes('/auth/localities') && method === 'GET') {
+      await route.fulfill(jsonResponse([
+        { id: 1, name: 'Tokoin' },
+        { id: 2, name: 'Agoè' },
+      ]));
       return;
     }
 

@@ -44,6 +44,7 @@ class CustomerRegistrationServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private AuthenticationManager authenticationManager;
     @Mock private JwtUtils jwtUtils;
+    @Mock private com.optimize.elykia.core.repository.LocalityRepository localityRepository;
 
     @InjectMocks
     private CustomerRegistrationService service;
@@ -97,8 +98,24 @@ class CustomerRegistrationServiceTest {
         when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.empty());
         when(clientRepository.existsByPhone("90123456")).thenReturn(false);
         when(clientRepository.existsByCardID("CARD-1")).thenReturn(false);
+        when(localityRepository.existsByName("Tokoin")).thenReturn(true);
 
         assertThrows(CustomValidationException.class, () -> service.register(request));
+    }
+
+    @Test
+    void register_rejectsUnknownLocality() {
+        CustomerRegisterRequest request = validRequest();
+        request.setQuarter("ZoneInconnue");
+        doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.empty());
+        when(clientRepository.existsByPhone("90123456")).thenReturn(false);
+        when(clientRepository.existsByCardID("CARD-1")).thenReturn(false);
+        when(localityRepository.existsByName("ZoneInconnue")).thenReturn(false);
+
+        CustomValidationException ex =
+                assertThrows(CustomValidationException.class, () -> service.register(request));
+        assertEquals("Veuillez choisir votre zone dans la liste.", ex.getMessage());
     }
 
     @Test
@@ -110,6 +127,7 @@ class CustomerRegistrationServiceTest {
                 .thenReturn(Optional.of(user("90123456")));
         when(clientRepository.existsByPhone("90123456")).thenReturn(false);
         when(clientRepository.existsByCardID("CARD-1")).thenReturn(false);
+        when(localityRepository.existsByName("Tokoin")).thenReturn(true);
         when(clientRepository.saveAndFlush(any(Client.class))).thenAnswer(inv -> {
             Client c = inv.getArgument(0);
             c.setId(55L);

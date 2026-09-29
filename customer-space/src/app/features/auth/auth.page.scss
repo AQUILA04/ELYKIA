@@ -158,3 +158,36 @@ ion-button {
   --padding-start: 0;
   color: var(--elyk-navy);
 }
+
+.otp-reference {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--elyk-navy);
+}
+
+.otp-resend {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--elyk-navy);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+
+  &:disabled {
+    color: var(--elyk-gray-text);
+    text-decoration: none;
+    cursor: not-allowed;
+  }
+}
+
+:host ::ng-deep ion-content.auth-desktop-scroll {
+  --background: var(--elyk-cream);
+}
+

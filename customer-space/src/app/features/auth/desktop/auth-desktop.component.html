@@ -30,7 +30,13 @@
 
     <div class="auth-desktop__card">
       <h2 class="elyk-title-serif auth-desktop__title">{{ title() }}</h2>
-      <p class="elyk-subtitle auth-desktop__subtitle">{{ subtitle() }}</p>
+      <p class="elyk-subtitle auth-desktop__subtitle">
+        <ng-container *ngIf="(step() === 'otp' || step() === 'register-otp') && otpReference(); else plainSubtitle">
+          Saisissez le code à 6 chiffres reçu par SMS associé à la référence
+          <strong class="otp-reference" data-testid="e2e-auth-otp-reference">{{ otpReference() }}</strong>
+        </ng-container>
+        <ng-template #plainSubtitle>{{ subtitle() }}</ng-template>
+      </p>
 
       <form *ngIf="step() === 'phone'" [formGroup]="phoneForm()" (ngSubmit)="submitPhone.emit()">
         <app-elyk-outlined-field label="Numéro de téléphone" icon="call-outline">
@@ -73,6 +79,14 @@
           <ion-spinner *ngIf="isLoading()" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading()">Vérifier</span>
         </ion-button>
+        <button
+          type="button"
+          class="otp-resend"
+          [disabled]="!canResendOtp()"
+          (click)="resendOtp.emit()"
+          data-testid="e2e-auth-otp-resend">
+          {{ resendLabel() }}
+        </button>
       </form>
 
       <form *ngIf="step() === 'setup-pin'" [formGroup]="setupPinForm()" (ngSubmit)="submitSetupPin.emit()">
@@ -122,9 +136,14 @@
           <app-elyk-outlined-field label="Adresse" icon="home-outline">
             <ion-input formControlName="address" data-testid="e2e-auth-register-address"></ion-input>
           </app-elyk-outlined-field>
-          <app-elyk-outlined-field label="Quartier" icon="location-outline">
-            <ion-input formControlName="quarter" data-testid="e2e-auth-register-quarter"></ion-input>
-          </app-elyk-outlined-field>
+          <app-elyk-locality-picker
+            formControlName="quarter"
+            label="Ma zone (Localités)"
+            [localities]="localities()"
+            [loading]="localitiesLoading()"
+            [loadError]="localitiesError()"
+            (retryLoad)="retryLocalities.emit()">
+          </app-elyk-locality-picker>
           <app-elyk-outlined-field label="Date de naissance" icon="calendar-outline">
             <ion-input formControlName="dateOfBirth" type="date" data-testid="e2e-auth-register-dob"></ion-input>
           </app-elyk-outlined-field>
@@ -163,7 +182,7 @@
         </ion-button>
       </form>
 
-      <p class="elyk-page-footer-hint" *ngIf="step() === 'phone'">Première connexion ? Contactez votre agence</p>
+      <p class="elyk-page-footer-hint" *ngIf="step() === 'phone'">{{ phoneHint() }}</p>
       <p class="auth-version" data-testid="e2e-auth-version">Version {{ appVersion() }}</p>
     </div>
   </main>

@@ -9,7 +9,9 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientActivationStatus;
 import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.core.dto.customer.*;
+import com.optimize.elykia.core.entity.Locality;
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
+import com.optimize.elykia.core.service.masterdata.LocalityService;
 import com.optimize.elykia.core.util.PhoneNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +25,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -39,9 +43,18 @@ public class CustomerAuthService {
     private final ClientRepository clientRepository;
     private final CustomerRegistrationService customerRegistrationService;
     private final CustomerActivityLogService activityLogService;
+    private final LocalityService localityService;
 
     @Value("${bezkoder.app.jwtExpirationMs:86400000}")
     private long jwtExpirationMs;
+
+    @Transactional(readOnly = true)
+    public List<CustomerLocalityDto> listLocalities() {
+        return localityService.getAll().stream()
+                .sorted(Comparator.comparing(Locality::getName, String.CASE_INSENSITIVE_ORDER))
+                .map(l -> CustomerLocalityDto.builder().id(l.getId()).name(l.getName()).build())
+                .toList();
+    }
 
     @Transactional(readOnly = true)
     public CustomerCheckPhoneResponse checkPhone(CustomerPhoneRequest request) {
@@ -138,11 +151,14 @@ public class CustomerAuthService {
             Long clientId = contextService.findClientIdOptional(username).orElse(null);
             activityLogService.recordServerEvent(
                     "AUTH", "OTP_SENT", username, clientId,
-                    "OTP envoyé", Map.of("channel", hub.channel() != null ? hub.channel() : "SMS"));
+                    "OTP envoyé", Map.of(
+                            "channel", hub.channel() != null ? hub.channel() : "SMS",
+                            "reference", hub.reference() != null ? hub.reference() : ""));
             return CustomerOtpSendResponse.builder()
                     .sessionId(hub.sessionId())
                     .expiresAt(hub.expiresAt())
                     .channel(hub.channel() != null ? hub.channel() : "SMS")
+                    .reference(hub.reference())
                     .build();
         } catch (RuntimeException e) {
             activityLogService.recordServerEvent(

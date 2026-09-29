@@ -2,13 +2,19 @@ import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { AuthStep } from '../../../shared/models/customer-auth.model';
-import { ElykOutlinedFieldComponent } from '../../../shared/ui';
+import { AuthStep, CustomerLocality } from '../../../shared/models/customer-auth.model';
+import { ElykLocalityPickerComponent, ElykOutlinedFieldComponent } from '../../../shared/ui';
 
 @Component({
   selector: 'app-auth-desktop',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, IonicModule, ElykOutlinedFieldComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    IonicModule,
+    ElykOutlinedFieldComponent,
+    ElykLocalityPickerComponent,
+  ],
   templateUrl: './auth-desktop.component.html',
   styleUrls: ['./auth-desktop.component.scss'],
 })
@@ -23,6 +29,14 @@ export class AuthDesktopComponent {
   readonly appVersion = input('');
   readonly profilPhotoDataUrl = input('');
   readonly cardTypes = input<{ value: string; label: string }[]>([]);
+  readonly otpReference = input('');
+  readonly resendCountdown = input(0);
+  readonly resendLabel = input('Renvoyer le code');
+  readonly canResendOtp = input(false);
+  readonly phoneHint = input('');
+  readonly localities = input<CustomerLocality[]>([]);
+  readonly localitiesLoading = input(false);
+  readonly localitiesError = input('');
 
   readonly phoneForm = input.required<FormGroup>();
   readonly pinForm = input.required<FormGroup>();
@@ -34,10 +48,12 @@ export class AuthDesktopComponent {
   readonly submitPhone = output<void>();
   readonly submitPin = output<void>();
   readonly submitOtp = output<void>();
+  readonly resendOtp = output<void>();
   readonly submitSetupPin = output<void>();
   readonly submitRegisterForm = output<void>();
   readonly submitRegisterPin = output<void>();
   readonly profilPhotoSelected = output<Event>();
+  readonly retryLocalities = output<void>();
   readonly back = output<void>();
 
   readonly benefits = [

@@ -54,7 +54,8 @@ public class CustomerOtpService {
         try {
             String idempotencyKey = UUID.randomUUID().toString();
             OtpSendResponse response = client().sendOtp(OtpSendRequest.sms(e164, null), idempotencyKey);
-            log.info("OTP envoyé via Notification Hub pour {} (session={})", username, response.sessionId());
+            log.info("OTP envoyé via Notification Hub pour {} (session={}, réf.={})",
+                    username, response.sessionId(), response.reference());
             return response;
         } catch (NotificationHubClientException ex) {
             throw mapSendError(ex);
