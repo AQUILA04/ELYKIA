@@ -120,7 +120,7 @@
 
 html,
 body {
-  height: 100%;
+  min-height: 100%;
   width: 100%;
   overflow-x: hidden;
 }
@@ -440,6 +440,8 @@ mat-error {
   margin-left: var(--sidebar-width);
   padding: 20px;
   width: calc(100% - var(--sidebar-width));
+  min-height: 100vh;
+  overflow-y: auto;
 }
 
 // ── SweetAlert2 Custom Theme ─────────────────────────────────
