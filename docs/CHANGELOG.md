@@ -9,6 +9,19 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.25.2] — 2026-10-01
+
+### Fixed
+
+- Tableau de bord tontine : les KPI se recalculent lorsque le filtre commercial change (et restent bornés au portefeuille pour un commercial connecté).
+- Filtres de la liste des membres tontine : mémorisation par utilisateur dans le navigateur jusqu’à **Effacer**, y compris après déconnexion (`elykia.prefs.*`).
+
+## Backend — [1.24.1] — 2026-10-01
+
+### Fixed
+
+- `GET /api/v1/tontines/sessions/{id}/stats` : paramètre optionnel `commercial` pour aligner les statistiques sur le filtre du dashboard ; un promoteur est forcé sur son propre username.
+
 ## Frontend — [2.25.1] — 2026-09-29
 
 ### Fixed

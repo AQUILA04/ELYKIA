@@ -545,10 +545,10 @@ Le menu **Tontines** propose quatre espaces de travail adaptés au déroulement 
 L'écran principal de la liste vous donne une vue synthétique sur la campagne en cours.
 
 ### Les indicateurs clés de la campagne
-En haut de l'écran, les cartes récapitulatives vous informent en temps réel sur la santé de la tontine :
-- **Membres Actifs** : Nombre total d'adhérents inscrits cette année.
-- **Montant Total Collecté** : Somme globale des cotisations versées par les membres (en FCFA).
-- **Revenu Total (Part Société)** : Rémunération statutaire acquise par ELYKIA pour la gestion de la tontine.
+En haut de l'écran, les cartes récapitulatives vous informent en temps réel sur la santé de la tontine. Lorsqu'un commercial est sélectionné dans la barre de filtres, ces indicateurs se mettent à jour pour ne compter que son portefeuille :
+- **Membres Actifs** : Nombre d'adhérents inscrits cette année (global ou pour le commercial choisi).
+- **Montant Total Collecté** : Somme des cotisations versées par les membres affichés (en FCFA).
+- **Revenu Total (Part Société)** : Rémunération statutaire acquise par ELYKIA pour la gestion de la tontine, alignée sur le même filtre.
 - **En Attente de Livraison** : Nombre de membres éligibles qui attendent encore leurs articles de fin d'année (avec le nombre de colis déjà livrés).
 - **Contribution Moyenne** : Montant moyen épargné par adhérent.
 - **Collectes à la livraison** : Montants perçus lors de la délivrance des articles.
@@ -561,9 +561,11 @@ En haut de l'écran, les cartes récapitulatives vous informent en temps réel s
 ### Trouver rapidement un membre
 La barre de recherche et de filtres vous permet de cibler des dossiers précis :
 - **Par texte** : Tapez le nom, prénom, numéro de téléphone ou code du client.
-- **Par commercial** : Pour un gestionnaire, sélectionnez un commercial dans la liste déroulante pour isoler son secteur. Pour un commercial, votre secteur est pré-sélectionné.
+- **Par commercial** : Pour un gestionnaire, sélectionnez un commercial dans la liste déroulante pour isoler son secteur ; la liste des membres et les indicateurs du haut de page se mettent à jour ensemble. Pour un commercial, votre secteur est pré-sélectionné.
 - **Par statut de livraison** : Filtrez les membres en cours de session, ceux dont la livraison est en attente, validée ou déjà terminée.
 - **Par état du carnet** : Affichez uniquement les membres dont le carnet est vérifié ou ceux restant à contrôler.
+
+Vos filtres restent en place si vous quittez la page puis y revenez, jusqu'à ce que vous cliquiez sur **Effacer**.
 
 ### Téléchargements et exports PDF
 La barre d'outils propose des exports prêts à imprimer :

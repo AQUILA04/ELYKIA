@@ -11,6 +11,7 @@ export class TontineFilterBarComponent implements OnInit {
   @Input() resultCount = 0;
   @Input() downloading = false;
   @Input() downloadingCarnet = false;
+  @Input() initialFilters: TontineFilterBarParams | null = null;
   currentSearchTerm: string = '';
   currentSelectedStatus: TontineMemberDeliveryStatus | 'ALL' = 'ALL';
   currentSelectedCommercial: string = 'ALL';
@@ -27,15 +28,57 @@ export class TontineFilterBarComponent implements OnInit {
   constructor(private clientService: ClientService) {}
 
   ngOnInit(): void {
+    this.applyInitialFilters();
     this.loadAgents();
     this.emitFilterChanges();
   }
 
+  private applyInitialFilters(): void {
+    if (!this.initialFilters) {
+      return;
+    }
+    if (this.initialFilters.search) {
+      this.currentSearchTerm = this.initialFilters.search;
+    }
+    if (this.initialFilters.deliveryStatus && this.initialFilters.deliveryStatus !== 'ALL') {
+      this.currentSelectedStatus = this.initialFilters.deliveryStatus;
+    }
+    if (this.initialFilters.commercial) {
+      this.currentSelectedCommercial = this.initialFilters.commercial;
+    }
+    if (typeof this.initialFilters.carnetVerified === 'boolean') {
+      this.currentCarnetStatus = this.initialFilters.carnetVerified ? 'VERIFIED' : 'PENDING';
+    }
+    if (this.initialFilters.registrationSource === 'CUSTOMER_SPACE'
+        || this.initialFilters.registrationSource === 'STAFF') {
+      this.currentRegistrationSource = this.initialFilters.registrationSource;
+    }
+  }
+
   loadAgents() {
     this.clientService.getAgents().subscribe(
-      data => { this.commerciaux = data ?? []; },
-      () => { this.commerciaux = []; }
+      data => {
+        this.commerciaux = data ?? [];
+        this.ensureCommercialStillValid();
+      },
+      () => {
+        this.commerciaux = [];
+        this.ensureCommercialStillValid();
+      }
     );
+  }
+
+  private ensureCommercialStillValid(): void {
+    if (this.currentSelectedCommercial === 'ALL') {
+      return;
+    }
+    const exists = this.commerciaux.some(
+      (comm: { username?: string }) => comm?.username === this.currentSelectedCommercial
+    );
+    if (!exists) {
+      this.currentSelectedCommercial = 'ALL';
+      this.emitFilterChanges();
+    }
   }
 
   onSearchEnter(): void {
