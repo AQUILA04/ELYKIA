@@ -27,6 +27,31 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Accessibilité : `aria-label` sur les inputs fichier photo (inscription / pièce), le type et le numéro de pièce (**Mon dossier**, mobile et desktop).
 - E2E : `data-testid` `e2e-onboarding-card-type` / `e2e-onboarding-card-id` rétablis sur **Mon dossier** (parcours inscription → pièce → dépôt).
 
+## Backend — [1.26.0] — 2026-10-01
+
+### Added
+
+- `POST /api/v1/clients/photos/urls` : URL MinIO signées (courte durée) pour photos de profil et de pièce, en lot (max 200). Contrôle portefeuille pour les commerciaux ; accès global pour le staff. Marqueur `legacy` si la photo n’est encore que dans PhotoStore.
+
+## Frontend — [2.26.1] — 2026-10-01
+
+### Fixed
+
+- Inscriptions clients : si la photo de profil ou de pièce est injoignable, bascule sur l’URL suivante puis affichage des **initiales** (ou absence de vignette pièce) au lieu d’une image cassée.
+- Photos clients (inscriptions + fiche client) : chargement via URL MinIO signées (`ClientPhotoUrlService`) ; plus de lecture anonyme sur le bucket privé ; repli PhotoStore isolé et transitoire.
+
+## Mobile — [2.30.7] — 2026-10-01
+
+### Fixed
+
+- Sync photos : téléchargement des miniatures via URL MinIO signées (lots), puis stockage local ; affichage local d’abord (plus d’URL MinIO brutes).
+- Avatars chef de recouvrement : miniatures signées en lot ; repli sur les initiales.
+
+## Docs & Infra — 2026-10-01 (photos MinIO privées)
+
+- Bucket clients reste privé ; lecture via URL présignées signées contre `MINIO_PUBLIC_URL` (hôte Traefik).
+- Config `elykia.photos.presign-expiry-minutes` (défaut 60).
+
 ## Backend — [1.25.0] — 2026-10-01
 
 ### Added
@@ -40,12 +65,6 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Inscription espace client : `cardType` / `cardID` optionnels (renseignés à l’onboarding) ; âge minimum **18 ans**.
 - Activation inscription BO : `tontineCollector` obligatoire et compte toujours créé **ACTIF**, même avec solde 0.
-
-## Frontend — [2.26.1] — 2026-10-01
-
-### Fixed
-
-- Inscriptions clients : si la photo de profil ou de pièce est injoignable, bascule sur l’URL suivante puis affichage des **initiales** (ou absence de vignette pièce) au lieu d’une image cassée.
 
 ## Frontend — [2.26.0] — 2026-10-01
 
