@@ -1,10 +1,11 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmPackClient } from '../../core/services/rm/rm.models';
 import { RmClientEditSheetComponent } from '../../features/rm/client-edit/rm-client-edit-sheet.component';
 import { RmCollectorAssignSheetComponent } from '../../features/rm/collector-assign/rm-collector-assign-sheet.component';
+import { ClientPhotoUrlService } from '../../core/services/client/client-photo-url.service';
 
 @Component({
   selector: 'app-rm-clients',
@@ -17,19 +18,25 @@ export class RmClientsPage implements OnInit, OnDestroy {
   query = '';
   selectedIds = new Set<number>();
   private failedAvatars = new Set<number>();
+  /** Short-lived signed thumb URLs keyed by client id. */
+  private signedAvatars = new Map<number, string>();
   private sub?: Subscription;
 
   constructor(
     private readonly scope: RmScopeService,
-    private readonly modalCtrl: ModalController
+    private readonly modalCtrl: ModalController,
+    private readonly clientPhotoUrlService: ClientPhotoUrlService,
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.sub = this.scope.pack$.subscribe(pack => {
       this.clients = pack?.clients ?? [];
       this.failedAvatars.clear();
+      this.signedAvatars.clear();
       const valid = new Set(this.clients.map(c => c.id));
       this.selectedIds = new Set([...this.selectedIds].filter(id => valid.has(id)));
+      this.prefetchSignedAvatars(this.clients);
     });
   }
 
@@ -93,13 +100,7 @@ export class RmClientsPage implements OnInit, OnDestroy {
     if (this.failedAvatars.has(c.id)) {
       return null;
     }
-    if (c.profilPhotoThumbUrl) {
-      return c.profilPhotoThumbUrl;
-    }
-    if (c.profilPhotoUrl?.includes('original.jpg')) {
-      return c.profilPhotoUrl.replace('original.jpg', 'thumb.jpg');
-    }
-    return c.profilPhotoUrl || null;
+    return this.signedAvatars.get(c.id) ?? null;
   }
 
   initials(c: RmPackClient): string {
@@ -110,6 +111,26 @@ export class RmClientsPage implements OnInit, OnDestroy {
 
   onAvatarError(clientId: number): void {
     this.failedAvatars.add(clientId);
+  }
+
+  private async prefetchSignedAvatars(clients: RmPackClient[]): Promise<void> {
+    const ids = clients
+      .filter(c => !!(c.profilPhotoThumbUrl || c.profilPhotoUrl))
+      .map(c => c.id);
+    if (ids.length === 0) {
+      return;
+    }
+    try {
+      const entries = await this.clientPhotoUrlService.getUrls(ids, 'PROFIL', 'THUMB');
+      for (const entry of entries) {
+        if (entry.url) {
+          this.signedAvatars.set(entry.clientId, entry.url);
+        }
+      }
+      this.cdr.markForCheck();
+    } catch {
+      // Avatars fall back to initials
+    }
   }
 
   async openEdit(client: RmPackClient): Promise<void> {

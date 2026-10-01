@@ -26,6 +26,7 @@ import * as DistributionActions from '../../../../store/distribution/distributio
 import { Capacitor } from '@capacitor/core';
 import { ThumbnailService } from '../../../../core/services/thumbnail.service';
 import { ReliquatService } from '../../../../core/services/reliquat.service';
+import { ClientPhotoUrlService } from '../../../../core/services/client/client-photo-url.service';
 
 @Component({
   selector: 'app-client-detail',
@@ -58,7 +59,8 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     private actions$: Actions,
     private thumbnailService: ThumbnailService,
     private cdr: ChangeDetectorRef,
-    private reliquatService: ReliquatService
+    private reliquatService: ReliquatService,
+    private clientPhotoUrlService: ClientPhotoUrlService
   ) { }
 
   async ngOnInit() {
@@ -99,8 +101,10 @@ export class ClientDetailPage implements OnInit, OnDestroy {
           return of(null);
         }
         // Combine photo loading observables
-        const profilePhoto = this.getPhotoUrl(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto);
-        const cardPhoto = this.getPhotoUrl(client.cardPhoto || client.cardPhotoUrl);
+        const profilePhoto = this.getPhotoUrl(this.preferLocalPhotoPath(
+          client.profilPhotoThumbUrl, client.profilPhoto, client.profilPhotoUrl));
+        const cardPhoto = this.getPhotoUrl(this.preferLocalPhotoPath(
+          client.cardPhotoThumbUrl, client.cardPhoto, client.cardPhotoUrl));
 
         return from(this.reliquatService.getReliquatForClient(client.id)).pipe(
           map(reliquat => ({
@@ -191,8 +195,22 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   }
 
   onAvatarClick(client: any) {
-    const photoPath = client.profilPhoto || client.profilPhotoUrl || client.profilPhotoThumbUrl;
+    // Prefer local original / thumb; never open raw private MinIO URLs
+    const localCandidates = [client.profilPhoto, client.profilPhotoThumbUrl, client.profilPhotoUrl]
+      .filter((p: string | null | undefined) => !!p && !String(p).startsWith('http'));
+    const photoPath = localCandidates[0];
     if (!photoPath) {
+      // Online: resolve a short-lived original URL for preview
+      const id = Number(client.id);
+      if (!id) {
+        return;
+      }
+      this.clientPhotoUrlService.getUrls([id], 'PROFIL', 'ORIGINAL').then(entries => {
+        const url = entries[0]?.url;
+        if (url) {
+          this.openImagePreview(url, client.fullName || `${client.firstname} ${client.lastname}`);
+        }
+      }).catch(() => { /* ignore */ });
       return;
     }
     const photoUrl = this.getPhotoUrl(photoPath);
@@ -212,34 +230,43 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Optimized photo URL retrieval using Capacitor.convertFileSrc.
-   * This avoids reading the file into memory (base64) and uses the native WebView rendering.
+   * Local FS first. Rejects raw private MinIO URLs; allows short-lived presigned URLs.
    */
   getPhotoUrl(localPath: string | undefined | null): SafeUrl {
     if (!localPath) {
       return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
     }
 
-    // Sur le Web, les chemins de fichiers natifs ne fonctionneront pas directement.
-    // On retourne l'image par défaut pour éviter les erreurs 404 dans la console,
-    // sauf si c'est une URL http ou un asset.
-    if (Capacitor.getPlatform() === 'web' && !localPath.startsWith('http') && !localPath.startsWith('assets')) {
+    if (localPath.startsWith('http://') || localPath.startsWith('https://')) {
+      if (!localPath.includes('X-Amz-Signature') && !localPath.includes('X-Amz-Credential')) {
+        return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
+      }
+      return this.sanitizer.bypassSecurityTrustUrl(localPath);
+    }
+
+    if (Capacitor.getPlatform() === 'web' && !localPath.startsWith('assets')) {
       return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
     }
 
-    // Si le chemin est déjà une URL complète ou un asset
-    if (localPath.startsWith('http') || localPath.startsWith('assets') || localPath.startsWith('file://') || localPath.startsWith('content://')) {
+    if (localPath.startsWith('assets') || localPath.startsWith('file://') || localPath.startsWith('content://')) {
       return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(localPath));
     }
 
-    // Si c'est un chemin relatif, on a besoin du basePath
     if (!this.basePath) {
-      // En attendant que le basePath soit chargé, on affiche l'image par défaut pour éviter les 404
       return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
     }
 
     const finalPath = this.basePath + (localPath.startsWith('/') ? '' : '/') + localPath;
     return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(finalPath));
+  }
+
+  /** Prefer local / file paths over raw http MinIO markers. */
+  preferLocalPhotoPath(...candidates: (string | null | undefined)[]): string | null {
+    const local = candidates.find((p) => !!p && !String(p).startsWith('http'));
+    if (local) {
+      return local;
+    }
+    return candidates.find((p) => !!p) ?? null;
   }
 
   handleImageError(event: Event) {

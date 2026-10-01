@@ -36,8 +36,8 @@
           (click)="openClientDetail(client.id)">
           <div class="card-left">
             <div class="elyk-avatar">
-              <img *ngIf="(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto); else defaultAvatar"
-                   [src]="getPhotoUrl(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto)"
+              <img *ngIf="preferLocalPhotoPath(client.profilPhotoThumbUrl, client.profilPhoto, client.profilPhotoUrl) as photoPath; else defaultAvatar"
+                   [src]="getPhotoUrl(photoPath)"
                    (error)="handleImageError($event)"
                    alt="" />
               <ng-template #defaultAvatar>

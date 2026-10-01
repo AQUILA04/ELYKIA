@@ -143,33 +143,46 @@ export class ClientsPage implements OnInit, OnDestroy {
 
   /**
    * Optimized photo URL retrieval using Capacitor.convertFileSrc.
-   * This avoids reading the file into memory (base64) and uses the native WebView rendering.
+   * Prefers local FS paths. Rejects raw private MinIO URLs (no signature) — use PhotoSync first.
+   * Allows short-lived presigned URLs (X-Amz-Signature).
    */
   getPhotoUrl(localPath: string | undefined | null): SafeUrl {
     if (!localPath) {
       return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
     }
 
+    if (localPath.startsWith('http://') || localPath.startsWith('https://')) {
+      if (!localPath.includes('X-Amz-Signature') && !localPath.includes('X-Amz-Credential')) {
+        // Raw MinIO object URL — bucket is private; do not bind
+        return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
+      }
+      return this.sanitizer.bypassSecurityTrustUrl(localPath);
+    }
+
     // Sur le Web, les chemins de fichiers natifs ne fonctionneront pas directement.
-    // On retourne l'image par défaut pour éviter les erreurs 404 dans la console,
-    // sauf si c'est une URL http ou un asset.
-    if (Capacitor.getPlatform() === 'web' && !localPath.startsWith('http') && !localPath.startsWith('assets')) {
+    if (Capacitor.getPlatform() === 'web' && !localPath.startsWith('assets')) {
       return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
     }
 
-    // Si le chemin est déjà une URL complète ou un asset
-    if (localPath.startsWith('http') || localPath.startsWith('assets') || localPath.startsWith('file://') || localPath.startsWith('content://')) {
+    if (localPath.startsWith('assets') || localPath.startsWith('file://') || localPath.startsWith('content://')) {
       return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(localPath));
     }
 
-    // Si c'est un chemin relatif, on a besoin du basePath
     if (!this.basePath) {
-      // En attendant que le basePath soit chargé, on affiche l'image par défaut pour éviter les 404
       return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
     }
 
     const finalPath = this.basePath + (localPath.startsWith('/') ? '' : '/') + localPath;
     return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(finalPath));
+  }
+
+  /** Prefer local / file paths over raw http MinIO markers. */
+  preferLocalPhotoPath(...candidates: (string | null | undefined)[]): string | null {
+    const local = candidates.find((p) => !!p && !String(p).startsWith('http'));
+    if (local) {
+      return local;
+    }
+    return candidates.find((p) => !!p) ?? null;
   }
 
   ngOnDestroy() {
