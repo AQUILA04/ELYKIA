@@ -49,6 +49,7 @@ public class ClientRegistrationAdminService {
     private final ClientService clientService;
     private final AccountService accountService;
     private final CustomerInitialDepositSubmissionRepository depositRepository;
+    private final CustomerNotificationService customerNotificationService;
 
     @Transactional(readOnly = true)
     public Page<ClientRegistrationDto> list(
@@ -103,10 +104,11 @@ public class ClientRegistrationAdminService {
         if (!StringUtils.hasText(request.getCollector())) {
             throw new CustomValidationException("Le commercial crédit est obligatoire.");
         }
-        client.setCollector(request.getCollector().trim());
-        if (StringUtils.hasText(request.getTontineCollector())) {
-            client.setTontineCollector(request.getTontineCollector().trim());
+        if (!StringUtils.hasText(request.getTontineCollector())) {
+            throw new CustomValidationException("Le commercial tontine est obligatoire.");
         }
+        client.setCollector(request.getCollector().trim());
+        client.setTontineCollector(request.getTontineCollector().trim());
         client.setActivationStatus(ClientActivationStatus.ACTIVE);
         client.setActivationRejectionReason(null);
         client.setActivationRejectedAt(null);
@@ -118,18 +120,17 @@ public class ClientRegistrationAdminService {
 
         CustomerInitialDepositSubmission deposit = latestDeposit(clientId);
         double balance = 0;
-        boolean activateAccount = false;
         if (deposit != null && CustomerSubmissionStatus.INITIE.equals(deposit.getStatus())
                 && request.isValidateInitialDeposit()) {
             markDepositValidated(user, deposit);
             balance = deposit.getMobileMoneyAmount() != null ? deposit.getMobileMoneyAmount() : 0;
-            activateAccount = true;
         } else if (deposit != null && CustomerSubmissionStatus.VALIDE.equals(deposit.getStatus())) {
             balance = deposit.getMobileMoneyAmount() != null ? deposit.getMobileMoneyAmount() : 0;
-            activateAccount = true;
         }
 
-        ensureAccount(client, balance, activateAccount);
+        // Toujours ACTIF à la validation BO, même avec solde 0
+        ensureAccount(client, balance, true);
+        customerNotificationService.notifyRegistrationActivated(client);
         return toDto(clientRepository.findById(clientId).orElse(client), latestDeposit(clientId));
     }
 
@@ -146,6 +147,7 @@ public class ClientRegistrationAdminService {
             client.setLastModifiedBy(user.getUsername());
         }
         client = clientRepository.save(client);
+        customerNotificationService.notifyRegistrationRejected(client, request.getReason());
         return toDto(client, latestDeposit(clientId));
     }
 
@@ -212,7 +214,8 @@ public class ClientRegistrationAdminService {
         dto.setClientId(fresh.getId());
         dto.setAccountNumber(accountNumber);
         dto.setAccountBalance(Math.max(balance, 0));
-        if (actif && balance > 0) {
+        // Validation BO : toujours ACTIF (syncAccount), y compris solde 0
+        if (actif) {
             accountService.syncAccount(dto);
         } else {
             accountService.createAccount(dto);
@@ -244,7 +247,9 @@ public class ClientRegistrationAdminService {
                 .cardType(client.getCardType())
                 .cardID(client.getCardID())
                 .profilPhotoUrl(client.getProfilPhotoUrl())
+                .profilPhotoThumbUrl(client.getProfilPhotoThumbUrl())
                 .cardPhotoUrl(client.getCardPhotoUrl())
+                .cardPhotoThumbUrl(client.getCardPhotoThumbUrl())
                 .activationStatus(client.getActivationStatus() != null
                         ? client.getActivationStatus().name()
                         : ClientActivationStatus.ACTIVE.name())

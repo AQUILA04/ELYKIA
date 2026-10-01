@@ -28,7 +28,7 @@ export class AuthDesktopComponent {
   readonly isLoading = input(false);
   readonly appVersion = input('');
   readonly profilPhotoDataUrl = input('');
-  readonly cardTypes = input<{ value: string; label: string }[]>([]);
+  readonly dateOfBirthError = input('');
   readonly otpReference = input('');
   readonly resendCountdown = input(0);
   readonly resendLabel = input('Renvoyer le code');
@@ -53,6 +53,7 @@ export class AuthDesktopComponent {
   readonly submitRegisterForm = output<void>();
   readonly submitRegisterPin = output<void>();
   readonly profilPhotoSelected = output<Event>();
+  readonly dateOfBirthChanged = output<void>();
   readonly retryLocalities = output<void>();
   readonly back = output<void>();
 

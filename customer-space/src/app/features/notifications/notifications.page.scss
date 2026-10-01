@@ -1,0 +1,128 @@
+.page-content {
+  --background: var(--elyk-cream, #faf6ee);
+}
+
+.page-inner {
+  padding: 16px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+}
+
+ion-toolbar {
+  --background: #fff;
+  --color: var(--elyk-navy, #0d1b2a);
+  box-shadow: 0 2px 8px rgba(13, 27, 42, 0.06);
+  padding-top: env(safe-area-inset-top);
+}
+
+ion-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.notif-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notif-item {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 12px;
+  box-shadow: var(--elyk-shadow, 0 2px 12px rgba(13, 27, 42, 0.08));
+  cursor: pointer;
+  min-height: 72px;
+}
+
+.notif-item--unread {
+  box-shadow: 0 2px 12px rgba(13, 27, 42, 0.12);
+  border-left: 3px solid var(--elyk-gold, #b8860b);
+}
+
+.notif-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--elyk-navy, #0d1b2a);
+
+  ion-icon {
+    font-size: 22px;
+  }
+}
+
+.notif-body {
+  flex: 1;
+  min-width: 0;
+
+  p {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--elyk-gray-text, #64748b);
+    line-height: 1.35;
+  }
+
+  time {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #94a3b8;
+  }
+}
+
+.notif-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  strong {
+    font-size: 15px;
+    color: var(--elyk-navy, #0d1b2a);
+  }
+}
+
+.notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #dc2626;
+  flex-shrink: 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 16px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: #94a3b8;
+}
+
+.empty-title {
+  margin: 12px 0 4px;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--elyk-navy, #0d1b2a);
+}
+
+.empty-sub {
+  margin: 0;
+  font-size: 14px;
+  color: var(--elyk-gray-text, #64748b);
+}
+
+.center-spinner {
+  display: block;
+  margin: 48px auto;
+}

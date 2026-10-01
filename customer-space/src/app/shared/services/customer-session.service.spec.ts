@@ -50,4 +50,18 @@ describe('CustomerSessionService', () => {
     expect(service.currentSession).toBeNull();
     expect(journal.track).toHaveBeenCalledWith('LOGOUT', 'AUTH');
   });
+
+  it('updates activationStatus without changing the token', () => {
+    service.saveSession({ ...validSession, activationStatus: 'PENDING' });
+    service.updateActivationStatus('ACTIVE');
+    expect(service.currentSession?.activationStatus).toBe('ACTIVE');
+    expect(service.currentSession?.token).toBe('tok');
+  });
+
+  it('ignores updateActivationStatus when unchanged or empty', () => {
+    service.saveSession({ ...validSession, activationStatus: 'PENDING' });
+    service.updateActivationStatus('PENDING');
+    service.updateActivationStatus(null);
+    expect(service.currentSession?.activationStatus).toBe('PENDING');
+  });
 });

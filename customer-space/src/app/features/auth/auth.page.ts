@@ -10,9 +10,8 @@ import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import {
   AuthStep,
-  CARD_TYPE_OPTIONS,
-  CustomerLocality,
   CustomerLoginResponse,
+  CustomerLocality,
 } from '../../shared/models/customer-auth.model';
 import { environment } from '../../../environments/environment';
 import { toUsername } from '../../shared/utils/phone-normalizer';
@@ -34,6 +33,15 @@ const OTP_RESEND_COOLDOWN_SECONDS = 60;
 const E2E_OTP_REFERENCE = 'E2E1';
 const PHONE_HINT =
   "Pas encore de compte ? Saisissez simplement votre numéro de téléphone et laissez-vous guider.";
+import {
+  adultDateOfBirthValidator,
+  underageErrorMessage,
+} from '../../shared/utils/adult-dob.validator';
+import { captureRegistrationLocation } from '../../shared/utils/registration-location';
+import {
+  pickProfilPhotoWithFaceValidation,
+  shouldUseHtmlFilePickerForPhoto,
+} from '../../shared/utils/profil-photo-face';
 
 /** Page Connexion / Inscription — wizard téléphone → PIN, OTP ou inscription. */
 @Component({
@@ -68,7 +76,6 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
   appUnavailable = false;
   readonly appUnavailableMessage = APP_UNAVAILABLE_MESSAGE;
   readonly phoneHint = PHONE_HINT;
-  readonly cardTypes = CARD_TYPE_OPTIONS;
   appVersion = environment.version;
   isRegistrationFlow = false;
   localities: CustomerLocality[] = [];
@@ -109,10 +116,8 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
       lastname: ['', [Validators.required, Validators.maxLength(100)]],
       address: ['', [Validators.required, Validators.maxLength(255)]],
       quarter: ['', [Validators.required, Validators.maxLength(100)]],
-      dateOfBirth: ['', Validators.required],
+      dateOfBirth: ['', [Validators.required, adultDateOfBirthValidator()]],
       occupation: ['', [Validators.required, Validators.maxLength(100)]],
-      cardType: ['', Validators.required],
-      cardID: ['', [Validators.required, Validators.maxLength(100)]],
     });
     this.registerPinForm = this.fb.group({
       pin: ['', [Validators.required, Validators.pattern(/^\d{4,6}$/)]],
@@ -199,6 +204,29 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
       return `Renvoyer le code (${this.resendCountdown} s)`;
     }
     return 'Renvoyer le code';
+  }
+
+  get dateOfBirthError(): string {
+    const control = this.registerForm.get('dateOfBirth');
+    if (!control || !(control.touched || control.dirty)) {
+      return '';
+    }
+    if (control.hasError('required')) {
+      return 'La date de naissance est obligatoire.';
+    }
+    if (control.hasError('underage')) {
+      return underageErrorMessage();
+    }
+    if (control.hasError('invalidDate')) {
+      return 'Date de naissance invalide.';
+    }
+    return '';
+  }
+
+  onDateOfBirthChanged(): void {
+    const control = this.registerForm.get('dateOfBirth');
+    control?.markAsTouched();
+    control?.updateValueAndValidity({ emitEvent: false });
   }
 
   async submitPhone(): Promise<void> {
@@ -383,6 +411,28 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     }));
   }
 
+  async onProfilPhotoClick(fileInput: HTMLInputElement): Promise<void> {
+    this.error = '';
+    if (shouldUseHtmlFilePickerForPhoto()) {
+      fileInput.click();
+      return;
+    }
+    this.isLoading = true;
+    try {
+      const result = await pickProfilPhotoWithFaceValidation();
+      this.profilPhotoDataUrl = result.dataUrl;
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : '';
+      if (message.toLowerCase().includes('cancel') || message.toLowerCase().includes('annul')) {
+        return;
+      }
+      this.error = message || 'Impossible de prendre une photo.';
+      this.profilPhotoDataUrl = '';
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
   onProfilPhotoSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
@@ -400,8 +450,11 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
   }
 
   submitRegisterForm(): void {
+    this.registerForm.markAllAsTouched();
     if (this.registerForm.invalid) {
-      this.registerForm.markAllAsTouched();
+      if (this.registerForm.get('dateOfBirth')?.hasError('underage')) {
+        this.error = underageErrorMessage();
+      }
       return;
     }
     if (!this.profilPhotoDataUrl) {
@@ -424,6 +477,19 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     }
     const form = this.registerForm.value;
     this.journal.track('REGISTER_SUBMITTED', 'AUTH');
+    this.isLoading = true;
+    this.error = '';
+    let location;
+    try {
+      location = await captureRegistrationLocation();
+    } catch (e: unknown) {
+      this.error = e instanceof Error
+        ? e.message
+        : "Impossible d'obtenir la localisation. Activez le GPS et réessayez.";
+      this.isLoading = false;
+      this.journal.track('LOGIN_FAILED', 'AUTH', { reason: 'location_unavailable' });
+      return;
+    }
     await this.completeLogin(this.api.register({
       phone: this.phone,
       otpProofToken: this.otpProofToken,
@@ -433,10 +499,11 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
       quarter: form.quarter,
       dateOfBirth: form.dateOfBirth,
       occupation: form.occupation,
-      cardType: form.cardType,
-      cardID: form.cardID,
       profilPhoto: this.profilPhotoDataUrl,
       pin: this.registerPinForm.value.pin,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      mll: location.mll,
     }));
   }
 

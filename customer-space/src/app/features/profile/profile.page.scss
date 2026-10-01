@@ -2,6 +2,12 @@
   --background: var(--elyk-cream);
 }
 
+.profile-bell {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
 .profile-body {
   position: relative;
   z-index: 2;

@@ -27,6 +27,7 @@ export class SidebarComponent implements OnInit {
   isVentesOpen: boolean = false; // AJOUTÉ
   isTontineOpen: boolean = false;
   isConfigurationOpen: boolean = false;
+  isServicesEnLigneOpen: boolean = false;
   activeRoute: string = '';
   showMonthlyReports = false;
   showElykiaAi = false;
@@ -81,7 +82,13 @@ export class SidebarComponent implements OnInit {
     }
 
     if (route === '/client/list') {
-      return this.activeRoute.startsWith('/client');
+      // Exact /client/… — ne pas confondre avec /client-registrations
+      return this.activeRoute === '/client/list' || this.activeRoute.startsWith('/client/');
+    }
+
+    if (route === '/services-en-ligne') {
+      return this.activeRoute.startsWith('/client-registrations')
+        || this.activeRoute.startsWith('/customer-payments');
     }
 
     // Pour toutes les autres routes, utiliser une correspondance exacte ou avec un slash
@@ -170,6 +177,17 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  // Gestionnaire de clic pour le menu Services en ligne
+  onServicesEnLigneClick() {
+    const isActive = this.activeRoute.startsWith('/client-registrations')
+      || this.activeRoute.startsWith('/customer-payments');
+    if (isActive) {
+      this.isServicesEnLigneOpen = !this.isServicesEnLigneOpen;
+    } else {
+      this.isServicesEnLigneOpen = true;
+    }
+  }
+
   // Gestionnaire de clic pour le menu Configuration
   onConfigurationClick() {
     const isConfigActive = this.activeRoute.startsWith('/localitylist') ||
@@ -241,6 +259,14 @@ export class SidebarComponent implements OnInit {
         this.isTontineOpen = false;
       }
 
+      // Gestion de l'état ouvert/fermé pour Services en ligne
+      if (this.activeRoute.startsWith('/client-registrations')
+          || this.activeRoute.startsWith('/customer-payments')) {
+        this.isServicesEnLigneOpen = true;
+      } else {
+        this.isServicesEnLigneOpen = false;
+      }
+
       // Gestion de l'état ouvert/fermé pour Configuration
       if (this.activeRoute.startsWith('/localitylist') ||
           this.activeRoute.startsWith('/article-type') ||
@@ -262,9 +288,14 @@ export class SidebarComponent implements OnInit {
     this.isVentesOpen = false;
     this.isTontineOpen = false;
     this.isConfigurationOpen = false;
+    this.isServicesEnLigneOpen = false;
 
     // Initialiser activeRoute avec la route actuelle au démarrage
     this.activeRoute = this.router.url;
+    if (this.activeRoute.startsWith('/client-registrations')
+        || this.activeRoute.startsWith('/customer-payments')) {
+      this.isServicesEnLigneOpen = true;
+    }
 
     this.featureFlagService.flags$.subscribe(flags => {
       this.showMonthlyReports = flags[FeatureFlags.MonthlyReports] ?? false;

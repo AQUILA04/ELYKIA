@@ -80,6 +80,11 @@ Variables serveur ELYKIA (voir `backend` `application.yml`) :
 | `NOTIFICATION_HUB_ENVIRONMENT` | `test` (email recette) ou `prod` (SMS réel) ; vide = dérivé du profil Spring |
 | `CUSTOMER_ACTIVITY_LOG_RETENTION_DAYS` | Rétention journal activité (défaut 180) |
 
+**Local (profil `francis`)** : hub activé sans OAuth dans
+`backend/src/main/resources/application-francis.yml`
+(`base-url: http://localhost:8088`, `oauth2.enabled: false`, `environment: test`).
+Procédure démarrage hub : [`backend/docs/NOTIFICATION_HUB_LOCAL.md`](../../backend/docs/NOTIFICATION_HUB_LOCAL.md).
+
 Guide d'intégration : dépôt `AQUILA04/notification-hub` → `backend/docs/OTP_CLIENT_INTEGRATION.md`.
 
 ## Secrets GitHub (Remote Config / APK)

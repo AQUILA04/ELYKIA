@@ -36,9 +36,12 @@ Si votre numéro n’est pas encore connu et que l’inscription est ouverte :
 
 1. Saisissez votre numéro, puis **Continuer**.
 2. Validez le code SMS (avec la référence affichée à l’écran, comme pour l’activation).
-3. Renseignez vos informations (photo, identité, adresse). Pour **Ma zone (Localités)**, ouvrez la liste, recherchez votre zone si besoin, puis sélectionnez-la.
-4. Appuyez sur **Continuer**.
-5. Créez votre code PIN, puis appuyez sur **Créer mon compte**.
+3. Touchez **Ajouter une photo** et prenez (ou choisissez) une photo de vous : votre visage doit être bien visible.
+4. Renseignez vos informations (prénom, nom, adresse, date de naissance, occupation). Pour **Ma zone (Localités)**, ouvrez la liste, recherchez votre zone si besoin, puis sélectionnez-la.
+5. Vous devez avoir **18 ans ou plus** : si la date de naissance ne convient pas, le message **Vous devez être majeur (18 ans ou plus).** s’affiche sous le champ.
+6. Appuyez sur **Continuer**.
+7. Créez votre code PIN, puis appuyez sur **Créer mon compte**. Si votre téléphone ou votre navigateur vous demande l’accès à votre position, acceptez : il est nécessaire pour finaliser l’inscription.
+8. Votre pièce d’identité vous sera demandée ensuite dans **Mon dossier**.
 
 ## Sur ordinateur
 

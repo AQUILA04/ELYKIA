@@ -107,56 +107,92 @@ ion-button {
   margin-bottom: 10px;
 }
 
-.photo-capture {
+.photo-picker {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 12px;
+  gap: 10px;
+}
+
+.photo-picker-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 14px;
+  border: 1.5px dashed rgba(201, 146, 42, 0.55);
+  border-radius: var(--elyk-radius-input);
+  background: var(--elyk-cream);
+  color: var(--elyk-navy);
+  cursor: pointer;
+  text-align: left;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--elyk-gold);
+    background: #fff;
+    outline: none;
+  }
+}
+
+.photo-preview,
+.photo-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  flex-shrink: 0;
 }
 
 .photo-preview {
-  width: 96px;
-  height: 96px;
-  border-radius: 50%;
   object-fit: cover;
   border: 2px solid var(--elyk-gold);
 }
 
-.photo-capture__btn {
+.photo-placeholder {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 44px;
-  padding: 10px 16px;
-  border: 1.5px solid var(--elyk-border);
-  border-radius: var(--elyk-radius-btn);
-  color: var(--elyk-navy);
+  background: rgba(13, 27, 42, 0.06);
+  color: var(--elyk-gold);
+
+  ion-icon { font-size: 28px; }
+}
+
+.photo-picker-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   font-weight: 600;
-  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--elyk-gold);
+  }
 }
 
-.select-field {
-  margin-bottom: 16px;
+.photo-hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--elyk-gray-text);
 }
 
-.select-field__label {
-  display: block;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--elyk-navy-mid);
-  margin: 0 0 6px 4px;
+.photo-input-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
-.select-field ion-select {
-  width: 100%;
-  min-height: 52px;
-  padding: 4px 14px;
-  border: 1.5px solid var(--elyk-border);
-  border-radius: var(--elyk-radius-input);
-  --background: var(--elyk-white);
-  --padding-start: 0;
-  color: var(--elyk-navy);
+.field-error {
+  color: var(--elyk-red);
+  font-size: 12px;
+  margin: -8px 0 12px 4px;
 }
 
 .otp-reference {

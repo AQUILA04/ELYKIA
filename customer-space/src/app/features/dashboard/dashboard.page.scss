@@ -2,6 +2,18 @@
   --background: var(--elyk-cream);
 }
 
+.dash-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dash-bell {
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
 .dash-profile-btn {
   display: inline-flex;
   align-items: center;

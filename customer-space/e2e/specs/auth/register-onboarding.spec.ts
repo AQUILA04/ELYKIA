@@ -54,11 +54,6 @@ test.describe('Auth registration + onboarding', () => {
     await page.getByRole('option', { name: 'Tokoin' }).click();
     await fillIonTestId(page, 'e2e-auth-register-dob', '1995-06-15');
     await fillIonTestId(page, 'e2e-auth-register-occupation', 'Commerçante');
-
-    await page.getByTestId('e2e-auth-register-card-type').click();
-    await page.getByRole('radio', { name: "Carte d'électeur" }).click();
-
-    await fillIonTestId(page, 'e2e-auth-register-card-id', 'E2E-CARD-70155169');
     await page.getByTestId('e2e-auth-register-continue').click();
 
     // 4. PIN inscription
@@ -76,7 +71,7 @@ test.describe('Auth registration + onboarding', () => {
     await expect(page.getByTestId('e2e-dashboard-pending')).toBeVisible();
     await page.getByTestId('e2e-dashboard-onboarding-link').click();
 
-    // 6. Onboarding — pièce d'identité
+    // 6. Onboarding — pièce d'identité (type + numéro + photo)
     await expect(page.getByTestId('e2e-onboarding-page')).toBeVisible({ timeout: 10_000 });
     await expect(page.getByTestId('e2e-onboarding-pending')).toBeVisible();
     await page.getByTestId('e2e-onboarding-id-btn').click();
@@ -85,6 +80,9 @@ test.describe('Auth registration + onboarding', () => {
       mimeType: 'image/png',
       buffer: E2E_TINY_PNG,
     });
+    await page.getByTestId('e2e-onboarding-card-type').click();
+    await page.getByRole('radio', { name: "Carte d'électeur" }).click();
+    await fillIonTestId(page, 'e2e-onboarding-card-id', 'E2E-CARD-70155169');
     const uploadId = page.waitForResponse(
       (r) => r.url().includes('/onboarding/id-document') && r.ok(),
     );

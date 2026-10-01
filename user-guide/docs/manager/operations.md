@@ -134,14 +134,14 @@ Sur chaque ligne client, le gestionnaire habilité dispose d'un bouton d'approba
 
 ---
 
-## 6. Traitement des déclarations de paiements clients Mobile Money (Menu Paiements clients)
+## 6. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)
 
-Le module **Paiements clients** permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via **Mobile Money** (Mixx by YAS ou Moov Money).
+Le module **Paiements** (sous **Services en ligne**) permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via **Mobile Money** (Mixx by YAS ou Moov Money).
 
 <!-- CAPTURE À INSÉRER : Écran de gestion des déclarations de paiement Mobile Money avec onglets Recouvrement crédit et Cotisations tontine, et boutons Valider/Rejeter. -->
 
 ### A. Présentation générale et indicateurs
-* **Accès au module** : Menu latéral **Paiements clients** (icône carte bancaire). Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises.
+* **Accès au module** : Menu latéral **Services en ligne** > **Paiements**. Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises.
 * **Barre d'état** : Heure d'actualisation en direct et bouton **« Actualiser »** pour vérifier l'arrivée de nouveaux versements.
 * **Compteur dynamique** : Affiche le nombre de déclarations actuellement en attente d'instruction.
 * **Visibilité des données** :
