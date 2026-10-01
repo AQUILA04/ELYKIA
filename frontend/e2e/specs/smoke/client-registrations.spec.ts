@@ -3,6 +3,7 @@ import { Page, expect, test } from '@playwright/test';
 /** Même numéro que le parcours customer-space `register-onboarding.spec.ts`. */
 const E2E_REGISTER_PHONE = '70155169';
 const E2E_CLIENT_ID = 701;
+const E2E_PNG_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
 
 function buildFakeJwt(): string {
   const header = Buffer.from(JSON.stringify({ alg: 'none', typ: 'JWT' })).toString('base64url');
@@ -55,8 +56,8 @@ async function mockClientRegistrationsApi(page: Page): Promise<void> {
     occupation: 'Commerçante',
     cardType: 'CENI',
     cardID: 'E2E-CARD-70155169',
-    profilPhotoUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
-    profilPhotoThumbUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+    profilPhotoUrl: E2E_PNG_DATA_URL,
+    profilPhotoThumbUrl: E2E_PNG_DATA_URL,
     cardPhotoUrl: 'data:image/png;base64,aaa',
     cardPhotoThumbUrl: 'data:image/png;base64,aaa',
     activationStatus: 'PENDING',
@@ -124,10 +125,27 @@ async function mockClientRegistrationsApi(page: Page): Promise<void> {
     });
   });
 
+  // Les photos sont affichées via des URL signées (POST /clients/photos/urls), pas via profilPhotoUrl.
+  await page.route('**/api/v1/clients/photos/urls**', async (route) => {
+    const body = route.request().postDataJSON() as { clientIds?: number[] } | null;
+    const data = (body?.clientIds ?? []).map((clientId) => ({
+      clientId,
+      url: E2E_PNG_DATA_URL,
+      expiresAt: new Date(Date.now() + 3_600_000).toISOString(),
+      legacy: false,
+    }));
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ data }),
+    });
+  });
+
   // Évite que le shell casse sur d'autres appels API (notifications, etc.)
   await page.route('**/api/**', async (route) => {
     if (route.request().url().includes('client-registrations')
-      || route.request().url().includes('promoters/all')) {
+      || route.request().url().includes('promoters/all')
+      || route.request().url().includes('clients/photos/urls')) {
       await route.fallback();
       return;
     }

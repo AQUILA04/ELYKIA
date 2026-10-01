@@ -45,6 +45,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - `POST /api/v1/clients/photos/urls` : URL MinIO signées (courte durée) pour photos de profil et de pièce, en lot (max 200). Contrôle portefeuille pour les commerciaux ; accès global pour le staff. Marqueur `legacy` si la photo n’est encore que dans PhotoStore.
 
+## Frontend — [2.26.3] — 2026-10-01
+
+### Fixed
+
+- E2E smoke `client-registrations.spec.ts` : mock de `POST /api/v1/clients/photos/urls` (URL signées) ; sans lui, la photo de profil retombait sur les initiales et le bouton « Agrandir la photo de profil » n’existait plus, ce qui faisait échouer le test depuis la 2.26.1.
+
 ## Frontend — [2.26.2] — 2026-10-01
 
 ### Changed
