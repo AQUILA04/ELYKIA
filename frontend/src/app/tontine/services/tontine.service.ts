@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, throwError, BehaviorSubject, of } from 'rxjs';
-import { map, catchError, tap, finalize, switchMap } from 'rxjs/operators';
+import { map, catchError, tap, finalize } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import {
@@ -313,26 +313,25 @@ export class TontineService {
       .pipe(catchError(this.handleApiError.bind(this)));
   }
 
-  getCurrentSession(commercial?: string): Observable<ApiResponse<TontineSession>> {
+  /**
+   * Loads the current session only. KPIs must be refreshed separately via
+   * {@link getSessionStats} with the active commercial filter — nesting stats
+   * here caused stale unfiltered KPIs to overwrite a later commercial selection.
+   */
+  getCurrentSession(): Observable<ApiResponse<TontineSession>> {
     this.setLoading(true);
     const headers = this.getHeaders();
 
     return this.http.get<ApiResponse<TontineSession>>(`${this.sessionApiUrl}/current`, { headers })
       .pipe(
-        switchMap(response => {
-          if (response.statusCode === 200 && response.data) {
+        tap(response => {
+          if (response.data) {
             this.updateState({
               currentSession: response.data,
               loading: false,
               error: null
             });
-            // After getting the session, get its stats (optionally filtered by commercial)
-            return this.getSessionStats(response.data.id, commercial).pipe(
-              map(() => response) // Return the original session response
-            );
           }
-          // If no session data, just return the original response
-          return of(response);
         }),
         catchError(this.handleApiError.bind(this)),
         finalize(() => this.setLoading(false))
@@ -340,7 +339,6 @@ export class TontineService {
   }
 
   getSessionStats(sessionId: number, commercial?: string): Observable<ApiResponse<SessionStats>> {
-    this.setLoading(true);
     const headers = this.getHeaders();
 
     let params = new HttpParams();
@@ -351,7 +349,7 @@ export class TontineService {
     return this.http.get<ApiResponse<SessionStats>>(`${this.sessionApiUrl}/${sessionId}/stats`, { headers, params })
       .pipe(
         tap(response => {
-          if (response.statusCode === 200 && response.data) {
+          if (response.data) {
             const stats = response.data;
             this.updateState({
               kpis: {
@@ -361,16 +359,14 @@ export class TontineService {
                 pendingDeliveries: stats.pendingCount,
                 completedDeliveries: stats.deliveredCount,
                 averageContribution: stats.averageContribution,
-                monthlyGrowth: 0, // Placeholder
+                monthlyGrowth: 0,
                 totalDeliveryCollections: stats.totalDeliveryCollections
               },
-              loading: false,
               error: null
             });
           }
         }),
-        catchError(this.handleApiError.bind(this)),
-        finalize(() => this.setLoading(false))
+        catchError(this.handleApiError.bind(this))
       );
   }
 

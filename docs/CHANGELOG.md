@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.26.4] — 2026-10-01
+
+### Fixed
+
+- Tableau de bord tontine : les KPI et la liste des membres se rechargent correctement quand un gestionnaire (ou tout profil sans portefeuille) sélectionne un commercial — les requêtes en vol non filtrées ne peuvent plus écraser le filtre actif.
+
+## Backend — [1.26.2] — 2026-10-01
+
+### Fixed
+
+- Stats session tontine filtrées par commercial : agrégats dédiés (`tontineCollector = :commercial`) au lieu du motif `IS NULL OR`, pour garantir le filtrage côté SQL.
+
 ## Customer-space — [0.11.1] — 2026-10-01
 
 ### Fixed

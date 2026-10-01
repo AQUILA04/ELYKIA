@@ -30,7 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -52,22 +51,18 @@ class TontineSessionServiceTest {
 
     @Test
     void getSessionStats_calculatesCollectionAndDeliveryIndicatorsFromAggregates() {
-        // Given
         TontineSession session = session(12L, 2026, 25_000.0);
         when(sessionRepository.findById(12L)).thenReturn(Optional.of(session));
         when(userService.getCurrentUser()).thenReturn(null);
-        when(memberRepository.countBySessionAndCommercial(12L, State.ENABLED, null)).thenReturn(4L);
-        when(memberRepository.sumTotalContributionBySessionAndCommercial(12L, State.ENABLED, null)).thenReturn(100_000.0);
-        when(memberRepository.countBySessionAndCommercialAndDeliveryStatus(
-                12L, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED, null)).thenReturn(2L);
-        when(collectionRepository.sumDeliveryCollectionsBySessionAndCommercial(12L, State.ENABLED, null))
-                .thenReturn(10_000.0);
+        when(memberRepository.countByTontineSessionIdAndState(12L, State.ENABLED)).thenReturn(4L);
+        when(memberRepository.sumTotalContributionByTontineSessionId(12L, State.ENABLED)).thenReturn(100_000.0);
+        when(memberRepository.countByTontineSessionIdAndStateAndDeliveryStatus(
+                12L, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED)).thenReturn(2L);
+        when(collectionRepository.sumDeliveryCollectionsBySession(12L, State.ENABLED)).thenReturn(10_000.0);
         when(memberRepository.findTopCommercials(12L, State.ENABLED, PageRequest.of(0, 5))).thenReturn(List.of());
 
-        // When
         SessionStatsDto stats = tontineSessionService.getSessionStats(12L);
 
-        // Then
         assertEquals(4, stats.getTotalMembers());
         assertEquals(100_000.0, stats.getTotalCollected());
         assertEquals(25_000.0, stats.getAverageContribution());
@@ -76,27 +71,23 @@ class TontineSessionServiceTest {
         assertEquals(50.0, stats.getDeliveryRate());
         assertEquals(25_000.0, stats.getTotalRevenue());
         assertEquals(10_000.0, stats.getTotalDeliveryCollections());
-        verify(memberRepository, never()).sumSocietyShareBySessionAndCommercial(any(), any(), any());
+        verify(memberRepository, never()).countBySessionForCommercial(any(), any(), any());
     }
 
     @Test
     void getSessionStats_treatsNullAggregatesAndNoMembersAsZero() {
-        // Given
         TontineSession session = session(13L, 2026, 0.0);
         when(sessionRepository.findById(13L)).thenReturn(Optional.of(session));
         when(userService.getCurrentUser()).thenReturn(null);
-        when(memberRepository.countBySessionAndCommercial(13L, State.ENABLED, null)).thenReturn(0L);
-        when(memberRepository.sumTotalContributionBySessionAndCommercial(13L, State.ENABLED, null)).thenReturn(null);
-        when(memberRepository.countBySessionAndCommercialAndDeliveryStatus(
-                13L, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED, null)).thenReturn(0L);
-        when(collectionRepository.sumDeliveryCollectionsBySessionAndCommercial(13L, State.ENABLED, null))
-                .thenReturn(null);
+        when(memberRepository.countByTontineSessionIdAndState(13L, State.ENABLED)).thenReturn(0L);
+        when(memberRepository.sumTotalContributionByTontineSessionId(13L, State.ENABLED)).thenReturn(null);
+        when(memberRepository.countByTontineSessionIdAndStateAndDeliveryStatus(
+                13L, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED)).thenReturn(0L);
+        when(collectionRepository.sumDeliveryCollectionsBySession(13L, State.ENABLED)).thenReturn(null);
         when(memberRepository.findTopCommercials(13L, State.ENABLED, PageRequest.of(0, 5))).thenReturn(List.of());
 
-        // When
         SessionStatsDto stats = tontineSessionService.getSessionStats(13L);
 
-        // Then
         assertEquals(0.0, stats.getTotalCollected());
         assertEquals(0.0, stats.getAverageContribution());
         assertEquals(0.0, stats.getDeliveryRate());
@@ -104,27 +95,24 @@ class TontineSessionServiceTest {
     }
 
     @Test
-    void getSessionStats_withCommercial_filtersAggregatesAndUsesSocietyShareRevenue() {
-        // Given
+    void getSessionStats_withCommercial_usesStrictCommercialAggregates() {
         TontineSession session = session(14L, 2026, 99_999.0);
-        String commercial = "commercial.a";
+        String commercial = "COM005";
         when(sessionRepository.findById(14L)).thenReturn(Optional.of(session));
         when(userService.getCurrentUser()).thenReturn(null);
-        when(memberRepository.countBySessionAndCommercial(14L, State.ENABLED, commercial)).thenReturn(2L);
-        when(memberRepository.sumTotalContributionBySessionAndCommercial(14L, State.ENABLED, commercial))
+        when(memberRepository.countBySessionForCommercial(14L, State.ENABLED, commercial)).thenReturn(2L);
+        when(memberRepository.sumTotalContributionBySessionForCommercial(14L, State.ENABLED, commercial))
                 .thenReturn(40_000.0);
-        when(memberRepository.countBySessionAndCommercialAndDeliveryStatus(
+        when(memberRepository.countBySessionForCommercialAndDeliveryStatus(
                 14L, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED, commercial)).thenReturn(1L);
-        when(collectionRepository.sumDeliveryCollectionsBySessionAndCommercial(14L, State.ENABLED, commercial))
+        when(collectionRepository.sumDeliveryCollectionsBySessionForCommercial(14L, State.ENABLED, commercial))
                 .thenReturn(5_000.0);
-        when(memberRepository.sumSocietyShareBySessionAndCommercial(14L, State.ENABLED, commercial))
+        when(memberRepository.sumSocietyShareBySessionForCommercial(14L, State.ENABLED, commercial))
                 .thenReturn(8_000.0);
         when(memberRepository.findTopCommercials(14L, State.ENABLED, PageRequest.of(0, 5))).thenReturn(List.of());
 
-        // When
         SessionStatsDto stats = tontineSessionService.getSessionStats(14L, commercial);
 
-        // Then
         assertEquals(2, stats.getTotalMembers());
         assertEquals(40_000.0, stats.getTotalCollected());
         assertEquals(20_000.0, stats.getAverageContribution());
@@ -133,48 +121,43 @@ class TontineSessionServiceTest {
         assertEquals(50.0, stats.getDeliveryRate());
         assertEquals(8_000.0, stats.getTotalRevenue());
         assertEquals(5_000.0, stats.getTotalDeliveryCollections());
+        verify(memberRepository, never()).countByTontineSessionIdAndState(any(), any());
     }
 
     @Test
     void getSessionStats_promoter_forcesOwnUsernameRegardlessOfRequestedCommercial() {
-        // Given
         TontineSession session = session(15L, 2026, 50_000.0);
         User promoter = mock(User.class);
         when(promoter.is(UserProfilConstant.PROMOTER)).thenReturn(true);
         when(promoter.getUsername()).thenReturn("promoter.me");
         when(sessionRepository.findById(15L)).thenReturn(Optional.of(session));
         when(userService.getCurrentUser()).thenReturn(promoter);
-        when(memberRepository.countBySessionAndCommercial(eq(15L), eq(State.ENABLED), eq("promoter.me")))
+        when(memberRepository.countBySessionForCommercial(eq(15L), eq(State.ENABLED), eq("promoter.me")))
                 .thenReturn(1L);
-        when(memberRepository.sumTotalContributionBySessionAndCommercial(eq(15L), eq(State.ENABLED), eq("promoter.me")))
-                .thenReturn(10_000.0);
-        when(memberRepository.countBySessionAndCommercialAndDeliveryStatus(
+        when(memberRepository.sumTotalContributionBySessionForCommercial(
+                eq(15L), eq(State.ENABLED), eq("promoter.me"))).thenReturn(10_000.0);
+        when(memberRepository.countBySessionForCommercialAndDeliveryStatus(
                 eq(15L), eq(State.ENABLED), eq(TontineMemberDeliveryStatus.DELIVERED), eq("promoter.me")))
                 .thenReturn(0L);
-        when(collectionRepository.sumDeliveryCollectionsBySessionAndCommercial(
+        when(collectionRepository.sumDeliveryCollectionsBySessionForCommercial(
                 eq(15L), eq(State.ENABLED), eq("promoter.me"))).thenReturn(0.0);
-        when(memberRepository.sumSocietyShareBySessionAndCommercial(eq(15L), eq(State.ENABLED), eq("promoter.me")))
-                .thenReturn(2_000.0);
+        when(memberRepository.sumSocietyShareBySessionForCommercial(
+                eq(15L), eq(State.ENABLED), eq("promoter.me"))).thenReturn(2_000.0);
         when(memberRepository.findTopCommercials(15L, State.ENABLED, PageRequest.of(0, 5))).thenReturn(List.of());
 
-        // When
         SessionStatsDto stats = tontineSessionService.getSessionStats(15L, "other.commercial");
 
-        // Then
         assertEquals(1, stats.getTotalMembers());
         assertEquals(10_000.0, stats.getTotalCollected());
         assertEquals(2_000.0, stats.getTotalRevenue());
-        verify(memberRepository, never()).countBySessionAndCommercial(eq(15L), eq(State.ENABLED), isNull());
-        verify(memberRepository, never()).countBySessionAndCommercial(
+        verify(memberRepository, never()).countBySessionForCommercial(
                 eq(15L), eq(State.ENABLED), eq("other.commercial"));
     }
 
     @Test
     void getSessionMembers_rejectsUnknownSessionBeforeQueryingMembers() {
-        // Given
         when(sessionRepository.existsById(99L)).thenReturn(false);
 
-        // When / Then
         assertThrows(ResourceNotFoundException.class,
                 () -> tontineSessionService.getSessionMembers(99L, PageRequest.of(0, 20)));
         verify(memberRepository, never()).findByTontineSessionIdAndState(any(), any(), any());
@@ -182,7 +165,6 @@ class TontineSessionServiceTest {
 
     @Test
     void compareSessions_calculatesGrowthAndFindsBestAndWorstYear() {
-        // Given
         TontineSession year2025 = session(25L, 2025, 0.0);
         TontineSession year2026 = session(26L, 2026, 0.0);
         when(sessionRepository.findByYear(2025)).thenReturn(Optional.of(year2025));
@@ -194,10 +176,8 @@ class TontineSessionServiceTest {
                         member("commercial.a", 150.0, TontineMemberDeliveryStatus.DELIVERED),
                         member("commercial.b", 150.0, TontineMemberDeliveryStatus.SESSION_INPROGRESS)));
 
-        // When
         SessionComparisonDto comparison = tontineSessionService.compareSessions(List.of(2026, 2025));
 
-        // Then
         ComparisonMetricsDto metrics = comparison.getComparisonMetrics();
         assertEquals(2, comparison.getSessions().size());
         assertEquals(100.0, metrics.getMemberGrowth());
