@@ -493,6 +493,9 @@ logging:
 # Elykia IA — providers : stub | ollama | anthropic | openai | gemini | deepseek
 # Voir backend/docs/AI_ASSISTANT.md pour la configuration détaillée.
 elykia:
+  photos:
+    # Durée de validité des URL MinIO signées (photos clients privées).
+    presign-expiry-minutes: ${ELYKIA_PHOTOS_PRESIGN_EXPIRY_MINUTES:60}
   customer:
     activity-log:
       retention-days: ${CUSTOMER_ACTIVITY_LOG_RETENTION_DAYS:180}

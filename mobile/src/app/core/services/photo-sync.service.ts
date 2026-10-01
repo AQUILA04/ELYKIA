@@ -10,6 +10,7 @@ import { Store } from '@ngrx/store';
 import { selectAuthUser } from '../../store/auth/auth.selectors';
 import { ThumbnailService } from './thumbnail.service';
 import { ClientRepository } from '../repositories/client.repository';
+import { ClientPhotoUrlService } from './client/client-photo-url.service';
 
 export interface PhotoSyncPreferences {
   enableProfilePhotoSync: boolean;
@@ -31,7 +32,8 @@ export class PhotoSyncService {
     private dbService: DatabaseService,
     private store: Store,
     private thumbnailService: ThumbnailService,
-    private clientRepository: ClientRepository
+    private clientRepository: ClientRepository,
+    private clientPhotoUrlService: ClientPhotoUrlService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -55,7 +57,7 @@ export class PhotoSyncService {
 
   /**
    * Sync photos for commercial offline display.
-   * Prefer MinIO thumb URLs when present; fallback to legacy PhotoStore byte batch API.
+   * Prefer short-lived MinIO URLs (batch) when MinIO markers exist; fallback to legacy PhotoStore.
    */
   async syncPhotosForClients(clients?: Client[]): Promise<void> {
     const preferences = await this.getPhotoSyncPreferences();
@@ -86,14 +88,9 @@ export class PhotoSyncService {
         const minioClients = needing.filter(c => this.isHttpUrl(c.profilPhotoThumbUrl || c.profilPhotoUrl));
         const legacyClients = needing.filter(c => !this.isHttpUrl(c.profilPhotoThumbUrl || c.profilPhotoUrl));
 
-        for (const client of minioClients) {
-          await this.downloadAndSaveThumbnail(
-            client,
-            client.profilPhotoThumbUrl || client.profilPhotoUrl!,
-            'profil'
-          );
-        }
+        await this.downloadMinioThumbsBatch(minioClients, 'profil');
         if (legacyClients.length > 0) {
+          // Transitional: PhotoStore batch — remove when migration is complete
           await this.syncProfilePhotosBatch(legacyClients);
         }
       }
@@ -103,14 +100,9 @@ export class PhotoSyncService {
         const minioClients = needing.filter(c => this.isHttpUrl(c.cardPhotoThumbUrl || c.cardPhotoUrl));
         const legacyClients = needing.filter(c => !this.isHttpUrl(c.cardPhotoThumbUrl || c.cardPhotoUrl));
 
-        for (const client of minioClients) {
-          await this.downloadAndSaveThumbnail(
-            client,
-            client.cardPhotoThumbUrl || client.cardPhotoUrl!,
-            'card'
-          );
-        }
+        await this.downloadMinioThumbsBatch(minioClients, 'card');
         if (legacyClients.length > 0) {
+          // Transitional: PhotoStore batch — remove when migration is complete
           await this.syncCardPhotosBatch(legacyClients);
         }
       }
@@ -118,6 +110,36 @@ export class PhotoSyncService {
     } catch (error) {
       this.log.log(`[PhotoSyncService] Error syncing photos: ${error}`);
       console.error('Error syncing photos:', error);
+    }
+  }
+
+  /**
+   * Resolve short-lived URLs in batches of 100, then download each thumb to local storage.
+   */
+  private async downloadMinioThumbsBatch(clients: Client[], kind: 'profil' | 'card'): Promise<void> {
+    if (clients.length === 0) {
+      return;
+    }
+    const ids = clients.map(c => Number(c.id)).filter(id => !Number.isNaN(id));
+    const photoKind = kind === 'profil' ? 'PROFIL' : 'CARD';
+    let urlMap: Map<number, { url: string | null; legacy: boolean }>;
+    try {
+      urlMap = await this.clientPhotoUrlService.getUrlMap(ids, photoKind, 'THUMB');
+    } catch (error) {
+      void this.log.log(`[PhotoSyncService] Failed to resolve signed photo URLs (${kind}): ${error}`);
+      return;
+    }
+
+    for (const client of clients) {
+      const entry = urlMap.get(Number(client.id));
+      if (entry?.legacy) {
+        // Handled by legacy batch path when client has no MinIO marker; skip here
+        continue;
+      }
+      if (!entry?.url) {
+        continue;
+      }
+      await this.downloadAndSaveThumbnail(client, entry.url, kind);
     }
   }
 

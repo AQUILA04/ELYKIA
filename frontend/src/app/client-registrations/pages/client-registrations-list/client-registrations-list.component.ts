@@ -1,6 +1,11 @@
-import { Component, HostListener, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import {
+  ClientPhotoKind,
+  ClientPhotoSize,
+  ClientPhotoUrlService
+} from 'src/app/shared/service/client-photo-url.service';
 import {
   ClientRegistration,
   ClientRegistrationService
@@ -30,11 +35,15 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
   totalPages = 1;
   private dateIntervalId?: ReturnType<typeof setInterval>;
   private readonly brokenPhotoUrls = new Set<string>();
+  /** Signed URLs keyed by `${clientId}:${kind}:${size}` — never use raw MinIO DTO URLs in <img>. */
+  private readonly signedUrls = new Map<string, string | null>();
 
   constructor(
     private registrationService: ClientRegistrationService,
     private alertService: AlertService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private clientPhotoUrlService: ClientPhotoUrlService,
+    private cdr: ChangeDetectorRef
   ) {
     this.activateForm = this.fb.group({
       collector: ['', Validators.required],
@@ -118,6 +127,7 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
         this.pageSize = page.size || this.pageSize;
         this.loading = false;
         this.lastUpdate = new Date();
+        this.prefetchProfilThumbs(page.content);
       },
       error: () => {
         this.loading = false;
@@ -133,6 +143,8 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
       tontineCollector: row.tontineCollector || '',
       validateInitialDeposit: true
     });
+    this.ensureSignedUrl(row.clientId, 'PROFIL', 'THUMB', !!(row.profilPhotoThumbUrl || row.profilPhotoUrl));
+    this.ensureSignedUrl(row.clientId, 'CARD', 'THUMB', !!(row.cardPhotoThumbUrl || row.cardPhotoUrl));
   }
 
   closeDetail(): void {
@@ -140,12 +152,33 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
     this.closePhotoPreview();
   }
 
-  openPhotoPreview(url: string | null | undefined, title: string): void {
-    if (!url) {
+  openPhotoPreview(kind: ClientPhotoKind, row: ClientRegistration | null, title: string): void {
+    if (!row) {
       return;
     }
-    this.photoPreviewUrl = url;
-    this.photoPreviewTitle = title;
+    const hasPhoto = kind === 'PROFIL'
+      ? !!(row.profilPhotoUrl || row.profilPhotoThumbUrl)
+      : !!(row.cardPhotoUrl || row.cardPhotoThumbUrl);
+    if (!hasPhoto) {
+      return;
+    }
+    const cached = this.signedSrc(row.clientId, kind, 'ORIGINAL')
+      || this.signedSrc(row.clientId, kind, 'THUMB');
+    if (cached) {
+      this.photoPreviewUrl = cached;
+      this.photoPreviewTitle = title;
+    }
+    this.clientPhotoUrlService.getUrl(row.clientId, kind, 'ORIGINAL').subscribe({
+      next: (entry) => {
+        const url = entry?.url || this.signedSrc(row.clientId, kind, 'THUMB');
+        if (!url || this.brokenPhotoUrls.has(url)) {
+          return;
+        }
+        this.signedUrls.set(this.signedKey(row.clientId, kind, 'ORIGINAL'), entry?.url ?? null);
+        this.photoPreviewUrl = url;
+        this.photoPreviewTitle = title;
+      }
+    });
   }
 
   closePhotoPreview(): void {
@@ -153,9 +186,12 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
     this.photoPreviewTitle = '';
   }
 
-  /** Miniature pour liste / vignette (thumb prioritaire, sinon original). */
+  /** Miniature pour liste / vignette (URL signée uniquement). */
   listPhotoSrc(row: ClientRegistration): string | null {
-    return this.firstLoadable(row.profilPhotoThumbUrl, row.profilPhotoUrl);
+    if (!(row.profilPhotoThumbUrl || row.profilPhotoUrl)) {
+      return null;
+    }
+    return this.firstLoadable(this.signedSrc(row.clientId, 'PROFIL', 'THUMB'));
   }
 
   /** Miniature détail profil. */
@@ -187,6 +223,73 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
     if (this.photoPreviewUrl === url) {
       this.closePhotoPreview();
     }
+  }
+
+    if (!(row.profilPhotoThumbUrl || row.profilPhotoUrl)) {
+      return null;
+    }
+    return this.firstLoadable(this.signedSrc(row.clientId, 'PROFIL', 'THUMB'));
+  }
+
+  /** Thumb pièce (URL signée). */
+  cardThumbSrc(row: ClientRegistration): string | null {
+    if (!(row.cardPhotoThumbUrl || row.cardPhotoUrl)) {
+      return null;
+    }
+    return this.firstLoadable(this.signedSrc(row.clientId, 'CARD', 'THUMB'));
+  }
+
+  /** Image injoignable : bascule sur les initiales. */
+  onPhotoError(url: string | null | undefined): void {
+    if (!url) {
+      return;
+    }
+    this.brokenPhotoUrls.add(url);
+    if (this.photoPreviewUrl === url) {
+      this.closePhotoPreview();
+    }
+  }
+
+  private prefetchProfilThumbs(rows: ClientRegistration[]): void {
+    const ids = rows
+      .filter((r) => !!(r.profilPhotoThumbUrl || r.profilPhotoUrl))
+      .map((r) => r.clientId);
+    if (ids.length === 0) {
+      return;
+    }
+    this.clientPhotoUrlService.getUrls(ids, 'PROFIL', 'THUMB').subscribe({
+      next: (entries) => {
+        for (const entry of entries) {
+          this.signedUrls.set(this.signedKey(entry.clientId, 'PROFIL', 'THUMB'), entry.url);
+        }
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private ensureSignedUrl(
+    clientId: number,
+    kind: ClientPhotoKind,
+    size: ClientPhotoSize,
+    hasStoredUrl: boolean
+  ): void {
+    if (!hasStoredUrl || this.signedUrls.has(this.signedKey(clientId, kind, size))) {
+      return;
+    }
+    this.clientPhotoUrlService.getUrl(clientId, kind, size).subscribe({
+      next: (entry) => {
+        this.signedUrls.set(this.signedKey(clientId, kind, size), entry?.url ?? null);
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  private signedSrc(clientId: number, kind: ClientPhotoKind, size: ClientPhotoSize): string | null {
+    return this.signedUrls.get(this.signedKey(clientId, kind, size)) ?? null;
+  }
+
+  private signedKey(clientId: number, kind: ClientPhotoKind, size: ClientPhotoSize): string {
+    return `${clientId}:${kind}:${size}`;
   }
 
   private firstLoadable(...urls: (string | null | undefined)[]): string | null {

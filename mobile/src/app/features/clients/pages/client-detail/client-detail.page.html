@@ -14,8 +14,8 @@
     <ng-container *ngIf="client$ | async as client">
       <div class="client-header-content">
         <div class="elyk-avatar client-photo-large" (click)="onAvatarClick(client)">
-          <img *ngIf="(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto); else initials"
-               [src]="getPhotoUrl(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto)"
+              <img *ngIf="preferLocalPhotoPath(client.profilPhotoThumbUrl, client.profilPhoto, client.profilPhotoUrl) as photoPath; else initials"
+               [src]="getPhotoUrl(photoPath)"
                (error)="handleImageError($event)"
                alt="" />
           <ng-template #initials>
