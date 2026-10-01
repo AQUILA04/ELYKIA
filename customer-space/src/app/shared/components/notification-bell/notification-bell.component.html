@@ -1,0 +1,15 @@
+<ion-button
+  fill="clear"
+  [routerLink]="['/notifications']"
+  [attr.data-testid]="testId"
+  aria-label="Notifications">
+  <ion-icon name="notifications-outline" slot="icon-only" aria-hidden="true"></ion-icon>
+  <ng-container *ngIf="inbox.unreadCount$ | async as count">
+    <span
+      class="notif-badge"
+      *ngIf="count > 0"
+      data-testid="e2e-notification-badge">
+      {{ count > 9 ? '9+' : count }}
+    </span>
+  </ng-container>
+</ion-button>

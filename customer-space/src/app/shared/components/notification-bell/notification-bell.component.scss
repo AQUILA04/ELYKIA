@@ -1,0 +1,35 @@
+:host {
+  display: inline-flex;
+  position: relative;
+}
+
+ion-button {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+  margin: 0;
+  --color: currentColor;
+  --padding-start: 8px;
+  --padding-end: 8px;
+
+  ion-icon {
+    font-size: 24px;
+  }
+}
+
+.notif-badge {
+  position: absolute;
+  top: 4px;
+  right: 2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  pointer-events: none;
+}

@@ -1,0 +1,11 @@
+package com.optimize.elykia.core.enumaration;
+
+public enum CustomerNotificationType {
+    REGISTRATION_ACTIVATED,
+    REGISTRATION_REJECTED,
+    CREDIT_PAYMENT_VALIDATED,
+    CREDIT_PAYMENT_REJECTED,
+    TONTINE_PAYMENT_VALIDATED,
+    TONTINE_PAYMENT_REJECTED,
+    ORDER_STATUS_CHANGED
+}

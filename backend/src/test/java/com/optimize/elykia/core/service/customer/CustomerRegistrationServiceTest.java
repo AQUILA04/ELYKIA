@@ -26,6 +26,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -68,26 +69,16 @@ class CustomerRegistrationServiceTest {
     }
 
     @Test
-    void register_rejectsExistingCardId() {
-        CustomerRegisterRequest request = validRequest();
-        doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
-        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.empty());
-        when(clientRepository.existsByPhone("90123456")).thenReturn(false);
-        when(clientRepository.existsByCardID("CARD-1")).thenReturn(true);
-
-        assertThrows(CustomValidationException.class, () -> service.register(request));
-    }
-
-    @Test
     void register_rejectsUnderage() {
         CustomerRegisterRequest request = validRequest();
-        request.setDateOfBirth(LocalDate.now().minusYears(10));
+        request.setDateOfBirth(LocalDate.now().minusYears(17));
         doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
         when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.empty());
         when(clientRepository.existsByPhone("90123456")).thenReturn(false);
-        when(clientRepository.existsByCardID("CARD-1")).thenReturn(false);
 
-        assertThrows(CustomValidationException.class, () -> service.register(request));
+        CustomValidationException ex =
+                assertThrows(CustomValidationException.class, () -> service.register(request));
+        assertTrue(ex.getMessage().toLowerCase().contains("majeur"));
     }
 
     @Test
@@ -97,7 +88,6 @@ class CustomerRegistrationServiceTest {
         doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
         when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.empty());
         when(clientRepository.existsByPhone("90123456")).thenReturn(false);
-        when(clientRepository.existsByCardID("CARD-1")).thenReturn(false);
         when(localityRepository.existsByName("Tokoin")).thenReturn(true);
 
         assertThrows(CustomValidationException.class, () -> service.register(request));
@@ -110,7 +100,6 @@ class CustomerRegistrationServiceTest {
         doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
         when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.empty());
         when(clientRepository.existsByPhone("90123456")).thenReturn(false);
-        when(clientRepository.existsByCardID("CARD-1")).thenReturn(false);
         when(localityRepository.existsByName("ZoneInconnue")).thenReturn(false);
 
         CustomValidationException ex =
@@ -119,14 +108,13 @@ class CustomerRegistrationServiceTest {
     }
 
     @Test
-    void register_createsPendingClientAndReturnsToken() {
+    void register_createsPendingClientWithoutIdDocument() {
         CustomerRegisterRequest request = validRequest();
         doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
         when(userRepository.findByUserAccount_usernameIgnoreCase("90123456"))
                 .thenReturn(Optional.empty())
                 .thenReturn(Optional.of(user("90123456")));
         when(clientRepository.existsByPhone("90123456")).thenReturn(false);
-        when(clientRepository.existsByCardID("CARD-1")).thenReturn(false);
         when(localityRepository.existsByName("Tokoin")).thenReturn(true);
         when(clientRepository.saveAndFlush(any(Client.class))).thenAnswer(inv -> {
             Client c = inv.getArgument(0);
@@ -159,6 +147,57 @@ class CustomerRegistrationServiceTest {
         verify(clientService).evictClientListCaches();
     }
 
+    @Test
+    void register_persistsGpsWhenProvided() {
+        CustomerRegisterRequest request = validRequest();
+        request.setLatitude(6.13145);
+        request.setLongitude(1.22267);
+        request.setMll("https://www.google.com/maps/search/?api=1&query=6.13145,1.22267");
+        doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456"))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(user("90123456")));
+        when(clientRepository.existsByPhone("90123456")).thenReturn(false);
+        when(localityRepository.existsByName("Tokoin")).thenReturn(true);
+        when(clientRepository.saveAndFlush(any(Client.class))).thenAnswer(inv -> {
+            Client c = inv.getArgument(0);
+            assertEquals(6.13145, c.getLatitude());
+            assertEquals(1.22267, c.getLongitude());
+            assertTrue(c.getMll().contains("6.13145,1.22267"));
+            c.setId(55L);
+            return c;
+        });
+        when(clientRepository.findById(55L)).thenAnswer(inv -> {
+            Client c = new Client();
+            c.setId(55L);
+            c.setFirstname("Ada");
+            c.setLastname("Lovelace");
+            c.setPhone("90123456");
+            c.setActivationStatus(ClientActivationStatus.PENDING);
+            return Optional.of(c);
+        });
+        Authentication auth = mock(Authentication.class);
+        when(authenticationManager.authenticate(any())).thenReturn(auth);
+        when(jwtUtils.generateJwtToken(auth)).thenReturn("jwt-token");
+
+        service.register(request);
+
+        verify(clientRepository).saveAndFlush(any(Client.class));
+    }
+
+    @Test
+    void register_rejectsExistingCardIdWhenProvided() {
+        CustomerRegisterRequest request = validRequest();
+        request.setCardType("CENI");
+        request.setCardID("CARD-1");
+        doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.empty());
+        when(clientRepository.existsByPhone("90123456")).thenReturn(false);
+        when(clientRepository.existsByCardID("CARD-1")).thenReturn(true);
+
+        assertThrows(CustomValidationException.class, () -> service.register(request));
+    }
+
     private static CustomerRegisterRequest validRequest() {
         CustomerRegisterRequest request = new CustomerRegisterRequest();
         request.setPhone("90123456");
@@ -169,8 +208,6 @@ class CustomerRegistrationServiceTest {
         request.setQuarter("Tokoin");
         request.setDateOfBirth(LocalDate.of(1990, 1, 1));
         request.setOccupation("Commercante");
-        request.setCardType("CENI");
-        request.setCardID("CARD-1");
         request.setProfilPhoto(longBase64Photo());
         request.setPin("1234");
         return request;

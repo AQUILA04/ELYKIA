@@ -144,23 +144,23 @@
             [loadError]="localitiesError()"
             (retryLoad)="retryLocalities.emit()">
           </app-elyk-locality-picker>
-          <app-elyk-outlined-field label="Date de naissance" icon="calendar-outline">
-            <ion-input formControlName="dateOfBirth" type="date" data-testid="e2e-auth-register-dob"></ion-input>
-          </app-elyk-outlined-field>
+          <div>
+            <app-elyk-outlined-field label="Date de naissance" icon="calendar-outline">
+              <ion-input
+                formControlName="dateOfBirth"
+                type="date"
+                (ionChange)="dateOfBirthChanged.emit()"
+                data-testid="e2e-auth-register-dob">
+              </ion-input>
+            </app-elyk-outlined-field>
+            <p class="field-error" *ngIf="dateOfBirthError()" role="alert" data-testid="e2e-auth-register-dob-error">
+              {{ dateOfBirthError() }}
+            </p>
+          </div>
           <app-elyk-outlined-field label="Occupation" icon="briefcase-outline">
             <ion-input formControlName="occupation" data-testid="e2e-auth-register-occupation"></ion-input>
           </app-elyk-outlined-field>
         </div>
-
-        <div class="select-field">
-          <label class="select-field__label" for="cardTypeDesktop">Type de pièce</label>
-          <ion-select id="cardTypeDesktop" formControlName="cardType" interface="popover" placeholder="Sélectionnez" data-testid="e2e-auth-register-card-type">
-            <ion-select-option *ngFor="let t of cardTypes()" [value]="t.value">{{ t.label }}</ion-select-option>
-          </ion-select>
-        </div>
-        <app-elyk-outlined-field label="Numéro de pièce" icon="card-outline">
-          <ion-input formControlName="cardID" data-testid="e2e-auth-register-card-id"></ion-input>
-        </app-elyk-outlined-field>
 
         <div class="error" *ngIf="error()" role="alert">{{ error() }}</div>
         <ion-button type="submit" expand="block" class="elyk-btn-navy" [disabled]="registerForm().invalid || isLoading()" data-testid="e2e-auth-register-continue">

@@ -67,7 +67,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nGestion des comptes financiers (Menu Comptes)\n\nLe sous-menu Comptes offre une vue d'ensemble des comptes de monnaie électronique ou de dépôt rattachés aux clients et aux agents :\nAffiche pour chaque compte : le numéro de compte unique, le titulaire (client ou commercial), le type de compte et le solde actuel disponible en FCFA.\nLa fiche de détail d'un compte permet de tracer l'ensemble des écritures de débit (achats, prélèvements) et de crédit (approvisionnements, remboursements)."
+    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nGestion des comptes financiers (Menu Comptes)\n\nLe sous-menu Comptes offre une vue d’ensemble des comptes rattachés aux clients :\nLa liste affiche pour chaque compte : le numéro, le titulaire, le solde et le statut.\nCliquez sur Voir : un panneau s’ouvre à droite avec le détail (client, n° compte, solde, statut) et les actions possibles (activer / désactiver / modifier).\nFermez le panneau avec Fermer pour revenir à la liste."
   },
   {
     "id": "commercial",
@@ -523,7 +523,7 @@
       "customer",
       "manager"
     ],
-    "content": "Connexion — Espace Client\nCréer un compte\n\nSi votre numéro n’est pas encore connu et que l’inscription est ouverte :\nSaisissez votre numéro, puis Continuer .\nValidez le code SMS (avec la référence affichée à l’écran, comme pour l’activation).\nRenseignez vos informations (photo, identité, adresse). Pour Ma zone (Localités) , ouvrez la liste, recherchez votre zone si besoin, puis sélectionnez-la.\nAppuyez sur Continuer .\nCréez votre code PIN, puis appuyez sur Créer mon compte ."
+    "content": "Connexion — Espace Client\nCréer un compte\n\nSi votre numéro n’est pas encore connu et que l’inscription est ouverte :\nSaisissez votre numéro, puis Continuer .\nValidez le code SMS (avec la référence affichée à l’écran, comme pour l’activation).\nTouchez Ajouter une photo et prenez (ou choisissez) une photo de vous : votre visage doit être bien visible.\nRenseignez vos informations (prénom, nom, adresse, date de naissance, occupation). Pour Ma zone (Localités) , ouvrez la liste, recherchez votre zone si besoin, puis sélectionnez-la.\nVous devez avoir 18 ans ou plus : si la date de naissance ne convient pas, le message Vous devez être majeur (18 ans ou plus). s’affiche sous le champ.\nAppuyez sur Continuer .\nCréez votre code PIN, puis appuyez sur Créer mon compte . Si votre téléphone ou votre navigateur vous demande l’accès à votre position, acceptez : il est nécessaire pour finaliser l’inscription.\nVotre pièce d’identité vous sera demandée ensuite dans Mon dossier ."
   },
   {
     "id": "customer_connexion__sur_ordinateur",
@@ -535,6 +535,28 @@
       "manager"
     ],
     "content": "Connexion — Espace Client\nSur ordinateur\nOuvrez https://clients.amenouveve-yaveh.com dans votre navigateur (fenêtre large).\nÀ gauche, un panneau présente AMENOUVEVE-YAVEH , Elykia et les avantages de l’espace.\nÀ droite, utilisez le formulaire de connexion comme sur mobile (téléphone, puis PIN ou code SMS). Faites défiler la page si le formulaire d’inscription dépasse l’écran.\nPour une inscription, les champs d’identité s’affichent sur deux colonnes ; choisissez votre photo avec Choisir une photo et votre zone avec Ma zone (Localités) ."
+  },
+  {
+    "id": "customer",
+    "title": "Espace client — Vue d’ensemble",
+    "path": "/user-guide/customer/index.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Espace client — Vue d’ensemble\n\nCe guide s’adresse aux clients qui utilisent l’application Espace Client ELYKIA (téléphone).\n\nCe que vous pouvez faire\nConsulter vos crédits et votre prochain paiement sur Accueil \nDéclarer un paiement Mobile Money depuis Achats \nSuivre vos cotisations dans Tontine \nPasser une commande depuis Commander \nCompléter votre dossier dans Mon dossier (pièce d’identité, dépôt initial)\nConsulter vos alertes dans Notifications (cloche en haut à droite)\nPremière connexion\nOuvrez l’application Espace Client.\nSaisissez votre numéro de téléphone.\nSuivez les étapes (code reçu par SMS, création du code secret, fiche d’inscription si besoin).\nSur Accueil , si votre compte est encore en cours de validation, complétez Mon dossier pour accélérer l’activation.\n\nUne fois votre compte validé par l’agence, l’Accueil affiche vos crédits et actions habituelles.\nVoir aussi\nNotifications"
+  },
+  {
+    "id": "customer_notifications",
+    "title": "Notifications (espace client)",
+    "path": "/user-guide/customer/notifications.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Notifications (espace client)\n\nLes notifications vous informent lorsque l’agence traite votre dossier ou vos paiements.\n\nOuvrir les notifications\nSur Accueil (ou Profil ), touchez la cloche en haut à droite.\nUn chiffre rouge indique le nombre de messages non lus.\nLa liste affiche les messages les plus récents en premier.\n\nSur ordinateur, cliquez sur Notifications dans le menu à gauche ; le nombre de messages non lus s’affiche à côté.\nTypes de messages\n\nVous pouvez recevoir notamment :\n Compte activé — votre inscription a été validée\n Inscription non validée — votre dossier n’a pas pu être accepté\n Paiement validé ou refusé — suite à une déclaration Mobile Money sur un crédit\n Cotisation validée ou refusée — suite à une déclaration tontine\n Commande — changement de statut de votre commande\nLire un message\nTouchez un message : il est marqué comme lu.\nL’application ouvre l’écran concerné (Accueil, Achats, Tontine, etc.).\nPour tout marquer comme lu d’un coup, touchez Tout lu en haut à droite.\nAstuce\n\nTirez la liste vers le bas pour actualiser. Les nouveaux messages apparaissent aussi après un retour sur Accueil ."
   },
   {
     "id": "customer_tontine",
@@ -672,7 +694,52 @@
     "roles": [
       "manager"
     ],
-    "content": "Inscriptions clients (espace client)\n\nCette page explique comment valider les demandes d’inscription faites par les clients depuis l’application Espace Client .\n\n---\nAccéder à la liste\nDans le menu latéral, cliquez sur Inscriptions clients .\nL’écran affiche les dossiers en attente , avec le nom, le téléphone, l’état de la pièce d’identité et le dépôt initial s’il a été déclaré.\nUtilisez les filtres Toutes , Avec dépôt ou Sans dépôt pour prioriser les dossiers.\nCliquez sur Actualiser pour recharger la liste.\n\n \n\n---\nExaminer un dossier\nCliquez sur Voir sur la ligne du client.\nVérifiez la photo de profil, la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.\nSi un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.\n\n---\nValider l’inscription\nChoisissez le commercial crédit (obligatoire).\nChoisissez éventuellement le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription .\nLe client peut alors utiliser pleinement l’espace client.\n\n---\nRefuser une inscription\nDepuis le détail du dossier, cliquez sur Refuser .\nIndiquez le motif du refus.\nLe client verra un message l’invitant à contacter l’agence.\n\n---\nCôté client (Espace Client)\n\nUn nouveau client qui saisit un numéro encore inconnu :\nReçoit un code SMS pour confirmer son téléphone.\nRemplit sa fiche et prend sa photo de profil.\nCrée son code PIN, puis se connecte.\nComplète son dossier avec la photo de sa pièce d’identité.\nPeut déclarer un dépôt initial (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.\nAttend la validation de l’agence avant d’accéder aux crédits, commandes et paiements."
+    "content": "Inscriptions clients (espace client)\n\nCette page explique comment valider les demandes d’inscription faites par les clients depuis l’application Espace Client .\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__1_acc_der_la_liste",
+    "title": "Inscriptions clients (espace client) — 1. Accéder à la liste",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nAccéder à la liste\nDans le menu latéral, ouvrez Services en ligne , puis cliquez sur Inscriptions .\nL’écran affiche les dossiers en attente , avec le nom, le téléphone, l’état de la pièce d’identité et le dépôt initial s’il a été déclaré.\nUtilisez les filtres Toutes , Avec dépôt ou Sans dépôt pour prioriser les dossiers.\nNaviguez entre les pages avec Précédent / Suivant si la liste dépasse une page.\nCliquez sur Actualiser pour recharger la liste.\n\n \n\n---"
+  },
+  {
+    "id": "manager_client_registrations__2_examiner_un_dossier",
+    "title": "Inscriptions clients (espace client) — 2. Examiner un dossier",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nExaminer un dossier\nCliquez sur Voir sur la ligne du client.\nVérifiez la photo de profil (à gauche du nom en haut du panneau, ou les initiales si elle n’est pas encore disponible), la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.\nCliquez sur la photo de profil ou sur Agrandir sous la pièce pour ouvrir l’aperçu, puis fermez-le.\nSi un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__3_valider_l_inscription",
+    "title": "Inscriptions clients (espace client) — 3. Valider l’inscription",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nValider l’inscription\nChoisissez le commercial crédit .\nChoisissez le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription (le bouton devient actif seulement quand les deux commerciaux sont choisis).\nUn compte client est créé automatiquement avec le statut Actif : solde égal au dépôt initial s’il a été validé, sinon 0.\nLe client peut alors utiliser pleinement l’espace client ; une notification lui confirme l’activation.\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__4_refuser_une_inscription",
+    "title": "Inscriptions clients (espace client) — 4. Refuser une inscription",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nRefuser une inscription\nDepuis le détail du dossier, cliquez sur Refuser .\nIndiquez le motif du refus.\nLe client verra un message l’invitant à contacter l’agence.\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__5_c_t_client_espace_client",
+    "title": "Inscriptions clients (espace client) — 5. Côté client (Espace Client)",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nCôté client (Espace Client)\n\nUn nouveau client qui saisit un numéro encore inconnu :\nReçoit un code SMS pour confirmer son téléphone.\nRemplit sa fiche (prénom, nom, adresse, votre zone , date de naissance, occupation) et ajoute sa photo de profil (le visage doit être bien visible). La date de naissance doit correspondre à un client majeur (18 ans ou plus). L’application enregistre automatiquement sa position lors de la validation.\nCrée son code PIN, puis se connecte.\nComplète son dossier ( Mon dossier ) avec le type et le numéro de pièce d’identité, plus la photo de la pièce.\nPeut déclarer un dépôt initial (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.\nAttend la validation de l’agence ; une notification l’informe ensuite que le compte est activé."
   },
   {
     "id": "manager_customer_activity_audit",
@@ -843,7 +910,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Guide Gestionnaire\nRègles de travail\n\nLa gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.\n\nConsultez les pages suivantes selon la tâche à accomplir :\nTableaux de bord pour lire les KPI sans confondre les périodes.\nOpérations quotidiennes pour les caisses, clients, comptes et versements.\nInscriptions clients pour valider les demandes de l’espace client.\nJournal espace client (Audit) pour consulter les actions, erreurs et parcours de l’espace client.\nStocks, ventes et commandes pour les flux de marchandises et de crédits.\nFinances et tontines pour les dépenses, remises et contrôles tontine.\nRapports et configuration pour l’analyse et les référentiels."
+    "content": "Guide Gestionnaire\nRègles de travail\n\nLa gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.\n\nConsultez les pages suivantes selon la tâche à accomplir :\nTableaux de bord pour lire les KPI sans confondre les périodes.\nOpérations quotidiennes pour les caisses, clients, comptes et versements.\nInscriptions ( Services en ligne ) pour valider les demandes de l’espace client.\nJournal espace client (Audit) pour consulter les actions, erreurs et parcours de l’espace client.\nStocks, ventes et commandes pour les flux de marchandises et de crédits.\nFinances et tontines pour les dépenses, remises et contrôles tontine.\nRapports et configuration pour l’analyse et les référentiels."
   },
   {
     "id": "manager_operations",
@@ -901,12 +968,12 @@
   },
   {
     "id": "manager_operations__6_traitement_des_d_clarations_de_paiements_clien",
-    "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 6. Traitement des déclarations de paiements clients Mobile Money (Menu Paiements clients)",
+    "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 6. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)",
     "path": "/user-guide/manager/operations.html",
     "roles": [
       "manager"
     ],
-    "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nTraitement des déclarations de paiements clients Mobile Money (Menu Paiements clients)\n\nLe module Paiements clients permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via Mobile Money (Mixx by YAS ou Moov Money).\n\nA. Présentation générale et indicateurs\n Accès au module : Menu latéral Paiements clients (icône carte bancaire). Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises.\n Barre d'état : Heure d'actualisation en direct et bouton « Actualiser » pour vérifier l'arrivée de nouveaux versements.\n Compteur dynamique : Affiche le nombre de déclarations actuellement en attente d'instruction.\n Visibilité des données :\n Pour un gestionnaire : Visualisation globale de toutes les déclarations de l'agence, avec affichage du commercial affecté.\n Pour un commercial : Consultation restreinte aux seules déclarations de paiement de son portefeuille clients.\n\n---\nB. Traitement des remboursements de crédit (Onglet Recouvrement crédit)\nCet onglet centralise les règlements d'échéances de vente à crédit :\n\n Information affichée Description fonctionnelle \n --- --- \n Client Nom et prénom du client ou son numéro d'identifiant. \n Commercial Commercial gestionnaire du dossier de crédit. \n Crédit Numéro du crédit. Cliquer sur le lien bleu #ID ouvre directement la fiche 360° du crédit. \n Échéance Numéro de l'échéance réglée par le client. \n Montant Somme versée en Francs CFA (affichée en gras). \n Téléphone Numéro de téléphone Mobile Money utilisé pour le transfert. \n Référence Numéro de transaction officiel fourni par l'opérateur (Mixx ou Moov). \n Date Date et heure de déclaration du paiement par le client.…"
+    "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nTraitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)\n\nLe module Paiements (sous Services en ligne ) permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via Mobile Money (Mixx by YAS ou Moov Money).\n\nA. Présentation générale et indicateurs\n Accès au module : Menu latéral Services en ligne > Paiements . Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises.\n Barre d'état : Heure d'actualisation en direct et bouton « Actualiser » pour vérifier l'arrivée de nouveaux versements.\n Compteur dynamique : Affiche le nombre de déclarations actuellement en attente d'instruction.\n Visibilité des données :\n Pour un gestionnaire : Visualisation globale de toutes les déclarations de l'agence, avec affichage du commercial affecté.\n Pour un commercial : Consultation restreinte aux seules déclarations de paiement de son portefeuille clients.\n\n---\nB. Traitement des remboursements de crédit (Onglet Recouvrement crédit)\nCet onglet centralise les règlements d'échéances de vente à crédit :\n\n Information affichée Description fonctionnelle \n --- --- \n Client Nom et prénom du client ou son numéro d'identifiant. \n Commercial Commercial gestionnaire du dossier de crédit. \n Crédit Numéro du crédit. Cliquer sur le lien bleu #ID ouvre directement la fiche 360° du crédit. \n Échéance Numéro de l'échéance réglée par le client. \n Montant Somme versée en Francs CFA (affichée en gras). \n Téléphone Numéro de téléphone Mobile Money utilisé pour le transfert. \n Référence Numéro de transaction officiel fourni par l'opérateur (Mixx ou Moov). \n Date Date et heure de déclaration du paiement par le client.…"
   },
   {
     "id": "manager_operations__7_centre_de_notifications_et_suivi_des_alertes",

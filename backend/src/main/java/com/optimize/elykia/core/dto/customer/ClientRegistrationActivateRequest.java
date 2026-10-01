@@ -13,6 +13,7 @@ public class ClientRegistrationActivateRequest {
     @Size(max = 100)
     private String collector;
 
+    @NotBlank
     @Size(max = 100)
     private String tontineCollector;
 

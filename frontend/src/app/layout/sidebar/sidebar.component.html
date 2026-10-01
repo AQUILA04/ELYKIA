@@ -84,9 +84,9 @@
           </a>
         </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ACCOUNT', 'ROLE_EDIT_ACCOUNT']">
-          <a class="sidebar-link" routerLink="/accountlist" aria-expanded="false"
+          <a class="sidebar-link" routerLink="/account/list" aria-expanded="false"
              data-testid="e2e-sidebar-accounts"
-             [ngClass]="{ 'active': isRouteActive('/accountlist') }">
+             [ngClass]="{ 'active': isSubRouteActive('/account') }">
             <span>
               <mat-icon>account_balance</mat-icon>
             </span>
@@ -314,27 +314,39 @@
             <span class="hide-menu">Commandes</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">
-          <a class="sidebar-link" routerLink="/customer-payments" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/customer-payments') }"
-             data-testid="e2e-sidebar-customer-payments">
-            <span>
-              <mat-icon>payments</mat-icon>
-            </span>
-            <span class="hide-menu">Paiements clients</span>
-          </a>
-        </li>
+
+        <!-- MENU SERVICES EN LIGNE -->
         <li class="sidebar-item"
-            *ngxPermissionsOnly="['ROLE_VALIDATE_CLIENT_REGISTRATION','ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT','ROLE_ADMIN']">
-          <a class="sidebar-link" routerLink="/client-registrations" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/client-registrations') }"
-             data-testid="e2e-sidebar-client-registrations">
+            *ngIf="!isStorekeeper() && !isRecoveryManager()"
+            data-testid="e2e-sidebar-services-en-ligne">
+          <a class="sidebar-link has-arrow" (click)="onServicesEnLigneClick()" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/services-en-ligne') }">
             <span>
-              <mat-icon>person_add</mat-icon>
+              <mat-icon>language</mat-icon>
             </span>
-            <span class="hide-menu">Inscriptions clients</span>
+            <span class="hide-menu">Services en ligne</span>
           </a>
+          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isServicesEnLigneOpen }">
+            <li class="sidebar-item submenu-item"
+                *ngxPermissionsOnly="['ROLE_VALIDATE_CLIENT_REGISTRATION','ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT','ROLE_ADMIN']">
+              <a class="sidebar-link" routerLink="/client-registrations"
+                 [ngClass]="{ 'active': isSubRouteActive('/client-registrations') }"
+                 data-testid="e2e-sidebar-client-registrations">
+                <span class="material-icons">person_add</span>
+                <span class="hide-menu">Inscriptions</span>
+              </a>
+            </li>
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/customer-payments"
+                 [ngClass]="{ 'active': isSubRouteActive('/customer-payments') }"
+                 data-testid="e2e-sidebar-customer-payments">
+                <span class="material-icons">payments</span>
+                <span class="hide-menu">Paiements</span>
+              </a>
+            </li>
+          </ul>
         </li>
+
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_AUDIT']">
           <a class="sidebar-link" routerLink="/audit" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/audit') }"

@@ -42,6 +42,7 @@ public class CustomerMobileMoneySubmissionAdminService {
     private final ClientService clientService;
     private final AppNotificationService appNotificationService;
     private final CreditTimelineService creditTimelineService;
+    private final CustomerNotificationService customerNotificationService;
 
     @Transactional(readOnly = true)
     public Page<CustomerMobileMoneySubmissionDto> list(User user, CustomerSubmissionStatus status, Pageable pageable) {
@@ -101,6 +102,7 @@ public class CustomerMobileMoneySubmissionAdminService {
         }
         submission = submissionRepository.save(submission);
         appNotificationService.resolveByTypeAndEntityId(AppNotificationType.PAYMENT_DECLARATION, submission.getId());
+        customerNotificationService.notifyCreditPayment(submission, CustomerSubmissionStatus.VALIDE);
         return toDto(submission, client, targetCollector, tontineCollector);
     }
 
@@ -121,6 +123,7 @@ public class CustomerMobileMoneySubmissionAdminService {
         }
         submission = submissionRepository.save(submission);
         appNotificationService.resolveByTypeAndEntityId(AppNotificationType.PAYMENT_DECLARATION, submission.getId());
+        customerNotificationService.notifyCreditPayment(submission, CustomerSubmissionStatus.REJETE);
         return toDto(submission, client, targetCollector, tontineCollector);
     }
 

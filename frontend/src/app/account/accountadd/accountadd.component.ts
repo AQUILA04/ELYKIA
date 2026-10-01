@@ -128,7 +128,7 @@ export class AccountAddComponent implements OnInit, OnDestroy {
       this.accountService.updateAccount(this.accountId, formData).subscribe({
         next: () => {
           this.alertService.showSuccess('Compte mis à jour avec succès');
-          this.router.navigate(['/accountlist']);
+          this.router.navigate(['/account/list']);
         },
         error: () => {
           this.alertService.showError('Erreur lors de la mise à jour du compte');
@@ -139,7 +139,7 @@ export class AccountAddComponent implements OnInit, OnDestroy {
       this.accountService.addAccount(formData).subscribe({
         next: () => {
           this.alertService.showSuccess('Compte ajouté avec succès');
-          this.router.navigate(['/accountlist']);
+          this.router.navigate(['/account/list']);
         },
         error: () => {
           this.alertService.showError('Erreur lors de l\'ajout du compte');
@@ -150,6 +150,6 @@ export class AccountAddComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
-    this.router.navigate(['/accountlist']);
+    this.router.navigate(['/account/list']);
   }
 }

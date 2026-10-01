@@ -22,7 +22,9 @@ public class ClientRegistrationDto {
     private String cardType;
     private String cardID;
     private String profilPhotoUrl;
+    private String profilPhotoThumbUrl;
     private String cardPhotoUrl;
+    private String cardPhotoThumbUrl;
     private String activationStatus;
     private String collector;
     private String tontineCollector;

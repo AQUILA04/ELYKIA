@@ -120,7 +120,9 @@ Lorsque les tournées sont réorganisées, les gestionnaires peuvent transférer
 
 ## 5. Gestion des comptes financiers (Menu Comptes)
 
-Le sous-menu **Comptes** offre une vue d'ensemble des comptes de monnaie électronique ou de dépôt rattachés aux clients et aux agents :
-* Affiche pour chaque compte : le numéro de compte unique, le titulaire (client ou commercial), le type de compte et le solde actuel disponible en FCFA.
-* La fiche de détail d'un compte permet de tracer l'ensemble des écritures de débit (achats, prélèvements) et de crédit (approvisionnements, remboursements).
+Le sous-menu **Comptes** offre une vue d’ensemble des comptes rattachés aux clients :
+
+1. La liste affiche pour chaque compte : le numéro, le titulaire, le solde et le statut.
+2. Cliquez sur **Voir** : un panneau s’ouvre à droite avec le détail (client, n° compte, solde, statut) et les actions possibles (activer / désactiver / modifier).
+3. Fermez le panneau avec **Fermer** pour revenir à la liste.
 

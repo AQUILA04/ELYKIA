@@ -20,6 +20,12 @@
         data-testid="e2e-nav-cart-badge">
         {{ cartCount() }}
       </span>
+      <span
+        *ngIf="item.badge === 'notifications' && unreadCount() > 0"
+        class="desktop-sidebar__badge"
+        data-testid="e2e-nav-notifications-badge">
+        {{ unreadCount() > 9 ? '9+' : unreadCount() }}
+      </span>
     </a>
   </nav>
 

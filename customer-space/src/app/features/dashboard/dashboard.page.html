@@ -18,10 +18,16 @@
     eyebrow="ESPACE CLIENT"
     [title]="'Bonjour, ' + displayName"
     subtitle="Votre crédit et vos prochaines échéances">
-    <a slot="end" class="dash-profile-btn" routerLink="/profile" data-testid="e2e-dashboard-profile-btn" aria-label="Mon profil">
-      <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
-    </a>
+    <div slot="end" class="dash-header-actions">
+      <app-notification-bell class="dash-bell"></app-notification-bell>
+      <a class="dash-profile-btn" routerLink="/profile" data-testid="e2e-dashboard-profile-btn" aria-label="Mon profil">
+        <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+      </a>
+    </div>
   </app-elyk-page-header>
+  <ion-refresher slot="fixed" (ionRefresh)="loadDashboard($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
 
   <div class="dashboard-body elyk-typec-body">
     <ng-container *ngIf="!isLoading && dashboard && !loadError">

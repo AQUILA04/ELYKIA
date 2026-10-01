@@ -1,7 +1,7 @@
 <div class="main-container account-page a1" data-testid="e2e-account-list">
   <div class="page-fixed-head">
     <div class="breadcrumb-bar">
-      <a routerLink="/dashboard" class="breadcrumb-link">
+      <a routerLink="/home" class="breadcrumb-link">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
         </svg>
@@ -181,6 +181,66 @@
           showFirstLastButtons>
         </mat-paginator>
       </div>
+    </div>
+  </div>
+
+  <div class="detail-panel" *ngIf="selected || detailLoading" data-testid="e2e-account-detail">
+    <div class="detail-backdrop" (click)="closeDetail()"></div>
+    <div class="detail-card">
+      <div class="detail-header">
+        <div class="detail-identity" *ngIf="selected">
+          <div class="header-avatar header-avatar--initials" [attr.aria-label]="'Avatar ' + clientFullName(selected)">
+            {{ getInitials(selected) }}
+          </div>
+          <div class="detail-identity-text">
+            <h2>{{ clientFullName(selected) }}</h2>
+            <span class="detail-account-number">{{ selected.accountNumber }}</span>
+          </div>
+        </div>
+        <h2 *ngIf="!selected && detailLoading">Chargement…</h2>
+        <button type="button" class="btn-clear" (click)="closeDetail()">Fermer</button>
+      </div>
+
+      <div *ngIf="detailLoading && !selected" class="detail-loading">Chargement du compte…</div>
+
+      <ng-container *ngIf="selected">
+        <dl class="detail-grid">
+          <div>
+            <dt>Client</dt>
+            <dd>{{ clientFullName(selected) }}</dd>
+          </div>
+          <div>
+            <dt>N° compte</dt>
+            <dd class="mono">{{ selected.accountNumber }}</dd>
+          </div>
+          <div>
+            <dt>Solde</dt>
+            <dd class="balance">{{ selected.accountBalance | currency:'XOF':'symbol':'1.0-0' }}</dd>
+          </div>
+          <div>
+            <dt>Statut</dt>
+            <dd>
+              <span class="status-badge" [class]="getStatusClass(selected.status)">
+                {{ getStatusLabel(selected.status) }}
+              </span>
+            </dd>
+          </div>
+        </dl>
+
+        <div class="detail-actions">
+          <ng-container *ngxPermissionsOnly="['ROLE_START_CREDIT','ROLE_VALIDATE_CREDIT']">
+            <button *ngIf="selected.status === 'CREATED' || selected.status === 'ACTIF' || selected.status === 'CLOSED'"
+                    type="button"
+                    class="btn-primary"
+                    (click)="toggleAccountStatus(selected.id, selected.status)">
+              {{ getToggleLabel(selected.status) }}
+            </button>
+          </ng-container>
+          <button *ngxPermissionsOnly="['ROLE_EDIT_ACCOUNT']" type="button" class="btn-clear" (click)="editSelected()">
+            Modifier
+          </button>
+        </div>
+      </ng-container>
     </div>
   </div>
 </div>

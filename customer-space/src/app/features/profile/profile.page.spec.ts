@@ -1,8 +1,10 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router } from '@angular/router';
+import { of } from 'rxjs';
 import { ProfilePage } from './profile.page';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import { AppUpdateService } from '../../shared/services/app-update.service';
+import { CustomerNotificationInboxService } from '../../shared/services/customer-notification-inbox.service';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { RouterTestingModule } from '@angular/router/testing';
 import { environment } from '../../../environments/environment';
@@ -28,6 +30,10 @@ describe('ProfilePage', () => {
         {
           provide: ToastController,
           useValue: jasmine.createSpyObj('ToastController', ['create']),
+        },
+        {
+          provide: CustomerNotificationInboxService,
+          useValue: { unreadCount$: of(0) },
         },
       ],
     }).compileComponents();

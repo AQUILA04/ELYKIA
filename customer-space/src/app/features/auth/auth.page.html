@@ -10,7 +10,7 @@
       [isLoading]="isLoading"
       [appVersion]="appVersion"
       [profilPhotoDataUrl]="profilPhotoDataUrl"
-      [cardTypes]="cardTypes"
+      [dateOfBirthError]="dateOfBirthError"
       [phoneForm]="phoneForm"
       [pinForm]="pinForm"
       [otpForm]="otpForm"
@@ -33,6 +33,7 @@
       (submitRegisterForm)="submitRegisterForm()"
       (submitRegisterPin)="submitRegisterPin()"
       (profilPhotoSelected)="onProfilPhotoSelected($event)"
+      (dateOfBirthChanged)="onDateOfBirthChanged()"
       (retryLocalities)="loadLocalities()"
       (back)="goBack()">
     </app-auth-desktop>
@@ -199,23 +200,26 @@
         data-testid="e2e-auth-register-form">
         <div class="photo-field">
           <span class="photo-field__label">Photo de profil</span>
-          <div class="photo-capture">
-            <img
-              *ngIf="profilPhotoDataUrl"
-              [src]="profilPhotoDataUrl"
-              alt="Aperçu photo de profil"
-              class="photo-preview" />
-            <label class="photo-capture__btn" for="profilPhoto">
-              {{ profilPhotoDataUrl ? 'Changer la photo' : 'Prendre une photo' }}
-            </label>
-            <input
-              id="profilPhoto"
-              class="sr-only"
-              type="file"
-              accept="image/*"
-              capture="user"
-              (change)="onProfilPhotoSelected($event)"
-              data-testid="e2e-auth-register-photo" />
+          <div class="photo-picker">
+            <button type="button" class="photo-picker-btn"
+              (click)="onProfilPhotoClick(profilPhotoInput)"
+              data-testid="e2e-auth-register-photo-btn"
+              [disabled]="isLoading"
+              [attr.aria-label]="profilPhotoDataUrl ? 'Changer la photo de profil' : 'Ajouter une photo de profil'">
+              <img *ngIf="profilPhotoDataUrl" [src]="profilPhotoDataUrl" alt="" class="photo-preview" />
+              <span *ngIf="!profilPhotoDataUrl" class="photo-placeholder" aria-hidden="true">
+                <ion-icon name="camera-outline"></ion-icon>
+              </span>
+              <span class="photo-picker-cta">
+                <ion-icon [name]="profilPhotoDataUrl ? 'refresh-outline' : 'image-outline'" aria-hidden="true"></ion-icon>
+                {{ profilPhotoDataUrl ? 'Changer la photo' : 'Ajouter une photo' }}
+              </span>
+            </button>
+            <input #profilPhotoInput id="profilPhoto" type="file" accept="image/*" capture="user"
+              class="photo-input-hidden"
+              aria-label="Photo de profil"
+              (change)="onProfilPhotoSelected($event)" data-testid="e2e-auth-register-photo" />
+            <p class="photo-hint">Format jpg ou png — le visage doit être bien visible</p>
           </div>
         </div>
 
@@ -240,27 +244,15 @@
           <ion-input
             formControlName="dateOfBirth"
             type="date"
+            (ionChange)="onDateOfBirthChanged()"
             data-testid="e2e-auth-register-dob">
           </ion-input>
         </app-elyk-outlined-field>
+        <p class="field-error" *ngIf="dateOfBirthError" role="alert" data-testid="e2e-auth-register-dob-error">
+          {{ dateOfBirthError }}
+        </p>
         <app-elyk-outlined-field label="Occupation" icon="briefcase-outline">
           <ion-input formControlName="occupation" data-testid="e2e-auth-register-occupation"></ion-input>
-        </app-elyk-outlined-field>
-
-        <div class="select-field">
-          <label class="select-field__label" for="cardType">Type de pièce</label>
-          <ion-select
-            id="cardType"
-            formControlName="cardType"
-            interface="popover"
-            placeholder="Sélectionnez"
-            data-testid="e2e-auth-register-card-type">
-            <ion-select-option *ngFor="let t of cardTypes" [value]="t.value">{{ t.label }}</ion-select-option>
-          </ion-select>
-        </div>
-
-        <app-elyk-outlined-field label="Numéro de pièce" icon="card-outline">
-          <ion-input formControlName="cardID" data-testid="e2e-auth-register-card-id"></ion-input>
         </app-elyk-outlined-field>
 
         <div class="error" *ngIf="error" role="alert">{{ error }}</div>

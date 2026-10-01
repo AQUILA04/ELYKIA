@@ -3,11 +3,8 @@ import { RouterModule, Routes } from '@angular/router';
 import { LocalityAddComponent } from './locality/localityadd/localityadd.component';
 import { LocalityListComponent } from './locality/localitylist/localitylist.component';
 import { LocalityDetailsComponent } from './locality/localitydetails/localitydetails.component';
-import { AccountAddComponent } from './account/accountadd/accountadd.component';
-import { AccountListComponent } from './account/accountlist/accountlist.component';
 import { LoginComponent } from './auth/login/login.component';
 import { NgxPermissionsGuard } from 'ngx-permissions';
-import { AccountdetailsComponent } from './account/accountdetails/accountdetails.component';
 import { DailyOperationComponent } from './cash-desk/daily-operation/daily-operation.component';
 import { OpenCashDeskComponent } from './cash-desk/open-cash-desk/open-cash-desk.component';
 import { TFJComponent } from './cash-desk/tfj/tfj.component';
@@ -197,25 +194,10 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
 
-  // Comptes
+  // Comptes (lazy-loaded)
   {
-    path: 'account-add',
-    component: AccountAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'account-add/:id',
-    component: AccountAddComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'accountlist',
-    component: AccountListComponent,
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'accountdetails/:id',
-    component: AccountdetailsComponent,
+    path: 'account',
+    loadChildren: () => import('./account/account.module').then(m => m.AccountModule),
     canActivate: [AuthGuard]
   },
 

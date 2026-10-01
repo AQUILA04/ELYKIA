@@ -15,6 +15,7 @@ import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.repository.OrderItemRepository;
 import com.optimize.elykia.core.repository.OrderRepository;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
+import com.optimize.elykia.core.service.customer.CustomerNotificationService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.sale.CreditService;
 import org.hibernate.Hibernate; // CORRECTION : Import nécessaire
@@ -47,6 +48,7 @@ public class OrderService extends GenericService<Order, Long> {
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final AppNotificationService appNotificationService;
+    private final CustomerNotificationService customerNotificationService;
 
     protected OrderService(OrderRepository repository,
             OrderItemRepository orderItemRepository,
@@ -57,7 +59,8 @@ public class OrderService extends GenericService<Order, Long> {
             CreditService creditService,
             OrderStatusHistoryRepository orderStatusHistoryRepository,
             org.springframework.context.ApplicationEventPublisher eventPublisher,
-            AppNotificationService appNotificationService) {
+            AppNotificationService appNotificationService,
+            CustomerNotificationService customerNotificationService) {
         super(repository);
         this.orderItemRepository = orderItemRepository;
         this.clientService = clientService;
@@ -68,6 +71,7 @@ public class OrderService extends GenericService<Order, Long> {
         this.orderStatusHistoryRepository = orderStatusHistoryRepository;
         this.eventPublisher = eventPublisher;
         this.appNotificationService = appNotificationService;
+        this.customerNotificationService = customerNotificationService;
     }
 
     @Override
@@ -142,6 +146,7 @@ public class OrderService extends GenericService<Order, Long> {
         super.update(order);
         historyService.createHistory(order, OrderStatus.ACCEPTED, OrderStatus.SOLD, username);
         clientService.updateOrderStatus(order.getClient().getId(), Boolean.FALSE);
+        customerNotificationService.notifyOrderStatusChanged(order, OrderStatus.SOLD);
         return creditService.getById(newCreditId);
     }
 
@@ -166,6 +171,9 @@ public class OrderService extends GenericService<Order, Long> {
 
             if (oldStatus == OrderStatus.PENDING && newStatus != OrderStatus.PENDING) {
                 appNotificationService.resolveByTypeAndEntityId(AppNotificationType.CUSTOMER_ORDER, orderId);
+            }
+            if (oldStatus != newStatus) {
+                customerNotificationService.notifyOrderStatusChanged(updatedOrder, newStatus);
             }
         }
 

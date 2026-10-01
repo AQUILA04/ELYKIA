@@ -9,9 +9,11 @@ import lombok.Setter;
 @Setter
 public class CustomerIdDocumentRequest {
 
+    @NotBlank
     @Size(max = 50)
     private String cardType;
 
+    @NotBlank
     @Size(max = 100)
     private String cardID;
 

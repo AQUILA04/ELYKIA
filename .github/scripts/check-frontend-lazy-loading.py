@@ -22,7 +22,6 @@ FRONTEND_APP = REPO_ROOT / "frontend" / "src" / "app"
 # Domains still eager — sync with .cursor/rules/frontend-lazy-loading-migration.mdc
 EAGER_DOMAINS = frozenset({
     "locality",
-    "account",
     "client",
     "dashboard-chart",
     "accounting-day",

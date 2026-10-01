@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { DesktopSidebarComponent } from './desktop-sidebar.component';
 import { CustomerSessionService } from '../../services/customer-session.service';
 import { CartService } from '../../services/cart.service';
+import { CustomerNotificationInboxService } from '../../services/customer-notification-inbox.service';
 import { BehaviorSubject } from 'rxjs';
 
 describe('DesktopSidebarComponent', () => {
@@ -35,6 +36,10 @@ describe('DesktopSidebarComponent', () => {
             totalItems: 2,
           },
         },
+        {
+          provide: CustomerNotificationInboxService,
+          useValue: { unreadCount$: new BehaviorSubject(3).asObservable() },
+        },
       ],
     }).compileComponents();
 
@@ -54,5 +59,11 @@ describe('DesktopSidebarComponent', () => {
   it('shows cart badge when cart has items', () => {
     const el: HTMLElement = fixture.nativeElement;
     expect(el.querySelector('[data-testid="e2e-nav-cart-badge"]')?.textContent?.trim()).toBe('2');
+  });
+
+  it('shows notifications link with unread badge', () => {
+    const el: HTMLElement = fixture.nativeElement;
+    expect(el.querySelector('[data-testid="e2e-nav-notifications"]')).toBeTruthy();
+    expect(el.querySelector('[data-testid="e2e-nav-notifications-badge"]')?.textContent?.trim()).toBe('3');
   });
 });

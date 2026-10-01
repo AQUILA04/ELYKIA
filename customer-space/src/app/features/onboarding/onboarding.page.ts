@@ -1,11 +1,12 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
+import { CustomerSessionService } from '../../shared/services/customer-session.service';
 import {
   CustomerInitialDeposit,
   CustomerOnboardingStatus,
@@ -36,7 +37,7 @@ import { OnboardingDesktopComponent } from './desktop/onboarding-desktop.compone
   templateUrl: './onboarding.page.html',
   styleUrls: ['./onboarding.page.scss'],
 })
-export class OnboardingPage implements OnInit {
+export class OnboardingPage implements ViewWillEnter {
   readonly layout = inject(LayoutService);
   private readonly journal = inject(UserJournalService);
   status: CustomerOnboardingStatus | null = null;
@@ -55,12 +56,13 @@ export class OnboardingPage implements OnInit {
 
   constructor(
     private api: CustomerApiService,
+    private session: CustomerSessionService,
     private fb: FormBuilder,
     private router: Router,
   ) {
     this.idForm = this.fb.group({
-      cardType: [''],
-      cardID: [''],
+      cardType: ['', Validators.required],
+      cardID: ['', [Validators.required, Validators.maxLength(100)]],
     });
     this.depositForm = this.fb.group({
       mobileMoneyPhone: ['', [Validators.required, Validators.minLength(8)]],
@@ -70,7 +72,7 @@ export class OnboardingPage implements OnInit {
     });
   }
 
-  ngOnInit(): void {
+  ionViewWillEnter(): void {
     void this.load();
   }
 
@@ -111,6 +113,7 @@ export class OnboardingPage implements OnInit {
     this.error = '';
     try {
       this.status = await firstValueFrom(this.api.getOnboardingStatus());
+      this.session.updateActivationStatus(this.status.activationStatus);
       this.idForm.patchValue({
         cardType: this.status.cardType ?? '',
         cardID: this.status.cardID ?? '',
@@ -160,6 +163,11 @@ export class OnboardingPage implements OnInit {
   }
 
   async submitIdDocument(): Promise<void> {
+    if (this.idForm.invalid) {
+      this.idForm.markAllAsTouched();
+      this.error = 'Indiquez le type et le numéro de votre pièce d\'identité.';
+      return;
+    }
     if (!this.cardPhotoDataUrl) {
       this.error = 'La photo de la pièce est obligatoire.';
       return;
@@ -169,8 +177,8 @@ export class OnboardingPage implements OnInit {
     this.success = '';
     try {
       this.status = await firstValueFrom(this.api.uploadIdDocument({
-        cardType: this.idForm.value.cardType || undefined,
-        cardID: this.idForm.value.cardID || undefined,
+        cardType: this.idForm.value.cardType,
+        cardID: this.idForm.value.cardID,
         cardPhoto: this.cardPhotoDataUrl,
       }));
       this.success = 'Pièce d\'identité enregistrée.';
