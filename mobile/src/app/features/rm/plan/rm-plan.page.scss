@@ -4,6 +4,9 @@
   --rm-navy-pale: #e8eef6;
   --rm-bg: #f2f4f8;
   --rm-muted: #6b7a99;
+  height: 100vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   min-height: 100vh;
   background: var(--rm-bg);
   padding-bottom: 24px;
@@ -150,6 +153,13 @@
 .rm-list {
   background: transparent;
   margin-bottom: 20px;
+}
+
+.rm-list.scrollable-list {
+  max-height: calc(100vh - 320px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 16px;
 }
 
 .rm-list ion-item {
