@@ -41,6 +41,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Inscription espace client : `cardType` / `cardID` optionnels (renseignés à l’onboarding) ; âge minimum **18 ans**.
 - Activation inscription BO : `tontineCollector` obligatoire et compte toujours créé **ACTIF**, même avec solde 0.
 
+## Frontend — [2.26.1] — 2026-10-01
+
+### Fixed
+
+- Inscriptions clients : si la photo de profil ou de pièce est injoignable, bascule sur l’URL suivante puis affichage des **initiales** (ou absence de vignette pièce) au lieu d’une image cassée.
+
 ## Frontend — [2.26.0] — 2026-10-01
 
 ### Changed
