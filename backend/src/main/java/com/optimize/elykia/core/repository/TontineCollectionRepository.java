@@ -76,6 +76,18 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
     @Query("SELECT SUM(tc.amount) FROM TontineCollection tc WHERE tc.tontineMember.tontineSession.id = :sessionId AND tc.isDeliveryCollection = true AND tc.state = :state")
     Double sumDeliveryCollectionsBySession(@Param("sessionId") Long sessionId, @Param("state") State state);
 
+    @Query("""
+            SELECT SUM(tc.amount) FROM TontineCollection tc
+            WHERE tc.tontineMember.tontineSession.id = :sessionId
+              AND tc.isDeliveryCollection = true
+              AND tc.state = :state
+              AND (:commercial IS NULL OR tc.tontineMember.client.tontineCollector = :commercial)
+            """)
+    Double sumDeliveryCollectionsBySessionAndCommercial(
+            @Param("sessionId") Long sessionId,
+            @Param("state") State state,
+            @Param("commercial") String commercial);
+
     boolean existsByReference(String reference);
     Optional<TontineCollection> findByReference(String reference);
 

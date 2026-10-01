@@ -313,7 +313,7 @@ export class TontineService {
       .pipe(catchError(this.handleApiError.bind(this)));
   }
 
-  getCurrentSession(): Observable<ApiResponse<TontineSession>> {
+  getCurrentSession(commercial?: string): Observable<ApiResponse<TontineSession>> {
     this.setLoading(true);
     const headers = this.getHeaders();
 
@@ -326,8 +326,8 @@ export class TontineService {
               loading: false,
               error: null
             });
-            // After getting the session, get its stats
-            return this.getSessionStats(response.data.id).pipe(
+            // After getting the session, get its stats (optionally filtered by commercial)
+            return this.getSessionStats(response.data.id, commercial).pipe(
               map(() => response) // Return the original session response
             );
           }
@@ -339,11 +339,16 @@ export class TontineService {
       );
   }
 
-  getSessionStats(sessionId: number): Observable<ApiResponse<SessionStats>> {
+  getSessionStats(sessionId: number, commercial?: string): Observable<ApiResponse<SessionStats>> {
     this.setLoading(true);
     const headers = this.getHeaders();
 
-    return this.http.get<ApiResponse<SessionStats>>(`${this.sessionApiUrl}/${sessionId}/stats`, { headers })
+    let params = new HttpParams();
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+
+    return this.http.get<ApiResponse<SessionStats>>(`${this.sessionApiUrl}/${sessionId}/stats`, { headers, params })
       .pipe(
         tap(response => {
           if (response.statusCode === 200 && response.data) {

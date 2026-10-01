@@ -6,6 +6,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TontineService } from '../../services/tontine.service';
 import { TontineSessionService } from '../../services/tontine-session.service';
+import { TontineMemberFilterStorageService } from '../../services/tontine-member-filter-storage.service';
 import {
   TontineMember,
   TontineState,
@@ -46,6 +47,7 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   currentSession$: Observable<TontineSession | null>;
 
   memberQueryParams: TontineMemberQueryParams = { page: 0, size: TONTINE_CONSTANTS.DEFAULT_PAGE_SIZE, sort: 'id,asc' };
+  initialFilters: TontineFilterBarParams | null = null;
   paginatedMembers: PaginatedResponse<TontineMember> | null = null;
   loadingMembers: boolean = false; // Separate loading state for members table
 
@@ -77,13 +79,15 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     private readonly userService: UserService,
     private readonly permissionsService: NgxPermissionsService,
     private readonly alertService: AlertService,
-    private readonly clientService: ClientService
+    private readonly clientService: ClientService,
+    private readonly filterStorage: TontineMemberFilterStorageService
   ) {
     this.state$ = this.tontineService.state$;
     this.currentSession$ = this.sessionService.currentSession$;
   }
 
   ngOnInit(): void {
+    this.restoreSavedFilters();
     this.setupObservables();
     this.loadCurrentSessionAndMembers();
     this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
@@ -107,8 +111,25 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  private restoreSavedFilters(): void {
+    const saved = this.filterStorage.load();
+    this.initialFilters = saved;
+    if (!saved) {
+      return;
+    }
+    this.memberQueryParams = {
+      ...this.memberQueryParams,
+      search: saved.search,
+      deliveryStatus: saved.deliveryStatus === 'ALL' ? undefined : saved.deliveryStatus,
+      commercial: saved.commercial || undefined,
+      carnetVerified: typeof saved.carnetVerified === 'boolean' ? saved.carnetVerified : undefined,
+      registrationSource: saved.registrationSource || undefined,
+      page: 0
+    };
+  }
+
   refreshData(): void {
-    this.tontineService.getCurrentSession().pipe(
+    this.tontineService.getCurrentSession(this.memberQueryParams.commercial).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: () => {
@@ -134,7 +155,7 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   }
 
   private loadCurrentSessionAndMembers(): void {
-    this.tontineService.getCurrentSession().pipe(
+    this.tontineService.getCurrentSession(this.memberQueryParams.commercial).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: () => {
@@ -161,6 +182,20 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         this.showError('Erreur lors du chargement des membres');
+      }
+    });
+  }
+
+  private refreshKpis(sessionId?: number): void {
+    const id = sessionId ?? this.tontineService.getCurrentState().currentSession?.id;
+    if (!id) {
+      return;
+    }
+    this.tontineService.getSessionStats(id, this.memberQueryParams.commercial).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      error: () => {
+        this.showError('Erreur lors du chargement des indicateurs');
       }
     });
   }
@@ -198,7 +233,7 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
       },
       {
         title: 'Revenu Total',
-        value: `${(session?.totalRevenue || kpis.totalRevenue || 0).toLocaleString('fr-FR')} XOF`,
+        value: `${(kpis.totalRevenue ?? session?.totalRevenue ?? 0).toLocaleString('fr-FR')} XOF`,
         icon: 'monetization_on',
         color: 'accent',
         subtitle: 'Part société'
@@ -228,6 +263,7 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   }
 
   onFilterChange(params: TontineFilterBarParams): void {
+    const previousCommercial = this.memberQueryParams.commercial;
     this.memberQueryParams = {
       ...this.memberQueryParams,
       search: params.search,
@@ -237,8 +273,12 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
       registrationSource: params.registrationSource || undefined,
       page: 0 // Reset to first page on new filter/search
     };
+    this.filterStorage.save(params);
     this.selectedMemberIds = new Set();
     this.loadMembers();
+    if (previousCommercial !== this.memberQueryParams.commercial) {
+      this.refreshKpis();
+    }
   }
 
   onExportCommercialPdf(commercial: string): void {
@@ -464,9 +504,13 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   onSessionChange(session: TontineSession): void {
     this.isHistoricalView = session.status !== TontineSessionStatus.ACTIVE;
     this.showHistoricalAlertMessage = this.isHistoricalView && session.status === TontineSessionStatus.ENDED;
-    // When session changes, reload members for the new session, resetting filters/pagination
-    this.memberQueryParams = { page: 0, size: TONTINE_CONSTANTS.DEFAULT_PAGE_SIZE, sort: 'id,asc' };
+    // Keep filters; only reset pagination when switching session
+    this.memberQueryParams = {
+      ...this.memberQueryParams,
+      page: 0
+    };
     this.loadMembers();
+    this.refreshKpis(session.id);
   }
 
   navigateToComparison(): void {
@@ -474,7 +518,7 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   }
 
   returnToCurrentSession(): void {
-    this.tontineService.getCurrentSession().pipe(
+    this.tontineService.getCurrentSession(this.memberQueryParams.commercial).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {
@@ -499,4 +543,3 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     });
   }
 }
-

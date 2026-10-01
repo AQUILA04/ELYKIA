@@ -73,6 +73,7 @@
     [resultCount]="paginatedMembers?.page?.totalElements ?? paginatedMembers?.totalElements ?? 0"
     [downloading]="exportingPdf"
     [downloadingCarnet]="exportingCarnetPdf"
+    [initialFilters]="initialFilters"
     (filterChanged)="onFilterChange($event)"
     (downloadPdf)="onExportCommercialPdf($event)"
     (downloadCarnetPdf)="onExportCarnetPdf($event)">

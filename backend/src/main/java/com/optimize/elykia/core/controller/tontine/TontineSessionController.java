@@ -77,9 +77,11 @@ public class TontineSessionController {
 
     @GetMapping("/{sessionId}/stats")
     @PreAuthorize("hasAnyRole('ROLE_TONTINE','ROLE_CONSULT_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_ADMIN')")
-    @Operation(summary = "Obtenir les statistiques d'une session")
-    public ResponseEntity<Response> getSessionStats(@PathVariable Long sessionId) {
-        SessionStatsDto stats = sessionService.getSessionStats(sessionId);
+    @Operation(summary = "Obtenir les statistiques d'une session (filtrables par commercial tontine)")
+    public ResponseEntity<Response> getSessionStats(
+            @PathVariable Long sessionId,
+            @RequestParam(required = false) String commercial) {
+        SessionStatsDto stats = sessionService.getSessionStats(sessionId, commercial);
         return new ResponseEntity<>(
             ResponseUtil.successResponse(stats), 
             HttpStatus.OK
