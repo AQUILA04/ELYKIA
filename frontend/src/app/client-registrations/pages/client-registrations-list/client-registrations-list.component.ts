@@ -29,6 +29,7 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
   totalElements = 0;
   totalPages = 1;
   private dateIntervalId?: ReturnType<typeof setInterval>;
+  private readonly brokenPhotoUrls = new Set<string>();
 
   constructor(
     private registrationService: ClientRegistrationService,
@@ -154,27 +155,42 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
 
   /** Miniature pour liste / vignette (thumb prioritaire, sinon original). */
   listPhotoSrc(row: ClientRegistration): string | null {
-    return row.profilPhotoThumbUrl || row.profilPhotoUrl || null;
+    return this.firstLoadable(row.profilPhotoThumbUrl, row.profilPhotoUrl);
   }
 
   /** Miniature détail profil. */
   profilThumbSrc(row: ClientRegistration): string | null {
-    return row.profilPhotoThumbUrl || row.profilPhotoUrl || null;
+    return this.firstLoadable(row.profilPhotoThumbUrl, row.profilPhotoUrl);
   }
 
   /** Original pour lightbox profil. */
   profilPreviewSrc(row: ClientRegistration): string | null {
-    return row.profilPhotoUrl || row.profilPhotoThumbUrl || null;
+    return this.firstLoadable(row.profilPhotoUrl, row.profilPhotoThumbUrl);
   }
 
   /** Thumb pièce uniquement (pas l’original). */
   cardThumbSrc(row: ClientRegistration): string | null {
-    return row.cardPhotoThumbUrl || row.cardPhotoUrl || null;
+    return this.firstLoadable(row.cardPhotoThumbUrl, row.cardPhotoUrl);
   }
 
   /** Original pièce pour lightbox au clic. */
   cardPreviewSrc(row: ClientRegistration): string | null {
-    return row.cardPhotoUrl || row.cardPhotoThumbUrl || null;
+    return this.firstLoadable(row.cardPhotoUrl, row.cardPhotoThumbUrl);
+  }
+
+  /** Image injoignable : bascule sur l’URL suivante, puis sur les initiales. */
+  onPhotoError(url: string | null | undefined): void {
+    if (!url) {
+      return;
+    }
+    this.brokenPhotoUrls.add(url);
+    if (this.photoPreviewUrl === url) {
+      this.closePhotoPreview();
+    }
+  }
+
+  private firstLoadable(...urls: (string | null | undefined)[]): string | null {
+    return urls.find((url): url is string => !!url && !this.brokenPhotoUrls.has(url)) ?? null;
   }
 
   getInitials(row: ClientRegistration | null | undefined): string {

@@ -64,7 +64,7 @@
             <td>
               <div class="client-cell">
                 <ng-container *ngIf="listPhotoSrc(row) as src; else listAvatar">
-                  <img [src]="src" alt="" class="thumb" />
+                  <img [src]="src" alt="" class="thumb" (error)="onPhotoError(src)" />
                 </ng-container>
                 <ng-template #listAvatar>
                   <span
@@ -126,7 +126,7 @@
               (click)="openPhotoPreview(profilPreviewSrc(selected), 'Photo de profil')"
               data-testid="e2e-client-registration-profil-photo"
               aria-label="Agrandir la photo de profil">
-              <img [src]="thumb" alt="" class="header-avatar-img" />
+              <img [src]="thumb" alt="" class="header-avatar-img" (error)="onPhotoError(thumb)" />
             </button>
           </ng-container>
           <ng-template #headerAvatar>
@@ -152,7 +152,7 @@
             (click)="openPhotoPreview(cardPreviewSrc(selected), 'Photo de la pièce')"
             data-testid="e2e-client-registration-card-photo"
             aria-label="Agrandir la photo de la pièce">
-            <img [src]="thumb" alt="Miniature pièce" class="card-doc-thumb" />
+            <img [src]="thumb" alt="Miniature pièce" class="card-doc-thumb" (error)="onPhotoError(thumb)" />
             <span class="card-doc-hint">Agrandir</span>
           </button>
         </ng-container>
@@ -233,7 +233,7 @@
         </button>
       </div>
       <div class="photo-preview-body">
-        <img [src]="photoPreviewUrl" [alt]="photoPreviewTitle" class="photo-preview-image" />
+        <img [src]="photoPreviewUrl" [alt]="photoPreviewTitle" class="photo-preview-image" (error)="onPhotoError(photoPreviewUrl)" />
       </div>
     </div>
   </div>
