@@ -10,6 +10,7 @@ import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { ClientPhotoUrlService } from 'src/app/shared/service/client-photo-url.service';
 
 @Component({
   selector: 'app-client-details',
@@ -51,7 +52,8 @@ export class ClientDetailsComponent implements OnInit {
     private sanitizer: DomSanitizer,
     private featureFlagService: FeatureFlagService,
     private userService: UserService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private clientPhotoUrlService: ClientPhotoUrlService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
@@ -94,16 +96,48 @@ export class ClientDetailsComponent implements OnInit {
   }
 
   /**
-   * Prefer MinIO public URL (original then thumb); fallback to legacy PhotoStore stream.
+   * Prefer short-lived MinIO URL from the backend; fall back to legacy PhotoStore stream.
+   * Never bind raw MinIO public URLs from the DTO (bucket is private).
    */
   resolveProfilPhoto(client: Client): void {
-    const minioUrl = client.profilPhotoUrl || client.profilPhotoThumbUrl;
-    if (minioUrl && (minioUrl.startsWith('http://') || minioUrl.startsWith('https://'))) {
-      this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(minioUrl);
+    const hasMinioMarker = !!(client.profilPhotoUrl || client.profilPhotoThumbUrl);
+    if (hasMinioMarker) {
+      this.clientPhotoUrlService.getUrl(client.id, 'PROFIL', 'THUMB').subscribe({
+        next: (entry) => {
+          if (entry?.url) {
+            this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(entry.url);
+            return;
+          }
+          if (entry?.legacy) {
+            // Transitional: photo still only in PhotoStore
+            this.loadLegacyProfilPhotoStream(client.id);
+            return;
+          }
+          // Thumb missing but original may exist — try ORIGINAL once
+          this.clientPhotoUrlService.getUrl(client.id, 'PROFIL', 'ORIGINAL').subscribe({
+            next: (orig) => {
+              if (orig?.url) {
+                this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(orig.url);
+              } else {
+                this.safeProfilPhotoUrl = null;
+              }
+            },
+            error: () => { this.safeProfilPhotoUrl = null; }
+          });
+        },
+        error: () => {
+          this.safeProfilPhotoUrl = null;
+        }
+      });
       return;
     }
 
-    this.clientService.getProfilPhotoStream(client.id).subscribe(
+    this.loadLegacyProfilPhotoStream(client.id);
+  }
+
+  /** @deprecated Transitional PhotoStore path — remove when migration is complete. */
+  private loadLegacyProfilPhotoStream(clientId: number): void {
+    this.clientService.getProfilPhotoStream(clientId).subscribe(
       (image: Blob) => {
         if (image && image.size > 0) {
           const objectURL = URL.createObjectURL(image);

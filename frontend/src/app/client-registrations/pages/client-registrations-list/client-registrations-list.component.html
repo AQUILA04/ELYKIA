@@ -123,7 +123,7 @@
             <button
               type="button"
               class="header-avatar-btn"
-              (click)="openPhotoPreview(profilPreviewSrc(selected), 'Photo de profil')"
+              (click)="openPhotoPreview('PROFIL', selected, 'Photo de profil')"
               data-testid="e2e-client-registration-profil-photo"
               aria-label="Agrandir la photo de profil">
               <img [src]="thumb" alt="" class="header-avatar-img" (error)="onPhotoError(thumb)" />
@@ -149,7 +149,7 @@
           <button
             type="button"
             class="card-doc-btn"
-            (click)="openPhotoPreview(cardPreviewSrc(selected), 'Photo de la pièce')"
+            (click)="openPhotoPreview('CARD', selected, 'Photo de la pièce')"
             data-testid="e2e-client-registration-card-photo"
             aria-label="Agrandir la photo de la pièce">
             <img [src]="thumb" alt="Miniature pièce" class="card-doc-thumb" (error)="onPhotoError(thumb)" />
