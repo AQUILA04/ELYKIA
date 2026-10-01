@@ -41,7 +41,7 @@
         </ion-button>
       </div>
 
-      <ion-list *ngIf="!loadingStats && collectors.length" lines="none" class="rm-list">
+      <ion-list *ngIf="!loadingStats && collectors.length" lines="none" class="rm-list scrollable-list">
         <ion-item
           *ngFor="let c of collectors"
           button
