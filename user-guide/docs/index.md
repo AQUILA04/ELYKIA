@@ -10,10 +10,11 @@ Ce site décrit les parcours et fonctionnalités disponibles dans l’applicatio
 
 | Profil | Responsabilités principales | Guide |
 |---|---|---|
-| Gestionnaire, secrétaire ou administrateur | Pilotage global, clients, trésorerie, contrôles, validation et configuration. | [Guide Gestionnaire](manager/index.md) |
+| Gestionnaire ou secrétaire | Pilotage global, clients, trésorerie, contrôles, validation et configuration. | [Guide Gestionnaire](manager/index.md) |
 | Magasinier | Catalogue, inventaire, réceptions, livraisons et retours de stock. | [Guide Magasinier](storekeeper/index.md) |
 | Commercial | Portefeuille clients, demandes de stock, ventes, encaissements et tontine. | [Guide Commercial](commercial/index.md) |
 | Chef de recouvrement | Retards, contrôles de carnet, clôtures terrain, plan de tournée et application mobile. | [Guide Chef de recouvrement](recovery-manager/index.md) |
+| Administrateur | Journal espace client, comptes utilisateurs, profils et permissions. | [Guide Administrateur](admin/index.md) |
 
 ## Repères essentiels
 

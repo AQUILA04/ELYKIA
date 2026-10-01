@@ -30,6 +30,7 @@ ROLE_BY_PREFIX = {
     "manager": ["manager"],
     "storekeeper": ["storekeeper", "manager"],
     "customer": ["client", "customer", "manager"],
+    "admin": ["admin"],
 }
 
 MAX_CHUNK_CHARS = 2200

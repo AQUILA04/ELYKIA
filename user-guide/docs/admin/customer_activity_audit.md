@@ -6,7 +6,7 @@ Cette page explique comment consulter le journal des actions réalisées dans l�
 
 ## 1. Accéder au journal
 
-1. Dans le menu latéral, cliquez sur **Audit**.
+1. Dans le menu latéral, cliquez sur **Administration** (dernier menu), puis sur **Audit**.
 2. L’écran **Journal espace client** s’ouvre avec les événements des **24 dernières heures** par défaut.
 3. Cliquez sur **Actualiser** pour recharger la liste et les indicateurs.
 

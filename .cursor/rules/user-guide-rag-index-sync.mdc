@@ -22,7 +22,8 @@ Sans ça, le chat HOW_TO répond « documentation insuffisante » même si le gu
 2. Exécuter `python user-guide/generate_rag_index.py` **ou** créer / mettre à jour / retirer manuellement les entrées dans `user-guide-index.json`
 3. Vérifier qu’aucun rôle ou module documenté n’est orphelin (ex. `recovery-manager` doit avoir des chunks ; « vérification carnet », « contrôle terrain » doivent apparaître dans le contenu)
 4. Inclure l’index **et** le script générateur s’il a changé **dans le même commit** que le guide (avec les plans `.cursor/` si applicable)
-5. Mentionner dans le résumé : index RAG synchronisé
+5. Régénérer aussi le guide HTML du frontend : `python -m mkdocs build -f user-guide/mkdocs.yml -d ../frontend/src/user-guide` (règle `update-user-guide-on-ui-or-business-change`)
+6. Mentionner dans le résumé : index RAG synchronisé et `frontend/src/user-guide/` régénéré
 
 ## Interdit
 

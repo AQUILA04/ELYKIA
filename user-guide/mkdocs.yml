@@ -22,7 +22,6 @@ nav:
     - Tableaux de Bord: manager/dashboard.md
     - Opérations Quotidiennes: manager/operations.md
     - Inscriptions clients: manager/client_registrations.md
-    - Journal espace client (Audit): manager/customer_activity_audit.md
     - Stocks & Ventes: manager/stock_sales.md
     - Finances & Tontines: manager/finance.md
     - Rapports & Configuration: manager/reporting_config.md
@@ -43,6 +42,9 @@ nav:
     - Vue d'ensemble: recovery-manager/index.md
     - Application web: recovery-manager/web.md
     - Application mobile: recovery-manager/mobile.md
+  - Guide Administrateur:
+    - Menu Administration: admin/index.md
+    - Journal espace client (Audit): admin/customer_activity_audit.md
 
 markdown_extensions:
   - admonition

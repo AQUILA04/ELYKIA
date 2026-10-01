@@ -26,7 +26,12 @@ Avant de considérer le travail **livré** (fin de tâche, PR, commit de feature
 2. **Synchroniser l’index RAG** : `python user-guide/generate_rag_index.py`  
    → met à jour `backend/src/main/resources/ai/user-guide-index.json`  
    (règle `user-guide-rag-index-sync`)
-3. Inclure guide + index (et plans `.cursor/` si applicable) **dans le même lot de livraison** que le code
+3. **Régénérer le guide HTML servi par le frontend** : `python -m mkdocs build -f user-guide/mkdocs.yml -d ../frontend/src/user-guide`  
+   → met à jour `frontend/src/user-guide/` (copié par Angular vers `/user-guide`, lien « Guide d'utilisation » du menu)  
+   - Lancer depuis la racine du repo ; `-d` est relatif à `user-guide/mkdocs.yml`, d’où le `../`
+   - Le build nettoie puis réécrit le dossier : ne rien éditer à la main dans `frontend/src/user-guide/`
+   - Vérifier que les pages ajoutées / déplacées / supprimées sont bien reflétées (ex. `admin/…/index.html`)
+4. Inclure guide + index + `frontend/src/user-guide/` (et plans `.cursor/` si applicable) **dans le même lot de livraison** que le code
 
 ## Exceptions (pas de maj guide)
 
@@ -40,3 +45,4 @@ Si doute : **mettre à jour le guide** (mieux vaut une page à jour qu’un HOW_
 
 - Merger / livrer une feature UI ou métier sans page guide alignée
 - Mettre à jour le guide sans régénérer l’index RAG
+- Modifier `user-guide/` durant une tâche sans régénérer `frontend/src/user-guide/` dans la même tâche

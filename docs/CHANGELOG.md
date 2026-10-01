@@ -33,6 +33,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - `POST /api/v1/clients/photos/urls` : URL MinIO signées (courte durée) pour photos de profil et de pièce, en lot (max 200). Contrôle portefeuille pour les commerciaux ; accès global pour le staff. Marqueur `legacy` si la photo n’est encore que dans PhotoStore.
 
+## Frontend — [2.26.2] — 2026-10-01
+
+### Changed
+
+- Menu latéral : nouveau menu dépliable **Administration**, placé en dernier dans la section Menu, qui regroupe **Audit**, **Utilisateurs** et **Sécurité** (Profils, Permissions). Il s’affiche dès qu’au moins un de ces sous-menus est autorisé et reste ouvert sur les écrans concernés ; **Utilisateurs** reste surligné sur les écrans d’ajout, de modification et de détail.
+- Guide utilisateur : nouveau **Guide Administrateur** (`user-guide/docs/admin/`) décrivant le menu **Administration** ; la page **Journal espace client (Audit)** y est déplacée depuis le guide gestionnaire. Le guide gestionnaire (et sa version imprimable) ne mentionne plus Audit, Utilisateurs ni Sécurité. Index RAG Elykia IA régénéré (sections `admin` taguées rôle `admin`).
+- Guide HTML servi par l’application (`frontend/src/user-guide/`) régénéré depuis MkDocs : il inclut désormais le guide administrateur, le guide espace client et la page inscriptions clients.
+- Règles Cursor `update-user-guide-on-ui-or-business-change` et `user-guide-rag-index-sync` : toute modification de `user-guide/` impose de régénérer `frontend/src/user-guide/` dans la même tâche (`python -m mkdocs build -f user-guide/mkdocs.yml -d ../frontend/src/user-guide`).
+
 ## Frontend — [2.26.1] — 2026-10-01
 
 ### Fixed

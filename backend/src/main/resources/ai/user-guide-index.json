@@ -1,5 +1,77 @@
 [
   {
+    "id": "admin_customer_activity_audit",
+    "title": "Journal espace client (Audit)",
+    "path": "/user-guide/admin/customer_activity_audit.html",
+    "roles": [
+      "admin"
+    ],
+    "content": "Journal espace client (Audit)\n\nCette page explique comment consulter le journal des actions réalisées dans l’application Espace Client (connexions, parcours, paiements, erreurs).\n\n---"
+  },
+  {
+    "id": "admin_customer_activity_audit__1_acc_der_au_journal",
+    "title": "Journal espace client (Audit) — 1. Accéder au journal",
+    "path": "/user-guide/admin/customer_activity_audit.html",
+    "roles": [
+      "admin"
+    ],
+    "content": "Journal espace client (Audit)\nAccéder au journal\nDans le menu latéral, cliquez sur Administration (dernier menu), puis sur Audit .\nL’écran Journal espace client s’ouvre avec les événements des 24 dernières heures par défaut.\nCliquez sur Actualiser pour recharger la liste et les indicateurs.\n\n \n\n---"
+  },
+  {
+    "id": "admin_customer_activity_audit__2_lire_les_indicateurs",
+    "title": "Journal espace client (Audit) — 2. Lire les indicateurs",
+    "path": "/user-guide/admin/customer_activity_audit.html",
+    "roles": [
+      "admin"
+    ],
+    "content": "Journal espace client (Audit)\nLire les indicateurs\n\nEn haut de page, cinq cartes résument la période filtrée :\n Événements : nombre total d’actions enregistrées\n Erreurs : problèmes techniques côté application\n Échecs auth : connexions ou codes SMS en échec\n Connexions OK : connexions réussies\n Clients distincts : nombre de clients concernés\n\n---"
+  },
+  {
+    "id": "admin_customer_activity_audit__3_filtrer_et_rechercher",
+    "title": "Journal espace client (Audit) — 3. Filtrer et rechercher",
+    "path": "/user-guide/admin/customer_activity_audit.html",
+    "roles": [
+      "admin"
+    ],
+    "content": "Journal espace client (Audit)\nFiltrer et rechercher\nUtilisez les raccourcis de période : Aujourd’hui , 24 h , 7 j , 30 j .\nUtilisez les raccourcis métier : Erreurs 24 h , Auth en échec , Paiements / commandes , Android .\nAffinez avec la recherche (message ou écran), le téléphone, l’identifiant client, la catégorie, la source (Client / Serveur), le résultat, la plateforme ou la version.\nCliquez sur Appliquer .\nCliquez sur Effacer pour revenir à la vue des 24 dernières heures.\n\n---"
+  },
+  {
+    "id": "admin_customer_activity_audit__4_consulter_un_v_nement",
+    "title": "Journal espace client (Audit) — 4. Consulter un événement",
+    "path": "/user-guide/admin/customer_activity_audit.html",
+    "roles": [
+      "admin"
+    ],
+    "content": "Journal espace client (Audit)\nConsulter un événement\nCliquez sur Voir sur une ligne.\nLe panneau de détail affiche la source, le type d’action, le téléphone, l’appareil, la session, le message et les informations techniques utiles au support.\nActions possibles depuis le détail :\n Voir la session : reconstitue le parcours chronologique de la session\n Filtrer ce device : ne garde que les événements de cet appareil\n Fiche client : ouvre la fiche du client (si un client est déjà connu)\n Copier eventId : copie la référence pour un ticket support\n\n \n\n---"
+  },
+  {
+    "id": "admin_customer_activity_audit__5_exporter",
+    "title": "Journal espace client (Audit) — 5. Exporter",
+    "path": "/user-guide/admin/customer_activity_audit.html",
+    "roles": [
+      "admin"
+    ],
+    "content": "Journal espace client (Audit)\nExporter\nAppliquez les filtres souhaités.\nCliquez sur Export CSV .\nLe fichier téléchargé reprend les colonnes principales du tableau. Si le volume dépasse la limite d’export, un message invite à resserrer les filtres.\n\n---"
+  },
+  {
+    "id": "admin_customer_activity_audit__6_cas_d_usage_fr_quents",
+    "title": "Journal espace client (Audit) — 6. Cas d’usage fréquents",
+    "path": "/user-guide/admin/customer_activity_audit.html",
+    "roles": [
+      "admin"
+    ],
+    "content": "Journal espace client (Audit)\nCas d’usage fréquents\nClient qui n’arrive pas à se connecter\nSaisissez son téléphone .\nChoisissez Auth en échec ou la période concernée.\nOuvrez un événement puis Voir la session pour rejouer le parcours.\nVague d’erreurs après une mise à jour\nFiltrez sur la plateforme et la version .\nUtilisez Erreurs 24 h .\nRegardez les messages et chemins dans le détail."
+  },
+  {
+    "id": "admin",
+    "title": "Guide Administrateur",
+    "path": "/user-guide/admin/index.html",
+    "roles": [
+      "admin"
+    ],
+    "content": "Guide Administrateur\n\nCe guide accompagne les administrateurs de l’application. Les écrans d’administration sont regroupés sous le menu Administration , placé en dernier dans le menu latéral.\n\nLe menu Administration\nDans le menu latéral, descendez jusqu’au dernier menu et cliquez sur Administration .\nLes sous-menus se déplient :\n Audit : ouvre le Journal espace client .\n Utilisateurs : ouvre la liste des comptes utilisateurs de l’application.\n Sécurité : cliquez dessus pour afficher Profils et Permissions .\nCliquez à nouveau sur Administration pour replier le menu.\n\n Sous-menu Écran Finalité \n --- --- --- \n Audit Journal espace client Analyser les connexions, parcours, paiements et erreurs de l’espace client. \n Utilisateurs Liste des utilisateurs Créer, consulter, modifier, activer ou désactiver et supprimer les comptes. \n Sécurité > Profils Liste des Profils Créer, modifier ou supprimer les profils d’utilisateur. \n Sécurité > Permissions Liste des Permissions Créer ou supprimer les permissions. \n\nConsultez les pages suivantes selon la tâche à accomplir :\nJournal espace client (Audit) pour consulter les actions, erreurs et parcours de l’espace client."
+  },
+  {
     "id": "administration",
     "title": "Administration et paramétrage",
     "path": "/user-guide/administration.html",
@@ -659,7 +731,7 @@
       "recovery_manager",
       "admin"
     ],
-    "content": "Guide utilisateur ELYKIA\nLes parcours disponibles\n\n Profil Responsabilités principales Guide \n --- --- --- \n Gestionnaire, secrétaire ou administrateur Pilotage global, clients, trésorerie, contrôles, validation et configuration. Guide Gestionnaire \n Magasinier Catalogue, inventaire, réceptions, livraisons et retours de stock. Guide Magasinier \n Commercial Portefeuille clients, demandes de stock, ventes, encaissements et tontine. Guide Commercial \n Chef de recouvrement Retards, contrôles de carnet, clôtures terrain, plan de tournée et application mobile. Guide Chef de recouvrement"
+    "content": "Guide utilisateur ELYKIA\nLes parcours disponibles\n\n Profil Responsabilités principales Guide \n --- --- --- \n Gestionnaire ou secrétaire Pilotage global, clients, trésorerie, contrôles, validation et configuration. Guide Gestionnaire \n Magasinier Catalogue, inventaire, réceptions, livraisons et retours de stock. Guide Magasinier \n Commercial Portefeuille clients, demandes de stock, ventes, encaissements et tontine. Guide Commercial \n Chef de recouvrement Retards, contrôles de carnet, clôtures terrain, plan de tournée et application mobile. Guide Chef de recouvrement \n Administrateur Journal espace client, comptes utilisateurs, profils et permissions. Guide Administrateur"
   },
   {
     "id": "home__rep_res_essentiels",
@@ -740,69 +812,6 @@
       "manager"
     ],
     "content": "Inscriptions clients (espace client)\nCôté client (Espace Client)\n\nUn nouveau client qui saisit un numéro encore inconnu :\nReçoit un code SMS pour confirmer son téléphone.\nRemplit sa fiche (prénom, nom, adresse, votre zone , date de naissance, occupation) et ajoute sa photo de profil (le visage doit être bien visible). La date de naissance doit correspondre à un client majeur (18 ans ou plus). L’application enregistre automatiquement sa position lors de la validation.\nCrée son code PIN, puis se connecte.\nComplète son dossier ( Mon dossier ) avec le type et le numéro de pièce d’identité, plus la photo de la pièce.\nPeut déclarer un dépôt initial (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.\nAttend la validation de l’agence ; une notification l’informe ensuite que le compte est activé."
-  },
-  {
-    "id": "manager_customer_activity_audit",
-    "title": "Journal espace client (Audit)",
-    "path": "/user-guide/manager/customer_activity_audit.html",
-    "roles": [
-      "manager"
-    ],
-    "content": "Journal espace client (Audit)\n\nCette page explique comment consulter le journal des actions réalisées dans l’application Espace Client (connexions, parcours, paiements, erreurs).\n\n---"
-  },
-  {
-    "id": "manager_customer_activity_audit__1_acc_der_au_journal",
-    "title": "Journal espace client (Audit) — 1. Accéder au journal",
-    "path": "/user-guide/manager/customer_activity_audit.html",
-    "roles": [
-      "manager"
-    ],
-    "content": "Journal espace client (Audit)\nAccéder au journal\nDans le menu latéral, cliquez sur Audit .\nL’écran Journal espace client s’ouvre avec les événements des 24 dernières heures par défaut.\nCliquez sur Actualiser pour recharger la liste et les indicateurs.\n\n \n\n---"
-  },
-  {
-    "id": "manager_customer_activity_audit__2_lire_les_indicateurs",
-    "title": "Journal espace client (Audit) — 2. Lire les indicateurs",
-    "path": "/user-guide/manager/customer_activity_audit.html",
-    "roles": [
-      "manager"
-    ],
-    "content": "Journal espace client (Audit)\nLire les indicateurs\n\nEn haut de page, cinq cartes résument la période filtrée :\n Événements : nombre total d’actions enregistrées\n Erreurs : problèmes techniques côté application\n Échecs auth : connexions ou codes SMS en échec\n Connexions OK : connexions réussies\n Clients distincts : nombre de clients concernés\n\n---"
-  },
-  {
-    "id": "manager_customer_activity_audit__3_filtrer_et_rechercher",
-    "title": "Journal espace client (Audit) — 3. Filtrer et rechercher",
-    "path": "/user-guide/manager/customer_activity_audit.html",
-    "roles": [
-      "manager"
-    ],
-    "content": "Journal espace client (Audit)\nFiltrer et rechercher\nUtilisez les raccourcis de période : Aujourd’hui , 24 h , 7 j , 30 j .\nUtilisez les raccourcis métier : Erreurs 24 h , Auth en échec , Paiements / commandes , Android .\nAffinez avec la recherche (message ou écran), le téléphone, l’identifiant client, la catégorie, la source (Client / Serveur), le résultat, la plateforme ou la version.\nCliquez sur Appliquer .\nCliquez sur Effacer pour revenir à la vue des 24 dernières heures.\n\n---"
-  },
-  {
-    "id": "manager_customer_activity_audit__4_consulter_un_v_nement",
-    "title": "Journal espace client (Audit) — 4. Consulter un événement",
-    "path": "/user-guide/manager/customer_activity_audit.html",
-    "roles": [
-      "manager"
-    ],
-    "content": "Journal espace client (Audit)\nConsulter un événement\nCliquez sur Voir sur une ligne.\nLe panneau de détail affiche la source, le type d’action, le téléphone, l’appareil, la session, le message et les informations techniques utiles au support.\nActions possibles depuis le détail :\n Voir la session : reconstitue le parcours chronologique de la session\n Filtrer ce device : ne garde que les événements de cet appareil\n Fiche client : ouvre la fiche du client (si un client est déjà connu)\n Copier eventId : copie la référence pour un ticket support\n\n \n\n---"
-  },
-  {
-    "id": "manager_customer_activity_audit__5_exporter",
-    "title": "Journal espace client (Audit) — 5. Exporter",
-    "path": "/user-guide/manager/customer_activity_audit.html",
-    "roles": [
-      "manager"
-    ],
-    "content": "Journal espace client (Audit)\nExporter\nAppliquez les filtres souhaités.\nCliquez sur Export CSV .\nLe fichier téléchargé reprend les colonnes principales du tableau. Si le volume dépasse la limite d’export, un message invite à resserrer les filtres.\n\n---"
-  },
-  {
-    "id": "manager_customer_activity_audit__6_cas_d_usage_fr_quents",
-    "title": "Journal espace client (Audit) — 6. Cas d’usage fréquents",
-    "path": "/user-guide/manager/customer_activity_audit.html",
-    "roles": [
-      "manager"
-    ],
-    "content": "Journal espace client (Audit)\nCas d’usage fréquents\nClient qui n’arrive pas à se connecter\nSaisissez son téléphone .\nChoisissez Auth en échec ou la période concernée.\nOuvrez un événement puis Voir la session pour rejouer le parcours.\nVague d’erreurs après une mise à jour\nFiltrez sur la plateforme et la version .\nUtilisez Erreurs 24 h .\nRegardez les messages et chemins dans le détail."
   },
   {
     "id": "manager_dashboard",
@@ -892,25 +901,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Guide Gestionnaire\n\nCe guide accompagne les gestionnaires, secrétaires et administrateurs dans les tâches de pilotage. Les responsabilités exactes restent déterminées par les permissions attribuées au compte : la présence d’un menu ou d’un bouton confirme qu’il est autorisé pour votre session."
-  },
-  {
-    "id": "manager__votre_espace_de_pilotage",
-    "title": "Guide Gestionnaire — Votre espace de pilotage",
-    "path": "/user-guide/manager/index.html",
-    "roles": [
-      "manager"
-    ],
-    "content": "Guide Gestionnaire\nVotre espace de pilotage\n\nLe menu peut notamment donner accès au Dashboard , aux Clients , aux Articles , aux modules Stock Commercial et Stock Tontine , aux Ventes , aux Tontines , aux Dépenses , à la Configuration , au Rapport Journalier , aux Inventaires , aux Utilisateurs , à la Sécurité et à l’ Audit (journal espace client). Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.\n\n Priorité Où intervenir Finalité \n --- --- --- \n Démarrer et contrôler l’activité Caisse, Clients, Ventes Sécuriser les opérations du jour et les portefeuilles. \n Garantir la disponibilité des articles Articles, Inventaires, Stock Commercial Suivre les réceptions, sorties, retours et écarts. \n Contrôler l’argent et la performance Rapport Journalier, Dépenses Lire les indicateurs, les versements et les remises. \n Suivre l’espace client Inscriptions clients, Audit Valider les inscriptions et analyser le parcours client. \n Gouverner l’application Configuration, Utilisateurs, Sécurité Maintenir les référentiels, paramètres et habilitations."
-  },
-  {
-    "id": "manager__r_gles_de_travail",
-    "title": "Guide Gestionnaire — Règles de travail",
-    "path": "/user-guide/manager/index.html",
-    "roles": [
-      "manager"
-    ],
-    "content": "Guide Gestionnaire\nRègles de travail\n\nLa gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.\n\nConsultez les pages suivantes selon la tâche à accomplir :\nTableaux de bord pour lire les KPI sans confondre les périodes.\nOpérations quotidiennes pour les caisses, clients, comptes et versements.\nInscriptions ( Services en ligne ) pour valider les demandes de l’espace client.\nJournal espace client (Audit) pour consulter les actions, erreurs et parcours de l’espace client.\nStocks, ventes et commandes pour les flux de marchandises et de crédits.\nFinances et tontines pour les dépenses, remises et contrôles tontine.\nRapports et configuration pour l’analyse et les référentiels."
+    "content": "Guide Gestionnaire\n\nCe guide accompagne les gestionnaires et secrétaires dans les tâches de pilotage. Les responsabilités exactes restent déterminées par les permissions attribuées au compte : la présence d’un menu ou d’un bouton confirme qu’il est autorisé pour votre session.\n\nVotre espace de pilotage\n\nLe menu peut notamment donner accès au Dashboard , aux Clients , aux Articles , aux modules Stock Commercial et Stock Tontine , aux Ventes , aux Tontines , aux Dépenses , à la Configuration , au Rapport Journalier et aux Inventaires . Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.\n\n Priorité Où intervenir Finalité \n --- --- --- \n Démarrer et contrôler l’activité Caisse, Clients, Ventes Sécuriser les opérations du jour et les portefeuilles. \n Garantir la disponibilité des articles Articles, Inventaires, Stock Commercial Suivre les réceptions, sorties, retours et écarts. \n Contrôler l’argent et la performance Rapport Journalier, Dépenses Lire les indicateurs, les versements et les remises. \n Suivre l’espace client Inscriptions clients Valider les inscriptions de l’espace client. \n Paramétrer l’agence Configuration Maintenir les référentiels et les paramètres. \nRègles de travail\n\nLa gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.\n\nConsultez les pages suivantes selon la tâche à accomplir :\nTableaux de bord pour lire les KPI sans confondre les périodes.\nOpérations quotidiennes pour les caisses, clients, comptes et versements.\nInscriptions ( Services en ligne ) pour valider les demandes de l’espace client.\nStocks, ventes et commandes pour les flux de marchandises et de crédits.\nFinances et tontines pour les dépenses, remises et contrôles tontine.\nRapports et configuration pour l’analyse et les référentiels."
   },
   {
     "id": "manager_operations",

@@ -347,16 +347,6 @@
           </ul>
         </li>
 
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_AUDIT']">
-          <a class="sidebar-link" routerLink="/audit" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/audit') }"
-             data-testid="e2e-sidebar-audit">
-            <span>
-              <mat-icon>fact_check</mat-icon>
-            </span>
-            <span class="hide-menu">Audit</span>
-          </a>
-        </li>
         <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">
           <a class="sidebar-link" routerLink="/notifications" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/notifications') }"
@@ -508,40 +498,54 @@
             <span class="hide-menu">Dépôt</span>
           </a>
         </li>
-        <!-- Pour l'élément Utilisateurs -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_USER','ROLE_DEL_USER']">
-          <a class="sidebar-link" routerLink="/user/list" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/user/list') }">
+        <!-- MENU ADMINISTRATION (toujours en dernier) -->
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_AUDIT', 'ROLE_EDIT_USER', 'ROLE_DEL_USER']"
+            data-testid="e2e-sidebar-administration">
+          <a class="sidebar-link has-arrow" (click)="onAdministrationClick()" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/administration') }">
             <span>
-              <mat-icon>person</mat-icon>
+              <mat-icon>admin_panel_settings</mat-icon>
             </span>
-            <span class="hide-menu">Utilisateurs</span>
+            <span class="hide-menu">Administration</span>
           </a>
-        </li>
-
-        <!-- Pour l'élément Sécurité -->
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
-          <a class="sidebar-link has-arrow" (click)="onSecurityClick()" aria-expanded="false"
-             [ngClass]="{ 'active': isRouteActive('/security') }">
-            <span>
-              <mat-icon>security</mat-icon>
-            </span>
-            <span class="hide-menu">Sécurité</span>
-          </a>
-          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isSecurityOpen }">
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/security/profils"
-                 [ngClass]="{ 'active': isSubRouteActive('/security/profils') }">
-                <span class="material-icons">badge</span>
-                <span class="hide-menu">Profils</span>
+          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isAdministrationOpen }">
+            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_AUDIT']">
+              <a class="sidebar-link" routerLink="/audit"
+                 [ngClass]="{ 'active': isSubRouteActive('/audit') }"
+                 data-testid="e2e-sidebar-audit">
+                <span class="material-icons">fact_check</span>
+                <span class="hide-menu">Audit</span>
               </a>
             </li>
-            <li class="sidebar-item submenu-item">
-              <a class="sidebar-link" routerLink="/security/permissions"
-                 [ngClass]="{ 'active': isSubRouteActive('/security/permissions') }">
-                <span class="material-icons">vpn_key</span>
-                <span class="hide-menu">Permissions</span>
+            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_EDIT_USER','ROLE_DEL_USER']">
+              <a class="sidebar-link" routerLink="/user/list"
+                 [ngClass]="{ 'active': isUserManagementRoute() }">
+                <span class="material-icons">person</span>
+                <span class="hide-menu">Utilisateurs</span>
               </a>
+            </li>
+            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_EDIT_USER']">
+              <a class="sidebar-link has-arrow" (click)="onSecurityClick()" aria-expanded="false"
+                 [ngClass]="{ 'active': isRouteActive('/security') }">
+                <span class="material-icons">security</span>
+                <span class="hide-menu">Sécurité</span>
+              </a>
+              <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isSecurityOpen }">
+                <li class="sidebar-item submenu-item">
+                  <a class="sidebar-link" routerLink="/security/profils"
+                     [ngClass]="{ 'active': isSubRouteActive('/security/profils') }">
+                    <span class="material-icons">badge</span>
+                    <span class="hide-menu">Profils</span>
+                  </a>
+                </li>
+                <li class="sidebar-item submenu-item">
+                  <a class="sidebar-link" routerLink="/security/permissions"
+                     [ngClass]="{ 'active': isSubRouteActive('/security/permissions') }">
+                    <span class="material-icons">vpn_key</span>
+                    <span class="hide-menu">Permissions</span>
+                  </a>
+                </li>
+              </ul>
             </li>
           </ul>
         </li>

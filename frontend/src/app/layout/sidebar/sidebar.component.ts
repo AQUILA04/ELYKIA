@@ -28,6 +28,7 @@ export class SidebarComponent implements OnInit {
   isTontineOpen: boolean = false;
   isConfigurationOpen: boolean = false;
   isServicesEnLigneOpen: boolean = false;
+  isAdministrationOpen: boolean = false;
   activeRoute: string = '';
   showMonthlyReports = false;
   showElykiaAi = false;
@@ -41,6 +42,10 @@ export class SidebarComponent implements OnInit {
 
     if (route === '/security') {
       return this.activeRoute.startsWith('/security');
+    }
+
+    if (route === '/administration') {
+      return this.isAdministrationRoute();
     }
 
     // Gestion pour le menu Stock Commercial
@@ -99,6 +104,17 @@ export class SidebarComponent implements OnInit {
 
   isSubRouteActive(route: string): boolean {
     return this.activeRoute === route || this.activeRoute.startsWith(route + '/');
+  }
+
+  // /user/change-password est accessible à tous depuis la section Aide : il ne fait pas partie de l'administration.
+  isUserManagementRoute(): boolean {
+    return this.isSubRouteActive('/user') && !this.isSubRouteActive('/user/change-password');
+  }
+
+  isAdministrationRoute(): boolean {
+    return this.isSubRouteActive('/audit')
+      || this.isSubRouteActive('/security')
+      || this.isUserManagementRoute();
   }
 
   // Méthode pour détecter les routes qui peuvent entrer en conflit
@@ -188,6 +204,15 @@ export class SidebarComponent implements OnInit {
     }
   }
 
+  // Gestionnaire de clic pour le menu Administration (pas de navigation : les sous-menus dépendent des permissions)
+  onAdministrationClick() {
+    if (this.isAdministrationRoute()) {
+      this.isAdministrationOpen = !this.isAdministrationOpen;
+    } else {
+      this.isAdministrationOpen = true;
+    }
+  }
+
   // Gestionnaire de clic pour le menu Configuration
   onConfigurationClick() {
     const isConfigActive = this.activeRoute.startsWith('/localitylist') ||
@@ -267,6 +292,8 @@ export class SidebarComponent implements OnInit {
         this.isServicesEnLigneOpen = false;
       }
 
+      this.isAdministrationOpen = this.isAdministrationRoute();
+
       // Gestion de l'état ouvert/fermé pour Configuration
       if (this.activeRoute.startsWith('/localitylist') ||
           this.activeRoute.startsWith('/article-type') ||
@@ -296,6 +323,8 @@ export class SidebarComponent implements OnInit {
         || this.activeRoute.startsWith('/customer-payments')) {
       this.isServicesEnLigneOpen = true;
     }
+    this.isAdministrationOpen = this.isAdministrationRoute();
+    this.isSecurityOpen = this.activeRoute.startsWith('/security');
 
     this.featureFlagService.flags$.subscribe(flags => {
       this.showMonthlyReports = flags[FeatureFlags.MonthlyReports] ?? false;

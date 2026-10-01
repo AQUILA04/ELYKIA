@@ -9,6 +9,10 @@
       
       
       
+        <link rel="prev" href="../recovery-manager/mobile/">
+      
+      
+        <link rel="next" href="customer_activity_audit/">
       
       
         
@@ -19,7 +23,7 @@
     
     
       
-        <title>Reporting et synthèse - Guide Utilisateur AMENOUVEVE-YAVEH</title>
+        <title>Menu Administration - Guide Utilisateur AMENOUVEVE-YAVEH</title>
       
     
     
@@ -68,7 +72,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#reporting-et-synthese" class="md-skip">
+        <a href="#guide-administrateur" class="md-skip">
           Aller au contenu
         </a>
       
@@ -104,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Reporting et synthèse
+              Menu Administration
             
           </span>
         </div>
@@ -1257,8 +1261,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -1269,13 +1275,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-          
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
         
           
           <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
@@ -1296,7 +1300,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_7">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1311,10 +1315,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../admin/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Menu Administration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1330,6 +1361,37 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table des matières">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#le-menu-administration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Le menu Administration
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1342,7 +1404,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../admin/customer_activity_audit/" class="md-nav__link">
+      <a href="customer_activity_audit/" class="md-nav__link">
         
   
   
@@ -1390,6 +1452,25 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table des matières
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#le-menu-administration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Le menu Administration
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1405,11 +1486,54 @@
 
 
 
-<h1 id="reporting-et-synthese">Reporting et synthèse</h1>
-<p>Cette ancienne adresse est conservée pour les favoris et les liens historiques. La procédure à jour se trouve dans <a href="../manager/reporting_config/">Rapports et Configuration</a>.</p>
-<blockquote>
-<p><strong>Document remplacé.</strong> Utilisez la page cible pour les libellés, rôles, statuts et procédures de la version actuelle de l’application.</p>
-</blockquote>
+<h1 id="guide-administrateur">Guide Administrateur</h1>
+<p>Ce guide accompagne les administrateurs de l’application. Les écrans d’administration sont regroupés sous le menu <strong>Administration</strong>, placé en dernier dans le menu latéral.</p>
+<!-- CAPTURE À INSÉRER : Menu latéral avec le menu Administration déplié (Audit, Utilisateurs, Sécurité). -->
+
+<h2 id="le-menu-administration">Le menu Administration</h2>
+<ol>
+<li>Dans le menu latéral, descendez jusqu’au dernier menu et cliquez sur <strong>Administration</strong>.</li>
+<li>Les sous-menus se déplient :</li>
+<li><strong>Audit</strong> : ouvre le <strong>Journal espace client</strong>.</li>
+<li><strong>Utilisateurs</strong> : ouvre la liste des comptes utilisateurs de l’application.</li>
+<li><strong>Sécurité</strong> : cliquez dessus pour afficher <strong>Profils</strong> et <strong>Permissions</strong>.</li>
+<li>Cliquez à nouveau sur <strong>Administration</strong> pour replier le menu.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Sous-menu</th>
+<th>Écran</th>
+<th>Finalité</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Audit</td>
+<td>Journal espace client</td>
+<td>Analyser les connexions, parcours, paiements et erreurs de l’espace client.</td>
+</tr>
+<tr>
+<td>Utilisateurs</td>
+<td>Liste des utilisateurs</td>
+<td>Créer, consulter, modifier, activer ou désactiver et supprimer les comptes.</td>
+</tr>
+<tr>
+<td>Sécurité &gt; Profils</td>
+<td>Liste des Profils</td>
+<td>Créer, modifier ou supprimer les profils d’utilisateur.</td>
+</tr>
+<tr>
+<td>Sécurité &gt; Permissions</td>
+<td>Liste des Permissions</td>
+<td>Créer ou supprimer les permissions.</td>
+</tr>
+</tbody>
+</table>
+<p>Consultez les pages suivantes selon la tâche à accomplir :</p>
+<ul>
+<li><a href="customer_activity_audit/">Journal espace client (Audit)</a> pour consulter les actions, erreurs et parcours de l’espace client.</li>
+</ul>
 
 
 
