@@ -85,12 +85,13 @@
           <input id="cardPhotoDesktop" class="sr-only" type="file" accept="image/*" (change)="cardPhotoSelected.emit($event)" data-testid="e2e-onboarding-card-photo" />
         </div>
         <app-elyk-outlined-field label="Type de pièce" icon="card-outline">
-          <ion-select formControlName="cardType" interface="popover" placeholder="Choisir">
+          <ion-select formControlName="cardType" interface="popover" placeholder="Choisir"
+            aria-label="Type de pièce" data-testid="e2e-onboarding-card-type">
             <ion-select-option *ngFor="let t of cardTypes()" [value]="t.value">{{ t.label }}</ion-select-option>
           </ion-select>
         </app-elyk-outlined-field>
         <app-elyk-outlined-field label="Numéro de pièce" icon="keypad-outline">
-          <ion-input formControlName="cardID"></ion-input>
+          <ion-input formControlName="cardID" aria-label="Numéro de pièce" data-testid="e2e-onboarding-card-id"></ion-input>
         </app-elyk-outlined-field>
         <div class="desk-actions">
           <ion-button expand="block" class="elyk-btn-gold" [disabled]="isSaving()" (click)="submitId.emit()" data-testid="e2e-onboarding-id-submit">

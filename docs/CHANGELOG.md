@@ -9,6 +9,70 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.11.0] — 2026-10-01
+
+### Added
+
+- Centre de **notifications** (récupéré de PR #118/#119, jamais arrivé sur `main`) : cloche avec badge non-lus sur **Accueil** et **Profil**, page liste, marquage lu / tout lu, deep-links ; polling du badge toutes les 60 s + refresh à l’entrée Accueil.
+- Desktop : entrée **Notifications** dans la barre latérale avec badge non-lus (`9+` au-delà de 9).
+- Inscription : capture GPS automatique (latitude, longitude, lien Maps) et validation qu’un visage est présent sur la photo de profil (ML Kit, natif).
+
+### Changed
+
+- Inscription : sélecteur photo de profil soigné ; type et numéro de pièce saisis uniquement dans **Mon dossier** (mobile et desktop) ; erreur d’âge mineur (< 18 ans) affichée dès la saisie de la date de naissance.
+- Accueil / Mon dossier : rechargement du statut d’activation à chaque entrée d’écran, pour faire disparaître le bandeau « compte en attente » dès la validation agence.
+
+### Fixed
+
+- Accessibilité : `aria-label` sur les inputs fichier photo (inscription / pièce), le type et le numéro de pièce (**Mon dossier**, mobile et desktop).
+- E2E : `data-testid` `e2e-onboarding-card-type` / `e2e-onboarding-card-id` rétablis sur **Mon dossier** (parcours inscription → pièce → dépôt).
+
+## Backend — [1.25.0] — 2026-10-01
+
+### Added
+
+- Notifications client (récupéré de PR #118/#119) : table `customer_notification` (migration renumérotée **V008**), API `/api/customer/notifications` (liste, unread-count, read, read-all).
+- Hooks BO vers notifications : activation / refus inscription, validation / refus paiements crédit & tontine, changement de statut commande.
+- Inscription espace client : persistance optionnelle de `latitude` / `longitude` / `mll` ; DTO inscriptions BO avec `profilPhotoThumbUrl` / `cardPhotoThumbUrl`.
+- Profil `francis` : Notification Hub activé en local ; message explicite si le hub répond 404 sur `/v1/otp/*`.
+
+### Changed
+
+- Inscription espace client : `cardType` / `cardID` optionnels (renseignés à l’onboarding) ; âge minimum **18 ans**.
+- Activation inscription BO : `tontineCollector` obligatoire et compte toujours créé **ACTIF**, même avec solde 0.
+
+## Frontend — [2.26.0] — 2026-10-01
+
+### Changed
+
+- Menu latéral (récupéré de PR #118/#119) : groupe **Services en ligne** avec sous-menus **Inscriptions** et **Paiements** ; `/client-registrations` n’active plus le menu **Clients**.
+- Inscriptions clients : avatar (photo ou initiales) en liste et détail, pièce en vignette avec aperçu **Agrandir** au clic, pagination visible (20 / page), **Valider l’inscription** actif seulement si commercial crédit et tontine sont choisis.
+- Liste des comptes : détail en panneau latéral (l’ancienne page détail redirige vers la liste).
+- Domaine **Comptes** migré en lazy-loading (`AccountModule`) : nouvelles URLs `/account/list`, `/account/add`, `/account/add/:id`, `/account/details/:id` (remplacent `/accountlist`, `/account-add`, `/accountdetails/:id`) ; sidebar et liens internes mis à jour.
+
+### Fixed
+
+- Liste des comptes : le fil d’Ariane renvoie vers le tableau de bord (`/home`).
+
+## Docs & Infra — 2026-10-01 (récupération PR #118/#119)
+
+- Cause : PR #118 et #119 avaient été mergées dans `cursor/client-self-registration-1ece` **après** le merge de PR #117 dans `main` ; leur contenu n’a jamais été déployé. Merge de récupération dans `main` avec résolution des conflits.
+- Guide utilisateur : section **Espace client** (notifications), **Services en ligne** côté gestionnaire ; index RAG régénéré.
+- Schema catalog IA : table `customer_notification` ajoutée.
+
+## Frontend — [2.25.2] — 2026-10-01
+
+### Fixed
+
+- Tableau de bord tontine : les KPI se recalculent lorsque le filtre commercial change (et restent bornés au portefeuille pour un commercial connecté).
+- Filtres de la liste des membres tontine : mémorisation par utilisateur dans le navigateur jusqu’à **Effacer**, y compris après déconnexion (`elykia.prefs.*`).
+
+## Backend — [1.24.1] — 2026-10-01
+
+### Fixed
+
+- `GET /api/v1/tontines/sessions/{id}/stats` : paramètre optionnel `commercial` pour aligner les statistiques sur le filtre du dashboard ; un promoteur est forcé sur son propre username.
+
 ## Frontend — [2.25.1] — 2026-09-29
 
 ### Fixed

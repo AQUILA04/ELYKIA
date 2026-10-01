@@ -545,10 +545,10 @@ Le menu **Tontines** propose quatre espaces de travail adaptés au déroulement 
 L'écran principal de la liste vous donne une vue synthétique sur la campagne en cours.
 
 ### Les indicateurs clés de la campagne
-En haut de l'écran, les cartes récapitulatives vous informent en temps réel sur la santé de la tontine :
-- **Membres Actifs** : Nombre total d'adhérents inscrits cette année.
-- **Montant Total Collecté** : Somme globale des cotisations versées par les membres (en FCFA).
-- **Revenu Total (Part Société)** : Rémunération statutaire acquise par ELYKIA pour la gestion de la tontine.
+En haut de l'écran, les cartes récapitulatives vous informent en temps réel sur la santé de la tontine. Lorsqu'un commercial est sélectionné dans la barre de filtres, ces indicateurs se mettent à jour pour ne compter que son portefeuille :
+- **Membres Actifs** : Nombre d'adhérents inscrits cette année (global ou pour le commercial choisi).
+- **Montant Total Collecté** : Somme des cotisations versées par les membres affichés (en FCFA).
+- **Revenu Total (Part Société)** : Rémunération statutaire acquise par ELYKIA pour la gestion de la tontine, alignée sur le même filtre.
 - **En Attente de Livraison** : Nombre de membres éligibles qui attendent encore leurs articles de fin d'année (avec le nombre de colis déjà livrés).
 - **Contribution Moyenne** : Montant moyen épargné par adhérent.
 - **Collectes à la livraison** : Montants perçus lors de la délivrance des articles.
@@ -557,13 +557,6 @@ En haut de l'écran, les cartes récapitulatives vous informent en temps réel s
 - **Session en cours (Active)** : La campagne annuelle est ouverte. Toutes les opérations quotidiennes (inscriptions, cotisations, ajustements de mise, vérifications de carnet) sont accessibles.
 - **Sessions passées (Historiques)** : Permet de consulter les campagnes précédentes en mode consultation seule. Un bandeau d'information rappelle que les modifications y sont désactivées. Le bouton **« Session actuelle »** vous ramène immédiatement à l'année en cours.
 - **Comparaison pluriannuelle** : Le bouton **Comparer** vous permet de sélectionner de 2 à 5 années pour observer l'évolution du nombre d'adhérents et des montants collectés.
-
-### Trouver rapidement un membre
-La barre de recherche et de filtres vous permet de cibler des dossiers précis :
-- **Par texte** : Tapez le nom, prénom, numéro de téléphone ou code du client.
-- **Par commercial** : Pour un gestionnaire, sélectionnez un commercial dans la liste déroulante pour isoler son secteur. Pour un commercial, votre secteur est pré-sélectionné.
-- **Par statut de livraison** : Filtrez les membres en cours de session, ceux dont la livraison est en attente, validée ou déjà terminée.
-- **Par état du carnet** : Affichez uniquement les membres dont le carnet est vérifié ou ceux restant à contrôler.
 
 ### Téléchargements et exports PDF
 La barre d'outils propose des exports prêts à imprimer :
@@ -582,7 +575,18 @@ Pour les utilisateurs habilités à viser les carnets physiques :
 
 ---
 
-## 3. Fiche détaillée d'un membre
+## 3. Trouver rapidement un membre
+
+La barre de recherche et de filtres vous permet de cibler des dossiers précis. Vos filtres restent en place si vous quittez la page puis y revenez, jusqu'à ce que vous cliquiez sur **Effacer**.
+
+- **Par texte** : Tapez le nom, prénom, numéro de téléphone ou code du client.
+- **Par commercial** : Pour un gestionnaire, sélectionnez un commercial dans la liste déroulante pour isoler son secteur ; la liste des membres et les indicateurs du haut de page se mettent à jour ensemble. Pour un commercial, votre secteur est pré-sélectionné.
+- **Par statut de livraison** : Filtrez les membres en cours de session, ceux dont la livraison est en attente, validée ou déjà terminée.
+- **Par état du carnet** : Affichez uniquement les membres dont le carnet est vérifié ou ceux restant à contrôler.
+
+---
+
+## 4. Fiche détaillée d'un membre
 
 En cliquant sur un membre, vous ouvrez sa fiche complète à 360°, véritable dossier de suivi pour toute la durée de la campagne.
 
@@ -648,7 +652,7 @@ Les membres peuvent également cotiser en toute autonomie depuis leur Espace Cli
 
 ---
 
-## 4. Livraisons de fin d'année
+## 5. Livraisons de fin d'année
 
 En fin de campagne, lorsque la session arrive à son terme, les membres utilisent leur épargne pour retirer des marchandises (appareils, vivres, équipements).
 
@@ -685,7 +689,7 @@ Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. C
 
 ---
 
-## 5. Journal des collectes (Menu Tontines > Collectes)
+## 6. Journal des collectes (Menu Tontines > Collectes)
 
 Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Collectes**. C'est le grand livre de caisse de la tontine :
 - Il présente la totalité des encaissements enregistrés jour après jour.
@@ -694,7 +698,7 @@ Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Collectes**. C
 
 ---
 
-## 6. Archives et transition annuelle (Menu Tontines > Archives collectes)
+## 7. Archives et transition annuelle (Menu Tontines > Archives collectes)
 
 Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Archives collectes**. Cet espace est réservé aux responsables de l'agence pour réaliser la clôture administrative de fin d'année et préparer la plateforme pour la nouvelle campagne.
 

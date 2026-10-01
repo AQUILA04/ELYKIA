@@ -38,6 +38,18 @@ export class CustomerSessionService {
     });
   }
 
+  /**
+   * Met à jour le statut d'activation sans invalider le token
+   * (ex. après validation BO pendant que la session est encore ouverte).
+   */
+  updateActivationStatus(activationStatus: string | undefined | null): void {
+    const current = this.currentSession;
+    if (!current || !activationStatus || current.activationStatus === activationStatus) {
+      return;
+    }
+    this.saveSession({ ...current, activationStatus });
+  }
+
   clearSession(): void {
     const hadSession = !!this.currentSession;
     localStorage.removeItem(SESSION_KEY);

@@ -1304,6 +1304,92 @@
           "refColumn": "id"
         }
       ]
+    },
+    {
+      "name": "customer_notification",
+      "description": "Notifications envoyées au client dans l'Espace Client (inscription validée/refusée, paiement crédit ou tontine validé/refusé, changement de statut de commande)",
+      "synonyms": [
+        "notification client",
+        "notifications espace client",
+        "alertes client",
+        "cloche client"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "client_id",
+          "type": "bigint",
+          "description": "Client destinataire"
+        },
+        {
+          "name": "type",
+          "type": "varchar",
+          "description": "REGISTRATION_ACTIVATED, REGISTRATION_REJECTED, CREDIT_PAYMENT_VALIDATED, CREDIT_PAYMENT_REJECTED, TONTINE_PAYMENT_VALIDATED, TONTINE_PAYMENT_REJECTED, ORDER_STATUS_CHANGED",
+          "synonyms": [
+            "type de notification"
+          ]
+        },
+        {
+          "name": "entity_id",
+          "type": "bigint",
+          "description": "Identifiant de l'objet concerné (déclaration, commande, client)"
+        },
+        {
+          "name": "entity_reference",
+          "type": "varchar",
+          "description": "Référence lisible de l'objet concerné"
+        },
+        {
+          "name": "title",
+          "type": "varchar",
+          "description": "Titre affiché au client"
+        },
+        {
+          "name": "message",
+          "type": "text",
+          "description": "Message affiché au client"
+        },
+        {
+          "name": "amount",
+          "type": "double precision",
+          "description": "Montant associé (paiement), si applicable"
+        },
+        {
+          "name": "operation_date",
+          "type": "date",
+          "description": "Date de l'opération métier"
+        },
+        {
+          "name": "read_at",
+          "type": "timestamp",
+          "description": "Date de lecture par le client (null = non lue)",
+          "synonyms": [
+            "lu",
+            "non lu"
+          ]
+        },
+        {
+          "name": "date_reg",
+          "type": "timestamp",
+          "description": "Date d'envoi de la notification"
+        },
+        {
+          "name": "visibility",
+          "type": "varchar",
+          "description": "ENABLED, DISABLED, DELETED"
+        }
+      ],
+      "relations": [
+        {
+          "column": "client_id",
+          "refTable": "client",
+          "refColumn": "id"
+        }
+      ]
     }
   ],
   "views": [

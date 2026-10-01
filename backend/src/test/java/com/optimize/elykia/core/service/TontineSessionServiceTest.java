@@ -2,11 +2,12 @@ package com.optimize.elykia.core.service;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
+import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.dto.ComparisonMetricsDto;
 import com.optimize.elykia.core.dto.SessionComparisonDto;
 import com.optimize.elykia.core.dto.SessionStatsDto;
-import com.optimize.elykia.core.dto.TopCommercialDto;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
@@ -14,6 +15,7 @@ import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.service.tontine.TontineSessionService;
+import com.optimize.elykia.core.util.UserProfilConstant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,6 +29,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -40,6 +45,8 @@ class TontineSessionServiceTest {
     private TontineMemberRepository memberRepository;
     @Mock
     private TontineCollectionRepository collectionRepository;
+    @Mock
+    private UserService userService;
     @InjectMocks
     private TontineSessionService tontineSessionService;
 
@@ -48,11 +55,13 @@ class TontineSessionServiceTest {
         // Given
         TontineSession session = session(12L, 2026, 25_000.0);
         when(sessionRepository.findById(12L)).thenReturn(Optional.of(session));
-        when(memberRepository.countByTontineSessionIdAndState(12L, State.ENABLED)).thenReturn(4L);
-        when(memberRepository.sumTotalContributionByTontineSessionId(12L, State.ENABLED)).thenReturn(100_000.0);
-        when(memberRepository.countByTontineSessionIdAndStateAndDeliveryStatus(
-                12L, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED)).thenReturn(2L);
-        when(collectionRepository.sumDeliveryCollectionsBySession(12L, State.ENABLED)).thenReturn(10_000.0);
+        when(userService.getCurrentUser()).thenReturn(null);
+        when(memberRepository.countBySessionAndCommercial(12L, State.ENABLED, null)).thenReturn(4L);
+        when(memberRepository.sumTotalContributionBySessionAndCommercial(12L, State.ENABLED, null)).thenReturn(100_000.0);
+        when(memberRepository.countBySessionAndCommercialAndDeliveryStatus(
+                12L, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED, null)).thenReturn(2L);
+        when(collectionRepository.sumDeliveryCollectionsBySessionAndCommercial(12L, State.ENABLED, null))
+                .thenReturn(10_000.0);
         when(memberRepository.findTopCommercials(12L, State.ENABLED, PageRequest.of(0, 5))).thenReturn(List.of());
 
         // When
@@ -67,6 +76,7 @@ class TontineSessionServiceTest {
         assertEquals(50.0, stats.getDeliveryRate());
         assertEquals(25_000.0, stats.getTotalRevenue());
         assertEquals(10_000.0, stats.getTotalDeliveryCollections());
+        verify(memberRepository, never()).sumSocietyShareBySessionAndCommercial(any(), any(), any());
     }
 
     @Test
@@ -74,11 +84,13 @@ class TontineSessionServiceTest {
         // Given
         TontineSession session = session(13L, 2026, 0.0);
         when(sessionRepository.findById(13L)).thenReturn(Optional.of(session));
-        when(memberRepository.countByTontineSessionIdAndState(13L, State.ENABLED)).thenReturn(0L);
-        when(memberRepository.sumTotalContributionByTontineSessionId(13L, State.ENABLED)).thenReturn(null);
-        when(memberRepository.countByTontineSessionIdAndStateAndDeliveryStatus(
-                13L, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED)).thenReturn(0L);
-        when(collectionRepository.sumDeliveryCollectionsBySession(13L, State.ENABLED)).thenReturn(null);
+        when(userService.getCurrentUser()).thenReturn(null);
+        when(memberRepository.countBySessionAndCommercial(13L, State.ENABLED, null)).thenReturn(0L);
+        when(memberRepository.sumTotalContributionBySessionAndCommercial(13L, State.ENABLED, null)).thenReturn(null);
+        when(memberRepository.countBySessionAndCommercialAndDeliveryStatus(
+                13L, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED, null)).thenReturn(0L);
+        when(collectionRepository.sumDeliveryCollectionsBySessionAndCommercial(13L, State.ENABLED, null))
+                .thenReturn(null);
         when(memberRepository.findTopCommercials(13L, State.ENABLED, PageRequest.of(0, 5))).thenReturn(List.of());
 
         // When
@@ -89,6 +101,72 @@ class TontineSessionServiceTest {
         assertEquals(0.0, stats.getAverageContribution());
         assertEquals(0.0, stats.getDeliveryRate());
         assertEquals(0.0, stats.getTotalDeliveryCollections());
+    }
+
+    @Test
+    void getSessionStats_withCommercial_filtersAggregatesAndUsesSocietyShareRevenue() {
+        // Given
+        TontineSession session = session(14L, 2026, 99_999.0);
+        String commercial = "commercial.a";
+        when(sessionRepository.findById(14L)).thenReturn(Optional.of(session));
+        when(userService.getCurrentUser()).thenReturn(null);
+        when(memberRepository.countBySessionAndCommercial(14L, State.ENABLED, commercial)).thenReturn(2L);
+        when(memberRepository.sumTotalContributionBySessionAndCommercial(14L, State.ENABLED, commercial))
+                .thenReturn(40_000.0);
+        when(memberRepository.countBySessionAndCommercialAndDeliveryStatus(
+                14L, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED, commercial)).thenReturn(1L);
+        when(collectionRepository.sumDeliveryCollectionsBySessionAndCommercial(14L, State.ENABLED, commercial))
+                .thenReturn(5_000.0);
+        when(memberRepository.sumSocietyShareBySessionAndCommercial(14L, State.ENABLED, commercial))
+                .thenReturn(8_000.0);
+        when(memberRepository.findTopCommercials(14L, State.ENABLED, PageRequest.of(0, 5))).thenReturn(List.of());
+
+        // When
+        SessionStatsDto stats = tontineSessionService.getSessionStats(14L, commercial);
+
+        // Then
+        assertEquals(2, stats.getTotalMembers());
+        assertEquals(40_000.0, stats.getTotalCollected());
+        assertEquals(20_000.0, stats.getAverageContribution());
+        assertEquals(1, stats.getDeliveredCount());
+        assertEquals(1, stats.getPendingCount());
+        assertEquals(50.0, stats.getDeliveryRate());
+        assertEquals(8_000.0, stats.getTotalRevenue());
+        assertEquals(5_000.0, stats.getTotalDeliveryCollections());
+    }
+
+    @Test
+    void getSessionStats_promoter_forcesOwnUsernameRegardlessOfRequestedCommercial() {
+        // Given
+        TontineSession session = session(15L, 2026, 50_000.0);
+        User promoter = mock(User.class);
+        when(promoter.is(UserProfilConstant.PROMOTER)).thenReturn(true);
+        when(promoter.getUsername()).thenReturn("promoter.me");
+        when(sessionRepository.findById(15L)).thenReturn(Optional.of(session));
+        when(userService.getCurrentUser()).thenReturn(promoter);
+        when(memberRepository.countBySessionAndCommercial(eq(15L), eq(State.ENABLED), eq("promoter.me")))
+                .thenReturn(1L);
+        when(memberRepository.sumTotalContributionBySessionAndCommercial(eq(15L), eq(State.ENABLED), eq("promoter.me")))
+                .thenReturn(10_000.0);
+        when(memberRepository.countBySessionAndCommercialAndDeliveryStatus(
+                eq(15L), eq(State.ENABLED), eq(TontineMemberDeliveryStatus.DELIVERED), eq("promoter.me")))
+                .thenReturn(0L);
+        when(collectionRepository.sumDeliveryCollectionsBySessionAndCommercial(
+                eq(15L), eq(State.ENABLED), eq("promoter.me"))).thenReturn(0.0);
+        when(memberRepository.sumSocietyShareBySessionAndCommercial(eq(15L), eq(State.ENABLED), eq("promoter.me")))
+                .thenReturn(2_000.0);
+        when(memberRepository.findTopCommercials(15L, State.ENABLED, PageRequest.of(0, 5))).thenReturn(List.of());
+
+        // When
+        SessionStatsDto stats = tontineSessionService.getSessionStats(15L, "other.commercial");
+
+        // Then
+        assertEquals(1, stats.getTotalMembers());
+        assertEquals(10_000.0, stats.getTotalCollected());
+        assertEquals(2_000.0, stats.getTotalRevenue());
+        verify(memberRepository, never()).countBySessionAndCommercial(eq(15L), eq(State.ENABLED), isNull());
+        verify(memberRepository, never()).countBySessionAndCommercial(
+                eq(15L), eq(State.ENABLED), eq("other.commercial"));
     }
 
     @Test

@@ -2,6 +2,8 @@ package com.optimize.elykia.core.service.tontine;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
+import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.*;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
@@ -9,12 +11,14 @@ import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
+import com.optimize.elykia.core.util.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,6 +32,7 @@ public class TontineSessionService {
         private final TontineSessionRepository sessionRepository;
         private final TontineMemberRepository memberRepository;
         private final TontineCollectionRepository collectionRepository;
+        private final UserService userService;
 
         /**
          * Récupère toutes les sessions avec leurs statistiques de base
@@ -70,24 +75,35 @@ public class TontineSessionService {
         }
 
         /**
-         * Récupère les statistiques détaillées d'une session
+         * Récupère les statistiques globales d'une session (exports Excel/PDF).
          */
         public SessionStatsDto getSessionStats(Long sessionId) {
-                log.info("Calculating statistics for session ID: {}", sessionId);
+                return getSessionStats(sessionId, null);
+        }
+
+        /**
+         * Récupère les statistiques d'une session, éventuellement filtrées par commercial tontine.
+         * Un promoteur est toujours limité à son propre portefeuille.
+         */
+        public SessionStatsDto getSessionStats(Long sessionId, String commercial) {
+                log.info("Calculating statistics for session ID: {} (commercial={})", sessionId, commercial);
 
                 TontineSession session = sessionRepository.findById(sessionId)
                                 .orElseThrow(() -> new ResourceNotFoundException("Session non trouvée"));
 
-                long totalMembers = memberRepository.countByTontineSessionIdAndState(sessionId, State.ENABLED);
-                Double totalCollected = memberRepository.sumTotalContributionByTontineSessionId(sessionId,
-                                State.ENABLED);
+                String commercialFilter = resolveCommercialFilter(commercial);
+
+                long totalMembers = memberRepository.countBySessionAndCommercial(
+                                sessionId, State.ENABLED, commercialFilter);
+                Double totalCollected = memberRepository.sumTotalContributionBySessionAndCommercial(
+                                sessionId, State.ENABLED, commercialFilter);
 
                 if (totalCollected == null) {
                         totalCollected = 0.0;
                 }
 
-                long deliveredCount = memberRepository.countByTontineSessionIdAndStateAndDeliveryStatus(sessionId,
-                                State.ENABLED, TontineMemberDeliveryStatus.DELIVERED);
+                long deliveredCount = memberRepository.countBySessionAndCommercialAndDeliveryStatus(
+                                sessionId, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED, commercialFilter);
 
                 int pendingCount = (int) totalMembers - (int) deliveredCount;
 
@@ -99,12 +115,24 @@ public class TontineSessionService {
                                 ? (deliveredCount * 100.0) / totalMembers
                                 : 0.0;
 
-                Double totalDeliveryCollections = collectionRepository.sumDeliveryCollectionsBySession(sessionId, State.ENABLED);
+                Double totalDeliveryCollections = collectionRepository.sumDeliveryCollectionsBySessionAndCommercial(
+                                sessionId, State.ENABLED, commercialFilter);
                 if (totalDeliveryCollections == null) {
                         totalDeliveryCollections = 0.0;
                 }
 
-                // Top commerciaux via DB query
+                Double totalRevenue;
+                if (commercialFilter != null) {
+                        totalRevenue = memberRepository.sumSocietyShareBySessionAndCommercial(
+                                        sessionId, State.ENABLED, commercialFilter);
+                        if (totalRevenue == null) {
+                                totalRevenue = 0.0;
+                        }
+                } else {
+                        totalRevenue = session.getTotalRevenue() != null ? session.getTotalRevenue() : 0.0;
+                }
+
+                // Top commerciaux via DB query (session-wide, not used by dashboard KPI cards)
                 List<TopCommercialDto> topCommercials = memberRepository.findTopCommercials(sessionId, State.ENABLED,
                                 org.springframework.data.domain.PageRequest.of(0, 5));
 
@@ -117,10 +145,21 @@ public class TontineSessionService {
                                 .deliveredCount((int) deliveredCount)
                                 .pendingCount(pendingCount)
                                 .deliveryRate(deliveryRate)
-                                .totalRevenue(session.getTotalRevenue())
+                                .totalRevenue(totalRevenue)
                                 .totalDeliveryCollections(totalDeliveryCollections)
                                 .topCommercials(topCommercials)
                                 .build();
+        }
+
+        private String resolveCommercialFilter(String commercial) {
+                User currentUser = userService != null ? userService.getCurrentUser() : null;
+                if (currentUser != null && currentUser.is(UserProfilConstant.PROMOTER)) {
+                        return currentUser.getUsername();
+                }
+                if (!StringUtils.hasText(commercial) || "ALL".equalsIgnoreCase(commercial.trim())) {
+                        return null;
+                }
+                return commercial.trim();
         }
 
         /**

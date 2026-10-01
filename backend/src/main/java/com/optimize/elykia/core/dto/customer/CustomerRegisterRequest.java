@@ -42,17 +42,26 @@ public class CustomerRegisterRequest {
     @Size(max = 100)
     private String occupation;
 
-    @NotBlank
+    /** Optionnel à l'inscription — renseigné via onboarding pièce d'identité. */
     @Size(max = 50)
     private String cardType;
 
-    @NotBlank
+    /** Optionnel à l'inscription — renseigné via onboarding pièce d'identité. */
     @Size(max = 100)
     private String cardID;
 
     /** Photo de profil en base64 (data URL ou raw). */
     @NotBlank
     private String profilPhoto;
+
+    /** Coordonnées GPS capturées à l'inscription (optionnelles si refus permission). */
+    private Double latitude;
+
+    private Double longitude;
+
+    /** Lien Google Maps dérivé (latitude,longitude). */
+    @Size(max = 512)
+    private String mll;
 
     @NotBlank
     @Pattern(regexp = "\\d{4,6}")

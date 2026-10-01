@@ -11,8 +11,21 @@ export class TokenStorageService {
     ) { }
 
     signOut(): void {
+        const prefsToKeep: Array<{ key: string; value: string }> = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('elykia.prefs.')) {
+                const value = localStorage.getItem(key);
+                if (value !== null) {
+                    prefsToKeep.push({ key, value });
+                }
+            }
+        }
         localStorage.clear();
         sessionStorage.clear();
+        for (const entry of prefsToKeep) {
+            localStorage.setItem(entry.key, entry.value);
+        }
     }
 
     public saveToken(token: string): void {

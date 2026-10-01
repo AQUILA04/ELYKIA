@@ -7,6 +7,7 @@ import { CustomerSessionService } from '../../shared/services/customer-session.s
 import { AppUpdateService } from '../../shared/services/app-update.service';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
 import { ElykPageHeaderComponent } from '../../shared/ui';
+import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { environment } from '../../../environments/environment';
 import { AppReleaseInfo } from '../../shared/models/app-release.model';
 
@@ -17,7 +18,14 @@ import { ProfileDesktopComponent } from './desktop/profile-desktop.component';
   selector: 'app-profile',
   standalone: true,
   imports: [
-    ProfileDesktopComponent,CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
+    ProfileDesktopComponent,
+    CommonModule,
+    IonicModule,
+    RouterModule,
+    CustomerTabBarComponent,
+    ElykPageHeaderComponent,
+    NotificationBellComponent,
+  ],
   templateUrl: './profile.page.html',
   styleUrls: ['./profile.page.scss'],
 })

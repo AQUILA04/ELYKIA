@@ -19,9 +19,6 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { LocalityListComponent } from './locality/localitylist/localitylist.component';
 import { LocalityDetailsComponent } from './locality/localitydetails/localitydetails.component';
-import { AccountAddComponent } from './account/accountadd/accountadd.component';
-import { AccountListComponent } from './account/accountlist/accountlist.component';
-import { AccountdetailsComponent } from './account/accountdetails/accountdetails.component';
 import { LocalityAddComponent } from './locality/localityadd/localityadd.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
@@ -88,9 +85,6 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     SidebarComponent,
     LocalityListComponent,
     LocalityDetailsComponent,
-    AccountAddComponent,
-    AccountListComponent,
-    AccountdetailsComponent,
     LocalityAddComponent,
     LoginComponent,
     RegisterComponent,

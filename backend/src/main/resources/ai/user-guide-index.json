@@ -67,7 +67,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nGestion des comptes financiers (Menu Comptes)\n\nLe sous-menu Comptes offre une vue d'ensemble des comptes de monnaie électronique ou de dépôt rattachés aux clients et aux agents :\nAffiche pour chaque compte : le numéro de compte unique, le titulaire (client ou commercial), le type de compte et le solde actuel disponible en FCFA.\nLa fiche de détail d'un compte permet de tracer l'ensemble des écritures de débit (achats, prélèvements) et de crédit (approvisionnements, remboursements)."
+    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nGestion des comptes financiers (Menu Comptes)\n\nLe sous-menu Comptes offre une vue d’ensemble des comptes rattachés aux clients :\nLa liste affiche pour chaque compte : le numéro, le titulaire, le solde et le statut.\nCliquez sur Voir : un panneau s’ouvre à droite avec le détail (client, n° compte, solde, statut) et les actions possibles (activer / désactiver / modifier).\nFermez le panneau avec Fermer pour revenir à la liste."
   },
   {
     "id": "commercial",
@@ -407,11 +407,21 @@
       "commercial",
       "manager"
     ],
-    "content": "Guide Tontines\nTableau de bord de la session\n\nL'écran principal de la liste vous donne une vue synthétique sur la campagne en cours.\nLes indicateurs clés de la campagne\nEn haut de l'écran, les cartes récapitulatives vous informent en temps réel sur la santé de la tontine :\n Membres Actifs : Nombre total d'adhérents inscrits cette année.\n Montant Total Collecté : Somme globale des cotisations versées par les membres (en FCFA).\n Revenu Total (Part Société) : Rémunération statutaire acquise par ELYKIA pour la gestion de la tontine.\n En Attente de Livraison : Nombre de membres éligibles qui attendent encore leurs articles de fin d'année (avec le nombre de colis déjà livrés).\n Contribution Moyenne : Montant moyen épargné par adhérent.\n Collectes à la livraison : Montants perçus lors de la délivrance des articles.\nSession en cours vs Sessions antérieures\n Session en cours (Active) : La campagne annuelle est ouverte. Toutes les opérations quotidiennes (inscriptions, cotisations, ajustements de mise, vérifications de carnet) sont accessibles.\n Sessions passées (Historiques) : Permet de consulter les campagnes précédentes en mode consultation seule. Un bandeau d'information rappelle que les modifications y sont désactivées. Le bouton « Session actuelle » vous ramène immédiatement à l'année en cours.\n Comparaison pluriannuelle : Le bouton Comparer vous permet de sélectionner de 2 à 5 années pour observer l'évolution du nombre d'adhérents et des montants collectés.\nTrouver rapidement un membre\nLa barre de recherche et de filtres vous permet de cibler des dossiers précis :\n Par texte : Tapez le nom, prénom, numéro de téléphone ou code du client.\n Par commercial : Pour un gestionnaire, sélectionnez un commercial dans la liste déroulante pour isoler son secteur.…"
+    "content": "Guide Tontines\nTableau de bord de la session\n\nL'écran principal de la liste vous donne une vue synthétique sur la campagne en cours.\nLes indicateurs clés de la campagne\nEn haut de l'écran, les cartes récapitulatives vous informent en temps réel sur la santé de la tontine. Lorsqu'un commercial est sélectionné dans la barre de filtres, ces indicateurs se mettent à jour pour ne compter que son portefeuille :\n Membres Actifs : Nombre d'adhérents inscrits cette année (global ou pour le commercial choisi).\n Montant Total Collecté : Somme des cotisations versées par les membres affichés (en FCFA).\n Revenu Total (Part Société) : Rémunération statutaire acquise par ELYKIA pour la gestion de la tontine, alignée sur le même filtre.\n En Attente de Livraison : Nombre de membres éligibles qui attendent encore leurs articles de fin d'année (avec le nombre de colis déjà livrés).\n Contribution Moyenne : Montant moyen épargné par adhérent.\n Collectes à la livraison : Montants perçus lors de la délivrance des articles.\nSession en cours vs Sessions antérieures\n Session en cours (Active) : La campagne annuelle est ouverte. Toutes les opérations quotidiennes (inscriptions, cotisations, ajustements de mise, vérifications de carnet) sont accessibles.\n Sessions passées (Historiques) : Permet de consulter les campagnes précédentes en mode consultation seule. Un bandeau d'information rappelle que les modifications y sont désactivées.…"
   },
   {
-    "id": "commercial_tontine__3_fiche_d_taill_e_d_un_membre",
-    "title": "Guide Tontines — 3. Fiche détaillée d'un membre",
+    "id": "commercial_tontine__3_trouver_rapidement_un_membre",
+    "title": "Guide Tontines — 3. Trouver rapidement un membre",
+    "path": "/user-guide/commercial/tontine.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Guide Tontines\nTrouver rapidement un membre\n\nLa barre de recherche et de filtres vous permet de cibler des dossiers précis. Vos filtres restent en place si vous quittez la page puis y revenez, jusqu'à ce que vous cliquiez sur Effacer .\n Par texte : Tapez le nom, prénom, numéro de téléphone ou code du client.\n Par commercial : Pour un gestionnaire, sélectionnez un commercial dans la liste déroulante pour isoler son secteur ; la liste des membres et les indicateurs du haut de page se mettent à jour ensemble. Pour un commercial, votre secteur est pré-sélectionné.\n Par statut de livraison : Filtrez les membres en cours de session, ceux dont la livraison est en attente, validée ou déjà terminée.\n Par état du carnet : Affichez uniquement les membres dont le carnet est vérifié ou ceux restant à contrôler.\n Par origine : Choisissez Espace client pour ne voir que les membres qui se sont inscrits eux-mêmes depuis l'application Espace Client, ou Personnel pour ceux inscrits par l'agence. Dans la liste, ces auto-inscrits portent le badge violet Espace client sous leur nom.\n\n---"
+  },
+  {
+    "id": "commercial_tontine__4_fiche_d_taill_e_d_un_membre",
+    "title": "Guide Tontines — 4. Fiche détaillée d'un membre",
     "path": "/user-guide/commercial/tontine.html",
     "roles": [
       "commercial",
@@ -420,8 +430,8 @@
     "content": "Guide Tontines\nFiche détaillée d'un membre\n\nEn cliquant sur un membre, vous ouvrez sa fiche complète à 360°, véritable dossier de suivi pour toute la durée de la campagne.\nEn-tête du dossier et statut du carnet\nRappel du nom, du code client et du commercial assigné.\n Badge « Inscrit via l'Espace client » : Affiché à côté du statut du carnet lorsque le membre a rejoint la session depuis l'application Espace Client.\n Badge d'état du carnet :\n🟢 Carnet vérifié : Indique la date, l'heure et le nom de l'agent qui a certifié le carnet.\n⚪ Carnet non vérifié : Indique que le carnet physique n'a pas encore été visé.\n Bouton Vérifier / Annuler la vérification : Permet à un utilisateur habilité d'apposer ou de retirer la certification du carnet en un clic.\n Bouton Télécharger : Génère une attestation PDF complète des cotisations du membre.\n Bouton Contrôle terrain : Permet au chef de recouvrement de consigner un audit contradictoire.\nSituation financière du membre\nQuatre indicateurs résument sa position :\n Total Contribué : Montant brut total de ses cotisations depuis le début de la session.\n Solde Disponible : Somme réellement utilisable pour choisir les marchandises de fin d'année (après déduction de la part société).\n Part Société (Payé / Dû) : Montant de la cotisation société versée par rapport au montant théorique attendu. Le montant dû se calcule selon les mois validés et les jours entamés.…"
   },
   {
-    "id": "commercial_tontine__4_livraisons_de_fin_d_ann_e",
-    "title": "Guide Tontines — 4. Livraisons de fin d'année",
+    "id": "commercial_tontine__5_livraisons_de_fin_d_ann_e",
+    "title": "Guide Tontines — 5. Livraisons de fin d'année",
     "path": "/user-guide/commercial/tontine.html",
     "roles": [
       "commercial",
@@ -430,8 +440,8 @@
     "content": "Guide Tontines\nLivraisons de fin d'année\n\nEn fin de campagne, lorsque la session arrive à son terme, les membres utilisent leur épargne pour retirer des marchandises (appareils, vivres, équipements).\nLe cycle d'une livraison\n Préparer la Livraison :\nLorsque la session de collecte est fermée, le bouton Préparer la Livraison devient actif sur la fiche du membre.\nUne fenêtre s'ouvre avec le Solde Disponible mobilisable.\nChoisissez les articles souhaités dans le catalogue en indiquant les quantités.\nLe système vérifie en direct que le montant total des articles ne dépasse pas le solde disponible du membre.\nSi les articles choisis coûtent moins que l'épargne, la différence reste conservée comme Solde non utilisé au profit du client.\nLe dossier passe au statut En attente .\n Valider la Livraison :\nUn responsable examine la sélection et clique sur Valider la Livraison . Le statut passe à Validé .\n Marquer comme Livré :\nAu moment de la remise en mains propres des articles au membre, le commercial ou le magasinier clique sur Marquer comme Livré .\nCette action déduit définitivement les articles du stock tontine et clôture le dossier du membre.\nLa fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.\nConsulter l'ensemble des livraisons (Menu Tontines > Livraison)\nDans le menu latéral gauche, cliquez sur Tontines puis sur Livraison . Cet espace centralise toutes les opérations de distribution de l'agence :\nIndicateurs globaux : nombre de colis livrés, montant total distribué, livraisons restant à honorer, soldes non utilisés.\nFiltres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.\nRecherche instantanée par nom ou référence de client.\n\n---"
   },
   {
-    "id": "commercial_tontine__5_journal_des_collectes_menu_tontines_collectes",
-    "title": "Guide Tontines — 5. Journal des collectes (Menu Tontines > Collectes)",
+    "id": "commercial_tontine__6_journal_des_collectes_menu_tontines_collectes",
+    "title": "Guide Tontines — 6. Journal des collectes (Menu Tontines > Collectes)",
     "path": "/user-guide/commercial/tontine.html",
     "roles": [
       "commercial",
@@ -440,8 +450,8 @@
     "content": "Guide Tontines\nJournal des collectes (Menu Tontines > Collectes)\n\nDans le menu latéral gauche, cliquez sur Tontines puis sur Collectes . C'est le grand livre de caisse de la tontine :\nIl présente la totalité des encaissements enregistrés jour après jour.\nVous pouvez filtrer les résultats par période ( du ... au ... ) et par commercial.\nChaque ligne affiche l'heure exacte, le montant, le commercial encaisseur, le membre concerné et les codes de confirmation client.\n\n---"
   },
   {
-    "id": "commercial_tontine__6_archives_et_transition_annuelle_menu_tontines_",
-    "title": "Guide Tontines — 6. Archives et transition annuelle (Menu Tontines > Archives collectes)",
+    "id": "commercial_tontine__7_archives_et_transition_annuelle_menu_tontines_",
+    "title": "Guide Tontines — 7. Archives et transition annuelle (Menu Tontines > Archives collectes)",
     "path": "/user-guide/commercial/tontine.html",
     "roles": [
       "commercial",
@@ -513,7 +523,7 @@
       "customer",
       "manager"
     ],
-    "content": "Connexion — Espace Client\nCréer un compte\n\nSi votre numéro n’est pas encore connu et que l’inscription est ouverte :\nSaisissez votre numéro, puis Continuer .\nValidez le code SMS (avec la référence affichée à l’écran, comme pour l’activation).\nRenseignez vos informations (photo, identité, adresse). Pour Ma zone (Localités) , ouvrez la liste, recherchez votre zone si besoin, puis sélectionnez-la.\nAppuyez sur Continuer .\nCréez votre code PIN, puis appuyez sur Créer mon compte ."
+    "content": "Connexion — Espace Client\nCréer un compte\n\nSi votre numéro n’est pas encore connu et que l’inscription est ouverte :\nSaisissez votre numéro, puis Continuer .\nValidez le code SMS (avec la référence affichée à l’écran, comme pour l’activation).\nTouchez Ajouter une photo et prenez (ou choisissez) une photo de vous : votre visage doit être bien visible.\nRenseignez vos informations (prénom, nom, adresse, date de naissance, occupation). Pour Ma zone (Localités) , ouvrez la liste, recherchez votre zone si besoin, puis sélectionnez-la.\nVous devez avoir 18 ans ou plus : si la date de naissance ne convient pas, le message Vous devez être majeur (18 ans ou plus). s’affiche sous le champ.\nAppuyez sur Continuer .\nCréez votre code PIN, puis appuyez sur Créer mon compte . Si votre téléphone ou votre navigateur vous demande l’accès à votre position, acceptez : il est nécessaire pour finaliser l’inscription.\nVotre pièce d’identité vous sera demandée ensuite dans Mon dossier ."
   },
   {
     "id": "customer_connexion__sur_ordinateur",
@@ -525,6 +535,28 @@
       "manager"
     ],
     "content": "Connexion — Espace Client\nSur ordinateur\nOuvrez https://clients.amenouveve-yaveh.com dans votre navigateur (fenêtre large).\nÀ gauche, un panneau présente AMENOUVEVE-YAVEH , Elykia et les avantages de l’espace.\nÀ droite, utilisez le formulaire de connexion comme sur mobile (téléphone, puis PIN ou code SMS). Faites défiler la page si le formulaire d’inscription dépasse l’écran.\nPour une inscription, les champs d’identité s’affichent sur deux colonnes ; choisissez votre photo avec Choisir une photo et votre zone avec Ma zone (Localités) ."
+  },
+  {
+    "id": "customer",
+    "title": "Espace client — Vue d’ensemble",
+    "path": "/user-guide/customer/index.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Espace client — Vue d’ensemble\n\nCe guide s’adresse aux clients qui utilisent l’application Espace Client ELYKIA (téléphone).\n\nCe que vous pouvez faire\nConsulter vos crédits et votre prochain paiement sur Accueil \nDéclarer un paiement Mobile Money depuis Achats \nSuivre vos cotisations dans Tontine \nPasser une commande depuis Commander \nCompléter votre dossier dans Mon dossier (pièce d’identité, dépôt initial)\nConsulter vos alertes dans Notifications (cloche en haut à droite)\nPremière connexion\nOuvrez l’application Espace Client.\nSaisissez votre numéro de téléphone.\nSuivez les étapes (code reçu par SMS, création du code secret, fiche d’inscription si besoin).\nSur Accueil , si votre compte est encore en cours de validation, complétez Mon dossier pour accélérer l’activation.\n\nUne fois votre compte validé par l’agence, l’Accueil affiche vos crédits et actions habituelles.\nVoir aussi\nNotifications"
+  },
+  {
+    "id": "customer_notifications",
+    "title": "Notifications (espace client)",
+    "path": "/user-guide/customer/notifications.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Notifications (espace client)\n\nLes notifications vous informent lorsque l’agence traite votre dossier ou vos paiements.\n\nOuvrir les notifications\nSur Accueil (ou Profil ), touchez la cloche en haut à droite.\nUn chiffre rouge indique le nombre de messages non lus.\nLa liste affiche les messages les plus récents en premier.\n\nSur ordinateur, cliquez sur Notifications dans le menu à gauche ; le nombre de messages non lus s’affiche à côté.\nTypes de messages\n\nVous pouvez recevoir notamment :\n Compte activé — votre inscription a été validée\n Inscription non validée — votre dossier n’a pas pu être accepté\n Paiement validé ou refusé — suite à une déclaration Mobile Money sur un crédit\n Cotisation validée ou refusée — suite à une déclaration tontine\n Commande — changement de statut de votre commande\nLire un message\nTouchez un message : il est marqué comme lu.\nL’application ouvre l’écran concerné (Accueil, Achats, Tontine, etc.).\nPour tout marquer comme lu d’un coup, touchez Tout lu en haut à droite.\nAstuce\n\nTirez la liste vers le bas pour actualiser. Les nouveaux messages apparaissent aussi après un retour sur Accueil ."
   },
   {
     "id": "customer_tontine",
@@ -662,7 +694,52 @@
     "roles": [
       "manager"
     ],
-    "content": "Inscriptions clients (espace client)\n\nCette page explique comment valider les demandes d’inscription faites par les clients depuis l’application Espace Client .\n\n---\nAccéder à la liste\nDans le menu latéral, cliquez sur Inscriptions clients .\nL’écran affiche les dossiers en attente , avec le nom, le téléphone, l’état de la pièce d’identité et le dépôt initial s’il a été déclaré.\nUtilisez les filtres Toutes , Avec dépôt ou Sans dépôt pour prioriser les dossiers.\nCliquez sur Actualiser pour recharger la liste.\n\n \n\n---\nExaminer un dossier\nCliquez sur Voir sur la ligne du client.\nVérifiez la photo de profil, la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.\nSi un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.\n\n---\nValider l’inscription\nChoisissez le commercial crédit (obligatoire).\nChoisissez éventuellement le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription .\nLe client peut alors utiliser pleinement l’espace client.\n\n---\nRefuser une inscription\nDepuis le détail du dossier, cliquez sur Refuser .\nIndiquez le motif du refus.\nLe client verra un message l’invitant à contacter l’agence.\n\n---\nCôté client (Espace Client)\n\nUn nouveau client qui saisit un numéro encore inconnu :\nReçoit un code SMS pour confirmer son téléphone.\nRemplit sa fiche et prend sa photo de profil.\nCrée son code PIN, puis se connecte.\nComplète son dossier avec la photo de sa pièce d’identité.\nPeut déclarer un dépôt initial (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.\nAttend la validation de l’agence avant d’accéder aux crédits, commandes et paiements."
+    "content": "Inscriptions clients (espace client)\n\nCette page explique comment valider les demandes d’inscription faites par les clients depuis l’application Espace Client .\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__1_acc_der_la_liste",
+    "title": "Inscriptions clients (espace client) — 1. Accéder à la liste",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nAccéder à la liste\nDans le menu latéral, ouvrez Services en ligne , puis cliquez sur Inscriptions .\nL’écran affiche les dossiers en attente , avec le nom, le téléphone, l’état de la pièce d’identité et le dépôt initial s’il a été déclaré.\nUtilisez les filtres Toutes , Avec dépôt ou Sans dépôt pour prioriser les dossiers.\nNaviguez entre les pages avec Précédent / Suivant si la liste dépasse une page.\nCliquez sur Actualiser pour recharger la liste.\n\n \n\n---"
+  },
+  {
+    "id": "manager_client_registrations__2_examiner_un_dossier",
+    "title": "Inscriptions clients (espace client) — 2. Examiner un dossier",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nExaminer un dossier\nCliquez sur Voir sur la ligne du client.\nVérifiez la photo de profil (à gauche du nom en haut du panneau, ou les initiales si elle n’est pas encore disponible), la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.\nCliquez sur la photo de profil ou sur Agrandir sous la pièce pour ouvrir l’aperçu, puis fermez-le.\nSi un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__3_valider_l_inscription",
+    "title": "Inscriptions clients (espace client) — 3. Valider l’inscription",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nValider l’inscription\nChoisissez le commercial crédit .\nChoisissez le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription (le bouton devient actif seulement quand les deux commerciaux sont choisis).\nUn compte client est créé automatiquement avec le statut Actif : solde égal au dépôt initial s’il a été validé, sinon 0.\nLe client peut alors utiliser pleinement l’espace client ; une notification lui confirme l’activation.\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__4_refuser_une_inscription",
+    "title": "Inscriptions clients (espace client) — 4. Refuser une inscription",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nRefuser une inscription\nDepuis le détail du dossier, cliquez sur Refuser .\nIndiquez le motif du refus.\nLe client verra un message l’invitant à contacter l’agence.\n\n---"
+  },
+  {
+    "id": "manager_client_registrations__5_c_t_client_espace_client",
+    "title": "Inscriptions clients (espace client) — 5. Côté client (Espace Client)",
+    "path": "/user-guide/manager/client_registrations.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Inscriptions clients (espace client)\nCôté client (Espace Client)\n\nUn nouveau client qui saisit un numéro encore inconnu :\nReçoit un code SMS pour confirmer son téléphone.\nRemplit sa fiche (prénom, nom, adresse, votre zone , date de naissance, occupation) et ajoute sa photo de profil (le visage doit être bien visible). La date de naissance doit correspondre à un client majeur (18 ans ou plus). L’application enregistre automatiquement sa position lors de la validation.\nCrée son code PIN, puis se connecte.\nComplète son dossier ( Mon dossier ) avec le type et le numéro de pièce d’identité, plus la photo de la pièce.\nPeut déclarer un dépôt initial (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.\nAttend la validation de l’agence ; une notification l’informe ensuite que le compte est activé."
   },
   {
     "id": "manager_customer_activity_audit",
@@ -833,7 +910,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Guide Gestionnaire\nRègles de travail\n\nLa gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.\n\nConsultez les pages suivantes selon la tâche à accomplir :\nTableaux de bord pour lire les KPI sans confondre les périodes.\nOpérations quotidiennes pour les caisses, clients, comptes et versements.\nInscriptions clients pour valider les demandes de l’espace client.\nJournal espace client (Audit) pour consulter les actions, erreurs et parcours de l’espace client.\nStocks, ventes et commandes pour les flux de marchandises et de crédits.\nFinances et tontines pour les dépenses, remises et contrôles tontine.\nRapports et configuration pour l’analyse et les référentiels."
+    "content": "Guide Gestionnaire\nRègles de travail\n\nLa gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.\n\nConsultez les pages suivantes selon la tâche à accomplir :\nTableaux de bord pour lire les KPI sans confondre les périodes.\nOpérations quotidiennes pour les caisses, clients, comptes et versements.\nInscriptions ( Services en ligne ) pour valider les demandes de l’espace client.\nJournal espace client (Audit) pour consulter les actions, erreurs et parcours de l’espace client.\nStocks, ventes et commandes pour les flux de marchandises et de crédits.\nFinances et tontines pour les dépenses, remises et contrôles tontine.\nRapports et configuration pour l’analyse et les référentiels."
   },
   {
     "id": "manager_operations",
@@ -891,12 +968,12 @@
   },
   {
     "id": "manager_operations__6_traitement_des_d_clarations_de_paiements_clien",
-    "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 6. Traitement des déclarations de paiements clients Mobile Money (Menu Paiements clients)",
+    "title": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients) — 6. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)",
     "path": "/user-guide/manager/operations.html",
     "roles": [
       "manager"
     ],
-    "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nTraitement des déclarations de paiements clients Mobile Money (Menu Paiements clients)\n\nLe module Paiements clients permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via Mobile Money (Mixx by YAS ou Moov Money).\n\nA. Présentation générale et indicateurs\n Accès au module : Menu latéral Paiements clients (icône carte bancaire). Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises.\n Barre d'état : Heure d'actualisation en direct et bouton « Actualiser » pour vérifier l'arrivée de nouveaux versements.\n Compteur dynamique : Affiche le nombre de déclarations actuellement en attente d'instruction.\n Visibilité des données :\n Pour un gestionnaire : Visualisation globale de toutes les déclarations de l'agence, avec affichage du commercial affecté.\n Pour un commercial : Consultation restreinte aux seules déclarations de paiement de son portefeuille clients.\n\n---\nB. Traitement des remboursements de crédit (Onglet Recouvrement crédit)\nCet onglet centralise les règlements d'échéances de vente à crédit :\n\n Information affichée Description fonctionnelle \n --- --- \n Client Nom et prénom du client ou son numéro d'identifiant. \n Commercial Commercial gestionnaire du dossier de crédit. \n Crédit Numéro du crédit. Cliquer sur le lien bleu #ID ouvre directement la fiche 360° du crédit. \n Échéance Numéro de l'échéance réglée par le client. \n Montant Somme versée en Francs CFA (affichée en gras). \n Téléphone Numéro de téléphone Mobile Money utilisé pour le transfert. \n Référence Numéro de transaction officiel fourni par l'opérateur (Mixx ou Moov). \n Date Date et heure de déclaration du paiement par le client.…"
+    "content": "Opérations quotidiennes (Journée comptable, Caisse, Billetage & Clients)\nTraitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)\n\nLe module Paiements (sous Services en ligne ) permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via Mobile Money (Mixx by YAS ou Moov Money).\n\nA. Présentation générale et indicateurs\n Accès au module : Menu latéral Services en ligne > Paiements . Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises.\n Barre d'état : Heure d'actualisation en direct et bouton « Actualiser » pour vérifier l'arrivée de nouveaux versements.\n Compteur dynamique : Affiche le nombre de déclarations actuellement en attente d'instruction.\n Visibilité des données :\n Pour un gestionnaire : Visualisation globale de toutes les déclarations de l'agence, avec affichage du commercial affecté.\n Pour un commercial : Consultation restreinte aux seules déclarations de paiement de son portefeuille clients.\n\n---\nB. Traitement des remboursements de crédit (Onglet Recouvrement crédit)\nCet onglet centralise les règlements d'échéances de vente à crédit :\n\n Information affichée Description fonctionnelle \n --- --- \n Client Nom et prénom du client ou son numéro d'identifiant. \n Commercial Commercial gestionnaire du dossier de crédit. \n Crédit Numéro du crédit. Cliquer sur le lien bleu #ID ouvre directement la fiche 360° du crédit. \n Échéance Numéro de l'échéance réglée par le client. \n Montant Somme versée en Francs CFA (affichée en gras). \n Téléphone Numéro de téléphone Mobile Money utilisé pour le transfert. \n Référence Numéro de transaction officiel fourni par l'opérateur (Mixx ou Moov). \n Date Date et heure de déclaration du paiement par le client.…"
   },
   {
     "id": "manager_operations__7_centre_de_notifications_et_suivi_des_alertes",
