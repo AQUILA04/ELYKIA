@@ -22,7 +22,8 @@ export class ClientDetailsComponent implements OnInit {
   client: Client | undefined;
   clientDetails: any = {};
   isLoading = true;
-  safeProfilPhotoUrl: SafeUrl | null = null;
+  /** Plain https string or trusted blob: SafeUrl for legacy PhotoStore streams. */
+  safeProfilPhotoUrl: string | SafeUrl | null = null;
   clientId: number = 0;
 
   // Credits (Achats)
@@ -105,7 +106,8 @@ export class ClientDetailsComponent implements OnInit {
       this.clientPhotoUrlService.getUrl(client.id, 'PROFIL', 'THUMB').subscribe({
         next: (entry) => {
           if (entry?.url) {
-            this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(entry.url);
+            // https / signed MinIO — Angular allows plain https in img[src]
+            this.safeProfilPhotoUrl = entry.url;
             return;
           }
           if (entry?.legacy) {
@@ -117,7 +119,7 @@ export class ClientDetailsComponent implements OnInit {
           this.clientPhotoUrlService.getUrl(client.id, 'PROFIL', 'ORIGINAL').subscribe({
             next: (orig) => {
               if (orig?.url) {
-                this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(orig.url);
+                this.safeProfilPhotoUrl = orig.url;
               } else {
                 this.safeProfilPhotoUrl = null;
               }
@@ -141,7 +143,8 @@ export class ClientDetailsComponent implements OnInit {
       (image: Blob) => {
         if (image && image.size > 0) {
           const objectURL = URL.createObjectURL(image);
-          this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(objectURL);
+          // blob: from authenticated API stream — requires trust for img[src]
+          this.safeProfilPhotoUrl = this.sanitizer.bypassSecurityTrustUrl(objectURL); // NOSONAR
         } else {
           this.safeProfilPhotoUrl = null;
         }

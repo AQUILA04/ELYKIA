@@ -23,10 +23,10 @@ import { ClientMenuComponent } from '../../components/client-menu/client-menu.co
 import * as ClientActions from '../../../../store/client/client.actions';
 import * as AccountActions from '../../../../store/account/account.actions';
 import * as DistributionActions from '../../../../store/distribution/distribution.actions';
-import { Capacitor } from '@capacitor/core';
 import { ThumbnailService } from '../../../../core/services/thumbnail.service';
 import { ReliquatService } from '../../../../core/services/reliquat.service';
 import { ClientPhotoUrlService } from '../../../../core/services/client/client-photo-url.service';
+import { preferLocalPhotoPath, resolveClientPhotoSrc } from '../../../../core/utils/client-photo-display.util';
 
 @Component({
   selector: 'app-client-detail',
@@ -43,6 +43,8 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   clientId: string | null = null;
   today = new Date();
   private basePath: string = '';
+  /** Re-export for template. */
+  preferLocalPhotoPath = preferLocalPhotoPath;
 
   private destroy$ = new Subject<void>();
 
@@ -194,29 +196,31 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     return await modal.present();
   }
 
-  onAvatarClick(client: any) {
+  async onAvatarClick(client: any): Promise<void> {
     // Prefer local original / thumb; never open raw private MinIO URLs
     const localCandidates = [client.profilPhoto, client.profilPhotoThumbUrl, client.profilPhotoUrl]
       .filter((p: string | null | undefined) => !!p && !String(p).startsWith('http'));
     const photoPath = localCandidates[0];
     if (!photoPath) {
-      // Online: resolve a short-lived original URL for preview
       const id = Number(client.id);
       if (!id) {
         return;
       }
-      this.clientPhotoUrlService.getUrls([id], 'PROFIL', 'ORIGINAL').then(entries => {
+      try {
+        const entries = await this.clientPhotoUrlService.getUrls([id], 'PROFIL', 'ORIGINAL');
         const url = entries[0]?.url;
         if (url) {
-          this.openImagePreview(url, client.fullName || `${client.firstname} ${client.lastname}`);
+          await this.openImagePreview(url, client.fullName || `${client.firstname} ${client.lastname}`);
         }
-      }).catch(() => { /* ignore */ });
+      } catch {
+        /* ignore offline / auth errors */
+      }
       return;
     }
     const photoUrl = this.getPhotoUrl(photoPath);
-    const url = photoUrl.toString();
+    const url = String(photoUrl);
     if (url && !url.includes('favicon') && !url.includes('person-circle-outline')) {
-      this.openImagePreview(url, client.fullName || `${client.firstname} ${client.lastname}`);
+      await this.openImagePreview(url, client.fullName || `${client.firstname} ${client.lastname}`);
     }
   }
 
@@ -230,43 +234,10 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Local FS first. Rejects raw private MinIO URLs; allows short-lived presigned URLs.
+   * Local FS first. HTTPS presigned URLs as plain strings; Capacitor paths trusted via util.
    */
-  getPhotoUrl(localPath: string | undefined | null): SafeUrl {
-    if (!localPath) {
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    if (localPath.startsWith('http://') || localPath.startsWith('https://')) {
-      if (!localPath.includes('X-Amz-Signature') && !localPath.includes('X-Amz-Credential')) {
-        return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-      }
-      return this.sanitizer.bypassSecurityTrustUrl(localPath);
-    }
-
-    if (Capacitor.getPlatform() === 'web' && !localPath.startsWith('assets')) {
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    if (localPath.startsWith('assets') || localPath.startsWith('file://') || localPath.startsWith('content://')) {
-      return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(localPath));
-    }
-
-    if (!this.basePath) {
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    const finalPath = this.basePath + (localPath.startsWith('/') ? '' : '/') + localPath;
-    return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(finalPath));
-  }
-
-  /** Prefer local / file paths over raw http MinIO markers. */
-  preferLocalPhotoPath(...candidates: (string | null | undefined)[]): string | null {
-    const local = candidates.find((p) => !!p && !String(p).startsWith('http'));
-    if (local) {
-      return local;
-    }
-    return candidates.find((p) => !!p) ?? null;
+  getPhotoUrl(localPath: string | undefined | null): string | SafeUrl {
+    return resolveClientPhotoSrc(localPath, this.basePath, this.sanitizer);
   }
 
   handleImageError(event: Event) {

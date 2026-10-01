@@ -126,7 +126,7 @@ export class PhotoSyncService {
     try {
       urlMap = await this.clientPhotoUrlService.getUrlMap(ids, photoKind, 'THUMB');
     } catch (error) {
-      this.log.log(`[PhotoSyncService] Failed to resolve signed photo URLs (${kind}): ${error}`);
+      void this.log.log(`[PhotoSyncService] Failed to resolve signed photo URLs (${kind}): ${error}`);
       return;
     }
 

@@ -10,7 +10,6 @@ export interface ClientPhotoUrlEntry {
   clientId: number;
   url: string | null;
   expiresAt?: string | null;
-  /** True when the photo is still only in legacy PhotoStore (transitional). */
   legacy: boolean;
 }
 
@@ -18,91 +17,19 @@ interface ApiResponse<T> {
   data: T;
 }
 
-/**
- * Batch short-lived MinIO GET URLs for private client photos.
- * Do not persist these URLs in SQLite — they expire.
- */
+interface MemoryEntry {
+  url: string | null;
+  expiresAtMs: number;
+  legacy: boolean;
+}
+
+/** Mobile helper: asks the backend for short-lived MinIO GET links (never persisted). */
 @Injectable({ providedIn: 'root' })
 export class ClientPhotoUrlService {
-  private readonly apiUrl = `${environment.apiUrl}/api/v1/clients/photos/urls`;
-  private readonly cache = new Map<string, { url: string | null; expiresAtMs: number; legacy: boolean }>();
+  private readonly endpoint = `${environment.apiUrl}/api/v1/clients/photos/urls`;
+  private readonly memory = new Map<string, MemoryEntry>();
 
   constructor(private readonly http: HttpClient) {}
-
-  async getUrls(
-    clientIds: number[],
-    kind: ClientPhotoKind = 'PROFIL',
-    size: ClientPhotoSize = 'THUMB'
-  ): Promise<ClientPhotoUrlEntry[]> {
-    const uniqueIds = [...new Set(clientIds.filter((id) => id != null && id > 0))];
-    if (uniqueIds.length === 0) {
-      return [];
-    }
-
-    const now = Date.now();
-    const cached: ClientPhotoUrlEntry[] = [];
-    const missing: number[] = [];
-
-    for (const id of uniqueIds) {
-      const hit = this.cache.get(this.key(id, kind, size));
-      if (hit && hit.expiresAtMs > now + 60_000) {
-        cached.push({
-          clientId: id,
-          url: hit.url,
-          expiresAt: new Date(hit.expiresAtMs).toISOString(),
-          legacy: hit.legacy
-        });
-      } else {
-        missing.push(id);
-      }
-    }
-
-    if (missing.length === 0) {
-      return cached;
-    }
-
-    // API max batch = 200
-    const chunks: number[][] = [];
-    for (let i = 0; i < missing.length; i += 100) {
-      chunks.push(missing.slice(i, i + 100));
-    }
-
-    const fetched: ClientPhotoUrlEntry[] = [];
-    for (const chunk of chunks) {
-      const res = await firstValueFrom(
-        this.http.post<ApiResponse<ClientPhotoUrlEntry[]>>(this.apiUrl, {
-          clientIds: chunk,
-          kind,
-          size
-        })
-      );
-      const data = res?.data ?? [];
-      const fetchedAt = Date.now();
-      for (const entry of data) {
-        const expiresAtMs = entry.expiresAt
-          ? Date.parse(entry.expiresAt)
-          : fetchedAt + 50 * 60 * 1000;
-        this.cache.set(this.key(entry.clientId, kind, size), {
-          url: entry.url ?? null,
-          expiresAtMs,
-          legacy: !!entry.legacy
-        });
-        fetched.push(entry);
-      }
-      const returned = new Set(data.map((e) => e.clientId));
-      for (const id of chunk) {
-        if (!returned.has(id)) {
-          this.cache.set(this.key(id, kind, size), {
-            url: null,
-            expiresAtMs: fetchedAt + 5 * 60 * 1000,
-            legacy: false
-          });
-        }
-      }
-    }
-
-    return [...cached, ...fetched];
-  }
 
   async getUrlMap(
     clientIds: number[],
@@ -113,7 +40,72 @@ export class ClientPhotoUrlService {
     return new Map(entries.map((e) => [e.clientId, e]));
   }
 
-  private key(clientId: number, kind: ClientPhotoKind, size: ClientPhotoSize): string {
-    return `${clientId}:${kind}:${size}`;
+  async getUrls(
+    clientIds: number[],
+    kind: ClientPhotoKind = 'PROFIL',
+    size: ClientPhotoSize = 'THUMB'
+  ): Promise<ClientPhotoUrlEntry[]> {
+    const ids = [...new Set((clientIds || []).filter((id) => id > 0))];
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const now = Date.now();
+    const fromCache: ClientPhotoUrlEntry[] = [];
+    const toFetch: number[] = [];
+
+    for (const id of ids) {
+      const hit = this.memory.get(`${id}|${kind}|${size}`);
+      if (hit && hit.expiresAtMs > now + 60_000) {
+        fromCache.push({
+          clientId: id,
+          url: hit.url,
+          expiresAt: new Date(hit.expiresAtMs).toISOString(),
+          legacy: hit.legacy
+        });
+      } else {
+        toFetch.push(id);
+      }
+    }
+
+    if (toFetch.length === 0) {
+      return fromCache;
+    }
+
+    const remote: ClientPhotoUrlEntry[] = [];
+    for (let offset = 0; offset < toFetch.length; offset += 100) {
+      const slice = toFetch.slice(offset, offset + 100);
+      const body = await firstValueFrom(
+        this.http.post<ApiResponse<ClientPhotoUrlEntry[]>>(this.endpoint, {
+          clientIds: slice,
+          kind,
+          size
+        })
+      );
+      const rows = body?.data ?? [];
+      const stamped = Date.now();
+      const seen = new Set<number>();
+      for (const row of rows) {
+        seen.add(row.clientId);
+        const expiresAtMs = row.expiresAt ? Date.parse(row.expiresAt) : stamped + 50 * 60 * 1000;
+        this.memory.set(`${row.clientId}|${kind}|${size}`, {
+          url: row.url ?? null,
+          expiresAtMs,
+          legacy: !!row.legacy
+        });
+        remote.push(row);
+      }
+      for (const id of slice) {
+        if (!seen.has(id)) {
+          this.memory.set(`${id}|${kind}|${size}`, {
+            url: null,
+            expiresAtMs: stamped + 5 * 60 * 1000,
+            legacy: false
+          });
+        }
+      }
+    }
+
+    return fromCache.concat(remote);
   }
 }

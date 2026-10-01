@@ -36,7 +36,7 @@ export class RmClientsPage implements OnInit, OnDestroy {
       this.signedAvatars.clear();
       const valid = new Set(this.clients.map(c => c.id));
       this.selectedIds = new Set([...this.selectedIds].filter(id => valid.has(id)));
-      this.prefetchSignedAvatars(this.clients);
+      void this.prefetchSignedAvatars(this.clients);
     });
   }
 

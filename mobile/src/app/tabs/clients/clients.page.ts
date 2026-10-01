@@ -13,7 +13,7 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { LoggerService } from '../../core/services/logger.service';
 import { ActionSheetController, IonContent, IonInfiniteScroll } from '@ionic/angular';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Capacitor } from '@capacitor/core';
+import { preferLocalPhotoPath, resolveClientPhotoSrc } from '../../core/utils/client-photo-display.util';
 
 @Component({
   selector: 'app-clients',
@@ -28,6 +28,8 @@ export class ClientsPage implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   private basePath: string = '';
+  /** Re-export for template. */
+  preferLocalPhotoPath = preferLocalPhotoPath;
 
   paginatedClients$: Observable<ClientView[]>;
   isLoading$: Observable<boolean>;
@@ -142,47 +144,10 @@ export class ClientsPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Optimized photo URL retrieval using Capacitor.convertFileSrc.
-   * Prefers local FS paths. Rejects raw private MinIO URLs (no signature) — use PhotoSync first.
-   * Allows short-lived presigned URLs (X-Amz-Signature).
+   * Local FS first. HTTPS presigned URLs as plain strings; Capacitor paths trusted via util.
    */
-  getPhotoUrl(localPath: string | undefined | null): SafeUrl {
-    if (!localPath) {
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    if (localPath.startsWith('http://') || localPath.startsWith('https://')) {
-      if (!localPath.includes('X-Amz-Signature') && !localPath.includes('X-Amz-Credential')) {
-        // Raw MinIO object URL — bucket is private; do not bind
-        return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-      }
-      return this.sanitizer.bypassSecurityTrustUrl(localPath);
-    }
-
-    // Sur le Web, les chemins de fichiers natifs ne fonctionneront pas directement.
-    if (Capacitor.getPlatform() === 'web' && !localPath.startsWith('assets')) {
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    if (localPath.startsWith('assets') || localPath.startsWith('file://') || localPath.startsWith('content://')) {
-      return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(localPath));
-    }
-
-    if (!this.basePath) {
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    const finalPath = this.basePath + (localPath.startsWith('/') ? '' : '/') + localPath;
-    return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(finalPath));
-  }
-
-  /** Prefer local / file paths over raw http MinIO markers. */
-  preferLocalPhotoPath(...candidates: (string | null | undefined)[]): string | null {
-    const local = candidates.find((p) => !!p && !String(p).startsWith('http'));
-    if (local) {
-      return local;
-    }
-    return candidates.find((p) => !!p) ?? null;
+  getPhotoUrl(localPath: string | undefined | null): string | SafeUrl {
+    return resolveClientPhotoSrc(localPath, this.basePath, this.sanitizer);
   }
 
   ngOnDestroy() {

@@ -8,7 +8,7 @@ import { SafeUrl } from '@angular/platform-browser';
 })
 export class ClientInfoCardComponent implements OnChanges {
   @Input() client: any;
-  @Input() safeProfilPhotoUrl: SafeUrl | null = null;
+  @Input() safeProfilPhotoUrl: string | SafeUrl | null = null;
 
   photoLoadFailed = false;
   showPhotoPreview = false;
