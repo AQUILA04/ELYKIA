@@ -23,9 +23,10 @@ import { ClientMenuComponent } from '../../components/client-menu/client-menu.co
 import * as ClientActions from '../../../../store/client/client.actions';
 import * as AccountActions from '../../../../store/account/account.actions';
 import * as DistributionActions from '../../../../store/distribution/distribution.actions';
-import { Capacitor } from '@capacitor/core';
 import { ThumbnailService } from '../../../../core/services/thumbnail.service';
 import { ReliquatService } from '../../../../core/services/reliquat.service';
+import { ClientPhotoUrlService } from '../../../../core/services/client/client-photo-url.service';
+import { preferLocalPhotoPath, resolveClientPhotoSrc } from '../../../../core/utils/client-photo-display.util';
 
 @Component({
   selector: 'app-client-detail',
@@ -42,6 +43,8 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   clientId: string | null = null;
   today = new Date();
   private basePath: string = '';
+  /** Re-export for template. */
+  preferLocalPhotoPath = preferLocalPhotoPath;
 
   private destroy$ = new Subject<void>();
 
@@ -58,7 +61,8 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     private actions$: Actions,
     private thumbnailService: ThumbnailService,
     private cdr: ChangeDetectorRef,
-    private reliquatService: ReliquatService
+    private reliquatService: ReliquatService,
+    private clientPhotoUrlService: ClientPhotoUrlService
   ) { }
 
   async ngOnInit() {
@@ -99,8 +103,10 @@ export class ClientDetailPage implements OnInit, OnDestroy {
           return of(null);
         }
         // Combine photo loading observables
-        const profilePhoto = this.getPhotoUrl(client.profilPhotoThumbUrl || client.profilPhotoUrl || client.profilPhoto);
-        const cardPhoto = this.getPhotoUrl(client.cardPhoto || client.cardPhotoUrl);
+        const profilePhoto = this.getPhotoUrl(this.preferLocalPhotoPath(
+          client.profilPhotoThumbUrl, client.profilPhoto, client.profilPhotoUrl));
+        const cardPhoto = this.getPhotoUrl(this.preferLocalPhotoPath(
+          client.cardPhotoThumbUrl, client.cardPhoto, client.cardPhotoUrl));
 
         return from(this.reliquatService.getReliquatForClient(client.id)).pipe(
           map(reliquat => ({
@@ -190,15 +196,31 @@ export class ClientDetailPage implements OnInit, OnDestroy {
     return await modal.present();
   }
 
-  onAvatarClick(client: any) {
-    const photoPath = client.profilPhoto || client.profilPhotoUrl || client.profilPhotoThumbUrl;
+  async onAvatarClick(client: any): Promise<void> {
+    // Prefer local original / thumb; never open raw private MinIO URLs
+    const localCandidates = [client.profilPhoto, client.profilPhotoThumbUrl, client.profilPhotoUrl]
+      .filter((p: string | null | undefined) => !!p && !String(p).startsWith('http'));
+    const photoPath = localCandidates[0];
     if (!photoPath) {
+      const id = Number(client.id);
+      if (!id) {
+        return;
+      }
+      try {
+        const entries = await this.clientPhotoUrlService.getUrls([id], 'PROFIL', 'ORIGINAL');
+        const url = entries[0]?.url;
+        if (url) {
+          await this.openImagePreview(url, client.fullName || `${client.firstname} ${client.lastname}`);
+        }
+      } catch {
+        /* ignore offline / auth errors */
+      }
       return;
     }
     const photoUrl = this.getPhotoUrl(photoPath);
-    const url = photoUrl.toString();
+    const url = String(photoUrl);
     if (url && !url.includes('favicon') && !url.includes('person-circle-outline')) {
-      this.openImagePreview(url, client.fullName || `${client.firstname} ${client.lastname}`);
+      await this.openImagePreview(url, client.fullName || `${client.firstname} ${client.lastname}`);
     }
   }
 
@@ -212,34 +234,10 @@ export class ClientDetailPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Optimized photo URL retrieval using Capacitor.convertFileSrc.
-   * This avoids reading the file into memory (base64) and uses the native WebView rendering.
+   * Local FS first. HTTPS presigned URLs as plain strings; Capacitor paths trusted via util.
    */
-  getPhotoUrl(localPath: string | undefined | null): SafeUrl {
-    if (!localPath) {
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    // Sur le Web, les chemins de fichiers natifs ne fonctionneront pas directement.
-    // On retourne l'image par défaut pour éviter les erreurs 404 dans la console,
-    // sauf si c'est une URL http ou un asset.
-    if (Capacitor.getPlatform() === 'web' && !localPath.startsWith('http') && !localPath.startsWith('assets')) {
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    // Si le chemin est déjà une URL complète ou un asset
-    if (localPath.startsWith('http') || localPath.startsWith('assets') || localPath.startsWith('file://') || localPath.startsWith('content://')) {
-      return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(localPath));
-    }
-
-    // Si c'est un chemin relatif, on a besoin du basePath
-    if (!this.basePath) {
-      // En attendant que le basePath soit chargé, on affiche l'image par défaut pour éviter les 404
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    const finalPath = this.basePath + (localPath.startsWith('/') ? '' : '/') + localPath;
-    return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(finalPath));
+  getPhotoUrl(localPath: string | undefined | null): string | SafeUrl {
+    return resolveClientPhotoSrc(localPath, this.basePath, this.sanitizer);
   }
 
   handleImageError(event: Event) {

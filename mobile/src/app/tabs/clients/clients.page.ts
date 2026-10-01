@@ -13,7 +13,7 @@ import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { LoggerService } from '../../core/services/logger.service';
 import { ActionSheetController, IonContent, IonInfiniteScroll } from '@ionic/angular';
 import { Filesystem, Directory } from '@capacitor/filesystem';
-import { Capacitor } from '@capacitor/core';
+import { preferLocalPhotoPath, resolveClientPhotoSrc } from '../../core/utils/client-photo-display.util';
 
 @Component({
   selector: 'app-clients',
@@ -28,6 +28,8 @@ export class ClientsPage implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   private basePath: string = '';
+  /** Re-export for template. */
+  preferLocalPhotoPath = preferLocalPhotoPath;
 
   paginatedClients$: Observable<ClientView[]>;
   isLoading$: Observable<boolean>;
@@ -142,34 +144,10 @@ export class ClientsPage implements OnInit, OnDestroy {
   }
 
   /**
-   * Optimized photo URL retrieval using Capacitor.convertFileSrc.
-   * This avoids reading the file into memory (base64) and uses the native WebView rendering.
+   * Local FS first. HTTPS presigned URLs as plain strings; Capacitor paths trusted via util.
    */
-  getPhotoUrl(localPath: string | undefined | null): SafeUrl {
-    if (!localPath) {
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    // Sur le Web, les chemins de fichiers natifs ne fonctionneront pas directement.
-    // On retourne l'image par défaut pour éviter les erreurs 404 dans la console,
-    // sauf si c'est une URL http ou un asset.
-    if (Capacitor.getPlatform() === 'web' && !localPath.startsWith('http') && !localPath.startsWith('assets')) {
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    // Si le chemin est déjà une URL complète ou un asset
-    if (localPath.startsWith('http') || localPath.startsWith('assets') || localPath.startsWith('file://') || localPath.startsWith('content://')) {
-      return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(localPath));
-    }
-
-    // Si c'est un chemin relatif, on a besoin du basePath
-    if (!this.basePath) {
-      // En attendant que le basePath soit chargé, on affiche l'image par défaut pour éviter les 404
-      return this.sanitizer.bypassSecurityTrustUrl('assets/icon/person-circle-outline.svg');
-    }
-
-    const finalPath = this.basePath + (localPath.startsWith('/') ? '' : '/') + localPath;
-    return this.sanitizer.bypassSecurityTrustUrl(Capacitor.convertFileSrc(finalPath));
+  getPhotoUrl(localPath: string | undefined | null): string | SafeUrl {
+    return resolveClientPhotoSrc(localPath, this.basePath, this.sanitizer);
   }
 
   ngOnDestroy() {
