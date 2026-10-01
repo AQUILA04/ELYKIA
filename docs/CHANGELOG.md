@@ -24,7 +24,8 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Fixed
 
-- Accessibilité : `aria-label` sur les inputs fichier photo (inscription / pièce).
+- Accessibilité : `aria-label` sur les inputs fichier photo (inscription / pièce), le type et le numéro de pièce (**Mon dossier**, mobile et desktop).
+- E2E : `data-testid` `e2e-onboarding-card-type` / `e2e-onboarding-card-id` rétablis sur **Mon dossier** (parcours inscription → pièce → dépôt).
 
 ## Backend — [1.25.0] — 2026-10-01
 
@@ -46,7 +47,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Menu latéral (récupéré de PR #118/#119) : groupe **Services en ligne** avec sous-menus **Inscriptions** et **Paiements** ; `/client-registrations` n’active plus le menu **Clients**.
 - Inscriptions clients : avatar (photo ou initiales) en liste et détail, pièce en vignette avec aperçu **Agrandir** au clic, pagination visible (20 / page), **Valider l’inscription** actif seulement si commercial crédit et tontine sont choisis.
-- Liste des comptes : détail en panneau latéral (`/accountdetails/:id` redirige vers la liste).
+- Liste des comptes : détail en panneau latéral (l’ancienne page détail redirige vers la liste).
+- Domaine **Comptes** migré en lazy-loading (`AccountModule`) : nouvelles URLs `/account/list`, `/account/add`, `/account/add/:id`, `/account/details/:id` (remplacent `/accountlist`, `/account-add`, `/accountdetails/:id`) ; sidebar et liens internes mis à jour.
+
+### Fixed
+
+- Liste des comptes : le fil d’Ariane renvoie vers le tableau de bord (`/home`).
 
 ## Docs & Infra — 2026-10-01 (récupération PR #118/#119)
 

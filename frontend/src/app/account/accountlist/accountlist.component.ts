@@ -190,7 +190,7 @@ export class AccountListComponent implements OnInit, OnDestroy {
 
   addAccount(): void {
     this.saveState();
-    this.router.navigate(['/account-add'], { queryParams: { totalAccounts: this.totalElement } });
+    this.router.navigate(['/account/add'], { queryParams: { totalAccounts: this.totalElement } });
   }
 
   viewDetails(accountId: number): void {
@@ -220,7 +220,7 @@ export class AccountListComponent implements OnInit, OnDestroy {
       return;
     }
     this.saveState();
-    this.router.navigate(['/account-add', this.selected.id]);
+    this.router.navigate(['/account/add', this.selected.id]);
   }
 
   clientFullName(account: Account | null): string {
@@ -242,7 +242,7 @@ export class AccountListComponent implements OnInit, OnDestroy {
 
   editAccount(accountId: number): void {
     this.saveState();
-    this.router.navigate(['/account-add', accountId]);
+    this.router.navigate(['/account/add', accountId]);
   }
 
   getStatusLabel(status: string): string {

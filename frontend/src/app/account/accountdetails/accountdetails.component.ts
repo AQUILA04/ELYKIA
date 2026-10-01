@@ -21,7 +21,7 @@ export class AccountdetailsComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
-    this.router.navigate(['/accountlist'], {
+    this.router.navigate(['/account/list'], {
       queryParams: id ? { open: id } : {},
       replaceUrl: true,
     });

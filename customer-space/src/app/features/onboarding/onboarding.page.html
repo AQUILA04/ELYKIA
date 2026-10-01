@@ -113,12 +113,13 @@
           <img *ngIf="cardPhotoDataUrl" [src]="cardPhotoDataUrl" alt="Aperçu pièce" class="preview" />
         </div>
         <app-elyk-outlined-field label="Type de pièce" icon="card-outline">
-          <ion-select formControlName="cardType" interface="popover" placeholder="Choisir">
+          <ion-select formControlName="cardType" interface="popover" placeholder="Choisir"
+            aria-label="Type de pièce" data-testid="e2e-onboarding-card-type">
             <ion-select-option *ngFor="let t of cardTypes" [value]="t.value">{{ t.label }}</ion-select-option>
           </ion-select>
         </app-elyk-outlined-field>
         <app-elyk-outlined-field label="Numéro de pièce" icon="keypad-outline">
-          <ion-input formControlName="cardID"></ion-input>
+          <ion-input formControlName="cardID" aria-label="Numéro de pièce" data-testid="e2e-onboarding-card-id"></ion-input>
         </app-elyk-outlined-field>
       </form>
 

@@ -33,7 +33,7 @@ describe('AccountdetailsComponent', () => {
   it('should create and redirect to account list with open id', () => {
     expect(component).toBeTruthy();
     expect(router.navigate).toHaveBeenCalledWith(
-      ['/accountlist'],
+      ['/account/list'],
       jasmine.objectContaining({ queryParams: { open: '42' }, replaceUrl: true }),
     );
   });
