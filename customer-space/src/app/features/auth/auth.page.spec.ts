@@ -9,6 +9,7 @@ import { FeatureFlagService } from '../../shared/services/feature-flag.service';
 import { LayoutService } from '../../shared/layout/layout.service';
 import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { APP_UNAVAILABLE_MESSAGE } from '../../shared/constants/app-availability';
+import { INVALID_TOGO_PHONE_MESSAGE } from '../../shared/utils/phone-normalizer';
 import { IonicModule } from '@ionic/angular';
 
 describe('AuthPage', () => {
@@ -92,6 +93,26 @@ describe('AuthPage', () => {
     await fixture.componentInstance.submitPhone();
     expect(featureFlags.refresh).toHaveBeenCalled();
     expect(fixture.componentInstance.step).toBe('pin');
+  });
+
+  it('rejects a non-Togolese phone number without calling the backend', async () => {
+    const control = fixture.componentInstance.phoneForm.get('phone')!;
+    control.setValue('94123456');
+
+    expect(fixture.componentInstance.phoneForm.invalid).toBeTrue();
+    await fixture.componentInstance.submitPhone();
+
+    expect(api.checkPhone).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.phoneError).toBe(INVALID_TOGO_PHONE_MESSAGE);
+    fixture.detectChanges();
+    const error = fixture.nativeElement.querySelector('[data-testid="e2e-auth-phone-error"]');
+    expect(error?.textContent).toContain(INVALID_TOGO_PHONE_MESSAGE);
+  });
+
+  it('accepts a Togolese phone number with country code', () => {
+    fixture.componentInstance.phoneForm.patchValue({ phone: '+228 70 15 51 69' });
+    expect(fixture.componentInstance.phoneForm.valid).toBeTrue();
+    expect(fixture.componentInstance.phoneError).toBe('');
   });
 
   it('shows unavailable message when feature flag is disabled', async () => {

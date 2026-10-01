@@ -14,7 +14,8 @@ import {
   CustomerLocality,
 } from '../../shared/models/customer-auth.model';
 import { environment } from '../../../environments/environment';
-import { toUsername } from '../../shared/utils/phone-normalizer';
+import { INVALID_TOGO_PHONE_MESSAGE, toUsername } from '../../shared/utils/phone-normalizer';
+import { togoMobilePhoneValidator } from '../../shared/utils/togo-phone.validator';
 import { FeatureFlagService } from '../../shared/services/feature-flag.service';
 import { APP_UNAVAILABLE_MESSAGE } from '../../shared/constants/app-availability';
 import { isE2eMode } from '../../shared/utils/e2e';
@@ -99,7 +100,7 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     private router: Router,
   ) {
     this.phoneForm = this.fb.group({
-      phone: ['', [Validators.required, Validators.minLength(8)]],
+      phone: ['', [Validators.required, togoMobilePhoneValidator()]],
     });
     this.pinForm = this.fb.group({
       pin: ['', [Validators.required, Validators.pattern(/^\d{4,6}$/)]],
@@ -206,6 +207,14 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     return 'Renvoyer le code';
   }
 
+  get phoneError(): string {
+    const control = this.phoneForm.get('phone');
+    if (!control || !(control.touched || control.dirty)) {
+      return '';
+    }
+    return control.hasError('togoPhone') ? INVALID_TOGO_PHONE_MESSAGE : '';
+  }
+
   get dateOfBirthError(): string {
     const control = this.registerForm.get('dateOfBirth');
     if (!control || !(control.touched || control.dirty)) {
@@ -230,7 +239,10 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
   }
 
   async submitPhone(): Promise<void> {
-    if (this.phoneForm.invalid) return;
+    if (this.phoneForm.invalid) {
+      this.phoneForm.markAllAsTouched();
+      return;
+    }
     this.isLoading = true;
     this.error = '';
     this.appUnavailable = false;

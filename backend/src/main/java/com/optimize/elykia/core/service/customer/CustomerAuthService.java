@@ -58,7 +58,7 @@ public class CustomerAuthService {
 
     @Transactional(readOnly = true)
     public CustomerCheckPhoneResponse checkPhone(CustomerPhoneRequest request) {
-        String username = PhoneNormalizer.toUsername(request.getPhone());
+        String username = PhoneNormalizer.requireTogoMobile(request.getPhone());
         Optional<User> userOpt = userRepository.findByUserAccount_usernameIgnoreCase(username);
         if (userOpt.isPresent()) {
             User user = userOpt.get();
@@ -95,7 +95,7 @@ public class CustomerAuthService {
 
     @Transactional
     public CustomerLoginResponse login(CustomerLoginRequest request) {
-        String username = PhoneNormalizer.toUsername(request.getPhone());
+        String username = PhoneNormalizer.requireTogoMobile(request.getPhone());
         try {
             User user = userRepository.findByUserAccount_usernameIgnoreCase(username)
                     .orElseThrow(() -> new ResourceNotFoundException("Compte introuvable pour ce numéro."));
@@ -130,7 +130,7 @@ public class CustomerAuthService {
 
     @Transactional(readOnly = true)
     public CustomerOtpSendResponse sendOtp(CustomerPhoneRequest request) {
-        String username = PhoneNormalizer.toUsername(request.getPhone());
+        String username = PhoneNormalizer.requireTogoMobile(request.getPhone());
         try {
             Optional<User> userOpt = userRepository.findByUserAccount_usernameIgnoreCase(username);
             if (userOpt.isPresent()) {
@@ -170,7 +170,7 @@ public class CustomerAuthService {
 
     @Transactional(readOnly = true)
     public CustomerOtpVerifyResponse verifyOtp(CustomerOtpVerifyRequest request) {
-        String username = PhoneNormalizer.toUsername(request.getPhone());
+        String username = PhoneNormalizer.requireTogoMobile(request.getPhone());
         try {
             Optional<User> userOpt = userRepository.findByUserAccount_usernameIgnoreCase(username);
             if (userOpt.isPresent()) {
@@ -200,7 +200,7 @@ public class CustomerAuthService {
 
     @Transactional
     public CustomerLoginResponse setupPin(CustomerSetupPinRequest request) {
-        String username = PhoneNormalizer.toUsername(request.getPhone());
+        String username = PhoneNormalizer.requireTogoMobile(request.getPhone());
         customerOtpService.assertProofToken(username, request.getOtpProofToken());
         User user = userRepository.findByUserAccount_usernameIgnoreCase(username)
                 .orElseThrow(() -> new ResourceNotFoundException("Compte introuvable pour ce numéro."));

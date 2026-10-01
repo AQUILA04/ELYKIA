@@ -48,10 +48,7 @@ public class CustomerRegistrationService {
 
     @Transactional
     public CustomerLoginResponse register(CustomerRegisterRequest request) {
-        String username = PhoneNormalizer.toUsername(request.getPhone());
-        if (!StringUtils.hasText(username) || username.length() < 8) {
-            throw new CustomValidationException("Numéro de téléphone invalide.");
-        }
+        String username = PhoneNormalizer.requireTogoMobile(request.getPhone());
         customerOtpService.assertProofToken(username, request.getOtpProofToken());
 
         if (userRepository.findByUserAccount_usernameIgnoreCase(username).isPresent()

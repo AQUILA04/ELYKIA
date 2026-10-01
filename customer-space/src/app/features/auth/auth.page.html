@@ -11,6 +11,7 @@
       [appVersion]="appVersion"
       [profilPhotoDataUrl]="profilPhotoDataUrl"
       [dateOfBirthError]="dateOfBirthError"
+      [phoneError]="phoneError"
       [phoneForm]="phoneForm"
       [pinForm]="pinForm"
       [otpForm]="otpForm"
@@ -73,10 +74,14 @@
             formControlName="phone"
             type="tel"
             inputmode="numeric"
-            placeholder="90 XX XX XX XX"
+            placeholder="90 XX XX XX"
+            aria-describedby="auth-phone-error"
             data-testid="e2e-auth-phone-input">
           </ion-input>
         </app-elyk-outlined-field>
+        <p class="field-error" id="auth-phone-error" *ngIf="phoneError" role="alert" data-testid="e2e-auth-phone-error">
+          {{ phoneError }}
+        </p>
 
         <div class="unavailable" *ngIf="appUnavailable" data-testid="e2e-auth-unavailable">
           <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>

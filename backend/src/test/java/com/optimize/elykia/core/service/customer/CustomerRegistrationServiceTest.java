@@ -32,6 +32,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import org.mockito.ArgumentCaptor;
 
@@ -56,6 +57,15 @@ class CustomerRegistrationServiceTest {
         request.setPhone("12");
 
         assertThrows(CustomValidationException.class, () -> service.register(request));
+    }
+
+    @Test
+    void register_rejectsNonTogolesePrefix() {
+        CustomerRegisterRequest request = validRequest();
+        request.setPhone("94123456");
+
+        assertThrows(CustomValidationException.class, () -> service.register(request));
+        verifyNoInteractions(customerOtpService, clientRepository);
     }
 
     @Test

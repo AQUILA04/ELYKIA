@@ -29,6 +29,7 @@ export class AuthDesktopComponent {
   readonly appVersion = input('');
   readonly profilPhotoDataUrl = input('');
   readonly dateOfBirthError = input('');
+  readonly phoneError = input('');
   readonly otpReference = input('');
   readonly resendCountdown = input(0);
   readonly resendLabel = input('Renvoyer le code');

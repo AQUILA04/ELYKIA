@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Customer-space — [0.11.1] — 2026-10-01
+
+### Fixed
+
+- Écran téléphone (connexion et inscription, mobile et desktop) : seul un numéro mobile togolais est accepté (8 chiffres, préfixes 90-93, 96-99, 70, 71, 78, 79, avec ou sans +228). Sinon le message « Veuillez saisir un numéro togolais valide. » s’affiche sous le champ et **Continuer** reste inactif. Exemple de saisie corrigé en « 90 XX XX XX ».
+
 ## Customer-space — [0.11.0] — 2026-10-01
 
 ### Added
@@ -26,6 +32,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Accessibilité : `aria-label` sur les inputs fichier photo (inscription / pièce), le type et le numéro de pièce (**Mon dossier**, mobile et desktop).
 - E2E : `data-testid` `e2e-onboarding-card-type` / `e2e-onboarding-card-id` rétablis sur **Mon dossier** (parcours inscription → pièce → dépôt).
+
+## Backend — [1.26.1] — 2026-10-01
+
+### Fixed
+
+- Espace client : `check-phone`, `login`, `send-otp`, `verify-otp`, `setup-pin` et `register` refusent tout numéro qui n’est pas un mobile togolais (8 chiffres, préfixes 90-93, 96-99, 70, 71, 78, 79) avec le message « Veuillez saisir un numéro togolais valide. ». Aucun SMS OTP n’est envoyé vers un numéro invalide (`PhoneNormalizer.requireTogoMobile`).
 
 ## Backend — [1.26.0] — 2026-10-01
 

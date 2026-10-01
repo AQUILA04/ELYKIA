@@ -19,6 +19,7 @@ import com.optimize.elykia.core.dto.customer.CustomerPhoneRequest;
 import com.optimize.elykia.core.dto.customer.CustomerRegisterRequest;
 import com.optimize.elykia.core.dto.customer.CustomerSetupPinRequest;
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
+import com.optimize.elykia.core.util.PhoneNormalizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,6 +45,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -137,6 +139,53 @@ class CustomerAuthServiceTest {
         assertFalse(response.isCanRegister());
         assertEquals("ACTIVE", response.getActivationStatus());
         assertTrue(response.getMaskedName().startsWith("J"));
+    }
+
+    @Test
+    void checkPhone_rejectsNonTogoleseNumber() {
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> customerAuthService.checkPhone(phone("94123456")));
+
+        assertEquals(PhoneNormalizer.INVALID_TOGO_PHONE_MESSAGE, ex.getMessage());
+        verifyNoInteractions(userRepository, clientRepository, activityLogService);
+    }
+
+    @Test
+    void sendOtp_rejectsNonTogoleseNumberWithoutCallingHub() {
+        assertThrows(CustomValidationException.class, () -> customerAuthService.sendOtp(phone("80123456")));
+
+        verifyNoInteractions(customerOtpService, userRepository);
+    }
+
+    @Test
+    void verifyOtp_rejectsNonTogoleseNumber() {
+        CustomerOtpVerifyRequest request = new CustomerOtpVerifyRequest();
+        request.setPhone("9012345");
+        request.setCode("123456");
+
+        assertThrows(CustomValidationException.class, () -> customerAuthService.verifyOtp(request));
+        verifyNoInteractions(customerOtpService);
+    }
+
+    @Test
+    void login_rejectsNonTogoleseNumber() {
+        CustomerLoginRequest request = new CustomerLoginRequest();
+        request.setPhone("22123456");
+        request.setPin("1234");
+
+        assertThrows(CustomValidationException.class, () -> customerAuthService.login(request));
+        verifyNoInteractions(userRepository, authenticationManager);
+    }
+
+    @Test
+    void setupPin_rejectsNonTogoleseNumber() {
+        CustomerSetupPinRequest request = new CustomerSetupPinRequest();
+        request.setPhone("95123456");
+        request.setOtpProofToken("proof");
+        request.setPin("1234");
+
+        assertThrows(CustomValidationException.class, () -> customerAuthService.setupPin(request));
+        verifyNoInteractions(customerOtpService, userRepository);
     }
 
     @Test

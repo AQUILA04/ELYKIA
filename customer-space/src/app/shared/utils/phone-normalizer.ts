@@ -2,6 +2,11 @@
 
 const COUNTRY_CODE = '228';
 
+/** Mobile Togo : 8 chiffres, préfixes 90-93, 96-99, 70, 71, 78, 79 (aligné backend `PhoneNormalizer`). */
+const TOGO_MOBILE_PATTERN = /^(70|71|78|79|9[0-3]|9[6-9])\d{6}$/;
+
+export const INVALID_TOGO_PHONE_MESSAGE = 'Veuillez saisir un numéro togolais valide.';
+
 export function toUsername(raw: string): string {
   if (!raw) return '';
   let digits = raw.replace(/\D/g, '');
@@ -12,6 +17,10 @@ export function toUsername(raw: string): string {
     digits = digits.slice(1);
   }
   return digits;
+}
+
+export function isValidTogoMobile(raw: string | null | undefined): boolean {
+  return TOGO_MOBILE_PATTERN.test(toUsername(raw ?? ''));
 }
 
 export function toE164(username: string): string {
