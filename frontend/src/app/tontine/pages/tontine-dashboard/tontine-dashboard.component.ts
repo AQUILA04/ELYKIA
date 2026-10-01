@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, Subject, finalize } from 'rxjs';
-import { takeUntil, map } from 'rxjs/operators';
+import { EMPTY, Observable, Subject, finalize } from 'rxjs';
+import { takeUntil, map, switchMap } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TontineService } from '../../services/tontine.service';
@@ -37,6 +37,10 @@ import { CollectorAssignmentPermissions } from 'src/app/shared/constants/collect
 })
 export class TontineDashboardComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
+  /** Cancels in-flight member list requests when a newer filter/page is requested. */
+  private readonly membersReload$ = new Subject<TontineMemberQueryParams>();
+  /** Cancels in-flight KPI requests when commercial/session changes. */
+  private readonly kpiReload$ = new Subject<{ sessionId?: number; commercial?: string }>();
   private dateIntervalId?: ReturnType<typeof setInterval>;
 
   currentDate = new Date();
@@ -109,6 +113,8 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     }
     this.destroy$.next();
     this.destroy$.complete();
+    this.membersReload$.complete();
+    this.kpiReload$.complete();
   }
 
   private restoreSavedFilters(): void {
@@ -129,11 +135,12 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   }
 
   refreshData(): void {
-    this.tontineService.getCurrentSession(this.memberQueryParams.commercial).pipe(
+    this.tontineService.getCurrentSession().pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: () => {
         this.loadMembers();
+        this.refreshKpis();
         this.lastUpdate = new Date();
       },
       error: () => {
@@ -147,32 +154,14 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
       map(state => this.createKPICards(state))
     );
 
-    this.tontineService.state$.pipe(
+    this.membersReload$.pipe(
+      switchMap((params) => {
+        this.loadingMembers = true;
+        return this.tontineService.getMembers(params).pipe(
+          finalize(() => this.loadingMembers = false)
+        );
+      }),
       takeUntil(this.destroy$)
-    ).subscribe(state => {
-      this.loadingMembers = state.loading;
-    });
-  }
-
-  private loadCurrentSessionAndMembers(): void {
-    this.tontineService.getCurrentSession(this.memberQueryParams.commercial).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: () => {
-        // Initial load of members for the current session
-        this.loadMembers();
-      },
-      error: (error) => {
-        this.showError('Erreur lors du chargement de la session actuelle');
-      }
-    });
-  }
-
-  loadMembers(): void {
-    this.loadingMembers = true;
-    this.tontineService.getMembers(this.memberQueryParams).pipe(
-      takeUntil(this.destroy$),
-      finalize(() => this.loadingMembers = false)
     ).subscribe({
       next: (response) => {
         if (response.data) {
@@ -180,23 +169,52 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
           this.lastUpdate = new Date();
         }
       },
-      error: (error) => {
+      error: () => {
         this.showError('Erreur lors du chargement des membres');
       }
     });
-  }
 
-  private refreshKpis(sessionId?: number): void {
-    const id = sessionId ?? this.tontineService.getCurrentState().currentSession?.id;
-    if (!id) {
-      return;
-    }
-    this.tontineService.getSessionStats(id, this.memberQueryParams.commercial).pipe(
+    this.kpiReload$.pipe(
+      switchMap(({ sessionId, commercial }) => {
+        const id = sessionId
+          ?? this.tontineService.getCurrentState().currentSession?.id
+          ?? this.sessionService.getCurrentSession()?.id;
+        if (!id) {
+          return EMPTY;
+        }
+        return this.tontineService.getSessionStats(id, commercial);
+      }),
       takeUntil(this.destroy$)
     ).subscribe({
       error: () => {
         this.showError('Erreur lors du chargement des indicateurs');
       }
+    });
+  }
+
+  private loadCurrentSessionAndMembers(): void {
+    this.tontineService.getCurrentSession().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: () => {
+        this.loadMembers();
+        this.refreshKpis();
+      },
+      error: () => {
+        this.showError('Erreur lors du chargement de la session actuelle');
+      }
+    });
+  }
+
+  loadMembers(): void {
+    // Snapshot params so switchMap cancels stale requests with the right filter
+    this.membersReload$.next({ ...this.memberQueryParams });
+  }
+
+  private refreshKpis(sessionId?: number, commercial?: string): void {
+    this.kpiReload$.next({
+      sessionId,
+      commercial: commercial !== undefined ? commercial : this.memberQueryParams.commercial
     });
   }
 
@@ -264,11 +282,12 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
 
   onFilterChange(params: TontineFilterBarParams): void {
     const previousCommercial = this.memberQueryParams.commercial;
+    const nextCommercial = params.commercial || undefined;
     this.memberQueryParams = {
       ...this.memberQueryParams,
       search: params.search,
       deliveryStatus: params.deliveryStatus === 'ALL' ? undefined : params.deliveryStatus,
-      commercial: params.commercial || undefined,
+      commercial: nextCommercial,
       carnetVerified: typeof params.carnetVerified === 'boolean' ? params.carnetVerified : undefined,
       registrationSource: params.registrationSource || undefined,
       page: 0 // Reset to first page on new filter/search
@@ -276,8 +295,9 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     this.filterStorage.save(params);
     this.selectedMemberIds = new Set();
     this.loadMembers();
-    if (previousCommercial !== this.memberQueryParams.commercial) {
-      this.refreshKpis();
+    // Always reload KPIs when commercial changes (including clear → global)
+    if (previousCommercial !== nextCommercial) {
+      this.refreshKpis(undefined, nextCommercial);
     }
   }
 
@@ -510,7 +530,7 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
       page: 0
     };
     this.loadMembers();
-    this.refreshKpis(session.id);
+    this.refreshKpis(session.id, this.memberQueryParams.commercial);
   }
 
   navigateToComparison(): void {
@@ -518,7 +538,7 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   }
 
   returnToCurrentSession(): void {
-    this.tontineService.getCurrentSession(this.memberQueryParams.commercial).pipe(
+    this.tontineService.getCurrentSession().pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: (response) => {

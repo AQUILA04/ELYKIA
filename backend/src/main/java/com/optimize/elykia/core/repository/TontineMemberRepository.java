@@ -134,10 +134,11 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
 
         @Query("""
                         SELECT SUM(tm.societyShare) FROM TontineMember tm
+                        JOIN tm.client c
                         WHERE tm.tontineSession.id = :sessionId AND tm.state = :state
-                        AND (:commercial IS NULL OR tm.client.tontineCollector = :commercial)
+                        AND c.tontineCollector = :commercial
                         """)
-        Double sumSocietyShareBySessionAndCommercial(
+        Double sumSocietyShareBySessionForCommercial(
                         @Param("sessionId") Long sessionId,
                         @Param("state") State state,
                         @Param("commercial") String commercial);
@@ -149,21 +150,23 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
 
         @Query("""
                         SELECT COUNT(tm) FROM TontineMember tm
+                        JOIN tm.client c
                         WHERE tm.tontineSession.id = :sessionId AND tm.state = :state
-                        AND (:commercial IS NULL OR tm.client.tontineCollector = :commercial)
+                        AND c.tontineCollector = :commercial
                         """)
-        long countBySessionAndCommercial(
+        long countBySessionForCommercial(
                         @Param("sessionId") Long sessionId,
                         @Param("state") State state,
                         @Param("commercial") String commercial);
 
         @Query("""
                         SELECT COUNT(tm) FROM TontineMember tm
+                        JOIN tm.client c
                         WHERE tm.tontineSession.id = :sessionId AND tm.state = :state
                         AND tm.deliveryStatus = :deliveryStatus
-                        AND (:commercial IS NULL OR tm.client.tontineCollector = :commercial)
+                        AND c.tontineCollector = :commercial
                         """)
-        long countBySessionAndCommercialAndDeliveryStatus(
+        long countBySessionForCommercialAndDeliveryStatus(
                         @Param("sessionId") Long sessionId,
                         @Param("state") State state,
                         @Param("deliveryStatus") TontineMemberDeliveryStatus deliveryStatus,
@@ -187,10 +190,11 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
 
         @Query("""
                         SELECT SUM(tm.totalContribution) FROM TontineMember tm
+                        JOIN tm.client c
                         WHERE tm.tontineSession.id = :sessionId AND tm.state = :state
-                        AND (:commercial IS NULL OR tm.client.tontineCollector = :commercial)
+                        AND c.tontineCollector = :commercial
                         """)
-        Double sumTotalContributionBySessionAndCommercial(
+        Double sumTotalContributionBySessionForCommercial(
                         @Param("sessionId") Long sessionId,
                         @Param("state") State state,
                         @Param("commercial") String commercial);

@@ -45,9 +45,13 @@ export class TontineSessionService {
       .pipe(catchError(this.handleError));
   }
 
-  getSessionStats(sessionId: number): Observable<ApiResponse<SessionStats>> {
+  getSessionStats(sessionId: number, commercial?: string): Observable<ApiResponse<SessionStats>> {
     const headers = this.getHeaders();
-    return this.http.get<ApiResponse<SessionStats>>(`${this.apiUrl}/${sessionId}/stats`, { headers })
+    let params = new HttpParams();
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+    return this.http.get<ApiResponse<SessionStats>>(`${this.apiUrl}/${sessionId}/stats`, { headers, params })
       .pipe(catchError(this.handleError));
   }
 

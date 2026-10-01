@@ -93,17 +93,41 @@ public class TontineSessionService {
 
                 String commercialFilter = resolveCommercialFilter(commercial);
 
-                long totalMembers = memberRepository.countBySessionAndCommercial(
-                                sessionId, State.ENABLED, commercialFilter);
-                Double totalCollected = memberRepository.sumTotalContributionBySessionAndCommercial(
-                                sessionId, State.ENABLED, commercialFilter);
+                final long totalMembers;
+                final Double totalCollectedRaw;
+                final long deliveredCount;
+                final Double totalDeliveryCollectionsRaw;
+                final Double totalRevenue;
 
-                if (totalCollected == null) {
-                        totalCollected = 0.0;
+                if (commercialFilter != null) {
+                        totalMembers = memberRepository.countBySessionForCommercial(
+                                        sessionId, State.ENABLED, commercialFilter);
+                        totalCollectedRaw = memberRepository.sumTotalContributionBySessionForCommercial(
+                                        sessionId, State.ENABLED, commercialFilter);
+                        deliveredCount = memberRepository.countBySessionForCommercialAndDeliveryStatus(
+                                        sessionId, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED,
+                                        commercialFilter);
+                        totalDeliveryCollectionsRaw = collectionRepository
+                                        .sumDeliveryCollectionsBySessionForCommercial(
+                                                        sessionId, State.ENABLED, commercialFilter);
+                        Double societyShare = memberRepository.sumSocietyShareBySessionForCommercial(
+                                        sessionId, State.ENABLED, commercialFilter);
+                        totalRevenue = societyShare != null ? societyShare : 0.0;
+                } else {
+                        totalMembers = memberRepository.countByTontineSessionIdAndState(sessionId, State.ENABLED);
+                        totalCollectedRaw = memberRepository.sumTotalContributionByTontineSessionId(
+                                        sessionId, State.ENABLED);
+                        deliveredCount = memberRepository.countByTontineSessionIdAndStateAndDeliveryStatus(
+                                        sessionId, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED);
+                        totalDeliveryCollectionsRaw = collectionRepository.sumDeliveryCollectionsBySession(
+                                        sessionId, State.ENABLED);
+                        totalRevenue = session.getTotalRevenue() != null ? session.getTotalRevenue() : 0.0;
                 }
 
-                long deliveredCount = memberRepository.countBySessionAndCommercialAndDeliveryStatus(
-                                sessionId, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED, commercialFilter);
+                Double totalCollected = totalCollectedRaw != null ? totalCollectedRaw : 0.0;
+                Double totalDeliveryCollections = totalDeliveryCollectionsRaw != null
+                                ? totalDeliveryCollectionsRaw
+                                : 0.0;
 
                 int pendingCount = (int) totalMembers - (int) deliveredCount;
 
@@ -114,23 +138,6 @@ public class TontineSessionService {
                 Double deliveryRate = totalMembers > 0
                                 ? (deliveredCount * 100.0) / totalMembers
                                 : 0.0;
-
-                Double totalDeliveryCollections = collectionRepository.sumDeliveryCollectionsBySessionAndCommercial(
-                                sessionId, State.ENABLED, commercialFilter);
-                if (totalDeliveryCollections == null) {
-                        totalDeliveryCollections = 0.0;
-                }
-
-                Double totalRevenue;
-                if (commercialFilter != null) {
-                        totalRevenue = memberRepository.sumSocietyShareBySessionAndCommercial(
-                                        sessionId, State.ENABLED, commercialFilter);
-                        if (totalRevenue == null) {
-                                totalRevenue = 0.0;
-                        }
-                } else {
-                        totalRevenue = session.getTotalRevenue() != null ? session.getTotalRevenue() : 0.0;
-                }
 
                 // Top commerciaux via DB query (session-wide, not used by dashboard KPI cards)
                 List<TopCommercialDto> topCommercials = memberRepository.findTopCommercials(sessionId, State.ENABLED,
