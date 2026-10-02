@@ -193,6 +193,7 @@ export class TontineJoinPage implements ViewWillEnter {
           mobileMoneyAmount: number;
           mobileMoneyReference: string;
           notes?: string;
+          paymentProofId?: number | null;
         };
       } = { dailyStake: this.dailyStake };
       if (this.includeInitialPayment) {
