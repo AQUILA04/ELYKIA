@@ -295,11 +295,20 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
 
     void applyStockReception(StockReception reception, String connectedUser) {
         StringBuilder descriptionBuilder = new StringBuilder();
+        final boolean fifoEnabled = stockValuationFacade.isFifoEnabled();
+        double recalculatedTotal = 0.0;
 
         for (StockReceptionItem item : reception.getItems()) {
             Articles article = articlesService.getById(item.getArticle().getId());
-            double unitPrice = item.getUnitPrice() != null ? item.getUnitPrice() : 0.0;
             int quantity = item.getQuantity() != null ? item.getQuantity() : 0;
+            double unitPrice;
+            if (fifoEnabled) {
+                unitPrice = item.getUnitPrice() != null ? item.getUnitPrice() : 0.0;
+            } else {
+                unitPrice = article.getPurchasePrice();
+                item.setUnitPrice(unitPrice);
+                item.setTotalPrice(unitPrice * quantity);
+            }
 
             StockEntry stockEntry = new StockEntry();
             stockEntry.setArticleId(article.getId());
@@ -322,11 +331,14 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
                     reception.getReceptionDate());
 
             article.makeEntry(quantity);
-            article.setPurchasePrice(unitPrice);
+            if (fifoEnabled) {
+                article.setPurchasePrice(unitPrice);
+            }
             article.setLastRestockDate(LocalDate.now());
             articlesService.update(article);
 
             double totalLinePrice = unitPrice * quantity;
+            recalculatedTotal += totalLinePrice;
             if (descriptionBuilder.length() > 0) {
                 descriptionBuilder.append(" | ");
             }
@@ -335,6 +347,10 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
                     .append(" Qte:").append(quantity)
                     .append(" PU:").append(unitPrice)
                     .append(" Total:").append(totalLinePrice);
+        }
+
+        if (!fifoEnabled) {
+            reception.setTotalAmount(recalculatedTotal);
         }
 
         if (reception.getTotalAmount() != null && reception.getTotalAmount() > 0) {
