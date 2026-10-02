@@ -13,6 +13,8 @@ import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.event.TontineCollectionCancelledEvent;
 import com.optimize.elykia.core.event.TontineCollectionEvent;
+import com.optimize.elykia.core.event.TontineMemberEnrolledEvent;
+import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
@@ -405,6 +407,7 @@ class TontineServiceTest {
         client.setFirstname("Jean");
         client.setLastname("Dupont");
         client.setCollector("COM001");
+        client.setTontineCollector("COM001");
 
         when(clientService.getById(55L)).thenReturn(client);
         when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(session));
@@ -441,6 +444,7 @@ class TontineServiceTest {
         client.setFirstname("Afi");
         client.setLastname("Koffi");
         client.setCollector("COM001");
+        client.setTontineCollector("COM001");
 
         when(clientService.getById(55L)).thenReturn(client);
         when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(session));
@@ -463,6 +467,83 @@ class TontineServiceTest {
         assertEquals(Boolean.TRUE, resp.selfRegistered());
         assertEquals(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE,
                 resp.registrationSource());
+    }
+
+    @Test
+    void registerMember_fromCustomerSpace_attributesEnrollmentToTontineCollectorNotClientAccount() {
+        Client client = enrollableClient("COM001", "TCOM07");
+
+        service.registerMember(enrollmentDto(), TontineMemberRegistrationSource.CUSTOMER_SPACE);
+
+        ArgumentCaptor<TontineMemberEnrolledEvent> eventCaptor =
+                ArgumentCaptor.forClass(TontineMemberEnrolledEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        assertEquals("TCOM07", eventCaptor.getValue().getCollector());
+        assertEquals(client.getFullName(), eventCaptor.getValue().getClientName());
+    }
+
+    @Test
+    void registerMember_byStaff_attributesEnrollmentToTontineCollectorNotOperator() {
+        enrollableClient("COM001", "TCOM07", "SECRETAIRE01");
+
+        service.registerMember(enrollmentDto(), TontineMemberRegistrationSource.STAFF);
+
+        ArgumentCaptor<TontineMemberEnrolledEvent> eventCaptor =
+                ArgumentCaptor.forClass(TontineMemberEnrolledEvent.class);
+        verify(eventPublisher).publishEvent(eventCaptor.capture());
+        assertEquals("TCOM07", eventCaptor.getValue().getCollector());
+    }
+
+    @Test
+    void registerMember_withoutTontineCollector_isRejectedBeforeAnyWrite() {
+        Client client = new Client();
+        client.setId(55L);
+        client.setCollector("COM001");
+        when(clientService.getById(55L)).thenReturn(client);
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> service.registerMember(enrollmentDto(), TontineMemberRegistrationSource.CUSTOMER_SPACE));
+
+        assertEquals("Le client n'a pas de commercial tontine associé : impossible d'enregistrer l'adhésion.",
+                ex.getMessage());
+        verify(tontineMemberRepository, never()).save(any(TontineMember.class));
+        verify(eventPublisher, never()).publishEvent(any(TontineMemberEnrolledEvent.class));
+    }
+
+    private Client enrollableClient(String collector, String tontineCollector) {
+        return enrollableClient(collector, tontineCollector, "93047800");
+    }
+
+    private Client enrollableClient(String collector, String tontineCollector, String operatorUsername) {
+        int year = LocalDate.now().getYear();
+        TontineSession session = session(1L, year, TontineSessionStatus.ACTIVE);
+        session.setStartDate(LocalDate.of(year, 2, 1));
+
+        Client client = new Client();
+        client.setId(55L);
+        client.setFirstname("Afi");
+        client.setLastname("Koffi");
+        client.setCollector(collector);
+        client.setTontineCollector(tontineCollector);
+
+        when(clientService.getById(55L)).thenReturn(client);
+        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(session));
+        when(tontineMemberRepository.findByTontineSession_YearAndClient_Id(year, 55L)).thenReturn(Optional.empty());
+        when(parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE")).thenReturn(true);
+        when(tontineMemberRepository.save(any(TontineMember.class))).thenAnswer(inv -> {
+            TontineMember saved = inv.getArgument(0);
+            saved.setCreatedBy(operatorUsername);
+            return saved;
+        });
+        return client;
+    }
+
+    private TontineMemberDto enrollmentDto() {
+        TontineMemberDto dto = new TontineMemberDto();
+        dto.setClientId(55L);
+        dto.setAmount(100.0);
+        dto.setFrequency(com.optimize.elykia.core.enumaration.TontineMemberFrequency.DAILY);
+        return dto;
     }
 
     @Test

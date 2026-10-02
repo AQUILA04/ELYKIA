@@ -235,6 +235,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     public TontineMemberRespDto registerMember(TontineMemberDto dto, TontineMemberRegistrationSource registrationSource) {
         assertTontineWritesAllowed();
         Client client = clientService.getById(dto.getClientId());
+        String reportCommercial = resolveEnrollmentCommercialUsername(client);
         TontineSession activeSession = getActiveSession();
 
         // Prevent duplicate registration for the same year
@@ -269,11 +270,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         TontineMember savedMember = this.create(newMember);
 
-        // Publish Event
         if (eventPublisher != null) {
             eventPublisher.publishEvent(new com.optimize.elykia.core.event.TontineMemberEnrolledEvent(
                     this,
-                    savedMember.getCreatedBy(),
+                    reportCommercial,
                     savedMember.getClient().getFullName()));
         }
         clientService.updateTontineStatus(client.getId(), Boolean.TRUE);
@@ -657,6 +657,18 @@ public class TontineService extends GenericService<TontineMember, Long> {
                     "Le client n'a pas de commercial tontine associé : impossible d'enregistrer la collecte.");
         }
         return client.getTontineCollector();
+    }
+
+    /**
+     * Le rapport journalier est réservé aux commerciaux : l'adhésion (y compris auto-inscription
+     * Espace Client) est imputée au commercial tontine du client, jamais à l'auteur de la saisie.
+     */
+    private String resolveEnrollmentCommercialUsername(Client client) {
+        if (client == null || !StringUtils.hasText(client.getTontineCollector())) {
+            throw new CustomValidationException(
+                    "Le client n'a pas de commercial tontine associé : impossible d'enregistrer l'adhésion.");
+        }
+        return client.getTontineCollector().trim();
     }
 
     private void recalculateMemberFromCollections(TontineMember member) {
