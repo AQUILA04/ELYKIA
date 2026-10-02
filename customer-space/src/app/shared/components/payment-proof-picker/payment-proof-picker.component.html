@@ -1,0 +1,68 @@
+<div class="proof-picker" [attr.data-testid]="testIdPrefix">
+  <h3 class="proof-title">Justificatif du transfert</h3>
+  <p class="proof-hint">
+    Ajoutez une capture du message ou le reçu PDF. La référence sera proposée automatiquement.
+  </p>
+
+  <input
+    #imageInput
+    type="file"
+    accept="image/*"
+    class="visually-hidden"
+    [attr.data-testid]="testIdPrefix + '-image-input'"
+    (change)="onImageSelected($event)" />
+  <input
+    #pdfInput
+    type="file"
+    accept="application/pdf,.pdf"
+    class="visually-hidden"
+    [attr.data-testid]="testIdPrefix + '-pdf-input'"
+    (change)="onPdfSelected($event)" />
+
+  <ng-container *ngIf="!hasProof && !uploading">
+    <div class="proof-actions">
+      <ion-button
+        expand="block"
+        fill="outline"
+        class="elyk-btn-outline"
+        [attr.data-testid]="testIdPrefix + '-capture'"
+        (click)="pickCapture()">
+        <ion-icon slot="start" name="camera-outline" aria-hidden="true"></ion-icon>
+        Prendre / choisir une capture
+      </ion-button>
+      <ion-button
+        expand="block"
+        fill="outline"
+        class="elyk-btn-outline"
+        [attr.data-testid]="testIdPrefix + '-pdf'"
+        (click)="pickPdf()">
+        <ion-icon slot="start" name="document-outline" aria-hidden="true"></ion-icon>
+        Joindre le reçu PDF
+      </ion-button>
+    </div>
+  </ng-container>
+
+  <div class="proof-loading" *ngIf="uploading" [attr.data-testid]="testIdPrefix + '-loading'">
+    <ion-spinner name="crescent"></ion-spinner>
+    <span>Lecture du justificatif…</span>
+  </div>
+
+  <div class="proof-preview" *ngIf="hasProof && !uploading" [attr.data-testid]="testIdPrefix + '-preview'">
+    <img *ngIf="previewUrl && !isPdf" [src]="previewUrl" alt="Aperçu du justificatif" />
+    <div class="pdf-chip" *ngIf="isPdf">
+      <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+      <span>{{ fileName || 'Reçu PDF' }}</span>
+    </div>
+    <p class="ocr-hint" *ngIf="ocrHint" [attr.data-testid]="testIdPrefix + '-ocr-hint'">{{ ocrHint }}</p>
+    <div class="proof-actions row">
+      <ion-button fill="clear" [attr.data-testid]="testIdPrefix + '-replace'" (click)="replace()">
+        Remplacer
+      </ion-button>
+      <ion-button fill="clear" color="danger" [attr.data-testid]="testIdPrefix + '-clear'" (click)="clear()">
+        Retirer
+      </ion-button>
+    </div>
+  </div>
+
+  <p class="form-error" *ngIf="error" [attr.data-testid]="testIdPrefix + '-error'">{{ error }}</p>
+</div>

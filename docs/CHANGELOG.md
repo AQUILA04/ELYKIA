@@ -9,6 +9,29 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.27.0] — 2026-10-02
+
+### Added
+
+- Déclarations de paiement : colonne **Justificatif** (Agrandir) sur les onglets crédit et tontine, avec aperçu image ou PDF et pastilles « Référence différente » / « Justificatif déjà utilisé ».
+- Inscriptions clients : bouton **Voir le justificatif** sur le dépôt initial lorsqu’une preuve est jointe.
+
+## Backend — [1.27.0] — 2026-10-02
+
+### Added
+
+- Justificatifs de paiement Mobile Money : upload multipart `POST /api/customer/payment-proofs`, stockage MinIO (`payment-proofs/…`), OCR Tesseract (CLI dans l’image Docker) pour proposer la référence, rattachement aux déclarations crédit / tontine / dépôt initial.
+- Endpoints admin de lecture du justificatif (`…/proof`) et indicateurs OCR / doublon sur les DTO de liste.
+- Migration `V009__customer_payment_proof.sql` et purge des preuves non rattachées après 24 h.
+- Flag `elykia.payment-proof.required` (désactivé par défaut pour compatibilité APK).
+
+## Customer-space — [0.12.0] — 2026-10-02
+
+### Added
+
+- Bloc **Justificatif du transfert** (capture ou PDF) en tête des formulaires de déclaration : crédit, cotisation tontine, adhésion tontine, dépôt initial.
+- Pré-remplissage automatique de la référence (modifiable) après lecture OCR côté serveur ; compression des images avant envoi multipart.
+
 ## Frontend — [2.26.4] — 2026-10-01
 
 ### Fixed

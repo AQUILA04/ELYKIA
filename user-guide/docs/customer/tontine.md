@@ -31,12 +31,13 @@ Lorsque une session est ouverte et que vous n’y êtes pas encore inscrit :
 1. Lisez le numéro indiqué pour envoyer votre premier dépôt (numéro de votre commercial ou de l’agence).
 2. Activez l’option **Premier paiement** si vous avez déjà effectué le transfert Mobile Money, ou pour le déclarer maintenant.
 3. Si besoin, consultez aussi les numéros **Mixx by YAS** / **Moov Money** affichés sous le formulaire.
-4. Renseignez :
+4. Ajoutez le **justificatif du transfert** (capture ou reçu PDF). La référence peut se remplir automatiquement : vérifiez-la.
+5. Renseignez :
    - le **numéro d’envoi** ;
    - le **montant envoyé** ;
-   - le **numéro de la transaction** ;
+   - le **numéro de la transaction** (si non détecté) ;
    - des notes si besoin.
-5. Appuyez sur **Confirmer mon inscription** (bouton en bas de l’écran).
+6. Appuyez sur **Confirmer mon inscription** (bouton en bas de l’écran).
 
 Sans premier paiement, appuyez directement sur **Confirmer mon inscription**.
 
@@ -63,8 +64,9 @@ Sans premier paiement, appuyez directement sur **Confirmer mon inscription**.
 ### Déclarer une cotisation
 
 1. Lisez le numéro indiqué pour envoyer votre transfert (commercial ou agence).
-2. Renseignez le **numéro d’envoi**, le **montant**, la **référence du transfert**.
-3. Appuyez sur **Soumettre le paiement** en bas de l’écran.
+2. Ajoutez le **justificatif du transfert** (capture ou reçu PDF). La référence peut se remplir automatiquement : vérifiez-la.
+3. Renseignez le **numéro d’envoi**, le **montant**, la **référence du transfert**.
+4. Appuyez sur **Soumettre le paiement** en bas de l’écran.
 
 ## Aucune session ouverte
 

@@ -23,6 +23,11 @@ export interface CustomerTontineMmSubmission {
   tontineCollector?: string;
   tontineCollectionId?: number;
   createdAt?: string;
+  hasProof?: boolean;
+  proofContentType?: string;
+  ocrReference?: string;
+  referenceMismatch?: boolean;
+  duplicateProof?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -41,5 +46,9 @@ export class CustomerTontineMmSubmissionService {
 
   reject(id: number): Observable<CustomerTontineMmSubmission> {
     return postSubmissionAction<CustomerTontineMmSubmission>(this.http, this.apiUrl, id, 'reject');
+  }
+
+  downloadProof(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/proof`, { responseType: 'blob' });
   }
 }

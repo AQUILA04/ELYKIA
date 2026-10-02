@@ -7,6 +7,7 @@ export function createMobileMoneyPaymentForm(fb: FormBuilder): FormGroup {
     mobileMoneyAmount: [null, [Validators.required, Validators.min(1)]],
     mobileMoneyReference: ['', Validators.required],
     notes: [''],
+    paymentProofId: [null, Validators.required],
   });
 }
 

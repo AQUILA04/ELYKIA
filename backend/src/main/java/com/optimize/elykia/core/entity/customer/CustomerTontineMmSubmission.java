@@ -63,4 +63,7 @@ public class CustomerTontineMmSubmission extends BaseEntity<String> {
 
     @Column(name = "tontine_collection_id")
     private Long tontineCollectionId;
+
+    @Column(name = "payment_proof_id")
+    private Long paymentProofId;
 }

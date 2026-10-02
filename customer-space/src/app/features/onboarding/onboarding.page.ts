@@ -15,6 +15,7 @@ import {
 import { CARD_TYPE_OPTIONS } from '../../shared/models/customer-auth.model';
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
 import { ElykOutlinedFieldComponent, ElykPageHeaderComponent } from '../../shared/ui';
+import { PaymentProofPickerComponent } from '../../shared/components/payment-proof-picker/payment-proof-picker.component';
 
 const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
@@ -33,6 +34,7 @@ import { OnboardingDesktopComponent } from './desktop/onboarding-desktop.compone
     CustomerTabBarComponent,
     ElykPageHeaderComponent,
     ElykOutlinedFieldComponent,
+    PaymentProofPickerComponent,
   ],
   templateUrl: './onboarding.page.html',
   styleUrls: ['./onboarding.page.scss'],
@@ -69,6 +71,7 @@ export class OnboardingPage implements ViewWillEnter {
       mobileMoneyAmount: ['', [Validators.required, Validators.min(500), Validators.max(2000000)]],
       mobileMoneyReference: ['', Validators.required],
       notes: [''],
+      paymentProofId: [null, Validators.required],
     });
   }
 
@@ -206,6 +209,7 @@ export class OnboardingPage implements ViewWillEnter {
         mobileMoneyAmount: Number(this.depositForm.value.mobileMoneyAmount),
         mobileMoneyReference: this.depositForm.value.mobileMoneyReference,
         notes: this.depositForm.value.notes || undefined,
+        paymentProofId: this.depositForm.value.paymentProofId,
       }));
       this.success = 'Déclaration de dépôt envoyée.';
       this.section = 'menu';

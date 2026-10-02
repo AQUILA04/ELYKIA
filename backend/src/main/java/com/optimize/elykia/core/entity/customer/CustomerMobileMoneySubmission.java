@@ -56,4 +56,7 @@ public class CustomerMobileMoneySubmission extends BaseEntity<String> {
     /** Recouvrement créé à la validation ({@code credit_timeline.id}). */
     @Column(name = "credit_timeline_id")
     private Long creditTimelineId;
+
+    @Column(name = "payment_proof_id")
+    private Long paymentProofId;
 }

@@ -31,4 +31,7 @@ public class CustomerMobileMoneyRequest {
     private String mobileMoneyReference;
 
     private String notes;
+
+    /** Optional until {@code elykia.payment-proof.required=true}; UI always requires it. */
+    private Long paymentProofId;
 }

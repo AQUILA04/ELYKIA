@@ -12,6 +12,7 @@ import {
   mobileMoneySubmitErrorMessage,
 } from '../../shared/utils/mobile-money-form';
 import { ElykPageHeaderComponent, ElykOutlinedFieldComponent } from '../../shared/ui';
+import { PaymentProofPickerComponent } from '../../shared/components/payment-proof-picker/payment-proof-picker.component';
 
 const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
@@ -29,6 +30,7 @@ import { PaymentDesktopComponent } from './desktop/payment-desktop.component';
     RouterModule,
     ElykPageHeaderComponent,
     ElykOutlinedFieldComponent,
+    PaymentProofPickerComponent,
   ],
   templateUrl: './payment.page.html',
   styleUrls: ['./payment.page.scss'],

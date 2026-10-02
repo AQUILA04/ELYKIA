@@ -8,6 +8,11 @@ ARG APP_GID=999
 RUN groupadd --system --gid ${APP_GID} app \
     && useradd --system --uid ${APP_UID} --gid app --home-dir /home/app --create-home app
 
+# Tesseract CLI for payment-proof OCR (Mixx / Moov receipts). Languages: French + English.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends tesseract-ocr tesseract-ocr-fra tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 COPY target/optimize-elykia-core-*.jar app.jar

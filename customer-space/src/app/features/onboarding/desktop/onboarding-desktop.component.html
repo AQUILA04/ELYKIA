@@ -111,6 +111,7 @@
           <p class="desk-muted" *ngIf="recipients()!.mixxNumber"><strong>Mixx :</strong> {{ recipients()!.mixxNumber }}</p>
           <p class="desk-muted" *ngIf="recipients()!.moovNumber"><strong>Moov :</strong> {{ recipients()!.moovNumber }}</p>
         </div>
+        <app-payment-proof-picker [form]="depositForm()" testIdPrefix="e2e-onboarding-deposit-proof"></app-payment-proof-picker>
         <app-elyk-outlined-field label="Numéro utilisé pour le transfert" icon="call-outline">
           <ion-input formControlName="mobileMoneyPhone" inputmode="tel" placeholder="+228 XX XX XX XX" data-testid="e2e-onboarding-deposit-phone"></ion-input>
         </app-elyk-outlined-field>

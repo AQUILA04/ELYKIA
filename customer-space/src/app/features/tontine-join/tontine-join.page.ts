@@ -17,6 +17,7 @@ import {
 } from '../../shared/utils/mobile-money-form';
 import { ElykPageHeaderComponent, ElykOutlinedFieldComponent } from '../../shared/ui';
 import { MobileMoneyRecipientsCardComponent } from '../../shared/components/mobile-money-recipients-card/mobile-money-recipients-card.component';
+import { PaymentProofPickerComponent } from '../../shared/components/payment-proof-picker/payment-proof-picker.component';
 
 const STAKE_SHORTCUTS = [100, 200, 500, 1000];
 /** Numéro agence affiché si aucun destinataire Mixx/Moov n'est configuré. */
@@ -36,6 +37,7 @@ import { TontineJoinDesktopComponent } from './desktop/tontine-join-desktop.comp
     ElykPageHeaderComponent,
     ElykOutlinedFieldComponent,
     MobileMoneyRecipientsCardComponent,
+    PaymentProofPickerComponent,
   ],
   templateUrl: './tontine-join.page.html',
   styleUrls: ['./tontine-join.page.scss'],
@@ -199,6 +201,7 @@ export class TontineJoinPage implements ViewWillEnter {
           mobileMoneyAmount: this.paymentForm.value.mobileMoneyAmount,
           mobileMoneyReference: this.paymentForm.value.mobileMoneyReference,
           notes: this.paymentForm.value.notes || undefined,
+          paymentProofId: this.paymentForm.value.paymentProofId,
         };
       }
       this.success = await firstValueFrom(this.api.joinTontineSession(payload));

@@ -21,4 +21,9 @@ public class CustomerInitialDepositDto {
     private LocalDateTime rejectedAt;
     private String rejectedBy;
     private String rejectionReason;
+    private Boolean hasProof;
+    private String proofContentType;
+    private String ocrReference;
+    private Boolean referenceMismatch;
+    private Boolean duplicateProof;
 }

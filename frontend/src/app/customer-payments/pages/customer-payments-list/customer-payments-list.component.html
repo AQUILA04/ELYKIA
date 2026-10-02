@@ -76,6 +76,7 @@
                 <th>Montant</th>
                 <th>Téléphone</th>
                 <th>Référence</th>
+                <th>Justificatif</th>
                 <th>Date</th>
                 <th>Actions</th>
               </tr>
@@ -92,7 +93,22 @@
                 <td style="font-family: 'DM Mono', monospace;">{{ row.installmentNumber }}</td>
                 <td style="font-weight: 700; font-family: 'DM Mono', monospace; font-size: 15px; color: var(--navy)">{{ row.mobileMoneyAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
                 <td style="font-family: 'DM Mono', monospace; color: var(--text-muted)">{{ row.mobileMoneyPhone }}</td>
-                <td style="font-family: 'DM Mono', monospace;">{{ row.mobileMoneyReference }}</td>
+                <td style="font-family: 'DM Mono', monospace;">
+                  {{ row.mobileMoneyReference }}
+                  <span class="proof-badge warn" *ngIf="row.referenceMismatch">Référence différente</span>
+                  <span class="proof-badge danger" *ngIf="row.duplicateProof">Justificatif déjà utilisé</span>
+                </td>
+                <td>
+                  <button
+                    *ngIf="row.hasProof"
+                    type="button"
+                    class="btn-detail"
+                    data-testid="e2e-customer-payment-proof"
+                    (click)="openProofCredit(row)">
+                    Agrandir
+                  </button>
+                  <span *ngIf="!row.hasProof" class="muted">—</span>
+                </td>
                 <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
                 <td class="text-nowrap" style="display: flex; gap: 8px;">
                   <button type="button" class="btn-success-solid" data-testid="e2e-customer-payment-validate" (click)="validate(row)">Valider</button>
@@ -124,6 +140,7 @@
                 <th>Montant</th>
                 <th>Téléphone</th>
                 <th>Référence</th>
+                <th>Justificatif</th>
                 <th>Date</th>
                 <th>Actions</th>
               </tr>
@@ -135,7 +152,22 @@
                 <td style="font-family: 'DM Mono', monospace;">#{{ row.tontineMemberId }}</td>
                 <td style="font-weight: 700; font-family: 'DM Mono', monospace; font-size: 15px; color: var(--navy)">{{ row.mobileMoneyAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
                 <td style="font-family: 'DM Mono', monospace; color: var(--text-muted)">{{ row.mobileMoneyPhone }}</td>
-                <td style="font-family: 'DM Mono', monospace;">{{ row.mobileMoneyReference }}</td>
+                <td style="font-family: 'DM Mono', monospace;">
+                  {{ row.mobileMoneyReference }}
+                  <span class="proof-badge warn" *ngIf="row.referenceMismatch">Référence différente</span>
+                  <span class="proof-badge danger" *ngIf="row.duplicateProof">Justificatif déjà utilisé</span>
+                </td>
+                <td>
+                  <button
+                    *ngIf="row.hasProof"
+                    type="button"
+                    class="btn-detail"
+                    data-testid="e2e-customer-tontine-payment-proof"
+                    (click)="openProofTontine(row)">
+                    Agrandir
+                  </button>
+                  <span *ngIf="!row.hasProof" class="muted">—</span>
+                </td>
                 <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
                 <td class="text-nowrap" style="display: flex; gap: 8px;">
                   <button type="button" class="btn-success-solid" data-testid="e2e-customer-tontine-payment-validate" (click)="validateTontine(row)">Valider</button>
@@ -146,6 +178,24 @@
           </table>
         </div>
       </ng-container>
+    </div>
+  </div>
+
+  <div
+    *ngIf="proofPreviewUrl"
+    class="proof-preview-overlay"
+    role="dialog"
+    aria-modal="true"
+    (click)="closeProofPreview()">
+    <div class="proof-preview-modal" (click)="$event.stopPropagation()">
+      <div class="proof-preview-header">
+        <h3>{{ proofPreviewTitle }}</h3>
+        <button type="button" class="proof-preview-close" (click)="closeProofPreview()" aria-label="Fermer">×</button>
+      </div>
+      <div class="proof-preview-body">
+        <img *ngIf="!proofPreviewIsPdf" [src]="proofPreviewUrl" [alt]="proofPreviewTitle" />
+        <iframe *ngIf="proofPreviewIsPdf && proofPreviewSafeUrl" [src]="proofPreviewSafeUrl" title="Justificatif PDF"></iframe>
+      </div>
     </div>
   </div>
 </div>

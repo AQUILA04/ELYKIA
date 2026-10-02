@@ -25,4 +25,6 @@ public class CustomerTontineMobileMoneyRequest {
     private String mobileMoneyReference;
 
     private String notes;
+
+    private Long paymentProofId;
 }

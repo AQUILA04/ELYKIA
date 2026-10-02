@@ -6,6 +6,7 @@ import { IonicModule } from '@ionic/angular';
 import { MobileMoneyRecipient } from '../../../shared/models/customer.model';
 import { ElykDesktopPageComponent, ElykOutlinedFieldComponent } from '../../../shared/ui';
 import { MobileMoneyRecipientsCardComponent } from '../../../shared/components/mobile-money-recipients-card/mobile-money-recipients-card.component';
+import { PaymentProofPickerComponent } from '../../../shared/components/payment-proof-picker/payment-proof-picker.component';
 
 @Component({
   selector: 'app-tontine-payment-desktop',
@@ -13,6 +14,7 @@ import { MobileMoneyRecipientsCardComponent } from '../../../shared/components/m
   imports: [
     CommonModule, ReactiveFormsModule, IonicModule,
     ElykDesktopPageComponent, ElykOutlinedFieldComponent, MobileMoneyRecipientsCardComponent,
+    PaymentProofPickerComponent,
   ],
   templateUrl: './tontine-payment-desktop.component.html',
   styleUrls: ['./tontine-payment-desktop.component.scss'],

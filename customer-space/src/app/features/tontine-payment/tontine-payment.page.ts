@@ -13,6 +13,7 @@ import {
 } from '../../shared/utils/mobile-money-form';
 import { MobileMoneyRecipientsCardComponent } from '../../shared/components/mobile-money-recipients-card/mobile-money-recipients-card.component';
 import { ElykPageHeaderComponent, ElykOutlinedFieldComponent } from '../../shared/ui';
+import { PaymentProofPickerComponent } from '../../shared/components/payment-proof-picker/payment-proof-picker.component';
 
 const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
@@ -31,6 +32,7 @@ import { TontinePaymentDesktopComponent } from './desktop/tontine-payment-deskto
     MobileMoneyRecipientsCardComponent,
     ElykPageHeaderComponent,
     ElykOutlinedFieldComponent,
+    PaymentProofPickerComponent,
   ],
   templateUrl: './tontine-payment.page.html',
   styleUrls: ['./tontine-payment.page.scss'],
