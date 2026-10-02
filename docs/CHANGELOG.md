@@ -31,6 +31,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Création / synchronisation / modification de compte : refus si le client n’est pas encore validé (`PENDING` ou `REJECTED`), avec un message explicite.
 
+## Customer-space — [0.11.3] — 2026-10-02
+
+### Fixed
+
+- Tests AuthPage : la session en mémoire est bien vidée entre les cas (plus de faux positif sur le reset du wizard après login).
+
 ## Customer-space — [0.11.2] — 2026-10-02
 
 ### Fixed
