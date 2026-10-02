@@ -93,7 +93,13 @@ export class SidebarComponent implements OnInit {
 
     if (route === '/services-en-ligne') {
       return this.activeRoute.startsWith('/client-registrations')
-        || this.activeRoute.startsWith('/customer-payments');
+        || this.activeRoute.startsWith('/customer-payments')
+        || this.activeRoute.startsWith('/orders/online');
+    }
+
+    if (route === '/orders') {
+      return (this.activeRoute === '/orders' || this.activeRoute.startsWith('/orders/'))
+        && !this.activeRoute.startsWith('/orders/online');
     }
 
     // Pour toutes les autres routes, utiliser une correspondance exacte ou avec un slash
@@ -196,7 +202,8 @@ export class SidebarComponent implements OnInit {
   // Gestionnaire de clic pour le menu Services en ligne
   onServicesEnLigneClick() {
     const isActive = this.activeRoute.startsWith('/client-registrations')
-      || this.activeRoute.startsWith('/customer-payments');
+      || this.activeRoute.startsWith('/customer-payments')
+      || this.activeRoute.startsWith('/orders/online');
     if (isActive) {
       this.isServicesEnLigneOpen = !this.isServicesEnLigneOpen;
     } else {
@@ -286,7 +293,8 @@ export class SidebarComponent implements OnInit {
 
       // Gestion de l'état ouvert/fermé pour Services en ligne
       if (this.activeRoute.startsWith('/client-registrations')
-          || this.activeRoute.startsWith('/customer-payments')) {
+          || this.activeRoute.startsWith('/customer-payments')
+          || this.activeRoute.startsWith('/orders/online')) {
         this.isServicesEnLigneOpen = true;
       } else {
         this.isServicesEnLigneOpen = false;
@@ -320,7 +328,8 @@ export class SidebarComponent implements OnInit {
     // Initialiser activeRoute avec la route actuelle au démarrage
     this.activeRoute = this.router.url;
     if (this.activeRoute.startsWith('/client-registrations')
-        || this.activeRoute.startsWith('/customer-payments')) {
+        || this.activeRoute.startsWith('/customer-payments')
+        || this.activeRoute.startsWith('/orders/online')) {
       this.isServicesEnLigneOpen = true;
     }
     this.isAdministrationOpen = this.isAdministrationRoute();

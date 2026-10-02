@@ -80,6 +80,7 @@ Le réapprovisionnement suit un flux rigoureux en 3 étapes : **Création $\righ
 2. **Étape 2 : Validation gestionnaire (Statut « Validée »)** :
    * Le gestionnaire contrôle la disponibilité physique en magasin et les encours du commercial, puis clique sur le bouton vert **« Valider »**.
    * La demande passe à l'état **Validée**. La marchandise est alors réservée au magasin.
+   * Si la demande est liée à des **commandes** (mention « Commandes liées » dans la liste), les commandes encore en attente passent automatiquement à **Validée**.
 3. **Étape 3 : Livraison magasinier (Statut « Livrée »)** :
    * Le magasinier physique remet les articles au commercial et clique sur le bouton bleu **« Livrer »**.
    * **Conséquence instantanée** : Le stock magasin est débité et le stock personnel du commercial est crédité. La date de livraison est horodatée.

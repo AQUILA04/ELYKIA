@@ -56,6 +56,7 @@ import com.optimize.elykia.core.util.ArticleSortOrder;
 import com.optimize.elykia.core.util.StockRequestDeliveryPricing;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import com.optimize.elykia.core.dto.stock.StockRequestListDto;
+import com.optimize.elykia.core.event.StockRequestValidatedEvent;
 
 @Service
 @Transactional
@@ -75,6 +76,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private CommercialStockMovementService commercialStockMovementService;
     private CommercialMonthlyStockService commercialMonthlyStockService;
     private BusinessMetricsPublisher metricsPublisher;
+    private StockRequestOrderLinkService stockRequestOrderLinkService;
 
     public StockRequestService(StockRequestRepository repository,
             ArticlesService articlesService,
@@ -94,6 +96,11 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         this.stockValuationFacade = stockValuationFacade;
         this.eventPublisher = eventPublisher;
         this.templateEngine = templateEngine;
+    }
+
+    @Autowired
+    public void setStockRequestOrderLinkService(StockRequestOrderLinkService stockRequestOrderLinkService) {
+        this.stockRequestOrderLinkService = stockRequestOrderLinkService;
     }
 
     @Autowired
@@ -261,7 +268,11 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         }
         request.setStatus(StockRequestStatus.VALIDATED);
         request.setValidationDate(LocalDate.now());
-        return repository.save(request);
+        StockRequest saved = repository.save(request);
+        if (eventPublisher != null) {
+            eventPublisher.publishEvent(new StockRequestValidatedEvent(this, saved.getId()));
+        }
+        return saved;
     }
 
     /**
@@ -464,6 +475,9 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             pendingRequest.setTotalPurchasePrice(pendTotalPurchase);
 
             StockRequest savedPending = repository.save(pendingRequest);
+            if (stockRequestOrderLinkService != null) {
+                stockRequestOrderLinkService.copyLinksToRequest(savedRequest.getId(), savedPending);
+            }
             response.setPendingRequestId(savedPending.getId());
             response.setPendingRequestReference(savedPending.getReference());
         }
@@ -616,8 +630,12 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
 
     @Override
     public StockRequest getById(Long id) {
-        return ((StockRequestRepository) repository).findByIdWithItems(id)
+        StockRequest request = ((StockRequestRepository) repository).findByIdWithItems(id)
                 .orElseThrow(() -> new com.optimize.common.entities.exception.ResourceNotFoundException("resource.not.found"));
+        if (stockRequestOrderLinkService != null) {
+            request.setLinkedOrderReferences(stockRequestOrderLinkService.resolveLinkedOrderReferences(id));
+        }
+        return request;
     }
 
     private StockRequest getByIdForDelivery(Long id) {
@@ -637,7 +655,14 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         String effectiveCollector = resolveCollector(collector);
         List<StockRequestStatus> statuses = resolveVisibleStatuses();
 
-        return repo.findFilteredList(effectiveCollector, startDate, endDate, statuses, pageable);
+        Page<StockRequestListDto> page = repo.findFilteredList(effectiveCollector, startDate, endDate, statuses, pageable);
+        if (stockRequestOrderLinkService != null && !page.isEmpty()) {
+            List<Long> ids = page.getContent().stream().map(StockRequestListDto::getId).toList();
+            Map<Long, List<String>> refs = stockRequestOrderLinkService.resolveLinkedOrderReferences(ids);
+            page.getContent().forEach(dto ->
+                    dto.setLinkedOrderReferences(refs.getOrDefault(dto.getId(), List.of())));
+        }
+        return page;
     }
 
     public com.optimize.elykia.core.dto.stock.StockRequestKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {

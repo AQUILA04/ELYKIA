@@ -1,0 +1,62 @@
+.stock-request-modal {
+  min-width: 420px;
+  max-width: 640px;
+
+  h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 1.15rem;
+  }
+
+  .intro {
+    margin-bottom: 16px;
+    color: #475569;
+  }
+
+  .group {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+    background: #f8fafc;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+      color: #0f172a;
+
+      .cmd-refs {
+        font-weight: 400;
+        color: #64748b;
+        font-size: 0.85rem;
+      }
+    }
+
+    ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      li {
+        display: flex;
+        justify-content: space-between;
+        padding: 4px 0;
+        border-bottom: 1px dashed #e2e8f0;
+        font-size: 0.9rem;
+
+        &:last-child {
+          border-bottom: none;
+        }
+      }
+    }
+  }
+
+  mat-slide-toggle {
+    margin-top: 8px;
+  }
+}

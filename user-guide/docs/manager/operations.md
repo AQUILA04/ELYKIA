@@ -134,7 +134,22 @@ Sur chaque ligne client, le gestionnaire habilité dispose d'un bouton d'approba
 
 ---
 
-## 6. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)
+## 6. Commandes passées en ligne (Menu Services en ligne > Commandes)
+
+Les commandes passées par les clients depuis l’Espace Client apparaissent dans **Services en ligne** > **Commandes**.
+
+<!-- CAPTURE À INSÉRER : Liste des commandes en ligne avec onglets En attente / Validées / Livrées et barre d’actions groupées. -->
+
+1. Ouvrez **Services en ligne** > **Commandes**.
+2. Parcourez les onglets **En attente**, **Validées**, **Livrées** et **Autres**.
+3. Sur une commande en attente, cliquez sur **Valider** (ou sélectionnez plusieurs commandes puis **Valider la sélection**).
+4. Pour réapprovisionner le commercial concerné : **Faire une demande de stock** (sur une commande seule, ou sur plusieurs commandes cochées). Une fenêtre récapitule les articles par commercial ; confirmez pour créer la demande de sortie. Si plusieurs commerciaux sont concernés, une demande est créée pour chacun.
+5. Quand le gestionnaire **valide** cette demande de sortie dans **Stock Commercial** > **Demandes Sortie**, les commandes encore en attente liées passent automatiquement à **Validée**.
+6. Une fois la marchandise chez le commercial et la commande validée, cliquez sur **Marquer comme livrée** : la vente est créée automatiquement et la commande passe à **Livrée**.
+
+---
+
+## 7. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)
 
 Le module **Paiements** (sous **Services en ligne**) permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via **Mobile Money** (Mixx by YAS ou Moov Money).
 
@@ -194,7 +209,7 @@ Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par le
 
 ---
 
-## 7. Centre de notifications et suivi des alertes
+## 8. Centre de notifications et suivi des alertes
 
 ELYKIA intègre un système d'alerte multicanal pour avertir immédiatement les équipes des événements requérant une attention rapide.
 

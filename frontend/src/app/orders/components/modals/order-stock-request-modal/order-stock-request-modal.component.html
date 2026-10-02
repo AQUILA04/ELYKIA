@@ -1,0 +1,42 @@
+<div class="stock-request-modal">
+  <h2 mat-dialog-title>
+    <mat-icon>inventory_2</mat-icon>
+    Faire une demande de stock
+  </h2>
+
+  <mat-dialog-content>
+    <p class="intro">
+      Une demande de sortie sera créée pour
+      <strong>{{ orderCount }}</strong> commande(s),
+      regroupée(s) par commercial avec les quantités additionnées.
+    </p>
+
+    <div class="group" *ngFor="let group of groups">
+      <h3>
+        <mat-icon>person</mat-icon>
+        {{ group.collector }}
+        <span class="cmd-refs">
+          ({{ group.orderIds.length }} cmd · CMD-{{ group.orderIds.join(', CMD-') }})
+        </span>
+      </h3>
+      <ul>
+        <li *ngFor="let article of group.articles">
+          <span>{{ article.name }}</span>
+          <strong>× {{ article.quantity }}</strong>
+        </li>
+      </ul>
+    </div>
+
+    <mat-slide-toggle [(ngModel)]="forNextMonth" color="primary">
+      Pour le mois prochain
+    </mat-slide-toggle>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button type="button" (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" type="button" (click)="onConfirm()"
+            [disabled]="groups.length === 0">
+      Créer la demande
+    </button>
+  </mat-dialog-actions>
+</div>

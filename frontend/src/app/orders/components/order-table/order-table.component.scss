@@ -72,6 +72,26 @@
   color: var(--navy);
 }
 
+.order-table-host .online-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.order-table-host .stock-req-ref {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: #64748b;
+  font-family: 'DM Mono', monospace;
+}
+
 .order-table-host .col-name {
   display: block;
   font-weight: 600;

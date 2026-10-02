@@ -3,6 +3,7 @@ package com.optimize.elykia.core.controller.sale;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.OrderDto;
+import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.service.order.OrderService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -53,8 +54,12 @@ public class OrderController {
 
 
     @GetMapping
-    public ResponseEntity<Response> getAllOrders(@RequestParam(required = false) OrderStatus status, Pageable pageable) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(orderService.getAllOrders(status, pageable)), HttpStatus.OK);
+    public ResponseEntity<Response> getAllOrders(
+            @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) OrderSource source,
+            Pageable pageable) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(orderService.getAllOrders(status, source, pageable)), HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
@@ -88,8 +93,8 @@ public class OrderController {
     }
 
     @GetMapping("/kpis")
-    public ResponseEntity<Response> getOrderKpis() {
-        return new ResponseEntity<>(ResponseUtil.successResponse(orderService.getOrderKpis()), HttpStatus.OK);
+    public ResponseEntity<Response> getOrderKpis(@RequestParam(required = false) OrderSource source) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(orderService.getOrderKpis(source)), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")

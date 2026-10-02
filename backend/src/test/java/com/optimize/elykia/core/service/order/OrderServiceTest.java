@@ -65,6 +65,7 @@ class OrderServiceTest {
     @Mock private ApplicationEventPublisher eventPublisher;
     @Mock private com.optimize.elykia.core.service.notification.AppNotificationService appNotificationService;
     @Mock private com.optimize.elykia.core.service.customer.CustomerNotificationService customerNotificationService;
+    @Mock private com.optimize.elykia.core.repository.StockRequestOrderLinkRepository stockRequestOrderLinkRepository;
     @Mock private Client client;
     @Mock private User currentUser;
 
@@ -94,6 +95,7 @@ class OrderServiceTest {
         assertEquals(71L, saved.getId());
         assertSame(client, saved.getClient());
         assertEquals(OrderStatus.PENDING, saved.getStatus());
+        assertEquals(com.optimize.elykia.core.enumaration.OrderSource.STAFF, saved.getSource());
         assertEquals(3_900.0, saved.getTotalAmount());
         assertEquals(2_300.0, saved.getTotalPurchasePrice());
         assertEquals(2, saved.getItems().size());
@@ -323,7 +325,7 @@ class OrderServiceTest {
     private OrderService service() {
         return new OrderService(orderRepository, orderItemRepository, clientService, articlesService, historyService,
                 userService, creditService, orderStatusHistoryRepository, eventPublisher, appNotificationService,
-                customerNotificationService);
+                customerNotificationService, stockRequestOrderLinkRepository);
     }
 
     private Articles article(Long id, double creditSalePrice, double purchasePrice) {

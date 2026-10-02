@@ -720,6 +720,144 @@
       ]
     },
     {
+      "name": "orders",
+      "description": "Commande client (saisie staff ou passée depuis l'Espace Client)",
+      "synonyms": [
+        "commande",
+        "commandes en ligne",
+        "CMD"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "client_id",
+          "type": "bigint",
+          "description": "Client concerné"
+        },
+        {
+          "name": "order_date",
+          "type": "timestamp",
+          "description": "Date de la commande",
+          "synonyms": [
+            "date commande"
+          ]
+        },
+        {
+          "name": "status",
+          "type": "varchar",
+          "description": "PENDING, ACCEPTED, DENIED, CANCEL, SOLD",
+          "synonyms": [
+            "statut commande"
+          ]
+        },
+        {
+          "name": "source",
+          "type": "varchar",
+          "description": "STAFF ou CUSTOMER_SPACE",
+          "synonyms": [
+            "origine",
+            "en ligne"
+          ]
+        },
+        {
+          "name": "total_amount",
+          "type": "double",
+          "description": "Montant total"
+        },
+        {
+          "name": "total_purchase_price",
+          "type": "double",
+          "description": "Coût d'achat total"
+        }
+      ],
+      "relations": [
+        {
+          "column": "client_id",
+          "refTable": "client",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "order_items",
+      "description": "Ligne article d'une commande",
+      "synonyms": [
+        "ligne commande"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "order_id",
+          "type": "bigint"
+        },
+        {
+          "name": "article_id",
+          "type": "bigint"
+        },
+        {
+          "name": "quantity",
+          "type": "integer"
+        },
+        {
+          "name": "unit_price",
+          "type": "double",
+          "description": "Prix de vente crédit unitaire"
+        }
+      ],
+      "relations": [
+        {
+          "column": "order_id",
+          "refTable": "orders",
+          "refColumn": "id"
+        },
+        {
+          "column": "article_id",
+          "refTable": "articles",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
+      "name": "stock_request_order",
+      "description": "Lien entre une demande de sortie de stock et une ou plusieurs commandes",
+      "synonyms": [
+        "commande liée demande stock"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "stock_request_id",
+          "type": "bigint"
+        },
+        {
+          "name": "order_id",
+          "type": "bigint"
+        }
+      ],
+      "relations": [
+        {
+          "column": "stock_request_id",
+          "refTable": "stock_request",
+          "refColumn": "id"
+        },
+        {
+          "column": "order_id",
+          "refTable": "orders",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
       "name": "stock_return",
       "description": "Retour de stock du commercial vers le magasin",
       "synonyms": [

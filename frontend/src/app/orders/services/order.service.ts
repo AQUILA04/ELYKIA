@@ -184,6 +184,9 @@ export class OrderService {
     if (filters.status) {
       params = params.set('status', filters.status);
     }
+    if (filters.source) {
+      params = params.set('source', filters.source);
+    }
     if (filters.clientName) {
       params = params.set('clientName', filters.clientName);
     }
@@ -400,11 +403,15 @@ export class OrderService {
   /**
    * Récupère les indicateurs clés de performance
    */
-  getKPIs(): Observable<ApiResponse<OrderKPI>> {
+  getKPIs(source?: string): Observable<ApiResponse<OrderKPI>> {
     this.setLoading(true);
     const headers = this.getHeaders();
+    let params = new HttpParams();
+    if (source) {
+      params = params.set('source', source);
+    }
 
-    return this.http.get<ApiResponse<OrderKPI>>(`${this.apiUrl}/kpis`, { headers })
+    return this.http.get<ApiResponse<OrderKPI>>(`${this.apiUrl}/kpis`, { headers, params })
       .pipe(
         tap(response => {
           if (response.statusCode === 200 && response.data) {
@@ -417,6 +424,17 @@ export class OrderService {
         }),
         catchError(this.handleApiError.bind(this))
       );
+  }
+
+  /**
+   * Crée une ou plusieurs demandes de stock à partir de commandes.
+   */
+  createStockRequestFromOrders(orderIds: number[], forNextMonth: boolean = false): Observable<any[]> {
+    const headers = this.getHeaders();
+    const url = `${environment.apiUrl}/api/stock-requests/from-orders`;
+    return this.http.post<any[]>(url, { orderIds, forNextMonth }, { headers }).pipe(
+      catchError(this.handleApiError.bind(this))
+    );
   }
 
   // === GESTION DES CLIENTS ET ARTICLES ===
@@ -611,14 +629,17 @@ export class OrderService {
         fullName: apiOrder.client ? `${apiOrder.client.firstname} ${apiOrder.client.lastname}` : '',
         code: apiOrder.client?.code,
         phone: apiOrder.client?.phone,
-        address: apiOrder.client?.address
+        address: apiOrder.client?.address,
+        collector: apiOrder.client?.collector
       },
       orderDate: apiOrder.orderDate,
       totalAmount: apiOrder.totalAmount,
       totalPurchasePrice: apiOrder.totalPurchasePrice,
       status: apiOrder.status as OrderStatus,
+      source: apiOrder.source,
       items: apiOrder.items || [],
       commercial: apiOrder.client?.collector || 'Non assigné',
+      activeStockRequest: apiOrder.activeStockRequest || null,
       createdAt: apiOrder.createdAt,
       updatedAt: apiOrder.updatedAt,
       createdBy: apiOrder.createdBy

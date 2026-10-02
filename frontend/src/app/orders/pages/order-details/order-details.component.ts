@@ -17,6 +17,7 @@ import {
   Order,
   OrderAction,
   OrderStatus,
+  OrderSource,
   getAvailableActions,
   getOrderStatusLabel,
   getOrderStatusColor,
@@ -33,6 +34,10 @@ import {
   getOrderItemTotal,
 } from '../../types/order.types';
 import { OrderConfirmationModalComponent } from '../../components/modals/order-confirmation-modal/order-confirmation-modal.component';
+import {
+  OrderStockRequestModalComponent,
+  OrderStockRequestModalResult
+} from '../../components/modals/order-stock-request-modal/order-stock-request-modal.component';
 
 @Component({
   selector: 'app-order-details',
@@ -51,6 +56,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   isProcessing = false;
   orderId: number | null = null;
   currentDate = new Date();
+  onlineMode = false;
 
   OrderStatus = OrderStatus;
   OrderAction = OrderAction;
@@ -61,10 +67,12 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     private orderService: OrderService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef // CORRECTION : Injection du ChangeDetectorRef
+    private cdr: ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
+    this.onlineMode = this.route.snapshot.data['source'] === OrderSource.CUSTOMER_SPACE
+      || this.router.url.includes('/orders/online');
     this.route.params.pipe(
       takeUntil(this.destroy$)
     ).subscribe(params => {
@@ -117,8 +125,15 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   }
 
   // === GETTERS POUR LE TEMPLATE ===
-  get availableActions(): OrderAction[] { return this.order ? getAvailableActions(this.order.status) : []; }
-  get canEdit(): boolean { return this.order ? canModifyOrder(this.order.status) : false; }
+  get availableActions(): OrderAction[] {
+    return this.order
+      ? getAvailableActions(this.order.status, {
+          onlineMode: this.onlineMode,
+          hasActiveStockRequest: !!this.order.activeStockRequest
+        })
+      : [];
+  }
+  get canEdit(): boolean { return this.order && !this.onlineMode ? canModifyOrder(this.order.status) : false; }
   get canDelete(): boolean { return this.order ? canDeleteOrder(this.order.status) : false; }
   get canSell(): boolean { return this.order ? canSellOrder(this.order.status) : false; }
   get statusLabel(): string { return this.order ? getOrderStatusLabel(this.order.status) : ''; }
@@ -132,7 +147,9 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   getItemTotal = getOrderItemTotal;
 
   // === ACTIONS ===
-  goBack(): void { this.router.navigate(['/orders']); }
+  goBack(): void {
+    this.router.navigate([this.onlineMode ? '/orders/online' : '/orders']);
+  }
   editOrder(): void { if (this.order && this.canEdit) this.router.navigate(['/orders/edit', this.order.id]); }
 
   deleteOrder(): void {
@@ -144,17 +161,51 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     );
   }
 
-  acceptOrder(): void { if (this.order) this.updateOrderStatus(OrderStatus.ACCEPTED, 'acceptée'); }
+  acceptOrder(): void {
+    if (this.order) {
+      this.updateOrderStatus(OrderStatus.ACCEPTED, this.onlineMode ? 'validée' : 'acceptée');
+    }
+  }
   denyOrder(): void { if (this.order) this.updateOrderStatus(OrderStatus.DENIED, 'refusée'); }
   cancelOrder(): void { if (this.order) this.updateOrderStatus(OrderStatus.CANCEL, 'annulée'); }
 
   sellOrder(): void {
     if (!this.order || !this.canSell) return;
-    this.confirmAction(
-      'Transformer en vente',
-      `Êtes-vous sûr de vouloir transformer la commande #${this.order.id} en vente ?`,
-      () => this.performSell()
-    );
+    const title = this.onlineMode ? 'Marquer comme livrée' : 'Transformer en vente';
+    const message = this.onlineMode
+      ? `Marquer la commande #${this.order.id} comme livrée et créer la vente ?`
+      : `Êtes-vous sûr de vouloir transformer la commande #${this.order.id} en vente ?`;
+    this.confirmAction(title, message, () => this.performSell());
+  }
+
+  createStockRequest(): void {
+    if (!this.order) return;
+    const dialogRef = this.dialog.open(OrderStockRequestModalComponent, {
+      width: '560px',
+      data: { orders: [this.order] }
+    });
+    dialogRef.afterClosed().subscribe((result: OrderStockRequestModalResult | undefined) => {
+      if (!result?.confirmed || !this.order) {
+        return;
+      }
+      this.isProcessing = true;
+      this.cdr.markForCheck();
+      this.orderService.createStockRequestFromOrders([this.order.id], result.forNextMonth).pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.isProcessing = false;
+          this.cdr.markForCheck();
+        })
+      ).subscribe({
+        next: () => {
+          this.showSuccess('Demande de stock créée avec succès');
+          this.loadOrder();
+        },
+        error: (err) => {
+          this.showError(err?.error?.message || 'Erreur lors de la création de la demande de stock');
+        }
+      });
+    });
   }
 
   // === MÉTHODES PRIVÉES ===
@@ -211,7 +262,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
       })
     ).subscribe({
       next: () => {
-        this.showSuccess('Commande transformée en vente avec succès');
+        this.showSuccess(this.onlineMode ? 'Commande marquée comme livrée' : 'Commande transformée en vente avec succès');
         this.loadOrder();
       },
       error: () => {
@@ -246,8 +297,10 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   getActionIcon(action: OrderAction): string {
     const icons: Record<OrderAction, string> = {
       [OrderAction.VIEW]: 'visibility', [OrderAction.EDIT]: 'edit', [OrderAction.DELETE]: 'delete',
-      [OrderAction.ACCEPT]: 'check', [OrderAction.DENY]: 'close', [OrderAction.SELL]: 'monetization_on',
-      [OrderAction.CANCEL]: 'cancel'
+      [OrderAction.ACCEPT]: 'check', [OrderAction.DENY]: 'close',
+      [OrderAction.SELL]: this.onlineMode ? 'local_shipping' : 'monetization_on',
+      [OrderAction.CANCEL]: 'cancel',
+      [OrderAction.STOCK_REQUEST]: 'inventory_2'
     };
     return icons[action] || 'more_vert';
   }
@@ -255,8 +308,11 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
   getActionLabel(action: OrderAction): string {
     const labels: Record<OrderAction, string> = {
       [OrderAction.VIEW]: 'Voir', [OrderAction.EDIT]: 'Modifier', [OrderAction.DELETE]: 'Supprimer',
-      [OrderAction.ACCEPT]: 'Accepter', [OrderAction.DENY]: 'Refuser', [OrderAction.SELL]: 'Transformer en vente',
-      [OrderAction.CANCEL]: 'Annuler'
+      [OrderAction.ACCEPT]: this.onlineMode ? 'Valider' : 'Accepter',
+      [OrderAction.DENY]: 'Refuser',
+      [OrderAction.SELL]: this.onlineMode ? 'Marquer comme livrée' : 'Transformer en vente',
+      [OrderAction.CANCEL]: 'Annuler',
+      [OrderAction.STOCK_REQUEST]: 'Faire une demande de stock'
     };
     return labels[action] || action;
   }
@@ -276,6 +332,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     switch (action) {
       case OrderAction.ACCEPT:
       case OrderAction.SELL:
+      case OrderAction.STOCK_REQUEST:
         return 'btn-success';
       case OrderAction.DELETE:
       case OrderAction.DENY:
@@ -294,6 +351,7 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
       case OrderAction.DENY: this.denyOrder(); break;
       case OrderAction.SELL: this.sellOrder(); break;
       case OrderAction.CANCEL: this.cancelOrder(); break;
+      case OrderAction.STOCK_REQUEST: this.createStockRequest(); break;
     }
   }
 

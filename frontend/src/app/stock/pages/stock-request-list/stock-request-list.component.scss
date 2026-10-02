@@ -393,6 +393,13 @@
   color: var(--navy);
 }
 
+.stock-request-page .linked-orders {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: #64748b;
+}
+
 .stock-request-page .col-date {
   font-family: 'DM Mono', monospace;
   font-size: 12px;

@@ -336,6 +336,15 @@
                 <span class="hide-menu">Inscriptions</span>
               </a>
             </li>
+            <li class="sidebar-item submenu-item"
+                *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER']">
+              <a class="sidebar-link" routerLink="/orders/online"
+                 [ngClass]="{ 'active': isSubRouteActive('/orders/online') }"
+                 data-testid="e2e-sidebar-online-orders">
+                <span class="material-icons">shopping_cart</span>
+                <span class="hide-menu">Commandes</span>
+              </a>
+            </li>
             <li class="sidebar-item submenu-item">
               <a class="sidebar-link" routerLink="/customer-payments"
                  [ngClass]="{ 'active': isSubRouteActive('/customer-payments') }"
