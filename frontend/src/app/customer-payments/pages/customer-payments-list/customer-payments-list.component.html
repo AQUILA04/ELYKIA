@@ -95,8 +95,20 @@
                 <td style="font-family: 'DM Mono', monospace;">{{ row.mobileMoneyReference }}</td>
                 <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
                 <td class="text-nowrap" style="display: flex; gap: 8px;">
-                  <button type="button" class="btn-success-solid" data-testid="e2e-customer-payment-validate" (click)="validate(row)">Valider</button>
-                  <button type="button" class="btn-danger-outline" data-testid="e2e-customer-payment-reject" (click)="reject(row)">Rejeter</button>
+                  <button
+                    type="button"
+                    class="btn-success-solid"
+                    data-testid="e2e-customer-payment-validate"
+                    [disabled]="isRowBusy('credit', row.id)"
+                    (click)="validate(row)"
+                  >{{ isRowBusy('credit', row.id) ? 'Traitement…' : 'Valider' }}</button>
+                  <button
+                    type="button"
+                    class="btn-danger-outline"
+                    data-testid="e2e-customer-payment-reject"
+                    [disabled]="isRowBusy('credit', row.id)"
+                    (click)="reject(row)"
+                  >Rejeter</button>
                 </td>
               </tr>
             </tbody>
@@ -138,8 +150,20 @@
                 <td style="font-family: 'DM Mono', monospace;">{{ row.mobileMoneyReference }}</td>
                 <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
                 <td class="text-nowrap" style="display: flex; gap: 8px;">
-                  <button type="button" class="btn-success-solid" data-testid="e2e-customer-tontine-payment-validate" (click)="validateTontine(row)">Valider</button>
-                  <button type="button" class="btn-danger-outline" data-testid="e2e-customer-tontine-payment-reject" (click)="rejectTontine(row)">Rejeter</button>
+                  <button
+                    type="button"
+                    class="btn-success-solid"
+                    data-testid="e2e-customer-tontine-payment-validate"
+                    [disabled]="isRowBusy('tontine', row.id)"
+                    (click)="validateTontine(row)"
+                  >{{ isRowBusy('tontine', row.id) ? 'Traitement…' : 'Valider' }}</button>
+                  <button
+                    type="button"
+                    class="btn-danger-outline"
+                    data-testid="e2e-customer-tontine-payment-reject"
+                    [disabled]="isRowBusy('tontine', row.id)"
+                    (click)="rejectTontine(row)"
+                  >Rejeter</button>
                 </td>
               </tr>
             </tbody>

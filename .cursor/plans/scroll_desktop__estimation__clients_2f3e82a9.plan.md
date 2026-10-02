@@ -1,25 +1,31 @@
 ---
 name: Scroll desktop, estimation, clients
-overview: Make the customer-space desktop pages scrollable, base the desktop tontine-join estimate on the months the member will actually take part in (like the booklet in the phone layout), and stop unvalidated clients from being picked in the frontend client selectors, with a backend guard on account creation.
+overview: Make the customer-space desktop pages scrollable, base the desktop tontine-join estimate on the months the member will actually take part in (like the booklet in the phone layout), stop unvalidated clients from being picked in the frontend client selectors (with a backend guard on account creation), and prevent double-validate on the frontend payments list.
 todos:
   - id: cs-scroll
     content: "Customer-space: global desktop scroll rule in global.scss + browser check of the desktop pages"
-    status: pending
+    status: completed
   - id: cs-estimate
     content: "Customer-space: desktop months follow the booklet (join estimate on N months; detail 'Carnet des N mois' + Progression X/N), specs"
-    status: pending
+    status: completed
   - id: be-active-filter
     content: "Backend-lib: activeOnly param on GET /clients, /elasticsearch and /by-commercial (repository, service, cache keys) + tests"
-    status: pending
+    status: completed
   - id: be-account-guard
     content: "Backend-lib: AccountService refuses create/sync/update for a non-ACTIVE client + tests"
-    status: pending
+    status: completed
   - id: fe-picker
     content: "Frontend: activeOnly in ClientService + app-client-select (default true) on every selector"
-    status: pending
+    status: completed
   - id: docs-release
     content: User guide + RAG index + mkdocs frontend build, version bumps and CHANGELOG, builds/tests
-    status: pending
+    status: completed
+  - id: payments-double-click
+    content: "Frontend: prevent double-click on payment validate/reject + remove row after success"
+    status: completed
+  - id: payments-docs
+    content: Changelog + frontend version bump + user-guide/RAG for payments list fix
+    status: completed
 isProject: false
 ---
 
@@ -120,3 +126,13 @@ flowchart LR
 - No DDL change, so the AI schema catalog is not touched.
 - Checks: builds and tests for customer-space, frontend and backend-lib/backend; desktop scroll checked in the browser.
 
+## 5. Frontend: payments list — no double validate
+
+Bug: on [customer-payments-list](frontend/src/app/customer-payments/pages/customer-payments-list/), after **Valider** / **Rejeter** the row stayed actionable and a second click could fire another request before `load()` finished.
+
+Fix:
+- Per-row `busyRowKeys` map: disable both buttons while the request is in flight (label **Traitement…** on Valider).
+- On success: remove the row from the local array immediately, then silent-reload the INITIE list (no full-table spinner flash).
+- Same behaviour for credit and tontine tabs.
+- User-guide + RAG note: after Valider/Rejeter the declaration leaves the waiting list; buttons unavailable during processing.
+- Frontend PATCH `2.26.6` + CHANGELOG.

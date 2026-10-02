@@ -2150,6 +2150,7 @@
 <hr />
 <h2 id="6-traitement-des-declarations-de-paiements-clients-mobile-money-menu-services-en-ligne-paiements">6. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne &gt; Paiements)</h2>
 <p>Le module <strong>Paiements</strong> (sous <strong>Services en ligne</strong>) permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via <strong>Mobile Money</strong> (Mixx by YAS ou Moov Money).</p>
+<p>Après un <strong>Valider</strong> ou un <strong>Rejeter</strong>, la déclaration quitte immédiatement la liste des attentes. Pendant le traitement, les boutons de la ligne sont momentanément indisponibles.</p>
 <!-- CAPTURE À INSÉRER : Écran de gestion des déclarations de paiement Mobile Money avec onglets Recouvrement crédit et Cotisations tontine, et boutons Valider/Rejeter. -->
 
 <h3 id="a-presentation-generale-et-indicateurs">A. Présentation générale et indicateurs</h3>
@@ -2163,7 +2164,16 @@
 </ul>
 <hr />
 <h3 id="b-traitement-des-remboursements-de-credit-onglet-recouvrement-credit">B. Traitement des remboursements de crédit (Onglet Recouvrement crédit)</h3>
-<p>Cet onglet centralise les règlements d'échéances de vente à crédit :</p>
+<p>Cet onglet centralise les règlements d'échéances de vente à crédit.</p>
+<h4 id="actions-de-validation-ou-de-rejet">Actions de validation ou de rejet :</h4>
+<ol>
+<li><strong>Valider</strong> :</li>
+<li>Après vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur le bouton vert <strong>« Valider »</strong>. Pendant le traitement, les boutons de la ligne sont momentanément indisponibles.</li>
+<li><strong>Conséquences automatiques</strong> : Le paiement est instantanément imputé sur le crédit du client, son solde restant dû diminue, le versement est enregistré dans le journal des recouvrements du commercial et comptabilisé dans les encaissements du jour. La déclaration quitte immédiatement la liste des attentes.</li>
+<li><strong>Rejeter</strong> :</li>
+<li>Si la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur le bouton rouge <strong>« Rejeter »</strong>.</li>
+<li>Une boîte de dialogue vous demande confirmation avant d'annuler définitivement la déclaration. Une fois confirmé, la ligne disparaît de la liste.</li>
+</ol>
 <table>
 <thead>
 <tr>
@@ -2206,18 +2216,14 @@
 </tr>
 </tbody>
 </table>
-<h4 id="actions-de-validation-ou-de-rejet">Actions de validation ou de rejet :</h4>
-<ol>
-<li><strong>Valider</strong> :</li>
-<li>Après vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur le bouton vert <strong>« Valider »</strong>.</li>
-<li><strong>Conséquences automatiques</strong> : Le paiement est instantanément imputé sur le crédit du client, son solde restant dû diminue, le versement est enregistré dans le journal des recouvrements du commercial et comptabilisé dans les encaissements du jour.</li>
-<li><strong>Rejeter</strong> :</li>
-<li>Si la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur le bouton rouge <strong>« Rejeter »</strong>.</li>
-<li>Une boîte de dialogue vous demande confirmation avant d'annuler définitivement la déclaration.</li>
-</ol>
 <hr />
 <h3 id="c-traitement-des-cotisations-tontine-onglet-cotisations-tontine">C. Traitement des cotisations tontine (Onglet Cotisations tontine)</h3>
-<p>Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine, y compris le <strong>premier paiement</strong> déclaré par un nouveau membre qui s’est inscrit depuis l’Espace Client :</p>
+<p>Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine, y compris le <strong>premier paiement</strong> déclaré par un nouveau membre qui s’est inscrit depuis l’Espace Client.</p>
+<h4 id="decision-gestionnaire">Décision gestionnaire :</h4>
+<ul>
+<li><strong>Valider</strong> : Valide l'encaissement, crédite la cagnotte du membre dans la session active, applique la règle de déduction de la part société selon le barème paramétré et met à jour l'état d'avancement de son carnet d'épargne. La cotisation quitte immédiatement la liste des attentes.</li>
+<li><strong>Rejeter</strong> : Rejette la déclaration après confirmation ; la ligne disparaît ensuite de la liste et le client est alerté.</li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -2252,11 +2258,6 @@
 </tr>
 </tbody>
 </table>
-<h4 id="decision-gestionnaire">Décision gestionnaire :</h4>
-<ul>
-<li><strong>Valider</strong> : Valide l'encaissement, crédite la cagnotte du membre dans la session active, applique la règle de déduction de la part société selon le barème paramétré et met à jour l'état d'avancement de son carnet d'épargne.</li>
-<li><strong>Rejeter</strong> : Rejette la déclaration après confirmation et alerte le client.</li>
-</ul>
 <hr />
 <h2 id="7-centre-de-notifications-et-suivi-des-alertes">7. Centre de notifications et suivi des alertes</h2>
 <p>ELYKIA intègre un système d'alerte multicanal pour avertir immédiatement les équipes des événements requérant une attention rapide.</p>

@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.26.6] — 2026-10-02
+
+### Fixed
+
+- Liste des paiements clients (Mobile Money) : les boutons **Valider** / **Rejeter** sont désactivés pendant le traitement pour empêcher un double clic ; la déclaration validée ou rejetée disparaît immédiatement de la liste (crédit et tontine).
+
 ## Frontend — [2.26.5] — 2026-10-02
 
 ### Fixed
