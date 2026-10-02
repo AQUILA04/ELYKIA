@@ -126,3 +126,10 @@ Le sous-menu **Comptes** offre une vue d’ensemble des comptes rattachés aux c
 2. Cliquez sur **Voir** : un panneau s’ouvre à droite avec le détail (client, n° compte, solde, statut) et les actions possibles (activer / désactiver / modifier).
 3. Fermez le panneau avec **Fermer** pour revenir à la liste.
 
+### Créer un compte
+
+1. Cliquez sur **Ajouter** (ou l’action équivalente) pour ouvrir le formulaire de création de compte.
+2. Recherchez et sélectionnez le **client** : seuls les clients déjà validés apparaissent dans la liste. Un client encore en attente de validation d’inscription n’est pas proposé.
+3. Si le client n’apparaît pas, validez d’abord son inscription depuis **Services en ligne > Inscriptions**, puis revenez créer le compte.
+4. Renseignez le numéro de compte et le solde initial, puis enregistrez.
+

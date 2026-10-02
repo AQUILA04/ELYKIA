@@ -74,5 +74,5 @@ Si aucune session n’est disponible, un message vous invite à revenir plus tar
 
 1. Dans le menu de gauche, cliquez sur **Tontine**.
 2. La carte de session et la section **Comment ça marche** s’affichent côte à côte.
-3. Pour rejoindre : choisissez votre mise à gauche ; le récapitulatif reste visible à droite.
-4. Sur le détail d’une tontine, les montants s’affichent en cartes ; **Déclarer un paiement** et **Voir la timeline** sont en haut à droite.
+3. Pour rejoindre : choisissez votre mise à gauche ; le **Récapitulatif** à droite rappelle la mise journalière, le montant mensuel approximatif et l’**estimation sur le nombre de mois restants** jusqu’à la fin de la session (à partir de la date du jour, et non sur une année entière).
+4. Sur le détail d’une tontine, les montants s’affichent en cartes ; le **Carnet** liste uniquement vos mois d’épargne ; **Déclarer un paiement** et **Voir la timeline** sont en haut à droite.

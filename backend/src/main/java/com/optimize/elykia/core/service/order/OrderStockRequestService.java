@@ -21,8 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,36 +65,6 @@ public class OrderStockRequestService {
             created.add(createForCollector(entry.getKey(), entry.getValue(), forNextMonth));
         }
         return created;
-    }
-
-    public void copyLinksToRequest(Long sourceRequestId, StockRequest targetRequest) {
-        List<StockRequestOrderLink> existing = linkRepository.findByStockRequestId(sourceRequestId);
-        for (StockRequestOrderLink link : existing) {
-            StockRequestOrderLink copy = new StockRequestOrderLink();
-            copy.setStockRequest(targetRequest);
-            copy.setOrder(link.getOrder());
-            linkRepository.save(copy);
-        }
-    }
-
-    public List<String> resolveLinkedOrderReferences(Long stockRequestId) {
-        return linkRepository.findByStockRequestId(stockRequestId).stream()
-                .map(link -> "CMD-" + link.getOrder().getId())
-                .sorted()
-                .toList();
-    }
-
-    public Map<Long, List<String>> resolveLinkedOrderReferences(Collection<Long> stockRequestIds) {
-        if (stockRequestIds == null || stockRequestIds.isEmpty()) {
-            return Map.of();
-        }
-        Map<Long, List<String>> result = new HashMap<>();
-        for (StockRequestOrderLink link : linkRepository.findByStockRequestIds(stockRequestIds)) {
-            result.computeIfAbsent(link.getStockRequest().getId(), id -> new ArrayList<>())
-                    .add("CMD-" + link.getOrder().getId());
-        }
-        result.values().forEach(list -> list.sort(String::compareTo));
-        return result;
     }
 
     private StockRequest createForCollector(String collector, List<Order> orders, boolean forNextMonth) {

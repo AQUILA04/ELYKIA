@@ -29,6 +29,52 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Table `stock_request_order` et endpoint `POST /api/stock-requests/from-orders` : création de demandes de sortie regroupées par commercial à partir d’une ou plusieurs commandes.
 - Validation d’une demande de stock liée : les commandes encore `PENDING` passent automatiquement à `ACCEPTED` ; copie des liens sur reliquat de livraison partielle.
 
+### Fixed
+
+- Dépendance circulaire Spring entre `StockRequestService` et `OrderStockRequestService` : extraction de `StockRequestOrderLinkService` pour la copie / résolution des liens commande ↔ demande.
+
+## Docs & Infra — 2026-10-02
+
+### Fixed
+
+- SonarCloud : exclusion de `frontend/src/user-guide/**` (site MkDocs généré) de l’analyse et du CPD — le HTML dupliqué entre profils / print_versions ne fait plus échouer la quality gate « Duplication on New Code ».
+
+## Frontend — [2.26.6] — 2026-10-02
+
+### Fixed
+
+- Liste des paiements clients (Mobile Money) : les boutons **Valider** / **Rejeter** sont désactivés pendant le traitement pour empêcher un double clic ; la déclaration validée ou rejetée disparaît immédiatement de la liste (crédit et tontine).
+
+## Frontend — [2.26.5] — 2026-10-02
+
+### Fixed
+
+- Sélecteur de client (création de compte, crédits, tontine, commandes…) : seuls les clients déjà **validés** sont proposés ; un client encore en attente d’inscription n’apparaît plus dans la recherche.
+
+## Backend — [1.26.3] — 2026-10-02
+
+### Added
+
+- Paramètre optionnel `activeOnly` sur `GET /api/v1/clients`, `POST /api/v1/clients/elasticsearch` et `GET /api/v1/clients/by-commercial/{commercial}` pour ne retourner que les clients au statut d’activation `ACTIVE`.
+
+### Fixed
+
+- Création / synchronisation / modification de compte : refus si le client n’est pas encore validé (`PENDING` ou `REJECTED`), avec un message explicite.
+
+## Customer-space — [0.11.3] — 2026-10-02
+
+### Fixed
+
+- Tests AuthPage : la session en mémoire est bien vidée entre les cas (plus de faux positif sur le reset du wizard après login).
+
+## Customer-space — [0.11.2] — 2026-10-02
+
+### Fixed
+
+- Desktop : les pages (tableau de bord, achats, tontines, catalogue, profil…) sont à nouveau défilables ; le panneau latéral « Récapitulatif » peut rester collé pendant le scroll.
+- Inscription tontine (desktop) : l’estimation du récapitulatif tient compte de la date du jour et de la fin de session (même logique que le carnet de mises mensuelles), au lieu d’afficher toujours une année complète.
+- Détail tontine (desktop) : le carnet et la progression utilisent le nombre réel de mois du membre, et non un fixe « 10 mois ».
+
 ## Frontend — [2.26.4] — 2026-10-01
 
 ### Fixed

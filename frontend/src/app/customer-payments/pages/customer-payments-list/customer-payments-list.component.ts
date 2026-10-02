@@ -25,7 +25,9 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
   tontineSubmissions: CustomerTontineMmSubmission[] = [];
   loading = false;
   highlightId: number | null = null;
-  
+  /** Row keys currently being validated/rejected — reassigned for change detection. */
+  busyRowKeys: Record<string, true> = {};
+
   currentDate = new Date();
   lastUpdate = new Date();
   private dateIntervalId?: ReturnType<typeof setInterval>;
@@ -43,11 +45,11 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
     this.tab = tabParam === 'tontine' ? 'tontine' : 'credit';
     const idParam = this.route.snapshot.queryParamMap.get('id');
     this.highlightId = idParam ? Number(idParam) : null;
-    
+
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
     }, 1000);
-    
+
     this.load();
   }
 
@@ -55,6 +57,10 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
     if (this.dateIntervalId) {
       clearInterval(this.dateIntervalId);
     }
+  }
+
+  isRowBusy(kind: PaymentTab, id: number): boolean {
+    return !!this.busyRowKeys[this.rowKey(kind, id)];
   }
 
   setTab(tab: PaymentTab): void {
@@ -67,8 +73,11 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
     this.load();
   }
 
-  load(): void {
-    this.loading = true;
+  load(options?: { silent?: boolean }): void {
+    const silent = !!options?.silent;
+    if (!silent) {
+      this.loading = true;
+    }
     if (this.tab === 'tontine') {
       this.tontineService.list('INITIE').subscribe({
         next: (rows) => {
@@ -97,18 +106,27 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
   }
 
   validate(row: CustomerMobileMoneySubmission): void {
+    if (!this.beginProcessing('credit', row.id)) {
+      return;
+    }
     this.creditService.validate(row.id).subscribe({
       next: () => {
+        this.removeCreditRow(row.id);
+        this.endProcessing('credit', row.id);
         this.alertService.toastSuccess('Déclaration validée.');
-        this.load();
+        this.load({ silent: true });
       },
       error: (err) => {
+        this.endProcessing('credit', row.id);
         this.alertService.toastError(err?.error?.message || 'Validation impossible.');
       }
     });
   }
 
   reject(row: CustomerMobileMoneySubmission): void {
+    if (this.isRowBusy('credit', row.id)) {
+      return;
+    }
     this.alertService.showConfirmation(
       'Rejeter la déclaration',
       'Confirmer le rejet de cette déclaration de paiement ?',
@@ -118,12 +136,18 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
       if (!ok) {
         return;
       }
+      if (!this.beginProcessing('credit', row.id)) {
+        return;
+      }
       this.creditService.reject(row.id).subscribe({
         next: () => {
+          this.removeCreditRow(row.id);
+          this.endProcessing('credit', row.id);
           this.alertService.toastSuccess('Déclaration rejetée.');
-          this.load();
+          this.load({ silent: true });
         },
         error: (err) => {
+          this.endProcessing('credit', row.id);
           this.alertService.toastError(err?.error?.message || 'Rejet impossible.');
         }
       });
@@ -131,18 +155,27 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
   }
 
   validateTontine(row: CustomerTontineMmSubmission): void {
+    if (!this.beginProcessing('tontine', row.id)) {
+      return;
+    }
     this.tontineService.validate(row.id).subscribe({
       next: () => {
+        this.removeTontineRow(row.id);
+        this.endProcessing('tontine', row.id);
         this.alertService.toastSuccess('Cotisation tontine validée.');
-        this.load();
+        this.load({ silent: true });
       },
       error: (err) => {
+        this.endProcessing('tontine', row.id);
         this.alertService.toastError(err?.error?.message || 'Validation impossible.');
       }
     });
   }
 
   rejectTontine(row: CustomerTontineMmSubmission): void {
+    if (this.isRowBusy('tontine', row.id)) {
+      return;
+    }
     this.alertService.showConfirmation(
       'Rejeter la déclaration tontine',
       'Confirmer le rejet de cette cotisation ?',
@@ -152,12 +185,18 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
       if (!ok) {
         return;
       }
+      if (!this.beginProcessing('tontine', row.id)) {
+        return;
+      }
       this.tontineService.reject(row.id).subscribe({
         next: () => {
+          this.removeTontineRow(row.id);
+          this.endProcessing('tontine', row.id);
           this.alertService.toastSuccess('Déclaration tontine rejetée.');
-          this.load();
+          this.load({ silent: true });
         },
         error: (err) => {
+          this.endProcessing('tontine', row.id);
           this.alertService.toastError(err?.error?.message || 'Rejet impossible.');
         }
       });
@@ -166,5 +205,42 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
 
   openCredit(row: CustomerMobileMoneySubmission): void {
     void this.router.navigate(['/credit/details', row.creditId]);
+  }
+
+  private rowKey(kind: PaymentTab, id: number): string {
+    return `${kind}:${id}`;
+  }
+
+  private beginProcessing(kind: PaymentTab, id: number): boolean {
+    const key = this.rowKey(kind, id);
+    if (this.busyRowKeys[key]) {
+      return false;
+    }
+    this.busyRowKeys = { ...this.busyRowKeys, [key]: true };
+    return true;
+  }
+
+  private endProcessing(kind: PaymentTab, id: number): void {
+    const key = this.rowKey(kind, id);
+    if (!this.busyRowKeys[key]) {
+      return;
+    }
+    const next = { ...this.busyRowKeys };
+    delete next[key];
+    this.busyRowKeys = next;
+  }
+
+  private removeCreditRow(id: number): void {
+    this.submissions = this.submissions.filter((s) => s.id !== id);
+    if (this.highlightId === id) {
+      this.highlightId = null;
+    }
+  }
+
+  private removeTontineRow(id: number): void {
+    this.tontineSubmissions = this.tontineSubmissions.filter((s) => s.id !== id);
+    if (this.highlightId === id) {
+      this.highlightId = null;
+    }
   }
 }

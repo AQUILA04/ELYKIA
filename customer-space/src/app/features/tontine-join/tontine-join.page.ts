@@ -112,6 +112,48 @@ export class TontineJoinPage implements ViewWillEnter {
   }
 
   /**
+   * Mois restants jusqu'à la fin de session (même règle que le carnet mobile) :
+   * début = max(aujourd'hui, début de session), fin = fin de session, plafond 10.
+   */
+  get remainingSessionMonths(): number {
+    if (!this.session?.startDate || !this.session?.endDate) {
+      return 0;
+    }
+    const today = this.startOfLocalDay(new Date());
+    const sessionStart = this.parseLocalDate(this.session.startDate);
+    const sessionEnd = this.parseLocalDate(this.session.endDate);
+    if (!sessionStart || !sessionEnd) {
+      return 0;
+    }
+    const effectiveStart = today.getTime() > sessionStart.getTime() ? today : sessionStart;
+    if (effectiveStart.getTime() > sessionEnd.getTime()) {
+      return 0;
+    }
+    let months = (sessionEnd.getFullYear() - effectiveStart.getFullYear()) * 12
+      + (sessionEnd.getMonth() - effectiveStart.getMonth())
+      + 1;
+    return Math.max(0, Math.min(10, months));
+  }
+
+  /** Estimation totale = mois restants × 31 × mise journalière. */
+  get sessionEstimate(): number {
+    return this.remainingSessionMonths * this.monthlyEstimate;
+  }
+
+  private parseLocalDate(iso: string): Date | null {
+    const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+    if (!match) {
+      const d = new Date(iso);
+      return Number.isNaN(d.getTime()) ? null : this.startOfLocalDay(d);
+    }
+    return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+  }
+
+  private startOfLocalDay(d: Date): Date {
+    return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  }
+
+  /**
    * Numéro d'envoi du premier dépôt : Mixx, sinon Moov, sinon numéro agence par défaut.
    */
   get depositDestinationNumber(): string {

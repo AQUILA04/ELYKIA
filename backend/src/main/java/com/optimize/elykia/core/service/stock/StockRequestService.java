@@ -57,7 +57,6 @@ import com.optimize.elykia.core.util.StockRequestDeliveryPricing;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import com.optimize.elykia.core.dto.stock.StockRequestListDto;
 import com.optimize.elykia.core.event.StockRequestValidatedEvent;
-import com.optimize.elykia.core.service.order.OrderStockRequestService;
 
 @Service
 @Transactional
@@ -77,7 +76,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private CommercialStockMovementService commercialStockMovementService;
     private CommercialMonthlyStockService commercialMonthlyStockService;
     private BusinessMetricsPublisher metricsPublisher;
-    private OrderStockRequestService orderStockRequestService;
+    private StockRequestOrderLinkService stockRequestOrderLinkService;
 
     public StockRequestService(StockRequestRepository repository,
             ArticlesService articlesService,
@@ -100,8 +99,8 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     }
 
     @Autowired
-    public void setOrderStockRequestService(OrderStockRequestService orderStockRequestService) {
-        this.orderStockRequestService = orderStockRequestService;
+    public void setStockRequestOrderLinkService(StockRequestOrderLinkService stockRequestOrderLinkService) {
+        this.stockRequestOrderLinkService = stockRequestOrderLinkService;
     }
 
     @Autowired
@@ -476,8 +475,8 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             pendingRequest.setTotalPurchasePrice(pendTotalPurchase);
 
             StockRequest savedPending = repository.save(pendingRequest);
-            if (orderStockRequestService != null) {
-                orderStockRequestService.copyLinksToRequest(savedRequest.getId(), savedPending);
+            if (stockRequestOrderLinkService != null) {
+                stockRequestOrderLinkService.copyLinksToRequest(savedRequest.getId(), savedPending);
             }
             response.setPendingRequestId(savedPending.getId());
             response.setPendingRequestReference(savedPending.getReference());
@@ -633,8 +632,8 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     public StockRequest getById(Long id) {
         StockRequest request = ((StockRequestRepository) repository).findByIdWithItems(id)
                 .orElseThrow(() -> new com.optimize.common.entities.exception.ResourceNotFoundException("resource.not.found"));
-        if (orderStockRequestService != null) {
-            request.setLinkedOrderReferences(orderStockRequestService.resolveLinkedOrderReferences(id));
+        if (stockRequestOrderLinkService != null) {
+            request.setLinkedOrderReferences(stockRequestOrderLinkService.resolveLinkedOrderReferences(id));
         }
         return request;
     }
@@ -657,9 +656,9 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         List<StockRequestStatus> statuses = resolveVisibleStatuses();
 
         Page<StockRequestListDto> page = repo.findFilteredList(effectiveCollector, startDate, endDate, statuses, pageable);
-        if (orderStockRequestService != null && !page.isEmpty()) {
+        if (stockRequestOrderLinkService != null && !page.isEmpty()) {
             List<Long> ids = page.getContent().stream().map(StockRequestListDto::getId).toList();
-            Map<Long, List<String>> refs = orderStockRequestService.resolveLinkedOrderReferences(ids);
+            Map<Long, List<String>> refs = stockRequestOrderLinkService.resolveLinkedOrderReferences(ids);
             page.getContent().forEach(dto ->
                     dto.setLinkedOrderReferences(refs.getOrDefault(dto.getId(), List.of())));
         }
