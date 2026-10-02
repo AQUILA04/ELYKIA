@@ -17,6 +17,7 @@ describe('AuthPage', () => {
   let api: jasmine.SpyObj<CustomerApiService>;
   let router: jasmine.SpyObj<Router>;
   let featureFlags: jasmine.SpyObj<FeatureFlagService>;
+  let session: CustomerSessionService;
 
   beforeEach(async () => {
     api = jasmine.createSpyObj('CustomerApiService', [
@@ -64,6 +65,8 @@ describe('AuthPage', () => {
     }).compileComponents();
 
     fixture = TestBed.createComponent(AuthPage);
+    session = TestBed.inject(CustomerSessionService);
+    session.clearSession();
   });
 
   it('starts on phone step', () => {
@@ -214,7 +217,7 @@ describe('AuthPage', () => {
   describe('redirection after login', () => {
     afterEach(() => {
       history.pushState({}, '', '/');
-      localStorage.removeItem('elykia_customer_session');
+      session.clearSession();
     });
 
     it('goes to dashboard without returnUrl', async () => {
@@ -245,6 +248,7 @@ describe('AuthPage', () => {
   it('resets wizard on re-entry when session is cleared', () => {
     fixture.componentInstance.step = 'setup-pin';
     fixture.componentInstance.error = 'Erreur';
+    session.clearSession();
     fixture.componentInstance.ionViewWillEnter();
     expect(fixture.componentInstance.step).toBe('phone');
     expect(fixture.componentInstance.error).toBe('');

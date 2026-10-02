@@ -20,6 +20,8 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
   @Input() username: string | null = null;
   @Input() tontine = false;
   @Input() clientTypeFilter?: string;
+  /** When true (default), only validated (ACTIVE) clients are offered. */
+  @Input() activeOnly = true;
   @Input() disabled = false;
   @Input() testId?: string;
   @Input() placeholder = 'Rechercher et sélectionner un client';
@@ -64,7 +66,7 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['commercial'] || changes['username'] || changes['tontine']) {
+    if (changes['commercial'] || changes['username'] || changes['tontine'] || changes['activeOnly']) {
       this.resetClients();
       this.tryLoadClients();
     }
@@ -183,6 +185,7 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
   private buildClientsRequest() {
     const search = this.clientsSearchTerm.trim();
     const commercialUsername = this.commercial ?? this.username ?? '';
+    const activeOnly = this.activeOnly ? true : undefined;
 
     if (search) {
       return this.clientService.getClients(
@@ -191,7 +194,10 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
         'firstname,asc',
         commercialUsername,
         search,
-        this.tontine
+        this.tontine,
+        undefined,
+        undefined,
+        activeOnly
       );
     }
 
@@ -200,7 +206,9 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
         this.commercial,
         this.clientsPage,
         this.pageSize,
-        'firstname,asc'
+        'firstname,asc',
+        '',
+        activeOnly
       );
     }
 
@@ -210,7 +218,10 @@ export class ClientSelectComponent implements OnInit, OnChanges, OnDestroy, Cont
       'firstname,asc',
       this.username,
       '',
-      this.tontine
+      this.tontine,
+      undefined,
+      undefined,
+      activeOnly
     );
   }
 

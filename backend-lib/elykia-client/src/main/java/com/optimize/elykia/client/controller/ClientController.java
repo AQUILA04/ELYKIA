@@ -90,10 +90,11 @@ public class ClientController {
                                            @RequestParam(required = false) Boolean tontine,
                                            @RequestParam(required = false) Boolean mobile,
                                            @RequestParam(required = false) String collectorType,
-                                           @RequestParam(required = false) String registrationSource) {
+                                           @RequestParam(required = false) String registrationSource,
+                                           @RequestParam(required = false) Boolean activeOnly) {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(
                 clientService.getAll(username, tontine, mobile, collectorType,
-                        parseRegistrationSource(registrationSource), pageable)), HttpStatus.OK);
+                        parseRegistrationSource(registrationSource), activeOnly, pageable)), HttpStatus.OK);
     }
 
     @GetMapping(value = "all")
@@ -107,8 +108,11 @@ public class ClientController {
     }
 
     @GetMapping(value = "by-commercial/{commercial}")
-    public ResponseEntity<Response> getAllClientsByCommercial(@PathVariable String commercial, Pageable pageable) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(clientService.getAllClientByCollector(commercial, pageable)), HttpStatus.OK);
+    public ResponseEntity<Response> getAllClientsByCommercial(@PathVariable String commercial,
+                                                              @RequestParam(required = false) Boolean activeOnly,
+                                                              Pageable pageable) {
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(
+                clientService.getAllClientByCollector(commercial, activeOnly, pageable)), HttpStatus.OK);
     }
 
 
@@ -154,10 +158,11 @@ public class ClientController {
                                                    @RequestParam(required = false) Boolean tontine,
                                                    @RequestParam(required = false) String collectorType,
                                                    @RequestParam(required = false) String registrationSource,
+                                                   @RequestParam(required = false) Boolean activeOnly,
                                                    Pageable pageable) {
         return new ResponseEntity<Response>(ResponseUtil.successResponse(
                 clientService.elasticsearch(wrapper.getKeyword(), username, tontine, collectorType,
-                        parseRegistrationSource(registrationSource), pageable)), HttpStatus.OK);
+                        parseRegistrationSource(registrationSource), activeOnly, pageable)), HttpStatus.OK);
     }
 
     @PostMapping(value = "check-missing-photos")

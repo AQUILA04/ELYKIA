@@ -1,6 +1,7 @@
 package com.optimize.elykia.client.service;
 
 import com.optimize.common.entities.enums.State;
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.client.dto.AccountDto;
@@ -41,6 +42,7 @@ public class AccountService extends GenericService<Account, Long> {
 
     @Transactional
     public AccountRespDto createAccount(AccountDto accountDto) {
+        requireActiveClient(accountDto.getClientId());
         Account account = accountMapper.toEntity(accountDto);
         Account savedAccount = saveOrReactivateAccount(account, AccountStatus.CREATED);
 
@@ -51,6 +53,7 @@ public class AccountService extends GenericService<Account, Long> {
 
     @Transactional
     public AccountRespDto syncAccount(AccountDto accountDto) {
+        requireActiveClient(accountDto.getClientId());
         Account account = accountMapper.toEntity(accountDto);
         Account savedAccount = saveOrReactivateAccount(account, AccountStatus.ACTIF);
 
@@ -88,6 +91,22 @@ public class AccountService extends GenericService<Account, Long> {
                     account.getAccountBalance(),
                     client.getCollector(),
                     account.getAccountNumber()));
+        }
+    }
+
+    /**
+     * Refuse la création/modification de compte pour un client dont l'inscription
+     * n'est pas encore validée (PENDING / REJECTED).
+     */
+    private void requireActiveClient(Long clientId) {
+        if (clientId == null) {
+            throw new CustomValidationException("Le client est obligatoire pour créer un compte.");
+        }
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Client non trouvé avec l'id: " + clientId));
+        if (!client.isActivationActive()) {
+            throw new CustomValidationException(
+                    "Ce client n'est pas encore validé : impossible de lui créer un compte.");
         }
     }
 
@@ -135,6 +154,7 @@ public class AccountService extends GenericService<Account, Long> {
 
     @Transactional
     public AccountRespDto updateAccount(AccountDto accountDto, Long id) {
+        requireActiveClient(accountDto.getClientId());
         accountDto.setId(id);
         Account existingOne = getById(id);
         Account account = accountMapper.toEntity(accountDto);
