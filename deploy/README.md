@@ -75,6 +75,7 @@ graph TD
 - `db_backup_upload.sh` - Compression et upload du backup prod vers Google Drive (après le cron du soir).
 - `db_restore_from_drive.sh` - Reprise d'activité : télécharge le dernier backup prod depuis Drive et restaure via `import-db.sh`.
 - `deploy.sh` - Script pour déployer une paire d'images (frontend/backend) et enregistrer la release.
+- `redeploy-stack.sh` - Relance en une commande toutes les stacks d'un environnement (principale, espace client web, site) avec les images déjà enregistrées dans `/opt/elykia/<env>/.env`.
 - `rollback.sh` - Script pour revenir à une release précédente.
 - `import-db.sh` - Script pour importer un dump SQL dans le container Postgres.
 - `migrate-do-to-contabo.sh` - Migration DigitalOcean → Contabo (consommateur OCI + shared-traefik).
@@ -147,6 +148,17 @@ Une fois le serveur configuré, le déploiement se fait via le script `deploy.sh
 
 > **Astuce :** Vous pouvez ajouter l'option `-fu` (ou `--force-update`) en tout premier paramètre pour forcer la mise à jour des scripts de déploiement (le dossier `deploy` complet) depuis GitHub avant de lancer le déploiement :
 > `./deploy.sh -fu prod ghcr.io/OWNER/ELYKIA-frontend:TAG ghcr.io/OWNER/ELYKIA-backend:TAG`
+
+### Relancer tout un environnement (sans nouvelle image)
+La promotion test → prod arrête la stack test (principale + espace client web). Pour tout relancer en une commande, avec les images déjà enregistrées dans `/opt/elykia/<env>/.env` :
+
+```bash
+/opt/elykia/deploy/redeploy-stack.sh test
+# avec mise à jour préalable des scripts deploy/ depuis GitHub :
+/opt/elykia/deploy/redeploy-stack.sh -fu test
+```
+
+Le script enchaîne `deploy.sh <env>` (frontend / backend / db, avec réalignement des bind mounts et trace de release), `deploy-customer-space.sh <env>` si `CUSTOMER_SPACE_IMAGE` est défini, puis `deploy-website.sh <env>` si `WEBSITE_IMAGE` est défini (enregistré par chaque déploiement du site). Une stack jamais déployée sur l'environnement est simplement ignorée.
 
 Avant `up -d`, `deploy.sh` (et `rollback.sh`) exécute `fix-backend-bind-mounts.sh` : les répertoires hôte `LOG_PATH` et `PHOTO_FALLBACK_PATH_HOST` sont `chown` vers **UID/GID 999** (`app` dans l’image Debian). L’entrypoint backend refait le même `chown` au démarrage du conteneur, puis passe sous l’utilisateur `app`. Ne pas poser `user:` dans le compose backend.
 

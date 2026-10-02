@@ -443,6 +443,7 @@ jobs:
              && docker compose -f docker-compose.test.yml --project-name elykia-test --env-file /opt/elykia/test/.env down \
              && { [ ! -f docker-compose.customer-space-test.yml ] \
                   || CUSTOMER_SPACE_IMAGE=unused docker compose -f docker-compose.customer-space-test.yml --project-name customer-space-test --env-file /opt/elykia/test/.env down; }"
+          echo "Test stack stopped. Restart it on the server with: $TEST_PATH/deploy/redeploy-stack.sh test"
 
       - name: Cleanup
         if: always()

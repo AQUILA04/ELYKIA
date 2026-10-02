@@ -88,6 +88,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Inscription tontine (desktop) : l’estimation du récapitulatif tient compte de la date du jour et de la fin de session (même logique que le carnet de mises mensuelles), au lieu d’afficher toujours une année complète.
 - Détail tontine (desktop) : le carnet et la progression utilisent le nombre réel de mois du membre, et non un fixe « 10 mois ».
 
+## Docs & Infra — 2026-10-02 (relance stack test)
+
+### Added
+
+- **Deploy —** `redeploy-stack.sh [-fu] <env>` relance en une commande toutes les stacks d’un environnement (principale, espace client web, site) avec les images déjà enregistrées dans `/opt/elykia/<env>/.env` — à utiliser après l’arrêt de la stack test par la promotion prod, qui laissait l’espace client web test hors ligne.
+
+### Changed
+
+- **Deploy —** `deploy-website.sh` enregistre `WEBSITE_IMAGE` dans le `.env` de l’environnement pour que le site puisse être relancé sans la CI.
+- **CI/CD —** l’étape « Stop test stack after promote » affiche la commande de relance de la stack test.
+- **Docs —** `deploy/EXPLOITATION.md` : composition d’un environnement (stacks principale, espace client web, site), relance complète via `redeploy-stack.sh`, arrêt et démarrage de l’espace client web seul ; les commandes `docker compose` existantes sont signalées comme limitées à la stack principale.
+
 ## Frontend — [2.26.4] — 2026-10-01
 
 ### Fixed
