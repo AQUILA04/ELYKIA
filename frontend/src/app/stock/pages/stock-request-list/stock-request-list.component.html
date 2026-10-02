@@ -152,7 +152,12 @@
                   title="Sélectionner la demande">
               </td>
               <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
-              <td><span class="col-ref-main">{{ req.reference || '—' }}</span></td>
+              <td>
+                <span class="col-ref-main">{{ req.reference || '—' }}</span>
+                <span class="linked-orders" *ngIf="req.linkedOrderReferences?.length">
+                  Commandes liées : {{ req.linkedOrderReferences!.join(', ') }}
+                </span>
+              </td>
               <td><span class="col-date">{{ req.requestDate | date:'dd/MM/yyyy' }}</span></td>
               <td><span class="col-date">{{ (req.deliveryDate | date:'dd/MM/yyyy') || '—' }}</span></td>
               <td>{{ req.collector }}</td>
@@ -230,6 +235,9 @@
           <p><strong>Date demande :</strong> {{ selectedRequest.requestDate | date:'dd/MM/yyyy' }}</p>
           <p><strong>Date validation :</strong> {{ (selectedRequest.validationDate | date:'dd/MM/yyyy') || '—' }}</p>
           <p><strong>Date livraison :</strong> {{ (selectedRequest.deliveryDate | date:'dd/MM/yyyy') || '—' }}</p>
+          <p *ngIf="selectedRequest.linkedOrderReferences?.length">
+            <strong>Commandes liées :</strong> {{ selectedRequest.linkedOrderReferences!.join(', ') }}
+          </p>
         </div>
         <div class="detail-status">
           <p><strong>Statut :</strong>

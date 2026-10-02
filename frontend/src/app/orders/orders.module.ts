@@ -47,6 +47,7 @@ import { OrderStatusBadgeComponent } from './components/order-status-badge/order
 import { OrderConfirmationModalComponent } from './components/modals/order-confirmation-modal/order-confirmation-modal.component';
 import { OrderSellModalComponent } from './components/modals/order-sell-modal/order-sell-modal.component';
 import { OrderDeleteModalComponent } from './components/modals/order-delete-modal/order-delete-modal.component';
+import { OrderStockRequestModalComponent } from './components/modals/order-stock-request-modal/order-stock-request-modal.component';
 
 // Composants utilitaires
 import { EmptyStateComponent } from './components/empty-state/empty-state.component';
@@ -73,6 +74,7 @@ import { OrderService } from './services/order.service';
     OrderConfirmationModalComponent,
     OrderSellModalComponent,
     OrderDeleteModalComponent,
+    OrderStockRequestModalComponent,
     
     // Composants utilitaires
     EmptyStateComponent,

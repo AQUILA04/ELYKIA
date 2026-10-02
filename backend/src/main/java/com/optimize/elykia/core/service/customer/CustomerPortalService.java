@@ -20,6 +20,7 @@ import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.OrderStatus;
+import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
 import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
@@ -487,7 +488,7 @@ public class CustomerPortalService {
             return oi;
         }).collect(Collectors.toSet());
         dto.setItems(items);
-        Order order = orderService.createOrder(dto);
+        Order order = orderService.createOrder(dto, OrderSource.CUSTOMER_SPACE);
         return CustomerOrderResponse.builder()
                 .orderId(String.valueOf(order.getId()))
                 .reference("CMD-" + order.getId())

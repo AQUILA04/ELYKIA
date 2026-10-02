@@ -12,7 +12,7 @@
 
     <div class="page-header-card a2">
       <div class="header-card-top">
-        <span class="header-surtitle">GESTION DES COMMANDES</span>
+        <span class="header-surtitle">{{ pageSurtitle }}</span>
         <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
       </div>
       <div class="header-card-main">
@@ -23,7 +23,7 @@
             <path d="M3 6h18"/>
             <path d="M16 10a4 4 0 0 1-8 0"/>
           </svg>
-          <h1 class="page-title">Commandes</h1>
+          <h1 class="page-title">{{ pageTitle }}</h1>
         </div>
         <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="(state$ | async)?.loading">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -68,7 +68,7 @@
             <span>Rapport de réapprovisionnement</span>
           </button>
         </mat-menu>
-        <button type="button" class="btn-primary" (click)="createOrder()">
+        <button type="button" class="btn-primary" *ngIf="!onlineMode" (click)="createOrder()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
           Créer une commande
         </button>
@@ -102,6 +102,8 @@
               [orders]="(filteredOrders$ | async) || []"
               [loading]="(state$ | async)?.loading || false"
               [selectable]="true"
+              [onlineMode]="onlineMode"
+              [showOnlineBadge]="!onlineMode"
               [selectedOrderIds]="selectedOrderIds"
               (selectionChange)="onSelectionChange($event)"
               (actionClick)="onOrderAction($event)"
@@ -135,6 +137,7 @@
     [selectedOrders]="selectedOrders"
     [visible]="selectedOrders.length > 0"
     [loading]="(state$ | async)?.loading || false"
+    [onlineMode]="onlineMode"
     (bulkAction)="onBulkAction($event)"
     (clearSelection)="onClearSelection()">
   </app-order-action-bar>

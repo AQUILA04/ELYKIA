@@ -18,6 +18,7 @@ export interface Order {
   readonly totalAmount: number;
   readonly totalPurchasePrice?: number;
   readonly status: OrderStatus;
+  readonly source?: OrderSource;
   readonly items?: readonly OrderItem[];
   readonly operationConsentCode?: string | null;
   readonly confirmedAmount?: number;
@@ -26,6 +27,13 @@ export interface Order {
   readonly updatedAt?: string;
   readonly createdBy?: string;
   readonly commercial?: string;
+  readonly activeStockRequest?: ActiveStockRequestInfo | null;
+}
+
+export interface ActiveStockRequestInfo {
+  readonly id: number;
+  readonly reference: string;
+  readonly status: string;
 }
 
 export interface OrderItem {
@@ -98,6 +106,11 @@ export enum OrderStatus {
   SOLD = 'SOLD'
 }
 
+export enum OrderSource {
+  STAFF = 'STAFF',
+  CUSTOMER_SPACE = 'CUSTOMER_SPACE'
+}
+
 export enum OrderAction {
   VIEW = 'view',
   EDIT = 'edit',
@@ -105,7 +118,8 @@ export enum OrderAction {
   ACCEPT = 'accept',
   DENY = 'deny',
   SELL = 'sell',
-  CANCEL = 'cancel'
+  CANCEL = 'cancel',
+  STOCK_REQUEST = 'stock_request'
 }
 
 // DTOs pour les API calls
@@ -132,6 +146,7 @@ export interface UpdateOrderStatusDto {
 // Interfaces pour les filtres et la recherche
 export interface OrderFilters {
   status?: OrderStatus;
+  source?: OrderSource;
   clientName?: string;
   commercial?: string;
   dateFrom?: string;
@@ -248,10 +263,10 @@ export const ORDER_VALIDATION_MESSAGES = {
 // Labels des statuts
 export const ORDER_STATUS_LABELS = {
   [OrderStatus.PENDING]: 'En Attente',
-  [OrderStatus.ACCEPTED]: 'Acceptée',
+  [OrderStatus.ACCEPTED]: 'Validée',
   [OrderStatus.DENIED]: 'Refusée',
   [OrderStatus.CANCEL]: 'Annulée',
-  [OrderStatus.SOLD]: 'Vendue'
+  [OrderStatus.SOLD]: 'Livrée'
 } as const;
 
 // Couleurs des statuts
@@ -273,14 +288,14 @@ export const DEFAULT_STATUS_TABS: StatusTabConfig[] = [
   },
   {
     status: OrderStatus.ACCEPTED,
-    label: 'Acceptées',
+    label: 'Validées',
     icon: 'check_circle',
     color: 'primary'
   },
   {
     status: OrderStatus.SOLD,
-    label: 'Vendues',
-    icon: 'monetization_on',
+    label: 'Livrées',
+    icon: 'local_shipping',
     color: 'success'
   },
   {
@@ -338,29 +353,43 @@ export const canSellOrder = (status: OrderStatus): boolean => {
   return status === OrderStatus.ACCEPTED;
 };
 
-export const getAvailableActions = (status: OrderStatus): OrderAction[] => {
+export const canCreateStockRequest = (order: { status: OrderStatus; activeStockRequest?: ActiveStockRequestInfo | null }): boolean => {
+  return (order.status === OrderStatus.PENDING || order.status === OrderStatus.ACCEPTED)
+    && !order.activeStockRequest;
+};
+
+export const getAvailableActions = (
+  status: OrderStatus,
+  options?: { onlineMode?: boolean; hasActiveStockRequest?: boolean }
+): OrderAction[] => {
   const actions: OrderAction[] = [OrderAction.VIEW];
-  
-  if (canModifyOrder(status)) {
+  const onlineMode = options?.onlineMode === true;
+  const hasActiveStockRequest = options?.hasActiveStockRequest === true;
+
+  if (canModifyOrder(status) && !onlineMode) {
     actions.push(OrderAction.EDIT);
   }
-  
+
   if (canDeleteOrder(status)) {
     actions.push(OrderAction.DELETE);
   }
-  
+
   if (canAcceptOrder(status)) {
     actions.push(OrderAction.ACCEPT, OrderAction.DENY);
   }
-  
+
+  if ((status === OrderStatus.PENDING || status === OrderStatus.ACCEPTED) && !hasActiveStockRequest) {
+    actions.push(OrderAction.STOCK_REQUEST);
+  }
+
   if (canSellOrder(status)) {
     actions.push(OrderAction.SELL);
   }
-  
+
   if (status !== OrderStatus.CANCEL && status !== OrderStatus.SOLD && status !== OrderStatus.ACCEPTED) {
     actions.push(OrderAction.CANCEL);
   }
-  
+
   return actions;
 };
 

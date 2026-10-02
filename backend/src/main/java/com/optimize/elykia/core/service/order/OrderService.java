@@ -10,15 +10,19 @@ import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.entity.sale.OrderItem;
 import com.optimize.common.securities.models.User;
+import com.optimize.elykia.core.entity.stock.StockRequestOrderLink;
 import com.optimize.elykia.core.enumaration.AppNotificationType;
+import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
+import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.repository.OrderItemRepository;
 import com.optimize.elykia.core.repository.OrderRepository;
+import com.optimize.elykia.core.repository.StockRequestOrderLinkRepository;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.customer.CustomerNotificationService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.sale.CreditService;
-import org.hibernate.Hibernate; // CORRECTION : Import nécessaire
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -29,7 +33,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.optimize.elykia.core.entity.sale.Credit;
 
@@ -38,6 +44,11 @@ import com.optimize.elykia.core.repository.OrderStatusHistoryRepository;
 @Service
 @Transactional
 public class OrderService extends GenericService<Order, Long> {
+
+    public static final List<StockRequestStatus> ACTIVE_STOCK_REQUEST_STATUSES = List.of(
+            StockRequestStatus.CREATED,
+            StockRequestStatus.VALIDATED,
+            StockRequestStatus.DELIVERED);
 
     private final OrderItemRepository orderItemRepository;
     private final ClientService clientService;
@@ -49,6 +60,7 @@ public class OrderService extends GenericService<Order, Long> {
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final AppNotificationService appNotificationService;
     private final CustomerNotificationService customerNotificationService;
+    private final StockRequestOrderLinkRepository stockRequestOrderLinkRepository;
 
     protected OrderService(OrderRepository repository,
             OrderItemRepository orderItemRepository,
@@ -60,7 +72,8 @@ public class OrderService extends GenericService<Order, Long> {
             OrderStatusHistoryRepository orderStatusHistoryRepository,
             org.springframework.context.ApplicationEventPublisher eventPublisher,
             AppNotificationService appNotificationService,
-            CustomerNotificationService customerNotificationService) {
+            CustomerNotificationService customerNotificationService,
+            StockRequestOrderLinkRepository stockRequestOrderLinkRepository) {
         super(repository);
         this.orderItemRepository = orderItemRepository;
         this.clientService = clientService;
@@ -72,6 +85,7 @@ public class OrderService extends GenericService<Order, Long> {
         this.eventPublisher = eventPublisher;
         this.appNotificationService = appNotificationService;
         this.customerNotificationService = customerNotificationService;
+        this.stockRequestOrderLinkRepository = stockRequestOrderLinkRepository;
     }
 
     @Override
@@ -79,33 +93,63 @@ public class OrderService extends GenericService<Order, Long> {
     public Order getById(Long id) {
         Order order = super.getById(id);
         if (order != null) {
-            // CORRECTION : Force le chargement de la collection "items" pour la page de
-            // détail.
             Hibernate.initialize(order.getItems());
+            enrichActiveStockRequest(List.of(order));
         }
         return order;
     }
 
     public DashboardKpiDto getOrderKpis() {
+        return getOrderKpis(null);
+    }
+
+    public DashboardKpiDto getOrderKpis(OrderSource source) {
         DashboardKpiDto dto = new DashboardKpiDto();
         LocalDateTime thirtyDaysAgo = LocalDateTime.now().minusDays(30);
         LocalDateTime now = LocalDateTime.now();
 
-        long pendingOrdersCount = getRepository().countByStatus(OrderStatus.PENDING);
+        long pendingOrdersCount = source == null
+                ? getRepository().countByStatus(OrderStatus.PENDING)
+                : getRepository().countByStatusAndSource(OrderStatus.PENDING, source);
         dto.setPendingOrders(pendingOrdersCount);
 
-        double potentialValue = getRepository().sumTotalAmountByStatus(OrderStatus.PENDING);
+        double potentialValue = source == null
+                ? getRepository().sumTotalAmountByStatus(OrderStatus.PENDING)
+                : getRepository().sumTotalAmountByStatusAndSource(OrderStatus.PENDING, source);
         dto.setPotentialValue(potentialValue);
 
-        double acceptedPipelineValue = getRepository().sumTotalAmountByStatus(OrderStatus.ACCEPTED);
+        double acceptedPipelineValue = source == null
+                ? getRepository().sumTotalAmountByStatus(OrderStatus.ACCEPTED)
+                : getRepository().sumTotalAmountByStatusAndSource(OrderStatus.ACCEPTED, source);
         dto.setAcceptedPipelineValue(acceptedPipelineValue);
 
-        long acceptedInPeriod = orderStatusHistoryRepository
-                .countByNewStatusAndChangeTimestampBetween(OrderStatus.ACCEPTED, thirtyDaysAgo, now);
-        long deniedInPeriod = orderStatusHistoryRepository.countByNewStatusAndChangeTimestampBetween(OrderStatus.DENIED,
-                thirtyDaysAgo, now);
-        long cancelledInPeriod = orderStatusHistoryRepository
-                .countByNewStatusAndChangeTimestampBetween(OrderStatus.CANCEL, thirtyDaysAgo, now);
+        long acceptedInPeriod;
+        long deniedInPeriod;
+        long cancelledInPeriod;
+        double soldValueLast30Days;
+        if (source == null) {
+            acceptedInPeriod = orderStatusHistoryRepository
+                    .countByNewStatusAndChangeTimestampBetween(OrderStatus.ACCEPTED, thirtyDaysAgo, now);
+            deniedInPeriod = orderStatusHistoryRepository
+                    .countByNewStatusAndChangeTimestampBetween(OrderStatus.DENIED, thirtyDaysAgo, now);
+            cancelledInPeriod = orderStatusHistoryRepository
+                    .countByNewStatusAndChangeTimestampBetween(OrderStatus.CANCEL, thirtyDaysAgo, now);
+            soldValueLast30Days = orderStatusHistoryRepository
+                    .sumTotalAmountForNewStatusBetween(OrderStatus.SOLD, thirtyDaysAgo, now);
+        } else {
+            acceptedInPeriod = orderStatusHistoryRepository
+                    .countByNewStatusAndSourceAndChangeTimestampBetween(
+                            OrderStatus.ACCEPTED, source, thirtyDaysAgo, now);
+            deniedInPeriod = orderStatusHistoryRepository
+                    .countByNewStatusAndSourceAndChangeTimestampBetween(
+                            OrderStatus.DENIED, source, thirtyDaysAgo, now);
+            cancelledInPeriod = orderStatusHistoryRepository
+                    .countByNewStatusAndSourceAndChangeTimestampBetween(
+                            OrderStatus.CANCEL, source, thirtyDaysAgo, now);
+            soldValueLast30Days = orderStatusHistoryRepository
+                    .sumTotalAmountForNewStatusAndSourceBetween(
+                            OrderStatus.SOLD, source, thirtyDaysAgo, now);
+        }
         long totalProcessed = acceptedInPeriod + deniedInPeriod + cancelledInPeriod;
 
         if (totalProcessed > 0) {
@@ -122,11 +166,11 @@ public class OrderService extends GenericService<Order, Long> {
             dto.setAverageOrderValue(0);
         }
 
-        double soldValueLast30Days = orderStatusHistoryRepository.sumTotalAmountForNewStatusBetween(OrderStatus.SOLD,
-                thirtyDaysAgo, now);
         dto.setSoldValueLast30Days(soldValueLast30Days);
 
-        double potentialPurchaseValue = getRepository().sumTotalPurchasePriceByStatus(OrderStatus.PENDING);
+        double potentialPurchaseValue = source == null
+                ? getRepository().sumTotalPurchasePriceByStatus(OrderStatus.PENDING)
+                : getRepository().sumTotalPurchasePriceByStatusAndSource(OrderStatus.PENDING, source);
         dto.setPotentialProfit(potentialValue - potentialPurchaseValue);
 
         return dto;
@@ -180,7 +224,7 @@ public class OrderService extends GenericService<Order, Long> {
         return updatedOrders;
     }
 
-    private void validateStatusTransition(OrderStatus oldStatus, OrderStatus newStatus) {
+    void validateStatusTransition(OrderStatus oldStatus, OrderStatus newStatus) {
         switch (oldStatus) {
             case PENDING:
                 if (newStatus != OrderStatus.ACCEPTED && newStatus != OrderStatus.DENIED
@@ -221,30 +265,46 @@ public class OrderService extends GenericService<Order, Long> {
 
     @Transactional(readOnly = true)
     public Page<Order> getAllOrders(OrderStatus status, Pageable pageable) {
+        return getAllOrders(status, null, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Order> getAllOrders(OrderStatus status, OrderSource source, Pageable pageable) {
         OrderStatus finalStatus = (status == null) ? OrderStatus.PENDING : status;
         User currentUser = userService.getCurrentUser();
         Page<Order> ordersPage;
         if (AppNotificationService.isPromoterOnly(currentUser)) {
-            ordersPage = getRepository().findByStatusAndClientCollector(
-                    finalStatus, currentUser.getUsername(), pageable);
+            if (source != null) {
+                ordersPage = getRepository().findByStatusAndSourceAndClientCollector(
+                        finalStatus, source, currentUser.getUsername(), pageable);
+            } else {
+                ordersPage = getRepository().findByStatusAndClientCollector(
+                        finalStatus, currentUser.getUsername(), pageable);
+            }
+        } else if (source != null) {
+            ordersPage = getRepository().findByStatusAndSource(finalStatus, source, pageable);
         } else {
             ordersPage = getRepository().findByStatus(finalStatus, pageable);
         }
 
-        // CORRECTION : Force le chargement de la collection "items" pour chaque
-        // commande de la page.
         ordersPage.getContent().forEach(order -> Hibernate.initialize(order.getItems()));
+        enrichActiveStockRequest(ordersPage.getContent());
 
         return ordersPage;
     }
 
     public Order createOrder(OrderDto dto) {
+        return createOrder(dto, OrderSource.STAFF);
+    }
+
+    public Order createOrder(OrderDto dto, OrderSource source) {
         Client client = clientService.getById(dto.getClientId());
 
         Order order = new Order();
         order.setClient(client);
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
+        order.setSource(source != null ? source : OrderSource.STAFF);
 
         Set<OrderItem> items = new HashSet<>();
         double totalAmount = 0.0;
@@ -282,7 +342,7 @@ public class OrderService extends GenericService<Order, Long> {
         return savedOrder;
     }
 
-    private void assertOrderPortfolioAccess(User user, Order order) {
+    void assertOrderPortfolioAccess(User user, Order order) {
         if (!AppNotificationService.isPromoterOnly(user)) {
             return;
         }
@@ -323,6 +383,33 @@ public class OrderService extends GenericService<Order, Long> {
         order.setTotalPurchasePrice(totalPurchasePrice);
 
         return super.update(order);
+    }
+
+    private void enrichActiveStockRequest(List<Order> orders) {
+        if (orders == null || orders.isEmpty() || stockRequestOrderLinkRepository == null) {
+            return;
+        }
+        List<Long> orderIds = orders.stream().map(Order::getId).filter(id -> id != null).toList();
+        if (orderIds.isEmpty()) {
+            return;
+        }
+        List<StockRequestOrderLink> links = stockRequestOrderLinkRepository
+                .findActiveByOrderIds(orderIds, ACTIVE_STOCK_REQUEST_STATUSES);
+        Map<Long, StockRequestOrderLink> byOrderId = links.stream()
+                .collect(Collectors.toMap(
+                        link -> link.getOrder().getId(),
+                        link -> link,
+                        (first, second) -> first));
+        for (Order order : orders) {
+            StockRequestOrderLink link = byOrderId.get(order.getId());
+            if (link != null && link.getStockRequest() != null) {
+                order.setActiveStockRequest(ActiveStockRequestInfo.builder()
+                        .id(link.getStockRequest().getId())
+                        .reference(link.getStockRequest().getReference())
+                        .status(link.getStockRequest().getStatus())
+                        .build());
+            }
+        }
     }
 
     @Override

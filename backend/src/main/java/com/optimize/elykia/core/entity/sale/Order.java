@@ -3,6 +3,8 @@ package com.optimize.elykia.core.entity.sale;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.optimize.common.entities.entity.BaseEntity;
 import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.core.dto.ActiveStockRequestInfo;
+import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -39,6 +41,10 @@ public class Order extends BaseEntity<String> {
     @Column(nullable = false)
     private OrderStatus status;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
+    private OrderSource source = OrderSource.STAFF;
+
     @Column(name = "operation_consent_code")
     private String operationConsentCode;
 
@@ -51,4 +57,8 @@ public class Order extends BaseEntity<String> {
     @JsonManagedReference
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<OrderItem> items;
+
+    /** Demande de stock active liée (CREATED / VALIDATED / DELIVERED), remplie en service. */
+    @Transient
+    private ActiveStockRequestInfo activeStockRequest;
 }

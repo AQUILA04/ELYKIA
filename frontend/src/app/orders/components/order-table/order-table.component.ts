@@ -15,6 +15,7 @@ import {
   OrderAction,
   OrderTableColumn,
   OrderStatus,
+  OrderSource,
   getAvailableActions,
   formatCurrency,
   formatDate,
@@ -50,6 +51,8 @@ export class OrderTableComponent implements OnChanges {
   @Input() pageSizeOptions: number[] = [5, 10, 25, 50];
   @Input() columns: OrderTableColumn[] = [];
   @Input() selectedOrderIds: number[] = [];
+  @Input() onlineMode: boolean = false;
+  @Input() showOnlineBadge: boolean = true;
 
   @Output() selectionChange = new EventEmitter<OrderSelectionChange>();
   @Output() actionClick = new EventEmitter<OrderTableAction>();
@@ -142,7 +145,10 @@ export class OrderTableComponent implements OnChanges {
   }
 
   getOrderActions(order: Order): OrderAction[] {
-    return getAvailableActions(order.status);
+    return getAvailableActions(order.status, {
+      onlineMode: this.onlineMode,
+      hasActiveStockRequest: !!order.activeStockRequest
+    });
   }
 
   getActionLabel(action: OrderAction): string {
@@ -150,10 +156,11 @@ export class OrderTableComponent implements OnChanges {
       [OrderAction.VIEW]: 'Voir',
       [OrderAction.EDIT]: 'Modifier',
       [OrderAction.DELETE]: 'Supprimer',
-      [OrderAction.ACCEPT]: 'Accepter',
+      [OrderAction.ACCEPT]: this.onlineMode ? 'Valider' : 'Accepter',
       [OrderAction.DENY]: 'Refuser',
-      [OrderAction.SELL]: 'Vendre',
-      [OrderAction.CANCEL]: 'Annuler'
+      [OrderAction.SELL]: this.onlineMode ? 'Marquer livrée' : 'Vendre',
+      [OrderAction.CANCEL]: 'Annuler',
+      [OrderAction.STOCK_REQUEST]: 'Demande stock'
     };
     return labels[action] || action;
   }
@@ -162,6 +169,7 @@ export class OrderTableComponent implements OnChanges {
     switch (action) {
       case OrderAction.ACCEPT:
       case OrderAction.SELL:
+      case OrderAction.STOCK_REQUEST:
         return 'btn-success';
       case OrderAction.DELETE:
       case OrderAction.DENY:
@@ -170,6 +178,10 @@ export class OrderTableComponent implements OnChanges {
       default:
         return '';
     }
+  }
+
+  isOnlineOrder(order: Order): boolean {
+    return order.source === OrderSource.CUSTOMER_SPACE;
   }
 
   formatCellValue(order: Order, column: OrderTableColumn): string {

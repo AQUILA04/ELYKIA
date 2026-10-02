@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -16,6 +18,7 @@ public class StockRequestListDto {
     private LocalDate validationDate;
     private LocalDate deliveryDate;
     private StockRequestStatus status;
+    private List<String> linkedOrderReferences = new ArrayList<>();
 
     public StockRequestListDto(
             Long id,

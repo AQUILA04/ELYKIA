@@ -9,6 +9,26 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.27.0] — 2026-10-02
+
+### Added
+
+- Sous-menu **Commandes** sous **Services en ligne** (`/orders/online`) : liste dédiée aux commandes passées depuis l’Espace Client.
+- Action réutilisable **Faire une demande de stock** (détail unitaire et multi-sélection) sur la page Commandes et sur Commandes en ligne, avec récapitulatif par commercial.
+- Badge **En ligne** et référence de demande de stock liée sur la liste des commandes ; mention **Commandes liées** sur les demandes de sortie.
+
+### Changed
+
+- Libellés adaptés sur les commandes en ligne : Valider / Validée, Marquer comme livrée / Livrée.
+
+## Backend — [1.27.0] — 2026-10-02
+
+### Added
+
+- Colonne `orders.source` (`STAFF` / `CUSTOMER_SPACE`) avec backfill depuis `customer_user_mapping` ; filtre `source` sur `GET /api/v1/orders` et `/kpis`.
+- Table `stock_request_order` et endpoint `POST /api/stock-requests/from-orders` : création de demandes de sortie regroupées par commercial à partir d’une ou plusieurs commandes.
+- Validation d’une demande de stock liée : les commandes encore `PENDING` passent automatiquement à `ACCEPTED` ; copie des liens sur reliquat de livraison partielle.
+
 ## Frontend — [2.26.4] — 2026-10-01
 
 ### Fixed

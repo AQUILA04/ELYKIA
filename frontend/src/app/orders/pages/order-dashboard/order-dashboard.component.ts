@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ViewEncapsulation } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { takeUntil, map, startWith } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
@@ -10,6 +10,7 @@ import {
   Order,
   OrderKPI,
   OrderStatus,
+  OrderSource,
   OrderState,
   KPICardConfig,
   StatusTabConfig,
@@ -19,8 +20,11 @@ import {
 import { OrderTableAction, OrderSelectionChange } from '../../components/order-table/order-table.component';
 import { BulkAction } from '../../components/order-action-bar/order-action-bar.component';
 import { OrderDeleteModalComponent } from '../../components/modals/order-delete-modal/order-delete-modal.component';
-// CORRECTION : Import manquant ajouté ici
 import { OrderConfirmationModalComponent } from '../../components/modals/order-confirmation-modal/order-confirmation-modal.component';
+import {
+  OrderStockRequestModalComponent,
+  OrderStockRequestModalResult
+} from '../../components/modals/order-stock-request-modal/order-stock-request-modal.component';
 import {ToastrService} from "ngx-toastr";
 
 @Component({
@@ -37,6 +41,9 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
 
   currentDate = new Date();
   lastUpdate = new Date();
+  onlineMode = false;
+  pageTitle = 'Commandes';
+  pageSurtitle = 'GESTION DES COMMANDES';
 
   // Observables
   state$: Observable<OrderState>;
@@ -52,6 +59,7 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   constructor(
     private orderService: OrderService,
     private router: Router,
+    private route: ActivatedRoute,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
     private toastr: ToastrService
@@ -61,6 +69,11 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.onlineMode = this.route.snapshot.data['source'] === OrderSource.CUSTOMER_SPACE;
+    if (this.onlineMode) {
+      this.pageTitle = 'Commandes en ligne';
+      this.pageSurtitle = 'SERVICES EN LIGNE';
+    }
     this.loadInitialData();
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
@@ -105,7 +118,7 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   }
 
   loadInitialData(): void {
-    this.orderService.getKPIs().pipe(
+    this.orderService.getKPIs(this.onlineMode ? OrderSource.CUSTOMER_SPACE : undefined).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: () => {
@@ -119,7 +132,11 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   }
 
   private loadOrders(): void {
-    const filters = this.currentTab !== 'ALL' ? { status: this.currentTab } : {};
+    const filters: { status?: OrderStatus; source?: OrderSource } =
+      this.currentTab !== 'ALL' ? { status: this.currentTab } : {};
+    if (this.onlineMode) {
+      filters.source = OrderSource.CUSTOMER_SPACE;
+    }
     this.orderService.getOrders(0, 50, filters).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
@@ -194,6 +211,7 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
       case OrderAction.DENY: this.denyOrder(order); break;
       case OrderAction.SELL: this.sellOrder(order); break;
       case OrderAction.CANCEL: this.cancelOrder(order); break;
+      case OrderAction.STOCK_REQUEST: this.createStockRequest([order]); break;
     }
   }
 
@@ -205,6 +223,7 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
       case OrderAction.DELETE: this.deleteOrders(orders); break;
       case OrderAction.SELL: this.sellOrders(orders); break;
       case OrderAction.CANCEL: this.cancelOrders(orders); break;
+      case OrderAction.STOCK_REQUEST: this.createStockRequest(orders); break;
     }
   }
 
@@ -218,10 +237,14 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   }
 
   private viewOrder(order: Order): void {
-    this.router.navigate(['/orders/details', order.id]);
+    const base = this.onlineMode ? '/orders/online/details' : '/orders/details';
+    this.router.navigate([base, order.id]);
   }
 
   private editOrder(order: Order): void {
+    if (this.onlineMode) {
+      return;
+    }
     this.router.navigate(['/orders/edit', order.id]);
   }
 
@@ -249,7 +272,7 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   }
 
   private acceptOrder(order: Order): void {
-    this.updateOrderStatus([order.id], OrderStatus.ACCEPTED, 'acceptée');
+    this.updateOrderStatus([order.id], OrderStatus.ACCEPTED, this.onlineMode ? 'validée' : 'acceptée');
   }
 
   private denyOrder(order: Order): void {
@@ -257,19 +280,25 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   }
 
   private sellOrder(order: Order): void {
+    const title = this.onlineMode ? 'Marquer comme livrée' : 'Transformer en vente';
+    const message = this.onlineMode
+      ? `Marquer la commande #${order.id} comme livrée et créer la vente ?`
+      : `Êtes-vous sûr de vouloir transformer la commande #${order.id} en vente ?`;
     const dialogRef = this.dialog.open(OrderConfirmationModalComponent, {
       width: '400px',
-      data: { title: 'Transformer en vente', message: `Êtes-vous sûr de vouloir transformer la commande #${order.id} en vente ?` }
+      data: { title, message }
     });
     dialogRef.afterClosed().subscribe(result => {
         if(result) {
             this.orderService.sellOrder(order.id).pipe(takeUntil(this.destroy$)).subscribe({
                 next: () => {
-                    this.showSuccess('Commande transformée en vente avec succès');
+                    this.showSuccess(this.onlineMode
+                      ? 'Commande marquée comme livrée'
+                      : 'Commande transformée en vente avec succès');
                     this.loadOrders();
                 },
                 error: (error) => {
-                    this.showError('Erreur lors de la transformation en vente');
+                    this.showError(error?.error?.message || 'Erreur lors de la transformation en vente');
                 }
             });
         }
@@ -282,7 +311,7 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
 
   private acceptOrders(orders: Order[]): void {
     const orderIds = orders.map(o => o.id);
-    this.updateOrderStatus(orderIds, OrderStatus.ACCEPTED, 'acceptées');
+    this.updateOrderStatus(orderIds, OrderStatus.ACCEPTED, this.onlineMode ? 'validées' : 'acceptées');
   }
 
   private denyOrders(orders: Order[]): void {
@@ -310,22 +339,61 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   }
 
   private sellOrders(orders: Order[]): void {
+      const title = this.onlineMode ? 'Marquer comme livrées' : 'Transformer en ventes';
+      const message = this.onlineMode
+        ? `Marquer ${orders.length} commande(s) comme livrée(s) et créer les ventes ?`
+        : `Êtes-vous sûr de vouloir transformer ${orders.length} commande(s) en vente(s) ?`;
       const dialogRef = this.dialog.open(OrderConfirmationModalComponent, {
           width: '400px',
-          data: { title: 'Transformer en ventes', message: `Êtes-vous sûr de vouloir transformer ${orders.length} commande(s) en vente(s) ?` }
+          data: { title, message }
       });
       dialogRef.afterClosed().subscribe(result => {
           if(result) {
               const sellPromises = orders.map(order => this.orderService.sellOrder(order.id).toPromise());
               Promise.all(sellPromises).then(() => {
-                  this.showSuccess(`${orders.length} commande(s) transformée(s) en vente avec succès`);
+                  this.showSuccess(this.onlineMode
+                    ? `${orders.length} commande(s) marquée(s) comme livrée(s)`
+                    : `${orders.length} commande(s) transformée(s) en vente avec succès`);
                   this.loadOrders();
                   this.onClearSelection();
               }).catch((err: any) => {
-                  this.showError(err.error?.messgae ?? err.message ?? 'Erreur lors de la transformation en ventes');
+                  this.showError(err.error?.message ?? err.message ?? 'Erreur lors de la transformation en ventes');
               });
           }
       });
+  }
+
+  private createStockRequest(orders: Order[]): void {
+    if (!orders.length) {
+      return;
+    }
+    const dialogRef = this.dialog.open(OrderStockRequestModalComponent, {
+      width: '560px',
+      data: { orders }
+    });
+    dialogRef.afterClosed().subscribe((result: OrderStockRequestModalResult | undefined) => {
+      if (!result?.confirmed) {
+        return;
+      }
+      const orderIds = orders.map(o => o.id);
+      this.orderService.createStockRequestFromOrders(orderIds, result.forNextMonth).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe({
+        next: (created) => {
+          const count = Array.isArray(created) ? created.length : 1;
+          this.showSuccess(
+            count > 1
+              ? `${count} demandes de stock créées`
+              : 'Demande de stock créée avec succès'
+          );
+          this.loadOrders();
+          this.onClearSelection();
+        },
+        error: (err) => {
+          this.showError(err?.error?.message || err?.message || 'Erreur lors de la création de la demande de stock');
+        }
+      });
+    });
   }
 
   private cancelOrders(orders: Order[]): void {
