@@ -21,6 +21,19 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Libellés adaptés sur les commandes en ligne : Valider / Validée, Marquer comme livrée / Livrée.
 
+## Backend — [1.27.1] — 2026-10-03
+
+### Fixed
+
+- Rapport journalier : une adhésion tontine, y compris l’auto-inscription depuis l’Espace Client, est comptée dans le rapport du commercial tontine du client et non plus dans celui de l’auteur de la saisie (plus de rapport créé au nom d’un client).
+- Inscription tontine refusée si le client n’a pas de commercial tontine, avec le message « Le client n'a pas de commercial tontine associé : impossible d'enregistrer l'adhésion. » (même règle que pour les collectes).
+
+## Docs & Infra — 2026-10-03
+
+### Changed
+
+- **Docs —** Guide commercial (tontine web et application mobile) : commercial tontine obligatoire pour inscrire un membre, et adhésion comptée dans le rapport journalier du commercial tontine ; index Elykia IA et guide HTML du frontend régénérés.
+
 ## Backend — [1.27.0] — 2026-10-02
 
 ### Added
