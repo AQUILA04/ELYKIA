@@ -212,7 +212,8 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
         this.photoPreviewIsPdf = type.includes('pdf');
         this.photoPreviewObjectUrl = URL.createObjectURL(blob);
         this.photoPreviewUrl = this.photoPreviewObjectUrl;
-        this.photoPreviewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.photoPreviewObjectUrl);
+        // blob: from authenticated API stream — required for iframe[src] PDF preview
+        this.photoPreviewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.photoPreviewObjectUrl); // NOSONAR
         this.photoPreviewTitle = `Justificatif dépôt — ${row.fullName || row.clientId}`;
         this.cdr.markForCheck();
       },

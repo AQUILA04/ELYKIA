@@ -48,6 +48,7 @@ class CustomerMobileMoneySubmissionAdminServiceTest {
     @Mock private AppNotificationService appNotificationService;
     @Mock private CreditTimelineService creditTimelineService;
     @Mock private CustomerNotificationService customerNotificationService;
+    @Mock private PaymentProofService paymentProofService;
 
     @InjectMocks
     private CustomerMobileMoneySubmissionAdminService service;

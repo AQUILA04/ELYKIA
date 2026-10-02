@@ -9,6 +9,24 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.27.1] — 2026-10-02
+
+### Fixed
+
+- Aperçu PDF des justificatifs : annotation Sonar `NOSONAR` sur `bypassSecurityTrustResourceUrl` pour les blob URLs issus du flux API authentifié (aligné sur le pattern photos client).
+
+## Backend — [1.27.1] — 2026-10-02
+
+### Fixed
+
+- Tests unitaires admin / onboarding : mock `PaymentProofService` manquant après injection du service de justificatifs (`ClientRegistrationAdminServiceTest`, `CustomerMobileMoneySubmissionAdminServiceTest`, `CustomerOnboardingServiceTest`).
+
+## Customer-space — [0.12.1] — 2026-10-02
+
+### Fixed
+
+- Sélecteur de justificatif : association `label`/`id` sur les champs fichier cachés (accessibilité Sonar).
+
 ## Frontend — [2.27.0] — 2026-10-02
 
 ### Added

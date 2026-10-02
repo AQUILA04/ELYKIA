@@ -149,7 +149,8 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
         const type = contentType || blob.type || '';
         this.proofPreviewIsPdf = type.includes('pdf');
         this.proofPreviewUrl = URL.createObjectURL(blob);
-        this.proofPreviewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.proofPreviewUrl);
+        // blob: from authenticated API stream — required for iframe[src] PDF preview
+        this.proofPreviewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.proofPreviewUrl); // NOSONAR
         this.proofPreviewTitle = title;
         this.proofLoading = false;
       },

@@ -4,18 +4,26 @@
     Ajoutez une capture du message ou le reçu PDF. La référence sera proposée automatiquement.
   </p>
 
+  <label class="visually-hidden" [attr.for]="testIdPrefix + '-image-input'">
+    Capture ou image du justificatif
+  </label>
   <input
     #imageInput
     type="file"
     accept="image/*"
     class="visually-hidden"
+    [id]="testIdPrefix + '-image-input'"
     [attr.data-testid]="testIdPrefix + '-image-input'"
     (change)="onImageSelected($event)" />
+  <label class="visually-hidden" [attr.for]="testIdPrefix + '-pdf-input'">
+    Reçu PDF du justificatif
+  </label>
   <input
     #pdfInput
     type="file"
     accept="application/pdf,.pdf"
     class="visually-hidden"
+    [id]="testIdPrefix + '-pdf-input'"
     [attr.data-testid]="testIdPrefix + '-pdf-input'"
     (change)="onPdfSelected($event)" />
 
