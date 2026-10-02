@@ -73,6 +73,67 @@ describe('TontineJoinPage', () => {
     expect(fixture.componentInstance.monthlyEstimate).toBe(15500);
   });
 
+  it('estimates remaining months from today to session end, capped at 10', async () => {
+    jasmine.clock().install();
+    try {
+      jasmine.clock().mockDate(new Date(2026, 5, 15)); // 15 juin 2026
+      await enterPage();
+      fixture.componentInstance.selectShortcut(100);
+      // juin → novembre inclus = 6 mois
+      expect(fixture.componentInstance.remainingSessionMonths).toBe(6);
+      expect(fixture.componentInstance.sessionEstimate).toBe(6 * 31 * 100);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('uses full session months when joining before session start', async () => {
+    jasmine.clock().install();
+    try {
+      jasmine.clock().mockDate(new Date(2026, 0, 10)); // 10 janv 2026, session démarre le 1er fév
+      await enterPage();
+      // fév → nov = 10 mois
+      expect(fixture.componentInstance.remainingSessionMonths).toBe(10);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('returns 0 months when joining after session end', async () => {
+    jasmine.clock().install();
+    try {
+      jasmine.clock().mockDate(new Date(2026, 11, 1)); // 1er déc 2026
+      await enterPage();
+      expect(fixture.componentInstance.remainingSessionMonths).toBe(0);
+      expect(fixture.componentInstance.sessionEstimate).toBe(0);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
+  it('caps remaining months at 10 for a long session', async () => {
+    jasmine.clock().install();
+    try {
+      jasmine.clock().mockDate(new Date(2026, 0, 1));
+      api.getCurrentTontineSession.and.returnValue(
+        of({
+          available: true,
+          year: 2026,
+          startDate: '2026-01-01',
+          endDate: '2027-06-30',
+          status: 'ACTIVE',
+          joinable: true,
+          alreadyMember: false,
+          minDailyStake: 100,
+        }),
+      );
+      await enterPage();
+      expect(fixture.componentInstance.remainingSessionMonths).toBe(10);
+    } finally {
+      jasmine.clock().uninstall();
+    }
+  });
+
   it('prefers Mixx then Moov then fallback for deposit destination', async () => {
     await enterPage();
     expect(fixture.componentInstance.depositDestinationNumber).toBe('90001111');

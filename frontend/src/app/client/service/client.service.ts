@@ -120,7 +120,8 @@ export class ClientService {
     search: string = '',
     tontine = false,
     collectorType?: string,
-    registrationSource?: 'STAFF' | 'CUSTOMER_SPACE' | 'ALL' | null
+    registrationSource?: 'STAFF' | 'CUSTOMER_SPACE' | 'ALL' | null,
+    activeOnly?: boolean
   ): Observable<any> {
     const headers = this.getHeader();
     let params = new HttpParams()
@@ -136,6 +137,10 @@ export class ClientService {
 
     if (registrationSource && registrationSource !== 'ALL') {
       params = params.set('registrationSource', registrationSource);
+    }
+
+    if (activeOnly === true) {
+      params = params.set('activeOnly', 'true');
     }
 
     // Si une recherche est en cours, on utilise l'endpoint POST /elasticsearch
@@ -184,7 +189,7 @@ export class ClientService {
     });
   }
 
-  getClientByCommercial(username: string, page: number, size: number, sort: string, searchTerm: string = ''): Observable<any> {
+  getClientByCommercial(username: string, page: number, size: number, sort: string, searchTerm: string = '', activeOnly?: boolean): Observable<any> {
     const headers = this.getHeader();
     let params = new HttpParams()
       .set('page', page.toString())
@@ -193,6 +198,10 @@ export class ClientService {
 
     if (searchTerm) {
       params = params.set('search', searchTerm);
+    }
+
+    if (activeOnly === true) {
+      params = params.set('activeOnly', 'true');
     }
 
     return this.http.get<any>(`${this.apiUrl}/by-commercial/${username}`, { params, headers });

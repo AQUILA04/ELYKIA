@@ -18,10 +18,10 @@
       <app-elyk-kpi-card label="Total contribué" [value]="fmt(detail()!.totalContribution)" icon="wallet-outline"></app-elyk-kpi-card>
       <app-elyk-kpi-card label="Disponible" [value]="fmt(detail()!.availableContribution)" icon="checkmark-circle-outline" variant="success"></app-elyk-kpi-card>
       <app-elyk-kpi-card label="Mise journalière" [value]="fmt(detail()!.dailyStake)" icon="cash-outline" variant="gold"></app-elyk-kpi-card>
-      <app-elyk-kpi-card label="Progression" [value]="detail()!.validatedMonths + '/10'" [hint]="progressPercent() + ' %'" icon="calendar-outline"></app-elyk-kpi-card>
+      <app-elyk-kpi-card label="Progression" [value]="detail()!.validatedMonths + '/' + memberMonths()" [hint]="progressPercent() + ' %'" icon="calendar-outline"></app-elyk-kpi-card>
     </div>
     <div class="desk-card" style="margin-top:24px;">
-      <h2 style="margin:0 0 16px;font-size:16px;">Carnet des 10 mois</h2>
+      <h2 style="margin:0 0 16px;font-size:16px;">Carnet des {{ memberMonths() }} mois</h2>
       <app-tontine-monthly-pills [summaries]="detail()!.monthlySummaries" data-testid="e2e-tontine-carnet-pills"></app-tontine-monthly-pills>
     </div>
   </ng-container>

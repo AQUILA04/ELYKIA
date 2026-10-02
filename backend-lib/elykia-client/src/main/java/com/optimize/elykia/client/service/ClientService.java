@@ -611,25 +611,31 @@ public class ClientService extends GenericService<Client, Long> {
                         + conflict.getFirstname() + " " + conflict.getLastname() + ")");
     }
 
-    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(com.optimize.elykia.client.config.ClientCacheKeyHelper).commercialFilterKey(#username) + '-' + T(java.util.Objects).toString(#collectorType, '') + '-' + T(java.util.Objects).toString(#registrationSource, '') + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
+    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_PAGE, key = "'list-' + T(com.optimize.elykia.client.config.ClientCacheKeyHelper).commercialFilterKey(#username) + '-' + T(java.util.Objects).toString(#collectorType, '') + '-' + T(java.util.Objects).toString(#registrationSource, '') + '-' + T(java.util.Objects).toString(#tontine, '') + '-' + T(java.util.Objects).toString(#mobile, '') + '-' + T(java.util.Objects).toString(#activeOnly, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
     public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, String collectorType,
-            ClientRegistrationSource registrationSource, Pageable pageable) {
+            ClientRegistrationSource registrationSource, Boolean activeOnly, Pageable pageable) {
         return getRepository().findClientsDto(
                 ClientCacheKeyHelper.resolveCommercialUsername(username),
                 tontine,
                 mobile,
                 collectorType,
                 registrationSource,
+                activeOnly,
                 pageable);
     }
 
     public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, String collectorType,
+            ClientRegistrationSource registrationSource, Pageable pageable) {
+        return getAll(username, tontine, mobile, collectorType, registrationSource, null, pageable);
+    }
+
+    public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, String collectorType,
             Pageable pageable) {
-        return getAll(username, tontine, mobile, collectorType, null, pageable);
+        return getAll(username, tontine, mobile, collectorType, null, null, pageable);
     }
 
     public Page<ClientRespDto> getAll(String username, Boolean tontine, Boolean mobile, Pageable pageable) {
-        return getAll(username, tontine, mobile, null, null, pageable);
+        return getAll(username, tontine, mobile, null, null, null, pageable);
     }
 
     @Transactional(readOnly = true)
@@ -678,10 +684,14 @@ public class ClientService extends GenericService<Client, Long> {
                 State.ENABLED);
     }
 
-    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, key = "'commercial-' + #username + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
-    public Page<ClientRespDto> getAllClientByCollector(String username, Pageable pageable) {
+    @Cacheable(cacheNames = ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE, key = "'commercial-' + #username + '-' + T(java.util.Objects).toString(#activeOnly, '') + '-' + #pageable.pageNumber + '-' + #pageable.pageSize + '-' + T(com.optimize.common.entities.util.PageableCacheKeyHelper).sortKey(#pageable.sort)")
+    public Page<ClientRespDto> getAllClientByCollector(String username, Boolean activeOnly, Pageable pageable) {
         return getRepository().findByCollectorAndClientTypeAndState(username, ClientType.CLIENT, State.ENABLED,
-                pageable);
+                activeOnly, pageable);
+    }
+
+    public Page<ClientRespDto> getAllClientByCollector(String username, Pageable pageable) {
+        return getAllClientByCollector(username, false, pageable);
     }
 
     @Transactional
@@ -944,17 +954,23 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     public Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType,
+            ClientRegistrationSource registrationSource, Boolean activeOnly, Pageable pageable) {
+        return getRepository().elasticsearch(keyword, username, tontine, collectorType, registrationSource, activeOnly,
+                pageable);
+    }
+
+    public Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType,
             ClientRegistrationSource registrationSource, Pageable pageable) {
-        return getRepository().elasticsearch(keyword, username, tontine, collectorType, registrationSource, pageable);
+        return elasticsearch(keyword, username, tontine, collectorType, registrationSource, null, pageable);
     }
 
     public Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType,
             Pageable pageable) {
-        return elasticsearch(keyword, username, tontine, collectorType, null, pageable);
+        return elasticsearch(keyword, username, tontine, collectorType, null, null, pageable);
     }
 
     public Page<Client> elasticsearch(String keyword, String username, Boolean tontine, Pageable pageable) {
-        return elasticsearch(keyword, username, tontine, null, null, pageable);
+        return elasticsearch(keyword, username, tontine, null, null, null, pageable);
     }
 
     @Transactional

@@ -446,6 +446,13 @@ body.elyk-web:not(.elyk-desktop) {
 }
 
 body.elyk-desktop {
+  // Desktop pages render without ion-content; the ion-page box is viewport-sized
+  // (absolute) and must scroll itself, otherwise body/split-pane clip the content.
+  ion-router-outlet > .ion-page {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
   app-customer-tab-bar,
   .elyk-pay-fab,
   .elyk-sticky-cta {

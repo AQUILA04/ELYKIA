@@ -139,7 +139,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nGestion des comptes financiers (Menu Comptes)\n\nLe sous-menu Comptes offre une vue d’ensemble des comptes rattachés aux clients :\nLa liste affiche pour chaque compte : le numéro, le titulaire, le solde et le statut.\nCliquez sur Voir : un panneau s’ouvre à droite avec le détail (client, n° compte, solde, statut) et les actions possibles (activer / désactiver / modifier).\nFermez le panneau avec Fermer pour revenir à la liste."
+    "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nGestion des comptes financiers (Menu Comptes)\n\nLe sous-menu Comptes offre une vue d’ensemble des comptes rattachés aux clients :\nLa liste affiche pour chaque compte : le numéro, le titulaire, le solde et le statut.\nCliquez sur Voir : un panneau s’ouvre à droite avec le détail (client, n° compte, solde, statut) et les actions possibles (activer / désactiver / modifier).\nFermez le panneau avec Fermer pour revenir à la liste.\nCréer un compte\nCliquez sur Ajouter (ou l’action équivalente) pour ouvrir le formulaire de création de compte.\nRecherchez et sélectionnez le client : seuls les clients déjà validés apparaissent dans la liste. Un client encore en attente de validation d’inscription n’est pas proposé.\nSi le client n’apparaît pas, validez d’abord son inscription depuis Services en ligne > Inscriptions , puis revenez créer le compte.\nRenseignez le numéro de compte et le solde initial, puis enregistrez."
   },
   {
     "id": "commercial",
@@ -694,7 +694,7 @@
       "customer",
       "manager"
     ],
-    "content": "Tontine — Espace Client\nSur ordinateur\nDans le menu de gauche, cliquez sur Tontine .\nLa carte de session et la section Comment ça marche s’affichent côte à côte.\nPour rejoindre : choisissez votre mise à gauche ; le récapitulatif reste visible à droite.\nSur le détail d’une tontine, les montants s’affichent en cartes ; Déclarer un paiement et Voir la timeline sont en haut à droite."
+    "content": "Tontine — Espace Client\nSur ordinateur\nDans le menu de gauche, cliquez sur Tontine .\nLa carte de session et la section Comment ça marche s’affichent côte à côte.\nPour rejoindre : choisissez votre mise à gauche ; le Récapitulatif à droite rappelle la mise journalière, le montant mensuel approximatif et l’ estimation sur le nombre de mois restants jusqu’à la fin de la session (à partir de la date du jour, et non sur une année entière).\nSur le détail d’une tontine, les montants s’affichent en cartes ; le Carnet liste uniquement vos mois d’épargne ; Déclarer un paiement et Voir la timeline sont en haut à droite."
   },
   {
     "id": "daily_cycle",
@@ -793,7 +793,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Inscriptions clients (espace client)\nValider l’inscription\nChoisissez le commercial crédit .\nChoisissez le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription (le bouton devient actif seulement quand les deux commerciaux sont choisis).\nUn compte client est créé automatiquement avec le statut Actif : solde égal au dépôt initial s’il a été validé, sinon 0.\nLe client peut alors utiliser pleinement l’espace client ; une notification lui confirme l’activation.\n\n---"
+    "content": "Inscriptions clients (espace client)\nValider l’inscription\nChoisissez le commercial crédit .\nChoisissez le commercial tontine .\nSi un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.\nCliquez sur Valider l’inscription (le bouton devient actif seulement quand les deux commerciaux sont choisis).\nUn compte client est créé automatiquement avec le statut Actif : solde égal au dépôt initial s’il a été validé, sinon 0.\nLe client peut alors être sélectionné partout dans l’application (comptes, crédits, tontine, commandes) et utiliser pleinement l’espace client ; une notification lui confirme l’activation.\n\n---"
   },
   {
     "id": "manager_client_registrations__4_refuser_une_inscription",
