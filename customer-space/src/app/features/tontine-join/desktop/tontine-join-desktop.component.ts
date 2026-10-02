@@ -11,6 +11,7 @@ import {
 } from '../../../shared/models/customer.model';
 import { ElykDesktopPageComponent, ElykOutlinedFieldComponent } from '../../../shared/ui';
 import { MobileMoneyRecipientsCardComponent } from '../../../shared/components/mobile-money-recipients-card/mobile-money-recipients-card.component';
+import { PaymentProofPickerComponent } from '../../../shared/components/payment-proof-picker/payment-proof-picker.component';
 
 @Component({
   selector: 'app-tontine-join-desktop',
@@ -18,6 +19,7 @@ import { MobileMoneyRecipientsCardComponent } from '../../../shared/components/m
   imports: [
     CommonModule, ReactiveFormsModule, IonicModule, RouterModule,
     ElykDesktopPageComponent, ElykOutlinedFieldComponent, MobileMoneyRecipientsCardComponent,
+    PaymentProofPickerComponent,
   ],
   templateUrl: './tontine-join-desktop.component.html',
   styleUrls: ['./tontine-join-desktop.component.scss'],

@@ -24,4 +24,9 @@ public class CustomerTontineMmSubmissionDto {
     String tontineCollector;
     Long tontineCollectionId;
     LocalDateTime createdAt;
+    Boolean hasProof;
+    String proofContentType;
+    String ocrReference;
+    Boolean referenceMismatch;
+    Boolean duplicateProof;
 }

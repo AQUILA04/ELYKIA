@@ -21,7 +21,7 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 1. Cliquez sur **Voir** sur la ligne du client.
 2. Vérifiez la photo de profil (à gauche du nom en haut du panneau, ou les initiales si elle n’est pas encore disponible), la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.
 3. Cliquez sur la photo de profil ou sur **Agrandir** sous la pièce pour ouvrir l’aperçu, puis fermez-le.
-4. Si un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert.
+4. Si un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert. Cliquez sur **Voir le justificatif** s’il est disponible pour ouvrir la capture ou le reçu PDF.
 
 ---
 
@@ -52,5 +52,5 @@ Un nouveau client qui saisit un numéro encore inconnu :
 2. Remplit sa fiche (prénom, nom, adresse, **votre zone**, date de naissance, occupation) et ajoute sa **photo de profil** (le visage doit être bien visible). La date de naissance doit correspondre à un client majeur (18 ans ou plus). L’application enregistre automatiquement sa position lors de la validation.
 3. Crée son code PIN, puis se connecte.
 4. Complète son dossier (**Mon dossier**) avec le **type** et le **numéro** de pièce d’identité, plus la photo de la pièce.
-5. Peut déclarer un **dépôt initial** (transfert Mobile Money puis saisie des détails) pour accélérer l’activation.
+5. Peut déclarer un **dépôt initial** (transfert Mobile Money, ajout d’un justificatif — capture ou reçu PDF — puis saisie des détails ; la référence peut se remplir automatiquement) pour accélérer l’activation.
 6. Attend la validation de l’agence ; une **notification** l’informe ensuite que le compte est activé.

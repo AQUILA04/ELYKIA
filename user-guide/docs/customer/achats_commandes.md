@@ -23,8 +23,12 @@ Cet écran vous permet de suivre vos crédits, commander des produits et déclar
 ### Déclarer un paiement
 
 1. Lisez le numéro indiqué pour envoyer votre transfert.
-2. Renseignez le **numéro d’envoi**, le **montant** et la **référence**.
-3. Appuyez sur **Soumettre le paiement** en bas de l’écran.
+2. Ajoutez le **justificatif du transfert** : une capture du message de confirmation, ou le reçu PDF de l’opération.
+3. Attendez éventuellement le message « Lecture du justificatif… » : la **référence du transfert** peut se remplir automatiquement. Vérifiez-la et modifiez-la si besoin.
+4. Renseignez le **numéro d’envoi** et le **montant**.
+5. Appuyez sur **Soumettre le paiement** en bas de l’écran.
+
+Le justificatif est obligatoire pour envoyer la déclaration.
 
 ## Commander
 

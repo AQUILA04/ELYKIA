@@ -60,9 +60,21 @@ describe('PaymentPage', () => {
       mobileMoneyPhone: '90123456',
       mobileMoneyAmount: 35000,
       mobileMoneyReference: 'TXN-123',
+      paymentProofId: 42,
     });
     await fixture.componentInstance.submit();
     expect(api.submitMobileMoneyPayment).toHaveBeenCalled();
     expect(fixture.componentInstance.isSubmitted).toBeTrue();
+  });
+
+  it('requires payment proof before submit', () => {
+    fixture.detectChanges();
+    fixture.componentInstance.form.patchValue({
+      mobileMoneyPhone: '90123456',
+      mobileMoneyAmount: 35000,
+      mobileMoneyReference: 'TXN-123',
+      paymentProofId: null,
+    });
+    expect(fixture.componentInstance.form.invalid).toBeTrue();
   });
 });

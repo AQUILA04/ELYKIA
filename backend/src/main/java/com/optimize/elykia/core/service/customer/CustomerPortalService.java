@@ -8,6 +8,7 @@ import com.optimize.elykia.core.dto.OrderItemDto;
 import com.optimize.elykia.core.dto.customer.*;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.customer.CustomerMobileMoneySubmission;
+import com.optimize.elykia.core.entity.customer.CustomerPaymentProof;
 import com.optimize.elykia.core.entity.customer.CustomerTontineMmSubmission;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
@@ -20,6 +21,7 @@ import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.OrderStatus;
+import com.optimize.elykia.core.enumaration.PaymentProofLinkedType;
 import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
 import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
@@ -76,6 +78,7 @@ public class CustomerPortalService {
     private final CustomerTontineMmSubmissionRepository tontineMmSubmissionRepository;
     private final CustomerOnboardingService customerOnboardingService;
     private final TontineAmountHistoryHelper tontineAmountHistoryHelper;
+    private final PaymentProofService paymentProofService;
 
     public static final double TONTINE_MIN_DAILY_STAKE = 100.0;
 
@@ -247,7 +250,8 @@ public class CustomerPortalService {
                     payment.getMobileMoneyPhone(),
                     payment.getMobileMoneyAmount(),
                     payment.getMobileMoneyReference(),
-                    payment.getNotes());
+                    payment.getNotes(),
+                    payment.getPaymentProofId());
             initialPaymentStatus = CustomerSubmissionStatus.INITIE.name();
         }
 
@@ -353,7 +357,8 @@ public class CustomerPortalService {
                 request.getMobileMoneyPhone(),
                 request.getMobileMoneyAmount(),
                 request.getMobileMoneyReference(),
-                request.getNotes());
+                request.getNotes(),
+                request.getPaymentProofId());
 
         return new CustomerTontinePaymentDto(
                 submission.getId(),
@@ -372,7 +377,9 @@ public class CustomerPortalService {
             String mobileMoneyPhone,
             Double mobileMoneyAmount,
             String mobileMoneyReference,
-            String notes) {
+            String notes,
+            Long paymentProofId) {
+        CustomerPaymentProof proof = paymentProofService.requireUnlinkedOwned(client.getId(), paymentProofId);
         CustomerTontineMmSubmission submission = new CustomerTontineMmSubmission();
         submission.setClientId(client.getId());
         submission.setTontineMemberId(memberId);
@@ -384,7 +391,11 @@ public class CustomerPortalService {
         submission.setOperationDate(LocalDate.now());
         submission.setStatus(CustomerSubmissionStatus.INITIE);
         submission.setCreatedBy(client.getFullName());
+        if (proof != null) {
+            submission.setPaymentProofId(proof.getId());
+        }
         submission = tontineMmSubmissionRepository.save(submission);
+        paymentProofService.link(proof, PaymentProofLinkedType.TONTINE, submission.getId());
         appNotificationService.createTontinePaymentDeclaration(submission, client);
         return submission;
     }
@@ -423,6 +434,8 @@ public class CustomerPortalService {
         Long creditId = Long.parseLong(request.getDistributionId());
         Credit credit = requireOwnedCredit(creditId);
         Client client = contextService.requireClient(contextService.currentUsername());
+        CustomerPaymentProof proof = paymentProofService.requireUnlinkedOwned(
+                client.getId(), request.getPaymentProofId());
 
         CustomerMobileMoneySubmission submission = new CustomerMobileMoneySubmission();
         submission.setClientId(client.getId());
@@ -435,7 +448,11 @@ public class CustomerPortalService {
         submission.setNotes(request.getNotes());
         submission.setStatus(CustomerSubmissionStatus.INITIE);
         submission.setCreatedBy(client.getFullName());
+        if (proof != null) {
+            submission.setPaymentProofId(proof.getId());
+        }
         submission = submissionRepository.save(submission);
+        paymentProofService.link(proof, PaymentProofLinkedType.CREDIT, submission.getId());
 
         appNotificationService.createPaymentDeclaration(submission, credit, client);
 

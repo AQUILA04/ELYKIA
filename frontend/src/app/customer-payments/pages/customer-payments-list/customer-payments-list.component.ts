@@ -1,5 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Observable } from 'rxjs';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import {
   CustomerMobileMoneySubmission,
@@ -30,12 +32,19 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
   lastUpdate = new Date();
   private dateIntervalId?: ReturnType<typeof setInterval>;
 
+  proofPreviewUrl: string | null = null;
+  proofPreviewSafeUrl: SafeResourceUrl | null = null;
+  proofPreviewIsPdf = false;
+  proofPreviewTitle = 'Justificatif';
+  proofLoading = false;
+
   constructor(
     private creditService: CustomerMobileMoneySubmissionService,
     private tontineService: CustomerTontineMmSubmissionService,
     private alertService: AlertService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private sanitizer: DomSanitizer,
   ) {}
 
   ngOnInit(): void {
@@ -55,6 +64,7 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
     if (this.dateIntervalId) {
       clearInterval(this.dateIntervalId);
     }
+    this.closeProofPreview();
   }
 
   setTab(tab: PaymentTab): void {
@@ -93,6 +103,61 @@ export class CustomerPaymentsListComponent implements OnInit, OnDestroy {
         this.loading = false;
         this.alertService.toastError('Impossible de charger les déclarations.');
       }
+    });
+  }
+
+  openProofCredit(row: CustomerMobileMoneySubmission): void {
+    if (!row.hasProof) {
+      return;
+    }
+    this.openProofBlob(
+      this.creditService.downloadProof(row.id),
+      row.proofContentType,
+      `Justificatif — ${row.clientName || row.clientId}`,
+    );
+  }
+
+  openProofTontine(row: CustomerTontineMmSubmission): void {
+    if (!row.hasProof) {
+      return;
+    }
+    this.openProofBlob(
+      this.tontineService.downloadProof(row.id),
+      row.proofContentType,
+      `Justificatif — ${row.clientName || row.clientId}`,
+    );
+  }
+
+  closeProofPreview(): void {
+    if (this.proofPreviewUrl) {
+      URL.revokeObjectURL(this.proofPreviewUrl);
+    }
+    this.proofPreviewUrl = null;
+    this.proofPreviewSafeUrl = null;
+    this.proofPreviewIsPdf = false;
+  }
+
+  private openProofBlob(
+    source: Observable<Blob>,
+    contentType: string | undefined,
+    title: string,
+  ): void {
+    this.proofLoading = true;
+    source.subscribe({
+      next: (blob) => {
+        this.closeProofPreview();
+        const type = contentType || blob.type || '';
+        this.proofPreviewIsPdf = type.includes('pdf');
+        this.proofPreviewUrl = URL.createObjectURL(blob);
+        // blob: from authenticated API stream — required for iframe[src] PDF preview
+        this.proofPreviewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.proofPreviewUrl); // NOSONAR
+        this.proofPreviewTitle = title;
+        this.proofLoading = false;
+      },
+      error: () => {
+        this.proofLoading = false;
+        this.alertService.toastError('Impossible d\'ouvrir le justificatif.');
+      },
     });
   }
 

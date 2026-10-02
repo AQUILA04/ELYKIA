@@ -59,4 +59,7 @@ public class CustomerInitialDepositSubmission extends BaseEntity<String> {
 
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
+
+    @Column(name = "payment_proof_id")
+    private Long paymentProofId;
 }

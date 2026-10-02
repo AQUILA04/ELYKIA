@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -26,6 +28,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.core.io.Resource;
+import com.optimize.elykia.core.service.customer.PaymentProofService;
 
 @RestController
 @RequestMapping("/api/v1/client-registrations")
@@ -106,5 +110,21 @@ public class ClientRegistrationAdminController {
                 request != null ? request : new CustomerInitialDepositRejectRequest();
         return ResponseEntity.ok(ResponseUtil.successResponse(
                 registrationAdminService.rejectDeposit(user, depositId, body)));
+    }
+
+    @GetMapping("/initial-deposits/{depositId}/proof")
+    @PreAuthorize("hasAnyAuthority('"
+            + UserPermissionConstant.VALIDATE_CLIENT_REGISTRATION + "', '"
+            + UserPermissionConstant.CONSULT_CLIENT + "', '"
+            + UserPermissionConstant.EDIT_CLIENT + "', '"
+            + UserPermissionConstant.ADMIN + "')")
+    public ResponseEntity<Resource> downloadDepositProof(@PathVariable Long depositId) {
+        User user = userService.getCurrentUser();
+        PaymentProofService.ProofDownload download =
+                registrationAdminService.downloadDepositProof(user, depositId);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + download.fileName() + "\"")
+                .contentType(MediaType.parseMediaType(download.contentType()))
+                .body(download.resource());
     }
 }

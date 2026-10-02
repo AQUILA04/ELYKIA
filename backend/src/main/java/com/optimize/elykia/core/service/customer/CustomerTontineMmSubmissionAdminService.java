@@ -9,10 +9,12 @@ import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.TontineCollectionDto;
 import com.optimize.elykia.core.dto.TontineCollectionRespDto;
 import com.optimize.elykia.core.dto.customer.CustomerTontineMmSubmissionDto;
+import com.optimize.elykia.core.entity.customer.CustomerPaymentProof;
 import com.optimize.elykia.core.entity.customer.CustomerTontineMmSubmission;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.enumaration.AppNotificationType;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
+import com.optimize.elykia.core.enumaration.PaymentProofLinkedType;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.customer.CustomerTontineMmSubmissionRepository;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
@@ -40,6 +42,7 @@ public class CustomerTontineMmSubmissionAdminService {
     private final TontineService tontineService;
     private final AppNotificationService appNotificationService;
     private final CustomerNotificationService customerNotificationService;
+    private final PaymentProofService paymentProofService;
 
     @Transactional(readOnly = true)
     public Page<CustomerTontineMmSubmissionDto> list(User user, CustomerSubmissionStatus status, Pageable pageable) {
@@ -163,10 +166,34 @@ public class CustomerTontineMmSubmissionAdminService {
         return sb.toString();
     }
 
-    private static CustomerTontineMmSubmissionDto toDto(
+    @Transactional(readOnly = true)
+    public PaymentProofService.ProofDownload downloadProof(User user, Long id) {
+        AppNotificationService.assertAudienceOrThrow(user);
+        CustomerTontineMmSubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Soumission tontine introuvable."));
+        Client client = clientService.getById(submission.getClientId());
+        String tontineCollector = client != null ? client.getTontineCollector() : null;
+        if (AppNotificationService.isPromoterOnly(user)
+                && !AppNotificationService.matchesPromoterAudience(
+                user,
+                AppNotificationType.TONTINE_PAYMENT_DECLARATION,
+                tontineCollector,
+                tontineCollector)) {
+            throw new CustomValidationException("Accès non autorisé à cette déclaration.");
+        }
+        CustomerPaymentProof proof = paymentProofService.findById(submission.getPaymentProofId());
+        if (proof == null) {
+            throw new ResourceNotFoundException("Justificatif introuvable pour cette déclaration.");
+        }
+        return paymentProofService.download(proof);
+    }
+
+    private CustomerTontineMmSubmissionDto toDto(
             CustomerTontineMmSubmission submission,
             Client client,
             String tontineCollector) {
+        CustomerPaymentProof proof = paymentProofService.findById(submission.getPaymentProofId());
+        boolean hasProof = proof != null;
         return CustomerTontineMmSubmissionDto.builder()
                 .id(submission.getId())
                 .clientId(submission.getClientId())
@@ -182,6 +209,13 @@ public class CustomerTontineMmSubmissionAdminService {
                 .tontineCollector(tontineCollector)
                 .tontineCollectionId(submission.getTontineCollectionId())
                 .createdAt(submission.getCreatedDate())
+                .hasProof(hasProof)
+                .proofContentType(hasProof ? proof.getContentType() : null)
+                .ocrReference(hasProof ? proof.getOcrReference() : null)
+                .referenceMismatch(paymentProofService.isReferenceMismatch(
+                        proof, submission.getMobileMoneyReference()))
+                .duplicateProof(paymentProofService.isDuplicateProof(
+                        proof, PaymentProofLinkedType.TONTINE, submission.getId()))
                 .build();
     }
 }

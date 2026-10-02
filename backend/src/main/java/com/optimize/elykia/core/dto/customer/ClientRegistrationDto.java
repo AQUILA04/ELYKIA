@@ -35,5 +35,7 @@ public class ClientRegistrationDto {
     private Double initialDepositAmount;
     private String initialDepositPhone;
     private String initialDepositReference;
+    private Boolean initialDepositHasProof;
+    private String initialDepositProofContentType;
     private String activationRejectionReason;
 }

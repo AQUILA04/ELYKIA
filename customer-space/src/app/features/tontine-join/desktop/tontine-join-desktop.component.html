@@ -44,6 +44,7 @@
           [loading]="recipientsLoading()"
           [error]="recipientsError()">
         </app-mobile-money-recipients-card>
+        <app-payment-proof-picker [form]="paymentForm()" testIdPrefix="e2e-tontine-join-proof"></app-payment-proof-picker>
         <app-elyk-outlined-field label="Numéro d'envoi" icon="call-outline">
           <ion-input formControlName="mobileMoneyPhone" type="tel" data-testid="e2e-tontine-join-phone"></ion-input>
         </app-elyk-outlined-field>
