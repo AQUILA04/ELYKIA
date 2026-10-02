@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-10-02
+
+### Fixed
+
+- SonarCloud : exclusion de `frontend/src/user-guide/**` (site MkDocs généré) de l’analyse et du CPD — le HTML dupliqué entre profils / print_versions ne fait plus échouer la quality gate « Duplication on New Code ».
+
 ## Frontend — [2.26.6] — 2026-10-02
 
 ### Fixed
