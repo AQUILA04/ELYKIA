@@ -5,6 +5,7 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.StockReceptionDto;
 import com.optimize.elykia.core.entity.article.ArticleHistory;
 import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.enumaration.ReceptionStatus;
@@ -13,6 +14,7 @@ import com.optimize.elykia.core.enumaration.StockOperationType;
 import com.optimize.elykia.core.mapper.StockReceptionMapper;
 import com.optimize.elykia.core.repository.ArticleHistoryRepository;
 import com.optimize.elykia.core.repository.ArticlesRepository;
+import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import com.optimize.elykia.core.repository.StockReceptionRepository;
 import com.optimize.elykia.core.service.expense.ExpenseService;
 import com.optimize.elykia.core.support.IntegrationTestSupport;
@@ -51,6 +53,8 @@ class StockReceptionTraceabilityIntegrationTest extends IntegrationTestSupport {
     private StockValuationFacade stockValuationFacade;
     @Autowired
     private EntityManager entityManager;
+    @Autowired
+    private ExpenseTypeRepository expenseTypeRepository;
 
     @MockBean
     private UserService userService;
@@ -65,6 +69,7 @@ class StockReceptionTraceabilityIntegrationTest extends IntegrationTestSupport {
     void validateReception_persistsArticleQuantityValuationStatusAndTraceabilityAsOneBusinessOperation() {
         // Given
         Articles article = persistArticle("CHAINE-RECEPTION", 10, 100.0);
+        persistApprovisionnementExpenseType();
         StockReception reception = persistPendingReception(article, 5, 120.0, "REC-CHAIN-001");
         when(userService.getCurrentUser()).thenReturn(currentUser);
         when(currentUser.getUsername()).thenReturn("admin.stock");
@@ -76,19 +81,23 @@ class StockReceptionTraceabilityIntegrationTest extends IntegrationTestSupport {
         entityManager.flush();
         entityManager.clear();
 
-        // Then: article magasin et valorisation persistée
+        // Then: article magasin et valorisation persistée au prix catalogue (100), pas au snapshot (120)
         Articles persistedArticle = articlesRepository.findById(article.getId()).orElseThrow();
         assertEquals(15, persistedArticle.getStockQuantity());
-        assertEquals(120.0, persistedArticle.getPurchasePrice());
+        assertEquals(100.0, persistedArticle.getPurchasePrice());
         assertEquals(LocalDate.now(), persistedArticle.getLastRestockDate());
-        assertEquals(1_800.0, stockValuationFacade.getStockValuation(persistedArticle));
+        assertEquals(1_500.0, stockValuationFacade.getStockValuation(persistedArticle));
 
-        // Then: agrégat opérationnel de réception
+        // Then: agrégat opérationnel de réception valorisé au prix catalogue du jour
         StockReception persistedReception = stockReceptionRepository.findByIdWithItems(reception.getId()).orElseThrow();
         assertEquals(ReceptionStatus.VALIDATED, persistedReception.getStatus());
         assertEquals("admin.stock", persistedReception.getValidatedBy());
         assertNotNull(persistedReception.getValidatedAt());
         assertEquals(1, persistedReception.getItems().size());
+        assertEquals(500.0, persistedReception.getTotalAmount());
+        StockReceptionItem persistedItem = persistedReception.getItems().iterator().next();
+        assertEquals(100.0, persistedItem.getUnitPrice());
+        assertEquals(500.0, persistedItem.getTotalPrice());
 
         // Then: trace article explicitement reliée à la réception validée
         List<ArticleHistory> histories = articleHistoryRepository.findByArticles_IdOrderByIdDesc(article.getId());
@@ -104,6 +113,17 @@ class StockReceptionTraceabilityIntegrationTest extends IntegrationTestSupport {
         assertEquals(reception.getId(), history.getReferenceId());
         assertEquals("REC-CHAIN-001", history.getReferenceLabel());
         assertTrue(history.getOccurredAt() != null && !history.getOccurredAt().isAfter(java.time.LocalDateTime.now()));
+    }
+
+    private void persistApprovisionnementExpenseType() {
+        if (expenseTypeRepository.findByName("Approvisionnement").isPresent()) {
+            return;
+        }
+        ExpenseType expenseType = new ExpenseType();
+        expenseType.setName("Approvisionnement");
+        expenseType.setCode("APPROVISIONNEMENT");
+        expenseType.setDescription("Dépenses liées à l'approvisionnement");
+        expenseTypeRepository.saveAndFlush(expenseType);
     }
 
     private Articles persistArticle(String name, int quantity, double purchasePrice) {
