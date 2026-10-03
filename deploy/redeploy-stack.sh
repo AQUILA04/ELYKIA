@@ -23,7 +23,7 @@ if [[ "${1:-}" == "--force-update" || "${1:-}" == "-fu" ]]; then
   shift
   [[ "$#" -eq 1 ]] || usage
   echo "Force update requested. Updating deploy scripts..."
-  curl -sSL https://raw.githubusercontent.com/AQUILA04/ELYKIA/main/deploy/update-deploy.sh | bash
+  curl -fsSL --proto '=https' --tlsv1.2 https://raw.githubusercontent.com/AQUILA04/ELYKIA/main/deploy/update-deploy.sh | bash
   echo "Re-executing updated redeploy-stack.sh..."
   exec bash /opt/elykia/deploy/redeploy-stack.sh "$@"
 fi

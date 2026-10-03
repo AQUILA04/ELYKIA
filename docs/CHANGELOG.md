@@ -100,6 +100,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - **CI/CD —** l’étape « Stop test stack after promote » affiche la commande de relance de la stack test.
 - **Docs —** `deploy/EXPLOITATION.md` : composition d’un environnement (stacks principale, espace client web, site), relance complète via `redeploy-stack.sh`, arrêt et démarrage de l’espace client web seul ; les commandes `docker compose` existantes sont signalées comme limitées à la stack principale.
 
+### Security
+
+- **Deploy —** `redeploy-stack.sh -fu` télécharge les scripts en HTTPS forcé (`--proto '=https' --tlsv1.2`), sans redirection vers HTTP.
+
 ## Frontend — [2.26.4] — 2026-10-01
 
 ### Fixed
