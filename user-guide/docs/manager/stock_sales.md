@@ -43,7 +43,7 @@ Pour accéder à la liste des réceptions, ouvrez le menu latéral **Stock Comme
 3. **Contrôle et Validation par le gestionnaire** :
    * Rendez-vous dans **Stock Commercial > Historique Entrée**.
    * Cliquez sur **« Voir »** pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran.
-   * **Valider** : Confirme la conformité de la réception. Le stock magasin est **instantanément augmenté**.
+   * **Valider** : Confirme la conformité de la réception. Le stock magasin est **instantanément augmenté**. Le montant de la réception est calculé avec le prix d'achat en vigueur dans le catalogue au moment de la validation.
    * **Refuser** : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à **Refusé**.
    * **Abandonner** : Permet au créateur de la réception en attente de supprimer sa saisie avant validation si une erreur a été commise.
    * **Annuler** : Réservé aux gestionnaires habilités pour annuler une réception déjà validée suite à une régularisation comptable, décrémentant le stock du magasin.

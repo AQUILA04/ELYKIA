@@ -21,6 +21,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Libellés adaptés sur les commandes en ligne : Valider / Validée, Marquer comme livrée / Livrée.
 
+## Backend — [1.27.2] — 2026-10-03
+
+### Fixed
+
+- Réceptions de stock (mode legacy) : à la validation, valorisation des lignes et du montant total avec le prix d’achat catalogue du jour (et non le snapshot figé à la création) ; le catalogue n’est plus réécrit par la réception.
+
 ## Backend — [1.27.1] — 2026-10-03
 
 ### Fixed
@@ -32,6 +38,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Changed
 
+- **Docs —** Guide gestionnaire (stocks & ventes) : le montant d’une réception validée suit le prix d’achat catalogue en vigueur à la validation ; index Elykia IA et guide HTML du frontend régénérés.
 - **Docs —** Guide commercial (tontine web et application mobile) : commercial tontine obligatoire pour inscrire un membre, et adhésion comptée dans le rapport journalier du commercial tontine ; index Elykia IA et guide HTML du frontend régénérés.
 
 ## Backend — [1.27.0] — 2026-10-02
