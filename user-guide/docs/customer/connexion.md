@@ -15,7 +15,7 @@ Vous pouvez utiliser l’Espace Client de trois façons, avec le même numéro d
 ## Se connecter
 
 1. Ouvrez l’application **Elykia — Espace Client** ou l’adresse **https://clients.amenouveve-yaveh.com** dans votre navigateur.
-2. Sur l’écran avec **AMENOUVEVE-YAVEH**, **Elykia** et **Espace Client**, saisissez votre **numéro de téléphone** : un numéro mobile togolais à 8 chiffres (par exemple **90 12 34 56**), avec ou sans **+228**.
+2. Sur l’écran avec **AMENOUVEVE-YAVEH**, **Elykia** et **Espace Client**, le titre est **Bienvenue** la première fois que vous ouvrez l’application ou le site sur cet appareil. Si vous les avez déjà ouverts ici, le titre est **Bon retour !**. Saisissez votre **numéro de téléphone** : un numéro mobile togolais à 8 chiffres (par exemple **90 12 34 56**), avec ou sans **+228**.
 3. Si le numéro n’est pas valide, le message **Veuillez saisir un numéro togolais valide.** s’affiche sous le champ et le bouton **Continuer** reste inactif : corrigez votre numéro.
 4. Si vous n’avez pas encore de compte, le message **Pas encore de compte ? Saisissez simplement votre numéro de téléphone et laissez-vous guider.** vous indique comment démarrer : saisissez votre numéro puis continuez.
 5. Appuyez sur **Continuer**.
@@ -36,19 +36,22 @@ Si votre compte n’a pas encore de code PIN :
 Si votre numéro n’est pas encore connu et que l’inscription est ouverte :
 
 1. Saisissez votre numéro mobile togolais, puis **Continuer**.
-2. Validez le code SMS (avec la référence affichée à l’écran, comme pour l’activation).
-3. Touchez **Ajouter une photo** et prenez (ou choisissez) une photo de vous : votre visage doit être bien visible.
-4. Renseignez vos informations (prénom, nom, adresse, date de naissance, occupation). Pour **Ma zone (Localités)**, ouvrez la liste, recherchez votre zone si besoin, puis sélectionnez-la.
-5. Vous devez avoir **18 ans ou plus** : si la date de naissance ne convient pas, le message **Vous devez être majeur (18 ans ou plus).** s’affiche sous le champ.
-6. Appuyez sur **Continuer**.
-7. Créez votre code PIN, puis appuyez sur **Créer mon compte**. Si votre téléphone ou votre navigateur vous demande l’accès à votre position, acceptez : il est nécessaire pour finaliser l’inscription.
-8. Votre pièce d’identité vous sera demandée ensuite dans **Mon dossier**.
+2. Un message vous indique que vous n’êtes pas encore client d’**AMENOUVEVE-YAVEH**. Appuyez sur **Lire les conditions d’utilisation** pour les consulter. Elles engagent votre bonne foi : vous vous engagez à respecter les contrats de crédit de vos achats, à payer les échéances à la date prévue, et à ne pas causer de préjudice financier à AMENOUVEVE-YAVEH.
+3. Cochez **J’accepte les conditions d’utilisation**.
+4. Appuyez sur **Continuer** : le code par SMS part seulement à cette étape. Si vous ne souhaitez pas créer de compte, appuyez sur **Retour**, à côté de **Continuer** : vous revenez à la saisie du numéro.
+5. Validez le code SMS (avec la référence affichée à l’écran, comme pour l’activation).
+6. Touchez **Ajouter une photo** et prenez (ou choisissez) une photo de vous : votre visage doit être bien visible.
+7. Renseignez vos informations (prénom, nom, adresse, date de naissance, occupation). Pour **Ma zone (Localités)**, ouvrez la liste, recherchez votre zone si besoin, puis sélectionnez-la.
+8. Vous devez avoir **18 ans ou plus** : si la date de naissance ne convient pas, le message **Vous devez être majeur (18 ans ou plus).** s’affiche sous le champ.
+9. Appuyez sur **Continuer**.
+10. Créez votre code PIN, puis appuyez sur **Créer mon compte**. Si votre téléphone ou votre navigateur vous demande l’accès à votre position, acceptez : il est nécessaire pour finaliser l’inscription.
+11. Votre pièce d’identité vous sera demandée ensuite dans **Mon dossier**.
 
 ## Sur ordinateur
 
 1. Ouvrez **https://clients.amenouveve-yaveh.com** dans votre navigateur (fenêtre large).
 2. À gauche, un panneau présente **AMENOUVEVE-YAVEH**, **Elykia** et les avantages de l’espace.
-3. À droite, utilisez le formulaire de connexion comme sur mobile (téléphone, puis PIN ou code SMS). Faites défiler la page si le formulaire d’inscription dépasse l’écran.
+3. À droite, utilisez le formulaire comme sur le téléphone : numéro, puis code PIN ou code SMS. Si vous n’êtes pas encore client, l’acceptation des conditions s’affiche avant le SMS. Faites défiler la page si le formulaire d’inscription dépasse l’écran.
 4. Pour une inscription, les champs d’identité s’affichent sur deux colonnes ; choisissez votre photo avec **Choisir une photo** et votre zone avec **Ma zone (Localités)**.
 
-<!-- CAPTURE À INSÉRER : écran Connexion Espace Client (header navy, carte « Bon retour ! ») -->
+<!-- CAPTURE À INSÉRER : écran Connexion Espace Client (header navy, carte « Bienvenue » ou « Bon retour ! ») -->

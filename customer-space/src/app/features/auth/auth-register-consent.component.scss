@@ -1,0 +1,83 @@
+:host {
+  display: block;
+}
+
+.consent-text {
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--elyk-navy-mid);
+}
+
+.terms-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin: 0 0 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--elyk-navy);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-align: left;
+  cursor: pointer;
+}
+
+.terms-panel {
+  max-height: min(42vh, 280px);
+  overflow: auto;
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--elyk-border);
+  border-radius: var(--elyk-radius-input);
+  background: var(--elyk-cream);
+
+  h3 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    color: var(--elyk-navy);
+  }
+
+  h4 {
+    margin: 12px 0 4px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--elyk-navy);
+  }
+
+  p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--elyk-navy-mid);
+  }
+}
+
+.terms-checkbox {
+  display: flex;
+  margin: 8px 0 4px;
+  --size: 22px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.auth-choice-row {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 12px;
+  margin-top: 12px;
+
+  ion-button {
+    margin-top: 0;
+    min-height: 48px;
+  }
+}
+
+.error {
+  color: var(--elyk-red);
+  font-size: 12px;
+  margin: 0 0 12px;
+}

@@ -4,6 +4,7 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { AuthStep, CustomerLocality } from '../../../shared/models/customer-auth.model';
 import { ElykLocalityPickerComponent, ElykOutlinedFieldComponent } from '../../../shared/ui';
+import { AuthRegisterConsentComponent } from '../auth-register-consent.component';
 
 @Component({
   selector: 'app-auth-desktop',
@@ -14,6 +15,7 @@ import { ElykLocalityPickerComponent, ElykOutlinedFieldComponent } from '../../.
     IonicModule,
     ElykOutlinedFieldComponent,
     ElykLocalityPickerComponent,
+    AuthRegisterConsentComponent,
   ],
   templateUrl: './auth-desktop.component.html',
   styleUrls: ['./auth-desktop.component.scss'],
@@ -38,6 +40,8 @@ export class AuthDesktopComponent {
   readonly localities = input<CustomerLocality[]>([]);
   readonly localitiesLoading = input(false);
   readonly localitiesError = input('');
+  readonly termsAccepted = input(false);
+  readonly termsOpen = input(false);
 
   readonly phoneForm = input.required<FormGroup>();
   readonly pinForm = input.required<FormGroup>();
@@ -57,6 +61,9 @@ export class AuthDesktopComponent {
   readonly dateOfBirthChanged = output<void>();
   readonly retryLocalities = output<void>();
   readonly back = output<void>();
+  readonly termsAcceptedChange = output<boolean>();
+  readonly termsOpenChange = output<boolean>();
+  readonly continueRegistration = output<void>();
 
   readonly benefits = [
     { icon: 'cash-outline', title: 'Suivez vos crédits', text: 'Visualisez vos mises et votre progression en temps réel.' },

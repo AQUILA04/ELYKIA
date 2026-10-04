@@ -20,6 +20,8 @@ describe('AuthPage', () => {
   let session: CustomerSessionService;
 
   beforeEach(async () => {
+    localStorage.clear();
+    sessionStorage.clear();
     api = jasmine.createSpyObj('CustomerApiService', [
       'checkPhone', 'login', 'setupPin', 'sendOtp', 'verifyOtp', 'register', 'getLocalities',
     ]);
@@ -81,8 +83,14 @@ describe('AuthPage', () => {
     expect(fixture.nativeElement.textContent).toContain('AMENOUVEVE-YAVEH');
     expect(fixture.nativeElement.textContent).toContain('Elykia');
     expect(fixture.nativeElement.textContent).toContain('Espace Client');
-    expect(fixture.nativeElement.textContent).toContain('Bon retour !');
+    expect(fixture.nativeElement.textContent).toContain('Bienvenue');
     expect(fixture.nativeElement.textContent).toContain('Connectez-vous à votre espace');
+  });
+
+  it('shows Bon retour when the app was already opened on this device', () => {
+    sessionStorage.setItem('elykia_customer_prior_visit', '1');
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Bon retour !');
   });
 
   it('displays app version', () => {
@@ -189,6 +197,49 @@ describe('AuthPage', () => {
     expect(api.getLocalities).toHaveBeenCalled();
     expect(fixture.componentInstance.localities.length).toBe(2);
     expect(fixture.componentInstance.step).toBe('register-form');
+  });
+
+  it('asks to accept terms before sending the registration SMS', async () => {
+    api.checkPhone.and.returnValue(of({ exists: false, pinConfigured: false, canRegister: true }));
+    fixture.componentInstance.phoneForm.patchValue({ phone: '90123456' });
+    await fixture.componentInstance.submitPhone();
+
+    expect(api.sendOtp).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.step).toBe('register-consent');
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Pas encore client');
+    expect(text).toContain("n'est pas encore associé à un client d'AMENOUVEVE-YAVEH");
+    expect(fixture.nativeElement.querySelector('[data-testid="e2e-auth-otp-input"]')).toBeNull();
+
+    await fixture.componentInstance.continueRegistration();
+    expect(api.sendOtp).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.error).toContain("conditions d'utilisation");
+
+    fixture.componentInstance.termsOpen = true;
+    fixture.detectChanges();
+    const termsText = fixture.nativeElement.textContent as string;
+    expect(termsText).toContain("Position au moment de l'inscription");
+    expect(termsText).toContain('Bonne foi et responsabilité');
+    expect(termsText).toContain('payer régulièrement chaque échéance');
+    expect(termsText).toContain('ne pas causer de dommage financier');
+
+    fixture.componentInstance.setTermsAccepted(true);
+    await fixture.componentInstance.continueRegistration();
+    expect(api.sendOtp).toHaveBeenCalledWith({ phone: '90123456' });
+    expect(fixture.componentInstance.step).toBe('register-otp');
+  });
+
+  it('returns to the phone step from the consent screen without sending an SMS', () => {
+    fixture.componentInstance.step = 'register-consent';
+    fixture.componentInstance.isRegistrationFlow = true;
+    fixture.componentInstance.termsAccepted = true;
+    fixture.componentInstance.goBack();
+
+    expect(fixture.componentInstance.step).toBe('phone');
+    expect(fixture.componentInstance.isRegistrationFlow).toBeFalse();
+    expect(fixture.componentInstance.termsAccepted).toBeFalse();
+    expect(api.sendOtp).not.toHaveBeenCalled();
   });
 
   it('shows phone hint for automatic account creation', () => {

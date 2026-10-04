@@ -63,6 +63,18 @@
         </ion-button>
       </form>
 
+      <app-auth-register-consent
+        *ngIf="step() === 'register-consent'"
+        [termsOpen]="termsOpen()"
+        [termsAccepted]="termsAccepted()"
+        [isLoading]="isLoading()"
+        [error]="error()"
+        (toggleTerms)="termsOpenChange.emit(!termsOpen())"
+        (termsAcceptedChange)="termsAcceptedChange.emit($event)"
+        (back)="back.emit()"
+        (continueRegistration)="continueRegistration.emit()">
+      </app-auth-register-consent>
+
       <form *ngIf="step() === 'pin'" [formGroup]="pinForm()" (ngSubmit)="submitPin.emit()">
         <app-elyk-outlined-field label="Code PIN" icon="lock-closed-outline">
           <ion-input formControlName="pin" type="password" inputmode="numeric" maxlength="6" placeholder="••••" data-testid="e2e-auth-pin-input"></ion-input>
