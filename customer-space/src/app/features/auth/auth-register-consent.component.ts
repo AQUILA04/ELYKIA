@@ -2,7 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import {
-  CUSTOMER_TERMS_SECTIONS,
+  parseCustomerTerms,
   REGISTER_CONSENT_BACK,
   REGISTER_CONSENT_BODY,
 } from './customer-terms';
@@ -28,7 +28,7 @@ export class AuthRegisterConsentComponent {
 
   readonly consentBody = REGISTER_CONSENT_BODY;
   readonly consentBack = REGISTER_CONSENT_BACK;
-  readonly termsSections = CUSTOMER_TERMS_SECTIONS;
+  readonly termsSections = parseCustomerTerms();
 
   onTermsCheckbox(event: Event): void {
     const checked = (event as CustomEvent<{ checked?: boolean }>).detail?.checked === true;

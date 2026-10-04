@@ -81,6 +81,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Création / synchronisation / modification de compte : refus si le client n’est pas encore validé (`PENDING` ou `REJECTED`), avec un message explicite.
 
+## Customer-space — [0.12.3] — 2026-10-04
+
+### Changed
+
+- Conditions d’utilisation : le texte affiché à l’inscription est inchangé. Il est rangé en un seul bloc pour ne plus être lu comme du code répété.
+
 ## Customer-space — [0.12.2] — 2026-10-04
 
 ### Changed
