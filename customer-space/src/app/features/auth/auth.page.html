@@ -105,62 +105,17 @@
         </ion-button>
       </form>
 
-      <!-- Acceptation avant inscription (aucun SMS tant que Continuer n'est pas choisi) -->
-      <div *ngIf="step === 'register-consent'" data-testid="e2e-auth-register-consent">
-        <p class="consent-text">{{ consentBody }}</p>
-        <p class="consent-text">{{ consentBack }}</p>
-
-        <button
-          type="button"
-          class="terms-link"
-          (click)="toggleTerms()"
-          [attr.aria-expanded]="termsOpen"
-          data-testid="e2e-auth-terms-open">
-          {{ termsOpen ? "Masquer les conditions d'utilisation" : "Lire les conditions d'utilisation" }}
-        </button>
-
-        <section *ngIf="termsOpen" class="terms-panel" data-testid="e2e-auth-terms-panel" tabindex="0">
-          <h3>Conditions d'utilisation</h3>
-          <article *ngFor="let section of termsSections">
-            <h4>{{ section.title }}</h4>
-            <p>{{ section.body }}</p>
-          </article>
-        </section>
-
-        <ion-checkbox
-          class="terms-checkbox"
-          labelPlacement="end"
-          alignment="start"
-          [checked]="termsAccepted"
-          (ionChange)="onTermsCheckbox($event)"
-          data-testid="e2e-auth-terms-accept">
-          J'accepte les conditions d'utilisation
-        </ion-checkbox>
-
-        <div class="error" *ngIf="error" role="alert">{{ error }}</div>
-
-        <div class="auth-choice-row">
-          <ion-button
-            type="button"
-            expand="block"
-            class="elyk-btn-outline"
-            (click)="goBack()"
-            [disabled]="isLoading"
-            data-testid="e2e-auth-register-back">
-            Retour
-          </ion-button>
-          <ion-button
-            type="button"
-            expand="block"
-            class="elyk-btn-navy"
-            (click)="continueRegistration()"
-            [disabled]="!termsAccepted || isLoading"
-            data-testid="e2e-auth-register-consent-continue">
-            <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
-            <span *ngIf="!isLoading">Continuer</span>
-          </ion-button>
-        </div>
-      </div>
+      <app-auth-register-consent
+        *ngIf="step === 'register-consent'"
+        [termsOpen]="termsOpen"
+        [termsAccepted]="termsAccepted"
+        [isLoading]="isLoading"
+        [error]="error"
+        (toggleTerms)="toggleTerms()"
+        (termsAcceptedChange)="setTermsAccepted($event)"
+        (back)="goBack()"
+        (continueRegistration)="continueRegistration()">
+      </app-auth-register-consent>
 
       <!-- PIN existant -->
       <form *ngIf="step === 'pin'" [formGroup]="pinForm" (ngSubmit)="submitPin()">

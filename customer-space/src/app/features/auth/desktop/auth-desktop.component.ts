@@ -4,11 +4,7 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { AuthStep, CustomerLocality } from '../../../shared/models/customer-auth.model';
 import { ElykLocalityPickerComponent, ElykOutlinedFieldComponent } from '../../../shared/ui';
-import {
-  CUSTOMER_TERMS_SECTIONS,
-  REGISTER_CONSENT_BACK,
-  REGISTER_CONSENT_BODY,
-} from '../customer-terms';
+import { AuthRegisterConsentComponent } from '../auth-register-consent.component';
 
 @Component({
   selector: 'app-auth-desktop',
@@ -19,6 +15,7 @@ import {
     IonicModule,
     ElykOutlinedFieldComponent,
     ElykLocalityPickerComponent,
+    AuthRegisterConsentComponent,
   ],
   templateUrl: './auth-desktop.component.html',
   styleUrls: ['./auth-desktop.component.scss'],
@@ -68,18 +65,9 @@ export class AuthDesktopComponent {
   readonly termsOpenChange = output<boolean>();
   readonly continueRegistration = output<void>();
 
-  readonly consentBody = REGISTER_CONSENT_BODY;
-  readonly consentBack = REGISTER_CONSENT_BACK;
-  readonly termsSections = CUSTOMER_TERMS_SECTIONS;
-
   readonly benefits = [
     { icon: 'cash-outline', title: 'Suivez vos crédits', text: 'Visualisez vos mises et votre progression en temps réel.' },
     { icon: 'bag-add-outline', title: 'Commandez en ligne', text: 'Parcourez le catalogue et passez commande depuis chez vous.' },
     { icon: 'albums-outline', title: 'Gérez votre tontine', text: 'Cotisez et suivez votre épargne jusqu’à la livraison.' },
   ];
-
-  onTermsCheckbox(event: Event): void {
-    const checked = (event as CustomEvent<{ checked?: boolean }>).detail?.checked === true;
-    this.termsAcceptedChange.emit(checked);
-  }
 }

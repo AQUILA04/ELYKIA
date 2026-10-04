@@ -28,6 +28,7 @@ import {
 } from '../../shared/ui';
 import { LayoutService } from '../../shared/layout/layout.service';
 import { AuthDesktopComponent } from './desktop/auth-desktop.component';
+import { AuthRegisterConsentComponent } from './auth-register-consent.component';
 
 /** Délai avant un nouveau renvoi OTP — aligné sur le cooldown hub (60 s). */
 const OTP_RESEND_COOLDOWN_SECONDS = 60;
@@ -40,12 +41,7 @@ import {
 } from '../../shared/utils/adult-dob.validator';
 import { captureRegistrationLocation } from '../../shared/utils/registration-location';
 import { isReturningVisitor } from '../../shared/utils/prior-visit';
-import {
-  CUSTOMER_TERMS_SECTIONS,
-  REGISTER_CONSENT_BACK,
-  REGISTER_CONSENT_BODY,
-  REGISTER_CONSENT_LEAD,
-} from './customer-terms';
+import { REGISTER_CONSENT_LEAD } from './customer-terms';
 import {
   pickProfilPhotoWithFaceValidation,
   shouldUseHtmlFilePickerForPhoto,
@@ -64,6 +60,7 @@ import {
     ElykOutlinedFieldComponent,
     ElykLocalityPickerComponent,
     AuthDesktopComponent,
+    AuthRegisterConsentComponent,
   ],
   templateUrl: './auth.page.html',
   styleUrls: ['./auth.page.scss'],
@@ -85,9 +82,6 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
   readonly appUnavailableMessage = APP_UNAVAILABLE_MESSAGE;
   readonly phoneHint = PHONE_HINT;
   readonly consentLead = REGISTER_CONSENT_LEAD;
-  readonly consentBody = REGISTER_CONSENT_BODY;
-  readonly consentBack = REGISTER_CONSENT_BACK;
-  readonly termsSections = CUSTOMER_TERMS_SECTIONS;
   termsAccepted = false;
   termsOpen = false;
   appVersion = environment.version;
@@ -306,11 +300,6 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     if (this.pinForm.invalid) return;
     this.journal.track('PIN_LOGIN_ATTEMPT', 'AUTH');
     await this.completeLogin(this.api.login({ phone: this.phone, pin: this.pinForm.value.pin }));
-  }
-
-  onTermsCheckbox(event: Event): void {
-    const checked = (event as CustomEvent<{ checked?: boolean }>).detail?.checked === true;
-    this.setTermsAccepted(checked);
   }
 
   setTermsAccepted(checked: boolean): void {
