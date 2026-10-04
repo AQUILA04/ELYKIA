@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  Permissions Android pour ELYKIA Espace Client.
-  À fusionner dans android/app/src/main/AndroidManifest.xml après `npx cap add android` / sync.
+  Référence des permissions Android de l'Espace Client.
+  Le build APK (CI) écrase le manifeste généré par Capacitor avec
+  .github/workflows/android-config-customer-space/AndroidManifest.xml
+  — c'est ce fichier-là qu'il faut modifier pour qu'une permission soit dans l'APK.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />

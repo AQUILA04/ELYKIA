@@ -81,6 +81,26 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Création / synchronisation / modification de compte : refus si le client n’est pas encore validé (`PENDING` ou `REJECTED`), avec un message explicite.
 
+## Customer-space — [0.12.1] — 2026-10-04
+
+### Changed
+
+- Conditions d’utilisation à l’inscription : le client s’engage de bonne foi à respecter les contrats de crédit de ses achats, à payer les échéances à la date prévue, et à ne pas causer de préjudice financier à AMENOUVEVE-YAVEH. Le manquement peut entraîner le refus de nouveaux achats, la suspension de l’espace et le recouvrement des sommes dues.
+
+## Customer-space — [0.12.0] — 2026-10-04
+
+### Added
+
+- Inscription : lorsqu’un numéro n’est pas encore celui d’un client, un écran demande d’accepter les conditions d’utilisation avant l’envoi du SMS. **Retour**, à côté de **Continuer**, ramène à la saisie du numéro. Les conditions sont consultables depuis **Lire les conditions d’utilisation**.
+
+### Changed
+
+- Écran de connexion : le titre est **Bienvenue** à la première ouverture sur l’appareil ou le navigateur, et **Bon retour !** lorsqu’une visite précédente est déjà enregistrée.
+
+### Fixed
+
+- APK Android : le manifeste utilisé pour le build déclare les permissions de localisation, afin que l’inscription puisse demander la position du téléphone.
+
 ## Customer-space — [0.11.3] — 2026-10-02
 
 ### Fixed
