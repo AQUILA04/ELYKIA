@@ -898,13 +898,13 @@ export class MigrationService {
 
   private async migrateToV33(db: SQLiteDBConnection): Promise<void> {
     try {
-      this.log.log('Running migration to v33: distributions carnet verification...');
+      await this.log.log('Running migration to v33: distributions carnet verification...');
       await this.addColumnIfNotExists(db, 'distributions', 'carnetVerified', 'BOOLEAN DEFAULT 0');
       await this.addColumnIfNotExists(db, 'distributions', 'carnetVerifiedAt', 'TEXT');
       await this.addColumnIfNotExists(db, 'distributions', 'carnetVerifiedBy', 'TEXT');
-      this.log.log('Migration to v33 successful.');
+      await this.log.log('Migration to v33 successful.');
     } catch (error: any) {
-      this.log.log(`Error in migration v33: ${error}`);
+      await this.log.log(`Error in migration v33: ${error}`);
       console.error('Error in migration v33', error);
       throw error;
     }

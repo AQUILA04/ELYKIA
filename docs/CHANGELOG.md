@@ -15,6 +15,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Vérification de carnet sur les ventes à crédit : badge **Vérifié**, filtre recherche avancée, vérification unitaire et en masse (droit `ROLE_CREDIT_CARNET_VERIFY`).
 
+## Mobile — [2.31.1] — 2026-10-05
+
+### Fixed
+
+- Sonar Quality Gate (PR vérification carnet crédit) : factorisation des files/sync/écriture RM offline, `crypto.getRandomValues` pour les `localId`, hydrate lazy (plus d’async dans le constructeur), `await` des logs migration v33.
+
 ## Mobile — [2.31.0] — 2026-10-05
 
 ### Added

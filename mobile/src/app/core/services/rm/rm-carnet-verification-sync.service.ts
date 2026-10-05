@@ -2,12 +2,12 @@ import { Injectable } from '@angular/core';
 import { OnlineFirstWriteCoordinator } from '../online-first-write.coordinator';
 import { RmCarnetVerificationApiService } from './rm-carnet-verification-api.service';
 import { RmCarnetVerificationQueueService } from './rm-carnet-verification-queue.service';
+import {
+  RmOfflineOpsSyncResult,
+  syncPendingOfflineOps
+} from './rm-offline-ops-sync.util';
 
-export interface RmCarnetVerificationSyncResult {
-  synced: number;
-  failed: number;
-  errors: string[];
-}
+export type RmCarnetVerificationSyncResult = RmOfflineOpsSyncResult;
 
 @Injectable({ providedIn: 'root' })
 export class RmCarnetVerificationSyncService {
@@ -18,24 +18,13 @@ export class RmCarnetVerificationSyncService {
   ) {}
 
   async syncPending(): Promise<RmCarnetVerificationSyncResult> {
-    const pending = await this.queue.listPending();
-    let synced = 0;
-    let failed = 0;
-    const errors: string[] = [];
-
-    for (const op of pending) {
-      try {
-        await this.api.setVerified(op.tontineMemberId, op.verified);
-        await this.queue.markSynced(op.localId);
-        synced += 1;
-      } catch (error) {
-        failed += 1;
-        const message = this.coordinator.extractErrorMessage(error);
-        errors.push(`${op.clientName || op.tontineMemberId}: ${message}`);
-        await this.queue.markError(op.localId, message);
-      }
-    }
-
-    return { synced, failed, errors };
+    return syncPendingOfflineOps({
+      listPending: () => this.queue.listPending(),
+      push: op => this.api.setVerified(op.tontineMemberId, op.verified),
+      markSynced: localId => this.queue.markSynced(localId),
+      markError: (localId, error) => this.queue.markError(localId, error),
+      label: op => String(op.clientName || op.tontineMemberId),
+      extractError: error => this.coordinator.extractErrorMessage(error)
+    });
   }
 }
