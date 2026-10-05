@@ -1,4 +1,4 @@
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { Storage } from '@ionic/storage-angular';
 
 export interface RmOfflineOpBase {
@@ -8,19 +8,18 @@ export interface RmOfflineOpBase {
 }
 
 /**
- * Shared Ionic Storage queue for RM offline ops (lazy hydrate — no async in constructor).
+ * Ionic Storage-backed offline ops queue (lazy hydrate — no async in constructor).
  */
-export abstract class RmOfflineOpsQueueBase<T extends RmOfflineOpBase> {
+export class RmOfflineOpsQueueStore<T extends RmOfflineOpBase> {
   private readonly opsSubject = new BehaviorSubject<T[]>([]);
-  readonly ops$ = this.opsSubject.asObservable();
+  readonly ops$: Observable<T[]> = this.opsSubject.asObservable();
   private ready: Promise<void> | null = null;
 
-  protected abstract readonly queueKey: string;
-
-  /** Stable business key used to replace a pending op for the same entity. */
-  protected abstract sameEntity(a: T, b: T): boolean;
-
-  protected constructor(protected readonly storage: Storage) {}
+  constructor(
+    private readonly storage: Storage,
+    private readonly queueKey: string,
+    private readonly sameEntity: (a: T, b: T) => boolean
+  ) {}
 
   private ensureReady(): Promise<void> {
     if (!this.ready) {

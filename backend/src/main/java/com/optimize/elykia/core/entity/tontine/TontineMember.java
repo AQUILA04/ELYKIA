@@ -7,6 +7,7 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
 import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
+import com.optimize.elykia.core.service.carnet.CarnetVerifiable;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class TontineMember extends BaseEntity<String> {
+public class TontineMember extends BaseEntity<String> implements CarnetVerifiable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

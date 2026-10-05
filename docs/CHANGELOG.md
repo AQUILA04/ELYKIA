@@ -9,11 +9,23 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.29.1] — 2026-10-05
+
+### Fixed
+
+- Liste crédits : badge carnet factorisé via `ng-template` pour réduire la duplication Sonar sur le nouveau code.
+
 ## Frontend — [2.29.0] — 2026-10-05
 
 ### Added
 
 - Vérification de carnet sur les ventes à crédit : badge **Vérifié**, filtre recherche avancée, vérification unitaire et en masse (droit `ROLE_CREDIT_CARNET_VERIFY`).
+
+## Mobile — [2.31.2] — 2026-10-05
+
+### Fixed
+
+- Sonar duplication (QG ≤ 3 %) : HTTP/pack/confirm helpers partagés, file crédit en composition, toggles RM unifiés.
 
 ## Mobile — [2.31.1] — 2026-10-05
 
@@ -27,6 +39,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Shell chef de recouvrement : **Vérifier** / **Annuler** et badge **Vérifié** sur les retards crédit (dashboard et onglet Terrain), avec file offline et synchronisation.
 - Fiche client commercial : badge **Vérifié** en lecture seule sur chaque carte crédit dont le carnet a été certifié.
+
+## Backend — [1.29.1] — 2026-10-05
+
+### Fixed
+
+- Factorisation `CarnetVerificationSupport` / `CarnetVerifiable` pour la vérification de carnet crédit et tontine (seuil Sonar duplication).
 
 ## Backend — [1.29.0] — 2026-10-05
 

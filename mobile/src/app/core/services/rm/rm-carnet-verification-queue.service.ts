@@ -1,17 +1,12 @@
 import { Injectable } from '@angular/core';
 import { Storage } from '@ionic/storage-angular';
-import { RmOfflineOpsQueueBase } from './rm-offline-ops-queue.base';
+import { RmOfflineOpsQueueStore } from './rm-offline-ops-queue.base';
 import { RmCarnetVerificationOp } from './rm-carnet-verification.models';
 
+/** Tontine carnet queue — thin Angular facade over the shared store. */
 @Injectable({ providedIn: 'root' })
-export class RmCarnetVerificationQueueService extends RmOfflineOpsQueueBase<RmCarnetVerificationOp> {
-  protected readonly queueKey = 'rm_tontine_carnet_verifications';
-
+export class RmCarnetVerificationQueueService extends RmOfflineOpsQueueStore<RmCarnetVerificationOp> {
   constructor(storage: Storage) {
-    super(storage);
-  }
-
-  protected sameEntity(a: RmCarnetVerificationOp, b: RmCarnetVerificationOp): boolean {
-    return a.tontineMemberId === b.tontineMemberId;
+    super(storage, 'rm_tontine_carnet_verifications', (a, b) => a.tontineMemberId === b.tontineMemberId);
   }
 }

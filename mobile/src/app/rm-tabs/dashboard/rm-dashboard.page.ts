@@ -6,6 +6,7 @@ import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCloseQueueService } from '../../core/services/rm/rm-close-queue.service';
 import { RmMonthlyRecoveryRateService } from '../../core/services/rm/rm-monthly-recovery-rate.service';
 import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
+import { runConfirmedCarnetToggle } from '../../core/services/rm/rm-carnet-confirm.util';
 import {
   RmCreditLate,
   RmOfflinePack,
@@ -137,44 +138,33 @@ export class RmDashboardPage implements OnInit, OnDestroy {
 
   async toggleCreditCarnet(item: RmCreditLate, event?: Event): Promise<void> {
     event?.stopPropagation();
-    if (this.carnetBusy) {
-      return;
-    }
     const next = !item.carnetVerified;
-    const alert = await this.alertCtrl.create({
-      header: next ? 'Vérifier le carnet' : 'Annuler la vérification',
-      message: next
-        ? `Marquer le carnet de ${item.clientName || item.reference} comme vérifié ?`
-        : `Retirer la vérification de ${item.clientName || item.reference} ?`,
-      buttons: [
-        { text: 'Non', role: 'cancel' },
-        { text: next ? 'Vérifier' : 'Annuler', role: 'confirm' }
-      ]
+    await runConfirmedCarnetToggle({
+      alertCtrl: this.alertCtrl,
+      nextVerified: next,
+      subjectLabel: item.clientName || item.reference || String(item.id),
+      isBusy: () => this.carnetBusy,
+      setBusy: busy => {
+        this.carnetBusy = busy;
+      },
+      execute: () => this.creditCarnetWrite.setVerified(item, next).then(() => undefined),
+      onSuccess: async verified => {
+        const toast = await this.toastCtrl.create({
+          message: verified ? 'Carnet vérifié' : 'Vérification annulée',
+          duration: 2000,
+          color: 'success'
+        });
+        await toast.present();
+      },
+      onError: async message => {
+        const toast = await this.toastCtrl.create({
+          message,
+          duration: 2500,
+          color: 'danger'
+        });
+        await toast.present();
+      }
     });
-    await alert.present();
-    const { role } = await alert.onDidDismiss();
-    if (role !== 'confirm') {
-      return;
-    }
-    this.carnetBusy = true;
-    try {
-      await this.creditCarnetWrite.setVerified(item, next);
-      const toast = await this.toastCtrl.create({
-        message: next ? 'Carnet vérifié' : 'Vérification annulée',
-        duration: 2000,
-        color: 'success'
-      });
-      await toast.present();
-    } catch (error: any) {
-      const toast = await this.toastCtrl.create({
-        message: error?.message || 'Échec de la vérification',
-        duration: 2500,
-        color: 'danger'
-      });
-      await toast.present();
-    } finally {
-      this.carnetBusy = false;
-    }
   }
 
   formatAmount(value: number): string {

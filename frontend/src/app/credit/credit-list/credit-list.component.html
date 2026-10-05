@@ -178,12 +178,7 @@
               </span>
             </td>
             <td>
-              <span class="carnet-badge"
-                    [class.is-verified]="credit.carnetVerified"
-                    [class.is-pending]="!credit.carnetVerified"
-                    data-testid="e2e-credit-carnet-badge">
-                {{ credit.carnetVerified ? 'Vérifié' : '—' }}
-              </span>
+              <ng-container *ngTemplateOutlet="creditCarnetBadge; context: { $implicit: credit, testId: 'e2e-credit-carnet-badge' }"></ng-container>
             </td>
             <td>
               <span [ngClass]="getBadgeClass(credit.remainingDaysCount)">
@@ -225,11 +220,7 @@
             <span class="status-badge {{ (credit.status | statusBadge).badgeClass }}">
               {{ (credit.status | statusBadge).label }}
             </span>
-            <span class="carnet-badge"
-                  [class.is-verified]="credit.carnetVerified"
-                  [class.is-pending]="!credit.carnetVerified">
-              {{ credit.carnetVerified ? 'Vérifié' : '—' }}
-            </span>
+            <ng-container *ngTemplateOutlet="creditCarnetBadge; context: { $implicit: credit }"></ng-container>
           </div>
           <div class="mobile-card-client">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</div>
           <div class="mobile-card-meta">
@@ -247,6 +238,15 @@
         </div>
       </div>
     </div>
+
+    <ng-template #creditCarnetBadge let-credit let-testId="testId">
+      <span class="carnet-badge"
+            [class.is-verified]="credit.carnetVerified"
+            [class.is-pending]="!credit.carnetVerified"
+            [attr.data-testid]="testId || null">
+        {{ credit.carnetVerified ? 'Vérifié' : '—' }}
+      </span>
+    </ng-template>
 
     <ng-template #creditActions let-credit>
       <span *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
