@@ -305,7 +305,7 @@
             </li>
           </ul>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER']">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER','ROLE_ADMIN']">
           <a class="sidebar-link" routerLink="/orders" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/orders') }">
             <span>
@@ -319,14 +319,16 @@
         <li class="sidebar-item"
             *ngIf="!isStorekeeper() && !isRecoveryManager()"
             data-testid="e2e-sidebar-services-en-ligne">
-          <a class="sidebar-link has-arrow" (click)="onServicesEnLigneClick()" aria-expanded="false"
+          <a class="sidebar-link has-arrow" (click)="onServicesEnLigneClick()"
+             [attr.aria-expanded]="isServicesEnLigneOpen"
              [ngClass]="{ 'active': isRouteActive('/services-en-ligne') }">
             <span>
               <mat-icon>language</mat-icon>
             </span>
             <span class="hide-menu">Services en ligne</span>
           </a>
-          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isServicesEnLigneOpen }">
+          <ul [attr.aria-expanded]="isServicesEnLigneOpen" class="collapse first-level"
+              [ngClass]="{ 'show': isServicesEnLigneOpen, 'in': isServicesEnLigneOpen }">
             <li class="sidebar-item submenu-item"
                 *ngxPermissionsOnly="['ROLE_VALIDATE_CLIENT_REGISTRATION','ROLE_CONSULT_CLIENT','ROLE_EDIT_CLIENT','ROLE_ADMIN']">
               <a class="sidebar-link" routerLink="/client-registrations"
@@ -337,7 +339,7 @@
               </a>
             </li>
             <li class="sidebar-item submenu-item"
-                *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER']">
+                *ngxPermissionsOnly="['ROLE_CONSULT_ORDER','ROLE_EDIT_ORDER','ROLE_ADMIN']">
               <a class="sidebar-link" routerLink="/orders/online"
                  [ngClass]="{ 'active': isSubRouteActive('/orders/online') }"
                  data-testid="e2e-sidebar-online-orders">
