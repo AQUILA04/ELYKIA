@@ -394,6 +394,19 @@
   background: #fee2e2;
   color: #b91c1c;
 }
+.customer-payments-list-page .mm-proof-amount {
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  color: var(--navy);
+}
+.customer-payments-list-page .mm-proof-phone {
+  font-family: 'DM Mono', monospace;
+  color: var(--text-muted);
+}
+.customer-payments-list-page .mm-proof-reference {
+  font-family: 'DM Mono', monospace;
+}
 .customer-payments-list-page .proof-preview-overlay {
   position: fixed;
   inset: 0;

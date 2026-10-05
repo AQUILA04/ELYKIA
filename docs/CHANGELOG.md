@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.28.2] — 2026-10-05
+
+### Fixed
+
+- Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.13.3] — 2026-10-05
+
+### Fixed
+
+- E2E : mock justificatif factorisé (`tryFulfillPaymentProofRoute`) pour supprimer la duplication Sonar entre fixtures login et inscription.
+
 ## Frontend — [2.28.1] — 2026-10-05
 
 ### Fixed

@@ -69,6 +69,24 @@ function isPaymentProofDelete(url: string, method: string): boolean {
   return !!url.match(/\/payment-proofs\/\d+$/) && method === 'DELETE';
 }
 
+/** Répond aux routes justificatif si elles matchent ; sinon false. */
+async function tryFulfillPaymentProofRoute(route: {
+  request: () => { url: () => string; method: () => string };
+  fulfill: (response: { status: number; contentType?: string; body?: string }) => Promise<void>;
+}): Promise<boolean> {
+  const url = route.request().url();
+  const method = route.request().method();
+  if (isPaymentProofPost(url, method)) {
+    await route.fulfill(jsonResponse(MOCK_PAYMENT_PROOF, 201));
+    return true;
+  }
+  if (isPaymentProofDelete(url, method)) {
+    await route.fulfill({ status: 204, body: '' });
+    return true;
+  }
+  return false;
+}
+
 /** Injecte le flag E2E et intercepte l'API customer. */
 export async function mockCustomerApi(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -76,18 +94,12 @@ export async function mockCustomerApi(page: Page): Promise<void> {
   });
 
   await page.route('**/api/customer/**', async (route) => {
+    if (await tryFulfillPaymentProofRoute(route)) {
+      return;
+    }
+
     const url = route.request().url();
     const method = route.request().method();
-
-    if (isPaymentProofPost(url, method)) {
-      await route.fulfill(jsonResponse(MOCK_PAYMENT_PROOF, 201));
-      return;
-    }
-
-    if (isPaymentProofDelete(url, method)) {
-      await route.fulfill({ status: 204, body: '' });
-      return;
-    }
 
     if (url.includes('/auth/check-phone') && method === 'POST') {
       await route.fulfill(jsonResponse({
@@ -322,18 +334,12 @@ export async function mockRegistrationOnboardingFlow(page: Page): Promise<void> 
   };
 
   await page.route('**/api/customer/**', async (route) => {
+    if (await tryFulfillPaymentProofRoute(route)) {
+      return;
+    }
+
     const url = route.request().url();
     const method = route.request().method();
-
-    if (isPaymentProofPost(url, method)) {
-      await route.fulfill(jsonResponse(MOCK_PAYMENT_PROOF, 201));
-      return;
-    }
-
-    if (isPaymentProofDelete(url, method)) {
-      await route.fulfill({ status: 204, body: '' });
-      return;
-    }
 
     if (url.includes('/auth/check-phone') && method === 'POST') {
       await route.fulfill(jsonResponse({
