@@ -9,10 +9,12 @@ import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.CreditTimelineDto;
 import com.optimize.elykia.core.dto.customer.CustomerMobileMoneySubmissionDto;
 import com.optimize.elykia.core.entity.customer.CustomerMobileMoneySubmission;
+import com.optimize.elykia.core.entity.customer.CustomerPaymentProof;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import com.optimize.elykia.core.enumaration.AppNotificationType;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
+import com.optimize.elykia.core.enumaration.PaymentProofLinkedType;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
@@ -43,6 +45,7 @@ public class CustomerMobileMoneySubmissionAdminService {
     private final AppNotificationService appNotificationService;
     private final CreditTimelineService creditTimelineService;
     private final CustomerNotificationService customerNotificationService;
+    private final PaymentProofService paymentProofService;
 
     @Transactional(readOnly = true)
     public Page<CustomerMobileMoneySubmissionDto> list(User user, CustomerSubmissionStatus status, Pageable pageable) {
@@ -127,6 +130,22 @@ public class CustomerMobileMoneySubmissionAdminService {
         return toDto(submission, client, targetCollector, tontineCollector);
     }
 
+    @Transactional(readOnly = true)
+    public PaymentProofService.ProofDownload downloadProof(User user, Long id) {
+        AppNotificationService.assertAudienceOrThrow(user);
+        CustomerMobileMoneySubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Soumission introuvable."));
+        Client client = clientService.getById(submission.getClientId());
+        Credit credit = creditRepository.findById(submission.getCreditId()).orElse(null);
+        String targetCollector = resolveCollector(credit, client);
+        assertPromoterAccess(user, targetCollector);
+        CustomerPaymentProof proof = paymentProofService.findById(submission.getPaymentProofId());
+        if (proof == null) {
+            throw new ResourceNotFoundException("Justificatif introuvable pour cette déclaration.");
+        }
+        return paymentProofService.download(proof);
+    }
+
     private CustomerMobileMoneySubmission loadInitiated(Long id) {
         CustomerMobileMoneySubmission submission = submissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Soumission introuvable."));
@@ -177,11 +196,13 @@ public class CustomerMobileMoneySubmissionAdminService {
         return null;
     }
 
-    private static CustomerMobileMoneySubmissionDto toDto(
+    private CustomerMobileMoneySubmissionDto toDto(
             CustomerMobileMoneySubmission submission,
             Client client,
             String targetCollector,
             String tontineCollector) {
+        CustomerPaymentProof proof = paymentProofService.findById(submission.getPaymentProofId());
+        boolean hasProof = proof != null;
         return CustomerMobileMoneySubmissionDto.builder()
                 .id(submission.getId())
                 .clientId(submission.getClientId())
@@ -198,6 +219,13 @@ public class CustomerMobileMoneySubmissionAdminService {
                 .tontineCollector(tontineCollector)
                 .creditTimelineId(submission.getCreditTimelineId())
                 .createdAt(submission.getCreatedDate())
+                .hasProof(hasProof)
+                .proofContentType(hasProof ? proof.getContentType() : null)
+                .ocrReference(hasProof ? proof.getOcrReference() : null)
+                .referenceMismatch(paymentProofService.isReferenceMismatch(
+                        proof, submission.getMobileMoneyReference()))
+                .duplicateProof(paymentProofService.isDuplicateProof(
+                        proof, PaymentProofLinkedType.CREDIT, submission.getId()))
                 .build();
     }
 }

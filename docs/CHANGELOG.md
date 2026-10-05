@@ -20,6 +20,76 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Profils ADMIN et SUPER_ADMIN : attribution des permissions commandes (`ROLE_CONSULT_ORDER`, `ROLE_EDIT_ORDER`), y compris rattrapage au démarrage pour les comptes déjà créés.
+## Frontend — [2.28.2] — 2026-10-05
+
+### Fixed
+
+- Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.13.3] — 2026-10-05
+
+### Fixed
+
+- E2E : mock justificatif factorisé (`tryFulfillPaymentProofRoute`) pour supprimer la duplication Sonar entre fixtures login et inscription.
+
+## Frontend — [2.28.1] — 2026-10-05
+
+### Fixed
+
+- Aperçu PDF des justificatifs : annotation Sonar `NOSONAR` sur `bypassSecurityTrustResourceUrl` pour les blob URLs issus du flux API authentifié (aligné sur le pattern photos client).
+
+## Frontend — [2.28.0] — 2026-10-05
+
+### Added
+
+- Déclarations de paiement : colonne **Justificatif** (Agrandir) sur les onglets crédit et tontine, avec aperçu image ou PDF et pastilles « Référence différente » / « Justificatif déjà utilisé ».
+- Inscriptions clients : bouton **Voir le justificatif** sur le dépôt initial lorsqu’une preuve est jointe.
+
+## Backend — [1.28.2] — 2026-10-05
+
+### Fixed
+
+- Couverture JaCoCo du package OCR (`PdfProofTextService`, `TesseractCliOcrEngine`) pour passer le seuil service par package (≥ 30 %).
+
+## Backend — [1.28.1] — 2026-10-05
+
+### Fixed
+
+- Tests unitaires admin / onboarding : mock `PaymentProofService` manquant après injection du service de justificatifs (`ClientRegistrationAdminServiceTest`, `CustomerMobileMoneySubmissionAdminServiceTest`, `CustomerOnboardingServiceTest`).
+
+## Backend — [1.28.0] — 2026-10-05
+
+### Added
+
+- Justificatifs de paiement Mobile Money : upload multipart `POST /api/customer/payment-proofs`, stockage MinIO (`payment-proofs/…`), OCR Tesseract (CLI dans l’image Docker) pour proposer la référence, rattachement aux déclarations crédit / tontine / dépôt initial.
+- Endpoints admin de lecture du justificatif (`…/proof`) et indicateurs OCR / doublon sur les DTO de liste.
+- Migration `V010__customer_payment_proof.sql` et purge des preuves non rattachées après 24 h.
+- Flag `elykia.payment-proof.required` (désactivé par défaut pour compatibilité APK).
+
+## Customer-space — [0.13.2] — 2026-10-05
+
+### Fixed
+
+- E2E Playwright : mock `POST /payment-proofs` et upload du justificatif avant soumission (paiement crédit, tontine, dépôt initial) — le submit restait désactivé sans preuve.
+
+## Customer-space — [0.13.1] — 2026-10-05
+
+### Fixed
+
+- Sélecteur de justificatif : association `label`/`id` sur les champs fichier cachés (accessibilité Sonar).
+
+## Customer-space — [0.13.0] — 2026-10-05
+
+### Added
+
+- Bloc **Justificatif du transfert** (capture ou PDF) en tête des formulaires de déclaration : crédit, cotisation tontine, adhésion tontine, dépôt initial.
+- Pré-remplissage automatique de la référence (modifiable) après lecture OCR côté serveur ; compression des images avant envoi multipart.
+
+## Docs & Infra — 2026-10-05
+
+### Changed
+
+- **Docs —** Guides client / gestionnaire : justificatif de paiement (dépôt initial, Agrandir, pastilles) ; index Elykia IA et guide HTML du frontend régénérés après fusion avec `main`.
 
 ## Frontend — [2.27.0] — 2026-10-02
 

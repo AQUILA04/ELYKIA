@@ -28,6 +28,7 @@ import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
+import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.tontine.TontineService;
@@ -53,6 +54,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -297,7 +299,8 @@ class CustomerPortalServiceTest {
                 appNotificationService,
                 tontineMmSubmissionRepository,
                 onboardingService,
-                tontineAmountHistoryHelper);
+                tontineAmountHistoryHelper,
+                mock(PaymentProofService.class));
     }
 
     private void stubJoinableSession(int year) {

@@ -1,5 +1,10 @@
 import { test, expect } from '@playwright/test';
-import { fillIonTestId, loginAsCustomer, MOCK_PURCHASE_ID } from '../../fixtures/customer-auth';
+import {
+  fillIonTestId,
+  loginAsCustomer,
+  MOCK_PURCHASE_ID,
+  uploadPaymentProof,
+} from '../../fixtures/customer-auth';
 
 test.describe('Mobile money payment', () => {
   test('submits payment form and shows confirmation', async ({ page }) => {
@@ -10,6 +15,7 @@ test.describe('Mobile money payment', () => {
     await expect(page.getByTestId('e2e-payment-recipients')).toBeVisible();
     await expect(page.getByTestId('e2e-payment-mixx-number')).toContainText('90123456');
     await expect(page.getByTestId('e2e-payment-moov-number')).toContainText('97654321');
+    await uploadPaymentProof(page, 'e2e-payment-proof');
     await fillIonTestId(page, 'e2e-payment-phone', '90123456');
     await fillIonTestId(page, 'e2e-payment-amount', '35000');
     await fillIonTestId(page, 'e2e-payment-reference', 'TXN-E2E-001');

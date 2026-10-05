@@ -24,4 +24,9 @@ public class CustomerMobileMoneySubmissionDto {
     String tontineCollector;
     Long creditTimelineId;
     LocalDateTime createdAt;
+    Boolean hasProof;
+    String proofContentType;
+    String ocrReference;
+    Boolean referenceMismatch;
+    Boolean duplicateProof;
 }

@@ -25,6 +25,11 @@ export interface CustomerMobileMoneySubmission {
   targetCollector?: string;
   tontineCollector?: string;
   createdAt?: string;
+  hasProof?: boolean;
+  proofContentType?: string;
+  ocrReference?: string;
+  referenceMismatch?: boolean;
+  duplicateProof?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -43,5 +48,9 @@ export class CustomerMobileMoneySubmissionService {
 
   reject(id: number): Observable<CustomerMobileMoneySubmission> {
     return postSubmissionAction<CustomerMobileMoneySubmission>(this.http, this.apiUrl, id, 'reject');
+  }
+
+  downloadProof(id: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${id}/proof`, { responseType: 'blob' });
   }
 }

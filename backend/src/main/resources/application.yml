@@ -496,6 +496,21 @@ elykia:
   photos:
     # Durée de validité des URL MinIO signées (photos clients privées).
     presign-expiry-minutes: ${ELYKIA_PHOTOS_PRESIGN_EXPIRY_MINUTES:60}
+  payment-proof:
+    # false au premier déploiement (APK anciens) ; passer à true après diffusion de l'APK.
+    required: ${ELYKIA_PAYMENT_PROOF_REQUIRED:false}
+    max-bytes: ${ELYKIA_PAYMENT_PROOF_MAX_BYTES:5242880}
+    unlinked-retention-hours: ${ELYKIA_PAYMENT_PROOF_RETENTION_HOURS:24}
+    ocr:
+      tesseract-binary: ${ELYKIA_TESSERACT_BINARY:tesseract}
+      languages: fra+eng
+      timeout-seconds: 20
+      max-concurrent: 2
+      min-width-px: 1000
+      reference-patterns:
+        - "(?i)(?:r[eé]f(?:[eé]rence)?|txn|transaction|id|n[°o]|numero|num[eé]ro)\\s*[:.#\\-]?\\s*([A-Z0-9][A-Z0-9\\-]{5,29})"
+        - "(?i)\\b([A-Z]{2,5}[-_]\\d{6,}[-_]?[A-Z0-9]*)\\b"
+        - "(?i)\\b(\\d{10,20})\\b"
   customer:
     activity-log:
       retention-days: ${CUSTOMER_ACTIVITY_LOG_RETENTION_DAYS:180}

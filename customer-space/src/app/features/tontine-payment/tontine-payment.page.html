@@ -49,6 +49,7 @@
       </app-mobile-money-recipients-card>
 
       <form [formGroup]="form" class="payment-form elyk-animate">
+        <app-payment-proof-picker [form]="form" testIdPrefix="e2e-tontine-payment-proof"></app-payment-proof-picker>
         <app-elyk-outlined-field label="Numéro d'envoi" icon="call-outline">
           <ion-input
             formControlName="mobileMoneyPhone"

@@ -18,7 +18,9 @@ import com.optimize.elykia.core.dto.customer.ClientRegistrationRejectRequest;
 import com.optimize.elykia.core.dto.customer.CustomerInitialDepositDto;
 import com.optimize.elykia.core.dto.customer.CustomerInitialDepositRejectRequest;
 import com.optimize.elykia.core.entity.customer.CustomerInitialDepositSubmission;
+import com.optimize.elykia.core.entity.customer.CustomerPaymentProof;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
+import com.optimize.elykia.core.enumaration.PaymentProofLinkedType;
 import com.optimize.elykia.core.repository.customer.CustomerInitialDepositSubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -50,6 +52,7 @@ public class ClientRegistrationAdminService {
     private final AccountService accountService;
     private final CustomerInitialDepositSubmissionRepository depositRepository;
     private final CustomerNotificationService customerNotificationService;
+    private final PaymentProofService paymentProofService;
 
     @Transactional(readOnly = true)
     public Page<ClientRegistrationDto> list(
@@ -184,6 +187,17 @@ public class ClientRegistrationAdminService {
         return toDepositDto(submission);
     }
 
+    @Transactional(readOnly = true)
+    public PaymentProofService.ProofDownload downloadDepositProof(User user, Long depositId) {
+        CustomerInitialDepositSubmission submission = depositRepository.findById(depositId)
+                .orElseThrow(() -> new ResourceNotFoundException("Déclaration de dépôt initial introuvable."));
+        CustomerPaymentProof proof = paymentProofService.findById(submission.getPaymentProofId());
+        if (proof == null) {
+            throw new ResourceNotFoundException("Justificatif introuvable pour ce dépôt.");
+        }
+        return paymentProofService.download(proof);
+    }
+
     private void markDepositValidated(User user, CustomerInitialDepositSubmission deposit) {
         deposit.setStatus(CustomerSubmissionStatus.VALIDE);
         deposit.setValidatedBy(user.getUsername());
@@ -234,6 +248,9 @@ public class ClientRegistrationAdminService {
 
     private ClientRegistrationDto toDto(Client client, CustomerInitialDepositSubmission deposit) {
         boolean hasDeposit = deposit != null && DEPOSIT_HIGHLIGHT.contains(deposit.getStatus());
+        CustomerPaymentProof proof = deposit != null
+                ? paymentProofService.findById(deposit.getPaymentProofId())
+                : null;
         return ClientRegistrationDto.builder()
                 .clientId(client.getId())
                 .firstname(client.getFirstname())
@@ -262,11 +279,15 @@ public class ClientRegistrationAdminService {
                 .initialDepositAmount(deposit != null ? deposit.getMobileMoneyAmount() : null)
                 .initialDepositPhone(deposit != null ? deposit.getMobileMoneyPhone() : null)
                 .initialDepositReference(deposit != null ? deposit.getMobileMoneyReference() : null)
+                .initialDepositHasProof(proof != null)
+                .initialDepositProofContentType(proof != null ? proof.getContentType() : null)
                 .activationRejectionReason(client.getActivationRejectionReason())
                 .build();
     }
 
     private CustomerInitialDepositDto toDepositDto(CustomerInitialDepositSubmission submission) {
+        CustomerPaymentProof proof = paymentProofService.findById(submission.getPaymentProofId());
+        boolean hasProof = proof != null;
         return CustomerInitialDepositDto.builder()
                 .id(submission.getId())
                 .clientId(submission.getClientId())
@@ -280,6 +301,13 @@ public class ClientRegistrationAdminService {
                 .rejectedAt(submission.getRejectedAt())
                 .rejectedBy(submission.getRejectedBy())
                 .rejectionReason(submission.getRejectionReason())
+                .hasProof(hasProof)
+                .proofContentType(hasProof ? proof.getContentType() : null)
+                .ocrReference(hasProof ? proof.getOcrReference() : null)
+                .referenceMismatch(paymentProofService.isReferenceMismatch(
+                        proof, submission.getMobileMoneyReference()))
+                .duplicateProof(paymentProofService.isDuplicateProof(
+                        proof, PaymentProofLinkedType.INITIAL_DEPOSIT, submission.getId()))
                 .build();
     }
 }

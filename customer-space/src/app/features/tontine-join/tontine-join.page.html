@@ -107,6 +107,7 @@
           </app-mobile-money-recipients-card>
 
           <form [formGroup]="paymentForm" class="payment-form">
+            <app-payment-proof-picker [form]="paymentForm" testIdPrefix="e2e-tontine-join-proof"></app-payment-proof-picker>
             <app-elyk-outlined-field
               label="Numéro d'envoi"
               icon="call-outline"

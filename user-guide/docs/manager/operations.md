@@ -186,8 +186,18 @@ Cet onglet centralise les règlements d'échéances de vente à crédit.
 | **Échéance** | Numéro de l'échéance réglée par le client. |
 | **Montant** | Somme versée en Francs CFA (affichée en gras). |
 | **Téléphone** | Numéro de téléphone Mobile Money utilisé pour le transfert. |
-| **Référence** | Numéro de transaction officiel fourni par l'opérateur (Mixx ou Moov). |
+| **Référence** | Numéro de transaction officiel fourni par l'opérateur (Mixx ou Moov). Des pastilles peuvent signaler une **référence différente** de celle lue sur le justificatif, ou un **justificatif déjà utilisé**. |
+| **Justificatif** | Bouton **Agrandir** pour ouvrir la capture ou le reçu PDF fourni par le client. |
 | **Date** | Date et heure de déclaration du paiement par le client. |
+
+#### Actions de validation ou de rejet :
+1. **Consulter le justificatif** : cliquez sur **Agrandir** pour visualiser la preuve avant de décider.
+2. **Valider** :
+   * Après vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur le bouton vert **« Valider »**.
+   * **Conséquences automatiques** : Le paiement est instantanément imputé sur le crédit du client, son solde restant dû diminue, le versement est enregistré dans le journal des recouvrements du commercial et comptabilisé dans les encaissements du jour.
+3. **Rejeter** :
+   * Si la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur le bouton rouge **« Rejeter »**.
+   * Une boîte de dialogue vous demande confirmation avant d'annuler définitivement la déclaration.
 
 ---
 
@@ -195,6 +205,7 @@ Cet onglet centralise les règlements d'échéances de vente à crédit.
 Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine, y compris le **premier paiement** déclaré par un nouveau membre qui s’est inscrit depuis l’Espace Client.
 
 #### Décision gestionnaire :
+* **Consulter le justificatif** : cliquez sur **Agrandir** avant de décider.
 * **Valider** : Valide l'encaissement, crédite la cagnotte du membre dans la session active, applique la règle de déduction de la part société selon le barème paramétré et met à jour l'état d'avancement de son carnet d'épargne. La cotisation quitte immédiatement la liste des attentes.
 * **Rejeter** : Rejette la déclaration après confirmation ; la ligne disparaît ensuite de la liste et le client est alerté.
 
@@ -204,7 +215,8 @@ Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par le
 | **Commercial tontine** | Commercial responsable du suivi de la tontine pour ce secteur. |
 | **Membre** | Numéro d'adhésion officiel tontine (`#ID`). |
 | **Montant** | Montant cotisé en Francs CFA. |
-| **Téléphone & Référence** | Coordonnées de l'émetteur et identifiant de transaction opérateur. |
+| **Téléphone & Référence** | Coordonnées de l'émetteur et identifiant de transaction opérateur. Des pastilles peuvent signaler une **référence différente** ou un **justificatif déjà utilisé**. |
+| **Justificatif** | Bouton **Agrandir** pour ouvrir la capture ou le reçu PDF. |
 | **Date** | Date et heure de l'opération. |
 
 ---

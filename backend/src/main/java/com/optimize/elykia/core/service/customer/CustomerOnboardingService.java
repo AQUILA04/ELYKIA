@@ -14,7 +14,9 @@ import com.optimize.elykia.core.dto.customer.CustomerInitialDepositRequest;
 import com.optimize.elykia.core.dto.customer.CustomerMobileMoneyRecipientDto;
 import com.optimize.elykia.core.dto.customer.CustomerOnboardingStatusDto;
 import com.optimize.elykia.core.entity.customer.CustomerInitialDepositSubmission;
+import com.optimize.elykia.core.entity.customer.CustomerPaymentProof;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
+import com.optimize.elykia.core.enumaration.PaymentProofLinkedType;
 import com.optimize.elykia.core.repository.customer.CustomerInitialDepositSubmissionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,6 +41,7 @@ public class CustomerOnboardingService {
     private final ClientService clientService;
     private final CustomerInitialDepositSubmissionRepository depositRepository;
     private final CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
+    private final PaymentProofService paymentProofService;
 
     @Transactional(readOnly = true)
     public CustomerOnboardingStatusDto getStatus() {
@@ -83,6 +86,8 @@ public class CustomerOnboardingService {
             throw new CustomValidationException(
                     "Une déclaration de dépôt initial est déjà en cours ou validée.");
         }
+        CustomerPaymentProof proof = paymentProofService.requireUnlinkedOwned(
+                client.getId(), request.getPaymentProofId());
         CustomerInitialDepositSubmission submission = new CustomerInitialDepositSubmission();
         submission.setClientId(client.getId());
         submission.setMobileMoneyPhone(request.getMobileMoneyPhone().trim());
@@ -92,7 +97,11 @@ public class CustomerOnboardingService {
         submission.setStatus(CustomerSubmissionStatus.INITIE);
         submission.setCreatedBy(contextService.currentUsername());
         submission.setState(State.ENABLED);
+        if (proof != null) {
+            submission.setPaymentProofId(proof.getId());
+        }
         submission = depositRepository.save(submission);
+        paymentProofService.link(proof, PaymentProofLinkedType.INITIAL_DEPOSIT, submission.getId());
         return toDepositDto(submission);
     }
 
@@ -169,6 +178,8 @@ public class CustomerOnboardingService {
     }
 
     private CustomerInitialDepositDto toDepositDto(CustomerInitialDepositSubmission submission) {
+        CustomerPaymentProof proof = paymentProofService.findById(submission.getPaymentProofId());
+        boolean hasProof = proof != null;
         return CustomerInitialDepositDto.builder()
                 .id(submission.getId())
                 .clientId(submission.getClientId())
@@ -182,6 +193,13 @@ public class CustomerOnboardingService {
                 .rejectedAt(submission.getRejectedAt())
                 .rejectedBy(submission.getRejectedBy())
                 .rejectionReason(submission.getRejectionReason())
+                .hasProof(hasProof)
+                .proofContentType(hasProof ? proof.getContentType() : null)
+                .ocrReference(hasProof ? proof.getOcrReference() : null)
+                .referenceMismatch(paymentProofService.isReferenceMismatch(
+                        proof, submission.getMobileMoneyReference()))
+                .duplicateProof(paymentProofService.isDuplicateProof(
+                        proof, PaymentProofLinkedType.INITIAL_DEPOSIT, submission.getId()))
                 .build();
     }
 }
