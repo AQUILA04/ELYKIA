@@ -1,5 +1,12 @@
+:host {
+  display: block;
+  position: relative;
+  z-index: 30;
+}
+
 .filter-card {
   background: white;
+  overflow: visible;
   border-radius: 12px;
   padding: 16px 20px;
   margin-bottom: 24px;

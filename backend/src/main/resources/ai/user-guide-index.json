@@ -519,7 +519,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Guide Tontines\nJournal des collectes (Menu Tontines > Collectes)\n\nDans le menu latéral gauche, cliquez sur Tontines puis sur Collectes . C'est le grand livre de caisse de la tontine :\nIl présente la totalité des encaissements enregistrés jour après jour.\nVous pouvez filtrer les résultats par période ( du ... au ... ) et par commercial.\nChaque ligne affiche l'heure exacte, le montant, le commercial encaisseur, le membre concerné et les codes de confirmation client.\n\n---"
+    "content": "Guide Tontines\nJournal des collectes (Menu Tontines > Collectes)\n\nDans le menu latéral gauche, cliquez sur Tontines puis sur Collectes . C'est le grand livre de caisse de la tontine :\nIl présente les encaissements de la période, jour après jour.\nVous pouvez filtrer les résultats par période ( du ... au ... ) et par commercial.\nChaque ligne affiche l'heure exacte, le montant, le commercial encaisseur, le membre concerné et les codes de confirmation client.\n\n---"
   },
   {
     "id": "commercial_tontine__7_archives_et_transition_annuelle_menu_tontines_",

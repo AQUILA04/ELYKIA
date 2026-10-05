@@ -180,7 +180,7 @@ Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. C
 ## 6. Journal des collectes (Menu Tontines > Collectes)
 
 Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Collectes**. C'est le grand livre de caisse de la tontine :
-- Il présente la totalité des encaissements enregistrés jour après jour.
+- Il présente les encaissements de la période, jour après jour.
 - Vous pouvez filtrer les résultats par période (*du ... au ...*) et par commercial.
 - Chaque ligne affiche l'heure exacte, le montant, le commercial encaisseur, le membre concerné et les codes de confirmation client.
 
