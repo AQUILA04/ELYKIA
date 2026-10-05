@@ -8,8 +8,9 @@ name: ELYKIA CD Pipeline
 # Customer-space APK builds and web deploys (clients[-test].amenouveve-yaveh.com) run in
 # build-customer-space-apk.yml after CD and ci-customer-space both succeed.
 # Web E2E tests (Playwright) run in parallel in e2e.yml after a successful TEST deploy.
-# It also supports a manual 'promote' workflow_dispatch to promote the current test release to prod,
-# then stop the test stack once prod deploy has succeeded.
+# It also supports a manual 'promote' workflow_dispatch to promote the current test release to prod.
+# By default the test stack is stopped once prod deploy has succeeded; uncheck
+# stop_test_after_promote on the dispatch form to leave the test environment up.
 #
 # IMAGE RESOLUTION STRATEGY
 # --------------------------
@@ -43,6 +44,11 @@ on:
         default: promote
         options:
           - promote
+      stop_test_after_promote:
+        description: 'Stop the test environment after a successful prod promote'
+        type: boolean
+        required: false
+        default: true
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -401,6 +407,11 @@ jobs:
           fi
           
           echo "Promoting FRONTEND_IMAGE=$FRONTEND_IMAGE BACKEND_IMAGE=$BACKEND_IMAGE to prod ($PROD_HOST)"
+          if [ "${{ github.event.inputs.stop_test_after_promote }}" = "true" ]; then
+            echo "Test stack will be stopped after this promote."
+          else
+            echo "Test stack will stay up after this promote."
+          fi
           ssh -o StrictHostKeyChecking=no -i private_key "$PROD_USER@$PROD_HOST" \
             "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
              && cd $PROD_PATH \
@@ -411,10 +422,12 @@ jobs:
         run: rm -f private_key
 
   # ---------------------------------------------------------------------------
-  # Stop TEST stack after successful promote to PROD
+  # Stop TEST stack after successful promote to PROD (unless the dispatch
+  # checkbox stop_test_after_promote was left unchecked).
   # ---------------------------------------------------------------------------
   promote-stop-test:
     needs: promote-deploy-prod
+    if: github.event.inputs.stop_test_after_promote == 'true'
     runs-on: ubuntu-latest
     name: Stop test stack after promote
     environment: test

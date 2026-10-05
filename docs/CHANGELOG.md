@@ -75,6 +75,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Guide chef de recouvrement (web / mobile) et guide commercial mobile : procédures et badge **Vérifié** pour la vérification de carnet crédit ; index RAG et HTML MkDocs régénérés.
 
+### Changed
+
+- **Deploy —** Promotion manuelle test → prod : case « Stop the test environment after a successful prod promote » (cochée par défaut). Décochée, l’environnement de test reste allumé après le déploiement en prod.
+
 ## Frontend — [2.27.1] — 2026-10-05
 
 ### Fixed
