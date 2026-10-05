@@ -9,13 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
-## Backend — [1.27.2] — 2026-10-02
+## Backend — [1.27.2] — 2026-10-05
 
 ### Fixed
 
 - Couverture JaCoCo du package OCR (`PdfProofTextService`, `TesseractCliOcrEngine`) pour passer le seuil service par package (≥ 30 %).
 
-## Customer-space — [0.12.2] — 2026-10-02
+## Customer-space — [0.12.2] — 2026-10-05
 
 ### Fixed
 
