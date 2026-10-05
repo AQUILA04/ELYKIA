@@ -46,6 +46,7 @@ class CustomerOnboardingServiceTest {
     @Mock private ClientService clientService;
     @Mock private CustomerInitialDepositSubmissionRepository depositRepository;
     @Mock private CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
+    @Mock private PaymentProofService paymentProofService;
 
     @InjectMocks
     private CustomerOnboardingService service;

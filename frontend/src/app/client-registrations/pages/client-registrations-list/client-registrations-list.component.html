@@ -178,6 +178,15 @@
             {{ selected.initialDepositAmount | number:'1.0-0' }} F
             · {{ selected.initialDepositPhone }}
             · réf. {{ selected.initialDepositReference }}
+            <button
+              *ngIf="selected.initialDepositHasProof"
+              type="button"
+              class="btn-clear"
+              style="margin-left:8px"
+              data-testid="e2e-client-registration-deposit-proof"
+              (click)="openDepositProof(selected)">
+              Voir le justificatif
+            </button>
           </dd>
         </div>
       </dl>
@@ -233,7 +242,18 @@
         </button>
       </div>
       <div class="photo-preview-body">
-        <img [src]="photoPreviewUrl" [alt]="photoPreviewTitle" class="photo-preview-image" (error)="onPhotoError(photoPreviewUrl)" />
+        <img
+          *ngIf="!photoPreviewIsPdf && photoPreviewUrl"
+          [src]="photoPreviewUrl"
+          [alt]="photoPreviewTitle"
+          class="photo-preview-image"
+          (error)="onPhotoError(photoPreviewUrl)" />
+        <iframe
+          *ngIf="photoPreviewIsPdf && photoPreviewSafeUrl"
+          [src]="photoPreviewSafeUrl"
+          title="Justificatif PDF"
+          class="photo-preview-image"
+          style="width:100%;min-height:70vh;border:0"></iframe>
       </div>
     </div>
   </div>

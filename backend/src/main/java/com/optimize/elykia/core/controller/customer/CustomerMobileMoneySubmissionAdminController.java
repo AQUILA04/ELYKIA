@@ -6,9 +6,13 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.customer.CustomerMobileMoneySubmissionDto;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.service.customer.CustomerMobileMoneySubmissionAdminService;
+import com.optimize.elykia.core.service.customer.PaymentProofService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,6 +36,16 @@ public class CustomerMobileMoneySubmissionAdminController {
         User user = userService.getCurrentUser();
         Page<CustomerMobileMoneySubmissionDto> page = adminService.list(user, status, pageable);
         return ResponseEntity.ok(ResponseUtil.successResponse(page));
+    }
+
+    @GetMapping("/{id}/proof")
+    public ResponseEntity<Resource> downloadProof(@PathVariable Long id) {
+        User user = userService.getCurrentUser();
+        PaymentProofService.ProofDownload download = adminService.downloadProof(user, id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + download.fileName() + "\"")
+                .contentType(MediaType.parseMediaType(download.contentType()))
+                .body(download.resource());
     }
 
     @PostMapping("/{id}/validate")

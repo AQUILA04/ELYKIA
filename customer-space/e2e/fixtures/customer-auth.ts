@@ -35,6 +35,58 @@ export const E2E_TINY_PNG = Buffer.from(
   'base64',
 );
 
+const MOCK_PAYMENT_PROOF = {
+  id: 9001,
+  fileName: 'proof.png',
+  contentType: 'image/png',
+  size: E2E_TINY_PNG.length,
+  ocrStatus: 'NO_REFERENCE' as const,
+  detectedReference: null,
+};
+
+/** Upload un justificatif via l'input fichier du picker (active le submit). */
+export async function uploadPaymentProof(
+  page: Page,
+  testIdPrefix = 'e2e-payment-proof',
+): Promise<void> {
+  const upload = page.waitForResponse(
+    (r) => r.url().includes('/payment-proofs') && r.request().method() === 'POST' && r.ok(),
+  );
+  await page.getByTestId(`${testIdPrefix}-image-input`).setInputFiles({
+    name: 'proof.png',
+    mimeType: 'image/png',
+    buffer: E2E_TINY_PNG,
+  });
+  await upload;
+  await page.getByTestId(`${testIdPrefix}-preview`).waitFor({ state: 'visible', timeout: 10_000 });
+}
+
+function isPaymentProofPost(url: string, method: string): boolean {
+  return url.includes('/payment-proofs') && method === 'POST' && !url.match(/\/payment-proofs\/\d+/);
+}
+
+function isPaymentProofDelete(url: string, method: string): boolean {
+  return !!url.match(/\/payment-proofs\/\d+$/) && method === 'DELETE';
+}
+
+/** Répond aux routes justificatif si elles matchent ; sinon false. */
+async function tryFulfillPaymentProofRoute(route: {
+  request: () => { url: () => string; method: () => string };
+  fulfill: (response: { status: number; contentType?: string; body?: string }) => Promise<void>;
+}): Promise<boolean> {
+  const url = route.request().url();
+  const method = route.request().method();
+  if (isPaymentProofPost(url, method)) {
+    await route.fulfill(jsonResponse(MOCK_PAYMENT_PROOF, 201));
+    return true;
+  }
+  if (isPaymentProofDelete(url, method)) {
+    await route.fulfill({ status: 204, body: '' });
+    return true;
+  }
+  return false;
+}
+
 /** Injecte le flag E2E et intercepte l'API customer. */
 export async function mockCustomerApi(page: Page): Promise<void> {
   await page.addInitScript(() => {
@@ -42,6 +94,10 @@ export async function mockCustomerApi(page: Page): Promise<void> {
   });
 
   await page.route('**/api/customer/**', async (route) => {
+    if (await tryFulfillPaymentProofRoute(route)) {
+      return;
+    }
+
     const url = route.request().url();
     const method = route.request().method();
 
@@ -278,6 +334,10 @@ export async function mockRegistrationOnboardingFlow(page: Page): Promise<void> 
   };
 
   await page.route('**/api/customer/**', async (route) => {
+    if (await tryFulfillPaymentProofRoute(route)) {
+      return;
+    }
+
     const url = route.request().url();
     const method = route.request().method();
 

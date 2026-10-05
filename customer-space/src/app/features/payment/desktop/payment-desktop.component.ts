@@ -5,11 +5,19 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { MobileMoneyRecipient } from '../../../shared/models/customer.model';
 import { ElykDesktopPageComponent, ElykOutlinedFieldComponent } from '../../../shared/ui';
+import { PaymentProofPickerComponent } from '../../../shared/components/payment-proof-picker/payment-proof-picker.component';
 
 @Component({
   selector: 'app-payment-desktop',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, IonicModule, ElykDesktopPageComponent, ElykOutlinedFieldComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    IonicModule,
+    ElykDesktopPageComponent,
+    ElykOutlinedFieldComponent,
+    PaymentProofPickerComponent,
+  ],
   templateUrl: './payment-desktop.component.html',
   styleUrls: ['./payment-desktop.component.scss'],
 })

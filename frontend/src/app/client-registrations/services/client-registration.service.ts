@@ -34,6 +34,8 @@ export interface ClientRegistration {
   initialDepositAmount?: number;
   initialDepositPhone?: string;
   initialDepositReference?: string;
+  initialDepositHasProof?: boolean;
+  initialDepositProofContentType?: string;
   activationRejectionReason?: string;
 }
 
@@ -131,5 +133,9 @@ export class ClientRegistrationService {
     return this.http.get<any>(this.promotersUrl).pipe(
       map((res) => Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []))
     );
+  }
+
+  downloadDepositProof(depositId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/initial-deposits/${depositId}/proof`, { responseType: 'blob' });
   }
 }

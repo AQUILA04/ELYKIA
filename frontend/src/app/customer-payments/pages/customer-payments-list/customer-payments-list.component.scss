@@ -377,3 +377,86 @@
   font-size: 13px;
   color: var(--text-muted);
 }
+
+.customer-payments-list-page .proof-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.customer-payments-list-page .proof-badge.warn {
+  background: #fef3c7;
+  color: #b45309;
+}
+.customer-payments-list-page .proof-badge.danger {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.customer-payments-list-page .mm-proof-amount {
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  font-size: 15px;
+  color: var(--navy);
+}
+.customer-payments-list-page .mm-proof-phone {
+  font-family: 'DM Mono', monospace;
+  color: var(--text-muted);
+}
+.customer-payments-list-page .mm-proof-reference {
+  font-family: 'DM Mono', monospace;
+}
+.customer-payments-list-page .proof-preview-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.customer-payments-list-page .proof-preview-modal {
+  background: #fff;
+  border-radius: 12px;
+  max-width: min(920px, 96vw);
+  max-height: 90vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.customer-payments-list-page .proof-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.customer-payments-list-page .proof-preview-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.customer-payments-list-page .proof-preview-close {
+  border: none;
+  background: transparent;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
+.customer-payments-list-page .proof-preview-body {
+  padding: 16px;
+  overflow: auto;
+  text-align: center;
+}
+.customer-payments-list-page .proof-preview-body img,
+.customer-payments-list-page .proof-preview-body iframe {
+  max-width: 100%;
+  max-height: 70vh;
+  border: 0;
+}
+.customer-payments-list-page .proof-preview-body iframe {
+  width: 100%;
+  height: 70vh;
+}

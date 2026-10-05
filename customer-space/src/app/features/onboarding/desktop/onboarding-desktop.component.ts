@@ -8,11 +8,19 @@ import {
   MobileMoneyRecipient,
 } from '../../../shared/models/customer.model';
 import { ElykDesktopPageComponent, ElykOutlinedFieldComponent } from '../../../shared/ui';
+import { PaymentProofPickerComponent } from '../../../shared/components/payment-proof-picker/payment-proof-picker.component';
 
 @Component({
   selector: 'app-onboarding-desktop',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, IonicModule, ElykDesktopPageComponent, ElykOutlinedFieldComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    IonicModule,
+    ElykDesktopPageComponent,
+    ElykOutlinedFieldComponent,
+    PaymentProofPickerComponent,
+  ],
   templateUrl: './onboarding-desktop.component.html',
   styleUrls: ['./onboarding-desktop.component.scss'],
 })

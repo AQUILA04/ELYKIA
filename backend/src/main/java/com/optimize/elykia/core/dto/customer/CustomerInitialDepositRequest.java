@@ -27,4 +27,6 @@ public class CustomerInitialDepositRequest {
 
     @Size(max = 255)
     private String notes;
+
+    private Long paymentProofId;
 }

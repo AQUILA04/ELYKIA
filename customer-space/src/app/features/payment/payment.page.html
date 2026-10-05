@@ -69,6 +69,7 @@
       </div>
 
       <form [formGroup]="form" class="payment-form elyk-animate">
+        <app-payment-proof-picker [form]="form"></app-payment-proof-picker>
         <app-elyk-outlined-field label="Numéro d'envoi" icon="call-outline">
           <ion-input formControlName="mobileMoneyPhone" type="tel" inputmode="tel" placeholder="+228 XX XX XX XX" data-testid="e2e-payment-phone"></ion-input>
         </app-elyk-outlined-field>

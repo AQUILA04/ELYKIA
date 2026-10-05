@@ -36,6 +36,7 @@ import {
   CustomerInitialDeposit,
   CustomerInitialDepositRequest,
   CustomerNotification,
+  CustomerPaymentProof,
 } from '../models/customer.model';
 
 /**
@@ -129,6 +130,24 @@ export class CustomerApiService {
 
   submitMobileMoneyPayment(payload: MobileMoneyPaymentRequest): Observable<CustomerRecovery> {
     return this.http.post<CustomerRecovery>(`${this.base}/recoveries/mobile-money`, payload);
+  }
+
+  uploadPaymentProof(
+    file: Blob,
+    fileName: string,
+    replacesProofId?: number | null,
+  ): Observable<CustomerPaymentProof> {
+    const formData = new FormData();
+    formData.append('file', file, fileName);
+    const params: Record<string, string> = {};
+    if (replacesProofId != null) {
+      params['replacesProofId'] = String(replacesProofId);
+    }
+    return this.http.post<CustomerPaymentProof>(`${this.base}/payment-proofs`, formData, { params });
+  }
+
+  deletePaymentProof(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/payment-proofs/${id}`);
   }
 
   // ─── TONTINE ──────────────────────────────────────────────────────────────

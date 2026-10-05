@@ -52,6 +52,7 @@ export interface CustomerInitialDepositRequest {
   mobileMoneyAmount: number;
   mobileMoneyReference: string;
   notes?: string;
+  paymentProofId?: number | null;
 }
 
 export interface CustomerInitialDeposit {
@@ -125,6 +126,7 @@ export interface MobileMoneyPaymentRequest {
   mobileMoneyAmount: number;
   mobileMoneyReference: string;
   notes?: string;
+  paymentProofId?: number | null;
 }
 
 export interface TontineMobileMoneyPaymentRequest {
@@ -133,6 +135,7 @@ export interface TontineMobileMoneyPaymentRequest {
   mobileMoneyAmount: number;
   mobileMoneyReference: string;
   notes?: string;
+  paymentProofId?: number | null;
 }
 
 export interface MobileMoneyRecipient {
@@ -211,6 +214,7 @@ export interface CustomerTontineInitialPaymentRequest {
   mobileMoneyAmount: number;
   mobileMoneyReference: string;
   notes?: string;
+  paymentProofId?: number | null;
 }
 
 export interface CustomerTontineJoinRequest {
@@ -288,4 +292,17 @@ export interface CustomerNotification {
   linkQuery?: string;
   read: boolean;
   createdAt?: string;
+}
+
+// ─── JUSTIFICATIF DE PAIEMENT ───────────────────────────────────────────────
+
+export type PaymentProofOcrStatus = 'SUCCESS' | 'NO_REFERENCE' | 'FAILED' | 'UNAVAILABLE';
+
+export interface CustomerPaymentProof {
+  id: number;
+  fileName: string;
+  contentType: string;
+  size: number;
+  ocrStatus: PaymentProofOcrStatus;
+  detectedReference?: string | null;
 }

@@ -1,15 +1,19 @@
 package com.optimize.elykia.core.controller.customer;
 
 import com.optimize.elykia.core.dto.customer.*;
+import com.optimize.elykia.core.service.customer.CustomerContextService;
 import com.optimize.elykia.core.service.customer.CustomerNotificationService;
 import com.optimize.elykia.core.service.customer.CustomerOnboardingService;
 import com.optimize.elykia.core.service.customer.CustomerPortalService;
+import com.optimize.elykia.core.service.customer.PaymentProofService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -24,6 +28,8 @@ public class CustomerApiController {
     private final CustomerPortalService customerPortalService;
     private final CustomerOnboardingService customerOnboardingService;
     private final CustomerNotificationService customerNotificationService;
+    private final PaymentProofService paymentProofService;
+    private final CustomerContextService customerContextService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<CustomerDashboardDto> getDashboard() {
@@ -103,6 +109,22 @@ public class CustomerApiController {
     @PostMapping("/recoveries/mobile-money")
     public ResponseEntity<CustomerRecoveryDto> submitMobileMoney(@Valid @RequestBody CustomerMobileMoneyRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(customerPortalService.submitMobileMoney(request));
+    }
+
+    @PostMapping(value = "/payment-proofs", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<CustomerPaymentProofDto> uploadPaymentProof(
+            @RequestPart("file") MultipartFile file,
+            @RequestParam(required = false) Long replacesProofId) {
+        Long clientId = customerContextService.requireClient(customerContextService.currentUsername()).getId();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(paymentProofService.upload(clientId, file, replacesProofId));
+    }
+
+    @DeleteMapping("/payment-proofs/{id}")
+    public ResponseEntity<Void> deletePaymentProof(@PathVariable Long id) {
+        Long clientId = customerContextService.requireClient(customerContextService.currentUsername()).getId();
+        paymentProofService.deleteUnlinkedOwned(clientId, id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/articles/top-types")

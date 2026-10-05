@@ -76,6 +76,7 @@
                 <th>Montant</th>
                 <th>Téléphone</th>
                 <th>Référence</th>
+                <th>Justificatif</th>
                 <th>Date</th>
                 <th>Actions</th>
               </tr>
@@ -90,9 +91,9 @@
                   </button>
                 </td>
                 <td style="font-family: 'DM Mono', monospace;">{{ row.installmentNumber }}</td>
-                <td style="font-weight: 700; font-family: 'DM Mono', monospace; font-size: 15px; color: var(--navy)">{{ row.mobileMoneyAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
-                <td style="font-family: 'DM Mono', monospace; color: var(--text-muted)">{{ row.mobileMoneyPhone }}</td>
-                <td style="font-family: 'DM Mono', monospace;">{{ row.mobileMoneyReference }}</td>
+                <ng-container
+                  *ngTemplateOutlet="mmProofCells; context: { $implicit: row, tab: 'credit', proofTestId: 'e2e-customer-payment-proof' }"
+                ></ng-container>
                 <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
                 <td class="text-nowrap" style="display: flex; gap: 8px;">
                   <button
@@ -136,6 +137,7 @@
                 <th>Montant</th>
                 <th>Téléphone</th>
                 <th>Référence</th>
+                <th>Justificatif</th>
                 <th>Date</th>
                 <th>Actions</th>
               </tr>
@@ -145,9 +147,9 @@
                 <td style="font-weight: 500; color: var(--navy)">{{ row.clientName || ('#' + row.clientId) }}</td>
                 <td>{{ row.tontineCollector || '—' }}</td>
                 <td style="font-family: 'DM Mono', monospace;">#{{ row.tontineMemberId }}</td>
-                <td style="font-weight: 700; font-family: 'DM Mono', monospace; font-size: 15px; color: var(--navy)">{{ row.mobileMoneyAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
-                <td style="font-family: 'DM Mono', monospace; color: var(--text-muted)">{{ row.mobileMoneyPhone }}</td>
-                <td style="font-family: 'DM Mono', monospace;">{{ row.mobileMoneyReference }}</td>
+                <ng-container
+                  *ngTemplateOutlet="mmProofCells; context: { $implicit: row, tab: 'tontine', proofTestId: 'e2e-customer-tontine-payment-proof' }"
+                ></ng-container>
                 <td style="color: var(--text-muted); font-size: 12px;">{{ row.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
                 <td class="text-nowrap" style="display: flex; gap: 8px;">
                   <button
@@ -172,4 +174,43 @@
       </ng-container>
     </div>
   </div>
+
+  <div
+    *ngIf="proofPreviewUrl"
+    class="proof-preview-overlay"
+    role="dialog"
+    aria-modal="true"
+    (click)="closeProofPreview()">
+    <div class="proof-preview-modal" (click)="$event.stopPropagation()">
+      <div class="proof-preview-header">
+        <h3>{{ proofPreviewTitle }}</h3>
+        <button type="button" class="proof-preview-close" (click)="closeProofPreview()" aria-label="Fermer">×</button>
+      </div>
+      <div class="proof-preview-body">
+        <img *ngIf="!proofPreviewIsPdf" [src]="proofPreviewUrl" [alt]="proofPreviewTitle" />
+        <iframe *ngIf="proofPreviewIsPdf && proofPreviewSafeUrl" [src]="proofPreviewSafeUrl" title="Justificatif PDF"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #mmProofCells let-row let-tab="tab" let-proofTestId="proofTestId">
+    <td class="mm-proof-amount">{{ row.mobileMoneyAmount | currency:'XOF':'symbol':'1.0-0' }}</td>
+    <td class="mm-proof-phone">{{ row.mobileMoneyPhone }}</td>
+    <td class="mm-proof-reference">
+      {{ row.mobileMoneyReference }}
+      <span class="proof-badge warn" *ngIf="row.referenceMismatch">Référence différente</span>
+      <span class="proof-badge danger" *ngIf="row.duplicateProof">Justificatif déjà utilisé</span>
+    </td>
+    <td>
+      <button
+        *ngIf="row.hasProof"
+        type="button"
+        class="btn-detail"
+        [attr.data-testid]="proofTestId"
+        (click)="tab === 'tontine' ? openProofTontine(row) : openProofCredit(row)">
+        Agrandir
+      </button>
+      <span *ngIf="!row.hasProof" class="muted">—</span>
+    </td>
+  </ng-template>
 </div>

@@ -1,5 +1,6 @@
 import { ChangeDetectorRef, Component, HostListener, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import {
   ClientPhotoKind,
@@ -28,7 +29,10 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
   currentDate = new Date();
   lastUpdate = new Date();
   photoPreviewUrl: string | null = null;
+  photoPreviewSafeUrl: SafeResourceUrl | null = null;
+  photoPreviewIsPdf = false;
   photoPreviewTitle = '';
+  private photoPreviewObjectUrl: string | null = null;
   pageIndex = 0;
   pageSize = 20;
   totalElements = 0;
@@ -43,7 +47,8 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
     private alertService: AlertService,
     private fb: FormBuilder,
     private clientPhotoUrlService: ClientPhotoUrlService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private sanitizer: DomSanitizer,
   ) {
     this.activateForm = this.fb.group({
       collector: ['', Validators.required],
@@ -167,6 +172,8 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
     if (cached) {
       this.photoPreviewUrl = cached;
       this.photoPreviewTitle = title;
+      this.photoPreviewIsPdf = false;
+      this.photoPreviewSafeUrl = null;
     }
     this.clientPhotoUrlService.getUrl(row.clientId, kind, 'ORIGINAL').subscribe({
       next: (entry) => {
@@ -177,13 +184,41 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
         this.signedUrls.set(this.signedKey(row.clientId, kind, 'ORIGINAL'), entry?.url ?? null);
         this.photoPreviewUrl = url;
         this.photoPreviewTitle = title;
+        this.photoPreviewIsPdf = false;
+        this.photoPreviewSafeUrl = null;
       }
     });
   }
 
   closePhotoPreview(): void {
+    if (this.photoPreviewObjectUrl) {
+      URL.revokeObjectURL(this.photoPreviewObjectUrl);
+      this.photoPreviewObjectUrl = null;
+    }
     this.photoPreviewUrl = null;
+    this.photoPreviewSafeUrl = null;
+    this.photoPreviewIsPdf = false;
     this.photoPreviewTitle = '';
+  }
+
+  openDepositProof(row: ClientRegistration | null): void {
+    if (!row?.initialDepositId || !row.initialDepositHasProof) {
+      return;
+    }
+    this.registrationService.downloadDepositProof(row.initialDepositId).subscribe({
+      next: (blob) => {
+        this.closePhotoPreview();
+        const type = row.initialDepositProofContentType || blob.type || '';
+        this.photoPreviewIsPdf = type.includes('pdf');
+        this.photoPreviewObjectUrl = URL.createObjectURL(blob);
+        this.photoPreviewUrl = this.photoPreviewObjectUrl;
+        // blob: from authenticated API stream — required for iframe[src] PDF preview
+        this.photoPreviewSafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.photoPreviewObjectUrl); // NOSONAR
+        this.photoPreviewTitle = `Justificatif dépôt — ${row.fullName || row.clientId}`;
+        this.cdr.markForCheck();
+      },
+      error: () => this.alertService.toastError('Impossible d\'ouvrir le justificatif du dépôt.'),
+    });
   }
 
   /** Miniature pour liste / vignette (URL signée uniquement). */
