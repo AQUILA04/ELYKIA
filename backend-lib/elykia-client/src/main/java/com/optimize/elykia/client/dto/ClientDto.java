@@ -41,7 +41,7 @@ public class ClientDto {
     private Boolean creditInProgress;
     @NotBlank(message = "L'occupation du client est obligatoire !")
     private String occupation;
-    private ClientType clientType;
+    private ClientType clientType = ClientType.CLIENT;
     private Double latitude;
     private Double longitude;
     private String mll;

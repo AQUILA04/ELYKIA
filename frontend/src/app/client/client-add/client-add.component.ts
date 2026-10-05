@@ -114,7 +114,7 @@ export class ClientAddComponent implements OnInit {
       collector: ['', Validators.required],
       tontineCollector: ['', Validators.required],
       agencyCollector: [{value: '', disabled: true}, Validators.required],
-      clientType: ['', Validators.required],
+      clientType: ['CLIENT', Validators.required],
       latitude: [null],
       longitude: [null]
     });

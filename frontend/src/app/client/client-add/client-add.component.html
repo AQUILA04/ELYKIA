@@ -223,9 +223,7 @@
           <div class="form-field">
             <label for="clientType">Type de client <span class="required">*</span></label>
             <select id="clientType" formControlName="clientType" class="field-input" data-testid="e2e-client-type">
-              <option value="" disabled>Sélectionnez le type</option>
               <option value="CLIENT">Client</option>
-              <option value="PROMOTER">Commercial</option>
             </select>
             <span class="field-error" *ngIf="clientForm.get('clientType')?.invalid && clientForm.get('clientType')?.touched">Type requis.</span>
           </div>

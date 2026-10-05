@@ -51,7 +51,8 @@ public class Client extends Auditable<String> {
     private Account account;
     private String occupation;
     @Enumerated(EnumType.STRING)
-    private ClientType clientType;
+    @Column(name = "client_type", length = 20)
+    private ClientType clientType = ClientType.CLIENT;
     private Double latitude;
     private Double longitude;
     private String mll;
