@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.29.2] — 2026-10-05
+
+### Fixed
+
+- Filtre commercial : la liste des commerciaux s’ouvre contre le champ, y compris sur Recouvrements, au lieu de flotter sur le titre de la page.
+
 ## Frontend — [2.29.1] — 2026-10-05
 
 ### Fixed
@@ -39,6 +45,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Shell chef de recouvrement : **Vérifier** / **Annuler** et badge **Vérifié** sur les retards crédit (dashboard et onglet Terrain), avec file offline et synchronisation.
 - Fiche client commercial : badge **Vérifié** en lecture seule sur chaque carte crédit dont le carnet a été certifié.
+
+## Backend — [1.29.2] — 2026-10-05
+
+### Fixed
+
+- Journal des collectes tontine : la liste, le nombre de mises et le total collecté ne retiennent que les collectes actives. Une collecte annulée ne s’ajoute plus aux indicateurs.
+- Bilans annuels : script `db/business/reclass_credit_deposits_without_credit_sales.sql` (hors Flyway, non rejoué au déploiement), exécuté en production le 2026-10-05. Les versements crédit d’un commercial sans vente à crédit sur l’année sont reclassés en versement tontine. 2026 : COM002 (390 350), COM003 (5 643 400), COM011 (67 475). Le total remis au secrétaire ne change pas.
 
 ## Backend — [1.29.1] — 2026-10-05
 

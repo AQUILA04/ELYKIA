@@ -146,7 +146,8 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             "FROM TontineCollection tc " +
             "LEFT JOIN tc.tontineMember tm " +
             "LEFT JOIN tm.client cl " +
-            "WHERE tc.collectionDate >= :dateFrom " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.collectionDate >= :dateFrom " +
             "AND tc.collectionDate <= :dateTo")
     Page<com.optimize.elykia.core.dto.TontineCollectionWebDto> findWebDtosByDateRange(
             @Param("dateFrom") java.time.LocalDateTime dateFrom,
@@ -159,7 +160,8 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             "FROM TontineCollection tc " +
             "LEFT JOIN tc.tontineMember tm " +
             "LEFT JOIN tm.client cl " +
-            "WHERE tc.commercialUsername = :commercial " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.commercialUsername = :commercial " +
             "AND tc.collectionDate >= :dateFrom " +
             "AND tc.collectionDate <= :dateTo")
     Page<com.optimize.elykia.core.dto.TontineCollectionWebDto> findWebDtosByCommercialAndDateRange(
@@ -169,19 +171,22 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             Pageable pageable);
 
     @Query("SELECT sum(tc.amount) FROM TontineCollection tc " +
-            "WHERE tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
     Double sumAmountByDateRange(
             @Param("dateFrom") java.time.LocalDateTime dateFrom,
             @Param("dateTo") java.time.LocalDateTime dateTo);
 
     @Query("SELECT count(tc.id) FROM TontineCollection tc " +
-            "WHERE tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
     Long countCollectionsByDateRange(
             @Param("dateFrom") java.time.LocalDateTime dateFrom,
             @Param("dateTo") java.time.LocalDateTime dateTo);
 
     @Query("SELECT sum(tc.amount) FROM TontineCollection tc " +
-            "WHERE tc.commercialUsername = :commercial " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.commercialUsername = :commercial " +
             "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
     Double sumAmountByCommercialAndDateRange(
             @Param("commercial") String commercial,
@@ -189,7 +194,8 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             @Param("dateTo") java.time.LocalDateTime dateTo);
 
     @Query("SELECT count(tc.id) FROM TontineCollection tc " +
-            "WHERE tc.commercialUsername = :commercial " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.commercialUsername = :commercial " +
             "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
     Long countCollectionsByCommercialAndDateRange(
             @Param("commercial") String commercial,
@@ -197,13 +203,15 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             @Param("dateTo") java.time.LocalDateTime dateTo);
 
     @Query("SELECT COALESCE(SUM(tc.societyShareAmount), 0) FROM TontineCollection tc " +
-            "WHERE tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
     Double sumSocietyShareByDateRange(
             @Param("dateFrom") java.time.LocalDateTime dateFrom,
             @Param("dateTo") java.time.LocalDateTime dateTo);
 
     @Query("SELECT COALESCE(SUM(tc.societyShareAmount), 0) FROM TontineCollection tc " +
-            "WHERE tc.commercialUsername = :commercial " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.commercialUsername = :commercial " +
             "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
     Double sumSocietyShareByCommercialAndDateRange(
             @Param("commercial") String commercial,
