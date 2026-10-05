@@ -30,31 +30,41 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
             Pageable pageable);
 
     default Page<Client> elasticsearch(String keyword, String username, Boolean tontine, Pageable pageable) {
-        return elasticsearch(keyword, username, tontine, null, null, pageable);
+        return elasticsearch(keyword, username, tontine, null, null, null, pageable);
     }
 
     default Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType,
             Pageable pageable) {
-        return elasticsearch(keyword, username, tontine, collectorType, null, pageable);
+        return elasticsearch(keyword, username, tontine, collectorType, null, null, pageable);
     }
 
     default Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType,
             ClientRegistrationSource registrationSource, Pageable pageable) {
+        return elasticsearch(keyword, username, tontine, collectorType, registrationSource, null, pageable);
+    }
+
+    default Page<Client> elasticsearch(String keyword, String username, Boolean tontine, String collectorType,
+            ClientRegistrationSource registrationSource, Boolean activeOnly, Pageable pageable) {
         return findAll(getElasticsearchCriteria(keyword, username, Boolean.TRUE.equals(tontine), collectorType,
-                registrationSource), pageable);
+                registrationSource, activeOnly), pageable);
     }
 
     default Specification<Client> getElasticsearchCriteria(String keyword, String username, boolean tontine) {
-        return getElasticsearchCriteria(keyword, username, tontine, null, null);
+        return getElasticsearchCriteria(keyword, username, tontine, null, null, null);
     }
 
     default Specification<Client> getElasticsearchCriteria(String keyword, String username, boolean tontine,
             String collectorType) {
-        return getElasticsearchCriteria(keyword, username, tontine, collectorType, null);
+        return getElasticsearchCriteria(keyword, username, tontine, collectorType, null, null);
     }
 
     default Specification<Client> getElasticsearchCriteria(String keyword, String username, boolean tontine,
             String collectorType, ClientRegistrationSource registrationSource) {
+        return getElasticsearchCriteria(keyword, username, tontine, collectorType, registrationSource, null);
+    }
+
+    default Specification<Client> getElasticsearchCriteria(String keyword, String username, boolean tontine,
+            String collectorType, ClientRegistrationSource registrationSource, Boolean activeOnly) {
         final String searchKeyword = String.format("%%%s%%", keyword.toLowerCase());
 
         return (root, query, cb) -> {
@@ -75,6 +85,9 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                     cb.like(cb.lower(root.get("cardType")), searchKeyword));
             if (registrationSource != null) {
                 p = cb.and(p, cb.equal(root.get("registrationSource"), registrationSource));
+            }
+            if (Boolean.TRUE.equals(activeOnly)) {
+                p = cb.and(p, cb.equal(root.get("activationStatus"), ClientActivationStatus.ACTIVE));
             }
             if (Objects.nonNull(username) && username.startsWith("COM")) {
                 if (tontine) {
@@ -98,10 +111,21 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
                 c.quarter, c.creditInProgress, c.businessCreditInProgress, c.businessCreditAuthorized, c.businessCreditAuthorizedBy, c.businessCreditAuthorizedAt, c.occupation, c.clientType, c.latitude, c.longitude,
                 c.mll, c.syncDate, c.code, c.profilPhotoUrl, c.cardPhotoUrl, c.tontineCollector, c.createdDate, c.profilPhotoThumbUrl, c.cardPhotoThumbUrl, c.registrationSource)
                 FROM Client c
-                WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.agencyCollector = :collector OR c.recoveryCollector = :collector) AND c.clientType = :clientType AND c.state = :state
+                WHERE (c.collector = :collector OR c.tontineCollector = :collector OR c.agencyCollector = :collector OR c.recoveryCollector = :collector)
+                  AND c.clientType = :clientType AND c.state = :state
+                  AND (:activeOnly <> true OR c.activationStatus = com.optimize.elykia.client.enumeration.ClientActivationStatus.ACTIVE)
             """)
-    Page<ClientRespDto> findByCollectorAndClientTypeAndState(String collector, ClientType clientType, State state,
+    Page<ClientRespDto> findByCollectorAndClientTypeAndState(
+            @Param("collector") String collector,
+            @Param("clientType") ClientType clientType,
+            @Param("state") State state,
+            @Param("activeOnly") Boolean activeOnly,
             Pageable pageable);
+
+    default Page<ClientRespDto> findByCollectorAndClientTypeAndState(String collector, ClientType clientType,
+            State state, Pageable pageable) {
+        return findByCollectorAndClientTypeAndState(collector, clientType, state, false, pageable);
+    }
 
     @Query(value = """
                 SELECT new com.optimize.elykia.client.dto.ClientRespDto(c.id,
@@ -199,22 +223,29 @@ public interface ClientRepository extends GenericRepository<Client, Long> {
        "        (:#{#collectorType != 'CREDIT' AND #collectorType != 'TONTINE'} = true AND " + ClientCommercialPredicates.ANY_EQUALS_C_USERNAME + ")" +
        "    ))" +
        ")) " +
-       "AND (:#{#registrationSource == null} = true OR c.registrationSource = :registrationSource)")
+       "AND (:#{#registrationSource == null} = true OR c.registrationSource = :registrationSource) " +
+       "AND (:#{#activeOnly != true} = true OR c.activationStatus = com.optimize.elykia.client.enumeration.ClientActivationStatus.ACTIVE)")
     Page<ClientRespDto> findClientsDto(
             @Param("username") String username,
             @Param("tontine") Boolean tontine,
             @Param("mobile") Boolean mobile,
             @Param("collectorType") String collectorType,
             @Param("registrationSource") ClientRegistrationSource registrationSource,
+            @Param("activeOnly") Boolean activeOnly,
             Pageable pageable);
 
     default Page<ClientRespDto> findClientsDto(String username, Boolean tontine, Boolean mobile,
+            String collectorType, ClientRegistrationSource registrationSource, Pageable pageable) {
+        return findClientsDto(username, tontine, mobile, collectorType, registrationSource, null, pageable);
+    }
+
+    default Page<ClientRespDto> findClientsDto(String username, Boolean tontine, Boolean mobile,
             String collectorType, Pageable pageable) {
-        return findClientsDto(username, tontine, mobile, collectorType, null, pageable);
+        return findClientsDto(username, tontine, mobile, collectorType, null, null, pageable);
     }
 
     default Page<ClientRespDto> findClientsDto(String username, Boolean tontine, Boolean mobile, Pageable pageable) {
-        return findClientsDto(username, tontine, mobile, null, null, pageable);
+        return findClientsDto(username, tontine, mobile, null, null, null, pageable);
     }
 
     @Query("""

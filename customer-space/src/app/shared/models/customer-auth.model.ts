@@ -93,6 +93,7 @@ export type AuthStep =
   | 'pin'
   | 'otp'
   | 'setup-pin'
+  | 'register-consent'
   | 'register-otp'
   | 'register-form'
   | 'register-pin';

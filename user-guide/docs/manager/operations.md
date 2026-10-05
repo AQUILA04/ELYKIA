@@ -134,9 +134,26 @@ Sur chaque ligne client, le gestionnaire habilité dispose d'un bouton d'approba
 
 ---
 
-## 6. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)
+## 6. Commandes passées en ligne (Menu Services en ligne > Commandes)
+
+Les commandes passées par les clients depuis l’Espace Client apparaissent dans **Services en ligne** > **Commandes**.
+
+<!-- CAPTURE À INSÉRER : Liste des commandes en ligne avec onglets En attente / Validées / Livrées et barre d’actions groupées. -->
+
+1. Ouvrez **Services en ligne** > **Commandes**.
+2. Parcourez les onglets **En attente**, **Validées**, **Livrées** et **Autres**.
+3. Sur une commande en attente, cliquez sur **Valider** (ou sélectionnez plusieurs commandes puis **Valider la sélection**).
+4. Pour réapprovisionner le commercial concerné : **Faire une demande de stock** (sur une commande seule, ou sur plusieurs commandes cochées). Une fenêtre récapitule les articles par commercial ; confirmez pour créer la demande de sortie. Si plusieurs commerciaux sont concernés, une demande est créée pour chacun.
+5. Quand le gestionnaire **valide** cette demande de sortie dans **Stock Commercial** > **Demandes Sortie**, les commandes encore en attente liées passent automatiquement à **Validée**.
+6. Une fois la marchandise chez le commercial et la commande validée, cliquez sur **Marquer comme livrée** : la vente est créée automatiquement et la commande passe à **Livrée**.
+
+---
+
+## 7. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne > Paiements)
 
 Le module **Paiements** (sous **Services en ligne**) permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via **Mobile Money** (Mixx by YAS ou Moov Money).
+
+Après un **Valider** ou un **Rejeter**, la déclaration quitte immédiatement la liste des attentes. Pendant le traitement, les boutons de la ligne sont momentanément indisponibles.
 
 <!-- CAPTURE À INSÉRER : Écran de gestion des déclarations de paiement Mobile Money avec onglets Recouvrement crédit et Cotisations tontine, et boutons Valider/Rejeter. -->
 
@@ -151,7 +168,15 @@ Le module **Paiements** (sous **Services en ligne**) permet d'arbitrer les décl
 ---
 
 ### B. Traitement des remboursements de crédit (Onglet Recouvrement crédit)
-Cet onglet centralise les règlements d'échéances de vente à crédit :
+Cet onglet centralise les règlements d'échéances de vente à crédit.
+
+#### Actions de validation ou de rejet :
+1. **Valider** :
+   * Après vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur le bouton vert **« Valider »**. Pendant le traitement, les boutons de la ligne sont momentanément indisponibles.
+   * **Conséquences automatiques** : Le paiement est instantanément imputé sur le crédit du client, son solde restant dû diminue, le versement est enregistré dans le journal des recouvrements du commercial et comptabilisé dans les encaissements du jour. La déclaration quitte immédiatement la liste des attentes.
+2. **Rejeter** :
+   * Si la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur le bouton rouge **« Rejeter »**.
+   * Une boîte de dialogue vous demande confirmation avant d'annuler définitivement la déclaration. Une fois confirmé, la ligne disparaît de la liste.
 
 | Information affichée | Description fonctionnelle |
 |---|---|
@@ -177,7 +202,12 @@ Cet onglet centralise les règlements d'échéances de vente à crédit :
 ---
 
 ### C. Traitement des cotisations tontine (Onglet Cotisations tontine)
-Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine, y compris le **premier paiement** déclaré par un nouveau membre qui s’est inscrit depuis l’Espace Client :
+Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine, y compris le **premier paiement** déclaré par un nouveau membre qui s’est inscrit depuis l’Espace Client.
+
+#### Décision gestionnaire :
+* **Consulter le justificatif** : cliquez sur **Agrandir** avant de décider.
+* **Valider** : Valide l'encaissement, crédite la cagnotte du membre dans la session active, applique la règle de déduction de la part société selon le barème paramétré et met à jour l'état d'avancement de son carnet d'épargne. La cotisation quitte immédiatement la liste des attentes.
+* **Rejeter** : Rejette la déclaration après confirmation ; la ligne disparaît ensuite de la liste et le client est alerté.
 
 | Information affichée | Description fonctionnelle |
 |---|---|
@@ -189,14 +219,9 @@ Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par le
 | **Justificatif** | Bouton **Agrandir** pour ouvrir la capture ou le reçu PDF. |
 | **Date** | Date et heure de l'opération. |
 
-#### Décision gestionnaire :
-* **Consulter le justificatif** : cliquez sur **Agrandir** avant de décider.
-* **Valider** : Valide l'encaissement, crédite la cagnotte du membre dans la session active, applique la règle de déduction de la part société selon le barème paramétré et met à jour l'état d'avancement de son carnet d'épargne.
-* **Rejeter** : Rejette la déclaration après confirmation et alerte le client.
-
 ---
 
-## 7. Centre de notifications et suivi des alertes
+## 8. Centre de notifications et suivi des alertes
 
 ELYKIA intègre un système d'alerte multicanal pour avertir immédiatement les équipes des événements requérant une attention rapide.
 

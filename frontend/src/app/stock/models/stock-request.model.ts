@@ -23,6 +23,7 @@ export interface StockRequestListItem {
   validationDate?: string;
   deliveryDate?: string;
   status?: StockRequestStatus;
+  linkedOrderReferences?: string[];
 }
 
 export interface StockRequest {
@@ -39,6 +40,8 @@ export interface StockRequest {
   accountingDate?: string;
   month?: number;
   year?: number;
+  note?: string;
+  linkedOrderReferences?: string[];
 }
 
 export interface StockRequestCreateDto {

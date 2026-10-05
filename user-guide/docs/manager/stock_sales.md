@@ -43,7 +43,7 @@ Pour accéder à la liste des réceptions, ouvrez le menu latéral **Stock Comme
 3. **Contrôle et Validation par le gestionnaire** :
    * Rendez-vous dans **Stock Commercial > Historique Entrée**.
    * Cliquez sur **« Voir »** pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran.
-   * **Valider** : Confirme la conformité de la réception. Le stock magasin est **instantanément augmenté**.
+   * **Valider** : Confirme la conformité de la réception. Le stock magasin est **instantanément augmenté**. Le montant de la réception est calculé avec le prix d'achat en vigueur dans le catalogue au moment de la validation.
    * **Refuser** : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à **Refusé**.
    * **Abandonner** : Permet au créateur de la réception en attente de supprimer sa saisie avant validation si une erreur a été commise.
    * **Annuler** : Réservé aux gestionnaires habilités pour annuler une réception déjà validée suite à une régularisation comptable, décrémentant le stock du magasin.
@@ -80,6 +80,7 @@ Le réapprovisionnement suit un flux rigoureux en 3 étapes : **Création $\righ
 2. **Étape 2 : Validation gestionnaire (Statut « Validée »)** :
    * Le gestionnaire contrôle la disponibilité physique en magasin et les encours du commercial, puis clique sur le bouton vert **« Valider »**.
    * La demande passe à l'état **Validée**. La marchandise est alors réservée au magasin.
+   * Si la demande est liée à des **commandes** (mention « Commandes liées » dans la liste), les commandes encore en attente passent automatiquement à **Validée**.
 3. **Étape 3 : Livraison magasinier (Statut « Livrée »)** :
    * Le magasinier physique remet les articles au commercial et clique sur le bouton bleu **« Livrer »**.
    * **Conséquence instantanée** : Le stock magasin est débité et le stock personnel du commercial est crédité. La date de livraison est horodatée.

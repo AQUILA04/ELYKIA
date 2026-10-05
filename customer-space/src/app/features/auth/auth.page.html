@@ -26,6 +26,11 @@
       [localities]="localities"
       [localitiesLoading]="localitiesLoading"
       [localitiesError]="localitiesError"
+      [termsAccepted]="termsAccepted"
+      [termsOpen]="termsOpen"
+      (termsAcceptedChange)="setTermsAccepted($event)"
+      (termsOpenChange)="termsOpen = $event"
+      (continueRegistration)="continueRegistration()"
       (submitPhone)="submitPhone()"
       (submitPin)="submitPin()"
       (submitOtp)="submitOtp()"
@@ -99,6 +104,18 @@
           <span *ngIf="!isLoading">Continuer</span>
         </ion-button>
       </form>
+
+      <app-auth-register-consent
+        *ngIf="step === 'register-consent'"
+        [termsOpen]="termsOpen"
+        [termsAccepted]="termsAccepted"
+        [isLoading]="isLoading"
+        [error]="error"
+        (toggleTerms)="toggleTerms()"
+        (termsAcceptedChange)="setTermsAccepted($event)"
+        (back)="goBack()"
+        (continueRegistration)="continueRegistration()">
+      </app-auth-register-consent>
 
       <!-- PIN existant -->
       <form *ngIf="step === 'pin'" [formGroup]="pinForm" (ngSubmit)="submitPin()">

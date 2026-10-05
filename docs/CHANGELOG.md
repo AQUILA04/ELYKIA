@@ -9,58 +9,198 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
-## Backend — [1.27.2] — 2026-10-05
-
-### Fixed
-
-- Couverture JaCoCo du package OCR (`PdfProofTextService`, `TesseractCliOcrEngine`) pour passer le seuil service par package (≥ 30 %).
-
-## Customer-space — [0.12.2] — 2026-10-05
-
-### Fixed
-
-- E2E Playwright : mock `POST /payment-proofs` et upload du justificatif avant soumission (paiement crédit, tontine, dépôt initial) — le submit restait désactivé sans preuve.
-
-## Frontend — [2.27.1] — 2026-10-02
+## Frontend — [2.28.1] — 2026-10-05
 
 ### Fixed
 
 - Aperçu PDF des justificatifs : annotation Sonar `NOSONAR` sur `bypassSecurityTrustResourceUrl` pour les blob URLs issus du flux API authentifié (aligné sur le pattern photos client).
 
-## Backend — [1.27.1] — 2026-10-02
-
-### Fixed
-
-- Tests unitaires admin / onboarding : mock `PaymentProofService` manquant après injection du service de justificatifs (`ClientRegistrationAdminServiceTest`, `CustomerMobileMoneySubmissionAdminServiceTest`, `CustomerOnboardingServiceTest`).
-
-## Customer-space — [0.12.1] — 2026-10-02
-
-### Fixed
-
-- Sélecteur de justificatif : association `label`/`id` sur les champs fichier cachés (accessibilité Sonar).
-
-## Frontend — [2.27.0] — 2026-10-02
+## Frontend — [2.28.0] — 2026-10-05
 
 ### Added
 
 - Déclarations de paiement : colonne **Justificatif** (Agrandir) sur les onglets crédit et tontine, avec aperçu image ou PDF et pastilles « Référence différente » / « Justificatif déjà utilisé ».
 - Inscriptions clients : bouton **Voir le justificatif** sur le dépôt initial lorsqu’une preuve est jointe.
 
-## Backend — [1.27.0] — 2026-10-02
+## Backend — [1.28.2] — 2026-10-05
+
+### Fixed
+
+- Couverture JaCoCo du package OCR (`PdfProofTextService`, `TesseractCliOcrEngine`) pour passer le seuil service par package (≥ 30 %).
+
+## Backend — [1.28.1] — 2026-10-05
+
+### Fixed
+
+- Tests unitaires admin / onboarding : mock `PaymentProofService` manquant après injection du service de justificatifs (`ClientRegistrationAdminServiceTest`, `CustomerMobileMoneySubmissionAdminServiceTest`, `CustomerOnboardingServiceTest`).
+
+## Backend — [1.28.0] — 2026-10-05
 
 ### Added
 
 - Justificatifs de paiement Mobile Money : upload multipart `POST /api/customer/payment-proofs`, stockage MinIO (`payment-proofs/…`), OCR Tesseract (CLI dans l’image Docker) pour proposer la référence, rattachement aux déclarations crédit / tontine / dépôt initial.
 - Endpoints admin de lecture du justificatif (`…/proof`) et indicateurs OCR / doublon sur les DTO de liste.
-- Migration `V009__customer_payment_proof.sql` et purge des preuves non rattachées après 24 h.
+- Migration `V010__customer_payment_proof.sql` et purge des preuves non rattachées après 24 h.
 - Flag `elykia.payment-proof.required` (désactivé par défaut pour compatibilité APK).
 
-## Customer-space — [0.12.0] — 2026-10-02
+## Customer-space — [0.13.2] — 2026-10-05
+
+### Fixed
+
+- E2E Playwright : mock `POST /payment-proofs` et upload du justificatif avant soumission (paiement crédit, tontine, dépôt initial) — le submit restait désactivé sans preuve.
+
+## Customer-space — [0.13.1] — 2026-10-05
+
+### Fixed
+
+- Sélecteur de justificatif : association `label`/`id` sur les champs fichier cachés (accessibilité Sonar).
+
+## Customer-space — [0.13.0] — 2026-10-05
 
 ### Added
 
 - Bloc **Justificatif du transfert** (capture ou PDF) en tête des formulaires de déclaration : crédit, cotisation tontine, adhésion tontine, dépôt initial.
 - Pré-remplissage automatique de la référence (modifiable) après lecture OCR côté serveur ; compression des images avant envoi multipart.
+
+## Docs & Infra — 2026-10-05
+
+### Changed
+
+- **Docs —** Guides client / gestionnaire : justificatif de paiement (dépôt initial, Agrandir, pastilles) ; index Elykia IA et guide HTML du frontend régénérés après fusion avec `main`.
+
+## Frontend — [2.27.0] — 2026-10-02
+
+### Added
+
+- Sous-menu **Commandes** sous **Services en ligne** (`/orders/online`) : liste dédiée aux commandes passées depuis l’Espace Client.
+- Action réutilisable **Faire une demande de stock** (détail unitaire et multi-sélection) sur la page Commandes et sur Commandes en ligne, avec récapitulatif par commercial.
+- Badge **En ligne** et référence de demande de stock liée sur la liste des commandes ; mention **Commandes liées** sur les demandes de sortie.
+
+### Changed
+
+- Libellés adaptés sur les commandes en ligne : Valider / Validée, Marquer comme livrée / Livrée.
+
+## Backend — [1.27.2] — 2026-10-03
+
+### Fixed
+
+- Réceptions de stock (mode legacy) : à la validation, valorisation des lignes et du montant total avec le prix d’achat catalogue du jour (et non le snapshot figé à la création) ; le catalogue n’est plus réécrit par la réception.
+
+## Backend — [1.27.1] — 2026-10-03
+
+### Fixed
+
+- Rapport journalier : une adhésion tontine, y compris l’auto-inscription depuis l’Espace Client, est comptée dans le rapport du commercial tontine du client et non plus dans celui de l’auteur de la saisie (plus de rapport créé au nom d’un client).
+- Inscription tontine refusée si le client n’a pas de commercial tontine, avec le message « Le client n'a pas de commercial tontine associé : impossible d'enregistrer l'adhésion. » (même règle que pour les collectes).
+
+## Docs & Infra — 2026-10-03
+
+### Changed
+
+- **Docs —** Guide gestionnaire (stocks & ventes) : le montant d’une réception validée suit le prix d’achat catalogue en vigueur à la validation ; index Elykia IA et guide HTML du frontend régénérés.
+- **Docs —** Guide commercial (tontine web et application mobile) : commercial tontine obligatoire pour inscrire un membre, et adhésion comptée dans le rapport journalier du commercial tontine ; index Elykia IA et guide HTML du frontend régénérés.
+
+## Backend — [1.27.0] — 2026-10-02
+
+### Added
+
+- Colonne `orders.source` (`STAFF` / `CUSTOMER_SPACE`) avec backfill depuis `customer_user_mapping` ; filtre `source` sur `GET /api/v1/orders` et `/kpis`.
+- Table `stock_request_order` et endpoint `POST /api/stock-requests/from-orders` : création de demandes de sortie regroupées par commercial à partir d’une ou plusieurs commandes.
+- Validation d’une demande de stock liée : les commandes encore `PENDING` passent automatiquement à `ACCEPTED` ; copie des liens sur reliquat de livraison partielle.
+
+### Fixed
+
+- Dépendance circulaire Spring entre `StockRequestService` et `OrderStockRequestService` : extraction de `StockRequestOrderLinkService` pour la copie / résolution des liens commande ↔ demande.
+
+## Docs & Infra — 2026-10-02
+
+### Fixed
+
+- SonarCloud : exclusion de `frontend/src/user-guide/**` (site MkDocs généré) de l’analyse et du CPD — le HTML dupliqué entre profils / print_versions ne fait plus échouer la quality gate « Duplication on New Code ».
+
+## Frontend — [2.26.6] — 2026-10-02
+
+### Fixed
+
+- Liste des paiements clients (Mobile Money) : les boutons **Valider** / **Rejeter** sont désactivés pendant le traitement pour empêcher un double clic ; la déclaration validée ou rejetée disparaît immédiatement de la liste (crédit et tontine).
+
+## Frontend — [2.26.5] — 2026-10-02
+
+### Fixed
+
+- Sélecteur de client (création de compte, crédits, tontine, commandes…) : seuls les clients déjà **validés** sont proposés ; un client encore en attente d’inscription n’apparaît plus dans la recherche.
+
+## Backend — [1.26.3] — 2026-10-02
+
+### Added
+
+- Paramètre optionnel `activeOnly` sur `GET /api/v1/clients`, `POST /api/v1/clients/elasticsearch` et `GET /api/v1/clients/by-commercial/{commercial}` pour ne retourner que les clients au statut d’activation `ACTIVE`.
+
+### Fixed
+
+- Création / synchronisation / modification de compte : refus si le client n’est pas encore validé (`PENDING` ou `REJECTED`), avec un message explicite.
+
+## Customer-space — [0.12.3] — 2026-10-04
+
+### Changed
+
+- Conditions d’utilisation : le texte affiché à l’inscription est inchangé. Il est rangé en un seul bloc pour ne plus être lu comme du code répété.
+
+## Customer-space — [0.12.2] — 2026-10-04
+
+### Changed
+
+- Inscription : l’écran d’acceptation des conditions est le même composant sur téléphone et sur ordinateur.
+
+## Customer-space — [0.12.1] — 2026-10-04
+
+### Changed
+
+- Conditions d’utilisation à l’inscription : le client s’engage de bonne foi à respecter les contrats de crédit de ses achats, à payer les échéances à la date prévue, et à ne pas causer de préjudice financier à AMENOUVEVE-YAVEH. Le manquement peut entraîner le refus de nouveaux achats, la suspension de l’espace et le recouvrement des sommes dues.
+
+## Customer-space — [0.12.0] — 2026-10-04
+
+### Added
+
+- Inscription : lorsqu’un numéro n’est pas encore celui d’un client, un écran demande d’accepter les conditions d’utilisation avant l’envoi du SMS. **Retour**, à côté de **Continuer**, ramène à la saisie du numéro. Les conditions sont consultables depuis **Lire les conditions d’utilisation**.
+
+### Changed
+
+- Écran de connexion : le titre est **Bienvenue** à la première ouverture sur l’appareil ou le navigateur, et **Bon retour !** lorsqu’une visite précédente est déjà enregistrée.
+
+### Fixed
+
+- APK Android : le manifeste utilisé pour le build déclare les permissions de localisation, afin que l’inscription puisse demander la position du téléphone.
+
+## Customer-space — [0.11.3] — 2026-10-02
+
+### Fixed
+
+- Tests AuthPage : la session en mémoire est bien vidée entre les cas (plus de faux positif sur le reset du wizard après login).
+
+## Customer-space — [0.11.2] — 2026-10-02
+
+### Fixed
+
+- Desktop : les pages (tableau de bord, achats, tontines, catalogue, profil…) sont à nouveau défilables ; le panneau latéral « Récapitulatif » peut rester collé pendant le scroll.
+- Inscription tontine (desktop) : l’estimation du récapitulatif tient compte de la date du jour et de la fin de session (même logique que le carnet de mises mensuelles), au lieu d’afficher toujours une année complète.
+- Détail tontine (desktop) : le carnet et la progression utilisent le nombre réel de mois du membre, et non un fixe « 10 mois ».
+
+## Docs & Infra — 2026-10-02 (relance stack test)
+
+### Added
+
+- **Deploy —** `redeploy-stack.sh [-fu] <env>` relance en une commande toutes les stacks d’un environnement (principale, espace client web, site) avec les images déjà enregistrées dans `/opt/elykia/<env>/.env` — à utiliser après l’arrêt de la stack test par la promotion prod, qui laissait l’espace client web test hors ligne.
+
+### Changed
+
+- **Deploy —** `deploy-website.sh` enregistre `WEBSITE_IMAGE` dans le `.env` de l’environnement pour que le site puisse être relancé sans la CI.
+- **CI/CD —** l’étape « Stop test stack after promote » affiche la commande de relance de la stack test.
+- **Docs —** `deploy/EXPLOITATION.md` : composition d’un environnement (stacks principale, espace client web, site), relance complète via `redeploy-stack.sh`, arrêt et démarrage de l’espace client web seul ; les commandes `docker compose` existantes sont signalées comme limitées à la stack principale.
+
+### Security
+
+- **Deploy —** `redeploy-stack.sh -fu` télécharge les scripts en HTTPS forcé (`--proto '=https' --tlsv1.2`), sans redirection vers HTTP.
 
 ## Frontend — [2.26.4] — 2026-10-01
 

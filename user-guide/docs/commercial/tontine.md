@@ -56,6 +56,8 @@ Pour les utilisateurs habilités à viser les carnets physiques :
 - **Inscription individuelle** : Cliquez sur **Ajouter un Membre**, sélectionnez le client dans la liste, indiquez le montant de sa mise journalière (par exemple 500 ou 1 000 FCFA) et enregistrez.
 - **Inscriptions multiples** : En début de campagne, le bouton **Ajout Multiple** permet d'enrôler rapidement plusieurs adhérents à la chaîne.
 - **Auto-inscription Espace Client** : Les clients peuvent aussi rejoindre la session depuis l’application **Espace Client** (écran **Mes tontines** → **Rejoindre la session**). Leur premier paiement Mobile Money éventuel apparaît dans **Paiements clients** > **Cotisations tontine** pour validation.
+- **Commercial tontine obligatoire** : Le client doit avoir un **commercial tontine** sur sa fiche pour être inscrit. Sinon, le message « Le client n'a pas de commercial tontine associé : impossible d'enregistrer l'adhésion. » s'affiche : renseignez d'abord le commercial tontine du client, puis recommencez.
+- **Rapport journalier** : Chaque adhésion, y compris une auto-inscription depuis l’Espace Client, est comptée dans la case **Tontine Adhésions** du rapport journalier du commercial tontine du client.
 
 ---
 

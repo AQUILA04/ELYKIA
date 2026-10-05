@@ -15,6 +15,11 @@ const routes: Routes = [
     pathMatch: 'full'
   },
   {
+    path: 'online',
+    component: OrderDashboardComponent,
+    data: { source: 'CUSTOMER_SPACE' }
+  },
+  {
     path: 'create',
     component: OrderFormComponent
   },
@@ -25,6 +30,11 @@ const routes: Routes = [
   {
     path: 'details/:id',
     component: OrderDetailsComponent
+  },
+  {
+    path: 'online/details/:id',
+    component: OrderDetailsComponent,
+    data: { source: 'CUSTOMER_SPACE' }
   }
 ];
 

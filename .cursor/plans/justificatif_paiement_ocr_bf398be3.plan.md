@@ -83,7 +83,7 @@ Pourquoi deux appels : l'OCR doit tourner avant la saisie. Le fichier n'est donc
 
 **Stockage et données**
 
-- Migration `V009__customer_payment_proof.sql`. Elle crée la table `customer_payment_proof` avec :
+- Migration `V010__customer_payment_proof.sql` (renommé depuis V009 après collision Flyway avec `main`). Elle crée la table `customer_payment_proof` avec :
   - `client_id`, `bucket`, `object_key`, `content_type`, `original_file_name`, `size_bytes` ;
   - `sha256` (indexé), `ocr_status`, `ocr_reference`, `ocr_text` ;
   - `linked_type` (CREDIT / TONTINE / INITIAL_DEPOSIT), `linked_id`, `linked_at` ;

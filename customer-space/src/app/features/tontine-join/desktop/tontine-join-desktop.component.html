@@ -67,7 +67,13 @@
       <h2 style="margin:0 0 12px;font-size:16px;">Récapitulatif</h2>
       <p class="desk-muted">Session {{ session()?.year }}</p>
       <p class="desk-muted">Mise / jour : <strong>{{ stakeForm().value.dailyStake | number:'1.0-0' }} F</strong></p>
-      <p class="desk-muted" style="margin-bottom:12px;">Estimation (≈300 j) : <strong>{{ estimatedTotal() | number:'1.0-0' }} F</strong></p>
+      <p class="desk-muted" *ngIf="estimatedMonths() > 0">
+        Soit environ <strong>{{ monthlyEstimate() | number:'1.0-0' }} F</strong> par mois
+      </p>
+      <p class="desk-muted" *ngIf="estimatedMonths() > 0" style="margin-bottom:12px;">
+        Estimation sur {{ estimatedMonths() }} mois :
+        <strong>{{ estimatedTotal() | number:'1.0-0' }} F</strong>
+      </p>
       <div class="info-box">
         <ion-icon name="information-circle-outline"></ion-icon>
         <p>Les vivres sont livrés en fin de session. Cotisez régulièrement pour maximiser votre livrable.</p>

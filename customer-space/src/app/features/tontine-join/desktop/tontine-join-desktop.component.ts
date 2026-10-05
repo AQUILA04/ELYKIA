@@ -40,6 +40,8 @@ export class TontineJoinDesktopComponent {
   readonly selectedShortcut = input<number | null>(null);
   readonly depositDestinationNumber = input('');
   readonly estimatedTotal = input(0);
+  readonly estimatedMonths = input(0);
+  readonly monthlyEstimate = input(0);
   readonly back = output<void>();
   readonly selectShortcut = output<number>();
   readonly togglePayment = output<boolean>();

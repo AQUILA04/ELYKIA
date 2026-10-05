@@ -1,10 +1,10 @@
 <div class="main-container order-details-page a1">
   <div class="breadcrumb-bar">
-    <a routerLink="/orders" class="breadcrumb-link">
+    <a [routerLink]="onlineMode ? '/orders/online' : '/orders'" class="breadcrumb-link">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
         <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
       </svg>
-      Commandes
+      {{ onlineMode ? 'Commandes en ligne' : 'Commandes' }}
     </a>
     <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
   </div>
@@ -20,7 +20,7 @@
   <ng-container *ngIf="!isLoading && order">
     <div class="page-header-card a2">
       <div class="header-card-top">
-        <span class="header-surtitle">GESTION DES COMMANDES</span>
+        <span class="header-surtitle">{{ onlineMode ? 'SERVICES EN LIGNE' : 'GESTION DES COMMANDES' }}</span>
         <span class="status-badge header-status" [ngClass]="getStatusBadgeClass(order.status)">
           {{ statusLabel }}
         </span>
@@ -34,11 +34,14 @@
             <path d="M16 10a4 4 0 0 1-8 0"/>
           </svg>
           <h1 class="page-title">Commande #{{ order.id }}</h1>
+          <span class="online-badge" *ngIf="order.source === 'CUSTOMER_SPACE'">En ligne</span>
         </div>
       </div>
       <p class="page-subtitle">
         Commande du {{ formatDateTime(order.orderDate) }}
-        <span *ngIf="order.createdBy"> — créée par {{ order.createdBy }}</span>
+        <span *ngIf="order.activeStockRequest">
+          — Demande de stock : {{ order.activeStockRequest.reference }} ({{ order.activeStockRequest.status }})
+        </span>
       </p>
     </div>
 

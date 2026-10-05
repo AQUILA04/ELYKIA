@@ -39,7 +39,13 @@
               [disabled]="loading"
               [attr.aria-label]="'Sélectionner commande ' + order.id">
           </td>
-          <td><span class="col-ref-main">#{{ order.id }}</span></td>
+          <td>
+            <span class="col-ref-main">#{{ order.id }}</span>
+            <span class="online-badge" *ngIf="showOnlineBadge && isOnlineOrder(order)">En ligne</span>
+            <span class="stock-req-ref" *ngIf="order.activeStockRequest" [title]="order.activeStockRequest.reference">
+              {{ order.activeStockRequest.reference }}
+            </span>
+          </td>
           <td>
             <span class="col-name">{{ getClientName(order) }}</span>
             <span class="col-sub" *ngIf="getClientCode(order)">{{ getClientCode(order) }}</span>
@@ -67,6 +73,7 @@
               <svg *ngIf="action === OrderAction.DENY" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18 18 6M6 6l12 12"/></svg>
               <svg *ngIf="action === OrderAction.SELL" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
               <svg *ngIf="action === OrderAction.CANCEL" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+              <svg *ngIf="action === OrderAction.STOCK_REQUEST" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
               {{ getActionLabel(action) }}
             </button>
           </td>

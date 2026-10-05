@@ -7,7 +7,7 @@ import {
   SimpleChanges,
   ChangeDetectionStrategy 
 } from '@angular/core';
-import { Order, OrderAction, OrderStatus } from '../../types/order.types';
+import { Order, OrderAction, OrderStatus, canCreateStockRequest } from '../../types/order.types';
 
 export interface BulkAction {
   action: OrderAction;
@@ -25,6 +25,7 @@ export class OrderActionBarComponent implements OnChanges {
   @Input() selectedOrders: Order[] = [];
   @Input() visible: boolean = false;
   @Input() loading: boolean = false;
+  @Input() onlineMode: boolean = false;
 
   @Output() bulkAction = new EventEmitter<BulkAction>();
   @Output() clearSelection = new EventEmitter<void>();
@@ -32,46 +33,34 @@ export class OrderActionBarComponent implements OnChanges {
   availableActions: OrderAction[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedOrders']) {
+    if (changes['selectedOrders'] || changes['onlineMode']) {
       this.updateAvailableActions();
     }
   }
 
-  /**
-   * Met à jour les actions disponibles selon les commandes sélectionnées
-   */
   private updateAvailableActions(): void {
     if (this.selectedOrders.length === 0) {
       this.availableActions = [];
       return;
     }
 
-    // Déterminer les actions communes à toutes les commandes sélectionnées
     const allStatuses = this.selectedOrders.map(order => order.status);
     const uniqueStatuses = [...new Set(allStatuses)];
-
-    // Actions possibles selon les statuts
     const possibleActions: OrderAction[] = [];
 
-    // Si toutes les commandes sont PENDING
     if (uniqueStatuses.length === 1 && uniqueStatuses[0] === OrderStatus.PENDING) {
       possibleActions.push(OrderAction.ACCEPT, OrderAction.DENY, OrderAction.DELETE);
-    }
-    // Si toutes les commandes sont ACCEPTED
-    else if (uniqueStatuses.length === 1 && uniqueStatuses[0] === OrderStatus.ACCEPTED) {
+    } else if (uniqueStatuses.length === 1 && uniqueStatuses[0] === OrderStatus.ACCEPTED) {
       possibleActions.push(OrderAction.SELL);
-    }
-    // Si toutes les commandes sont DENIED ou CANCEL
-    else if (uniqueStatuses.every(status => status === OrderStatus.DENIED || status === OrderStatus.CANCEL)) {
+    } else if (uniqueStatuses.every(status => status === OrderStatus.DENIED || status === OrderStatus.CANCEL)) {
       possibleActions.push(OrderAction.DELETE);
     }
-    // Actions communes pour tous les statuts (sauf SOLD)
+
     if (!uniqueStatuses.includes(OrderStatus.SOLD)) {
       if (!possibleActions.includes(OrderAction.DELETE)) {
-        // Vérifier si toutes les commandes peuvent être supprimées
-        const canDeleteAll = this.selectedOrders.every(order => 
-          order.status === OrderStatus.PENDING || 
-          order.status === OrderStatus.DENIED || 
+        const canDeleteAll = this.selectedOrders.every(order =>
+          order.status === OrderStatus.PENDING ||
+          order.status === OrderStatus.DENIED ||
           order.status === OrderStatus.CANCEL
         );
         if (canDeleteAll) {
@@ -80,12 +69,14 @@ export class OrderActionBarComponent implements OnChanges {
       }
     }
 
+    const canStockRequestAll = this.selectedOrders.every(order => canCreateStockRequest(order));
+    if (canStockRequestAll) {
+      possibleActions.push(OrderAction.STOCK_REQUEST);
+    }
+
     this.availableActions = possibleActions;
   }
 
-  /**
-   * Exécute une action groupée
-   */
   onBulkAction(action: OrderAction): void {
     if (this.selectedOrders.length === 0 || this.loading) {
       return;
@@ -100,32 +91,24 @@ export class OrderActionBarComponent implements OnChanges {
     });
   }
 
-  /**
-   * Efface la sélection
-   */
   onClearSelection(): void {
     this.clearSelection.emit();
   }
 
-  /**
-   * Retourne le label d'une action
-   */
   getActionLabel(action: OrderAction): string {
     const labels = {
       [OrderAction.VIEW]: 'Voir la sélection',
       [OrderAction.EDIT]: 'Modifier la sélection',
-      [OrderAction.ACCEPT]: 'Accepter la sélection',
+      [OrderAction.ACCEPT]: this.onlineMode ? 'Valider la sélection' : 'Accepter la sélection',
       [OrderAction.DENY]: 'Refuser la sélection',
       [OrderAction.DELETE]: 'Supprimer la sélection',
-      [OrderAction.SELL]: 'Vendre la sélection',
-      [OrderAction.CANCEL]: 'Annuler la sélection'
+      [OrderAction.SELL]: this.onlineMode ? 'Marquer comme livrée' : 'Vendre la sélection',
+      [OrderAction.CANCEL]: 'Annuler la sélection',
+      [OrderAction.STOCK_REQUEST]: 'Faire une demande de stock'
     };
     return labels[action] || action;
   }
 
-  /**
-   * Retourne l'icône d'une action
-   */
   getActionIcon(action: OrderAction): string {
     const icons = {
       [OrderAction.VIEW]: 'visibility',
@@ -133,15 +116,13 @@ export class OrderActionBarComponent implements OnChanges {
       [OrderAction.ACCEPT]: 'check',
       [OrderAction.DENY]: 'close',
       [OrderAction.DELETE]: 'delete',
-      [OrderAction.SELL]: 'monetization_on',
-      [OrderAction.CANCEL]: 'cancel'
+      [OrderAction.SELL]: this.onlineMode ? 'local_shipping' : 'monetization_on',
+      [OrderAction.CANCEL]: 'cancel',
+      [OrderAction.STOCK_REQUEST]: 'inventory_2'
     };
     return icons[action] || 'more_vert';
   }
 
-  /**
-   * Retourne la couleur d'une action
-   */
   getActionColor(action: OrderAction): string {
     const colors = {
       [OrderAction.VIEW]: 'primary',
@@ -150,33 +131,26 @@ export class OrderActionBarComponent implements OnChanges {
       [OrderAction.DENY]: 'warn',
       [OrderAction.DELETE]: 'warn',
       [OrderAction.SELL]: 'primary',
-      [OrderAction.CANCEL]: 'warn'
+      [OrderAction.CANCEL]: 'warn',
+      [OrderAction.STOCK_REQUEST]: 'accent'
     };
     return colors[action] || 'primary';
   }
 
-  /**
-   * Vérifie si une action nécessite une confirmation
-   */
   requiresConfirmation(action: OrderAction): boolean {
     return [
       OrderAction.DELETE,
       OrderAction.DENY,
       OrderAction.CANCEL,
-      OrderAction.SELL
+      OrderAction.SELL,
+      OrderAction.STOCK_REQUEST
     ].includes(action);
   }
 
-  /**
-   * Retourne le nombre de commandes sélectionnées
-   */
   get selectionCount(): number {
     return this.selectedOrders.length;
   }
 
-  /**
-   * Retourne le texte de sélection
-   */
   get selectionText(): string {
     const count = this.selectionCount;
     if (count === 0) return '';
@@ -184,9 +158,6 @@ export class OrderActionBarComponent implements OnChanges {
     return `${count} commandes sélectionnées`;
   }
 
-  /**
-   * Vérifie si la barre d'actions doit être visible
-   */
   get shouldShow(): boolean {
     return this.visible && this.selectedOrders.length > 0;
   }

@@ -234,21 +234,20 @@ Cet écran synthétise les sorties commerciales de l'agence :
 
 ## 11. Gestion des commandes clients (Menu Commandes)
 
-Le module **Commandes** gère les précommandes et réservations avant leur contractualisation définitive.
+Le module **Commandes** gère les précommandes et réservations avant leur contractualisation définitive. Les commandes passées depuis l’Espace Client portent le badge **En ligne** ; elles sont aussi listées dans **Services en ligne** > **Commandes**.
 
 ### Le tableau de bord des commandes
-Les commandes sont réparties dans 6 onglets selon leur avancement :
+Les commandes sont réparties selon leur avancement :
 - **En attente** : Nouvelles demandes enregistrées nécessitant une confirmation.
-- **Acceptée** : Commandes validées dont la marchandise et les modalités de paiement sont convenues.
-- **Refusée** : Demandes rejetées (stock indisponible, client non éligible).
-- **Annulée** : Commandes annulées par le client ou le commercial.
-- **Vendue** : Commandes converties avec succès en ventes réelles.
-- **Toutes** : Vue d'ensemble du registre.
+- **Validées** : Commandes confirmées, prêtes à être livrées / transformées en vente.
+- **Livrées** : Commandes converties en ventes.
+- **Autres** : Demandes refusées ou annulées.
 
-### Traitement et conversion d'une commande en vente
-1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités et prix.
-2. **Décision** : Les responsables peuvent accepter ou refuser la commande (individuellement ou par lot).
-3. **Action « Vendre »** : Dès qu'une commande est acceptée, le bouton **Vendre** bascule directement l'ensemble des articles vers le formulaire de nouvelle vente pour créer le contrat crédit ou comptant sans aucune ressaisie manuelle, puis marque la commande comme **Vendue**.
+### Traitement d'une commande
+1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités.
+2. **Décision** : Acceptez ou refusez la commande (individuellement ou par lot).
+3. **Faire une demande de stock** : Sur une commande en attente ou validée (ou plusieurs cochées), cliquez sur **Faire une demande de stock** pour regrouper les articles en une demande de sortie par commercial. Lorsque cette demande est validée par le gestionnaire, les commandes encore en attente passent automatiquement à **Validée**.
+4. **Vendre / Marquer comme livrée** : Sur une commande validée, transformez-la en vente : la vente est créée automatiquement et la commande passe à **Livrée**.
 
 ---
 

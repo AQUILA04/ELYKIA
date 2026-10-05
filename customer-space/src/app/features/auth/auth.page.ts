@@ -28,6 +28,7 @@ import {
 } from '../../shared/ui';
 import { LayoutService } from '../../shared/layout/layout.service';
 import { AuthDesktopComponent } from './desktop/auth-desktop.component';
+import { AuthRegisterConsentComponent } from './auth-register-consent.component';
 
 /** Délai avant un nouveau renvoi OTP — aligné sur le cooldown hub (60 s). */
 const OTP_RESEND_COOLDOWN_SECONDS = 60;
@@ -39,6 +40,8 @@ import {
   underageErrorMessage,
 } from '../../shared/utils/adult-dob.validator';
 import { captureRegistrationLocation } from '../../shared/utils/registration-location';
+import { isReturningVisitor } from '../../shared/utils/prior-visit';
+import { REGISTER_CONSENT_LEAD } from './customer-terms';
 import {
   pickProfilPhotoWithFaceValidation,
   shouldUseHtmlFilePickerForPhoto,
@@ -57,6 +60,7 @@ import {
     ElykOutlinedFieldComponent,
     ElykLocalityPickerComponent,
     AuthDesktopComponent,
+    AuthRegisterConsentComponent,
   ],
   templateUrl: './auth.page.html',
   styleUrls: ['./auth.page.scss'],
@@ -77,6 +81,9 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
   appUnavailable = false;
   readonly appUnavailableMessage = APP_UNAVAILABLE_MESSAGE;
   readonly phoneHint = PHONE_HINT;
+  readonly consentLead = REGISTER_CONSENT_LEAD;
+  termsAccepted = false;
+  termsOpen = false;
   appVersion = environment.version;
   isRegistrationFlow = false;
   localities: CustomerLocality[] = [];
@@ -147,6 +154,8 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     this.appUnavailable = false;
     this.isLoading = false;
     this.isRegistrationFlow = false;
+    this.termsAccepted = false;
+    this.termsOpen = false;
     this.localities = [];
     this.localitiesLoading = false;
     this.localitiesError = '';
@@ -169,11 +178,12 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
   /** Titre émotionnel dans la carte (Playfair). */
   get title(): string {
     switch (this.step) {
-      case 'phone': return 'Bon retour !';
+      case 'phone': return isReturningVisitor() ? 'Bon retour !' : 'Bienvenue';
       case 'pin': return 'Code PIN';
       case 'otp':
       case 'register-otp': return 'Vérification SMS';
       case 'setup-pin': return 'Créer votre PIN';
+      case 'register-consent': return 'Pas encore client';
       case 'register-form': return 'Bienvenue';
       case 'register-pin': return 'Créer votre PIN';
       default: return 'Bon retour !';
@@ -183,6 +193,7 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
   get subtitle(): string {
     switch (this.step) {
       case 'phone': return 'Connectez-vous à votre espace';
+      case 'register-consent': return this.consentLead;
       case 'pin': return this.maskedName ? `Bonjour ${this.maskedName}` : 'Saisissez votre code PIN';
       case 'otp':
       case 'register-otp':
@@ -261,7 +272,9 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
       if (!res.exists) {
         if (res.canRegister) {
           this.isRegistrationFlow = true;
-          await this.startOtp('register-otp');
+          this.termsAccepted = false;
+          this.termsOpen = false;
+          this.step = 'register-consent';
           return;
         }
         this.error = 'Numéro non reconnu. Contactez votre agence.';
@@ -289,11 +302,44 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     await this.completeLogin(this.api.login({ phone: this.phone, pin: this.pinForm.value.pin }));
   }
 
+  setTermsAccepted(checked: boolean): void {
+    this.termsAccepted = checked;
+    if (checked) {
+      this.error = '';
+    }
+  }
+
+  toggleTerms(): void {
+    this.termsOpen = !this.termsOpen;
+  }
+
+  /** Envoie le SMS d'inscription seulement après acceptation des conditions. */
+  async continueRegistration(): Promise<void> {
+    if (this.step !== 'register-consent') {
+      return;
+    }
+    if (!this.termsAccepted) {
+      this.error = "Cochez la case pour accepter les conditions d'utilisation.";
+      return;
+    }
+    this.isLoading = true;
+    this.error = '';
+    try {
+      await this.startOtp('register-otp');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
   private async startOtp(nextStep: 'otp' | 'register-otp'): Promise<void> {
+    const startedFrom = this.step;
     this.journal.track('OTP_SEND_REQUESTED', 'AUTH', { flow: nextStep });
     try {
       if (isE2eMode()) {
         console.info('[E2E] OTP mock pour', this.phone, '→ saisir 123456 (bypass window.__E2E__)');
+        if (this.step !== startedFrom) {
+          return;
+        }
         this.otpReference = E2E_OTP_REFERENCE;
         this.step = nextStep;
         this.startResendCooldown();
@@ -301,11 +347,17 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
         return;
       }
       const res = await firstValueFrom(this.api.sendOtp({ phone: this.phone }));
+      if (this.step !== startedFrom) {
+        return;
+      }
       this.otpReference = res.reference?.trim() || '';
       this.step = nextStep;
       this.startResendCooldown();
       this.journal.track('OTP_SENT', 'AUTH', { flow: nextStep, reference: this.otpReference });
     } catch (e: unknown) {
+      if (this.step !== startedFrom) {
+        return;
+      }
       console.error('[Auth] Échec envoi OTP Notification Hub', e);
       this.error = this.extractError(e) || 'Impossible d\'envoyer le SMS.';
       this.journal.track('OTP_FAILED', 'AUTH', { stage: 'send', reason: this.error });
@@ -537,9 +589,11 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
   goBack(): void {
     this.error = '';
     this.appUnavailable = false;
-    if (this.step === 'pin' || this.step === 'otp' || this.step === 'register-otp') {
+    if (this.step === 'pin' || this.step === 'otp' || this.step === 'register-otp' || this.step === 'register-consent') {
       this.step = 'phone';
       this.isRegistrationFlow = false;
+      this.termsAccepted = false;
+      this.termsOpen = false;
       this.otpReference = '';
       this.clearResendTimer();
       this.resendCountdown = 0;

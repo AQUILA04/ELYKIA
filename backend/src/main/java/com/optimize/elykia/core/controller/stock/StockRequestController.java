@@ -23,10 +23,15 @@ public class StockRequestController {
 
     private final StockRequestService service;
     private final StockExportService stockExportService;
+    private final com.optimize.elykia.core.service.order.OrderStockRequestService orderStockRequestService;
 
-    public StockRequestController(StockRequestService service, StockExportService stockExportService) {
+    public StockRequestController(
+            StockRequestService service,
+            StockExportService stockExportService,
+            com.optimize.elykia.core.service.order.OrderStockRequestService orderStockRequestService) {
         this.service = service;
         this.stockExportService = stockExportService;
+        this.orderStockRequestService = orderStockRequestService;
     }
 
     @PostMapping("/create")
@@ -34,6 +39,13 @@ public class StockRequestController {
         StockRequest request = dto.getRequest();
         boolean forNextMonth = dto.getForNextMonth() != null ? dto.getForNextMonth() : false;
         return ResponseEntity.ok(service.createRequest(request, forNextMonth));
+    }
+
+    @PostMapping("/from-orders")
+    public ResponseEntity<List<StockRequest>> createFromOrders(
+            @RequestBody @jakarta.validation.Valid com.optimize.elykia.core.dto.CreateStockRequestFromOrdersDto dto) {
+        boolean forNextMonth = dto.getForNextMonth() != null && dto.getForNextMonth();
+        return ResponseEntity.ok(orderStockRequestService.createFromOrders(dto.getOrderIds(), forNextMonth));
     }
 
     @PutMapping("/{id}")

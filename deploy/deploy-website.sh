@@ -46,6 +46,19 @@ fi
 
 export WEBSITE_IMAGE
 
+# Persist the image so redeploy-stack.sh can restart the website without CI.
+if [[ -n "$WEBSITE_ARG" && -f "$ENV_FILE" ]]; then
+  if grep -q -E "^WEBSITE_IMAGE=" "$ENV_FILE"; then
+    # No sed -i (needs directory write permission), same as deploy.sh.
+    tmp=$(mktemp)
+    sed "s~^WEBSITE_IMAGE=.*~WEBSITE_IMAGE=${WEBSITE_IMAGE}~" "$ENV_FILE" > "$tmp"
+    cat "$tmp" > "$ENV_FILE"
+    rm -f "$tmp"
+  else
+    echo "WEBSITE_IMAGE=${WEBSITE_IMAGE}" >> "$ENV_FILE"
+  fi
+fi
+
 echo "DEPLOY WEBSITE: env=$ENV"
 echo "Using compose file: $COMPOSE_FILE"
 echo "WEBSITE_IMAGE=$WEBSITE_IMAGE"

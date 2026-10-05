@@ -54,6 +54,24 @@ export class TontineDetailPage implements OnInit {
     return Math.min(100, (validated / 10) * 100);
   }
 
+  /** Progression desktop : dénominateur = mois du carnet du membre. */
+  desktopProgressPercent(): number {
+    if (!this.detail) return 0;
+    const validated = this.detail.validatedMonths ?? 0;
+    const total = this.memberMonths;
+    if (total <= 0) return 0;
+    return Math.min(100, Math.round((validated / total) * 100));
+  }
+
+  /** Nombre de mois du carnet du membre (même source que le carnet mobile). */
+  get memberMonths(): number {
+    const rows = this.detail?.monthlySummaries?.length ?? 0;
+    if (rows <= 0) {
+      return 10;
+    }
+    return Math.min(10, rows);
+  }
+
   goBack(): void {
     void this.router.navigate(['/tontines']);
   }

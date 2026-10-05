@@ -19,6 +19,7 @@ export class TontineDetailDesktopComponent {
   readonly detail = input<CustomerTontineContributionDetail | null>(null);
   readonly isLoading = input(false);
   readonly progressPercent = input(0);
+  readonly memberMonths = input(10);
   readonly back = output<void>();
 
   fmt(n: number | undefined): string {

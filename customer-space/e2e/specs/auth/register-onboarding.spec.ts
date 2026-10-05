@@ -35,13 +35,24 @@ test.describe('Auth registration + onboarding', () => {
     await page.getByTestId('e2e-auth-phone-submit').click();
     await checkPhone;
 
-    // 2. OTP mock (bypass __E2E__)
+    // 2. Acceptation des conditions — aucun écran SMS avant Continuer
+    await expect(page.getByTestId('e2e-auth-register-consent')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('e2e-auth-otp-input')).toHaveCount(0);
+    await page.getByTestId('e2e-auth-terms-open').click();
+    const terms = page.getByTestId('e2e-auth-terms-panel');
+    await expect(terms).toBeVisible();
+    await expect(terms).toContainText('Paiement des échéances');
+    await expect(terms).toContainText('ne pas causer de dommage financier');
+    await page.getByTestId('e2e-auth-terms-accept').click();
+    await page.getByTestId('e2e-auth-register-consent-continue').click();
+
+    // 3. OTP mock (bypass __E2E__)
     await expect(page.getByTestId('e2e-auth-otp-input')).toBeVisible({ timeout: 10_000 });
     console.log(`[E2E] Contournement OTP — code mock à saisir: ${E2E_MOCK_OTP_CODE}`);
     await fillIonTestId(page, 'e2e-auth-otp-input', E2E_MOCK_OTP_CODE);
     await page.getByTestId('e2e-auth-otp-submit').click();
 
-    // 3. Formulaire inscription
+    // 4. Formulaire inscription
     await expect(page.getByTestId('e2e-auth-register-form')).toBeVisible({ timeout: 10_000 });
     await page.getByTestId('e2e-auth-register-photo').setInputFiles({
       name: 'profil.png',
@@ -57,7 +68,7 @@ test.describe('Auth registration + onboarding', () => {
     await fillIonTestId(page, 'e2e-auth-register-occupation', 'Commerçante');
     await page.getByTestId('e2e-auth-register-continue').click();
 
-    // 4. PIN inscription
+    // 5. PIN inscription
     await expect(page.getByTestId('e2e-auth-register-pin')).toBeVisible({ timeout: 10_000 });
     await fillIonTestId(page, 'e2e-auth-register-pin', '2468');
     await fillIonTestId(page, 'e2e-auth-register-pin-confirm', '2468');
@@ -67,12 +78,12 @@ test.describe('Auth registration + onboarding', () => {
     await page.getByTestId('e2e-auth-register-submit').click();
     await register;
 
-    // 5. Dashboard limité PENDING
+    // 6. Dashboard limité PENDING
     await expect(page.getByTestId('e2e-dashboard-page')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('e2e-dashboard-pending')).toBeVisible();
     await page.getByTestId('e2e-dashboard-onboarding-link').click();
 
-    // 6. Onboarding — pièce d'identité (type + numéro + photo)
+    // 7. Onboarding — pièce d'identité (type + numéro + photo)
     await expect(page.getByTestId('e2e-onboarding-page')).toBeVisible({ timeout: 10_000 });
     await expect(page.getByTestId('e2e-onboarding-pending')).toBeVisible();
     await page.getByTestId('e2e-onboarding-id-btn').click();
@@ -90,7 +101,7 @@ test.describe('Auth registration + onboarding', () => {
     await page.getByTestId('e2e-onboarding-id-submit').click();
     await uploadId;
 
-    // 7. Dépôt initial déclaratif
+    // 8. Dépôt initial déclaratif
     await expect(page.getByTestId('e2e-onboarding-deposit-btn')).toBeVisible({ timeout: 10_000 });
     await page.getByTestId('e2e-onboarding-deposit-btn').click();
     await expect(page.getByTestId('e2e-onboarding-deposit-form')).toBeVisible();
@@ -106,5 +117,19 @@ test.describe('Auth registration + onboarding', () => {
 
     await expect(page.getByText('Déclaration de dépôt envoyée.')).toBeVisible({ timeout: 10_000 });
     await expect(page.getByText('Statut : INITIE')).toBeVisible();
+  });
+
+  test('Retour from the consent screen stays on the phone step', async ({ page }) => {
+    await mockRegistrationOnboardingFlow(page);
+    await page.goto('/auth');
+    await fillIonTestId(page, 'e2e-auth-phone-input', E2E_REGISTER_PHONE);
+    await page.getByTestId('e2e-auth-phone-submit').click();
+    await expect(page.getByTestId('e2e-auth-register-consent')).toBeVisible({ timeout: 10_000 });
+
+    await page.getByTestId('e2e-auth-register-back').click();
+
+    await expect(page.getByTestId('e2e-auth-phone-input')).toBeVisible();
+    await expect(page.getByTestId('e2e-auth-register-consent')).toHaveCount(0);
+    await expect(page.getByTestId('e2e-auth-otp-input')).toHaveCount(0);
   });
 });

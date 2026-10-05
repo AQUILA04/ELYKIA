@@ -9,6 +9,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -50,6 +51,10 @@ public class StockRequest extends Auditable<String> {
 
     @OneToMany(mappedBy = "stockRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StockRequestItem> items = new HashSet<>();
+
+    /** Références CMD-x des commandes liées, remplies en service. */
+    @Transient
+    private List<String> linkedOrderReferences;
 
     public void addItem(StockRequestItem item) {
         items.add(item);

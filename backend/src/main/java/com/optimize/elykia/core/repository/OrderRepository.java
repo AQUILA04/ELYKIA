@@ -2,6 +2,7 @@ package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.sale.Order;
+import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,17 @@ public interface OrderRepository extends GenericRepository<Order, Long> {
     @Query("""
             SELECT o FROM Order o
             WHERE o.status = :status
+              AND o.source = :source
+              AND o.state <> 'DELETED'
+            """)
+    Page<Order> findByStatusAndSource(
+            @Param("status") OrderStatus status,
+            @Param("source") OrderSource source,
+            Pageable pageable);
+
+    @Query("""
+            SELECT o FROM Order o
+            WHERE o.status = :status
               AND o.state <> 'DELETED'
               AND UPPER(o.client.collector) = UPPER(:username)
             """)
@@ -35,14 +47,44 @@ public interface OrderRepository extends GenericRepository<Order, Long> {
             @Param("username") String username,
             Pageable pageable);
 
+    @Query("""
+            SELECT o FROM Order o
+            WHERE o.status = :status
+              AND o.source = :source
+              AND o.state <> 'DELETED'
+              AND UPPER(o.client.collector) = UPPER(:username)
+            """)
+    Page<Order> findByStatusAndSourceAndClientCollector(
+            @Param("status") OrderStatus status,
+            @Param("source") OrderSource source,
+            @Param("username") String username,
+            Pageable pageable);
+
     @Query("SELECT COUNT(o) FROM Order o WHERE o.status = :status AND o.state <> 'DELETED'")
     long countByStatus(@Param("status") OrderStatus status);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.status = :status AND o.source = :source AND o.state <> 'DELETED'")
+    long countByStatusAndSource(@Param("status") OrderStatus status, @Param("source") OrderSource source);
 
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status = :status AND o.state <> 'DELETED'")
     double sumTotalAmountByStatus(@Param("status") OrderStatus status);
 
+    @Query("""
+            SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o
+            WHERE o.status = :status AND o.source = :source AND o.state <> 'DELETED'
+            """)
+    double sumTotalAmountByStatusAndSource(
+            @Param("status") OrderStatus status, @Param("source") OrderSource source);
+
     @Query("SELECT COALESCE(SUM(o.totalPurchasePrice), 0) FROM Order o WHERE o.status = :status AND o.state <> 'DELETED'")
     double sumTotalPurchasePriceByStatus(@Param("status") OrderStatus status);
+
+    @Query("""
+            SELECT COALESCE(SUM(o.totalPurchasePrice), 0) FROM Order o
+            WHERE o.status = :status AND o.source = :source AND o.state <> 'DELETED'
+            """)
+    double sumTotalPurchasePriceByStatusAndSource(
+            @Param("status") OrderStatus status, @Param("source") OrderSource source);
 
 }
 
