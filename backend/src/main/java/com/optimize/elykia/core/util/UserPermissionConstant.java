@@ -98,6 +98,10 @@ public class UserPermissionConstant {
     /** Validation des auto-inscriptions espace client. */
     public static final String VALIDATE_CLIENT_REGISTRATION = "ROLE_VALIDATE_CLIENT_REGISTRATION";
 
+    public static final String CONSULT_ORDER = "ROLE_CONSULT_ORDER";
+    public static final String EDIT_ORDER = "ROLE_EDIT_ORDER";
+    public static final String DEL_ORDER = "ROLE_DEL_ORDER";
+
     /** Consultation du journal d'activité espace client (module Audit). */
     public static final String AUDIT = "ROLE_AUDIT";
 

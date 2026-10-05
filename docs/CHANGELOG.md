@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.27.1] — 2026-10-05
+
+### Fixed
+
+- Sous-menu **Commandes** sous **Services en ligne** : visible aussi pour les comptes administrateur (`ROLE_ADMIN`), aligné sur Inscriptions ; ouverture du sous-menu plus fiable.
+
+## Backend — [1.27.3] — 2026-10-05
+
+### Fixed
+
+- Profils ADMIN et SUPER_ADMIN : attribution des permissions commandes (`ROLE_CONSULT_ORDER`, `ROLE_EDIT_ORDER`), y compris rattrapage au démarrage pour les comptes déjà créés.
+
 ## Frontend — [2.27.0] — 2026-10-02
 
 ### Added
