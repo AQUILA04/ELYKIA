@@ -9,6 +9,18 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.27.2] — 2026-10-02
+
+### Fixed
+
+- Couverture JaCoCo du package OCR (`PdfProofTextService`, `TesseractCliOcrEngine`) pour passer le seuil service par package (≥ 30 %).
+
+## Customer-space — [0.12.2] — 2026-10-02
+
+### Fixed
+
+- E2E Playwright : mock `POST /payment-proofs` et upload du justificatif avant soumission (paiement crédit, tontine, dépôt initial) — le submit restait désactivé sans preuve.
+
 ## Frontend — [2.27.1] — 2026-10-02
 
 ### Fixed

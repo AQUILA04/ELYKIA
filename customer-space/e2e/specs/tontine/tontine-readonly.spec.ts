@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { fillIonTestId, loginAsCustomer } from '../../fixtures/customer-auth';
+import { fillIonTestId, loginAsCustomer, uploadPaymentProof } from '../../fixtures/customer-auth';
 
 test.describe('Tontine customer flow', () => {
   test('navigates tontine list -> detail -> timeline with carnet pills', async ({ page }) => {
@@ -28,6 +28,7 @@ test.describe('Tontine customer flow', () => {
     await expect(page.getByTestId('e2e-tontine-payment-page')).toBeVisible();
     await expect(page.getByTestId('e2e-tontine-payment-recipients')).toBeVisible({ timeout: 10_000 });
 
+    await uploadPaymentProof(page, 'e2e-tontine-payment-proof');
     await fillIonTestId(page, 'e2e-tontine-payment-phone', '97000000');
     await fillIonTestId(page, 'e2e-tontine-payment-amount', '500');
     await fillIonTestId(page, 'e2e-tontine-payment-reference', 'TXN-TONTINE-E2E');

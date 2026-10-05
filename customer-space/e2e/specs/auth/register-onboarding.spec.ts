@@ -5,6 +5,7 @@ import {
   E2E_TINY_PNG,
   fillIonTestId,
   mockRegistrationOnboardingFlow,
+  uploadPaymentProof,
 } from '../../fixtures/customer-auth';
 
 /**
@@ -93,6 +94,7 @@ test.describe('Auth registration + onboarding', () => {
     await expect(page.getByTestId('e2e-onboarding-deposit-btn')).toBeVisible({ timeout: 10_000 });
     await page.getByTestId('e2e-onboarding-deposit-btn').click();
     await expect(page.getByTestId('e2e-onboarding-deposit-form')).toBeVisible();
+    await uploadPaymentProof(page, 'e2e-onboarding-deposit-proof');
     await fillIonTestId(page, 'e2e-onboarding-deposit-phone', E2E_REGISTER_PHONE);
     await fillIonTestId(page, 'e2e-onboarding-deposit-amount', '50000');
     await fillIonTestId(page, 'e2e-onboarding-deposit-reference', 'TXN-E2E-70155169');
