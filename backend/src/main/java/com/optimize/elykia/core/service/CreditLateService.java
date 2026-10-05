@@ -225,6 +225,9 @@ public class CreditLateService {
                 .lateDaysEcheance(lateDaysEcheance)
                 .lateType(lateType)
                 .status(credit.getStatus())
+                .carnetVerified(Boolean.TRUE.equals(credit.getCarnetVerified()))
+                .carnetVerifiedAt(credit.getCarnetVerifiedAt())
+                .carnetVerifiedBy(credit.getCarnetVerifiedBy())
                 .build();
     }
 }

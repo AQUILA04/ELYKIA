@@ -94,6 +94,8 @@
           <h3>{{ item.clientName || 'Client' }}</h3>
           <p>{{ item.reference }} · {{ item.collector }}</p>
           <p class="phone" *ngIf="item.clientPhone">{{ item.clientPhone }}</p>
+          <span class="ctrl-badge verified" *ngIf="item.carnetVerified"
+                data-testid="e2e-rm-credit-carnet-badge">Vérifié</span>
           <span
             class="ctrl-badge"
             *ngIf="controlStatus(item.id) as st"
@@ -106,6 +108,12 @@
         <div class="late-side">
           <strong>{{ formatAmount(item.totalAmountRemaining || 0) }}</strong>
           <span class="badge" *ngIf="item.lateDaysDelai">{{ item.lateDaysDelai }}j</span>
+          <ion-button size="small" fill="solid" class="verify-btn"
+            (click)="toggleCreditCarnet(item, $event)"
+            [disabled]="carnetBusy"
+            data-testid="e2e-rm-credit-carnet-verify">
+            {{ item.carnetVerified ? 'Annuler' : 'Vérifier' }}
+          </ion-button>
           <ion-button size="small" fill="outline" class="ctrl-btn" (click)="openFieldControl(item, $event)"
             data-testid="e2e-rm-control-open">
             Contrôle

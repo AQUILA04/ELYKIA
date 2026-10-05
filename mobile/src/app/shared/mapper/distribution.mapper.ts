@@ -27,7 +27,10 @@ export class DistributionMapper {
       syncHash: backendData.syncHash,
       articleCount: backendData.articles?.length ?? backendData.articleCount ?? 0,
       articles: [],
-      items: this.mapItems(backendData)
+      items: this.mapItems(backendData),
+      carnetVerified: backendData.carnetVerified === true || backendData.carnetVerified === 1,
+      carnetVerifiedAt: backendData.carnetVerifiedAt ?? null,
+      carnetVerifiedBy: backendData.carnetVerifiedBy ?? null
     };
   }
 

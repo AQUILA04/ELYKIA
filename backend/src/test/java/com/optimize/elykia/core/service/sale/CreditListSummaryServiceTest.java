@@ -60,6 +60,7 @@ class CreditListSummaryServiceTest {
                 CreditStatus.INPROGRESS,
                 "agent1",
                 null,
+                null,
                 null
         );
 

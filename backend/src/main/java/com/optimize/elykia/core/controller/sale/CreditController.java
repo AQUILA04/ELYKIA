@@ -6,6 +6,7 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.*;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
+import com.optimize.elykia.core.service.sale.CreditCarnetVerificationService;
 import com.optimize.elykia.core.service.sale.CreditFieldControlService;
 import com.optimize.elykia.core.service.sale.CreditReturnHistoryService;
 import com.optimize.elykia.core.service.sale.CreditListSummaryService;
@@ -45,6 +46,7 @@ public class CreditController {
     private final CreditArticlesService creditArticlesService;
     private final CreditListSummaryService creditListSummaryService;
     private final CreditFieldControlService creditFieldControlService;
+    private final CreditCarnetVerificationService creditCarnetVerificationService;
 
     @PostMapping
     public ResponseEntity<Response> createCredit(@RequestBody @Valid CreditDto dto) throws Exception {
@@ -337,6 +339,26 @@ public class CreditController {
     public ResponseEntity<Response> bulkChangeCollector(@RequestBody @Valid BulkChangeCollectorDto dto) {
         creditService.bulkChangeCollector(dto);
         return new ResponseEntity<>(ResponseUtil.successResponse(true), HttpStatus.OK);
+    }
+
+    @PatchMapping(value = "{id}/carnet-verification")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.CREDIT_CARNET_VERIFY + "', '" + UserPermissionConstant.ADMIN + "')")
+    public ResponseEntity<Response> setCarnetVerification(
+            @PathVariable Long id,
+            @RequestBody @Valid CreditCarnetVerificationDto dto) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(creditCarnetVerificationService.setVerified(id, dto.getVerified())),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/carnet-verifications")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.CREDIT_CARNET_VERIFY + "', '" + UserPermissionConstant.ADMIN + "')")
+    public ResponseEntity<Response> bulkSetCarnetVerification(
+            @RequestBody @Valid BulkCreditCarnetVerificationDto dto) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(
+                        creditCarnetVerificationService.bulkSet(dto.getCreditIds(), dto.getVerified())),
+                HttpStatus.OK);
     }
 
     @PostMapping(value = "{id}/field-controls")

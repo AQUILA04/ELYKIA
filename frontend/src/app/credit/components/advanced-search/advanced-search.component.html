@@ -94,6 +94,23 @@
           </ng-select>
         </div>
       </div>
+
+      <div class="filter-group" [style.min-width.px]="carnetStatusMinWidth">
+        <span class="toolbar-label">Carnet</span>
+        <div class="select-wrap">
+          <ng-select
+            id="carnetStatus"
+            formControlName="carnetStatus"
+            [items]="carnetStatusOptions"
+            bindLabel="label"
+            bindValue="value"
+            [clearable]="true"
+            placeholder="Tous les carnets"
+            notFoundText="Aucun statut trouvé"
+            data-testid="e2e-credit-carnet-filter">
+          </ng-select>
+        </div>
+      </div>
     </div>
 
     <div class="search-actions">

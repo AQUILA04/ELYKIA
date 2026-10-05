@@ -138,6 +138,14 @@ ion-header.ion-no-border {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 8px;
+  }
+
+  .credit-header-badges {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
   }
 
   ion-card-title {

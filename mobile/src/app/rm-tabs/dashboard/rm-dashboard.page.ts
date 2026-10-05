@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { ModalController } from '@ionic/angular';
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCloseQueueService } from '../../core/services/rm/rm-close-queue.service';
 import { RmMonthlyRecoveryRateService } from '../../core/services/rm/rm-monthly-recovery-rate.service';
+import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
+import { runConfirmedCarnetToggle } from '../../core/services/rm/rm-carnet-confirm.util';
 import {
   RmCreditLate,
   RmOfflinePack,
@@ -32,6 +34,7 @@ export class RmDashboardPage implements OnInit, OnDestroy {
   monthlyRateOffline = false;
   selectedYear = new Date().getFullYear();
   selectedMonth = new Date().getMonth() + 1;
+  carnetBusy = false;
   private controlByCredit = new Map<number, string>();
   private subs: Subscription[] = [];
 
@@ -39,7 +42,10 @@ export class RmDashboardPage implements OnInit, OnDestroy {
     private readonly scope: RmScopeService,
     private readonly closeQueue: RmCloseQueueService,
     private readonly monthlyRecovery: RmMonthlyRecoveryRateService,
+    private readonly creditCarnetWrite: RmCreditCarnetVerificationWriteService,
     private readonly modalCtrl: ModalController,
+    private readonly alertCtrl: AlertController,
+    private readonly toastCtrl: ToastController,
     private readonly router: Router
   ) {}
 
@@ -128,6 +134,37 @@ export class RmDashboardPage implements OnInit, OnDestroy {
     });
     await modal.present();
     await modal.onDidDismiss();
+  }
+
+  async toggleCreditCarnet(item: RmCreditLate, event?: Event): Promise<void> {
+    event?.stopPropagation();
+    const next = !item.carnetVerified;
+    await runConfirmedCarnetToggle({
+      alertCtrl: this.alertCtrl,
+      nextVerified: next,
+      subjectLabel: item.clientName || item.reference || String(item.id),
+      isBusy: () => this.carnetBusy,
+      setBusy: busy => {
+        this.carnetBusy = busy;
+      },
+      execute: () => this.creditCarnetWrite.setVerified(item, next).then(() => undefined),
+      onSuccess: async verified => {
+        const toast = await this.toastCtrl.create({
+          message: verified ? 'Carnet vérifié' : 'Vérification annulée',
+          duration: 2000,
+          color: 'success'
+        });
+        await toast.present();
+      },
+      onError: async message => {
+        const toast = await this.toastCtrl.create({
+          message,
+          duration: 2500,
+          color: 'danger'
+        });
+        await toast.present();
+      }
+    });
   }
 
   formatAmount(value: number): string {

@@ -4,6 +4,8 @@ import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCreditLate, RmPackTontineMember } from '../../core/services/rm/rm.models';
 import { RmTontineFieldControlSheetComponent } from '../../features/rm/tontine-field-control/rm-tontine-field-control-sheet.component';
 import { RmCarnetVerificationWriteService } from '../../core/services/rm/rm-carnet-verification-write.service';
+import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
+import { runConfirmedCarnetToggle } from '../../core/services/rm/rm-carnet-confirm.util';
 
 @Component({
   selector: 'app-rm-field',
@@ -26,7 +28,8 @@ export class RmFieldPage implements OnInit {
     private readonly modalCtrl: ModalController,
     private readonly alertCtrl: AlertController,
     private readonly toastCtrl: ToastController,
-    private readonly carnetWrite: RmCarnetVerificationWriteService
+    private readonly carnetWrite: RmCarnetVerificationWriteService,
+    private readonly creditCarnetWrite: RmCreditCarnetVerificationWriteService
   ) {}
 
   ngOnInit(): void {
@@ -97,6 +100,25 @@ export class RmFieldPage implements OnInit {
     }
   }
 
+  async toggleCreditCarnet(item: RmCreditLate): Promise<void> {
+    const next = !item.carnetVerified;
+    await runConfirmedCarnetToggle({
+      alertCtrl: this.alertCtrl,
+      nextVerified: next,
+      subjectLabel: item.clientName || item.reference || String(item.id),
+      isBusy: () => this.busy,
+      setBusy: busy => {
+        this.busy = busy;
+      },
+      execute: () => this.creditCarnetWrite.setVerified(item, next).then(() => undefined),
+      onSuccess: async verified => {
+        this.loadLateCredits();
+        await this.toast(verified ? 'Carnet vérifié' : 'Vérification annulée');
+      },
+      onError: message => this.toast(message, 'danger')
+    });
+  }
+
   async openTontineControl(member: RmPackTontineMember): Promise<void> {
     const modal = await this.modalCtrl.create({
       component: RmTontineFieldControlSheetComponent,
@@ -131,35 +153,22 @@ export class RmFieldPage implements OnInit {
   }
 
   async toggleCarnet(member: RmPackTontineMember): Promise<void> {
-    if (this.busy) {
-      return;
-    }
     const next = !member.carnetVerified;
-    const alert = await this.alertCtrl.create({
-      header: next ? 'Vérifier le carnet' : 'Annuler la vérification',
-      message: next
-        ? `Marquer ${member.clientName} comme vérifié ?`
-        : `Retirer la vérification de ${member.clientName} ?`,
-      buttons: [
-        { text: 'Non', role: 'cancel' },
-        { text: next ? 'Vérifier' : 'Annuler', role: 'confirm' }
-      ]
+    await runConfirmedCarnetToggle({
+      alertCtrl: this.alertCtrl,
+      nextVerified: next,
+      subjectLabel: member.clientName || String(member.id),
+      isBusy: () => this.busy,
+      setBusy: busy => {
+        this.busy = busy;
+      },
+      execute: () => this.carnetWrite.setVerified(member, next).then(() => undefined),
+      onSuccess: async verified => {
+        this.loadTontineMembers();
+        await this.toast(verified ? 'Carnet vérifié' : 'Vérification annulée');
+      },
+      onError: message => this.toast(message, 'danger')
     });
-    await alert.present();
-    const { role } = await alert.onDidDismiss();
-    if (role !== 'confirm') {
-      return;
-    }
-    this.busy = true;
-    try {
-      await this.carnetWrite.setVerified(member, next);
-      this.loadTontineMembers();
-      await this.toast(next ? 'Carnet vérifié' : 'Vérification annulée');
-    } catch (error: any) {
-      await this.toast(error?.message || 'Échec de la vérification', 'danger');
-    } finally {
-      this.busy = false;
-    }
   }
 
   async verifySelection(): Promise<void> {

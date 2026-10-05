@@ -581,6 +581,27 @@
   font-weight: 600;
 }
 
+.credit-list-page .carnet-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.credit-list-page .carnet-badge.is-verified {
+  background: var(--green-pale);
+  color: var(--green);
+}
+
+.credit-list-page .carnet-badge.is-pending {
+  background: var(--navy-xpale);
+  color: var(--text-muted);
+}
+
 .credit-list-page .days-success { background: var(--green-pale); color: var(--green); }
 .credit-list-page .days-warning { background: var(--orange-pale); color: var(--orange); }
 .credit-list-page .days-danger { background: #fef2f2; color: var(--red); }

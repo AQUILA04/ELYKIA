@@ -7,6 +7,7 @@ import {
   CLIENT_TYPE_OPTIONS,
   OPERATION_TYPE_OPTIONS,
   STATUS_OPTIONS,
+  CARNET_STATUS_OPTIONS,
   SearchOption,
 } from './advanced-search.types';
 
@@ -42,10 +43,12 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
   clientTypeOptions = CLIENT_TYPE_OPTIONS;
   operationTypeOptions = OPERATION_TYPE_OPTIONS;
   statusOptions = STATUS_OPTIONS;
+  carnetStatusOptions = CARNET_STATUS_OPTIONS;
 
   readonly clientTypeMinWidth = this.minWidthForOptions(this.clientTypeOptions);
   readonly operationTypeMinWidth = this.minWidthForOptions(this.operationTypeOptions);
   readonly statusMinWidth = this.minWidthForOptions(this.statusOptions);
+  readonly carnetStatusMinWidth = this.minWidthForOptions(this.carnetStatusOptions);
 
   private subscriptions: Subscription[] = [];
   activeFiltersCount = 0;
@@ -62,7 +65,10 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['initialSearchDto'] && !changes['initialSearchDto'].firstChange) {
       if (this.initialSearchDto) {
-        this.searchForm.patchValue(this.initialSearchDto);
+        this.searchForm.patchValue({
+          ...this.initialSearchDto,
+          carnetStatus: this.toCarnetStatusValue(this.initialSearchDto.carnetVerified)
+        });
       }
     }
     if (changes['isPromoter'] || changes['currentUsername']) {
@@ -85,13 +91,17 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
       clientType: [null],
       type: [null],
       status: [null],
-      commercial: [null]
+      commercial: [null],
+      carnetStatus: [null]
     });
   }
 
   private initFormValues(): void {
     if (this.initialSearchDto) {
-      this.searchForm.patchValue(this.initialSearchDto);
+      this.searchForm.patchValue({
+        ...this.initialSearchDto,
+        carnetStatus: this.toCarnetStatusValue(this.initialSearchDto.carnetVerified)
+      });
     }
     this.applyPromoterRestrictions();
     this.calculateActiveFilters();
@@ -124,7 +134,8 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
       clientType: formValue.clientType || null,
       type: formValue.type || null,
       status: formValue.status || null,
-      commercial: formValue.commercial || null
+      commercial: formValue.commercial || null,
+      carnetVerified: this.fromCarnetStatusValue(formValue.carnetStatus)
     };
 
     this.search.emit(searchDto);
@@ -137,7 +148,8 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
       clientType: null,
       type: null,
       status: null,
-      commercial: null
+      commercial: null,
+      carnetStatus: null
     });
 
     this.applyPromoterRestrictions();
@@ -155,9 +167,30 @@ export class AdvancedSearchComponent implements OnInit, OnDestroy, OnChanges {
     if (formValue.type) count++;
     if (formValue.status) count++;
     if (formValue.commercial) count++;
+    if (formValue.carnetStatus === 'true' || formValue.carnetStatus === 'false') count++;
 
     this.activeFiltersCount = count;
     this.activeFiltersCountChange.emit(count);
+  }
+
+  private toCarnetStatusValue(verified?: boolean | null): string | null {
+    if (verified === true) {
+      return 'true';
+    }
+    if (verified === false) {
+      return 'false';
+    }
+    return null;
+  }
+
+  private fromCarnetStatusValue(value: string | null | undefined): boolean | null {
+    if (value === 'true') {
+      return true;
+    }
+    if (value === 'false') {
+      return false;
+    }
+    return null;
   }
 
   searchCommercial = (term: string, item: any) => {

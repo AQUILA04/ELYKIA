@@ -139,6 +139,14 @@ export class CreditService extends BaseHttpService {
     return this.get(`${this.apiUrl}/${creditId}/field-controls/latest`);
   }
 
+  setCarnetVerification(creditId: number, verified: boolean): Observable<ApiResponse<any>> {
+    return this.patch(`${this.apiUrl}/${creditId}/carnet-verification`, { verified });
+  }
+
+  bulkSetCarnetVerification(creditIds: number[], verified: boolean): Observable<ApiResponse<{ updated: number; skipped: number; requested: number }>> {
+    return this.post(`${this.apiUrl}/carnet-verifications`, { creditIds, verified });
+  }
+
   searchCredits(searchDto: any, page: number, size: number): Observable<any> {
     const headers = this.getHeader();
     let params = new HttpParams()

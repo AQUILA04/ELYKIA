@@ -58,11 +58,20 @@
       <article *ngFor="let q of block.quarters" class="quarter-card">
         <h3>Localité · {{ q.quarter }} · {{ q.items.length }}</h3>
         <div class="row" *ngFor="let item of q.items">
-          <div>
+          <div class="row-main">
             <strong>{{ item.clientName }}</strong>
             <span>{{ formatAmount(item.totalAmountRemaining || 0) }} FCFA</span>
+            <span class="badge verified" *ngIf="item.carnetVerified"
+                  data-testid="e2e-rm-credit-carnet-badge">Vérifié</span>
           </div>
-          <ion-button size="small" fill="outline" (click)="openMaps(item)">Naviguer</ion-button>
+          <div class="row-actions">
+            <ion-button size="small" fill="solid" (click)="toggleCreditCarnet(item)"
+                        [disabled]="busy"
+                        data-testid="e2e-rm-credit-carnet-verify">
+              {{ item.carnetVerified ? 'Annuler' : 'Vérifier' }}
+            </ion-button>
+            <ion-button size="small" fill="outline" (click)="openMaps(item)">Naviguer</ion-button>
+          </div>
         </div>
       </article>
     </section>

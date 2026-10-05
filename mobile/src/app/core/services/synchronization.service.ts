@@ -1405,7 +1405,10 @@ export class SynchronizationService {
       paidAmount: row.paidAmount,
       remainingAmount: row.remainingAmount,
       advance: row.advance,
-      creditPurpose: row.creditPurpose ?? undefined
+      creditPurpose: row.creditPurpose ?? undefined,
+      carnetVerified: row.carnetVerified === 1 || row.carnetVerified === true,
+      carnetVerifiedAt: row.carnetVerifiedAt ?? null,
+      carnetVerifiedBy: row.carnetVerifiedBy ?? null
     } as Distribution;
   }
 

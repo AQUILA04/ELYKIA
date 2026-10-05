@@ -26,6 +26,9 @@ export interface CreditLateDTO {
   status: string;
   clientQuarter: string;
   selected?: boolean;
+  carnetVerified?: boolean;
+  carnetVerifiedAt?: string | null;
+  carnetVerifiedBy?: string | null;
 }
 
 export interface CreditLateSummaryDTO {

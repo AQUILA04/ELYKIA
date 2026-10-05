@@ -72,6 +72,16 @@ Sur une ligne de retard, choisissez **Terrain**. Le formulaire rappelle la réf�
 
 Après enregistrement, la fiche crédit peut afficher la section **Contrôle terrain** avec les montants système et carnet, l’écart, le statut et l’auteur du contrôle.
 
+## Vérifier un carnet de vente à crédit
+
+La vérification du carnet est une action distincte du contrôle terrain. Elle atteste que le carnet physique a été inspecté, sans modifier les montants ni le résultat du contrôle.
+
+1. Ouvrez **Ventes > Liste** ou la fiche d’une vente à crédit en cours.
+2. Le badge **Carnet vérifié** ou **Carnet non vérifié** indique l’état actuel.
+3. Choisissez **Vérifier** pour certifier le carnet, ou **Annuler la vérification** pour retirer la certification.
+4. Sur la liste, sélectionnez plusieurs ventes puis **Vérifier la sélection** pour traiter plusieurs carnets d’un coup.
+5. Utilisez le filtre **Carnet** de la recherche avancée pour n’afficher que les carnets déjà vérifiés ou ceux encore à traiter.
+
 ## Clôturer un ou plusieurs retards
 
 Utilisez le bouton de clôture de la ligne concernée. Selon l’écran et les droits, la procédure peut regrouper plusieurs crédits sélectionnés. La fenêtre de clôture affiche, pour chaque dossier, le client, le commercial, le restant, le mode partiel éventuel et le montant prévu.
@@ -133,7 +143,7 @@ L’onglet **Retards** affiche les KPI **Retards**, **Dû** et **Clôturé** (p�
 
 Les dossiers sont regroupés par localité. Des filtres par commercial sélectionné dans le plan permettent de concentrer la tournée.
 
-Chaque carte affiche le client, la référence, le commercial, le téléphone lorsque disponible, le montant restant et les jours de retard. Les boutons **Contrôle** et **Clôturer** ouvrent les formulaires correspondants.
+Chaque carte affiche le client, la référence, le commercial, le téléphone lorsque disponible, le montant restant et les jours de retard. Le badge **Vérifié** indique qu’un carnet a déjà été certifié. Les boutons **Vérifier**, **Contrôle** et **Clôturer** ouvrent les actions correspondantes. **Vérifier** certifie le carnet physique ; **Contrôle** compare les montants système et carnet.
 
 ### Contrôle crédit
 
@@ -156,7 +166,7 @@ L’onglet **Terrain** regroupe les portefeuilles par commercial et par localit�
 
 | Zone | Action |
 |---|---|
-| Retards | Consulter les clients et utiliser **Naviguer** lorsqu’une position est disponible. |
+| Retards | Vérifier ou annuler la vérification d’un carnet, puis utiliser **Naviguer** lorsqu’une position est disponible. |
 | Tontine | Vérifier ou annuler la vérification d’un carnet, lancer un contrôle, ou passer en mode sélection pour une vérification en masse. |
 
 Le contrôle tontine permet de sélectionner les mois à contrôler et de saisir le montant écrit dans le carnet pour chaque mois. L’application calcule la comparaison **Système / Carnet / Écart** et accepte une note. Le badge **Vérifié** indique la vérification de carnet, tandis que le badge **CONFORME** ou **ECART** correspond au résultat d’un contrôle : ces deux informations sont complémentaires et ne doivent pas être confondues.
@@ -173,7 +183,7 @@ La sélection multiple donne accès à **Changer de commercial**. La feuille per
 
 ## Onglet Plus : synchroniser et maintenir le pack
 
-L’onglet **Plus** est le point de contrôle de la journée. Il présente le plan actif, les informations du pack et la file d’attente classée par type d’opération : transferts de commercial, modifications de contact, contrôles crédit, contrôles tontine, vérifications de carnet et clôtures.
+L’onglet **Plus** est le point de contrôle de la journée. Il présente le plan actif, les informations du pack et la file d’attente classée par type d’opération : transferts de commercial, modifications de contact, contrôles crédit, contrôles tontine, vérifications de carnet crédit et tontine, et clôtures.
 
 | Action | Quand l’utiliser |
 |---|---|

@@ -1,15 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { ApiResponse } from '../../../models/api-response.model';
+import {
+  patchCarnetVerification,
+  postCarnetVerificationsBulk,
+  RmCarnetVerificationResult
+} from './rm-carnet-verification-http.util';
 
-export interface RmCarnetVerificationMember {
-  id: number;
-  carnetVerified?: boolean;
-  carnetVerifiedAt?: string;
-  carnetVerifiedBy?: string;
-}
+export type RmCarnetVerificationMember = RmCarnetVerificationResult;
 
 @Injectable({ providedIn: 'root' })
 export class RmCarnetVerificationApiService {
@@ -17,23 +15,11 @@ export class RmCarnetVerificationApiService {
 
   constructor(private readonly http: HttpClient) {}
 
-  async setVerified(memberId: number, verified: boolean): Promise<RmCarnetVerificationMember> {
-    const res = await firstValueFrom(
-      this.http.patch<ApiResponse<RmCarnetVerificationMember>>(
-        `${this.baseUrl}/${memberId}/carnet-verification`,
-        { verified }
-      )
-    );
-    return res.data;
+  setVerified(memberId: number, verified: boolean): Promise<RmCarnetVerificationMember> {
+    return patchCarnetVerification(this.http, this.baseUrl, memberId, verified);
   }
 
-  async bulkSet(memberIds: number[], verified: boolean): Promise<{ updated: number; skipped: number; requested: number }> {
-    const res = await firstValueFrom(
-      this.http.post<ApiResponse<{ updated: number; skipped: number; requested: number }>>(
-        `${this.baseUrl}/carnet-verifications`,
-        { memberIds, verified }
-      )
-    );
-    return res.data;
+  bulkSet(memberIds: number[], verified: boolean) {
+    return postCarnetVerificationsBulk(this.http, this.baseUrl, 'memberIds', memberIds, verified);
   }
 }

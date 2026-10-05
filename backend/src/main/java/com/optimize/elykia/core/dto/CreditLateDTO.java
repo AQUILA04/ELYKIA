@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Builder(toBuilder = true)
@@ -46,4 +47,8 @@ public class CreditLateDTO {
     private LateType    lateType;
 
     private CreditStatus status;
+
+    private Boolean carnetVerified;
+    private LocalDateTime carnetVerifiedAt;
+    private String carnetVerifiedBy;
 }

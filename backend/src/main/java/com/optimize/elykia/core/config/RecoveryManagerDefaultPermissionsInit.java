@@ -31,7 +31,8 @@ public class RecoveryManagerDefaultPermissionsInit implements ApplicationListene
             UserPermissionConstant.EDIT_CLIENT,
             UserPermissionConstant.ASSIGN_CLIENT_COLLECTOR,
             UserPermissionConstant.ASSIGN_CREDIT_COLLECTOR,
-            UserPermissionConstant.TONTINE_CARNET_VERIFY
+            UserPermissionConstant.TONTINE_CARNET_VERIFY,
+            UserPermissionConstant.CREDIT_CARNET_VERIFY
     );
 
     private final UserService userService;

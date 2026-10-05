@@ -1,10 +1,17 @@
 import { Injectable } from '@angular/core';
+import { createRmLocalOpId } from '../../utils/rm-local-op-id.util';
 import { OnlineFirstWriteCoordinator } from '../online-first-write.coordinator';
+import {
+  executeCarnetBulkSet,
+  executeCarnetSetVerified,
+  RmCarnetVerificationWritePorts
+} from './rm-carnet-verification-write.helper';
 import { RmCarnetVerificationApiService } from './rm-carnet-verification-api.service';
 import { RmCarnetVerificationQueueService } from './rm-carnet-verification-queue.service';
+import { mutatePackCarnetFlag } from './rm-pack-carnet-mutation.util';
 import { RmScopeService } from './rm-scope.service';
 import { RmCarnetVerificationOp } from './rm-carnet-verification.models';
-import { RmOfflinePack, RmPackTontineMember } from './rm.models';
+import { RmPackTontineMember } from './rm.models';
 
 @Injectable({ providedIn: 'root' })
 export class RmCarnetVerificationWriteService {
@@ -15,83 +22,38 @@ export class RmCarnetVerificationWriteService {
     private readonly scope: RmScopeService
   ) {}
 
-  async setVerified(member: RmPackTontineMember, verified: boolean): Promise<RmCarnetVerificationOp> {
-    const op = this.buildOp(member, verified);
-    const result = await this.coordinator.executeWrite({
-      entityLabel: `RmCarnetVerification:${op.tontineMemberId}`,
-      saveOnline: async () => {
-        const dto = await this.api.setVerified(op.tontineMemberId, verified);
-        const synced: RmCarnetVerificationOp = { ...op, isSync: true, lastError: null };
-        await this.queue.upsert(synced);
-        await this.applyPackMutation(member.id, dto.carnetVerified === true, dto.carnetVerifiedAt, dto.carnetVerifiedBy);
-        return synced;
-      },
-      saveOffline: async () => {
-        const pending: RmCarnetVerificationOp = { ...op, isSync: false };
-        await this.queue.upsert(pending);
-        await this.applyPackMutation(member.id, verified, new Date().toISOString(), 'offline');
-        return pending;
-      }
-    });
-    return result.data;
+  setVerified(member: RmPackTontineMember, verified: boolean): Promise<RmCarnetVerificationOp> {
+    return executeCarnetSetVerified(this.ports(), member, verified);
   }
 
-  async bulkSet(members: RmPackTontineMember[], verified: boolean): Promise<void> {
-    const ids = members.map(m => m.id);
-    const result = await this.coordinator.executeWrite({
-      entityLabel: `RmCarnetVerificationBulk:${ids.length}`,
-      saveOnline: async () => {
-        await this.api.bulkSet(ids, verified);
-        for (const member of members) {
-          await this.applyPackMutation(member.id, verified, new Date().toISOString(), 'bulk');
-        }
-        return true;
-      },
-      saveOffline: async () => {
-        for (const member of members) {
-          await this.queue.upsert(this.buildOp(member, verified));
-          await this.applyPackMutation(member.id, verified, new Date().toISOString(), 'offline');
-        }
-        return true;
-      }
-    });
-    void result;
+  bulkSet(members: RmPackTontineMember[], verified: boolean): Promise<void> {
+    return executeCarnetBulkSet(this.ports(), members, verified);
   }
 
-  private buildOp(member: RmPackTontineMember, verified: boolean): RmCarnetVerificationOp {
-    const rand = Math.random().toString(36).slice(2, 8);
+  private ports(): RmCarnetVerificationWritePorts<
+    RmPackTontineMember,
+    RmCarnetVerificationOp,
+    Awaited<ReturnType<RmCarnetVerificationApiService['setVerified']>>
+  > {
     return {
-      localId: `cv-${member.id}-${Date.now()}-${rand}`,
-      tontineMemberId: member.id,
-      clientName: member.clientName,
-      verified,
-      createdAt: new Date().toISOString(),
-      isSync: false,
-      lastError: null
+      coordinator: this.coordinator,
+      entityLabel: id => `RmCarnetVerification:${id}`,
+      bulkLabel: count => `RmCarnetVerificationBulk:${count}`,
+      entityId: member => member.id,
+      buildOp: (member, verified) => ({
+        localId: createRmLocalOpId('cv', member.id),
+        tontineMemberId: member.id,
+        clientName: member.clientName,
+        verified,
+        createdAt: new Date().toISOString(),
+        isSync: false,
+        lastError: null
+      }),
+      setVerifiedApi: (id, verified) => this.api.setVerified(id, verified),
+      bulkSetApi: (ids, verified) => this.api.bulkSet(ids, verified),
+      upsert: op => this.queue.upsert(op),
+      applyPackMutation: (id, verified, at, by) =>
+        mutatePackCarnetFlag(this.scope, 'tontineMembers', id, verified, at, by)
     };
-  }
-
-  private async applyPackMutation(
-      memberId: number,
-      verified: boolean,
-      at?: string,
-      by?: string
-  ): Promise<void> {
-    const pack = this.scope.getPack();
-    if (!pack?.tontineMembers) {
-      return;
-    }
-    const nextMembers = pack.tontineMembers.map(item =>
-      item.id === memberId
-        ? {
-            ...item,
-            carnetVerified: verified,
-            carnetVerifiedAt: verified ? at : undefined,
-            carnetVerifiedBy: verified ? by : undefined
-          }
-        : item
-    );
-    const nextPack: RmOfflinePack = { ...pack, tontineMembers: nextMembers };
-    await this.scope.setPack(nextPack);
   }
 }
