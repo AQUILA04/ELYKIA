@@ -46,6 +46,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Shell chef de recouvrement : **Vérifier** / **Annuler** et badge **Vérifié** sur les retards crédit (dashboard et onglet Terrain), avec file offline et synchronisation.
 - Fiche client commercial : badge **Vérifié** en lecture seule sur chaque carte crédit dont le carnet a été certifié.
 
+## Backend — [1.29.3] — 2026-10-05
+
+### Fixed
+
+- Rapport journalier : script `db/business/rebuild_amount_to_deposit.sql` (hors Flyway, non rejoué au déploiement), exécuté en production le 2026-10-05. Le montant à verser de 212 jours est recalculé (avances + recouvrements + reliquat généré − reliquat utilisé + collectes tontine + solde des nouveaux comptes). Écart corrigé : COM001 +100, COM003 −494 000, COM005 +61 800, COM008 −9 150, COM010 −22 900, COM015 +495 000. Les versements ne changent pas. Le script d’alignement des collectes recalcule désormais ce montant dans le même passage.
+
 ## Backend — [1.29.2] — 2026-10-05
 
 ### Fixed

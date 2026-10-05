@@ -6,7 +6,10 @@
 --   2) UPDATE des jours déjà présents (hausse / baisse / remise à 0)
 --   3) INSERT des jours avec collectes mais sans rapport ENABLED
 --
--- Ne touche PAS à total_amount_to_deposit ni aux versements.
+-- Recalcule aussi total_amount_to_deposit :
+--   avances + recouvrements + reliquat généré - reliquat utilisé
+--   + collectes tontine (montant aligné) + solde des nouveaux comptes.
+-- Ne touche pas aux versements.
 --
 -- Réutilisation : modifier UNIQUEMENT le INSERT dans _align_params.
 -- Après : rejouer tontine_ecarts_mensuels.sql / tontine_ecarts_journaliers.sql.
@@ -70,6 +73,12 @@ SET
         (SELECT s.nb FROM _align_source s WHERE s.jour = d.date), 0),
     tontine_collections_amount = COALESCE(
         (SELECT s.montant FROM _align_source s WHERE s.jour = d.date), 0),
+    total_amount_to_deposit    = COALESCE(d.total_advances_amount, 0)
+        + COALESCE(d.collections_amount, 0)
+        + COALESCE(d.total_reliquat_generated_amount, 0)
+        - COALESCE(d.total_reliquat_used_amount, 0)
+        + COALESCE((SELECT s.montant FROM _align_source s WHERE s.jour = d.date), 0)
+        + COALESCE(d.new_accounts_balance, 0),
     date_mod                   = NOW(),
     mod_user_id                = 'script-tontine-align'
 FROM _align_params p
@@ -116,7 +125,9 @@ SELECT
     s.jour,
     s.nb,
     s.montant,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    s.montant,
+    0
 FROM _align_source s
 CROSS JOIN _align_params p
 WHERE NOT EXISTS (
