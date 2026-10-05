@@ -17,6 +17,8 @@ import { RmTontineFieldControlQueueService } from '../../core/services/rm/rm-ton
 import { RmTontineFieldControlSyncService } from '../../core/services/rm/rm-tontine-field-control-sync.service';
 import { RmCarnetVerificationQueueService } from '../../core/services/rm/rm-carnet-verification-queue.service';
 import { RmCarnetVerificationSyncService } from '../../core/services/rm/rm-carnet-verification-sync.service';
+import { RmCreditCarnetVerificationQueueService } from '../../core/services/rm/rm-credit-carnet-verification-queue.service';
+import { RmCreditCarnetVerificationSyncService } from '../../core/services/rm/rm-credit-carnet-verification-sync.service';
 import { RmCollectorAssignQueueService } from '../../core/services/rm/rm-collector-assign-queue.service';
 import { RmCollectorAssignSyncService } from '../../core/services/rm/rm-collector-assign-sync.service';
 import { FieldDayPlan, RmOfflinePack } from '../../core/services/rm/rm.models';
@@ -25,6 +27,7 @@ import { RmContactPatch } from '../../core/services/rm/rm-contact.models';
 import { RmFieldControlOp } from '../../core/services/rm/rm-field-control.models';
 import { RmTontineFieldControlOp } from '../../core/services/rm/rm-tontine-field-control.models';
 import { RmCarnetVerificationOp } from '../../core/services/rm/rm-carnet-verification.models';
+import { RmCreditCarnetVerificationOp } from '../../core/services/rm/rm-credit-carnet-verification.models';
 import { RmCollectorAssignOp } from '../../core/services/rm/rm-collector-assign.models';
 import { MobileAppReleaseInfo } from 'src/app/models/mobile-app-release.model';
 import { environment } from 'src/environments/environment';
@@ -44,6 +47,7 @@ export class RmMorePage implements OnInit, OnDestroy {
   pendingControls: RmFieldControlOp[] = [];
   pendingTontineControls: RmTontineFieldControlOp[] = [];
   pendingCarnetVerifications: RmCarnetVerificationOp[] = [];
+  pendingCreditCarnetVerifications: RmCreditCarnetVerificationOp[] = [];
   pendingAssigns: RmCollectorAssignOp[] = [];
   appVersion = environment.version;
   updateInProgress = false;
@@ -63,6 +67,8 @@ export class RmMorePage implements OnInit, OnDestroy {
     private readonly tontineFieldControlSync: RmTontineFieldControlSyncService,
     private readonly carnetQueue: RmCarnetVerificationQueueService,
     private readonly carnetSync: RmCarnetVerificationSyncService,
+    private readonly creditCarnetQueue: RmCreditCarnetVerificationQueueService,
+    private readonly creditCarnetSync: RmCreditCarnetVerificationSyncService,
     private readonly assignQueue: RmCollectorAssignQueueService,
     private readonly assignSync: RmCollectorAssignSyncService,
     private readonly store: Store,
@@ -93,6 +99,9 @@ export class RmMorePage implements OnInit, OnDestroy {
       this.carnetQueue.ops$.subscribe(ops => {
         this.pendingCarnetVerifications = ops.filter(o => !o.isSync);
       }),
+      this.creditCarnetQueue.ops$.subscribe(ops => {
+        this.pendingCreditCarnetVerifications = ops.filter(o => !o.isSync);
+      }),
       this.assignQueue.ops$.subscribe(ops => {
         this.pendingAssigns = ops.filter(o => !o.isSync);
       })
@@ -109,6 +118,7 @@ export class RmMorePage implements OnInit, OnDestroy {
       + this.pendingControls.length
       + this.pendingTontineControls.length
       + this.pendingCarnetVerifications.length
+      + this.pendingCreditCarnetVerifications.length
       + this.pendingAssigns.length;
   }
 
@@ -136,15 +146,19 @@ export class RmMorePage implements OnInit, OnDestroy {
       const controls = await this.fieldControlSync.syncPending();
       const tontineControls = await this.tontineFieldControlSync.syncPending();
       const carnets = await this.carnetSync.syncPending();
+      const creditCarnets = await this.creditCarnetSync.syncPending();
       const closes = await this.closeSync.syncPending();
       await loading.dismiss();
-      const synced = assigns.synced + contacts.synced + controls.synced + tontineControls.synced + carnets.synced + closes.synced;
-      const failed = assigns.failed + contacts.failed + controls.failed + tontineControls.failed + carnets.failed + closes.failed;
+      const synced = assigns.synced + contacts.synced + controls.synced + tontineControls.synced
+        + carnets.synced + creditCarnets.synced + closes.synced;
+      const failed = assigns.failed + contacts.failed + controls.failed + tontineControls.failed
+        + carnets.failed + creditCarnets.failed + closes.failed;
       const firstError = assigns.errors[0]
         || contacts.errors[0]
         || controls.errors[0]
         || tontineControls.errors[0]
         || carnets.errors[0]
+        || creditCarnets.errors[0]
         || closes.errors[0];
       if (failed === 0) {
         await this.toast(`${synced} opération(s) synchronisée(s)`, 'success');
@@ -172,6 +186,7 @@ export class RmMorePage implements OnInit, OnDestroy {
     void this.fieldControlQueue.clearAll();
     void this.tontineFieldControlQueue.clearAll();
     void this.carnetQueue.clearAll();
+    void this.creditCarnetQueue.clearAll();
     this.store.dispatch(AuthActions.logout());
   }
 

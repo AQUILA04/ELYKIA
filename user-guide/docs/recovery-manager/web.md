@@ -30,6 +30,16 @@ Sur une ligne de retard, choisissez **Terrain**. Le formulaire rappelle la réf�
 
 Après enregistrement, la fiche crédit peut afficher la section **Contrôle terrain** avec les montants système et carnet, l’écart, le statut et l’auteur du contrôle.
 
+## Vérifier un carnet de vente à crédit
+
+La vérification du carnet est une action distincte du contrôle terrain. Elle atteste que le carnet physique a été inspecté, sans modifier les montants ni le résultat du contrôle.
+
+1. Ouvrez **Ventes > Liste** ou la fiche d’une vente à crédit en cours.
+2. Le badge **Carnet vérifié** ou **Carnet non vérifié** indique l’état actuel.
+3. Choisissez **Vérifier** pour certifier le carnet, ou **Annuler la vérification** pour retirer la certification.
+4. Sur la liste, sélectionnez plusieurs ventes puis **Vérifier la sélection** pour traiter plusieurs carnets d’un coup.
+5. Utilisez le filtre **Carnet** de la recherche avancée pour n’afficher que les carnets déjà vérifiés ou ceux encore à traiter.
+
 ## Clôturer un ou plusieurs retards
 
 Utilisez le bouton de clôture de la ligne concernée. Selon l’écran et les droits, la procédure peut regrouper plusieurs crédits sélectionnés. La fenêtre de clôture affiche, pour chaque dossier, le client, le commercial, le restant, le mode partiel éventuel et le montant prévu.

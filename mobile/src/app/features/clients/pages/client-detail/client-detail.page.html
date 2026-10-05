@@ -218,8 +218,12 @@
               <ion-card-header>
                 <div class="credit-header-line">
                   <ion-card-title>{{ credit.reference }}</ion-card-title>
-                  <ion-badge [color]="credit.status === 'INPROGRESS' ? 'warning' : 'success'">{{ credit.status
-                    }}</ion-badge>
+                  <div class="credit-header-badges">
+                    <ion-badge *ngIf="credit.carnetVerified" color="success"
+                               data-testid="e2e-client-credit-carnet-badge">Vérifié</ion-badge>
+                    <ion-badge [color]="credit.status === 'INPROGRESS' ? 'warning' : 'success'">{{ credit.status
+                      }}</ion-badge>
+                  </div>
                 </div>
               </ion-card-header>
               <ion-card-content>

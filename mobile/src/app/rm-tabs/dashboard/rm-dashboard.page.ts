@@ -1,10 +1,11 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { ModalController } from '@ionic/angular';
+import { AlertController, ModalController, ToastController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCloseQueueService } from '../../core/services/rm/rm-close-queue.service';
 import { RmMonthlyRecoveryRateService } from '../../core/services/rm/rm-monthly-recovery-rate.service';
+import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
 import {
   RmCreditLate,
   RmOfflinePack,
@@ -32,6 +33,7 @@ export class RmDashboardPage implements OnInit, OnDestroy {
   monthlyRateOffline = false;
   selectedYear = new Date().getFullYear();
   selectedMonth = new Date().getMonth() + 1;
+  carnetBusy = false;
   private controlByCredit = new Map<number, string>();
   private subs: Subscription[] = [];
 
@@ -39,7 +41,10 @@ export class RmDashboardPage implements OnInit, OnDestroy {
     private readonly scope: RmScopeService,
     private readonly closeQueue: RmCloseQueueService,
     private readonly monthlyRecovery: RmMonthlyRecoveryRateService,
+    private readonly creditCarnetWrite: RmCreditCarnetVerificationWriteService,
     private readonly modalCtrl: ModalController,
+    private readonly alertCtrl: AlertController,
+    private readonly toastCtrl: ToastController,
     private readonly router: Router
   ) {}
 
@@ -128,6 +133,48 @@ export class RmDashboardPage implements OnInit, OnDestroy {
     });
     await modal.present();
     await modal.onDidDismiss();
+  }
+
+  async toggleCreditCarnet(item: RmCreditLate, event?: Event): Promise<void> {
+    event?.stopPropagation();
+    if (this.carnetBusy) {
+      return;
+    }
+    const next = !item.carnetVerified;
+    const alert = await this.alertCtrl.create({
+      header: next ? 'Vérifier le carnet' : 'Annuler la vérification',
+      message: next
+        ? `Marquer le carnet de ${item.clientName || item.reference} comme vérifié ?`
+        : `Retirer la vérification de ${item.clientName || item.reference} ?`,
+      buttons: [
+        { text: 'Non', role: 'cancel' },
+        { text: next ? 'Vérifier' : 'Annuler', role: 'confirm' }
+      ]
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'confirm') {
+      return;
+    }
+    this.carnetBusy = true;
+    try {
+      await this.creditCarnetWrite.setVerified(item, next);
+      const toast = await this.toastCtrl.create({
+        message: next ? 'Carnet vérifié' : 'Vérification annulée',
+        duration: 2000,
+        color: 'success'
+      });
+      await toast.present();
+    } catch (error: any) {
+      const toast = await this.toastCtrl.create({
+        message: error?.message || 'Échec de la vérification',
+        duration: 2500,
+        color: 'danger'
+      });
+      await toast.present();
+    } finally {
+      this.carnetBusy = false;
+    }
   }
 
   formatAmount(value: number): string {

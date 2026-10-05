@@ -27,6 +27,7 @@ import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -150,6 +151,16 @@ public class Credit extends BaseEntity<String> {
 
     @Column(name = "customer_segment")
     private String customerSegment; // Segmentation client (nouveau, fidèle, VIP, etc.)
+
+    /** Certification physique du carnet (distincte du contrôle terrain). */
+    @Column(name = "carnet_verified", nullable = false)
+    private Boolean carnetVerified = Boolean.FALSE;
+
+    @Column(name = "carnet_verified_at")
+    private LocalDateTime carnetVerifiedAt;
+
+    @Column(name = "carnet_verified_by", length = 100)
+    private String carnetVerifiedBy;
 
     @Transient
     private List<CreditSourceMonthlyStockDto> sourceMonthlyStocks = new ArrayList<>();

@@ -11,5 +11,6 @@ public record CreditSearchDto(
         CreditStatus status,
         String commercial,
         Long clientId,
-        Boolean searchByReference) {
+        Boolean searchByReference,
+        Boolean carnetVerified) {
 }

@@ -43,6 +43,7 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
   selectedCommercial = '';
   isRecoveryManager: boolean = false;
   isCollector: boolean = false;
+  isCarnetBusy = false;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -74,6 +75,48 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
 
   onCancel(): void {
     this.router.navigate(['/credit/list']);
+  }
+
+  onToggleCarnetVerification(): void {
+    if (!this.credit || this.isCarnetBusy) {
+      return;
+    }
+    if (this.credit.type !== 'CREDIT' || this.credit.status !== 'INPROGRESS') {
+      this.alertService.showWarning('La vérification de carnet n\'est possible que sur un crédit en cours.');
+      return;
+    }
+    const nextVerified = !this.credit.carnetVerified;
+    const title = nextVerified ? 'Vérifier le carnet' : 'Annuler la vérification';
+    const text = nextVerified
+      ? 'Marquer le carnet de cette vente comme vérifié ?'
+      : 'Retirer la vérification de carnet de cette vente ?';
+    void this.alertService.showConfirmation(title, text, nextVerified ? 'Vérifier' : 'Annuler la vérification')
+      .then((confirmed) => {
+        if (!confirmed || !this.credit) {
+          return;
+        }
+        this.isCarnetBusy = true;
+        this.spinner.show();
+        this.creditService.setCarnetVerification(this.credit.id, nextVerified).subscribe({
+          next: (response) => {
+            this.spinner.hide();
+            this.isCarnetBusy = false;
+            if (response.data) {
+              this.credit = { ...this.credit, ...response.data };
+              this.alertService.showSuccess(
+                nextVerified ? 'Carnet marqué comme vérifié' : 'Vérification annulée'
+              );
+            }
+          },
+          error: (error) => {
+            this.spinner.hide();
+            this.isCarnetBusy = false;
+            this.alertService.showError(
+              error?.error?.message || 'Erreur lors de la vérification du carnet'
+            );
+          }
+        });
+      });
   }
 
   navigateToEdit(creditId: number | null): void {

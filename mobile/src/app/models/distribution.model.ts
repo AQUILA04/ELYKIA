@@ -31,4 +31,7 @@ export interface Distribution {
   operationConsentCode?: string;
   confirmedAmount?: number;
   creditPurpose?: CreditPurpose;
+  carnetVerified?: boolean;
+  carnetVerifiedAt?: string | null;
+  carnetVerifiedBy?: string | null;
 }

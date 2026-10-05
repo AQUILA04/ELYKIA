@@ -145,6 +145,9 @@ export class MigrationService {
       case 32:
         await this.migrateToV32(db);
         break;
+      case 33:
+        await this.migrateToV33(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -889,6 +892,20 @@ export class MigrationService {
     } catch (error: any) {
       this.log.log(`Error in migration v32: ${error}`);
       console.error('Error in migration v32', error);
+      throw error;
+    }
+  }
+
+  private async migrateToV33(db: SQLiteDBConnection): Promise<void> {
+    try {
+      this.log.log('Running migration to v33: distributions carnet verification...');
+      await this.addColumnIfNotExists(db, 'distributions', 'carnetVerified', 'BOOLEAN DEFAULT 0');
+      await this.addColumnIfNotExists(db, 'distributions', 'carnetVerifiedAt', 'TEXT');
+      await this.addColumnIfNotExists(db, 'distributions', 'carnetVerifiedBy', 'TEXT');
+      this.log.log('Migration to v33 successful.');
+    } catch (error: any) {
+      this.log.log(`Error in migration v33: ${error}`);
+      console.error('Error in migration v33', error);
       throw error;
     }
   }

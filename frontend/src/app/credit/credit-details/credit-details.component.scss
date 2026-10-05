@@ -155,6 +155,57 @@
   cursor: not-allowed !important;
 }
 
+.cd-topbar-actions {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.cd-btn-carnet {
+  background: var(--green-pale) !important;
+  color: var(--green) !important;
+  border: 1px solid #b7e0c4 !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.cd-btn-carnet:hover:not(:disabled) {
+  background: var(--green) !important;
+  color: #fff !important;
+  border-color: var(--green) !important;
+}
+
+.cd-btn-carnet:disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+}
+
+.carnet-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  padding: 4px 10px !important;
+  border-radius: 999px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: .03em !important;
+  text-transform: uppercase !important;
+}
+
+.carnet-badge.is-verified {
+  background: var(--green-pale) !important;
+  color: var(--green) !important;
+}
+
+.carnet-badge.is-pending {
+  background: var(--navy-xpale) !important;
+  color: var(--text-muted) !important;
+}
+
+.carnet-meta {
+  margin: 6px 0 0 !important;
+  font-size: 12px !important;
+  color: var(--text-muted) !important;
+}
+
 /* PAGE HEADER */
 .cd-page-header {
   background: var(--bg-white) !important;

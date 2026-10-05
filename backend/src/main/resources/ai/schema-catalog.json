@@ -64,6 +64,25 @@
           "name": "client_id",
           "type": "bigint",
           "description": "FK client"
+        },
+        {
+          "name": "carnet_verified",
+          "type": "boolean",
+          "description": "Carnet physique vérifié (certification distincte du contrôle terrain)",
+          "synonyms": [
+            "carnet vérifié",
+            "vérification carnet"
+          ]
+        },
+        {
+          "name": "carnet_verified_at",
+          "type": "timestamp",
+          "description": "Date/heure de vérification du carnet"
+        },
+        {
+          "name": "carnet_verified_by",
+          "type": "varchar",
+          "description": "Username de l'agent ayant vérifié le carnet"
         }
       ],
       "relations": [

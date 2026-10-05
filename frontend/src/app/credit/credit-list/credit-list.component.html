@@ -84,6 +84,17 @@
             Changer l'agent ({{ selectedCredits.size }})
           </button>
         </ng-container>
+        <ng-container *ngxPermissionsOnly="['ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']">
+          <button
+            *ngIf="selectedCredits.size > 0"
+            type="button"
+            class="btn-secondary"
+            data-testid="e2e-credit-carnet-bulk-verify"
+            [disabled]="verifyingBulk"
+            (click)="onBulkVerifyCarnet()">
+            {{ verifyingBulk ? 'Enregistrement…' : 'Vérifier la sélection (' + selectedCredits.size + ')' }}
+          </button>
+        </ng-container>
         <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" type="button" class="btn-primary" (click)="addCredit()" data-testid="e2e-credit-add-btn">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
           Nouvelle vente
@@ -126,7 +137,7 @@
       <table class="data-table">
         <thead>
           <tr>
-            <th *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']" class="col-select" data-testid="e2e-credit-collector-select-col">
+            <th *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']" class="col-select" data-testid="e2e-credit-collector-select-col">
               <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected"></mat-checkbox>
             </th>
             <th>#</th>
@@ -136,6 +147,7 @@
             <th>Montant</th>
             <th>Mise/j</th>
             <th>Statut</th>
+            <th>Carnet</th>
             <th>Jours rest.</th>
             <th>Action</th>
           </tr>
@@ -147,7 +159,7 @@
               [attr.data-credit-reference]="credit.reference"
               [attr.data-client-lastname]="credit.client?.lastname"
               [attr.data-status]="credit.status">
-            <td *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']" class="col-select">
+            <td *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']" class="col-select">
               <mat-checkbox
                 *ngIf="credit.status !== 'SETTLED'"
                 (change)="toggleSelection(credit.id)"
@@ -166,6 +178,14 @@
               </span>
             </td>
             <td>
+              <span class="carnet-badge"
+                    [class.is-verified]="credit.carnetVerified"
+                    [class.is-pending]="!credit.carnetVerified"
+                    data-testid="e2e-credit-carnet-badge">
+                {{ credit.carnetVerified ? 'Vérifié' : '—' }}
+              </span>
+            </td>
+            <td>
               <span [ngClass]="getBadgeClass(credit.remainingDaysCount)">
                 {{ credit.remainingDaysCount ?? 0 }}
               </span>
@@ -179,7 +199,7 @@
       </div>
 
       <div class="mobile-card-list" *ngIf="!isLoading && filteredCredits.length > 0">
-        <div class="mobile-select-bar" *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']">
+        <div class="mobile-select-bar" *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']">
           <mat-checkbox (change)="toggleAllSelection()" [checked]="isAllSelected" [indeterminate]="selectedCredits.size > 0 && !isAllSelected">
             Tout sélectionner
           </mat-checkbox>
@@ -194,7 +214,7 @@
           [attr.data-client-lastname]="credit.client?.lastname"
           [attr.data-status]="credit.status">
           <div class="mobile-card-top">
-            <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR']">
+            <ng-container *ngxPermissionsOnly="['ROLE_ASSIGN_CREDIT_COLLECTOR', 'ROLE_CREDIT_CARNET_VERIFY', 'ROLE_ADMIN']">
               <mat-checkbox
                 *ngIf="credit.status !== 'SETTLED'"
                 (change)="toggleSelection(credit.id)"
@@ -204,6 +224,11 @@
             <span class="mobile-card-ref">#{{ (currentPage * pageSize) + (i + 1) }}</span>
             <span class="status-badge {{ (credit.status | statusBadge).badgeClass }}">
               {{ (credit.status | statusBadge).label }}
+            </span>
+            <span class="carnet-badge"
+                  [class.is-verified]="credit.carnetVerified"
+                  [class.is-pending]="!credit.carnetVerified">
+              {{ credit.carnetVerified ? 'Vérifié' : '—' }}
             </span>
           </div>
           <div class="mobile-card-client">{{ credit.client?.firstname }} {{ credit.client?.lastname }}</div>

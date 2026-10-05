@@ -53,6 +53,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
   isAllSelected = false;
   showBulkChangeCollectorModal = false;
   selectedNewCollector = '';
+  verifyingBulk = false;
 
   showAdvancedSearch = false;
   currentSearchDto: CreditSearchDto | null = null;
@@ -618,6 +619,45 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
     this.subscriptions.push(sub);
   }
 
+  clearSelection(): void {
+    this.selectedCredits.clear();
+    this.isAllSelected = false;
+  }
+
+  onBulkVerifyCarnet(): void {
+    if (this.verifyingBulk || this.selectedCredits.size === 0) {
+      return;
+    }
+    const ids = Array.from(this.selectedCredits);
+    void this.alertService.showConfirmation(
+      'Vérifier les carnets',
+      `Marquer ${ids.length} vente(s) comme carnet vérifié ?`,
+      'Vérifier'
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.verifyingBulk = true;
+      this.spinner.show();
+      const sub = this.creditService.bulkSetCarnetVerification(ids, true).subscribe({
+        next: (response) => {
+          this.spinner.hide();
+          this.verifyingBulk = false;
+          const updated = response.data?.updated ?? ids.length;
+          this.alertService.showSuccess(`${updated} carnet(s) marqué(s) comme vérifié(s)`);
+          this.clearSelection();
+          this.reloadAfterMutation();
+        },
+        error: (error) => {
+          this.spinner.hide();
+          this.verifyingBulk = false;
+          this.alertService.showError(error?.error?.message || 'Erreur lors de la vérification en masse');
+        }
+      });
+      this.subscriptions.push(sub);
+    });
+  }
+
   closeMergeModal(): void {
     this.showMergeModal = false;
   }
@@ -662,6 +702,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
     if (dto.type) count++;
     if (dto.status) count++;
     if (dto.commercial) count++;
+    if (typeof dto.carnetVerified === 'boolean') count++;
     return count;
   }
 }

@@ -11,6 +11,7 @@ import com.optimize.elykia.core.enumaration.SolvencyStatus;
 import org.springframework.data.domain.Page;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -45,7 +46,10 @@ public record CreditRespDto(Long id,
                             ClientRespDto client,
                             String operationConsentCode,
                             Double confirmedAmount,
-                            String syncConsentCode
+                            String syncConsentCode,
+                            Boolean carnetVerified,
+                            LocalDateTime carnetVerifiedAt,
+                            String carnetVerifiedBy
 ) {
 
     public ClientRespDto getClient() {
@@ -64,20 +68,22 @@ public record CreditRespDto(Long id,
 
     @JsonIgnore
     public static CreditRespDto fromId(Long id) {
-        return new CreditRespDto(id, null, null, null,null, null,
+        return new CreditRespDto(id, null, null, null, null, null,
                 null, null, null, null, null, null,
-                null, null, null,null, null, null, null, null,
-        null, null, null, null, null, null, null, null, null, null, null);
+                null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null, null, null,
+                null, null, null);
     }
 
     public static CreditRespDto fromCredit(Credit credit) {
         Long parentId = Objects.nonNull(credit.getParent()) ? credit.getParent().getId() : null;
-        ClientRespDto client  = ClientRespDto.fromClient(credit.getClient());
-        return new CreditRespDto(credit.getId(), credit.getClientId(), credit.getBeginDate(), credit.getExpectedEndDate(),credit.getEffectiveEndDate(), credit.getSolvencyNote(),
+        ClientRespDto client = ClientRespDto.fromClient(credit.getClient());
+        return new CreditRespDto(credit.getId(), credit.getClientId(), credit.getBeginDate(), credit.getExpectedEndDate(), credit.getEffectiveEndDate(), credit.getSolvencyNote(),
                 credit.getLateDaysCount(), credit.getTotalAmount(), credit.getTotalAmount(), credit.getTotalAmountPaid(), credit.getTotalAmountRemaining(),
-                credit.getAdvance(), credit.getDailyStake(), credit.getStatus(), credit.getRemainingDaysCount(),credit.getCollector(), credit.getType(), credit.getDailyPaid(), credit.getClientType(), parentId,
+                credit.getAdvance(), credit.getDailyStake(), credit.getStatus(), credit.getRemainingDaysCount(), credit.getCollector(), credit.getType(), credit.getDailyPaid(), credit.getClientType(), parentId,
                 credit.getUpdatable(), credit.getReference(), credit.getAccountingDate(), credit.getReleaseDate(), credit.getReleasePrinted(), credit.getOldReference(), null, client,
-                credit.getOperationConsentCode(), credit.getConfirmedAmount(), credit.getSyncConsentCode());
+                credit.getOperationConsentCode(), credit.getConfirmedAmount(), credit.getSyncConsentCode(),
+                Boolean.TRUE.equals(credit.getCarnetVerified()), credit.getCarnetVerifiedAt(), credit.getCarnetVerifiedBy());
     }
 
     public static Page<CreditRespDto> fromCreditPage(Page<Credit> creditPage) {
@@ -98,10 +104,11 @@ public record CreditRespDto(Long id,
     @JsonIgnore
     public CreditRespDto addArticles(Set<CreditArticles> creditArticles) {
 
-        return new CreditRespDto(this.id, this.clientId, this.beginDate, this.expectedEndDate,this.effectiveEndDate, this.solvencyNote,
+        return new CreditRespDto(this.id, this.clientId, this.beginDate, this.expectedEndDate, this.effectiveEndDate, this.solvencyNote,
                 this.lateDaysCount, this.totalAmount, this.totalPurchase, this.totalAmountPaid, this.totalAmountRemaining,
-                this.advance, this.dailyStake, this.status, this.remainingDaysCount,this.collector, this.type, this.dailyPaid, this.clientType, this.parentId,
-                this.updatable, this.reference, this.accountingDate, this.releaseDate, this.releasePrinted, this.oldReference,creditArticles, this.client,
-                this.operationConsentCode, this.confirmedAmount, this.syncConsentCode);
+                this.advance, this.dailyStake, this.status, this.remainingDaysCount, this.collector, this.type, this.dailyPaid, this.clientType, this.parentId,
+                this.updatable, this.reference, this.accountingDate, this.releaseDate, this.releasePrinted, this.oldReference, creditArticles, this.client,
+                this.operationConsentCode, this.confirmedAmount, this.syncConsentCode,
+                this.carnetVerified, this.carnetVerifiedAt, this.carnetVerifiedBy);
     }
 }

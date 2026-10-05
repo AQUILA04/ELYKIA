@@ -4,6 +4,7 @@ import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCreditLate, RmPackTontineMember } from '../../core/services/rm/rm.models';
 import { RmTontineFieldControlSheetComponent } from '../../features/rm/tontine-field-control/rm-tontine-field-control-sheet.component';
 import { RmCarnetVerificationWriteService } from '../../core/services/rm/rm-carnet-verification-write.service';
+import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
 
 @Component({
   selector: 'app-rm-field',
@@ -26,7 +27,8 @@ export class RmFieldPage implements OnInit {
     private readonly modalCtrl: ModalController,
     private readonly alertCtrl: AlertController,
     private readonly toastCtrl: ToastController,
-    private readonly carnetWrite: RmCarnetVerificationWriteService
+    private readonly carnetWrite: RmCarnetVerificationWriteService,
+    private readonly creditCarnetWrite: RmCreditCarnetVerificationWriteService
   ) {}
 
   ngOnInit(): void {
@@ -94,6 +96,38 @@ export class RmFieldPage implements OnInit {
         : null);
     if (url) {
       window.open(url, '_blank');
+    }
+  }
+
+  async toggleCreditCarnet(item: RmCreditLate): Promise<void> {
+    if (this.busy) {
+      return;
+    }
+    const next = !item.carnetVerified;
+    const alert = await this.alertCtrl.create({
+      header: next ? 'Vérifier le carnet' : 'Annuler la vérification',
+      message: next
+        ? `Marquer le carnet de ${item.clientName || item.reference} comme vérifié ?`
+        : `Retirer la vérification de ${item.clientName || item.reference} ?`,
+      buttons: [
+        { text: 'Non', role: 'cancel' },
+        { text: next ? 'Vérifier' : 'Annuler', role: 'confirm' }
+      ]
+    });
+    await alert.present();
+    const { role } = await alert.onDidDismiss();
+    if (role !== 'confirm') {
+      return;
+    }
+    this.busy = true;
+    try {
+      await this.creditCarnetWrite.setVerified(item, next);
+      this.loadLateCredits();
+      await this.toast(next ? 'Carnet vérifié' : 'Vérification annulée');
+    } catch (error: any) {
+      await this.toast(error?.message || 'Échec de la vérification', 'danger');
+    } finally {
+      this.busy = false;
     }
   }
 

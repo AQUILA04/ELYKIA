@@ -52,6 +52,10 @@ public class CreditSpecification {
                 predicates.add(cb.equal(root.get("client").get("id"), dto.clientId()));
             }
 
+            if (dto.carnetVerified() != null) {
+                predicates.add(cb.equal(root.get("carnetVerified"), dto.carnetVerified()));
+            }
+
             String kw = dto.keyword();
             if (kw != null && !kw.isBlank()) {
                 kw = kw.trim();

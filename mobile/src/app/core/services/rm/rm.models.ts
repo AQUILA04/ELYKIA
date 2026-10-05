@@ -95,6 +95,9 @@ export interface RmCreditLate {
   lateDaysEcheance?: number;
   lateType?: string;
   status?: string;
+  carnetVerified?: boolean;
+  carnetVerifiedAt?: string;
+  carnetVerifiedBy?: string;
 }
 
 export interface RmPackTontineFieldControlToday {

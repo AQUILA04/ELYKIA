@@ -9,6 +9,29 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.29.0] — 2026-10-05
+
+### Added
+
+- Vérification de carnet sur les ventes à crédit : badge **Vérifié**, filtre recherche avancée, vérification unitaire et en masse (droit `ROLE_CREDIT_CARNET_VERIFY`).
+
+## Mobile — [2.31.0] — 2026-10-05
+
+### Added
+
+- Shell chef de recouvrement : **Vérifier** / **Annuler** et badge **Vérifié** sur les retards crédit (dashboard et onglet Terrain), avec file offline et synchronisation.
+- Fiche client commercial : badge **Vérifié** en lecture seule sur chaque carte crédit dont le carnet a été certifié.
+
+## Backend — [1.29.0] — 2026-10-05
+
+### Added
+
+- Vérification de carnet crédit : colonnes `carnet_verified` / `_at` / `_by`, permission `ROLE_CREDIT_CARNET_VERIFY` (chef de recouvrement, admin), endpoints `PATCH /credits/{id}/carnet-verification` et `POST /credits/carnet-verifications`, filtre liste, exposition dans les retards et le catalog IA.
+
+## Docs & Infra
+
+- Guide chef de recouvrement (web / mobile) et guide commercial mobile : procédures et badge **Vérifié** pour la vérification de carnet crédit ; index RAG et HTML MkDocs régénérés.
+
 ## Frontend — [2.27.1] — 2026-10-05
 
 ### Fixed

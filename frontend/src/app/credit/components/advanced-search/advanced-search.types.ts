@@ -32,6 +32,7 @@ export interface CreditSearchDto {
   type?: OperationType | null;
   status?: CreditStatus | null;
   commercial?: string | null;
+  carnetVerified?: boolean | null;
 }
 
 export interface SearchOption {
@@ -58,4 +59,10 @@ export const STATUS_OPTIONS: SearchOption[] = [
   { value: CreditStatus.CREATED, label: 'Créé' },
   { value: CreditStatus.INPROGRESS, label: 'En cours' },
   { value: CreditStatus.SETTLED, label: 'Réglé' }
+];
+
+export const CARNET_STATUS_OPTIONS: SearchOption[] = [
+  { value: null, label: 'Tous les carnets' },
+  { value: 'true', label: 'Carnet vérifié' },
+  { value: 'false', label: 'Carnet non vérifié' }
 ];

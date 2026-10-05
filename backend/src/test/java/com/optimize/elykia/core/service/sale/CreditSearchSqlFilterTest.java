@@ -10,7 +10,7 @@ class CreditSearchSqlFilterTest {
 
     @Test
     void searchByReferenceRestrictsSqlToReferenceColumn() {
-        CreditSearchDto dto = new CreditSearchDto("RAT-YVG7ZNJ3", null, null, null, null, null, true);
+        CreditSearchDto dto = new CreditSearchDto("RAT-YVG7ZNJ3", null, null, null, null, null, true, null);
 
         CreditSearchSqlFilter filter = CreditSearchSqlFilter.from(dto, "c", false);
 
@@ -22,7 +22,7 @@ class CreditSearchSqlFilterTest {
 
     @Test
     void defaultKeywordSearchIncludesMultipleColumns() {
-        CreditSearchDto dto = new CreditSearchDto("RAT-YVG7ZNJ3", null, null, null, null, null, false);
+        CreditSearchDto dto = new CreditSearchDto("RAT-YVG7ZNJ3", null, null, null, null, null, false, null);
 
         CreditSearchSqlFilter filter = CreditSearchSqlFilter.from(dto, "c", false);
 

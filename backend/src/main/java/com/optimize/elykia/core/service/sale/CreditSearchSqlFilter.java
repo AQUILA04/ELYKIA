@@ -65,6 +65,10 @@ final class CreditSearchSqlFilter {
             sql.append(" AND ").append(creditAlias).append(".client_id = :").append(param).append('\n');
         }
 
+        if (dto.carnetVerified() != null) {
+            appendEquals("carnet_verified", dto.carnetVerified());
+        }
+
         if (StringUtils.hasText(dto.keyword())) {
             String trimmed = dto.keyword().trim();
             String kwParam = bind("keyword", trimmed);
