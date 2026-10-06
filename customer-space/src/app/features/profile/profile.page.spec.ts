@@ -54,6 +54,14 @@ describe('ProfilePage', () => {
     expect(versionEl?.textContent).toContain(environment.version);
   });
 
+  it('links to privacy and account deletion', () => {
+    fixture.detectChanges();
+    const privacy = fixture.nativeElement.querySelector('[data-testid="e2e-profile-privacy"]');
+    const deletion = fixture.nativeElement.querySelector('[data-testid="e2e-profile-account-deletion"]');
+    expect(privacy?.textContent).toContain('Règles de confidentialité');
+    expect(deletion?.textContent).toContain('Demander la suppression du compte');
+  });
+
   it('logs out and redirects to auth', () => {
     fixture.componentInstance.logout();
     expect(session.clearSession).toHaveBeenCalled();

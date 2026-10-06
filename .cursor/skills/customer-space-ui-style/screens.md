@@ -23,6 +23,8 @@ Pour chaque écran : consulter la **maquette PNG**, choisir l'**archétype** (vo
 | — | (v2) | `/tontines/:id/timeline` | `features/tontine-timeline/` | **C** | — | Historique mises |
 | — | (v2) | `/tontines/:id/payment` | `features/tontine-payment/` | **C** | — | Outlined + `ion-footer` |
 | — | (v2) | `/profile` | `features/profile/` | **C** | — | Profil + version |
+| — | (Play Console) | `/confidentialite` | `features/privacy/` | **C** | — | Page publique, sans connexion |
+| — | (Play Console) | `/suppression-compte` | `features/account-deletion/` | **C** | — | Page publique, demande par e-mail |
 
 \* S-07 : vérifier maquette — outlined + navy si formulaire de paiement.
 

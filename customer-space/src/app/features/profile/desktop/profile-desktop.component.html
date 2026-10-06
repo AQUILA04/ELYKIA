@@ -11,6 +11,14 @@
         <ion-icon name="information-circle-outline"></ion-icon>
         <span>Version {{ appVersion() }}</span>
       </div>
+      <a routerLink="/confidentialite" class="about-row about-row--link" data-testid="e2e-profile-privacy">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <span>Règles de confidentialité</span>
+      </a>
+      <a routerLink="/suppression-compte" class="about-row about-row--link" data-testid="e2e-profile-account-deletion">
+        <ion-icon name="trash-outline"></ion-icon>
+        <span>Demander la suppression du compte</span>
+      </a>
       <p class="desk-muted" style="margin:16px 0;">Les mises à jour de l'application sont gérées depuis le Play Store ou l'App Store sur mobile.</p>
       <ion-button expand="block" color="danger" fill="outline" data-testid="e2e-profile-logout" (click)="logout.emit()">Se déconnecter</ion-button>
     </div>

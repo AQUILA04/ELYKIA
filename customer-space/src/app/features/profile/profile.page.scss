@@ -93,6 +93,11 @@
   cursor: default;
 }
 
+a.about-row {
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
 .logout-btn {
   --border-radius: var(--elyk-radius-btn);
   font-weight: 600;

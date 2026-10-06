@@ -27,3 +27,4 @@ Une fois votre compte validé par l’agence, l’Accueil affiche vos crédits e
 
 - [Notifications](notifications.md)
 - [Connexion](connexion.md) — règles de confidentialité sur **https://clients.amenouveve-yaveh.com/confidentialite**
+- [Demander la suppression du compte](suppression_compte.md) — **https://clients.amenouveve-yaveh.com/suppression-compte**

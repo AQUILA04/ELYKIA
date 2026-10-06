@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { AuthStep, CustomerLocality } from '../../../shared/models/customer-auth.model';
-import { ElykLocalityPickerComponent, ElykOutlinedFieldComponent } from '../../../shared/ui';
+import { ElykLocalityPickerComponent, ElykOutlinedFieldComponent, LegalLinksComponent } from '../../../shared/ui';
 import { AuthRegisterConsentComponent } from '../auth-register-consent.component';
 
 @Component({
@@ -16,6 +16,7 @@ import { AuthRegisterConsentComponent } from '../auth-register-consent.component
     ElykOutlinedFieldComponent,
     ElykLocalityPickerComponent,
     AuthRegisterConsentComponent,
+    LegalLinksComponent,
   ],
   templateUrl: './auth-desktop.component.html',
   styleUrls: ['./auth-desktop.component.scss'],

@@ -199,6 +199,7 @@
       </form>
 
       <p class="elyk-page-footer-hint" *ngIf="step() === 'phone'">{{ phoneHint() }}</p>
+      <app-legal-links *ngIf="step() === 'phone'"></app-legal-links>
       <p class="auth-version" data-testid="e2e-auth-version">Version {{ appVersion() }}</p>
     </div>
   </main>

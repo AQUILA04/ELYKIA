@@ -1,7 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
-import { EMPTY, of, throwError } from 'rxjs';
+import { Router, provideRouter } from '@angular/router';
+import { of, throwError } from 'rxjs';
 import { AuthPage } from './auth.page';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { CustomerSessionService } from '../../shared/services/customer-session.service';
@@ -15,7 +15,7 @@ import { IonicModule } from '@ionic/angular';
 describe('AuthPage', () => {
   let fixture: ComponentFixture<AuthPage>;
   let api: jasmine.SpyObj<CustomerApiService>;
-  let router: jasmine.SpyObj<Router>;
+  let router: Router;
   let featureFlags: jasmine.SpyObj<FeatureFlagService>;
   let session: CustomerSessionService;
 
@@ -37,13 +37,6 @@ describe('AuthPage', () => {
     api.verifyOtp.and.returnValue(of({ verified: true, otpProofToken: 'proof-token' }));
     api.getLocalities.and.returnValue(of([{ id: 1, name: 'Tokoin' }, { id: 2, name: 'Agoè' }]));
 
-    router = jasmine.createSpyObj('Router', ['navigate', 'navigateByUrl'], {
-      events: EMPTY,
-      url: '/',
-    });
-    router.navigate.and.returnValue(Promise.resolve(true));
-    router.navigateByUrl.and.returnValue(Promise.resolve(true));
-
     featureFlags = jasmine.createSpyObj('FeatureFlagService', ['refresh', 'isCustomerSpaceAvailable']);
     featureFlags.refresh.and.returnValue(Promise.resolve());
     featureFlags.isCustomerSpaceAvailable.and.returnValue(true);
@@ -54,7 +47,7 @@ describe('AuthPage', () => {
         { provide: CustomerApiService, useValue: api },
         CustomerSessionService,
         { provide: FeatureFlagService, useValue: featureFlags },
-        { provide: Router, useValue: router },
+        provideRouter([]),
         // Force mobile template so Type A decor assertions stay deterministic in wide CI viewports.
         { provide: LayoutService, useValue: { isDesktop: () => false, refresh: () => undefined } },
         {
@@ -69,6 +62,8 @@ describe('AuthPage', () => {
     fixture = TestBed.createComponent(AuthPage);
     session = TestBed.inject(CustomerSessionService);
     session.clearSession();
+    router = TestBed.inject(Router);
+    spyOn(router, 'navigateByUrl').and.returnValue(Promise.resolve(true));
   });
 
   it('starts on phone step', () => {
@@ -97,6 +92,14 @@ describe('AuthPage', () => {
     fixture.detectChanges();
     const footer = fixture.nativeElement.querySelector('[data-testid="e2e-auth-version"]');
     expect(footer?.textContent).toContain(fixture.componentInstance.appVersion);
+  });
+
+  it('shows privacy and account deletion links on the phone step', () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-testid="e2e-legal-privacy"]')?.textContent)
+      .toContain('Règles de confidentialité');
+    expect(fixture.nativeElement.querySelector('[data-testid="e2e-legal-account-deletion"]')?.textContent)
+      .toContain('Demander la suppression du compte');
   });
 
   it('moves to pin step when phone is recognized', async () => {
