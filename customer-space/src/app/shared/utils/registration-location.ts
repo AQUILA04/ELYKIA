@@ -1,6 +1,16 @@
 import { Capacitor } from '@capacitor/core';
 import { Geolocation } from '@capacitor/geolocation';
 import { isE2eMode } from './e2e';
+import {
+  DeviceAccessDismissedError,
+  DeviceAccessPrompter,
+  DevicePermissionDeniedError,
+  ensureDevicePermission,
+  isDeviceAccessDismissed,
+  isLocationServicesDisabled,
+  locationGate,
+  LocationServicesDisabledError,
+} from './device-access';
 
 export interface RegistrationLocation {
   latitude: number;
@@ -21,33 +31,56 @@ function toMll(latitude: number, longitude: number): string {
 /**
  * Capture GPS pour l'inscription. Demande la permission Android si besoin.
  * En mode E2E, retourne des coordonnées mock.
+ * Avec un prompter, un refus ou un GPS éteint ouvre une fenêtre au lieu d'un message de formulaire.
  */
-export async function captureRegistrationLocation(): Promise<RegistrationLocation> {
+export async function captureRegistrationLocation(
+  prompter?: DeviceAccessPrompter,
+): Promise<RegistrationLocation> {
   if (isE2eMode()) {
     return E2E_LOCATION;
   }
 
-  if (Capacitor.getPlatform() !== 'web') {
-    let permissions = await Geolocation.checkPermissions();
-    if (permissions.location !== 'granted' && permissions.coarseLocation !== 'granted') {
-      permissions = await Geolocation.requestPermissions();
-    }
-    if (permissions.location !== 'granted' && permissions.coarseLocation !== 'granted') {
-      throw new Error(
-        "L'accès à la localisation est nécessaire pour finaliser l'inscription. Autorisez la localisation dans les paramètres de l'application.",
+  try {
+    if (Capacitor.getPlatform() !== 'web') {
+      await ensureDevicePermission(
+        'location',
+        async () => locationGate(await Geolocation.checkPermissions()),
+        async () => {
+          try {
+            return locationGate(await Geolocation.requestPermissions());
+          } catch (error) {
+            if (isLocationServicesDisabled(error)) {
+              throw error;
+            }
+            return { granted: false, canRequest: false };
+          }
+        },
+        prompter,
       );
     }
-  }
 
-  const position = await Geolocation.getCurrentPosition({
-    enableHighAccuracy: true,
-    timeout: 15_000,
-  });
-  const latitude = position.coords.latitude;
-  const longitude = position.coords.longitude;
-  return {
-    latitude,
-    longitude,
-    mll: toMll(latitude, longitude),
-  };
+    const position = await Geolocation.getCurrentPosition({
+      enableHighAccuracy: true,
+      timeout: 15_000,
+    });
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    return {
+      latitude,
+      longitude,
+      mll: toMll(latitude, longitude),
+    };
+  } catch (error) {
+    if (isDeviceAccessDismissed(error) || error instanceof DevicePermissionDeniedError) {
+      throw error;
+    }
+    if (isLocationServicesDisabled(error)) {
+      if (prompter) {
+        await prompter.askEnableGps();
+        throw new DeviceAccessDismissedError();
+      }
+      throw new LocationServicesDisabledError();
+    }
+    throw error;
+  }
 }

@@ -40,6 +40,7 @@ import {
   underageErrorMessage,
 } from '../../shared/utils/adult-dob.validator';
 import { captureRegistrationLocation } from '../../shared/utils/registration-location';
+import { DeviceAccessPromptService } from '../../shared/services/device-access-prompt.service';
 import { isReturningVisitor } from '../../shared/utils/prior-visit';
 import { REGISTER_CONSENT_LEAD } from './customer-terms';
 import {
@@ -69,6 +70,7 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
   readonly layout = inject(LayoutService);
   private readonly journal = inject(UserJournalService);
   private readonly telemetryCtx = inject(TelemetryContextService);
+  private readonly deviceAccess = inject(DeviceAccessPromptService);
   step: AuthStep = 'phone';
   phone = '';
   maskedName = '';
@@ -483,9 +485,12 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     }
     this.isLoading = true;
     try {
-      const result = await pickProfilPhotoWithFaceValidation();
+      const result = await pickProfilPhotoWithFaceValidation(this.deviceAccess);
       this.profilPhotoDataUrl = result.dataUrl;
     } catch (e: unknown) {
+      if (await this.deviceAccess.presentIfNeeded(e)) {
+        return;
+      }
       const message = e instanceof Error ? e.message : '';
       if (message.toLowerCase().includes('cancel') || message.toLowerCase().includes('annul')) {
         return;
@@ -545,11 +550,13 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     this.error = '';
     let location;
     try {
-      location = await captureRegistrationLocation();
+      location = await captureRegistrationLocation(this.deviceAccess);
     } catch (e: unknown) {
-      this.error = e instanceof Error
-        ? e.message
-        : "Impossible d'obtenir la localisation. Activez le GPS et réessayez.";
+      if (!(await this.deviceAccess.presentIfNeeded(e))) {
+        this.error = e instanceof Error
+          ? e.message
+          : "Impossible d'obtenir la localisation. Activez le GPS et réessayez.";
+      }
       this.isLoading = false;
       this.journal.track('LOGIN_FAILED', 'AUTH', { reason: 'location_unavailable' });
       return;

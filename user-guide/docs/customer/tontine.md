@@ -31,7 +31,7 @@ Lorsque une session est ouverte et que vous n’y êtes pas encore inscrit :
 1. Lisez le numéro indiqué pour envoyer votre premier dépôt (numéro de votre commercial ou de l’agence).
 2. Activez l’option **Premier paiement** si vous avez déjà effectué le transfert Mobile Money, ou pour le déclarer maintenant.
 3. Si besoin, consultez aussi les numéros **Mixx by YAS** / **Moov Money** affichés sous le formulaire.
-4. Ajoutez le **justificatif du transfert** (capture ou reçu PDF). La référence peut se remplir automatiquement : vérifiez-la.
+4. Ajoutez le **justificatif du transfert** (capture ou reçu PDF). Pour une capture, si une fenêtre **Autorisation requise** s’affiche, appuyez sur **Autoriser**. Si vous aviez déjà refusé, appuyez sur **Ouvrir les paramètres**, activez l’appareil photo ou les photos pour Elykia, puis recommencez. La référence peut se remplir automatiquement : vérifiez-la.
 5. Renseignez :
    - le **numéro d’envoi** ;
    - le **montant envoyé** ;
@@ -64,7 +64,7 @@ Sans premier paiement, appuyez directement sur **Confirmer mon inscription**.
 ### Déclarer une cotisation
 
 1. Lisez le numéro indiqué pour envoyer votre transfert (commercial ou agence).
-2. Ajoutez le **justificatif du transfert** (capture ou reçu PDF). La référence peut se remplir automatiquement : vérifiez-la.
+2. Ajoutez le **justificatif du transfert** (capture ou reçu PDF). Pour une capture, si une fenêtre **Autorisation requise** s’affiche, appuyez sur **Autoriser**. Si vous aviez déjà refusé, appuyez sur **Ouvrir les paramètres**, activez l’appareil photo ou les photos pour Elykia, puis recommencez. La référence peut se remplir automatiquement : vérifiez-la.
 3. Renseignez le **numéro d’envoi**, le **montant**, la **référence du transfert**.
 4. Appuyez sur **Soumettre le paiement** en bas de l’écran.
 

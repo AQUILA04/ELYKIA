@@ -2,6 +2,11 @@ import { Capacitor } from '@capacitor/core';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Filesystem } from '@capacitor/filesystem';
 import { shouldUseHtmlFilePickerForPhoto } from './profil-photo-face';
+import {
+  cameraOrPhotosGate,
+  DeviceAccessPrompter,
+  ensureDevicePermission,
+} from './device-access';
 
 export interface PaymentProofFile {
   blob: Blob;
@@ -18,15 +23,24 @@ export function shouldUseHtmlFilePickerForProof(): boolean {
 }
 
 /** Capture native (caméra / galerie) — sans validation visage. */
-export async function pickPaymentProofImageNative(): Promise<PaymentProofFile> {
+export async function pickPaymentProofImageNative(
+  prompter?: DeviceAccessPrompter,
+): Promise<PaymentProofFile> {
   if (Capacitor.getPlatform() !== 'web') {
-    let permissions = await Camera.checkPermissions();
-    if (permissions.camera !== 'granted' || permissions.photos !== 'granted') {
-      permissions = await Camera.requestPermissions({ permissions: ['camera', 'photos'] });
-    }
-    if (permissions.camera !== 'granted' && permissions.photos !== 'granted') {
-      throw new Error("L'accès à la caméra ou à la galerie est nécessaire.");
-    }
+    await ensureDevicePermission(
+      'photos',
+      async () => cameraOrPhotosGate(await Camera.checkPermissions()),
+      async () => {
+        try {
+          return cameraOrPhotosGate(
+            await Camera.requestPermissions({ permissions: ['camera', 'photos'] }),
+          );
+        } catch {
+          return { granted: false, canRequest: false };
+        }
+      },
+      prompter,
+    );
   }
 
   const image = await Camera.getPhoto({

@@ -40,11 +40,13 @@ Si votre numéro n’est pas encore connu et que l’inscription est ouverte :
 3. Cochez **J’accepte les conditions d’utilisation**.
 4. Appuyez sur **Continuer** : le code par SMS part seulement à cette étape. Si vous ne souhaitez pas créer de compte, appuyez sur **Retour**, à côté de **Continuer** : vous revenez à la saisie du numéro.
 5. Validez le code SMS (avec la référence affichée à l’écran, comme pour l’activation).
-6. Touchez **Ajouter une photo** et prenez (ou choisissez) une photo de vous : votre visage doit être bien visible.
+6. Touchez **Ajouter une photo** et prenez (ou choisissez) une photo de vous : votre visage doit être bien visible. Si une fenêtre **Autorisation requise** s’affiche, appuyez sur **Autoriser**, puis acceptez l’accès à l’appareil photo. Si vous aviez déjà refusé, appuyez sur **Ouvrir les paramètres**, activez l’appareil photo pour Elykia, revenez dans l’application et touchez à nouveau **Ajouter une photo**.
 7. Renseignez vos informations (prénom, nom, adresse, date de naissance, occupation). Pour **Ma zone (Localités)**, ouvrez la liste, recherchez votre zone si besoin, puis sélectionnez-la.
 8. Vous devez avoir **18 ans ou plus** : si la date de naissance ne convient pas, le message **Vous devez être majeur (18 ans ou plus).** s’affiche sous le champ.
 9. Appuyez sur **Continuer**.
-10. Créez votre code PIN, puis appuyez sur **Créer mon compte**. Si votre téléphone ou votre navigateur vous demande l’accès à votre position, acceptez : il est nécessaire pour finaliser l’inscription.
+10. Créez votre code PIN, puis appuyez sur **Créer mon compte**.
+    - Si une fenêtre **Autorisation requise** s’affiche, appuyez sur **Autoriser**, puis acceptez l’accès à votre position. Si vous aviez déjà refusé, appuyez sur **Ouvrir les paramètres**, activez la localisation pour Elykia, revenez dans l’application et appuyez à nouveau sur **Créer mon compte**.
+    - Si le GPS du téléphone est éteint, une fenêtre **Activez le GPS** s’affiche. Appuyez sur **Activer le GPS** : les paramètres de localisation du téléphone s’ouvrent. Activez la localisation, revenez dans l’application, puis appuyez à nouveau sur **Créer mon compte**.
 11. Votre pièce d’identité vous sera demandée ensuite dans **Mon dossier**.
 
 ## Sur ordinateur

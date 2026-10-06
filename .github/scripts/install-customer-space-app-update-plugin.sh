@@ -10,6 +10,7 @@ JAVA_PKG_DIR="$ANDROID_DIR/app/src/main/java/com/optimize/elykia/customer"
 mkdir -p "$JAVA_PKG_DIR"
 
 cp "$CONFIG_DIR/AppUpdatePlugin.java" "$JAVA_PKG_DIR/AppUpdatePlugin.java"
+cp "$CONFIG_DIR/DeviceSettingsPlugin.java" "$JAVA_PKG_DIR/DeviceSettingsPlugin.java"
 cp "$CONFIG_DIR/MainActivity.java" "$JAVA_PKG_DIR/MainActivity.java"
 
-echo "AppUpdate native plugin installed in $JAVA_PKG_DIR"
+echo "AppUpdate and DeviceSettings native plugins installed in $JAVA_PKG_DIR"

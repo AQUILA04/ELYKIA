@@ -8,6 +8,11 @@ import {
   PerformanceMode,
 } from '@capacitor-mlkit/face-detection';
 import { isE2eMode } from './e2e';
+import {
+  cameraGate,
+  DeviceAccessPrompter,
+  ensureDevicePermission,
+} from './device-access';
 
 export interface ProfilPhotoPickResult {
   dataUrl: string;
@@ -32,15 +37,22 @@ async function validateFaceInImage(imagePath: string): Promise<boolean> {
  * Sélection native (caméra / galerie) avec validation visage — même logique que mobile.
  * Sur web / E2E, appeler le file input à la place.
  */
-export async function pickProfilPhotoWithFaceValidation(): Promise<ProfilPhotoPickResult> {
+export async function pickProfilPhotoWithFaceValidation(
+  prompter?: DeviceAccessPrompter,
+): Promise<ProfilPhotoPickResult> {
   if (Capacitor.getPlatform() !== 'web') {
-    let permissions = await Camera.checkPermissions();
-    if (permissions.camera !== 'granted') {
-      permissions = await Camera.requestPermissions();
-    }
-    if (permissions.camera !== 'granted') {
-      throw new Error("L'accès à la caméra est nécessaire pour prendre une photo.");
-    }
+    await ensureDevicePermission(
+      'camera',
+      async () => cameraGate((await Camera.checkPermissions()).camera),
+      async () => {
+        try {
+          return cameraGate((await Camera.requestPermissions()).camera);
+        } catch {
+          return { granted: false, canRequest: false };
+        }
+      },
+      prompter,
+    );
   }
 
   const image = await Camera.getPhoto({

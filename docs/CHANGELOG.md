@@ -96,6 +96,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
 
+## Customer-space — [0.13.4] — 2026-10-06
+
+### Changed
+
+- Inscription et captures : si une autorisation du téléphone (position, appareil photo, photos) n’est pas accordée, une fenêtre invite à l’accorder ou à ouvrir les paramètres de l’application.
+- Inscription : si le GPS du téléphone est désactivé, une fenêtre **Activez le GPS** ouvre les paramètres de localisation, à la place du message affiché sur le formulaire.
+
 ## Customer-space — [0.13.3] — 2026-10-05
 
 ### Fixed

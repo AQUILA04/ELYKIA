@@ -604,3 +604,35 @@ body.elyk-desktop {
   }
 }
 
+ion-alert.elyk-device-alert {
+  --backdrop-opacity: 0.5;
+  --background: var(--elyk-white, #fff);
+  --max-width: 340px;
+
+  &::part(wrapper) {
+    border-radius: var(--elyk-radius-card, 16px);
+  }
+
+  &::part(header),
+  &::part(message) {
+    font-family: 'DM Sans', sans-serif;
+    color: var(--elyk-navy);
+  }
+
+  &::part(header) {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  &::part(message) {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  &::part(button) {
+    min-height: 44px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+  }
+}
+

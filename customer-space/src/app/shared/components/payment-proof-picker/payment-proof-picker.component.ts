@@ -13,6 +13,7 @@ import { FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 import { CustomerApiService } from '../../services/customer-api.service';
+import { DeviceAccessPromptService } from '../../services/device-access-prompt.service';
 import { CustomerPaymentProof } from '../../models/customer.model';
 import {
   applyDetectedReference,
@@ -41,6 +42,7 @@ export class PaymentProofPickerComponent implements OnDestroy {
   @ViewChild('pdfInput') pdfInput?: ElementRef<HTMLInputElement>;
 
   private readonly api = inject(CustomerApiService);
+  private readonly deviceAccess = inject(DeviceAccessPromptService);
 
   uploading = false;
   error = '';
@@ -69,9 +71,12 @@ export class PaymentProofPickerComponent implements OnDestroy {
         this.imageInput?.nativeElement.click();
         return;
       }
-      const file = await pickPaymentProofImageNative();
+      const file = await pickPaymentProofImageNative(this.deviceAccess);
       await this.upload(file.blob, file.fileName, file.previewUrl, false);
     } catch (e) {
+      if (await this.deviceAccess.presentIfNeeded(e)) {
+        return;
+      }
       this.error = (e as Error)?.message || 'Sélection de la capture impossible.';
     }
   }
