@@ -56,4 +56,11 @@ Si votre numéro n’est pas encore connu et que l’inscription est ouverte :
 3. À droite, utilisez le formulaire comme sur le téléphone : numéro, puis code PIN ou code SMS. Si vous n’êtes pas encore client, l’acceptation des conditions s’affiche avant le SMS. Faites défiler la page si le formulaire d’inscription dépasse l’écran.
 4. Pour une inscription, les champs d’identité s’affichent sur deux colonnes ; choisissez votre photo avec **Choisir une photo** et votre zone avec **Ma zone (Localités)**.
 
+## Règles de confidentialité
+
+1. Ouvrez **https://clients.amenouveve-yaveh.com/confidentialite** dans votre navigateur.
+2. L’écran **Règles de confidentialité** explique les informations utilisées par l’Espace Client : téléphone, identité, photo, position à l’inscription, justificatifs et opérations du compte.
+3. Le bouton **Retour** ramène à l’écran de connexion.
+4. Pour une question ou une demande de suppression de compte, écrivez à **support@optimizesolux.com**.
+
 <!-- CAPTURE À INSÉRER : écran Connexion Espace Client (header navy, carte « Bienvenue » ou « Bon retour ! ») -->

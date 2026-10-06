@@ -1,0 +1,149 @@
+name: ELYKIA Customer Space Play Store
+
+# Publishes the prod customer-space build to the Play internal testing track.
+# This workflow is isolated from build-customer-space-apk.yml: a failure here
+# does not fail the APK, MinIO publish, or web deploy.
+#
+# Trigger: a completed customer-space APK workflow whose job
+# "Build PROD APK <sha>" succeeded. Test APK builds are ignored.
+# The binary is an Android App Bundle of that same prod commit (PROD_API_URL).
+# MinIO keeps receiving the prod APK from the APK pipeline.
+#
+# One-time Play Console setup (not done by this workflow):
+#   - Create the app com.optimize.elykia.customer and enroll Play App Signing
+#     with the same upload key as ANDROID_KEYSTORE_*.
+#   - Create a service account with Play Console release rights and store its
+#     JSON in the prod environment secret PLAY_STORE_SERVICE_ACCOUNT_JSON.
+#   - Add internal testers on the internal testing track.
+
+on:
+  workflow_run:
+    workflows: ["ELYKIA Customer Space APK Build"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      build_sha:
+        description: 'Commit SHA of the prod build to publish on the internal track'
+        required: true
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  prepare:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    outputs:
+      build_sha: ${{ steps.resolve.outputs.build_sha }}
+    steps:
+      - name: Resolve prod APK commit
+        id: resolve
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_SHA: ${{ github.event.inputs.build_sha }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update -y && sudo apt-get install -y jq
+
+          is_sha() {
+            [[ "$1" =~ ^[0-9a-fA-F]{7,40}$ ]]
+          }
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            if ! is_sha "$INPUT_SHA"; then
+              echo "Invalid build_sha" >&2
+              exit 1
+            fi
+            echo "Manual Play publish of $INPUT_SHA" >&2
+            echo "build_sha=$INPUT_SHA" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          jobs=$(curl -sf -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${REPO}/actions/runs/${RUN_ID}/jobs?per_page=100")
+
+          job_name=$(echo "$jobs" | jq -r '
+            [.jobs[]
+              | select(.name | startswith("Build PROD APK "))
+              | select(.conclusion == "success")
+              | .name
+            ][0] // empty')
+
+          if [ -z "$job_name" ]; then
+            echo "No successful prod APK job on run $RUN_ID — skipping Play publish"
+            echo "build_sha=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          SHA="${job_name#Build PROD APK }"
+          if ! is_sha "$SHA"; then
+            echo "Prod APK job name has no commit SHA: $job_name" >&2
+            exit 1
+          fi
+          echo "Play internal track from prod APK commit $SHA" >&2
+          echo "build_sha=$SHA" >> "$GITHUB_OUTPUT"
+
+  publish:
+    needs: prepare
+    if: needs.prepare.outputs.build_sha != ''
+    runs-on: ubuntu-latest
+    environment: prod
+    name: Play internal ${{ needs.prepare.outputs.build_sha }}
+    steps:
+      - name: Require Play credentials
+        env:
+          PLAY_JSON: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+          KEYSTORE: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          set -euo pipefail
+          if [ -z "$PLAY_JSON" ]; then
+            echo "Missing prod secret PLAY_STORE_SERVICE_ACCOUNT_JSON" >&2
+            exit 1
+          fi
+          if [ -z "$KEYSTORE" ]; then
+            echo "Missing prod secret ANDROID_KEYSTORE_BASE64" >&2
+            exit 1
+          fi
+
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.build_sha }}
+
+      - name: Overlay pipeline from this workflow
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.sha }}" != "${{ needs.prepare.outputs.build_sha }}" ]; then
+            git fetch --depth=1 origin "${{ github.sha }}"
+            git checkout "${{ github.sha }}" -- \
+              .github/actions/build-customer-space-apk \
+              .github/scripts
+          fi
+
+      - name: Build prod App Bundle
+        uses: ./.github/actions/build-customer-space-apk
+        with:
+          target: prod
+          release-format: aab
+          api-url: ${{ secrets.PROD_API_URL }}
+          google-services-json: ${{ secrets.CUSTOMER_SPACE_GOOGLE_SERVICES_JSON }}
+          android-keystore-base64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          android-keystore-password: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          android-key-alias: ${{ secrets.ANDROID_KEY_ALIAS }}
+          android-key-password: ${{ secrets.ANDROID_KEY_PASSWORD }}
+
+      - name: Upload to Play internal testing
+        uses: r0adkll/upload-google-play@v1.1.4
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_STORE_SERVICE_ACCOUNT_JSON }}
+          packageName: com.optimize.elykia.customer
+          releaseFiles: customer-space/android/app/build/outputs/bundle/release/*.aab
+          tracks: internal
+          status: completed

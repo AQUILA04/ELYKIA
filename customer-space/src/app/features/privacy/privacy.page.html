@@ -1,0 +1,74 @@
+<ion-content class="page-content privacy-page">
+  <app-elyk-page-header
+    eyebrow="ESPACE CLIENT"
+    title="Règles de confidentialité"
+    subtitle="Comment Elykia utilise vos informations"
+    [showBack]="true"
+    (back)="goBack()">
+  </app-elyk-page-header>
+
+  <div class="privacy-body">
+    <article class="privacy-card">
+      <p class="privacy-updated">Dernière mise à jour : 6 octobre 2026</p>
+
+      <p>
+        Elykia est l’espace client d’AMENOUVEVE-YAVEH. L’application permet de s’inscrire,
+        de se connecter, de suivre ses achats, ses paiements et sa tontine.
+      </p>
+
+      <h2>Données que vous nous confiez</h2>
+      <ul>
+        <li>Numéro de téléphone, utilisé pour la connexion et l’envoi d’un code par SMS.</li>
+        <li>Code PIN, utilisé uniquement pour protéger l’accès au compte.</li>
+        <li>Identité : nom, prénom, adresse, quartier, date de naissance, profession.</li>
+        <li>Photo de profil, prise avec l’appareil photo au moment de l’inscription.</li>
+        <li>Position au moment de l’inscription, pour localiser le dossier. L’application ne suit pas vos déplacements ensuite.</li>
+        <li>Justificatifs de paiement que vous photographiez ou choisissez dans vos photos.</li>
+        <li>Opérations du compte : commandes, paiements, cotisations de tontine.</li>
+      </ul>
+
+      <h2>Données techniques</h2>
+      <p>
+        L’application envoie à Google Firebase des informations de fonctionnement et de plantage
+        (Firebase Analytics et Crashlytics), afin de corriger les erreurs. Ces données ne servent
+        pas à de la publicité.
+      </p>
+
+      <h2>Pourquoi</h2>
+      <p>
+        Ces informations servent à créer et sécuriser votre compte, à vérifier votre inscription,
+        à enregistrer vos paiements et à assurer le service (achats, tontine, assistance).
+      </p>
+
+      <h2>Partage</h2>
+      <p>
+        Les données sont accessibles aux équipes d’AMENOUVEVE-YAVEH qui gèrent les comptes clients.
+        Le code SMS est transmis par notre prestataire d’envoi de messages. Les diagnostics techniques
+        passent par Google Firebase. Nous ne vendons pas vos données.
+      </p>
+
+      <h2>Durée</h2>
+      <p>
+        Les données du compte sont conservées pendant la vie du compte, puis le temps nécessaire
+        aux obligations de gestion et de preuve. Vous pouvez demander la suppression de votre compte
+        à l’adresse indiquée ci-dessous.
+      </p>
+
+      <h2>Vos choix</h2>
+      <p>
+        La localisation, l’appareil photo et l’accès aux photos ne sont demandés qu’au moment où
+        vous en avez besoin. Vous pouvez les retirer dans les paramètres du téléphone. Sans
+        localisation ni photo, l’inscription ne peut pas être terminée.
+      </p>
+
+      <h2>Public</h2>
+      <p>L’inscription est réservée aux personnes majeures.</p>
+
+      <h2>Contact</h2>
+      <p>
+        Pour une question ou une demande de suppression :
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+      </p>
+    </article>
+  </div>
+</ion-content>

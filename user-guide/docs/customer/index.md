@@ -26,3 +26,4 @@ Une fois votre compte validé par l’agence, l’Accueil affiche vos crédits e
 ## Voir aussi
 
 - [Notifications](notifications.md)
+- [Connexion](connexion.md) — règles de confidentialité sur **https://clients.amenouveve-yaveh.com/confidentialite**

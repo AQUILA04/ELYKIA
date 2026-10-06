@@ -13,6 +13,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/auth/auth.page').then(m => m.AuthPage),
   },
   {
+    path: 'confidentialite',
+    loadComponent: () => import('./features/privacy/privacy.page').then(m => m.PrivacyPage),
+  },
+  {
     path: 'dashboard',
     canActivate: [CustomerAuthGuard],
     loadComponent: () => import('./features/dashboard/dashboard.page').then(m => m.DashboardPage),

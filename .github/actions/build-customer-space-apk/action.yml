@@ -43,6 +43,10 @@ inputs:
     description: MinIO bucket for customer-space releases (empty → test/prod default)
     required: false
     default: ''
+  release-format:
+    description: apk (default, MinIO) or aab (Play App Bundle). MinIO publish runs only for apk.
+    required: false
+    default: apk
 
 runs:
   using: composite
@@ -176,8 +180,10 @@ runs:
       shell: bash
       run: .github/scripts/configure-android-signing.sh customer-space/android
 
-    - name: Build Android release APK
+    - name: Build Android release
       shell: bash
+      env:
+        RELEASE_FORMAT: ${{ inputs.release-format }}
       run: |
         set -euo pipefail
         chmod +x customer-space/android/gradlew
@@ -188,13 +194,21 @@ runs:
         fi
         echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> gradle.properties
         echo "org.gradle.daemon=false" >> gradle.properties
-        ./gradlew clean assembleRelease --stacktrace
+        if [ "$RELEASE_FORMAT" = "aab" ]; then
+          ./gradlew clean bundleRelease --stacktrace
+        elif [ "$RELEASE_FORMAT" = "apk" ]; then
+          ./gradlew clean assembleRelease --stacktrace
+        else
+          echo "Invalid release-format: $RELEASE_FORMAT (expected apk or aab)" >&2
+          exit 1
+        fi
 
-    - name: Rename APK and set artifact path
+    - name: Rename release and set artifact path
       id: apk
       shell: bash
       env:
         TARGET: ${{ inputs.target }}
+        RELEASE_FORMAT: ${{ inputs.release-format }}
       run: |
         set -euo pipefail
         VERSION=$(node -p "require('./customer-space/package.json').version")
@@ -204,21 +218,30 @@ runs:
         fi
         echo "Detected version: $VERSION"
         echo "app_version=$VERSION" >> "$GITHUB_OUTPUT"
-        bash .github/scripts/resolve-release-apk.sh \
-          "customer-space/android/app/build/outputs/apk/release" \
-          "elykia-customer-${TARGET}-v${VERSION}.apk" | tee /tmp/apk-resolve.log
-        APK_PATH=$(grep '^APK_PATH=' /tmp/apk-resolve.log | cut -d= -f2-)
-        echo "apk_path=$APK_PATH" >> "$GITHUB_OUTPUT"
+        if [ "$RELEASE_FORMAT" = "aab" ]; then
+          bash .github/scripts/resolve-release-aab.sh \
+            "customer-space/android/app/build/outputs/bundle/release" \
+            "elykia-customer-${TARGET}-v${VERSION}.aab" | tee /tmp/aab-resolve.log
+          ARTIFACT_PATH=$(grep '^AAB_PATH=' /tmp/aab-resolve.log | cut -d= -f2-)
+          echo "artifact_name=elykia-customer-${TARGET}-v${VERSION}.aab" >> "$GITHUB_OUTPUT"
+        else
+          bash .github/scripts/resolve-release-apk.sh \
+            "customer-space/android/app/build/outputs/apk/release" \
+            "elykia-customer-${TARGET}-v${VERSION}.apk" | tee /tmp/apk-resolve.log
+          ARTIFACT_PATH=$(grep '^APK_PATH=' /tmp/apk-resolve.log | cut -d= -f2-)
+          echo "artifact_name=elykia-customer-${TARGET}-v${VERSION}.apk" >> "$GITHUB_OUTPUT"
+        fi
+        echo "apk_path=$ARTIFACT_PATH" >> "$GITHUB_OUTPUT"
 
-    - name: Upload APK artifact
+    - name: Upload release artifact
       uses: actions/upload-artifact@v6
       with:
-        name: elykia-customer-${{ inputs.target }}-v${{ steps.apk.outputs.app_version }}.apk
+        name: ${{ steps.apk.outputs.artifact_name }}
         path: ${{ steps.apk.outputs.apk_path }}
         retention-days: 90
 
     - name: Publish APK to MinIO
-      if: inputs.minio-endpoint != '' && inputs.minio-access-key != '' && inputs.minio-secret-key != ''
+      if: inputs.release-format == 'apk' && inputs.minio-endpoint != '' && inputs.minio-access-key != '' && inputs.minio-secret-key != ''
       shell: bash
       env:
         MINIO_ENDPOINT: ${{ inputs.minio-endpoint }}

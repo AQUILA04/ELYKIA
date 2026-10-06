@@ -12,6 +12,9 @@ name: ELYKIA Customer Space APK Build
 #   prod → https://clients.amenouveve-yaveh.com
 # Promote reuses the image already built for the promoted TEST commit (no rebuild).
 # Web and APK of a target use the same API URL secret (TEST_API_URL / PROD_API_URL).
+# Play Store internal testing is a separate workflow (publish-customer-space-play.yml),
+# started only after a successful prod APK job. A Play failure does not fail this pipeline.
+# The prod job name embeds the commit SHA so that workflow can rebuild the same binary.
 
 on:
   workflow_run:
@@ -314,7 +317,7 @@ jobs:
     if: needs.prepare.outputs.target == 'prod' && needs.prepare.outputs.customer_space_built == 'true'
     runs-on: ubuntu-latest
     environment: prod
-    name: Build PROD APK
+    name: Build PROD APK ${{ needs.prepare.outputs.build_sha }}
     steps:
       - uses: actions/checkout@v6
         with:

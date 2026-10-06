@@ -73,6 +73,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra
 
+### Added
+
+- **CI —** Publication Play Store de l’espace client, workflow séparé `publish-customer-space-play.yml` : piste de test interne, bundle de la build prod uniquement. Un échec Play ne fait pas échouer le pipeline APK, MinIO ou web.
+
 - Guide chef de recouvrement (web / mobile) et guide commercial mobile : procédures et badge **Vérifié** pour la vérification de carnet crédit ; index RAG et HTML MkDocs régénérés.
 
 ### Changed
@@ -95,6 +99,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.13.5] — 2026-10-06
+
+### Added
+
+- Page publique **Règles de confidentialité** à l’adresse `/confidentialite` (`support@optimizesolux.com`).
 
 ## Customer-space — [0.13.4] — 2026-10-06
 

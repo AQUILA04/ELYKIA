@@ -105,6 +105,14 @@ echo "$OUT" | grep -q '^APK_PATH=.*/test.apk$' || fail "resolve-release-apk outp
 [ -f "$APK_DIR/test.apk" ] || fail "resolve-release-apk rename"
 pass "resolve-release-apk.sh"
 
+AAB_DIR="$WORK/aab/release"
+mkdir -p "$AAB_DIR"
+echo fake > "$AAB_DIR/app-release.aab"
+OUT="$(bash "$ROOT/.github/scripts/resolve-release-aab.sh" "$AAB_DIR" "prod.aab")"
+echo "$OUT" | grep -q '^AAB_PATH=.*/prod.aab$' || fail "resolve-release-aab output"
+[ -f "$AAB_DIR/prod.aab" ] || fail "resolve-release-aab rename"
+pass "resolve-release-aab.sh"
+
 grep -q "APP_VERSION" "$ROOT/customer-space/src/environments/app-version.ts" || fail "app-version.ts missing"
 pass "app-version.ts present"
 
@@ -154,6 +162,32 @@ grep -q "firebase-crashlytics" "$WORK/android/app/build.gradle" \
 grep -q "configure-android-firebase.sh" "$ROOT/.github/actions/build-customer-space-apk/action.yml" \
   || fail "build-customer-space-apk action missing configure-android-firebase.sh"
 pass "configure-android-firebase.sh for customer-space"
+
+ACTION_YML="$ROOT/.github/actions/build-customer-space-apk/action.yml"
+grep -q 'release-format:' "$ACTION_YML" || fail "action missing release-format input"
+grep -q 'bundleRelease' "$ACTION_YML" || fail "action missing bundleRelease"
+grep -q "inputs.release-format == 'apk'" "$ACTION_YML" \
+  || fail "MinIO publish must stay limited to apk builds"
+pass "release-format apk/aab split"
+
+grep -q 'name: Build PROD APK ${{ needs.prepare.outputs.build_sha }}' "$APK_WORKFLOW" \
+  || fail "prod APK job name must embed build_sha for the Play workflow"
+pass "prod APK job name embeds build_sha"
+
+PLAY_WORKFLOW="$ROOT/.github/workflows/publish-customer-space-play.yml"
+[ -f "$PLAY_WORKFLOW" ] || fail "missing publish-customer-space-play.yml"
+grep -q 'tracks: internal' "$PLAY_WORKFLOW" || fail "Play workflow must target the internal track"
+if grep -qE 'tracks:.*production' "$PLAY_WORKFLOW"; then
+  fail "Play workflow must not target the production track"
+else
+  pass "Play workflow stays on the internal track"
+fi
+grep -q 'release-format: aab' "$PLAY_WORKFLOW" || fail "Play workflow must build an aab"
+grep -q 'ELYKIA Customer Space APK Build' "$PLAY_WORKFLOW" \
+  || fail "Play workflow must trigger from the customer-space APK workflow"
+grep -q 'com.optimize.elykia.customer' "$PLAY_WORKFLOW" \
+  || fail "Play workflow package name"
+pass "publish-customer-space-play.yml"
 
 echo ""
 if [ "$FAILURES" -gt 0 ]; then

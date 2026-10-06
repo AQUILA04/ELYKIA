@@ -653,6 +653,17 @@
     "content": "Connexion — Espace Client\nSur ordinateur\nOuvrez https://clients.amenouveve-yaveh.com dans votre navigateur (fenêtre large).\nÀ gauche, un panneau présente AMENOUVEVE-YAVEH , Elykia et les avantages de l’espace.\nÀ droite, utilisez le formulaire comme sur le téléphone : numéro, puis code PIN ou code SMS. Si vous n’êtes pas encore client, l’acceptation des conditions s’affiche avant le SMS. Faites défiler la page si le formulaire d’inscription dépasse l’écran.\nPour une inscription, les champs d’identité s’affichent sur deux colonnes ; choisissez votre photo avec Choisir une photo et votre zone avec Ma zone (Localités) ."
   },
   {
+    "id": "customer_connexion__r_gles_de_confidentialit",
+    "title": "Connexion — Espace Client — Règles de confidentialité",
+    "path": "/user-guide/customer/connexion.html",
+    "roles": [
+      "client",
+      "customer",
+      "manager"
+    ],
+    "content": "Connexion — Espace Client\nRègles de confidentialité\nOuvrez https://clients.amenouveve-yaveh.com/confidentialite dans votre navigateur.\nL’écran Règles de confidentialité explique les informations utilisées par l’Espace Client : téléphone, identité, photo, position à l’inscription, justificatifs et opérations du compte.\nLe bouton Retour ramène à l’écran de connexion.\nPour une question ou une demande de suppression de compte, écrivez à support@optimizesolux.com ."
+  },
+  {
     "id": "customer",
     "title": "Espace client — Vue d’ensemble",
     "path": "/user-guide/customer/index.html",
@@ -661,7 +672,7 @@
       "customer",
       "manager"
     ],
-    "content": "Espace client — Vue d’ensemble\n\nCe guide s’adresse aux clients qui utilisent l’application Espace Client ELYKIA (téléphone).\n\nCe que vous pouvez faire\nConsulter vos crédits et votre prochain paiement sur Accueil \nDéclarer un paiement Mobile Money depuis Achats \nSuivre vos cotisations dans Tontine \nPasser une commande depuis Commander \nCompléter votre dossier dans Mon dossier (pièce d’identité, dépôt initial)\nConsulter vos alertes dans Notifications (cloche en haut à droite)\nPremière connexion\nOuvrez l’application Espace Client. La première fois, l’écran affiche Bienvenue . Si vous êtes déjà venu sur cet appareil, il affiche Bon retour ! .\nSaisissez votre numéro de téléphone.\nSi vous n’êtes pas encore client, lisez les conditions si vous le souhaitez, cochez J’accepte les conditions d’utilisation , puis Continuer . En les acceptant, vous vous engagez de bonne foi à respecter les contrats de crédit de vos achats et à payer les échéances prévues. Le code par SMS est envoyé seulement après cette acceptation. Retour vous ramène à la saisie du numéro.\nSuivez les étapes (code reçu par SMS, création du code secret, fiche d’inscription si besoin).\nSur Accueil , si votre compte est encore en cours de validation, complétez Mon dossier pour accélérer l’activation : photo de la pièce d’identité, puis dépôt initial avec justificatif du transfert (capture ou reçu PDF). Pour une capture, si une fenêtre Autorisation requise s’affiche, appuyez sur Autoriser . Si vous aviez déjà refusé, appuyez sur Ouvrir les paramètres , activez l’appareil photo ou les photos pour Elykia, puis recommencez.\n\nUne fois votre compte validé par l’agence, l’Accueil affiche vos crédits et actions habituelles.\nVoir aussi\nNotifications"
+    "content": "Espace client — Vue d’ensemble\n\nCe guide s’adresse aux clients qui utilisent l’application Espace Client ELYKIA (téléphone).\n\nCe que vous pouvez faire\nConsulter vos crédits et votre prochain paiement sur Accueil \nDéclarer un paiement Mobile Money depuis Achats \nSuivre vos cotisations dans Tontine \nPasser une commande depuis Commander \nCompléter votre dossier dans Mon dossier (pièce d’identité, dépôt initial)\nConsulter vos alertes dans Notifications (cloche en haut à droite)\nPremière connexion\nOuvrez l’application Espace Client. La première fois, l’écran affiche Bienvenue . Si vous êtes déjà venu sur cet appareil, il affiche Bon retour ! .\nSaisissez votre numéro de téléphone.\nSi vous n’êtes pas encore client, lisez les conditions si vous le souhaitez, cochez J’accepte les conditions d’utilisation , puis Continuer . En les acceptant, vous vous engagez de bonne foi à respecter les contrats de crédit de vos achats et à payer les échéances prévues. Le code par SMS est envoyé seulement après cette acceptation. Retour vous ramène à la saisie du numéro.\nSuivez les étapes (code reçu par SMS, création du code secret, fiche d’inscription si besoin).\nSur Accueil , si votre compte est encore en cours de validation, complétez Mon dossier pour accélérer l’activation : photo de la pièce d’identité, puis dépôt initial avec justificatif du transfert (capture ou reçu PDF). Pour une capture, si une fenêtre Autorisation requise s’affiche, appuyez sur Autoriser . Si vous aviez déjà refusé, appuyez sur Ouvrir les paramètres , activez l’appareil photo ou les photos pour Elykia, puis recommencez.\n\nUne fois votre compte validé par l’agence, l’Accueil affiche vos crédits et actions habituelles.\nVoir aussi\nNotifications\nConnexion — règles de confidentialité sur https://clients.amenouveve-yaveh.com/confidentialite"
   },
   {
     "id": "customer_notifications",
