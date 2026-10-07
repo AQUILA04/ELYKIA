@@ -109,8 +109,10 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
         // When: the same mobile contribution is replayed, then after session close its available contribution is delivered.
         tontineService.recordCollection(contribution);
         tontineService.recordCollection(contribution);
-        session.setStatus(TontineSessionStatus.CLOSED);
-        sessionRepository.saveAndFlush(session);
+        // Reload before close: the in-memory session still has totalRevenue=0 and would overwrite aggregates.
+        TontineSession sessionToClose = sessionRepository.findById(session.getId()).orElseThrow();
+        sessionToClose.setStatus(TontineSessionStatus.CLOSED);
+        sessionRepository.saveAndFlush(sessionToClose);
         entityManager.clear();
         tontineDeliveryService.distributeTontineDelivery(delivery);
         entityManager.clear();
