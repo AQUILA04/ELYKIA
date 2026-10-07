@@ -48,4 +48,7 @@ public class TontineMemberAmountHistoryArchive extends BaseEntity<String> {
 
     @Column(name = "new_amount", nullable = false)
     private Double newAmount;
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 }

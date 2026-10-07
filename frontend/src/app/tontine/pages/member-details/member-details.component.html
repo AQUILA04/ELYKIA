@@ -362,6 +362,11 @@
       </span>
     </div>
 
+    <div class="member-notes" *ngIf="member.notes" data-testid="e2e-tontine-member-notes">
+      <span class="member-notes-label">Note actuelle</span>
+      <p class="member-notes-content">{{ member.notes }}</p>
+    </div>
+
     <div *ngIf="loadingAmountHistory" class="table-loading">
       <div class="empty-state">
         <div class="empty-icon">⏳</div>
@@ -387,6 +392,7 @@
               <th>Montant journalier</th>
               <th>Statut</th>
               <th>Enregistré le</th>
+              <th>Note</th>
             </tr>
           </thead>
           <tbody>
@@ -405,6 +411,10 @@
               <td>
                 <span *ngIf="entry.creationDate" class="date-ok">{{ formatDateTime(entry.creationDate) }}</span>
                 <span *ngIf="!entry.creationDate" class="text-muted">N/A</span>
+              </td>
+              <td class="col-notes">
+                <span *ngIf="entry.notes">{{ entry.notes }}</span>
+                <span *ngIf="!entry.notes" class="text-muted">—</span>
               </td>
             </tr>
           </tbody>
@@ -439,6 +449,7 @@
               <th>Période appliquée</th>
               <th>Ancienne mise</th>
               <th>Mise post-reset</th>
+              <th>Note</th>
             </tr>
           </thead>
           <tbody>
@@ -453,6 +464,10 @@
               </td>
               <td><span class="col-amount text-archive">{{ formatCurrency(arch.amount) }}</span></td>
               <td><span class="col-amount text-new-amount">{{ formatCurrency(arch.newAmount) }}</span></td>
+              <td class="col-notes">
+                <span *ngIf="arch.notes">{{ arch.notes }}</span>
+                <span *ngIf="!arch.notes" class="text-muted">—</span>
+              </td>
             </tr>
           </tbody>
         </table>

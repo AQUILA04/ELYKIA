@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.29.3] — 2026-10-07
+
+### Added
+
+- Fiche membre tontine : colonne **Note** dans **Historique des montants de mise** (et dans les archives de reset global), et rappel **Note actuelle** en haut de la section.
+
 ## Frontend — [2.29.2] — 2026-10-05
 
 ### Fixed
@@ -46,6 +52,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Shell chef de recouvrement : **Vérifier** / **Annuler** et badge **Vérifié** sur les retards crédit (dashboard et onglet Terrain), avec file offline et synchronisation.
 - Fiche client commercial : badge **Vérifié** en lecture seule sur chaque carte crédit dont le carnet a été certifié.
 
+## Backend — [1.29.4] — 2026-10-07
+
+### Fixed
+
+- Tontine : la note saisie à l’inscription ou à la modification de mise d’un membre est maintenant enregistrée (membre et période de mise concernée) au lieu d’être ignorée ; une note vide ne remplace plus une note existante.
+- Flyway `V012` : colonne `notes` sur l’historique de mise, et création de la table d’archive des mises (reset global), absente en production car seulement dans un script legacy.
+
 ## Backend — [1.29.3] — 2026-10-05
 
 ### Fixed
@@ -75,6 +88,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Added
 
+- **CI —** Déploiement manuel du site public (`www.amenouveve-yaveh.com`) depuis `main` : workflow `deploy-website.yml` (« Deploy website from main »). Il publie la dernière image du site construite sur `main`, sans redéployer l’application. Le chemin automatique reste le pipeline CD sur une branche `prod/**`.
 - **CI —** Publication Play Store de l’espace client, workflow séparé `publish-customer-space-play.yml` : piste de test interne, bundle de la build prod uniquement. Un échec Play ne fait pas échouer le pipeline APK, MinIO ou web.
 - Fiche Play Console **suppression de compte** : `customer-space/docs/PLAY_CONSOLE_ACCOUNT_DELETION.md` (URL `https://clients.amenouveve-yaveh.com/suppression-compte`, traitement e-mail).
 

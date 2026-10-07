@@ -53,7 +53,7 @@ Pour les utilisateurs habilités à viser les carnets physiques :
 3. Confirmez l'opération : la date, l'heure et votre nom sont automatiquement enregistrés sur chacun des dossiers cochés.
 
 ### Inscrire un nouveau membre
-- **Inscription individuelle** : Cliquez sur **Ajouter un Membre**, sélectionnez le client dans la liste, indiquez le montant de sa mise journalière (par exemple 500 ou 1 000 FCFA) et enregistrez.
+- **Inscription individuelle** : Cliquez sur **Ajouter un Membre**, sélectionnez le client dans la liste, indiquez le montant de sa mise journalière (par exemple 500 ou 1 000 FCFA), ajoutez si besoin une observation dans **Notes**, puis enregistrez. La note est conservée sur la fiche du membre, avec la première période de mise.
 - **Inscriptions multiples** : En début de campagne, le bouton **Ajout Multiple** permet d'enrôler rapidement plusieurs adhérents à la chaîne.
 - **Auto-inscription Espace Client** : Les clients peuvent aussi rejoindre la session depuis l’application **Espace Client** (écran **Mes tontines** → **Rejoindre la session**). Leur premier paiement Mobile Money éventuel apparaît dans **Paiements clients** > **Cotisations tontine** pour validation.
 - **Commercial tontine obligatoire** : Le client doit avoir un **commercial tontine** sur sa fiche pour être inscrit. Sinon, le message « Le client n'a pas de commercial tontine associé : impossible d'enregistrer l'adhésion. » s'affiche : renseignez d'abord le commercial tontine du client, puis recommencez.
@@ -122,7 +122,16 @@ Un tableau liste chaque mois avec :
 - **Des pastilles numérotées** : Chaque pastille représente un jour complet de mise acquis par le membre, calculé d'après sa mise journalière en vigueur.
 
 ### 7. Historique des changements de mise
-Si la mise quotidienne du membre est modifiée en cours d'année (par exemple de 500 à 1 000 FCFA), un tableau retrace chaque période : date de début, date de fin éventuelle, montant de la mise et statut en cours ou clôturé.
+Si la mise quotidienne du membre est modifiée en cours d'année (par exemple de 500 à 1 000 FCFA), un tableau retrace chaque période : date de début, date de fin éventuelle, montant de la mise, statut en cours ou clôturé, date d'enregistrement et **Note**.
+
+Pour modifier la mise et garder une trace de la demande du membre :
+1. Sur la fiche du membre, cliquez sur **Modifier**.
+2. Dans la fenêtre **Modifier la mise du membre**, saisissez le nouveau **Montant de la mise**.
+3. Choisissez la **Portée de la modification** : *Mois en cours et futurs*, *Mois futurs uniquement* ou *Rétroactif (tout recalculer)*.
+4. Dans **Notes**, écrivez l'observation à conserver (par exemple les articles visés : riz, huile, sucrerie).
+5. Cliquez sur **Mettre à jour**.
+
+La note apparaît sur la ligne de la nouvelle période dans **Historique des montants de mise**. Les notes des périodes précédentes restent affichées sur leur ligne. La dernière note saisie est aussi rappelée en haut de la section, sous **Note actuelle**. Si vous laissez **Notes** vide, la note déjà enregistrée est conservée.
 
 ### 8. Enregistrer une cotisation
 Deux boutons vous permettent d'enregistrer des versements :

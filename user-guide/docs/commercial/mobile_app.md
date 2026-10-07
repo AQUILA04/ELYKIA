@@ -209,8 +209,9 @@ Le module **Tontine** permet aux clientes de mettre de l'argent de côté chaque
    * **Mensuel** : si elle cotise une fois par mois.
 4. **Indiquez le montant de la mise** : écrivez la somme versée à chaque échéance (par exemple 500 ou 1 000 FCFA).
 5. **Si vous modifiez une membre existante** : un choix **« Portée de la modification »** vous demande à quel moment appliquer le nouveau montant (*Mois en cours et futurs*, *Mois futurs uniquement* ou *Tout recalculer depuis le début*).
-6. **Enregistrez** : touchez le bouton vert **Enregistrer**. La membre apparaît immédiatement dans votre carnet tontine avec le badge **Local** !
-7. **À la synchronisation** : l'adhésion est comptée dans la case **Tontine Adhésions** du rapport journalier du commercial tontine de la cliente. Si la cliente n'a pas de commercial tontine sur sa fiche, l'adhésion est refusée : faites renseigner son commercial tontine, puis inscrivez-la à nouveau.
+6. **Ajoutez une observation si besoin** : dans **Notes / Observations**, écrivez ce que la membre demande (par exemple les articles visés). La note est conservée et reste visible sur sa fiche, sous **Notes**.
+7. **Enregistrez** : touchez le bouton vert **Enregistrer**. La membre apparaît immédiatement dans votre carnet tontine avec le badge **Local** !
+8. **À la synchronisation** : l'adhésion est comptée dans la case **Tontine Adhésions** du rapport journalier du commercial tontine de la cliente. Si la cliente n'a pas de commercial tontine sur sa fiche, l'adhésion est refusée : faites renseigner son commercial tontine, puis inscrivez-la à nouveau.
 
 ### C. Consulter la fiche complète d'une membre tontine
 Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :

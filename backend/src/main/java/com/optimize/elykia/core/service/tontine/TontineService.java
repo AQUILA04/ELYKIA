@@ -259,12 +259,15 @@ public class TontineService extends GenericService<TontineMember, Long> {
         newMember.setAmount(dto.getAmount());
         newMember.setOperationConsentCode(dto.getOperationConsentCode());
         newMember.setSyncConsentCode(dto.getSyncConsentCode());
+        String notes = normalizeNotes(dto.getNotes());
+        newMember.setNotes(notes);
 
         // Initialize history with the first amount
         TontineMemberAmountHistory history = new TontineMemberAmountHistory();
         history.setTontineMember(newMember);
         history.setAmount(dto.getAmount());
         history.setStartDate(getEffectiveMemberStartDate(newMember)); 
+        history.setNotes(notes);
         
         newMember.getAmountHistory().add(history);
 
@@ -293,13 +296,18 @@ public class TontineService extends GenericService<TontineMember, Long> {
             member.setFrequency(dto.getFrequency());
         }
 
+        String notes = normalizeNotes(dto.getNotes());
+        if (notes != null) {
+            member.setNotes(notes);
+        }
+
         if (dto.getAmount() != null && !dto.getAmount().equals(member.getAmount())) {
             TontineMemberUpdateScope scope = dto.getUpdateScope() != null
                     ? dto.getUpdateScope()
                     : TontineMemberUpdateScope.CURRENT_AND_FUTURE;
 
             // Amount has changed, handle history based on scope
-            handleAmountChange(member, dto.getAmount(), scope);
+            handleAmountChange(member, dto.getAmount(), scope, notes);
 
             // "amount" must always represent the stake applicable today.
             member.setAmount(getApplicableAmountForDate(member, LocalDate.now(), LocalDate.now()));
@@ -312,12 +320,15 @@ public class TontineService extends GenericService<TontineMember, Long> {
             }
         }
 
-        // Notes handling if needed (skipped as per previous logic)
-
         return TontineMemberRespDto.fromTontineMember(this.update(member));
     }
 
-    private void handleAmountChange(TontineMember member, Double newAmount, TontineMemberUpdateScope scope) {
+    private static String normalizeNotes(String notes) {
+        return StringUtils.hasText(notes) ? notes.trim() : null;
+    }
+
+    private void handleAmountChange(TontineMember member, Double newAmount, TontineMemberUpdateScope scope,
+                                    String notes) {
         if (scope == null) {
             scope = TontineMemberUpdateScope.CURRENT_AND_FUTURE; // Default behavior
         }
@@ -341,6 +352,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
                 globalEntry.setTontineMember(member);
                 globalEntry.setAmount(newAmount);
                 globalEntry.setStartDate(getEffectiveMemberStartDate(member));
+                globalEntry.setNotes(notes);
                 history.add(globalEntry);
                 break;
 
@@ -353,6 +365,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
                 currentEntry.setTontineMember(member);
                 currentEntry.setAmount(newAmount);
                 currentEntry.setStartDate(firstDayOfCurrentMonth);
+                currentEntry.setNotes(notes);
                 history.add(currentEntry);
                 break;
 
@@ -365,6 +378,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
                 futureEntry.setTontineMember(member);
                 futureEntry.setAmount(newAmount);
                 futureEntry.setStartDate(firstDayOfNextMonth);
+                futureEntry.setNotes(notes);
                 history.add(futureEntry);
                 break;
         }
@@ -888,6 +902,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
             arch.setArchivedAt(now);
             arch.setArchivedBy(archivedBy);
             arch.setNewAmount(newAmount);
+            arch.setNotes(h.getNotes());
             arch.setState(State.ENABLED);
             archives.add(arch);
         }

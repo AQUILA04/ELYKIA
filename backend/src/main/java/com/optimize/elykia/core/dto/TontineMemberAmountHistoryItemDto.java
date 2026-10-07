@@ -13,7 +13,8 @@ public record TontineMemberAmountHistoryItemDto(
         Double amount,
         LocalDate startDate,
         LocalDate endDate,
-        LocalDateTime creationDate) {
+        LocalDateTime creationDate,
+        String notes) {
 
     public static TontineMemberAmountHistoryItemDto fromEntity(TontineMemberAmountHistory history) {
         if (Objects.isNull(history)) {
@@ -24,7 +25,8 @@ public record TontineMemberAmountHistoryItemDto(
                 history.getAmount(),
                 history.getStartDate(),
                 history.getEndDate(),
-                history.getCreationDate());
+                history.getCreationDate(),
+                history.getNotes());
     }
 
     public static List<TontineMemberAmountHistoryItemDto> fromList(List<TontineMemberAmountHistory> histories) {

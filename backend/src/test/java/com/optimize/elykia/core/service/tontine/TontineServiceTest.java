@@ -321,6 +321,7 @@ class TontineServiceTest {
         initialHistory.setStartDate(sessionStart);
         initialHistory.setAmount(1000.0);
         initialHistory.setTontineMember(member);
+        initialHistory.setNotes("Riz 25kg");
         member.getAmountHistory().add(initialHistory);
 
         when(tontineMemberRepository.findById(100L)).thenReturn(Optional.of(member));
@@ -334,6 +335,7 @@ class TontineServiceTest {
         TontineMemberDto dto = new TontineMemberDto();
         dto.setAmount(2000.0);
         dto.setUpdateScope(TontineMemberUpdateScope.GLOBAL);
+        dto.setNotes("Huile 5l");
 
         service.updateMember(100L, dto);
 
@@ -341,6 +343,7 @@ class TontineServiceTest {
         TontineMemberAmountHistory newHistory = member.getAmountHistory().get(0);
         assertEquals(registrationDate, newHistory.getStartDate());
         assertEquals(2000.0, newHistory.getAmount());
+        assertEquals("Huile 5l", newHistory.getNotes());
 
         @SuppressWarnings("unchecked")
         ArgumentCaptor<List<TontineMemberAmountHistoryArchive>> archiveCaptor = ArgumentCaptor.forClass(List.class);
@@ -350,7 +353,61 @@ class TontineServiceTest {
         assertEquals(1000.0, arch.getAmount());
         assertEquals(sessionStart, arch.getStartDate());
         assertEquals(2000.0, arch.getNewAmount());
+        assertEquals("Riz 25kg", arch.getNotes());
         assertNotNull(arch.getBatchId());
+    }
+
+    @Test
+    void updateMember_withAmountChangeAndNotes_storesNotesOnMemberAndNewPeriodOnly() {
+        LocalDate previousStart = LocalDate.now().withDayOfMonth(1).minusMonths(1);
+        TontineMember member = member(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
+        member.setId(100L);
+        member.setAmount(100.0);
+        member.setNotes("Sucrerie");
+
+        TontineMemberAmountHistory previous = new TontineMemberAmountHistory();
+        previous.setStartDate(previousStart);
+        previous.setAmount(100.0);
+        previous.setTontineMember(member);
+        previous.setNotes("Sucrerie");
+        member.getAmountHistory().add(previous);
+
+        when(tontineMemberRepository.findById(100L)).thenReturn(Optional.of(member));
+        when(tontineMemberRepository.saveAndFlush(any(TontineMember.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TontineMemberDto dto = new TontineMemberDto();
+        dto.setAmount(200.0);
+        dto.setUpdateScope(TontineMemberUpdateScope.CURRENT_AND_FUTURE);
+        dto.setNotes("  Riz 50kg huile 5l  ");
+
+        service.updateMember(100L, dto);
+
+        assertEquals("Riz 50kg huile 5l", member.getNotes());
+        assertEquals(2, member.getAmountHistory().size());
+        assertEquals("Sucrerie", previous.getNotes());
+        TontineMemberAmountHistory current = member.getAmountHistory().get(1);
+        assertEquals(200.0, current.getAmount());
+        assertEquals(LocalDate.now().withDayOfMonth(1), current.getStartDate());
+        assertEquals("Riz 50kg huile 5l", current.getNotes());
+    }
+
+    @Test
+    void updateMember_withBlankNotes_keepsExistingMemberNotes() {
+        TontineMember member = member(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
+        member.setId(100L);
+        member.setAmount(100.0);
+        member.setNotes("Sucrerie");
+
+        when(tontineMemberRepository.findById(100L)).thenReturn(Optional.of(member));
+        when(tontineMemberRepository.saveAndFlush(any(TontineMember.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TontineMemberDto dto = new TontineMemberDto();
+        dto.setAmount(100.0);
+        dto.setNotes("   ");
+
+        service.updateMember(100L, dto);
+
+        assertEquals("Sucrerie", member.getNotes());
     }
 
     @Test
@@ -418,6 +475,7 @@ class TontineServiceTest {
         TontineMemberDto dto = new TontineMemberDto();
         dto.setClientId(55L);
         dto.setAmount(1500.0);
+        dto.setNotes(" Riz 25kg ");
 
         TontineMemberRespDto resp = service.registerMember(dto);
 
@@ -429,6 +487,8 @@ class TontineServiceTest {
         TontineMemberAmountHistory history = created.getAmountHistory().get(0);
         assertEquals(LocalDate.now(), history.getStartDate());
         assertEquals(1500.0, history.getAmount());
+        assertEquals("Riz 25kg", created.getNotes());
+        assertEquals("Riz 25kg", history.getNotes());
         assertEquals(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.STAFF,
                 created.getRegistrationSource());
     }
@@ -580,6 +640,7 @@ class TontineServiceTest {
         arch.setArchivedBy("admin");
         arch.setArchivedAt(LocalDateTime.now());
         arch.setNewAmount(2500.0);
+        arch.setNotes("Huile 5l");
 
         when(tontineMemberAmountHistoryArchiveRepository
                 .findByTontineMember_IdOrderByArchivedAtDescStartDateAsc(100L))
@@ -591,6 +652,7 @@ class TontineServiceTest {
         assertEquals("BATCH-123", result.get(0).batchId());
         assertEquals(1000.0, result.get(0).amount());
         assertEquals(2500.0, result.get(0).newAmount());
+        assertEquals("Huile 5l", result.get(0).notes());
     }
 
     private TontineSession session(Long id, int year, TontineSessionStatus status) {

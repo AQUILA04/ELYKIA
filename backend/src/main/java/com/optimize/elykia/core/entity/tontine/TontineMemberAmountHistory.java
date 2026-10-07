@@ -34,4 +34,7 @@ public class TontineMemberAmountHistory extends BaseEntity<String> {
 
     @Column(nullable = false)
     private LocalDateTime creationDate = LocalDateTime.now();
+
+    @Column(columnDefinition = "TEXT")
+    private String notes;
 }

@@ -72,6 +72,7 @@ export interface TontineMemberAmountHistory {
   readonly startDate: string;
   readonly endDate?: string | null;
   readonly creationDate?: string;
+  readonly notes?: string | null;
 }
 
 export interface TontineMemberAmountHistoryArchive {
@@ -85,6 +86,7 @@ export interface TontineMemberAmountHistoryArchive {
   readonly archivedAt: string;
   readonly archivedBy: string;
   readonly newAmount: number;
+  readonly notes?: string | null;
 }
 
 export interface TontineClient {

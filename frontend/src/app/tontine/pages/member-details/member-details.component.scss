@@ -792,6 +792,41 @@
   background: #f7fbff;
 }
 
+.member-details-page .col-notes {
+  min-width: 180px;
+  max-width: 360px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--text-body);
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+.member-details-page .member-notes {
+  margin-bottom: 14px;
+  padding: 12px;
+  border-left: 3px solid var(--navy);
+  border-radius: 0 8px 8px 0;
+  background: #f7f9fc;
+}
+
+.member-details-page .member-notes-label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.member-details-page .member-notes-content {
+  margin: 0;
+  font-size: 13px;
+  color: var(--navy);
+  white-space: pre-line;
+  word-break: break-word;
+}
+
 /* ── COLLECTOR ──────────────────────────────────────────────── */
 .member-details-page .col-collector {
   display: flex;

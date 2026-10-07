@@ -17,7 +17,8 @@ public record TontineMemberAmountHistoryArchiveDto(
         LocalDateTime originalCreationDate,
         LocalDateTime archivedAt,
         String archivedBy,
-        Double newAmount) {
+        Double newAmount,
+        String notes) {
 
     public static TontineMemberAmountHistoryArchiveDto fromEntity(TontineMemberAmountHistoryArchive archive) {
         if (Objects.isNull(archive)) {
@@ -33,7 +34,8 @@ public record TontineMemberAmountHistoryArchiveDto(
                 archive.getOriginalCreationDate(),
                 archive.getArchivedAt(),
                 archive.getArchivedBy(),
-                archive.getNewAmount());
+                archive.getNewAmount(),
+                archive.getNotes());
     }
 
     public static List<TontineMemberAmountHistoryArchiveDto> fromList(List<TontineMemberAmountHistoryArchive> archives) {
