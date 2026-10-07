@@ -10,6 +10,7 @@ import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.ai.chat.prompt.Prompt;
 import reactor.core.publisher.Flux;
 
+import java.util.Locale;
 import java.util.Set;
 
 /**
@@ -22,6 +23,13 @@ public class ResilientChatModel implements ChatModel {
 
     static final String UNAVAILABLE_MESSAGE =
             "Le service d'IA est momentanément saturé. Réessayez dans quelques instants.";
+
+    static final String BILLING_MESSAGE =
+            "Un problème de facturation empêche l'assistant de répondre pour le moment. "
+                    + "Votre question est enregistrée dans cette discussion : vous pouvez la copier "
+                    + "et la renvoyer lorsque le service sera rétabli.";
+
+    private static final String BILLING_DENIAL_MARKER = "dunning";
 
     private static final Set<StatusCode.Code> RETRYABLE_CODES = Set.of(
             StatusCode.Code.RESOURCE_EXHAUSTED,
@@ -45,6 +53,10 @@ public class ResilientChatModel implements ChatModel {
             try {
                 return delegate.call(prompt);
             } catch (RuntimeException e) {
+                if (isBillingDenial(e)) {
+                    log.warn("ai.provider.billing_denied", e);
+                    throw new AiBillingUnavailableException(BILLING_MESSAGE, e);
+                }
                 StatusCode.Code code = retryableCode(e);
                 if (code == null) {
                     throw e;
@@ -90,6 +102,29 @@ public class ResilientChatModel implements ChatModel {
             cause = next == cause ? null : next;
         }
         return null;
+    }
+
+    /**
+     * PERMISSION_DENIED avec un refus de recouvrement (« dunning ») : le compte de facturation
+     * du fournisseur est bloqué. Les autres PERMISSION_DENIED (API désactivée, IAM) restent des erreurs.
+     */
+    private static boolean isBillingDenial(Throwable error) {
+        boolean permissionDenied = false;
+        boolean dunning = false;
+        Throwable cause = error;
+        for (int depth = 0; cause != null && depth < MAX_CAUSE_DEPTH; depth++) {
+            if (cause instanceof ApiException apiException && apiException.getStatusCode() != null
+                    && apiException.getStatusCode().getCode() == StatusCode.Code.PERMISSION_DENIED) {
+                permissionDenied = true;
+            }
+            String message = cause.getMessage();
+            if (message != null && message.toLowerCase(Locale.ROOT).contains(BILLING_DENIAL_MARKER)) {
+                dunning = true;
+            }
+            Throwable next = cause.getCause();
+            cause = next == cause ? null : next;
+        }
+        return permissionDenied && dunning;
     }
 
     private void sleep(long millis) {

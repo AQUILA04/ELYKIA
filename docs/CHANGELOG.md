@@ -52,6 +52,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Shell chef de recouvrement : **Vérifier** / **Annuler** et badge **Vérifié** sur les retards crédit (dashboard et onglet Terrain), avec file offline et synchronisation.
 - Fiche client commercial : badge **Vérifié** en lecture seule sur chaque carte crédit dont le carnet a été certifié.
 
+## Backend — [1.29.5] — 2026-10-07
+
+### Fixed
+
+- Elykia IA : quand le fournisseur refuse les appels pour un problème de facturation (Vertex AI `PERMISSION_DENIED` « dunning »), le chat ne renvoie plus de 500. La question est enregistrée dans la discussion avec une réponse claire indiquant de la renvoyer une fois le service rétabli. L’échec est journalisé en `FAILED` (statistiques admin) avec la cause technique.
+
 ## Backend — [1.29.4] — 2026-10-07
 
 ### Fixed

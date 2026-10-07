@@ -9,7 +9,9 @@ import com.optimize.elykia.core.ai.dto.AiChatResponse;
 import com.optimize.elykia.core.ai.dto.GuideSourceDto;
 import com.optimize.elykia.core.ai.dto.SqlQueryResult;
 import com.optimize.elykia.core.ai.enums.AiIntent;
+import com.optimize.elykia.core.ai.enums.AiMessageRole;
 import com.optimize.elykia.core.ai.help.UserGuideRagService;
+import com.optimize.elykia.core.ai.llm.AiBillingUnavailableException;
 import com.optimize.elykia.core.ai.metrics.AiMetricsService;
 import com.optimize.elykia.core.ai.audit.AiQueryLogService;
 import com.optimize.elykia.core.ai.sql.*;
@@ -102,5 +104,42 @@ class AiOrchestratorServiceTest {
         assertEquals(AiIntent.DATA, response.getIntent());
         assertEquals(1, response.getRowCount());
         verify(sqlValidator).validate(anyString());
+    }
+
+    @Test
+    void keepsQuestionAndRepliesWhenBillingBlocksClassification() {
+        when(intentClassifier.classify("Chiffre du jour")).thenThrow(billingDenied());
+
+        AiChatResponse response = orchestratorService.process(conversationId, "Chiffre du jour");
+
+        assertEquals(BILLING_REPLY, response.getReply());
+        assertNull(response.getIntent());
+        verify(conversationService).appendMessage(conversationId, 1L, AiMessageRole.USER, "Chiffre du jour", null, null);
+        verify(conversationService).appendMessage(conversationId, 1L, AiMessageRole.ASSISTANT, BILLING_REPLY, null, null);
+        verify(queryLogService).logProviderFailure(eq(1L), eq("manager"), eq(conversationId), eq("Chiffre du jour"),
+                isNull(), contains("dunning"), anyLong());
+    }
+
+    @Test
+    void keepsQuestionAndRepliesWhenBillingBlocksSqlGeneration() {
+        when(metricsService.startSqlTimer()).thenReturn(Timer.start(new SimpleMeterRegistry()));
+        when(intentClassifier.classify("Chiffre du jour")).thenReturn(AiIntent.DATA);
+        when(sqlGenerationService.generateSql(anyString(), eq(context))).thenThrow(billingDenied());
+
+        AiChatResponse response = orchestratorService.process(conversationId, "Chiffre du jour");
+
+        assertEquals(BILLING_REPLY, response.getReply());
+        assertEquals(AiIntent.DATA, response.getIntent());
+        verify(conversationService).appendMessage(conversationId, 1L, AiMessageRole.ASSISTANT, BILLING_REPLY,
+                AiIntent.DATA.name(), null);
+        verify(queryLogService, never()).logFailure(any(), any(), any(), any(), any(), any(), any(), anyLong());
+        verify(metricsService, never()).recordQueryStatus("REJECTED_SQL");
+    }
+
+    private static final String BILLING_REPLY = "Un problème de facturation empêche l'assistant de répondre.";
+
+    private static AiBillingUnavailableException billingDenied() {
+        return new AiBillingUnavailableException(BILLING_REPLY,
+                new IllegalStateException("PERMISSION_DENIED: Lightning dunning decision is deny"));
     }
 }

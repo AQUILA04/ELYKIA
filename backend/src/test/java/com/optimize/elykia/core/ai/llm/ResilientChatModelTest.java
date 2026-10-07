@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.ai.llm;
 
 import com.google.api.gax.rpc.InvalidArgumentException;
+import com.google.api.gax.rpc.PermissionDeniedException;
 import com.google.api.gax.rpc.ResourceExhaustedException;
 import com.google.api.gax.rpc.StatusCode;
 import com.optimize.elykia.core.ai.config.AiProperties;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -83,6 +85,43 @@ class ResilientChatModelTest {
     }
 
     @Test
+    void reportsBillingDenialWithoutRetrying() {
+        AtomicInteger calls = new AtomicInteger();
+        ChatModel delegate = prompt -> {
+            calls.incrementAndGet();
+            throw new RuntimeException("Failed to generate content", permissionDenied(
+                    "PERMISSION_DENIED: Lightning dunning decision is deny for project: projects/945841165645"));
+        };
+
+        ResilientChatModel model = new ResilientChatModel(delegate, retry);
+        Prompt prompt = new Prompt("ping");
+
+        AiBillingUnavailableException thrown =
+                assertThrows(AiBillingUnavailableException.class, () -> model.call(prompt));
+
+        assertEquals(ResilientChatModel.BILLING_MESSAGE, thrown.getMessage());
+        assertEquals(1, calls.get());
+    }
+
+    @Test
+    void keepsOtherPermissionDeniedFailuresAsIs() {
+        AtomicInteger calls = new AtomicInteger();
+        ChatModel delegate = prompt -> {
+            calls.incrementAndGet();
+            throw new RuntimeException("Failed to generate content", permissionDenied(
+                    "PERMISSION_DENIED: Agent Platform API has not been used in project elykia-503006"));
+        };
+
+        ResilientChatModel model = new ResilientChatModel(delegate, retry);
+        Prompt prompt = new Prompt("ping");
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> model.call(prompt));
+
+        assertInstanceOf(PermissionDeniedException.class, thrown.getCause());
+        assertEquals(1, calls.get());
+    }
+
+    @Test
     void delegatesStreaming() {
         ChatResponse expected = new ChatResponse(List.of());
         ChatModel delegate = new ChatModel() {
@@ -107,6 +146,13 @@ class ResilientChatModelTest {
         return new ResourceExhaustedException(
                 new IllegalStateException("RESOURCE_EXHAUSTED"),
                 statusCode(StatusCode.Code.RESOURCE_EXHAUSTED),
+                false);
+    }
+
+    private static PermissionDeniedException permissionDenied(String message) {
+        return new PermissionDeniedException(
+                new IllegalStateException(message),
+                statusCode(StatusCode.Code.PERMISSION_DENIED),
                 false);
     }
 

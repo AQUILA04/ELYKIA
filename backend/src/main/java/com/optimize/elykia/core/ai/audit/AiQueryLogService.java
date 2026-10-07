@@ -39,6 +39,16 @@ public class AiQueryLogService {
         repository.save(log);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void logProviderFailure(Long userId, String username, UUID conversationId, String question,
+                                   AiIntent intent, String errorMessage, long durationMs) {
+        AiQueryLog log = baseLog(userId, username, conversationId, question, intent);
+        log.setStatus("FAILED");
+        log.setErrorMessage(errorMessage);
+        log.setDurationMs(durationMs);
+        repository.save(log);
+    }
+
     private AiQueryLog baseLog(Long userId, String username, UUID conversationId,
                                String question, AiIntent intent) {
         AiQueryLog log = new AiQueryLog();

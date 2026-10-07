@@ -10,6 +10,7 @@ import com.optimize.elykia.core.ai.dto.SqlQueryResult;
 import com.optimize.elykia.core.ai.enums.AiIntent;
 import com.optimize.elykia.core.ai.enums.AiMessageRole;
 import com.optimize.elykia.core.ai.help.UserGuideRagService;
+import com.optimize.elykia.core.ai.llm.AiBillingUnavailableException;
 import com.optimize.elykia.core.ai.metrics.AiMetricsService;
 import com.optimize.elykia.core.ai.sql.*;
 import io.micrometer.core.instrument.Timer;
@@ -30,6 +31,8 @@ import java.util.UUID;
 @Slf4j
 public class AiOrchestratorService {
 
+    private static final int MAX_CAUSE_DEPTH = 10;
+
     private final AiUserContextBuilder userContextBuilder;
     private final IntentClassifier intentClassifier;
     private final SqlGenerationService sqlGenerationService;
@@ -49,14 +52,19 @@ public class AiOrchestratorService {
         conversationService.appendMessage(conversationId, context.getUserId(),
                 AiMessageRole.USER, userMessage, null, null);
 
-        AiIntent intent = intentClassifier.classify(userMessage);
-        metricsService.recordIntent(intent);
+        AiIntent intent = null;
         try {
+            intent = intentClassifier.classify(userMessage);
+            metricsService.recordIntent(intent);
             return switch (intent) {
                 case HOW_TO -> processHowTo(conversationId, context, userMessage, startMs);
                 case DATA -> processData(conversationId, context, userMessage, startMs);
             };
         } catch (Exception e) {
+            AiBillingUnavailableException billing = findBillingDenial(e);
+            if (billing != null) {
+                return replyBillingUnavailable(conversationId, context, userMessage, intent, billing, startMs);
+            }
             if (intent == AiIntent.HOW_TO) {
                 long durationMs = System.currentTimeMillis() - startMs;
                 queryLogService.logFailure(context.getUserId(), context.getUsername(), conversationId,
@@ -149,13 +157,56 @@ public class AiOrchestratorService {
                     .sql(aiProperties.getSql().isExposeSqlToUser() ? sql : null)
                     .build();
         } catch (Exception e) {
-            long durationMs = System.currentTimeMillis() - startMs;
-            queryLogService.logFailure(context.getUserId(), context.getUsername(), conversationId,
-                    userMessage, AiIntent.DATA, sql, e.getMessage(), durationMs);
-            metricsService.recordQueryStatus("REJECTED_SQL");
+            if (findBillingDenial(e) == null) {
+                long durationMs = System.currentTimeMillis() - startMs;
+                queryLogService.logFailure(context.getUserId(), context.getUsername(), conversationId,
+                        userMessage, AiIntent.DATA, sql, e.getMessage(), durationMs);
+                metricsService.recordQueryStatus("REJECTED_SQL");
+            }
             throw e;
         } finally {
             metricsService.recordSqlLatency(sqlTimer, sqlSuccess);
         }
+    }
+
+    /**
+     * Le fournisseur refuse l'appel pour facturation : la question est déjà enregistrée,
+     * on y répond par un message clair au lieu d'une erreur qui annulerait la transaction.
+     */
+    private AiChatResponse replyBillingUnavailable(UUID conversationId, AiUserContext context, String userMessage,
+                                                   AiIntent intent, AiBillingUnavailableException billing,
+                                                   long startMs) {
+        String reply = billing.getMessage();
+        conversationService.appendMessage(conversationId, context.getUserId(),
+                AiMessageRole.ASSISTANT, reply, intent != null ? intent.name() : null, null);
+        long durationMs = System.currentTimeMillis() - startMs;
+        queryLogService.logProviderFailure(context.getUserId(), context.getUsername(), conversationId,
+                userMessage, intent, rootCauseMessage(billing), durationMs);
+        metricsService.recordQueryStatus("BILLING_BLOCKED");
+        return AiChatResponse.builder()
+                .conversationId(conversationId)
+                .reply(reply)
+                .intent(intent)
+                .build();
+    }
+
+    private static AiBillingUnavailableException findBillingDenial(Throwable error) {
+        Throwable cause = error;
+        for (int depth = 0; cause != null && depth < MAX_CAUSE_DEPTH; depth++) {
+            if (cause instanceof AiBillingUnavailableException billing) {
+                return billing;
+            }
+            Throwable next = cause.getCause();
+            cause = next == cause ? null : next;
+        }
+        return null;
+    }
+
+    private static String rootCauseMessage(Throwable error) {
+        Throwable cause = error;
+        for (int depth = 0; cause.getCause() != null && cause.getCause() != cause && depth < MAX_CAUSE_DEPTH; depth++) {
+            cause = cause.getCause();
+        }
+        return cause.getMessage();
     }
 }

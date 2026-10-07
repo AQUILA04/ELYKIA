@@ -139,6 +139,12 @@ Vous pouvez poser vos questions courantes en français tel que vous le feriez av
 * **Transparence pour audit** : Pour les utilisateurs habilités, un bouton permet d'afficher la formule de calcul ou la requête d'interrogation générée en arrière-plan, garantissant l'exactitude des chiffres avancés.
 * **Onglet Statistiques** : Permet de consulter les métriques d'utilisation de l'assistant (nombre de questions posées, temps de réponse, thématiques les plus sollicitées).
 
+### E. Assistant momentanément indisponible
+Si l'assistant répond qu'un **problème de facturation** l'empêche de répondre :
+1. Votre question reste affichée et enregistrée dans la discussion.
+2. Copiez-la depuis la discussion.
+3. Lorsque le service est rétabli, collez-la de nouveau dans la zone de saisie et envoyez-la.
+
 ---
 
 ## 4. Référentiels et Configuration de l'agence
