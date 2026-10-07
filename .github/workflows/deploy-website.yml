@@ -1,0 +1,73 @@
+name: Deploy website from main
+
+# Manual deploy of the public site only (www.amenouveve-yaveh.com and
+# amenouveve-yaveh.com). Uses the last website image published from main.
+# Does not deploy the frontend or the backend.
+#
+# The automatic path stays in cd.yml: ELYKIA CD Pipeline deploys the site to
+# prod only after a successful CI run on a prod/** branch.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: elykia-website-prod-manual
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy website to PROD from main
+    runs-on: ubuntu-latest
+    environment: prod
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Resolve last published website image on main
+        id: resolve
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+        run: |
+          set -euo pipefail
+          REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
+          REGISTRY="ghcr.io"
+          IMAGE="$REGISTRY/$REPO_LOWER-website"
+
+          echo "$GHCR_TOKEN" | docker login "$REGISTRY" -u "$GHCR_USERNAME" --password-stdin
+
+          echo "Searching website image in history of main" >&2
+          while read -r sha; do
+            if docker manifest inspect "$IMAGE:$sha" > /dev/null 2>&1; then
+              echo "Resolved website: $IMAGE:$sha" >&2
+              echo "website_image=$IMAGE:$sha" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done < <(git log --format='%H' HEAD | head -100)
+
+          echo "::error::No published website image found on main in the last 100 commits ($IMAGE:<sha>)"
+          exit 1
+
+      - name: Prepare SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key
+          chmod 600 private_key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy website to prod
+        run: |
+          set -euo pipefail
+          WEBSITE_IMAGE='${{ steps.resolve.outputs.website_image }}'
+          echo "Deploying website $WEBSITE_IMAGE to prod (www.amenouveve-yaveh.com) from main"
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.PROD_SERVER_USER }}@${{ secrets.PROD_SERVER_HOST }} \
+            "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
+             && cd ${{ secrets.PROD_DEPLOY_PATH }} \
+             && ./deploy/deploy-website.sh prod '$WEBSITE_IMAGE'"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f private_key

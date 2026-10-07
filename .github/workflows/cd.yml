@@ -9,6 +9,8 @@ name: ELYKIA CD Pipeline
 # build-customer-space-apk.yml after CD and ci-customer-space both succeed.
 # Web E2E tests (Playwright) run in parallel in e2e.yml after a successful TEST deploy.
 # It also supports a manual 'promote' workflow_dispatch to promote the current test release to prod.
+# That promote does not republish the public site. To deploy only www.amenouveve-yaveh.com
+# from the last image built on main, run "Deploy website from main" (deploy-website.yml).
 # By default the test stack is stopped once prod deploy has succeeded; uncheck
 # stop_test_after_promote on the dispatch form to leave the test environment up.
 #
