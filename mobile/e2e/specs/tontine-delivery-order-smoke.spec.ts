@@ -49,7 +49,31 @@ async function completeMockDailyConsentIfNeeded(page: Page, required = false): P
   await expect(modal).toBeHidden({ timeout: 20_000 });
 }
 
+/**
+ * The smoke mock seeds session as CLOSED (remise). For ORDER, temporarily patch the
+ * delivery-creation view-model so the UI gate allows commande while session is still CLOSED locally.
+ */
+async function forceDeliveryCreationSessionStatus(page: Page, status: 'ACTIVE' | 'CLOSED' | 'ENDED'): Promise<void> {
+  await page.waitForSelector('app-delivery-creation');
+  await page.evaluate((nextStatus) => {
+    const host = document.querySelector('app-delivery-creation');
+    const ng = (window as unknown as { ng?: { getComponent?: (el: Element) => { vm?: { session?: { status?: string } } } } }).ng;
+    if (!host || !ng?.getComponent) {
+      throw new Error('Angular ng.getComponent unavailable for delivery-creation session patch');
+    }
+    const cmp = ng.getComponent(host);
+    if (!cmp?.vm?.session) {
+      throw new Error('delivery-creation session missing');
+    }
+    cmp.vm.session = { ...cmp.vm.session, status: nextStatus };
+  }, status);
+}
+
 async function chooseDeliveryMode(page: Page, mode: 'DIRECT' | 'ORDER'): Promise<void> {
+  if (mode === 'ORDER') {
+    await forceDeliveryCreationSessionStatus(page, 'ACTIVE');
+  }
+
   await expect(page.getByTestId('e2e-tontine-delivery-validate')).toBeEnabled({ timeout: 10_000 });
   await page.getByRole('button', { name: 'Valider' }).click();
 

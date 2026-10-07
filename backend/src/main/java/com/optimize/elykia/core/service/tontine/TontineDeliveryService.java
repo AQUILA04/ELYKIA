@@ -69,12 +69,26 @@ public class TontineDeliveryService {
         TontineMember member = memberRepository.findById(dto.getTontineMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException("Membre de tontine non trouvé"));
 
-        // if (member.getTontineSession().getStatus() != TontineSessionStatus.CLOSED) {
-        // throw new CustomValidationException("La session de tontine doit être CLOTUREE
-        // pour créer une livraison.");
-        // }
+        requireSessionStatus(member, TontineSessionStatus.ACTIVE,
+                "La commande tontine n'est possible que tant que la session est ouverte.");
 
-        if (deliveryRepository.existsByTontineMemberId(dto.getTontineMemberId())) {
+        return persistNewDelivery(member, dto);
+    }
+
+    public TontineDeliveryDto distributeTontineDelivery(CreateDeliveryDto dto) {
+        TontineMember member = memberRepository.findById(dto.getTontineMemberId())
+                .orElseThrow(() -> new ResourceNotFoundException("Membre de tontine non trouvé"));
+
+        requireSessionStatus(member, TontineSessionStatus.CLOSED,
+                "La livraison directe n'est possible qu'une fois la session clôturée.");
+
+        TontineDeliveryDto resp = persistNewDelivery(member, dto);
+        this.validateDelivery(resp.getId());
+        return this.deliverDelivery(resp.getId());
+    }
+
+    private TontineDeliveryDto persistNewDelivery(TontineMember member, CreateDeliveryDto dto) {
+        if (deliveryRepository.existsByTontineMemberId(member.getId())) {
             throw new CustomValidationException("Ce membre a déjà une livraison.");
         }
 
@@ -85,15 +99,6 @@ public class TontineDeliveryService {
             Articles article = articlesRepository.findById(itemDto.getArticleId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "Article non trouvé avec l'ID: " + itemDto.getArticleId()));
-
-            // TODO: Validate stock here before creating delivery
-            // if (article.getStockQuantity() < itemDto.getQuantity()) {
-            // throw new CustomValidationException(
-            // String.format("Stock insuffisant pour l'article '%s'. Disponible: %d,
-            // Demandé: %d",
-            // article.getName(), article.getStockQuantity(), itemDto.getQuantity())
-            // );
-            // }
 
             TontineDeliveryItem item = new TontineDeliveryItem();
             item.setArticles(article);
@@ -136,7 +141,6 @@ public class TontineDeliveryService {
         items.forEach(delivery::addItem);
 
         User currentUser = userService.getCurrentUser();
-        // Assuming 'GESTIONNAIRE' is a role or profile name
         if (currentUser.is("GESTIONNAIRE") || currentUser.is("ADMIN")) {
             member.setDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED);
             TontineDelivery savedDelivery = deliveryRepository.save(delivery);
@@ -145,18 +149,19 @@ public class TontineDeliveryService {
             }
             log.info("Delivery for member {} created and auto-validated.", member.getId());
             return mapToDto(savedDelivery);
-        } else {
-            member.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
-            TontineDelivery savedDelivery = deliveryRepository.save(delivery);
-            log.info("Delivery for member {} created with PENDING status (commande).", member.getId());
-            return mapToDto(savedDelivery);
         }
+
+        member.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+        TontineDelivery savedDelivery = deliveryRepository.save(delivery);
+        log.info("Delivery for member {} created with PENDING status (commande).", member.getId());
+        return mapToDto(savedDelivery);
     }
 
-    public TontineDeliveryDto distributeTontineDelivery(CreateDeliveryDto dto) {
-        TontineDeliveryDto resp = this.createDelivery(dto);
-        this.validateDelivery(resp.getId());
-        return this.deliverDelivery(resp.getId());
+    private void requireSessionStatus(TontineMember member, TontineSessionStatus expected, String message) {
+        TontineSession session = member.getTontineSession();
+        if (session == null || session.getStatus() != expected) {
+            throw new CustomValidationException(message);
+        }
     }
 
     @Transactional
@@ -201,10 +206,8 @@ public class TontineDeliveryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Livraison non trouvée"));
         TontineMember member = delivery.getTontineMember();
 
-        // if (member.getDeliveryStatus() != TontineMemberDeliveryStatus.VALIDATED) {
-        // throw new CustomValidationException("La livraison doit être en statut
-        // VALIDATED pour être servie.");
-        // }
+        requireSessionStatus(member, TontineSessionStatus.CLOSED,
+                "La remise n'est possible qu'une fois la session clôturée.");
 
         creditService.createTontineCredit(delivery);
         delivery.setDeliveryDate(LocalDateTime.now());

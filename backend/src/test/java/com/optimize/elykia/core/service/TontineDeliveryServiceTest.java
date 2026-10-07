@@ -82,7 +82,8 @@ class TontineDeliveryServiceTest {
     void setUp() {
         mockSession = new TontineSession();
         mockSession.setId(1L);
-        mockSession.setStatus(TontineSessionStatus.CLOSED);
+        // Default ACTIVE for commande (createDelivery); distribute/deliver tests switch to CLOSED.
+        mockSession.setStatus(TontineSessionStatus.ACTIVE);
 
         Client mockClient = new Client();
         mockClient.setId(1L);
@@ -167,8 +168,66 @@ class TontineDeliveryServiceTest {
     }
 
     @Test
+    void createDelivery_rejectsWhenSessionIsClosed() {
+        mockSession.setStatus(TontineSessionStatus.CLOSED);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> tontineDeliveryService.createDelivery(createDeliveryDto));
+        assertTrue(ex.getMessage().contains("session est ouverte"));
+        verify(deliveryRepository, never()).save(any());
+        verifyNoInteractions(articlesRepository, deliveryReferenceService, userService);
+    }
+
+    @Test
+    void distributeTontineDelivery_rejectsWhenSessionIsActive() {
+        mockSession.setStatus(TontineSessionStatus.ACTIVE);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> tontineDeliveryService.distributeTontineDelivery(createDeliveryDto));
+        assertTrue(ex.getMessage().contains("session clôturée"));
+        verify(deliveryRepository, never()).save(any());
+        verifyNoInteractions(creditService);
+    }
+
+    @Test
+    void deliverDelivery_rejectsWhenSessionIsActive() {
+        mockSession.setStatus(TontineSessionStatus.ACTIVE);
+        TontineDelivery delivery = new TontineDelivery();
+        delivery.setId(10L);
+        delivery.setTontineMember(mockMember);
+        delivery.setItems(new ArrayList<>());
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+
+        when(deliveryRepository.findById(10L)).thenReturn(Optional.of(delivery));
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> tontineDeliveryService.deliverDelivery(10L));
+        assertTrue(ex.getMessage().contains("session clôturée"));
+        verify(creditService, never()).createTontineCredit(any());
+    }
+
+    @Test
+    void deliverDelivery_rejectsWhenSessionIsEnded() {
+        mockSession.setStatus(TontineSessionStatus.ENDED);
+        TontineDelivery delivery = new TontineDelivery();
+        delivery.setId(10L);
+        delivery.setTontineMember(mockMember);
+        delivery.setItems(new ArrayList<>());
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+
+        when(deliveryRepository.findById(10L)).thenReturn(Optional.of(delivery));
+
+        assertThrows(CustomValidationException.class,
+                () -> tontineDeliveryService.deliverDelivery(10L));
+        verify(creditService, never()).createTontineCredit(any());
+    }
+
+    @Test
     void deliverDelivery_fromPendingOrder_setsDeliveredStatusAndDeliveryDate() {
         // S2b — mark order delivered: DELIVERED + stock impact via createTontineCredit.
+        mockSession.setStatus(TontineSessionStatus.CLOSED);
         LocalDateTime requestDate = LocalDateTime.of(2026, 3, 1, 10, 0);
         TontineDelivery delivery = new TontineDelivery();
         delivery.setId(10L);
@@ -206,6 +265,7 @@ class TontineDeliveryServiceTest {
     @Test
     void distributeTontineDelivery_endsAsDelivered() {
         // S1 — direct delivery: DELIVERED + immediate stock impact via createTontineCredit.
+        mockSession.setStatus(TontineSessionStatus.CLOSED);
         givenRegularUser();
         when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
         when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));

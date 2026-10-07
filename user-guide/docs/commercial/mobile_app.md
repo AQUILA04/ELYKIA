@@ -237,7 +237,7 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
    * Touchez le bouton bleu **Imprimer** pour donner son ticket papier à la membre.
 
 ### E. Remettre les articles de fin d'année (Livraison tontine)
-Quand la fin de la campagne arrive, la membre utilise son argent épargné pour choisir des articles au catalogue.
+Pendant la campagne, la membre peut déjà choisir ses articles. La remise en mains propres se fait après la clôture de la session.
 
 1. **Ouvrez la livraison** :
    * Sur la fiche de la membre, touchez les trois petits points (**⋮**) en haut à droite et choisissez **Livraison Fin d'Année**.
@@ -249,11 +249,14 @@ Quand la fin de la campagne arrive, la membre utilise son argent épargné pour 
 4. **Que faire si la cliente veut un article un peu plus cher que son épargne ?**
    * L'application est intelligente ! Si le total des articles dépasse son épargne, un bouton bleu apparaît en haut : **« Compléter le solde (X FCFA) »**.
    * Touchez ce bouton : l'application ouvre aussitôt l'écran de cotisation avec le montant manquant pré-rempli. Dès que la cliente vous donne la différence, vous revenez automatiquement sur son panier parfaitement équilibré !
-5. **Choisissez comment vous remettez les articles** :
-   * **Mode Commande (Pré-commande)** : choisissez ce mode si vous n'avez pas les marchandises sur vous (par exemple pour préparer des cartons au dépôt de l'agence). Le dossier passe au statut **En attente** et votre stock n'est pas encore touché.
-   * **Mode Livraison directe** : choisissez ce mode si vous avez les articles dans votre véhicule et que vous les donnez immédiatement en mains propres à la cliente. Les articles sortent aussitôt de votre stock, le dossier passe au statut **Livré** et vous imprimez le bon de remise !
-6. **Marquer comme livré plus tard** :
-   * Si vous aviez enregistré une pré-commande, le jour où vous donnez enfin les cartons à la cliente, retournez sur sa fiche tontine et touchez le bouton vert **« Marquer comme livré »**. Le stock est décompté et la session de la cliente est terminée avec succès !
+5. **Pendant la session ouverte — enregistrez une Commande** :
+   * Touchez **Valider**, puis **Commande** si vous n'avez pas encore les marchandises sur vous (par exemple pour préparer des cartons au dépôt).
+   * Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
+   * L'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
+6. **Après la clôture de la session — remettez les articles** :
+   * **Livraison directe** : si vous avez les articles dans votre véhicule et que vous les donnez immédiatement, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise.
+   * **Marquer comme livré** : si une commande était déjà enregistrée, retournez sur la fiche membre et touchez **Marquer comme livré**. Le stock est décompté et le dossier est terminé.
+   * Une fois la session clôturée, vous ne créez plus de nouvelle commande : seule la remise reste disponible.
 
 ---
 

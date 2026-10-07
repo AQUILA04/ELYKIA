@@ -3,7 +3,7 @@ export interface TontineSession {
     year: number;
     startDate: string;
     endDate: string;
-    status: 'ACTIVE' | 'CLOSED' | 'PENDING';
+    status: 'ACTIVE' | 'CLOSED' | 'ENDED' | 'PENDING';
     memberCount: number;
     totalCollected: number;
     isSync: boolean;

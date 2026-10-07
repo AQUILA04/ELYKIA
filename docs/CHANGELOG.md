@@ -9,6 +9,21 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.29.4] — 2026-10-07
+
+### Changed
+- Tontine fiche membre : **Préparer la Livraison** pendant la session ouverte ; **Marquer comme Livré** uniquement après clôture.
+
+## Mobile — [2.32.0] — 2026-10-07
+
+### Added
+- Commande tontine autorisée pendant la session ouverte ; **Livraison directe** et **Marquer comme livré** disponibles seulement après clôture (boutons grisés sinon).
+
+## Backend — [1.30.0] — 2026-10-07
+
+### Changed
+- `POST /tontines/deliveries` (commande) réservé à une session `ACTIVE` ; `distribute` et `deliver` réservés à une session `CLOSED`.
+
 ## Frontend — [2.29.3] — 2026-10-07
 
 ### Added

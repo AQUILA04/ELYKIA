@@ -609,13 +609,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await expect(panel).toContainText(testArticle.label, { timeout: 15_000 });
   });
 
-  test('étape 24 — clôturer la session tontine (prérequis livraison)', async () => {
-    const api = new ApiClient();
-    await api.signInAsGestionnaire();
-    await api.closeCurrentTontineSession();
-  });
-
-  test('étape 25 — préparer la livraison tontine au client', async ({ page }) => {
+  test('étape 24 — préparer la livraison tontine (session ouverte)', async ({ page }) => {
     test.setTimeout(120_000);
     await loginAsGestionnaire(page);
     await page.goto(`/tontine/member/${tontineMemberId}`);
@@ -635,6 +629,12 @@ test.describe.serial('Golden path — prérequis métier', () => {
 
     await expect(page.getByTestId('e2e-tontine-delivery-modal')).toBeHidden({ timeout: 30_000 });
     await expectTontineMemberDeliveryStatus(clientLastName, 'VALIDATED');
+  });
+
+  test('étape 25 — clôturer la session tontine (prérequis remise)', async () => {
+    const api = new ApiClient();
+    await api.signInAsGestionnaire();
+    await api.closeCurrentTontineSession();
   });
 
   test('étape 26 — COM020 marque la livraison tontine comme livrée', async ({ page }) => {

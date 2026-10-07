@@ -151,19 +151,19 @@ Les membres peuvent également cotiser en toute autonomie depuis leur Espace Cli
 
 ## 5. Livraisons de fin d'année
 
-En fin de campagne, lorsque la session arrive à son terme, les membres utilisent leur épargne pour retirer des marchandises (appareils, vivres, équipements).
+Les membres choisissent leurs marchandises pendant la campagne ouverte. La remise en mains propres se fait après la clôture de la session.
 
 ### Le cycle d'une livraison
 
 ```mermaid
 flowchart LR
-    A[Campagne fermée : En attente] -->|Préparer livraison| B[Choix des articles au catalogue]
+    A[Session ouverte] -->|Préparer livraison| B[Choix des articles au catalogue]
     B -->|Validation administrative| C[Livraison validée]
-    C -->|Remise physique| D[Livraison terminée]
+    C -->|Session clôturée puis remise| D[Livraison terminée]
 ```
 
 1. **Préparer la Livraison** :
-   - Lorsque la session de collecte est fermée, le bouton **Préparer la Livraison** devient actif sur la fiche du membre.
+   - Tant que la session est ouverte, le bouton **Préparer la Livraison** est disponible sur la fiche du membre.
    - Une fenêtre s'ouvre avec le **Solde Disponible** mobilisable.
    - Choisissez les articles souhaités dans le catalogue en indiquant les quantités.
    - Le système vérifie en direct que le montant total des articles ne dépasse pas le solde disponible du membre.
@@ -174,7 +174,7 @@ flowchart LR
    - Un responsable examine la sélection et clique sur **Valider la Livraison**. Le statut passe à **Validé**.
 
 3. **Marquer comme Livré** :
-   - Au moment de la remise en mains propres des articles au membre, le commercial ou le magasinier clique sur **Marquer comme Livré**.
+   - Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur **Marquer comme Livré**.
    - Cette action déduit définitivement les articles du stock tontine et clôture le dossier du membre.
    - La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.
 

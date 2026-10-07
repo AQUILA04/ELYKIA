@@ -106,9 +106,12 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
         TontineCollectionDto contribution = contribution(member.getId(), COLLECTION_REFERENCE, COLLECTION_AMOUNT);
         CreateDeliveryDto delivery = delivery(member.getId(), article.getId(), DELIVERY_REFERENCE, 30_000.0);
 
-        // When: the same mobile contribution is replayed, then its available contribution is delivered to the member.
+        // When: the same mobile contribution is replayed, then after session close its available contribution is delivered.
         tontineService.recordCollection(contribution);
         tontineService.recordCollection(contribution);
+        session.setStatus(TontineSessionStatus.CLOSED);
+        sessionRepository.saveAndFlush(session);
+        entityManager.clear();
         tontineDeliveryService.distributeTontineDelivery(delivery);
         entityManager.clear();
 
