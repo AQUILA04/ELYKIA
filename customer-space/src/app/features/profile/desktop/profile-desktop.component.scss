@@ -55,3 +55,10 @@
 .profile-name { font-size: 22px; font-weight: 700; color: var(--elyk-navy); }
 .profile-phone { color: var(--elyk-gray-text); margin-top: 4px; }
 .about-row { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--elyk-navy); }
+.about-row--link {
+  min-height: 44px;
+  margin-top: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.about-row--link ion-icon { color: var(--elyk-gold); font-size: 20px; }

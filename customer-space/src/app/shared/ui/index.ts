@@ -5,3 +5,4 @@ export { ElykLocalityPickerComponent } from './elyk-locality-picker/elyk-localit
 export { ElykPageHeaderComponent } from './elyk-page-header/elyk-page-header.component';
 export { ElykDesktopPageComponent, type ElykBreadcrumb } from './desktop/elyk-desktop-page/elyk-desktop-page.component';
 export { ElykKpiCardComponent } from './desktop/elyk-kpi-card/elyk-kpi-card.component';
+export { LegalLinksComponent } from './legal-links/legal-links.component';

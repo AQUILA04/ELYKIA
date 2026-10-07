@@ -21,5 +21,6 @@ describe('PrivacyPage', () => {
     expect(text).toContain('Règles de confidentialité');
     expect(text).toContain('support@optimizesolux.com');
     expect(text).toContain('AMENOUVEVE-YAVEH');
+    expect(text).toContain('demander la suppression de votre compte');
   });
 });

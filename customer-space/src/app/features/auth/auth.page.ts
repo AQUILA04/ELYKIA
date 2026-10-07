@@ -25,6 +25,7 @@ import {
   ElykLocalityPickerComponent,
   ElykOverlapCardComponent,
   ElykOutlinedFieldComponent,
+  LegalLinksComponent,
 } from '../../shared/ui';
 import { LayoutService } from '../../shared/layout/layout.service';
 import { AuthDesktopComponent } from './desktop/auth-desktop.component';
@@ -62,6 +63,7 @@ import {
     ElykLocalityPickerComponent,
     AuthDesktopComponent,
     AuthRegisterConsentComponent,
+    LegalLinksComponent,
   ],
   templateUrl: './auth.page.html',
   styleUrls: ['./auth.page.scss'],

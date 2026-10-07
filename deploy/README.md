@@ -342,6 +342,7 @@ La version web de l'espace client est servie par une image nginx (`ghcr.io/<owne
 | **Prod** | `https://clients.amenouveve-yaveh.com` | `docker-compose.customer-space-prod.yml` | `customer-space-prod` |
 
 - **Pipeline** : `build-customer-space-apk.yml` construit l'image web (même commit que l'APK) puis déploie via `deploy-customer-space.sh <env> <image>`. La promotion prod réutilise l'image du SHA promu.
+- **Play Console** (confidentialité et suppression de compte) : voir `customer-space/docs/PLAY_CONSOLE_ACCOUNT_DELETION.md`. URLs prod : `https://clients.amenouveve-yaveh.com/confidentialite` et `https://clients.amenouveve-yaveh.com/suppression-compte`.
 - **URL d'API** : injectée au démarrage du conteneur dans `assets/env.js`. Priorité : secret CI `TEST_API_URL` / `PROD_API_URL` → `CUSTOMER_SPACE_API_URL` du `.env` → `API_URL` du `.env`. La valeur doit inclure `/api` (ex. `https://elykia-test.amenouveve-yaveh.com/api`).
 - **CORS** : `deploy.sh` ajoute automatiquement `https://${CUSTOMER_SPACE_HOSTNAME}` (défaut `clients[-test]…`) à `SECURITY_ALLOWED_ORIGINS` dans `/opt/elykia/<env>/.env`.
 - **Déploiement manuel** :

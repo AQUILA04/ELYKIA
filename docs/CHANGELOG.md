@@ -76,6 +76,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - **CI —** Publication Play Store de l’espace client, workflow séparé `publish-customer-space-play.yml` : piste de test interne, bundle de la build prod uniquement. Un échec Play ne fait pas échouer le pipeline APK, MinIO ou web.
+- Fiche Play Console **suppression de compte** : `customer-space/docs/PLAY_CONSOLE_ACCOUNT_DELETION.md` (URL `https://clients.amenouveve-yaveh.com/suppression-compte`, traitement e-mail).
 
 - Guide chef de recouvrement (web / mobile) et guide commercial mobile : procédures et badge **Vérifié** pour la vérification de carnet crédit ; index RAG et HTML MkDocs régénérés.
 
@@ -99,6 +100,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.13.6] — 2026-10-06
+
+### Added
+
+- Page publique **Demander la suppression du compte** (`/suppression-compte`) : bouton d’envoi vers `support@optimizesolux.com`, délai de 30 jours, liens depuis la connexion, **Mon profil** et les règles de confidentialité.
 
 ## Customer-space — [0.13.5] — 2026-10-06
 

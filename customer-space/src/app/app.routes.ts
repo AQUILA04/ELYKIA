@@ -17,6 +17,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/privacy/privacy.page').then(m => m.PrivacyPage),
   },
   {
+    path: 'suppression-compte',
+    loadComponent: () =>
+      import('./features/account-deletion/account-deletion.page').then(m => m.AccountDeletionPage),
+  },
+  {
     path: 'dashboard',
     canActivate: [CustomerAuthGuard],
     loadComponent: () => import('./features/dashboard/dashboard.page').then(m => m.DashboardPage),

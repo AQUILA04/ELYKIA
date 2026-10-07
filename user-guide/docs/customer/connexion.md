@@ -58,9 +58,9 @@ Si votre numéro n’est pas encore connu et que l’inscription est ouverte :
 
 ## Règles de confidentialité
 
-1. Ouvrez **https://clients.amenouveve-yaveh.com/confidentialite** dans votre navigateur.
+1. Ouvrez **https://clients.amenouveve-yaveh.com/confidentialite** dans votre navigateur, ou appuyez sur **Règles de confidentialité** sous le formulaire de connexion.
 2. L’écran **Règles de confidentialité** explique les informations utilisées par l’Espace Client : téléphone, identité, photo, position à l’inscription, justificatifs et opérations du compte.
 3. Le bouton **Retour** ramène à l’écran de connexion.
-4. Pour une question ou une demande de suppression de compte, écrivez à **support@optimizesolux.com**.
+4. Pour une question, écrivez à **support@optimizesolux.com**. Pour fermer votre compte, suivez [Demander la suppression du compte](suppression_compte.md).
 
 <!-- CAPTURE À INSÉRER : écran Connexion Espace Client (header navy, carte « Bienvenue » ou « Bon retour ! ») -->

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { ElykPageHeaderComponent } from '../../shared/ui';
 
@@ -7,7 +7,7 @@ import { ElykPageHeaderComponent } from '../../shared/ui';
 @Component({
   selector: 'app-privacy',
   standalone: true,
-  imports: [IonicModule, ElykPageHeaderComponent],
+  imports: [IonicModule, ElykPageHeaderComponent, RouterLink],
   templateUrl: './privacy.page.html',
   styleUrls: ['./privacy.page.scss'],
 })

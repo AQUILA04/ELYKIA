@@ -1,0 +1,70 @@
+<ion-content class="page-content privacy-page">
+  <app-elyk-page-header
+    eyebrow="ESPACE CLIENT"
+    title="Demander la suppression du compte"
+    subtitle="Comment retirer votre accès et vos informations"
+    [showBack]="true"
+    (back)="goBack()">
+  </app-elyk-page-header>
+
+  <div class="privacy-body">
+    <article class="privacy-card">
+      <p class="privacy-updated">Dernière mise à jour : 6 octobre 2026</p>
+
+      <p>
+        Vous pouvez demander la fermeture de votre compte Elykia et le traitement des informations
+        qui y sont liées. La demande se fait par message à
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>.
+      </p>
+
+      <h2>Comment faire</h2>
+      <ol>
+        <li>Appuyez sur <strong>Écrire pour demander la suppression</strong>.</li>
+        <li>Vérifiez que le numéro de téléphone indiqué est bien celui de votre compte.</li>
+        <li>Envoyez le message. L’équipe confirme la réception puis traite la demande.</li>
+      </ol>
+      <p>
+        Vous pouvez aussi écrire directement à
+        <a [href]="'mailto:' + supportEmail">{{ supportEmail }}</a>
+        en indiquant « suppression de compte » et votre numéro de téléphone.
+      </p>
+
+      <ion-button
+        expand="block"
+        class="elyk-btn-navy"
+        [href]="mailtoHref"
+        data-testid="e2e-account-deletion-mailto">
+        Écrire pour demander la suppression
+      </ion-button>
+
+      <h2>Ce qui est traité</h2>
+      <p>Après vérification de votre identité (numéro de téléphone du compte) :</p>
+      <ul>
+        <li>l’accès à l’Espace Client est fermé : vous ne pourrez plus vous connecter ;</li>
+        <li>
+          les informations d’identité utilisées pour le compte (nom, photo, adresse, numéro servant
+          à la connexion) sont retirées ou rendues inutilisables pour une reconnexion.
+        </li>
+      </ul>
+
+      <h2>Délai</h2>
+      <p>
+        La demande est traitée dans un délai de <strong>30 jours</strong> après réception
+        d’un message complet (numéro de téléphone du compte).
+      </p>
+
+      <h2>Informations conservées</h2>
+      <p>
+        Les éléments nécessaires à la gestion, aux contrats et à la preuve des achats, des
+        paiements et de la tontine sont conservés le temps prévu par les règles de gestion.
+        Ils ne servent plus à vous reconnecter à l’application.
+      </p>
+
+      <h2>Règles de confidentialité</h2>
+      <p>
+        Le détail des informations utilisées par l’Espace Client se trouve dans les
+        <a routerLink="/confidentialite">Règles de confidentialité</a>.
+      </p>
+    </article>
+  </div>
+</ion-content>

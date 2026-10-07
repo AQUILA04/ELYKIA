@@ -14,6 +14,7 @@ nav:
   - Guide Espace Client:
     - Vue d'ensemble: customer/index.md
     - Connexion: customer/connexion.md
+    - Demander la suppression du compte: customer/suppression_compte.md
     - Achats et commandes: customer/achats_commandes.md
     - Tontine: customer/tontine.md
     - Notifications: customer/notifications.md

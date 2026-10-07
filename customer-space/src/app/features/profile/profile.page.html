@@ -43,6 +43,20 @@
         <ion-icon name="cloud-download-outline" aria-hidden="true"></ion-icon>
         <span>{{ updateInProgress ? updateProgressLabel || 'Mise à jour...' : 'Mettre à jour l\'application' }}</span>
       </button>
+      <a
+        routerLink="/confidentialite"
+        class="about-row about-row--action"
+        data-testid="e2e-profile-privacy">
+        <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+        <span>Règles de confidentialité</span>
+      </a>
+      <a
+        routerLink="/suppression-compte"
+        class="about-row about-row--action"
+        data-testid="e2e-profile-account-deletion">
+        <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
+        <span>Demander la suppression du compte</span>
+      </a>
     </div>
 
     <ion-button
