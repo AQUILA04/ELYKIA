@@ -14,6 +14,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 - Guide utilisateur : commande tontine depuis le catalogue (sans stock commercial préalable) ; remise conditionnée au stock tontine.
 
+## Mobile — [2.33.5] — 2026-10-08
+
+### Fixed
+- Smoke e2e : la commande prend le premier article du catalogue, et ce même article est doté en stock tontine pour la remise. La recherche lit la valeur saisie dans le champ.
+
 ## Mobile — [2.33.4] — 2026-10-08
 
 ### Fixed

@@ -326,7 +326,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     }
 
     onSearch(event: any) {
-        this.currentSearchQuery = (event.target.value || '').toLowerCase();
+        const raw = event?.detail?.value ?? event?.target?.value ?? '';
+        this.currentSearchQuery = String(raw).toLowerCase();
         if (this.isCatalogueMode) {
             this.loadCatalogue();
         } else {

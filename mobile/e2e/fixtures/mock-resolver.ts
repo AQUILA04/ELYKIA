@@ -145,6 +145,20 @@ const E2E_TONTINE_STOCKS = [
     year: 2026,
     tontineSessionId: 1,
   },
+  // Premier article du catalogue (tri commercialName) : BEURRE BLUE BAND.
+  // Nom trié après « Article E2E » pour ne pas changer la carte stock du scénario direct.
+  {
+    id: 88002,
+    commercial: 'COM002',
+    articleId: 33,
+    articleName: 'ZZ Stock commande catalogue',
+    unitPrice: 700,
+    totalQuantity: 50,
+    availableQuantity: 50,
+    distributedQuantity: 0,
+    year: 2026,
+    tontineSessionId: 1,
+  },
 ];
 
 const E2E_TONTINE_COLLECTIONS = [
