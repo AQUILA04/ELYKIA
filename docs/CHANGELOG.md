@@ -14,6 +14,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 - Guide utilisateur : commande tontine depuis le catalogue (sans stock commercial préalable) ; remise conditionnée au stock tontine.
 
+## Mobile — [2.33.2] — 2026-10-08
+
+### Fixed
+- Compilation de l'écran livraison tontine : le défilement catalogue et stock accepte les deux sélecteurs.
+
 ## Mobile — [2.33.1] — 2026-10-08
 
 ### Fixed

@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, AlertController, LoadingController, IonInfiniteScroll, ModalController, ActionSheetController } from '@ionic/angular';
-import { Store } from '@ngrx/store';
+import { MemoizedSelector, Store } from '@ngrx/store';
 import { Subject, Observable } from 'rxjs';
 import { takeUntil, take } from 'rxjs/operators';
 
@@ -310,7 +310,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
     private completeInfiniteScroll(
         event: any,
-        hasMoreSelector: typeof selectCatalogueHasMore,
+        hasMoreSelector: MemoizedSelector<object, boolean, any>,
         loadNext: () => void
     ): void {
         this.store.select(hasMoreSelector)
