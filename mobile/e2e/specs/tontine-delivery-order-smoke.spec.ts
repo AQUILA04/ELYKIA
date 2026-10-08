@@ -150,14 +150,24 @@ async function openDeliveryCreation(page: Page): Promise<void> {
   await expect(page.getByTestId('e2e-delivery-budget')).toBeVisible({ timeout: 30_000 });
 }
 
-async function selectFirstArticle(page: Page, options?: { catalogue?: boolean }): Promise<void> {
+async function selectFirstArticle(page: Page, options?: { catalogue?: boolean; search?: string }): Promise<void> {
   if (options?.catalogue) {
     await expect(page.getByTestId('e2e-delivery-article-source')).toContainText(/catalogue/i, {
       timeout: 15_000,
     });
   }
+  if (options?.search) {
+    const searchbar = page.locator('ion-searchbar').first();
+    await searchbar.evaluate((host, value) => {
+      const el = host as HTMLIonSearchbarElement;
+      el.value = value;
+      host.dispatchEvent(new CustomEvent('ionInput', { bubbles: true, detail: { value } }));
+    }, options.search);
+  }
   const article = options?.catalogue
-    ? page.getByTestId('e2e-delivery-catalogue-card').first()
+    ? page.getByTestId('e2e-delivery-catalogue-card').filter({
+      hasText: options.search ? new RegExp(options.search, 'i') : /.+/,
+    }).first()
     : page.locator('.article-card').first();
   await expect(article).toBeVisible({ timeout: 30_000 });
   // Wait until member budget is loaded (collections synced); otherwise Valider stays disabled.
@@ -253,7 +263,8 @@ test.describe('Tontine delivery order vs direct @smoke', () => {
     await openDeliveryCreation(page);
     // ORDER requires ACTIVE → catalogue; force status before picking articles.
     await forceDeliveryCreationSessionStatus(page, 'ACTIVE');
-    await selectFirstArticle(page, { catalogue: true });
+    // Article 11 is the only seeded tontine stock line; the remise must find it.
+    await selectFirstArticle(page, { catalogue: true, search: 'KING SAM 25KG' });
     await chooseDeliveryMode(page, 'ORDER');
 
     await expect.poll(() => orderPosts.length, { timeout: 45_000 }).toBeGreaterThan(0);
