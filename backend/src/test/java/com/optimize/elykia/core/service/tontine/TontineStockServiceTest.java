@@ -50,7 +50,7 @@ class TontineStockServiceTest {
         CustomValidationException exception = assertThrows(CustomValidationException.class,
                 () -> service.validateTontineStockAvailability(
                         List.of(missingArticle, insufficientArticle), "collector.a"));
-        assertEquals("L'article(s) Réfrigérateur, Téléviseur n'est pas disponible(s) ou quantité insuffisante pour le stock du commercial",
+        assertEquals("Stock tontine insuffisant pour l'article Réfrigérateur, Téléviseur — faites une demande de stock tontine avant la remise",
                 exception.getMessage());
     }
 

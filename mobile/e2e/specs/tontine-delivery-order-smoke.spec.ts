@@ -57,7 +57,14 @@ async function forceDeliveryCreationSessionStatus(page: Page, status: 'ACTIVE' |
   await page.waitForSelector('app-delivery-creation');
   await page.evaluate((nextStatus) => {
     const host = document.querySelector('app-delivery-creation');
-    const ng = (window as unknown as { ng?: { getComponent?: (el: Element) => { vm?: { session?: { status?: string } } } } }).ng;
+    const ng = (window as unknown as {
+      ng?: {
+        getComponent?: (el: Element) => {
+          vm?: { session?: { status?: string } };
+          refreshArticleSource?: () => void;
+        };
+      };
+    }).ng;
     if (!host || !ng?.getComponent) {
       throw new Error('Angular ng.getComponent unavailable for delivery-creation session patch');
     }
@@ -66,6 +73,7 @@ async function forceDeliveryCreationSessionStatus(page: Page, status: 'ACTIVE' |
       throw new Error('delivery-creation session missing');
     }
     cmp.vm.session = { ...cmp.vm.session, status: nextStatus };
+    cmp.refreshArticleSource?.();
   }, status);
 }
 
@@ -157,6 +165,23 @@ async function selectFirstArticle(page: Page): Promise<void> {
   await expect(page.getByTestId('e2e-tontine-delivery-validate')).toBeEnabled({ timeout: 10_000 });
 }
 
+async function selectFirstCatalogueArticle(page: Page): Promise<void> {
+  await expect(page.getByTestId('e2e-delivery-article-source')).toContainText(/catalogue/i, {
+    timeout: 15_000,
+  });
+  const article = page.getByTestId('e2e-delivery-catalogue-card').first();
+  await expect(article).toBeVisible({ timeout: 30_000 });
+  await expect
+    .poll(async () => {
+      const text = await page.getByTestId('e2e-delivery-budget').innerText();
+      return /Total épargné[\s\S]*?[1-9]/.test(text);
+    }, { timeout: 45_000 })
+    .toBe(true);
+  await article.locator('.qty-btn').filter({ has: page.locator('ion-icon[name="add"]') }).click();
+  await expect(page.locator('.footer-summary')).toContainText(/Articles\s*1/, { timeout: 10_000 });
+  await expect(page.getByTestId('e2e-tontine-delivery-validate')).toBeEnabled({ timeout: 10_000 });
+}
+
 function trackApi(page: Page, matcher: (url: string, method: string) => boolean): Request[] {
   const hits: Request[] = [];
   page.on('request', (request) => {
@@ -236,7 +261,9 @@ test.describe('Tontine delivery order vs direct @smoke', () => {
 
     await openMemberByName(page, /VITOR NOUHNA/i);
     await openDeliveryCreation(page);
-    await selectFirstArticle(page);
+    // ORDER requires ACTIVE → catalogue; force status before picking articles.
+    await forceDeliveryCreationSessionStatus(page, 'ACTIVE');
+    await selectFirstCatalogueArticle(page);
     await chooseDeliveryMode(page, 'ORDER');
 
     await expect.poll(() => orderPosts.length, { timeout: 45_000 }).toBeGreaterThan(0);

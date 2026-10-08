@@ -9,6 +9,24 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.29.5] — 2026-10-08
+
+### Changed
+- Guide utilisateur : commande tontine depuis le catalogue (sans stock commercial préalable) ; remise conditionnée au stock tontine.
+
+## Mobile — [2.33.0] — 2026-10-08
+
+### Added
+- Commande tontine depuis le **catalogue général** (session ouverte), sans exiger de stock tontine commercial ; prix `sellingPrice` synchronisé localement.
+
+### Changed
+- Remise / livraison directe : reste basée sur le **stock tontine** du commercial, avec message explicite si stock insuffisant.
+
+## Backend — [1.30.1] — 2026-10-08
+
+### Changed
+- Message d’erreur à la remise tontine : indique clairement un stock tontine insuffisant et invite à une demande de stock tontine.
+
 ## Frontend — [2.29.4] — 2026-10-07
 
 ### Changed

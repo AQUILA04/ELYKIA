@@ -263,6 +263,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                 : await this.deliveryRepo.getItems(this.vm.delivery.id);
 
             const stockUpdates: Array<{ stockId: string; quantity: number }> = [];
+            const missingArticles: string[] = [];
             if (session && this.commercialUsername) {
                 for (const item of items) {
                     const stock = await this.stockRepo.getByArticle(
@@ -270,10 +271,24 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                         session.id,
                         item.articleId
                     );
-                    if (stock) {
+                    if (!stock || (stock.availableQuantity ?? 0) < item.quantity) {
+                        missingArticles.push(item.articleName || item.articleId);
+                    } else {
                         stockUpdates.push({ stockId: stock.id, quantity: item.quantity });
                     }
                 }
+            }
+
+            if (missingArticles.length > 0) {
+                await loading.dismiss();
+                const alert = await this.alertCtrl.create({
+                    header: 'Stock tontine insuffisant',
+                    message: `Stock tontine insuffisant pour l'article ${missingArticles.join(', ')} — faites une demande de stock tontine avant la remise.`,
+                    cssClass: 'elyk-alert',
+                    buttons: ['OK']
+                });
+                await alert.present();
+                return;
             }
 
             await this.tontineWriteService.markDeliveryAsDelivered({

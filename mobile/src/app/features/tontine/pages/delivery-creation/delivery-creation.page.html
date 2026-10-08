@@ -59,6 +59,12 @@
     </div>
   </div>
 
+  <div class="mode-banner elyk-card" data-testid="e2e-delivery-article-source">
+    <ion-icon [name]="isCatalogueMode ? 'list-outline' : 'cube-outline'"></ion-icon>
+    <span *ngIf="isCatalogueMode">Commande — catalogue (stock tontine non requis)</span>
+    <span *ngIf="!isCatalogueMode">Remise — stock tontine disponible</span>
+  </div>
+
   <div class="warning-message elyk-card">
     <ion-icon name="warning-outline"></ion-icon>
     <span>Le montant total ne doit pas dépasser le budget épargné.</span>
@@ -70,34 +76,63 @@
   </div>
 
   <div class="articles-container">
-    <p class="elyk-quarter-title">Articles disponibles</p>
+    <p class="elyk-quarter-title">{{ isCatalogueMode ? 'Catalogue' : 'Articles disponibles' }}</p>
 
-    <div class="elyk-empty" *ngIf="(stocks$ | async)?.length === 0 && !(isLoading$ | async)">
-      <ion-icon name="cube-outline"></ion-icon>
-      <h3>Aucun stock disponible</h3>
-      <p>Aucun article en stock pour cette session</p>
-    </div>
+    <!-- Catalogue (session ACTIVE) -->
+    <ng-container *ngIf="isCatalogueMode">
+      <div class="elyk-empty" *ngIf="(catalogue$ | async)?.length === 0 && !(catalogueLoading$ | async)">
+        <ion-icon name="list-outline"></ion-icon>
+        <h3>Aucun article catalogue</h3>
+        <p>Synchronisez pour charger le catalogue, ou affinez votre recherche.</p>
+      </div>
 
-    <div class="elyk-card article-card" *ngFor="let stock of stocks$ | async">
-      <div class="article-icon"><ion-icon name="cube-outline"></ion-icon></div>
-      <div class="article-info">
-        <div class="article-name">{{ stock.articleName || 'Article' }}</div>
-        <div class="article-price elyk-amount">{{ stock.unitPrice | number }} FCFA</div>
-        <div class="article-stock">Disponible : {{ stock.availableQuantity }} unités</div>
-        <div class="quantity-control">
-          <button type="button" class="qty-btn" (click)="decreaseQuantity(stock)" [disabled]="getQuantity(stock.id) === 0">
-            <ion-icon name="remove"></ion-icon>
-          </button>
-          <div class="quantity-display">{{ getQuantity(stock.id) }}</div>
-          <button type="button" class="qty-btn" (click)="increaseQuantity(stock)"
-            [disabled]="getQuantity(stock.id) >= stock.availableQuantity">
-            <ion-icon name="add"></ion-icon>
-          </button>
+      <div class="elyk-card article-card" *ngFor="let article of catalogue$ | async" data-testid="e2e-delivery-catalogue-card">
+        <div class="article-icon"><ion-icon name="cube-outline"></ion-icon></div>
+        <div class="article-info">
+          <div class="article-name">{{ article.commercialName || article.name || 'Article' }}</div>
+          <div class="article-price elyk-amount">{{ catalogueUnitPrice(article) | number }} FCFA</div>
+          <div class="quantity-control">
+            <button type="button" class="qty-btn" (click)="decreaseCatalogueQuantity(article)" [disabled]="getQuantity(article.id) === 0">
+              <ion-icon name="remove"></ion-icon>
+            </button>
+            <div class="quantity-display">{{ getQuantity(article.id) }}</div>
+            <button type="button" class="qty-btn" (click)="increaseCatalogueQuantity(article)">
+              <ion-icon name="add"></ion-icon>
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </ng-container>
 
-    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreStocks($event)">
+    <!-- Stock tontine (session CLOSED) -->
+    <ng-container *ngIf="!isCatalogueMode">
+      <div class="elyk-empty" *ngIf="(stocks$ | async)?.length === 0 && !(stockLoading$ | async)">
+        <ion-icon name="cube-outline"></ion-icon>
+        <h3>Aucun stock disponible</h3>
+        <p>Faites une demande de stock tontine avant la remise.</p>
+      </div>
+
+      <div class="elyk-card article-card" *ngFor="let stock of stocks$ | async" data-testid="e2e-delivery-stock-card">
+        <div class="article-icon"><ion-icon name="cube-outline"></ion-icon></div>
+        <div class="article-info">
+          <div class="article-name">{{ stock.articleName || 'Article' }}</div>
+          <div class="article-price elyk-amount">{{ stock.unitPrice | number }} FCFA</div>
+          <div class="article-stock">Disponible : {{ stock.availableQuantity }} unités</div>
+          <div class="quantity-control">
+            <button type="button" class="qty-btn" (click)="decreaseQuantity(stock)" [disabled]="getQuantity(stock.id) === 0">
+              <ion-icon name="remove"></ion-icon>
+            </button>
+            <div class="quantity-display">{{ getQuantity(stock.id) }}</div>
+            <button type="button" class="qty-btn" (click)="increaseQuantity(stock)"
+              [disabled]="getQuantity(stock.id) >= stock.availableQuantity">
+              <ion-icon name="add"></ion-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ion-infinite-scroll threshold="100px" (ionInfinite)="loadMoreArticles($event)">
       <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement plus d'articles...">
       </ion-infinite-scroll-content>
     </ion-infinite-scroll>

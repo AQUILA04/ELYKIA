@@ -51,7 +51,7 @@ public class TontineStockService extends GenericService<TontineStock, Long> {
 
         if (!unAvailableStock.isEmpty()) {
             throw new CustomValidationException(String.format(
-                    "L'article(s) %s n'est pas disponible(s) ou quantité insuffisante pour le stock du commercial",
+                    "Stock tontine insuffisant pour l'article %s — faites une demande de stock tontine avant la remise",
                     String.join(", ", unAvailableStock)));
         }
     }

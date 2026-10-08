@@ -1,6 +1,7 @@
 ---
 name: Commande tontine depuis catalogue
 overview: Permettre la commande tontine depuis le catalogue général (sans stock commercial préalable), tout en gardant la remise physique conditionnée au stock tontine du commercial.
+status: implemented
 ---
 
 # Commande tontine depuis le catalogue (sans stock préalable)

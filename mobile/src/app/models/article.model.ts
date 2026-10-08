@@ -1,6 +1,8 @@
 export interface Article {
   id: string;
   creditSalePrice: number;
+  /** Prix catalogue (aligné admin / commande tontine). */
+  sellingPrice?: number;
   name: string;
   marque: string;
   model: string;

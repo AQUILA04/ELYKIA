@@ -73,6 +73,23 @@ ion-header.ion-no-border {
   margin-top: 12px;
 }
 
+.mode-banner {
+  margin: 0 16px 8px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--elyk-navy);
+
+  ion-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+    color: var(--elyk-cyan, #0ea5e9);
+  }
+}
+
 .warning-message {
   margin: 0 16px 8px;
   padding: 12px 14px;

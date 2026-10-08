@@ -967,18 +967,19 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
 2. **Regardez le bandeau de budget en haut** :
    * Il vous indique le budget net disponible de la membre (le total épargné moins les frais de gestion statutaires de la tontine).
 3. **Choisissez les articles avec la cliente** :
-   * Parcourez le catalogue et touchez **+** pour ajouter les articles qu'elle désire.
-   * Au fur et à mesure, le compteur **Sélectionné** monte et le compteur **Restant** diminue.
+   * **Pendant la session ouverte** : l'écran affiche le **catalogue** de l'agence. Vous n'avez pas besoin d'avoir déjà du stock tontine pour enregistrer la commande.
+   * **Après la clôture** : l'écran affiche votre **stock tontine** (articles reçus du magasin) pour la remise en mains propres.
+   * Touchez **+** pour ajouter les articles. Au fur et à mesure, le compteur **Sélectionné** monte et le compteur **Restant** diminue.
 4. **Que faire si la cliente veut un article un peu plus cher que son épargne ?**
    * L'application est intelligente ! Si le total des articles dépasse son épargne, un bouton bleu apparaît en haut : **« Compléter le solde (X FCFA) »**.
    * Touchez ce bouton : l'application ouvre aussitôt l'écran de cotisation avec le montant manquant pré-rempli. Dès que la cliente vous donne la différence, vous revenez automatiquement sur son panier parfaitement équilibré !
 5. **Pendant la session ouverte — enregistrez une Commande** :
-   * Touchez **Valider**, puis **Commande** si vous n'avez pas encore les marchandises sur vous (par exemple pour préparer des cartons au dépôt).
-   * Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
+   * Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
    * L'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
+   * Ensuite, préparez vos cartons au dépôt (demande de stock tontine) pour être prêt le jour de la remise.
 6. **Après la clôture de la session — remettez les articles** :
-   * **Livraison directe** : si vous avez les articles dans votre véhicule et que vous les donnez immédiatement, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise.
-   * **Marquer comme livré** : si une commande était déjà enregistrée, retournez sur la fiche membre et touchez **Marquer comme livré**. Le stock est décompté et le dossier est terminé.
+   * **Livraison directe** : si vous avez les articles dans votre stock tontine et que vous les donnez immédiatement, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise.
+   * **Marquer comme livré** : si une commande était déjà enregistrée, retournez sur la fiche membre et touchez **Marquer comme livré**. Le stock tontine est décompté et le dossier est terminé. Si un article manque dans votre stock, l'application vous le signale pour que vous fassiez d'abord une demande au magasin.
    * Une fois la session clôturée, vous ne créez plus de nouvelle commande : seule la remise reste disponible.
 
 ---
