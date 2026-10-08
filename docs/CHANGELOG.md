@@ -14,6 +14,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 - Guide utilisateur : commande tontine depuis le catalogue (sans stock commercial préalable) ; remise conditionnée au stock tontine.
 
+## Mobile — [2.33.3] — 2026-10-08
+
+### Fixed
+- Smoke e2e commande tontine : le catalogue mocké (`/articles/enabled/all`) n'efface plus les articles locaux.
+
 ## Mobile — [2.33.2] — 2026-10-08
 
 ### Fixed
