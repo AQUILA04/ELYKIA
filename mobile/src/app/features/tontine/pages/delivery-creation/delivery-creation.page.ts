@@ -28,6 +28,10 @@ import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-conse
 import { Observable } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { generateTontineDeliveryReference } from 'src/app/core/utils/tontine-delivery-reference.util';
+import {
+    canCreateTontineOrder,
+    canPhysicallyDeliverTontine
+} from 'src/app/core/utils/tontine-delivery-status.util';
 
 interface DeliveryViewModel {
     member: TontineMember | null;
@@ -346,25 +350,45 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             }
         }
 
+        const sessionStatus = this.vm.session?.status;
+        const orderAllowed = canCreateTontineOrder(sessionStatus);
+        const directAllowed = canPhysicallyDeliverTontine(sessionStatus);
+
         const sheet = await this.actionSheetCtrl.create({
             header: 'Type d\'opération',
             subHeader: `Total: ${this.vm.usedBudget.toLocaleString('fr-FR')} FCFA — Restant: ${this.vm.remainingBudget.toLocaleString('fr-FR')} FCFA`,
             cssClass: 'elyk-action-sheet',
             buttons: [
                 {
-                    text: 'Commande',
+                    text: orderAllowed ? 'Commande' : 'Commande (session ouverte uniquement)',
                     icon: 'document-text-outline',
-                    cssClass: 'e2e-tontine-delivery-mode-order',
+                    cssClass: orderAllowed
+                        ? 'e2e-tontine-delivery-mode-order'
+                        : 'e2e-tontine-delivery-mode-order elyk-action-disabled',
                     handler: () => {
+                        if (!orderAllowed) {
+                            void this.showSessionGateMessage('ORDER');
+                            return false;
+                        }
                         void this.confirmAndProcess('ORDER');
+                        return true;
                     }
                 },
                 {
-                    text: 'Livraison directe',
+                    text: directAllowed
+                        ? 'Livraison directe'
+                        : 'Livraison directe (après clôture)',
                     icon: 'cube-outline',
-                    cssClass: 'e2e-tontine-delivery-mode-direct',
+                    cssClass: directAllowed
+                        ? 'e2e-tontine-delivery-mode-direct'
+                        : 'e2e-tontine-delivery-mode-direct elyk-action-disabled',
                     handler: () => {
+                        if (!directAllowed) {
+                            void this.showSessionGateMessage('DIRECT');
+                            return false;
+                        }
                         void this.confirmAndProcess('DIRECT');
+                        return true;
                     }
                 },
                 {
@@ -377,8 +401,29 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         await sheet.present();
     }
 
+    private async showSessionGateMessage(mode: TontineDeliveryCreationMode): Promise<void> {
+        const message = mode === 'ORDER'
+            ? 'La commande n\'est possible que tant que la session de tontine est ouverte.'
+            : 'La livraison directe n\'est possible qu\'une fois la session de tontine clôturée.';
+        const alert = await this.alertCtrl.create({
+            header: 'Action indisponible',
+            message,
+            buttons: ['OK']
+        });
+        await alert.present();
+    }
+
     private async confirmAndProcess(mode: TontineDeliveryCreationMode): Promise<void> {
         const isOrder = mode === 'ORDER';
+        if (isOrder && !canCreateTontineOrder(this.vm.session?.status)) {
+            await this.showSessionGateMessage('ORDER');
+            return;
+        }
+        if (!isOrder && !canPhysicallyDeliverTontine(this.vm.session?.status)) {
+            await this.showSessionGateMessage('DIRECT');
+            return;
+        }
+
         const alert = await this.alertCtrl.create({
             header: isOrder ? 'Confirmer la commande' : 'Confirmer la livraison',
             message: isOrder
@@ -400,6 +445,15 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     async processDelivery(mode: TontineDeliveryCreationMode = 'DIRECT', forceOffline = false) {
         const loading = await this.loadingCtrl.create({ message: 'Enregistrement...' });
         const isOrder = mode === 'ORDER';
+
+        if (isOrder && !canCreateTontineOrder(this.vm.session?.status)) {
+            await this.showSessionGateMessage('ORDER');
+            return;
+        }
+        if (!isOrder && !canPhysicallyDeliverTontine(this.vm.session?.status)) {
+            await this.showSessionGateMessage('DIRECT');
+            return;
+        }
 
         try {
             const deliveryId = this.generateUuid();
@@ -539,7 +593,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     async showHelp() {
         const alert = await this.alertCtrl.create({
             header: 'Aide',
-            message: 'Sélectionnez les articles. Au moment de valider, choisissez « Commande » (remise plus tard) ou « Livraison directe ». Le montant ne doit pas dépasser le budget du membre.',
+            message: 'Sélectionnez les articles. Pendant la session ouverte, validez en « Commande » (remise plus tard). Une fois la session clôturée, utilisez « Livraison directe ». Le montant ne doit pas dépasser le budget du membre.',
             buttons: ['OK']
         });
         await alert.present();

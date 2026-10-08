@@ -141,13 +141,14 @@
           </div>
         </div>
         <ion-button
-          *ngIf="canMarkAsDelivered()"
+          *ngIf="hasPendingDeliveryToMark()"
           expand="block"
           class="elyk-btn-navy ion-margin-top"
+          [disabled]="!canMarkAsDelivered()"
           (click)="markAsDelivered()"
           data-testid="e2e-tontine-mark-delivered">
           <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
-          Marquer comme livré
+          {{ canMarkAsDelivered() ? 'Marquer comme livré' : 'Marquer comme livré (après clôture)' }}
         </ion-button>
       </ion-card-content>
     </ion-card>

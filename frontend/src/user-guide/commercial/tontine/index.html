@@ -2264,16 +2264,16 @@
 - Après validation du paiement, la cotisation s'enregistre sur la session active du membre et son compteur de jours cotisés progresse immédiatement.</p>
 <hr />
 <h2 id="5-livraisons-de-fin-dannee">5. Livraisons de fin d'année</h2>
-<p>En fin de campagne, lorsque la session arrive à son terme, les membres utilisent leur épargne pour retirer des marchandises (appareils, vivres, équipements).</p>
+<p>Les membres choisissent leurs marchandises pendant la campagne ouverte. La remise en mains propres se fait après la clôture de la session.</p>
 <h3 id="le-cycle-dune-livraison">Le cycle d'une livraison</h3>
 <div class="highlight"><pre><span></span><code>flowchart LR
-    A[Campagne fermée : En attente] --&gt;|Préparer livraison| B[Choix des articles au catalogue]
+    A[Session ouverte] --&gt;|Préparer livraison| B[Choix des articles au catalogue]
     B --&gt;|Validation administrative| C[Livraison validée]
-    C --&gt;|Remise physique| D[Livraison terminée]
+    C --&gt;|Session clôturée puis remise| D[Livraison terminée]
 </code></pre></div>
 <ol>
 <li><strong>Préparer la Livraison</strong> :</li>
-<li>Lorsque la session de collecte est fermée, le bouton <strong>Préparer la Livraison</strong> devient actif sur la fiche du membre.</li>
+<li>Tant que la session est ouverte, le bouton <strong>Préparer la Livraison</strong> est disponible sur la fiche du membre.</li>
 <li>Une fenêtre s'ouvre avec le <strong>Solde Disponible</strong> mobilisable.</li>
 <li>Choisissez les articles souhaités dans le catalogue en indiquant les quantités.</li>
 <li>Le système vérifie en direct que le montant total des articles ne dépasse pas le solde disponible du membre.</li>
@@ -2290,7 +2290,7 @@
 <li>
 <p><strong>Marquer comme Livré</strong> :</p>
 </li>
-<li>Au moment de la remise en mains propres des articles au membre, le commercial ou le magasinier clique sur <strong>Marquer comme Livré</strong>.</li>
+<li>Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur <strong>Marquer comme Livré</strong>.</li>
 <li>Cette action déduit définitivement les articles du stock tontine et clôture le dossier du membre.</li>
 <li>La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.</li>
 </ol>

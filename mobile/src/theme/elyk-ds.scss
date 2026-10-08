@@ -490,6 +490,11 @@ ion-chip.elyk-chip {
   .elyk-action-danger {
     opacity: 0.4;
   }
+
+  .elyk-action-disabled {
+    opacity: 0.45;
+    pointer-events: auto;
+  }
 }
 
 /* Alertes succès / confirm */

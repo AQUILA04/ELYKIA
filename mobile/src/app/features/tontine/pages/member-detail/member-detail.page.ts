@@ -21,7 +21,9 @@ import { Client } from 'src/app/models/client.model';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { selectTontineSession } from 'src/app/store/tontine/tontine.selectors';
 import {
+    canCreateTontineOrder,
     canMarkTontineDeliveryAsDelivered,
+    canPhysicallyDeliverTontine,
     getTontineDeliveryStatusLabel
 } from 'src/app/core/utils/tontine-delivery-status.util';
 import { firstValueFrom } from 'rxjs';
@@ -51,6 +53,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
     private memberId: string | null = null;
     private commercialUsername: string | null = null;
+    sessionStatus: string | null = null;
 
     vm: MemberDetailViewModel = {
         member: null,
@@ -97,6 +100,12 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                 if (user) {
                     this.commercialUsername = user.username;
                 }
+            });
+
+        this.store.select(selectTontineSession)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe(session => {
+                this.sessionStatus = session?.status ?? null;
             });
 
         await this.loadMemberData();
@@ -185,12 +194,34 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         return getTontineDeliveryStatusLabel(status);
     }
 
-    canMarkAsDelivered(): boolean {
+    /** Commande en attente de remise physique (indépendamment de la session). */
+    hasPendingDeliveryToMark(): boolean {
         return !!this.vm.delivery && canMarkTontineDeliveryAsDelivered(this.vm.delivery.status);
     }
 
+    /** Remise autorisée seulement si dossier PENDING/VALIDATED et session CLOSED. */
+    canMarkAsDelivered(): boolean {
+        return this.hasPendingDeliveryToMark() && canPhysicallyDeliverTontine(this.sessionStatus);
+    }
+
+    canOpenDeliveryCreation(): boolean {
+        return !this.vm.delivery
+            && (canCreateTontineOrder(this.sessionStatus) || canPhysicallyDeliverTontine(this.sessionStatus));
+    }
+
     async markAsDelivered(): Promise<void> {
-        if (!this.vm.delivery || !this.vm.member || !this.canMarkAsDelivered()) {
+        if (!this.vm.delivery || !this.vm.member || !this.hasPendingDeliveryToMark()) {
+            return;
+        }
+
+        if (!canPhysicallyDeliverTontine(this.sessionStatus)) {
+            const blocked = await this.alertCtrl.create({
+                header: 'Action indisponible',
+                message: 'Vous pourrez marquer la commande comme livrée une fois la session de tontine clôturée.',
+                cssClass: 'elyk-alert',
+                buttons: ['OK']
+            });
+            await blocked.present();
             return;
         }
 
@@ -213,6 +244,10 @@ export class MemberDetailPage implements OnInit, OnDestroy {
 
     private async performMarkAsDelivered(forceOffline = false): Promise<void> {
         if (!this.vm.delivery || !this.vm.member) {
+            return;
+        }
+        if (!canPhysicallyDeliverTontine(this.sessionStatus)) {
+            await this.markAsDelivered();
             return;
         }
 
@@ -314,18 +349,22 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                         this.viewClient();
                     }
                 },
-                ...(!this.vm.delivery ? [{
+                ...(this.canOpenDeliveryCreation() ? [{
                     text: 'Livraison Fin d\'Année',
                     icon: 'cube-outline',
                     handler: () => {
                         this.createDelivery();
                     }
                 }] : []),
-                ...(this.canMarkAsDelivered() ? [{
-                    text: 'Marquer comme livré',
+                ...(this.hasPendingDeliveryToMark() ? [{
+                    text: this.canMarkAsDelivered()
+                        ? 'Marquer comme livré'
+                        : 'Marquer comme livré (après clôture)',
                     icon: 'checkmark-done-outline',
+                    cssClass: this.canMarkAsDelivered() ? undefined : 'elyk-action-disabled',
                     handler: () => {
                         void this.markAsDelivered();
+                        return this.canMarkAsDelivered();
                     }
                 }] : []),
                 {

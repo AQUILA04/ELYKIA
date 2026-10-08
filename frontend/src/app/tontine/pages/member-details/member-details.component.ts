@@ -692,6 +692,10 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
 
   async onMarkAsDelivered(): Promise<void> {
     if (!this.member?.delivery?.id) return;
+    if (this.currentSessionStatus !== TontineSessionStatus.CLOSED) {
+      this.showError('La remise n\'est possible qu\'une fois la session clôturée.');
+      return;
+    }
 
     const isConfirmed = await this.alertService.showConfirmation(
       'Confirmation',
@@ -717,6 +721,10 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
 
   onPrepareDelivery(): void {
     if (!this.member) return;
+    if (this.currentSessionStatus !== TontineSessionStatus.ACTIVE) {
+      this.showError('La préparation de livraison n\'est possible que tant que la session est ouverte.');
+      return;
+    }
 
     const dialogRef = this.dialog.open(DeliveryArticleSelectionModalComponent, {
       width: '900px',

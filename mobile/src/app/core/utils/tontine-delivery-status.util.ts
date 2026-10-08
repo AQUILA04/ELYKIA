@@ -23,6 +23,16 @@ export function isTontineDeliveryOrder(status?: string | null): boolean {
   return status === 'PENDING' || status === 'VALIDATED';
 }
 
+/** Commande (PENDING) : uniquement pendant une session ouverte. */
+export function canCreateTontineOrder(sessionStatus?: string | null): boolean {
+  return sessionStatus === 'ACTIVE';
+}
+
+/** Remise physique (livraison directe / marquer comme livré) : uniquement session clôturée. */
+export function canPhysicallyDeliverTontine(sessionStatus?: string | null): boolean {
+  return sessionStatus === 'CLOSED';
+}
+
 export function resolveMemberDeliveryStatus(
   deliveryStatus: TontineDeliveryStatus
 ): 'PENDING' | 'VALIDATED' | 'DELIVERED' {
