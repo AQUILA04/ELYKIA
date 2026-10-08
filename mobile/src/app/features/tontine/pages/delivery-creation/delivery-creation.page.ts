@@ -287,18 +287,11 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
     loadMoreArticles(event: any) {
         if (this.isCatalogueMode) {
-            this.store.select(selectCatalogueHasMore)
-                .pipe(take(1))
-                .subscribe(hasMore => {
-                    if (hasMore) {
-                        this.store.dispatch(ArticleActions.loadNextPageCatalogueArticles({
-                            filters: { searchQuery: this.currentSearchQuery }
-                        }));
-                    } else {
-                        event.target.disabled = true;
-                    }
-                    setTimeout(() => event.target.complete(), 500);
-                });
+            this.completeInfiniteScroll(event, selectCatalogueHasMore, () => {
+                this.store.dispatch(ArticleActions.loadNextPageCatalogueArticles({
+                    filters: { searchQuery: this.currentSearchQuery }
+                }));
+            });
             return;
         }
 
@@ -307,16 +300,24 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return;
         }
 
-        this.store.select(selectTontineStockPaginationHasMore)
+        this.completeInfiniteScroll(event, selectTontineStockPaginationHasMore, () => {
+            this.store.dispatch(TontineActions.loadNextPageTontineStocks({
+                sessionId: this.vm.session!.id,
+                filters: { searchQuery: this.currentSearchQuery }
+            }));
+        });
+    }
+
+    private completeInfiniteScroll(
+        event: any,
+        hasMoreSelector: typeof selectCatalogueHasMore,
+        loadNext: () => void
+    ): void {
+        this.store.select(hasMoreSelector)
             .pipe(take(1))
             .subscribe(hasMore => {
                 if (hasMore) {
-                    this.store.dispatch(TontineActions.loadNextPageTontineStocks({
-                        sessionId: this.vm.session!.id,
-                        filters: {
-                            searchQuery: this.currentSearchQuery
-                        }
-                    }));
+                    loadNext();
                 } else {
                     event.target.disabled = true;
                 }
@@ -342,61 +343,55 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     }
 
     increaseCatalogueQuantity(article: Article) {
-        const price = this.catalogueUnitPrice(article);
-        this.cartDetails.set(article.id, {
-            price,
+        this.bumpCartQuantity(article.id, {
+            price: this.catalogueUnitPrice(article),
             name: article.commercialName || article.name || 'Article',
             maxQty: Number.MAX_SAFE_INTEGER,
             articleId: article.id
         });
-
-        const currentQty = this.getQuantity(article.id);
-        this.cart.set(article.id, currentQty + 1);
-        this.updateBudgetCalculations();
     }
 
     decreaseCatalogueQuantity(article: Article) {
-        const currentQty = this.getQuantity(article.id);
-        if (currentQty > 0) {
-            const newQty = currentQty - 1;
-            if (newQty === 0) {
-                this.cart.delete(article.id);
-                this.cartDetails.delete(article.id);
-            } else {
-                this.cart.set(article.id, newQty);
-            }
-            this.updateBudgetCalculations();
-        }
+        this.decreaseCartQuantity(article.id);
     }
 
     increaseQuantity(stock: TontineStock) {
-        this.cartDetails.set(stock.id, {
+        this.bumpCartQuantity(stock.id, {
             price: stock.unitPrice,
             name: stock.articleName || 'Article',
             maxQty: stock.availableQuantity,
             articleId: stock.articleId,
             stockId: stock.id
-        });
-
-        const currentQty = this.getQuantity(stock.id);
-        if (currentQty < stock.availableQuantity) {
-            this.cart.set(stock.id, currentQty + 1);
-            this.updateBudgetCalculations();
-        }
+        }, stock.availableQuantity);
     }
 
     decreaseQuantity(stock: TontineStock) {
-        const currentQty = this.getQuantity(stock.id);
-        if (currentQty > 0) {
-            const newQty = currentQty - 1;
-            if (newQty === 0) {
-                this.cart.delete(stock.id);
-                this.cartDetails.delete(stock.id);
-            } else {
-                this.cart.set(stock.id, newQty);
-            }
-            this.updateBudgetCalculations();
+        this.decreaseCartQuantity(stock.id);
+    }
+
+    private bumpCartQuantity(cartKey: string, details: CartLineDetails, maxQty?: number): void {
+        this.cartDetails.set(cartKey, details);
+        const currentQty = this.getQuantity(cartKey);
+        if (maxQty !== undefined && currentQty >= maxQty) {
+            return;
         }
+        this.cart.set(cartKey, currentQty + 1);
+        this.updateBudgetCalculations();
+    }
+
+    private decreaseCartQuantity(cartKey: string): void {
+        const currentQty = this.getQuantity(cartKey);
+        if (currentQty <= 0) {
+            return;
+        }
+        const newQty = currentQty - 1;
+        if (newQty === 0) {
+            this.cart.delete(cartKey);
+            this.cartDetails.delete(cartKey);
+        } else {
+            this.cart.set(cartKey, newQty);
+        }
+        this.updateBudgetCalculations();
     }
 
     updateBudgetCalculations() {

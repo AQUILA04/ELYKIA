@@ -150,27 +150,17 @@ async function openDeliveryCreation(page: Page): Promise<void> {
   await expect(page.getByTestId('e2e-delivery-budget')).toBeVisible({ timeout: 30_000 });
 }
 
-async function selectFirstArticle(page: Page): Promise<void> {
-  const article = page.locator('.article-card').first();
+async function selectFirstArticle(page: Page, options?: { catalogue?: boolean }): Promise<void> {
+  if (options?.catalogue) {
+    await expect(page.getByTestId('e2e-delivery-article-source')).toContainText(/catalogue/i, {
+      timeout: 15_000,
+    });
+  }
+  const article = options?.catalogue
+    ? page.getByTestId('e2e-delivery-catalogue-card').first()
+    : page.locator('.article-card').first();
   await expect(article).toBeVisible({ timeout: 30_000 });
   // Wait until member budget is loaded (collections synced); otherwise Valider stays disabled.
-  await expect
-    .poll(async () => {
-      const text = await page.getByTestId('e2e-delivery-budget').innerText();
-      return /Total épargné[\s\S]*?[1-9]/.test(text);
-    }, { timeout: 45_000 })
-    .toBe(true);
-  await article.locator('.qty-btn').filter({ has: page.locator('ion-icon[name="add"]') }).click();
-  await expect(page.locator('.footer-summary')).toContainText(/Articles\s*1/, { timeout: 10_000 });
-  await expect(page.getByTestId('e2e-tontine-delivery-validate')).toBeEnabled({ timeout: 10_000 });
-}
-
-async function selectFirstCatalogueArticle(page: Page): Promise<void> {
-  await expect(page.getByTestId('e2e-delivery-article-source')).toContainText(/catalogue/i, {
-    timeout: 15_000,
-  });
-  const article = page.getByTestId('e2e-delivery-catalogue-card').first();
-  await expect(article).toBeVisible({ timeout: 30_000 });
   await expect
     .poll(async () => {
       const text = await page.getByTestId('e2e-delivery-budget').innerText();
@@ -263,7 +253,7 @@ test.describe('Tontine delivery order vs direct @smoke', () => {
     await openDeliveryCreation(page);
     // ORDER requires ACTIVE → catalogue; force status before picking articles.
     await forceDeliveryCreationSessionStatus(page, 'ACTIVE');
-    await selectFirstCatalogueArticle(page);
+    await selectFirstArticle(page, { catalogue: true });
     await chooseDeliveryMode(page, 'ORDER');
 
     await expect.poll(() => orderPosts.length, { timeout: 45_000 }).toBeGreaterThan(0);

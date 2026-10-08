@@ -14,6 +14,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 - Guide utilisateur : commande tontine depuis le catalogue (sans stock commercial préalable) ; remise conditionnée au stock tontine.
 
+## Mobile — [2.33.1] — 2026-10-08
+
+### Fixed
+- SonarCloud : await des logs de migration `v34` et réduction de duplication (panier livraison / smoke e2e).
+
 ## Mobile — [2.33.0] — 2026-10-08
 
 ### Added
