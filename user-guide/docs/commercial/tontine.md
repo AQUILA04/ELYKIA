@@ -165,7 +165,7 @@ flowchart LR
 1. **Préparer la Livraison** :
    - Tant que la session est ouverte, le bouton **Préparer la Livraison** est disponible sur la fiche du membre.
    - Une fenêtre s'ouvre avec le **Solde Disponible** mobilisable.
-   - Choisissez les articles souhaités dans le catalogue en indiquant les quantités.
+   - Choisissez les articles souhaités dans le **catalogue** de l'agence (pas besoin que le commercial ait déjà du stock tontine).
    - Le système vérifie en direct que le montant total des articles ne dépasse pas le solde disponible du membre.
    - Si les articles choisis coûtent moins que l'épargne, la différence reste conservée comme **Solde non utilisé** au profit du client.
    - Le dossier passe au statut **En attente**.
@@ -175,7 +175,7 @@ flowchart LR
 
 3. **Marquer comme Livré** :
    - Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur **Marquer comme Livré**.
-   - Cette action déduit définitivement les articles du stock tontine et clôture le dossier du membre.
+   - Cette action déduit définitivement les articles du **stock tontine** du commercial et clôture le dossier du membre. Le commercial doit donc avoir reçu les articles via une demande de stock tontine avant la remise.
    - La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.
 
 ### Consulter l'ensemble des livraisons (Menu Tontines > Livraison)

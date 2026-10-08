@@ -57,7 +57,14 @@ async function forceDeliveryCreationSessionStatus(page: Page, status: 'ACTIVE' |
   await page.waitForSelector('app-delivery-creation');
   await page.evaluate((nextStatus) => {
     const host = document.querySelector('app-delivery-creation');
-    const ng = (window as unknown as { ng?: { getComponent?: (el: Element) => { vm?: { session?: { status?: string } } } } }).ng;
+    const ng = (window as unknown as {
+      ng?: {
+        getComponent?: (el: Element) => {
+          vm?: { session?: { status?: string } };
+          refreshArticleSource?: () => void;
+        };
+      };
+    }).ng;
     if (!host || !ng?.getComponent) {
       throw new Error('Angular ng.getComponent unavailable for delivery-creation session patch');
     }
@@ -66,6 +73,7 @@ async function forceDeliveryCreationSessionStatus(page: Page, status: 'ACTIVE' |
       throw new Error('delivery-creation session missing');
     }
     cmp.vm.session = { ...cmp.vm.session, status: nextStatus };
+    cmp.refreshArticleSource?.();
   }, status);
 }
 
@@ -142,8 +150,15 @@ async function openDeliveryCreation(page: Page): Promise<void> {
   await expect(page.getByTestId('e2e-delivery-budget')).toBeVisible({ timeout: 30_000 });
 }
 
-async function selectFirstArticle(page: Page): Promise<void> {
-  const article = page.locator('.article-card').first();
+async function selectFirstArticle(page: Page, options?: { catalogue?: boolean }): Promise<void> {
+  if (options?.catalogue) {
+    await expect(page.getByTestId('e2e-delivery-article-source')).toContainText(/catalogue/i, {
+      timeout: 15_000,
+    });
+  }
+  const article = options?.catalogue
+    ? page.getByTestId('e2e-delivery-catalogue-card').first()
+    : page.locator('.article-card').first();
   await expect(article).toBeVisible({ timeout: 30_000 });
   // Wait until member budget is loaded (collections synced); otherwise Valider stays disabled.
   await expect
@@ -236,7 +251,9 @@ test.describe('Tontine delivery order vs direct @smoke', () => {
 
     await openMemberByName(page, /VITOR NOUHNA/i);
     await openDeliveryCreation(page);
-    await selectFirstArticle(page);
+    // ORDER requires ACTIVE → catalogue; force status before picking articles.
+    await forceDeliveryCreationSessionStatus(page, 'ACTIVE');
+    await selectFirstArticle(page, { catalogue: true });
     await chooseDeliveryMode(page, 'ORDER');
 
     await expect.poll(() => orderPosts.length, { timeout: 45_000 }).toBeGreaterThan(0);

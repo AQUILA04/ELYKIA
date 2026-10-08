@@ -1,9 +1,9 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, AlertController, LoadingController, IonInfiniteScroll, ModalController, ActionSheetController } from '@ionic/angular';
-import { Store } from '@ngrx/store';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { MemoizedSelector, Store } from '@ngrx/store';
+import { Subject, Observable } from 'rxjs';
+import { takeUntil, take } from 'rxjs/operators';
 
 import { TontineMemberRepository } from 'src/app/core/repositories/tontine-member.repository';
 import { TontineCollectionRepository } from 'src/app/core/repositories/tontine-collection.repository';
@@ -17,16 +17,26 @@ import { DatabaseService } from 'src/app/core/services/database.service';
 import { TontineCalculationService } from 'src/app/core/services/tontine-calculation.service';
 
 import { TontineMember, TontineSession, TontineDelivery, TontineDeliveryItem, TontineStock, TontineDeliveryCreationMode } from 'src/app/models/tontine.model';
+import { Article } from 'src/app/models/article.model';
 import { Client } from 'src/app/models/client.model';
-import { selectTontineSession, selectPaginatedTontineStocks, selectTontineStockPaginationLoading, selectTontineStockPaginationHasMore } from 'src/app/store/tontine/tontine.selectors';
+import {
+    selectTontineSession,
+    selectPaginatedTontineStocks,
+    selectTontineStockPaginationLoading,
+    selectTontineStockPaginationHasMore
+} from 'src/app/store/tontine/tontine.selectors';
 import * as TontineActions from 'src/app/store/tontine/tontine.actions';
+import {
+    selectCatalogueArticles,
+    selectCatalogueLoading,
+    selectCatalogueHasMore
+} from 'src/app/store/article/article.selectors';
+import * as ArticleActions from 'src/app/store/article/article.actions';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
 import { TontineDeliveryReceiptModalComponent } from 'src/app/shared/components/tontine-delivery-receipt-modal/tontine-delivery-receipt-modal.component';
 import { PrintableTontineDelivery } from 'src/app/core/services/printing.service';
 import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-consent-guard.service';
 import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-consent-state.service';
-import { Observable } from 'rxjs';
-import { take } from 'rxjs/operators';
 import { generateTontineDeliveryReference } from 'src/app/core/utils/tontine-delivery-reference.util';
 import {
     canCreateTontineOrder,
@@ -37,10 +47,10 @@ interface DeliveryViewModel {
     member: TontineMember | null;
     client: Client | null;
     session: TontineSession | null;
-    stocks: TontineStock[]; // Kept for interface compatibility but main source is stocks$
+    stocks: TontineStock[];
     totalBudget: number;
-    societyShare: number; // Added
-    availableBudget: number; // Added
+    societyShare: number;
+    availableBudget: number;
     usedBudget: number;
     remainingBudget: number;
     selectedCount: number;
@@ -48,6 +58,14 @@ interface DeliveryViewModel {
     allocationVersion: 'V1' | 'V2' | null;
     isOfflineEstimate: boolean;
     isExactBudget: boolean;
+}
+
+interface CartLineDetails {
+    price: number;
+    name: string;
+    maxQty: number;
+    articleId: string;
+    stockId?: string;
 }
 
 @Component({
@@ -65,8 +83,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         session: null,
         stocks: [],
         totalBudget: 0,
-        societyShare: 0, // Initialize
-        availableBudget: 0, // Initialize
+        societyShare: 0,
+        availableBudget: 0,
         usedBudget: 0,
         remainingBudget: 0,
         selectedCount: 0,
@@ -80,16 +98,19 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     private memberId: string | null = null;
     private commercialUsername: string | null = null;
 
-    // Search
     private currentSearchQuery = '';
     stocks$: Observable<TontineStock[]>;
-    isLoading$: Observable<boolean>;
-    hasMore$: Observable<boolean>;
+    catalogue$: Observable<Article[]>;
+    stockLoading$: Observable<boolean>;
+    catalogueLoading$: Observable<boolean>;
+    stockHasMore$: Observable<boolean>;
+    catalogueHasMore$: Observable<boolean>;
 
-    // Cart: Map<stockId, quantity>
+    /** Cart key = articleId (catalogue) or stockId (stock tontine). */
     private cart = new Map<string, number>();
-    // Cart Details: Map<stockId, {price, name, maxQty, articleId}> to handle invisible items
-    private cartDetails = new Map<string, { price: number, name: string, maxQty: number, articleId: string }>();
+    private cartDetails = new Map<string, CartLineDetails>();
+    /** Évite de vider le panier si on recharge la même source (ex. patch e2e du statut). */
+    private lastCatalogueMode: boolean | null = null;
 
     constructor(
         private route: ActivatedRoute,
@@ -112,8 +133,16 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         private dailyConsentState: DailyConsentStateService
     ) {
         this.stocks$ = this.store.select(selectPaginatedTontineStocks);
-        this.isLoading$ = this.store.select(selectTontineStockPaginationLoading);
-        this.hasMore$ = this.store.select(selectTontineStockPaginationHasMore);
+        this.catalogue$ = this.store.select(selectCatalogueArticles);
+        this.stockLoading$ = this.store.select(selectTontineStockPaginationLoading);
+        this.catalogueLoading$ = this.store.select(selectCatalogueLoading);
+        this.stockHasMore$ = this.store.select(selectTontineStockPaginationHasMore);
+        this.catalogueHasMore$ = this.store.select(selectCatalogueHasMore);
+    }
+
+    /** Session ACTIVE → catalogue ; CLOSED → stock tontine commercial. */
+    get isCatalogueMode(): boolean {
+        return canCreateTontineOrder(this.vm.session?.status);
     }
 
     async ngOnInit() {
@@ -125,29 +154,26 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return;
         }
 
-        //Get Session
         this.store.select(selectTontineSession)
             .pipe(takeUntil(this.destroy$))
             .subscribe(session => {
                 if (session) {
                     this.vm.session = session;
-                    this.loadStocks();
+                    this.refreshArticleSource();
                 }
             });
 
-        // Get User
         this.store.select(selectAuthUser)
             .pipe(takeUntil(this.destroy$))
             .subscribe(user => {
                 if (user) {
                     this.commercialUsername = user.username;
-                    this.loadStocks();
+                    this.refreshArticleSource();
                 }
             });
 
         await this.loadMemberData();
 
-        // Vérifier si une livraison existe déjà pour ce membre
         if (this.commercialUsername && this.memberId) {
             const hasExistingDelivery = await this.checkExistingDelivery();
             if (hasExistingDelivery) {
@@ -158,7 +184,6 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                         {
                             text: 'OK',
                             handler: () => {
-                                // Rediriger vers le dashboard général puis automatiquement vers le dashboard tontine
                                 this.navigateToTontineDashboard();
                             }
                         }
@@ -171,7 +196,6 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     }
 
     async ionViewWillEnter() {
-        // Reload member data to update budget if returning from collection
         if (this.memberId) {
             await this.loadMemberData();
         }
@@ -183,6 +207,30 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         this.destroy$.complete();
     }
 
+    /**
+     * Recharge la bonne source (catalogue vs stock) selon le statut de session.
+     * Exposé pour les tests e2e qui patchent le statut localement.
+     */
+    refreshArticleSource(): void {
+        const nextCatalogueMode = this.isCatalogueMode;
+        if (this.lastCatalogueMode !== nextCatalogueMode) {
+            this.cart.clear();
+            this.cartDetails.clear();
+            this.updateBudgetCalculations();
+            this.lastCatalogueMode = nextCatalogueMode;
+        }
+
+        if (nextCatalogueMode) {
+            this.loadCatalogue();
+            return;
+        }
+
+        if (!this.vm.session || !this.commercialUsername) {
+            return;
+        }
+        this.loadStocks();
+    }
+
     async loadMemberData() {
         try {
             const members = await this.memberRepo.findAll();
@@ -191,7 +239,6 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             if (this.vm.member) {
                 this.vm.client = await this.clientRepo.findById(this.vm.member.clientId);
 
-                // Calculate total budget (Total collected)
                 const collections = await this.collectionRepo.getByMemberId(this.memberId!);
                 this.vm.totalBudget = collections.reduce((sum, c) => sum + (c.amount || 0), 0);
 
@@ -218,8 +265,17 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         }
     }
 
+    loadCatalogue() {
+        this.store.dispatch(ArticleActions.loadFirstPageCatalogueArticles({
+            pageSize: 20,
+            filters: { searchQuery: this.currentSearchQuery }
+        }));
+    }
+
     loadStocks() {
-        if (!this.vm.session || !this.commercialUsername) return;
+        if (!this.vm.session || !this.commercialUsername) {
+            return;
+        }
 
         this.store.dispatch(TontineActions.loadFirstPageTontineStocks({
             sessionId: this.vm.session.id,
@@ -229,86 +285,122 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         }));
     }
 
-    loadMoreStocks(event: any) {
+    loadMoreArticles(event: any) {
+        if (this.isCatalogueMode) {
+            this.completeInfiniteScroll(event, selectCatalogueHasMore, () => {
+                this.store.dispatch(ArticleActions.loadNextPageCatalogueArticles({
+                    filters: { searchQuery: this.currentSearchQuery }
+                }));
+            });
+            return;
+        }
+
         if (!this.vm.session) {
             event.target.complete();
             return;
         }
 
-        this.store.select(selectTontineStockPaginationHasMore)
+        this.completeInfiniteScroll(event, selectTontineStockPaginationHasMore, () => {
+            this.store.dispatch(TontineActions.loadNextPageTontineStocks({
+                sessionId: this.vm.session!.id,
+                filters: { searchQuery: this.currentSearchQuery }
+            }));
+        });
+    }
+
+    private completeInfiniteScroll(
+        event: any,
+        hasMoreSelector: MemoizedSelector<object, boolean, any>,
+        loadNext: () => void
+    ): void {
+        this.store.select(hasMoreSelector)
             .pipe(take(1))
             .subscribe(hasMore => {
                 if (hasMore) {
-                    this.store.dispatch(TontineActions.loadNextPageTontineStocks({
-                        sessionId: this.vm.session!.id,
-                        filters: {
-                            searchQuery: this.currentSearchQuery
-                        }
-                    }));
+                    loadNext();
                 } else {
                     event.target.disabled = true;
                 }
-                // Delay completion slightly to allow UI to update
                 setTimeout(() => event.target.complete(), 500);
             });
     }
 
     onSearch(event: any) {
-        this.currentSearchQuery = (event.target.value || '').toLowerCase();
-        this.loadStocks();
+        const raw = event?.detail?.value ?? event?.target?.value ?? '';
+        this.currentSearchQuery = String(raw).toLowerCase();
+        if (this.isCatalogueMode) {
+            this.loadCatalogue();
+        } else {
+            this.loadStocks();
+        }
     }
 
+    catalogueUnitPrice(article: Article): number {
+        return article.sellingPrice ?? article.creditSalePrice ?? 0;
+    }
 
+    getQuantity(cartKey: string): number {
+        return this.cart.get(cartKey) || 0;
+    }
 
-    // Cart Management
-    getQuantity(stockId: string): number {
-        return this.cart.get(stockId) || 0;
+    increaseCatalogueQuantity(article: Article) {
+        this.bumpCartQuantity(article.id, {
+            price: this.catalogueUnitPrice(article),
+            name: article.commercialName || article.name || 'Article',
+            maxQty: Number.MAX_SAFE_INTEGER,
+            articleId: article.id
+        });
+    }
+
+    decreaseCatalogueQuantity(article: Article) {
+        this.decreaseCartQuantity(article.id);
     }
 
     increaseQuantity(stock: TontineStock) {
-        // Update details cache
-        this.cartDetails.set(stock.id, {
+        this.bumpCartQuantity(stock.id, {
             price: stock.unitPrice,
             name: stock.articleName || 'Article',
             maxQty: stock.availableQuantity,
-            articleId: stock.articleId
-        });
-
-        const currentQty = this.getQuantity(stock.id);
-
-        // Check budget - REMOVED to allow over-selection
-        // if (this.vm.remainingBudget < stock.unitPrice) {
-        //     // Cannot afford
-        //     return;
-        // }
-
-        // Check available quantity
-        if (currentQty < stock.availableQuantity) {
-            this.cart.set(stock.id, currentQty + 1);
-            this.updateBudgetCalculations();
-        }
+            articleId: stock.articleId,
+            stockId: stock.id
+        }, stock.availableQuantity);
     }
 
     decreaseQuantity(stock: TontineStock) {
-        const currentQty = this.getQuantity(stock.id);
-        if (currentQty > 0) {
-            const newQty = currentQty - 1;
-            if (newQty === 0) {
-                this.cart.delete(stock.id);
-                this.cartDetails.delete(stock.id);
-            } else {
-                this.cart.set(stock.id, newQty);
-            }
-            this.updateBudgetCalculations();
+        this.decreaseCartQuantity(stock.id);
+    }
+
+    private bumpCartQuantity(cartKey: string, details: CartLineDetails, maxQty?: number): void {
+        this.cartDetails.set(cartKey, details);
+        const currentQty = this.getQuantity(cartKey);
+        if (maxQty !== undefined && currentQty >= maxQty) {
+            return;
         }
+        this.cart.set(cartKey, currentQty + 1);
+        this.updateBudgetCalculations();
+    }
+
+    private decreaseCartQuantity(cartKey: string): void {
+        const currentQty = this.getQuantity(cartKey);
+        if (currentQty <= 0) {
+            return;
+        }
+        const newQty = currentQty - 1;
+        if (newQty === 0) {
+            this.cart.delete(cartKey);
+            this.cartDetails.delete(cartKey);
+        } else {
+            this.cart.set(cartKey, newQty);
+        }
+        this.updateBudgetCalculations();
     }
 
     updateBudgetCalculations() {
         let used = 0;
         let count = 0;
 
-        this.cart.forEach((qty, stockId) => {
-            const details = this.cartDetails.get(stockId);
+        this.cart.forEach((qty, cartKey) => {
+            const details = this.cartDetails.get(cartKey);
             if (details) {
                 used += details.price * qty;
                 count += qty;
@@ -316,19 +408,19 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         });
 
         this.vm.usedBudget = used;
-        // Use availableBudget instead of totalBudget
         this.vm.remainingBudget = this.vm.availableBudget - used;
         this.vm.selectedCount = count;
     }
 
     async validateDelivery() {
-        if (this.vm.selectedCount === 0) return;
+        if (this.vm.selectedCount === 0) {
+            return;
+        }
         if (this.vm.remainingBudget < 0) {
             this.showError('Budget dépassé');
             return;
         }
 
-        // Vérifier une dernière fois si une livraison existe déjà (sécurité supplémentaire)
         if (this.commercialUsername && this.memberId) {
             const hasExistingDelivery = await this.checkExistingDelivery();
             if (hasExistingDelivery) {
@@ -339,7 +431,6 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                         {
                             text: 'OK',
                             handler: () => {
-                                // Rediriger vers le dashboard général puis automatiquement vers le dashboard tontine
                                 this.navigateToTontineDashboard();
                             }
                         }
@@ -461,8 +552,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             const stockUpdates: Array<{ stockId: string, quantity: number }> = [];
             const nowIso = new Date().toISOString();
 
-            this.cart.forEach((qty, stockId) => {
-                const details = this.cartDetails.get(stockId);
+            this.cart.forEach((qty, cartKey) => {
+                const details = this.cartDetails.get(cartKey);
                 if (details) {
                     items.push({
                         id: this.generateUuid(),
@@ -474,7 +565,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                         articleName: details.name
                     });
 
-                    stockUpdates.push({ stockId: stockId, quantity: qty });
+                    if (!isOrder && details.stockId) {
+                        stockUpdates.push({ stockId: details.stockId, quantity: qty });
+                    }
                 }
             });
 
@@ -509,7 +602,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             if (isOrder) {
                 const success = await this.alertCtrl.create({
                     header: 'Commande enregistrée',
-                    message: 'La commande est en attente de livraison. Vous pourrez la marquer comme livrée depuis la fiche membre.',
+                    message: 'La commande est en attente de livraison. Vous pourrez la marquer comme livrée depuis la fiche membre après clôture, une fois votre stock tontine alimenté.',
                     buttons: [{
                         text: 'OK',
                         handler: () => this.navigateToTontineDashboard()
@@ -593,7 +686,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     async showHelp() {
         const alert = await this.alertCtrl.create({
             header: 'Aide',
-            message: 'Sélectionnez les articles. Pendant la session ouverte, validez en « Commande » (remise plus tard). Une fois la session clôturée, utilisez « Livraison directe ». Le montant ne doit pas dépasser le budget du membre.',
+            message: this.isCatalogueMode
+                ? 'Choisissez les articles dans le catalogue (sans stock préalable). Validez en « Commande ». La remise se fera après clôture, une fois votre stock tontine alimenté.'
+                : 'Choisissez les articles dans votre stock tontine. Validez en « Livraison directe » pour remettre immédiatement les marchandises.',
             buttons: ['OK']
         });
         await alert.present();
@@ -608,9 +703,6 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         await alert.present();
     }
 
-    /**
-     * Naviguer vers la page de collecte pour compléter le solde du membre
-     */
     navigateToCollection(): void {
         if (this.memberId) {
             const surplusAmount = this.vm.remainingBudget < 0 ? Math.abs(this.vm.remainingBudget) : null;
@@ -625,25 +717,14 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         }
     }
 
-    /**
-     * Naviguer vers le dashboard général puis automatiquement vers le dashboard tontine
-     * Cela évite qu'un goBack retourne sur la page de création de livraison
-     */
     private navigateToTontineDashboard(): void {
-        // D'abord naviguer vers le dashboard général pour nettoyer l'historique
         this.navCtrl.navigateRoot(['/tabs/dashboard']).then(() => {
-            // Ensuite, après un court délai pour que la navigation soit complète,
-            // naviguer vers le dashboard tontine
             setTimeout(() => {
                 this.navCtrl.navigateForward(['/tontine/dashboard']);
             }, 100);
         });
     }
 
-    /**
-     * Vérifier si une livraison existe déjà pour ce membre
-     * @returns true si une livraison existe, false sinon
-     */
     private async checkExistingDelivery(): Promise<boolean> {
         if (!this.memberId || !this.commercialUsername) {
             return false;
@@ -657,7 +738,6 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return existingDeliveries && existingDeliveries.length > 0;
         } catch (error) {
             console.error('Erreur lors de la vérification des livraisons existantes:', error);
-            // En cas d'erreur, on considère qu'il n'y a pas de livraison pour ne pas bloquer
             return false;
         }
     }

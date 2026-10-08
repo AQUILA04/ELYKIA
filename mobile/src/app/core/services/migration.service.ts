@@ -148,6 +148,9 @@ export class MigrationService {
       case 33:
         await this.migrateToV33(db);
         break;
+      case 34:
+        await this.migrateToV34(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -906,6 +909,39 @@ export class MigrationService {
     } catch (error: any) {
       await this.log.log(`Error in migration v33: ${error}`);
       console.error('Error in migration v33', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Prix catalogue (sellingPrice) pour commander une livraison tontine
+   * sans stock tontine commercial préalable.
+   */
+  private async migrateToV34(db: SQLiteDBConnection): Promise<void> {
+    await this.migrateAddColumnIfMissing(
+      db,
+      'v34',
+      'articles',
+      'sellingPrice',
+      'REAL DEFAULT 0'
+    );
+  }
+
+  /** Migration simple : une colonne optionnelle + logs awaités (fiabilité Sonar). */
+  private async migrateAddColumnIfMissing(
+    db: SQLiteDBConnection,
+    versionLabel: string,
+    tableName: string,
+    columnName: string,
+    columnDefinition: string
+  ): Promise<void> {
+    try {
+      await this.log.log(`Running migration to ${versionLabel}: ${tableName}.${columnName}...`);
+      await this.addColumnIfNotExists(db, tableName, columnName, columnDefinition);
+      await this.log.log(`Migration to ${versionLabel} successful.`);
+    } catch (error: any) {
+      await this.log.log(`Error in migration ${versionLabel}: ${error}`);
+      console.error(`Error in migration ${versionLabel}`, error);
       throw error;
     }
   }

@@ -41,6 +41,13 @@ function adaptPagedResponse(mock: Record<string, unknown>, apiPath: string): Rec
   };
 }
 
+/** Catalogue complet utilisé par la commande tontine (GET /articles/enabled/all). */
+function enabledArticlesFromCatalogueMock(): unknown[] {
+  const mock = MockData['/api/v1/articles?page=0&size=1000'];
+  const content = mock?.data?.content;
+  return Array.isArray(content) ? content : [];
+}
+
 function paginatedTotal(keyPrefix: string): number {
   const key = Object.keys(MockData).find((candidate) => candidate.startsWith(keyPrefix));
   if (!key) {
@@ -138,6 +145,20 @@ const E2E_TONTINE_STOCKS = [
     year: 2026,
     tontineSessionId: 1,
   },
+  // Premier article du catalogue (tri commercialName) : BEURRE BLUE BAND.
+  // Nom trié après « Article E2E » pour ne pas changer la carte stock du scénario direct.
+  {
+    id: 88002,
+    commercial: 'COM002',
+    articleId: 33,
+    articleName: 'ZZ Stock commande catalogue',
+    unitPrice: 700,
+    totalQuantity: 50,
+    availableQuantity: 50,
+    distributedQuantity: 0,
+    year: 2026,
+    tontineSessionId: 1,
+  },
 ];
 
 const E2E_TONTINE_COLLECTIONS = [
@@ -229,6 +250,37 @@ export function resolveMockResponse(apiPath: string, method: string): Record<str
   const summaryMatch = pathname.match(/^\/api\/v1\/mobiles\/data-summary\/([^/]+)$/);
   if (summaryMatch && method === 'GET') {
     return buildDataSummary(summaryMatch[1]!);
+  }
+
+  if (pathname === '/api/v1/articles/enabled/all' && method === 'GET') {
+    return {
+      status: 'OK',
+      statusCode: 200,
+      message: 'default.message.success',
+      service: 'MOCK-SERVICE',
+      data: enabledArticlesFromCatalogueMock(),
+    };
+  }
+
+  if (pathname === '/api/v1/articles/enabled' && method === 'GET') {
+    return adaptPagedResponse(
+      {
+        status: 'OK',
+        statusCode: 200,
+        message: 'default.message.success',
+        service: 'MOCK-SERVICE',
+        data: {
+          content: enabledArticlesFromCatalogueMock(),
+          page: {
+            size: 20,
+            number: 0,
+            totalElements: enabledArticlesFromCatalogueMock().length,
+            totalPages: 1,
+          },
+        },
+      },
+      apiPath
+    );
   }
 
   if (pathname === '/api/v1/tontines/members' && method === 'GET') {

@@ -36,19 +36,25 @@ export class ArticleRepository extends BaseRepository<Article, string> {
         }
 
         const keysToInclude = [
-            'id', 'name', 'commercialName', 'creditSalePrice', 'stockQuantity', 'state'
+            'id', 'name', 'commercialName', 'creditSalePrice', 'sellingPrice', 'stockQuantity', 'state'
         ];
 
         const existingRows = await this.databaseService.query(
-            'SELECT id, syncHash, stockQuantity, state FROM articles'
+            'SELECT id, syncHash, stockQuantity, state, sellingPrice FROM articles'
         );
-        const existingArticleMap = new Map<string, { syncHash: string; stockQuantity: number; state: string | null }>(
+        const existingArticleMap = new Map<string, {
+            syncHash: string;
+            stockQuantity: number;
+            state: string | null;
+            sellingPrice: number;
+        }>(
             existingRows.values?.map((row: any) => [
                 String(row.id),
                 {
                     syncHash: row.syncHash,
                     stockQuantity: row.stockQuantity ?? 0,
-                    state: row.state ?? null
+                    state: row.state ?? null,
+                    sellingPrice: row.sellingPrice ?? 0
                 }
             ]) ?? []
         );
@@ -73,11 +79,13 @@ export class ArticleRepository extends BaseRepository<Article, string> {
             const isExisting = !!existing;
             const resolvedState = this.resolveState(article, existing?.state);
             const resolvedStock = article.stockQuantity ?? (existing?.stockQuantity ?? 0);
+            const sellingPrice = article.sellingPrice ?? existing?.sellingPrice ?? 0;
             const articleForHash: Article = {
                 ...article,
                 id: articleIdStr,
                 state: resolvedState,
-                stockQuantity: resolvedStock
+                stockQuantity: resolvedStock,
+                sellingPrice
             };
             const newHash = this.generateHash(articleForHash, keysToInclude);
             const needsUpdate = isExisting && existing!.syncHash !== newHash;
@@ -85,7 +93,7 @@ export class ArticleRepository extends BaseRepository<Article, string> {
             if (needsUpdate) {
                 const updateParams = [
                     article.name, article.commercialName, article.marque, article.model,
-                    article.type, article.creditSalePrice, resolvedStock, resolvedState,
+                    article.type, article.creditSalePrice, sellingPrice, resolvedStock, resolvedState,
                     1, now, newHash, articleIdStr
                 ];
                 articlesToUpdate.push(updateParams);
@@ -93,7 +101,7 @@ export class ArticleRepository extends BaseRepository<Article, string> {
             } else if (!isExisting) {
                 const insertParams = [
                     articleIdStr, article.name, article.commercialName, article.marque,
-                    article.model, article.type, article.creditSalePrice,
+                    article.model, article.type, article.creditSalePrice, sellingPrice,
                     resolvedStock, resolvedState, 1, now, newHash
                 ];
                 articlesToInsert.push(insertParams);
@@ -106,7 +114,7 @@ export class ArticleRepository extends BaseRepository<Article, string> {
                 const updateSet: capSQLiteSet[] = [];
                 const sql = `UPDATE articles SET
                     name = ?, commercialName = ?, marque = ?, model = ?,
-                    type = ?, creditSalePrice = ?, stockQuantity = ?, state = ?,
+                    type = ?, creditSalePrice = ?, sellingPrice = ?, stockQuantity = ?, state = ?,
                     isSync = ?, lastUpdate = ?, syncHash = ?
                    WHERE id = ?`;
                 for (const params of articlesToUpdate) {
@@ -119,8 +127,8 @@ export class ArticleRepository extends BaseRepository<Article, string> {
                 const insertSet: capSQLiteSet[] = [];
                 const sql = `INSERT INTO articles (
                     id, name, commercialName, marque, model, type,
-                    creditSalePrice, stockQuantity, state, isSync, lastUpdate, syncHash
-                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+                    creditSalePrice, sellingPrice, stockQuantity, state, isSync, lastUpdate, syncHash
+                   ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
                 for (const params of articlesToInsert) {
                     insertSet.push({ statement: sql, values: params });
                 }

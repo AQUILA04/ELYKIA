@@ -9,6 +9,49 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.29.5] — 2026-10-08
+
+### Changed
+- Guide utilisateur : commande tontine depuis le catalogue (sans stock commercial préalable) ; remise conditionnée au stock tontine.
+
+## Mobile — [2.33.5] — 2026-10-08
+
+### Fixed
+- Smoke e2e : la commande prend le premier article du catalogue, et ce même article est doté en stock tontine pour la remise. La recherche lit la valeur saisie dans le champ.
+
+## Mobile — [2.33.4] — 2026-10-08
+
+### Fixed
+- Smoke e2e commande tontine : l'article commandé est celui déjà présent dans le stock tontine, pour que la remise envoie bien la livraison.
+
+## Mobile — [2.33.3] — 2026-10-08
+
+### Fixed
+- Smoke e2e commande tontine : le catalogue mocké (`/articles/enabled/all`) n'efface plus les articles locaux.
+
+## Mobile — [2.33.2] — 2026-10-08
+
+### Fixed
+- Compilation de l'écran livraison tontine : le défilement catalogue et stock accepte les deux sélecteurs.
+
+## Mobile — [2.33.1] — 2026-10-08
+
+### Fixed
+- SonarCloud : await des logs de migration `v34` et réduction de duplication (panier livraison / smoke e2e).
+
+## Mobile — [2.33.0] — 2026-10-08
+
+### Added
+- Commande tontine depuis le **catalogue général** (session ouverte), sans exiger de stock tontine commercial ; prix `sellingPrice` synchronisé localement.
+
+### Changed
+- Remise / livraison directe : reste basée sur le **stock tontine** du commercial, avec message explicite si stock insuffisant.
+
+## Backend — [1.30.1] — 2026-10-08
+
+### Changed
+- Message d’erreur à la remise tontine : indique clairement un stock tontine insuffisant et invite à une demande de stock tontine.
+
 ## Frontend — [2.29.4] — 2026-10-07
 
 ### Changed

@@ -467,6 +467,7 @@ export class OnlineListRefreshService {
           model: '',
           type: '',
           creditSalePrice: item.creditSalePrice || 0,
+          sellingPrice: item.sellingPrice ?? item.creditSalePrice ?? 0,
           stockQuantity: 0
         }));
         await this.articleRepository.saveAll(articles);
@@ -545,6 +546,7 @@ export class OnlineListRefreshService {
           model: a.model || '',
           type: a.type || '',
           creditSalePrice: a.creditSalePrice ?? 0,
+          sellingPrice: a.sellingPrice ?? a.creditSalePrice ?? 0,
           stockQuantity: stockById.get(String(a.id)) ?? 0,
           state: a.state || a.status || 'ENABLED'
         }));
