@@ -42,6 +42,7 @@ public class SaleCancellationPreviewDto {
         private double totalAmount;
         private double advance;
         private String articlesSummary;
+        private List<StockImpactItemDto> articles;
     }
 
     @Data

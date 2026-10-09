@@ -106,6 +106,29 @@ class SaleCancellationServiceTest {
     }
 
     @Test
+    void previewExposesArticlesPerEligibleSale() {
+        Credit first = credit(2L, CreditStatus.INPROGRESS, 20_000, 0, 0);
+        attachArticle(first, 50L, 2, 10_000);
+        Credit second = credit(3L, CreditStatus.INPROGRESS, 10_000, 0, 0);
+        attachArticle(second, 50L, 1, 10_000);
+        when(creditRepository.findSalesForCancellation(
+                eq("com.a"), any(), any(), eq(OperationType.CREDIT),
+                eq(SaleCancellationService.CANCELLABLE_STATUSES), eq(State.ENABLED)))
+                .thenReturn(List.of(first, second));
+        when(creditTimelineRepository.existsByCredit_IdAndState(any(), eq(State.ENABLED))).thenReturn(false);
+
+        SaleCancellationPreviewDto preview = service.previewCancellation(filter());
+
+        var firstArticles = preview.getEligibleSales().get(0).getArticles();
+        assertEquals(1, firstArticles.size());
+        assertEquals(50L, firstArticles.get(0).getArticleId());
+        assertEquals("A50", firstArticles.get(0).getArticleCode());
+        assertEquals(2, firstArticles.get(0).getQuantityToReturn());
+        assertEquals(1, preview.getEligibleSales().get(1).getArticles().get(0).getQuantityToReturn());
+        assertEquals(3, preview.getStockImpacts().get(0).getQuantityToReturn());
+    }
+
+    @Test
     void previewRejectsNonCancellableStatusFilter() {
         SaleCancellationFilterDto dto = filter();
         dto.setCreditStatus(CreditStatus.SETTLED);

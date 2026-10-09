@@ -1475,45 +1475,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#12-annulation-de-ventes-dun-commercial-menu-ventes-annulation-ventes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12. Annulation de ventes d'un commercial (Menu Ventes &gt; Annulation Ventes)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="12. Annulation de ventes d&#39;un commercial (Menu Ventes &gt; Annulation Ventes)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#a-roles-et-niveaux-dacces" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        A. Rôles et niveaux d'accès
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#b-regles-et-garde-fous-stricts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        B. Règles et garde-fous stricts
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -1828,6 +1789,34 @@
     
   
     Journal espace client (Audit)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../admin/sale_cancellation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Annulation de ventes
   
 
     
@@ -2234,45 +2223,6 @@
   
 </li>
       
-        <li class="md-nav__item">
-  <a href="#12-annulation-de-ventes-dun-commercial-menu-ventes-annulation-ventes" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12. Annulation de ventes d'un commercial (Menu Ventes &gt; Annulation Ventes)
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="12. Annulation de ventes d&#39;un commercial (Menu Ventes &gt; Annulation Ventes)">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#a-roles-et-niveaux-dacces" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        A. Rôles et niveaux d'accès
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#b-regles-et-garde-fous-stricts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        B. Règles et garde-fous stricts
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
     </ul>
   
 </nav>
@@ -2345,11 +2295,6 @@
 <td><strong>Ventes &gt; Articles</strong></td>
 <td>Le tableau récapitulatif des volumes vendus par article et par commercial.</td>
 <td>Analyser les performances de vente sur une période donnée (jour, semaine, mois).</td>
-</tr>
-<tr>
-<td><strong>Ventes &gt; Annulation Ventes</strong></td>
-<td>Outil d'audit et d'annulation de ventes commerciales avec restitution de stock.</td>
-<td>Simuler et exécuter l'annulation de ventes sans recouvrement (ADMIN), consulter l'historique et les rapports PDF (ADMIN, GESTIONNAIRE).</td>
 </tr>
 <tr>
 <td><strong>Commandes</strong></td>
@@ -2603,28 +2548,6 @@
 <li><strong>Décision</strong> : Acceptez ou refusez la commande (individuellement ou par lot).</li>
 <li><strong>Faire une demande de stock</strong> : Sur une commande en attente ou validée (ou plusieurs cochées), cliquez sur <strong>Faire une demande de stock</strong> pour regrouper les articles en une demande de sortie par commercial. Lorsque cette demande est validée par le gestionnaire, les commandes encore en attente passent automatiquement à <strong>Validée</strong>.</li>
 <li><strong>Vendre / Marquer comme livrée</strong> : Sur une commande validée, transformez-la en vente : la vente est créée automatiquement et la commande passe à <strong>Livrée</strong>.</li>
-</ol>
-<hr />
-<h2 id="12-annulation-de-ventes-dun-commercial-menu-ventes-annulation-ventes">12. Annulation de ventes d'un commercial (Menu Ventes &gt; Annulation Ventes)</h2>
-<p>Cette fonctionnalité d'exception permet de corriger des erreurs de saisie ou d'annuler les ventes erronées d'un commercial sur une période ciblée. Elle garantit l'intégrité comptable et logistique complète du système en automatisant les contre-passations nécessaires.</p>
-<h3 id="a-roles-et-niveaux-dacces">A. Rôles et niveaux d'accès</h3>
-<ul>
-<li><strong>Administrateur (<code>ROLE_ADMIN</code>)</strong> : Accès complet. L'administrateur peut configurer les filtres, exécuter une <strong>simulation (Dry-run)</strong> pour prévisualiser les impacts, puis déclencher l'<strong>annulation effective</strong> avec saisie d'un motif obligatoire.</li>
-<li><strong>Gestionnaire (<code>ROLE_GESTIONNAIRE</code>)</strong> : Accès en <strong>consultation seule</strong>. Le gestionnaire peut visualiser l'historique complet des sessions d'annulation, consulter les statistiques et télécharger les pièces d'audit PDF (le formulaire et les boutons d'exécution ne lui sont pas présentés).</li>
-</ul>
-<h3 id="b-regles-et-garde-fous-stricts">B. Règles et garde-fous stricts</h3>
-<ol>
-<li><strong>Période restreinte au mois civil en cours</strong> : Seules les ventes enregistrées durant le mois en cours peuvent être annulées. L'intervalle sélectionné ne peut pas excéder 31 jours.</li>
-<li><strong>Ventes crédit uniquement</strong> : les ventes comptant et les livraisons tontine sont hors périmètre. Seuls les statuts <strong>CREATED</strong>, <strong>VALIDATED</strong> et <strong>INPROGRESS</strong> sont annulables.</li>
-<li><strong>Exclusion absolue des ventes avec recouvrement ultérieur</strong> : Toute vente ayant fait l'objet d'au moins un encaissement postérieur à la conclusion du contrat (<code>Montant Encaissé &gt; Avance</code> ou timeline de paiement active) est <strong>strictement exclue</strong> de l'annulation pour préserver la comptabilité de caisse. Ces dossiers sont répertoriés dans la section de rejet avec le motif explicite. En revanche, <strong>une vente comportant uniquement une avance initiale</strong> (sans recouvrement ultérieur) <strong>peut être annulée</strong> : le stock est restitué et l'avance est rétroactivement décrémentée du rapport journalier (<code>DailyCommercialReport</code> : montants d'avances et total à verser).</li>
-<li><strong>Restitution physique et valorisation du stock commercial</strong> : les quantités vendues, la valeur vendue et la marge associée sont réintégrées dans le stock commercial du mois. L'opération est refusée si le stock mensuel, la ligne d'article ou le rapport journalier de la date de vente est manquant.</li>
-<li><strong>Décrémentation des rapports d'activité (<code>DailyCommercialReport</code>)</strong> : Pour chaque date d'opération concernée, les compteurs de vente, le montant des ventes, la marge brute, les acomptes éventuels et le total à verser sont décrémentés de manière rétroactive. L'absence de rapport journalier interrompt tout le lot (aucune annulation partielle).</li>
-<li><strong>Traçabilité dans le journal des opérations (<code>DailyOperationLog</code>)</strong> : Une écriture en contre-passation (montant négatif, type <code>CREDIT_SALE_CANCEL</code>) est générée <strong>à la date de la vente</strong>, dans la même transaction que l'annulation.</li>
-<li><strong>Archivage et audit PDF automatique</strong> :</li>
-<li>Un <strong>bordereau individuel d'annulation</strong> (format A4 certifié avec détails des articles réintégrés, signatures et motif) est généré pour chaque vente annulée.</li>
-<li>Un <strong>rapport de synthèse consolidé</strong> récapitule l'ensemble du lot, les totaux régularisés et la liste des dossiers exclus.</li>
-<li>Les documents sont stockés de façon pérenne sur le serveur d'objets sécurisé MinIO (avec relance automatique en tâche de fond en cas d'indisponibilité temporaire).</li>
-<li><strong>Exécution alignée sur la simulation</strong> : seules les ventes confirmées comme éligibles lors du dry-run sont annulées ; un échec annule toute la transaction (aucun crédit déjà modifié n'est conservé).</li>
 </ol>
 
 

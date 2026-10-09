@@ -370,15 +370,35 @@
                         [attr.aria-selected]="simulationTab === 'stock'"
                         (click)="simulationTab = 'stock'">
                   Impact stock
-                  <span class="segment-count">{{ previewResult.stockImpacts.length }}</span>
+                  <span class="segment-count">{{ selectedStockImpacts.length }}</span>
                 </button>
               </nav>
 
               <div class="tab-content-area" *ngIf="simulationTab === 'eligible'" role="tabpanel">
+                <div class="selection-summary"
+                     *ngIf="previewResult.eligibleSales.length > 0"
+                     data-testid="e2e-sale-cancellation-selection-summary"
+                     aria-live="polite">
+                  <span>
+                    <b>{{ selectedCount }}</b> vente(s) sélectionnée(s) sur {{ previewResult.eligibleCount }}
+                  </span>
+                  <span class="selection-amount">{{ selectedAmount | number:'1.0-0' }} FCFA</span>
+                </div>
                 <div class="table-wrapper" *ngIf="previewResult.eligibleSales.length > 0">
                   <table class="data-table data-table-sm">
                     <thead>
                       <tr>
+                        <th class="col-select">
+                          <label class="select-box" title="Tout sélectionner">
+                            <input type="checkbox"
+                                   data-testid="e2e-sale-cancellation-select-all"
+                                   aria-label="Tout sélectionner"
+                                   [checked]="allSalesSelected"
+                                   [indeterminate]="someSalesSelected"
+                                   [disabled]="executing"
+                                   (change)="toggleAllSales($any($event.target).checked)">
+                          </label>
+                        </th>
                         <th>Réf. Vente</th>
                         <th>Client</th>
                         <th>Date</th>
@@ -390,8 +410,19 @@
                     </thead>
                     <tbody>
                       <tr *ngFor="let s of previewResult.eligibleSales"
+                          [class.row-unselected]="!isSaleSelected(s.creditId)"
                           [attr.data-testid]="'e2e-sale-cancellation-eligible-row'"
                           [attr.data-credit-reference]="s.reference">
+                        <td class="col-select">
+                          <label class="select-box">
+                            <input type="checkbox"
+                                   data-testid="e2e-sale-cancellation-select-row"
+                                   [attr.aria-label]="'Sélectionner la vente ' + s.reference"
+                                   [checked]="isSaleSelected(s.creditId)"
+                                   [disabled]="executing"
+                                   (change)="toggleSale(s.creditId, $any($event.target).checked)">
+                          </label>
+                        </td>
                         <td class="cell-strong">{{ s.reference }}</td>
                         <td>{{ s.clientName }}</td>
                         <td>{{ s.saleDate | date:'dd/MM/yyyy' }}</td>
@@ -446,8 +477,8 @@
               </div>
 
               <div class="tab-content-area" *ngIf="simulationTab === 'stock'" role="tabpanel">
-                <p class="tab-hint">Quantités qui seront réintégrées dans le stock mensuel en cours du commercial :</p>
-                <table class="data-table data-table-sm" *ngIf="previewResult.stockImpacts.length > 0">
+                <p class="tab-hint">Quantités des ventes sélectionnées qui seront réintégrées dans le stock mensuel en cours du commercial :</p>
+                <table class="data-table data-table-sm" *ngIf="selectedStockImpacts.length > 0">
                   <thead>
                     <tr>
                       <th>Code Article</th>
@@ -456,13 +487,16 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let imp of previewResult.stockImpacts">
+                    <tr *ngFor="let imp of selectedStockImpacts">
                       <td>{{ imp.articleCode || '—' }}</td>
                       <td class="cell-strong">{{ imp.articleName }}</td>
                       <td class="col-num cell-green">+ {{ imp.quantityToReturn }}</td>
                     </tr>
                   </tbody>
                 </table>
+                <div *ngIf="selectedStockImpacts.length === 0" class="tab-empty">
+                  Aucune vente sélectionnée.
+                </div>
               </div>
             </div>
 
@@ -487,12 +521,12 @@
                   data-testid="e2e-sale-cancellation-confirm"
                   *ngIf="previewResult && previewResult.eligibleCount > 0"
                   (click)="onConfirmExecution()"
-                  [disabled]="executing || !cancellationReason.trim()">
+                  [disabled]="executing || selectedCount === 0 || !cancellationReason.trim()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [class.spin]="executing" aria-hidden="true">
               <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
               <polyline points="22 4 12 14.01 9 11.01"/>
             </svg>
-            {{ executing ? 'Annulation en cours...' : 'Confirmer l\'annulation (' + previewResult.eligibleCount + ' ventes)' }}
+            {{ executing ? 'Annulation en cours...' : 'Confirmer l\'annulation (' + selectedCount + ' vente(s))' }}
           </button>
         </div>
       </div>

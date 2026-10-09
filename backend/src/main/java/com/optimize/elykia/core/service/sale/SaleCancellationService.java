@@ -114,6 +114,7 @@ public class SaleCancellationService {
                 excludedAmount += nz(credit.getTotalAmount());
             } else {
                 StringBuilder articlesSummary = new StringBuilder();
+                List<SaleCancellationPreviewDto.StockImpactItemDto> saleArticles = new ArrayList<>();
                 if (credit.getArticles() != null) {
                     for (CreditArticles ca : credit.getArticles()) {
                         String name = ca.getArticles() != null
@@ -135,6 +136,12 @@ public class SaleCancellationService {
                                             .quantityToReturn(0)
                                             .build());
                             impact.setQuantityToReturn(impact.getQuantityToReturn() + qty);
+                            saleArticles.add(SaleCancellationPreviewDto.StockImpactItemDto.builder()
+                                    .articleId(artId)
+                                    .articleCode(ca.getArticles().getCode())
+                                    .articleName(ca.getArticles().getCommercialName())
+                                    .quantityToReturn(qty)
+                                    .build());
                         }
                     }
                 }
@@ -148,6 +155,7 @@ public class SaleCancellationService {
                         .totalAmount(nz(credit.getTotalAmount()))
                         .advance(nz(credit.getAdvance()))
                         .articlesSummary(articlesSummary.toString())
+                        .articles(saleArticles)
                         .build());
                 eligibleAmount += nz(credit.getTotalAmount());
             }

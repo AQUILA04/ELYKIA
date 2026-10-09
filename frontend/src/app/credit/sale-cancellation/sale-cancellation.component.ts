@@ -4,10 +4,12 @@ import { CommercialService } from 'src/app/commercial/service/commercial.service
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { SaleCancellationService } from '../service/sale-cancellation.service';
 import {
+  EligibleSaleItem,
   SaleCancellationExecuteRequest,
   SaleCancellationFilter,
   SaleCancellationPreview,
-  SaleCancellationRun
+  SaleCancellationRun,
+  StockImpactItem
 } from '../models/sale-cancellation.model';
 
 @Component({
@@ -46,6 +48,11 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
   loadingPreview = false;
   /** Onglet actif de la simulation (segment custom, pas mat-tab). */
   simulationTab: 'eligible' | 'excluded' | 'stock' = 'eligible';
+
+  selectedCreditIds = new Set<number>();
+  selectedCount = 0;
+  selectedAmount = 0;
+  selectedStockImpacts: StockImpactItem[] = [];
 
   cancellationReason = '';
   executing = false;
@@ -173,6 +180,7 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
     this.previewResult = null;
     this.cancellationReason = '';
     this.simulationTab = 'eligible';
+    this.setSelection([]);
   }
 
   closeNewCancellation(): void {
@@ -180,6 +188,57 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
     this.previewResult = null;
     this.cancellationReason = '';
     this.simulationTab = 'eligible';
+    this.setSelection([]);
+  }
+
+  get eligibleSales(): EligibleSaleItem[] {
+    return this.previewResult?.eligibleSales ?? [];
+  }
+
+  get allSalesSelected(): boolean {
+    return this.eligibleSales.length > 0 && this.selectedCount === this.eligibleSales.length;
+  }
+
+  get someSalesSelected(): boolean {
+    return this.selectedCount > 0 && !this.allSalesSelected;
+  }
+
+  isSaleSelected(creditId: number): boolean {
+    return this.selectedCreditIds.has(creditId);
+  }
+
+  toggleSale(creditId: number, checked: boolean): void {
+    const ids = new Set(this.selectedCreditIds);
+    if (checked) {
+      ids.add(creditId);
+    } else {
+      ids.delete(creditId);
+    }
+    this.setSelection(Array.from(ids));
+  }
+
+  toggleAllSales(checked: boolean): void {
+    this.setSelection(checked ? this.eligibleSales.map(s => s.creditId) : []);
+  }
+
+  private setSelection(creditIds: number[]): void {
+    this.selectedCreditIds = new Set(creditIds);
+    const selected = this.eligibleSales.filter(s => this.selectedCreditIds.has(s.creditId));
+    this.selectedCount = selected.length;
+    this.selectedAmount = selected.reduce((sum, s) => sum + (s.totalAmount || 0), 0);
+
+    const impacts = new Map<number, StockImpactItem>();
+    for (const sale of selected) {
+      for (const art of sale.articles ?? []) {
+        const current = impacts.get(art.articleId);
+        if (current) {
+          current.quantityToReturn += art.quantityToReturn;
+        } else {
+          impacts.set(art.articleId, { ...art });
+        }
+      }
+    }
+    this.selectedStockImpacts = Array.from(impacts.values());
   }
 
   onSimulate(): void {
@@ -198,11 +257,13 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
     this.loadingPreview = true;
     this.previewResult = null;
     this.simulationTab = 'eligible';
+    this.setSelection([]);
 
     this.cancellationService.preview(this.filterForm).subscribe({
       next: (preview) => {
         this.loadingPreview = false;
         this.previewResult = preview;
+        this.setSelection(preview.eligibleSales.map(s => s.creditId));
         if (preview.totalSalesFound === 0) {
           this.alertService.showInfo(
             'Aucune vente trouvée pour cette période et ce commercial.',
@@ -224,6 +285,14 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (this.selectedCount === 0) {
+      this.alertService.showWarning(
+        'Cochez au moins une vente à annuler dans l\'onglet « Ventes éligibles ».',
+        'Aucune vente sélectionnée'
+      );
+      return;
+    }
+
     if (!this.cancellationReason.trim()) {
       this.alertService.showWarning(
         'Veuillez saisir obligatoirement un motif d\'audit pour confirmer.',
@@ -236,13 +305,19 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
       ? `<li style="color: #c75000;"><b>${this.previewResult.excludedCount} vente(s) avec paiements perçus seront préservées et non annulées.</b></li>`
       : '';
 
+    const unselectedCount = this.previewResult.eligibleCount - this.selectedCount;
+    const unselectedNote = unselectedCount > 0
+      ? `<li>${unselectedCount} vente(s) éligible(s) non cochée(s) resteront inchangées.</li>`
+      : '';
+
     const html = `
-      Vous êtes sur le point d'annuler <b>${this.previewResult.eligibleCount} vente(s)</b>
-      pour un montant total de <b>${this.previewResult.eligibleAmount.toLocaleString()} FCFA</b>.<br><br>
+      Vous êtes sur le point d'annuler <b>${this.selectedCount} vente(s)</b>
+      pour un montant total de <b>${this.selectedAmount.toLocaleString()} FCFA</b>.<br><br>
       <ul style="text-align: left; font-size: 13px;">
         <li>Le stock sera réintégré dans le stock du commercial du mois en cours.</li>
         <li>Les rapports journaliers des dates d'opération seront décrémentés.</li>
         <li>Des fiches d'audit PDF seront générées et archivées sur MinIO.</li>
+        ${unselectedNote}
         ${excludedNote}
       </ul>
     `;
@@ -268,7 +343,9 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
       endDate: this.filterForm.endDate,
       creditStatus: this.filterForm.creditStatus,
       cancellationReason: this.cancellationReason,
-      eligibleCreditIds: this.previewResult?.eligibleSales?.map(s => s.creditId) ?? []
+      eligibleCreditIds: this.eligibleSales
+        .filter(s => this.selectedCreditIds.has(s.creditId))
+        .map(s => s.creditId)
     };
 
     this.executing = true;

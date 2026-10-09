@@ -858,6 +858,57 @@
   font-weight: 600;
 }
 
+.sale-cancellation-page .selection-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  background: var(--navy-xpale);
+  border: 1px solid var(--navy-pale);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--navy);
+}
+.sale-cancellation-page .selection-amount {
+  font-family: 'DM Mono', monospace;
+  font-weight: 700;
+  color: var(--green);
+}
+
+.sale-cancellation-page .data-table .col-select {
+  width: 48px;
+  padding: 0 !important;
+  text-align: center;
+}
+.sale-cancellation-page .select-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: 0;
+  cursor: pointer;
+}
+.sale-cancellation-page .select-box input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--navy);
+}
+.sale-cancellation-page .select-box input:disabled {
+  cursor: not-allowed;
+}
+.sale-cancellation-page .data-table tbody tr.row-unselected td {
+  opacity: 0.55;
+}
+.sale-cancellation-page .data-table tbody tr.row-unselected td.col-select {
+  opacity: 1;
+}
+
 .sale-cancellation-page .inline-warn {
   display: flex;
   align-items: flex-start;

@@ -23,3 +23,4 @@ Ce guide accompagne les administrateurs de l’application. Les écrans d’admi
 Consultez les pages suivantes selon la tâche à accomplir :
 
 - [Journal espace client (Audit)](customer_activity_audit.md) pour consulter les actions, erreurs et parcours de l’espace client.
+- [Annulation de ventes](sale_cancellation.md) pour annuler une ou plusieurs ventes à crédit d’un commercial (menu **Ventes > Annulation Ventes**).

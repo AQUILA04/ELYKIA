@@ -133,3 +133,17 @@ graph LR
    * Cliquez sur **« Réconcilier les écarts »** pour afficher la balance comparative : `Quantité Théorique Système` vs `Quantité Physique Constatée` = `Écart (Surplus ou Manquant)`.
    * Enregistrez les motifs d'écart (casse, avarie, vol, erreur de saisie).
 5. **Clôture définitive** : Cliquez sur **« Clôturer l'inventaire »**. Les stocks théoriques sont automatiquement réalignés sur le comptage physique approuvé et la session est archivée dans l'**Historique des inventaires** (accessible via l'onglet ou le bouton Historique).
+
+---
+
+## 6. Historique des annulations de ventes (Menu Ventes > Annulation Ventes)
+
+Cet écran présente les annulations de ventes déjà effectuées et leurs pièces d'audit.
+
+1. Dans le menu latéral, cliquez sur **Ventes**, puis sur **Annulation Ventes**. L'écran **Rapports & Archives d'Annulations de Ventes** s'ouvre.
+2. Chaque ligne indique l'opération et sa date, le commercial, la période ciblée, le statut, le nombre de ventes annulées, le montant reversé, les ventes rejetées et la personne qui a lancé l'opération.
+3. Cliquez sur **Actualiser** pour recharger la liste.
+4. Cliquez sur **Voir** pour ouvrir le détail : motif déclaré, ventes annulées, ventes rejetées et **Pièces justificatives et rapports d'audit**.
+5. Cliquez sur **Télécharger** pour récupérer le bordereau d'annulation d'une vente ou le rapport de synthèse de l'opération.
+
+<!-- CAPTURE À INSÉRER : historique des annulations de ventes et fenêtre de détail avec les pièces d'audit -->

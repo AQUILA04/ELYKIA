@@ -23,6 +23,7 @@ export interface EligibleSaleItem {
   totalAmount: number;
   advance: number;
   articlesSummary: string;
+  articles?: StockImpactItem[];
 }
 
 export interface ExcludedSaleItem {

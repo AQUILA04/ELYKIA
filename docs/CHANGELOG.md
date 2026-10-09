@@ -9,6 +9,22 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.29.6] — 2026-10-09
+
+### Added
+
+- Annulation de ventes : cases à cocher et « Tout sélectionner » sur les ventes éligibles après simulation. On peut annuler une seule vente ou une partie du lot. Le bandeau de sélection, le bouton de confirmation, la boîte de confirmation et l’onglet **Impact stock** reprennent les ventes cochées.
+
+### Docs
+
+- Annulation de ventes déplacée du guide commercial vers le guide administrateur (nouvelle page « Annulation de ventes », avec le choix des ventes à annuler). Guide gestionnaire : section consultation de l'historique des annulations et des pièces d'audit. Index RAG Elykia IA et guide HTML régénérés.
+
+## Backend — [1.30.2] — 2026-10-09
+
+### Changed
+
+- Annulation de ventes : la simulation renvoie les articles et quantités de chaque vente éligible, pour calculer l’impact stock des seules ventes sélectionnées.
+
 ## Frontend — [2.29.5] — 2026-10-08
 
 ### Changed
