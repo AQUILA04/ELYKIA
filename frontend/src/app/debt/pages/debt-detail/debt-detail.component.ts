@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DebtService } from '../../services/debt.service';
 import { DebtDocument } from '../../models/debt.model';
@@ -8,10 +8,13 @@ import { NgxSpinnerService } from 'ngx-spinner';
 @Component({
   selector: 'app-debt-detail',
   templateUrl: './debt-detail.component.html',
-  styleUrls: ['./debt-detail.component.scss']
+  styleUrls: ['./debt-detail.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
-export class DebtDetailComponent implements OnInit {
+export class DebtDetailComponent implements OnInit, OnDestroy {
   debt: DebtDocument | null = null;
+  currentDate = new Date();
+  private clock?: ReturnType<typeof setInterval>;
 
   constructor(
     private route: ActivatedRoute,
@@ -22,12 +25,19 @@ export class DebtDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.clock = setInterval(() => (this.currentDate = new Date()), 1000);
     const id = Number(this.route.snapshot.paramMap.get('id'));
     if (!id) {
       this.router.navigate(['/debts']);
       return;
     }
     this.load(id);
+  }
+
+  ngOnDestroy(): void {
+    if (this.clock) {
+      clearInterval(this.clock);
+    }
   }
 
   load(id: number): void {
@@ -80,5 +90,50 @@ export class DebtDetailComponent implements OnInit {
 
   back(): void {
     this.router.navigate(['/debts']);
+  }
+
+  typeLabel(type: string): string {
+    const labels: Record<string, string> = {
+      MERCHANDISE: 'Marchandise',
+      CASH_SHORTAGE: 'Manquant caisse',
+      CASH_SURPLUS: 'Surplus caisse',
+      INVENTORY_SHORTAGE: 'Écart inventaire'
+    };
+    return labels[type] || type;
+  }
+
+  statusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      OPEN: 'Ouverte',
+      PARTIALLY_SETTLED: 'Partiellement réglée',
+      SETTLED: 'Réglée',
+      CANCELLED: 'Annulée'
+    };
+    return labels[status] || status;
+  }
+
+  statusClass(status: string): string {
+    switch (status) {
+      case 'OPEN': return 'status-open';
+      case 'PARTIALLY_SETTLED': return 'status-partial';
+      case 'SETTLED': return 'status-settled';
+      default: return 'status-cancelled';
+    }
+  }
+
+  periodLabel(debt: DebtDocument): string {
+    if (debt.periodGrain === 'DAY') {
+      return debt.periodDay || '';
+    }
+    return `${debt.periodMonth}/${debt.periodYear}`;
+  }
+
+  settlementLabel(mode: string): string {
+    const labels: Record<string, string> = {
+      CASH: 'Espèces',
+      SURPLUS_OFFSET: 'Avoir',
+      WRITE_OFF: 'Abandon'
+    };
+    return labels[mode] || mode;
   }
 }

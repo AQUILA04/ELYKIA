@@ -1,78 +1,126 @@
 <ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
 
-<div class="container debt-detail" *ngIf="debt" data-testid="e2e-debt-detail">
-  <div class="header-fixed">
-    <button mat-button (click)="back()"><mat-icon>arrow_back</mat-icon> Retour</button>
-    <h1>{{ debt.reference }}</h1>
+<div class="main-container debt-detail-page a1" *ngIf="debt" data-testid="e2e-debt-detail">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/debts" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Dettes
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">{{ typeLabel(debt.debtType) }}</span>
+        <span class="status-pill" [ngClass]="statusClass(debt.status)">{{ statusLabel(debt.status) }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <h1 class="page-title">{{ debt.reference }}</h1>
+        </div>
+        <button type="button" class="btn-refresh" (click)="load(debt.id)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">{{ debt.holderUsername }} · {{ periodLabel(debt) }}</p>
+    </div>
   </div>
 
-  <div class="meta-grid">
-    <div><span>Titulaire</span><strong>{{ debt.holderUsername }}</strong></div>
-    <div><span>Type</span><strong>{{ debt.debtType }}</strong></div>
-    <div><span>Statut</span><strong>{{ debt.status }}</strong></div>
-    <div><span>Montant</span><strong>{{ debt.grossAmount | number:'1.0-0' }} FCFA</strong></div>
-    <div><span>Payé</span><strong>{{ debt.paidAmount | number:'1.0-0' }} FCFA</strong></div>
-    <div><span>Imputé</span><strong>{{ debt.offsetAmount | number:'1.0-0' }} FCFA</strong></div>
-    <div><span>Restant</span><strong>{{ debt.remainingAmount | number:'1.0-0' }} FCFA</strong></div>
-  </div>
+  <div class="page-scroll-body">
+    <div class="kpi-strip a3">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Montant</div>
+        <div class="kpi-value">{{ debt.grossAmount | number:'1.0-0' }}</div>
+        <div class="kpi-sub">FCFA figés à la constitution</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Payé</div>
+        <div class="kpi-value">{{ debt.paidAmount | number:'1.0-0' }}</div>
+        <div class="kpi-sub">FCFA encaissés</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Imputé</div>
+        <div class="kpi-value">{{ debt.offsetAmount | number:'1.0-0' }}</div>
+        <div class="kpi-sub">FCFA d’avoir</div>
+      </div>
+      <div class="kpi-card kpi-delai">
+        <div class="kpi-label">Restant</div>
+        <div class="kpi-value">{{ debt.remainingAmount | number:'1.0-0' }}</div>
+        <div class="kpi-sub">FCFA encore dus</div>
+      </div>
+    </div>
 
-  <div class="actions" *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']">
-    <button mat-stroked-button
-            *ngIf="debt.debtType === 'CASH_SHORTAGE' || debt.debtType === 'CASH_SURPLUS'"
-            [disabled]="debt.paidAmount > 0 || debt.offsetAmount > 0 || debt.status === 'CANCELLED'"
-            (click)="recalculate()">
-      Recalculer
-    </button>
-    <button mat-stroked-button color="warn"
-            [disabled]="debt.paidAmount > 0 || debt.offsetAmount > 0 || debt.status === 'CANCELLED'"
-            (click)="cancelDebt()">
-      Annuler la dette
-    </button>
-  </div>
+    <div class="toolbar a4" *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']">
+      <div class="filter-actions">
+        <button type="button" class="btn-primary"
+                *ngIf="debt.debtType === 'CASH_SHORTAGE' || debt.debtType === 'CASH_SURPLUS'"
+                [disabled]="debt.paidAmount > 0 || debt.offsetAmount > 0 || debt.status === 'CANCELLED'"
+                (click)="recalculate()">
+          Recalculer
+        </button>
+        <button type="button" class="btn-danger"
+                [disabled]="debt.paidAmount > 0 || debt.offsetAmount > 0 || debt.status === 'CANCELLED'"
+                (click)="cancelDebt()">
+          Annuler la dette
+        </button>
+      </div>
+    </div>
 
-  <h2>Détail</h2>
-  <div class="table-container">
-    <table class="article-table">
-      <thead>
-        <tr>
-          <th>Libellé</th>
-          <th class="text-center">Qté</th>
-          <th class="text-right">Prix unit.</th>
-          <th class="text-right">Montant</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let line of debt.lines">
-          <td>{{ line.articleName || line.label || line.lineCode }}</td>
-          <td class="text-center">{{ line.quantity ?? '—' }}</td>
-          <td class="text-right">{{ line.unitPrice != null ? (line.unitPrice | number:'1.0-0') : '—' }}</td>
-          <td class="text-right">{{ line.amount | number:'1.0-0' }}</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <div class="table-card a5">
+      <h2 class="section-title">Détail</h2>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Libellé</th>
+              <th class="text-center">Qté</th>
+              <th class="text-right">Prix unit.</th>
+              <th class="text-right">Montant</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let line of debt.lines">
+              <td>{{ line.articleName || line.label || line.lineCode }}</td>
+              <td class="text-center">{{ line.quantity ?? '—' }}</td>
+              <td class="text-right col-amount">{{ line.unitPrice != null ? (line.unitPrice | number:'1.0-0') : '—' }}</td>
+              <td class="text-right col-amount col-amount-strong">{{ line.amount | number:'1.0-0' }}</td>
+            </tr>
+            <tr *ngIf="!debt.lines?.length">
+              <td colspan="4" class="empty-inline">Aucune ligne.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-  <h2 *ngIf="debt.settlements?.length">Règlements</h2>
-  <div class="table-container" *ngIf="debt.settlements?.length">
-    <table class="article-table">
-      <thead>
-        <tr>
-          <th>Référence</th>
-          <th>Mode</th>
-          <th>Par</th>
-          <th>Date</th>
-          <th class="text-right">Montant</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let s of debt.settlements">
-          <td>{{ s.reference }}</td>
-          <td>{{ s.settlementMode }}</td>
-          <td>{{ s.performedBy }}</td>
-          <td>{{ s.performedAt | date:'short' }}</td>
-          <td class="text-right">{{ s.amount | number:'1.0-0' }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-card" *ngIf="debt.settlements?.length">
+      <h2 class="section-title">Règlements</h2>
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Référence</th>
+              <th>Mode</th>
+              <th>Par</th>
+              <th>Date</th>
+              <th class="text-right">Montant</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of debt.settlements">
+              <td><span class="col-ref">{{ s.reference }}</span></td>
+              <td>{{ settlementLabel(s.settlementMode) }}</td>
+              <td>{{ s.performedBy }}</td>
+              <td>{{ s.performedAt | date:'short' }}</td>
+              <td class="text-right col-amount col-amount-strong">{{ s.amount | number:'1.0-0' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>

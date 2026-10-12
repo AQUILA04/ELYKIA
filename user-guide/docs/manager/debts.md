@@ -5,8 +5,8 @@ Le menu **Dettes** regroupe les montants dus par les commerciaux (marchandise re
 ## Accéder au module
 
 1. Dans le menu latéral, cliquez sur **Dettes**.
-2. La synthèse affiche le total des dettes ouvertes, les avoirs (surplus de caisse) et la position nette.
-3. Utilisez les filtres (personne, type, statut, année, mois) puis cliquez sur une ligne pour ouvrir le détail.
+2. Les cartes en haut affichent les dettes ouvertes, les avoirs (surplus de caisse), la position nette et le nombre de positions encore à constituer.
+3. Utilisez les filtres (personne, type, statut, année, mois), puis **Filtrer**. Cliquez sur **Voir** pour ouvrir le détail.
 
 ## Dette marchandise (stock commercial)
 

@@ -6,7 +6,7 @@ Le menu **Dettes** vous permet de consulter vos positions ouvertes ou réglées 
 
 1. Dans le menu latéral, cliquez sur **Dettes**.
 2. La liste affiche vos positions avec le type, la période, le montant et le reste à régler.
-3. Cliquez sur une ligne pour ouvrir le détail.
+3. Cliquez sur **Voir** pour ouvrir le détail.
 
 ## Ce que vous voyez
 

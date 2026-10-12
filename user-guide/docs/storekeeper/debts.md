@@ -6,7 +6,7 @@ Le menu **Dettes** vous permet de consulter les montants liés aux écarts d’i
 
 1. Dans le menu latéral, cliquez sur **Dettes**.
 2. La liste affiche vos positions d’inventaire avec la date, le montant et le reste à régler.
-3. Cliquez sur une ligne pour voir les articles concernés et l’historique des règlements.
+3. Cliquez sur **Voir** pour consulter les articles concernés et l’historique des règlements.
 
 ## Lien avec l’inventaire
 

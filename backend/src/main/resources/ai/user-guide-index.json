@@ -212,7 +212,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Vos dettes\n\nLe menu Dettes vous permet de consulter vos positions ouvertes ou réglées (marchandise et caisse). Vous y suivez les montants restants et l’historique des paiements.\nAccéder à vos dettes\nDans le menu latéral, cliquez sur Dettes .\nLa liste affiche vos positions avec le type, la période, le montant et le reste à régler.\nCliquez sur une ligne pour ouvrir le détail.\nCe que vous voyez\n Marchandise : articles et quantités passés en dette à partir d’un mois de stock terminé, avec le montant et le reste à régler.\n Caisse : manquant ou surplus constitué pour un jour ou un mois passé, avec le détail des rubriques (avances, recouvrements, tontine, ventes au comptant, versé).\n Historique des règlements : chaque paiement enregistré sur la position.\nLien avec le stock mensuel\nOuvrez Stock Commercial → Stock mensuel , puis Historique pour un mois passé.\nLes cartes affichent la Valeur dette (y compris après règlement) et le Total dû = vendu + dette + restant.\nLe tableau liste les colonnes Dette et Valeur dette pour chaque article.\nBilan annuel\n\nSur le Rapport journalier , le bilan annuel crédit affiche aussi la Dette globale et la Dette réglée de l’année pour votre portefeuille."
+    "content": "Vos dettes\n\nLe menu Dettes vous permet de consulter vos positions ouvertes ou réglées (marchandise et caisse). Vous y suivez les montants restants et l’historique des paiements.\nAccéder à vos dettes\nDans le menu latéral, cliquez sur Dettes .\nLa liste affiche vos positions avec le type, la période, le montant et le reste à régler.\nCliquez sur Voir pour ouvrir le détail.\nCe que vous voyez\n Marchandise : articles et quantités passés en dette à partir d’un mois de stock terminé, avec le montant et le reste à régler.\n Caisse : manquant ou surplus constitué pour un jour ou un mois passé, avec le détail des rubriques (avances, recouvrements, tontine, ventes au comptant, versé).\n Historique des règlements : chaque paiement enregistré sur la position.\nLien avec le stock mensuel\nOuvrez Stock Commercial → Stock mensuel , puis Historique pour un mois passé.\nLes cartes affichent la Valeur dette (y compris après règlement) et le Total dû = vendu + dette + restant.\nLe tableau liste les colonnes Dette et Valeur dette pour chaque article.\nBilan annuel\n\nSur le Rapport journalier , le bilan annuel crédit affiche aussi la Dette globale et la Dette réglée de l’année pour votre portefeuille."
   },
   {
     "id": "commercial",
@@ -994,7 +994,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Dettes (commerciaux et magasinier)\nAccéder au module\nDans le menu latéral, cliquez sur Dettes .\nLa synthèse affiche le total des dettes ouvertes, les avoirs (surplus de caisse) et la position nette.\nUtilisez les filtres (personne, type, statut, année, mois) puis cliquez sur une ligne pour ouvrir le détail."
+    "content": "Dettes (commerciaux et magasinier)\nAccéder au module\nDans le menu latéral, cliquez sur Dettes .\nLes cartes en haut affichent les dettes ouvertes, les avoirs (surplus de caisse), la position nette et le nombre de positions encore à constituer.\nUtilisez les filtres (personne, type, statut, année, mois), puis Filtrer . Cliquez sur Voir pour ouvrir le détail."
   },
   {
     "id": "manager_debts__dette_marchandise_stock_commercial",
@@ -1529,7 +1529,7 @@
       "storekeeper",
       "manager"
     ],
-    "content": "Vos dettes d’inventaire\n\nLe menu Dettes vous permet de consulter les montants liés aux écarts d’inventaire enregistrés à votre nom, et de suivre leur règlement.\nAccéder à vos dettes\nDans le menu latéral, cliquez sur Dettes .\nLa liste affiche vos positions d’inventaire avec la date, le montant et le reste à régler.\nCliquez sur une ligne pour voir les articles concernés et l’historique des règlements.\nLien avec l’inventaire\n\nLorsqu’un inventaire constate un manquant et qu’il est enregistré comme dette à votre nom :\nLe stock magasin est aligné sur le comptage physique.\nUne position apparaît dans Dettes avec les articles et les quantités.\nVous suivez le montant restant jusqu’au règlement complet."
+    "content": "Vos dettes d’inventaire\n\nLe menu Dettes vous permet de consulter les montants liés aux écarts d’inventaire enregistrés à votre nom, et de suivre leur règlement.\nAccéder à vos dettes\nDans le menu latéral, cliquez sur Dettes .\nLa liste affiche vos positions d’inventaire avec la date, le montant et le reste à régler.\nCliquez sur Voir pour consulter les articles concernés et l’historique des règlements.\nLien avec l’inventaire\n\nLorsqu’un inventaire constate un manquant et qu’il est enregistré comme dette à votre nom :\nLe stock magasin est aligné sur le comptage physique.\nUne position apparaît dans Dettes avec les articles et les quantités.\nVous suivez le montant restant jusqu’au règlement complet."
   },
   {
     "id": "storekeeper",
