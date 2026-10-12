@@ -5,12 +5,16 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.dto.StockReceptionDto;
+import com.optimize.elykia.core.dto.StockReceptionValidateRequest;
+import com.optimize.elykia.core.dto.stock.PackagingEntryResolution;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
+import com.optimize.elykia.core.enumaration.ArticlePackagingType;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.enumaration.ReceptionStatus;
+import com.optimize.elykia.core.enumaration.StockEntryPackagingMode;
 import com.optimize.elykia.core.mapper.StockReceptionMapper;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
 import com.optimize.elykia.core.repository.StockReceptionItemRepository;
@@ -30,6 +34,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -50,6 +55,7 @@ class StockReceptionServiceTest {
     @Mock private StockReceptionRepository repository;
     @Mock private StockReceptionMapper mapper;
     @Mock private StockValuationFacade stockValuationFacade;
+    @Mock private ArticlePackagingPricingService articlePackagingPricingService;
     @Mock private ArticlesService articlesService;
     @Mock private ArticleHistoryService articleHistoryService;
     @Mock private ExpenseService expenseService;
@@ -63,6 +69,7 @@ class StockReceptionServiceTest {
 
     private StockReception pendingReception;
     private Articles article;
+    private StockReceptionItem item;
 
     @BeforeEach
     void setUp() {
@@ -70,13 +77,15 @@ class StockReceptionServiceTest {
         article.setId(1L);
         article.setName("Article 1");
         article.setStockQuantity(10);
+        article.setPurchasePrice(120.0);
 
-        StockReceptionItem item = new StockReceptionItem();
+        item = new StockReceptionItem();
         item.setId(10L);
         item.setArticle(article);
         item.setQuantity(5);
         item.setUnitPrice(100.0);
         item.setTotalPrice(500.0);
+        item.setEntryPackagingMode(StockEntryPackagingMode.UNIT);
 
         pendingReception = new StockReception();
         pendingReception.setId(99L);
@@ -93,10 +102,11 @@ class StockReceptionServiceTest {
         User manager = userWithProfiles("manager", UserProfilConstant.GESTIONNAIRE);
         when(repository.findByIdWithItems(99L)).thenReturn(Optional.of(pendingReception));
         when(userService.getCurrentUser()).thenReturn(manager);
+        when(stockValuationFacade.isFifoEnabled()).thenReturn(false);
         doNothing().when(stockReceptionService).applyStockReception(pendingReception, "manager");
         when(mapper.toDto(pendingReception)).thenReturn(new StockReceptionDto());
 
-        stockReceptionService.validateReception(99L);
+        stockReceptionService.validateReception(99L, null);
 
         assertThat(pendingReception.getStatus()).isEqualTo(ReceptionStatus.VALIDATED);
         assertThat(pendingReception.getValidatedBy()).isEqualTo("manager");
@@ -147,13 +157,13 @@ class StockReceptionServiceTest {
         pendingReception.setStatus(ReceptionStatus.REFUSED);
         when(repository.findByIdWithItems(99L)).thenReturn(Optional.of(pendingReception));
 
-        assertThatThrownBy(() -> stockReceptionService.validateReception(99L))
+        assertThatThrownBy(() -> stockReceptionService.validateReception(99L, null))
                 .isInstanceOf(CustomValidationException.class);
     }
 
     @Test
     void applyStockReception_Legacy_ShouldUseCatalogPriceAtValidation() {
-        article.setPurchasePrice(120.0); // catalogue changed since creation (snapshot was 100)
+        article.setPurchasePrice(120.0);
         when(stockValuationFacade.isFifoEnabled()).thenReturn(false);
         when(articlesService.getById(1L)).thenReturn(article);
 
@@ -164,7 +174,6 @@ class StockReceptionServiceTest {
 
         stockReceptionService.applyStockReception(pendingReception, "manager");
 
-        StockReceptionItem item = pendingReception.getItems().iterator().next();
         assertThat(item.getUnitPrice()).isEqualTo(120.0);
         assertThat(item.getTotalPrice()).isEqualTo(600.0);
         assertThat(pendingReception.getTotalAmount()).isEqualTo(600.0);
@@ -188,7 +197,7 @@ class StockReceptionServiceTest {
     }
 
     @Test
-    void applyStockReception_Fifo_ShouldKeepSnapshotUnitPrice() {
+    void applyStockReception_Fifo_ShouldKeepSnapshotUnitPriceAndRecalcTotal() {
         article.setPurchasePrice(120.0);
         when(stockValuationFacade.isFifoEnabled()).thenReturn(true);
         when(articlesService.getById(1L)).thenReturn(article);
@@ -200,7 +209,6 @@ class StockReceptionServiceTest {
 
         stockReceptionService.applyStockReception(pendingReception, "manager");
 
-        StockReceptionItem item = pendingReception.getItems().iterator().next();
         assertThat(item.getUnitPrice()).isEqualTo(100.0);
         assertThat(item.getTotalPrice()).isEqualTo(500.0);
         assertThat(pendingReception.getTotalAmount()).isEqualTo(500.0);
@@ -217,6 +225,131 @@ class StockReceptionServiceTest {
         ArgumentCaptor<ExpenseDto> expenseCaptor = ArgumentCaptor.forClass(ExpenseDto.class);
         verify(expenseService).createExpense(expenseCaptor.capture());
         assertThat(expenseCaptor.getValue().getAmount()).isEqualByComparingTo(BigDecimal.valueOf(500.0));
+    }
+
+    @Test
+    void applyFifoValidationPrices_BodyUnitPrice_KeepsExactManagerValueNotCatalog() {
+        article.setPurchasePrice(120.0);
+        when(articlesService.getById(1L)).thenReturn(article);
+        when(articlePackagingPricingService.resolveFifoEntry(eq(article), any()))
+                .thenAnswer(invocation -> {
+                    var entry = invocation.getArgument(1, com.optimize.elykia.core.dto.StockEntry.class);
+                    return new PackagingEntryResolution(
+                            5,
+                            entry.getUnitPrice(),
+                            entry.getUnitPrice() * 5,
+                            StockEntryPackagingMode.UNIT,
+                            null,
+                            null,
+                            null,
+                            null);
+                });
+
+        StockReceptionValidateRequest request = new StockReceptionValidateRequest();
+        StockReceptionValidateRequest.Line line = new StockReceptionValidateRequest.Line();
+        line.setItemId(10L);
+        line.setUnitPrice(180.0);
+        request.setItems(List.of(line));
+
+        stockReceptionService.applyFifoValidationPrices(pendingReception, request);
+
+        assertThat(item.getUnitPrice()).isEqualTo(180.0);
+        assertThat(item.getTotalPrice()).isEqualTo(900.0);
+        assertThat(pendingReception.getTotalAmount()).isEqualTo(900.0);
+    }
+
+    @Test
+    void applyFifoValidationPrices_EmptyBody_FallsBackToCatalog() {
+        article.setPurchasePrice(120.0);
+        when(articlesService.getById(1L)).thenReturn(article);
+        when(articlePackagingPricingService.resolveFifoEntry(eq(article), any()))
+                .thenAnswer(invocation -> {
+                    var entry = invocation.getArgument(1, com.optimize.elykia.core.dto.StockEntry.class);
+                    return new PackagingEntryResolution(
+                            5,
+                            entry.getUnitPrice(),
+                            entry.getUnitPrice() * 5,
+                            StockEntryPackagingMode.UNIT,
+                            null,
+                            null,
+                            null,
+                            null);
+                });
+
+        stockReceptionService.applyFifoValidationPrices(pendingReception, null);
+
+        assertThat(item.getUnitPrice()).isEqualTo(120.0);
+        assertThat(item.getTotalPrice()).isEqualTo(600.0);
+        assertThat(pendingReception.getTotalAmount()).isEqualTo(600.0);
+    }
+
+    @Test
+    void applyFifoValidationPrices_Wholesale_UsesExactPackagePriceFromBody() {
+        item.setEntryPackagingMode(StockEntryPackagingMode.WHOLESALE);
+        item.setPackageCount(2);
+        item.setPackagePrice(1000.0);
+        item.setQuantity(20);
+        item.setUnitsPerPackageSnapshot(10);
+        item.setPackagingTypeSnapshot(ArticlePackagingType.CARTON);
+        article.setPackagingType(ArticlePackagingType.CARTON);
+        article.setUnitsPerPackage(10);
+        article.setWholesalePurchasePrice(900.0);
+        article.setPurchasePrice(100.0);
+
+        when(articlesService.getById(1L)).thenReturn(article);
+        when(articlePackagingPricingService.resolveFifoEntry(eq(article), any()))
+                .thenAnswer(invocation -> {
+                    var entry = invocation.getArgument(1, com.optimize.elykia.core.dto.StockEntry.class);
+                    double packagePrice = entry.getPackagePrice();
+                    int count = entry.getPackageCount();
+                    int qty = count * 10;
+                    double unitPrice = packagePrice / 10.0;
+                    return new PackagingEntryResolution(
+                            qty,
+                            unitPrice,
+                            packagePrice * count,
+                            StockEntryPackagingMode.WHOLESALE,
+                            count,
+                            packagePrice,
+                            ArticlePackagingType.CARTON,
+                            10);
+                });
+
+        StockReceptionValidateRequest request = new StockReceptionValidateRequest();
+        StockReceptionValidateRequest.Line line = new StockReceptionValidateRequest.Line();
+        line.setItemId(10L);
+        line.setPackagePrice(1100.0); // différent du catalogue 900
+        request.setItems(List.of(line));
+
+        stockReceptionService.applyFifoValidationPrices(pendingReception, request);
+
+        assertThat(item.getPackagePrice()).isEqualTo(1100.0);
+        assertThat(item.getUnitPrice()).isEqualTo(110.0);
+        assertThat(item.getTotalPrice()).isEqualTo(2200.0);
+        assertThat(pendingReception.getTotalAmount()).isEqualTo(2200.0);
+    }
+
+    @Test
+    void validateReception_Fifo_AppliesBodyThenStock() {
+        User manager = userWithProfiles("manager", UserProfilConstant.GESTIONNAIRE);
+        when(repository.findByIdWithItems(99L)).thenReturn(Optional.of(pendingReception));
+        when(userService.getCurrentUser()).thenReturn(manager);
+        when(stockValuationFacade.isFifoEnabled()).thenReturn(true);
+        doNothing().when(stockReceptionService).applyFifoValidationPrices(eq(pendingReception), any());
+        doNothing().when(stockReceptionService).applyStockReception(pendingReception, "manager");
+        when(mapper.toDto(pendingReception)).thenReturn(new StockReceptionDto());
+
+        StockReceptionValidateRequest request = new StockReceptionValidateRequest();
+        StockReceptionValidateRequest.Line line = new StockReceptionValidateRequest.Line();
+        line.setItemId(10L);
+        line.setUnitPrice(180.0);
+        request.setItems(List.of(line));
+
+        stockReceptionService.validateReception(99L, request);
+
+        verify(stockReceptionService).applyFifoValidationPrices(pendingReception, request);
+        verify(stockReceptionService).applyStockReception(pendingReception, "manager");
+        assertThat(pendingReception.getStatus()).isEqualTo(ReceptionStatus.VALIDATED);
     }
 
     private User userWithProfiles(String username, String... profiles) {

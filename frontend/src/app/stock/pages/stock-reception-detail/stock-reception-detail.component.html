@@ -73,10 +73,14 @@
       </div>
       <div class="kpi-card kpi-amount">
         <div class="kpi-label">Montant total</div>
-        <div class="kpi-value kpi-mono">{{ reception.totalAmount | number }}</div>
+        <div class="kpi-value kpi-mono">{{ displayedTotalAmount | number }}</div>
         <div class="kpi-sub">FCFA</div>
       </div>
     </div>
+
+    <p class="price-edit-hint" *ngIf="canEditValidationPrices">
+      Ajustez les prix d'achat ci-dessous avant de valider. Ils sont préremplis avec le catalogue ; la valeur saisie est celle retenue à la validation.
+    </p>
 
     <!-- TABLE ARTICLES -->
     <div class="table-card a5">
@@ -90,13 +94,14 @@
             <th>#</th>
             <th>Article</th>
             <th>Quantité</th>
+            <th *ngIf="canShowPurchasePrice && canEditValidationPrices">Prix colis</th>
             <th *ngIf="canShowPurchasePrice">Prix unitaire</th>
             <th *ngIf="canShowPurchasePrice">Prix total</th>
           </tr>
         </thead>
         <tbody>
           <tr *ngIf="!isItemsLoading && receptionItems.length === 0">
-            <td [attr.colspan]="canShowPurchasePrice ? 5 : 3">
+            <td [attr.colspan]="canShowPurchasePrice ? (canEditValidationPrices ? 6 : 5) : 3">
               <div class="empty-state">
                 <div class="empty-icon">📦</div>
                 <div class="empty-title">Aucun article</div>
@@ -112,8 +117,41 @@
             <td>
               <span class="qty-badge">{{ item.quantity }}</span>
             </td>
-            <td *ngIf="canShowPurchasePrice"><div class="col-amount">{{ item.unitPrice | number }} FCFA</div></td>
-            <td *ngIf="canShowPurchasePrice"><div class="col-amount col-total">{{ item.totalPrice | number }} FCFA</div></td>
+            <td *ngIf="canShowPurchasePrice && canEditValidationPrices">
+              <ng-container *ngIf="isPackagingMode(item); else noPackagePrice">
+                <input
+                  class="price-input"
+                  type="number"
+                  inputmode="decimal"
+                  min="0.01"
+                  step="0.01"
+                  [ngModel]="editablePrices[item.id]?.packagePrice"
+                  (ngModelChange)="onPackagePriceChange(item, $event)"
+                  [attr.aria-label]="'Prix du colis ' + (item.articleName || '')"
+                />
+              </ng-container>
+              <ng-template #noPackagePrice><span class="text-muted">—</span></ng-template>
+            </td>
+            <td *ngIf="canShowPurchasePrice">
+              <ng-container *ngIf="canEditValidationPrices && !isPackagingMode(item); else readOnlyUnitPrice">
+                <input
+                  class="price-input"
+                  type="number"
+                  inputmode="decimal"
+                  min="0.01"
+                  step="0.01"
+                  [ngModel]="editablePrices[item.id]?.unitPrice"
+                  (ngModelChange)="onUnitPriceChange(item, $event)"
+                  [attr.aria-label]="'Prix unitaire ' + (item.articleName || '')"
+                />
+              </ng-container>
+              <ng-template #readOnlyUnitPrice>
+                <div class="col-amount">{{ displayUnitPrice(item) | number }} FCFA</div>
+              </ng-template>
+            </td>
+            <td *ngIf="canShowPurchasePrice">
+              <div class="col-amount col-total">{{ displayLineTotal(item) | number }} FCFA</div>
+            </td>
           </tr>
         </tbody>
       </table>

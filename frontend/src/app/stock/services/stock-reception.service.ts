@@ -2,7 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { StockReceptionStatus } from '../../core/models/stock-reception.model';
+import {
+  StockReceptionStatus,
+  StockReceptionValidateRequest
+} from '../../core/models/stock-reception.model';
 
 @Injectable({
   providedIn: 'root'
@@ -64,8 +67,8 @@ export class StockReceptionService {
     });
   }
 
-  validateReception(id: number): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/${id}/validate`, {});
+  validateReception(id: number, body?: StockReceptionValidateRequest): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${id}/validate`, body ?? {});
   }
 
   refuseReception(id: number, reason?: string): Observable<any> {

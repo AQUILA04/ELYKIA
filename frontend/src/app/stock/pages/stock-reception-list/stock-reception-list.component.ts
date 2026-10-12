@@ -7,6 +7,7 @@ import { UserProfilConstant } from '../../../shared/constants/user-profil.consta
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { UserService } from '../../../user/service/user.service';
 import { UserProfile } from '../../../shared/models/user-profile.enum';
+import { StockFifoFeatureService } from '../../services/stock-fifo-feature.service';
 
 interface StockReceptionListState {
   searchReference: string;
@@ -39,6 +40,7 @@ export class StockReceptionListComponent implements OnInit, OnDestroy {
 
   isAdmin = false;
   isManager = false;
+  fifoEnabled = false;
   currentUsername: string | null = null;
 
   currentDate: Date = new Date();
@@ -58,7 +60,8 @@ export class StockReceptionListComponent implements OnInit, OnDestroy {
     private router: Router,
     private authService: AuthService,
     private userService: UserService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private stockFifoFeatureService: StockFifoFeatureService
   ) {}
 
   ngOnInit(): void {
@@ -67,6 +70,9 @@ export class StockReceptionListComponent implements OnInit, OnDestroy {
       || this.userService.hasProfile(UserProfile.ADMIN)
       || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
     this.currentUsername = this.authService.getUsername();
+    this.stockFifoFeatureService.isFifoEnabled().subscribe(enabled => {
+      this.fifoEnabled = enabled;
+    });
     this.restoreState();
     this.loadReceptions();
     this.loadPendingCount();
@@ -247,6 +253,11 @@ export class StockReceptionListComponent implements OnInit, OnDestroy {
   }
 
   validateReception(reception: StockReceptionListItem): void {
+    if (this.fifoEnabled) {
+      this.router.navigate(['/stock/receptions', reception.id]);
+      return;
+    }
+
     this.alertService.showConfirmation(
       'Validation',
       'Valider cette entrée de stock ? Les quantités seront impactées.'

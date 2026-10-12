@@ -9,6 +9,27 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.29.7] — 2026-10-12
+
+### Added
+
+- Validation d'une réception FIFO : le gestionnaire peut ajuster le prix unitaire ou le prix du colis (préremplis catalogue) sur le détail avant de valider. Depuis la liste, **Valider** ouvre le détail.
+
+### Docs
+
+- Guide gestionnaire stocks : procédure d'ajustement des prix d'achat à la validation. Index RAG et guide HTML régénérés.
+
+## Backend — [1.31.0] — 2026-10-12
+
+### Added
+
+- `POST /api/v1/stock-receptions/{id}/validate` accepte un body de lignes (`unitPrice` / `packagePrice`). En FIFO, le prix envoyé est la source de vérité exacte (jamais écrasé par le catalogue) ; le catalogue ne sert que de filet si la ligne est absente.
+- Enrichissement des lignes PENDING FIFO avec les prix catalogue pour le préremplissage UI.
+
+### Changed
+
+- À la validation FIFO, recalcul systématique de `totalAmount` avant création de la dépense.
+
 ## Frontend — [2.29.6] — 2026-10-09
 
 ### Added

@@ -3,6 +3,7 @@ package com.optimize.elykia.core.controller.stock;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.StockReceptionRefuseRequest;
+import com.optimize.elykia.core.dto.StockReceptionValidateRequest;
 import com.optimize.elykia.core.enumaration.ReceptionStatus;
 import com.optimize.elykia.core.service.stock.StockReceptionService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -59,8 +60,12 @@ public class StockReceptionController {
     }
 
     @PostMapping("/{id}/validate")
-    public ResponseEntity<Response> validateReception(@PathVariable Long id) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(service.validateReception(id)), HttpStatus.OK);
+    public ResponseEntity<Response> validateReception(
+            @PathVariable Long id,
+            @RequestBody(required = false) StockReceptionValidateRequest request) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(service.validateReception(id, request)),
+                HttpStatus.OK);
     }
 
     @PostMapping("/{id}/refuse")

@@ -77,7 +77,7 @@ class StockReceptionTraceabilityIntegrationTest extends IntegrationTestSupport {
         when(stockReceptionMapper.toDto(any(StockReception.class))).thenReturn(new StockReceptionDto());
 
         // When
-        stockReceptionService.validateReception(reception.getId());
+        stockReceptionService.validateReception(reception.getId(), null);
         entityManager.flush();
         entityManager.clear();
 
