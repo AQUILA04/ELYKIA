@@ -166,6 +166,8 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     }
 
     public PartialDeliveryResponseDTO deliver(Long id) {
+        boolean fifoEnabled = stockValuationFacade.lockAndIsFifoEnabled();
+
         StockTontineRequest request = getByIdForDelivery(id);
         if (request.getStatus() != StockRequestStatus.VALIDATED) {
             throw new CustomValidationException("Seules les demandes au statut VALIDATED peuvent être livrées.");
@@ -243,7 +245,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             StockRequestDeliveryPricing.applyAtDelivery(
                     item,
                     article,
-                    stockValuationFacade.isFifoEnabled(),
+                    fifoEnabled,
                     consumption.getAverageUnitCost());
         }
 

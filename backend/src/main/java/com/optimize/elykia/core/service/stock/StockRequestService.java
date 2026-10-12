@@ -299,6 +299,8 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     }
 
     public PartialDeliveryResponseDTO deliverRequest(Long requestId) {
+        boolean fifoEnabled = stockValuationFacade.lockAndIsFifoEnabled();
+
         StockRequest request = getByIdForDelivery(requestId);
         if (request.getStatus() != StockRequestStatus.VALIDATED) {
             throw new CustomValidationException("La demande doit être validée avant livraison.");
@@ -390,7 +392,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             StockRequestDeliveryPricing.applyAtDelivery(
                     item,
                     article,
-                    stockValuationFacade.isFifoEnabled(),
+                    fifoEnabled,
                     consumption.getAverageUnitCost());
         }
 

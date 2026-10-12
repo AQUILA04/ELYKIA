@@ -154,7 +154,7 @@ class StockReceptionServiceTest {
     @Test
     void applyStockReception_Legacy_ShouldUseCatalogPriceAtValidation() {
         article.setPurchasePrice(120.0); // catalogue changed since creation (snapshot was 100)
-        when(stockValuationFacade.isFifoEnabled()).thenReturn(false);
+        when(stockValuationFacade.lockAndIsFifoEnabled()).thenReturn(false);
         when(articlesService.getById(1L)).thenReturn(article);
 
         ExpenseType expenseType = new ExpenseType();
@@ -190,7 +190,7 @@ class StockReceptionServiceTest {
     @Test
     void applyStockReception_Fifo_ShouldKeepSnapshotUnitPrice() {
         article.setPurchasePrice(120.0);
-        when(stockValuationFacade.isFifoEnabled()).thenReturn(true);
+        when(stockValuationFacade.lockAndIsFifoEnabled()).thenReturn(true);
         when(articlesService.getById(1L)).thenReturn(article);
 
         ExpenseType expenseType = new ExpenseType();

@@ -994,6 +994,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. Référentiels et Configuration de l&#39;agence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#activer-la-valorisation-du-stock-magasin-par-lots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Activer la valorisation du stock magasin par lots
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2022,6 +2039,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4. Référentiels et Configuration de l&#39;agence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#activer-la-valorisation-du-stock-magasin-par-lots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Activer la valorisation du stock magasin par lots
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -2203,12 +2237,20 @@
 </tr>
 <tr>
 <td><strong>Paramètres généraux</strong></td>
-<td>Réglage des clés système fondamentales, notamment le mode de calcul de la part société de la tontine.</td>
+<td>Réglage des clés système fondamentales, notamment le mode de calcul de la part société de la tontine et la valorisation du stock magasin.</td>
 </tr>
 </tbody>
 </table>
+<h3 id="activer-la-valorisation-du-stock-magasin-par-lots">Activer la valorisation du stock magasin par lots</h3>
+<ol>
+<li>Ouvrez <strong>Configuration</strong> → <strong>Paramètres généraux</strong>.</li>
+<li>Repérez le paramètre de valorisation du stock magasin (<code>ENABLED_FIFO_STOCK_VALUATION</code>).</li>
+<li>Passez sa valeur à <strong>true</strong>, puis enregistrez.</li>
+</ol>
+<p>À l'enregistrement, le stock déjà en magasin est repris sur un premier lot pour chaque article concerné. Les prochaines entrées de stock s'ajoutent ensuite derrière ce premier lot. Les quantités affichées ne changent pas.</p>
+<p>Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refusée et le paramètre reste désactivé. Complétez le prix d'achat de l'article (ou validez une réception avec prix), puis réessayez.</p>
 <blockquote>
-<p><strong>Prudence d'administration.</strong> La modification d'un paramètre général est une opération sensible qui engage la cohérence des écritures passées et futures. Toute modification doit respecter les consignes strictes de la direction. Si vous n'avez pas accès à ces écrans, vous ne disposez pas des habilitations nécessaires.</p>
+<p><strong>Prudence d'administration.</strong> La modification d'un paramètre général est une opération sensible qui engage la cohérence des écritures passées et futures. Une fois la valorisation par lots activée, ne la désactivez pas. Toute modification doit respecter les consignes strictes de la direction. Si vous n'avez pas accès à ces écrans, vous ne disposez pas des habilitations nécessaires.</p>
 </blockquote>
 <hr />
 <h2 id="5-profil-utilisateur-securite-de-session">5. Profil utilisateur &amp; Sécurité de session</h2>

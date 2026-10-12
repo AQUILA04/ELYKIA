@@ -9,6 +9,25 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.29.7] — 2026-10-12
+
+### Docs
+
+- Guide gestionnaire : activation de la valorisation du stock magasin par lots via **Paramètres généraux** (un seul paramètre). Index RAG et guide HTML régénérés.
+
+## Backend — [1.31.0] — 2026-10-12
+
+### Added
+
+- Activation FIFO atomique : passer `ENABLED_FIFO_STOCK_VALUATION` à `true` crée, dans la même transaction, un lot d'ouverture égal au stock existant (sans modifier `stockQuantity`). Les réceptions suivantes s'ajoutent derrière ce premier lot.
+- Listener synchrone sur `ParameterUpdatedEvent` : refus de la désactivation FIFO ; rollback du paramètre si un article en stock n'a pas de prix d'achat.
+- Verrouillage de la ligne du paramètre au début des écritures stock (réceptions, livraisons, retours) pour attendre la fin de l'activation.
+
+### Changed
+
+- `ParameterService.create` / `update` sont transactionnels (common-securities), afin qu'un listener métier puisse annuler l'écriture du paramètre.
+- Backfill FIFO : un lot `MIGRATION` par article en stock, plus de reconstitution depuis les réceptions passées.
+
 ## Frontend — [2.29.6] — 2026-10-09
 
 ### Added
