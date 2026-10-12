@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -41,12 +42,24 @@ public class ParameterService {
         return false;
     }
 
+    /**
+     * Verrouille la ligne du paramètre ({@code SELECT FOR UPDATE}) puis lit sa valeur booléenne.
+     * Permet d'attendre la fin d'une activation métier liée à ce paramètre.
+     */
+    @Transactional
+    public boolean lockAndIsEnabled(String key) {
+        return parameterRepository.findByKeyForUpdate(key)
+                .map(parameter -> Boolean.parseBoolean(parameter.getValue()))
+                .orElse(false);
+    }
+
     public String getValue(String key) {
         return parameterRepository.findByKey(key)
                 .map(Parameter::getValue)
                 .orElse(null);
     }
 
+    @Transactional
     public Parameter create(Parameter parameter) {
         if (parameter.getValue() != null) {
             normalizeAndValidate(parameter.getKey(), parameter.getValue());
@@ -57,6 +70,7 @@ public class ParameterService {
         return saved;
     }
 
+    @Transactional
     public Parameter update(Long id, String value, String description) {
         return parameterRepository.findById(id)
                 .map(existingParameter -> {

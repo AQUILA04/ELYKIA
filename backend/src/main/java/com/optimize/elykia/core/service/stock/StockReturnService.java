@@ -142,6 +142,8 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     }
 
     public StockReturn validateReturn(Long returnId) {
+        stockValuationFacade.lockAndIsFifoEnabled();
+
         StockReturn stockReturn = getByIdForValidation(returnId);
         if (stockReturn.getStatus() != StockReturnStatus.CREATED) {
             throw new CustomValidationException("Le retour a déjà été traité.");
@@ -446,6 +448,8 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     }
 
     private void reintegrateToWarehouse(StockReturn stockReturn, User currentUser) {
+        stockValuationFacade.lockAndIsFifoEnabled();
+
         for (StockReturnItem item : stockReturn.getItems()) {
             Articles article = articlesService.getById(item.getArticle().getId());
 
