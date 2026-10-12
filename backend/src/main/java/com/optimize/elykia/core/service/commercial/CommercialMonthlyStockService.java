@@ -10,9 +10,13 @@ import com.optimize.elykia.core.dto.stock.StockRecoverySummaryDto;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
+import com.optimize.elykia.core.entity.debt.DebtDocument;
+import com.optimize.elykia.core.enumaration.DebtStatus;
+import com.optimize.elykia.core.enumaration.DebtType;
 import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.CashDepositRepository;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
+import com.optimize.elykia.core.repository.DebtDocumentRepository;
 import com.optimize.elykia.core.service.stock.CommercialMonthlyStockRecoveryService;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.util.MonthEndCalculator;
@@ -34,18 +38,21 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
     private final CommercialMonthlyStockRecoveryService recoveryService;
     private final ArticlesRepository articlesRepository;
     private final CashDepositRepository cashDepositRepository;
+    private final DebtDocumentRepository debtDocumentRepository;
 
     protected CommercialMonthlyStockService(
             CommercialMonthlyStockRepository repository,
             UserService userService,
             CommercialMonthlyStockRecoveryService recoveryService,
             ArticlesRepository articlesRepository,
-            CashDepositRepository cashDepositRepository) {
+            CashDepositRepository cashDepositRepository,
+            DebtDocumentRepository debtDocumentRepository) {
         super(repository);
         this.userService = userService;
         this.recoveryService = recoveryService;
         this.articlesRepository = articlesRepository;
         this.cashDepositRepository = cashDepositRepository;
+        this.debtDocumentRepository = debtDocumentRepository;
     }
 
     public long getDaysUntilMonthEnd() {
@@ -118,15 +125,41 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
         LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
         double creditDeposited = cashDepositRepository.sumCreditDepositsForPeriod(
                 stock.getCollector(), start, end);
+
+        double debtSettled = 0D;
+        double debtRemaining = summary.getDebtValueAmount();
+        Long merchandiseDebtId = null;
+        Optional<DebtDocument> merchandiseDebt = debtDocumentRepository
+                .findByMonthlyStockIdAndDebtTypeAndStatusNot(
+                        stock.getId(), DebtType.MERCHANDISE, DebtStatus.CANCELLED);
+        if (merchandiseDebt.isPresent()) {
+            DebtDocument debt = merchandiseDebt.get();
+            merchandiseDebtId = debt.getId();
+            debtSettled = Math.ceil(
+                    (debt.getPaidAmount() != null ? debt.getPaidAmount() : 0D)
+                            + (debt.getOffsetAmount() != null ? debt.getOffsetAmount() : 0D));
+            debtRemaining = debt.getRemainingAmount() != null ? debt.getRemainingAmount() : 0D;
+        }
+
+        double totalRecovered = summary.getRecoveredFromSales() + debtSettled;
+        double totalRemaining = Math.max(0D, summary.getTotalDueAmount() - totalRecovered);
+        double recoveryRate = summary.getTotalDueAmount() > 0D
+                ? Math.min(100D, (totalRecovered / summary.getTotalDueAmount()) * 100D)
+                : 0D;
+
         stock.setRecoverySummary(StockRecoverySummaryDto.builder()
                 .totalDueAmount(summary.getTotalDueAmount())
-                .totalRecoveredAmount(summary.getTotalRecoveredAmount())
-                .totalRemainingAmount(summary.getTotalRemainingAmount())
-                .recoveryRatePercent(summary.getRecoveryRatePercent())
+                .totalRecoveredAmount(Math.ceil(totalRecovered))
+                .totalRemainingAmount(Math.ceil(totalRemaining))
+                .recoveryRatePercent(Math.ceil(recoveryRate))
                 .remainingFromPhysicalStock(summary.getRemainingFromPhysicalStock())
                 .recoveredFromSales(summary.getRecoveredFromSales())
                 .remainingFromCredits(summary.getRemainingFromCredits())
                 .totalCreditDepositedAmount(Math.ceil(creditDeposited))
+                .debtValueAmount(summary.getDebtValueAmount())
+                .debtSettledAmount(debtSettled)
+                .debtRemainingAmount(Math.ceil(debtRemaining))
+                .merchandiseDebtId(merchandiseDebtId)
                 .build());
         return stock;
     }

@@ -24,6 +24,7 @@ nav:
     - Opérations Quotidiennes: manager/operations.md
     - Inscriptions clients: manager/client_registrations.md
     - Stocks & Ventes: manager/stock_sales.md
+    - Dettes: manager/debts.md
     - Finances & Tontines: manager/finance.md
     - Rapports & Configuration: manager/reporting_config.md
   - Guide Magasinier:

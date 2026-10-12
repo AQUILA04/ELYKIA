@@ -46,6 +46,23 @@
           <span class="panel-period-label">
             Rapport mensuel — {{ getMonthName(stock.month) | titlecase }} {{ stock.year }}
           </span>
+          <ng-container *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']">
+            <button type="button"
+                    class="btn-download"
+                    *ngIf="canCreateMerchandiseDebt(stock)"
+                    [disabled]="creatingDebtStockId === stock.id"
+                    (click)="createMerchandiseDebt(stock)"
+                    [attr.data-testid]="'e2e-my-stock-create-debt-' + stock.id">
+              {{ creatingDebtStockId === stock.id ? 'Création…' : 'Créer la dette' }}
+            </button>
+          </ng-container>
+          <button type="button"
+                  class="btn-download"
+                  *ngIf="stock.recoverySummary?.merchandiseDebtId"
+                  (click)="openMerchandiseDebt(stock)"
+                  [attr.data-testid]="'e2e-my-stock-open-debt-' + stock.id">
+            Voir la dette
+          </button>
           <button type="button"
                   class="btn-download"
                   (click)="onExportPdf(stock)"
@@ -93,8 +110,22 @@
               <mat-icon>account_balance_wallet</mat-icon>
             </div>
             <div class="stats-info">
+              <p class="stats-label">Valeur Dette</p>
+              <p class="stats-value">{{ getTotalDebtValue(stock) | number:'1.0-0' }} FCFA</p>
+              <p class="stats-hint" *ngIf="getDebtSettledValue(stock) > 0">
+                dont réglé : {{ getDebtSettledValue(stock) | number:'1.0-0' }} FCFA
+              </p>
+            </div>
+          </div>
+
+          <div class="stats-card">
+            <div class="stats-icon bg-warning">
+              <mat-icon>summarize</mat-icon>
+            </div>
+            <div class="stats-info">
               <p class="stats-label">Valeur Total Dû</p>
               <p class="stats-value">{{ getTotalDueValue(stock) | number:'1.0-0' }} FCFA</p>
+              <p class="stats-hint">Vendu + dette + restant</p>
             </div>
           </div>
         </div>
@@ -143,6 +174,8 @@
                 <th class="text-center">Vendu (Clients)</th>
                 <th class="text-center">Retourné</th>
                 <th class="text-center">Restant</th>
+                <th class="text-center">Dette</th>
+                <th class="text-right">Valeur Dette</th>
                 <th class="text-right">Valeur Restante</th>
               </tr>
             </thead>
@@ -155,12 +188,16 @@
                 <td class="text-center clickable-cell" (click)="openSalesDetails(item)" style="cursor: pointer;">{{ item.quantitySold }}</td>
                 <td class="text-center">{{ item.quantityReturned }}</td>
                 <td class="text-center font-weight-bold" data-testid="e2e-my-stock-item-remaining">{{ item.quantityRemaining }}</td>
+                <td class="text-center" data-testid="e2e-my-stock-item-debt">{{ item.quantityDebt || 0 }}</td>
+                <td class="text-right">{{ ((item.quantityDebt || 0) * (item.debtUnitPrice || item.weightedAverageUnitPrice || 0)) | number:'1.0-0' }}
+                  FCFA
+                </td>
                 <td class="text-right">{{ (item.quantityRemaining * item.weightedAverageUnitPrice) | number:'1.0-0' }}
                   FCFA
                 </td>
               </tr>
               <tr *ngIf="stock.items.length === 0">
-                <td colspan="6" class="text-center p-4">Aucun article en stock ce mois-ci</td>
+                <td colspan="8" class="text-center p-4">Aucun article en stock ce mois-ci</td>
               </tr>
             </tbody>
           </table>

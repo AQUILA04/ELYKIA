@@ -12,6 +12,7 @@ Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Ar
 |---|---|---|
 | Démarrer et contrôler l’activité | Caisse, Clients, Ventes | Sécuriser les opérations du jour et les portefeuilles. |
 | Garantir la disponibilité des articles | Articles, Inventaires, Stock Commercial | Suivre les réceptions, sorties, retours et écarts. |
+| Suivre et régler les dettes | Dettes, Stock mensuel, Rapport journalier, Inventaires | Constituer les dettes marchandise / caisse / inventaire et enregistrer les règlements. |
 | Contrôler l’argent et la performance | Rapport Journalier, Dépenses | Lire les indicateurs, les versements et les remises. |
 | Suivre l’espace client | Inscriptions clients | Valider les inscriptions de l’espace client. |
 | Paramétrer l’agence | Configuration | Maintenir les référentiels et les paramètres. |

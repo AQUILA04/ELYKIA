@@ -26,6 +26,7 @@ export class InventoryReconciliationComponent implements OnInit {
   inputErrors: any[] = [];
   showConfirmModal: boolean = false;
   pendingAction: string | null = null;
+  pendingStorekeeperUsername: string | null = null;
   isMultiSelectEnabled: boolean = false;
 
   constructor(
@@ -216,13 +217,17 @@ export class InventoryReconciliationComponent implements OnInit {
     this.showConfirmModal = false;
     this.pendingAction = null;
 
+    const storekeeperUsername = this.pendingStorekeeperUsername || undefined;
+    this.pendingStorekeeperUsername = null;
+
     if (this.selectedItems.length === 1) {
       const reconciliationData: ReconciliationRequest = {
         inventoryItemId: this.selectedItems[0].id,
         comment: this.reconciliationComment,
         markAsDebt: this.markAsDebt,
         cancelDebt: this.cancelDebt,
-        action: action
+        action: action,
+        storekeeperUsername
       };
 
       this.spinner.show();
@@ -251,7 +256,8 @@ export class InventoryReconciliationComponent implements OnInit {
         comment: this.reconciliationComment,
         markAsDebt: this.markAsDebt,
         cancelDebt: this.cancelDebt,
-        action: action
+        action: action,
+        storekeeperUsername
       };
 
       this.spinner.show();
@@ -286,6 +292,7 @@ export class InventoryReconciliationComponent implements OnInit {
   cancelReconcile(): void {
     this.showConfirmModal = false;
     this.pendingAction = null;
+    this.pendingStorekeeperUsername = null;
   }
 
   adjustToPhysicalMulti(): void {
@@ -293,6 +300,12 @@ export class InventoryReconciliationComponent implements OnInit {
   }
 
   markDebtMulti(): void {
+    const storekeeper = prompt('Magasinier responsable de la dette (identifiant) :');
+    if (!storekeeper || !storekeeper.trim()) {
+      this.alertService.toastError('Le magasinier responsable est obligatoire.');
+      return;
+    }
+    this.pendingStorekeeperUsername = storekeeper.trim();
     this.prepareReconcile('MARK_AS_DEBT');
   }
 

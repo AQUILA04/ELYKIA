@@ -207,6 +207,22 @@
                                             </span>
                                             <span class="yearly-kpi-hint">Soldes live · cliquer pour le détail</span>
                                         </div>
+                                        <div class="yearly-kpi kpi-amount" data-testid="e2e-yearly-kpi-debt-global">
+                                            <span class="yearly-kpi-label">Dette globale</span>
+                                            <span class="yearly-kpi-value">
+                                                {{ (yearlySummaryView.merchandiseDebtGlobalAmount || 0) | number:'1.0-0' }}
+                                                <small>FCFA</small>
+                                            </span>
+                                            <span class="yearly-kpi-hint">Marchandise (année)</span>
+                                        </div>
+                                        <div class="yearly-kpi kpi-green" data-testid="e2e-yearly-kpi-debt-settled">
+                                            <span class="yearly-kpi-label">Dette réglée</span>
+                                            <span class="yearly-kpi-value">
+                                                {{ (yearlySummaryView.merchandiseDebtSettledAmount || 0) | number:'1.0-0' }}
+                                                <small>FCFA</small>
+                                            </span>
+                                            <span class="yearly-kpi-hint">Règlements sur dettes marchandise</span>
+                                        </div>
                                     </div>
                                 </div>
                             </mat-card-content>
@@ -519,6 +535,16 @@
                                         <mat-icon class="mr-2">payment</mat-icon> FAIRE UN VERSEMENT
                                     </button>
                                 </div>
+                                <ng-container *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']">
+                                    <div class="mt-2" *ngIf="isSingleDay && canCreateCashDebtForReport(report)">
+                                        <button mat-stroked-button color="accent" class="w-100"
+                                            data-testid="e2e-daily-report-create-cash-debt-btn"
+                                            (click)="createCashDebtForReport(report)">
+                                            <mat-icon class="mr-2">account_balance_wallet</mat-icon>
+                                            Constituer l'écart de caisse
+                                        </button>
+                                    </div>
+                                </ng-container>
 
                             </mat-expansion-panel>
                         </mat-accordion>

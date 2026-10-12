@@ -19,6 +19,7 @@ import { UserProfile } from "../../../shared/models/user-profile.enum";
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-permission.constant';
+import { DebtService } from 'src/app/debt/services/debt.service';
 
 @Component({
     selector: 'app-daily-report',
@@ -106,7 +107,8 @@ export class DailyReportComponent implements OnInit {
         private alertService: AlertService,
         private authService: AuthService,
         private route: ActivatedRoute,
-        private router: Router
+        private router: Router,
+        private debtService: DebtService
     ) { }
 
     ngOnInit(): void {
@@ -336,7 +338,9 @@ export class DailyReportComponent implements OnInit {
             creditsCededAmount: 0,
             entrustedPortfolioAmount: 0,
             remainingAtCommercialAmount: 0,
-            remainingAtClientAmount: 0
+            remainingAtClientAmount: 0,
+            merchandiseDebtGlobalAmount: 0,
+            merchandiseDebtSettledAmount: 0
         };
     }
 
@@ -508,6 +512,48 @@ export class DailyReportComponent implements OnInit {
                 remainingAtCommercialAmount: this.yearlySummaryView.remainingAtCommercialAmount,
                 remainingAtClientAmount: this.yearlySummaryView.remainingAtClientAmount,
                 entrustedPortfolioAmount: this.yearlySummaryView.entrustedPortfolioAmount
+            }
+        });
+    }
+
+    canCreateCashDebtForReport(report: DailyCommercialReport): boolean {
+        if (!report?.commercialUsername || !this.isSingleDay) {
+            return false;
+        }
+        const day = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd');
+        if (!day) {
+            return false;
+        }
+        const today = this.datePipe.transform(new Date(), 'yyyy-MM-dd');
+        if (!today || day >= today) {
+            return false;
+        }
+        const gap = Math.abs((report.totalAmountToDeposit || 0) - (report.totalAmountDeposited || 0));
+        return gap >= 1;
+    }
+
+    createCashDebtForReport(report: DailyCommercialReport): void {
+        const day = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd');
+        if (!day || !report?.commercialUsername) {
+            return;
+        }
+        if (!confirm(`Constituer l'écart de caisse de ${report.commercialUsername} pour le ${day} ?`)) {
+            return;
+        }
+        this.isLoading = true;
+        this.debtService.createCash({
+            commercialUsername: report.commercialUsername,
+            periodGrain: 'DAY',
+            day
+        }).subscribe({
+            next: (debt) => {
+                this.isLoading = false;
+                this.alertService.showSuccess(`Dette ${debt.reference} créée (${debt.debtType}).`);
+                this.router.navigate(['/debts', debt.id]);
+            },
+            error: (err) => {
+                this.isLoading = false;
+                this.alertService.showError(err?.error?.message || 'Création de dette caisse impossible.');
             }
         });
     }

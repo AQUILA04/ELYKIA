@@ -14,6 +14,7 @@ import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
+import com.optimize.elykia.core.repository.DebtDocumentRepository;
 import com.optimize.elykia.core.service.stock.CommercialMonthlyStockItemSoldValueHistoryService;
 import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
 import com.optimize.elykia.core.repository.CreditRepository;
@@ -38,6 +39,7 @@ public class RattrapageCreditService {
     private final CommercialMonthlyStockRepository commercialMonthlyStockRepository;
     private final CreditRepository creditRepository;
     private final ClientService clientService;
+    private final DebtDocumentRepository debtDocumentRepository;
     private CommercialStockMovementService commercialStockMovementService;
     private CommercialMonthlyStockItemSoldValueHistoryService soldValueHistoryService;
     private BusinessMetricsPublisher metricsPublisher;
@@ -121,6 +123,11 @@ public class RattrapageCreditService {
         if (isCurrentMonth) {
             throw new CustomValidationException(
                     "Impossible d'effectuer un rattrapage sur le stock du mois courant.");
+        }
+
+        if (debtDocumentRepository.existsActiveMerchandiseForStock(sourceStock.getId())) {
+            throw new CustomValidationException(
+                    "Impossible d'effectuer un rattrapage : une dette marchandise est déjà constituée pour ce mois.");
         }
 
         return sourceStock;

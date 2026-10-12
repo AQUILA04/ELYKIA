@@ -654,6 +654,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../manager/debts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Dettes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../manager/finance/" class="md-nav__link">
         
   
@@ -1165,6 +1193,17 @@
     <span class="md-ellipsis">
       
         C. Tableau d'analyse des mouvements par article
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-consulter-vos-dettes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Consulter vos dettes
       
     </span>
   </a>
@@ -1726,6 +1765,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#d-consulter-vos-dettes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Consulter vos dettes
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1862,10 +1912,16 @@
 <td><strong>Carte Cliquable</strong> : Un clic ouvre instantanément la liste détaillée de l'ensemble des crédits et ventes associés.</td>
 </tr>
 <tr>
+<td><strong>Valeur Dette</strong></td>
+<td>Orange</td>
+<td>Valorisation des quantités passées en dette pour ce mois (y compris après règlement).</td>
+<td>Affiche aussi la part déjà réglée.</td>
+</tr>
+<tr>
 <td><strong>Valeur Total Dû</strong></td>
 <td>Orange (<code>account_balance_wallet</code>)</td>
-<td>Valeur globale totale de l'ensemble des marchandises confiées sur le mois (Stock restant + Stock vendu).</td>
-<td>Représente l'engagement financier total initial du commercial.</td>
+<td>Valeur globale : stock vendu + dette + stock restant.</td>
+<td>Engagement financier du mois.</td>
 </tr>
 <tr>
 <td><strong>Montant Recouvré</strong></td>
@@ -1893,8 +1949,15 @@
 * <strong>Pris (Magasin)</strong> : Quantité totale livrée par le magasin central. <em>(Cellule cliquable pour inspecter le détail des bons de sortie).</em>
 * <strong>Vendu (Clients)</strong> : Quantité totale écoulée auprès de la clientèle. <em>(Cellule cliquable pour ouvrir la liste des ventes clientes correspondantes).</em>
 * <strong>Retourné</strong> : Quantité réintégrée au magasin central.
-* <strong>Restant</strong> : Quantité nette actuellement détenue : $\text{Restant} = \text{Pris} - \text{Vendu} - \text{Retourné}$.
-* <strong>Valeur Restante (FCFA)</strong> : Valorisation financière du reliquat au Prix Moyen Pondéré (PMP).</p>
+* <strong>Restant</strong> : Quantité encore chez vous.
+* <strong>Dette</strong> / <strong>Valeur Dette</strong> : quantités et montant des articles déjà transformés en dette pour ce mois.
+* <strong>Valeur Restante (FCFA)</strong> : valorisation financière du reliquat au prix du stock.</p>
+<h3 id="d-consulter-vos-dettes">D. Consulter vos dettes</h3>
+<ol>
+<li>Ouvrez le menu <strong>Dettes</strong>.</li>
+<li>Vous voyez la liste de vos positions (marchandise, caisse) avec le montant et le reste à régler.</li>
+<li>Cliquez sur une ligne pour le détail des articles ou des rubriques et l’historique des règlements.</li>
+</ol>
 <hr />
 <h2 id="3-retours-de-marchandise-au-magasin-menu-stock-commercial-retours">3. Retours de marchandise au magasin (Menu Stock Commercial &gt; Retours)</h2>
 <p>Lorsqu'un commercial souhaite réintégrer un article invendu, défectueux ou faire une fin de tournée, il crée une opération de retour dans <strong>Stock Commercial &gt; Retours</strong>.</p>

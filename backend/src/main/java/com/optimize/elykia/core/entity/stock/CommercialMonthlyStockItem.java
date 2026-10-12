@@ -33,9 +33,15 @@ public class CommercialMonthlyStockItem extends Auditable<String> {
     // Quantité retournée au magasin
     private Integer quantityReturned = 0;
 
-    // Quantité restante chez le commercial (Taken - Sold - Returned)
-    // Note: Peut inclure le report du mois précédent si on décide de gérer ça
+    // Quantité restante chez le commercial (Taken - Sold - Returned - Debt)
     private Integer quantityRemaining = 0;
+
+    // Quantité transformée en dette (quitte le reste ; reste après règlement)
+    private Integer quantityDebt = 0;
+
+    // Prix unitaire figé au moment du transfert reste → dette
+    @Column(columnDefinition = "double precision default 0")
+    private Double debtUnitPrice = 0.0;
 
     // Prix moyen pondéré ou dernier prix connu pour ce mois
     // Utile pour les calculs de valorisation du stock restant
@@ -61,6 +67,16 @@ public class CommercialMonthlyStockItem extends Auditable<String> {
     private Double lastPurchasePrice = 0.0;
 
     public void updateRemaining() {
-        this.quantityRemaining = this.quantityTaken - this.quantitySold - this.quantityReturned;
+        int taken = this.quantityTaken != null ? this.quantityTaken : 0;
+        int sold = this.quantitySold != null ? this.quantitySold : 0;
+        int returned = this.quantityReturned != null ? this.quantityReturned : 0;
+        int debt = this.quantityDebt != null ? this.quantityDebt : 0;
+        this.quantityRemaining = taken - sold - returned - debt;
+    }
+
+    public double debtValue() {
+        int debt = this.quantityDebt != null ? this.quantityDebt : 0;
+        double unit = this.debtUnitPrice != null ? this.debtUnitPrice : 0D;
+        return debt * unit;
     }
 }

@@ -912,6 +912,21 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("type") OperationType type,
             @Param("state") State state);
 
+    @Query("""
+            SELECT COALESCE(SUM(c.totalAmount), 0)
+            FROM Credit c
+            WHERE c.collector = :collector
+              AND c.type = com.optimize.elykia.core.enumaration.OperationType.CASH
+              AND c.state = :state
+              AND c.beginDate >= :start
+              AND c.beginDate <= :end
+            """)
+    Double sumCashSalesAmountBetween(
+            @Param("collector") String collector,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end,
+            @Param("state") State state);
+
     // ==========================================
     // PORTEFEUILLE LIVE (sans filtre beginDate)
     // ==========================================

@@ -62,6 +62,8 @@ class InventoryReconciliationServiceTest {
     private StockMovementService stockMovementService;
     @Mock
     private UserService userService;
+    @Mock
+    private com.optimize.elykia.core.service.debt.DebtService debtService;
     @InjectMocks
     private InventoryReconciliationService inventoryReconciliationService;
 
@@ -115,7 +117,7 @@ class InventoryReconciliationServiceTest {
     }
 
     @Test
-    void reconcileDebt_markAsDebt_keepsSystemStockAndDoesNotCreateAdjustmentLedger() {
+    void reconcileDebt_markAsDebt_adjustsStockToPhysicalAndFlagsDebt() {
         // Given
         givenCurrentUser();
         Articles article = articleWithStock(12);
@@ -126,13 +128,15 @@ class InventoryReconciliationServiceTest {
         // When
         InventoryItem result = inventoryReconciliationService.reconcileDebt(dto);
 
-        // Then
+        // Then — stock aligné au physique (12 - 3) et dette financière flaguée
         assertSame(item, result);
-        assertEquals(12, article.getStockQuantity());
+        assertEquals(9, article.getStockQuantity());
         assertEquals(InventoryItemStatus.RECONCILED, item.getStatus());
         assertTrue(item.getMarkAsDebt());
         assertFalse(item.getDebtCancelled());
-        verifyNoInteractions(articleHistoryService, stockMovementService);
+        verify(articleHistoryService).create(any());
+        verify(stockMovementService).recordMovementWithSnapshot(
+                any(), any(), any(), any(), any(), any(), any(), any(), any(), eq(false));
     }
 
     @Test

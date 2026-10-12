@@ -6,6 +6,7 @@ import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CommercialReportMonthlyRepository;
 import com.optimize.elykia.core.repository.CreditCollectorHistoryRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.service.debt.DebtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,13 +27,16 @@ class CommercialYearlyPortfolioServiceTest {
     @Mock private CommercialReportMonthlyRepository monthlyRepository;
     @Mock private CreditRepository creditRepository;
     @Mock private CreditCollectorHistoryRepository collectorHistoryRepository;
+    @Mock private DebtService debtService;
 
     private CommercialYearlyPortfolioService service;
 
     @BeforeEach
     void setUp() {
         service = new CommercialYearlyPortfolioService(
-                monthlyRepository, creditRepository, collectorHistoryRepository);
+                monthlyRepository, creditRepository, collectorHistoryRepository, debtService);
+        when(debtService.merchandiseYearlyTotals(org.mockito.ArgumentMatchers.anyString(), org.mockito.ArgumentMatchers.anyInt()))
+                .thenReturn(new DebtService.MerchandiseYearlyDebtTotals(0D, 0D));
     }
 
     @Test

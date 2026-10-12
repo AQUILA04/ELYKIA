@@ -26,4 +26,8 @@ public class CommercialYearlySummaryDto {
     double remainingAtCommercialAmount;
     /** Somme live des totalAmountRemaining (portefeuille client actuel). */
     double remainingAtClientAmount;
+    /** Somme des valeurs figées des dettes marchandise de l'année (y compris réglées). */
+    double merchandiseDebtGlobalAmount;
+    /** Somme des règlements imputés sur ces dettes marchandise. */
+    double merchandiseDebtSettledAmount;
 }

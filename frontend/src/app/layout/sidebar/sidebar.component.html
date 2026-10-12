@@ -377,6 +377,16 @@
             <span class="hide-menu">Dépenses</span>
           </a>
         </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_PROMOTER', 'ROLE_STOREKEEPER']">
+          <a class="sidebar-link" routerLink="/debts" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/debts') }"
+             data-testid="e2e-sidebar-debts">
+            <span>
+              <mat-icon>account_balance_wallet</mat-icon>
+            </span>
+            <span class="hide-menu">Dettes</span>
+          </a>
+        </li>
 
         <!-- MENU CONFIGURATION -->
         <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">

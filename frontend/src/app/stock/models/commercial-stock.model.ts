@@ -7,6 +7,10 @@ export interface StockRecoverySummary {
   recoveredFromSales: number;
   remainingFromCredits: number;
   totalCreditDepositedAmount?: number;
+  debtValueAmount?: number;
+  debtSettledAmount?: number;
+  debtRemainingAmount?: number;
+  merchandiseDebtId?: number;
 }
 
 export interface CommercialMonthlyStockItem {
@@ -16,6 +20,8 @@ export interface CommercialMonthlyStockItem {
   quantitySold: number;
   quantityReturned: number;
   quantityRemaining: number;
+  quantityDebt?: number;
+  debtUnitPrice?: number;
   weightedAverageUnitPrice: number;
   weightedAveragePurchasePrice: number;
   totalSoldValue?: number;

@@ -9,6 +9,19 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.30.0] — 2026-10-12
+
+### Added
+
+- Module **Dettes** (`/debts`) : liste, détail, règlement multi-dettes (espèces, surplus, abandon).
+- Stock mensuel : colonne **Dette**, carte **Valeur dette**, bouton **Créer la dette** (`ROLE_DEBT_MANAGEMENT`) sur les mois passés avec reste.
+- Rapport journalier : constitution d’écart de caisse sur un jour passé ; bilan annuel crédit avec **Dette globale** et **Dette réglée**.
+- Inventaire : saisie du magasinier responsable lors du marquage en dette.
+
+### Docs
+
+- Guide gestionnaire « Dettes » ; mises à jour stock commercial et inventaire magasinier. Index RAG et guide HTML régénérés.
+
 ## Frontend — [2.29.8] — 2026-10-12
 
 ### Changed
@@ -18,6 +31,22 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Docs
 
 - Guide gestionnaire stocks : validation via la fenêtre de confirmation des prix. Index RAG et guide HTML régénérés.
+
+## Frontend — [2.29.7] — 2026-10-12
+
+### Docs
+
+- Guide gestionnaire : activation de la valorisation du stock magasin par lots via **Paramètres généraux** (un seul paramètre). Index RAG et guide HTML régénérés.
+
+## Backend — [1.33.0] — 2026-10-12
+
+### Added
+
+- Module dettes : tables `debt_document` / `debt_line` / `debt_settlement` / `debt_allocation`, API `/api/debts`, permission `ROLE_DEBT_MANAGEMENT` (gestionnaire, admin, super admin).
+- Dette marchandise : `quantity_debt` / `debt_unit_price` sur le stock mensuel ; total dû = vendu + dette + restant ; blocage rattrapage et retour historique.
+- Dette / avoir de caisse (jour et mois) avec ventes comptant et imputation automatique du surplus.
+- Dette magasinier à la réconciliation d’inventaire (ajustement stock + pièce financière).
+- Bilan annuel : `merchandiseDebtGlobalAmount` et `merchandiseDebtSettledAmount`.
 
 ## Backend — [1.32.0] — 2026-10-12
 
@@ -29,12 +58,6 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - À la validation FIFO, recalcul systématique de `totalAmount` avant création de la dépense.
-
-## Frontend — [2.29.7] — 2026-10-12
-
-### Docs
-
-- Guide gestionnaire : activation de la valorisation du stock magasin par lots via **Paramètres généraux** (un seul paramètre). Index RAG et guide HTML régénérés.
 
 ## Backend — [1.31.0] — 2026-10-12
 

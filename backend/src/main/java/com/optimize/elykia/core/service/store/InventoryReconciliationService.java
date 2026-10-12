@@ -18,13 +18,18 @@ import com.optimize.elykia.core.enumaration.StockOperationType;
 import com.optimize.elykia.core.repository.InventoryItemRepository;
 import com.optimize.elykia.core.repository.InventoryReconciliationRepository;
 import com.optimize.elykia.core.repository.StockMovementRepository;
+import com.optimize.elykia.core.service.debt.DebtService;
 import com.optimize.elykia.core.service.stock.StockMovementService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @Transactional(readOnly = true)
@@ -37,11 +42,13 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
     private final ArticleHistoryService articleHistoryService;
     private final StockMovementService stockMovementService;
     private final UserService userService;
+    private final DebtService debtService;
 
     public InventoryReconciliationService(InventoryReconciliationRepository repository,
             InventoryItemRepository inventoryItemRepository, StockMovementRepository stockMovementRepository,
             ArticlesService articlesService, ArticleHistoryService articleHistoryService,
-            StockMovementService stockMovementService, UserService userService) {
+            StockMovementService stockMovementService, UserService userService,
+            @Lazy DebtService debtService) {
         super(repository);
         this.reconciliationRepository = repository;
         this.inventoryItemRepository = inventoryItemRepository;
@@ -50,6 +57,7 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
         this.articleHistoryService = articleHistoryService;
         this.stockMovementService = stockMovementService;
         this.userService = userService;
+        this.debtService = debtService;
     }
 
     @Override
@@ -62,7 +70,10 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
         InventoryItem item = inventoryItemRepository.findById(dto.getInventoryItemId())
                 .orElseThrow(() -> new ApplicationException("Article d'inventaire non trouvé"));
 
-        if (item.getStatus() != InventoryItemStatus.DEBT) {
+        boolean cancellingExistingDebt = dto.getAction() == ReconciliationAction.CANCEL_DEBT
+                && Boolean.TRUE.equals(item.getMarkAsDebt())
+                && item.getStatus() == InventoryItemStatus.RECONCILED;
+        if (item.getStatus() != InventoryItemStatus.DEBT && !cancellingExistingDebt) {
             throw new ApplicationException("Cet article n'a pas de dette à réconcilier.");
         }
 
@@ -97,9 +108,18 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
             item.setDebtCancelled(true);
 
         } else if (dto.getAction() == ReconciliationAction.MARK_AS_DEBT) {
+            // Aligne le stock système sur le physique et enregistre la dette financière
+            Integer adjustment = item.getDifference();
+            Integer newStock = Math.max(0, article.getStockQuantity() + adjustment);
+            article.setStockQuantity(newStock);
+
             reconciliation.setReconciliationType(ReconciliationType.DEBT_RESOLUTION);
             reconciliation.setAction(ReconciliationAction.MARK_AS_DEBT);
-            reconciliation.setStockAfter(stockBefore);
+            reconciliation.setStockAfter(newStock);
+
+            String reason = "Dette magasinier - Ajustement inventaire: " + dto.getComment();
+            recordInventoryAdjustmentLedger(item, article, stockBefore, newStock, Math.abs(adjustment),
+                    username, reason);
 
             item.setStatus(InventoryItemStatus.RECONCILED);
             item.setReconciliationComment(dto.getComment());
@@ -109,9 +129,24 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
             item.setDebtCancelled(false);
 
         } else if (dto.getAction() == ReconciliationAction.CANCEL_DEBT) {
+            // Restaure le stock système si une dette avait baissé le stock
+            if (Boolean.TRUE.equals(item.getMarkAsDebt()) && item.getDifference() != null && item.getDifference() < 0) {
+                Integer restoreQty = Math.abs(item.getDifference());
+                Integer newStock = article.getStockQuantity() + restoreQty;
+                article.setStockQuantity(newStock);
+                reconciliation.setStockAfter(newStock);
+                String reason = "Annulation dette magasinier: " + dto.getComment();
+                recordInventoryAdjustmentLedger(item, article, stockBefore, newStock, restoreQty,
+                        username, reason);
+                if (item.getInventory() != null) {
+                    debtService.cancelInventoryDebt(item.getInventory().getId());
+                }
+            } else {
+                reconciliation.setStockAfter(stockBefore);
+            }
+
             reconciliation.setReconciliationType(ReconciliationType.DEBT_RESOLUTION);
             reconciliation.setAction(ReconciliationAction.CANCEL_DEBT);
-            reconciliation.setStockAfter(stockBefore);
 
             item.setStatus(InventoryItemStatus.RECONCILED);
             item.setReconciliationComment(dto.getComment());
@@ -125,6 +160,12 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
         create(reconciliation);
         articlesService.update(article);
         inventoryItemRepository.save(item);
+
+        if (dto.getAction() == ReconciliationAction.MARK_AS_DEBT
+                && dto.getStorekeeperUsername() != null
+                && !dto.getStorekeeperUsername().isBlank()) {
+            registerInventoryDebt(item.getInventory(), dto.getStorekeeperUsername(), List.of(item), dto.getComment());
+        }
 
         return item;
     }
@@ -233,10 +274,13 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
     @Transactional
     public List<com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult> bulkReconcile(
             com.optimize.elykia.core.dto.BulkReconciliationDto bulkDto) {
-        List<com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult> results = new java.util.ArrayList<>();
+        List<com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult> results = new ArrayList<>();
+        List<InventoryItem> debtItems = new ArrayList<>();
+        com.optimize.elykia.core.entity.inventory.Inventory inventory = null;
 
         for (Long itemId : bulkDto.getInventoryItemIds()) {
-            com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult result = new com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult();
+            com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult result =
+                    new com.optimize.elykia.core.dto.BulkReconciliationResultDto.ReconciliationItemResult();
             result.setInventoryItemId(itemId);
 
             try {
@@ -246,12 +290,20 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
                 dto.setComment(bulkDto.getComment());
                 dto.setMarkAsDebt(bulkDto.getMarkAsDebt());
                 dto.setCancelDebt(bulkDto.getCancelDebt());
+                // Dette créée une seule fois en fin de lot (évite doublons)
+                dto.setStorekeeperUsername(null);
 
                 InventoryItem item;
                 if (bulkDto.getAction() == ReconciliationAction.MARK_AS_SURPLUS) {
                     item = reconcileSurplus(dto);
                 } else {
                     item = reconcileDebt(dto);
+                }
+
+                if (bulkDto.getAction() == ReconciliationAction.MARK_AS_DEBT
+                        && Boolean.TRUE.equals(item.getMarkAsDebt())) {
+                    debtItems.add(item);
+                    inventory = item.getInventory();
                 }
 
                 result.setSuccess(true);
@@ -282,7 +334,39 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
             results.add(result);
         }
 
+        if (inventory != null && !debtItems.isEmpty()) {
+            String storekeeper = bulkDto.getStorekeeperUsername();
+            if (storekeeper == null || storekeeper.isBlank()) {
+                storekeeper = inventory.getCreatedByUser();
+            }
+            if (storekeeper == null || storekeeper.isBlank()) {
+                throw new ApplicationException("Magasinier responsable obligatoire pour créer la dette.");
+            }
+            registerInventoryDebt(inventory, storekeeper, debtItems, bulkDto.getComment());
+        }
+
         return results;
+    }
+
+    private void registerInventoryDebt(
+            com.optimize.elykia.core.entity.inventory.Inventory inventory,
+            String storekeeperUsername,
+            List<InventoryItem> items,
+            String comment) {
+        Map<Long, Double> prices = new HashMap<>();
+        for (InventoryItem item : items) {
+            Articles article = item.getArticle();
+            if (article == null) {
+                continue;
+            }
+            Double purchase = article.getPurchasePrice();
+            if (purchase == null || purchase <= 0D) {
+                throw new ApplicationException(
+                        "Prix d'achat manquant pour l'article " + article.getCommercialName());
+            }
+            prices.put(article.getId(), purchase);
+        }
+        debtService.createInventoryDebt(inventory, storekeeperUsername, items, prices);
     }
 
     public List<InventoryReconciliation> getReconciliationHistory(Long inventoryItemId) {

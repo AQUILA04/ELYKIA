@@ -122,4 +122,7 @@ public class UserPermissionConstant {
     public static final String KPI_FINANCIER_BI_STOCK = "ROLE_KPI_FINANCIER_BI_STOCK";
     public static final String KPI_FINANCIER_DEPENSE = "ROLE_KPI_FINANCIER_DEPENSE";
 
+    /** Gestion des dettes commerciaux / magasinier (création, annulation, règlement). */
+    public static final String DEBT_MANAGEMENT = "ROLE_DEBT_MANAGEMENT";
+
 }

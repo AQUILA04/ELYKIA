@@ -1,0 +1,117 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container debt-page" data-testid="e2e-debt-list">
+  <div class="header-fixed">
+    <h1>Dettes</h1>
+  </div>
+
+  <div class="stats-row mb-4" *ngIf="summary">
+    <div class="stats-card">
+      <p class="stats-label">Dettes ouvertes</p>
+      <p class="stats-value">{{ summary.openDebtTotal | number:'1.0-0' }} FCFA</p>
+    </div>
+    <div class="stats-card">
+      <p class="stats-label">Avoirs (surplus)</p>
+      <p class="stats-value">{{ summary.openSurplusTotal | number:'1.0-0' }} FCFA</p>
+    </div>
+    <div class="stats-card">
+      <p class="stats-label">Position nette</p>
+      <p class="stats-value">{{ summary.netPosition | number:'1.0-0' }} FCFA</p>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <input type="text" placeholder="Commercial / magasinier" [(ngModel)]="filterHolder" />
+    <select [(ngModel)]="filterType">
+      <option value="">Tous types</option>
+      <option value="MERCHANDISE">Marchandise</option>
+      <option value="CASH_SHORTAGE">Manquant caisse</option>
+      <option value="CASH_SURPLUS">Surplus caisse</option>
+      <option value="INVENTORY_SHORTAGE">Écart inventaire</option>
+    </select>
+    <select [(ngModel)]="filterStatus">
+      <option value="">Tous statuts</option>
+      <option value="OPEN">Ouverte</option>
+      <option value="PARTIALLY_SETTLED">Partiellement réglée</option>
+      <option value="SETTLED">Réglée</option>
+    </select>
+    <input type="number" placeholder="Année" [(ngModel)]="filterYear" />
+    <input type="number" placeholder="Mois" min="1" max="12" [(ngModel)]="filterMonth" />
+    <button mat-raised-button color="primary" (click)="pageIndex = 0; load()">Filtrer</button>
+    <button mat-raised-button
+            *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']"
+            [disabled]="selectedIds.size === 0"
+            (click)="openSettleModal()">
+      Marquer comme payé(s)
+    </button>
+  </div>
+
+  <div class="table-container">
+    <table class="article-table">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Référence</th>
+          <th>Titulaire</th>
+          <th>Type</th>
+          <th>Période</th>
+          <th>Statut</th>
+          <th class="text-right">Montant</th>
+          <th class="text-right">Restant</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let debt of debts" (click)="openDetail(debt)" class="clickable-row"
+            [attr.data-testid]="'e2e-debt-row-' + debt.id">
+          <td (click)="$event.stopPropagation()">
+            <input type="checkbox"
+                   [checked]="selectedIds.has(debt.id)"
+                   (change)="toggleSelect(debt)"
+                   [disabled]="debt.debtType === 'CASH_SURPLUS' || debt.status === 'SETTLED' || debt.status === 'CANCELLED'" />
+          </td>
+          <td>{{ debt.reference }}</td>
+          <td>{{ debt.holderUsername }}</td>
+          <td>{{ typeLabel(debt.debtType) }}</td>
+          <td>
+            <ng-container *ngIf="debt.periodGrain === 'DAY'">{{ debt.periodDay }}</ng-container>
+            <ng-container *ngIf="debt.periodGrain === 'MONTH'">{{ debt.periodMonth }}/{{ debt.periodYear }}</ng-container>
+          </td>
+          <td>{{ statusLabel(debt.status) }}</td>
+          <td class="text-right">{{ debt.grossAmount | number:'1.0-0' }}</td>
+          <td class="text-right font-weight-bold">{{ debt.remainingAmount | number:'1.0-0' }}</td>
+        </tr>
+        <tr *ngIf="debts.length === 0">
+          <td colspan="8" class="text-center p-4">Aucune dette trouvée.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <mat-paginator [length]="totalElements" [pageIndex]="pageIndex" [pageSize]="pageSize"
+    [pageSizeOptions]="[10, 20, 50]" (page)="onPage($event)" showFirstLastButtons>
+  </mat-paginator>
+</div>
+
+<div class="debt-modal-backdrop" *ngIf="showSettleModal" (click)="showSettleModal = false">
+  <div class="debt-modal" (click)="$event.stopPropagation()" data-testid="e2e-debt-settle-modal">
+    <h2>Marquer comme payé</h2>
+    <p>Total restant sélectionné : {{ selectedRemainingTotal() | number:'1.0-0' }} FCFA</p>
+    <label>Mode
+      <select [(ngModel)]="settleMode">
+        <option value="CASH">Espèces</option>
+        <option value="SURPLUS_OFFSET">Imputer un surplus</option>
+        <option value="WRITE_OFF">Abandon (motif obligatoire)</option>
+      </select>
+    </label>
+    <label>Montant
+      <input type="number" [(ngModel)]="settleAmount" min="1" />
+    </label>
+    <label>Note / motif
+      <textarea [(ngModel)]="settleNote" rows="3"></textarea>
+    </label>
+    <div class="modal-actions">
+      <button mat-button (click)="showSettleModal = false">Annuler</button>
+      <button mat-raised-button color="primary" (click)="confirmSettle()">Confirmer</button>
+    </div>
+  </div>
+</div>
