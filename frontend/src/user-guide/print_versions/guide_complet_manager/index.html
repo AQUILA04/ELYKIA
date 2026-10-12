@@ -1579,6 +1579,11 @@
 <td>Lire les indicateurs, les versements et les remises.</td>
 </tr>
 <tr>
+<td>Suivre l’espace client</td>
+<td>Inscriptions clients</td>
+<td>Valider les inscriptions de l’espace client.</td>
+</tr>
+<tr>
 <td>Paramétrer l’agence</td>
 <td>Configuration</td>
 <td>Maintenir les référentiels et les paramètres.</td>
@@ -1591,6 +1596,7 @@
 <ul>
 <li><a href="dashboard.md">Tableaux de bord</a> pour lire les KPI sans confondre les périodes.</li>
 <li><a href="operations.md">Opérations quotidiennes</a> pour les caisses, clients, comptes et versements.</li>
+<li><a href="client_registrations.md">Inscriptions</a> (<strong>Services en ligne</strong>) pour valider les demandes de l’espace client.</li>
 <li><a href="stock_sales.md">Stocks, ventes et commandes</a> pour les flux de marchandises et de crédits.</li>
 <li><a href="finance.md">Finances et tontines</a> pour les dépenses, remises et contrôles tontine.</li>
 <li><a href="reporting_config.md">Rapports et configuration</a> pour l’analyse et les référentiels.</li>
@@ -1854,14 +1860,27 @@
 * <strong>Badge vert « B »</strong> : Indique que le client est habilité à contracter un <strong>crédit business/professionnel</strong> en plus de son crédit personnel usuel.
 * <strong>Action « Autoriser / Retirer crédit business »</strong> : Permet au gestionnaire d'octroyer ou de révoquer ce privilège après examen de la solvabilité du client.</p>
 <hr />
-<h2 id="6-traitement-des-declarations-de-paiements-clients-mobile-money-menu-paiements-clients">6. Traitement des déclarations de paiements clients Mobile Money (Menu Paiements clients)</h2>
-<p>Le module <strong>Paiements clients</strong> permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via <strong>Mobile Money</strong> (Mixx by YAS ou Moov Money).</p>
+<h2 id="6-commandes-passees-en-ligne-menu-services-en-ligne-commandes">6. Commandes passées en ligne (Menu Services en ligne &gt; Commandes)</h2>
+<p>Les commandes passées par les clients depuis l’Espace Client apparaissent dans <strong>Services en ligne</strong> &gt; <strong>Commandes</strong>.</p>
+<!-- CAPTURE À INSÉRER : Liste des commandes en ligne avec onglets En attente / Validées / Livrées et barre d’actions groupées. -->
+
+<ol>
+<li>Ouvrez <strong>Services en ligne</strong> &gt; <strong>Commandes</strong>.</li>
+<li>Parcourez les onglets <strong>En attente</strong>, <strong>Validées</strong>, <strong>Livrées</strong> et <strong>Autres</strong>.</li>
+<li>Sur une commande en attente, cliquez sur <strong>Valider</strong> (ou sélectionnez plusieurs commandes puis <strong>Valider la sélection</strong>).</li>
+<li>Pour réapprovisionner le commercial concerné : <strong>Faire une demande de stock</strong> (sur une commande seule, ou sur plusieurs commandes cochées). Une fenêtre récapitule les articles par commercial ; confirmez pour créer la demande de sortie. Si plusieurs commerciaux sont concernés, une demande est créée pour chacun.</li>
+<li>Quand le gestionnaire <strong>valide</strong> cette demande de sortie dans <strong>Stock Commercial</strong> &gt; <strong>Demandes Sortie</strong>, les commandes encore en attente liées passent automatiquement à <strong>Validée</strong>.</li>
+<li>Une fois la marchandise chez le commercial et la commande validée, cliquez sur <strong>Marquer comme livrée</strong> : la vente est créée automatiquement et la commande passe à <strong>Livrée</strong>.</li>
+</ol>
+<hr />
+<h2 id="7-traitement-des-declarations-de-paiements-clients-mobile-money-menu-services-en-ligne-paiements">7. Traitement des déclarations de paiements clients Mobile Money (Menu Services en ligne &gt; Paiements)</h2>
+<p>Le module <strong>Paiements</strong> (sous <strong>Services en ligne</strong>) permet d'arbitrer les déclarations d'encaissement effectuées par les clients depuis l'Espace Client ELYKIA via <strong>Mobile Money</strong> (Mixx by YAS ou Moov Money).</p>
 <p>Après un <strong>Valider</strong> ou un <strong>Rejeter</strong>, la déclaration quitte immédiatement la liste des attentes. Pendant le traitement, les boutons de la ligne sont momentanément indisponibles.</p>
 <!-- CAPTURE À INSÉRER : Écran de gestion des déclarations de paiement Mobile Money avec onglets Recouvrement crédit et Cotisations tontine, et boutons Valider/Rejeter. -->
 
 <h3 id="a-presentation-generale-et-indicateurs">A. Présentation générale et indicateurs</h3>
 <ul>
-<li><strong>Accès au module</strong> : Menu latéral <strong>Paiements clients</strong> (icône carte bancaire). Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises.</li>
+<li><strong>Accès au module</strong> : Menu latéral <strong>Services en ligne</strong> &gt; <strong>Paiements</strong>. Si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises.</li>
 <li><strong>Barre d'état</strong> : Heure d'actualisation en direct et bouton <strong>« Actualiser »</strong> pour vérifier l'arrivée de nouveaux versements.</li>
 <li><strong>Compteur dynamique</strong> : Affiche le nombre de déclarations actuellement en attente d'instruction.</li>
 <li><strong>Visibilité des données</strong> :</li>
@@ -1914,7 +1933,11 @@
 </tr>
 <tr>
 <td><strong>Référence</strong></td>
-<td>Numéro de transaction officiel fourni par l'opérateur (Mixx ou Moov).</td>
+<td>Numéro de transaction officiel fourni par l'opérateur (Mixx ou Moov). Des pastilles peuvent signaler une <strong>référence différente</strong> de celle lue sur le justificatif, ou un <strong>justificatif déjà utilisé</strong>.</td>
+</tr>
+<tr>
+<td><strong>Justificatif</strong></td>
+<td>Bouton <strong>Agrandir</strong> pour ouvrir la capture ou le reçu PDF fourni par le client.</td>
 </tr>
 <tr>
 <td><strong>Date</strong></td>
@@ -1922,11 +1945,22 @@
 </tr>
 </tbody>
 </table>
+<h4 id="actions-de-validation-ou-de-rejet_1">Actions de validation ou de rejet :</h4>
+<ol>
+<li><strong>Consulter le justificatif</strong> : cliquez sur <strong>Agrandir</strong> pour visualiser la preuve avant de décider.</li>
+<li><strong>Valider</strong> :</li>
+<li>Après vérification de la réception effective des fonds sur le compte récepteur de l'agence, cliquez sur le bouton vert <strong>« Valider »</strong>.</li>
+<li><strong>Conséquences automatiques</strong> : Le paiement est instantanément imputé sur le crédit du client, son solde restant dû diminue, le versement est enregistré dans le journal des recouvrements du commercial et comptabilisé dans les encaissements du jour.</li>
+<li><strong>Rejeter</strong> :</li>
+<li>Si la transaction est introuvable, incorrecte ou frauduleuse, cliquez sur le bouton rouge <strong>« Rejeter »</strong>.</li>
+<li>Une boîte de dialogue vous demande confirmation avant d'annuler définitivement la déclaration.</li>
+</ol>
 <hr />
 <h3 id="c-traitement-des-cotisations-tontine-onglet-cotisations-tontine">C. Traitement des cotisations tontine (Onglet Cotisations tontine)</h3>
-<p>Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine.</p>
+<p>Cet onglet regroupe les cotisations d'épargne rotative versées en ligne par les adhérents de la tontine, y compris le <strong>premier paiement</strong> déclaré par un nouveau membre qui s’est inscrit depuis l’Espace Client.</p>
 <h4 id="decision-gestionnaire">Décision gestionnaire :</h4>
 <ul>
+<li><strong>Consulter le justificatif</strong> : cliquez sur <strong>Agrandir</strong> avant de décider.</li>
 <li><strong>Valider</strong> : Valide l'encaissement, crédite la cagnotte du membre dans la session active, applique la règle de déduction de la part société selon le barème paramétré et met à jour l'état d'avancement de son carnet d'épargne. La cotisation quitte immédiatement la liste des attentes.</li>
 <li><strong>Rejeter</strong> : Rejette la déclaration après confirmation ; la ligne disparaît ensuite de la liste et le client est alerté.</li>
 </ul>
@@ -1956,7 +1990,11 @@
 </tr>
 <tr>
 <td><strong>Téléphone &amp; Référence</strong></td>
-<td>Coordonnées de l'émetteur et identifiant de transaction opérateur.</td>
+<td>Coordonnées de l'émetteur et identifiant de transaction opérateur. Des pastilles peuvent signaler une <strong>référence différente</strong> ou un <strong>justificatif déjà utilisé</strong>.</td>
+</tr>
+<tr>
+<td><strong>Justificatif</strong></td>
+<td>Bouton <strong>Agrandir</strong> pour ouvrir la capture ou le reçu PDF.</td>
 </tr>
 <tr>
 <td><strong>Date</strong></td>
@@ -1965,7 +2003,7 @@
 </tbody>
 </table>
 <hr />
-<h2 id="7-centre-de-notifications-et-suivi-des-alertes">7. Centre de notifications et suivi des alertes</h2>
+<h2 id="8-centre-de-notifications-et-suivi-des-alertes">8. Centre de notifications et suivi des alertes</h2>
 <p>ELYKIA intègre un système d'alerte multicanal pour avertir immédiatement les équipes des événements requérant une attention rapide.</p>
 <!-- CAPTURE À INSÉRER : Centre de notifications avec cloche dans la barre supérieure, badge de notifications non lues et liste chronologique des événements. -->
 
@@ -1977,15 +2015,18 @@
 <li><strong>Lien complet</strong> : Le lien en bas de volet <strong>« Voir toutes les notifications »</strong> ouvre la page dédiée.</li>
 </ul>
 <h3 id="b-page-dediee-du-centre-de-notifications">B. Page dédiée du centre de notifications</h3>
-<ul>
-<li><strong>Bouton « Tout lire »</strong> : Permet de basculer l'ensemble des notifications affichées à l'état lu en un seul clic.</li>
-<li><strong>Bouton « Actualiser »</strong> : Recharge immédiatement les flux d'alertes sans recharger la page entière.</li>
-<li><strong>Classification fonctionnelle des alertes</strong> :</li>
-<li><strong>Paiement</strong> : Déclaration de remboursement de crédit initiée en ligne par un client.</li>
-<li><strong>Cotisation tontine</strong> : Déclaration de cotisation d'épargne par un membre.</li>
-<li><strong>Commande</strong> : Nouvelle réservation ou précommande d'article soumise par un client.</li>
-<li><strong>Rattrapage</strong> : Demande ou régularisation de versement de rattrapage sur un mois antérieur.</li>
-</ul>
+<ol>
+<li>Ouvrez la page via <strong>« Voir toutes les notifications »</strong> (cloche) ou le menu correspondant.</li>
+<li>En haut de page, les indicateurs <strong>Total</strong> et <strong>Non lues</strong> résument le volume d’alertes.</li>
+<li>Cliquez sur <strong>« Tout lire »</strong> pour marquer toutes les alertes affichées comme lues.</li>
+<li>Cliquez sur <strong>« Actualiser »</strong> pour recharger la liste sans quitter la page.</li>
+<li>Les alertes sont regroupées par date. Cliquez sur une ligne pour l’ouvrir (elle est marquée lue) et accéder à l’écran concerné.</li>
+</ol>
+<p><strong>Types d’alertes :</strong>
+* <strong>Paiement</strong> : déclaration de remboursement de crédit initiée en ligne par un client.
+* <strong>Cotisation tontine</strong> : déclaration de cotisation d’épargne par un membre.
+* <strong>Commande</strong> : nouvelle réservation ou précommande d’article soumise par un client.
+* <strong>Rattrapage</strong> : régularisation de versement de rattrapage sur un mois antérieur.</p>
 <p>\newpage</p>
 <hr />
 <h1 id="gestion-des-stocks-receptions-et-inventaires-vision-gestionnaire">Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)</h1>
@@ -2065,6 +2106,15 @@
 </tr>
 </tbody>
 </table>
+<h3 id="b-consulter-le-detail-et-telecharger-les-documents">B. Consulter le détail et télécharger les documents</h3>
+<ol>
+<li><strong>Ouvrir le détail</strong> : cliquez sur <strong>« Voir »</strong>. Vous retrouvez la référence, la date, le reçu par, le montant total, puis la liste des articles avec quantité, prix unitaire d'achat et prix total de chaque ligne.</li>
+<li><strong>Télécharger la fiche d'une entrée</strong> : depuis le détail, cliquez sur <strong>« Télécharger PDF »</strong>. Le document reprend les articles, les quantités et le montant total de l'entrée.</li>
+<li><strong>Télécharger le récapitulatif d'une journée</strong> :</li>
+<li>Sur <strong>Historique Entrée</strong>, choisissez une <strong>date</strong> dans le filtre.</li>
+<li>Cliquez sur <strong>« PDF du jour »</strong>.</li>
+<li>Le fichier regroupe toutes les entrées de ce jour, avec les quantités cumulées par article et le montant total de la journée.</li>
+</ol>
 <hr />
 <h2 id="3-demandes-de-sortie-de-stock-commercial">3. Demandes de Sortie de Stock Commercial</h2>
 <p>Pour suivre les mouvements de réapprovisionnement des commerciaux, rendez-vous dans le menu latéral <strong>Stock Commercial</strong>, puis cliquez sur <strong>Demandes Sortie</strong>.</p>
@@ -2079,11 +2129,20 @@
 <li><strong>Étape 2 : Validation gestionnaire (Statut « Validée »)</strong> :</li>
 <li>Le gestionnaire contrôle la disponibilité physique en magasin et les encours du commercial, puis clique sur le bouton vert <strong>« Valider »</strong>.</li>
 <li>La demande passe à l'état <strong>Validée</strong>. La marchandise est alors réservée au magasin.</li>
+<li>Si la demande est liée à des <strong>commandes</strong> (mention « Commandes liées » dans la liste), les commandes encore en attente passent automatiquement à <strong>Validée</strong>.</li>
 <li><strong>Étape 3 : Livraison magasinier (Statut « Livrée »)</strong> :</li>
 <li>Le magasinier physique remet les articles au commercial et clique sur le bouton bleu <strong>« Livrer »</strong>.</li>
 <li><strong>Conséquence instantanée</strong> : Le stock magasin est débité et le stock personnel du commercial est crédité. La date de livraison est horodatée.</li>
 </ol>
-<h3 id="b-telechargements-et-exports-pdf">B. Téléchargements et exports PDF</h3>
+<h3 id="b-detail-dune-demande">B. Détail d'une demande</h3>
+<ol>
+<li>Cliquez sur <strong>« Voir »</strong>.</li>
+<li>La référence de la demande s'affiche en haut de la fenêtre.</li>
+<li>Contrôlez le commercial, les dates, le statut et la liste des articles.</li>
+<li>Pour une demande au statut <strong>Créée</strong>, <strong>« Valider »</strong> et <strong>« Refuser »</strong> sont en bas de la fenêtre. La confirmation est la même que depuis la liste.</li>
+<li>Cliquez sur <strong>« Télécharger »</strong> pour enregistrer la fiche de sortie de cette demande.</li>
+</ol>
+<h3 id="c-telechargements-et-exports-pdf">C. Téléchargements et exports PDF</h3>
 <ul>
 <li><strong>Fiche de sortie unitaire</strong> : Téléchargement du bon de sortie physique signé pour une demande précise.</li>
 <li><strong>Télécharger sélection (N)</strong> : Cochez plusieurs demandes dans la liste pour générer en un clic un PDF d'approvisionnement consolidé.</li>
@@ -2096,6 +2155,7 @@
 <li><strong>Étanche et dédié</strong> : Les articles sortis sous ce module ne peuvent en aucun cas être vendus à crédit dans le circuit commercial régulier.</li>
 <li><strong>Finalité opérationnelle</strong> : Ce stock est constitué en fin d'année pour préparer les paniers de distribution de fin d'exercice des membres de la tontine ayant cotisé régulièrement.</li>
 <li>Le cycle d'approbation (<strong>Créée $\rightarrow$ Validée $\rightarrow$ Livrée</strong>) et de retour est rigoureusement identique à celui du stock commercial.</li>
+<li>Sur <strong>Demandes Sortie</strong>, <strong>« Voir »</strong> ouvre le détail : la référence est en haut. Pour une demande <strong>Créée</strong>, <strong>« Valider »</strong> et <strong>« Refuser »</strong> sont en bas de la fenêtre. <strong>« Télécharger »</strong> enregistre la fiche de cette demande.</li>
 </ul>
 <hr />
 <h2 id="5-inventaires-physiques-et-reconciliation-des-ecarts">5. Inventaires physiques et réconciliation des écarts</h2>
@@ -2125,6 +2185,18 @@
 <li>Enregistrez les motifs d'écart (casse, avarie, vol, erreur de saisie).</li>
 <li><strong>Clôture définitive</strong> : Cliquez sur <strong>« Clôturer l'inventaire »</strong>. Les stocks théoriques sont automatiquement réalignés sur le comptage physique approuvé et la session est archivée dans l'<strong>Historique des inventaires</strong> (accessible via l'onglet ou le bouton Historique).</li>
 </ol>
+<hr />
+<h2 id="6-historique-des-annulations-de-ventes-menu-ventes-annulation-ventes">6. Historique des annulations de ventes (Menu Ventes &gt; Annulation Ventes)</h2>
+<p>Cet écran présente les annulations de ventes déjà effectuées et leurs pièces d'audit.</p>
+<ol>
+<li>Dans le menu latéral, cliquez sur <strong>Ventes</strong>, puis sur <strong>Annulation Ventes</strong>. L'écran <strong>Rapports &amp; Archives d'Annulations de Ventes</strong> s'ouvre.</li>
+<li>Chaque ligne indique l'opération et sa date, le commercial, la période ciblée, le statut, le nombre de ventes annulées, le montant reversé, les ventes rejetées et la personne qui a lancé l'opération.</li>
+<li>Cliquez sur <strong>Actualiser</strong> pour recharger la liste.</li>
+<li>Cliquez sur <strong>Voir</strong> pour ouvrir le détail : motif déclaré, ventes annulées, ventes rejetées et <strong>Pièces justificatives et rapports d'audit</strong>.</li>
+<li>Cliquez sur <strong>Télécharger</strong> pour récupérer le bordereau d'annulation d'une vente ou le rapport de synthèse de l'opération.</li>
+</ol>
+<!-- CAPTURE À INSÉRER : historique des annulations de ventes et fenêtre de détail avec les pièces d'audit -->
+
 <p>\newpage</p>
 <hr />
 <h1 id="gestion-financiere-depenses-remises-de-tresorerie-guide-gestionnaire">Gestion financière, Dépenses &amp; Remises de trésorerie (Guide Gestionnaire)</h1>
@@ -2427,6 +2499,11 @@
 <li><strong>Transparence pour audit</strong> : Pour les utilisateurs habilités, un bouton permet d'afficher la formule de calcul ou la requête d'interrogation générée en arrière-plan, garantissant l'exactitude des chiffres avancés.</li>
 <li><strong>Onglet Statistiques</strong> : Permet de consulter les métriques d'utilisation de l'assistant (nombre de questions posées, temps de réponse, thématiques les plus sollicitées).</li>
 </ul>
+<h3 id="e-assistant-momentanement-indisponible">E. Assistant momentanément indisponible</h3>
+<p>Si l'assistant répond qu'un <strong>problème de facturation</strong> l'empêche de répondre :
+1. Votre question reste affichée et enregistrée dans la discussion.
+2. Copiez-la depuis la discussion.
+3. Lorsque le service est rétabli, collez-la de nouveau dans la zone de saisie et envoyez-la.</p>
 <hr />
 <h2 id="4-referentiels-et-configuration-de-lagence">4. Référentiels et Configuration de l'agence</h2>
 <p>Pour les profils administrateurs ou gestionnaires autorisés, le menu latéral <strong>Configuration</strong> regroupe les paramètres fondamentaux qui régissent les calculs et les nomenclatures de l'application :</p>

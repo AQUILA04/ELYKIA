@@ -86,7 +86,14 @@ Le réapprovisionnement suit un flux rigoureux en 3 étapes : **Création $\righ
    * Le magasinier physique remet les articles au commercial et clique sur le bouton bleu **« Livrer »**.
    * **Conséquence instantanée** : Le stock magasin est débité et le stock personnel du commercial est crédité. La date de livraison est horodatée.
 
-### B. Téléchargements et exports PDF
+### B. Détail d'une demande
+1. Cliquez sur **« Voir »**.
+2. La référence de la demande s'affiche en haut de la fenêtre.
+3. Contrôlez le commercial, les dates, le statut et la liste des articles.
+4. Pour une demande au statut **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. La confirmation est la même que depuis la liste.
+5. Cliquez sur **« Télécharger »** pour enregistrer la fiche de sortie de cette demande.
+
+### C. Téléchargements et exports PDF
 * **Fiche de sortie unitaire** : Téléchargement du bon de sortie physique signé pour une demande précise.
 * **Télécharger sélection (N)** : Cochez plusieurs demandes dans la liste pour générer en un clic un PDF d'approvisionnement consolidé.
 * **Fiche sortie PDF globale** : Export synthétique sur la période active (*Aujourd'hui, Cette semaine, Ce mois, Mois précédents*).
@@ -100,6 +107,7 @@ Le **Stock Tontine** dispose de son propre sous-menu indépendant dans la barre 
 * **Étanche et dédié** : Les articles sortis sous ce module ne peuvent en aucun cas être vendus à crédit dans le circuit commercial régulier.
 * **Finalité opérationnelle** : Ce stock est constitué en fin d'année pour préparer les paniers de distribution de fin d'exercice des membres de la tontine ayant cotisé régulièrement.
 * Le cycle d'approbation (**Créée $\rightarrow$ Validée $\rightarrow$ Livrée**) et de retour est rigoureusement identique à celui du stock commercial.
+* Sur **Demandes Sortie**, **« Voir »** ouvre le détail : la référence est en haut. Pour une demande **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. **« Télécharger »** enregistre la fiche de cette demande.
 
 ---
 

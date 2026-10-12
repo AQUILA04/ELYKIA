@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.30.4] — 2026-10-12
+
+### Added
+
+- Détail d'une demande de sortie (stock commercial et stock tontine) : la référence s'affiche en haut. **Valider** et **Refuser** sont disponibles dans la fenêtre, comme sur la liste. **Télécharger** reprend le style des boutons de la page.
+
 ## Frontend — [2.30.3] — 2026-10-12
 
 ### Fixed

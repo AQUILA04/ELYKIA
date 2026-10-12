@@ -13,8 +13,10 @@ Toutes les demandes de sortie validées par la gestion arrivent dans le menu **S
 ### A. Contrôle avant remise physique
 1. Filtrez la liste des demandes par statut ou par commercial pour localiser la commande à préparer.
 2. Cliquez sur **« Voir »** pour ouvrir le détail de la demande :
+   * La référence s'affiche en haut de la fenêtre.
    * Vérifiez la liste exacte des articles et les quantités commandées.
-   * Assurez-vous que le statut de la ligne est bien **Validée**.
+   * Assurez-vous que le statut est bien **Validée**.
+   * Cliquez sur **« Télécharger »** pour enregistrer la fiche de sortie de cette demande.
 3. Prélevez les articles en rayon et regroupez-les dans la zone de délivrance.
 
 ### B. Remise physique et validation du départ (`Livrer`)

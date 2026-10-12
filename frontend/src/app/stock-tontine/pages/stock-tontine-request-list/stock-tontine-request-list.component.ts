@@ -55,6 +55,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
 
   currentUser: any;
   selectedRequest: StockTontineRequest | null = null;
+  detailReference: string | null = null;
   detailsLoading = false;
 
   selectedPeriod: StockPeriodKey = 'WEEK';
@@ -273,6 +274,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
           next: () => {
             this.toastr.success('Demande validée');
             this.refresh();
+            this.reloadOpenDetail(request.id);
           },
           error: (err) => {
             this.alertService.showError(err.error?.message ?? 'Erreur de validation', 'Erreur de validation');
@@ -337,6 +339,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
           next: () => {
             this.toastr.success('Demande refusée');
             this.refresh();
+            this.reloadOpenDetail(request.id);
           },
           error: (err) => {
             this.alertService.showError(err.error?.message ?? 'Erreur de refus', 'Erreur de refus');
@@ -350,6 +353,7 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
     if (!request.id) {
       return;
     }
+    this.detailReference = request.reference ?? null;
     this.selectedRequest = null;
     this.detailsLoading = true;
     forkJoin({
@@ -384,7 +388,29 @@ export class StockTontineRequestListComponent implements OnInit, OnDestroy {
 
   closeDetails(): void {
     this.selectedRequest = null;
+    this.detailReference = null;
     this.detailsLoading = false;
+  }
+
+  private reloadOpenDetail(requestId?: number): void {
+    if (!requestId || this.selectedRequest?.id !== requestId) {
+      return;
+    }
+    forkJoin({
+      detail: this.requestService.getById(requestId),
+      items: this.requestService.getItemsById(requestId)
+    }).subscribe({
+      next: ({ detail, items }) => {
+        if (this.selectedRequest?.id !== requestId) {
+          return;
+        }
+        this.selectedRequest = {
+          ...detail,
+          items: coerceStockItems(items)
+        };
+        this.detailReference = detail.reference ?? this.detailReference;
+      }
+    });
   }
 
   getStatusClass(status: string | undefined): string {

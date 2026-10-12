@@ -1659,6 +1659,24 @@
 <li><strong>Consigne de sécurité stricte</strong> : Une entrée en attente <strong>n'augmente pas encore le stock disponible</strong>. Vous ne devez jamais servir une demande de sortie sur la base d'une entrée non encore validée par le gestionnaire.</li>
 <li>Dès que le gestionnaire valide la réception dans son interface, le statut passe à <strong>Validé</strong> et la marchandise devient officiellement disponible pour les sorties.</li>
 </ul>
+<h4 id="consulter-une-entree">Consulter une entrée</h4>
+<ol>
+<li>Ouvrez <strong>Historique Entrée</strong>.</li>
+<li>Repérez la ligne dans la liste (référence, date, montant total, statut).</li>
+<li>Cliquez sur <strong>« Voir »</strong> pour afficher le détail : articles reçus et quantités.</li>
+</ol>
+<h4 id="telecharger-la-fiche-dune-entree">Télécharger la fiche d'une entrée</h4>
+<ol>
+<li>Ouvrez le détail de l'entrée.</li>
+<li>Cliquez sur <strong>« Télécharger PDF »</strong>.</li>
+<li>Le document reprend la référence, la date, le reçu par, la liste des articles avec leurs quantités, et le montant total.</li>
+</ol>
+<h4 id="telecharger-le-recapitulatif-dune-journee">Télécharger le récapitulatif d'une journée</h4>
+<ol>
+<li>Sur <strong>Historique Entrée</strong>, choisissez une <strong>date</strong> dans le filtre.</li>
+<li>Cliquez sur <strong>« PDF du jour »</strong> (le bouton devient disponible une fois la date sélectionnée).</li>
+<li>Le fichier regroupe toutes les entrées de ce jour, avec les quantités cumulées par article et le montant total de la journée.</li>
+</ol>
 <hr />
 <h2 id="2-realisation-dun-inventaire-physique-magasin">2. Réalisation d'un inventaire physique magasin</h2>
 <p>L'inventaire physique permet de vérifier que le stock réel en rayon correspond rigoureusement aux quantités enregistrées en base de données.</p>
@@ -1698,7 +1716,7 @@
 <ol>
 <li>Dans le menu latéral gauche, ouvrez <strong>Stock Tontine &gt; Demandes Sortie</strong> (accessible si vous disposez des habilitations nécessaires).</li>
 <li>Repérez la demande au statut <strong>Validée</strong>.</li>
-<li>Cliquez sur <strong>« Voir »</strong> pour examiner le panier d'articles réservés pour les membres de la zone.</li>
+<li>Cliquez sur <strong>« Voir »</strong> pour examiner le panier d'articles réservés pour les membres de la zone. La référence de la demande s'affiche en haut. <strong>« Télécharger »</strong> enregistre la fiche de cette demande.</li>
 <li>Rassemblez les colis correspondants et vérifiez les références avec le commercial au guichet.</li>
 <li>Cliquez sur le bouton <strong>« Livrer »</strong>.</li>
 <li>Le stock dépôt est débité du compte tontine.</li>
@@ -1727,8 +1745,10 @@
 <ol>
 <li>Filtrez la liste des demandes par statut ou par commercial pour localiser la commande à préparer.</li>
 <li>Cliquez sur <strong>« Voir »</strong> pour ouvrir le détail de la demande :</li>
+<li>La référence s'affiche en haut de la fenêtre.</li>
 <li>Vérifiez la liste exacte des articles et les quantités commandées.</li>
-<li>Assurez-vous que le statut de la ligne est bien <strong>Validée</strong>.</li>
+<li>Assurez-vous que le statut est bien <strong>Validée</strong>.</li>
+<li>Cliquez sur <strong>« Télécharger »</strong> pour enregistrer la fiche de sortie de cette demande.</li>
 <li>Prélevez les articles en rayon et regroupez-les dans la zone de délivrance.</li>
 </ol>
 <h3 id="b-remise-physique-et-validation-du-depart-livrer">B. Remise physique et validation du départ (<code>Livrer</code>)</h3>

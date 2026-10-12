@@ -207,7 +207,10 @@
 <div class="stock-modal-overlay" *ngIf="selectedRequest || detailsLoading" (click)="closeDetails()">
   <div class="stock-modal" role="dialog" (click)="$event.stopPropagation()">
     <div class="stock-modal-header">
-      <h3>Détails de la demande : {{ selectedRequest?.reference || '…' }}</h3>
+      <div class="modal-heading">
+        <p class="modal-kicker">Détails de la demande</p>
+        <h3>{{ selectedRequest?.reference || detailReference || '…' }}</h3>
+      </div>
       <button type="button" class="modal-close" (click)="closeDetails()" aria-label="Fermer">&times;</button>
     </div>
     <div class="stock-modal-body">
@@ -262,10 +265,25 @@
       </ng-container>
     </div>
     <div class="stock-modal-footer">
-      <button type="button" class="btn-download" (click)="onExportSingleRequestPdf(selectedRequest!)" [disabled]="exportSelectionLoading || !selectedRequest">
-        Télécharger la demande
-      </button>
-      <button type="button" class="btn-primary" (click)="closeDetails()">Fermer</button>
+      <div class="modal-footer-group">
+        <button *ngIf="isManager && selectedRequest?.status === 'CREATED'" type="button" class="btn-success"
+                (click)="validate(selectedRequest!)" data-testid="e2e-stock-tontine-request-detail-validate">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+          Valider
+        </button>
+        <button *ngIf="(isManager || isSecretary) && selectedRequest?.status === 'CREATED'" type="button" class="btn-danger"
+                (click)="refuse(selectedRequest!)" data-testid="e2e-stock-tontine-request-detail-refuse">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+          Refuser
+        </button>
+      </div>
+      <div class="modal-footer-group modal-footer-end">
+        <button type="button" class="btn-download" (click)="onExportSingleRequestPdf(selectedRequest!)" [disabled]="exportSelectionLoading || !selectedRequest" data-testid="e2e-stock-tontine-request-detail-download">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          {{ exportSelectionLoading ? 'Téléchargement…' : 'Télécharger' }}
+        </button>
+        <button type="button" class="btn-primary" (click)="closeDetails()">Fermer</button>
+      </div>
     </div>
   </div>
 </div>

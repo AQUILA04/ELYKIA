@@ -99,6 +99,21 @@ Toute marchandise déchargée au dépôt doit être immédiatement enregistrée 
 * **Consigne de sécurité stricte** : Une entrée en attente **n'augmente pas encore le stock disponible**. Vous ne devez jamais servir une demande de sortie sur la base d'une entrée non encore validée par le gestionnaire.
 * Dès que le gestionnaire valide la réception dans son interface, le statut passe à **Validé** et la marchandise devient officiellement disponible pour les sorties.
 
+#### Consulter une entrée
+1. Ouvrez **Historique Entrée**.
+2. Repérez la ligne dans la liste (référence, date, montant total, statut).
+3. Cliquez sur **« Voir »** pour afficher le détail : articles reçus et quantités.
+
+#### Télécharger la fiche d'une entrée
+1. Ouvrez le détail de l'entrée.
+2. Cliquez sur **« Télécharger PDF »**.
+3. Le document reprend la référence, la date, le reçu par, la liste des articles avec leurs quantités, et le montant total.
+
+#### Télécharger le récapitulatif d'une journée
+1. Sur **Historique Entrée**, choisissez une **date** dans le filtre.
+2. Cliquez sur **« PDF du jour »** (le bouton devient disponible une fois la date sélectionnée).
+3. Le fichier regroupe toutes les entrées de ce jour, avec les quantités cumulées par article et le montant total de la journée.
+
 ---
 
 ## 2. Réalisation d'un inventaire physique magasin
@@ -153,7 +168,7 @@ Le module **Stock Tontine** applique les mêmes exigences de rigueur logistique 
 ### A. Contrôle et délivrance physique
 1. Dans le menu latéral gauche, ouvrez **Stock Tontine > Demandes Sortie** (accessible si vous disposez des habilitations nécessaires).
 2. Repérez la demande au statut **Validée**.
-3. Cliquez sur **« Voir »** pour examiner le panier d'articles réservés pour les membres de la zone.
+3. Cliquez sur **« Voir »** pour examiner le panier d'articles réservés pour les membres de la zone. La référence de la demande s'affiche en haut. **« Télécharger »** enregistre la fiche de cette demande.
 4. Rassemblez les colis correspondants et vérifiez les références avec le commercial au guichet.
 5. Cliquez sur le bouton **« Livrer »**.
    * Le stock dépôt est débité du compte tontine.
@@ -194,8 +209,10 @@ Toutes les demandes de sortie validées par la gestion arrivent dans le menu **S
 ### A. Contrôle avant remise physique
 1. Filtrez la liste des demandes par statut ou par commercial pour localiser la commande à préparer.
 2. Cliquez sur **« Voir »** pour ouvrir le détail de la demande :
+   * La référence s'affiche en haut de la fenêtre.
    * Vérifiez la liste exacte des articles et les quantités commandées.
-   * Assurez-vous que le statut de la ligne est bien **Validée**.
+   * Assurez-vous que le statut est bien **Validée**.
+   * Cliquez sur **« Télécharger »** pour enregistrer la fiche de sortie de cette demande.
 3. Prélevez les articles en rayon et regroupez-les dans la zone de délivrance.
 
 ### B. Remise physique et validation du départ (`Livrer`)

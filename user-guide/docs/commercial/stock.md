@@ -15,6 +15,7 @@ Pour s'approvisionner, le commercial ou son responsable initie une **Demande de 
 2. Sélectionnez le commercial destinataire (pré-rempli à votre nom pour un commercial).
 3. Ajoutez les articles souhaités dans la grille et indiquez pour chacun la quantité requise.
 4. Cliquez sur **« Enregistrer »**.
+5. Sur la liste, cliquez sur **« Voir »** : la référence s'affiche en haut, avec les articles et les quantités. **« Télécharger »** enregistre la fiche de cette demande.
 
 ### B. Cycle de vie de la demande
 * **Statut En attente (Créée)** :

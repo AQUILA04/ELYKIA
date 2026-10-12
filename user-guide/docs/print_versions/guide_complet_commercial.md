@@ -44,7 +44,8 @@ Accessible via le menu latéral gauche **Clients**, la vue liste fournit un acc�
 ### A. Outils de filtrage et recherche
 * **Recherche instantanée** : Saisissez un nom, un prénom, un numéro de téléphone (8 chiffres) ou un nom de localité dans le champ de recherche, puis appuyez sur Entrée ou cliquez sur la loupe.
 * **Sélecteur de commercial** : Permet d'isoler en un clic le portefeuille géré par un commercial précis.
-* **Persistance de navigation** : La recherche, le commercial sélectionné et la pagination sont conservés dans l'état de l'application lorsque vous ouvrez une fiche client et revenez à la liste.
+* **Origine** : Les pastilles **Tous** / **Espace client** permettent d'afficher uniquement les clients qui se sont inscrits eux-mêmes depuis l'application Espace Client. Dans le tableau, ces clients portent le badge violet **Espace client** à côté de leur nom.
+* **Persistance de navigation** : La recherche, le commercial sélectionné, l'origine et la pagination sont conservés dans l'état de l'application lorsque vous ouvrez une fiche client et revenez à la liste.
 * **Fiche Client PDF** : Dès qu'un commercial est filtré, le bouton **« Fiche Client PDF »** devient actif pour générer le document imprimable de son portefeuille clients.
 
 ### B. Indicateurs du bandeau supérieur
@@ -120,6 +121,7 @@ En cliquant sur le nom d'un client dans la liste, vous accédez à sa **Fiche Cl
 
 ### A. Synthèse d'en-tête
 * **Informations de profil** : Nom, téléphone, adresse, profession, numéro de compte et lien vers le commercial référent.
+* **Badge « Inscrit via l'Espace client »** : Affiché sous le nom lorsque le client a créé son dossier depuis l'application Espace Client.
 * **Indicateurs financiers en temps réel** :
   * **Achats en cours** : Nombre de crédits actifs.
   * **Montant total de l'achat en cours** (FCFA).
@@ -149,9 +151,18 @@ Lorsque les tournées sont réorganisées, les gestionnaires peuvent transférer
 
 ## 5. Gestion des comptes financiers (Menu Comptes)
 
-Le sous-menu **Comptes** offre une vue d'ensemble des comptes de monnaie électronique ou de dépôt rattachés aux clients et aux agents :
-* Affiche pour chaque compte : le numéro de compte unique, le titulaire (client ou commercial), le type de compte et le solde actuel disponible en FCFA.
-* La fiche de détail d'un compte permet de tracer l'ensemble des écritures de débit (achats, prélèvements) et de crédit (approvisionnements, remboursements).
+Le sous-menu **Comptes** offre une vue d’ensemble des comptes rattachés aux clients :
+
+1. La liste affiche pour chaque compte : le numéro, le titulaire, le solde et le statut.
+2. Cliquez sur **Voir** : un panneau s’ouvre à droite avec le détail (client, n° compte, solde, statut) et les actions possibles (activer / désactiver / modifier).
+3. Fermez le panneau avec **Fermer** pour revenir à la liste.
+
+### Créer un compte
+
+1. Cliquez sur **Ajouter** (ou l’action équivalente) pour ouvrir le formulaire de création de compte.
+2. Recherchez et sélectionnez le **client** : seuls les clients déjà validés apparaissent dans la liste. Un client encore en attente de validation d’inscription n’est pas proposé.
+3. Si le client n’apparaît pas, validez d’abord son inscription depuis **Services en ligne > Inscriptions**, puis revenez créer le compte.
+4. Renseignez le numéro de compte et le solde initial, puis enregistrez.
 
 
 
@@ -178,6 +189,7 @@ Pour s'approvisionner, le commercial ou son responsable initie une **Demande de 
 2. Sélectionnez le commercial destinataire (pré-rempli à votre nom pour un commercial).
 3. Ajoutez les articles souhaités dans la grille et indiquez pour chacun la quantité requise.
 4. Cliquez sur **« Enregistrer »**.
+5. Sur la liste, cliquez sur **« Voir »** : la référence s'affiche en haut, avec les articles et les quantités. **« Télécharger »** enregistre la fiche de cette demande.
 
 ### B. Cycle de vie de la demande
 * **Statut En attente (Créée)** :
@@ -202,6 +214,7 @@ Accessible via le menu latéral gauche **Stock Commercial > Stock**, ce tableau 
 ### A. Navigation temporelle et sélection
 * **Accordéon par mois** : Chaque mois d'activité fait l'objet d'un volet déroulant intitulé `[Nom Commercial] - [Mois] [Année]`.
 * **Bouton « Historique »** : Permet d'afficher ou de masquer les mois civils antérieurs clôturés.
+* **Retour sur l'écran** : Si vous quittez le tableau de bord puis y revenez pendant votre session, vous retrouvez le commercial sélectionné, l'état du bouton **« Historique »** et la page de la liste tels que vous les aviez laissés.
 * **Télécharger rapport** : En tête de chaque panneau mensuel, un bouton d'export génère la fiche de stock mensuelle officielle au format PDF.
 
 ### B. Les 6 Indicateurs Financiers KPIs du Stock Mensuel
@@ -369,7 +382,7 @@ Si l'impression immédiate est activée dans votre agence :
 
 ## 4. Fiche détaillée 360° d'un crédit
 
-En ouvrant un crédit, vous accédez à un dossier complet regroupant l'ensemble des aspects contractuels, financiers et logistiques :
+En ouvrant un crédit, vous accédez à un dossier complet regroupant l'ensemble des aspects contractuels, financiers et logistiques. Dans l'historique des paiements, chaque mise concernée indique le **reliquat généré** et/ou le **reliquat utilisé**, ce qui permet de rapprocher la mise imputée au crédit des espèces réellement encaissées :
 
 ### 1. Jauge de progression du remboursement
 - Barre graphique indiquant le pourcentage remboursé à date.
@@ -415,6 +428,7 @@ Un bandeau évalue la ponctualité des règlements du client :
 ### 8. Historique des paiements et droit d'annulation
 Chaque mise encaissée apparaît dans la liste chronologique avec sa date, son heure, la référence du reçu et le nom du commercial qui a perçu l'argent.
 - Un badge indique si le montant correspond à la **Mise normale** ou à une **Mise spéciale** (paiement partiel ou avance de plusieurs jours).
+- Lorsqu'une mise crée ou consomme un avoir client, la ligne précise **Reliquat généré** et/ou **Reliquat utilisé**. Ces montants expliquent l'écart éventuel entre la mise imputée au crédit et les espèces réellement encaissées.
 - En cas d'erreur de saisie, un utilisateur habilité peut cliquer sur **Annuler** : le système demande confirmation et corrige immédiatement le solde du crédit ainsi que le journal de caisse.
 
 ### 9. Historique des changements de mise
@@ -492,21 +506,21 @@ Cet écran synthétise les sorties commerciales de l'agence :
 
 ## 11. Gestion des commandes clients (Menu Commandes)
 
-Le module **Commandes** gère les précommandes et réservations avant leur contractualisation définitive.
+Le module **Commandes** gère les précommandes et réservations avant leur contractualisation définitive. Les commandes passées depuis l’Espace Client portent le badge **En ligne** ; elles sont aussi listées dans **Services en ligne** > **Commandes**.
 
 ### Le tableau de bord des commandes
-Les commandes sont réparties dans 6 onglets selon leur avancement :
+Les commandes sont réparties selon leur avancement :
 - **En attente** : Nouvelles demandes enregistrées nécessitant une confirmation.
-- **Acceptée** : Commandes validées dont la marchandise et les modalités de paiement sont convenues.
-- **Refusée** : Demandes rejetées (stock indisponible, client non éligible).
-- **Annulée** : Commandes annulées par le client ou le commercial.
-- **Vendue** : Commandes converties avec succès en ventes réelles.
-- **Toutes** : Vue d'ensemble du registre.
+- **Validées** : Commandes confirmées, prêtes à être livrées / transformées en vente.
+- **Livrées** : Commandes converties en ventes.
+- **Autres** : Demandes refusées ou annulées.
 
-### Traitement et conversion d'une commande en vente
-1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités et prix.
-2. **Décision** : Les responsables peuvent accepter ou refuser la commande (individuellement ou par lot).
-3. **Action « Vendre »** : Dès qu'une commande est acceptée, le bouton **Vendre** bascule directement l'ensemble des articles vers le formulaire de nouvelle vente pour créer le contrat crédit ou comptant sans aucune ressaisie manuelle, puis marque la commande comme **Vendue**.
+### Traitement d'une commande
+1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités.
+2. **Décision** : Acceptez ou refusez la commande (individuellement ou par lot).
+3. **Faire une demande de stock** : Sur une commande en attente ou validée (ou plusieurs cochées), cliquez sur **Faire une demande de stock** pour regrouper les articles en une demande de sortie par commercial. Lorsque cette demande est validée par le gestionnaire, les commandes encore en attente passent automatiquement à **Validée**.
+4. **Vendre / Marquer comme livrée** : Sur une commande validée, transformez-la en vente : la vente est créée automatiquement et la commande passe à **Livrée**.
+
 
 
 \newpage
@@ -570,8 +584,11 @@ Pour les utilisateurs habilités à viser les carnets physiques :
 3. Confirmez l'opération : la date, l'heure et votre nom sont automatiquement enregistrés sur chacun des dossiers cochés.
 
 ### Inscrire un nouveau membre
-- **Inscription individuelle** : Cliquez sur **Ajouter un Membre**, sélectionnez le client dans la liste, indiquez le montant de sa mise journalière (par exemple 500 ou 1 000 FCFA) et enregistrez.
+- **Inscription individuelle** : Cliquez sur **Ajouter un Membre**, sélectionnez le client dans la liste, indiquez le montant de sa mise journalière (par exemple 500 ou 1 000 FCFA), ajoutez si besoin une observation dans **Notes**, puis enregistrez. La note est conservée sur la fiche du membre, avec la première période de mise.
 - **Inscriptions multiples** : En début de campagne, le bouton **Ajout Multiple** permet d'enrôler rapidement plusieurs adhérents à la chaîne.
+- **Auto-inscription Espace Client** : Les clients peuvent aussi rejoindre la session depuis l’application **Espace Client** (écran **Mes tontines** → **Rejoindre la session**). Leur premier paiement Mobile Money éventuel apparaît dans **Paiements clients** > **Cotisations tontine** pour validation.
+- **Commercial tontine obligatoire** : Le client doit avoir un **commercial tontine** sur sa fiche pour être inscrit. Sinon, le message « Le client n'a pas de commercial tontine associé : impossible d'enregistrer l'adhésion. » s'affiche : renseignez d'abord le commercial tontine du client, puis recommencez.
+- **Rapport journalier** : Chaque adhésion, y compris une auto-inscription depuis l’Espace Client, est comptée dans la case **Tontine Adhésions** du rapport journalier du commercial tontine du client.
 
 ---
 
@@ -583,6 +600,7 @@ La barre de recherche et de filtres vous permet de cibler des dossiers précis. 
 - **Par commercial** : Pour un gestionnaire, sélectionnez un commercial dans la liste déroulante pour isoler son secteur ; la liste des membres et les indicateurs du haut de page se mettent à jour ensemble. Pour un commercial, votre secteur est pré-sélectionné.
 - **Par statut de livraison** : Filtrez les membres en cours de session, ceux dont la livraison est en attente, validée ou déjà terminée.
 - **Par état du carnet** : Affichez uniquement les membres dont le carnet est vérifié ou ceux restant à contrôler.
+- **Par origine** : Choisissez **Espace client** pour ne voir que les membres qui se sont inscrits eux-mêmes depuis l'application Espace Client, ou **Personnel** pour ceux inscrits par l'agence. Dans la liste, ces auto-inscrits portent le badge violet **Espace client** sous leur nom.
 
 ---
 
@@ -592,6 +610,7 @@ En cliquant sur un membre, vous ouvrez sa fiche complète à 360°, véritable d
 
 ### 1. En-tête du dossier et statut du carnet
 - Rappel du nom, du code client et du commercial assigné.
+- **Badge « Inscrit via l'Espace client »** : Affiché à côté du statut du carnet lorsque le membre a rejoint la session depuis l'application Espace Client.
 - **Badge d'état du carnet** :
   - 🟢 **Carnet vérifié** : Indique la date, l'heure et le nom de l'agent qui a certifié le carnet.
   - ⚪ **Carnet non vérifié** : Indique que le carnet physique n'a pas encore été visé.
@@ -634,7 +653,16 @@ Un tableau liste chaque mois avec :
 - **Des pastilles numérotées** : Chaque pastille représente un jour complet de mise acquis par le membre, calculé d'après sa mise journalière en vigueur.
 
 ### 7. Historique des changements de mise
-Si la mise quotidienne du membre est modifiée en cours d'année (par exemple de 500 à 1 000 FCFA), un tableau retrace chaque période : date de début, date de fin éventuelle, montant de la mise et statut en cours ou clôturé.
+Si la mise quotidienne du membre est modifiée en cours d'année (par exemple de 500 à 1 000 FCFA), un tableau retrace chaque période : date de début, date de fin éventuelle, montant de la mise, statut en cours ou clôturé, date d'enregistrement et **Note**.
+
+Pour modifier la mise et garder une trace de la demande du membre :
+1. Sur la fiche du membre, cliquez sur **Modifier**.
+2. Dans la fenêtre **Modifier la mise du membre**, saisissez le nouveau **Montant de la mise**.
+3. Choisissez la **Portée de la modification** : *Mois en cours et futurs*, *Mois futurs uniquement* ou *Rétroactif (tout recalculer)*.
+4. Dans **Notes**, écrivez l'observation à conserver (par exemple les articles visés : riz, huile, sucrerie).
+5. Cliquez sur **Mettre à jour**.
+
+La note apparaît sur la ligne de la nouvelle période dans **Historique des montants de mise**. Les notes des périodes précédentes restent affichées sur leur ligne. La dernière note saisie est aussi rappelée en haut de la section, sous **Note actuelle**. Si vous laissez **Notes** vide, la note déjà enregistrée est conservée.
 
 ### 8. Enregistrer une cotisation
 Deux boutons vous permettent d'enregistrer des versements :
@@ -668,7 +696,7 @@ flowchart LR
 1. **Préparer la Livraison** :
    - Tant que la session est ouverte, le bouton **Préparer la Livraison** est disponible sur la fiche du membre.
    - Une fenêtre s'ouvre avec le **Solde Disponible** mobilisable.
-   - Choisissez les articles souhaités dans le catalogue en indiquant les quantités.
+   - Choisissez les articles souhaités dans le **catalogue** de l'agence (pas besoin que le commercial ait déjà du stock tontine).
    - Le système vérifie en direct que le montant total des articles ne dépasse pas le solde disponible du membre.
    - Si les articles choisis coûtent moins que l'épargne, la différence reste conservée comme **Solde non utilisé** au profit du client.
    - Le dossier passe au statut **En attente**.
@@ -678,7 +706,7 @@ flowchart LR
 
 3. **Marquer comme Livré** :
    - Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur **Marquer comme Livré**.
-   - Cette action déduit définitivement les articles du stock tontine et clôture le dossier du membre.
+   - Cette action déduit définitivement les articles du **stock tontine** du commercial et clôture le dossier du membre. Le commercial doit donc avoir reçu les articles via une demande de stock tontine avant la remise.
    - La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.
 
 ### Consulter l'ensemble des livraisons (Menu Tontines > Livraison)
@@ -934,7 +962,9 @@ Le module **Tontine** permet aux clientes de mettre de l'argent de côté chaque
    * **Mensuel** : si elle cotise une fois par mois.
 4. **Indiquez le montant de la mise** : écrivez la somme versée à chaque échéance (par exemple 500 ou 1 000 FCFA).
 5. **Si vous modifiez une membre existante** : un choix **« Portée de la modification »** vous demande à quel moment appliquer le nouveau montant (*Mois en cours et futurs*, *Mois futurs uniquement* ou *Tout recalculer depuis le début*).
-6. **Enregistrez** : touchez le bouton vert **Enregistrer**. La membre apparaît immédiatement dans votre carnet tontine avec le badge **Local** !
+6. **Ajoutez une observation si besoin** : dans **Notes / Observations**, écrivez ce que la membre demande (par exemple les articles visés). La note est conservée et reste visible sur sa fiche, sous **Notes**.
+7. **Enregistrez** : touchez le bouton vert **Enregistrer**. La membre apparaît immédiatement dans votre carnet tontine avec le badge **Local** !
+8. **À la synchronisation** : l'adhésion est comptée dans la case **Tontine Adhésions** du rapport journalier du commercial tontine de la cliente. Si la cliente n'a pas de commercial tontine sur sa fiche, l'adhésion est refusée : faites renseigner son commercial tontine, puis inscrivez-la à nouveau.
 
 ### C. Consulter la fiche complète d'une membre tontine
 Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :

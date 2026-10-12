@@ -13,7 +13,7 @@ Le module **Stock Tontine** applique les mêmes exigences de rigueur logistique 
 ### A. Contrôle et délivrance physique
 1. Dans le menu latéral gauche, ouvrez **Stock Tontine > Demandes Sortie** (accessible si vous disposez des habilitations nécessaires).
 2. Repérez la demande au statut **Validée**.
-3. Cliquez sur **« Voir »** pour examiner le panier d'articles réservés pour les membres de la zone.
+3. Cliquez sur **« Voir »** pour examiner le panier d'articles réservés pour les membres de la zone. La référence de la demande s'affiche en haut. **« Télécharger »** enregistre la fiche de cette demande.
 4. Rassemblez les colis correspondants et vérifiez les références avec le commercial au guichet.
 5. Cliquez sur le bouton **« Livrer »**.
    * Le stock dépôt est débité du compte tontine.

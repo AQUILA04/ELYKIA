@@ -57,6 +57,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
 
   currentUser: any;
   selectedRequest: StockRequest | null = null;
+  detailReference: string | null = null;
   detailsLoading = false;
 
   selectedPeriod: StockPeriodKey = 'WEEK';
@@ -289,6 +290,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
           next: () => {
             this.toastr.success('Demande validée');
             this.refresh();
+            this.reloadOpenDetail(request.id);
           },
           error: (err) => {
             this.alertService.showError(err.error?.message ?? 'Une erreur s\'est produite lors de la validation', 'Erreur de validation');
@@ -353,6 +355,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
           next: () => {
             this.toastr.success('Demande refusée');
             this.refresh();
+            this.reloadOpenDetail(request.id);
           },
           error: (err) => {
             this.alertService.showError(err.error?.message ?? 'Une erreur s\'est produite lors du refus', 'Erreur de refus');
@@ -366,6 +369,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     if (!request.id) {
       return;
     }
+    this.detailReference = request.reference ?? null;
     this.selectedRequest = null;
     this.detailsLoading = true;
     forkJoin({
@@ -400,7 +404,29 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
 
   closeDetails(): void {
     this.selectedRequest = null;
+    this.detailReference = null;
     this.detailsLoading = false;
+  }
+
+  private reloadOpenDetail(requestId?: number): void {
+    if (!requestId || this.selectedRequest?.id !== requestId) {
+      return;
+    }
+    forkJoin({
+      detail: this.stockRequestService.getById(requestId),
+      items: this.stockRequestService.getItemsById(requestId)
+    }).subscribe({
+      next: ({ detail, items }) => {
+        if (this.selectedRequest?.id !== requestId) {
+          return;
+        }
+        this.selectedRequest = {
+          ...detail,
+          items: coerceStockItems(items)
+        };
+        this.detailReference = detail.reference ?? this.detailReference;
+      }
+    });
   }
 
   edit(request: StockRequestListItem): void {
