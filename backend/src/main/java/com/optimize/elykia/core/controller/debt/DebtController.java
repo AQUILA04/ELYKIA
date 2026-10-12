@@ -33,7 +33,7 @@ public class DebtController {
     }
 
     @GetMapping("/summary")
-    @PreAuthorize("hasAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "')")
+    @PreAuthorize("hasAnyAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "','" + UserPermissionConstant.ADMIN + "')")
     public ResponseEntity<DebtSummaryDto> summary() {
         return ResponseEntity.ok(debtService.summary());
     }
@@ -51,26 +51,26 @@ public class DebtController {
     }
 
     @PostMapping("/merchandise")
-    @PreAuthorize("hasAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "')")
+    @PreAuthorize("hasAnyAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "','" + UserPermissionConstant.ADMIN + "')")
     public ResponseEntity<DebtDocumentDto> createMerchandise(
             @Valid @RequestBody CreateMerchandiseDebtRequestDto request) {
         return ResponseEntity.ok(debtService.createMerchandiseDebt(request.getMonthlyStockId()));
     }
 
     @PostMapping("/cash")
-    @PreAuthorize("hasAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "')")
+    @PreAuthorize("hasAnyAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "','" + UserPermissionConstant.ADMIN + "')")
     public ResponseEntity<DebtDocumentDto> createCash(@Valid @RequestBody CreateCashDebtRequestDto request) {
         return ResponseEntity.ok(debtService.createCashDebt(request));
     }
 
     @PostMapping("/{id}/recalculate")
-    @PreAuthorize("hasAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "')")
+    @PreAuthorize("hasAnyAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "','" + UserPermissionConstant.ADMIN + "')")
     public ResponseEntity<DebtDocumentDto> recalculate(@PathVariable Long id) {
         return ResponseEntity.ok(debtService.recalculateCashDebt(id));
     }
 
     @PostMapping("/{id}/cancel")
-    @PreAuthorize("hasAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "')")
+    @PreAuthorize("hasAnyAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "','" + UserPermissionConstant.ADMIN + "')")
     public ResponseEntity<DebtDocumentDto> cancel(
             @PathVariable Long id,
             @RequestParam(required = false) String reason) {
@@ -78,7 +78,7 @@ public class DebtController {
     }
 
     @PostMapping("/settle")
-    @PreAuthorize("hasAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "')")
+    @PreAuthorize("hasAnyAuthority('" + UserPermissionConstant.DEBT_MANAGEMENT + "','" + UserPermissionConstant.ADMIN + "')")
     public ResponseEntity<DebtSettlementDto> settle(@Valid @RequestBody DebtSettleRequestDto request) {
         return ResponseEntity.ok(debtService.settle(request));
     }

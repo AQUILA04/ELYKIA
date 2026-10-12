@@ -54,7 +54,7 @@
       </div>
     </div>
 
-    <div class="toolbar a4" *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']">
+    <div class="toolbar a4" *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN']">
       <div class="filter-actions">
         <button type="button" class="btn-primary"
                 *ngIf="debt.debtType === 'CASH_SHORTAGE' || debt.debtType === 'CASH_SURPLUS'"

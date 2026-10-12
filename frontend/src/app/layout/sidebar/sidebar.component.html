@@ -377,7 +377,7 @@
             <span class="hide-menu">Dépenses</span>
           </a>
         </li>
-        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_PROMOTER', 'ROLE_STOREKEEPER']">
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN', 'ROLE_PROMOTER', 'ROLE_STOREKEEPER']">
           <a class="sidebar-link" routerLink="/debts" aria-expanded="false"
              [ngClass]="{ 'active': isRouteActive('/debts') }"
              data-testid="e2e-sidebar-debts">

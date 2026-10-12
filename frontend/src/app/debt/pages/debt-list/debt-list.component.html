@@ -98,7 +98,7 @@
         <span class="result-count"><strong>{{ totalElements }}</strong> dette(s)</span>
         <button type="button"
                 class="btn-primary"
-                *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']"
+                *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN']"
                 [disabled]="selectedIds.size === 0"
                 (click)="openSettleModal()">
           Marquer comme payé(s)
