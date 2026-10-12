@@ -49,7 +49,7 @@ Chaque panneau mensuel calcule automatiquement 6 métriques financières de cont
 |---|---|---|---|
 | **Valeur Stock Restant** | Bleu Cyan (`inventory_2`) | Valeur marchande des articles encore physiquement en possession du commercial. | Calculée sur la base du prix unitaire pondéré des articles non vendus. |
 | **Valeur Stock Vendu** | Vert (`monetization_on`) | Montant total des ventes (crédit et comptant) conclues sur le stock du mois. | **Carte Cliquable** : Un clic ouvre instantanément la liste détaillée de l'ensemble des crédits et ventes associés. |
-| **Valeur Dette** | Orange | Valorisation des quantités passées en dette pour ce mois (y compris après règlement). | Affiche aussi la part déjà réglée. |
+| **Valeur Dette** | Orange | Valorisation des quantités passées en dette pour ce mois (y compris après règlement). | La carte n’apparaît que lorsque ce montant est supérieur à 0. Elle indique aussi la part déjà réglée. |
 | **Valeur Total Dû** | Orange (`account_balance_wallet`) | Valeur globale : stock vendu + dette + stock restant. | Engagement financier du mois. |
 | **Montant Recouvré** | Vert Émeraude (`payments`) | Cumul réel des versements et encaissements perçus auprès des clients sur les ventes de ce stock. | Mesure le cash effectif rentré en caisse. |
 | **Reste à Recouvrer** | Ambre (`hourglass_empty`) | Montant global restant à percevoir (Valeur du stock physique restant + créances clients non encore soldées). | Reste à recouvrer = Total Dû $-$ Montant Recouvré. |

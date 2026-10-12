@@ -535,7 +535,7 @@
                                         <mat-icon class="mr-2">payment</mat-icon> FAIRE UN VERSEMENT
                                     </button>
                                 </div>
-                                <ng-container *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']">
+                                <ng-container *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN']">
                                     <div class="mt-2" *ngIf="isSingleDay && canCreateCashDebtForReport(report)">
                                         <button mat-stroked-button color="accent" class="w-100"
                                             data-testid="e2e-daily-report-create-cash-debt-btn"

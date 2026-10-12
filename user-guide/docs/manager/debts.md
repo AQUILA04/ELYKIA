@@ -13,9 +13,9 @@ Le menu **Dettes** regroupe les montants dus par les commerciaux (marchandise re
 Quand un mois est déjà terminé et qu’il reste des quantités chez un commercial :
 
 1. Ouvrez **Stock Commercial** → **Stock mensuel**, puis activez **Historique** pour voir les mois passés.
-2. Sur le panneau du mois concerné, cliquez sur **Créer la dette** (visible seulement s’il reste au moins une quantité).
+2. Sur le panneau du mois, à côté de **Télécharger rapport**, cliquez sur **Créer la dette**. Le bouton est présent lorsqu’il reste au moins une quantité.
 3. Confirmez le montant proposé : les quantités passent de **Restant** à **Dette**.
-4. Les cartes du mois affichent la **Valeur dette** (y compris après paiement) et le **Total dû** = vendu + dette + restant.
+4. La carte **Valeur dette** apparaît alors (y compris après paiement). Le **Total dû** = vendu + dette + restant.
 5. Depuis le détail de la dette, ou via **Voir la dette**, vous suivez le statut et les règlements.
 
 ## Écart de caisse

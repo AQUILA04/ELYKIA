@@ -250,7 +250,7 @@ export class MyStockDashboardComponent implements OnInit {
     if (stock.recoverySummary?.merchandiseDebtId) {
       return false;
     }
-    return this.authService.hasRole('ROLE_DEBT_MANAGEMENT');
+    return this.authService.hasRole('ROLE_DEBT_MANAGEMENT') || this.authService.hasRole('ROLE_ADMIN');
   }
 
   createMerchandiseDebt(stock: CommercialMonthlyStock): void {
