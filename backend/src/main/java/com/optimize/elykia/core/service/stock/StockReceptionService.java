@@ -244,6 +244,8 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
 
     @Transactional
     public StockReceptionDto validateReception(Long id, StockReceptionValidateRequest request) {
+        stockValuationFacade.lockAndIsFifoEnabled();
+
         StockReception reception = ((StockReceptionRepository) getRepository()).findByIdWithItems(id)
                 .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
 
@@ -387,6 +389,8 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
 
     @Transactional
     public String cancelReception(Long id) {
+        stockValuationFacade.lockAndIsFifoEnabled();
+
         StockReception reception = ((StockReceptionRepository) getRepository()).findByIdWithItems(id)
                 .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
 
@@ -425,7 +429,7 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
 
     void applyStockReception(StockReception reception, String connectedUser) {
         StringBuilder descriptionBuilder = new StringBuilder();
-        final boolean fifoEnabled = stockValuationFacade.isFifoEnabled();
+        final boolean fifoEnabled = stockValuationFacade.lockAndIsFifoEnabled();
         double recalculatedTotal = 0.0;
 
         for (StockReceptionItem item : reception.getItems()) {

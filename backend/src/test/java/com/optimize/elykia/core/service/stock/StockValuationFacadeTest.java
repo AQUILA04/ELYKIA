@@ -40,6 +40,14 @@ class StockValuationFacadeTest {
     private StockValuationFacade stockValuationFacade;
 
     @Test
+    void lockAndIsFifoEnabledDelegatesToParameterService() {
+        when(parameterService.lockAndIsEnabled(StockValuationFacade.FIFO_FLAG_KEY)).thenReturn(true);
+
+        org.junit.jupiter.api.Assertions.assertTrue(stockValuationFacade.lockAndIsFifoEnabled());
+        verify(parameterService).lockAndIsEnabled(StockValuationFacade.FIFO_FLAG_KEY);
+    }
+
+    @Test
     void usesLegacyAdapterWhenFlagDisabled() {
         Articles article = new Articles(1L);
         article.setPurchasePrice(200);

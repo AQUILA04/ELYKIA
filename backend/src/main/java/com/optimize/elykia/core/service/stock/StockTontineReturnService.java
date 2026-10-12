@@ -198,6 +198,8 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
     }
 
     private void reintegrateToWarehouse(StockTontineReturn stockReturn, String actingUsername) {
+        stockValuationFacade.lockAndIsFifoEnabled();
+
         for (StockTontineReturnItem item : stockReturn.getItems()) {
             Articles article = articlesService.getById(item.getArticle().getId());
             double returnUnitCost = article.getPurchasePrice();

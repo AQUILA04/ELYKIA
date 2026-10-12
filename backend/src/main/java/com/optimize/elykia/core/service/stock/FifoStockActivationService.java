@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,82 +38,86 @@ public class FifoStockActivationService {
 
         List<Articles> articles = articlesRepository.findAll();
         int migratedArticles = 0;
-        int receptionArticles = 0;
         int skippedArticles = 0;
-        int inconsistentArticles = 0;
+        List<String> blockingArticles = new ArrayList<>();
 
-        for (Articles article : articles) {
+        for (Articles articleRef : articles) {
+            Articles article = articlesRepository.findByIdForUpdate(articleRef.getId())
+                    .orElse(articleRef);
+
             int stockQty = article.getStockQuantity() != null ? article.getStockQuantity() : 0;
             if (stockQty <= 0) {
                 continue;
             }
 
-            if (lotRepository.existsByArticleId(article.getId())) {
+            int openLotQty = remainingLotQuantity(article.getId());
+            if (openLotQty == stockQty) {
                 skippedArticles++;
-                try {
-                    fifoStockValuationService.assertLotQuantityMatchesArticle(article);
-                } catch (CustomValidationException ex) {
-                    inconsistentArticles++;
-                    log.warn("FIFO incohérent article {}: {}", article.getId(), ex.getMessage());
-                }
+                continue;
+            }
+            if (openLotQty > 0) {
+                blockingArticles.add(formatArticleLabel(article)
+                        + " (stock=" + stockQty + ", lots ouverts=" + openLotQty + ")");
                 continue;
             }
 
-            if (tryBackfillFromReceptions(article)) {
-                receptionArticles++;
-            } else {
-                fifoStockValuationService.registerEntry(
-                        article,
-                        stockQty,
-                        article.getPurchasePrice(),
-                        ArticleStockLotSourceType.MIGRATION,
-                        null,
-                        null);
-                migratedArticles++;
+            Double unitPrice = resolveOpeningUnitPrice(article);
+            if (unitPrice == null) {
+                blockingArticles.add(formatArticleLabel(article) + " (prix d'achat manquant)");
+                continue;
             }
 
+            fifoStockValuationService.registerEntry(
+                    article,
+                    stockQty,
+                    unitPrice,
+                    ArticleStockLotSourceType.MIGRATION,
+                    null,
+                    LocalDate.now());
             fifoStockValuationService.assertLotQuantityMatchesArticle(article);
+            migratedArticles++;
+        }
+
+        if (!blockingArticles.isEmpty()) {
+            throw new CustomValidationException(
+                    "Activation FIFO impossible : stock existant non calé sur les lots pour : "
+                            + String.join(" ; ", blockingArticles));
         }
 
         Map<String, Object> result = new HashMap<>();
         result.put("migratedArticles", migratedArticles);
-        result.put("receptionArticles", receptionArticles);
         result.put("skippedArticles", skippedArticles);
-        result.put("inconsistentArticles", inconsistentArticles);
-        result.put("message", "Backfill FIFO terminé.");
+        result.put("message", "Lots d'ouverture FIFO créés.");
         return result;
     }
 
-    private boolean tryBackfillFromReceptions(Articles article) {
-        List<StockReceptionItem> receptions =
-                stockReceptionItemRepository.findByArticleIdOrderByReceptionDateAsc(article.getId());
-        if (receptions.isEmpty()) {
-            return false;
-        }
+    private int remainingLotQuantity(Long articleId) {
+        Integer qty = lotRepository.sumRemainingQuantityByArticleId(articleId);
+        return qty != null ? qty : 0;
+    }
 
-        int stockQty = article.getStockQuantity() != null ? article.getStockQuantity() : 0;
-        int receptionQty = receptions.stream()
-                .mapToInt(item -> item.getQuantity() != null ? item.getQuantity() : 0)
-                .sum();
-
-        if (receptionQty != stockQty) {
-            return false;
+    private Double resolveOpeningUnitPrice(Articles article) {
+        if (article.getPurchasePrice() > 0) {
+            return article.getPurchasePrice();
         }
-
-        for (StockReceptionItem receptionItem : receptions) {
-            double unitPrice = receptionItem.getUnitPrice() != null && receptionItem.getUnitPrice() > 0
-                    ? receptionItem.getUnitPrice()
-                    : article.getPurchasePrice();
-            fifoStockValuationService.registerEntry(
-                    article,
-                    receptionItem.getQuantity(),
-                    unitPrice,
-                    ArticleStockLotSourceType.STOCK_RECEPTION,
-                    receptionItem,
-                    receptionItem.getStockReception() != null
-                            ? receptionItem.getStockReception().getReceptionDate()
-                            : null);
+        List<StockReceptionItem> validatedItems =
+                stockReceptionItemRepository
+                        .findValidatedWithPositiveUnitPriceByArticleIdOrderByReceptionDateDesc(
+                                article.getId());
+        if (validatedItems.isEmpty()) {
+            return null;
         }
-        return true;
+        return validatedItems.get(0).getUnitPrice();
+    }
+
+    private static String formatArticleLabel(Articles article) {
+        String name = article.getName();
+        if (name == null || name.isBlank()) {
+            name = article.getCommercialName();
+        }
+        if (name == null || name.isBlank()) {
+            name = "Article";
+        }
+        return name + " #" + article.getId();
     }
 }

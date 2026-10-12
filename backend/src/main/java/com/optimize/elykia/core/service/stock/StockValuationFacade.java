@@ -33,6 +33,15 @@ public class StockValuationFacade {
         return parameterService.isEnabled(FIFO_FLAG_KEY);
     }
 
+    /**
+     * Verrouille la ligne du paramètre FIFO puis relit le flag.
+     * À appeler au début des écritures stock branchées sur la façade,
+     * pour attendre la fin d'une activation en cours.
+     */
+    public boolean lockAndIsFifoEnabled() {
+        return parameterService.lockAndIsEnabled(FIFO_FLAG_KEY);
+    }
+
     public double resolveEntryUnitPrice(Articles article, Double requestedUnitPrice) {
         if (isFifoEnabled()) {
             if (requestedUnitPrice == null || requestedUnitPrice <= 0) {

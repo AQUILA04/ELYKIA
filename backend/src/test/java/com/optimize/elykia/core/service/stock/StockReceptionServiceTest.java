@@ -102,6 +102,7 @@ class StockReceptionServiceTest {
         User manager = userWithProfiles("manager", UserProfilConstant.GESTIONNAIRE);
         when(repository.findByIdWithItems(99L)).thenReturn(Optional.of(pendingReception));
         when(userService.getCurrentUser()).thenReturn(manager);
+        when(stockValuationFacade.lockAndIsFifoEnabled()).thenReturn(false);
         when(stockValuationFacade.isFifoEnabled()).thenReturn(false);
         doNothing().when(stockReceptionService).applyStockReception(pendingReception, "manager");
         when(mapper.toDto(pendingReception)).thenReturn(new StockReceptionDto());
@@ -163,8 +164,8 @@ class StockReceptionServiceTest {
 
     @Test
     void applyStockReception_Legacy_ShouldUseCatalogPriceAtValidation() {
-        article.setPurchasePrice(120.0);
-        when(stockValuationFacade.isFifoEnabled()).thenReturn(false);
+        article.setPurchasePrice(120.0); // catalogue changed since creation (snapshot was 100)
+        when(stockValuationFacade.lockAndIsFifoEnabled()).thenReturn(false);
         when(articlesService.getById(1L)).thenReturn(article);
 
         ExpenseType expenseType = new ExpenseType();
@@ -199,7 +200,7 @@ class StockReceptionServiceTest {
     @Test
     void applyStockReception_Fifo_ShouldKeepSnapshotUnitPriceAndRecalcTotal() {
         article.setPurchasePrice(120.0);
-        when(stockValuationFacade.isFifoEnabled()).thenReturn(true);
+        when(stockValuationFacade.lockAndIsFifoEnabled()).thenReturn(true);
         when(articlesService.getById(1L)).thenReturn(article);
 
         ExpenseType expenseType = new ExpenseType();
@@ -334,6 +335,7 @@ class StockReceptionServiceTest {
         User manager = userWithProfiles("manager", UserProfilConstant.GESTIONNAIRE);
         when(repository.findByIdWithItems(99L)).thenReturn(Optional.of(pendingReception));
         when(userService.getCurrentUser()).thenReturn(manager);
+        when(stockValuationFacade.lockAndIsFifoEnabled()).thenReturn(true);
         when(stockValuationFacade.isFifoEnabled()).thenReturn(true);
         doNothing().when(stockReceptionService).applyFifoValidationPrices(eq(pendingReception), any());
         doNothing().when(stockReceptionService).applyStockReception(pendingReception, "manager");

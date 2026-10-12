@@ -4,12 +4,15 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.dto.StockValuesDto;
 import com.optimize.elykia.core.entity.article.Articles;
+import jakarta.persistence.LockModeType;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -22,6 +25,10 @@ public interface ArticlesRepository extends GenericRepository<Articles, Long> {
             Pageable pageable);
 
     Optional<Articles> findByName(String name);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM Articles a WHERE a.id = :id")
+    Optional<Articles> findByIdForUpdate(@Param("id") Long id);
 
     default Page<Articles> elasticsearch(String keyword, Pageable pageable) {
         return findAll(getElasticsearchCriteria(keyword), pageable);

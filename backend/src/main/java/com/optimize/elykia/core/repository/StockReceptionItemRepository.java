@@ -32,5 +32,17 @@ public interface StockReceptionItemRepository extends BaseRepository<StockRecept
             ORDER BY sr.receptionDate ASC, sri.id ASC
             """)
     List<StockReceptionItem> findByArticleIdOrderByReceptionDateAsc(@Param("articleId") Long articleId);
+
+    @Query("""
+            SELECT sri FROM StockReceptionItem sri
+            JOIN sri.stockReception sr
+            WHERE sri.article.id = :articleId
+              AND sr.status = com.optimize.elykia.core.enumaration.ReceptionStatus.VALIDATED
+              AND sri.unitPrice IS NOT NULL
+              AND sri.unitPrice > 0
+            ORDER BY sr.receptionDate DESC, sri.id DESC
+            """)
+    List<StockReceptionItem> findValidatedWithPositiveUnitPriceByArticleIdOrderByReceptionDateDesc(
+            @Param("articleId") Long articleId);
 }
 
