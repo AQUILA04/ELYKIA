@@ -7,7 +7,9 @@ import com.optimize.elykia.core.dto.StockEntry;
 import com.optimize.elykia.core.dto.StockReceptionDto;
 import com.optimize.elykia.core.dto.StockReceptionItemDto;
 import com.optimize.elykia.core.dto.StockReceptionListDto;
+import com.optimize.elykia.core.dto.StockReceptionValidateRequest;
 import com.optimize.elykia.core.dto.StockReceptionsDailyPdfDto;
+import com.optimize.elykia.core.dto.stock.PackagingEntryResolution;
 import com.optimize.elykia.core.entity.article.ArticleHistory;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.expense.ExpenseType;
@@ -15,6 +17,7 @@ import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.enumaration.ReceptionStatus;
+import com.optimize.elykia.core.enumaration.StockEntryPackagingMode;
 import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.mapper.StockReceptionMapper;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
@@ -51,6 +54,7 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
 
     private final StockReceptionMapper mapper;
     private final StockValuationFacade stockValuationFacade;
+    private final ArticlePackagingPricingService articlePackagingPricingService;
     private final ArticlesService articlesService;
     private final ArticleHistoryService articleHistoryService;
     private final ExpenseService expenseService;
@@ -62,6 +66,7 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
             StockReceptionRepository repository,
             StockReceptionMapper mapper,
             StockValuationFacade stockValuationFacade,
+            ArticlePackagingPricingService articlePackagingPricingService,
             ArticlesService articlesService,
             ArticleHistoryService articleHistoryService,
             ExpenseService expenseService,
@@ -71,6 +76,7 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         super(repository);
         this.mapper = mapper;
         this.stockValuationFacade = stockValuationFacade;
+        this.articlePackagingPricingService = articlePackagingPricingService;
         this.articlesService = articlesService;
         this.articleHistoryService = articleHistoryService;
         this.expenseService = expenseService;
@@ -118,9 +124,10 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         StockReception reception = ((StockReceptionRepository) getRepository()).findByIdWithItems(id)
                 .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
         StockReceptionDto dto = mapper.toDto(reception);
+        boolean enrichCatalog = shouldEnrichCatalogDefaults(reception);
         LinkedHashSet<StockReceptionItemDto> sortedItems = reception.getItems().stream()
                 .sorted(ArticleSortOrder.forStockReceptionItems())
-                .map(mapper::toItemDto)
+                .map(item -> toItemDtoPossiblyEnriched(item, enrichCatalog))
                 .map(this::redactItemPurchasePricesIfNeeded)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
         dto.setItems(sortedItems);
@@ -128,10 +135,11 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
     }
 
     public Page<StockReceptionItemDto> getReceptionItemsById(Long id, Pageable pageable) {
-        getById(id);
+        StockReception reception = getById(id);
+        boolean enrichCatalog = shouldEnrichCatalogDefaults(reception);
         return stockReceptionItemRepository
                 .findByStockReceptionIdSorted(id, pageable)
-                .map(mapper::toItemDto)
+                .map(item -> toItemDtoPossiblyEnriched(item, enrichCatalog))
                 .map(this::redactItemPurchasePricesIfNeeded);
     }
 
@@ -194,6 +202,24 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         return full.isEmpty() ? "—" : full;
     }
 
+    private StockReceptionItemDto toItemDtoPossiblyEnriched(StockReceptionItem item, boolean enrichCatalog) {
+        StockReceptionItemDto dto = mapper.toItemDto(item);
+        if (enrichCatalog && item.getArticle() != null) {
+            Articles article = item.getArticle();
+            dto.setCatalogPurchasePrice(article.getPurchasePrice());
+            dto.setCatalogWholesalePurchasePrice(article.getWholesalePurchasePrice());
+            dto.setCatalogHalfWholesalePurchasePrice(article.getHalfWholesalePurchasePrice());
+        }
+        return dto;
+    }
+
+    private boolean shouldEnrichCatalogDefaults(StockReception reception) {
+        return reception != null
+                && ReceptionStatus.PENDING.equals(reception.getStatus())
+                && stockValuationFacade.isFifoEnabled()
+                && canShowPurchasePrice();
+    }
+
     private StockReceptionItemDto redactItemPurchasePricesIfNeeded(StockReceptionItemDto item) {
         if (canShowPurchasePrice()) {
             return item;
@@ -201,6 +227,9 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         item.setUnitPrice(null);
         item.setTotalPrice(null);
         item.setPackagePrice(null);
+        item.setCatalogPurchasePrice(null);
+        item.setCatalogWholesalePurchasePrice(null);
+        item.setCatalogHalfWholesalePurchasePrice(null);
         return item;
     }
 
@@ -214,7 +243,7 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
     }
 
     @Transactional
-    public StockReceptionDto validateReception(Long id) {
+    public StockReceptionDto validateReception(Long id, StockReceptionValidateRequest request) {
         stockValuationFacade.lockAndIsFifoEnabled();
 
         StockReception reception = ((StockReceptionRepository) getRepository()).findByIdWithItems(id)
@@ -227,6 +256,10 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         User currentUser = userService.getCurrentUser();
         assertManagerOrAdmin(currentUser);
 
+        if (stockValuationFacade.isFifoEnabled()) {
+            applyFifoValidationPrices(reception, request);
+        }
+
         applyStockReception(reception, currentUser.getUsername());
 
         reception.setStatus(ReceptionStatus.VALIDATED);
@@ -235,6 +268,103 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         update(reception);
 
         return mapper.toDto(reception);
+    }
+
+    /**
+     * Applique les prix de validation FIFO. Un prix présent dans le body est la source de vérité
+     * exacte (jamais écrasé par le catalogue). Le catalogue ne sert que de filet si la ligne
+     * est absente du body.
+     */
+    void applyFifoValidationPrices(StockReception reception, StockReceptionValidateRequest request) {
+        Map<Long, StockReceptionValidateRequest.Line> linesByItemId = new HashMap<>();
+        if (request != null && request.getItems() != null) {
+            for (StockReceptionValidateRequest.Line line : request.getItems()) {
+                if (line != null && line.getItemId() != null) {
+                    linesByItemId.put(line.getItemId(), line);
+                }
+            }
+        }
+
+        double totalAmount = 0.0;
+        for (StockReceptionItem item : reception.getItems()) {
+            Articles article = articlesService.getById(item.getArticle().getId());
+            StockReceptionValidateRequest.Line line = linesByItemId.get(item.getId());
+            StockEntry entry = buildFifoValidationEntry(item, article, line);
+            PackagingEntryResolution resolved = articlePackagingPricingService.resolveFifoEntry(article, entry);
+
+            if (item.getQuantity() != null && item.getQuantity() != resolved.quantity()) {
+                throw new CustomValidationException(
+                        "La quantité de la ligne ne correspond pas au packaging de la réception pour l'article "
+                                + article.getCommercialName() + ".");
+            }
+
+            item.setQuantity(resolved.quantity());
+            item.setUnitPrice(resolved.unitPrice());
+            item.setTotalPrice(resolved.totalPrice());
+            item.setEntryPackagingMode(resolved.entryPackagingMode());
+            item.setPackageCount(resolved.packageCount());
+            item.setPackagePrice(resolved.packagePrice());
+            item.setPackagingTypeSnapshot(resolved.packagingTypeSnapshot());
+            item.setUnitsPerPackageSnapshot(resolved.unitsPerPackageSnapshot());
+            totalAmount += resolved.totalPrice();
+        }
+        reception.setTotalAmount(totalAmount);
+    }
+
+    private StockEntry buildFifoValidationEntry(
+            StockReceptionItem item,
+            Articles article,
+            StockReceptionValidateRequest.Line line) {
+        StockEntryPackagingMode mode = item.getEntryPackagingMode() != null
+                ? item.getEntryPackagingMode()
+                : StockEntryPackagingMode.UNIT;
+
+        StockEntry entry = new StockEntry();
+        entry.setArticleId(article.getId());
+        entry.setEntryPackagingMode(mode);
+
+        if (mode == StockEntryPackagingMode.UNIT) {
+            entry.setQuantity(item.getQuantity());
+            Double unitPrice = line != null ? line.getUnitPrice() : null;
+            if (unitPrice == null || unitPrice <= 0) {
+                unitPrice = article.getPurchasePrice();
+            }
+            entry.setUnitPrice(unitPrice);
+            return entry;
+        }
+
+        entry.setPackageCount(item.getPackageCount());
+        Double packagePrice = line != null ? line.getPackagePrice() : null;
+        if (packagePrice == null || packagePrice <= 0) {
+            packagePrice = resolveCatalogPackagePrice(article, mode, item);
+        }
+        entry.setPackagePrice(packagePrice);
+        return entry;
+    }
+
+    private Double resolveCatalogPackagePrice(
+            Articles article,
+            StockEntryPackagingMode mode,
+            StockReceptionItem item) {
+        Integer unitsPerPackage = item.getUnitsPerPackageSnapshot() != null
+                ? item.getUnitsPerPackageSnapshot()
+                : article.getUnitsPerPackage();
+        if (mode == StockEntryPackagingMode.WHOLESALE) {
+            if (article.getWholesalePurchasePrice() != null && article.getWholesalePurchasePrice() > 0) {
+                return article.getWholesalePurchasePrice();
+            }
+            if (unitsPerPackage != null && unitsPerPackage > 0 && article.getPurchasePrice() > 0) {
+                return article.getPurchasePrice() * unitsPerPackage;
+            }
+        } else if (mode == StockEntryPackagingMode.HALF_WHOLESALE) {
+            if (article.getHalfWholesalePurchasePrice() != null && article.getHalfWholesalePurchasePrice() > 0) {
+                return article.getHalfWholesalePurchasePrice();
+            }
+            if (unitsPerPackage != null && unitsPerPackage >= 2 && article.getPurchasePrice() > 0) {
+                return article.getPurchasePrice() * (unitsPerPackage / 2.0);
+            }
+        }
+        return null;
     }
 
     @Transactional
@@ -353,9 +483,7 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
                     .append(" Total:").append(totalLinePrice);
         }
 
-        if (!fifoEnabled) {
-            reception.setTotalAmount(recalculatedTotal);
-        }
+        reception.setTotalAmount(recalculatedTotal);
 
         if (reception.getTotalAmount() != null && reception.getTotalAmount() > 0) {
             ExpenseType expenseType = expenseTypeRepository.findByName("Approvisionnement")

@@ -27,6 +27,7 @@ export interface StockReceptionItem {
     name: string;
   };
   articleName?: string;
+  articleId?: number;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
@@ -35,6 +36,21 @@ export interface StockReceptionItem {
   packagePrice?: number | null;
   packagingTypeSnapshot?: 'NONE' | 'CARTON' | 'SAC' | null;
   unitsPerPackageSnapshot?: number | null;
+  /** Prix catalogue du jour — préremplissage validation FIFO. */
+  catalogPurchasePrice?: number | null;
+  catalogWholesalePurchasePrice?: number | null;
+  catalogHalfWholesalePurchasePrice?: number | null;
+}
+
+/** Prix saisis / affichés avant validation FIFO (source de vérité envoyée au backend). */
+export interface StockReceptionValidateLine {
+  itemId: number;
+  unitPrice?: number;
+  packagePrice?: number;
+}
+
+export interface StockReceptionValidateRequest {
+  items: StockReceptionValidateLine[];
 }
 
 export interface PagedResponse<T> {

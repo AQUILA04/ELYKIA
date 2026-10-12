@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { StockReceptionService } from '../../services/stock-reception.service';
 import { StockReceptionListItem, StockReceptionStatus } from '../../../core/models/stock-reception.model';
 import { AuthService } from '../../../auth/service/auth.service';
@@ -7,6 +8,8 @@ import { UserProfilConstant } from '../../../shared/constants/user-profil.consta
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { UserService } from '../../../user/service/user.service';
 import { UserProfile } from '../../../shared/models/user-profile.enum';
+import { StockFifoFeatureService } from '../../services/stock-fifo-feature.service';
+import { StockReceptionValidateDialogComponent } from '../../components/stock-reception-validate-dialog/stock-reception-validate-dialog.component';
 
 interface StockReceptionListState {
   searchReference: string;
@@ -39,6 +42,7 @@ export class StockReceptionListComponent implements OnInit, OnDestroy {
 
   isAdmin = false;
   isManager = false;
+  fifoEnabled = false;
   currentUsername: string | null = null;
 
   currentDate: Date = new Date();
@@ -58,7 +62,9 @@ export class StockReceptionListComponent implements OnInit, OnDestroy {
     private router: Router,
     private authService: AuthService,
     private userService: UserService,
-    private alertService: AlertService
+    private alertService: AlertService,
+    private stockFifoFeatureService: StockFifoFeatureService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -67,6 +73,9 @@ export class StockReceptionListComponent implements OnInit, OnDestroy {
       || this.userService.hasProfile(UserProfile.ADMIN)
       || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
     this.currentUsername = this.authService.getUsername();
+    this.stockFifoFeatureService.isFifoEnabled().subscribe(enabled => {
+      this.fifoEnabled = enabled;
+    });
     this.restoreState();
     this.loadReceptions();
     this.loadPendingCount();
@@ -247,6 +256,28 @@ export class StockReceptionListComponent implements OnInit, OnDestroy {
   }
 
   validateReception(reception: StockReceptionListItem): void {
+    if (this.fifoEnabled) {
+      const dialogRef = this.dialog.open(StockReceptionValidateDialogComponent, {
+        width: '920px',
+        maxWidth: '95vw',
+        disableClose: true,
+        data: {
+          receptionId: reception.id,
+          reference: reception.reference,
+          canShowPurchasePrice: this.authService.hasRole('ROLE_SHOW_PURCHASE_PRICE')
+        }
+      });
+
+      dialogRef.afterClosed().subscribe((validated: boolean) => {
+        if (validated) {
+          this.alertService.showSuccess('La réception a été validée.', 'Validée');
+          this.loadReceptions();
+          this.loadPendingCount();
+        }
+      });
+      return;
+    }
+
     this.alertService.showConfirmation(
       'Validation',
       'Valider cette entrée de stock ? Les quantités seront impactées.'

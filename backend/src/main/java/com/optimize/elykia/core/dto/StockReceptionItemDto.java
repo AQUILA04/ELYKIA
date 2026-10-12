@@ -19,4 +19,9 @@ public class StockReceptionItemDto {
     private Double packagePrice;
     private ArticlePackagingType packagingTypeSnapshot;
     private Integer unitsPerPackageSnapshot;
+
+    /** Prix catalogue du jour — préremplissage UI validation FIFO uniquement. */
+    private Double catalogPurchasePrice;
+    private Double catalogWholesalePurchasePrice;
+    private Double catalogHalfWholesalePurchasePrice;
 }
