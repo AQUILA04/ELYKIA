@@ -6,6 +6,7 @@ import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CommercialReportMonthlyRepository;
 import com.optimize.elykia.core.repository.CreditCollectorHistoryRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.service.debt.DebtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ public class CommercialYearlyPortfolioService {
     private final CommercialReportMonthlyRepository monthlyRepository;
     private final CreditRepository creditRepository;
     private final CreditCollectorHistoryRepository collectorHistoryRepository;
+    private final DebtService debtService;
 
     @Transactional(readOnly = true)
     public CommercialYearlySummaryDto buildYearlySummary(String commercialUsername, int year) {
@@ -56,6 +58,9 @@ public class CommercialYearlyPortfolioService {
                 commercialUsername, OperationType.CREDIT, State.ENABLED));
         double remainingAtClient = sumLiveRemaining(commercialUsername);
 
+        DebtService.MerchandiseYearlyDebtTotals debtTotals =
+                debtService.merchandiseYearlyTotals(commercialUsername, year);
+
         return CommercialYearlySummaryDto.builder()
                 .year(year)
                 .commercialUsername(commercialUsername)
@@ -69,6 +74,8 @@ public class CommercialYearlyPortfolioService {
                 .entrustedPortfolioAmount(entrusted)
                 .remainingAtCommercialAmount(entrusted - deposited)
                 .remainingAtClientAmount(remainingAtClient)
+                .merchandiseDebtGlobalAmount(debtTotals.globalDebt())
+                .merchandiseDebtSettledAmount(debtTotals.totalSettled())
                 .build();
     }
 

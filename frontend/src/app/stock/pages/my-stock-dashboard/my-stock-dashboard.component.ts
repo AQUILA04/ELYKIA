@@ -14,6 +14,7 @@ import { StockSoldSalesDialogComponent } from '../../components/stock-sold-sales
 import { StockMovementDialogComponent } from '../../components/stock-movement-dialog/stock-movement-dialog.component';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { DebtService } from 'src/app/debt/services/debt.service';
 
 interface MyStockDashboardState {
   selectedAgent: string | null;
@@ -52,6 +53,7 @@ export class MyStockDashboardComponent implements OnInit {
 
   private exportingStockKeys = new Set<string>();
   private pendingSalesOpen: { collector: string; year: number; month: number } | null = null;
+  creatingDebtStockId: number | null = null;
 
   constructor(
     private commercialStockService: CommercialStockService,
@@ -63,7 +65,8 @@ export class MyStockDashboardComponent implements OnInit {
     private featureFlagService: FeatureFlagService,
     private alertService: AlertService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private debtService: DebtService
   ) { }
 
   ngOnInit(): void {
@@ -210,7 +213,73 @@ export class MyStockDashboardComponent implements OnInit {
       return stock.recoverySummary.totalDueAmount;
     }
     if (!stock || !stock.items) return 0;
-    return this.getTotalStockValue(stock) + this.getTotalSoldValue(stock);
+    return this.getTotalStockValue(stock) + this.getTotalSoldValue(stock) + this.getTotalDebtValue(stock);
+  }
+
+  getTotalDebtValue(stock: CommercialMonthlyStock): number {
+    if (stock?.recoverySummary?.debtValueAmount != null) {
+      return stock.recoverySummary.debtValueAmount;
+    }
+    if (!stock || !stock.items) return 0;
+    return stock.items.reduce((acc, item) => {
+      const qty = item.quantityDebt || 0;
+      const unit = item.debtUnitPrice ?? item.weightedAverageUnitPrice ?? 0;
+      return acc + qty * unit;
+    }, 0);
+  }
+
+  getDebtSettledValue(stock: CommercialMonthlyStock): number {
+    return stock?.recoverySummary?.debtSettledAmount ?? 0;
+  }
+
+  hasRemainingQuantity(stock: CommercialMonthlyStock): boolean {
+    return !!stock?.items?.some((item) => (item.quantityRemaining || 0) > 0);
+  }
+
+  isPastMonth(stock: CommercialMonthlyStock): boolean {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    return stock.year < currentYear || (stock.year === currentYear && stock.month < currentMonth);
+  }
+
+  canCreateMerchandiseDebt(stock: CommercialMonthlyStock): boolean {
+    if (!stock?.id || !this.isPastMonth(stock) || !this.hasRemainingQuantity(stock)) {
+      return false;
+    }
+    if (stock.recoverySummary?.merchandiseDebtId) {
+      return false;
+    }
+    return this.authService.hasRole('ROLE_DEBT_MANAGEMENT');
+  }
+
+  createMerchandiseDebt(stock: CommercialMonthlyStock): void {
+    if (!stock?.id || !this.canCreateMerchandiseDebt(stock)) {
+      return;
+    }
+    const amount = this.getTotalStockValue(stock);
+    if (!confirm(`Créer une dette de ${Math.round(amount).toLocaleString('fr-FR')} FCFA pour ${stock.collector} (${this.getMonthName(stock.month)} ${stock.year}) ?`)) {
+      return;
+    }
+    this.creatingDebtStockId = stock.id;
+    this.debtService.createMerchandise(stock.id).subscribe({
+      next: (debt) => {
+        this.creatingDebtStockId = null;
+        this.alertService.showSuccess(`Dette ${debt.reference} créée.`);
+        this.loadCurrentStock();
+      },
+      error: (err) => {
+        this.creatingDebtStockId = null;
+        this.alertService.showError(err?.error?.message || 'Création de dette impossible.');
+      }
+    });
+  }
+
+  openMerchandiseDebt(stock: CommercialMonthlyStock): void {
+    const debtId = stock.recoverySummary?.merchandiseDebtId;
+    if (debtId) {
+      this.router.navigate(['/debts', debtId]);
+    }
   }
 
   getTotalRecoveredValue(stock: CommercialMonthlyStock): number {

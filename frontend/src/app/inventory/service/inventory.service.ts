@@ -126,6 +126,7 @@ export interface ReconciliationRequest {
   markAsDebt?: boolean;
   cancelDebt?: boolean;
   action: string;
+  storekeeperUsername?: string;
 }
 
 export interface BulkReconciliationRequest {
@@ -134,6 +135,7 @@ export interface BulkReconciliationRequest {
   markAsDebt?: boolean;
   cancelDebt?: boolean;
   action: string;
+  storekeeperUsername?: string;
 }
 
 export interface ApiResponse {

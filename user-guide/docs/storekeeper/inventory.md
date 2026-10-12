@@ -67,4 +67,5 @@ graph TD
 4. **Étape 4 : Analyse contradictoire des écarts** :
    * En concertation avec le gestionnaire, examinez les écarts éventuels (`Surplus` ou `Manquant`).
    * Vérifiez si des entrées ou des sorties n'ont pas été omises avant que le gestionnaire ne procède à la clôture définitive de la session.
+   * Lorsqu’un manquant est enregistré comme dette à votre nom, vous pouvez en suivre le montant et le règlement dans le menu **Dettes**.
 

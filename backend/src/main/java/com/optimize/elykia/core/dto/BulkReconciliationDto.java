@@ -20,4 +20,7 @@ public class BulkReconciliationDto {
 
     @NotNull(message = "L'action de réconciliation est obligatoire")
     private ReconciliationAction action;
+
+    /** Magasinier responsable (obligatoire pour MARK_AS_DEBT). */
+    private String storekeeperUsername;
 }

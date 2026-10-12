@@ -205,6 +205,16 @@
     "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nGestion des comptes financiers (Menu Comptes)\n\nLe sous-menu Comptes offre une vue d’ensemble des comptes rattachés aux clients :\nLa liste affiche pour chaque compte : le numéro, le titulaire, le solde et le statut.\nCliquez sur Voir : un panneau s’ouvre à droite avec le détail (client, n° compte, solde, statut) et les actions possibles (activer / désactiver / modifier).\nFermez le panneau avec Fermer pour revenir à la liste.\nCréer un compte\nCliquez sur Ajouter (ou l’action équivalente) pour ouvrir le formulaire de création de compte.\nRecherchez et sélectionnez le client : seuls les clients déjà validés apparaissent dans la liste. Un client encore en attente de validation d’inscription n’est pas proposé.\nSi le client n’apparaît pas, validez d’abord son inscription depuis Services en ligne > Inscriptions , puis revenez créer le compte.\nRenseignez le numéro de compte et le solde initial, puis enregistrez."
   },
   {
+    "id": "commercial_debts",
+    "title": "Vos dettes",
+    "path": "/user-guide/commercial/debts.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Vos dettes\n\nLe menu Dettes vous permet de consulter vos positions ouvertes ou réglées (marchandise et caisse). Vous y suivez les montants restants et l’historique des paiements.\nAccéder à vos dettes\nDans le menu latéral, cliquez sur Dettes .\nLa liste affiche vos positions avec le type, la période, le montant et le reste à régler.\nCliquez sur une ligne pour ouvrir le détail.\nCe que vous voyez\n Marchandise : articles et quantités passés en dette à partir d’un mois de stock terminé, avec le montant et le reste à régler.\n Caisse : manquant ou surplus constitué pour un jour ou un mois passé, avec le détail des rubriques (avances, recouvrements, tontine, ventes au comptant, versé).\n Historique des règlements : chaque paiement enregistré sur la position.\nLien avec le stock mensuel\nOuvrez Stock Commercial → Stock mensuel , puis Historique pour un mois passé.\nLes cartes affichent la Valeur dette (y compris après règlement) et le Total dû = vendu + dette + restant.\nLe tableau liste les colonnes Dette et Valeur dette pour chaque article.\nBilan annuel\n\nSur le Rapport journalier , le bilan annuel crédit affiche aussi la Dette globale et la Dette réglée de l’année pour votre portefeuille."
+  },
+  {
     "id": "commercial",
     "title": "Guide Commercial",
     "path": "/user-guide/commercial/index.html",
@@ -212,7 +222,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Guide Commercial\n\nCe guide présente les parcours de terrain disponibles sur le web et, dans sa dernière partie, sur l’application mobile. Votre interface montre uniquement les actions correspondant à vos droits : l’absence d’un bouton de validation, d’export ou de réaffectation est normale si l’habilitation n’est pas attribuée.\n\nVotre cycle de travail\n\n Moment Module Objectif \n --- --- --- \n Préparer le portefeuille Clients Créer et mettre à jour les informations client. \n Obtenir les articles Stock Commercial Créer une demande de sortie et suivre sa livraison. \n Distribuer et suivre Ventes Créer une vente, suivre son statut et encaisser les mises. \n Collecter l’épargne Tontines Inscrire, collecter, suivre la progression et préparer la livraison. \n Rendre compte Caisse, Rapport Journalier Contrôler les versements et les opérations de la période. \n\nSuivez les pages Clients et comptes, Stock, Ventes et commandes, Tontines et Application mobile."
+    "content": "Guide Commercial\n\nCe guide présente les parcours de terrain disponibles sur le web et, dans sa dernière partie, sur l’application mobile. Votre interface montre uniquement les actions correspondant à vos droits : l’absence d’un bouton de validation, d’export ou de réaffectation est normale si l’habilitation n’est pas attribuée.\n\nVotre cycle de travail\n\n Moment Module Objectif \n --- --- --- \n Préparer le portefeuille Clients Créer et mettre à jour les informations client. \n Obtenir les articles Stock Commercial Créer une demande de sortie et suivre sa livraison. \n Distribuer et suivre Ventes Créer une vente, suivre son statut et encaisser les mises. \n Collecter l’épargne Tontines Inscrire, collecter, suivre la progression et préparer la livraison. \n Rendre compte Caisse, Rapport Journalier Contrôler les versements et les opérations de la période. \n Suivre vos dettes Dettes Consulter vos positions marchandise et caisse, et leur règlement. \n\nSuivez les pages Clients et comptes, Stock, Dettes, Ventes et commandes, Tontines et Application mobile."
   },
   {
     "id": "commercial_mobile",
@@ -482,7 +492,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Stock commercial (Demandes, Suivi Mensuel & Retours)\nTableau de bord « Mon Stock » mensuel (Menu Stock Commercial > Stock)\n\nAccessible via le menu latéral gauche Stock Commercial > Stock , ce tableau de bord offre une analyse comptable exhaustive de la tournée du commercial, mois par mois.\n\nA. Navigation temporelle et sélection\n Accordéon par mois : Chaque mois d'activité fait l'objet d'un volet déroulant intitulé [Nom Commercial] - [Mois] [Année].\n Bouton « Historique » : Permet d'afficher ou de masquer les mois civils antérieurs clôturés.\n Retour sur l'écran : Si vous quittez le tableau de bord puis y revenez pendant votre session, vous retrouvez le commercial sélectionné, l'état du bouton « Historique » et la page de la liste tels que vous les aviez laissés.\n Télécharger rapport : En tête de chaque panneau mensuel, un bouton d'export génère la fiche de stock mensuelle officielle au format PDF.\nB. Les 6 Indicateurs Financiers KPIs du Stock Mensuel\nChaque panneau mensuel calcule automatiquement 6 métriques financières de contrôle :\n\n KPI Financier Couleur / Icône Signification Opérationnelle Interaction & Règle \n --- --- --- --- \n Valeur Stock Restant Bleu Cyan (inventory_2) Valeur marchande des articles encore physiquement en possession du commercial. Calculée sur la base du prix unitaire pondéré des articles non vendus. \n Valeur Stock Vendu Vert (monetization_on) Montant total des ventes (crédit et comptant) conclues sur le stock du mois. Carte Cliquable : Un clic ouvre instantanément la liste détaillée de l'ensemble des crédits et ventes associés. \n Valeur Total Dû Orange (account_balance_wallet) Valeur globale totale de l'ensemble des marchandises confiées sur le mois (Stock restant + Stock vendu). Représente l'engagement financier total initial du commercial. \n Montant Recouvré Vert Émeraude (payments) Cumul réel des versements et encaissements perçus auprès des clients sur les ventes de ce stock. Mesure le cash effectif rentré en caisse. \n Reste à Recouvrer Ambre (hourglass_empty) Montant global restant à percevoir (Valeur du stock physique restant + créances clients non encore soldées). Reste à recouvrer = Total Dû $-$ Montant Recouvré.…"
+    "content": "Stock commercial (Demandes, Suivi Mensuel & Retours)\nTableau de bord « Mon Stock » mensuel (Menu Stock Commercial > Stock)\n\nAccessible via le menu latéral gauche Stock Commercial > Stock , ce tableau de bord offre une analyse comptable exhaustive de la tournée du commercial, mois par mois.\n\nA. Navigation temporelle et sélection\n Accordéon par mois : Chaque mois d'activité fait l'objet d'un volet déroulant intitulé [Nom Commercial] - [Mois] [Année].\n Bouton « Historique » : Permet d'afficher ou de masquer les mois civils antérieurs clôturés.\n Retour sur l'écran : Si vous quittez le tableau de bord puis y revenez pendant votre session, vous retrouvez le commercial sélectionné, l'état du bouton « Historique » et la page de la liste tels que vous les aviez laissés.\n Télécharger rapport : En tête de chaque panneau mensuel, un bouton d'export génère la fiche de stock mensuelle officielle au format PDF.\nB. Les 6 Indicateurs Financiers KPIs du Stock Mensuel\nChaque panneau mensuel calcule automatiquement 6 métriques financières de contrôle :\n\n KPI Financier Couleur / Icône Signification Opérationnelle Interaction & Règle \n --- --- --- --- \n Valeur Stock Restant Bleu Cyan (inventory_2) Valeur marchande des articles encore physiquement en possession du commercial. Calculée sur la base du prix unitaire pondéré des articles non vendus. \n Valeur Stock Vendu Vert (monetization_on) Montant total des ventes (crédit et comptant) conclues sur le stock du mois. Carte Cliquable : Un clic ouvre instantanément la liste détaillée de l'ensemble des crédits et ventes associés. \n Valeur Dette Orange Valorisation des quantités passées en dette pour ce mois (y compris après règlement). Affiche aussi la part déjà réglée. \n Valeur Total Dû Orange (account_balance_wallet) Valeur globale : stock vendu + dette + stock restant. Engagement financier du mois. \n Montant Recouvré Vert Émeraude (payments) Cumul réel des versements et encaissements perçus auprès des clients sur les ventes de ce stock. Mesure le cash effectif rentré en caisse. \n Reste à Recouvrer Ambre (hourglass_empty) Montant global restant à percevoir (Valeur du stock physique restant + créances clients non encore soldées).…"
   },
   {
     "id": "commercial_stock__3_retours_de_marchandise_au_magasin_menu_stock_c",
@@ -969,6 +979,69 @@
     "content": "Tableaux de bord et Pilotage (Dashboard V2 & BI)\nBonnes pratiques de lecture et réflexes de gestion\n Toujours vérifier la période active : Avant d'analyser un montant ou de tirer une conclusion sur le chiffre d'affaires, vérifiez systématiquement le mois sélectionné dans le sélecteur temporel.\n Différencier stock magasin et stock commercial : Ne confondez pas la valorisation globale du stock magasin (articles physiques en réserve) avec le stock commercial attribué aux équipes terrain.\n Contrôler les créances avant d'octroyer de nouvelles ventes : Utilisez le ratio Recouvrement encours / Crédits en cours pour apprécier la liquidité globale avant d'approuver de nouveaux dossiers de vente à crédit.\n Bouton d'actualisation : Après la clôture d'une caisse, la réception d'un arrivage ou la validation d'une série de ventes, cliquez sur « Actualiser » pour rafraîchir instantanément les agrégats financiers."
   },
   {
+    "id": "manager_debts",
+    "title": "Dettes (commerciaux et magasinier)",
+    "path": "/user-guide/manager/debts.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Dettes (commerciaux et magasinier)\n\nLe menu Dettes regroupe les montants dus par les commerciaux (marchandise restante, écarts de caisse) et par le magasinier (écarts d’inventaire). Vous y consultez les totaux, le détail des articles ou des rubriques, et vous enregistrez les règlements."
+  },
+  {
+    "id": "manager_debts__acc_der_au_module",
+    "title": "Dettes (commerciaux et magasinier) — Accéder au module",
+    "path": "/user-guide/manager/debts.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Dettes (commerciaux et magasinier)\nAccéder au module\nDans le menu latéral, cliquez sur Dettes .\nLa synthèse affiche le total des dettes ouvertes, les avoirs (surplus de caisse) et la position nette.\nUtilisez les filtres (personne, type, statut, année, mois) puis cliquez sur une ligne pour ouvrir le détail."
+  },
+  {
+    "id": "manager_debts__dette_marchandise_stock_commercial",
+    "title": "Dettes (commerciaux et magasinier) — Dette marchandise (stock commercial)",
+    "path": "/user-guide/manager/debts.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Dettes (commerciaux et magasinier)\nDette marchandise (stock commercial)\n\nQuand un mois est déjà terminé et qu’il reste des quantités chez un commercial :\nOuvrez Stock Commercial → Stock mensuel , puis activez Historique pour voir les mois passés.\nSur le panneau du mois concerné, cliquez sur Créer la dette (visible seulement s’il reste au moins une quantité).\nConfirmez le montant proposé : les quantités passent de Restant à Dette .\nLes cartes du mois affichent la Valeur dette (y compris après paiement) et le Total dû = vendu + dette + restant.\nDepuis le détail de la dette, ou via Voir la dette , vous suivez le statut et les règlements."
+  },
+  {
+    "id": "manager_debts__cart_de_caisse",
+    "title": "Dettes (commerciaux et magasinier) — Écart de caisse",
+    "path": "/user-guide/manager/debts.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Dettes (commerciaux et magasinier)\nÉcart de caisse\nSur le Rapport journalier , pour un jour passé d’un commercial, cliquez sur Constituer l’écart de caisse s’il y a un manquant ou un surplus.\nPour un mois passé , créez la position depuis le module Dettes (type manquant / surplus caisse).\nUn surplus s’impute d’abord sur les manquants de caisse du même commercial. Vous pouvez ensuite l’utiliser lors d’un règlement sur une autre dette."
+  },
+  {
+    "id": "manager_debts__dette_magasinier_inventaire",
+    "title": "Dettes (commerciaux et magasinier) — Dette magasinier (inventaire)",
+    "path": "/user-guide/manager/debts.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Dettes (commerciaux et magasinier)\nDette magasinier (inventaire)\nLors de la réconciliation d’un inventaire, sélectionnez les articles en écart négatif.\nCliquez sur Marquer comme dette et indiquez le magasinier responsable.\nLe stock magasin est aligné sur le comptage physique et une dette apparaît dans le module Dettes."
+  },
+  {
+    "id": "manager_debts__marquer_comme_pay",
+    "title": "Dettes (commerciaux et magasinier) — Marquer comme payé",
+    "path": "/user-guide/manager/debts.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Dettes (commerciaux et magasinier)\nMarquer comme payé\nDans la liste Dettes, cochez une ou plusieurs dettes ouvertes.\nCliquez sur Marquer comme payé(s) .\nChoisissez le mode : Espèces , Imputer un surplus , ou Abandon (motif obligatoire).\nIndiquez le montant (paiement partiel possible) puis confirmez."
+  },
+  {
+    "id": "manager_debts__bilan_annuel",
+    "title": "Dettes (commerciaux et magasinier) — Bilan annuel",
+    "path": "/user-guide/manager/debts.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Dettes (commerciaux et magasinier)\nBilan annuel\n\nSur le Rapport journalier , pour un commercial sélectionné, le bilan annuel crédit affiche aussi :\n Dette globale : somme des dettes marchandise de l’année ;\n Dette réglée : total déjà réglé sur ces dettes."
+  },
+  {
     "id": "manager_finance",
     "title": "Gestion financière, Dépenses & Remises de trésorerie (Guide Gestionnaire)",
     "path": "/user-guide/manager/finance.html",
@@ -1020,7 +1093,25 @@
     "roles": [
       "manager"
     ],
-    "content": "Guide Gestionnaire\n\nCe guide accompagne les gestionnaires et secrétaires dans les tâches de pilotage. Les responsabilités exactes restent déterminées par les permissions attribuées au compte : la présence d’un menu ou d’un bouton confirme qu’il est autorisé pour votre session.\n\nVotre espace de pilotage\n\nLe menu peut notamment donner accès au Dashboard , aux Clients , aux Articles , aux modules Stock Commercial et Stock Tontine , aux Ventes , aux Tontines , aux Dépenses , à la Configuration , au Rapport Journalier et aux Inventaires . Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.\n\n Priorité Où intervenir Finalité \n --- --- --- \n Démarrer et contrôler l’activité Caisse, Clients, Ventes Sécuriser les opérations du jour et les portefeuilles. \n Garantir la disponibilité des articles Articles, Inventaires, Stock Commercial Suivre les réceptions, sorties, retours et écarts. \n Contrôler l’argent et la performance Rapport Journalier, Dépenses Lire les indicateurs, les versements et les remises. \n Suivre l’espace client Inscriptions clients Valider les inscriptions de l’espace client. \n Paramétrer l’agence Configuration Maintenir les référentiels et les paramètres. \nRègles de travail\n\nLa gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.\n\nConsultez les pages suivantes selon la tâche à accomplir :\nTableaux de bord pour lire les KPI sans confondre les périodes.\nOpérations quotidiennes pour les caisses, clients, comptes et versements.\nInscriptions ( Services en ligne ) pour valider les demandes de l’espace client.\nStocks, ventes et commandes pour les flux de marchandises et de crédits.\nFinances et tontines pour les dépenses, remises et contrôles tontine.\nRapports et configuration pour l’analyse et les référentiels."
+    "content": "Guide Gestionnaire\n\nCe guide accompagne les gestionnaires et secrétaires dans les tâches de pilotage. Les responsabilités exactes restent déterminées par les permissions attribuées au compte : la présence d’un menu ou d’un bouton confirme qu’il est autorisé pour votre session."
+  },
+  {
+    "id": "manager__votre_espace_de_pilotage",
+    "title": "Guide Gestionnaire — Votre espace de pilotage",
+    "path": "/user-guide/manager/index.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Guide Gestionnaire\nVotre espace de pilotage\n\nLe menu peut notamment donner accès au Dashboard , aux Clients , aux Articles , aux modules Stock Commercial et Stock Tontine , aux Ventes , aux Tontines , aux Dépenses , à la Configuration , au Rapport Journalier et aux Inventaires . Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.\n\n Priorité Où intervenir Finalité \n --- --- --- \n Démarrer et contrôler l’activité Caisse, Clients, Ventes Sécuriser les opérations du jour et les portefeuilles. \n Garantir la disponibilité des articles Articles, Inventaires, Stock Commercial Suivre les réceptions, sorties, retours et écarts. \n Suivre et régler les dettes Dettes, Stock mensuel, Rapport journalier, Inventaires Constituer les dettes marchandise / caisse / inventaire et enregistrer les règlements. \n Contrôler l’argent et la performance Rapport Journalier, Dépenses Lire les indicateurs, les versements et les remises. \n Suivre l’espace client Inscriptions clients Valider les inscriptions de l’espace client. \n Paramétrer l’agence Configuration Maintenir les référentiels et les paramètres."
+  },
+  {
+    "id": "manager__r_gles_de_travail",
+    "title": "Guide Gestionnaire — Règles de travail",
+    "path": "/user-guide/manager/index.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Guide Gestionnaire\nRègles de travail\n\nLa gestion d’une opération doit toujours suivre son statut. Une demande de sortie créée n’est pas encore livrable ; une réception de stock en attente n’a pas encore augmenté le stock ; une vente validée n’est pas encore démarrée. Les boutons disponibles sur une ligne correspondent à l’étape atteinte et à vos droits.\n\nConsultez les pages suivantes selon la tâche à accomplir :\nTableaux de bord pour lire les KPI sans confondre les périodes.\nOpérations quotidiennes pour les caisses, clients, comptes et versements.\nInscriptions ( Services en ligne ) pour valider les demandes de l’espace client.\nStocks, ventes et commandes pour les flux de marchandises et de crédits.\nFinances et tontines pour les dépenses, remises et contrôles tontine.\nRapports et configuration pour l’analyse et les référentiels."
   },
   {
     "id": "manager_operations",
@@ -1431,6 +1522,16 @@
     "content": "Gestion des articles et seuils de stock (Guide Magasinier)\nRègle de suppression et archivage\n Intégrité référentielle : Il est formellement interdit de supprimer un article qui a déjà fait l'objet d'un mouvement de stock, d'une vente ou d'une distribution.\nEn cas d'arrêt de commercialisation d'une référence, modifiez son statut pour le passer à Inactif afin qu'il n'apparaisse plus dans les nouveaux formulaires de vente ou de demande de stock, tout en préservant l'historique comptable des opérations passées."
   },
   {
+    "id": "storekeeper_debts",
+    "title": "Vos dettes d’inventaire",
+    "path": "/user-guide/storekeeper/debts.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Vos dettes d’inventaire\n\nLe menu Dettes vous permet de consulter les montants liés aux écarts d’inventaire enregistrés à votre nom, et de suivre leur règlement.\nAccéder à vos dettes\nDans le menu latéral, cliquez sur Dettes .\nLa liste affiche vos positions d’inventaire avec la date, le montant et le reste à régler.\nCliquez sur une ligne pour voir les articles concernés et l’historique des règlements.\nLien avec l’inventaire\n\nLorsqu’un inventaire constate un manquant et qu’il est enregistré comme dette à votre nom :\nLe stock magasin est aligné sur le comptage physique.\nUne position apparaît dans Dettes avec les articles et les quantités.\nVous suivez le montant restant jusqu’au règlement complet."
+  },
+  {
     "id": "storekeeper",
     "title": "Guide Magasinier",
     "path": "/user-guide/storekeeper/index.html",
@@ -1438,7 +1539,7 @@
       "storekeeper",
       "manager"
     ],
-    "content": "Guide Magasinier\n\nLe magasinier sécurise la circulation physique de la marchandise : catalogue, réceptions, inventaires, sorties, retours et stock tontine. Il ne valide pas automatiquement chaque étape ; les boutons disponibles dans les listes indiquent les actions autorisées à son profil.\n\nVos priorités\n\n Priorité Objectif \n --- --- \n Préparer les articles Vérifier la référence, le type, le stock et les informations de la fiche article. \n Réceptionner correctement Créer une entrée puis attendre sa validation lorsqu’elle est requise. \n Servir les demandes validées Livrer les demandes de stock commercial ou tontine au bon statut. \n Traiter les retours Réceptionner les retours autorisés et conserver leur traçabilité. \n Contrôler le physique Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. \n\nConsultez les pages dédiées pour les articles, les inventaires et entrées, le stock commercial et le stock tontine."
+    "content": "Guide Magasinier\n\nLe magasinier sécurise la circulation physique de la marchandise : catalogue, réceptions, inventaires, sorties, retours et stock tontine. Il ne valide pas automatiquement chaque étape ; les boutons disponibles dans les listes indiquent les actions autorisées à son profil.\n\nVos priorités\n\n Priorité Objectif \n --- --- \n Préparer les articles Vérifier la référence, le type, le stock et les informations de la fiche article. \n Réceptionner correctement Créer une entrée puis attendre sa validation lorsqu’elle est requise. \n Servir les demandes validées Livrer les demandes de stock commercial ou tontine au bon statut. \n Traiter les retours Réceptionner les retours autorisés et conserver leur traçabilité. \n Contrôler le physique Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. \n Suivre vos dettes Dettes Consulter les montants d’inventaire enregistrés à votre nom. \n\nConsultez les pages dédiées pour les articles, les inventaires et entrées, les dettes, le stock commercial et le stock tontine."
   },
   {
     "id": "storekeeper_inventory",
@@ -1468,7 +1569,7 @@
       "storekeeper",
       "manager"
     ],
-    "content": "Inventaires et entrées de stock (Guide Magasinier)\nRéalisation d'un inventaire physique magasin\n\nL'inventaire physique permet de vérifier que le stock réel en rayon correspond rigoureusement aux quantités enregistrées en base de données.\n\nA. Les 4 étapes de l'inventaire pour le magasinier\n Étape 1 : Téléchargement du support de comptage :\nLorsqu'une session est ouverte (statut En cours ), cliquez sur « Télécharger PDF » .\nCe document liste l'ensemble des références du catalogue sans afficher les quantités théoriques afin de garantir un comptage en aveugle impartial.\n Étape 2 : Comptage physique en rayon :\nLes équipes de magasin parcourent les allées et dénombrent physiquement chaque article (unités, cartons, blisters).\nNotez soigneusement les quantités sur la fiche papier.\n Étape 3 : Saisie des quantités constatées :\nCliquez sur « Saisir quantités physiques » .\nRenseignez le nombre réel compté en face de chaque référence produit.\nValidez la saisie.\n Étape 4 : Analyse contradictoire des écarts :\nEn concertation avec le gestionnaire, examinez les écarts éventuels (Surplus ou Manquant).\nVérifiez si des entrées ou des sorties n'ont pas été omises avant que le gestionnaire ne procède à la clôture définitive de la session."
+    "content": "Inventaires et entrées de stock (Guide Magasinier)\nRéalisation d'un inventaire physique magasin\n\nL'inventaire physique permet de vérifier que le stock réel en rayon correspond rigoureusement aux quantités enregistrées en base de données.\n\nA. Les 4 étapes de l'inventaire pour le magasinier\n Étape 1 : Téléchargement du support de comptage :\nLorsqu'une session est ouverte (statut En cours ), cliquez sur « Télécharger PDF » .\nCe document liste l'ensemble des références du catalogue sans afficher les quantités théoriques afin de garantir un comptage en aveugle impartial.\n Étape 2 : Comptage physique en rayon :\nLes équipes de magasin parcourent les allées et dénombrent physiquement chaque article (unités, cartons, blisters).\nNotez soigneusement les quantités sur la fiche papier.\n Étape 3 : Saisie des quantités constatées :\nCliquez sur « Saisir quantités physiques » .\nRenseignez le nombre réel compté en face de chaque référence produit.\nValidez la saisie.\n Étape 4 : Analyse contradictoire des écarts :\nEn concertation avec le gestionnaire, examinez les écarts éventuels (Surplus ou Manquant).\nVérifiez si des entrées ou des sorties n'ont pas été omises avant que le gestionnaire ne procède à la clôture définitive de la session.\nLorsqu’un manquant est enregistré comme dette à votre nom, vous pouvez en suivre le montant et le règlement dans le menu Dettes ."
   },
   {
     "id": "storekeeper_stock_commercial",

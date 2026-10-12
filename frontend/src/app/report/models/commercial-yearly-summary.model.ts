@@ -19,4 +19,8 @@ export interface CommercialYearlySummary {
     remainingAtCommercialAmount: number;
     /** Somme live des soldes clients. */
     remainingAtClientAmount: number;
+    /** Dettes marchandise de l'année (y compris réglées). */
+    merchandiseDebtGlobalAmount?: number;
+    /** Total réglé sur ces dettes marchandise. */
+    merchandiseDebtSettledAmount?: number;
 }

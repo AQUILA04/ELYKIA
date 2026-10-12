@@ -17,6 +17,7 @@ import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
+import com.optimize.elykia.core.repository.DebtDocumentRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.util.UserProfilConstant;
@@ -50,6 +51,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     private CommercialStockMovementService commercialStockMovementService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private BusinessMetricsPublisher metricsPublisher;
+    private DebtDocumentRepository debtDocumentRepository;
 
     public StockReturnService(StockReturnRepository repository,
             ArticlesService articlesService,
@@ -67,6 +69,11 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         this.stockMovementService = stockMovementService;
         this.stockValuationFacade = stockValuationFacade;
         this.eventPublisher = eventPublisher;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setDebtDocumentRepository(DebtDocumentRepository debtDocumentRepository) {
+        this.debtDocumentRepository = debtDocumentRepository;
     }
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -306,6 +313,12 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         LocalDate now = LocalDate.now();
         if (targetStock.getMonth() == now.getMonthValue() && targetStock.getYear() == now.getYear()) {
             throw new CustomValidationException("Impossible de faire un retour historique sur le mois courant.");
+        }
+
+        if (debtDocumentRepository != null
+                && debtDocumentRepository.existsActiveMerchandiseForStock(targetStock.getId())) {
+            throw new CustomValidationException(
+                    "Impossible de faire un retour : une dette marchandise est déjà constituée pour ce mois.");
         }
 
         User currentUser = userService.getCurrentUser();

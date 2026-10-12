@@ -49,7 +49,8 @@ Chaque panneau mensuel calcule automatiquement 6 métriques financières de cont
 |---|---|---|---|
 | **Valeur Stock Restant** | Bleu Cyan (`inventory_2`) | Valeur marchande des articles encore physiquement en possession du commercial. | Calculée sur la base du prix unitaire pondéré des articles non vendus. |
 | **Valeur Stock Vendu** | Vert (`monetization_on`) | Montant total des ventes (crédit et comptant) conclues sur le stock du mois. | **Carte Cliquable** : Un clic ouvre instantanément la liste détaillée de l'ensemble des crédits et ventes associés. |
-| **Valeur Total Dû** | Orange (`account_balance_wallet`) | Valeur globale totale de l'ensemble des marchandises confiées sur le mois (Stock restant + Stock vendu). | Représente l'engagement financier total initial du commercial. |
+| **Valeur Dette** | Orange | Valorisation des quantités passées en dette pour ce mois (y compris après règlement). | Affiche aussi la part déjà réglée. |
+| **Valeur Total Dû** | Orange (`account_balance_wallet`) | Valeur globale : stock vendu + dette + stock restant. | Engagement financier du mois. |
 | **Montant Recouvré** | Vert Émeraude (`payments`) | Cumul réel des versements et encaissements perçus auprès des clients sur les ventes de ce stock. | Mesure le cash effectif rentré en caisse. |
 | **Reste à Recouvrer** | Ambre (`hourglass_empty`) | Montant global restant à percevoir (Valeur du stock physique restant + créances clients non encore soldées). | Reste à recouvrer = Total Dû $-$ Montant Recouvré. |
 | **Taux de Recouvrement** | Bleu Marine (`trending_up`) | Pourcentage d'efficacité de remboursement réalisé sur la valeur totale confiée. | Taux (%) = (Montant Recouvré / Valeur Total Dû) $\times$ 100. |
@@ -60,8 +61,12 @@ Au sein de chaque panneau mensuel, le tableau détaille pour chaque référence 
 * **Pris (Magasin)** : Quantité totale livrée par le magasin central. *(Cellule cliquable pour inspecter le détail des bons de sortie).*
 * **Vendu (Clients)** : Quantité totale écoulée auprès de la clientèle. *(Cellule cliquable pour ouvrir la liste des ventes clientes correspondantes).*
 * **Retourné** : Quantité réintégrée au magasin central.
-* **Restant** : Quantité nette actuellement détenue : $\text{Restant} = \text{Pris} - \text{Vendu} - \text{Retourné}$.
-* **Valeur Restante (FCFA)** : Valorisation financière du reliquat au Prix Moyen Pondéré (PMP).
+* **Restant** : Quantité encore chez vous.
+* **Dette** / **Valeur Dette** : quantités et montant des articles déjà transformés en dette pour ce mois.
+* **Valeur Restante (FCFA)** : valorisation financière du reliquat au prix du stock.
+
+### D. Consulter vos dettes
+Voir la page dédiée [Vos dettes](debts.md).
 
 ---
 

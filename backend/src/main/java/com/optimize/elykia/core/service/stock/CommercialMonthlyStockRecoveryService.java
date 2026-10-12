@@ -47,11 +47,13 @@ public class CommercialMonthlyStockRecoveryService {
     public StockRecoverySummaryDto aggregate(CommercialMonthlyStock stock) {
         double remainingFromPhysicalStock = sumPhysicalStockRemainingValue(stock);
         double totalSoldValue = sumSoldValue(stock);
-        double totalDueAmount = remainingFromPhysicalStock + totalSoldValue;
+        double debtValueAmount = sumDebtValue(stock);
+        double totalDueAmount = remainingFromPhysicalStock + totalSoldValue + debtValueAmount;
 
         List<Long> stockItemIds = extractStockItemIds(stock);
         if (stockItemIds.isEmpty()) {
-            return buildSummary(totalDueAmount, remainingFromPhysicalStock, 0D, remainingFromPhysicalStock, 0D);
+            return buildSummary(totalDueAmount, remainingFromPhysicalStock, 0D, remainingFromPhysicalStock, 0D,
+                    debtValueAmount);
         }
 
         Map<Long, Double> soldOnStockByCredit = loadSoldValueByCredit(stockItemIds);
@@ -59,7 +61,8 @@ public class CommercialMonthlyStockRecoveryService {
         creditIds.addAll(creditArticlesRepository.findCreditIdsByStockItemIds(stockItemIds));
 
         if (creditIds.isEmpty()) {
-            return buildSummary(totalDueAmount, remainingFromPhysicalStock, 0D, remainingFromPhysicalStock, 0D);
+            return buildSummary(totalDueAmount, remainingFromPhysicalStock, 0D, remainingFromPhysicalStock, 0D,
+                    debtValueAmount);
         }
 
         Map<Long, Credit> creditsById = creditRepository.findAllById(creditIds).stream()
@@ -112,16 +115,20 @@ public class CommercialMonthlyStockRecoveryService {
             recoveredFromSales += safeAmount(credit.getTotalAmountPaid()) * share;
         }
 
-        recoveredFromSales = Math.min(recoveredFromSales, totalDueAmount);
+        recoveredFromSales = Math.min(recoveredFromSales, totalDueAmount - debtValueAmount);
+        // Le reste à recouvrer inclut le stock physique, les créances et la dette non réglée
+        // (debtSettled est enrichi ensuite par CommercialMonthlyStockService).
         double totalRemainingAmount = Math.max(0D, totalDueAmount - recoveredFromSales);
-        double remainingFromCredits = Math.max(0D, totalRemainingAmount - remainingFromPhysicalStock);
+        double remainingFromCredits = Math.max(0D,
+                totalRemainingAmount - remainingFromPhysicalStock - debtValueAmount);
 
         return buildSummary(
                 totalDueAmount,
                 remainingFromPhysicalStock,
                 recoveredFromSales,
                 totalRemainingAmount,
-                remainingFromCredits);
+                remainingFromCredits,
+                debtValueAmount);
     }
 
     /**
@@ -309,12 +316,22 @@ public class CommercialMonthlyStockRecoveryService {
                 .sum();
     }
 
+    private static double sumDebtValue(CommercialMonthlyStock stock) {
+        if (stock.getItems() == null) {
+            return 0D;
+        }
+        return stock.getItems().stream()
+                .mapToDouble(CommercialMonthlyStockItem::debtValue)
+                .sum();
+    }
+
     private static StockRecoverySummaryDto buildSummary(
             double totalDueAmount,
             double remainingFromPhysicalStock,
             double recoveredFromSales,
             double totalRemainingAmount,
-            double remainingFromCredits) {
+            double remainingFromCredits,
+            double debtValueAmount) {
         double totalRecoveredAmount = recoveredFromSales;
         double recoveryRatePercent = totalDueAmount > 0D
                 ? Math.min(100D, (totalRecoveredAmount / totalDueAmount) * 100D)
@@ -328,6 +345,10 @@ public class CommercialMonthlyStockRecoveryService {
                 .remainingFromPhysicalStock(round(remainingFromPhysicalStock))
                 .recoveredFromSales(round(recoveredFromSales))
                 .remainingFromCredits(round(remainingFromCredits))
+                .debtValueAmount(round(debtValueAmount))
+                .debtSettledAmount(0D)
+                .debtRemainingAmount(round(debtValueAmount))
+                .merchandiseDebtId(null)
                 .build();
     }
 

@@ -1,0 +1,78 @@
+<ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
+
+<div class="container debt-detail" *ngIf="debt" data-testid="e2e-debt-detail">
+  <div class="header-fixed">
+    <button mat-button (click)="back()"><mat-icon>arrow_back</mat-icon> Retour</button>
+    <h1>{{ debt.reference }}</h1>
+  </div>
+
+  <div class="meta-grid">
+    <div><span>Titulaire</span><strong>{{ debt.holderUsername }}</strong></div>
+    <div><span>Type</span><strong>{{ debt.debtType }}</strong></div>
+    <div><span>Statut</span><strong>{{ debt.status }}</strong></div>
+    <div><span>Montant</span><strong>{{ debt.grossAmount | number:'1.0-0' }} FCFA</strong></div>
+    <div><span>Payé</span><strong>{{ debt.paidAmount | number:'1.0-0' }} FCFA</strong></div>
+    <div><span>Imputé</span><strong>{{ debt.offsetAmount | number:'1.0-0' }} FCFA</strong></div>
+    <div><span>Restant</span><strong>{{ debt.remainingAmount | number:'1.0-0' }} FCFA</strong></div>
+  </div>
+
+  <div class="actions" *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']">
+    <button mat-stroked-button
+            *ngIf="debt.debtType === 'CASH_SHORTAGE' || debt.debtType === 'CASH_SURPLUS'"
+            [disabled]="debt.paidAmount > 0 || debt.offsetAmount > 0 || debt.status === 'CANCELLED'"
+            (click)="recalculate()">
+      Recalculer
+    </button>
+    <button mat-stroked-button color="warn"
+            [disabled]="debt.paidAmount > 0 || debt.offsetAmount > 0 || debt.status === 'CANCELLED'"
+            (click)="cancelDebt()">
+      Annuler la dette
+    </button>
+  </div>
+
+  <h2>Détail</h2>
+  <div class="table-container">
+    <table class="article-table">
+      <thead>
+        <tr>
+          <th>Libellé</th>
+          <th class="text-center">Qté</th>
+          <th class="text-right">Prix unit.</th>
+          <th class="text-right">Montant</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let line of debt.lines">
+          <td>{{ line.articleName || line.label || line.lineCode }}</td>
+          <td class="text-center">{{ line.quantity ?? '—' }}</td>
+          <td class="text-right">{{ line.unitPrice != null ? (line.unitPrice | number:'1.0-0') : '—' }}</td>
+          <td class="text-right">{{ line.amount | number:'1.0-0' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 *ngIf="debt.settlements?.length">Règlements</h2>
+  <div class="table-container" *ngIf="debt.settlements?.length">
+    <table class="article-table">
+      <thead>
+        <tr>
+          <th>Référence</th>
+          <th>Mode</th>
+          <th>Par</th>
+          <th>Date</th>
+          <th class="text-right">Montant</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let s of debt.settlements">
+          <td>{{ s.reference }}</td>
+          <td>{{ s.settlementMode }}</td>
+          <td>{{ s.performedBy }}</td>
+          <td>{{ s.performedAt | date:'short' }}</td>
+          <td class="text-right">{{ s.amount | number:'1.0-0' }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
