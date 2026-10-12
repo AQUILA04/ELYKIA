@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.30.1] — 2026-10-12
+
+### Fixed
+
+- Liste Dettes : chaque filtre et la case de sélection sont associés à un libellé, pour le contrôle d’accessibilité SonarCloud.
+
 ## Frontend — [2.30.0] — 2026-10-12
 
 ### Added

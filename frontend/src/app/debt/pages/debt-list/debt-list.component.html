@@ -21,22 +21,32 @@
   </div>
 
   <div class="filter-row">
-    <input type="text" placeholder="Commercial / magasinier" [(ngModel)]="filterHolder" />
-    <select [(ngModel)]="filterType">
-      <option value="">Tous types</option>
-      <option value="MERCHANDISE">Marchandise</option>
-      <option value="CASH_SHORTAGE">Manquant caisse</option>
-      <option value="CASH_SURPLUS">Surplus caisse</option>
-      <option value="INVENTORY_SHORTAGE">Écart inventaire</option>
-    </select>
-    <select [(ngModel)]="filterStatus">
-      <option value="">Tous statuts</option>
-      <option value="OPEN">Ouverte</option>
-      <option value="PARTIALLY_SETTLED">Partiellement réglée</option>
-      <option value="SETTLED">Réglée</option>
-    </select>
-    <input type="number" placeholder="Année" [(ngModel)]="filterYear" />
-    <input type="number" placeholder="Mois" min="1" max="12" [(ngModel)]="filterMonth" />
+    <label class="filter-field" for="debt-filter-holder">Commercial / magasinier
+      <input id="debt-filter-holder" type="text" [(ngModel)]="filterHolder" />
+    </label>
+    <label class="filter-field" for="debt-filter-type">Type
+      <select id="debt-filter-type" [(ngModel)]="filterType">
+        <option value="">Tous types</option>
+        <option value="MERCHANDISE">Marchandise</option>
+        <option value="CASH_SHORTAGE">Manquant caisse</option>
+        <option value="CASH_SURPLUS">Surplus caisse</option>
+        <option value="INVENTORY_SHORTAGE">Écart inventaire</option>
+      </select>
+    </label>
+    <label class="filter-field" for="debt-filter-status">Statut
+      <select id="debt-filter-status" [(ngModel)]="filterStatus">
+        <option value="">Tous statuts</option>
+        <option value="OPEN">Ouverte</option>
+        <option value="PARTIALLY_SETTLED">Partiellement réglée</option>
+        <option value="SETTLED">Réglée</option>
+      </select>
+    </label>
+    <label class="filter-field" for="debt-filter-year">Année
+      <input id="debt-filter-year" type="number" [(ngModel)]="filterYear" />
+    </label>
+    <label class="filter-field" for="debt-filter-month">Mois
+      <input id="debt-filter-month" type="number" min="1" max="12" [(ngModel)]="filterMonth" />
+    </label>
     <button mat-raised-button color="primary" (click)="pageIndex = 0; load()">Filtrer</button>
     <button mat-raised-button
             *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']"
@@ -64,7 +74,10 @@
         <tr *ngFor="let debt of debts" (click)="openDetail(debt)" class="clickable-row"
             [attr.data-testid]="'e2e-debt-row-' + debt.id">
           <td (click)="$event.stopPropagation()">
+            <label class="visually-hidden" [attr.for]="'debt-select-' + debt.id">Sélectionner {{ debt.reference }}</label>
             <input type="checkbox"
+                   [id]="'debt-select-' + debt.id"
+                   [attr.aria-label]="'Sélectionner ' + debt.reference"
                    [checked]="selectedIds.has(debt.id)"
                    (change)="toggleSelect(debt)"
                    [disabled]="debt.debtType === 'CASH_SURPLUS' || debt.status === 'SETTLED' || debt.status === 'CANCELLED'" />
@@ -96,18 +109,18 @@
   <div class="debt-modal" (click)="$event.stopPropagation()" data-testid="e2e-debt-settle-modal">
     <h2>Marquer comme payé</h2>
     <p>Total restant sélectionné : {{ selectedRemainingTotal() | number:'1.0-0' }} FCFA</p>
-    <label>Mode
-      <select [(ngModel)]="settleMode">
+    <label for="debt-settle-mode">Mode
+      <select id="debt-settle-mode" [(ngModel)]="settleMode">
         <option value="CASH">Espèces</option>
         <option value="SURPLUS_OFFSET">Imputer un surplus</option>
         <option value="WRITE_OFF">Abandon (motif obligatoire)</option>
       </select>
     </label>
-    <label>Montant
-      <input type="number" [(ngModel)]="settleAmount" min="1" />
+    <label for="debt-settle-amount">Montant
+      <input id="debt-settle-amount" type="number" [(ngModel)]="settleAmount" min="1" />
     </label>
-    <label>Note / motif
-      <textarea [(ngModel)]="settleNote" rows="3"></textarea>
+    <label for="debt-settle-note">Note / motif
+      <textarea id="debt-settle-note" [(ngModel)]="settleNote" rows="3"></textarea>
     </label>
     <div class="modal-actions">
       <button mat-button (click)="showSettleModal = false">Annuler</button>
