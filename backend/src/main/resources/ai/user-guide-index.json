@@ -205,6 +205,16 @@
     "content": "Clients et comptes (Répertoire, Enrôlement & Suivi)\nGestion des comptes financiers (Menu Comptes)\n\nLe sous-menu Comptes offre une vue d’ensemble des comptes rattachés aux clients :\nLa liste affiche pour chaque compte : le numéro, le titulaire, le solde et le statut.\nCliquez sur Voir : un panneau s’ouvre à droite avec le détail (client, n° compte, solde, statut) et les actions possibles (activer / désactiver / modifier).\nFermez le panneau avec Fermer pour revenir à la liste.\nCréer un compte\nCliquez sur Ajouter (ou l’action équivalente) pour ouvrir le formulaire de création de compte.\nRecherchez et sélectionnez le client : seuls les clients déjà validés apparaissent dans la liste. Un client encore en attente de validation d’inscription n’est pas proposé.\nSi le client n’apparaît pas, validez d’abord son inscription depuis Services en ligne > Inscriptions , puis revenez créer le compte.\nRenseignez le numéro de compte et le solde initial, puis enregistrez."
   },
   {
+    "id": "commercial_debts",
+    "title": "Vos dettes",
+    "path": "/user-guide/commercial/debts.html",
+    "roles": [
+      "commercial",
+      "manager"
+    ],
+    "content": "Vos dettes\n\nLe menu Dettes vous permet de consulter vos positions ouvertes ou réglées (marchandise et caisse). Vous y suivez les montants restants et l’historique des paiements.\nAccéder à vos dettes\nDans le menu latéral, cliquez sur Dettes .\nLa liste affiche vos positions avec le type, la période, le montant et le reste à régler.\nCliquez sur une ligne pour ouvrir le détail.\nCe que vous voyez\n Marchandise : articles et quantités passés en dette à partir d’un mois de stock terminé, avec le montant et le reste à régler.\n Caisse : manquant ou surplus constitué pour un jour ou un mois passé, avec le détail des rubriques (avances, recouvrements, tontine, ventes au comptant, versé).\n Historique des règlements : chaque paiement enregistré sur la position.\nLien avec le stock mensuel\nOuvrez Stock Commercial → Stock mensuel , puis Historique pour un mois passé.\nLes cartes affichent la Valeur dette (y compris après règlement) et le Total dû = vendu + dette + restant.\nLe tableau liste les colonnes Dette et Valeur dette pour chaque article.\nBilan annuel\n\nSur le Rapport journalier , le bilan annuel crédit affiche aussi la Dette globale et la Dette réglée de l’année pour votre portefeuille."
+  },
+  {
     "id": "commercial",
     "title": "Guide Commercial",
     "path": "/user-guide/commercial/index.html",
@@ -212,7 +222,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Guide Commercial\n\nCe guide présente les parcours de terrain disponibles sur le web et, dans sa dernière partie, sur l’application mobile. Votre interface montre uniquement les actions correspondant à vos droits : l’absence d’un bouton de validation, d’export ou de réaffectation est normale si l’habilitation n’est pas attribuée.\n\nVotre cycle de travail\n\n Moment Module Objectif \n --- --- --- \n Préparer le portefeuille Clients Créer et mettre à jour les informations client. \n Obtenir les articles Stock Commercial Créer une demande de sortie et suivre sa livraison. \n Distribuer et suivre Ventes Créer une vente, suivre son statut et encaisser les mises. \n Collecter l’épargne Tontines Inscrire, collecter, suivre la progression et préparer la livraison. \n Rendre compte Caisse, Rapport Journalier Contrôler les versements et les opérations de la période. \n\nSuivez les pages Clients et comptes, Stock, Ventes et commandes, Tontines et Application mobile."
+    "content": "Guide Commercial\n\nCe guide présente les parcours de terrain disponibles sur le web et, dans sa dernière partie, sur l’application mobile. Votre interface montre uniquement les actions correspondant à vos droits : l’absence d’un bouton de validation, d’export ou de réaffectation est normale si l’habilitation n’est pas attribuée.\n\nVotre cycle de travail\n\n Moment Module Objectif \n --- --- --- \n Préparer le portefeuille Clients Créer et mettre à jour les informations client. \n Obtenir les articles Stock Commercial Créer une demande de sortie et suivre sa livraison. \n Distribuer et suivre Ventes Créer une vente, suivre son statut et encaisser les mises. \n Collecter l’épargne Tontines Inscrire, collecter, suivre la progression et préparer la livraison. \n Rendre compte Caisse, Rapport Journalier Contrôler les versements et les opérations de la période. \n Suivre vos dettes Dettes Consulter vos positions marchandise et caisse, et leur règlement. \n\nSuivez les pages Clients et comptes, Stock, Dettes, Ventes et commandes, Tontines et Application mobile."
   },
   {
     "id": "commercial_mobile",
@@ -1512,6 +1522,16 @@
     "content": "Gestion des articles et seuils de stock (Guide Magasinier)\nRègle de suppression et archivage\n Intégrité référentielle : Il est formellement interdit de supprimer un article qui a déjà fait l'objet d'un mouvement de stock, d'une vente ou d'une distribution.\nEn cas d'arrêt de commercialisation d'une référence, modifiez son statut pour le passer à Inactif afin qu'il n'apparaisse plus dans les nouveaux formulaires de vente ou de demande de stock, tout en préservant l'historique comptable des opérations passées."
   },
   {
+    "id": "storekeeper_debts",
+    "title": "Vos dettes d’inventaire",
+    "path": "/user-guide/storekeeper/debts.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Vos dettes d’inventaire\n\nLe menu Dettes vous permet de consulter les montants liés aux écarts d’inventaire enregistrés à votre nom, et de suivre leur règlement.\nAccéder à vos dettes\nDans le menu latéral, cliquez sur Dettes .\nLa liste affiche vos positions d’inventaire avec la date, le montant et le reste à régler.\nCliquez sur une ligne pour voir les articles concernés et l’historique des règlements.\nLien avec l’inventaire\n\nLorsqu’un inventaire constate un manquant et qu’il est enregistré comme dette à votre nom :\nLe stock magasin est aligné sur le comptage physique.\nUne position apparaît dans Dettes avec les articles et les quantités.\nVous suivez le montant restant jusqu’au règlement complet."
+  },
+  {
     "id": "storekeeper",
     "title": "Guide Magasinier",
     "path": "/user-guide/storekeeper/index.html",
@@ -1519,7 +1539,7 @@
       "storekeeper",
       "manager"
     ],
-    "content": "Guide Magasinier\n\nLe magasinier sécurise la circulation physique de la marchandise : catalogue, réceptions, inventaires, sorties, retours et stock tontine. Il ne valide pas automatiquement chaque étape ; les boutons disponibles dans les listes indiquent les actions autorisées à son profil.\n\nVos priorités\n\n Priorité Objectif \n --- --- \n Préparer les articles Vérifier la référence, le type, le stock et les informations de la fiche article. \n Réceptionner correctement Créer une entrée puis attendre sa validation lorsqu’elle est requise. \n Servir les demandes validées Livrer les demandes de stock commercial ou tontine au bon statut. \n Traiter les retours Réceptionner les retours autorisés et conserver leur traçabilité. \n Contrôler le physique Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. \n\nConsultez les pages dédiées pour les articles, les inventaires et entrées, le stock commercial et le stock tontine."
+    "content": "Guide Magasinier\n\nLe magasinier sécurise la circulation physique de la marchandise : catalogue, réceptions, inventaires, sorties, retours et stock tontine. Il ne valide pas automatiquement chaque étape ; les boutons disponibles dans les listes indiquent les actions autorisées à son profil.\n\nVos priorités\n\n Priorité Objectif \n --- --- \n Préparer les articles Vérifier la référence, le type, le stock et les informations de la fiche article. \n Réceptionner correctement Créer une entrée puis attendre sa validation lorsqu’elle est requise. \n Servir les demandes validées Livrer les demandes de stock commercial ou tontine au bon statut. \n Traiter les retours Réceptionner les retours autorisés et conserver leur traçabilité. \n Contrôler le physique Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. \n Suivre vos dettes Dettes Consulter les montants d’inventaire enregistrés à votre nom. \n\nConsultez les pages dédiées pour les articles, les inventaires et entrées, les dettes, le stock commercial et le stock tontine."
   },
   {
     "id": "storekeeper_inventory",

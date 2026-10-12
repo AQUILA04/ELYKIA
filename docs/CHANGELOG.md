@@ -20,7 +20,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Docs
 
-- Guide gestionnaire « Dettes » ; mises à jour stock commercial et inventaire magasinier. Index RAG et guide HTML régénérés.
+- Guides « Dettes » gestionnaire, commercial et magasinier ; mises à jour stock commercial et inventaire. Index RAG et guide HTML régénérés.
 
 ## Frontend — [2.29.8] — 2026-10-12
 

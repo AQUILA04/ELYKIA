@@ -66,9 +66,7 @@ Au sein de chaque panneau mensuel, le tableau détaille pour chaque référence 
 * **Valeur Restante (FCFA)** : valorisation financière du reliquat au prix du stock.
 
 ### D. Consulter vos dettes
-1. Ouvrez le menu **Dettes**.
-2. Vous voyez la liste de vos positions (marchandise, caisse) avec le montant et le reste à régler.
-3. Cliquez sur une ligne pour le détail des articles ou des rubriques et l’historique des règlements.
+Voir la page dédiée [Vos dettes](debts.md).
 
 ---
 

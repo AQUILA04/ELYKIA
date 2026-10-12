@@ -31,12 +31,14 @@ nav:
     - Vue d'ensemble: storekeeper/index.md
     - Gestion des Articles: storekeeper/articles.md
     - Inventaire: storekeeper/inventory.md
+    - Dettes: storekeeper/debts.md
     - Stock Tontine: storekeeper/stock_tontine.md
     - Stock Commercial: storekeeper/stock_commercial.md
   - Guide Commercial:
     - Vue d'ensemble: commercial/index.md
     - Clients & Comptes: commercial/clients_accounts.md
     - Stocks: commercial/stock.md
+    - Dettes: commercial/debts.md
     - Ventes & Commandes: commercial/sales_orders.md
     - Tontines: commercial/tontine.md
     - Application Mobile: commercial/mobile_app.md
