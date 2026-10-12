@@ -1,0 +1,99 @@
+<div class="validate-dialog" role="dialog" aria-labelledby="validate-dialog-title">
+  <div class="validate-dialog-header">
+    <div>
+      <h2 id="validate-dialog-title">Confirmer la validation</h2>
+      <p class="validate-dialog-subtitle">
+        Réception <strong>{{ data.reference }}</strong> — vérifiez ou ajustez les prix d'achat, puis confirmez.
+      </p>
+    </div>
+    <button type="button" class="modal-close" (click)="cancel()" [disabled]="submitting" aria-label="Fermer">&times;</button>
+  </div>
+
+  <div class="validate-dialog-body">
+    <div *ngIf="loading" class="state-message">Chargement des articles…</div>
+    <div *ngIf="!loading && loadError" class="error-banner" role="alert">{{ loadError }}</div>
+
+    <ng-container *ngIf="!loading && !loadError">
+      <div class="total-banner">
+        <span>Montant total</span>
+        <strong>{{ displayedTotalAmount | number }} FCFA</strong>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Article</th>
+              <th>Qté</th>
+              <th *ngIf="data.canShowPurchasePrice">Prix colis</th>
+              <th *ngIf="data.canShowPurchasePrice">Prix unitaire</th>
+              <th *ngIf="data.canShowPurchasePrice">Total ligne</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of items; let i = index">
+              <td>{{ i + 1 }}</td>
+              <td>
+                <div class="article-name">{{ item.articleName || '—' }}</div>
+                <small *ngIf="formatPackagingSummary(item) as summary">{{ summary }}</small>
+              </td>
+              <td>{{ item.quantity }}</td>
+              <td *ngIf="data.canShowPurchasePrice">
+                <ng-container *ngIf="isPackagingMode(item); else noPackage">
+                  <input
+                    class="price-input"
+                    type="number"
+                    inputmode="decimal"
+                    min="0.01"
+                    step="0.01"
+                    [ngModel]="editablePrices[item.id]?.packagePrice"
+                    (ngModelChange)="onPackagePriceChange(item, $event)"
+                    [disabled]="submitting"
+                    [attr.aria-label]="'Prix du colis ' + (item.articleName || '')"
+                  />
+                </ng-container>
+                <ng-template #noPackage><span class="muted">—</span></ng-template>
+              </td>
+              <td *ngIf="data.canShowPurchasePrice">
+                <ng-container *ngIf="!isPackagingMode(item); else derivedPu">
+                  <input
+                    class="price-input"
+                    type="number"
+                    inputmode="decimal"
+                    min="0.01"
+                    step="0.01"
+                    [ngModel]="editablePrices[item.id]?.unitPrice"
+                    (ngModelChange)="onUnitPriceChange(item, $event)"
+                    [disabled]="submitting"
+                    [attr.aria-label]="'Prix unitaire ' + (item.articleName || '')"
+                  />
+                </ng-container>
+                <ng-template #derivedPu>
+                  <span class="derived-price">{{ displayUnitPrice(item) | number }} FCFA</span>
+                </ng-template>
+              </td>
+              <td *ngIf="data.canShowPurchasePrice">
+                <span class="line-total">{{ displayLineTotal(item) | number }} FCFA</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="errorMessage" class="error-banner" role="alert">{{ errorMessage }}</div>
+    </ng-container>
+  </div>
+
+  <div class="validate-dialog-footer">
+    <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="submitting">Annuler</button>
+    <button
+      type="button"
+      class="btn-primary"
+      (click)="confirm()"
+      [disabled]="loading || !!loadError || submitting || items.length === 0"
+    >
+      {{ submitting ? 'Validation…' : 'Confirmer la validation' }}
+    </button>
+  </div>
+</div>

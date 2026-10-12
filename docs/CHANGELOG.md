@@ -9,15 +9,21 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.29.8] — 2026-10-12
+
+### Changed
+
+- Validation FIFO d'une réception : clic sur **Valider** ouvre un modal listant les articles avec prix éditables (préremplis catalogue). Succès → fermeture ; erreur → message dans le modal pour corriger et renvoyer. Page détail en lecture seule.
+
+### Docs
+
+- Guide gestionnaire stocks : validation via la fenêtre de confirmation des prix. Index RAG et guide HTML régénérés.
+
 ## Frontend — [2.29.7] — 2026-10-12
 
 ### Added
 
-- Validation d'une réception FIFO : le gestionnaire peut ajuster le prix unitaire ou le prix du colis (préremplis catalogue) sur le détail avant de valider. Depuis la liste, **Valider** ouvre le détail.
-
-### Docs
-
-- Guide gestionnaire stocks : procédure d'ajustement des prix d'achat à la validation. Index RAG et guide HTML régénérés.
+- Validation d'une réception FIFO : ajustement des prix d'achat avant validation (parcours initial détail).
 
 ## Backend — [1.31.0] — 2026-10-12
 

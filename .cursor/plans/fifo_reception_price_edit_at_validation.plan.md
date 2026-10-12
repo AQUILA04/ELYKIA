@@ -1,52 +1,48 @@
 ---
 name: Prix FIFO à la validation réception
-overview: En mode FIFO, le gestionnaire peut modifier le prix unitaire (ou le prix de colis) sur une réception en attente avant de valider. Les champs sont préremplis avec le prix catalogue du jour. Legacy inchangé.
+overview: En mode FIFO, le clic Valider ouvre un modal listant les articles avec prix éditables (préremplis catalogue). Le gestionnaire confirme ; en erreur le modal reste ouvert pour corriger. Legacy inchangé.
 todos:
   - id: backend-validate-body
     content: "DTO + POST /validate avec lignes prix ; prix du body = source de vérité exacte (jamais écrasés par le catalogue) ; catalogue seulement si ligne absente du body"
-    status: pending
-  - id: frontend-detail-edit
-    content: "Détail PENDING + FIFO : champs préremplis catalogue, éditables ; Valider envoie pour chaque ligne le prix exact affiché/saisi (même s’il diffère du catalogue)"
-    status: pending
+    status: completed
+  - id: frontend-validate-modal
+    content: "Modal de confirmation Valider (liste + détail) : articles + prix éditables, confirm API, erreur inline, succès ferme le modal"
+    status: completed
   - id: frontend-list-redirect
-    content: "Liste Historique Entrée : en FIFO, Valider ouvre le détail au lieu de valider en un clic"
-    status: pending
+    content: "Liste et détail : bouton Valider ouvre le modal FIFO (plus d'édition inline sur le détail)"
+    status: completed
   - id: tests
     content: "Tests backend UNIT/WHOLESALE/catalogue/override ; non-régression legacy ; smoke front si existant"
-    status: pending
+    status: completed
   - id: guide-changelog
     content: "Guide gestionnaire stock_sales + RAG + HTML ; versions Backend/Frontend + CHANGELOG"
-    status: pending
+    status: completed
 isProject: false
 ---
 
 # Prix éditables à la validation (FIFO)
 
-## Constat
+## Constat (avant cette feature)
 
-Aujourd’hui, en FIFO :
-
-- La création fige `unitPrice` / `packagePrice` / `totalAmount` via [`ArticlePackagingPricingService.resolveFifoEntry`](backend/src/main/java/com/optimize/elykia/core/service/stock/ArticlePackagingPricingService.java).
-- [`POST .../validate`](backend/src/main/java/com/optimize/elykia/core/controller/stock/StockReceptionController.java) n’accepte **aucun body**.
-- [`applyStockReception`](backend/src/main/java/com/optimize/elykia/core/service/stock/StockReceptionService.java) réutilise le snapshot ligne ; le total réception n’est pas recalculé.
-- Le détail ([`stock-reception-detail`](frontend/src/app/stock/pages/stock-reception-detail/)) affiche PU / total en lecture seule ; `packagePrice` n’est pas éditable.
-- La liste permet un **Valider** en un clic sans passer par les prix.
+En FIFO, la création figeait les prix, `POST .../validate` n’acceptait aucun body, et le détail / la liste validaient sans possibilité d’ajuster les prix d’achat.
 
 Le plan legacy [prix_catalogue_validation_r_ception_c436b90a.plan.md](.cursor/plans/prix_catalogue_validation_r_ception_c436b90a.plan.md) reste hors périmètre (legacy déjà au catalogue serveur).
 
-## Cible
+## Cible UX
 
 ```mermaid
 flowchart TD
-  open["Ouvrir détail PENDING"] --> fifo{"FIFO ?"}
-  fifo -->|non| readOnly["Affichage actuel"]
-  fifo -->|oui| pref["Préremplir prix depuis catalogue"]
-  pref --> edit["Gestionnaire modifie PU ou prix colis"]
-  edit --> post["POST /validate + lignes prix"]
-  post --> resolve["Recalcul qty/PU/total via packaging"]
-  resolve --> apply["applyStockReception FIFO"]
-  apply --> lot["Lot + stock + dépense + maj catalogue PU"]
+  click["Clic Valider liste ou détail"] --> fifo{"FIFO ?"}
+  fifo -->|non| confirmLegacy["Confirmation simple existante"]
+  fifo -->|oui| modal["Modal Confirmer la validation"]
+  modal --> pref["Prix préremplis catalogue"]
+  pref --> edit["Gestionnaire ajuste ou laisse les prix"]
+  edit --> post["Clic Confirmer la validation → POST + body"]
+  post -->|succès| close["Fermeture modal + refresh"]
+  post -->|erreur| stay["Message dans le modal → corriger / renvoyer"]
 ```
+
+Le détail PENDING reste **lecture seule** (pas d’édition inline des prix).
 
 | Mode ligne | Champ éditable | Préremplissage catalogue | Recalcul |
 |---|---|---|---|
@@ -112,28 +108,21 @@ Inchangées : gestionnaire / admin pour valider. Les prix d’achat restent masq
 
 ## Frontend
 
-### Détail réception (écran principal)
+### Modal de confirmation (parcours principal)
 
-[`stock-reception-detail.component`](frontend/src/app/stock/pages/stock-reception-detail/) :
+Nouveau composant MatDialog [`stock-reception-validate-dialog`](frontend/src/app/stock/components/stock-reception-validate-dialog/) :
 
-1. Lire `StockFifoFeatureService.isFifoEnabled()`.
-2. Si `PENDING` + FIFO + `canShowPurchasePrice` + `canValidateOrRefuse()` :
-   - charger les articles des lignes (GET article ou enrichir le DTO détail avec `catalogPurchasePrice`, `catalogWholesalePurchasePrice`, `catalogHalfWholesalePurchasePrice`) pour préremplir ;
-   - **UNIT** : input « Prix unitaire » ;
-   - **WHOLESALE / HALF_WHOLESALE** : input « Prix du colis / demi-colis », afficher PU dérivé + total ligne en lecture seule ;
-   - KPI « Montant total » = somme des totaux recalculés localement.
-3. `validateReception()` envoie **toutes** les lignes avec le prix exact du formulaire (`unitPrice` ou `packagePrice` selon le mode), y compris si le gestionnaire n’a rien modifié après le préremplissage, et y compris si la valeur diffère du catalogue.
-4. Ne pas omettre une ligne « parce que égale au catalogue » : le body doit être exhaustif depuis le détail.
-5. Hors FIFO ou hors PENDING : affichage actuel (lecture seule).
+1. Ouvert au clic **Valider** (liste ou détail) lorsque FIFO est actif.
+2. Charge toutes les lignes (pagination API), préremplit les prix depuis les champs catalogue du DTO.
+3. Affiche articles + champs éditables (PU ou prix colis) + total recalculé.
+4. **Confirmer la validation** → `POST /validate` avec le body exhaustif des prix exacts saisis.
+5. Succès → ferme le modal (`true`) ; erreur → bandeau d’erreur dans le modal, correction possible, renvoi.
+6. Page détail reste en lecture seule.
 
-Préférer enrichir le DTO détail backend (évite N+1 front) : champs catalogue optionnels sur [`StockReceptionItemDto`](backend/src/main/java/com/optimize/elykia/core/dto/StockReceptionItemDto.java), remplis uniquement si FIFO + PENDING + droit prix d’achat — **uniquement pour le préremplissage UI**, jamais comme source à la validation si un body est envoyé.
+### Liste / détail
 
-### Liste Historique Entrée
-
-[`stock-reception-list`](frontend/src/app/stock/pages/stock-reception-list/) :
-
-- **FIFO ON** : le bouton **Valider** navigue vers `/stock/receptions/:id` (le gestionnaire ajuste les prix puis valide).
-- **FIFO OFF** : conserver le Valider en un clic (legacy catalogue serveur).
+- FIFO ON : **Valider** ouvre le modal (plus de redirect détail ni édition inline).
+- FIFO OFF : confirmation simple existante (legacy).
 
 ### Service
 

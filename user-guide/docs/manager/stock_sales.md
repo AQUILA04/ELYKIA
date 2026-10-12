@@ -42,9 +42,9 @@ Pour accéder à la liste des réceptions, ouvrez le menu latéral **Stock Comme
 2. **Étape « En attente »** : Une référence de réception unique est générée. Les articles ne sont **pas encore intégrés** au stock vendable.
 3. **Contrôle et Validation par le gestionnaire** :
    * Rendez-vous dans **Stock Commercial > Historique Entrée**.
-   * Cliquez sur **« Voir »** (ou **« Valider »**) pour ouvrir le détail et contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran.
-   * Sur le détail d'une réception **En attente**, les prix d'achat (unitaire, ou prix du colis / demi-colis selon le mode de réception) sont préremplis avec le catalogue. Vous pouvez les ajuster avant de confirmer.
-   * Cliquez sur **« Valider »** : le stock magasin est **instantanément augmenté** avec les prix que vous avez confirmés. Le montant total affiché est recalculé en conséquence.
+   * Cliquez sur **« Voir »** pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran, ou directement sur **« Valider »**.
+   * Une fenêtre de confirmation liste les articles. Les prix d'achat (unitaire, ou prix du colis / demi-colis) sont préremplis avec le catalogue : vous pouvez les modifier ou les laisser tels quels.
+   * Cliquez sur **« Confirmer la validation »** : le stock magasin est **instantanément augmenté** avec les prix confirmés. En cas d'erreur, le message s'affiche dans la fenêtre : corrigez puis renvoyez.
    * **Refuser** : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à **Refusé**.
    * **Abandonner** : Permet au créateur de la réception en attente de supprimer sa saisie avant validation si une erreur a été commise.
    * **Annuler** : Réservé aux gestionnaires habilités pour annuler une réception déjà validée suite à une régularisation comptable, décrémentant le stock du magasin.
@@ -58,8 +58,7 @@ Pour accéder à la liste des réceptions, ouvrez le menu latéral **Stock Comme
 
 ### B. Consulter le détail et télécharger les documents
 1. **Ouvrir le détail** : cliquez sur **« Voir »**. Vous retrouvez la référence, la date, le reçu par, le montant total, puis la liste des articles avec quantité, prix d'achat et prix total de chaque ligne.
-2. **Ajuster les prix avant validation** (réception en attente) : modifiez le prix unitaire ou le prix du colis selon l'article, puis validez. Le montant total se met à jour immédiatement à l'écran.
-3. **Télécharger la fiche d'une entrée** : depuis le détail, cliquez sur **« Télécharger PDF »**. Le document reprend les articles, les quantités et le montant total de l'entrée.
+2. **Télécharger la fiche d'une entrée** : depuis le détail, cliquez sur **« Télécharger PDF »**. Le document reprend les articles, les quantités et le montant total de l'entrée.
 3. **Télécharger le récapitulatif d'une journée** :
    * Sur **Historique Entrée**, choisissez une **date** dans le filtre.
    * Cliquez sur **« PDF du jour »**.

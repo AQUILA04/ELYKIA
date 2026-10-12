@@ -229,38 +229,6 @@ tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
 }
 .col-total { color: var(--green); }
 
-.price-edit-hint {
-  margin: 0 0 12px;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  background: var(--navy-xpale);
-  border: 1px solid var(--navy-pale);
-  color: var(--text-muted);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.price-input {
-  width: 120px;
-  max-width: 100%;
-  padding: 8px 10px;
-  border: 1px solid var(--border-dark);
-  border-radius: var(--radius-sm);
-  font-family: 'DM Mono', monospace;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--navy);
-  background: var(--bg-white);
-  text-align: right;
-}
-.price-input:focus {
-  outline: none;
-  border-color: var(--navy);
-  box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.12);
-}
-
-.text-muted { color: var(--text-light); }
-
 /* ── EMPTY STATE ─────────────────────────────────────────────── */
 .empty-state { padding: 60px 20px; text-align: center; }
 .empty-icon  { font-size: 48px; margin-bottom: 12px; opacity: .3; }

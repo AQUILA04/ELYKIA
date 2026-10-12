@@ -1,24 +1,15 @@
 import { Component, HostListener, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog } from '@angular/material/dialog';
 import { StockReceptionService } from '../../services/stock-reception.service';
-import {
-  StockReception,
-  StockReceptionItem,
-  StockReceptionStatus,
-  StockReceptionValidateLine,
-  StockReceptionValidateRequest
-} from '../../../core/models/stock-reception.model';
+import { StockReception, StockReceptionItem, StockReceptionStatus } from '../../../core/models/stock-reception.model';
 import { AuthService } from '../../../auth/service/auth.service';
 import { UserService } from '../../../user/service/user.service';
 import { UserProfile } from '../../../shared/models/user-profile.enum';
 import { UserProfilConstant } from '../../../shared/constants/user-profil.constant';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { StockFifoFeatureService } from '../../services/stock-fifo-feature.service';
-
-interface EditablePriceState {
-  unitPrice: number | null;
-  packagePrice: number | null;
-}
+import { StockReceptionValidateDialogComponent } from '../../components/stock-reception-validate-dialog/stock-reception-validate-dialog.component';
 
 @Component({
   selector: 'app-stock-reception-detail',
@@ -42,9 +33,6 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
   fifoEnabled = false;
   currentUsername: string | null = null;
 
-  /** Prix éditables indexés par itemId — source exacte envoyée à la validation. */
-  editablePrices: Record<number, EditablePriceState> = {};
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -52,7 +40,8 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private userService: UserService,
     private alertService: AlertService,
-    private stockFifoFeatureService: StockFifoFeatureService
+    private stockFifoFeatureService: StockFifoFeatureService,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -65,7 +54,6 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
 
     this.stockFifoFeatureService.isFifoEnabled().subscribe(enabled => {
       this.fifoEnabled = enabled;
-      this.reapplyCatalogDefaultsIfNeeded();
     });
 
     const id = this.route.snapshot.paramMap.get('id');
@@ -75,12 +63,6 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {}
-
-  get canEditValidationPrices(): boolean {
-    return this.fifoEnabled
-      && this.canShowPurchasePrice
-      && this.canValidateOrRefuse();
-  }
 
   loadReception(id: number): void {
     this.isReceptionLoading = true;
@@ -110,7 +92,6 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
 
   resetAndLoadItems(): void {
     this.receptionItems = [];
-    this.editablePrices = {};
     this.itemsPage = 0;
     this.itemsTotalElements = 0;
     this.hasMoreItems = true;
@@ -129,10 +110,6 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
         const pageContent: StockReceptionItem[] = data?.content ?? [];
         const totalElements = data?.page?.totalElements ?? 0;
         const totalPages = data?.page?.totalPages ?? 0;
-
-        for (const item of pageContent) {
-          this.initEditablePrice(item);
-        }
 
         this.receptionItems = [...this.receptionItems, ...pageContent];
         this.itemsTotalElements = totalElements;
@@ -172,80 +149,17 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
     return !!this.reception && this.isAdmin && this.reception.status === 'VALIDATED';
   }
 
-  isPackagingMode(item: StockReceptionItem): boolean {
-    return item.entryPackagingMode === 'WHOLESALE' || item.entryPackagingMode === 'HALF_WHOLESALE';
-  }
-
-  displayUnitPrice(item: StockReceptionItem): number {
-    if (!this.canEditValidationPrices) {
-      return item.unitPrice ?? 0;
-    }
-    if (this.isPackagingMode(item)) {
-      return this.derivedUnitPrice(item);
-    }
-    return this.editablePrices[item.id]?.unitPrice ?? item.unitPrice ?? 0;
-  }
-
-  displayPackagePrice(item: StockReceptionItem): number {
-    if (!this.canEditValidationPrices) {
-      return item.packagePrice ?? 0;
-    }
-    return this.editablePrices[item.id]?.packagePrice ?? item.packagePrice ?? 0;
-  }
-
-  displayLineTotal(item: StockReceptionItem): number {
-    if (!this.canEditValidationPrices) {
-      return item.totalPrice ?? 0;
-    }
-    if (this.isPackagingMode(item)) {
-      const packagePrice = this.displayPackagePrice(item);
-      const count = item.packageCount ?? 0;
-      return this.roundMoney(packagePrice * count);
-    }
-    const unitPrice = this.displayUnitPrice(item);
-    return this.roundMoney(unitPrice * (item.quantity ?? 0));
-  }
-
-  get displayedTotalAmount(): number {
-    if (!this.canEditValidationPrices || this.receptionItems.length === 0) {
-      return this.reception?.totalAmount ?? 0;
-    }
-    return this.roundMoney(
-      this.receptionItems.reduce((sum, item) => sum + this.displayLineTotal(item), 0)
-    );
-  }
-
-  onUnitPriceChange(item: StockReceptionItem, raw: string | number | null): void {
-    const value = this.parsePositiveNumber(raw);
-    if (!this.editablePrices[item.id]) {
-      this.editablePrices[item.id] = { unitPrice: null, packagePrice: null };
-    }
-    this.editablePrices[item.id].unitPrice = value;
-  }
-
-  onPackagePriceChange(item: StockReceptionItem, raw: string | number | null): void {
-    const value = this.parsePositiveNumber(raw);
-    if (!this.editablePrices[item.id]) {
-      this.editablePrices[item.id] = { unitPrice: null, packagePrice: null };
-    }
-    this.editablePrices[item.id].packagePrice = value;
-  }
-
   validateReception(): void {
     if (!this.reception) return;
 
-    if (this.canEditValidationPrices) {
-      const validationError = this.validateEditablePrices();
-      if (validationError) {
-        this.alertService.showError(validationError, 'Prix invalide');
-        return;
-      }
+    if (this.fifoEnabled) {
+      this.openFifoValidateDialog();
+      return;
     }
 
     this.alertService.showConfirmation('Validation', 'Valider cette entrée de stock ?').then((confirmed) => {
       if (confirmed) {
-        const body = this.canEditValidationPrices ? this.buildValidateRequest() : undefined;
-        this.stockReceptionService.validateReception(this.reception!.id, body).subscribe({
+        this.stockReceptionService.validateReception(this.reception!.id).subscribe({
           next: () => {
             this.alertService.showSuccess('La réception a été validée.', 'Validée');
             this.loadReception(this.reception!.id);
@@ -342,120 +256,26 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/stock/receptions']);
   }
 
-  private initEditablePrice(item: StockReceptionItem): void {
-    if (this.editablePrices[item.id]) {
+  private openFifoValidateDialog(): void {
+    if (!this.reception) {
       return;
     }
-    if (this.isPackagingMode(item)) {
-      this.editablePrices[item.id] = {
-        unitPrice: null,
-        packagePrice: this.resolveDefaultPackagePrice(item)
-      };
-    } else {
-      this.editablePrices[item.id] = {
-        unitPrice: this.resolveDefaultUnitPrice(item),
-        packagePrice: null
-      };
-    }
-  }
-
-  private reapplyCatalogDefaultsIfNeeded(): void {
-    if (!this.canEditValidationPrices) {
-      return;
-    }
-    for (const item of this.receptionItems) {
-      this.editablePrices[item.id] = this.isPackagingMode(item)
-        ? { unitPrice: null, packagePrice: this.resolveDefaultPackagePrice(item) }
-        : { unitPrice: this.resolveDefaultUnitPrice(item), packagePrice: null };
-    }
-  }
-
-  private resolveDefaultUnitPrice(item: StockReceptionItem): number {
-    if (item.catalogPurchasePrice != null && item.catalogPurchasePrice > 0) {
-      return item.catalogPurchasePrice;
-    }
-    return item.unitPrice > 0 ? item.unitPrice : 0;
-  }
-
-  private resolveDefaultPackagePrice(item: StockReceptionItem): number {
-    if (item.entryPackagingMode === 'WHOLESALE'
-        && item.catalogWholesalePurchasePrice != null
-        && item.catalogWholesalePurchasePrice > 0) {
-      return item.catalogWholesalePurchasePrice;
-    }
-    if (item.entryPackagingMode === 'HALF_WHOLESALE'
-        && item.catalogHalfWholesalePurchasePrice != null
-        && item.catalogHalfWholesalePurchasePrice > 0) {
-      return item.catalogHalfWholesalePurchasePrice;
-    }
-    if (item.catalogPurchasePrice != null
-        && item.catalogPurchasePrice > 0
-        && item.unitsPerPackageSnapshot
-        && item.unitsPerPackageSnapshot > 0) {
-      const unitsInMode = item.entryPackagingMode === 'HALF_WHOLESALE'
-        ? item.unitsPerPackageSnapshot / 2
-        : item.unitsPerPackageSnapshot;
-      return this.roundMoney(item.catalogPurchasePrice * unitsInMode);
-    }
-    return item.packagePrice != null && item.packagePrice > 0 ? item.packagePrice : 0;
-  }
-
-  private derivedUnitPrice(item: StockReceptionItem): number {
-    const packagePrice = this.displayPackagePrice(item);
-    const units = item.entryPackagingMode === 'HALF_WHOLESALE'
-      ? (item.unitsPerPackageSnapshot ?? 0) / 2
-      : (item.unitsPerPackageSnapshot ?? 0);
-    if (!units || units <= 0) {
-      return 0;
-    }
-    return this.roundMoney(packagePrice / units);
-  }
-
-  private validateEditablePrices(): string | null {
-    if (this.hasMoreItems) {
-      return 'Chargez tous les articles (faites défiler jusqu\'en bas) avant de valider.';
-    }
-    for (const item of this.receptionItems) {
-      if (this.isPackagingMode(item)) {
-        const packagePrice = this.editablePrices[item.id]?.packagePrice;
-        if (packagePrice == null || packagePrice <= 0) {
-          return `Le prix du colis est obligatoire pour « ${item.articleName || 'article'} ».`;
-        }
-      } else {
-        const unitPrice = this.editablePrices[item.id]?.unitPrice;
-        if (unitPrice == null || unitPrice <= 0) {
-          return `Le prix unitaire est obligatoire pour « ${item.articleName || 'article'} ».`;
-        }
+    const dialogRef = this.dialog.open(StockReceptionValidateDialogComponent, {
+      width: '920px',
+      maxWidth: '95vw',
+      disableClose: true,
+      data: {
+        receptionId: this.reception.id,
+        reference: this.reception.reference,
+        canShowPurchasePrice: this.canShowPurchasePrice
       }
-    }
-    return null;
-  }
-
-  private buildValidateRequest(): StockReceptionValidateRequest {
-    const items: StockReceptionValidateLine[] = this.receptionItems.map(item => {
-      if (this.isPackagingMode(item)) {
-        return {
-          itemId: item.id,
-          packagePrice: this.editablePrices[item.id].packagePrice!
-        };
-      }
-      return {
-        itemId: item.id,
-        unitPrice: this.editablePrices[item.id].unitPrice!
-      };
     });
-    return { items };
-  }
 
-  private parsePositiveNumber(raw: string | number | null): number | null {
-    if (raw == null || raw === '') {
-      return null;
-    }
-    const value = typeof raw === 'number' ? raw : Number(String(raw).trim());
-    return Number.isFinite(value) ? value : null;
-  }
-
-  private roundMoney(value: number): number {
-    return Math.round((value + Number.EPSILON) * 100) / 100;
+    dialogRef.afterClosed().subscribe((validated: boolean) => {
+      if (validated && this.reception) {
+        this.alertService.showSuccess('La réception a été validée.', 'Validée');
+        this.loadReception(this.reception.id);
+      }
+    });
   }
 }
