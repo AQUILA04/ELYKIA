@@ -1,130 +1,201 @@
 <ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
 
-<div class="container debt-page" data-testid="e2e-debt-list">
-  <div class="header-fixed">
-    <h1>Dettes</h1>
-  </div>
-
-  <div class="stats-row mb-4" *ngIf="summary">
-    <div class="stats-card">
-      <p class="stats-label">Dettes ouvertes</p>
-      <p class="stats-value">{{ summary.openDebtTotal | number:'1.0-0' }} FCFA</p>
+<div class="main-container debt-page a1" data-testid="e2e-debt-list">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/dashboard" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Tableau de bord
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
     </div>
-    <div class="stats-card">
-      <p class="stats-label">Avoirs (surplus)</p>
-      <p class="stats-value">{{ summary.openSurplusTotal | number:'1.0-0' }} FCFA</p>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">Suivi financier</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon" aria-hidden="true">
+            <rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>
+          </svg>
+          <h1 class="page-title">Dettes</h1>
+        </div>
+        <button type="button" class="btn-refresh" (click)="refresh()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">Marchandise, caisse et inventaire · Consultation et règlement</p>
     </div>
-    <div class="stats-card">
-      <p class="stats-label">Position nette</p>
-      <p class="stats-value">{{ summary.netPosition | number:'1.0-0' }} FCFA</p>
+  </div>
+
+  <div class="page-scroll-body">
+    <div class="kpi-strip a3">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Dettes ouvertes</div>
+        <div class="kpi-value">{{ summary ? (summary.openDebtTotal | number:'1.0-0') : '—' }}</div>
+        <div class="kpi-sub">FCFA encore à recouvrer</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Avoirs (surplus)</div>
+        <div class="kpi-value">{{ summary ? (summary.openSurplusTotal | number:'1.0-0') : '—' }}</div>
+        <div class="kpi-sub">FCFA disponibles à imputer</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Position nette</div>
+        <div class="kpi-value">{{ summary ? (summary.netPosition | number:'1.0-0') : '—' }}</div>
+        <div class="kpi-sub">Dettes ouvertes moins avoirs</div>
+      </div>
+      <div class="kpi-card kpi-delai">
+        <div class="kpi-label">À constituer</div>
+        <div class="kpi-value">{{ summary ? (summary.pendingMerchandiseMonths + summary.pendingCashGaps) : '—' }}</div>
+        <div class="kpi-sub">Mois de stock et écarts de caisse</div>
+      </div>
+    </div>
+
+    <div class="toolbar a4">
+      <div class="filter-fields">
+        <label class="filter-field filter-field-holder" for="debt-filter-holder">
+          <span class="toolbar-label">Commercial / magasinier</span>
+          <input id="debt-filter-holder" type="text" class="filter-control" [(ngModel)]="filterHolder" (keydown.enter)="applyFilters()" />
+        </label>
+        <label class="filter-field" for="debt-filter-type">
+          <span class="toolbar-label">Type</span>
+          <select id="debt-filter-type" class="filter-control" [(ngModel)]="filterType">
+            <option value="">Tous types</option>
+            <option value="MERCHANDISE">Marchandise</option>
+            <option value="CASH_SHORTAGE">Manquant caisse</option>
+            <option value="CASH_SURPLUS">Surplus caisse</option>
+            <option value="INVENTORY_SHORTAGE">Écart inventaire</option>
+          </select>
+        </label>
+        <label class="filter-field" for="debt-filter-status">
+          <span class="toolbar-label">Statut</span>
+          <select id="debt-filter-status" class="filter-control" [(ngModel)]="filterStatus">
+            <option value="">Tous statuts</option>
+            <option value="OPEN">Ouverte</option>
+            <option value="PARTIALLY_SETTLED">Partiellement réglée</option>
+            <option value="SETTLED">Réglée</option>
+            <option value="CANCELLED">Annulée</option>
+          </select>
+        </label>
+        <label class="filter-field filter-field-narrow" for="debt-filter-year">
+          <span class="toolbar-label">Année</span>
+          <input id="debt-filter-year" type="number" class="filter-control" [(ngModel)]="filterYear" />
+        </label>
+        <label class="filter-field filter-field-narrow" for="debt-filter-month">
+          <span class="toolbar-label">Mois</span>
+          <input id="debt-filter-month" type="number" class="filter-control" min="1" max="12" [(ngModel)]="filterMonth" />
+        </label>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn-clear" (click)="clearFilters()">Effacer</button>
+        <button type="button" class="btn-primary" (click)="applyFilters()">Filtrer</button>
+        <span class="result-count"><strong>{{ totalElements }}</strong> dette(s)</span>
+        <button type="button"
+                class="btn-primary"
+                *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']"
+                [disabled]="selectedIds.size === 0"
+                (click)="openSettleModal()">
+          Marquer comme payé(s)
+        </button>
+      </div>
+    </div>
+
+    <div class="table-card a5">
+      <div class="table-wrapper">
+        <div *ngIf="loading" class="empty-state">
+          <div class="empty-title">Chargement…</div>
+          <div class="empty-sub">Les dettes de la période s’affichent ici.</div>
+        </div>
+
+        <div *ngIf="!loading && debts.length === 0" class="empty-state">
+          <div class="empty-title">Aucune dette trouvée</div>
+          <div class="empty-sub">Modifiez les filtres ou constituez une dette depuis le stock, la caisse ou l’inventaire.</div>
+        </div>
+
+        <table class="data-table" *ngIf="!loading && debts.length > 0">
+          <thead>
+            <tr>
+              <th class="col-select"></th>
+              <th>Référence</th>
+              <th>Titulaire</th>
+              <th>Type</th>
+              <th>Période</th>
+              <th>Statut</th>
+              <th class="text-right">Montant</th>
+              <th class="text-right">Restant</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let debt of debts" [attr.data-testid]="'e2e-debt-row-' + debt.id">
+              <td class="col-select" (click)="$event.stopPropagation()">
+                <label class="visually-hidden" [attr.for]="'debt-select-' + debt.id">Sélectionner {{ debt.reference }}</label>
+                <input type="checkbox"
+                       [id]="'debt-select-' + debt.id"
+                       [attr.aria-label]="'Sélectionner ' + debt.reference"
+                       [checked]="selectedIds.has(debt.id)"
+                       (change)="toggleSelect(debt)"
+                       [disabled]="!canSelect(debt)" />
+              </td>
+              <td><span class="col-ref">{{ debt.reference }}</span></td>
+              <td><span class="col-holder">{{ debt.holderUsername }}</span></td>
+              <td>{{ typeLabel(debt.debtType) }}</td>
+              <td>
+                <ng-container *ngIf="debt.periodGrain === 'DAY'">{{ debt.periodDay }}</ng-container>
+                <ng-container *ngIf="debt.periodGrain === 'MONTH'">{{ debt.periodMonth }}/{{ debt.periodYear }}</ng-container>
+              </td>
+              <td><span class="status-pill" [ngClass]="statusClass(debt.status)">{{ statusLabel(debt.status) }}</span></td>
+              <td class="text-right col-amount">{{ debt.grossAmount | number:'1.0-0' }}</td>
+              <td class="text-right col-amount col-amount-strong">{{ debt.remainingAmount | number:'1.0-0' }}</td>
+              <td>
+                <button type="button" class="btn-detail" (click)="openDetail(debt)">Voir</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination debt-pagination">
+        <mat-paginator [length]="totalElements" [pageIndex]="pageIndex" [pageSize]="pageSize"
+          [pageSizeOptions]="[10, 20, 50]" (page)="onPage($event)" showFirstLastButtons>
+        </mat-paginator>
+      </div>
     </div>
   </div>
 
-  <div class="filter-row">
-    <label class="filter-field" for="debt-filter-holder">Commercial / magasinier
-      <input id="debt-filter-holder" type="text" [(ngModel)]="filterHolder" />
-    </label>
-    <label class="filter-field" for="debt-filter-type">Type
-      <select id="debt-filter-type" [(ngModel)]="filterType">
-        <option value="">Tous types</option>
-        <option value="MERCHANDISE">Marchandise</option>
-        <option value="CASH_SHORTAGE">Manquant caisse</option>
-        <option value="CASH_SURPLUS">Surplus caisse</option>
-        <option value="INVENTORY_SHORTAGE">Écart inventaire</option>
-      </select>
-    </label>
-    <label class="filter-field" for="debt-filter-status">Statut
-      <select id="debt-filter-status" [(ngModel)]="filterStatus">
-        <option value="">Tous statuts</option>
-        <option value="OPEN">Ouverte</option>
-        <option value="PARTIALLY_SETTLED">Partiellement réglée</option>
-        <option value="SETTLED">Réglée</option>
-      </select>
-    </label>
-    <label class="filter-field" for="debt-filter-year">Année
-      <input id="debt-filter-year" type="number" [(ngModel)]="filterYear" />
-    </label>
-    <label class="filter-field" for="debt-filter-month">Mois
-      <input id="debt-filter-month" type="number" min="1" max="12" [(ngModel)]="filterMonth" />
-    </label>
-    <button mat-raised-button color="primary" (click)="pageIndex = 0; load()">Filtrer</button>
-    <button mat-raised-button
-            *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']"
-            [disabled]="selectedIds.size === 0"
-            (click)="openSettleModal()">
-      Marquer comme payé(s)
-    </button>
-  </div>
-
-  <div class="table-container">
-    <table class="article-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th>Référence</th>
-          <th>Titulaire</th>
-          <th>Type</th>
-          <th>Période</th>
-          <th>Statut</th>
-          <th class="text-right">Montant</th>
-          <th class="text-right">Restant</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let debt of debts" (click)="openDetail(debt)" class="clickable-row"
-            [attr.data-testid]="'e2e-debt-row-' + debt.id">
-          <td (click)="$event.stopPropagation()">
-            <label class="visually-hidden" [attr.for]="'debt-select-' + debt.id">Sélectionner {{ debt.reference }}</label>
-            <input type="checkbox"
-                   [id]="'debt-select-' + debt.id"
-                   [attr.aria-label]="'Sélectionner ' + debt.reference"
-                   [checked]="selectedIds.has(debt.id)"
-                   (change)="toggleSelect(debt)"
-                   [disabled]="debt.debtType === 'CASH_SURPLUS' || debt.status === 'SETTLED' || debt.status === 'CANCELLED'" />
-          </td>
-          <td>{{ debt.reference }}</td>
-          <td>{{ debt.holderUsername }}</td>
-          <td>{{ typeLabel(debt.debtType) }}</td>
-          <td>
-            <ng-container *ngIf="debt.periodGrain === 'DAY'">{{ debt.periodDay }}</ng-container>
-            <ng-container *ngIf="debt.periodGrain === 'MONTH'">{{ debt.periodMonth }}/{{ debt.periodYear }}</ng-container>
-          </td>
-          <td>{{ statusLabel(debt.status) }}</td>
-          <td class="text-right">{{ debt.grossAmount | number:'1.0-0' }}</td>
-          <td class="text-right font-weight-bold">{{ debt.remainingAmount | number:'1.0-0' }}</td>
-        </tr>
-        <tr *ngIf="debts.length === 0">
-          <td colspan="8" class="text-center p-4">Aucune dette trouvée.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <mat-paginator [length]="totalElements" [pageIndex]="pageIndex" [pageSize]="pageSize"
-    [pageSizeOptions]="[10, 20, 50]" (page)="onPage($event)" showFirstLastButtons>
-  </mat-paginator>
-</div>
-
-<div class="debt-modal-backdrop" *ngIf="showSettleModal" (click)="showSettleModal = false">
-  <div class="debt-modal" (click)="$event.stopPropagation()" data-testid="e2e-debt-settle-modal">
-    <h2>Marquer comme payé</h2>
-    <p>Total restant sélectionné : {{ selectedRemainingTotal() | number:'1.0-0' }} FCFA</p>
-    <label for="debt-settle-mode">Mode
-      <select id="debt-settle-mode" [(ngModel)]="settleMode">
-        <option value="CASH">Espèces</option>
-        <option value="SURPLUS_OFFSET">Imputer un surplus</option>
-        <option value="WRITE_OFF">Abandon (motif obligatoire)</option>
-      </select>
-    </label>
-    <label for="debt-settle-amount">Montant
-      <input id="debt-settle-amount" type="number" [(ngModel)]="settleAmount" min="1" />
-    </label>
-    <label for="debt-settle-note">Note / motif
-      <textarea id="debt-settle-note" [(ngModel)]="settleNote" rows="3"></textarea>
-    </label>
-    <div class="modal-actions">
-      <button mat-button (click)="showSettleModal = false">Annuler</button>
-      <button mat-raised-button color="primary" (click)="confirmSettle()">Confirmer</button>
+  <div class="debt-modal-backdrop" *ngIf="showSettleModal" (click)="showSettleModal = false">
+    <div class="debt-modal" role="dialog" aria-labelledby="debt-settle-title" (click)="$event.stopPropagation()" data-testid="e2e-debt-settle-modal">
+      <div class="debt-modal-header">
+        <h2 id="debt-settle-title">Marquer comme payé</h2>
+        <button type="button" class="btn-clear" (click)="showSettleModal = false" aria-label="Fermer">Fermer</button>
+      </div>
+      <p class="debt-modal-lead">Total restant sélectionné : <strong>{{ selectedRemainingTotal() | number:'1.0-0' }} FCFA</strong></p>
+      <label class="filter-field" for="debt-settle-mode">
+        <span class="toolbar-label">Mode</span>
+        <select id="debt-settle-mode" class="filter-control" [(ngModel)]="settleMode">
+          <option value="CASH">Espèces</option>
+          <option value="SURPLUS_OFFSET">Imputer un surplus</option>
+          <option value="WRITE_OFF">Abandon (motif obligatoire)</option>
+        </select>
+      </label>
+      <label class="filter-field" for="debt-settle-amount">
+        <span class="toolbar-label">Montant</span>
+        <input id="debt-settle-amount" class="filter-control" type="number" [(ngModel)]="settleAmount" min="1" />
+      </label>
+      <label class="filter-field" for="debt-settle-note">
+        <span class="toolbar-label">Note / motif</span>
+        <textarea id="debt-settle-note" class="filter-control" [(ngModel)]="settleNote" rows="3"></textarea>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn-clear" (click)="showSettleModal = false">Annuler</button>
+        <button type="button" class="btn-primary" (click)="confirmSettle()">Confirmer</button>
+      </div>
     </div>
   </div>
 </div>

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { DebtService } from '../../services/debt.service';
 import { DebtDocument, DebtStatus, DebtSummary, DebtType } from '../../models/debt.model';
@@ -8,9 +8,10 @@ import { NgxSpinnerService } from 'ngx-spinner';
 @Component({
   selector: 'app-debt-list',
   templateUrl: './debt-list.component.html',
-  styleUrls: ['./debt-list.component.scss']
+  styleUrls: ['./debt-list.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
-export class DebtListComponent implements OnInit {
+export class DebtListComponent implements OnInit, OnDestroy {
   debts: DebtDocument[] = [];
   totalElements = 0;
   pageIndex = 0;
@@ -28,6 +29,10 @@ export class DebtListComponent implements OnInit {
   settleAmount: number | null = null;
   settleNote = '';
   showSettleModal = false;
+  loading = false;
+  currentDate = new Date();
+  lastUpdate = new Date();
+  private clock?: ReturnType<typeof setInterval>;
 
   readonly typeLabels: Record<string, string> = {
     MERCHANDISE: 'Marchandise',
@@ -51,8 +56,33 @@ export class DebtListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.clock = setInterval(() => (this.currentDate = new Date()), 1000);
+    this.refresh();
+  }
+
+  ngOnDestroy(): void {
+    if (this.clock) {
+      clearInterval(this.clock);
+    }
+  }
+
+  refresh(): void {
     this.loadSummary();
     this.load();
+  }
+
+  applyFilters(): void {
+    this.pageIndex = 0;
+    this.load();
+  }
+
+  clearFilters(): void {
+    this.filterHolder = '';
+    this.filterType = '';
+    this.filterStatus = '';
+    this.filterYear = null;
+    this.filterMonth = null;
+    this.applyFilters();
   }
 
   loadSummary(): void {
@@ -63,7 +93,7 @@ export class DebtListComponent implements OnInit {
   }
 
   load(): void {
-    this.spinner.show();
+    this.loading = true;
     this.debtService.search({
       holder: this.filterHolder || undefined,
       type: (this.filterType || undefined) as DebtType | undefined,
@@ -76,10 +106,11 @@ export class DebtListComponent implements OnInit {
       next: (page) => {
         this.debts = page.content || [];
         this.totalElements = page.totalElements || 0;
-        this.spinner.hide();
+        this.loading = false;
+        this.lastUpdate = new Date();
       },
       error: () => {
-        this.spinner.hide();
+        this.loading = false;
         this.alertService.showError('Impossible de charger les dettes.');
       }
     });
@@ -95,8 +126,12 @@ export class DebtListComponent implements OnInit {
     this.router.navigate(['/debts', debt.id]);
   }
 
+  canSelect(debt: DebtDocument): boolean {
+    return debt.debtType !== 'CASH_SURPLUS' && debt.status !== 'SETTLED' && debt.status !== 'CANCELLED';
+  }
+
   toggleSelect(debt: DebtDocument): void {
-    if (debt.debtType === 'CASH_SURPLUS' || debt.status === 'SETTLED' || debt.status === 'CANCELLED') {
+    if (!this.canSelect(debt)) {
       return;
     }
     if (this.selectedIds.has(debt.id)) {
@@ -152,5 +187,14 @@ export class DebtListComponent implements OnInit {
 
   statusLabel(status: string): string {
     return this.statusLabels[status] || status;
+  }
+
+  statusClass(status: string): string {
+    switch (status) {
+      case 'OPEN': return 'status-open';
+      case 'PARTIALLY_SETTLED': return 'status-partial';
+      case 'SETTLED': return 'status-settled';
+      default: return 'status-cancelled';
+    }
   }
 }
