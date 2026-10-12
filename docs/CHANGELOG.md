@@ -16,6 +16,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - Stock mensuel : le bouton **Créer la dette** est visible pour un administrateur sur un mois passé qui a encore un reste, à côté de **Télécharger rapport**.
 - La carte **Valeur Dette** n’apparaît que lorsque le montant est supérieur à 0.
 
+### Docs
+
+- Guide stock et dettes : emplacement du bouton **Créer la dette** et affichage de la carte **Valeur Dette**.
+
 ## Frontend — [2.30.2] — 2026-10-12
 
 ### Changed
