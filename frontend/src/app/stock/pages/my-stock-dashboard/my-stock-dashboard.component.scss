@@ -67,6 +67,14 @@
         color: #003366;
     }
 
+    .panel-export-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-left: auto;
+        flex-wrap: wrap;
+    }
+
     .btn-download {
         display: inline-flex;
         align-items: center;

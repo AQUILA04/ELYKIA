@@ -46,7 +46,8 @@
           <span class="panel-period-label">
             Rapport mensuel — {{ getMonthName(stock.month) | titlecase }} {{ stock.year }}
           </span>
-          <ng-container *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT']">
+          <div class="panel-export-actions">
+          <ng-container *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN']">
             <button type="button"
                     class="btn-download"
                     *ngIf="canCreateMerchandiseDebt(stock)"
@@ -75,6 +76,7 @@
             </svg>
             {{ isExporting(stock) ? 'Export…' : 'Télécharger rapport' }}
           </button>
+          </div>
         </div>
 
         <div class="stats-row mb-4">
@@ -105,7 +107,7 @@
             </div>
           </div>
 
-          <div class="stats-card">
+          <div class="stats-card" *ngIf="getTotalDebtValue(stock) > 0">
             <div class="stats-icon bg-warning">
               <mat-icon>account_balance_wallet</mat-icon>
             </div>

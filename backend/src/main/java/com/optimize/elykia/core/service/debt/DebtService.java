@@ -751,7 +751,8 @@ public class DebtService {
     private boolean hasDebtManagement() {
         var permissions = userService.getCurrentUser().getPermissions();
         return permissions != null && permissions.stream()
-                .anyMatch(p -> UserPermissionConstant.DEBT_MANAGEMENT.equals(p.getName()));
+                .anyMatch(p -> UserPermissionConstant.DEBT_MANAGEMENT.equals(p.getName())
+                        || UserPermissionConstant.ADMIN.equals(p.getName()));
     }
 
     private String currentUsername() {

@@ -9,6 +9,17 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.30.3] — 2026-10-12
+
+### Fixed
+
+- Stock mensuel : le bouton **Créer la dette** est visible pour un administrateur sur un mois passé qui a encore un reste, à côté de **Télécharger rapport**.
+- La carte **Valeur Dette** n’apparaît que lorsque le montant est supérieur à 0.
+
+### Docs
+
+- Guide stock et dettes : emplacement du bouton **Créer la dette** et affichage de la carte **Valeur Dette**.
+
 ## Frontend — [2.30.2] — 2026-10-12
 
 ### Changed
@@ -53,6 +64,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Docs
 
 - Guide gestionnaire : activation de la valorisation du stock magasin par lots via **Paramètres généraux** (un seul paramètre). Index RAG et guide HTML régénérés.
+
+## Backend — [1.33.1] — 2026-10-12
+
+### Fixed
+
+- La permission de gestion des dettes est accordée aux comptes admin, super admin et gestionnaire déjà existants. Un administrateur peut constituer une dette sans attendre cette permission dans sa session.
 
 ## Backend — [1.33.0] — 2026-10-12
 
