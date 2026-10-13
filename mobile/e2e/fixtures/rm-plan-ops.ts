@@ -39,7 +39,7 @@ export async function ensureRmFieldPack(
   await expect(page).toHaveURL(/\/rm\/plan/, { timeout: 30_000 });
   await expect(page.getByTestId('e2e-rm-plan-page')).toBeVisible();
 
-  const wanted = Math.min(Math.max(options.collectorCount ?? 1, 1), 3);
+  const wanted = Math.min(Math.max(options.collectorCount ?? 1, 1), 5);
   const collectors = page.locator('[data-testid="e2e-rm-plan-collector"]');
   await expect(collectors.first()).toBeVisible({ timeout: 60_000 });
 

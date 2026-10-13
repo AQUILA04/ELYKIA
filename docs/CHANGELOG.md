@@ -9,6 +9,20 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.33.7] — 2026-10-13
+
+### Fixed
+
+- Chef de recouvrement : **Changer le plan du jour** dans **Plus** ouvre à nouveau le plan, au lieu de revenir sur l'onglet **Retards**.
+
+### Changed
+
+- Plan du jour : sélection de 1 à 5 commerciaux, recherche par nom, et affichage des commerciaux qui suivent une tontine même sans retard.
+
+### Docs
+
+- Guide chef de recouvrement mobile : plafond à 5 commerciaux et retour au plan depuis **Plus**. Index RAG et guide HTML régénérés.
+
 ## Mobile — [2.33.6] — 2026-10-13
 
 ### Fixed
@@ -33,6 +47,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Docs
 
 - Guide gestionnaire (rapport journalier) : surplus, équilibrage et journal.
+
+## Backend — [1.34.1] — 2026-10-13
+
+### Changed
+
+- Plan du jour du chef de recouvrement : jusqu'à 5 commerciaux. La liste inclut les commerciaux qui suivent une tontine en cours, même sans retard de crédit ni de cotisation.
 
 ## Backend — [1.34.0] — 2026-10-13
 

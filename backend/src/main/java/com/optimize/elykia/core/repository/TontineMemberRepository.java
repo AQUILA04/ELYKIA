@@ -343,6 +343,22 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("state") State state);
 
         @Query("""
+                SELECT c.tontineCollector, COUNT(tm) FROM TontineMember tm
+                JOIN tm.client c
+                JOIN tm.tontineSession s
+                WHERE s.year = :year
+                  AND tm.state = :state
+                  AND tm.deliveryStatus = :deliveryStatus
+                  AND c.tontineCollector IS NOT NULL
+                  AND TRIM(c.tontineCollector) <> ''
+                GROUP BY c.tontineCollector
+                """)
+        List<Object[]> countInProgressByTontineCollector(
+                @Param("year") Integer year,
+                @Param("state") State state,
+                @Param("deliveryStatus") TontineMemberDeliveryStatus deliveryStatus);
+
+        @Query("""
                 SELECT DISTINCT c.quarter FROM TontineMember tm
                 JOIN tm.client c
                 JOIN tm.tontineSession s

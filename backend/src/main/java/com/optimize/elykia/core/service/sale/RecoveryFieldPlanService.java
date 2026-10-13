@@ -19,6 +19,7 @@ import com.optimize.elykia.core.entity.sale.RecoveryFieldDayPlan;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControl;
 import com.optimize.elykia.core.enumaration.FieldDayPlanStatus;
+import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.RecoveryFieldDayPlanRepository;
@@ -45,7 +46,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RecoveryFieldPlanService {
 
-    private static final int MAX_COMMERCIALS = 3;
+    private static final int MAX_COMMERCIALS = 5;
     private static final long BYTES_PER_LATE_CREDIT_ESTIMATE = 8_000L;
     private static final long BYTES_PER_TONTINE_MEMBER_ESTIMATE = 3_000L;
     private static final List<Integer> TONTINE_CALENDAR_MONTHS =
@@ -185,6 +186,8 @@ public class RecoveryFieldPlanService {
                 .map(String::trim)
                 .forEach(usernameSet::add);
 
+        Map<String, Long> tontineMemberCounts = loadInProgressTontineCounts(sessionYear, usernameSet);
+
         List<RmCollectorStatDto> stats = new ArrayList<>();
         for (String username : usernameSet) {
             List<CreditLateDTO> lates = creditLateService.getLateCredits(username, null, null);
@@ -209,12 +212,54 @@ public class RecoveryFieldPlanService {
                     .username(username)
                     .lateCount(lates.size())
                     .totalAmountRemaining(total)
+                    .tontineMemberCount(tontineMemberCounts.getOrDefault(username, 0L))
                     .quarters(quarters)
                     .build());
         }
         stats.sort(Comparator.comparingLong(RmCollectorStatDto::getLateCount).reversed()
+                .thenComparing(Comparator.comparingLong(RmCollectorStatDto::getTontineMemberCount).reversed())
                 .thenComparing(RmCollectorStatDto::getUsername, String.CASE_INSENSITIVE_ORDER));
         return stats;
+    }
+
+    /**
+     * Commerciaux qui suivent une tontine en cours, même sans retard crédit ni retard de cotisation.
+     */
+    private Map<String, Long> loadInProgressTontineCounts(int sessionYear, Set<String> usernameSet) {
+        Map<String, Long> counts = new HashMap<>();
+        List<Object[]> rows = tontineMemberRepository.countInProgressByTontineCollector(
+                sessionYear, State.ENABLED, TontineMemberDeliveryStatus.SESSION_INPROGRESS);
+        if (rows == null) {
+            return counts;
+        }
+        for (Object[] row : rows) {
+            if (row == null || row.length < 2 || row[0] == null) {
+                continue;
+            }
+            String username = canonicalUsername(usernameSet, row[0].toString().trim());
+            if (!StringUtils.hasText(username)) {
+                continue;
+            }
+            long count = row[1] instanceof Number number ? number.longValue() : 0L;
+            if (count <= 0) {
+                continue;
+            }
+            counts.merge(username, count, Long::sum);
+            usernameSet.add(username);
+        }
+        return counts;
+    }
+
+    private String canonicalUsername(Set<String> usernameSet, String raw) {
+        if (!StringUtils.hasText(raw)) {
+            return raw;
+        }
+        for (String existing : usernameSet) {
+            if (existing.equalsIgnoreCase(raw)) {
+                return existing;
+            }
+        }
+        return raw;
     }
 
     private List<String> loadPortfolioQuarters(String username, int sessionYear) {

@@ -10,7 +10,7 @@ Le plan du jour détermine le périmètre du pack hors ligne. Il se déroule en 
 
 | Étape | Action | Résultat |
 |---|---|---|
-| 1. Commerciaux | Sélectionner de **1 à 3 commerciaux**. La liste indique les retards et le montant restant. | Le portefeuille à traiter est borné. |
+| 1. Commerciaux | Sélectionner de **1 à 5 commerciaux**. La liste indique les retards, le montant restant et les commerciaux qui suivent une tontine, même s'ils n'ont pas de retard. Une recherche permet de retrouver un nom. | Le portefeuille à traiter est borné. |
 | 2. Localités | Conserver toutes les localités ou effectuer une sélection multiple avec recherche. | Le pack peut être limité aux zones de tournée. |
 | 3. Téléchargement | Vérifier l’estimation : commerciaux, retards, montant dû et localités, puis choisir **Télécharger le pack**. | Le téléphone reçoit les données utiles au travail terrain. |
 
@@ -68,7 +68,7 @@ L’onglet **Plus** est le point de contrôle de la journée. Il présente le pl
 |---|---|
 | **Synchroniser** | Après une période hors ligne ou avant la fin de tournée, pour transmettre les opérations en attente. |
 | **Actualiser le pack** | Lorsque le périmètre ou les informations téléchargées doivent être renouvelés. |
-| **Changer le plan du jour** | Lorsque les commerciaux ou localités à traiter changent. |
+| **Changer le plan du jour** | Lorsque les commerciaux ou les localités à traiter changent. L'écran du plan s'ouvre à nouveau pour préparer un nouveau pack. |
 | **Mettre à jour l’application** | Lorsqu’une version officielle est proposée par l’application. |
 
 Traitez les erreurs affichées avant de recommencer une opération. Une opération placée dans la file est déjà enregistrée localement ; la ressaisie créerait un risque de doublon. La synchronisation priorise les données de contact et les contrôles avant les clôtures, afin de conserver la cohérence du compte rendu terrain.

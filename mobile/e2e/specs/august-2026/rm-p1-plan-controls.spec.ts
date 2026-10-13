@@ -36,17 +36,17 @@ function listenTontineControlPosts(page: Page, sink: number[]): void {
 }
 
 test.describe('Plan et contrôles RM @p1 @mobile @rm @august-2026 @regression', () => {
-  test('RM-P1-01 4e commercial désactivé + toast ; Continuer exige au moins 1', async ({ page }) => {
+  test('RM-P1-01 6e commercial refusé + toast ; Continuer exige au moins 1', async ({ page }) => {
     test.setTimeout(180_000);
     await loginAsRecoveryManagerLive(page);
     await openRmPlanWizard(page);
 
     const continueBtn = page.getByTestId('e2e-rm-plan-continue');
     await expect(continueBtn).toHaveJSProperty('disabled', true);
-    await expect(page.getByText(/0 \/ 3 sélectionnés/)).toBeVisible();
+    await expect(page.getByText(/0 \/ 5 sélectionnés/)).toBeVisible();
 
     await page.locator('[data-testid="e2e-rm-plan-collector"]').first().click();
-    await expect(page.getByText(/1 \/ 3 sélectionnés/)).toBeVisible();
+    await expect(page.getByText(/1 \/ 5 sélectionnés/)).toBeVisible();
     await expect(continueBtn).toHaveJSProperty('disabled', false);
 
     const sizeAfterFourth = await page.evaluate(() => {
@@ -58,13 +58,13 @@ test.describe('Plan et contrôles RM @p1 @mobile @rm @august-2026 @regression', 
         throw new Error('ng.getComponent indisponible');
       }
       const cmp = ng.getComponent(host);
-      cmp.selectedCommercials = new Set(['E2E_A', 'E2E_B', 'E2E_C']);
-      cmp.toggleCommercial('E2E_D');
+      cmp.selectedCommercials = new Set(['E2E_A', 'E2E_B', 'E2E_C', 'E2E_D', 'E2E_E']);
+      cmp.toggleCommercial('E2E_F');
       ng.applyChanges?.(cmp);
       return cmp.selectedCommercials.size as number;
     });
-    expect(sizeAfterFourth).toBe(3);
-    await expect(page.locator('ion-toast').filter({ hasText: /Maximum 3 commerciaux/i })).toBeVisible({
+    expect(sizeAfterFourth).toBe(5);
+    await expect(page.locator('ion-toast').filter({ hasText: /Maximum 5 commerciaux/i })).toBeVisible({
       timeout: 8_000,
     });
   });

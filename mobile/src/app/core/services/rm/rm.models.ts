@@ -19,6 +19,7 @@ export interface RmCollectorStat {
   username: string;
   lateCount: number;
   totalAmountRemaining: number;
+  tontineMemberCount?: number;
   quarters: string[];
 }
 

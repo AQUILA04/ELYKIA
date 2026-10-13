@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
 import { RmFieldPlanApiService } from '../../../core/services/rm/rm-field-plan-api.service';
 import { RmOfflinePackService } from '../../../core/services/rm/rm-offline-pack.service';
@@ -12,10 +12,12 @@ import { RmCollectorStat } from '../../../core/services/rm/rm.models';
   styleUrls: ['./rm-plan.page.scss'],
   standalone: false,
 })
-export class RmPlanPage implements OnInit {
+export class RmPlanPage {
   step: 1 | 2 | 3 = 1;
   loadingStats = false;
   downloading = false;
+  changingPlan = false;
+  collectorQuery = '';
   collectors: RmCollectorStat[] = [];
   selectedCommercials = new Set<string>();
   availableQuarters: string[] = [];
@@ -23,7 +25,10 @@ export class RmPlanPage implements OnInit {
   allQuarters = true;
   estimateLates = 0;
   estimateAmount = 0;
-  readonly maxCommercials = 3;
+  readonly maxCommercials = 5;
+  private navigationToken = 0;
+  /** Mode déjà préparé (changement de plan ou premier assistant), pour ne pas réinitialiser l'écran. */
+  private preparedMode: boolean | null = null;
 
   localityPickerOpen = false;
   localityQuery = '';
@@ -35,27 +40,91 @@ export class RmPlanPage implements OnInit {
     private readonly api: RmFieldPlanApiService,
     private readonly packService: RmOfflinePackService,
     private readonly scope: RmScopeService,
+    private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly loadingCtrl: LoadingController,
     private readonly toastCtrl: ToastController,
     private readonly alertCtrl: AlertController
   ) {}
 
-  async ngOnInit(): Promise<void> {
-    if (await this.scope.hasActivePlanWithPack()) {
-      await this.router.navigateByUrl('/rm/dashboard', { replaceUrl: true });
+  async ionViewWillEnter(): Promise<void> {
+    const changing = this.isPlanChangeRequest();
+    if (this.preparedMode === changing && this.collectors.length > 0) {
+      this.changingPlan = changing;
       return;
     }
-    try {
-      const restored = await this.packService.restoreTodayPlanIfExists();
-      if (restored) {
+    const token = ++this.navigationToken;
+    this.changingPlan = changing;
+    this.step = 1;
+    this.collectorQuery = '';
+    this.selectedCommercials = new Set();
+    this.selectedQuarters = new Set();
+    this.allQuarters = true;
+
+    if (!changing) {
+      if (await this.scope.hasActivePlanWithPack()) {
+        if (token !== this.navigationToken) {
+          return;
+        }
         await this.router.navigateByUrl('/rm/dashboard', { replaceUrl: true });
         return;
       }
-    } catch {
-      // Pas de plan serveur ou réseau indisponible : afficher l'assistant.
+      try {
+        const restored = await this.packService.restoreTodayPlanIfExists();
+        if (token !== this.navigationToken) {
+          return;
+        }
+        if (restored) {
+          await this.router.navigateByUrl('/rm/dashboard', { replaceUrl: true });
+          return;
+        }
+      } catch {
+        // Pas de plan serveur ou réseau indisponible : afficher l'assistant.
+      }
+    }
+
+    if (token !== this.navigationToken) {
+      return;
     }
     await this.loadCollectors();
+    if (token !== this.navigationToken) {
+      return;
+    }
+    if (changing) {
+      this.preselectCurrentPlan();
+    }
+    this.preparedMode = changing;
+  }
+
+  ionViewDidLeave(): void {
+    this.preparedMode = null;
+  }
+
+  cancelChange(): void {
+    void this.router.navigateByUrl('/rm/more');
+  }
+
+  private isPlanChangeRequest(): boolean {
+    if (this.route.snapshot.queryParamMap.get('change') === '1') {
+      return true;
+    }
+    return this.router.url.includes('change=1');
+  }
+
+  private preselectCurrentPlan(): void {
+    const current = this.scope.getPlan()?.commercialUsernames ?? [];
+    const known = new Set(this.collectors.map(collector => collector.username));
+    const next = new Set<string>();
+    for (const username of current) {
+      if (next.size >= this.maxCommercials) {
+        break;
+      }
+      if (known.has(username)) {
+        next.add(username);
+      }
+    }
+    this.selectedCommercials = next;
+    this.rebuildQuarters();
   }
 
   get filteredQuarters(): string[] {
@@ -80,6 +149,30 @@ export class RmPlanPage implements OnInit {
 
   get isCollectorsEmpty(): boolean {
     return !this.loadingStats && this.collectors.length === 0;
+  }
+
+  get visibleCollectors(): RmCollectorStat[] {
+    const query = this.collectorQuery.trim().toLowerCase();
+    if (!query) {
+      return this.collectors;
+    }
+    return this.collectors.filter(collector => collector.username.toLowerCase().includes(query));
+  }
+
+  get collectorGroups(): { title: string; items: RmCollectorStat[] }[] {
+    const visible = this.visibleCollectors;
+    const late = visible.filter(collector => (collector.lateCount || 0) > 0);
+    const tontine = visible.filter(
+      collector => !(collector.lateCount || 0) && (collector.tontineMemberCount || 0) > 0
+    );
+    const others = visible.filter(
+      collector => !(collector.lateCount || 0) && !(collector.tontineMemberCount || 0)
+    );
+    return [
+      { title: 'Retards', items: late },
+      { title: 'Tontine', items: tontine },
+      { title: 'Autres portefeuilles', items: others },
+    ].filter(group => group.items.length > 0);
   }
 
   async loadCollectors(): Promise<void> {
@@ -269,6 +362,11 @@ export class RmPlanPage implements OnInit {
   formatLateCount(count: number): string {
     const value = count || 0;
     return value === 1 ? '1 retard' : `${value} retard${value > 1 ? 's' : ''}`;
+  }
+
+  formatTontineCount(count: number): string {
+    const value = count || 0;
+    return value === 1 ? '1 membre tontine' : `${value} membres tontine`;
   }
 
   private async toast(message: string, color: 'success' | 'danger' | 'warning'): Promise<void> {

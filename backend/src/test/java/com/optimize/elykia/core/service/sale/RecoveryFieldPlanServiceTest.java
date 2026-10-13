@@ -10,6 +10,7 @@ import com.optimize.elykia.core.dto.sale.FieldDayPlanRequestDto;
 import com.optimize.elykia.core.dto.sale.RmClientContactUpdateDto;
 import com.optimize.elykia.core.entity.sale.RecoveryFieldDayPlan;
 import com.optimize.elykia.core.enumaration.FieldDayPlanStatus;
+import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.RecoveryFieldDayPlanRepository;
@@ -118,6 +119,33 @@ class RecoveryFieldPlanServiceTest {
         assertEquals("tontine.only", stats.get(0).getUsername());
         assertEquals(0L, stats.get(0).getLateCount());
         assertEquals(List.of("Sud"), stats.get(0).getQuarters());
+        assertEquals(0L, stats.get(0).getTontineMemberCount());
+    }
+
+    @Test
+    void getCollectorStats_includesInProgressTontineCollectorWithoutAnyLate() {
+        // Given — absent des retards crédit et de la liste tontine « tous statuts »,
+        // présent uniquement comme commercial d'une tontine en cours.
+        when(creditRepository.findDistinctCollectors()).thenReturn(List.of());
+        when(tontineMemberRepository.findDistinctTontineCollectorsBySessionYear(
+                LocalDate.now().getYear(), State.ENABLED)).thenReturn(List.of());
+        when(tontineMemberRepository.countInProgressByTontineCollector(
+                LocalDate.now().getYear(), State.ENABLED, TontineMemberDeliveryStatus.SESSION_INPROGRESS))
+                .thenReturn(Collections.singletonList(new Object[] { "tontine.courante", 4L }));
+        when(creditLateService.getLateCredits("tontine.courante", null, null)).thenReturn(List.of());
+        when(creditRepository.findDistinctClientQuartersByCollector("tontine.courante")).thenReturn(List.of());
+        when(tontineMemberRepository.findDistinctQuartersBySessionYearAndTontineCollector(
+                LocalDate.now().getYear(), "tontine.courante", State.ENABLED)).thenReturn(List.of("Agoè"));
+
+        // When
+        var stats = service.getCollectorStats();
+
+        // Then
+        assertEquals(1, stats.size());
+        assertEquals("tontine.courante", stats.get(0).getUsername());
+        assertEquals(0L, stats.get(0).getLateCount());
+        assertEquals(4L, stats.get(0).getTontineMemberCount());
+        assertEquals(List.of("Agoè"), stats.get(0).getQuarters());
     }
 
     @Test
@@ -144,16 +172,17 @@ class RecoveryFieldPlanServiceTest {
     }
 
     @Test
-    void createOrReplacePlan_rejectsMoreThanThreeDistinctCommercials() {
+    void createOrReplacePlan_rejectsMoreThanFiveDistinctCommercials() {
         // Given
-        FieldDayPlanRequestDto request = planRequest(LocalDate.now(), List.of("c1", "c2", "c3", "c4"), List.of());
+        FieldDayPlanRequestDto request = planRequest(
+                LocalDate.now(), List.of("c1", "c2", "c3", "c4", "c5", "c6"), List.of());
 
         // When
         ApplicationException exception = assertThrows(ApplicationException.class,
                 () -> service.createOrReplacePlan(request, "manager.a"));
 
         // Then
-        assertTrue(exception.getMessage().contains("Maximum 3 commerciaux"));
+        assertTrue(exception.getMessage().contains("Maximum 5 commerciaux"));
         verify(planRepository, never()).save(any());
     }
 

@@ -175,8 +175,7 @@ export class RmMorePage implements OnInit, OnDestroy {
   }
 
   async changePlan(): Promise<void> {
-    await this.scope.clear();
-    await this.router.navigateByUrl('/rm/plan');
+    await this.router.navigate(['/rm/plan'], { queryParams: { change: '1' } });
   }
 
   logout(): void {

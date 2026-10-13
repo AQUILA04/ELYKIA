@@ -3,7 +3,8 @@
   <header class="rm-hero">
     <p class="rm-surtitle">Chef de recouvrement</p>
     <h1>Plan du jour</h1>
-    <p class="rm-subtitle">Choisissez 1 à 3 commerciaux pour borner le cache offline — retards, contrôles carnet et changements de commercial.</p>
+    <p class="rm-subtitle">Choisissez 1 à 5 commerciaux pour borner le cache offline — retards, tontine, contrôles carnet et changements de commercial.</p>
+    <button type="button" class="cancel-link" *ngIf="changingPlan" (click)="cancelChange()">Annuler</button>
 
     <div class="rm-steps">
       <span [class.active]="step === 1" [class.done]="step > 1">1</span>
@@ -28,7 +29,7 @@
         <ion-icon name="checkmark-circle-outline"></ion-icon>
         <h2>Aucun retard aujourd'hui</h2>
         <p>
-          Sélectionnez 1 à 3 commerciaux pour accéder à l'application : contrôle carnet tontine,
+          Sélectionnez 1 à 5 commerciaux pour accéder à l'application : contrôle carnet tontine,
           changement de commercial, mise à jour des contacts clients.
         </p>
       </div>
@@ -42,28 +43,46 @@
         </ion-button>
       </div>
 
-      <ion-list *ngIf="!loadingStats && collectors.length" lines="none" class="rm-list scrollable-list">
-        <ion-item
-          *ngFor="let c of collectors"
-          button
-          detail="false"
-          (click)="toggleCommercial(c.username)"
-          [class.selected]="isSelected(c.username)"
-          [attr.data-testid]="'e2e-rm-plan-collector'"
-          [attr.data-username]="c.username">
-          <ion-checkbox
-            slot="start"
-            [checked]="isSelected(c.username)">
-          </ion-checkbox>
-          <ion-label>
-            <h3>{{ c.username }}</h3>
-            <p>
-              {{ formatLateCount(c.lateCount) }} · {{ formatAmount(c.totalAmountRemaining) }} FCFA
-              <span *ngIf="!c.lateCount"> · portefeuille actif</span>
-            </p>
-          </ion-label>
-        </ion-item>
-      </ion-list>
+      <ion-searchbar
+        *ngIf="!loadingStats && collectors.length"
+        [(ngModel)]="collectorQuery"
+        placeholder="Rechercher un commercial"
+        debounce="200"
+        showClearButton="focus"
+        data-testid="e2e-rm-plan-collector-search">
+      </ion-searchbar>
+      <p class="hint" *ngIf="!loadingStats && collectors.length && !visibleCollectors.length">
+        Aucun commercial ne correspond.
+      </p>
+
+      <div *ngIf="!loadingStats && visibleCollectors.length" class="scrollable-list">
+        <section *ngFor="let group of collectorGroups">
+          <h3 class="group-title">{{ group.title }}</h3>
+          <ion-list lines="none" class="rm-list">
+            <ion-item
+              *ngFor="let c of group.items"
+              button
+              detail="false"
+              (click)="toggleCommercial(c.username)"
+              [class.selected]="isSelected(c.username)"
+              [attr.data-testid]="'e2e-rm-plan-collector'"
+              [attr.data-username]="c.username">
+              <ion-checkbox
+                slot="start"
+                [checked]="isSelected(c.username)">
+              </ion-checkbox>
+              <ion-label>
+                <h3>{{ c.username }}</h3>
+                <p>
+                  {{ formatLateCount(c.lateCount) }} · {{ formatAmount(c.totalAmountRemaining) }} FCFA
+                  <span *ngIf="c.tontineMemberCount"> · {{ formatTontineCount(c.tontineMemberCount) }}</span>
+                  <span *ngIf="!c.lateCount && !c.tontineMemberCount"> · portefeuille actif</span>
+                </p>
+              </ion-label>
+            </ion-item>
+          </ion-list>
+        </section>
+      </div>
 
       <ion-button expand="block" class="rm-cta" data-testid="e2e-rm-plan-continue" [disabled]="selectedCommercials.size < 1" (click)="goStep2()">
         Continuer
