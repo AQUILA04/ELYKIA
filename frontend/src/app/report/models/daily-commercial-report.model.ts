@@ -23,6 +23,7 @@ export interface DailyCommercialReport {
     totalCreditAmountDeposited?: number;
     totalTontineAmountDeposited?: number;
     totalNewBalanceAmountDeposited?: number;
+    totalSurplusAmountDeposited?: number;
     creditSalesMargin?: number;
     stockRequestMargin?: number;
     totalAdvancesAmount?: number;

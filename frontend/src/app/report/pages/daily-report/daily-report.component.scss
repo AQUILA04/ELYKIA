@@ -644,3 +644,26 @@ mat-expansion-panel {
         border-color: #003366;
     }
 }
+
+.surplus-reallocation-notes {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.surplus-reallocation-note {
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: #fff8e6;
+    border: 1px solid #f0d78c;
+    color: #7a5b00;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.kpi-hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 500;
+}

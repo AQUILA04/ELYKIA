@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
+import { SurplusReallocation } from '../models/surplus-reallocation.model';
 
 @Injectable({
     providedIn: 'root'
@@ -18,6 +19,22 @@ export class CashDepositService {
 
     cancelDeposit(id: number): Observable<any> {
         return this.http.post(`${this.apiUrl}/${id}/cancel`, {});
+    }
+
+    reallocateSurplus(commercialUsername: string, startDate: string, endDate: string): Observable<SurplusReallocation> {
+        return this.http.post<SurplusReallocation>(`${this.apiUrl}/reallocate-surplus`, {
+            commercialUsername,
+            startDate,
+            endDate
+        });
+    }
+
+    getSurplusReallocations(commercialUsername: string, startDate: string, endDate: string): Observable<SurplusReallocation[]> {
+        const params = new HttpParams()
+            .set('commercialUsername', commercialUsername)
+            .set('startDate', startDate)
+            .set('endDate', endDate);
+        return this.http.get<SurplusReallocation[]>(`${this.apiUrl}/surplus-reallocations`, { params });
     }
 
     getDeposits(startDate: string, endDate: string, commercialUsername?: string, page: number = 0, size: number = 20): Observable<any> {

@@ -827,10 +827,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-tableau-de-performance-par-commercial-vue-agence" class="md-nav__link">
+  <a href="#3-fiche-dun-commercial-a-verser-verse-et-reste" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Tableau de performance par commercial (vue agence)
+        3. Fiche d’un commercial : à verser, versé et reste
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-equilibrer-le-surplus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Équilibrer le surplus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-tableau-de-performance-par-commercial-vue-agence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Tableau de performance par commercial (vue agence)
       
     </span>
   </a>
@@ -1928,10 +1950,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-tableau-de-performance-par-commercial-vue-agence" class="md-nav__link">
+  <a href="#3-fiche-dun-commercial-a-verser-verse-et-reste" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3. Tableau de performance par commercial (vue agence)
+        3. Fiche d’un commercial : à verser, versé et reste
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-equilibrer-le-surplus" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Équilibrer le surplus
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-tableau-de-performance-par-commercial-vue-agence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Tableau de performance par commercial (vue agence)
       
     </span>
   </a>
@@ -2212,13 +2256,28 @@
 <li><strong>Dépenses</strong> : Cumul des charges décaissées sur la période.</li>
 <li><strong>Solde net</strong> : Solde théorique d'encaissement net de caisse.</li>
 </ul>
-<h4 id="3-tableau-de-performance-par-commercial-vue-agence">3. Tableau de performance par commercial (vue agence)</h4>
+<h4 id="3-fiche-dun-commercial-a-verser-verse-et-reste">3. Fiche d’un commercial : à verser, versé et reste</h4>
+<p>Sur la fiche d’un commercial (après sélection dans le filtre) :
+* <strong>A Verser (Crédit / Tontine / Solde Nx)</strong> : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.
+* <strong>Versé</strong> : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention <strong>dont surplus non catégorisé</strong> s’affiche sous le montant.
+* <strong>Reste</strong> : ce qui manque encore en crédit, tontine ou solde (le surplus n’y est pas soustrait tant qu’il n’a pas été équilibré).</p>
+<h4 id="4-equilibrer-le-surplus">4. Équilibrer le surplus</h4>
+<p>Quand un commercial a à la fois un <strong>surplus non catégorisé</strong> et un <strong>reste</strong> sur la période affichée, le bouton <strong>Équilibrer le surplus</strong> apparaît pour le gestionnaire et la secrétaire.</p>
+<ol>
+<li>Cliquez sur <strong>Équilibrer le surplus</strong>.</li>
+<li>Confirmez le montant qui sera réaffecté (crédit, puis tontine, puis solde des nouveaux comptes) : le total versé ne change pas.</li>
+<li>Après validation, le surplus diminue, le reste diminue d’autant, et une mention reste visible sur la fiche : date, heure, auteur et montants réaffectés.</li>
+<li>La même opération apparaît dans le <strong>Journal des opérations</strong> avec le type <strong>Équilibrage surplus</strong> (filtrable).</li>
+</ol>
+<!-- CAPTURE À INSÉRER : Fiche commercial avec « dont surplus non catégorisé », bouton Équilibrer le surplus et mention d’équilibrage. -->
+
+<h4 id="5-tableau-de-performance-par-commercial-vue-agence">5. Tableau de performance par commercial (vue agence)</h4>
 <p>Lorsque aucun agent n'est filtré, un tableau comparatif classe les commerciaux de l'agence selon leurs réalisations de la période (ventes, recouvrements, tontine, nouveaux comptes et total produit).</p>
 <hr />
 <h3 id="c-onglet-2-journal-des-operations">C. Onglet 2 : Journal des opérations</h3>
 <p>Le <strong>Journal</strong> est le registre chronologique et exhaustif de toutes les transactions financières enregistrées sur la période :
-* Chaque ligne précise la date et l'heure exacte, le type d'opération (Vente, Recouvrement, Cotisation tontine, Dépôt compte), le client, le commercial concerné et le montant en Francs CFA.
-* <strong>Filtres par nature</strong> : Isolez en un clic les seuls recouvrements, les ventes ou les cotisations.
+* Chaque ligne précise la date et l'heure exacte, le type d'opération (Vente, Recouvrement, Cotisation tontine, Dépôt compte, <strong>Équilibrage surplus</strong>), le client ou le sujet, le commercial concerné et le montant en Francs CFA.
+* <strong>Filtres par nature</strong> : Isolez en un clic les seuls recouvrements, les ventes, les cotisations ou les équilibrages de surplus.
 * <strong>Export PDF</strong> : Le bouton de téléchargement génère une version imprimable officielle du journal des opérations, idéale pour les arrêtés comptables de fin de journée.</p>
 <hr />
 <h3 id="d-onglet-3-recouvrement-terrain">D. Onglet 3 : Recouvrement terrain</h3>

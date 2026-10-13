@@ -174,25 +174,58 @@ def build_index() -> list[dict]:
             continue
 
         for heading, block in sections:
-            content = compress(block)
-            if len(content) < MIN_SECTION_CHARS and heading is not None:
-                continue
-            title = f"{page_title} — {heading}" if heading else page_title
-            cid = chunk_id(rel, heading)
-            if cid in seen_ids:
-                cid = f"{cid}_{len(seen_ids)}"
-            seen_ids.add(cid)
-            chunks.append(
-                {
-                    "id": cid,
-                    "title": title,
-                    "path": path_url,
-                    "roles": roles,
-                    "content": content,
-                }
-            )
+            for label, emit_block in expand_long_block(page_title, heading, block):
+                content = compress(emit_block)
+                if len(content) < MIN_SECTION_CHARS and label is not None:
+                    continue
+                title = f"{page_title} — {label}" if label else page_title
+                cid = chunk_id(rel, label)
+                if cid in seen_ids:
+                    cid = f"{cid}_{len(seen_ids)}"
+                seen_ids.add(cid)
+                chunks.append(
+                    {
+                        "id": cid,
+                        "title": title,
+                        "path": path_url,
+                        "roles": roles,
+                        "content": content,
+                    }
+                )
 
     return chunks
+
+
+def expand_long_block(page_title: str, heading: str | None, block: str) -> list[tuple[str | None, str]]:
+    """Split oversized ## blocks on ### then #### so late procedures stay in the RAG index."""
+    plain = strip_markdown(block)
+    if len(plain) <= MAX_CHUNK_CHARS:
+        return [(heading, block)]
+
+    def split_on(marker: str, source: str, parent_label: str | None) -> list[tuple[str | None, str]]:
+        parts = re.split(rf"(?m)^({re.escape(marker)}\s+.+)$", source)
+        if len(parts) <= 1:
+            return [(parent_label, source)]
+        out: list[tuple[str | None, str]] = []
+        preamble = parts[0].strip()
+        if preamble:
+            out.append((parent_label, preamble))
+        level = marker.count("#")
+        for i in range(1, len(parts), 2):
+            sub_heading = re.sub(rf"^{re.escape(marker)}\s+", "", parts[i]).strip()
+            sub_body = parts[i + 1] if i + 1 < len(parts) else ""
+            prefix = f"# {page_title}\n\n"
+            if heading:
+                prefix += f"## {heading}\n\n"
+            sub_block = f"{prefix}{marker} {sub_heading}\n{sub_body}"
+            label = f"{parent_label} — {sub_heading}" if parent_label else sub_heading
+            if len(strip_markdown(sub_block)) > MAX_CHUNK_CHARS and level < 4:
+                out.extend(split_on("#" * (level + 1), sub_block, label))
+            else:
+                out.append((label, sub_block))
+        return out
+
+    return split_on("###", block, heading)
 
 
 def main() -> None:
