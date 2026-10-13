@@ -6,8 +6,8 @@
           <p class="surtitle">Recouvrement terrain</p>
           <h1>Retards</h1>
         </div>
-        <ion-button fill="clear" color="light" (click)="openPlan()">
-          <ion-icon slot="icon-only" name="map-outline"></ion-icon>
+        <ion-button fill="clear" color="light" (click)="openPlan()" aria-label="Changer le plan du jour">
+          <ion-icon slot="icon-only" name="map-outline" aria-hidden="true"></ion-icon>
         </ion-button>
       </div>
       <p class="meta" *ngIf="plan">

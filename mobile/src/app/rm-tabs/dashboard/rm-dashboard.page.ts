@@ -107,7 +107,7 @@ export class RmDashboardPage implements OnInit, OnDestroy {
   }
 
   openPlan(): void {
-    void this.router.navigateByUrl('/rm/plan');
+    void this.router.navigate(['/rm/plan'], { queryParams: { change: '1' } });
   }
 
   controlStatus(creditId: number): string | null {

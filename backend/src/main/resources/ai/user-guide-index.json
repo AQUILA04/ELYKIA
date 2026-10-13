@@ -2376,7 +2376,27 @@
       "recovery_manager",
       "manager"
     ],
-    "content": "Chef de recouvrement — application mobile\nOnglet Retards : prioriser, contrôler et clôturer\n\nL’onglet Retards affiche les KPI Retards , Dû et Clôturé (périmètre du plan du jour ), puis un bandeau distinct Taux du mois : le taux de recouvrement du chef sur tous les retards délai de l’application (pas seulement le pack). Ce bandeau nécessite le réseau ; hors ligne, la dernière valeur mise en cache peut s’afficher, sinon un message indique que le taux est disponible en ligne uniquement. Un sélecteur de mois simple permet de consulter le mois courant ou un mois passé.\n\nLes dossiers sont regroupés par localité. Des filtres par commercial sélectionné dans le plan permettent de concentrer la tournée.\n\nChaque carte affiche le client, la référence, le commercial, le téléphone lorsque disponible, le montant restant et les jours de retard. Le badge Vérifié indique qu’un carnet a déjà été certifié. Les boutons Vérifier , Contrôle et Clôturer ouvrent les actions correspondantes. Vérifier certifie le carnet physique ; Contrôle compare les montants système et carnet.\nContrôle crédit\n\nLe formulaire compare le montant payé dans le système au montant observé sur le carnet. Saisissez le montant réellement lu, ajoutez une note si nécessaire, puis choisissez Capturer le contrôle . Le résultat affiche un statut CONFORME ou ECART .\nClôture totale ou partielle\n\nLe formulaire de clôture rappelle le client, la référence, le commercial, le restant dû brut et le reliquat appliqué, le cas échéant. Choisissez Total ou Partiel , puis saisissez le montant encaissé. En mode partiel, des raccourcis facilitent la saisie rapide :\n 10 000 : applique directement un palier rond de 10 000 FCFA (si le restant dû le permet).\n ½ : pré-remplit la moitié exacte du montant net dû.\n Net : bascule immédiatement sur le solde net restant après déduction du reliquat client.\n\nLe montant final saisi doit toujours correspondre à l’encaissement physique réel.\n Ne doublez pas une clôture hors ligne. Après confirmation, consultez l’onglet Plus pour vérifier si l’opération a été synchronisée ou placée dans la file d’attente."
+    "content": "Chef de recouvrement — application mobile\nOnglet Retards : prioriser, contrôler et clôturer\n\nL’onglet Retards affiche les KPI Retards , Dû et Clôturé (périmètre du plan du jour ), puis un bandeau distinct Taux du mois : le taux de recouvrement du chef sur tous les retards délai de l’application (pas seulement le pack). Ce bandeau nécessite le réseau ; hors ligne, la dernière valeur mise en cache peut s’afficher, sinon un message indique que le taux est disponible en ligne uniquement. Un sélecteur de mois simple permet de consulter le mois courant ou un mois passé.\n\nEn haut à droite, l’icône carte ouvre à nouveau l’écran du plan du jour pour changer les commerciaux ou les localités.\n\nLes dossiers sont regroupés par localité. Des filtres par commercial sélectionné dans le plan permettent de concentrer la tournée.\n\nChaque carte affiche le client, la référence, le commercial, le téléphone lorsque disponible, le montant restant et les jours de retard. Le badge Vérifié indique qu’un carnet a déjà été certifié. Les boutons Vérifier , Contrôle et Clôturer ouvrent les actions correspondantes. Vérifier certifie le carnet physique ; Contrôle compare les montants système et carnet."
+  },
+  {
+    "id": "recovery_manager_mobile__onglet_retards_prioriser_contr_ler_et_cl_turer_c",
+    "title": "Chef de recouvrement — application mobile — Onglet Retards : prioriser, contrôler et clôturer — Contrôle crédit",
+    "path": "/user-guide/recovery-manager/mobile.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application mobile\nOnglet Retards : prioriser, contrôler et clôturer\nContrôle crédit\n\nLe formulaire compare le montant payé dans le système au montant observé sur le carnet. Saisissez le montant réellement lu, ajoutez une note si nécessaire, puis choisissez Capturer le contrôle . Le résultat affiche un statut CONFORME ou ECART ."
+  },
+  {
+    "id": "recovery_manager_mobile__onglet_retards_prioriser_contr_ler_et_cl_turer_c_246",
+    "title": "Chef de recouvrement — application mobile — Onglet Retards : prioriser, contrôler et clôturer — Clôture totale ou partielle",
+    "path": "/user-guide/recovery-manager/mobile.html",
+    "roles": [
+      "recovery_manager",
+      "manager"
+    ],
+    "content": "Chef de recouvrement — application mobile\nOnglet Retards : prioriser, contrôler et clôturer\nClôture totale ou partielle\n\nLe formulaire de clôture rappelle le client, la référence, le commercial, le restant dû brut et le reliquat appliqué, le cas échéant. Choisissez Total ou Partiel , puis saisissez le montant encaissé. En mode partiel, des raccourcis facilitent la saisie rapide :\n 10 000 : applique directement un palier rond de 10 000 FCFA (si le restant dû le permet).\n ½ : pré-remplit la moitié exacte du montant net dû.\n Net : bascule immédiatement sur le solde net restant après déduction du reliquat client.\n\nLe montant final saisi doit toujours correspondre à l’encaissement physique réel.\n Ne doublez pas une clôture hors ligne. Après confirmation, consultez l’onglet Plus pour vérifier si l’opération a été synchronisée ou placée dans la file d’attente."
   },
   {
     "id": "recovery_manager_mobile__onglet_terrain_carnets_cr_dit_et_tontine",

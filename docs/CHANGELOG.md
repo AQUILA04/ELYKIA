@@ -9,6 +9,16 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.33.8] — 2026-10-13
+
+### Fixed
+
+- Chef de recouvrement : l’icône carte en haut à droite de **Retards** ouvre le plan du jour, comme **Changer le plan du jour** dans **Plus**.
+
+### Docs
+
+- Guide chef de recouvrement mobile : icône carte de l’onglet **Retards**. Index RAG et guide HTML régénérés.
+
 ## Mobile — [2.33.7] — 2026-10-13
 
 ### Fixed
