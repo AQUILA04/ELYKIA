@@ -46,7 +46,7 @@ export class EditOrderPage implements OnInit {
       requiresAdvance: false,
       calculateDailyPayment: false,
       title: 'Modifier Commande',
-      submitButtonText: 'MODIFIER LA COMMANDE',
+      submitButtonText: 'Enregistrer',
       backRoute: '/tabs/orders'
     };
   }

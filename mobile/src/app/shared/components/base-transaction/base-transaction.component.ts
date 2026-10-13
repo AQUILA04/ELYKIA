@@ -68,6 +68,9 @@ export class BaseTransactionComponent implements OnInit, OnDestroy, OnChanges {
 
   // Search functionality
   private searchTerm$ = new BehaviorSubject<string>('');
+  private availableArticles$ = new BehaviorSubject<Article[]>([]);
+  private articleQuantities$ = new BehaviorSubject<{ [key: string]: number }>({});
+  searchTerm = '';
   filteredArticles: Article[] = [];
 
   // Local state
@@ -84,34 +87,62 @@ export class BaseTransactionComponent implements OnInit, OnDestroy, OnChanges {
     this.initializeForm();
     this.setupFilteredArticles();
     this.setupCalculationPipeline();
+    this.availableArticles$.next(this.availableArticles || []);
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['availableArticles'] && this.availableArticles) {
-      this.setupFilteredArticles();
+      this.availableArticles$.next(this.availableArticles);
     }
-    
+
     if (changes['initialData'] && this.initialData) {
       this.loadInitialData();
     }
   }
 
+  /**
+   * Remet le formulaire à vide (quantités, montant, recherche, résumés).
+   * Appelé quand on réouvre « Nouvelle commande » (instance Ionic réutilisée).
+   */
+  reset(): void {
+    this.articleQuantities = {};
+    this.totalAmount = 0;
+    this.searchTerm = '';
+    this.searchTerm$.next('');
+    this.dailyPayment$.next(0);
+    this.adjustedAdvance$.next(0);
+    this.paymentPeriod$.next(30);
+    this.isSpecialCase$.next(false);
+
+    const advanceControl = this.transactionForm.get('advance');
+    if (advanceControl) {
+      advanceControl.setValue(0, { emitEvent: false });
+    }
+
+    this.publishArticleQuantities();
+  }
+
   private loadInitialData() {
     if (!this.initialData) return;
-    
+
     // Charger les quantités initiales
     this.articleQuantities = {};
     this.initialData.articles.forEach(item => {
       this.articleQuantities[item.articleId] = item.quantity;
     });
-    
+
     // Charger l'avance initiale si présente
     if (this.initialData.advance && this.config.requiresAdvance) {
       this.transactionForm.patchValue({ advance: this.initialData.advance });
     }
-    
+
     // Recalculer le montant total
     this.calculateTotalAmount();
+    this.publishArticleQuantities();
+  }
+
+  private publishArticleQuantities(): void {
+    this.articleQuantities$.next({ ...this.articleQuantities });
   }
 
   ngOnDestroy() {
@@ -195,8 +226,8 @@ export class BaseTransactionComponent implements OnInit, OnDestroy, OnChanges {
 
   private setupFilteredArticles() {
     combineLatest([
-      new BehaviorSubject(this.availableArticles).pipe(distinctUntilChanged()),
-      new BehaviorSubject(this.articleQuantities).pipe(distinctUntilChanged()),
+      this.availableArticles$.pipe(distinctUntilChanged()),
+      this.articleQuantities$.pipe(distinctUntilChanged()),
       this.searchTerm$.pipe(distinctUntilChanged())
     ]).pipe(
       takeUntil(this.destroy$),
@@ -206,12 +237,12 @@ export class BaseTransactionComponent implements OnInit, OnDestroy, OnChanges {
 
         if (!searchTerm.trim()) {
           let unselectedArticles = availableArticles.filter(article => !selectedArticleIds.includes(article.id));
-          
+
           // Filtrer selon la configuration
           if (this.config.checkStock) {
             unselectedArticles = unselectedArticles.filter(article => article.stockQuantity > 0);
           }
-          
+
           unselectedArticles = unselectedArticles.slice(0, 10);
 
           const articlesMap = new Map<string, Article>();
@@ -247,6 +278,7 @@ export class BaseTransactionComponent implements OnInit, OnDestroy, OnChanges {
 
   onSearchInput(event: any) {
     const searchTerm = event.target.value || '';
+    this.searchTerm = searchTerm;
     this.searchTerm$.next(searchTerm);
   }
 
@@ -282,10 +314,11 @@ export class BaseTransactionComponent implements OnInit, OnDestroy, OnChanges {
   increaseQuantity(article: Article) {
     const currentQuantity = this.getArticleQuantity(article.id);
     const maxQuantity = this.config.maxQuantityCheck ? article.stockQuantity : Number.MAX_SAFE_INTEGER;
-    
+
     if (currentQuantity < maxQuantity) {
       this.articleQuantities[article.id] = currentQuantity + 1;
       this.calculateTotalAmount();
+      this.publishArticleQuantities();
     }
   }
 
@@ -297,6 +330,7 @@ export class BaseTransactionComponent implements OnInit, OnDestroy, OnChanges {
         delete this.articleQuantities[article.id];
       }
       this.calculateTotalAmount();
+      this.publishArticleQuantities();
     }
   }
 
@@ -312,6 +346,7 @@ export class BaseTransactionComponent implements OnInit, OnDestroy, OnChanges {
       this.articleQuantities[articleId] = validQuantity;
     }
     this.calculateTotalAmount();
+    this.publishArticleQuantities();
   }
 
   private calculateTotalAmount() {

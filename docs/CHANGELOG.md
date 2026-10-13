@@ -9,6 +9,20 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.33.6] — 2026-10-13
+
+### Fixed
+
+- Nouvelle commande : le formulaire se vide (client et articles) à chaque réouverture après un enregistrement.
+
+### Changed
+
+- Nouvelle commande : bouton **Valider** en bas de l’écran (en plus de la coche du header), visible au-dessus de la barre d’onglets.
+
+### Docs
+
+- Guide commercial mobile : pas à pas commande aligné sur le bouton **Valider**. Index RAG et guide HTML régénérés.
+
 ## Frontend — [2.31.0] — 2026-10-13
 
 ### Added

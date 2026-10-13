@@ -67,6 +67,7 @@
       <ion-searchbar
         class="elyk-searchbar"
         placeholder="Rechercher par nom, référence..."
+        [value]="searchTerm"
         (ionInput)="onSearchInput($event)"
         debounce="300"
         mode="md">

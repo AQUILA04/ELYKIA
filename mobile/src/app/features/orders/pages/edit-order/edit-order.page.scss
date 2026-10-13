@@ -1,8 +1,9 @@
-// Assurer que la page occupe toute la hauteur disponible
+// Assurer que la page occupe toute la hauteur disponible (pas 100vh :
+// le footer doit rester au-dessus de la barre d'onglets Ionic)
 :host {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
 }
 
 // Le composant base-transaction doit occuper toute la hauteur
@@ -11,4 +12,5 @@ app-base-transaction {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-height: 0;
 }
