@@ -43,6 +43,23 @@ public final class CashDepositCategoryCalculator {
         return Math.max(0.0, newBalanceToDeposit(report) - safeDeposited(report.getTotalNewBalanceAmountDeposited()));
     }
 
+    public static double totalRemaining(DailyCommercialReport report) {
+        return remainingCredit(report) + remainingTontine(report) + remainingNewBalance(report);
+    }
+
+    /** Manquants de période sur totaux déjà agrégés (ne pas sommer les max jour par jour). */
+    public static double periodRemainingCredit(double creditToDeposit, double creditDeposited) {
+        return Math.max(0.0, creditToDeposit - safeDeposited(creditDeposited));
+    }
+
+    public static double periodRemainingTontine(double tontineToDeposit, double tontineDeposited) {
+        return Math.max(0.0, tontineToDeposit - safeDeposited(tontineDeposited));
+    }
+
+    public static double periodRemainingNewBalance(double newBalanceToDeposit, double newBalanceDeposited) {
+        return Math.max(0.0, newBalanceToDeposit - safeDeposited(newBalanceDeposited));
+    }
+
     public static void validateCategorySplit(Double amount, Double creditAmount, Double tontineAmount,
             Double newBalanceAmount, Double surplusAmount) {
         if (amount == null || amount <= 0) {

@@ -18,6 +18,7 @@ public enum OperationType {
     CREDIT_SALE_CANCEL,
     NEW_CLIENT,
     TONTINE_MEMBER_ENROLLMENT,
+    SURPLUS_REALLOCATION,
     CREDIT,
     TONTINE,
     CASH

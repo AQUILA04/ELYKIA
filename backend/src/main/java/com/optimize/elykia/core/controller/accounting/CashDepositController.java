@@ -1,7 +1,11 @@
 package com.optimize.elykia.core.controller.accounting;
 
+import com.optimize.elykia.core.dto.report.SurplusReallocationDto;
+import com.optimize.elykia.core.dto.report.SurplusReallocationRequest;
 import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.service.accounting.CashDepositService;
+import com.optimize.elykia.core.service.accounting.CashSurplusReallocationService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -10,10 +14,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class CashDepositController {
 
     private final CashDepositService cashDepositService;
+    private final CashSurplusReallocationService surplusReallocationService;
     private final UserService userService;
 
     @PostMapping
@@ -33,6 +40,24 @@ public class CashDepositController {
     @PostMapping("/{id}/cancel")
     public ResponseEntity<CashDeposit> cancelDeposit(@PathVariable Long id) {
         return ResponseEntity.ok(cashDepositService.cancelDeposit(id));
+    }
+
+    @PostMapping("/reallocate-surplus")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
+    public ResponseEntity<SurplusReallocationDto> reallocateSurplus(@RequestBody SurplusReallocationRequest request) {
+        return ResponseEntity.ok(surplusReallocationService.reallocate(
+                request.getCommercialUsername(),
+                request.getStartDate(),
+                request.getEndDate()));
+    }
+
+    @GetMapping("/surplus-reallocations")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
+    public ResponseEntity<List<SurplusReallocationDto>> listSurplusReallocations(
+            @RequestParam String commercialUsername,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(surplusReallocationService.listForPeriod(commercialUsername, startDate, endDate));
     }
 
     @GetMapping

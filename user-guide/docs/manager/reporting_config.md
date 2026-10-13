@@ -49,15 +49,31 @@ Dès qu'un commercial est ciblé dans la barre de filtre, deux blocs de bilan an
 * **Dépenses** : Cumul des charges décaissées sur la période.
 * **Solde net** : Solde théorique d'encaissement net de caisse.
 
-#### 3. Tableau de performance par commercial (vue agence)
+#### 3. Fiche d’un commercial : à verser, versé et reste
+Sur la fiche d’un commercial (après sélection dans le filtre) :
+* **A Verser (Crédit / Tontine / Solde Nx)** : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.
+* **Versé** : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention **dont surplus non catégorisé** s’affiche sous le montant.
+* **Reste** : ce qui manque encore en crédit, tontine ou solde (le surplus n’y est pas soustrait tant qu’il n’a pas été équilibré).
+
+#### 4. Équilibrer le surplus
+Quand un commercial a à la fois un **surplus non catégorisé** et un **reste** sur la période affichée, le bouton **Équilibrer le surplus** apparaît pour le gestionnaire et la secrétaire.
+
+1. Cliquez sur **Équilibrer le surplus**.
+2. Confirmez le montant qui sera réaffecté (crédit, puis tontine, puis solde des nouveaux comptes) : le total versé ne change pas.
+3. Après validation, le surplus diminue, le reste diminue d’autant, et une mention reste visible sur la fiche : date, heure, auteur et montants réaffectés.
+4. La même opération apparaît dans le **Journal des opérations** avec le type **Équilibrage surplus** (filtrable).
+
+<!-- CAPTURE À INSÉRER : Fiche commercial avec « dont surplus non catégorisé », bouton Équilibrer le surplus et mention d’équilibrage. -->
+
+#### 5. Tableau de performance par commercial (vue agence)
 Lorsque aucun agent n'est filtré, un tableau comparatif classe les commerciaux de l'agence selon leurs réalisations de la période (ventes, recouvrements, tontine, nouveaux comptes et total produit).
 
 ---
 
 ### C. Onglet 2 : Journal des opérations
 Le **Journal** est le registre chronologique et exhaustif de toutes les transactions financières enregistrées sur la période :
-* Chaque ligne précise la date et l'heure exacte, le type d'opération (Vente, Recouvrement, Cotisation tontine, Dépôt compte), le client, le commercial concerné et le montant en Francs CFA.
-* **Filtres par nature** : Isolez en un clic les seuls recouvrements, les ventes ou les cotisations.
+* Chaque ligne précise la date et l'heure exacte, le type d'opération (Vente, Recouvrement, Cotisation tontine, Dépôt compte, **Équilibrage surplus**), le client ou le sujet, le commercial concerné et le montant en Francs CFA.
+* **Filtres par nature** : Isolez en un clic les seuls recouvrements, les ventes, les cotisations ou les équilibrages de surplus.
 * **Export PDF** : Le bouton de téléchargement génère une version imprimable officielle du journal des opérations, idéale pour les arrêtés comptables de fin de journée.
 
 ---

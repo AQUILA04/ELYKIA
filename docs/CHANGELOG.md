@@ -9,6 +9,24 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Frontend — [2.31.0] — 2026-10-13
+
+### Added
+
+- Rapport journalier : sous le total **Versé**, affichage du **surplus non catégorisé** lorsqu’il est supérieur à 0.
+- Bouton **Équilibrer le surplus** (gestionnaire / secrétaire) pour affecter le surplus aux manquants crédit, tontine puis solde sur la période filtrée, avec confirmation et mentions d’audit sur la fiche et dans le journal (**Équilibrage surplus**).
+
+### Docs
+
+- Guide gestionnaire (rapport journalier) : surplus, équilibrage et journal.
+
+## Backend — [1.34.0] — 2026-10-13
+
+### Added
+
+- Agrégation du surplus dans la recherche de rapports journaliers.
+- Endpoint `POST /api/cash-deposits/reallocate-surplus` et historique `GET /api/cash-deposits/surplus-reallocations` : réaffectation du surplus vers les manquants, mise à jour des versements / rapports / remises, fiche d’audit et entrée journal `SURPLUS_REALLOCATION`.
+
 ## Frontend — [2.30.4] — 2026-10-12
 
 ### Added

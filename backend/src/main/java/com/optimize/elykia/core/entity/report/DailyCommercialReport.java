@@ -149,6 +149,7 @@ public class DailyCommercialReport extends BaseEntity<String> {
             Double totalCreditAmountDeposited,
             Double totalTontineAmountDeposited,
             Double totalNewBalanceAmountDeposited,
+            Double totalSurplusAmountDeposited,
             Double creditSalesMargin,
             Double stockRequestMargin,
             Double totalAdvancesAmount,
@@ -178,6 +179,7 @@ public class DailyCommercialReport extends BaseEntity<String> {
         this.totalCreditAmountDeposited = totalCreditAmountDeposited != null ? totalCreditAmountDeposited : 0.0;
         this.totalTontineAmountDeposited = totalTontineAmountDeposited != null ? totalTontineAmountDeposited : 0.0;
         this.totalNewBalanceAmountDeposited = totalNewBalanceAmountDeposited != null ? totalNewBalanceAmountDeposited : 0.0;
+        this.totalSurplusAmountDeposited = totalSurplusAmountDeposited != null ? totalSurplusAmountDeposited : 0.0;
         this.creditSalesMargin = creditSalesMargin != null ? creditSalesMargin : 0.0;
         this.stockRequestMargin = stockRequestMargin != null ? stockRequestMargin : 0.0;
         this.totalAdvancesAmount = totalAdvancesAmount != null ? totalAdvancesAmount : 0.0;

@@ -85,4 +85,28 @@ public interface CashDepositRepository extends GenericRepository<CashDeposit, Lo
             """)
     List<CashDeposit> findByRemittanceIdInOrderByRemittanceIdAscCommercialUsernameAscDateAscIdAsc(
             @org.springframework.data.repository.query.Param("remittanceIds") Collection<Long> remittanceIds);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT cd FROM CashDeposit cd
+            LEFT JOIN FETCH cd.remittance
+            LEFT JOIN FETCH cd.dailyReport
+            WHERE UPPER(cd.commercialUsername) = UPPER(:commercialUsername)
+              AND cd.date >= :start
+              AND cd.date <= :end
+              AND cd.amount > 0
+              AND COALESCE(cd.surplusAmount, 0) > 0
+            ORDER BY cd.date ASC, cd.id ASC
+            """)
+    List<CashDeposit> findSurplusDepositsForPeriod(
+            @org.springframework.data.repository.query.Param("commercialUsername") String commercialUsername,
+            @org.springframework.data.repository.query.Param("start") LocalDate start,
+            @org.springframework.data.repository.query.Param("end") LocalDate end);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT cd FROM CashDeposit cd
+            WHERE cd.remittance.id = :remittanceId
+              AND cd.amount > 0
+            """)
+    List<CashDeposit> findPositiveByRemittanceId(
+            @org.springframework.data.repository.query.Param("remittanceId") Long remittanceId);
 }
