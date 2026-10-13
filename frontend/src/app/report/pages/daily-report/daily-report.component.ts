@@ -719,7 +719,7 @@ export class DailyReportComponent implements OnInit {
             `Reste après : ${format(preview.remainingAfter)} · Surplus restant : ${format(preview.surplusAfter)}\n` +
             `Le total versé ne change pas.`;
 
-        this.alertService.showConfirmation(
+        void this.alertService.showConfirmation(
             'Équilibrer le surplus',
             message.replace(/\n/g, '<br>'),
             'Équilibrer'
