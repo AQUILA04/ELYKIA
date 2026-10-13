@@ -1,9 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { ModalController, ToastController, LoadingController } from '@ionic/angular';
+import { ModalController, ToastController, LoadingController, ViewWillEnter } from '@ionic/angular';
 import { firstValueFrom } from 'rxjs';
 
-import { TransactionConfig, TransactionData } from '../../../../shared/components/base-transaction/base-transaction.component';
+import {
+  BaseTransactionComponent,
+  TransactionConfig,
+  TransactionData
+} from '../../../../shared/components/base-transaction/base-transaction.component';
 import { ClientSelectorModalComponent } from '../../../../shared/components/client-selector-modal/client-selector-modal.component';
 import { OrderService } from '../../../../core/services/order.service';
 import { LoggerService } from '../../../../core/services/logger.service';
@@ -18,7 +22,9 @@ import { Article } from '../../../../models/article.model';
   styleUrls: ['./new-order.page.scss'],
   standalone: false
 })
-export class NewOrderPage implements OnInit {
+export class NewOrderPage implements OnInit, ViewWillEnter {
+
+  @ViewChild(BaseTransactionComponent) private baseTransaction?: BaseTransactionComponent;
 
   // Configuration et données
   config: TransactionConfig;
@@ -44,7 +50,7 @@ export class NewOrderPage implements OnInit {
       requiresAdvance: false,      // Pas d'avance pour les commandes
       calculateDailyPayment: false, // Pas de calcul de mise journalière
       title: 'Nouvelle Commande',
-      submitButtonText: 'CRÉER LA COMMANDE',
+      submitButtonText: 'Valider',
       backRoute: '/tabs/orders'
     };
   }
@@ -52,6 +58,16 @@ export class NewOrderPage implements OnInit {
   async ngOnInit() {
     this.log.log('[NewOrderPage] User entered new order page.');
     await this.loadData();
+  }
+
+  /**
+   * Ionic réutilise la page : à chaque retour sur le formulaire,
+   * client et articles doivent repartir à zéro.
+   * La modale de sélection client ne déclenche pas ce cycle.
+   */
+  ionViewWillEnter() {
+    this.selectedClient = null;
+    this.baseTransaction?.reset();
   }
 
   private async loadData() {

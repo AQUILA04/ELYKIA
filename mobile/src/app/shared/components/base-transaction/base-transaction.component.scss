@@ -253,6 +253,12 @@ ion-content.transaction-content {
   }
 }
 
+.confirm-button {
+  min-height: 48px;
+  margin: 8px 12px;
+  font-size: 16px;
+}
+
 @media (max-width: 768px) {
   .article-content {
     flex-direction: column;

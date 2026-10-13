@@ -1028,8 +1028,9 @@ Ce module vous permet de surveiller votre dotation de marchandises et d'échange
 Parfois, une cliente veut un congélateur ou une télévision que vous n'avez pas sur vous. Vous pouvez lui réserver l'article grâce aux **Commandes** :
 1. Dans la barre du bas, allez dans **Plus**, puis touchez **Commandes**.
 2. Touchez le bouton rond jaune (**+**) en bas à droite.
-3. Sélectionnez votre cliente, choisissez les articles dans le catalogue général et validez.
-4. La commande est enregistrée avec le statut **En attente**. Dès que le magasinier prépare le produit et que la vente est conclue, un simple appui sur le bouton **Vendre** transformera la commande en contrat de vente sans rien avoir à retaper !
+3. Sélectionnez votre cliente, puis choisissez les articles dans le catalogue général avec les quantités.
+4. Touchez le bouton **Valider** en bas de l’écran pour enregistrer la commande.
+5. La commande est enregistrée avec le statut **En attente**. Dès que le magasinier prépare le produit et que la vente est conclue, un simple appui sur le bouton **Vendre** transformera la commande en contrat de vente sans rien avoir à retaper !
 
 ### C. Gérer vos échanges avec le magasinier (Demandes et Retours)
 Sur votre écran d'accueil, touchez la case **Stock** :
