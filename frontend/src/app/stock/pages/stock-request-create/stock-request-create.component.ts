@@ -74,7 +74,8 @@ export class StockRequestCreateComponent implements OnInit {
       next: (req) => {
         const initialItems = req.items?.map(item => ({
           articleId: item.article?.id,
-          quantity: item.quantity
+          quantity: item.quantity,
+          article: item.article
         })) ?? [];
 
         this.form.patchValue({

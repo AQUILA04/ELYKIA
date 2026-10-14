@@ -14,7 +14,7 @@
 
           <ng-template ng-label-tmp let-item="item">
             <div class="selected-article">
-              {{ item.commercialName }}
+              {{ item.commercialName || item.name }}
               <span *ngIf="showStock" class="stock-badge" [ngClass]="getStockClass(item.id)">
                 Stock : {{ item.stockQuantity || 0 }}
               </span>

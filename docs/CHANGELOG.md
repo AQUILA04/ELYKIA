@@ -47,6 +47,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Guide commercial mobile : pas à pas commande aligné sur le bouton **Valider**. Index RAG et guide HTML régénérés.
 
+## Frontend — [2.31.1] — 2026-10-14
+
+### Fixed
+
+- Modification d’une demande de stock : les articles absents de la première page du catalogue retrouvent leur nom, leur stock et leur prix unitaire. La quantité était déjà reprise.
+
 ## Frontend — [2.31.0] — 2026-10-13
 
 ### Added

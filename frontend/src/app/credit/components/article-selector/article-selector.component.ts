@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, Output, EventEmitter, forwardRef, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, ControlValueAccessor, NG_VALUE_ACCESSOR, NG_VALIDATORS, Validator, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
+import { forkJoin, of, Subject, Subscription } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { ItemService } from 'src/app/article/service/item.service';
 
 export interface ArticleSelection {
@@ -61,6 +61,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   private articlesSub?: Subscription;
   private lazySearchSub?: Subscription;
   private loadArticlesSub?: Subscription;
+  private selectedArticlesLoadSub?: Subscription;
   private rowSubs: Subscription[] = [];
 
   // ControlValueAccessor
@@ -125,12 +126,17 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
 
   ngOnDestroy(): void {
     this.teardownLazyArticlesLoading();
+    this.selectedArticlesLoadSub?.unsubscribe();
     this.articlesSub?.unsubscribe();
     this.clearRowSubs();
   }
 
   getArticle(id: number): any | undefined {
-    return this.articleIndex.get(id) ?? this.articles.find(a => a.id === id);
+    const key = this.articleKey(id);
+    if (key == null) {
+      return undefined;
+    }
+    return this.articleIndex.get(key) ?? this.articles.find(article => this.articleKey(article.id) === key);
   }
 
   onArticlesScrollToEnd(): void {
@@ -231,7 +237,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
 
   private snapshotSelectedArticles(): any[] {
     const selectedIds = this.articlesArray.controls
-      .map(control => control.get('articleId')?.value)
+      .map(control => this.articleKey(control.get('articleId')?.value))
       .filter((id): id is number => id != null);
 
     const seen = new Set<number>();
@@ -241,7 +247,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
         continue;
       }
       seen.add(id);
-      const article = this.articleIndex.get(id) ?? this.articles.find(item => item.id === id);
+      const article = this.getArticle(id);
       if (article) {
         selectedArticles.push(article);
       }
@@ -443,8 +449,74 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     });
   }
 
+  private articleKey(id: unknown): number | null {
+    if (id == null || id === '') {
+      return null;
+    }
+    const key = Number(id);
+    return Number.isFinite(key) ? key : null;
+  }
+
   private indexArticles(items: any[]): void {
-    items.forEach(item => this.articleIndex.set(item.id, item));
+    items.forEach(item => {
+      const id = this.articleKey(item?.id);
+      if (id == null) {
+        return;
+      }
+      item.id = id;
+      this.articleIndex.set(id, item);
+    });
+  }
+
+  private rememberArticle(article: any): void {
+    const id = this.articleKey(article?.id);
+    if (id == null) {
+      return;
+    }
+    const brandModel = [article.marque, article.model].filter(Boolean).join(' ');
+    const commercialName = article.commercialName
+      || (article.type && brandModel ? `${article.type}: ${brandModel}` : (article.name || brandModel));
+    const normalized = { ...article, id, commercialName };
+    this.articleIndex.set(id, normalized);
+    const existingIndex = this.articles.findIndex(item => this.articleKey(item.id) === id);
+    if (existingIndex === -1) {
+      this.articles = [normalized, ...this.articles];
+      return;
+    }
+    this.articles = this.articles.map((item, index) => index === existingIndex ? normalized : item);
+  }
+
+  /**
+   * Le catalogue est paginé. Une demande déjà enregistrée peut référencer des articles
+   * absents de la première page : ng-select ne résout alors ni le libellé, ni le stock, ni le prix.
+   */
+  private ensureSelectedArticlesLoaded(): void {
+    if (!this.lazyLoad) {
+      return;
+    }
+
+    const missingIds = [...new Set(
+      this.articlesArray.controls
+        .map(control => this.articleKey(control.get('articleId')?.value))
+        .filter((id): id is number => id != null && !this.articleIndex.has(id))
+    )];
+    if (missingIds.length === 0) {
+      return;
+    }
+
+    this.selectedArticlesLoadSub?.unsubscribe();
+    this.selectedArticlesLoadSub = forkJoin(
+      missingIds.map(id => this.itemService.getArticleById(id).pipe(
+        map((response: any) => response?.data ?? response),
+        catchError(() => of(null))
+      ))
+    ).subscribe(results => {
+      results.forEach(article => this.rememberArticle(article));
+      this.updateAvailableArticleLists();
+      if (this.showPrices || this.capturePurchasePrice) {
+        this.calculateTotalAmount();
+      }
+    });
   }
 
   private listenForArticleChanges(): void {
@@ -464,11 +536,11 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     this.availableArticlesPerRow = allControls.map((_, currentIndex) => {
       const selectedIdsInOtherRows = new Set(allControls
         .filter((__, index) => index !== currentIndex)
-        .map(control => control.get('articleId')?.value)
-        .filter(id => id != null));
+        .map(control => this.articleKey(control.get('articleId')?.value))
+        .filter((id): id is number => id != null));
 
       return this.articles.filter(
-        article => !selectedIdsInOtherRows.has(article.id)
+        article => !selectedIdsInOtherRows.has(this.articleKey(article.id) as number)
       );
     });
   }
@@ -579,13 +651,16 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     return article?.purchasePrice ?? 0;
   }
 
-  writeValue(value: ArticleSelection[]): void {
+  writeValue(value: Array<ArticleSelection & { article?: any }> | null): void {
     if (value && Array.isArray(value)) {
       this.clearRowSubs();
       this.articlesArray.clear();
       value.forEach(article => {
+        if (article.article) {
+          this.rememberArticle(article.article);
+        }
         const groupConfig: Record<string, unknown> = {
-          articleId: [article.articleId, Validators.required],
+          articleId: [this.articleKey(article.articleId), Validators.required],
           quantity: [article.quantity, [Validators.required, Validators.min(1)]]
         };
         if (this.capturePurchasePrice) {
@@ -606,6 +681,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
         this.articlesArray.push(group);
       });
       this.updateAvailableArticleLists();
+      this.ensureSelectedArticlesLoaded();
       if (this.showPrices || this.capturePurchasePrice) {
         this.calculateTotalAmount();
       }

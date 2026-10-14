@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
+import { NgSelectModule } from '@ng-select/ng-select';
 import { of } from 'rxjs';
 import { ArticleSelectorComponent } from './article-selector.component';
 import { ItemService } from 'src/app/article/service/item.service';
@@ -27,12 +28,13 @@ describe('ArticleSelectorComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ArticleSelectorComponent],
-      imports: [ReactiveFormsModule],
+      imports: [ReactiveFormsModule, NgSelectModule],
       providers: [
         {
           provide: ItemService,
           useValue: {
-            getEnabledArticlesPage: jasmine.createSpy('getEnabledArticlesPage').and.returnValue(of({ data: { content: [] } }))
+            getEnabledArticlesPage: jasmine.createSpy('getEnabledArticlesPage').and.returnValue(of({ data: { content: [] } })),
+            getArticleById: jasmine.createSpy('getArticleById').and.returnValue(of({ data: null }))
           }
         }
       ]
@@ -73,5 +75,77 @@ describe('ArticleSelectorComponent', () => {
     expect(component.getComputedQuantity(0)).toBe(48);
     expect(component.getComputedUnitPrice(0)).toBe(208.33);
     expect(component.getComputedLineTotal(0)).toBe(10000);
+  });
+});
+
+describe('ArticleSelectorComponent lazy edit', () => {
+  let component: ArticleSelectorComponent;
+  let fixture: ComponentFixture<ArticleSelectorComponent>;
+  let getArticleById: jasmine.Spy;
+
+  const pageArticles = [
+    { id: 1, commercialName: 'HUILE: aicha 5l', creditSalePrice: 6000, stockQuantity: 24 }
+  ];
+
+  beforeEach(async () => {
+    getArticleById = jasmine.createSpy('getArticleById').and.returnValue(of({
+      data: {
+        id: 99,
+        commercialName: 'SPAGHETTI: BONITA PETIT GRAIN',
+        creditSalePrice: 400,
+        stockQuantity: 561
+      }
+    }));
+
+    await TestBed.configureTestingModule({
+      declarations: [ArticleSelectorComponent],
+      imports: [ReactiveFormsModule, NgSelectModule],
+      providers: [
+        {
+          provide: ItemService,
+          useValue: {
+            getEnabledArticlesPage: jasmine.createSpy('getEnabledArticlesPage').and.returnValue(of({
+              data: { content: pageArticles, totalElements: 1, totalPages: 1 }
+            })),
+            getArticleById
+          }
+        }
+      ]
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ArticleSelectorComponent);
+    component = fixture.componentInstance;
+    component.lazyLoad = true;
+    component.priceType = 'credit';
+    component.showPrices = true;
+    fixture.detectChanges();
+  });
+
+  it('keeps price and stock for an article already returned with the request', () => {
+    component.writeValue([
+      {
+        articleId: 1,
+        quantity: 1,
+        article: pageArticles[0]
+      }
+    ]);
+
+    expect(getArticleById).not.toHaveBeenCalled();
+    expect(component.getArticlePrice(1)).toBe(6000);
+    expect(component.getArticleStock(1)).toBe(24);
+    expect(component.getLineTotal(0)).toBe(6000);
+    expect(component.availableArticlesPerRow[0].some(article => article.id === 1)).toBeTrue();
+  });
+
+  it('loads an article missing from the first catalog page', () => {
+    component.writeValue([
+      { articleId: 99, quantity: 25 }
+    ]);
+
+    expect(getArticleById).toHaveBeenCalledWith(99);
+    expect(component.getArticlePrice(99)).toBe(400);
+    expect(component.getArticleStock(99)).toBe(561);
+    expect(component.getLineTotal(0)).toBe(10000);
+    expect(component.availableArticlesPerRow[0].some(article => article.id === 99)).toBeTrue();
   });
 });
