@@ -336,7 +336,9 @@ public class OrderService extends GenericService<Order, Long> {
                     savedOrder.getId()));
         }
 
-        appNotificationService.createCustomerOrder(savedOrder, client);
+        if (savedOrder.getSource() == OrderSource.CUSTOMER_SPACE) {
+            appNotificationService.createCustomerOrder(savedOrder, client);
+        }
         clientService.updateOrderStatus(client.getId(), Boolean.TRUE);
 
         return savedOrder;

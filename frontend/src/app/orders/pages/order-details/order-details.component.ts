@@ -126,12 +126,13 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
 
   // === GETTERS POUR LE TEMPLATE ===
   get availableActions(): OrderAction[] {
-    return this.order
-      ? getAvailableActions(this.order.status, {
-          onlineMode: this.onlineMode,
-          hasActiveStockRequest: !!this.order.activeStockRequest
-        })
-      : [];
+    if (!this.order) {
+      return [];
+    }
+    return getAvailableActions(this.order.status, {
+      onlineMode: this.onlineMode,
+      hasActiveStockRequest: !!this.order.activeStockRequest
+    }).filter(action => action !== OrderAction.VIEW);
   }
   get canEdit(): boolean { return this.order && !this.onlineMode ? canModifyOrder(this.order.status) : false; }
   get canDelete(): boolean { return this.order ? canDeleteOrder(this.order.status) : false; }

@@ -70,7 +70,7 @@ class OrderServiceTest {
     @Mock private User currentUser;
 
     @Test
-    void createOrder_freezesArticleCreditPricesCalculatesTotalsAndNotifiesClientAndEventBus() {
+    void createOrder_staff_freezesPricesPublishesEventAndDoesNotNotifyStaff() {
         // Given
         OrderService service = service();
         Articles firstArticle = article(1L, 1_200.0, 700.0);
@@ -107,6 +107,27 @@ class OrderServiceTest {
         assertEquals(3_900.0, eventCaptor.getValue().getAmount());
         assertEquals("commercial.a", eventCaptor.getValue().getCollector());
         assertEquals(71L, eventCaptor.getValue().getOrderId());
+        verify(appNotificationService, never()).createCustomerOrder(any(), any());
+    }
+
+    @Test
+    void createOrder_customerSpace_notifiesStaff() {
+        OrderService service = service();
+        Articles article = article(1L, 1_200.0, 700.0);
+        OrderDto dto = orderDto(9L, item(1L, 1));
+        when(clientService.getById(9L)).thenReturn(client);
+        when(client.getId()).thenReturn(9L);
+        when(client.getCollector()).thenReturn("commercial.a");
+        when(articlesService.getById(1L)).thenReturn(article);
+        when(orderRepository.save(any(Order.class))).thenAnswer(invocation -> {
+            Order saved = invocation.getArgument(0);
+            saved.setId(72L);
+            return saved;
+        });
+
+        Order saved = service.createOrder(dto, com.optimize.elykia.core.enumaration.OrderSource.CUSTOMER_SPACE);
+
+        assertEquals(com.optimize.elykia.core.enumaration.OrderSource.CUSTOMER_SPACE, saved.getSource());
         verify(appNotificationService).createCustomerOrder(saved, client);
     }
 

@@ -47,6 +47,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Guide commercial mobile : pas à pas commande aligné sur le bouton **Valider**. Index RAG et guide HTML régénérés.
 
+## Frontend — [2.31.2] — 2026-10-14
+
+### Fixed
+
+- Détail d’une commande : le bouton **Voir** est retiré. Il n’ouvrait aucun écran, la fiche étant déjà affichée.
+
 ## Frontend — [2.31.1] — 2026-10-14
 
 ### Fixed
@@ -63,6 +69,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Docs
 
 - Guide gestionnaire (rapport journalier) : surplus, équilibrage et journal.
+
+## Backend — [1.34.2] — 2026-10-14
+
+### Fixed
+
+- Une commande saisie par le personnel n’enregistre plus de notification staff. Seule une commande passée depuis l’espace client crée l’alerte **Commande client**.
 
 ## Backend — [1.34.1] — 2026-10-13
 
