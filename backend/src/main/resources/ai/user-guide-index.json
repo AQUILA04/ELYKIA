@@ -872,7 +872,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Guide des Ventes, Crédits, Recouvrements et Commandes\nRapport des articles vendus (Menu Ventes > Articles)\n\nCet écran synthétise les sorties commerciales de l'agence :\nRegroupement des ventes par Article et par Commercial .\nAffichage des quantités totales écoulées et des montants générés.\nFiltres temporels rapides (aujourd'hui, semaine, mois, personnalisé) et filtre par commercial.\nExport des données vers Excel ou PDF pour les réunions de bilan commercial.\n\n---"
+    "content": "Guide des Ventes, Crédits, Recouvrements et Commandes\nRapport des articles vendus (Menu Ventes > Articles)\n\nCet écran regroupe les ventes par article et par commercial.\nOuvrez le menu Ventes , puis Articles .\nChoisissez la période : Ce jour , Cette semaine , Ce mois ou Personnalisé (dates Du et Au ).\nPour limiter la liste à une personne, choisissez-la dans Commercial . Tous les commerciaux affiche l’ensemble.\nLe bandeau Montant total indique la somme des prix de toutes les lignes correspondant à ces filtres, y compris celles des autres pages.\nChaque ligne affiche l’article, le commercial, la Quantité totale , le Prix unitaire et le Prix total .\nCliquez sur Télécharger pour obtenir le PDF de la même sélection : les colonnes de prix et le montant total y figurent aussi.\n\nLe téléchargement porte sur un mois au plus.\n\n---"
   },
   {
     "id": "commercial_sales_orders__11_gestion_des_commandes_clients_menu_commandes",

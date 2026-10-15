@@ -31,6 +31,14 @@
     <p class="page-subtitle">Vue globale des articles vendus par les commerciaux sur une période donnée.</p>
   </div>
 
+  <div class="kpi-strip a3">
+    <div class="kpi-card kpi-amount">
+      <div class="kpi-label">Montant total</div>
+      <div class="kpi-value">{{ totalAmount | number:'1.0-0' }} <span class="kpi-currency">FCFA</span></div>
+      <div class="kpi-sub">Selon la période et le commercial affichés</div>
+    </div>
+  </div>
+
   <div class="toolbar a4">
     <div class="filter-fields">
       <div class="filter-field">
@@ -55,7 +63,7 @@
 
       <div class="filter-field filter-field-commercial">
         <span class="toolbar-label">Commercial</span>
-        <select class="filter-select form-select" [(ngModel)]="selectedCommercial" (change)="loadArticles()">
+        <select class="filter-select form-select" [(ngModel)]="selectedCommercial" (change)="onCommercialChange()">
           <option [ngValue]="null">Tous les commerciaux</option>
           <option *ngFor="let c of collectors" [value]="c.username">{{c.firstname}} {{c.lastname}}</option>
         </select>
@@ -96,18 +104,22 @@
               <th>#</th>
               <th>Article</th>
               <th>Commercial</th>
-              <th style="text-align: center">Quantité Totale</th>
+              <th class="col-qty">Quantité totale</th>
+              <th class="col-amount">Prix unitaire</th>
+              <th class="col-amount">Prix total</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let item of articles; let i = index">
               <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
-              <td style="font-weight: 500; color: var(--navy)">{{ item.articleName }}</td>
+              <td class="col-article">{{ item.articleName }}</td>
               <td>
                 <span *ngIf="item.commercial">{{ item.commercial }}</span>
-                <span *ngIf="!item.commercial" style="color: var(--text-light); font-style: italic">Sans commercial</span>
+                <span *ngIf="!item.commercial" class="col-empty">Sans commercial</span>
               </td>
-              <td style="text-align: center; font-weight: 700; font-family: 'DM Mono', monospace; font-size: 15px;">{{ item.totalQuantity }}</td>
+              <td class="col-qty">{{ item.totalQuantity }}</td>
+              <td class="col-amount">{{ item.unitPrice | number:'1.0-0' }} FCFA</td>
+              <td class="col-amount">{{ item.totalAmount | number:'1.0-0' }} FCFA</td>
             </tr>
           </tbody>
         </table>

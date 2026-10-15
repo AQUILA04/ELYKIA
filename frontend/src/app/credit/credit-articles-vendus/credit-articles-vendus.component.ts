@@ -30,6 +30,7 @@ export class CreditArticlesVendusComponent implements OnInit, OnDestroy {
   currentPage = 0;
   pageSize = 10;
   totalElements = 0;
+  totalAmount = 0;
 
   private readonly STATE_KEY = 'creditArticlesVendusState';
 
@@ -132,9 +133,11 @@ export class CreditArticlesVendusComponent implements OnInit, OnDestroy {
         if (res && res.statusCode === 200 && res.data) {
           this.articles = res.data.content || [];
           this.totalElements = res.data.page?.totalElements ?? res.data.totalElements ?? 0;
+          this.totalAmount = Number(res.data.totalAmount) || 0;
         } else {
           this.articles = [];
           this.totalElements = 0;
+          this.totalAmount = 0;
         }
         this.saveState();
       },
@@ -142,6 +145,7 @@ export class CreditArticlesVendusComponent implements OnInit, OnDestroy {
         this.isLoading = false;
         this.articles = [];
         this.totalElements = 0;
+        this.totalAmount = 0;
       }
     });
   }
@@ -161,6 +165,11 @@ export class CreditArticlesVendusComponent implements OnInit, OnDestroy {
       this.currentPage = 0;
       this.loadArticles();
     }
+  }
+
+  onCommercialChange() {
+    this.currentPage = 0;
+    this.loadArticles();
   }
 
   onPageChange(event: PageEvent) {

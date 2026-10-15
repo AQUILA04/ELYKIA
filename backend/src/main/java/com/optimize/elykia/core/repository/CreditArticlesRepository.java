@@ -118,23 +118,49 @@ public interface CreditArticlesRepository extends GenericRepository<CreditArticl
             @Param("monthEnd") LocalDate monthEnd,
             @Param("articleIds") Collection<Long> articleIds);
 
-    @Query("""
-        SELECT new com.optimize.elykia.core.dto.SoldArticleDto(
-            a.id, CONCAT(a.type, ': ', a.marque, ' ', a.model), SUM(ca.quantity), c.collector
-        )
-        FROM CreditArticles ca
-        JOIN ca.articles a
-        JOIN ca.credit c
-        WHERE c.type IN (com.optimize.elykia.core.enumaration.OperationType.CREDIT, com.optimize.elykia.core.enumaration.OperationType.CASH)
-          AND (cast(:startDate as date) IS NULL OR c.beginDate >= :startDate)
-          AND (cast(:endDate as date) IS NULL OR c.beginDate <= :endDate)
-          AND (:commercial IS NULL OR c.collector = :commercial)
-        GROUP BY a.id, a.type, a.marque, a.model, c.collector
-    """)
+    /**
+     * Prix de vente d'une ligne, même règle que {@code Credit.resolveArticleLineUnitPrice} :
+     * prix enregistré sur la vente, sinon 0 si la vente est figée, sinon prix du catalogue.
+     */
+    String SOLD_LINE_UNIT_PRICE =
+            "CASE "
+                    + "WHEN ca.unitPrice IS NOT NULL AND ca.unitPrice > 0 THEN ca.unitPrice "
+                    + "WHEN c.status IN ("
+                    + "com.optimize.elykia.core.enumaration.CreditStatus.INPROGRESS, "
+                    + "com.optimize.elykia.core.enumaration.CreditStatus.DELIVERED, "
+                    + "com.optimize.elykia.core.enumaration.CreditStatus.ENDED, "
+                    + "com.optimize.elykia.core.enumaration.CreditStatus.SETTLED, "
+                    + "com.optimize.elykia.core.enumaration.CreditStatus.MERGED) THEN 0.0 "
+                    + "WHEN a.creditSalePrice > 0 THEN a.creditSalePrice "
+                    + "WHEN c.type = com.optimize.elykia.core.enumaration.OperationType.CASH AND a.sellingPrice > 0 THEN a.sellingPrice "
+                    + "ELSE 0.0 END";
+
+    String SOLD_ARTICLES_FROM =
+            "FROM CreditArticles ca "
+                    + "JOIN ca.articles a "
+                    + "JOIN ca.credit c "
+                    + "WHERE c.type IN (com.optimize.elykia.core.enumaration.OperationType.CREDIT, com.optimize.elykia.core.enumaration.OperationType.CASH) "
+                    + "AND (cast(:startDate as date) IS NULL OR c.beginDate >= :startDate) "
+                    + "AND (cast(:endDate as date) IS NULL OR c.beginDate <= :endDate) "
+                    + "AND (:commercial IS NULL OR c.collector = :commercial) ";
+
+    @Query("SELECT new com.optimize.elykia.core.dto.SoldArticleDto("
+            + "a.id, CONCAT(a.type, ': ', a.marque, ' ', a.model), SUM(ca.quantity), c.collector, "
+            + "SUM(ca.quantity * (" + SOLD_LINE_UNIT_PRICE + "))) "
+            + SOLD_ARTICLES_FROM
+            + "GROUP BY a.id, a.type, a.marque, a.model, c.collector "
+            + "ORDER BY a.type ASC, a.marque ASC, a.model ASC, c.collector ASC")
     org.springframework.data.domain.Page<com.optimize.elykia.core.dto.SoldArticleDto> findSoldArticles(
-        @Param("startDate") LocalDate startDate, 
-        @Param("endDate") LocalDate endDate, 
-        @Param("commercial") String commercial, 
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate,
+        @Param("commercial") String commercial,
         Pageable pageable
+    );
+
+    @Query("SELECT COALESCE(SUM(ca.quantity * (" + SOLD_LINE_UNIT_PRICE + ")), 0.0) " + SOLD_ARTICLES_FROM)
+    Double sumSoldArticlesAmount(
+        @Param("startDate") LocalDate startDate,
+        @Param("endDate") LocalDate endDate,
+        @Param("commercial") String commercial
     );
 }

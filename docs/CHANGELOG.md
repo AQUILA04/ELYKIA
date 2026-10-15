@@ -47,6 +47,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Guide commercial mobile : pas à pas commande aligné sur le bouton **Valider**. Index RAG et guide HTML régénérés.
 
+## Frontend — [2.31.3] — 2026-10-15
+
+### Added
+
+- Articles vendus : colonnes **Prix unitaire** et **Prix total**, et bandeau **Montant total** recalculé selon la période et le commercial affichés.
+
+### Docs
+
+- Guide commercial : prix et montant total du rapport des articles vendus, y compris dans le PDF. Index RAG et guide HTML régénérés.
+
 ## Frontend — [2.31.2] — 2026-10-14
 
 ### Fixed
@@ -69,6 +79,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Docs
 
 - Guide gestionnaire (rapport journalier) : surplus, équilibrage et journal.
+
+## Backend — [1.34.3] — 2026-10-15
+
+### Added
+
+- Articles vendus : prix unitaire et prix total par ligne, montant total du filtre actif, et les mêmes montants dans le PDF.
 
 ## Backend — [1.34.2] — 2026-10-14
 

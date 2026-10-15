@@ -223,11 +223,16 @@ Cette procédure exceptionnelle est réservée aux régularisations :
 
 ## 10. Rapport des articles vendus (Menu Ventes > Articles)
 
-Cet écran synthétise les sorties commerciales de l'agence :
-- Regroupement des ventes par **Article** et par **Commercial**.
-- Affichage des quantités totales écoulées et des montants générés.
-- Filtres temporels rapides (aujourd'hui, semaine, mois, personnalisé) et filtre par commercial.
-- Export des données vers Excel ou PDF pour les réunions de bilan commercial.
+Cet écran regroupe les ventes par article et par commercial.
+
+1. Ouvrez le menu **Ventes**, puis **Articles**.
+2. Choisissez la période : **Ce jour**, **Cette semaine**, **Ce mois** ou **Personnalisé** (dates **Du** et **Au**).
+3. Pour limiter la liste à une personne, choisissez-la dans **Commercial**. **Tous les commerciaux** affiche l’ensemble.
+4. Le bandeau **Montant total** indique la somme des prix de toutes les lignes correspondant à ces filtres, y compris celles des autres pages.
+5. Chaque ligne affiche l’article, le commercial, la **Quantité totale**, le **Prix unitaire** et le **Prix total**.
+6. Cliquez sur **Télécharger** pour obtenir le PDF de la même sélection : les colonnes de prix et le montant total y figurent aussi.
+
+Le téléchargement porte sur un mois au plus.
 
 ---
 
