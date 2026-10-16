@@ -1,0 +1,16 @@
+<label class="photo-label" [attr.for]="inputId">{{ label }}</label>
+<div class="photo-picker">
+  <div class="photo-preview" *ngIf="previewSrc; else photoEmpty">
+    <img [src]="previewSrc" [alt]="alt" />
+  </div>
+  <ng-template #photoEmpty>
+    <div class="photo-preview photo-preview-empty">Aucune photo</div>
+  </ng-template>
+  <div class="photo-actions">
+    <label class="btn-photo" [attr.for]="inputId">Choisir une photo</label>
+    <input [id]="inputId" class="photo-input" type="file" accept="image/jpeg,image/png,image/webp" (change)="onPhotoSelected($event)" />
+    <button type="button" class="btn-photo-remove" *ngIf="canRemovePhoto" (click)="removePhoto()">Retirer</button>
+  </div>
+  <p class="photo-hint" *ngIf="showsInheritedPhoto">{{ inheritedHint }}</p>
+  <p class="photo-hint">5 Mo maximum. La photo est réduite automatiquement à l'enregistrement.</p>
+</div>

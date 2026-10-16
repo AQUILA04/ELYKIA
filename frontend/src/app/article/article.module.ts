@@ -13,6 +13,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { SharedComponentsModule } from '../shared/components/shared-components.module';
 import { ArticleRoutingModule } from './article-routing.module';
 import { AddComponent } from './add/add.component';
 import { ListComponent } from './list/list.component';
@@ -42,6 +43,7 @@ import { StockLotsTableComponent } from './details/components/stock-lots-table/s
   ],
   imports: [
     CommonModule,
+    SharedComponentsModule,
     RouterModule,
     ArticleRoutingModule,
     FormsModule,

@@ -22,6 +22,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor
@@ -44,7 +45,7 @@ public class ArticlePhotoService {
     }, allEntries = true)
     public Articles uploadArticle(Long id, byte[] bytes) {
         Articles article = requireArticle(id);
-        store(article, ArticlePhotoKeys.article(id), bytes);
+        store(article.getPhotoObjectKey(), ArticlePhotoKeys.article(id), bytes, article::setPhotoObjectKey);
         return articlesRepository.save(article);
     }
 
@@ -57,21 +58,21 @@ public class ArticlePhotoService {
     }, allEntries = true)
     public Articles deleteArticle(Long id) {
         Articles article = requireArticle(id);
-        clear(article);
+        clear(article.getPhotoObjectKey(), article::setPhotoObjectKey);
         return articlesRepository.save(article);
     }
 
     @Transactional
     public ArticleType uploadType(Long id, byte[] bytes) {
         ArticleType type = requireType(id);
-        store(type, ArticlePhotoKeys.type(id), bytes);
+        store(type.getPhotoObjectKey(), ArticlePhotoKeys.type(id), bytes, type::setPhotoObjectKey);
         return articleTypeRepository.save(type);
     }
 
     @Transactional
     public ArticleType deleteType(Long id) {
         ArticleType type = requireType(id);
-        clear(type);
+        clear(type.getPhotoObjectKey(), type::setPhotoObjectKey);
         return articleTypeRepository.save(type);
     }
 
@@ -142,36 +143,19 @@ public class ArticlePhotoService {
         return photos;
     }
 
-    private void store(Articles article, String newKey, byte[] bytes) {
+    private void store(String previous, String newKey, byte[] bytes, Consumer<String> assignKey) {
         byte[] jpeg = compressor.compress(bytes);
-        String previous = article.getPhotoObjectKey();
         minioStorageService.uploadObject(bucket(), newKey, jpeg, "image/jpeg");
         removePrevious(previous, newKey);
-        article.setPhotoObjectKey(newKey);
+        assignKey.accept(newKey);
         urlService.evict(newKey);
         urlService.evict(previous);
     }
 
-    private void store(ArticleType type, String newKey, byte[] bytes) {
-        byte[] jpeg = compressor.compress(bytes);
-        String previous = type.getPhotoObjectKey();
-        minioStorageService.uploadObject(bucket(), newKey, jpeg, "image/jpeg");
-        removePrevious(previous, newKey);
-        type.setPhotoObjectKey(newKey);
-        urlService.evict(newKey);
+    private void clear(String previous, Consumer<String> assignKey) {
+        removePrevious(previous, null);
         urlService.evict(previous);
-    }
-
-    private void clear(Articles article) {
-        removePrevious(article.getPhotoObjectKey(), null);
-        urlService.evict(article.getPhotoObjectKey());
-        article.setPhotoObjectKey(null);
-    }
-
-    private void clear(ArticleType type) {
-        removePrevious(type.getPhotoObjectKey(), null);
-        urlService.evict(type.getPhotoObjectKey());
-        type.setPhotoObjectKey(null);
+        assignKey.accept(null);
     }
 
     private void removePrevious(String previous, String replacement) {

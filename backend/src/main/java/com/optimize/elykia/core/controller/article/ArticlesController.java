@@ -1,6 +1,5 @@
 package com.optimize.elykia.core.controller.article;
 
-import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.ArticleListItemDto;
@@ -9,6 +8,7 @@ import com.optimize.elykia.core.dto.ArticlesDto;
 import com.optimize.elykia.core.dto.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.StockEntryDto;
 import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.service.store.ArticlePhotoBytes;
 import com.optimize.elykia.core.service.store.ArticlePhotoService;
 import com.optimize.elykia.core.service.store.ArticlePhotoView;
 import com.optimize.elykia.core.service.store.ArticleStockTrajectoryService;
@@ -30,7 +30,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -85,7 +84,7 @@ public class ArticlesController {
 
     @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Response> uploadPhoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
-        Articles article = articlePhotoService.uploadArticle(id, readPhoto(file));
+        Articles article = articlePhotoService.uploadArticle(id, ArticlePhotoBytes.read(file));
         articlePhotoService.attachArticleUrls(article);
         return new ResponseEntity<>(ResponseUtil.successResponse(article), HttpStatus.OK);
     }
@@ -245,16 +244,5 @@ public class ArticlesController {
 
     private List<ArticleListItemDto> withPhotos(List<Articles> articles) {
         return ArticleListItemDto.fromList(articles, articlePhotoService.viewForArticles(articles));
-    }
-
-    private static byte[] readPhoto(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new CustomValidationException("La photo est vide.");
-        }
-        try {
-            return file.getBytes();
-        } catch (IOException e) {
-            throw new CustomValidationException("La photo n'a pas pu être lue.");
-        }
     }
 }

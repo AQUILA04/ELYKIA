@@ -12,6 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -56,6 +58,10 @@ class ArticleTypeServiceTest {
 
     @Test
     void updateArticleType_ShouldReturnUpdatedArticleType() {
+        ArticleType existing = new ArticleType();
+        existing.setId(1L);
+        existing.setPhotoObjectKey("article-types/1.jpg");
+        when(articleTypeRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(articleTypeMapper.toEntity(articleTypeDto)).thenReturn(articleType);
         when(articleTypeRepository.saveAndFlush(any(ArticleType.class))).thenReturn(articleType);
 
@@ -63,6 +69,7 @@ class ArticleTypeServiceTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(1L);
+        assertThat(articleType.getPhotoObjectKey()).isEqualTo("article-types/1.jpg");
         verify(articleTypeRepository, times(1)).saveAndFlush(any(ArticleType.class));
     }
 }

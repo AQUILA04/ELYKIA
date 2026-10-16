@@ -1,7 +1,7 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { ItemService, Article, NewArticleData } from '../service/item.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
@@ -9,6 +9,10 @@ import { TokenStorageService } from 'src/app/shared/service/token-storage.servic
 import { NgxSpinnerService } from 'ngx-spinner';
 
 import { ArticleTypeService, ArticleType } from 'src/app/article-type/service/article-type.service';
+import {
+  ArticlePhotoFieldComponent,
+  saveArticlePhoto
+} from 'src/app/shared/components/article-photo-field/article-photo-field.component';
 
 @Component({
   selector: 'app-add',
@@ -16,7 +20,9 @@ import { ArticleTypeService, ArticleType } from 'src/app/article-type/service/ar
   styleUrls: ['./add.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class AddComponent implements OnInit, OnDestroy {
+export class AddComponent implements OnInit {
+  @ViewChild(ArticlePhotoFieldComponent) photoField?: ArticlePhotoFieldComponent;
+
   articleForm!: FormGroup;
   articleId?: number;
   types: ArticleType[] = [];
@@ -24,10 +30,6 @@ export class AddComponent implements OnInit, OnDestroy {
   isLoading = false;
   existingOwnPhoto: string | null = null;
   inheritedPhotoUrl: string | null = null;
-  photoRemoved = false;
-  photoFile: File | null = null;
-  previewObjectUrl: string | null = null;
-  private readonly maxPhotoBytes = 5 * 1024 * 1024;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -49,28 +51,6 @@ export class AddComponent implements OnInit, OnDestroy {
         this.loadArticle(this.articleId);
       }
     });
-  }
-
-  ngOnDestroy(): void {
-    this.revokePreview();
-  }
-
-  get previewSrc(): string | null {
-    if (this.previewObjectUrl) {
-      return this.previewObjectUrl;
-    }
-    if (!this.photoRemoved && this.existingOwnPhoto) {
-      return this.existingOwnPhoto;
-    }
-    return this.inheritedPhotoUrl;
-  }
-
-  get canRemovePhoto(): boolean {
-    return !!this.previewObjectUrl || (!this.photoRemoved && !!this.existingOwnPhoto);
-  }
-
-  get showsInheritedPhoto(): boolean {
-    return !this.previewObjectUrl && (this.photoRemoved || !this.existingOwnPhoto) && !!this.inheritedPhotoUrl;
   }
 
   loadTypes(): void {
@@ -269,29 +249,6 @@ export class AddComponent implements OnInit, OnDestroy {
     this.router.navigate(['/article/list']);
   }
 
-  onPhotoSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files && input.files[0];
-    input.value = '';
-    if (!file) {
-      return;
-    }
-    if (file.size > this.maxPhotoBytes) {
-      this.alertService.showError('La photo ne doit pas dépasser 5 Mo');
-      return;
-    }
-    this.photoFile = file;
-    this.photoRemoved = false;
-    this.revokePreview();
-    this.previewObjectUrl = URL.createObjectURL(file);
-  }
-
-  removePhoto(): void {
-    this.photoFile = null;
-    this.photoRemoved = true;
-    this.revokePreview();
-  }
-
   private refreshInherited(typeName: string): void {
     const match = this.types.find(type => type.name === typeName);
     if (!match) {
@@ -301,22 +258,11 @@ export class AddComponent implements OnInit, OnDestroy {
   }
 
   private persistPhoto(id?: number): Observable<unknown> {
-    if (!id) {
-      return of(null);
-    }
-    if (this.photoFile) {
-      return this.itemService.uploadPhoto(id, this.photoFile);
-    }
-    if (this.photoRemoved && this.existingOwnPhoto) {
-      return this.itemService.deletePhoto(id);
-    }
-    return of(null);
-  }
-
-  private revokePreview(): void {
-    if (this.previewObjectUrl) {
-      URL.revokeObjectURL(this.previewObjectUrl);
-      this.previewObjectUrl = null;
-    }
+    return saveArticlePhoto(
+      id,
+      this.photoField,
+      (photoId, file) => this.itemService.uploadPhoto(photoId, file),
+      (photoId) => this.itemService.deletePhoto(photoId)
+    );
   }
 }

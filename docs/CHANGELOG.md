@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.36.1] — 2026-10-16
+
+### Fixed
+
+- La mise à jour d'un type d'article conserve sa photo. Le test unitaire charge le type existant avant l'enregistrement.
+
 ## Backend — [1.36.0] — 2026-10-16
 
 ### Added
@@ -32,6 +38,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.32.1] — 2026-10-16
+
+### Fixed
+
+- Le choix de photo des formulaires article et type d'article passe par le même champ : aperçu, limite de 5 Mo et retrait.
 
 ## Frontend — [2.32.0] — 2026-10-16
 

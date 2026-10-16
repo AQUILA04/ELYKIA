@@ -1,10 +1,10 @@
 package com.optimize.elykia.core.controller.article;
 
-import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.ArticleTypeDto;
 import com.optimize.elykia.core.entity.article.ArticleType;
+import com.optimize.elykia.core.service.store.ArticlePhotoBytes;
 import com.optimize.elykia.core.service.store.ArticlePhotoService;
 import com.optimize.elykia.core.service.store.ArticleTypeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,7 +18,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -73,7 +72,7 @@ public class ArticleTypeController {
     @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Enregistre la photo réduite d'un type d'article")
     public ResponseEntity<Response> uploadPhoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(withPhoto(articlePhotoService.uploadType(id, readPhoto(file)))), HttpStatus.OK);
+        return new ResponseEntity<>(ResponseUtil.successResponse(withPhoto(articlePhotoService.uploadType(id, ArticlePhotoBytes.read(file)))), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}/photo")
@@ -85,16 +84,5 @@ public class ArticleTypeController {
     private ArticleType withPhoto(ArticleType type) {
         articlePhotoService.attachTypeUrls(type == null ? List.of() : List.of(type));
         return type;
-    }
-
-    private static byte[] readPhoto(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new CustomValidationException("La photo est vide.");
-        }
-        try {
-            return file.getBytes();
-        } catch (IOException e) {
-            throw new CustomValidationException("La photo n'a pas pu être lue.");
-        }
     }
 }
