@@ -92,7 +92,7 @@ Avant de choisir **Confirmer l’opération**, contrôlez le résumé financier.
 
 ## Contrôler la tontine depuis le web
 
-La fiche membre tontine donne accès au bouton **Contrôle terrain** pour le Chef de recouvrement. Le contrôle se réalise mois par mois : l’utilisateur sélectionne les mois, saisit les montants indiqués sur le carnet et peut ajouter une note. La fiche conserve ensuite le total système, le total carnet, l’écart, le statut **Conforme** ou **Disparité**, la date et l’auteur.
+La fiche membre tontine donne accès au bouton **Contrôle terrain** pour le Chef de recouvrement. Lorsque plusieurs commerciaux ont collecté pour le même membre, le formulaire présente **un bloc par commercial**. Dans chaque bloc, sélectionnez les mois concernés et saisissez le montant marqué dans le carnet de ce commercial. L’écart s’affiche pour chaque commercial, puis au total. Un commercial laissé sans mois sélectionné reste **non contrôlé** pour cette visite. La fiche conserve ensuite le total système, le total carnet, l’écart, le statut **Conforme** ou **Disparité**, le détail par commercial, la date et l’auteur.
 
 La vérification administrative du carnet est une action distincte du contrôle terrain. Le badge **Carnet vérifié** peut être appliqué ou retiré seulement si vous disposez des habilitations nécessaires ; il atteste la vérification physique du carnet sans modifier les montants des collectes ni l’état du contrôle terrain.
 
@@ -177,7 +177,7 @@ Sous la recherche, deux totaux indiquent le nombre de clients tontine et le nomb
 | Retards | Vérifier ou annuler la vérification d’un carnet, puis utiliser **Naviguer** lorsqu’une position est disponible. |
 | Tontine | Vérifier ou annuler la vérification d’un carnet, lancer un contrôle, ou passer en mode sélection pour une vérification en masse. |
 
-Le contrôle tontine permet de sélectionner les mois à contrôler et de saisir le montant écrit dans le carnet pour chaque mois. L’application calcule la comparaison **Système / Carnet / Écart** et accepte une note. Le badge **Vérifié** indique la vérification de carnet, tandis que le badge **CONFORME** ou **ECART** correspond au résultat d’un contrôle : ces deux informations sont complémentaires et ne doivent pas être confondues.
+Le contrôle tontine ouvre un formulaire par commercial lorsque plusieurs agents ont collecté pour le membre. Dans chaque bloc (le commercial actuel est signalé), sélectionnez les mois à contrôler et saisissez le montant écrit dans le carnet de ce commercial. L’application calcule la comparaison **Système / Carnet / Écart** pour le commercial et pour l’ensemble de la sélection, et accepte une note. Vous pouvez contrôler un seul commercial lors d’une visite : les autres restent non contrôlés. Le badge **Vérifié** indique la vérification de carnet, tandis que le badge **CONFORME** ou **ECART** correspond au résultat d’un contrôle : ces deux informations sont complémentaires et ne doivent pas être confondues.
 
 <!-- CAPTURE À INSÉRER : Mobile Chef de recouvrement — onglet Terrain avec membres tontine, badge Vérifié et contrôle par mois. -->
 

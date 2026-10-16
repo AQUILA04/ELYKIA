@@ -1,22 +1,22 @@
 ---
+name: Activation FIFO atomique
+overview: Activer ENABLED_FIFO_STOCK_VALUATION crée, dans la même transaction, un lot d'ouverture égal au stock existant. Le stockQuantity n'est pas modifié. Les réceptions suivantes créent les lots suivants, consommés après ce premier lot.
 todos:
   - id: tx-parameter
-    status: completed
-    content: 'Rendre ParameterService.create/update transactionnels, sans y mettre de logique stock'
+    content: Rendre ParameterService.create/update transactionnels, sans y mettre de logique stock
+    status: pending
   - id: opening-lot
-    status: completed
-    content: 'À l''activation, un lot MIGRATION par article en stock, quantité = stockQuantity, sans modifier le stock'
+    content: À l'activation, un lot MIGRATION par article en stock, quantité = stockQuantity, sans modifier le stock
+    status: pending
   - id: listener
-    status: completed
-    content: 'Listener synchrone dans le backend sur ParameterUpdatedEvent (false vers true), refus du true vers false'
+    content: Listener synchrone dans le backend sur ParameterUpdatedEvent (false vers true), refus du true vers false
+    status: pending
   - id: lock-writes
-    status: completed
-    content: 'Verrouiller la ligne du paramètre au début des écritures déjà branchées FIFO, pour que le lot d''ouverture soit le premier'
+    content: Verrouiller la ligne du paramètre au début des écritures déjà branchées FIFO, pour que le lot d'ouverture soit le premier
+    status: pending
   - id: tests-guide
-    status: in_progress
-    content: 'Tests du lot d''ouverture, guide utilisateur, index RAG et changelog'
-name: Activation FIFO atomique
-overview: 'Activer ENABLED_FIFO_STOCK_VALUATION crée, dans la même transaction, un lot d''ouverture égal au stock existant. Le stockQuantity n''est pas modifié. Les réceptions suivantes créent les lots suivants, consommés après ce premier lot.'
+    content: Tests du lot d'ouverture, guide utilisateur, index RAG et changelog
+    status: pending
 isProject: false
 ---
 

@@ -224,10 +224,48 @@
       {{ fieldControlLatest.note }}
     </div>
 
+    <div class="field-control-collectors" *ngIf="fieldControlLatest.collectors?.length">
+      <div class="field-control-collector" *ngFor="let collector of fieldControlLatest.collectors">
+        <div class="field-control-collector-head">
+          <strong>{{ collector.commercialUsername }}</strong>
+          <span class="field-control-badge"
+                [ngClass]="collector.status === 'CONFORME' ? 'badge-ok' : 'badge-gap'">
+            {{ collector.status === 'CONFORME' ? 'Conforme' : 'Disparité' }}
+          </span>
+        </div>
+        <div class="field-control-month-values">
+          <span>Système : <strong class="mono">{{ formatCurrency(collector.systemTotalAmount) }}</strong></span>
+          <span class="sep" aria-hidden="true">|</span>
+          <span>Carnet : <strong class="mono">{{ formatCurrency(collector.notebookTotalAmount) }}</strong></span>
+          <span class="sep" aria-hidden="true">|</span>
+          <span>
+            Écart :
+            <strong class="mono" [ngClass]="collector.differenceAmount === 0 ? 'is-ok' : 'is-gap'">
+              {{ formatCurrency(collector.differenceAmount) }}
+            </strong>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <ng-container *ngIf="fieldControlLatest.uncontrolledCollectors as uncontrolled">
+      <div class="field-control-uncontrolled"
+           *ngIf="uncontrolled.length"
+           data-testid="e2e-member-field-control-uncontrolled">
+        Non contrôlés :
+        <strong>{{ uncontrolled.join(', ') }}</strong>
+      </div>
+    </ng-container>
+
     <div class="field-control-lines" *ngIf="fieldControlLatest.lines?.length">
       <div class="field-control-month" *ngFor="let line of fieldControlLatest.lines">
         <div class="field-control-month-name">
-          {{ getFieldControlMonthLabel(line.month) }} {{ line.year }}
+          <ng-container *ngIf="line.commercialUsername; else legacyCommercial">
+            {{ line.commercialUsername }} · {{ getFieldControlMonthLabel(line.month) }} {{ line.year }}
+          </ng-container>
+          <ng-template #legacyCommercial>
+            Ensemble des commerciaux · {{ getFieldControlMonthLabel(line.month) }} {{ line.year }}
+          </ng-template>
         </div>
         <div class="field-control-month-values">
           <span>Système : <strong class="mono">{{ formatCurrency(line.systemAmount) }}</strong></span>

@@ -2,29 +2,30 @@ import { Component, Inject, OnInit, ViewEncapsulation } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { TontineService } from '../../../services/tontine.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
-
-export interface TontineFieldControlMonthOption {
-  year: number;
-  /** Index JS Date.getMonth() (Fév = 1 … Nov = 10). */
-  jsMonth: number;
-  monthName: string;
-  totalAmount: number;
-}
+import { TontineFieldControlCollectorOption } from '../../../models/tontine-member-field-control.model';
 
 export interface TontineFieldControlMonthRow {
   year: number;
   /** Mois calendaire 1–12. */
   calendarMonth: number;
   monthName: string;
+  commercialUsername: string;
   systemAmount: number;
   selected: boolean;
   notebookAmount: number | null;
 }
 
+export interface TontineFieldControlCollectorBlock {
+  commercialUsername: string;
+  currentCollector: boolean;
+  totalAmount: number;
+  rows: TontineFieldControlMonthRow[];
+}
+
 export interface TontineFieldControlModalData {
   memberId: number;
   memberName: string;
-  monthlySummaries: TontineFieldControlMonthOption[];
+  collectors: TontineFieldControlCollectorOption[];
 }
 
 @Component({
@@ -37,7 +38,7 @@ export interface TontineFieldControlModalData {
 export class TontineFieldControlModalComponent implements OnInit {
   note = '';
   isSubmitting = false;
-  rows: TontineFieldControlMonthRow[] = [];
+  blocks: TontineFieldControlCollectorBlock[] = [];
   private requestReference = '';
 
   constructor(
@@ -46,13 +47,19 @@ export class TontineFieldControlModalComponent implements OnInit {
     private tontineService: TontineService,
     private alertService: AlertService
   ) {
-    this.rows = (data.monthlySummaries || []).map(summary => ({
-      year: summary.year,
-      calendarMonth: summary.jsMonth + 1,
-      monthName: summary.monthName,
-      systemAmount: summary.totalAmount || 0,
-      selected: false,
-      notebookAmount: null
+    this.blocks = (data.collectors || []).map(collector => ({
+      commercialUsername: collector.commercialUsername,
+      currentCollector: collector.currentCollector === true,
+      totalAmount: collector.totalAmount || 0,
+      rows: (collector.months || []).map(summary => ({
+        year: summary.year,
+        calendarMonth: summary.jsMonth + 1,
+        monthName: summary.monthName,
+        commercialUsername: collector.commercialUsername,
+        systemAmount: summary.totalAmount || 0,
+        selected: false,
+        notebookAmount: null
+      }))
     }));
   }
 
@@ -61,7 +68,7 @@ export class TontineFieldControlModalComponent implements OnInit {
   }
 
   get selectedRows(): TontineFieldControlMonthRow[] {
-    return this.rows.filter(r => r.selected);
+    return this.blocks.flatMap(b => b.rows.filter(r => r.selected));
   }
 
   get isValid(): boolean {
@@ -69,7 +76,21 @@ export class TontineFieldControlModalComponent implements OnInit {
     if (selected.length === 0) {
       return false;
     }
-    return selected.every(r => r.notebookAmount !== null && r.notebookAmount >= 0);
+    return selected.every(r =>
+      !!r.commercialUsername
+      && r.notebookAmount !== null
+      && r.notebookAmount >= 0);
+  }
+
+  blockSelected(block: TontineFieldControlCollectorBlock): TontineFieldControlMonthRow[] {
+    return block.rows.filter(r => r.selected);
+  }
+
+  blockDifference(block: TontineFieldControlCollectorBlock): number {
+    return this.blockSelected(block).reduce(
+      (sum, r) => sum + ((r.notebookAmount || 0) - (r.systemAmount || 0)),
+      0
+    );
   }
 
   toggleRow(row: TontineFieldControlMonthRow): void {
@@ -102,6 +123,7 @@ export class TontineFieldControlModalComponent implements OnInit {
       months: this.selectedRows.map(r => ({
         year: r.year,
         month: r.calendarMonth,
+        commercialUsername: r.commercialUsername,
         notebookAmount: r.notebookAmount as number
       })),
       note: this.note?.trim() || undefined

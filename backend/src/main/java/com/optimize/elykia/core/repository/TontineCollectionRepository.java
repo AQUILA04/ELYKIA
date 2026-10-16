@@ -4,6 +4,7 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.dto.TontineCollectionRespDto;
 import com.optimize.elykia.core.dto.TontineMemberMonthlyAggregateDto;
+import com.optimize.elykia.core.dto.TontineMemberMonthlyByCommercialAggregateDto;
 import com.optimize.elykia.core.dto.customer.CustomerTontinePaymentDto;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import org.springframework.data.domain.Page;
@@ -86,6 +87,63 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             """)
     java.util.List<TontineMemberMonthlyAggregateDto> sumMonthlyByMemberId(
             @Param("memberId") Long memberId,
+            @Param("state") State state);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.TontineMemberMonthlyByCommercialAggregateDto(
+                tm.id,
+                tc.commercialUsername,
+                YEAR(tc.collectionDate),
+                MONTH(tc.collectionDate),
+                COUNT(tc.id),
+                COALESCE(SUM(tc.amount), 0)
+            )
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            WHERE tm.id = :memberId
+              AND tc.state = :state
+              AND tc.commercialUsername IS NOT NULL
+            GROUP BY tm.id, tc.commercialUsername, YEAR(tc.collectionDate), MONTH(tc.collectionDate)
+            """)
+    java.util.List<TontineMemberMonthlyByCommercialAggregateDto> sumMonthlyByMemberIdAndCommercial(
+            @Param("memberId") Long memberId,
+            @Param("state") State state);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.TontineMemberMonthlyByCommercialAggregateDto(
+                tm.id,
+                tc.commercialUsername,
+                YEAR(tc.collectionDate),
+                MONTH(tc.collectionDate),
+                COUNT(tc.id),
+                COALESCE(SUM(tc.amount), 0)
+            )
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            JOIN tm.tontineSession s
+            JOIN tm.client c
+            WHERE s.year = :year
+              AND c.tontineCollector IN :collectors
+              AND tc.state = :state
+              AND tc.commercialUsername IS NOT NULL
+            GROUP BY tm.id, tc.commercialUsername, YEAR(tc.collectionDate), MONTH(tc.collectionDate)
+            """)
+    java.util.List<TontineMemberMonthlyByCommercialAggregateDto> sumMonthlyBySessionYearAndCommercialForCollectors(
+            @Param("year") Integer year,
+            @Param("collectors") java.util.List<String> collectors,
+            @Param("state") State state);
+
+    @Query("""
+            SELECT tm.id, tc.commercialUsername, MIN(tc.collectionDate)
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            WHERE tm.id IN :memberIds
+              AND tc.state = :state
+              AND tc.commercialUsername IS NOT NULL
+            GROUP BY tm.id, tc.commercialUsername
+            """)
+    java.util.List<Object[]> findFirstCollectionDateByMemberAndCommercial(
+            @Param("memberIds") java.util.Collection<Long> memberIds,
             @Param("state") State state);
 
     @Query("SELECT SUM(tc.amount) FROM TontineCollection tc WHERE tc.tontineMember.id = :memberId AND tc.isDeliveryCollection = true AND tc.state = :state")

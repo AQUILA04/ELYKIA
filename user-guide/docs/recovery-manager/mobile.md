@@ -56,7 +56,7 @@ Sous la recherche, deux totaux indiquent le nombre de clients tontine et le nomb
 | Retards | Vérifier ou annuler la vérification d’un carnet, puis utiliser **Naviguer** lorsqu’une position est disponible. |
 | Tontine | Vérifier ou annuler la vérification d’un carnet, lancer un contrôle, ou passer en mode sélection pour une vérification en masse. |
 
-Le contrôle tontine permet de sélectionner les mois à contrôler et de saisir le montant écrit dans le carnet pour chaque mois. L’application calcule la comparaison **Système / Carnet / Écart** et accepte une note. Le badge **Vérifié** indique la vérification de carnet, tandis que le badge **CONFORME** ou **ECART** correspond au résultat d’un contrôle : ces deux informations sont complémentaires et ne doivent pas être confondues.
+Le contrôle tontine ouvre un formulaire par commercial lorsque plusieurs agents ont collecté pour le membre. Dans chaque bloc (le commercial actuel est signalé), sélectionnez les mois à contrôler et saisissez le montant écrit dans le carnet de ce commercial. L’application calcule la comparaison **Système / Carnet / Écart** pour le commercial et pour l’ensemble de la sélection, et accepte une note. Vous pouvez contrôler un seul commercial lors d’une visite : les autres restent non contrôlés. Le badge **Vérifié** indique la vérification de carnet, tandis que le badge **CONFORME** ou **ECART** correspond au résultat d’un contrôle : ces deux informations sont complémentaires et ne doivent pas être confondues.
 
 <!-- CAPTURE À INSÉRER : Mobile Chef de recouvrement — onglet Terrain avec membres tontine, badge Vérifié et contrôle par mois. -->
 

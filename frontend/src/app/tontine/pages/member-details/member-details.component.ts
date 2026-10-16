@@ -33,6 +33,7 @@ import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constan
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import {
+  TontineFieldControlCollectorOption,
   TontineMemberFieldControlDto
 } from '../../models/tontine-member-field-control.model';
 
@@ -288,12 +289,12 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
 
     this.isFieldControlBusy = true;
     const dialogRef = this.dialog.open(TontineFieldControlModalComponent, {
-      width: '760px',
+      width: '820px',
       maxWidth: '95vw',
       data: {
         memberId: this.member.id,
         memberName: this.getClientName(),
-        monthlySummaries: this.monthlyCollectionSummaries
+        collectors: this.fieldControlCollectorOptions
       },
       disableClose: true,
       panelClass: 'tontine-field-control-dialog-panel',
@@ -306,6 +307,78 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
         this.loadFieldControl(this.member.id);
       }
     });
+  }
+
+  /** Répartition des montants système par commercial pour le modal de contrôle. */
+  get fieldControlCollectorOptions(): TontineFieldControlCollectorOption[] {
+    const sessionYear = this.member?.tontineSession?.year ?? new Date().getFullYear();
+    const currentCollector = this.member?.client?.tontineCollector
+      || this.contributionsByCommercial.find(c => c.currentCollector)?.commercialUsername
+      || '';
+
+    const byCommercial = new Map<string, {
+      firstDate: number;
+      months: Map<number, number>;
+    }>();
+
+    for (const collection of this.collectionsDataSource.data) {
+      const commercial = (collection.commercialUsername || '').trim();
+      if (!commercial) {
+        continue;
+      }
+      const date = new Date(collection.collectionDate);
+      if (date.getFullYear() !== sessionYear) {
+        continue;
+      }
+      const jsMonth = date.getMonth();
+      if (!(TONTINE_JS_MONTHS as readonly number[]).includes(jsMonth)) {
+        continue;
+      }
+      let entry = byCommercial.get(commercial);
+      if (!entry) {
+        entry = { firstDate: date.getTime(), months: new Map() };
+        byCommercial.set(commercial, entry);
+      } else {
+        entry.firstDate = Math.min(entry.firstDate, date.getTime());
+      }
+      entry.months.set(jsMonth, (entry.months.get(jsMonth) || 0) + (collection.amount || 0));
+    }
+
+    if (currentCollector && ![...byCommercial.keys()].some(c => c.toLowerCase() === currentCollector.toLowerCase())) {
+      byCommercial.set(currentCollector, { firstDate: Number.MAX_SAFE_INTEGER, months: new Map() });
+    }
+
+    // Fallback : utiliser la synthèse cotisations si aucune collecte paginée n'est encore chargée.
+    if (byCommercial.size === 0) {
+      for (const contribution of this.contributionsByCommercial) {
+        const commercial = (contribution.commercialUsername || '').trim();
+        if (!commercial) {
+          continue;
+        }
+        byCommercial.set(commercial, { firstDate: Number.MAX_SAFE_INTEGER, months: new Map() });
+      }
+    }
+
+    return [...byCommercial.entries()]
+      .sort((a, b) => a[1].firstDate - b[1].firstDate || a[0].localeCompare(b[0], undefined, { sensitivity: 'base' }))
+      .map(([commercialUsername, entry]) => {
+        const months = this.monthsList.map((monthName, index) => {
+          const jsMonth = TONTINE_JS_MONTHS[index];
+          return {
+            monthName,
+            year: sessionYear,
+            jsMonth,
+            totalAmount: entry.months.get(jsMonth) || 0
+          };
+        });
+        return {
+          commercialUsername,
+          currentCollector: !!currentCollector
+            && commercialUsername.toLowerCase() === currentCollector.toLowerCase(),
+          totalAmount: months.reduce((sum, m) => sum + m.totalAmount, 0),
+          months
+        };
+      });
   }
 
   onToggleCarnetVerification(): void {

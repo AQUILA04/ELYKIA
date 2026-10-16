@@ -12,35 +12,54 @@
   <div class="modal-body">
     <div class="member-info">
       <p><strong>Membre :</strong> {{ data.memberName }}</p>
-      <p class="hint">Sélectionnez les mois contrôlés et saisissez le total marqué dans le carnet pour chacun.</p>
+      <p class="hint">
+        Contrôlez chaque commercial séparément : sélectionnez les mois et saisissez le montant marqué dans son carnet.
+      </p>
     </div>
 
-    <div class="months-list">
-      <div class="month-row" *ngFor="let row of rows" [class.selected]="row.selected">
-        <label class="month-check">
-          <input
-            type="checkbox"
-            [checked]="row.selected"
-            [disabled]="isSubmitting"
-            (change)="toggleRow(row)"
-          />
-          <span class="month-name">{{ row.monthName }} {{ row.year }}</span>
-        </label>
-        <div class="month-system">
-          Système : <strong>{{ row.systemAmount | number }} FCFA</strong>
+    <div class="collector-block" *ngFor="let block of blocks" [attr.data-commercial]="block.commercialUsername">
+      <div class="collector-head">
+        <div>
+          <strong>{{ block.commercialUsername }}</strong>
+          <span class="collector-total">Système : {{ block.totalAmount | number }} FCFA</span>
         </div>
-        <div class="month-input" *ngIf="row.selected">
-          <label [attr.for]="'notebook-' + row.year + '-' + row.calendarMonth">Carnet</label>
-          <div class="input-wrap">
+        <span class="current-badge" *ngIf="block.currentCollector">Actuel</span>
+      </div>
+
+      <div class="collector-gap" *ngIf="blockSelected(block).length">
+        Écart {{ block.commercialUsername }} :
+        <strong [class.is-ok]="blockDifference(block) === 0" [class.is-gap]="blockDifference(block) !== 0">
+          {{ blockDifference(block) | number }} FCFA
+        </strong>
+      </div>
+
+      <div class="months-list">
+        <div class="month-row" *ngFor="let row of block.rows" [class.selected]="row.selected">
+          <label class="month-check">
             <input
-              [id]="'notebook-' + row.year + '-' + row.calendarMonth"
-              type="number"
-              min="0"
-              [(ngModel)]="row.notebookAmount"
+              type="checkbox"
+              [checked]="row.selected"
               [disabled]="isSubmitting"
-              placeholder="0"
+              (change)="toggleRow(row)"
             />
-            <span class="input-suffix">FCFA</span>
+            <span class="month-name">{{ row.monthName }} {{ row.year }}</span>
+          </label>
+          <div class="month-system">
+            Système : <strong>{{ row.systemAmount | number }} FCFA</strong>
+          </div>
+          <div class="month-input" *ngIf="row.selected">
+            <label [attr.for]="'notebook-' + block.commercialUsername + '-' + row.year + '-' + row.calendarMonth">Carnet</label>
+            <div class="input-wrap">
+              <input
+                [id]="'notebook-' + block.commercialUsername + '-' + row.year + '-' + row.calendarMonth"
+                type="number"
+                min="0"
+                [(ngModel)]="row.notebookAmount"
+                [disabled]="isSubmitting"
+                placeholder="0"
+              />
+              <span class="input-suffix">FCFA</span>
+            </div>
           </div>
         </div>
       </div>

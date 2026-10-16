@@ -394,14 +394,14 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                   AND tm.state = :state
                   AND (
                     :search IS NULL
-                    OR function('translate', lower(concat(coalesce(c.firstname, ''), ' ', coalesce(c.lastname, ''))),
-                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE concat('%', :search, '%')
-                    OR function('translate', lower(coalesce(c.quarter, '')),
-                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE concat('%', :search, '%')
-                    OR function('translate', lower(coalesce(c.tontineCollector, '')),
-                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE concat('%', :search, '%')
+                    OR cast(function('translate', lower(concat(coalesce(c.firstname, ''), ' ', coalesce(c.lastname, ''))),
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
+                    OR cast(function('translate', lower(coalesce(c.quarter, '')),
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
+                    OR cast(function('translate', lower(coalesce(c.tontineCollector, '')),
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
                     OR lower(coalesce(c.phone, '')) LIKE concat('%', :search, '%')
-                    OR (:digits IS NOT NULL AND lower(function('replace', coalesce(c.phone, ''), ' ', '')) LIKE concat('%', :digits, '%'))
+                    OR (:digits IS NOT NULL AND lower(cast(function('replace', coalesce(c.phone, ''), ' ', '') as string)) LIKE concat('%', :digits, '%'))
                   )
                 ORDER BY c.lastname ASC, c.firstname ASC, tm.id ASC
                 """)

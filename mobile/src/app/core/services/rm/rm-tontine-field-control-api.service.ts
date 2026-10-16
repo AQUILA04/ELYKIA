@@ -13,7 +13,7 @@ export class RmTontineFieldControlApiService {
 
   async create(memberId: number, payload: {
     reference: string;
-    months: { year: number; month: number; notebookAmount: number }[];
+    months: { year: number; month: number; commercialUsername: string; notebookAmount: number }[];
     note?: string;
     observedAt?: string;
   }): Promise<RmTontineFieldControlDto> {
