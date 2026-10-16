@@ -248,12 +248,14 @@
       </div>
     </div>
 
-    <div class="field-control-uncontrolled"
-         *ngIf="fieldControlLatest.uncontrolledCollectors?.length"
-         data-testid="e2e-member-field-control-uncontrolled">
-      Non contrôlés :
-      <strong>{{ fieldControlLatest.uncontrolledCollectors.join(', ') }}</strong>
-    </div>
+    <ng-container *ngIf="fieldControlLatest.uncontrolledCollectors as uncontrolled">
+      <div class="field-control-uncontrolled"
+           *ngIf="uncontrolled.length"
+           data-testid="e2e-member-field-control-uncontrolled">
+        Non contrôlés :
+        <strong>{{ uncontrolled.join(', ') }}</strong>
+      </div>
+    </ng-container>
 
     <div class="field-control-lines" *ngIf="fieldControlLatest.lines?.length">
       <div class="field-control-month" *ngFor="let line of fieldControlLatest.lines">

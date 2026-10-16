@@ -66,7 +66,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit {
   }
 
   get allRows(): MonthRow[] {
-    return this.blocks.flatMap(b => b.rows);
+    return this.blocks.reduce((rows: MonthRow[], block) => rows.concat(block.rows), []);
   }
 
   get selectedRows(): MonthRow[] {

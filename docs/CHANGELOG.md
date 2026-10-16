@@ -9,6 +9,24 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.34.6] — 2026-10-16
+
+### Fixed
+
+- Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.31.5] — 2026-10-16
+
+### Fixed
+
+- Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.33.13] — 2026-10-16
+
+### Fixed
+
+- Contrôle tontine Terrain : le regroupement des mois par commercial compile avec la cible TypeScript du projet.
+
 ## Backend — [1.34.5] — 2026-10-16
 
 ### Added
