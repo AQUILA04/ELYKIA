@@ -44,6 +44,11 @@ public class Client extends Auditable<String> {
     private String contactPersonAddress;
     private String collector;
     private String quarter;
+
+    /** Vrai si le quartier a été saisi librement (option « AUTRES ») et n'est pas encore une localité. */
+    @Column(name = "custom_quarter", nullable = false)
+    private boolean customQuarter = false;
+
     private Boolean creditInProgress;
     @ToString.Exclude
     @OneToOne(mappedBy = "client", cascade = CascadeType.ALL)

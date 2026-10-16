@@ -63,6 +63,7 @@ export class AuthDesktopComponent {
   readonly profilPhotoSelected = output<Event>();
   readonly dateOfBirthChanged = output<void>();
   readonly retryLocalities = output<void>();
+  readonly localityCustomChange = output<boolean>();
   readonly back = output<void>();
   readonly termsAcceptedChange = output<boolean>();
   readonly termsOpenChange = output<boolean>();

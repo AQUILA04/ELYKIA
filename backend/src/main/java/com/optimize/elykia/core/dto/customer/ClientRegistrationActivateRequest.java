@@ -19,4 +19,10 @@ public class ClientRegistrationActivateRequest {
 
     /** Si true et dépôt INITIE présent, le valide et crédite le solde. */
     private boolean validateInitialDeposit = true;
+
+    /**
+     * Nom de zone corrigé par le gestionnaire, obligatoire si le dossier a une zone libre.
+     */
+    @Size(max = 100)
+    private String quarter;
 }

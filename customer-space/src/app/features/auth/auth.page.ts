@@ -12,6 +12,7 @@ import {
   AuthStep,
   CustomerLoginResponse,
   CustomerLocality,
+  OTHER_LOCALITY_LABEL,
 } from '../../shared/models/customer-auth.model';
 import { environment } from '../../../environments/environment';
 import { INVALID_TOGO_PHONE_MESSAGE, toUsername } from '../../shared/utils/phone-normalizer';
@@ -91,6 +92,7 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
   appVersion = environment.version;
   isRegistrationFlow = false;
   localities: CustomerLocality[] = [];
+  localityIsCustom = false;
   localitiesLoading = false;
   localitiesError = '';
 
@@ -127,7 +129,7 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
       firstname: ['', [Validators.required, Validators.maxLength(100)]],
       lastname: ['', [Validators.required, Validators.maxLength(100)]],
       address: ['', [Validators.required, Validators.maxLength(255)]],
-      quarter: ['', [Validators.required, Validators.maxLength(100)]],
+      quarter: ['', [Validators.required, Validators.maxLength(100), AuthPage.quarterNotBlank]],
       dateOfBirth: ['', [Validators.required, adultDateOfBirthValidator()]],
       occupation: ['', [Validators.required, Validators.maxLength(100)]],
     });
@@ -163,6 +165,7 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     this.localities = [];
     this.localitiesLoading = false;
     this.localitiesError = '';
+    this.localityIsCustom = false;
     this.clearResendTimer();
     this.resendCountdown = 0;
     this.phoneForm.reset();
@@ -171,6 +174,19 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     this.setupPinForm.reset();
     this.registerForm.reset();
     this.registerPinForm.reset();
+  }
+
+  onLocalityCustomChange(custom: boolean): void {
+    this.localityIsCustom = custom;
+  }
+
+  private static quarterNotBlank(control: { value: unknown }) {
+    const value = String(control.value ?? '').trim();
+    return value ? null : { required: true };
+  }
+
+  private isOtherLocalityLabel(value: unknown): boolean {
+    return String(value ?? '').trim().replace(/\s+/g, ' ').toLowerCase() === OTHER_LOCALITY_LABEL.toLowerCase();
   }
 
   private pinMatchValidator(group: FormGroup) {
@@ -575,6 +591,10 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
       }
       return;
     }
+    if (this.isOtherLocalityLabel(this.registerForm.get('quarter')?.value)) {
+      this.error = 'Précisez le nom de votre zone.';
+      return;
+    }
     if (!this.profilPhotoDataUrl) {
       this.error = 'La photo de profil est obligatoire.';
       return;
@@ -616,7 +636,8 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
       firstname: form.firstname,
       lastname: form.lastname,
       address: form.address,
-      quarter: form.quarter,
+      quarter: String(form.quarter ?? '').trim().replace(/\s+/g, ' '),
+      customQuarter: this.localityIsCustom,
       dateOfBirth: form.dateOfBirth,
       occupation: form.occupation,
       profilPhoto: this.profilPhotoDataUrl,

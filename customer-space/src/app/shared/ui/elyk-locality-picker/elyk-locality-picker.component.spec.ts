@@ -35,6 +35,38 @@ describe('ElykLocalityPickerComponent', () => {
     expect(component.open).toBeFalse();
   });
 
+  it('keeps AUTRES available when the search has no match and opens the free-text field', () => {
+    const changes: string[] = [];
+    const custom: boolean[] = [];
+    component.registerOnChange((v) => changes.push(v));
+    component.customChange.subscribe((v) => custom.push(v));
+    component.query = 'zzzz';
+    expect(component.filtered.length).toBe(0);
+
+    component.selectOther();
+
+    expect(component.customMode).toBeTrue();
+    expect(component.open).toBeFalse();
+    expect(changes).toEqual(['']);
+    expect(custom).toEqual([true]);
+    expect(component.displayLabel).toBe('AUTRES (à préciser)');
+
+    component.onCustomText('  Adidogome ');
+    expect(changes[1]).toBe('  Adidogome ');
+    expect(component.displayLabel).toBe('Adidogome');
+  });
+
+  it('clears the free-text field when a listed locality is chosen', () => {
+    const custom: boolean[] = [];
+    component.customChange.subscribe((v) => custom.push(v));
+    component.selectOther();
+    component.onCustomText('Zone libre');
+    component.select({ id: 1, name: 'Tokoin' });
+    expect(component.customMode).toBeFalse();
+    expect(component.value).toBe('Tokoin');
+    expect(custom).toEqual([true, false]);
+  });
+
   it('emits retryLoad when retry is clicked', () => {
     const spy = jasmine.createSpy('retry');
     component.retryLoad.subscribe(spy);

@@ -212,6 +212,37 @@
     background: rgba(201, 146, 42, 0.12);
     font-weight: 600;
   }
+
+  &--other {
+    font-weight: 600;
+    border-top: 1px solid var(--elyk-border);
+    border-radius: 0 0 10px 10px;
+  }
+}
+
+.locality-custom {
+  margin-top: 12px;
+  margin-bottom: 0;
+
+  .elyk-field__box {
+    cursor: text;
+
+    &:focus-within {
+      border-color: var(--elyk-gold);
+    }
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    border: none;
+    outline: none;
+    background: transparent;
+    font: inherit;
+    font-size: 15px;
+    color: var(--elyk-navy);
+    min-height: 44px;
+  }
 }
 
 @media (min-width: 768px) {

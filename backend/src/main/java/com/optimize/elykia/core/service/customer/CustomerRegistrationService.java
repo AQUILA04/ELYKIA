@@ -15,6 +15,7 @@ import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.customer.CustomerLoginResponse;
 import com.optimize.elykia.core.dto.customer.CustomerRegisterRequest;
 import com.optimize.elykia.core.repository.LocalityRepository;
+import com.optimize.elykia.core.util.LocalityNames;
 import com.optimize.elykia.core.util.PhoneNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,8 +61,15 @@ public class CustomerRegistrationService {
             throw new CustomValidationException("Ce numéro de pièce d'identité est déjà utilisé.");
         }
         validateIdentity(request);
-        String quarter = request.getQuarter().trim();
-        if (!localityRepository.existsByName(quarter)) {
+        String quarter = LocalityNames.normalize(request.getQuarter());
+        boolean customQuarter = request.isCustomQuarter();
+        if (customQuarter) {
+            if (!StringUtils.hasText(quarter)
+                    || quarter.length() > LocalityNames.MAX_LENGTH
+                    || LocalityNames.isOtherLabel(quarter)) {
+                throw new CustomValidationException("Précisez le nom de votre zone.");
+            }
+        } else if (!localityRepository.existsByName(quarter)) {
             throw new CustomValidationException("Veuillez choisir votre zone dans la liste.");
         }
 
@@ -75,6 +83,7 @@ public class CustomerRegistrationService {
         client.setLastname(request.getLastname().trim());
         client.setAddress(request.getAddress().trim());
         client.setQuarter(quarter);
+        client.setCustomQuarter(customQuarter);
         client.setPhone(username);
         client.setDateOfBirth(request.getDateOfBirth());
         client.setOccupation(request.getOccupation().trim());

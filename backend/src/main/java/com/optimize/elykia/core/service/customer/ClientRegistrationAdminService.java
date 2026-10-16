@@ -20,8 +20,10 @@ import com.optimize.elykia.core.dto.customer.CustomerInitialDepositRejectRequest
 import com.optimize.elykia.core.entity.customer.CustomerInitialDepositSubmission;
 import com.optimize.elykia.core.entity.customer.CustomerPaymentProof;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
+import com.optimize.elykia.core.entity.Locality;
 import com.optimize.elykia.core.enumaration.PaymentProofLinkedType;
 import com.optimize.elykia.core.repository.customer.CustomerInitialDepositSubmissionRepository;
+import com.optimize.elykia.core.service.masterdata.LocalityService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -53,6 +55,7 @@ public class ClientRegistrationAdminService {
     private final CustomerInitialDepositSubmissionRepository depositRepository;
     private final CustomerNotificationService customerNotificationService;
     private final PaymentProofService paymentProofService;
+    private final LocalityService localityService;
 
     @Transactional(readOnly = true)
     public Page<ClientRegistrationDto> list(
@@ -112,6 +115,11 @@ public class ClientRegistrationAdminService {
         }
         client.setCollector(request.getCollector().trim());
         client.setTontineCollector(request.getTontineCollector().trim());
+        if (client.isCustomQuarter()) {
+            Locality locality = localityService.findOrCreateByName(request.getQuarter());
+            client.setQuarter(locality.getName());
+            client.setCustomQuarter(false);
+        }
         client.setActivationStatus(ClientActivationStatus.ACTIVE);
         client.setActivationRejectionReason(null);
         client.setActivationRejectedAt(null);
@@ -259,6 +267,7 @@ public class ClientRegistrationAdminService {
                 .phone(client.getPhone())
                 .address(client.getAddress())
                 .quarter(client.getQuarter())
+                .customQuarter(client.isCustomQuarter())
                 .dateOfBirth(client.getDateOfBirth())
                 .occupation(client.getOccupation())
                 .cardType(client.getCardType())

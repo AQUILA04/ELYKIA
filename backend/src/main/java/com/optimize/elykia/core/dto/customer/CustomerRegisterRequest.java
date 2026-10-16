@@ -35,6 +35,9 @@ public class CustomerRegisterRequest {
     @Size(max = 100)
     private String quarter;
 
+    /** Vrai lorsque le client a choisi « AUTRES (à préciser) » et saisi sa zone. */
+    private boolean customQuarter;
+
     @NotNull
     private LocalDate dateOfBirth;
 

@@ -53,7 +53,8 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
     this.activateForm = this.fb.group({
       collector: ['', Validators.required],
       tontineCollector: ['', Validators.required],
-      validateInitialDeposit: [true]
+      validateInitialDeposit: [true],
+      quarter: [''],
     });
   }
 
@@ -143,10 +144,23 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
 
   openDetail(row: ClientRegistration): void {
     this.selected = row;
+    const quarter = this.activateForm.get('quarter');
+    if (row.customQuarter) {
+      quarter?.setValidators([
+        Validators.required,
+        Validators.maxLength(100),
+        ClientRegistrationsListComponent.requiredTrimmed,
+        ClientRegistrationsListComponent.notOtherLabel,
+      ]);
+    } else {
+      quarter?.clearValidators();
+    }
+    quarter?.updateValueAndValidity();
     this.activateForm.reset({
       collector: row.collector || '',
       tontineCollector: row.tontineCollector || '',
-      validateInitialDeposit: true
+      validateInitialDeposit: true,
+      quarter: row.customQuarter ? (row.quarter || '') : '',
     });
     this.ensureSignedUrl(row.clientId, 'PROFIL', 'THUMB', !!(row.profilPhotoThumbUrl || row.profilPhotoUrl));
     this.ensureSignedUrl(row.clientId, 'CARD', 'THUMB', !!(row.cardPhotoThumbUrl || row.cardPhotoUrl));
@@ -333,6 +347,15 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
     return hash % 6;
   }
 
+  private static requiredTrimmed(control: { value: unknown }): { required: true } | null {
+    return String(control.value ?? '').trim() ? null : { required: true };
+  }
+
+  private static notOtherLabel(control: { value: unknown }): { otherLabel: true } | null {
+    const value = String(control.value ?? '').trim().replace(/\s+/g, ' ').toLowerCase();
+    return value === 'autres (à préciser)' ? { otherLabel: true } : null;
+  }
+
   @HostListener('document:keydown.escape')
   onEscapeKey(): void {
     if (this.photoPreviewUrl) {
@@ -346,11 +369,20 @@ export class ClientRegistrationsListComponent implements OnInit, OnDestroy {
       return;
     }
     const body = this.activateForm.value;
-    this.registrationService.activate(this.selected.clientId, {
+    const payload: {
+      collector: string;
+      tontineCollector: string;
+      validateInitialDeposit: boolean;
+      quarter?: string;
+    } = {
       collector: body.collector,
       tontineCollector: body.tontineCollector,
-      validateInitialDeposit: !!body.validateInitialDeposit
-    }).subscribe({
+      validateInitialDeposit: !!body.validateInitialDeposit,
+    };
+    if (this.selected.customQuarter) {
+      payload.quarter = String(body.quarter ?? '').trim().replace(/\s+/g, ' ');
+    }
+    this.registrationService.activate(this.selected.clientId, payload).subscribe({
       next: () => {
         this.alertService.showSuccess('Inscription validée.');
         this.selected = null;

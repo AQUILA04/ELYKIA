@@ -9,7 +9,7 @@
     aria-haspopup="listbox">
     <span class="elyk-field__label">{{ label }}</span>
     <ion-icon *ngIf="icon" class="elyk-field__icon" [name]="icon" aria-hidden="true"></ion-icon>
-    <span class="locality-trigger__value" [class.locality-trigger__value--placeholder]="!value">
+    <span class="locality-trigger__value" [class.locality-trigger__value--placeholder]="displayIsPlaceholder">
       <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
       <ng-container *ngIf="!loading">{{ displayLabel }}</ng-container>
     </span>
@@ -55,11 +55,38 @@
         type="button"
         role="option"
         class="locality-sheet__option"
-        [class.locality-sheet__option--selected]="loc.name === value"
-        [attr.aria-selected]="loc.name === value"
+        [class.locality-sheet__option--selected]="!customMode && loc.name === value"
+        [attr.aria-selected]="!customMode && loc.name === value"
         (click)="select(loc)">
         {{ loc.name }}
       </button>
     </li>
+    <li>
+      <button
+        type="button"
+        role="option"
+        class="locality-sheet__option locality-sheet__option--other"
+        [class.locality-sheet__option--selected]="customMode"
+        [attr.aria-selected]="customMode"
+        data-testid="e2e-auth-locality-other"
+        (click)="selectOther()">
+        {{ otherLabel }}
+      </button>
+    </li>
   </ul>
+</div>
+
+<div class="elyk-field locality-custom" *ngIf="customMode">
+  <label class="elyk-field__box" for="elyk-locality-custom">
+    <span class="elyk-field__label">Précisez votre zone</span>
+    <input
+      #customInput
+      id="elyk-locality-custom"
+      type="text"
+      maxlength="100"
+      [ngModel]="customText"
+      (ngModelChange)="onCustomText($event)"
+      autocomplete="off"
+      data-testid="e2e-auth-register-quarter-custom" />
+  </label>
 </div>

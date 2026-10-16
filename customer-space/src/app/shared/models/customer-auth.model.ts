@@ -32,6 +32,9 @@ export interface CustomerLocality {
   name: string;
 }
 
+/** Option fixe du sélecteur de zone. Jamais enregistrée comme localité. */
+export const OTHER_LOCALITY_LABEL = 'AUTRES (à préciser)';
+
 export interface CustomerOtpVerifyRequest {
   phone: string;
   code: string;
@@ -56,6 +59,8 @@ export interface CustomerRegisterRequest {
   lastname: string;
   address: string;
   quarter: string;
+  /** Vrai si la zone a été saisie via « AUTRES (à préciser) ». */
+  customQuarter?: boolean;
   dateOfBirth: string;
   occupation: string;
   /** Renseignés à l'étape « Mon dossier », pas à l'inscription. */

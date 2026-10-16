@@ -14,7 +14,7 @@ import {
   NG_VALUE_ACCESSOR,
 } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { CustomerLocality } from '../../models/customer-auth.model';
+import { CustomerLocality, OTHER_LOCALITY_LABEL } from '../../models/customer-auth.model';
 
 /**
  * Sélecteur de localité (ControlValueAccessor) — liste filtrable pour le formulaire d'inscription.
@@ -35,6 +35,8 @@ import { CustomerLocality } from '../../models/customer-auth.model';
   ],
 })
 export class ElykLocalityPickerComponent implements ControlValueAccessor {
+  readonly otherLabel = OTHER_LOCALITY_LABEL;
+
   @Input() label = 'Ma zone (Localités)';
   @Input() icon = 'location-outline';
   @Input() localities: CustomerLocality[] = [];
@@ -43,14 +45,19 @@ export class ElykLocalityPickerComponent implements ControlValueAccessor {
   @Input() testId = 'e2e-auth-register-quarter';
 
   readonly retryLoad = output<void>();
+  readonly customChange = output<boolean>();
 
   @ViewChild('searchInput') searchInput?: ElementRef<HTMLInputElement>;
+  @ViewChild('customInput') customInput?: ElementRef<HTMLInputElement>;
 
   open = false;
   query = '';
   disabled = false;
   value = '';
+  customMode = false;
+  customText = '';
 
+  private emitting = false;
   private onChange: (value: string) => void = () => undefined;
   private onTouched: () => void = () => undefined;
 
@@ -61,11 +68,30 @@ export class ElykLocalityPickerComponent implements ControlValueAccessor {
   }
 
   get displayLabel(): string {
+    if (this.customMode) {
+      const typed = this.customText.trim();
+      return typed || this.otherLabel;
+    }
     return this.value || 'Sélectionnez votre zone';
   }
 
+  get displayIsPlaceholder(): boolean {
+    if (this.customMode) {
+      return !this.customText.trim();
+    }
+    return !this.value;
+  }
+
   writeValue(value: string | null): void {
-    this.value = value ?? '';
+    if (this.emitting) {
+      return;
+    }
+    const next = value ?? '';
+    this.value = next;
+    if (!next) {
+      this.customMode = false;
+      this.customText = '';
+    }
   }
 
   registerOnChange(fn: (value: string) => void): void {
@@ -91,11 +117,31 @@ export class ElykLocalityPickerComponent implements ControlValueAccessor {
   }
 
   select(locality: CustomerLocality): void {
+    this.customMode = false;
+    this.customText = '';
     this.value = locality.name;
-    this.onChange(locality.name);
+    this.emitValue(locality.name);
+    this.customChange.emit(false);
     this.onTouched();
     this.open = false;
     this.query = '';
+  }
+
+  selectOther(): void {
+    this.customMode = true;
+    this.value = '';
+    this.emitValue(this.customText);
+    this.customChange.emit(true);
+    this.onTouched();
+    this.open = false;
+    this.query = '';
+    setTimeout(() => this.customInput?.nativeElement?.focus(), 50);
+  }
+
+  onCustomText(text: string): void {
+    this.customText = text;
+    this.emitValue(text);
+    this.onTouched();
   }
 
   close(): void {
@@ -110,5 +156,11 @@ export class ElykLocalityPickerComponent implements ControlValueAccessor {
 
   onRetryClick(): void {
     this.retryLoad.emit();
+  }
+
+  private emitValue(value: string): void {
+    this.emitting = true;
+    this.onChange(value);
+    this.emitting = false;
   }
 }

@@ -7,6 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.Optional;
+
 
 public interface LocalityRepository extends GenericRepository<Locality, Long> {
 
@@ -15,6 +17,8 @@ public interface LocalityRepository extends GenericRepository<Locality, Long> {
     }
 
     boolean existsByName(String localityName);
+
+    Optional<Locality> findFirstByNameIgnoreCaseAndStateNot(String name, State state);
 
     default Specification<Locality> getElasticsearchCriteria(String keyword) {
         final String searchKeyword = String.format("%%%s%%", keyword.toLowerCase());

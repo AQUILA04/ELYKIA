@@ -14,6 +14,8 @@ export interface ClientRegistration {
   phone: string;
   address?: string;
   quarter?: string;
+  /** Vrai si la zone a été saisie librement et n'est pas encore une localité. */
+  customQuarter?: boolean;
   dateOfBirth?: string;
   occupation?: string;
   cardType?: string;
@@ -117,6 +119,7 @@ export class ClientRegistrationService {
     collector: string;
     tontineCollector: string;
     validateInitialDeposit?: boolean;
+    quarter?: string;
   }): Observable<ClientRegistration> {
     return this.http
       .post<ApiResponse<ClientRegistration>>(`${this.apiUrl}/${clientId}/activate`, body)

@@ -25,6 +25,7 @@ import java.util.Base64;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -118,6 +119,57 @@ class CustomerRegistrationServiceTest {
     }
 
     @Test
+    void register_acceptsCustomQuarterWithoutCreatingLocality() {
+        CustomerRegisterRequest request = validRequest();
+        request.setCustomQuarter(true);
+        request.setQuarter("  Zone   Adidogome  ");
+        doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456"))
+                .thenReturn(Optional.empty())
+                .thenReturn(Optional.of(user("90123456")));
+        when(clientRepository.existsByPhone("90123456")).thenReturn(false);
+        when(clientRepository.saveAndFlush(any(Client.class))).thenAnswer(inv -> {
+            Client c = inv.getArgument(0);
+            c.setId(55L);
+            return c;
+        });
+        when(clientRepository.findById(55L)).thenAnswer(inv -> {
+            Client c = new Client();
+            c.setId(55L);
+            c.setFirstname("Ada");
+            c.setLastname("Lovelace");
+            c.setPhone("90123456");
+            c.setActivationStatus(ClientActivationStatus.PENDING);
+            return Optional.of(c);
+        });
+        Authentication auth = mock(Authentication.class);
+        when(authenticationManager.authenticate(any())).thenReturn(auth);
+        when(jwtUtils.generateJwtToken(auth)).thenReturn("jwt-token");
+
+        service.register(request);
+
+        ArgumentCaptor<Client> clientCaptor = ArgumentCaptor.forClass(Client.class);
+        verify(clientRepository).saveAndFlush(clientCaptor.capture());
+        assertEquals("Zone Adidogome", clientCaptor.getValue().getQuarter());
+        assertTrue(clientCaptor.getValue().isCustomQuarter());
+        verifyNoInteractions(localityRepository);
+    }
+
+    @Test
+    void register_rejectsCustomQuarterSentinel() {
+        CustomerRegisterRequest request = validRequest();
+        request.setCustomQuarter(true);
+        request.setQuarter("AUTRES (à préciser)");
+        doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.empty());
+        when(clientRepository.existsByPhone("90123456")).thenReturn(false);
+
+        CustomValidationException ex =
+                assertThrows(CustomValidationException.class, () -> service.register(request));
+        assertEquals("Précisez le nom de votre zone.", ex.getMessage());
+    }
+
+    @Test
     void register_createsPendingClientWithoutIdDocument() {
         CustomerRegisterRequest request = validRequest();
         doNothing().when(customerOtpService).assertProofToken("90123456", "proof");
@@ -152,6 +204,7 @@ class CustomerRegistrationServiceTest {
         ArgumentCaptor<Client> clientCaptor = ArgumentCaptor.forClass(Client.class);
         verify(clientRepository).saveAndFlush(clientCaptor.capture());
         assertEquals(ClientRegistrationSource.CUSTOMER_SPACE, clientCaptor.getValue().getRegistrationSource());
+        assertFalse(clientCaptor.getValue().isCustomQuarter());
         verify(provisioningService).provisionSelfRegistered(any(Client.class), eq("1234"));
         verify(clientService).uploadClientPhotos(eq(55L), any(byte[].class), eq(null));
         verify(clientService).evictClientListCaches();
