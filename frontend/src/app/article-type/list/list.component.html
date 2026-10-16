@@ -119,7 +119,12 @@
           <tbody>
             <tr *ngFor="let type of types; let i = index">
               <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
-              <td><span class="col-name">{{ type.name }}</span></td>
+              <td>
+                <span class="col-name name-with-photo">
+                  <img *ngIf="type.displayPhotoUrl" class="article-thumb" [src]="type.displayPhotoUrl" [alt]="type.name" />
+                  {{ type.name }}
+                </span>
+              </td>
               <td><span class="col-code">{{ type.code }}</span></td>
               <td>{{ type.description || '—' }}</td>
               <td class="col-actions">

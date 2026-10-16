@@ -74,8 +74,9 @@
         class="article-card elyk-animate"
         *ngFor="let a of articles"
         [attr.data-testid]="'e2e-catalog-article-' + a.id">
-        <div class="ac-img" aria-hidden="true">
-          <ion-icon name="cube-outline"></ion-icon>
+        <div class="ac-img">
+          <img *ngIf="a.imageUrl" [src]="a.imageUrl" [alt]="label(a)" />
+          <ion-icon *ngIf="!a.imageUrl" name="cube-outline" aria-hidden="true"></ion-icon>
         </div>
         <h3 class="ac-name">{{ label(a) }}</h3>
         <p class="ac-price">{{ a.creditSalePrice | number:'1.0-0' }} FCFA</p>

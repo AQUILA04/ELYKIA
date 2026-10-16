@@ -64,6 +64,15 @@
           placeholder="Description optionnelle du type…"></textarea>
       </div>
 
+      <div class="field-group">
+        <app-article-photo-field
+          inputId="type-photo"
+          label="Photo"
+          alt="Aperçu de la photo du type"
+          [ownUrl]="existingPhotoUrl">
+        </app-article-photo-field>
+      </div>
+
       <div class="form-actions">
         <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isLoading">Annuler</button>
         <button type="submit" class="btn-submit" [disabled]="form.invalid || isLoading">

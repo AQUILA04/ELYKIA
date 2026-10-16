@@ -4,9 +4,13 @@ import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.article.ArticleType;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface ArticleTypeRepository extends GenericRepository<ArticleType, Long> {
     Optional<ArticleType> findByName(String name);
+
+    List<ArticleType> findByNameIn(Collection<String> names);
 }

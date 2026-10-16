@@ -30,6 +30,8 @@ import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.order.OrderService;
+import com.optimize.elykia.core.service.store.ArticlePhotoService;
+import com.optimize.elykia.core.service.store.ArticlePhotoView;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
@@ -44,6 +46,7 @@ import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -78,6 +81,7 @@ class CustomerPortalServiceTest {
     @Mock private com.optimize.elykia.core.repository.customer.CustomerTontineMmSubmissionRepository tontineMmSubmissionRepository;
     @Mock private CustomerOnboardingService onboardingService;
     @Mock private TontineAmountHistoryHelper tontineAmountHistoryHelper;
+    @Mock private ArticlePhotoService articlePhotoService;
 
     private Client activeClient;
 
@@ -279,7 +283,28 @@ class CustomerPortalServiceTest {
         assertEquals("TV: Elykia Model", dto.getCommercialName());
         assertEquals("TV: Elykia Model 32 pouces", dto.getDisplayName());
         assertEquals(true, dto.isAvailable());
+        assertNull(dto.getImageUrl());
         verify(articlesService).getAllEnabled(any(Pageable.class));
+    }
+
+    @Test
+    void getArticles_usesArticlePhotoThenTypePhoto() {
+        CustomerPortalService service = service();
+        Articles own = article(1L, "TV", "Avec photo", 1);
+        Articles inherited = article(2L, "TV", "Sans photo", 1);
+        Articles none = article(3L, "RADIO", "Sans rien", 1);
+        when(articlesService.getAllEnabled(any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(own, inherited, none)));
+        when(articlePhotoService.viewForArticles(any())).thenReturn(Map.of(
+                1L, new ArticlePhotoView("https://photos/article-1", "https://photos/article-1"),
+                2L, new ArticlePhotoView(null, "https://photos/type-tv"),
+                3L, new ArticlePhotoView(null, null)));
+
+        List<CustomerArticleDto> articles = service.getArticles(null, null);
+
+        assertEquals("https://photos/article-1", articles.get(0).getImageUrl());
+        assertEquals("https://photos/type-tv", articles.get(1).getImageUrl());
+        assertNull(articles.get(2).getImageUrl());
     }
 
     private CustomerPortalService service() {
@@ -300,7 +325,8 @@ class CustomerPortalServiceTest {
                 tontineMmSubmissionRepository,
                 onboardingService,
                 tontineAmountHistoryHelper,
-                mock(PaymentProofService.class));
+                mock(PaymentProofService.class),
+                articlePhotoService);
     }
 
     private void stubJoinableSession(int year) {

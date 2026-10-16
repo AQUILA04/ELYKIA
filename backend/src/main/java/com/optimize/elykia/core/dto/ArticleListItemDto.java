@@ -2,9 +2,11 @@ package com.optimize.elykia.core.dto;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.service.store.ArticlePhotoView;
 import org.springframework.data.domain.Page;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * DTO de catalogue / sélecteur article — champs utiles frontend, mobile et listes,
@@ -23,9 +25,15 @@ public record ArticleListItemDto(
         Double creditSalePrice,
         Integer stockQuantity,
         State status,
-        State state) {
+        State state,
+        String photoUrl,
+        String displayPhotoUrl) {
 
     public static ArticleListItemDto fromEntity(Articles article) {
+        return fromEntity(article, null);
+    }
+
+    public static ArticleListItemDto fromEntity(Articles article, ArticlePhotoView photo) {
         if (article == null) {
             return null;
         }
@@ -43,20 +51,34 @@ public record ArticleListItemDto(
                 article.getCreditSalePrice(),
                 article.getStockQuantity(),
                 articleState,
-                articleState);
+                articleState,
+                photo != null ? photo.photoUrl() : null,
+                photo != null ? photo.displayPhotoUrl() : null);
     }
 
     public static List<ArticleListItemDto> fromList(List<Articles> articles) {
+        return fromList(articles, Map.of());
+    }
+
+    public static List<ArticleListItemDto> fromList(List<Articles> articles, Map<Long, ArticlePhotoView> photos) {
         if (articles == null) {
             return List.of();
         }
-        return articles.stream().map(ArticleListItemDto::fromEntity).toList();
+        Map<Long, ArticlePhotoView> resolved = photos != null ? photos : Map.of();
+        return articles.stream()
+                .map(article -> fromEntity(article, article != null ? resolved.get(article.getId()) : null))
+                .toList();
     }
 
     public static Page<ArticleListItemDto> fromPage(Page<Articles> articles) {
+        return fromPage(articles, Map.of());
+    }
+
+    public static Page<ArticleListItemDto> fromPage(Page<Articles> articles, Map<Long, ArticlePhotoView> photos) {
         if (articles == null) {
             return Page.empty();
         }
-        return articles.map(ArticleListItemDto::fromEntity);
+        Map<Long, ArticlePhotoView> resolved = photos != null ? photos : Map.of();
+        return articles.map(article -> fromEntity(article, resolved.get(article.getId())));
     }
 }

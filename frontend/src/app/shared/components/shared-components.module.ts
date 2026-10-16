@@ -21,6 +21,7 @@ import { MatInputModule } from '@angular/material/input';
 import { StockExportFilterComponent } from './stock-export-filter/stock-export-filter.component';
 import { CommercialSelectorComponent } from './commercial-selector/commercial-selector.component';
 import { ClientSelectComponent } from './client-select/client-select.component';
+import { ArticlePhotoFieldComponent } from './article-photo-field/article-photo-field.component';
 import { StatusBadgePipe } from '../pipes/status-badge.pipe';
 import { BreadcrumbComponent } from '../../bread/breadcrumb/breadcrumb.component';
 
@@ -34,6 +35,7 @@ import { BreadcrumbComponent } from '../../bread/breadcrumb/breadcrumb.component
         StockExportFilterComponent,
         CommercialSelectorComponent,
         ClientSelectComponent,
+        ArticlePhotoFieldComponent,
         StatusBadgePipe,
         BreadcrumbComponent,
     ],
@@ -62,6 +64,7 @@ import { BreadcrumbComponent } from '../../bread/breadcrumb/breadcrumb.component
         StockExportFilterComponent,
         CommercialSelectorComponent,
         ClientSelectComponent,
+        ArticlePhotoFieldComponent,
         StatusBadgePipe,
         BreadcrumbComponent,
         NgxSpinnerModule

@@ -136,7 +136,12 @@
               </mat-checkbox>
             </td>
             <td><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
-            <td><span class="col-client">{{ article.name }}</span></td>
+            <td>
+              <span class="col-client name-with-photo">
+                <img *ngIf="article.displayPhotoUrl" class="article-thumb" [src]="article.displayPhotoUrl" [alt]="article.name" />
+                {{ article.name }}
+              </span>
+            </td>
             <td>{{ article.marque }}</td>
             <td>{{ article.model || '—' }}</td>
             <td>{{ article.type }}</td>

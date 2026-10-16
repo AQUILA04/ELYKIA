@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.optimize.elykia</groupId>
 	<artifactId>optimize-elykia-core</artifactId>
-  <version>1.35.1</version>
+  <version>1.36.1</version>
 	<name>optimize-elykia-core</name>
 	<description>Gestion des crédits et tontines</description>
 	<url/>
@@ -101,6 +101,11 @@
             <groupId>com.optimize.elykia</groupId>
             <artifactId>optimize-elykia-client</artifactId>
             <version>0.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.sejda.imageio</groupId>
+            <artifactId>webp-imageio</artifactId>
+            <version>0.1.6</version>
         </dependency>
         <dependency>
             <groupId>com.optimize</groupId>

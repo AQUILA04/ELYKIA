@@ -36,6 +36,8 @@ import com.optimize.elykia.core.repository.customer.CustomerTontineMmSubmissionR
 import com.optimize.elykia.core.repository.CreditArticlesRepository;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
+import com.optimize.elykia.core.service.store.ArticlePhotoService;
+import com.optimize.elykia.core.service.store.ArticlePhotoView;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
@@ -80,6 +82,7 @@ public class CustomerPortalService {
     private final CustomerOnboardingService customerOnboardingService;
     private final TontineAmountHistoryHelper tontineAmountHistoryHelper;
     private final PaymentProofService paymentProofService;
+    private final ArticlePhotoService articlePhotoService;
 
     public static final double TONTINE_MIN_DAILY_STAKE = 100.0;
 
@@ -474,9 +477,15 @@ public class CustomerPortalService {
         var page = StringUtils.hasText(search)
                 ? articlesService.elasticSearchEnabled(search, PageRequest.of(0, 200))
                 : articlesService.getAllEnabled(PageRequest.of(0, 200));
-        return page.getContent().stream()
+        List<Articles> content = page.getContent();
+        Map<Long, ArticlePhotoView> photos = articlePhotoService.viewForArticles(content);
+        if (photos == null) {
+            photos = Map.of();
+        }
+        Map<Long, ArticlePhotoView> resolved = photos;
+        return content.stream()
                 .filter(a -> !StringUtils.hasText(category) || category.equalsIgnoreCase(a.getType()))
-                .map(this::toArticleDto)
+                .map(article -> toArticleDto(article, resolved.get(article.getId())))
                 .toList();
     }
 
@@ -705,7 +714,7 @@ public class CustomerPortalService {
         return activities.stream().limit(8).toList();
     }
 
-    private CustomerArticleDto toArticleDto(Articles article) {
+    private CustomerArticleDto toArticleDto(Articles article, ArticlePhotoView photo) {
         String commercialName = article.getCommercialName();
         return CustomerArticleDto.builder()
                 .id(String.valueOf(article.getId()))
@@ -715,6 +724,7 @@ public class CustomerPortalService {
                 .description(article.getMarque() + " " + article.getModel())
                 .category(article.getType())
                 .creditSalePrice(article.getCreditSalePrice())
+                .imageUrl(photo != null ? photo.displayPhotoUrl() : null)
                 .available(article.getStockQuantity() != null && article.getStockQuantity() > 0)
                 .build();
     }

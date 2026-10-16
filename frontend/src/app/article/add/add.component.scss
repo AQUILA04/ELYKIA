@@ -198,6 +198,8 @@
   background: var(--navy-xpale);
 }
 
+.article-form-page .photo-field { grid-column: 1 / -1; }
+
 @media (max-width: 680px) {
   .article-form-page.main-container {
     padding: 14px 12px 40px;

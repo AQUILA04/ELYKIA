@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.entity.article;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.optimize.common.entities.entity.Auditable;
 import com.optimize.common.entities.enums.State;
@@ -39,6 +41,21 @@ public class Articles extends Auditable<String> {
     @NotBlank
     private String type;
     private String code;
+
+    /** Clé MinIO du JPEG réduit. Jamais exposée dans l'API. */
+    @Column(name = "photo_object_key", length = 255)
+    private String photoObjectKey;
+
+    /** URL signée de la photo propre à l'article. */
+    @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String photoUrl;
+
+    /** URL signée affichée : photo de l'article, sinon celle du type. */
+    @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String displayPhotoUrl;
+
     @PositiveOrZero
     private Integer stockQuantity = 0;
 
@@ -141,5 +158,10 @@ public class Articles extends Auditable<String> {
 
     public State getStatus() {
         return state;
+    }
+
+    @JsonIgnore
+    public String getPhotoObjectKey() {
+        return photoObjectKey;
     }
 }

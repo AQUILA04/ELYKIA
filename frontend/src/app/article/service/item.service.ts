@@ -50,6 +50,8 @@ export interface Article {
   state?: 'ENABLED' | 'DISABLED' | 'DELETED';
   /** @deprecated Utiliser 'state' — alias de compatibilité pour list.component */
   status?: 'ENABLED' | 'DISABLED' | 'DELETED';
+  photoUrl?: string | null;
+  displayPhotoUrl?: string | null;
   // Audit fields — noms correspondant aux @JsonProperty dans Articles.java
   articleCreatedBy?: string;
   articleCreatedDate?: string;
@@ -275,6 +277,16 @@ export class ItemService {
   addArticle(article: NewArticleData): Observable<Article> {
     const headers = this.getHeader();
     return this.http.post<Article>(this.apiUrl, article, { headers });
+  }
+
+  uploadPhoto(id: number, file: File): Observable<any> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<any>(`${this.apiUrl}/${id}/photo`, form, { headers: this.getHeader() });
+  }
+
+  deletePhoto(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}/photo`, { headers: this.getHeader() });
   }
 
   getArticleById(id: number): Observable<any> {

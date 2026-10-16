@@ -4,7 +4,14 @@ import com.optimize.common.entities.mapper.BaseMapper;
 import com.optimize.elykia.core.dto.ArticleTypeDto;
 import com.optimize.elykia.core.entity.article.ArticleType;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface ArticleTypeMapper extends BaseMapper<ArticleType, ArticleTypeDto> {
+
+    @Override
+    @Mapping(target = "photoObjectKey", ignore = true)
+    @Mapping(target = "photoUrl", ignore = true)
+    @Mapping(target = "displayPhotoUrl", ignore = true)
+    ArticleType toEntity(ArticleTypeDto dto);
 }

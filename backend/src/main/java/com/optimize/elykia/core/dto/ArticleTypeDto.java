@@ -20,4 +20,10 @@ public class ArticleTypeDto {
     private String code;
     
     private String description;
+
+    /** URL signée de la photo du type. */
+    private String photoUrl;
+
+    /** URL signée affichée (identique à photoUrl pour un type). */
+    private String displayPhotoUrl;
 }

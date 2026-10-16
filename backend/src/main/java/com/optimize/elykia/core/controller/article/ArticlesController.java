@@ -7,6 +7,10 @@ import com.optimize.elykia.core.dto.ArticleStockTrajectoryDto;
 import com.optimize.elykia.core.dto.ArticlesDto;
 import com.optimize.elykia.core.dto.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.StockEntryDto;
+import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.service.store.ArticlePhotoBytes;
+import com.optimize.elykia.core.service.store.ArticlePhotoService;
+import com.optimize.elykia.core.service.store.ArticlePhotoView;
 import com.optimize.elykia.core.service.store.ArticleStockTrajectoryService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
@@ -18,10 +22,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -38,6 +45,7 @@ public class ArticlesController {
     private final ArticlesService articlesService;
     private final CreditArticlesService creditArticlesService;
     private final ArticleStockTrajectoryService trajectoryService;
+    private final ArticlePhotoService articlePhotoService;
 
     @PostMapping
     public ResponseEntity<Response> createArticle(@RequestBody @Valid ArticlesDto dto) {
@@ -69,7 +77,23 @@ public class ArticlesController {
 
     @GetMapping(value = "{id}")
     public ResponseEntity<Response> getOne(@PathVariable Long id) {
-        return new ResponseEntity<Response>(ResponseUtil.successResponse(articlesService.getById(id)), HttpStatus.OK);
+        Articles article = articlesService.getById(id);
+        articlePhotoService.attachArticleUrls(article);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(article), HttpStatus.OK);
+    }
+
+    @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Response> uploadPhoto(@PathVariable Long id, @RequestParam("file") MultipartFile file) {
+        Articles article = articlePhotoService.uploadArticle(id, ArticlePhotoBytes.read(file));
+        articlePhotoService.attachArticleUrls(article);
+        return new ResponseEntity<>(ResponseUtil.successResponse(article), HttpStatus.OK);
+    }
+
+    @DeleteMapping(value = "/{id}/photo")
+    public ResponseEntity<Response> deletePhoto(@PathVariable Long id) {
+        Articles article = articlePhotoService.deleteArticle(id);
+        articlePhotoService.attachArticleUrls(article);
+        return new ResponseEntity<>(ResponseUtil.successResponse(article), HttpStatus.OK);
     }
 
     @PatchMapping(value = "make-stock-entries")
@@ -81,21 +105,21 @@ public class ArticlesController {
     @GetMapping
     public ResponseEntity<Response> getAll(Pageable pageable) {
         return new ResponseEntity<Response>(
-                ResponseUtil.successResponse(ArticleListItemDto.fromPage(articlesService.getAll(pageable))),
+                ResponseUtil.successResponse(withPhotos(articlesService.getAll(pageable))),
                 HttpStatus.OK);
     }
 
     @GetMapping("/enabled")
     public ResponseEntity<Response> getAllEnabled(Pageable pageable) {
         return new ResponseEntity<Response>(
-                ResponseUtil.successResponse(ArticleListItemDto.fromPage(articlesService.getAllEnabled(pageable))),
+                ResponseUtil.successResponse(withPhotos(articlesService.getAllEnabled(pageable))),
                 HttpStatus.OK);
     }
 
     @GetMapping("/enabled/all")
     public ResponseEntity<Response> getAllEnabledList() {
         return new ResponseEntity<Response>(
-                ResponseUtil.successResponse(ArticleListItemDto.fromList(articlesService.getAllEnabledList())),
+                ResponseUtil.successResponse(withPhotos(articlesService.getAllEnabledList())),
                 HttpStatus.OK);
     }
 
@@ -126,7 +150,7 @@ public class ArticlesController {
     @GetMapping(value = "all")
     public ResponseEntity<Response> getAll() {
         return new ResponseEntity<Response>(
-                ResponseUtil.successResponse(ArticleListItemDto.fromList(articlesService.getAll())),
+                ResponseUtil.successResponse(withPhotos(articlesService.getAll())),
                 HttpStatus.OK);
     }
 
@@ -140,29 +164,29 @@ public class ArticlesController {
     public ResponseEntity<Response> elasticSearch(@RequestBody ElasticSearchWrapper wrapper, Pageable pageable) {
         return new ResponseEntity<Response>(
                 ResponseUtil.successResponse(
-                        ArticleListItemDto.fromPage(articlesService.elasticSearch(wrapper.getKeyword(), pageable))),
+                        withPhotos(articlesService.elasticSearch(wrapper.getKeyword(), pageable))),
                 HttpStatus.OK);
     }
 
     @PostMapping(value = "elasticsearch/enabled")
     public ResponseEntity<Response> elasticSearchEnabled(@RequestBody ElasticSearchWrapper wrapper, Pageable pageable) {
         return new ResponseEntity<Response>(
-                ResponseUtil.successResponse(ArticleListItemDto
-                        .fromPage(articlesService.elasticSearchEnabled(wrapper.getKeyword(), pageable))),
+                ResponseUtil.successResponse(
+                        withPhotos(articlesService.elasticSearchEnabled(wrapper.getKeyword(), pageable))),
                 HttpStatus.OK);
     }
 
     @GetMapping(value = "out-of-stock")
     public ResponseEntity<Response> getAllOutOfTheStock(Pageable pageable) {
         return new ResponseEntity<Response>(
-                ResponseUtil.successResponse(ArticleListItemDto.fromPage(articlesService.getOutOfStock(pageable))),
+                ResponseUtil.successResponse(withPhotos(articlesService.getOutOfStock(pageable))),
                 HttpStatus.OK);
     }
 
     @GetMapping(value = "next-out-of-stock")
     public ResponseEntity<Response> getNextOutOfTheStock(Pageable pageable) {
         return new ResponseEntity<Response>(
-                ResponseUtil.successResponse(ArticleListItemDto.fromPage(articlesService.getNextOutOfStock(pageable))),
+                ResponseUtil.successResponse(withPhotos(articlesService.getNextOutOfStock(pageable))),
                 HttpStatus.OK);
     }
 
@@ -211,5 +235,14 @@ public class ArticlesController {
     public ResponseEntity<Response> getArticlePriceHistory(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 articlesService.getPriceHistoryByArticleId(id)), HttpStatus.OK);
+    }
+
+    private Page<ArticleListItemDto> withPhotos(Page<Articles> page) {
+        Map<Long, ArticlePhotoView> views = articlePhotoService.viewForArticles(page.getContent());
+        return ArticleListItemDto.fromPage(page, views);
+    }
+
+    private List<ArticleListItemDto> withPhotos(List<Articles> articles) {
+        return ArticleListItemDto.fromList(articles, articlePhotoService.viewForArticles(articles));
     }
 }

@@ -1,12 +1,18 @@
-import { Component, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ItemService, Article, NewArticleData } from '../service/item.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 
 import { ArticleTypeService, ArticleType } from 'src/app/article-type/service/article-type.service';
+import {
+  ArticlePhotoFieldComponent,
+  saveArticlePhoto
+} from 'src/app/shared/components/article-photo-field/article-photo-field.component';
 
 @Component({
   selector: 'app-add',
@@ -15,11 +21,15 @@ import { ArticleTypeService, ArticleType } from 'src/app/article-type/service/ar
   encapsulation: ViewEncapsulation.None
 })
 export class AddComponent implements OnInit {
+  @ViewChild(ArticlePhotoFieldComponent) photoField?: ArticlePhotoFieldComponent;
+
   articleForm!: FormGroup;
   articleId?: number;
   types: ArticleType[] = [];
   article: Article | undefined;
   isLoading = false;
+  existingOwnPhoto: string | null = null;
+  inheritedPhotoUrl: string | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -46,7 +56,8 @@ export class AddComponent implements OnInit {
   loadTypes(): void {
     this.articleTypeService.getAllTypes().subscribe(
       (data) => {
-        this.types = data.data;
+        this.types = data.data || [];
+        this.refreshInherited(this.articleForm.get('type')?.value);
       },
       (error) => {
         console.error('Erreur lors du chargement des types d\'articles', error);
@@ -74,6 +85,9 @@ export class AddComponent implements OnInit {
           wholesalePurchasePrice: data.data.wholesalePurchasePrice ?? null,
           halfWholesalePurchasePrice: data.data.halfWholesalePurchasePrice ?? null
         });
+        this.existingOwnPhoto = data.data.photoUrl || null;
+        this.inheritedPhotoUrl = data.data.photoUrl ? null : (data.data.displayPhotoUrl || null);
+        this.refreshInherited(data.data.type);
         this.onPackagingTypeChanged(data.data.packagingType || 'NONE');
       },
       error => {
@@ -102,6 +116,9 @@ export class AddComponent implements OnInit {
 
     this.articleForm.get('packagingType')?.valueChanges.subscribe(type => {
       this.onPackagingTypeChanged(type);
+    });
+    this.articleForm.get('type')?.valueChanges.subscribe(type => {
+      this.refreshInherited(type);
     });
   }
 
@@ -203,42 +220,49 @@ export class AddComponent implements OnInit {
         halfWholesalePurchasePrice: packagingType === 'NONE' ? null : this.articleForm.value.halfWholesalePurchasePrice
       };
 
-      if (this.articleId) {
-        this.itemService.updateArticle(formData).subscribe({
-          next: () => {
-            this.isLoading = false;
-            this.spinner.hide();
-            this.alertService.showSuccess('Article mis à jour avec succès');
-            this.router.navigate(['/article/list']);
-          },
-          error: (error) => {
-            this.isLoading = false;
-            this.spinner.hide();
-            const errorMessage = error?.error?.message || 'Erreur lors de la mise à jour de l\'article';
-            this.alertService.showError(errorMessage);
-            console.error('Erreur lors de la mise à jour de l\'article', error);
-          }
-        });
-      } else {
-        this.itemService.addArticle(formData).subscribe({
-          next: () => {
-            this.isLoading = false;
-            this.spinner.hide();
-            this.alertService.showSuccess('Article ajouté avec succès');
-            this.router.navigate(['/article/list']);
-          },
-          error: (error) => {
-            this.isLoading = false;
-            this.spinner.hide();
-            const errorMessage = error?.error?.message || 'Erreur lors de l\'ajout de l\'article';
-            this.alertService.showError(errorMessage);
-            console.error('Erreur lors de l\'ajout de l\'article', error);
-          }
-        });
-      }
+      const save$ = this.articleId
+        ? this.itemService.updateArticle(formData)
+        : this.itemService.addArticle(formData);
+      save$.pipe(
+        switchMap((res: any) => {
+          const id = this.articleId || res?.data?.id;
+          return this.persistPhoto(id);
+        })
+      ).subscribe({
+        next: () => {
+          this.isLoading = false;
+          this.spinner.hide();
+          this.alertService.showSuccess(this.articleId ? 'Article mis à jour avec succès' : 'Article ajouté avec succès');
+          this.router.navigate(['/article/list']);
+        },
+        error: (error) => {
+          this.isLoading = false;
+          this.spinner.hide();
+          const errorMessage = error?.error?.message || 'Erreur lors de l\'enregistrement de l\'article';
+          this.alertService.showError(errorMessage);
+          console.error('Erreur lors de l\'enregistrement de l\'article', error);
+        }
+      });
     }
   }
   onCancel(): void {
     this.router.navigate(['/article/list']);
+  }
+
+  private refreshInherited(typeName: string): void {
+    const match = this.types.find(type => type.name === typeName);
+    if (!match) {
+      return;
+    }
+    this.inheritedPhotoUrl = match.displayPhotoUrl || match.photoUrl || null;
+  }
+
+  private persistPhoto(id?: number): Observable<unknown> {
+    return saveArticlePhoto(
+      id,
+      this.photoField,
+      (photoId, file) => this.itemService.uploadPhoto(photoId, file),
+      (photoId) => this.itemService.deletePhoto(photoId)
+    );
   }
 }

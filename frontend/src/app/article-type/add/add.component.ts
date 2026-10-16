@@ -1,8 +1,14 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Observable } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ArticleTypeService, ArticleType } from '../service/article-type.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import {
+  ArticlePhotoFieldComponent,
+  saveArticlePhoto
+} from 'src/app/shared/components/article-photo-field/article-photo-field.component';
 
 @Component({
   selector: 'app-add',
@@ -12,6 +18,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
   standalone: false
 })
 export class AddComponent implements OnInit, OnDestroy {
+  @ViewChild(ArticlePhotoFieldComponent) photoField?: ArticlePhotoFieldComponent;
+
   private dateIntervalId?: ReturnType<typeof setInterval>;
 
   form!: FormGroup;
@@ -19,6 +27,7 @@ export class AddComponent implements OnInit, OnDestroy {
   isEditMode = false;
   isLoading = false;
   currentDate = new Date();
+  existingPhotoUrl: string | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -61,6 +70,7 @@ export class AddComponent implements OnInit, OnDestroy {
       next: (res) => {
         if (res.statusCode === 200) {
           this.form.patchValue(res.data);
+          this.existingPhotoUrl = res.data?.photoUrl || res.data?.displayPhotoUrl || null;
         }
         this.isLoading = false;
       },
@@ -84,7 +94,12 @@ export class AddComponent implements OnInit, OnDestroy {
       ? this.articleTypeService.updateType(this.id, type)
       : this.articleTypeService.createType(type);
 
-    request$.subscribe({
+    request$.pipe(
+      switchMap((res: any) => {
+        const id = this.id || res?.data?.id;
+        return this.persistPhoto(id);
+      })
+    ).subscribe({
       next: () => {
         this.alertService.showSuccess(this.isEditMode ? 'Type mis à jour' : 'Type créé');
         this.router.navigate(['/article-type']);
@@ -101,5 +116,14 @@ export class AddComponent implements OnInit, OnDestroy {
 
   onCancel(): void {
     this.router.navigate(['/article-type']);
+  }
+
+  private persistPhoto(id?: number): Observable<unknown> {
+    return saveArticlePhoto(
+      id,
+      this.photoField,
+      (photoId, file) => this.articleTypeService.uploadPhoto(photoId, file),
+      (photoId) => this.articleTypeService.deletePhoto(photoId)
+    );
   }
 }
