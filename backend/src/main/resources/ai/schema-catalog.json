@@ -323,7 +323,24 @@
         {
           "name": "stock_quantity",
           "type": "integer"
+        },
+        {
+          "name": "photo_object_key",
+          "type": "varchar",
+          "description": "Clé de stockage de la photo réduite de l'article. Vide si l'article n'a pas sa propre photo."
         }
+      ]
+    },
+    {
+      "name": "article_type",
+      "description": "Catégorie d'article. Le nom correspond au texte articles.type.",
+      "synonyms": ["type d'article", "catégorie d'article"],
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "name", "type": "varchar", "description": "Nom du type, identique à articles.type" },
+        { "name": "code", "type": "varchar", "description": "Code court" },
+        { "name": "description", "type": "varchar", "description": "Description" },
+        { "name": "photo_object_key", "type": "varchar", "description": "Clé de stockage de la photo réduite du type" }
       ]
     },
     {

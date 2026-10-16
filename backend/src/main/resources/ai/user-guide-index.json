@@ -1246,7 +1246,7 @@
       "customer",
       "manager"
     ],
-    "content": "Achats et commandes — Espace Client\nCommander\nAppuyez sur l’onglet Commander .\nRecherchez un produit ou filtrez par catégorie.\nAppuyez sur Ajouter , puis ouvrez le panier.\nSur Mon panier , ajustez les quantités, consultez le résumé de la commande , puis appuyez sur Passer la commande ."
+    "content": "Achats et commandes — Espace Client\nCommander\nAppuyez sur l’onglet Commander .\nChaque produit affiche sa photo lorsqu’elle est disponible, avec son nom et son prix.\nRecherchez un produit ou filtrez par catégorie.\nAppuyez sur Ajouter , puis ouvrez le panier.\nSur Mon panier , ajustez les quantités, consultez le résumé de la commande , puis appuyez sur Passer la commande ."
   },
   {
     "id": "customer_achats_commandes__sur_ordinateur",
@@ -1257,7 +1257,7 @@
       "customer",
       "manager"
     ],
-    "content": "Achats et commandes — Espace Client\nSur ordinateur\nUtilisez le menu à gauche : Accueil , Achats , Commander , Panier , Profil .\nSur Accueil , les montants de crédit s’affichent en cartes en haut de page, avec les actions rapides à droite.\nSur Achats , la liste apparaît en tableau : cliquez une ligne pour le détail. Le panneau de droite propose Payer une mise et Voir le suivi des mises .\nSur Commander , les catégories sont à gauche, les produits au centre, et un mini-panier à droite. Ouvrez Voir le panier pour finaliser."
+    "content": "Achats et commandes — Espace Client\nSur ordinateur\nUtilisez le menu à gauche : Accueil , Achats , Commander , Panier , Profil .\nSur Accueil , les montants de crédit s’affichent en cartes en haut de page, avec les actions rapides à droite.\nSur Achats , la liste apparaît en tableau : cliquez une ligne pour le détail. Le panneau de droite propose Payer une mise et Voir le suivi des mises .\nSur Commander , les catégories sont à gauche, les produits au centre (avec leur photo lorsqu’elle est disponible), et un mini-panier à droite. Ouvrez Voir le panier pour finaliser."
   },
   {
     "id": "customer_connexion",
@@ -2200,7 +2200,16 @@
     "roles": [
       "manager"
     ],
-    "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRéférentiels et Configuration de l'agence\n\nPour les profils administrateurs ou gestionnaires autorisés, le menu latéral Configuration regroupe les paramètres fondamentaux qui régissent les calculs et les nomenclatures de l'application :\n\n Rubrique du menu Rôle fonctionnel \n --- --- \n Localités Gestion du répertoire des zones, communes et quartiers. Permet d'harmoniser les adresses des clients et d'organiser les tournées de recouvrement. \n Types d'Articles Définition des catégories du catalogue de marchandises (Électroménager, Multimédia, Mobilier, etc.). \n Types de Dépense Référentiel des motifs de décaissement d'exploitation (Carburant, Loyer, Maintenance, etc.). \n Mobile Money Configuration des numéros de transfert d'argent (Mixx by YAS et Moov Money) attribués à chaque commercial pour les règlements clients à distance. \n Paramètres généraux Réglage des clés système fondamentales, notamment le mode de calcul de la part société de la tontine et la valorisation du stock magasin. \nActiver la valorisation du stock magasin par lots\nOuvrez Configuration → Paramètres généraux .\nRepérez le paramètre de valorisation du stock magasin (ENABLED_FIFO_STOCK_VALUATION).\nPassez sa valeur à true , puis enregistrez.\n\nÀ l'enregistrement, le stock déjà en magasin est repris sur un premier lot pour chaque article concerné. Les prochaines entrées de stock s'ajoutent ensuite derrière ce premier lot. Les quantités affichées ne changent pas.\n\nSi un article en stock n'a pas de prix d'achat renseigné, l'activation est refusée et le paramètre reste désactivé. Complétez le prix d'achat de l'article (ou validez une réception avec prix), puis réessayez.\n Prudence d'administration. La modification d'un paramètre général est une opération sensible qui engage la cohérence des écritures passées et futures. Une fois la valorisation par lots activée, ne la désactivez pas. Toute modification doit respecter les consignes strictes de la direction. Si vous n'avez pas accès à ces écrans, vous ne disposez pas des habilitations nécessaires.\n\n---"
+    "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRéférentiels et Configuration de l'agence\n\nPour les profils administrateurs ou gestionnaires autorisés, le menu latéral Configuration regroupe les paramètres fondamentaux qui régissent les calculs et les nomenclatures de l'application :\n\n Rubrique du menu Rôle fonctionnel \n --- --- \n Localités Gestion du répertoire des zones, communes et quartiers. Permet d'harmoniser les adresses des clients et d'organiser les tournées de recouvrement. \n Types d'Articles Définition des catégories du catalogue de marchandises (Électroménager, Multimédia, Mobilier, etc.). Chaque type peut avoir une photo : Choisir une photo (5 Mo maximum), aperçu, puis enregistrement. La photo est réduite automatiquement. \n Types de Dépense Référentiel des motifs de décaissement d'exploitation (Carburant, Loyer, Maintenance, etc.). \n Mobile Money Configuration des numéros de transfert d'argent (Mixx by YAS et Moov Money) attribués à chaque commercial pour les règlements clients à distance. \n Paramètres généraux Réglage des clés système fondamentales, notamment le mode de calcul de la part société de la tontine et la valorisation du stock magasin."
+  },
+  {
+    "id": "manager_reporting_config__4_r_f_rentiels_et_configuration_de_l_agence_acti",
+    "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 4. Référentiels et Configuration de l'agence — Activer la valorisation du stock magasin par lots",
+    "path": "/user-guide/manager/reporting_config.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRéférentiels et Configuration de l'agence\nActiver la valorisation du stock magasin par lots\nOuvrez Configuration → Paramètres généraux .\nRepérez le paramètre de valorisation du stock magasin (ENABLED_FIFO_STOCK_VALUATION).\nPassez sa valeur à true , puis enregistrez.\n\nÀ l'enregistrement, le stock déjà en magasin est repris sur un premier lot pour chaque article concerné. Les prochaines entrées de stock s'ajoutent ensuite derrière ce premier lot. Les quantités affichées ne changent pas.\n\nSi un article en stock n'a pas de prix d'achat renseigné, l'activation est refusée et le paramètre reste désactivé. Complétez le prix d'achat de l'article (ou validez une réception avec prix), puis réessayez.\n Prudence d'administration. La modification d'un paramètre général est une opération sensible qui engage la cohérence des écritures passées et futures. Une fois la valorisation par lots activée, ne la désactivez pas. Toute modification doit respecter les consignes strictes de la direction. Si vous n'avez pas accès à ces écrans, vous ne disposez pas des habilitations nécessaires.\n\n---"
   },
   {
     "id": "manager_reporting_config__5_profil_utilisateur_s_curit_de_session",
@@ -2239,7 +2248,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nEntrées Fournisseurs & Historique des Réceptions\n\nToute livraison de marchandise par un fournisseur doit faire l'objet d'une saisie d'entrée, soumise à une validation préalable obligatoire du gestionnaire avant d'impacter le stock disponible.\n\nPour accéder à la liste des réceptions, ouvrez le menu latéral Stock Commercial , puis cliquez sur Historique Entrée ."
   },
   {
-    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_230",
+    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_231",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 2. Entrées Fournisseurs & Historique des Réceptions — A. Circuit d'approbation d'une réception",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2248,7 +2257,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nEntrées Fournisseurs & Historique des Réceptions\nA. Circuit d'approbation d'une réception\n Saisie de l'entrée : Le magasinier saisit les articles et quantités reçus via le bouton « Entrées stock » de la page Inventaires .\n Étape « En attente » : Une référence de réception unique est générée. Les articles ne sont pas encore intégrés au stock vendable.\n Contrôle et Validation par le gestionnaire :\nRendez-vous dans Stock Commercial > Historique Entrée .\nCliquez sur « Voir » pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran, ou directement sur « Valider » .\nUne fenêtre de confirmation liste les articles. Les prix d'achat (unitaire, ou prix du colis / demi-colis) sont préremplis avec le catalogue : vous pouvez les modifier ou les laisser tels quels.\nCliquez sur « Confirmer la validation » : le stock magasin est instantanément augmenté avec les prix confirmés. En cas d'erreur, le message s'affiche dans la fenêtre : corrigez puis renvoyez.\n Refuser : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à Refusé .\n Abandonner : Permet au créateur de la réception en attente de supprimer sa saisie avant validation si une erreur a été commise.\n Annuler : Réservé aux gestionnaires habilités pour annuler une réception déjà validée suite à une régularisation comptable, décrémentant le stock du magasin.\n\n Statut Réception Badge Couleur Impact sur le Stock Magasin Actions Disponibles \n --- --- --- --- \n En attente Jaune Aucun impact (en cours de contrôle) Valider, Refuser, Abandonner \n Validée Vert Stock magasin augmenté Voir, Annuler (selon vos droits) \n Refusée Rouge Aucun impact (réception rejetée) Voir \n Annulée Gris Le stock préalablement ajouté est retiré Voir"
   },
   {
-    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_231",
+    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_232",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 2. Entrées Fournisseurs & Historique des Réceptions — B. Consulter le détail et télécharger les documents",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2400,7 +2409,7 @@
     "content": "Chef de recouvrement — application mobile\nOnglet Retards : prioriser, contrôler et clôturer\nContrôle crédit\n\nLe formulaire compare le montant payé dans le système au montant observé sur le carnet. Saisissez le montant réellement lu, ajoutez une note si nécessaire, puis choisissez Capturer le contrôle . Le résultat affiche un statut CONFORME ou ECART ."
   },
   {
-    "id": "recovery_manager_mobile__onglet_retards_prioriser_contr_ler_et_cl_turer_c_247",
+    "id": "recovery_manager_mobile__onglet_retards_prioriser_contr_ler_et_cl_turer_c_248",
     "title": "Chef de recouvrement — application mobile — Onglet Retards : prioriser, contrôler et clôturer — Clôture totale ou partielle",
     "path": "/user-guide/recovery-manager/mobile.html",
     "roles": [
@@ -2527,7 +2536,17 @@
       "storekeeper",
       "manager"
     ],
-    "content": "Gestion des articles et seuils de stock (Guide Magasinier)\nConsulter et rechercher dans le catalogue (Menu Articles > Liste)\n\nAccessible depuis le menu latéral gauche Articles (si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises), la liste présente l'ensemble des articles enregistrés.\n\nA. Outils de recherche et filtres\n Recherche instantanée : Recherchez par nom d'article, marque ou modèle.\n Filtre par Type : Isolez une catégorie d'articles spécifique (ex: Électroménager, Textile, Téléphonie, etc.).\n Fiche détaillée de l'article :\nCliquez sur « Voir » pour afficher la fiche complète.\nConsultez l'historique chronologique de tous les mouvements de stock ayant affecté cet article (réceptions fournisseurs, sorties vers commerciaux, retours au magasin).\n\n---"
+    "content": "Gestion des articles et seuils de stock (Guide Magasinier)\nConsulter et rechercher dans le catalogue (Menu Articles > Liste)\n\nAccessible depuis le menu latéral gauche Articles (si vous ne voyez pas ce menu, vous ne disposez pas des habilitations requises), la liste présente l'ensemble des articles enregistrés.\n\nA. Outils de recherche et filtres\n Recherche instantanée : Recherchez par nom d'article, marque ou modèle.\n Filtre par Type : Isolez une catégorie d'articles spécifique (ex: Électroménager, Textile, Téléphonie, etc.).\n Fiche détaillée de l'article :\nCliquez sur « Voir » pour afficher la fiche complète.\nConsultez l'historique chronologique de tous les mouvements de stock ayant affecté cet article (réceptions fournisseurs, sorties vers commerciaux, retours au magasin).\n Photo : la liste affiche une miniature à côté du nom lorsqu'une photo est disponible."
+  },
+  {
+    "id": "storekeeper_articles__photo_de_l_article",
+    "title": "Gestion des articles et seuils de stock (Guide Magasinier) — Photo de l'article",
+    "path": "/user-guide/storekeeper/articles.html",
+    "roles": [
+      "storekeeper",
+      "manager"
+    ],
+    "content": "Gestion des articles et seuils de stock (Guide Magasinier)\nPhoto de l'article\nOuvrez Articles , puis Ajouter , ou le crayon de modification d'un article existant.\nDans Photo , cliquez sur Choisir une photo et sélectionnez l'image du produit (5 Mo maximum).\nL'aperçu s'affiche. Retirer enlève la photo de cet article.\nEnregistrez. La photo est réduite automatiquement.\n\nSi l'article n'a pas encore sa photo, l'aperçu reprend celle de son type lorsqu'elle existe. Le catalogue de l'espace client affiche la même image.\n\n---"
   },
   {
     "id": "storekeeper_articles__2_seuils_logistiques_et_alertes_de_stock",

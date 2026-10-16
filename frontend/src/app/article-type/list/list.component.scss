@@ -436,6 +436,9 @@
   .article-type-page .result-count { margin-left: 0; width: 100%; }
 }
 
+.article-type-page .name-with-photo { display: inline-flex; align-items: center; gap: 8px; }
+.article-type-page .article-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+
 @media (max-width: 680px) {
   .article-type-page.main-container { margin-top: 60px; height: calc(100vh - 60px); }
   .article-type-page .page-fixed-head,

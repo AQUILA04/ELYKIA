@@ -64,6 +64,24 @@
           placeholder="Description optionnelle du type…"></textarea>
       </div>
 
+      <div class="field-group">
+        <label class="field-label" for="type-photo">Photo</label>
+        <div class="photo-picker">
+          <div class="photo-preview" *ngIf="previewSrc; else typePhotoEmpty">
+            <img [src]="previewSrc" alt="Aperçu de la photo du type" />
+          </div>
+          <ng-template #typePhotoEmpty>
+            <div class="photo-preview photo-preview-empty">Aucune photo</div>
+          </ng-template>
+          <div class="photo-actions">
+            <label class="btn-photo" for="type-photo">Choisir une photo</label>
+            <input id="type-photo" class="photo-input" type="file" accept="image/jpeg,image/png,image/webp" (change)="onPhotoSelected($event)" />
+            <button type="button" class="btn-cancel" *ngIf="canRemovePhoto" (click)="removePhoto()">Retirer</button>
+          </div>
+          <p class="photo-hint">5 Mo maximum. La photo est réduite automatiquement à l'enregistrement.</p>
+        </div>
+      </div>
+
       <div class="form-actions">
         <button type="button" class="btn-cancel" (click)="onCancel()" [disabled]="isLoading">Annuler</button>
         <button type="submit" class="btn-submit" [disabled]="form.invalid || isLoading">

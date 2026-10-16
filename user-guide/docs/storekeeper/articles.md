@@ -16,6 +16,16 @@ Accessible depuis le menu latéral gauche **Articles** (si vous ne voyez pas ce 
 * **Fiche détaillée de l'article** :
   * Cliquez sur **« Voir »** pour afficher la fiche complète.
   * Consultez l'historique chronologique de tous les mouvements de stock ayant affecté cet article (réceptions fournisseurs, sorties vers commerciaux, retours au magasin).
+* **Photo** : la liste affiche une miniature à côté du nom lorsqu'une photo est disponible.
+
+## Photo de l'article
+
+1. Ouvrez **Articles**, puis **Ajouter**, ou le crayon de modification d'un article existant.
+2. Dans **Photo**, cliquez sur **Choisir une photo** et sélectionnez l'image du produit (5 Mo maximum).
+3. L'aperçu s'affiche. **Retirer** enlève la photo de cet article.
+4. Enregistrez. La photo est réduite automatiquement.
+
+Si l'article n'a pas encore sa photo, l'aperçu reprend celle de son type lorsqu'elle existe. Le catalogue de l'espace client affiche la même image.
 
 ---
 

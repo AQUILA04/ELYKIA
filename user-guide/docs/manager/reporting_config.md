@@ -170,7 +170,7 @@ Pour les profils administrateurs ou gestionnaires autorisés, le menu latéral *
 | Rubrique du menu | Rôle fonctionnel |
 |---|---|
 | **Localités** | Gestion du répertoire des zones, communes et quartiers. Permet d'harmoniser les adresses des clients et d'organiser les tournées de recouvrement. |
-| **Types d'Articles** | Définition des catégories du catalogue de marchandises (Électroménager, Multimédia, Mobilier, etc.). |
+| **Types d'Articles** | Définition des catégories du catalogue de marchandises (Électroménager, Multimédia, Mobilier, etc.). Chaque type peut avoir une photo : **Choisir une photo** (5 Mo maximum), aperçu, puis enregistrement. La photo est réduite automatiquement. |
 | **Types de Dépense** | Référentiel des motifs de décaissement d'exploitation (Carburant, Loyer, Maintenance, etc.). |
 | **Mobile Money** | Configuration des numéros de transfert d'argent (Mixx by YAS et Moov Money) attribués à chaque commercial pour les règlements clients à distance. |
 | **Paramètres généraux** | Réglage des clés système fondamentales, notamment le mode de calcul de la part société de la tontine et la valorisation du stock magasin. |

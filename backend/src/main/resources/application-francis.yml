@@ -77,6 +77,7 @@ minio:
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket: ${MINIO_BUCKET:elykia-clients}
   reports-bucket: ${MINIO_REPORTS_BUCKET:elykia-reports}
+  articles-bucket: ${MINIO_ARTICLES_BUCKET:elykia-articles}
   public-url: ${MINIO_PUBLIC_URL:http://localhost:19000}
 
 optimize.notification.hub:

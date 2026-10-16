@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.36.0] — 2026-10-16
+
+### Added
+
+- Photo optionnelle sur un article et sur un type d'article. Un fichier jusqu'à 5 Mo est réduit en un JPEG d'environ 25 Ko avant enregistrement. Le catalogue de l'espace client affiche la photo de l'article, ou celle de son type si l'article n'en a pas.
+
 ## Backend — [1.35.1] — 2026-10-16
 
 ### Added
@@ -26,6 +32,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.32.0] — 2026-10-16
+
+### Added
+
+- Formulaires article et type d'article : choix d'une photo, aperçu et retrait. Les listes affichent une miniature. Sans photo propre, l'article reprend celle de son type.
 
 ## Frontend — [2.31.6] — 2026-10-16
 
@@ -498,6 +510,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.15.0] — 2026-10-16
+
+### Added
+
+- Catalogue Commander : chaque produit affiche sa photo lorsqu'elle est disponible, sur téléphone et sur ordinateur.
 
 ## Customer-space — [0.14.2] — 2026-10-16
 

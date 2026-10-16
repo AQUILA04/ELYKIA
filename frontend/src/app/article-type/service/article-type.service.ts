@@ -9,6 +9,8 @@ export interface ArticleType {
   name: string;
   code?: string;
   description?: string;
+  photoUrl?: string | null;
+  displayPhotoUrl?: string | null;
 }
 
 @Injectable({
@@ -62,5 +64,15 @@ export class ArticleTypeService {
   getType(id: number): Observable<any> {
     const headers = this.getHeader();
     return this.http.get<any>(`${this.apiUrl}/${id}`, { headers });
+  }
+
+  uploadPhoto(id: number, file: File): Observable<any> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http.post<any>(`${this.apiUrl}/${id}/photo`, form, { headers: this.getHeader() });
+  }
+
+  deletePhoto(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${id}/photo`, { headers: this.getHeader() });
   }
 }

@@ -1,6 +1,8 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Observable, of } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { ArticleTypeService, ArticleType } from '../service/article-type.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 
@@ -19,6 +21,11 @@ export class AddComponent implements OnInit, OnDestroy {
   isEditMode = false;
   isLoading = false;
   currentDate = new Date();
+  existingPhotoUrl: string | null = null;
+  photoRemoved = false;
+  photoFile: File | null = null;
+  previewObjectUrl: string | null = null;
+  private readonly maxPhotoBytes = 5 * 1024 * 1024;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -45,6 +52,21 @@ export class AddComponent implements OnInit, OnDestroy {
     if (this.dateIntervalId) {
       clearInterval(this.dateIntervalId);
     }
+    this.revokePreview();
+  }
+
+  get previewSrc(): string | null {
+    if (this.previewObjectUrl) {
+      return this.previewObjectUrl;
+    }
+    if (!this.photoRemoved && this.existingPhotoUrl) {
+      return this.existingPhotoUrl;
+    }
+    return null;
+  }
+
+  get canRemovePhoto(): boolean {
+    return !!this.previewObjectUrl || (!this.photoRemoved && !!this.existingPhotoUrl);
   }
 
   initForm(): void {
@@ -61,6 +83,7 @@ export class AddComponent implements OnInit, OnDestroy {
       next: (res) => {
         if (res.statusCode === 200) {
           this.form.patchValue(res.data);
+          this.existingPhotoUrl = res.data?.photoUrl || res.data?.displayPhotoUrl || null;
         }
         this.isLoading = false;
       },
@@ -84,7 +107,12 @@ export class AddComponent implements OnInit, OnDestroy {
       ? this.articleTypeService.updateType(this.id, type)
       : this.articleTypeService.createType(type);
 
-    request$.subscribe({
+    request$.pipe(
+      switchMap((res: any) => {
+        const id = this.id || res?.data?.id;
+        return this.persistPhoto(id);
+      })
+    ).subscribe({
       next: () => {
         this.alertService.showSuccess(this.isEditMode ? 'Type mis à jour' : 'Type créé');
         this.router.navigate(['/article-type']);
@@ -101,5 +129,48 @@ export class AddComponent implements OnInit, OnDestroy {
 
   onCancel(): void {
     this.router.navigate(['/article-type']);
+  }
+
+  onPhotoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (!file) {
+      return;
+    }
+    if (file.size > this.maxPhotoBytes) {
+      this.alertService.showError('La photo ne doit pas dépasser 5 Mo');
+      return;
+    }
+    this.photoFile = file;
+    this.photoRemoved = false;
+    this.revokePreview();
+    this.previewObjectUrl = URL.createObjectURL(file);
+  }
+
+  removePhoto(): void {
+    this.photoFile = null;
+    this.photoRemoved = true;
+    this.revokePreview();
+  }
+
+  private persistPhoto(id?: number): Observable<unknown> {
+    if (!id) {
+      return of(null);
+    }
+    if (this.photoFile) {
+      return this.articleTypeService.uploadPhoto(id, this.photoFile);
+    }
+    if (this.photoRemoved && this.existingPhotoUrl) {
+      return this.articleTypeService.deletePhoto(id);
+    }
+    return of(null);
+  }
+
+  private revokePreview(): void {
+    if (this.previewObjectUrl) {
+      URL.revokeObjectURL(this.previewObjectUrl);
+      this.previewObjectUrl = null;
+    }
   }
 }

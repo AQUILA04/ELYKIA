@@ -60,4 +60,10 @@ public class ArticlesDto {
 
     @PositiveOrZero
     private Double halfWholesalePurchasePrice;
+
+    /** URL signée de la photo propre à l'article. Vide s'il n'en a pas. */
+    private String photoUrl;
+
+    /** URL signée affichée : photo de l'article, sinon celle de son type. */
+    private String displayPhotoUrl;
 }

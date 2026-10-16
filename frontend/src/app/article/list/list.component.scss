@@ -1,5 +1,8 @@
 /* Aligné sur tontine-dashboard / credit-late */
 
+.article-page .name-with-photo { display: inline-flex; align-items: center; gap: 8px; }
+.article-page .article-thumb { width: 40px; height: 40px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
+
 .article-page {
   --navy: #003366;
   --navy-dark: #002244;

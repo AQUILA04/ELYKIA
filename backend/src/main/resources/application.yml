@@ -83,6 +83,7 @@ minio:
   customer-space-releases-bucket: ${MINIO_CUSTOMER_SPACE_RELEASES_BUCKET:elykia-customer-space-releases}
   customer-space-release-channel: ${CUSTOMER_SPACE_RELEASE_CHANNEL:prod}
   recruitment-bucket: ${MINIO_RECRUITMENT_BUCKET:elykia-recruitment}
+  articles-bucket: ${MINIO_ARTICLES_BUCKET:elykia-articles}
   public-url: ${MINIO_PUBLIC_URL:http://localhost:9000}
 
 spring.servlet.multipart:

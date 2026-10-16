@@ -176,6 +176,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
         articles.setLastRestockDate(oldOne.getLastRestockDate());
         articles.setStockTurnoverRate(oldOne.getStockTurnoverRate());
         articles.setCode(oldOne.getCode());
+        articles.setPhotoObjectKey(oldOne.getPhotoObjectKey());
         normalizePackagingDefaults(articles);
         articlePackagingPricingService.validateArticlePackaging(articles);
         if (hasPriceChanged(oldOne, articles)) {

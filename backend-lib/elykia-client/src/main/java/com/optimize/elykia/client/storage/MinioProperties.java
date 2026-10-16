@@ -24,4 +24,6 @@ public class MinioProperties {
     private String customerSpaceReleaseChannel = "prod";
     /** Bucket recrutement (offres + CV). */
     private String recruitmentBucket = "elykia-recruitment";
+    /** Bucket des photos d'articles et de types (JPEG réduit uniquement). */
+    private String articlesBucket = "elykia-articles";
 }

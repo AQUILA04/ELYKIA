@@ -58,6 +58,25 @@
           </span>
         </div>
 
+        <div class="form-field photo-field">
+          <label for="article-photo">Photo</label>
+          <div class="photo-picker">
+            <div class="photo-preview" *ngIf="previewSrc; else articlePhotoEmpty">
+              <img [src]="previewSrc" alt="Aperçu de la photo de l'article" />
+            </div>
+            <ng-template #articlePhotoEmpty>
+              <div class="photo-preview photo-preview-empty">Aucune photo</div>
+            </ng-template>
+            <div class="photo-actions">
+              <label class="btn-photo" for="article-photo">Choisir une photo</label>
+              <input id="article-photo" class="photo-input" type="file" accept="image/jpeg,image/png,image/webp" (change)="onPhotoSelected($event)" />
+              <button type="button" class="btn-outline" *ngIf="canRemovePhoto" (click)="removePhoto()">Retirer</button>
+            </div>
+            <p class="photo-hint" *ngIf="showsInheritedPhoto">Cette photo est celle du type. Elle est affichée tant que l'article n'a pas la sienne.</p>
+            <p class="photo-hint">5 Mo maximum. La photo est réduite automatiquement à l'enregistrement.</p>
+          </div>
+        </div>
+
         <div class="form-field">
           <label for="purchasePrice">Prix d'achat <span class="required">*</span></label>
           <input type="number" id="purchasePrice" formControlName="purchasePrice" class="field-input field-mono">

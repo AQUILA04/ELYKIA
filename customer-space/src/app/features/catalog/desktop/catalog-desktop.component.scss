@@ -29,7 +29,10 @@
   background: var(--elyk-white); border-radius: 16px; box-shadow: var(--elyk-shadow-soft); padding: 16px; display: flex; flex-direction: column; gap: 8px;
 }
 .desk-article__thumb {
-  height: 88px; border-radius: 12px; background: var(--elyk-surface-muted); display: flex; align-items: center; justify-content: center; color: var(--elyk-gold); font-size: 32px;
+  height: 120px; border-radius: 12px; background: var(--elyk-surface-muted); display: flex; align-items: center; justify-content: center; color: var(--elyk-gold); font-size: 32px; overflow: hidden;
+}
+.desk-article__thumb img {
+  width: 100%; height: 100%; object-fit: cover;
 }
 .desk-article h3 { margin: 0; font-size: 14px; color: var(--elyk-navy); }
 .desk-article .price { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; }

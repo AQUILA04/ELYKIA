@@ -16,7 +16,10 @@
       <div class="elyk-skeleton-card" *ngIf="isLoading()"></div>
       <div class="desk-grid-articles" *ngIf="!isLoading()">
         <article class="desk-article" *ngFor="let a of articles()" [attr.data-testid]="'e2e-catalog-article-' + a.id">
-          <div class="desk-article__thumb"><ion-icon name="cube-outline"></ion-icon></div>
+          <div class="desk-article__thumb">
+            <img *ngIf="a.imageUrl" [src]="a.imageUrl" [alt]="label()(a)" />
+            <ion-icon *ngIf="!a.imageUrl" name="cube-outline" aria-hidden="true"></ion-icon>
+          </div>
           <h3>{{ label()(a) }}</h3>
           <p class="price">{{ a.creditSalePrice | number:'1.0-0' }} FCFA</p>
           <button type="button" class="add-btn" (click)="add.emit(a)" [attr.data-testid]="'e2e-catalog-add-' + a.id">

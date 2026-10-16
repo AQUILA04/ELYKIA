@@ -198,6 +198,24 @@
   background: var(--navy-xpale);
 }
 
+.article-form-page .photo-field { grid-column: 1 / -1; }
+.article-form-page .photo-picker { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.article-form-page .photo-preview {
+  width: 120px; height: 120px; border-radius: 12px; overflow: hidden;
+  background: var(--navy-xpale); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 13px;
+}
+.article-form-page .photo-preview img { width: 100%; height: 100%; object-fit: cover; }
+.article-form-page .photo-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.article-form-page .btn-photo {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 16px;
+  border-radius: var(--radius-sm); background: var(--navy); color: #fff; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.article-form-page .photo-input {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;
+}
+.article-form-page .photo-hint { flex: 1 1 100%; margin: 0; color: var(--text-muted); font-size: 12px; }
+
 @media (max-width: 680px) {
   .article-form-page.main-container {
     padding: 14px 12px 40px;

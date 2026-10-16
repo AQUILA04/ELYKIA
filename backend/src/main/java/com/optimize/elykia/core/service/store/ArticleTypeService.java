@@ -32,7 +32,9 @@ public class ArticleTypeService extends GenericService<ArticleType, Long> {
     public ArticleType updateArticleType(ArticleTypeDto dto, Long id) {
         log.info("Updating article type with id: {}", id);
         dto.setId(id);
+        ArticleType existing = getById(id);
         ArticleType articleType = articleTypeMapper.toEntity(dto);
+        articleType.setPhotoObjectKey(existing.getPhotoObjectKey());
         return update(articleType);
     }
 
