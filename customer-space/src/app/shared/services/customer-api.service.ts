@@ -31,6 +31,9 @@ import {
   CustomerTontineSession,
   CustomerTontineJoinRequest,
   CustomerTontineJoinResponse,
+  PaymentCollectionOptions,
+  AutomaticPaymentRequest,
+  AutomaticPaymentResult,
   TontineMobileMoneyPaymentRequest,
   CustomerOnboardingStatus,
   CustomerInitialDeposit,
@@ -142,6 +145,20 @@ export class CustomerApiService {
 
   submitMobileMoneyPayment(payload: MobileMoneyPaymentRequest): Observable<CustomerRecovery> {
     return this.http.post<CustomerRecovery>(`${this.base}/recoveries/mobile-money`, payload);
+  }
+
+  getPaymentCollectionOptions(amount: number): Observable<PaymentCollectionOptions> {
+    return this.http.get<PaymentCollectionOptions>(`${this.base}/payments/collection-options`, {
+      params: { amount: String(amount) },
+    });
+  }
+
+  startAutomaticPayment(payload: AutomaticPaymentRequest): Observable<AutomaticPaymentResult> {
+    return this.http.post<AutomaticPaymentResult>(`${this.base}/payments/automatic`, payload);
+  }
+
+  getAutomaticPayment(purpose: string, id: number): Observable<AutomaticPaymentResult> {
+    return this.http.get<AutomaticPaymentResult>(`${this.base}/payments/automatic/${purpose}/${id}`);
   }
 
   uploadPaymentProof(

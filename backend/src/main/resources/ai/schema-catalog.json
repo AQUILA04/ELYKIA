@@ -1676,6 +1676,19 @@
           "refColumn": "id"
         }
       ]
+    },
+    {
+      "name": "mobile_money_withdrawal_fee_bracket",
+      "description": "Grille de frais de retrait Mobile Money appliquée au paiement depuis l'Espace Client, par réseau",
+      "synonyms": ["frais de retrait", "Mixx", "Flooz"],
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "network", "type": "varchar", "description": "Réseau MIXX ou FLOOZ", "synonyms": ["Mixx by Yas", "Flooz", "Moov"] },
+        { "name": "min_amount", "type": "bigint", "description": "Montant minimum de la tranche, en FCFA" },
+        { "name": "max_amount", "type": "bigint", "description": "Montant maximum de la tranche, en FCFA" },
+        { "name": "fee_amount", "type": "bigint", "description": "Frais de retrait de la tranche, en FCFA" },
+        { "name": "visibility", "type": "varchar", "description": "ENABLED, DISABLED, DELETED" }
+      ]
     }
   ],
   "views": [

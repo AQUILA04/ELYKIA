@@ -1,0 +1,22 @@
+.collection { display: flex; flex-direction: column; gap: 14px; margin-bottom: 16px; }
+.choice-grid { display: grid; gap: 10px; }
+.choice, .network {
+  text-align: left;
+  border: 1px solid #d7deea;
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px 14px;
+  min-height: 44px;
+}
+.choice strong, .network { display: block; color: #0f172a; }
+.choice span { display: block; margin-top: 4px; color: #64748b; font-size: 14px; }
+.choice-active, .network-active { border-color: #1e40af; background: #eff6ff; }
+.networks { display: flex; gap: 8px; }
+.network { flex: 1; text-align: center; font-weight: 700; }
+.quote { background: #f8fafc; border-radius: 12px; padding: 12px 14px; }
+.quote-row { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; font-variant-numeric: tabular-nums; }
+.quote-row.total { font-weight: 800; border-top: 1px solid #e2e8f0; margin-top: 6px; padding-top: 8px; }
+.hint, .quote-error, .form-error { color: #64748b; font-size: 14px; }
+.quote-error, .form-error { color: var(--ion-color-danger, #dc2626); }
+.result { padding: 8px 0 16px; }
+.result h2 { margin: 0 0 8px; font-size: 18px; }

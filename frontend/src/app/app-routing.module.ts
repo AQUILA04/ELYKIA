@@ -29,6 +29,7 @@ import { OldReleaseListComponent } from "./out/old-release-list/old-release-list
 import { AuthGuard } from "./auth/guards/auth.guard";
 import { AiChatGuard } from './ai-chat/guards/ai-chat.guard';
 import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
+import { WithdrawalFeeGridComponent } from './mobile-money-config/withdrawal-fee-grid/withdrawal-fee-grid.component';
 import { FeatureFlagGuard } from './shared/guards/feature-flag.guard';
 import { FeatureFlags } from './shared/service/feature-flag.service';
 
@@ -386,6 +387,11 @@ const routes: Routes = [
   {
     path: 'parameters',
     loadChildren: () => import('./parameters/parameters.module').then(m => m.ParametersModule),
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'configuration/mobile-money/frais-retrait',
+    component: WithdrawalFeeGridComponent,
     canActivate: [AuthGuard]
   },
   {

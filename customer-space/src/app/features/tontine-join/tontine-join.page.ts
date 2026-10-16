@@ -1,4 +1,4 @@
-import { Component , inject} from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -18,6 +18,7 @@ import {
 import { ElykPageHeaderComponent, ElykOutlinedFieldComponent } from '../../shared/ui';
 import { MobileMoneyRecipientsCardComponent } from '../../shared/components/mobile-money-recipients-card/mobile-money-recipients-card.component';
 import { PaymentProofPickerComponent } from '../../shared/components/payment-proof-picker/payment-proof-picker.component';
+import { PaymentCollectionComponent } from '../../shared/components/payment-collection/payment-collection.component';
 
 const STAKE_SHORTCUTS = [100, 200, 500, 1000];
 /** Numéro agence affiché si aucun destinataire Mixx/Moov n'est configuré. */
@@ -38,6 +39,7 @@ import { TontineJoinDesktopComponent } from './desktop/tontine-join-desktop.comp
     ElykOutlinedFieldComponent,
     MobileMoneyRecipientsCardComponent,
     PaymentProofPickerComponent,
+    PaymentCollectionComponent,
   ],
   templateUrl: './tontine-join.page.html',
   styleUrls: ['./tontine-join.page.scss'],
@@ -50,6 +52,8 @@ export class TontineJoinPage implements ViewWillEnter {
   stakeForm: FormGroup;
   paymentForm: FormGroup;
   includeInitialPayment = false;
+  showManualPayment = true;
+  automaticSelection: { network: string; phone: string } | null = null;
   recipients: MobileMoneyRecipient | null = null;
   recipientsLoading = false;
   recipientsError = '';
@@ -211,7 +215,10 @@ export class TontineJoinPage implements ViewWillEnter {
     if (this.stakeForm.invalid || this.isSubmitting || !this.session?.joinable) {
       return false;
     }
-    if (this.includeInitialPayment && this.paymentForm.invalid) {
+    if (this.includeInitialPayment && this.showManualPayment && this.paymentForm.invalid) {
+      return false;
+    }
+    if (this.includeInitialPayment && !this.showManualPayment && !this.automaticSelection) {
       return false;
     }
     return true;
@@ -237,8 +244,11 @@ export class TontineJoinPage implements ViewWillEnter {
           notes?: string;
           paymentProofId?: number | null;
         };
+        automaticInitialPayment?: { network: string; phone: string };
       } = { dailyStake: this.dailyStake };
-      if (this.includeInitialPayment) {
+      if (this.includeInitialPayment && !this.showManualPayment && this.automaticSelection) {
+        payload.automaticInitialPayment = this.automaticSelection;
+      } else if (this.includeInitialPayment) {
         payload.initialPayment = {
           mobileMoneyPhone: this.paymentForm.value.mobileMoneyPhone,
           mobileMoneyAmount: this.paymentForm.value.mobileMoneyAmount,

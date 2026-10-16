@@ -16,4 +16,7 @@ public class CustomerTontineJoinRequest {
 
     @Valid
     private CustomerTontineInitialPaymentRequest initialPayment;
+
+    @Valid
+    private CustomerAutomaticInitialPaymentRequest automaticInitialPayment;
 }

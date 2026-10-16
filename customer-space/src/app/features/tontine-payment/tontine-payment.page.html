@@ -9,6 +9,9 @@
     [recipientsLoading]="recipientsLoading"
     [recipientsError]="recipientsError"
     [depositDestinationNumber]="depositDestinationNumber"
+    [memberId]="memberId"
+    [showManual]="showManual"
+    (manualActive)="showManual = $event"
     (back)="goBack()"
     (submit)="submit()"
     (goBackSuccess)="goTimeline()">
@@ -32,6 +35,7 @@
         <p>Mise journalière attendue : <strong>{{ expectedAmount | number:'1.0-0' }} FCFA</strong></p>
       </div>
 
+      <ng-container *ngIf="showManual">
       <div class="info-box elyk-animate" data-testid="e2e-tontine-payment-deposit-hint">
         <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
         <p>
@@ -47,8 +51,15 @@
         [error]="recipientsError"
         testIdPrefix="e2e-tontine-payment-recipients">
       </app-mobile-money-recipients-card>
+      </ng-container>
 
-      <form [formGroup]="form" class="payment-form elyk-animate">
+      <app-payment-collection
+        [amount]="expectedAmount"
+        purpose="TONTINE"
+        [memberId]="memberIdNumber"
+        (manualActive)="showManual = $event">
+      </app-payment-collection>
+      <form [formGroup]="form" class="payment-form elyk-animate" *ngIf="showManual">
         <app-payment-proof-picker [form]="form" testIdPrefix="e2e-tontine-payment-proof"></app-payment-proof-picker>
         <app-elyk-outlined-field label="Numéro d'envoi" icon="call-outline">
           <ion-input
@@ -88,7 +99,7 @@
     </div>
   </ion-content>
 
-  <ion-footer class="payment-footer ion-no-border">
+  <ion-footer class="payment-footer ion-no-border" *ngIf="showManual">
     <div class="payment-footer-inner">
       <ion-button
         expand="block"

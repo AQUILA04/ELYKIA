@@ -12,6 +12,7 @@ import {
 import { ElykDesktopPageComponent, ElykOutlinedFieldComponent } from '../../../shared/ui';
 import { MobileMoneyRecipientsCardComponent } from '../../../shared/components/mobile-money-recipients-card/mobile-money-recipients-card.component';
 import { PaymentProofPickerComponent } from '../../../shared/components/payment-proof-picker/payment-proof-picker.component';
+import { PaymentCollectionComponent } from '../../../shared/components/payment-collection/payment-collection.component';
 
 @Component({
   selector: 'app-tontine-join-desktop',
@@ -20,6 +21,7 @@ import { PaymentProofPickerComponent } from '../../../shared/components/payment-
     CommonModule, ReactiveFormsModule, IonicModule, RouterModule,
     ElykDesktopPageComponent, ElykOutlinedFieldComponent, MobileMoneyRecipientsCardComponent,
     PaymentProofPickerComponent,
+    PaymentCollectionComponent,
   ],
   templateUrl: './tontine-join-desktop.component.html',
   styleUrls: ['./tontine-join-desktop.component.scss'],
@@ -30,6 +32,10 @@ export class TontineJoinDesktopComponent {
   readonly stakeForm = input.required<FormGroup>();
   readonly paymentForm = input.required<FormGroup>();
   readonly includeInitialPayment = input(false);
+  readonly showManualPayment = input(true);
+  readonly dailyStake = input(0);
+  readonly manualActive = output<boolean>();
+  readonly selectionChange = output<{ network: string; phone: string } | null>();
   readonly recipients = input<MobileMoneyRecipient | null>(null);
   readonly recipientsLoading = input(false);
   readonly recipientsError = input('');

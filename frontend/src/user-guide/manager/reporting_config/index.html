@@ -1058,6 +1058,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#mode-de-paiement-de-lespace-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mode de paiement de l’Espace Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grilles-de-frais-de-retrait" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grilles de frais de retrait
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2181,6 +2203,28 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#mode-de-paiement-de-lespace-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mode de paiement de l’Espace Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grilles-de-frais-de-retrait" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grilles de frais de retrait
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2379,6 +2423,10 @@
 <td>Configuration des numéros de transfert d'argent (Mixx by YAS et Moov Money) attribués à chaque commercial pour les règlements clients à distance.</td>
 </tr>
 <tr>
+<td><strong>Frais de retrait</strong></td>
+<td>Grilles de frais de retrait Mixx by Yas et Flooz, utilisées lorsque le client paie depuis l’Espace Client.</td>
+</tr>
+<tr>
 <td><strong>Paramètres généraux</strong></td>
 <td>Réglage des clés système fondamentales, notamment le mode de calcul de la part société de la tontine et la valorisation du stock magasin.</td>
 </tr>
@@ -2392,6 +2440,22 @@
 </ol>
 <p>À l'enregistrement, le stock déjà en magasin est repris sur un premier lot pour chaque article concerné. Les prochaines entrées de stock s'ajoutent ensuite derrière ce premier lot. Les quantités affichées ne changent pas.</p>
 <p>Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refusée et le paramètre reste désactivé. Complétez le prix d'achat de l'article (ou validez une réception avec prix), puis réessayez.</p>
+<h3 id="mode-de-paiement-de-lespace-client">Mode de paiement de l’Espace Client</h3>
+<ol>
+<li>Ouvrez <strong>Configuration</strong> → <strong>Paramètres généraux</strong>.</li>
+<li>Repérez <strong>CUSTOMER_PAYMENT_COLLECTION_MODE</strong>.</li>
+<li>Indiquez <strong>MANUAL</strong> pour la déclaration avec preuve, <strong>AUTOMATIC</strong> pour le paiement depuis l’application, ou <strong>BOTH</strong> pour laisser le client choisir, puis enregistrez.</li>
+</ol>
+<h3 id="grilles-de-frais-de-retrait">Grilles de frais de retrait</h3>
+<ol>
+<li>Ouvrez <strong>Configuration</strong> → <strong>Frais de retrait</strong>.</li>
+<li>Choisissez <strong>Mixx by Yas</strong> ou <strong>Flooz</strong>.</li>
+<li>Saisissez <strong>De</strong>, <strong>À</strong> et <strong>Frais</strong>, puis appuyez sur <strong>Ajouter</strong>.</li>
+<li>Les tranches d’un même réseau ne doivent pas se chevaucher.</li>
+<li><strong>Modifier</strong> recharge la tranche dans le formulaire. Ajustez les montants, puis appuyez sur <strong>Enregistrer</strong>.</li>
+<li><strong>Retirer</strong> enlève une tranche.</li>
+</ol>
+<p>Pour une mise comprise dans une tranche, ces frais sont ajoutés avant les frais du paiement en ligne.</p>
 <blockquote>
 <p><strong>Prudence d'administration.</strong> La modification d'un paramètre général est une opération sensible qui engage la cohérence des écritures passées et futures. Une fois la valorisation par lots activée, ne la désactivez pas. Toute modification doit respecter les consignes strictes de la direction. Si vous n'avez pas accès à ces écrans, vous ne disposez pas des habilitations nécessaires.</p>
 </blockquote>

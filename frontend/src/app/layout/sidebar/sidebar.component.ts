@@ -112,6 +112,10 @@ export class SidebarComponent implements OnInit {
     return this.activeRoute === route || this.activeRoute.startsWith(route + '/');
   }
 
+  isExactRoute(route: string): boolean {
+    return this.activeRoute === route;
+  }
+
   // /user/change-password est accessible à tous depuis la section Aide : il ne fait pas partie de l'administration.
   isUserManagementRoute(): boolean {
     return this.isSubRouteActive('/user') && !this.isSubRouteActive('/user/change-password');

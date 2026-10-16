@@ -472,6 +472,10 @@ app:
         key: ENABLED_AUTO_STOCK_PRICE_REALIGNMENT
         value: false
         description: "Lorsqu'activé, un changement de prix catalogue déclenche automatiquement le retour et la re-sortie du stock commercial (creditSalePrice) et tontine (sellingPrice) au nouveau prix."
+      init-data[7]:
+        key: CUSTOMER_PAYMENT_COLLECTION_MODE
+        value: MANUAL
+        description: "Mode de déclaration des paiements Espace Client : MANUAL, AUTOMATIC ou BOTH."
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}
@@ -497,6 +501,12 @@ elykia:
   photos:
     # Durée de validité des URL MinIO signées (photos clients privées).
     presign-expiry-minutes: ${ELYKIA_PHOTOS_PRESIGN_EXPIRY_MINUTES:60}
+  paygate:
+    enabled: ${ELYKIA_PAYGATE_ENABLED:false}
+    base-url: ${ELYKIA_PAYGATE_BASE_URL:http://localhost:8095}
+    api-key: ${ELYKIA_PAYGATE_API_KEY:}
+    callback-secret: ${ELYKIA_PAYGATE_CALLBACK_SECRET:}
+    callback-url: ${ELYKIA_PAYGATE_CALLBACK_URL:http://localhost:8080/api/v1/paygate/callbacks}
   payment-proof:
     # false au premier déploiement (APK anciens) ; passer à true après diffusion de l'APK.
     required: ${ELYKIA_PAYMENT_PROOF_REQUIRED:false}

@@ -120,6 +120,48 @@ public class CustomerTontineMmSubmissionAdminService {
         return toDto(submission, client, tontineCollector);
     }
 
+    public void validateFromGateway(Long id) {
+        CustomerTontineMmSubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Soumission tontine introuvable."));
+        if (submission.getStatus() == CustomerSubmissionStatus.VALIDE) {
+            return;
+        }
+        if (submission.getStatus() != CustomerSubmissionStatus.EN_COURS) {
+            throw new CustomValidationException("Ce paiement ne peut plus être validé.");
+        }
+        TontineMember member = tontineMemberRepository.findById(submission.getTontineMemberId())
+                .orElseThrow(() -> new ResourceNotFoundException("Membre tontine introuvable."));
+        submission.setMobileMoneyAmount(submission.getExpectedAmount());
+        TontineCollectionDto collectionDto = new TontineCollectionDto();
+        collectionDto.setMemberId(member.getId());
+        collectionDto.setAmount(submission.getMobileMoneyAmount());
+        collectionDto.setReference("CS-TONTINE-" + submission.getId());
+        collectionDto.setNotes(buildValidationNotes(submission));
+        collectionDto.setCollectionDate(submission.getOperationDate());
+        collectionDto.setConfirmedAmount(submission.getMobileMoneyAmount());
+        TontineCollectionRespDto collection = tontineService.recordCollection(collectionDto);
+        submission.setStatus(CustomerSubmissionStatus.VALIDE);
+        submission.setValidatedBy("paygate");
+        submission.setValidatedAt(LocalDateTime.now());
+        submission.setTontineCollectionId(collection != null ? collection.id() : null);
+        submission.setLastModifiedBy("paygate");
+        submission = submissionRepository.save(submission);
+        customerNotificationService.notifyTontinePayment(submission, CustomerSubmissionStatus.VALIDE);
+    }
+
+    public void failFromGateway(Long id) {
+        CustomerTontineMmSubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Soumission tontine introuvable."));
+        if (submission.getStatus() != CustomerSubmissionStatus.EN_COURS) {
+            return;
+        }
+        submission.setStatus(CustomerSubmissionStatus.ECHEC);
+        submission.setValidatedBy("paygate");
+        submission.setValidatedAt(LocalDateTime.now());
+        submission.setLastModifiedBy("paygate");
+        submissionRepository.save(submission);
+    }
+
     public CustomerTontineMmSubmissionDto reject(User user, Long id) {
         AppNotificationService.assertAudienceOrThrow(user);
         CustomerTontineMmSubmission submission = submissionRepository.findById(id)

@@ -1,0 +1,10 @@
+.draft-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+}
+.draft-grid label { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #6b7a99; }
+@media (max-width: 900px) {
+  .draft-grid { grid-template-columns: 1fr; }
+}

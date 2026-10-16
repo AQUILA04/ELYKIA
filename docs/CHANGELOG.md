@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.37.0] — 2026-10-16
+
+### Added
+
+- Paiement Mobile Money depuis l’Espace Client via Optimize Paygate : mode manuel, automatique ou les deux (`CUSTOMER_PAYMENT_COLLECTION_MODE`), grilles de frais de retrait par réseau, encaissement puis validation automatique de la mise ou de la cotisation.
+
 ## Backend — [1.36.1] — 2026-10-16
 
 ### Fixed
@@ -38,6 +44,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.33.0] — 2026-10-16
+
+### Added
+
+- Écran **Frais de retrait** : grilles Mixx by Yas et Flooz (montant minimum, maximum et frais) pour le paiement depuis l’Espace Client.
 
 ## Frontend — [2.32.1] — 2026-10-16
 
@@ -522,6 +534,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.16.0] — 2026-10-16
+
+### Added
+
+- Paiement d’une mise, d’une cotisation ou du premier dépôt de tontine depuis l’application : choix Mixx by Yas ou Flooz, affichage des frais de retrait, des frais du réseau et du total prélevé, puis confirmation sur le téléphone.
 
 ## Customer-space — [0.15.0] — 2026-10-16
 

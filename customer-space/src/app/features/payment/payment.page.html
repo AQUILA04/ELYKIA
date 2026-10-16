@@ -3,6 +3,7 @@
     [isSubmitted]="isSubmitted"
     [form]="form"
     [installmentNumber]="installmentNumber"
+    [distributionId]="distributionId"
     [expectedAmount]="expectedAmount"
     [isLoading]="isLoading"
     [error]="error"
@@ -11,6 +12,8 @@
     [recipients]="recipients"
     [depositDestinationNumber]="depositDestinationNumber"
     [hasRecipientNumbers]="hasRecipientNumbers()"
+    [showManual]="showManual"
+    (manualActive)="showManual = $event"
     (back)="goBack()"
     (submit)="submit()"
     (goHome)="goHome()">
@@ -34,6 +37,7 @@
         <p>Mise #{{ installmentNumber }} — montant attendu : <strong>{{ expectedAmount | number:'1.0-0' }} FCFA</strong></p>
       </div>
 
+      <ng-container *ngIf="showManual">
       <div class="info-box elyk-animate" data-testid="e2e-payment-deposit-hint">
         <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
         <p>
@@ -67,8 +71,17 @@
           <span class="recipient-number">{{ recipients?.moovNumber }}</span>
         </div>
       </div>
+      </ng-container>
 
-      <form [formGroup]="form" class="payment-form elyk-animate">
+      <app-payment-collection
+        [amount]="expectedAmount"
+        purpose="CREDIT"
+        [distributionId]="distributionId"
+        [installmentNumber]="installmentNumber"
+        (manualActive)="showManual = $event">
+      </app-payment-collection>
+
+      <form [formGroup]="form" class="payment-form elyk-animate" *ngIf="showManual">
         <app-payment-proof-picker [form]="form"></app-payment-proof-picker>
         <app-elyk-outlined-field label="Numéro d'envoi" icon="call-outline">
           <ion-input formControlName="mobileMoneyPhone" type="tel" inputmode="tel" placeholder="+228 XX XX XX XX" data-testid="e2e-payment-phone"></ion-input>
@@ -87,7 +100,7 @@
     </div>
   </ion-content>
 
-  <ion-footer class="payment-footer ion-no-border">
+  <ion-footer class="payment-footer ion-no-border" *ngIf="showManual">
     <div class="payment-footer-inner">
       <ion-button
         expand="block"

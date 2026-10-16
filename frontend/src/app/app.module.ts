@@ -70,6 +70,7 @@ import { OldReleaseListComponent } from './out/old-release-list/old-release-list
 import { SharedComponentsModule } from './shared/components/shared-components.module';
 import { ToastrModule } from 'ngx-toastr';
 import { MobileMoneyConfigListComponent } from './mobile-money-config/mobile-money-config-list/mobile-money-config-list.component';
+import { WithdrawalFeeGridComponent } from './mobile-money-config/withdrawal-fee-grid/withdrawal-fee-grid.component';
 import {NgxGoogleAnalyticsModule, NgxGoogleAnalyticsRouterModule} from "ngx-google-analytics";
 import {environment} from "../environments/environment";
 import { FeatureFlagService } from './shared/service/feature-flag.service';
@@ -111,6 +112,7 @@ export function initializeApp(featureFlagService: FeatureFlagService) {
     LicenseKeyFormatterPipe,
     OldReleaseListComponent,
     MobileMoneyConfigListComponent,
+    WithdrawalFeeGridComponent,
   ],
   imports: [
     BrowserModule,

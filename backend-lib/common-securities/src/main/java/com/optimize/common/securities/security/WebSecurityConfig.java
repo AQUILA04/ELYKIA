@@ -110,6 +110,7 @@ public class WebSecurityConfig {
                                         "/api/licences/**",
                                         "/api/parameters/**",
                                         "/api/customer/auth/**",
+                                        "/api/v1/paygate/callbacks",
                                         "/swagger-ui.html").permitAll()
                                 .requestMatchers("/api/test/**").permitAll()
                                 .anyRequest().authenticated()

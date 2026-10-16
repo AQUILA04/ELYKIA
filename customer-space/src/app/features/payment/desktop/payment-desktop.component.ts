@@ -6,6 +6,7 @@ import { IonicModule } from '@ionic/angular';
 import { MobileMoneyRecipient } from '../../../shared/models/customer.model';
 import { ElykDesktopPageComponent, ElykOutlinedFieldComponent } from '../../../shared/ui';
 import { PaymentProofPickerComponent } from '../../../shared/components/payment-proof-picker/payment-proof-picker.component';
+import { PaymentCollectionComponent } from '../../../shared/components/payment-collection/payment-collection.component';
 
 @Component({
   selector: 'app-payment-desktop',
@@ -17,6 +18,7 @@ import { PaymentProofPickerComponent } from '../../../shared/components/payment-
     ElykDesktopPageComponent,
     ElykOutlinedFieldComponent,
     PaymentProofPickerComponent,
+    PaymentCollectionComponent,
   ],
   templateUrl: './payment-desktop.component.html',
   styleUrls: ['./payment-desktop.component.scss'],
@@ -25,6 +27,7 @@ export class PaymentDesktopComponent {
   readonly isSubmitted = input(false);
   readonly form = input.required<FormGroup>();
   readonly installmentNumber = input(0);
+  readonly distributionId = input('');
   readonly expectedAmount = input(0);
   readonly isLoading = input(false);
   readonly error = input('');
@@ -33,6 +36,8 @@ export class PaymentDesktopComponent {
   readonly recipients = input<MobileMoneyRecipient | null>(null);
   readonly depositDestinationNumber = input('');
   readonly hasRecipientNumbers = input(false);
+  readonly showManual = input(true);
+  readonly manualActive = output<boolean>();
   readonly back = output<void>();
   readonly submit = output<void>();
   readonly goHome = output<void>();

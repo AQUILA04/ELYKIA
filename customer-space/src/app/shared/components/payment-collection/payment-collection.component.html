@@ -1,0 +1,55 @@
+<div class="collection" *ngIf="options && mode !== 'MANUAL'" data-testid="e2e-payment-collection">
+  <div class="choice-grid" *ngIf="showChooser">
+    <button type="button" class="choice" [class.choice-active]="choice === 'manual'" (click)="choose('manual')" data-testid="e2e-payment-choice-manual">
+      <strong>Je paie moi-même</strong>
+      <span>Vous faites le transfert, puis vous joignez la preuve de la transaction.</span>
+    </button>
+    <button type="button" class="choice" [class.choice-active]="choice === 'automatic'" (click)="choose('automatic')" data-testid="e2e-payment-choice-automatic">
+      <strong>Payer depuis l’application</strong>
+      <span>Le montant est demandé sur votre mobile money. Des frais de retrait et des frais de paiement s’ajoutent.</span>
+    </button>
+  </div>
+
+  <div class="automatic" *ngIf="showAutomatic" data-testid="e2e-payment-automatic">
+    <p class="hint" *ngIf="mode === 'AUTOMATIC'">Choisissez le réseau. Les frais indiqués seront ajoutés à votre mise.</p>
+    <div class="networks">
+      <button
+        type="button"
+        class="network"
+        *ngFor="let item of options?.networks"
+        [class.network-active]="network === item.network"
+        (click)="selectNetwork(item.network)">
+        {{ item.label }}
+      </button>
+    </div>
+
+    <div class="quote" *ngIf="selectedQuote as quote">
+      <p class="quote-error" *ngIf="quote.unavailableReason">{{ quote.unavailableReason }}</p>
+      <ng-container *ngIf="!quote.unavailableReason">
+        <div class="quote-row"><span>Mise</span><strong>{{ quote.installmentAmount | number:'1.0-0' }} F</strong></div>
+        <div class="quote-row"><span>Frais de retrait</span><strong>{{ quote.withdrawalFee | number:'1.0-0' }} F</strong></div>
+        <div class="quote-row">
+          <span>Frais {{ quote.label }} ({{ feePercent(quote.gatewayFeeRate) }})</span>
+          <strong>{{ quote.gatewayFee | number:'1.0-0' }} F</strong>
+        </div>
+        <div class="quote-row total"><span>Total prélevé</span><strong>{{ quote.amountCharged | number:'1.0-0' }} F</strong></div>
+      </ng-container>
+    </div>
+
+    <app-elyk-outlined-field label="Numéro Mobile Money" icon="call-outline">
+      <ion-input [ngModel]="phone" (ngModelChange)="onPhone($event)" type="tel" inputmode="tel" placeholder="90 XX XX XX" data-testid="e2e-payment-automatic-phone"></ion-input>
+    </app-elyk-outlined-field>
+
+    <ion-button *ngIf="!quoteOnly" expand="block" class="elyk-btn-gold" [disabled]="!canPay" (click)="pay()" data-testid="e2e-payment-automatic-submit">
+      <ion-spinner *ngIf="paying" name="crescent"></ion-spinner>
+      <span *ngIf="!paying">Payer</span>
+    </ion-button>
+    <p class="form-error" *ngIf="error">{{ error }}</p>
+  </div>
+</div>
+
+<div class="result" *ngIf="result" data-testid="e2e-payment-automatic-result">
+  <h2>{{ result.status === 'VALIDE' ? 'Paiement enregistré' : (result.status === 'ECHEC' ? 'Paiement non abouti' : 'Confirmation sur votre téléphone') }}</h2>
+  <p>{{ result.message }}</p>
+  <p *ngIf="result.amountCharged">Montant demandé : <strong>{{ result.amountCharged | number:'1.0-0' }} F</strong></p>
+</div>

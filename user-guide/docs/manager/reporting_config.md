@@ -173,6 +173,7 @@ Pour les profils administrateurs ou gestionnaires autorisés, le menu latéral *
 | **Types d'Articles** | Définition des catégories du catalogue de marchandises (Électroménager, Multimédia, Mobilier, etc.). Chaque type peut avoir une photo : **Choisir une photo** (5 Mo maximum), aperçu, puis enregistrement. La photo est réduite automatiquement. |
 | **Types de Dépense** | Référentiel des motifs de décaissement d'exploitation (Carburant, Loyer, Maintenance, etc.). |
 | **Mobile Money** | Configuration des numéros de transfert d'argent (Mixx by YAS et Moov Money) attribués à chaque commercial pour les règlements clients à distance. |
+| **Frais de retrait** | Grilles de frais de retrait Mixx by Yas et Flooz, utilisées lorsque le client paie depuis l’Espace Client. |
 | **Paramètres généraux** | Réglage des clés système fondamentales, notamment le mode de calcul de la part société de la tontine et la valorisation du stock magasin. |
 
 ### Activer la valorisation du stock magasin par lots
@@ -184,6 +185,23 @@ Pour les profils administrateurs ou gestionnaires autorisés, le menu latéral *
 À l'enregistrement, le stock déjà en magasin est repris sur un premier lot pour chaque article concerné. Les prochaines entrées de stock s'ajoutent ensuite derrière ce premier lot. Les quantités affichées ne changent pas.
 
 Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refusée et le paramètre reste désactivé. Complétez le prix d'achat de l'article (ou validez une réception avec prix), puis réessayez.
+
+### Mode de paiement de l’Espace Client
+
+1. Ouvrez **Configuration** → **Paramètres généraux**.
+2. Repérez **CUSTOMER_PAYMENT_COLLECTION_MODE**.
+3. Indiquez **MANUAL** pour la déclaration avec preuve, **AUTOMATIC** pour le paiement depuis l’application, ou **BOTH** pour laisser le client choisir, puis enregistrez.
+
+### Grilles de frais de retrait
+
+1. Ouvrez **Configuration** → **Frais de retrait**.
+2. Choisissez **Mixx by Yas** ou **Flooz**.
+3. Saisissez **De**, **À** et **Frais**, puis appuyez sur **Ajouter**.
+4. Les tranches d’un même réseau ne doivent pas se chevaucher.
+5. **Modifier** recharge la tranche dans le formulaire. Ajustez les montants, puis appuyez sur **Enregistrer**.
+6. **Retirer** enlève une tranche.
+
+Pour une mise comprise dans une tranche, ces frais sont ajoutés avant les frais du paiement en ligne.
 
 > **Prudence d'administration.** La modification d'un paramètre général est une opération sensible qui engage la cohérence des écritures passées et futures. Une fois la valorisation par lots activée, ne la désactivez pas. Toute modification doit respecter les consignes strictes de la direction. Si vous n'avez pas accès à ces écrans, vous ne disposez pas des habilitations nécessaires.
 

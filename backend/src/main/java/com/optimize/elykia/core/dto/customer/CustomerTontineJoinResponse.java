@@ -9,6 +9,7 @@ public class CustomerTontineJoinResponse {
     private String memberId;
     private Integer sessionYear;
     private Double dailyStake;
-    /** "INITIE" si un premier paiement a été déclaré, sinon null. */
+    /** "INITIE" ou "EN_COURS" si un premier paiement a été lancé, sinon null. */
     private String initialPaymentStatus;
+    private Long automaticPaymentId;
 }

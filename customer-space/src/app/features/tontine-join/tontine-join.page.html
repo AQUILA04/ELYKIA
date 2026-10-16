@@ -5,6 +5,10 @@
     [stakeForm]="stakeForm"
     [paymentForm]="paymentForm"
     [includeInitialPayment]="includeInitialPayment"
+    [showManualPayment]="showManualPayment"
+    [dailyStake]="dailyStake"
+    (manualActive)="showManualPayment = $event"
+    (selectionChange)="automaticSelection = $event"
     [recipients]="recipients"
     [recipientsLoading]="recipientsLoading"
     [recipientsError]="recipientsError"
@@ -84,7 +88,7 @@
         <div class="payment-toggle">
           <div>
             <h2>Premier paiement (facultatif)</h2>
-            <p data-testid="e2e-tontine-join-deposit-hint">
+            <p data-testid="e2e-tontine-join-deposit-hint" *ngIf="showManualPayment">
               Vous pouvez envoyer votre premier dépôt sur le numéro
               <strong>{{ depositDestinationNumber }}</strong>,
               puis déclarer le transfert ci-dessous.
@@ -100,12 +104,21 @@
 
         <ng-container *ngIf="includeInitialPayment">
           <app-mobile-money-recipients-card
+            *ngIf="showManualPayment"
             [recipients]="recipients"
             [loading]="recipientsLoading"
             [error]="recipientsError"
             testIdPrefix="e2e-tontine-join-recipients">
           </app-mobile-money-recipients-card>
 
+          <app-payment-collection
+            *ngIf="dailyStake >= 100"
+            [amount]="dailyStake"
+            [quoteOnly]="true"
+            (manualActive)="showManualPayment = $event"
+            (selectionChange)="automaticSelection = $event">
+          </app-payment-collection>
+          <ng-container *ngIf="showManualPayment">
           <form [formGroup]="paymentForm" class="payment-form">
             <app-payment-proof-picker [form]="paymentForm" testIdPrefix="e2e-tontine-join-proof"></app-payment-proof-picker>
             <app-elyk-outlined-field
@@ -147,6 +160,7 @@
               <ion-textarea formControlName="notes" rows="2" auto-grow="true"></ion-textarea>
             </app-elyk-outlined-field>
           </form>
+          </ng-container>
         </ng-container>
       </section>
 
@@ -166,6 +180,12 @@
       </p>
       <p *ngIf="success.initialPaymentStatus === 'INITIE'" class="payment-pending">
         Votre premier paiement est en cours de vérification.
+      </p>
+      <p *ngIf="success.initialPaymentStatus === 'EN_COURS'" class="payment-pending">
+        Confirmez le paiement sur votre téléphone.
+      </p>
+      <p *ngIf="success.initialPaymentStatus === 'VALIDE'" class="payment-pending">
+        Votre premier paiement est enregistré.
       </p>
       <ion-button expand="block" class="elyk-btn-gold" data-testid="e2e-tontine-join-see" (click)="goToTontine()">
         Voir ma tontine

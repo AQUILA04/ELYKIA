@@ -220,6 +220,46 @@ export interface CustomerTontineInitialPaymentRequest {
 export interface CustomerTontineJoinRequest {
   dailyStake: number;
   initialPayment?: CustomerTontineInitialPaymentRequest;
+  automaticInitialPayment?: { network: string; phone: string };
+}
+
+export interface PaymentNetworkQuote {
+  network: string;
+  label: string;
+  installmentAmount?: number;
+  withdrawalFee?: number;
+  gatewayFeeRate?: number;
+  gatewayFee?: number;
+  amountCharged?: number;
+  unavailableReason?: string | null;
+}
+
+export interface PaymentCollectionOptions {
+  mode: 'MANUAL' | 'AUTOMATIC' | 'BOTH';
+  networks: PaymentNetworkQuote[];
+}
+
+export interface AutomaticPaymentRequest {
+  purpose: 'CREDIT' | 'TONTINE';
+  distributionId?: string;
+  memberId?: number;
+  installmentNumber?: number;
+  amount: number;
+  network: string;
+  phone: string;
+}
+
+export interface AutomaticPaymentResult {
+  submissionId: number;
+  purpose: string;
+  status: string;
+  network?: string;
+  installmentAmount?: number;
+  withdrawalFee?: number;
+  gatewayFeeRate?: number;
+  gatewayFee?: number;
+  amountCharged?: number;
+  message?: string;
 }
 
 export interface CustomerTontineJoinResponse {
@@ -227,6 +267,7 @@ export interface CustomerTontineJoinResponse {
   sessionYear: number;
   dailyStake: number;
   initialPaymentStatus?: string | null;
+  automaticPaymentId?: number | null;
 }
 
 // ─── COMMANDES ──────────────────────────────────────────────────────────────

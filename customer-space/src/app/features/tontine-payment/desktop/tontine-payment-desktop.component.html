@@ -13,6 +13,7 @@
           <ion-icon name="information-circle-outline"></ion-icon>
           <p>Montant suggéré : <strong>{{ expectedAmount() | number:'1.0-0' }} FCFA</strong></p>
         </div>
+        <ng-container *ngIf="showManual()">
         <div class="info-box">
           <ion-icon name="information-circle-outline"></ion-icon>
           <p>Envoyez sur <strong>{{ depositDestinationNumber() }}</strong></p>
@@ -22,9 +23,16 @@
           [loading]="recipientsLoading()"
           [error]="recipientsError()">
         </app-mobile-money-recipients-card>
+        </ng-container>
       </div>
       <aside class="desk-card elyk-aside-sticky">
-        <form [formGroup]="form()">
+        <app-payment-collection
+          [amount]="expectedAmount()"
+          purpose="TONTINE"
+          [memberId]="+memberId()"
+          (manualActive)="manualActive.emit($event)">
+        </app-payment-collection>
+        <form [formGroup]="form()" *ngIf="showManual()">
           <app-payment-proof-picker [form]="form()" testIdPrefix="e2e-tontine-payment-proof"></app-payment-proof-picker>
           <app-elyk-outlined-field label="Numéro d'envoi" icon="call-outline">
             <ion-input formControlName="mobileMoneyPhone" type="tel" data-testid="e2e-tontine-payment-phone"></ion-input>

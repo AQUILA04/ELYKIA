@@ -13,6 +13,7 @@ import {
 } from '../../shared/utils/mobile-money-form';
 import { ElykPageHeaderComponent, ElykOutlinedFieldComponent } from '../../shared/ui';
 import { PaymentProofPickerComponent } from '../../shared/components/payment-proof-picker/payment-proof-picker.component';
+import { PaymentCollectionComponent } from '../../shared/components/payment-collection/payment-collection.component';
 
 const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
@@ -31,6 +32,7 @@ import { PaymentDesktopComponent } from './desktop/payment-desktop.component';
     ElykPageHeaderComponent,
     ElykOutlinedFieldComponent,
     PaymentProofPickerComponent,
+    PaymentCollectionComponent,
   ],
   templateUrl: './payment.page.html',
   styleUrls: ['./payment.page.scss'],
@@ -48,6 +50,7 @@ export class PaymentPage implements OnInit {
   recipientsLoading = true;
   recipientsError = '';
   recipients: MobileMoneyRecipient | null = null;
+  showManual = true;
 
   constructor(
     private fb: FormBuilder,

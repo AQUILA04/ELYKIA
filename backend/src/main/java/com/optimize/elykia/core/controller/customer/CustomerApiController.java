@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.controller.customer;
 
 import com.optimize.elykia.core.dto.customer.*;
+import com.optimize.elykia.core.service.customer.CustomerAutomaticPaymentService;
 import com.optimize.elykia.core.service.customer.CustomerContextService;
 import com.optimize.elykia.core.service.customer.CustomerNotificationService;
 import com.optimize.elykia.core.service.customer.CustomerOnboardingService;
@@ -30,6 +31,7 @@ public class CustomerApiController {
     private final CustomerNotificationService customerNotificationService;
     private final PaymentProofService paymentProofService;
     private final CustomerContextService customerContextService;
+    private final CustomerAutomaticPaymentService customerAutomaticPaymentService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<CustomerDashboardDto> getDashboard() {
@@ -104,6 +106,24 @@ public class CustomerApiController {
     @GetMapping("/purchases/{id}/mobile-money-recipients")
     public ResponseEntity<CustomerMobileMoneyRecipientDto> getMobileMoneyRecipients(@PathVariable Long id) {
         return ResponseEntity.ok(customerPortalService.getMobileMoneyRecipients(id));
+    }
+
+    @GetMapping("/payments/collection-options")
+    public ResponseEntity<PaymentCollectionOptionsDto> collectionOptions(@RequestParam double amount) {
+        return ResponseEntity.ok(customerAutomaticPaymentService.options(amount));
+    }
+
+    @PostMapping("/payments/automatic")
+    public ResponseEntity<CustomerAutomaticPaymentDto> startAutomaticPayment(
+            @Valid @RequestBody CustomerAutomaticPaymentRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(customerAutomaticPaymentService.start(request));
+    }
+
+    @GetMapping("/payments/automatic/{purpose}/{id}")
+    public ResponseEntity<CustomerAutomaticPaymentDto> automaticPaymentStatus(
+            @PathVariable String purpose,
+            @PathVariable Long id) {
+        return ResponseEntity.ok(customerAutomaticPaymentService.refresh(purpose, id));
     }
 
     @PostMapping("/recoveries/mobile-money")

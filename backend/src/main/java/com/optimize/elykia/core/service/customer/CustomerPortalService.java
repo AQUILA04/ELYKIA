@@ -83,6 +83,7 @@ public class CustomerPortalService {
     private final TontineAmountHistoryHelper tontineAmountHistoryHelper;
     private final PaymentProofService paymentProofService;
     private final ArticlePhotoService articlePhotoService;
+    private final CustomerAutomaticPaymentService customerAutomaticPaymentService;
 
     public static final double TONTINE_MIN_DAILY_STAKE = 100.0;
 
@@ -245,7 +246,20 @@ public class CustomerPortalService {
         Long memberId = registered.id();
 
         String initialPaymentStatus = null;
-        if (request.getInitialPayment() != null) {
+        Long automaticPaymentId = null;
+        if (request.getInitialPayment() != null && request.getAutomaticInitialPayment() != null) {
+            throw new CustomValidationException("Choisissez un seul mode de paiement.");
+        }
+        if (request.getAutomaticInitialPayment() != null) {
+            CustomerAutomaticPaymentDto started = customerAutomaticPaymentService.startTontine(
+                    memberId,
+                    request.getDailyStake(),
+                    request.getAutomaticInitialPayment().getNetwork(),
+                    request.getAutomaticInitialPayment().getPhone());
+            initialPaymentStatus = started.getStatus();
+            automaticPaymentId = started.getSubmissionId();
+        } else if (request.getInitialPayment() != null) {
+            customerAutomaticPaymentService.assertManualAllowed();
             CustomerTontineInitialPaymentRequest payment = request.getInitialPayment();
             createTontineMmSubmission(
                     client,
@@ -264,6 +278,7 @@ public class CustomerPortalService {
                 .sessionYear(sessionView.getYear())
                 .dailyStake(request.getDailyStake())
                 .initialPaymentStatus(initialPaymentStatus)
+                .automaticPaymentId(automaticPaymentId)
                 .build();
     }
 
@@ -351,6 +366,7 @@ public class CustomerPortalService {
     @Transactional
     public CustomerTontinePaymentDto submitTontineMobileMoney(
             Long memberId, CustomerTontineMobileMoneyRequest request) {
+        customerAutomaticPaymentService.assertManualAllowed();
         TontineMember member = requireOwnedTontineMember(memberId);
         Client client = contextService.requireClient(contextService.currentUsername());
 
@@ -435,6 +451,7 @@ public class CustomerPortalService {
 
     @Transactional
     public CustomerRecoveryDto submitMobileMoney(CustomerMobileMoneyRequest request) {
+        customerAutomaticPaymentService.assertManualAllowed();
         Long creditId = Long.parseLong(request.getDistributionId());
         Credit credit = requireOwnedCredit(creditId);
         Client client = contextService.requireClient(contextService.currentUsername());

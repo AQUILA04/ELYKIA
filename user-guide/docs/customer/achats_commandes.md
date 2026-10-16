@@ -30,6 +30,18 @@ Cet écran vous permet de suivre vos crédits, commander des produits et déclar
 
 Le justificatif est obligatoire pour envoyer la déclaration.
 
+### Payer depuis l’application
+
+Lorsque l’écran propose **Payer depuis l’application**, ou uniquement le choix du réseau :
+
+1. Si deux choix sont proposés, **Je paie moi-même** sert à faire le transfert de votre côté et à joindre la preuve. **Payer depuis l’application** demande le montant sur votre mobile money, avec des frais en plus.
+2. Choisissez **Mixx by Yas** ou **Flooz**.
+3. Lisez les **frais de retrait**, les **frais** du réseau (en pourcentage) et le **total prélevé**.
+4. Saisissez votre numéro, puis appuyez sur **Payer**.
+5. Confirmez la demande sur votre téléphone. Le paiement est enregistré lorsque la confirmation aboutit.
+
+Si aucun frais de retrait n’est prévu pour votre mise, le paiement direct n’est pas proposé pour ce réseau.
+
 ## Commander
 
 1. Appuyez sur l’onglet **Commander**.

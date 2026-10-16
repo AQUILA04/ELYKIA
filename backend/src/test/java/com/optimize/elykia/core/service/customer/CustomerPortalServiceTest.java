@@ -326,7 +326,8 @@ class CustomerPortalServiceTest {
                 onboardingService,
                 tontineAmountHistoryHelper,
                 mock(PaymentProofService.class),
-                articlePhotoService);
+                articlePhotoService,
+                mock(CustomerAutomaticPaymentService.class));
     }
 
     private void stubJoinableSession(int year) {

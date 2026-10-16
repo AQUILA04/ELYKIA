@@ -1,0 +1,78 @@
+<div class="main-container mobile-money-page a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/configuration/mobile-money" class="breadcrumb-link">Mobile Money</a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">CONFIGURATION</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <h1 class="page-title">Frais de retrait</h1>
+      </div>
+      <button type="button" class="btn-refresh" (click)="load()">Actualiser</button>
+    </div>
+    <p class="page-subtitle">
+      Grille Mixx by Yas et Flooz. Pour chaque mise, la tranche qui contient le montant est ajoutée automatiquement au paiement du client.
+    </p>
+  </div>
+
+  <div class="table-card a3" style="margin-bottom:18px;padding:16px;">
+    <div class="draft-grid">
+      <label>Réseau
+        <select class="field-input" [(ngModel)]="draft.network">
+          <option value="MIXX">Mixx by Yas</option>
+          <option value="FLOOZ">Flooz</option>
+        </select>
+      </label>
+      <label>De (FCFA)
+        <input class="field-input" type="number" min="0" [(ngModel)]="draft.minAmount" />
+      </label>
+      <label>À (FCFA)
+        <input class="field-input" type="number" min="1" [(ngModel)]="draft.maxAmount" />
+      </label>
+      <label>Frais (FCFA)
+        <input class="field-input" type="number" min="0" [(ngModel)]="draft.feeAmount" />
+      </label>
+      <button type="button" class="btn-primary" [disabled]="saving" (click)="save()">
+        {{ editingId ? 'Enregistrer' : 'Ajouter' }}
+      </button>
+      <button type="button" class="btn-refresh" *ngIf="editingId" (click)="cancelEdit()">Annuler</button>
+    </div>
+  </div>
+
+  <div class="table-card a4" *ngFor="let network of ['MIXX', 'FLOOZ']" style="margin-bottom:18px;">
+    <table>
+      <thead>
+        <tr>
+          <th colspan="4">{{ network === 'MIXX' ? 'Mixx by Yas' : 'Flooz' }}</th>
+        </tr>
+        <tr>
+          <th>De</th>
+          <th>À</th>
+          <th>Frais de retrait</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="isLoading">
+          <td colspan="4" class="empty-cell">Chargement…</td>
+        </tr>
+        <tr *ngIf="!isLoading && rowsFor(network).length === 0">
+          <td colspan="4" class="empty-cell">Aucune tranche.</td>
+        </tr>
+        <tr *ngFor="let row of rowsFor(network)">
+          <td>{{ row.minAmount | number:'1.0-0' }} F</td>
+          <td>{{ row.maxAmount | number:'1.0-0' }} F</td>
+          <td>{{ row.feeAmount | number:'1.0-0' }} F</td>
+          <td>
+            <button type="button" class="btn-refresh" (click)="edit(row)">Modifier</button>
+            <button type="button" class="btn-refresh" (click)="remove(row)">Retirer</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

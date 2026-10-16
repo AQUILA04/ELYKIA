@@ -34,7 +34,15 @@
         Déclarer un premier versement maintenant
       </label>
 
-      <form *ngIf="includeInitialPayment()" [formGroup]="paymentForm()">
+      <ng-container *ngIf="includeInitialPayment()">
+        <app-payment-collection
+          *ngIf="dailyStake() >= 100"
+          [amount]="dailyStake()"
+          [quoteOnly]="true"
+          (manualActive)="manualActive.emit($event)"
+          (selectionChange)="selectionChange.emit($event)">
+        </app-payment-collection>
+      <form *ngIf="showManualPayment()" [formGroup]="paymentForm()">
         <div class="info-box" *ngIf="depositDestinationNumber()">
           <ion-icon name="information-circle-outline"></ion-icon>
           <p>Envoyez sur <strong>{{ depositDestinationNumber() }}</strong></p>
@@ -55,6 +63,7 @@
           <ion-input formControlName="mobileMoneyReference" data-testid="e2e-tontine-join-reference"></ion-input>
         </app-elyk-outlined-field>
       </form>
+      </ng-container>
 
       <p class="elyk-form-error" *ngIf="error()">{{ error() }}</p>
       <ion-button expand="block" class="elyk-btn-gold" [disabled]="isSubmitting() || stakeForm().invalid" (click)="submit.emit()" data-testid="e2e-tontine-join-submit">

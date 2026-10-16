@@ -109,6 +109,41 @@ public class CustomerMobileMoneySubmissionAdminService {
         return toDto(submission, client, targetCollector, tontineCollector);
     }
 
+    public void validateFromGateway(Long id) {
+        CustomerMobileMoneySubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Déclaration introuvable."));
+        if (submission.getStatus() == CustomerSubmissionStatus.VALIDE) {
+            return;
+        }
+        if (submission.getStatus() != CustomerSubmissionStatus.EN_COURS) {
+            throw new CustomValidationException("Ce paiement ne peut plus être validé.");
+        }
+        Credit credit = creditRepository.findById(submission.getCreditId())
+                .orElseThrow(() -> new ResourceNotFoundException("Crédit introuvable pour cette déclaration."));
+        submission.setMobileMoneyAmount(submission.getExpectedAmount());
+        CreditTimeline timeline = creditTimelineService.makeDailyStake(buildTimelineDto(submission, credit));
+        submission.setStatus(CustomerSubmissionStatus.VALIDE);
+        submission.setValidatedBy("paygate");
+        submission.setValidatedAt(LocalDateTime.now());
+        submission.setCreditTimelineId(timeline != null ? timeline.getId() : null);
+        submission.setLastModifiedBy("paygate");
+        submission = submissionRepository.save(submission);
+        customerNotificationService.notifyCreditPayment(submission, CustomerSubmissionStatus.VALIDE);
+    }
+
+    public void failFromGateway(Long id) {
+        CustomerMobileMoneySubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Déclaration introuvable."));
+        if (submission.getStatus() != CustomerSubmissionStatus.EN_COURS) {
+            return;
+        }
+        submission.setStatus(CustomerSubmissionStatus.ECHEC);
+        submission.setValidatedBy("paygate");
+        submission.setValidatedAt(LocalDateTime.now());
+        submission.setLastModifiedBy("paygate");
+        submissionRepository.save(submission);
+    }
+
     public CustomerMobileMoneySubmissionDto reject(User user, Long id) {
         AppNotificationService.assertAudienceOrThrow(user);
         CustomerMobileMoneySubmission submission = loadInitiated(id);

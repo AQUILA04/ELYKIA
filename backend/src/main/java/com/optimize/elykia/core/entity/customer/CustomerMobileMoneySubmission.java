@@ -59,4 +59,25 @@ public class CustomerMobileMoneySubmission extends BaseEntity<String> {
 
     @Column(name = "payment_proof_id")
     private Long paymentProofId;
+
+    @Column(nullable = false, length = 20)
+    private String channel = "MANUAL";
+
+    @Column(length = 10)
+    private String network;
+
+    @Column(name = "withdrawal_fee")
+    private Double withdrawalFee;
+
+    @Column(name = "gateway_fee_rate")
+    private Double gatewayFeeRate;
+
+    @Column(name = "gateway_fee")
+    private Double gatewayFee;
+
+    @Column(name = "amount_charged")
+    private Double amountCharged;
+
+    @Column(name = "paygate_payment_id", length = 40)
+    private String paygatePaymentId;
 }

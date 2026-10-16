@@ -12,7 +12,12 @@ describe('PaymentPage', () => {
   let api: jasmine.SpyObj<CustomerApiService>;
 
   beforeEach(async () => {
-    api = jasmine.createSpyObj('CustomerApiService', ['submitMobileMoneyPayment', 'getMobileMoneyRecipients']);
+    api = jasmine.createSpyObj('CustomerApiService', [
+      'submitMobileMoneyPayment',
+      'getMobileMoneyRecipients',
+      'getPaymentCollectionOptions',
+    ]);
+    api.getPaymentCollectionOptions.and.returnValue(of({ mode: 'MANUAL', networks: [] }));
     api.submitMobileMoneyPayment.and.returnValue(of({ id: '1' } as any));
     api.getMobileMoneyRecipients.and.returnValue(of({
       collector: 'COM001',

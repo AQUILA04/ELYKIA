@@ -39,12 +39,14 @@ Lorsque une session est ouverte et que vous n’y êtes pas encore inscrit :
    - des notes si besoin.
 6. Appuyez sur **Confirmer mon inscription** (bouton en bas de l’écran).
 
+Si l’écran propose **Payer depuis l’application**, vous pouvez régler ce premier dépôt depuis votre mobile money. Choisissez **Mixx by Yas** ou **Flooz**, lisez les frais de retrait, les frais du réseau et le total prélevé, saisissez votre numéro, puis confirmez l’inscription. La demande de paiement arrive sur votre téléphone.
+
 Sans premier paiement, appuyez directement sur **Confirmer mon inscription**.
 
 ### Après l’inscription
 
 1. L’écran de bienvenue confirme votre inscription à la session.
-2. Si vous avez déclaré un paiement, le message indique qu’il est **en cours de vérification**.
+2. Si vous avez déclaré un transfert, le message indique qu’il est **en cours de vérification**. Si vous avez payé depuis l’application, confirmez la demande sur votre téléphone.
 3. Appuyez sur **Voir ma tontine** pour ouvrir le détail, ou sur **Accueil**.
 
 <!-- CAPTURE À INSÉRER : Écran de bienvenue après inscription. -->
@@ -67,6 +69,8 @@ Sans premier paiement, appuyez directement sur **Confirmer mon inscription**.
 2. Ajoutez le **justificatif du transfert** (capture ou reçu PDF). Pour une capture, si une fenêtre **Autorisation requise** s’affiche, appuyez sur **Autoriser**. Si vous aviez déjà refusé, appuyez sur **Ouvrir les paramètres**, activez l’appareil photo ou les photos pour Elykia, puis recommencez. La référence peut se remplir automatiquement : vérifiez-la.
 3. Renseignez le **numéro d’envoi**, le **montant**, la **référence du transfert**.
 4. Appuyez sur **Soumettre le paiement** en bas de l’écran.
+
+Lorsque **Payer depuis l’application** est proposé, choisissez le réseau, lisez les frais de retrait, le pourcentage de frais et le total prélevé, puis appuyez sur **Payer** et confirmez sur votre téléphone.
 
 ## Aucune session ouverte
 

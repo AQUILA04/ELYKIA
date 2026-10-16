@@ -14,6 +14,7 @@ import {
 import { MobileMoneyRecipientsCardComponent } from '../../shared/components/mobile-money-recipients-card/mobile-money-recipients-card.component';
 import { ElykPageHeaderComponent, ElykOutlinedFieldComponent } from '../../shared/ui';
 import { PaymentProofPickerComponent } from '../../shared/components/payment-proof-picker/payment-proof-picker.component';
+import { PaymentCollectionComponent } from '../../shared/components/payment-collection/payment-collection.component';
 
 const FALLBACK_DEPOSIT_NUMBER = '96186822';
 
@@ -33,6 +34,7 @@ import { TontinePaymentDesktopComponent } from './desktop/tontine-payment-deskto
     ElykPageHeaderComponent,
     ElykOutlinedFieldComponent,
     PaymentProofPickerComponent,
+    PaymentCollectionComponent,
   ],
   templateUrl: './tontine-payment.page.html',
   styleUrls: ['./tontine-payment.page.scss'],
@@ -49,6 +51,7 @@ export class TontinePaymentPage implements OnInit {
   isLoading = false;
   expectedAmount = 0;
   memberId = '';
+  showManual = true;
 
   constructor(
     private api: CustomerApiService,
@@ -69,6 +72,10 @@ export class TontinePaymentPage implements OnInit {
   }
 
   /** Mixx → Moov → numéro agence par défaut si aucune config. */
+  get memberIdNumber(): number {
+    return Number(this.memberId);
+  }
+
   get depositDestinationNumber(): string {
     const mixx = this.recipients?.mixxNumber?.trim();
     if (mixx) {
