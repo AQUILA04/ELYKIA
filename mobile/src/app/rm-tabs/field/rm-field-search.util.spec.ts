@@ -1,4 +1,4 @@
-import { filterRmFieldGroups, RmFieldGroup } from './rm-field-search.util';
+import { countRmFieldItems, filterRmFieldGroups, RmFieldGroup } from './rm-field-search.util';
 
 interface Row {
   name: string;
@@ -52,6 +52,11 @@ describe('filterRmFieldGroups', () => {
   it('matches a phone number even when spaces differ', () => {
     const result = filterRmFieldGroups(groups, '970011', text);
     expect(result[0].quarters[0].items.map(item => item.name)).toEqual(['Éric Koffi']);
+  });
+
+  it('counts every listed client, including after a filter', () => {
+    expect(countRmFieldItems(groups)).toBe(4);
+    expect(countRmFieldItems(filterRmFieldGroups(groups, 'eric', text))).toBe(1);
   });
 
   it('keeps a whole commercial block when the commercial name matches', () => {

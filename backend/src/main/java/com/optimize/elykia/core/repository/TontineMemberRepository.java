@@ -2,6 +2,7 @@ package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.GenericRepository;
+import com.optimize.elykia.core.dto.sale.RmFieldTontineRowDto;
 import com.optimize.elykia.core.dto.TontineCommercialMemberExportProjectionDto;
 import com.optimize.elykia.core.dto.TontineMemberRespDto;
 import com.optimize.elykia.core.dto.customer.CustomerTontineContributionSummaryDto;
@@ -372,4 +373,42 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("year") Integer year,
                 @Param("collector") String collector,
                 @Param("state") State state);
+
+        @Query("""
+                SELECT new com.optimize.elykia.core.dto.sale.RmFieldTontineRowDto(
+                    tm.id,
+                    c.id,
+                    trim(concat(coalesce(c.firstname, ''), ' ', coalesce(c.lastname, ''))),
+                    c.phone,
+                    c.quarter,
+                    c.tontineCollector,
+                    s.year,
+                    tm.amount,
+                    tm.totalContribution,
+                    tm.carnetVerified
+                )
+                FROM TontineMember tm
+                JOIN tm.tontineSession s
+                JOIN tm.client c
+                WHERE s.year = :year
+                  AND tm.state = :state
+                  AND (
+                    :search IS NULL
+                    OR function('translate', lower(concat(coalesce(c.firstname, ''), ' ', coalesce(c.lastname, ''))),
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE concat('%', :search, '%')
+                    OR function('translate', lower(coalesce(c.quarter, '')),
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE concat('%', :search, '%')
+                    OR function('translate', lower(coalesce(c.tontineCollector, '')),
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE concat('%', :search, '%')
+                    OR lower(coalesce(c.phone, '')) LIKE concat('%', :search, '%')
+                    OR (:digits IS NOT NULL AND lower(function('replace', coalesce(c.phone, ''), ' ', '')) LIKE concat('%', :digits, '%'))
+                  )
+                ORDER BY c.lastname ASC, c.firstname ASC, tm.id ASC
+                """)
+        Page<RmFieldTontineRowDto> pageFieldRows(
+                @Param("year") Integer year,
+                @Param("state") State state,
+                @Param("search") String search,
+                @Param("digits") String digits,
+                Pageable pageable);
 }

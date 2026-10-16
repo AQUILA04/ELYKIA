@@ -166,7 +166,11 @@ Le montant final saisi doit toujours correspondre à l’encaissement physique r
 
 L’onglet **Terrain** regroupe les portefeuilles par commercial et par localité. Il distingue les retards des membres tontine.
 
-La recherche en haut de la liste filtre les retards et les membres tontine par nom, téléphone, localité ou commercial. Elle s’applique au pack déjà téléchargé, en ligne comme hors ligne.
+En ligne, l’onglet affiche tous les membres tontine et tous les retards, sans se limiter au plan du jour. La liste se complète au fil du défilement. Deux boutons, **Tontine** et **Retards**, permettent de passer d’une liste à l’autre. Hors ligne, l’onglet utilise le pack du plan du jour.
+
+La recherche en haut de la liste filtre par nom, téléphone, localité ou commercial. En ligne, elle interroge l’ensemble des données. Hors ligne, elle filtre le pack.
+
+Sous la recherche, deux totaux indiquent le nombre de clients tontine et le nombre de clients en retard. Ce sont les totaux complets, pas seulement les lignes déjà affichées. Pendant une recherche, le premier nombre correspond à tous les résultats et le second au total général.
 
 | Zone | Action |
 |---|---|

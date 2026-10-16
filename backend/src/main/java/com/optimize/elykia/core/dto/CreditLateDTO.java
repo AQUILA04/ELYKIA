@@ -20,6 +20,9 @@ public class CreditLateDTO {
     private String      clientName;
     private String      clientPhone;
     private String      clientQuarter;
+    private Double      latitude;
+    private Double      longitude;
+    private String      mll;
 
     // Commercial
     private String      collector;

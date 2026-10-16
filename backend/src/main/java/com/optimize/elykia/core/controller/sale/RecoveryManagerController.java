@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import com.optimize.elykia.core.service.CreditLateService;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -40,6 +41,7 @@ public class RecoveryManagerController {
     private final RecoveryManagerService recoveryManagerService;
     private final RecoveryManagerReportPdfService reportPdfService;
     private final RecoveryFieldPlanService recoveryFieldPlanService;
+    private final CreditLateService creditLateService;
     private final UserService userService;
 
     @PostMapping("/close-credits")
@@ -188,6 +190,39 @@ public class RecoveryManagerController {
         String username = userService.getCurrentUser().getUsername();
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(recoveryFieldPlanService.buildOfflinePack(id, username, includeTontine)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/field/tontine-members")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> pageTontineMembers(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.pageTontineMembers(search, page, size)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/field/tontine-members/{id}")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> getTontineMember(@PathVariable Long id) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.getTontineMemberForField(id)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/field/late-credits")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> pageLateCredits(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(creditLateService.getLateCreditsPage(search, page, size)),
                 HttpStatus.OK
         );
     }

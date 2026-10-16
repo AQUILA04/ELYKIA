@@ -83,6 +83,9 @@ export interface RmCreditLate {
   clientName?: string;
   clientPhone?: string;
   clientQuarter?: string;
+  latitude?: number;
+  longitude?: number;
+  mll?: string;
   collector?: string;
   totalAmount?: number;
   totalAmountPaid?: number;

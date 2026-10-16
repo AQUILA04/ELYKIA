@@ -762,6 +762,56 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     """, nativeQuery = true)
     List<Credit> findLateCreditsByCollector(@Param("collector") String collector);
 
+    /**
+     * Page of late credits for the recovery-manager field list.
+     * {@code search} and {@code digits} are already folded (lowercase, no accents). Empty string means no filter.
+     */
+    @Query(value = """
+        SELECT c.* FROM credit c
+        LEFT JOIN client cl ON cl.id = c.client_id
+        WHERE c.status = 'INPROGRESS'
+          AND (
+               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
+               OR
+               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
+          )
+          AND (
+               :search = ''
+               OR translate(lower(coalesce(cl.firstname, '') || ' ' || coalesce(cl.lastname, '')),
+                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
+               OR translate(lower(coalesce(cl.quarter, '')),
+                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
+               OR translate(lower(coalesce(c.collector, '')),
+                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
+               OR lower(coalesce(c.reference, '')) LIKE '%' || :search || '%'
+               OR (:digits <> '' AND regexp_replace(coalesce(cl.phone, ''), '\\D', '', 'g') LIKE '%' || :digits || '%')
+          )
+        ORDER BY cl.lastname ASC NULLS LAST, cl.firstname ASC NULLS LAST, c.id ASC
+        """,
+        countQuery = """
+        SELECT count(c.id) FROM credit c
+        LEFT JOIN client cl ON cl.id = c.client_id
+        WHERE c.status = 'INPROGRESS'
+          AND (
+               CAST(c.expected_end_date AS DATE) < CURRENT_DATE
+               OR
+               (c.daily_stake > 0 AND c.total_amount_paid < (c.daily_stake * get_days_between_dates(CAST(c.begin_date AS DATE), CAST(LEAST(CURRENT_DATE, c.expected_end_date) AS DATE))))
+          )
+          AND (
+               :search = ''
+               OR translate(lower(coalesce(cl.firstname, '') || ' ' || coalesce(cl.lastname, '')),
+                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
+               OR translate(lower(coalesce(cl.quarter, '')),
+                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
+               OR translate(lower(coalesce(c.collector, '')),
+                    'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') LIKE '%' || :search || '%'
+               OR lower(coalesce(c.reference, '')) LIKE '%' || :search || '%'
+               OR (:digits <> '' AND regexp_replace(coalesce(cl.phone, ''), '\\D', '', 'g') LIKE '%' || :digits || '%')
+          )
+        """,
+        nativeQuery = true)
+    Page<Credit> searchLateCredits(@Param("search") String search, @Param("digits") String digits, Pageable pageable);
+
     @Query(value = """
         SELECT DISTINCT c.collector FROM credit c 
         WHERE c.status = 'INPROGRESS'

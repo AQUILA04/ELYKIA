@@ -8,8 +8,14 @@ import com.optimize.elykia.core.repository.ClientReliquatRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.util.ClientReliquatNetRemaining;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -73,6 +79,36 @@ public class CreditLateService {
                 .thenComparing(d -> -Math.max(d.getLateDaysDelai(), d.getLateDaysEcheance())));
 
         return lates;
+    }
+
+    /**
+     * Paginated late credits for the online field list. {@code totalElements} is the full match count, not the page size.
+     */
+    @Transactional(readOnly = true)
+    public Page<CreditLateDTO> getLateCreditsPage(String search, int page, int size) {
+        String folded = foldSearch(search);
+        String digits = folded.replaceAll("\\D", "");
+        int safeSize = Math.min(Math.max(size, 1), 40);
+        int safePage = Math.max(page, 0);
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+        Page<Credit> credits = creditRepository.searchLateCredits(folded, digits, pageable);
+        LocalDate today = LocalDate.now();
+        List<CreditLateDTO> dtos = credits.getContent().stream()
+                .map(credit -> buildLateDTO(credit, today))
+                .collect(Collectors.toCollection(ArrayList::new));
+        applyClientReliquatDeduction(dtos);
+        return new PageImpl<>(dtos, pageable, credits.getTotalElements());
+    }
+
+    private static String foldSearch(String search) {
+        if (search == null) {
+            return "";
+        }
+        String folded = Normalizer.normalize(search, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(java.util.Locale.ROOT)
+                .trim();
+        return folded;
     }
 
     public CreditLateSummaryDTO getSummary(String collector, Integer month, String locality) {
@@ -212,6 +248,9 @@ public class CreditLateService {
                         : "—")
                 .clientPhone(credit.getClient() != null ? credit.getClient().getPhone() : null)
                 .clientQuarter(credit.getClient() != null ? credit.getClient().getQuarter() : null)
+                .latitude(credit.getClient() != null ? credit.getClient().getLatitude() : null)
+                .longitude(credit.getClient() != null ? credit.getClient().getLongitude() : null)
+                .mll(credit.getClient() != null ? credit.getClient().getMll() : null)
                 .collector(credit.getCollector())
                 .totalAmount(credit.getTotalAmount())
                 .totalAmountPaid(credit.getTotalAmountPaid())

@@ -13,11 +13,94 @@
         mode="md"
         class="rm-searchbar"
         aria-label="Rechercher dans la liste terrain"
+        (ionInput)="onSearchInput()"
         data-testid="e2e-rm-field-search">
       </ion-searchbar>
     </div>
 
-    <section class="block" *ngIf="tontineByCommercial.length">
+    <p class="live-hint" *ngIf="loadingLive">Actualisation des données…</p>
+
+    <div class="totals" data-testid="e2e-rm-field-totals">
+      <article>
+        <span>Tontine</span>
+        <strong data-testid="e2e-rm-field-tontine-count">{{ clientCountLabel(tontineClientVisible, tontineClientTotal) }}</strong>
+      </article>
+      <article>
+        <span>Retards</span>
+        <strong data-testid="e2e-rm-field-late-count">{{ clientCountLabel(lateClientVisible, lateClientTotal) }}</strong>
+      </article>
+    </div>
+
+    <div class="segments" *ngIf="onlineMode">
+      <button type="button" [class.on]="segment === 'tontine'" (click)="setSegment('tontine')">Tontine</button>
+      <button type="button" [class.on]="segment === 'lates'" (click)="setSegment('lates')">Retards</button>
+    </div>
+
+    <section class="block" *ngIf="onlineMode && segment === 'tontine'">
+      <div class="section-head">
+        <h2>Tontine — contrôles carnet</h2>
+        <ion-button size="small" fill="clear" (click)="toggleSelectMode()"
+                    data-testid="e2e-rm-carnet-select-mode">
+          {{ selectMode ? 'Terminer' : 'Sélection' }}
+        </ion-button>
+      </div>
+      <div class="bulk-bar" *ngIf="selectMode && selectedIds.size > 0">
+        <span>{{ selectedIds.size }} sélectionné(s)</span>
+        <ion-button size="small" fill="solid" class="rm-solid-btn" (click)="verifySelection()"
+                    data-testid="e2e-rm-carnet-bulk-verify">
+          Vérifier la sélection
+        </ion-button>
+      </div>
+      <article class="quarter-card">
+        <div class="row" *ngFor="let item of onlineTontine">
+          <ion-checkbox *ngIf="selectMode"
+                        [checked]="isSelected(item.id)"
+                        (ionChange)="toggleSelected(item.id)"
+                        [attr.data-testid]="'e2e-rm-carnet-select-' + item.id">
+          </ion-checkbox>
+          <div class="row-main">
+            <strong>{{ item.clientName }}</strong>
+            <span>{{ item.tontineCollector || '—' }} · {{ item.clientQuarter || 'Non spécifié' }}</span>
+            <span>{{ formatAmount(item.totalContribution || 0) }} FCFA cotisés</span>
+            <span class="badge verified" *ngIf="item.carnetVerified"
+                  data-testid="e2e-rm-carnet-badge">Vérifié</span>
+          </div>
+          <div class="row-actions">
+            <ion-button size="small" fill="solid" class="rm-solid-btn" (click)="toggleCarnet(item)"
+                        data-testid="e2e-rm-carnet-verify">
+              {{ item.carnetVerified ? 'Annuler' : 'Vérifier' }}
+            </ion-button>
+            <ion-button size="small" fill="outline" (click)="openTontineControl(item)"
+              data-testid="e2e-rm-tontine-control-open">Contrôle</ion-button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="block" *ngIf="onlineMode && segment === 'lates'">
+      <h2>Retards</h2>
+      <article class="quarter-card">
+        <div class="row" *ngFor="let item of onlineLates">
+          <div class="row-main">
+            <strong>{{ item.clientName }}</strong>
+            <span>{{ item.collector || '—' }} · {{ item.clientQuarter || 'Non spécifié' }}</span>
+            <span>{{ formatAmount(item.totalAmountRemaining || 0) }} FCFA</span>
+            <span class="badge verified" *ngIf="item.carnetVerified"
+                  data-testid="e2e-rm-credit-carnet-badge">Vérifié</span>
+          </div>
+          <div class="row-actions">
+            <ion-button size="small" fill="solid" class="rm-solid-btn" (click)="toggleCreditCarnet(item)"
+                        [disabled]="busy"
+                        data-testid="e2e-rm-credit-carnet-verify">
+              {{ item.carnetVerified ? 'Annuler' : 'Vérifier' }}
+            </ion-button>
+            <ion-button size="small" fill="outline" (click)="openMaps(item)">Naviguer</ion-button>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="block" *ngIf="!onlineMode && tontineByCommercial.length">
       <div class="section-head">
         <h2>Tontine — contrôles carnet</h2>
         <ion-button size="small" fill="clear" (click)="toggleSelectMode()"
@@ -65,6 +148,7 @@
       </article>
     </section>
 
+    <ng-container *ngIf="!onlineMode">
     <section *ngFor="let block of byCommercial" class="block">
       <h2>Retards — {{ block.commercial }}</h2>
       <article *ngFor="let q of block.quarters" class="quarter-card">
@@ -87,9 +171,23 @@
         </div>
       </article>
     </section>
+    </ng-container>
 
-    <p class="empty" *ngIf="!byCommercial.length && !tontineByCommercial.length">
+    <p class="empty" *ngIf="!onlineMode && !byCommercial.length && !tontineByCommercial.length">
       {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun retard ni membre tontine dans le pack.' }}
     </p>
+    <p class="empty" *ngIf="onlineMode && !loadingLive && segment === 'tontine' && !onlineTontine.length">
+      {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun membre tontine.' }}
+    </p>
+    <p class="empty" *ngIf="onlineMode && !loadingLive && segment === 'lates' && !onlineLates.length">
+      {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun retard.' }}
+    </p>
   </div>
+  <ion-infinite-scroll
+    *ngIf="onlineMode"
+    threshold="120px"
+    [disabled]="!activeHasMore || loadingLive"
+    (ionInfinite)="loadMore($event)">
+    <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Chargement..."></ion-infinite-scroll-content>
+  </ion-infinite-scroll>
 </ion-content>

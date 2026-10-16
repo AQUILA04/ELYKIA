@@ -29,10 +29,13 @@ import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.CreditLateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -351,6 +354,73 @@ public class RecoveryFieldPlanService {
                 .tontineMembers(tontineMembers)
                 .tontineFieldControlsToday(tontineControlsToday)
                 .build();
+    }
+
+    public Page<RmFieldTontineRowDto> pageTontineMembers(String search, int page, int size) {
+        String folded = foldSearch(search);
+        String digits = folded.replaceAll("\\D", "");
+        return tontineMemberRepository.pageFieldRows(
+                LocalDate.now().getYear(),
+                State.ENABLED,
+                folded.isEmpty() ? null : folded,
+                digits.isEmpty() ? null : digits,
+                PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 40)));
+    }
+
+    public RmPackTontineMemberDto getTontineMemberForField(Long id) {
+        TontineMember member = tontineMemberRepository.findById(id)
+                .orElseThrow(() -> new ApplicationException("Membre tontine introuvable"));
+        Client client = member.getClient();
+        if (client == null) {
+            throw new ApplicationException("Membre tontine sans client");
+        }
+        int sessionYear = member.getTontineSession() != null && member.getTontineSession().getYear() != null
+                ? member.getTontineSession().getYear()
+                : LocalDate.now().getYear();
+        Map<String, Double> monthAmounts = new HashMap<>();
+        for (TontineMemberMonthlyAggregateDto agg : tontineCollectionRepository.sumMonthlyByMemberId(id, State.ENABLED)) {
+            monthAmounts.put(agg.getYear() + "-" + agg.getMonth(), agg.getTotalAmount());
+        }
+        List<RmPackTontineMonthDto> months = new ArrayList<>();
+        for (Integer calendarMonth : TONTINE_CALENDAR_MONTHS) {
+            months.add(RmPackTontineMonthDto.builder()
+                    .year(sessionYear)
+                    .month(calendarMonth)
+                    .systemAmount(monthAmounts.getOrDefault(sessionYear + "-" + calendarMonth, 0d))
+                    .build());
+        }
+        String firstname = client.getFirstname() != null ? client.getFirstname() : "";
+        String lastname = client.getLastname() != null ? client.getLastname() : "";
+        String fullName = (firstname + " " + lastname).trim();
+        if (!StringUtils.hasText(fullName)) {
+            fullName = "Client #" + client.getId();
+        }
+        return RmPackTontineMemberDto.builder()
+                .id(member.getId())
+                .clientId(client.getId())
+                .clientName(fullName)
+                .clientPhone(client.getPhone())
+                .clientQuarter(client.getQuarter())
+                .tontineCollector(client.getTontineCollector())
+                .sessionYear(sessionYear)
+                .amount(member.getAmount())
+                .totalContribution(member.getTotalContribution())
+                .deliveryStatus(member.getDeliveryStatus() != null ? member.getDeliveryStatus().name() : null)
+                .carnetVerified(Boolean.TRUE.equals(member.getCarnetVerified()))
+                .carnetVerifiedAt(member.getCarnetVerifiedAt())
+                .carnetVerifiedBy(member.getCarnetVerifiedBy())
+                .months(months)
+                .build();
+    }
+
+    private static String foldSearch(String search) {
+        if (search == null) {
+            return "";
+        }
+        return Normalizer.normalize(search, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .toLowerCase(Locale.ROOT)
+                .trim();
     }
 
     private List<RmPackTontineMemberDto> loadTontineMembers(

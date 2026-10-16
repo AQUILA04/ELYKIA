@@ -9,6 +9,32 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.34.4] — 2026-10-16
+
+### Added
+
+- Chef de recouvrement : pages de membres tontine et de crédits en retard pour la liste Terrain en ligne, avec le total complet de la recherche.
+
+## Mobile — [2.33.11] — 2026-10-16
+
+### Changed
+
+- Chef de recouvrement, onglet **Terrain** : en ligne, toute la tontine et tous les retards se chargent par défilement, sans se limiter au plan du jour. Les totaux viennent du nombre complet renvoyé par le serveur. Hors ligne, la liste reste le pack du plan du jour.
+
+### Docs
+
+- Guide chef de recouvrement mobile : source en ligne ou pack de l’onglet **Terrain**. Index RAG et guide HTML régénérés.
+
+## Mobile — [2.33.10] — 2026-10-16
+
+### Added
+
+- Chef de recouvrement, onglet **Terrain** : totaux de clients tontine et de clients en retard sous la recherche. Pendant une recherche, l’affichage indique le nombre de résultats sur le total du périmètre.
+
+### Docs
+
+- Guide chef de recouvrement mobile : totaux de l’onglet **Terrain**. Index RAG et guide HTML régénérés.
+
 ## Mobile — [2.33.9] — 2026-10-16
 
 ### Added

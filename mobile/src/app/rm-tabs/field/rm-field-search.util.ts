@@ -41,6 +41,14 @@ export function filterRmFieldGroups<T>(
     .filter(group => group.quarters.length > 0);
 }
 
+/** Number of client rows currently listed (one line = one client de la liste). */
+export function countRmFieldItems<T>(groups: RmFieldGroup<T>[]): number {
+  return groups.reduce(
+    (sum, group) => sum + group.quarters.reduce((quarterSum, quarter) => quarterSum + quarter.items.length, 0),
+    0
+  );
+}
+
 function matchesRmSearch(query: string, digits: string, raw: string): boolean {
   const text = normalizeRmSearch(raw);
   if (text.includes(query)) {
