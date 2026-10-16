@@ -162,6 +162,11 @@ export async function mockCustomerApi(page: Page): Promise<void> {
       return;
     }
 
+    if (url.includes('/auth/reset-pin') && method === 'POST') {
+      await route.fulfill(jsonResponse(MOCK_SESSION));
+      return;
+    }
+
     if (url.includes('/dashboard') && method === 'GET') {
       await route.fulfill(jsonResponse(MOCK_DASHBOARD));
       return;

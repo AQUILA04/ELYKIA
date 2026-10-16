@@ -22,6 +22,15 @@ Vous pouvez utiliser l’Espace Client de trois façons, avec le même numéro d
 6. Saisissez votre **code PIN**, puis appuyez sur **Se connecter**.
 7. Votre **tableau de bord** s’affiche. Si vous étiez arrivé par un lien vers une page précise (par exemple le catalogue depuis le bouton **Commander** du site), c’est cette page qui s’ouvre.
 
+## Code PIN oublié
+
+1. Saisissez votre numéro de téléphone, puis appuyez sur **Continuer**.
+2. Sur l’écran **Code PIN**, appuyez sur **Code PIN oublié ?**, sous le bouton **Se connecter**.
+3. Un **code à 6 chiffres** vous est envoyé par SMS sur ce numéro. L’écran et le SMS indiquent une **référence** (par exemple **Y4GP**) : saisissez le code associé à cette référence, puis appuyez sur **Vérifier**.
+4. Si le code n’arrive pas ou a expiré, appuyez sur **Renvoyer le code** (disponible après environ une minute). Un nouveau SMS part ; **seul le dernier code reçu est valide** — utilisez la nouvelle référence affichée à l’écran.
+5. Choisissez un **nouveau code PIN** (4 à 6 chiffres), saisissez-le une seconde fois dans **Confirmer le PIN**, puis appuyez sur **Enregistrer mon code PIN**.
+6. Votre **tableau de bord** s’affiche. Si vous étiez arrivé par un lien vers une page précise, c’est cette page qui s’ouvre.
+
 ## Première activation
 
 Si votre compte n’a pas encore de code PIN :
@@ -53,7 +62,7 @@ Si votre numéro n’est pas encore connu et que l’inscription est ouverte :
 
 1. Ouvrez **https://clients.amenouveve-yaveh.com** dans votre navigateur (fenêtre large).
 2. À gauche, un panneau présente **AMENOUVEVE-YAVEH**, **Elykia** et les avantages de l’espace.
-3. À droite, utilisez le formulaire comme sur le téléphone : numéro, puis code PIN ou code SMS. Si vous n’êtes pas encore client, l’acceptation des conditions s’affiche avant le SMS. Faites défiler la page si le formulaire d’inscription dépasse l’écran.
+3. À droite, utilisez le formulaire comme sur le téléphone : numéro, puis code PIN ou code SMS. Sur l’écran **Code PIN**, **Code PIN oublié ?** se trouve sous **Se connecter**. Si vous n’êtes pas encore client, l’acceptation des conditions s’affiche avant le SMS. Faites défiler la page si le formulaire d’inscription dépasse l’écran.
 4. Pour une inscription, les champs d’identité s’affichent sur deux colonnes ; choisissez votre photo avec **Choisir une photo** et votre zone avec **Ma zone (Localités)**. Si votre zone n’est pas dans la liste, choisissez **AUTRES (à préciser)**, puis saisissez son nom.
 
 ## Règles de confidentialité

@@ -50,6 +50,22 @@ public class CustomerAuthController {
         return ResponseEntity.ok(customerAuthService.setupPin(request));
     }
 
+    @PostMapping("/forgot-pin/send-otp")
+    public ResponseEntity<CustomerOtpSendResponse> sendForgotPinOtp(@Valid @RequestBody CustomerPhoneRequest request) {
+        return ResponseEntity.accepted().body(customerAuthService.sendForgotPinOtp(request));
+    }
+
+    @PostMapping("/forgot-pin/verify-otp")
+    public ResponseEntity<CustomerOtpVerifyResponse> verifyForgotPinOtp(
+            @Valid @RequestBody CustomerOtpVerifyRequest request) {
+        return ResponseEntity.ok(customerAuthService.verifyForgotPinOtp(request));
+    }
+
+    @PostMapping("/reset-pin")
+    public ResponseEntity<CustomerLoginResponse> resetPin(@Valid @RequestBody CustomerSetupPinRequest request) {
+        return ResponseEntity.ok(customerAuthService.resetPin(request));
+    }
+
     @PostMapping("/register")
     public ResponseEntity<CustomerLoginResponse> register(@Valid @RequestBody CustomerRegisterRequest request) {
         return ResponseEntity.ok(customerAuthService.register(request));

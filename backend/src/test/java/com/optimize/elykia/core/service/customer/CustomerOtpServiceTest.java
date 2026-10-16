@@ -85,6 +85,21 @@ class CustomerOtpServiceTest {
     }
 
     @Test
+    void verifyResetOtp_usesADistinctProofSecret() {
+        when(otpClient.verifyOtp(any(OtpVerifyRequest.class)))
+                .thenReturn(new OtpVerifyResponse(true, "VALID"));
+
+        String activation = service.verifyOtp("90123456", "123456");
+        String reset = service.verifyResetOtp("90123456", "123456");
+
+        assertTrue(reset.startsWith("90123456."));
+        assertEquals(3, reset.split("\\.").length);
+        assertDoesNotThrow(() -> service.assertResetProofToken("90123456", reset));
+        assertThrows(CustomValidationException.class, () -> service.assertProofToken("90123456", reset));
+        assertThrows(CustomValidationException.class, () -> service.assertResetProofToken("90123456", activation));
+    }
+
+    @Test
     void assertProofToken_rejectsTamperedToken() {
         when(otpClient.verifyOtp(any(OtpVerifyRequest.class)))
                 .thenReturn(new OtpVerifyResponse(true, "VALID"));

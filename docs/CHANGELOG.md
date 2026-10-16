@@ -9,11 +9,17 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
-## Backend — [1.34.7] — 2026-10-16
+## Backend — [1.35.1] — 2026-10-16
 
 ### Added
 
 - Inscription espace client : une zone saisie via « AUTRES (à préciser) » est enregistrée sur le dossier sans créer de localité. À la validation du compte, le nom corrigé est ajouté aux localités, ou rattaché si une localité du même nom existe déjà.
+
+## Backend — [1.35.0] — 2026-10-16
+
+### Added
+
+- Réinitialisation du code PIN de l’Espace Client : envoi et vérification d’un code SMS, puis enregistrement d’un nouveau code PIN distinct de l’ancien.
 
 ## Backend — [1.34.6] — 2026-10-16
 
@@ -493,7 +499,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
 
-## Customer-space — [0.13.7] — 2026-10-16
+## Customer-space — [0.14.2] — 2026-10-16
 
 ### Added
 
@@ -502,6 +508,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Docs
 
 - Guide espace client : choix **AUTRES (à préciser)** à l’inscription. Index RAG et guide HTML régénérés.
+
+## Customer-space — [0.14.1] — 2026-10-16
+
+### Changed
+
+- Écran **Code PIN** : le lien **Code PIN oublié ?** est gris, sans soulignement.
+
+## Customer-space — [0.14.0] — 2026-10-16
+
+### Added
+
+- Écran **Code PIN** : lien **Code PIN oublié ?**, code reçu par SMS, puis nouveau code PIN à confirmer avant l’ouverture de l’espace.
 
 ## Customer-space — [0.13.6] — 2026-10-06
 
