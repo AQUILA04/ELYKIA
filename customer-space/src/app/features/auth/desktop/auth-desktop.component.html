@@ -158,7 +158,8 @@
             [localities]="localities()"
             [loading]="localitiesLoading()"
             [loadError]="localitiesError()"
-            (retryLoad)="retryLocalities.emit()">
+            (retryLoad)="retryLocalities.emit()"
+            (customChange)="localityCustomChange.emit($event)">
           </app-elyk-locality-picker>
           <div>
             <app-elyk-outlined-field label="Date de naissance" icon="calendar-outline">

@@ -41,6 +41,7 @@
       (profilPhotoSelected)="onProfilPhotoSelected($event)"
       (dateOfBirthChanged)="onDateOfBirthChanged()"
       (retryLocalities)="loadLocalities()"
+      (localityCustomChange)="onLocalityCustomChange($event)"
       (back)="goBack()">
     </app-auth-desktop>
   </ion-content>
@@ -260,7 +261,8 @@
           [localities]="localities"
           [loading]="localitiesLoading"
           [loadError]="localitiesError"
-          (retryLoad)="loadLocalities()">
+          (retryLoad)="loadLocalities()"
+          (customChange)="onLocalityCustomChange($event)">
         </app-elyk-locality-picker>
         <app-elyk-outlined-field label="Date de naissance" icon="calendar-outline">
           <ion-input

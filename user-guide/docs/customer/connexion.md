@@ -41,7 +41,7 @@ Si votre numéro n’est pas encore connu et que l’inscription est ouverte :
 4. Appuyez sur **Continuer** : le code par SMS part seulement à cette étape. Si vous ne souhaitez pas créer de compte, appuyez sur **Retour**, à côté de **Continuer** : vous revenez à la saisie du numéro.
 5. Validez le code SMS (avec la référence affichée à l’écran, comme pour l’activation).
 6. Touchez **Ajouter une photo** et prenez (ou choisissez) une photo de vous : votre visage doit être bien visible. Si une fenêtre **Autorisation requise** s’affiche, appuyez sur **Autoriser**, puis acceptez l’accès à l’appareil photo. Si vous aviez déjà refusé, appuyez sur **Ouvrir les paramètres**, activez l’appareil photo pour Elykia, revenez dans l’application et touchez à nouveau **Ajouter une photo**.
-7. Renseignez vos informations (prénom, nom, adresse, date de naissance, occupation). Pour **Ma zone (Localités)**, ouvrez la liste, recherchez votre zone si besoin, puis sélectionnez-la.
+7. Renseignez vos informations (prénom, nom, adresse, date de naissance, occupation). Pour **Ma zone (Localités)**, ouvrez la liste, recherchez votre zone si besoin, puis sélectionnez-la. Si votre zone n’apparaît pas, choisissez **AUTRES (à préciser)**, puis saisissez son nom dans **Précisez votre zone**.
 8. Vous devez avoir **18 ans ou plus** : si la date de naissance ne convient pas, le message **Vous devez être majeur (18 ans ou plus).** s’affiche sous le champ.
 9. Appuyez sur **Continuer**.
 10. Créez votre code PIN, puis appuyez sur **Créer mon compte**.
@@ -54,7 +54,7 @@ Si votre numéro n’est pas encore connu et que l’inscription est ouverte :
 1. Ouvrez **https://clients.amenouveve-yaveh.com** dans votre navigateur (fenêtre large).
 2. À gauche, un panneau présente **AMENOUVEVE-YAVEH**, **Elykia** et les avantages de l’espace.
 3. À droite, utilisez le formulaire comme sur le téléphone : numéro, puis code PIN ou code SMS. Si vous n’êtes pas encore client, l’acceptation des conditions s’affiche avant le SMS. Faites défiler la page si le formulaire d’inscription dépasse l’écran.
-4. Pour une inscription, les champs d’identité s’affichent sur deux colonnes ; choisissez votre photo avec **Choisir une photo** et votre zone avec **Ma zone (Localités)**.
+4. Pour une inscription, les champs d’identité s’affichent sur deux colonnes ; choisissez votre photo avec **Choisir une photo** et votre zone avec **Ma zone (Localités)**. Si votre zone n’est pas dans la liste, choisissez **AUTRES (à préciser)**, puis saisissez son nom.
 
 ## Règles de confidentialité
 

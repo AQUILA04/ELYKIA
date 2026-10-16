@@ -17,6 +17,8 @@ public class ClientRegistrationDto {
     private String phone;
     private String address;
     private String quarter;
+    /** Vrai si la zone a été saisie librement et n'est pas encore une localité. */
+    private boolean customQuarter;
     private LocalDate dateOfBirth;
     private String occupation;
     private String cardType;

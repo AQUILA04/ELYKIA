@@ -19,7 +19,7 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 ## 2. Examiner un dossier
 
 1. Cliquez sur **Voir** sur la ligne du client.
-2. Vérifiez la photo de profil (à gauche du nom en haut du panneau, ou les initiales si elle n’est pas encore disponible), la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce.
+2. Vérifiez la photo de profil (à gauche du nom en haut du panneau, ou les initiales si elle n’est pas encore disponible), la photo de la pièce d’identité, l’adresse, le quartier et les informations de la pièce. Si le dossier indique que la zone n’est pas encore dans la liste, le nom saisi par le client apparaît dans **Nom de la zone**.
 3. Cliquez sur la photo de profil ou sur **Agrandir** sous la pièce pour ouvrir l’aperçu, puis fermez-le.
 4. Si un dépôt initial a été déclaré, contrôlez le montant, le numéro Mobile Money et la référence du transfert. Cliquez sur **Voir le justificatif** s’il est disponible pour ouvrir la capture ou le reçu PDF.
 
@@ -27,12 +27,13 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 
 ## 3. Valider l’inscription
 
-1. Choisissez le **commercial crédit**.
-2. Choisissez le **commercial tontine**.
-3. Si un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.
-4. Cliquez sur **Valider l’inscription** (le bouton devient actif seulement quand les deux commerciaux sont choisis).
-5. Un compte client est créé automatiquement avec le statut **Actif** : solde égal au dépôt initial s’il a été validé, sinon 0.
-6. Le client peut alors être sélectionné partout dans l’application (comptes, crédits, tontine, commandes) et utiliser pleinement l’espace client ; une notification lui confirme l’activation.
+1. Si le champ **Nom de la zone** est affiché, corrigez le nom si besoin. À la validation, cette zone est ajoutée à la liste des localités, ou rattachée si elle existe déjà.
+2. Choisissez le **commercial crédit**.
+3. Choisissez le **commercial tontine**.
+4. Si un dépôt initial est en cours, laissez cochée l’option pour le valider et créditer le solde du compte.
+5. Cliquez sur **Valider l’inscription** (le bouton devient actif seulement quand les deux commerciaux sont choisis et, s’il est demandé, quand le nom de la zone est renseigné).
+6. Un compte client est créé automatiquement avec le statut **Actif** : solde égal au dépôt initial s’il a été validé, sinon 0.
+7. Le client peut alors être sélectionné partout dans l’application (comptes, crédits, tontine, commandes) et utiliser pleinement l’espace client ; une notification lui confirme l’activation.
 
 ---
 
@@ -49,7 +50,7 @@ Cette page explique comment valider les demandes d’inscription faites par les 
 Un nouveau client qui saisit un numéro encore inconnu :
 
 1. Reçoit un code SMS pour confirmer son téléphone.
-2. Remplit sa fiche (prénom, nom, adresse, **votre zone**, date de naissance, occupation) et ajoute sa **photo de profil** (le visage doit être bien visible). La date de naissance doit correspondre à un client majeur (18 ans ou plus). L’application enregistre automatiquement sa position lors de la validation.
+2. Remplit sa fiche (prénom, nom, adresse, **votre zone**, date de naissance, occupation) et ajoute sa **photo de profil** (le visage doit être bien visible). S’il ne trouve pas sa zone, il choisit **AUTRES (à préciser)** et saisit le nom. La date de naissance doit correspondre à un client majeur (18 ans ou plus). L’application enregistre automatiquement sa position lors de la validation.
 3. Crée son code PIN, puis se connecte.
 4. Complète son dossier (**Mon dossier**) avec le **type** et le **numéro** de pièce d’identité, plus la photo de la pièce.
 5. Peut déclarer un **dépôt initial** (transfert Mobile Money, ajout d’un justificatif — capture ou reçu PDF — puis saisie des détails ; la référence peut se remplir automatiquement) pour accélérer l’activation.

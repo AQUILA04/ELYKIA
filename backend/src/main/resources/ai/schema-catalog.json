@@ -220,6 +220,16 @@
             "source d'inscription",
             "espace client"
           ]
+        },
+        {
+          "name": "custom_quarter",
+          "type": "boolean",
+          "description": "Vrai si la zone du client a été saisie librement à l'inscription et n'est pas encore une localité du référentiel",
+          "synonyms": [
+            "zone à préciser",
+            "autre localité",
+            "quartier hors liste"
+          ]
         }
       ]
     },

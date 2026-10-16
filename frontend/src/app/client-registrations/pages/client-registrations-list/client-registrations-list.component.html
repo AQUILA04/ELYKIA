@@ -169,6 +169,7 @@
       <dl class="detail-grid">
         <div><dt>Téléphone</dt><dd>{{ selected.phone }}</dd></div>
         <div><dt>Adresse</dt><dd>{{ selected.address }} — {{ selected.quarter }}</dd></div>
+        <p class="zone-pending" *ngIf="selected.customQuarter">Cette zone n’est pas encore dans la liste.</p>
         <div><dt>Naissance</dt><dd>{{ selected.dateOfBirth | date:'dd/MM/yyyy' }}</dd></div>
         <div><dt>Occupation</dt><dd>{{ selected.occupation }}</dd></div>
         <div><dt>Pièce</dt><dd>{{ selected.cardType }} — {{ selected.cardID }}</dd></div>
@@ -192,6 +193,16 @@
       </dl>
 
       <form [formGroup]="activateForm" (ngSubmit)="activate()" class="activate-form">
+        <label *ngIf="selected.customQuarter">
+          Nom de la zone
+          <input
+            type="text"
+            formControlName="quarter"
+            maxlength="100"
+            data-testid="e2e-client-registration-quarter" />
+          <span class="field-hint" *ngIf="!activateForm.get('quarter')?.hasError('otherLabel')">Vous pouvez corriger le nom. À la validation, la zone est ajoutée à la liste, ou rattachée si elle existe déjà.</span>
+          <span class="field-hint field-hint--error" *ngIf="activateForm.get('quarter')?.hasError('otherLabel')">Indiquez le nom de la zone.</span>
+        </label>
         <label>
           Commercial crédit
           <select formControlName="collector" data-testid="e2e-client-registration-collector">

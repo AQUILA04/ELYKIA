@@ -19,7 +19,9 @@ import com.optimize.elykia.core.dto.customer.CustomerInitialDepositDto;
 import com.optimize.elykia.core.dto.customer.CustomerInitialDepositRejectRequest;
 import com.optimize.elykia.core.entity.customer.CustomerInitialDepositSubmission;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
+import com.optimize.elykia.core.entity.Locality;
 import com.optimize.elykia.core.repository.customer.CustomerInitialDepositSubmissionRepository;
+import com.optimize.elykia.core.service.masterdata.LocalityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +37,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,6 +57,7 @@ class ClientRegistrationAdminServiceTest {
     @Mock private CustomerInitialDepositSubmissionRepository depositRepository;
     @Mock private CustomerNotificationService customerNotificationService;
     @Mock private PaymentProofService paymentProofService;
+    @Mock private LocalityService localityService;
 
     @InjectMocks
     private ClientRegistrationAdminService service;
@@ -172,6 +176,53 @@ class ClientRegistrationAdminServiceTest {
         verify(accountService, never()).createAccount(any(AccountDto.class));
         assertEquals(0.0, accountCaptor.getValue().getAccountBalance());
         assertEquals("0021020004", accountCaptor.getValue().getAccountNumber());
+        verify(localityService, never()).findOrCreateByName(any());
+    }
+
+    @Test
+    void activate_customQuarter_createsOrLinksLocalityAndClearsFlag() {
+        pendingClient.setCustomQuarter(true);
+        pendingClient.setQuarter("kegue village");
+        when(clientService.getById(7L)).thenReturn(pendingClient);
+        when(clientRepository.save(pendingClient)).thenReturn(pendingClient);
+        when(depositRepository.findByClientIdInAndState(List.of(7L), State.ENABLED)).thenReturn(List.of());
+        when(clientRepository.findById(7L)).thenReturn(Optional.of(pendingClient));
+        AccountRepository accountRepository = mock(AccountRepository.class);
+        when(accountService.getRepository()).thenReturn(accountRepository);
+        when(accountRepository.count()).thenReturn(3L);
+        when(accountService.syncAccount(any(AccountDto.class))).thenReturn(mock(AccountRespDto.class));
+        Locality created = new Locality();
+        created.setName("Kégué");
+        when(localityService.findOrCreateByName("  Kégué  ")).thenReturn(created);
+
+        ClientRegistrationActivateRequest request = new ClientRegistrationActivateRequest();
+        request.setCollector("COM001");
+        request.setTontineCollector("COM002");
+        request.setQuarter("  Kégué  ");
+
+        service.activate(admin, 7L, request);
+
+        assertEquals("Kégué", pendingClient.getQuarter());
+        assertFalse(pendingClient.isCustomQuarter());
+        assertEquals(ClientActivationStatus.ACTIVE, pendingClient.getActivationStatus());
+    }
+
+    @Test
+    void reject_customQuarter_doesNotCreateLocality() {
+        pendingClient.setCustomQuarter(true);
+        pendingClient.setQuarter("Zone libre");
+        when(clientService.getById(7L)).thenReturn(pendingClient);
+        when(clientRepository.save(pendingClient)).thenReturn(pendingClient);
+        when(depositRepository.findByClientIdInAndState(List.of(7L), State.ENABLED)).thenReturn(List.of());
+
+        ClientRegistrationRejectRequest request = new ClientRegistrationRejectRequest();
+        request.setReason("Dossier incomplet");
+
+        service.reject(admin, 7L, request);
+
+        assertTrue(pendingClient.isCustomQuarter());
+        assertEquals("Zone libre", pendingClient.getQuarter());
+        verify(localityService, never()).findOrCreateByName(any());
     }
 
     @Test

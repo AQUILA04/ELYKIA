@@ -9,11 +9,27 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.34.7] — 2026-10-16
+
+### Added
+
+- Inscription espace client : une zone saisie via « AUTRES (à préciser) » est enregistrée sur le dossier sans créer de localité. À la validation du compte, le nom corrigé est ajouté aux localités, ou rattaché si une localité du même nom existe déjà.
+
 ## Backend — [1.34.6] — 2026-10-16
 
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.31.6] — 2026-10-16
+
+### Added
+
+- Inscriptions clients : lorsqu’une zone n’est pas encore dans la liste, le formulaire de validation affiche **Nom de la zone** pour corriger le libellé avant de l’enregistrer.
+
+### Docs
+
+- Guide gestionnaire : validation d’une zone saisie libre. Index RAG et guide HTML régénérés.
 
 ## Frontend — [2.31.5] — 2026-10-16
 
@@ -476,6 +492,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.13.7] — 2026-10-16
+
+### Added
+
+- Inscription : si la zone n’est pas dans la liste, **AUTRES (à préciser)** ouvre le champ **Précisez votre zone**. Le nom est transmis avec le dossier.
+
+### Docs
+
+- Guide espace client : choix **AUTRES (à préciser)** à l’inscription. Index RAG et guide HTML régénérés.
 
 ## Customer-space — [0.13.6] — 2026-10-06
 
