@@ -5,6 +5,18 @@
       <h1>Terrain</h1>
     </header>
 
+    <div class="search">
+      <ion-searchbar
+        [(ngModel)]="query"
+        placeholder="Nom, téléphone, localité, commercial"
+        debounce="200"
+        mode="md"
+        class="rm-searchbar"
+        aria-label="Rechercher dans la liste terrain"
+        data-testid="e2e-rm-field-search">
+      </ion-searchbar>
+    </div>
+
     <section class="block" *ngIf="tontineByCommercial.length">
       <div class="section-head">
         <h2>Tontine — contrôles carnet</h2>
@@ -15,7 +27,7 @@
       </div>
       <div class="bulk-bar" *ngIf="selectMode && selectedIds.size > 0">
         <span>{{ selectedIds.size }} sélectionné(s)</span>
-        <ion-button size="small" (click)="verifySelection()"
+        <ion-button size="small" fill="solid" class="rm-solid-btn" (click)="verifySelection()"
                     data-testid="e2e-rm-carnet-bulk-verify">
           Vérifier la sélection
         </ion-button>
@@ -41,7 +53,7 @@
               </span>
             </div>
             <div class="row-actions">
-              <ion-button size="small" fill="solid" (click)="toggleCarnet(item)"
+              <ion-button size="small" fill="solid" class="rm-solid-btn" (click)="toggleCarnet(item)"
                           data-testid="e2e-rm-carnet-verify">
                 {{ item.carnetVerified ? 'Annuler' : 'Vérifier' }}
               </ion-button>
@@ -65,7 +77,7 @@
                   data-testid="e2e-rm-credit-carnet-badge">Vérifié</span>
           </div>
           <div class="row-actions">
-            <ion-button size="small" fill="solid" (click)="toggleCreditCarnet(item)"
+            <ion-button size="small" fill="solid" class="rm-solid-btn" (click)="toggleCreditCarnet(item)"
                         [disabled]="busy"
                         data-testid="e2e-rm-credit-carnet-verify">
               {{ item.carnetVerified ? 'Annuler' : 'Vérifier' }}
@@ -77,7 +89,7 @@
     </section>
 
     <p class="empty" *ngIf="!byCommercial.length && !tontineByCommercial.length">
-      Aucun retard ni membre tontine dans le pack.
+      {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun retard ni membre tontine dans le pack.' }}
     </p>
   </div>
 </ion-content>

@@ -9,6 +9,20 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Mobile — [2.33.9] — 2026-10-16
+
+### Added
+
+- Chef de recouvrement, onglet **Terrain** : recherche par nom, téléphone, localité ou commercial sur le pack local (en ligne et hors ligne).
+
+### Fixed
+
+- Chef de recouvrement, onglet **Terrain** : le texte des boutons **Vérifier** et **Vérifier la sélection** est blanc sur le fond bleu.
+
+### Docs
+
+- Guide chef de recouvrement mobile : recherche de l’onglet **Terrain**. Index RAG et guide HTML régénérés.
+
 ## Mobile — [2.33.8] — 2026-10-13
 
 ### Fixed

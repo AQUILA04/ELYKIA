@@ -45,6 +45,8 @@ Le montant final saisi doit toujours correspondre à l’encaissement physique r
 
 L’onglet **Terrain** regroupe les portefeuilles par commercial et par localité. Il distingue les retards des membres tontine.
 
+La recherche en haut de la liste filtre les retards et les membres tontine par nom, téléphone, localité ou commercial. Elle s’applique au pack déjà téléchargé, en ligne comme hors ligne.
+
 | Zone | Action |
 |---|---|
 | Retards | Vérifier ou annuler la vérification d’un carnet, puis utiliser **Naviguer** lorsqu’une position est disponible. |

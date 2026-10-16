@@ -6,6 +6,7 @@ import { RmTontineFieldControlSheetComponent } from '../../features/rm/tontine-f
 import { RmCarnetVerificationWriteService } from '../../core/services/rm/rm-carnet-verification-write.service';
 import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
 import { runConfirmedCarnetToggle } from '../../core/services/rm/rm-carnet-confirm.util';
+import { filterRmFieldGroups, RmFieldGroup } from './rm-field-search.util';
 
 @Component({
   selector: 'app-rm-field',
@@ -14,14 +15,29 @@ import { runConfirmedCarnetToggle } from '../../core/services/rm/rm-carnet-confi
   standalone: false,
 })
 export class RmFieldPage implements OnInit {
-  byCommercial: { commercial: string; quarters: { quarter: string; items: RmCreditLate[] }[] }[] = [];
-  tontineByCommercial: {
-    commercial: string;
-    quarters: { quarter: string; items: RmPackTontineMember[] }[];
-  }[] = [];
+  /** Local-pack search. Filtering stays on device, online and offline. */
+  query = '';
+  private lateGroups: RmFieldGroup<RmCreditLate>[] = [];
+  private tontineGroups: RmFieldGroup<RmPackTontineMember>[] = [];
   selectMode = false;
   selectedIds = new Set<number>();
   busy = false;
+
+  get byCommercial(): RmFieldGroup<RmCreditLate>[] {
+    return filterRmFieldGroups(this.lateGroups, this.query, item =>
+      [item.clientName, item.clientPhone, item.clientQuarter, item.collector, item.reference]
+        .filter((part): part is string => !!part)
+        .join(' ')
+    );
+  }
+
+  get tontineByCommercial(): RmFieldGroup<RmPackTontineMember>[] {
+    return filterRmFieldGroups(this.tontineGroups, this.query, item =>
+      [item.clientName, item.clientPhone, item.clientQuarter, item.tontineCollector]
+        .filter((part): part is string => !!part)
+        .join(' ')
+    );
+  }
 
   constructor(
     private readonly scope: RmScopeService,
@@ -47,7 +63,7 @@ export class RmFieldPage implements OnInit {
       }
       commercialMap.get(c)!.push(item);
     }
-    this.byCommercial = Array.from(commercialMap.entries()).map(([commercial, items]) => {
+    this.lateGroups = Array.from(commercialMap.entries()).map(([commercial, items]) => {
       const qMap = new Map<string, RmCreditLate[]>();
       for (const item of items) {
         const q = item.clientQuarter?.trim() || 'Non spécifié';
@@ -73,7 +89,7 @@ export class RmFieldPage implements OnInit {
       }
       commercialMap.get(c)!.push(item);
     }
-    this.tontineByCommercial = Array.from(commercialMap.entries()).map(([commercial, items]) => {
+    this.tontineGroups = Array.from(commercialMap.entries()).map(([commercial, items]) => {
       const qMap = new Map<string, RmPackTontineMember[]>();
       for (const item of items) {
         const q = item.clientQuarter?.trim() || 'Non spécifié';
