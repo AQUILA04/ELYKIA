@@ -25,7 +25,8 @@ import java.util.UUID;
 
 /**
  * OTP espace client via Notification Hub (envoi SMS + vérification).
- * Après un verify réussi, émet un jeton de preuve HMAC consommé par {@code setup-pin}.
+ * Après un verify réussi, émet un jeton de preuve HMAC consommé par {@code setup-pin}
+ * ou, avec un secret distinct, par {@code reset-pin}.
  */
 @Service
 @Slf4j
@@ -64,8 +65,21 @@ public class CustomerOtpService {
 
     /**
      * Vérifie le code auprès du hub et retourne un jeton de preuve pour {@code setup-pin}.
+     * Le format reste {@code téléphone.expiration.signature} (3 segments).
      */
     public String verifyOtp(String phone, String code) {
+        return verifyOtp(phone, code, false);
+    }
+
+    /**
+     * Même vérification SMS, avec une signature HMAC distincte ({@code :reset})
+     * consommée uniquement par {@code reset-pin}.
+     */
+    public String verifyResetOtp(String phone, String code) {
+        return verifyOtp(phone, code, true);
+    }
+
+    private String verifyOtp(String phone, String code, boolean reset) {
         requireEnabled();
         String username = PhoneNormalizer.toUsername(phone);
         String e164 = PhoneNormalizer.toE164(username);
@@ -81,10 +95,18 @@ public class CustomerOtpService {
         if (result == null || !result.valid()) {
             throw new CustomValidationException(messageForReason(result != null ? result.reason() : null));
         }
-        return issueProofToken(username);
+        return issueProofToken(username, reset);
     }
 
     public void assertProofToken(String expectedPhone, String proofToken) {
+        assertProofToken(expectedPhone, proofToken, false);
+    }
+
+    public void assertResetProofToken(String expectedPhone, String proofToken) {
+        assertProofToken(expectedPhone, proofToken, true);
+    }
+
+    private void assertProofToken(String expectedPhone, String proofToken, boolean reset) {
         String username = PhoneNormalizer.toUsername(expectedPhone);
         if (!StringUtils.hasText(proofToken)) {
             throw new CustomValidationException("Preuve OTP manquante. Vérifiez d'abord le code SMS.");
@@ -96,7 +118,7 @@ public class CustomerOtpService {
         String phonePart = parts[0];
         String expPart = parts[1];
         String sigPart = parts[2];
-        String expectedSig = hmac(phonePart + "." + expPart);
+        String expectedSig = hmac(phonePart + "." + expPart, reset);
         if (!constantTimeEquals(expectedSig, sigPart)) {
             throw new CustomValidationException("Preuve OTP invalide.");
         }
@@ -114,18 +136,18 @@ public class CustomerOtpService {
         }
     }
 
-    private String issueProofToken(String username) {
+    private String issueProofToken(String username, boolean reset) {
         long exp = Instant.now()
                 .plusSeconds(Math.max(1, hubProperties.getProofTtlMinutes()) * 60L)
                 .getEpochSecond();
         String payload = username + "." + exp;
-        return payload + "." + hmac(payload);
+        return payload + "." + hmac(payload, reset);
     }
 
-    private String hmac(String data) {
+    private String hmac(String data, boolean reset) {
         try {
             Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(new SecretKeySpec(proofSecret().getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            mac.init(new SecretKeySpec(proofSecret(reset).getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
             byte[] raw = mac.doFinal(data.getBytes(StandardCharsets.UTF_8));
             return HexFormat.of().formatHex(raw);
         } catch (Exception e) {
@@ -133,11 +155,14 @@ public class CustomerOtpService {
         }
     }
 
-    private String proofSecret() {
+    private String proofSecret(boolean reset) {
+        String base;
         if (StringUtils.hasText(hubProperties.getProofSecret())) {
-            return hubProperties.getProofSecret();
+            base = hubProperties.getProofSecret();
+        } else {
+            base = jwtSecret + ":customer-otp-proof";
         }
-        return jwtSecret + ":customer-otp-proof";
+        return reset ? base + ":reset" : base;
     }
 
     private NotificationHubOtpClient client() {

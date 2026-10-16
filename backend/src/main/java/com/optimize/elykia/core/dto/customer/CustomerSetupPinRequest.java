@@ -15,7 +15,10 @@ public class CustomerSetupPinRequest {
     @Pattern(regexp = "\\d{4,6}")
     private String pin;
 
-    /** Preuve OTP émise par {@code POST /auth/verify-otp} (remplace firebaseIdToken). */
+    /**
+     * Preuve OTP : {@code POST /auth/verify-otp} pour l'activation,
+     * {@code POST /auth/forgot-pin/verify-otp} pour la réinitialisation.
+     */
     @NotBlank
     private String otpProofToken;
 }

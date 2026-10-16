@@ -15,6 +15,7 @@ export type JournalEventType =
   | 'OTP_VERIFIED'
   | 'OTP_FAILED'
   | 'PIN_SETUP'
+  | 'PIN_RESET'
   | 'REGISTER_SUBMITTED'
   | 'SESSION_EXPIRED'
   | 'LOGOUT'

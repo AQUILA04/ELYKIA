@@ -33,9 +33,11 @@
       (continueRegistration)="continueRegistration()"
       (submitPhone)="submitPhone()"
       (submitPin)="submitPin()"
+      (forgotPin)="forgotPin()"
       (submitOtp)="submitOtp()"
       (resendOtp)="resendOtp()"
       (submitSetupPin)="submitSetupPin()"
+      (submitResetPin)="submitResetPin()"
       (submitRegisterForm)="submitRegisterForm()"
       (submitRegisterPin)="submitRegisterPin()"
       (profilPhotoSelected)="onProfilPhotoSelected($event)"
@@ -65,7 +67,7 @@
     <app-elyk-overlap-card>
       <h2 class="elyk-title-serif auth-title">{{ title }}</h2>
       <p class="elyk-subtitle auth-subtitle">
-        <ng-container *ngIf="(step === 'otp' || step === 'register-otp') && otpReference; else plainSubtitle">
+        <ng-container *ngIf="(step === 'otp' || step === 'register-otp' || step === 'reset-otp') && otpReference; else plainSubtitle">
           Saisissez le code à 6 chiffres reçu par SMS associé à la référence
           <strong class="otp-reference" data-testid="e2e-auth-otp-reference">{{ otpReference }}</strong>
         </ng-container>
@@ -141,10 +143,19 @@
           <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading">Se connecter</span>
         </ion-button>
+
+        <button
+          type="button"
+          class="auth-text-link"
+          [disabled]="isLoading"
+          (click)="forgotPin()"
+          data-testid="e2e-auth-forgot-pin">
+          Code PIN oublié ?
+        </button>
       </form>
 
       <!-- OTP (activation ou inscription) -->
-      <form *ngIf="step === 'otp' || step === 'register-otp'" [formGroup]="otpForm" (ngSubmit)="submitOtp()">
+      <form *ngIf="step === 'otp' || step === 'register-otp' || step === 'reset-otp'" [formGroup]="otpForm" (ngSubmit)="submitOtp()">
         <app-elyk-outlined-field label="Code reçu par SMS" icon="chatbubble-ellipses-outline">
           <ion-input
             formControlName="otp"
@@ -211,6 +222,41 @@
           data-testid="e2e-auth-setup-pin-submit">
           <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
           <span *ngIf="!isLoading">Activer mon compte</span>
+        </ion-button>
+      </form>
+
+      <form *ngIf="step === 'reset-pin'" [formGroup]="setupPinForm" (ngSubmit)="submitResetPin()">
+        <app-elyk-outlined-field label="Nouveau code PIN" icon="lock-closed-outline">
+          <ion-input
+            formControlName="pin"
+            type="password"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="••••"
+            data-testid="e2e-auth-reset-pin-input">
+          </ion-input>
+        </app-elyk-outlined-field>
+        <app-elyk-outlined-field label="Confirmer le PIN" icon="lock-closed-outline">
+          <ion-input
+            formControlName="confirmPin"
+            type="password"
+            inputmode="numeric"
+            maxlength="6"
+            placeholder="••••"
+            data-testid="e2e-auth-reset-pin-confirm">
+          </ion-input>
+        </app-elyk-outlined-field>
+
+        <div class="error" *ngIf="error" role="alert">{{ error }}</div>
+
+        <ion-button
+          type="submit"
+          expand="block"
+          class="elyk-btn-navy"
+          [disabled]="setupPinForm.invalid || isLoading"
+          data-testid="e2e-auth-reset-pin-submit">
+          <ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+          <span *ngIf="!isLoading">Enregistrer mon code PIN</span>
         </ion-button>
       </form>
 

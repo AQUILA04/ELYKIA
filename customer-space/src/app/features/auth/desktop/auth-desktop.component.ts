@@ -53,9 +53,11 @@ export class AuthDesktopComponent {
 
   readonly submitPhone = output<void>();
   readonly submitPin = output<void>();
+  readonly forgotPin = output<void>();
   readonly submitOtp = output<void>();
   readonly resendOtp = output<void>();
   readonly submitSetupPin = output<void>();
+  readonly submitResetPin = output<void>();
   readonly submitRegisterForm = output<void>();
   readonly submitRegisterPin = output<void>();
   readonly profilPhotoSelected = output<Event>();
