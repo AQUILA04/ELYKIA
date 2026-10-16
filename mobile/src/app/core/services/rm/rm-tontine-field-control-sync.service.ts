@@ -45,6 +45,7 @@ export class RmTontineFieldControlSyncService {
       months: op.months.map(m => ({
         year: m.year,
         month: m.month,
+        commercialUsername: m.commercialUsername,
         notebookAmount: m.notebookAmount
       })),
       note: op.note,

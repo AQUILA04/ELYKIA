@@ -30,6 +30,13 @@ public class TontineMemberFieldControlLine extends BaseEntity<String> {
     @Column(name = "month", nullable = false)
     private Integer month;
 
+    /**
+     * Commercial dont les collectes sont contrôlées sur cette ligne.
+     * Null sur les contrôles historiques (agrégat tous commerciaux).
+     */
+    @Column(name = "commercial_username", length = 100)
+    private String commercialUsername;
+
     @Column(name = "notebook_amount", nullable = false)
     private Double notebookAmount;
 

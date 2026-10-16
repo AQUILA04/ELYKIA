@@ -22,5 +22,8 @@ public class RmPackTontineMemberDto {
     private Boolean carnetVerified;
     private LocalDateTime carnetVerifiedAt;
     private String carnetVerifiedBy;
+    /** Totaux mensuels agrégés (rétrocompat packs déjà téléchargés). */
     private List<RmPackTontineMonthDto> months;
+    /** Répartition des montants système par commercial collecteur. */
+    private List<RmPackTontineCollectorDto> collectors;
 }

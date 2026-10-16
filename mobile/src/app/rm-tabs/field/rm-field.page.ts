@@ -319,7 +319,9 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
 
   async openTontineControl(member: RmPackTontineMember): Promise<void> {
     let detailed = member;
-    if (this.onlineMode && !(member.months || []).length) {
+    const needsDetail = !(member.months || []).length
+      || !(member.collectors || []).length;
+    if (this.onlineMode && needsDetail) {
       try {
         detailed = await this.fieldListApi.getTontineMember(member.id);
       } catch {

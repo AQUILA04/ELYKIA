@@ -59,6 +59,13 @@ export interface RmPackTontineMonth {
   systemAmount: number;
 }
 
+export interface RmPackTontineCollector {
+  commercialUsername: string;
+  currentCollector?: boolean;
+  totalAmount?: number;
+  months: RmPackTontineMonth[];
+}
+
 export interface RmPackTontineMember {
   id: number;
   clientId?: number;
@@ -73,7 +80,10 @@ export interface RmPackTontineMember {
   carnetVerified?: boolean;
   carnetVerifiedAt?: string;
   carnetVerifiedBy?: string;
+  /** Totaux mensuels agrégés (rétrocompat packs déjà téléchargés). */
   months: RmPackTontineMonth[];
+  /** Répartition système par commercial collecteur (packs récents). */
+  collectors?: RmPackTontineCollector[];
 }
 
 export interface RmCreditLate {
@@ -116,9 +126,17 @@ export interface RmPackTontineFieldControlToday {
   lines?: {
     year: number;
     month: number;
+    commercialUsername?: string;
     notebookAmount: number;
     systemAmount: number;
     differenceAmount: number;
+  }[];
+  collectors?: {
+    commercialUsername: string;
+    notebookTotalAmount?: number;
+    systemTotalAmount?: number;
+    differenceAmount?: number;
+    status?: string;
   }[];
 }
 

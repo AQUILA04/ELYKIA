@@ -21,4 +21,8 @@ public class TontineMemberFieldControlDto {
     private String observedBy;
     private String note;
     private List<TontineMemberFieldControlLineDto> lines;
+    /** Récapitulatif des commerciaux contrôlés dans cette visite. */
+    private List<TontineMemberFieldControlCollectorDto> collectors;
+    /** Commerciaux du membre absents de ce contrôle (non contrôlés). */
+    private List<String> uncontrolledCollectors;
 }

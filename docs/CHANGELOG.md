@@ -9,6 +9,32 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Backend — [1.34.5] — 2026-10-16
+
+### Added
+
+- Contrôle terrain tontine : chaque ligne porte le commercial collecteur ; agrégats mensuels par commercial pour le pack et le détail Terrain ; récapitulatif et commerciaux non contrôlés dans la réponse API.
+
+## Frontend — [2.31.4] — 2026-10-16
+
+### Changed
+
+- Fiche membre tontine : le **Contrôle terrain** saisit le carnet commercial par commercial, mois par mois, et affiche l’écart nommé ainsi que les commerciaux non contrôlés.
+
+### Docs
+
+- Guide chef de recouvrement web : contrôle terrain par commercial. Index RAG et guide HTML régénérés.
+
+## Mobile — [2.33.12] — 2026-10-16
+
+### Changed
+
+- Chef de recouvrement, contrôle tontine Terrain : un bloc par commercial (badge **Actuel**), saisie carnet mois par mois, écart par commercial et global. Pack hors ligne enrichi avec la répartition système.
+
+### Docs
+
+- Guide chef de recouvrement mobile : contrôle terrain par commercial. Index RAG et guide HTML régénérés.
+
 ## Backend — [1.34.4] — 2026-10-16
 
 ### Added

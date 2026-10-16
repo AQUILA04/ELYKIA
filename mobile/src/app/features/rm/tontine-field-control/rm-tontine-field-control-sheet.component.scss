@@ -43,6 +43,79 @@ h2 {
   font-size: 13px;
 }
 
+.hint.legacy {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 12px;
+  padding: 10px 12px;
+  color: #9a3412;
+}
+
+.collector-block {
+  background: #fff;
+  border: 1px solid #dde3ec;
+  border-radius: 16px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+.collector-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.collector-head strong {
+  display: block;
+  color: var(--rm-navy);
+  font-size: 15px;
+}
+
+.collector-total {
+  display: block;
+  color: var(--rm-muted);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.current-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #dbeafe;
+  color: #1e40af;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.collector-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f0f4f9;
+  color: var(--rm-muted);
+  font-size: 13px;
+}
+
+.collector-summary strong {
+  font-variant-numeric: tabular-nums;
+}
+
+.collector-summary strong.ok { color: var(--rm-green); }
+.collector-summary strong.ecart { color: var(--rm-orange); }
+
+.collector-block .months {
+  margin-bottom: 0;
+}
+
 .summary,
 .card {
   background: #fff;

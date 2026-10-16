@@ -11,7 +11,10 @@ import com.optimize.elykia.core.dto.CreditFieldControlDto;
 import com.optimize.elykia.core.dto.CreditLateDTO;
 import com.optimize.elykia.core.dto.TontineMemberFieldControlDto;
 import com.optimize.elykia.core.dto.TontineMemberFieldControlLineDto;
+import com.optimize.elykia.core.dto.TontineMemberFieldControlCollectorDto;
 import com.optimize.elykia.core.dto.TontineMemberMonthlyAggregateDto;
+import com.optimize.elykia.core.dto.TontineMemberMonthlyByCommercialAggregateDto;
+import com.optimize.elykia.core.enumaration.FieldControlStatus;
 import com.optimize.elykia.core.dto.sale.*;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditFieldControl;
@@ -381,14 +384,14 @@ public class RecoveryFieldPlanService {
         for (TontineMemberMonthlyAggregateDto agg : tontineCollectionRepository.sumMonthlyByMemberId(id, State.ENABLED)) {
             monthAmounts.put(agg.getYear() + "-" + agg.getMonth(), agg.getTotalAmount());
         }
-        List<RmPackTontineMonthDto> months = new ArrayList<>();
-        for (Integer calendarMonth : TONTINE_CALENDAR_MONTHS) {
-            months.add(RmPackTontineMonthDto.builder()
-                    .year(sessionYear)
-                    .month(calendarMonth)
-                    .systemAmount(monthAmounts.getOrDefault(sessionYear + "-" + calendarMonth, 0d))
-                    .build());
-        }
+        List<RmPackTontineMonthDto> months = buildSessionMonths(sessionYear, monthAmounts);
+        Map<String, LocalDateTime> firstCollectionDates = loadFirstCollectionDates(List.of(id));
+        List<RmPackTontineCollectorDto> collectors = buildCollectorsForMember(
+                id,
+                sessionYear,
+                client.getTontineCollector(),
+                tontineCollectionRepository.sumMonthlyByMemberIdAndCommercial(id, State.ENABLED),
+                firstCollectionDates);
         String firstname = client.getFirstname() != null ? client.getFirstname() : "";
         String lastname = client.getLastname() != null ? client.getLastname() : "";
         String fullName = (firstname + " " + lastname).trim();
@@ -410,6 +413,7 @@ public class RecoveryFieldPlanService {
                 .carnetVerifiedAt(member.getCarnetVerifiedAt())
                 .carnetVerifiedBy(member.getCarnetVerifiedBy())
                 .months(months)
+                .collectors(collectors)
                 .build();
     }
 
@@ -450,6 +454,20 @@ public class RecoveryFieldPlanService {
                     .put(key, agg.getTotalAmount());
         }
 
+        Map<Long, List<TontineMemberMonthlyByCommercialAggregateDto>> byCommercialAggs = new HashMap<>();
+        for (TontineMemberMonthlyByCommercialAggregateDto agg : tontineCollectionRepository
+                .sumMonthlyBySessionYearAndCommercialForCollectors(sessionYear, commercials, State.ENABLED)) {
+            if (agg.getMemberId() == null) {
+                continue;
+            }
+            byCommercialAggs.computeIfAbsent(agg.getMemberId(), id -> new ArrayList<>()).add(agg);
+        }
+        List<Long> memberIds = members.stream()
+                .map(TontineMember::getId)
+                .filter(Objects::nonNull)
+                .toList();
+        Map<String, LocalDateTime> firstCollectionDates = loadFirstCollectionDates(memberIds);
+
         List<RmPackTontineMemberDto> result = new ArrayList<>();
         for (TontineMember member : members) {
             Client client = member.getClient();
@@ -476,15 +494,13 @@ public class RecoveryFieldPlanService {
             }
 
             Map<String, Double> monthAmounts = amountsByMemberMonth.getOrDefault(member.getId(), Map.of());
-            List<RmPackTontineMonthDto> months = new ArrayList<>();
-            for (Integer calendarMonth : TONTINE_CALENDAR_MONTHS) {
-                String key = sessionYear + "-" + calendarMonth;
-                months.add(RmPackTontineMonthDto.builder()
-                        .year(sessionYear)
-                        .month(calendarMonth)
-                        .systemAmount(monthAmounts.getOrDefault(key, 0d))
-                        .build());
-            }
+            List<RmPackTontineMonthDto> months = buildSessionMonths(sessionYear, monthAmounts);
+            List<RmPackTontineCollectorDto> collectors = buildCollectorsForMember(
+                    member.getId(),
+                    sessionYear,
+                    client.getTontineCollector(),
+                    byCommercialAggs.getOrDefault(member.getId(), List.of()),
+                    firstCollectionDates);
 
             result.add(RmPackTontineMemberDto.builder()
                     .id(member.getId())
@@ -501,6 +517,105 @@ public class RecoveryFieldPlanService {
                     .carnetVerifiedAt(member.getCarnetVerifiedAt())
                     .carnetVerifiedBy(member.getCarnetVerifiedBy())
                     .months(months)
+                    .collectors(collectors)
+                    .build());
+        }
+        return result;
+    }
+
+    private List<RmPackTontineMonthDto> buildSessionMonths(int sessionYear, Map<String, Double> monthAmounts) {
+        List<RmPackTontineMonthDto> months = new ArrayList<>();
+        for (Integer calendarMonth : TONTINE_CALENDAR_MONTHS) {
+            String key = sessionYear + "-" + calendarMonth;
+            months.add(RmPackTontineMonthDto.builder()
+                    .year(sessionYear)
+                    .month(calendarMonth)
+                    .systemAmount(monthAmounts.getOrDefault(key, 0d))
+                    .build());
+        }
+        return months;
+    }
+
+    /** Clé composite memberId|commercialUsername → première date de collecte. */
+    private Map<String, LocalDateTime> loadFirstCollectionDates(List<Long> memberIds) {
+        Map<String, LocalDateTime> byKey = new HashMap<>();
+        if (memberIds == null || memberIds.isEmpty()) {
+            return byKey;
+        }
+        for (Object[] row : tontineCollectionRepository
+                .findFirstCollectionDateByMemberAndCommercial(memberIds, State.ENABLED)) {
+            if (row == null || row.length < 3 || row[0] == null || row[1] == null || row[2] == null) {
+                continue;
+            }
+            Long memberId = ((Number) row[0]).longValue();
+            String commercial = String.valueOf(row[1]).trim();
+            LocalDateTime first = row[2] instanceof LocalDateTime
+                    ? (LocalDateTime) row[2]
+                    : null;
+            if (first == null || !StringUtils.hasText(commercial)) {
+                continue;
+            }
+            byKey.put(memberCommercialKey(memberId, commercial), first);
+        }
+        return byKey;
+    }
+
+    private static String memberCommercialKey(Long memberId, String commercial) {
+        return memberId + "|" + commercial.toLowerCase(Locale.ROOT);
+    }
+
+    private List<RmPackTontineCollectorDto> buildCollectorsForMember(
+            Long memberId,
+            int sessionYear,
+            String currentCollector,
+            List<TontineMemberMonthlyByCommercialAggregateDto> aggregates,
+            Map<String, LocalDateTime> firstCollectionDates) {
+        Map<String, Map<String, Double>> monthsByCommercial = new LinkedHashMap<>();
+        Map<String, Double> totals = new HashMap<>();
+        for (TontineMemberMonthlyByCommercialAggregateDto agg : aggregates) {
+            if (!StringUtils.hasText(agg.getCommercialUsername())) {
+                continue;
+            }
+            String commercial = agg.getCommercialUsername().trim();
+            String monthKey = agg.getYear() + "-" + agg.getMonth();
+            monthsByCommercial
+                    .computeIfAbsent(commercial, key -> new HashMap<>())
+                    .merge(monthKey, agg.getTotalAmount(), Double::sum);
+            totals.merge(commercial, agg.getTotalAmount(), Double::sum);
+        }
+        if (StringUtils.hasText(currentCollector)
+                && monthsByCommercial.keySet().stream()
+                .noneMatch(c -> c.equalsIgnoreCase(currentCollector.trim()))) {
+            monthsByCommercial.put(currentCollector.trim(), new HashMap<>());
+            totals.putIfAbsent(currentCollector.trim(), 0d);
+        }
+
+        List<String> ordered = new ArrayList<>(monthsByCommercial.keySet());
+        ordered.sort((a, b) -> {
+            LocalDateTime fa = firstCollectionDates.get(memberCommercialKey(memberId, a));
+            LocalDateTime fb = firstCollectionDates.get(memberCommercialKey(memberId, b));
+            if (fa == null && fb == null) {
+                return a.compareToIgnoreCase(b);
+            }
+            if (fa == null) {
+                return 1;
+            }
+            if (fb == null) {
+                return -1;
+            }
+            int cmp = fa.compareTo(fb);
+            return cmp != 0 ? cmp : a.compareToIgnoreCase(b);
+        });
+
+        List<RmPackTontineCollectorDto> result = new ArrayList<>();
+        for (String commercial : ordered) {
+            Map<String, Double> monthAmounts = monthsByCommercial.getOrDefault(commercial, Map.of());
+            result.add(RmPackTontineCollectorDto.builder()
+                    .commercialUsername(commercial)
+                    .currentCollector(StringUtils.hasText(currentCollector)
+                            && commercial.equalsIgnoreCase(currentCollector.trim()))
+                    .totalAmount(totals.getOrDefault(commercial, 0d))
+                    .months(buildSessionMonths(sessionYear, monthAmounts))
                     .build());
         }
         return result;
@@ -525,10 +640,38 @@ public class RecoveryFieldPlanService {
                         .id(line.getId())
                         .year(line.getYear())
                         .month(line.getMonth())
+                        .commercialUsername(line.getCommercialUsername())
                         .notebookAmount(line.getNotebookAmount())
                         .systemAmount(line.getSystemAmount())
                         .differenceAmount(line.getDifferenceAmount())
                         .build())
+                .toList();
+
+        Map<String, double[]> byCommercial = new LinkedHashMap<>();
+        for (TontineMemberFieldControlLineDto line : lines) {
+            if (!StringUtils.hasText(line.getCommercialUsername())) {
+                continue;
+            }
+            double[] acc = byCommercial.computeIfAbsent(
+                    line.getCommercialUsername(), key -> new double[2]);
+            acc[0] += line.getNotebookAmount() != null ? line.getNotebookAmount() : 0d;
+            acc[1] += line.getSystemAmount() != null ? line.getSystemAmount() : 0d;
+        }
+        List<TontineMemberFieldControlCollectorDto> collectors = byCommercial.entrySet().stream()
+                .map(entry -> {
+                    double notebook = entry.getValue()[0];
+                    double system = entry.getValue()[1];
+                    double difference = notebook - system;
+                    return TontineMemberFieldControlCollectorDto.builder()
+                            .commercialUsername(entry.getKey())
+                            .notebookTotalAmount(notebook)
+                            .systemTotalAmount(system)
+                            .differenceAmount(difference)
+                            .status(Math.abs(difference) < 0.0001d
+                                    ? FieldControlStatus.CONFORME
+                                    : FieldControlStatus.ECART)
+                            .build();
+                })
                 .toList();
 
         return TontineMemberFieldControlDto.builder()
@@ -543,6 +686,8 @@ public class RecoveryFieldPlanService {
                 .observedBy(entity.getObservedBy())
                 .note(entity.getNote())
                 .lines(lines)
+                .collectors(collectors)
+                .uncontrolledCollectors(List.of())
                 .build();
     }
 

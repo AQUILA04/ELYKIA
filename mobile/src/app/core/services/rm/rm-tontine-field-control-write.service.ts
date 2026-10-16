@@ -36,6 +36,7 @@ export class RmTontineFieldControlWriteService {
           months: op.months.map(m => ({
             year: m.year,
             month: m.month,
+            commercialUsername: m.commercialUsername,
             notebookAmount: m.notebookAmount
           })),
           note: op.note,
@@ -72,6 +73,7 @@ export class RmTontineFieldControlWriteService {
     const months = (request.months || []).map(m => ({
       year: m.year,
       month: m.month,
+      commercialUsername: (m.commercialUsername || '').trim(),
       notebookAmount: m.notebookAmount || 0,
       systemAmount: m.systemAmount || 0
     }));
@@ -119,10 +121,12 @@ export class RmTontineFieldControlWriteService {
       lines: op.months.map(m => ({
         year: m.year,
         month: m.month,
+        commercialUsername: m.commercialUsername,
         notebookAmount: m.notebookAmount,
         systemAmount: m.systemAmount || 0,
         differenceAmount: (m.notebookAmount || 0) - (m.systemAmount || 0)
-      }))
+      })),
+      collectors: this.buildCollectors(op.months)
     };
     const idx = todayControls.findIndex(
       c => c?.tontineMemberId === op.tontineMemberId || c?.reference === op.reference
@@ -138,5 +142,31 @@ export class RmTontineFieldControlWriteService {
       tontineFieldControlsToday: todayControls
     };
     await this.scope.setPack(nextPack);
+  }
+
+  private buildCollectors(months: RmTontineFieldControlOp['months']): NonNullable<
+    RmOfflinePack['tontineFieldControlsToday'][number]['collectors']
+  > {
+    const map = new Map<string, { notebook: number; system: number }>();
+    for (const m of months) {
+      const key = m.commercialUsername || '';
+      if (!key) {
+        continue;
+      }
+      const acc = map.get(key) || { notebook: 0, system: 0 };
+      acc.notebook += m.notebookAmount || 0;
+      acc.system += m.systemAmount || 0;
+      map.set(key, acc);
+    }
+    return Array.from(map.entries()).map(([commercialUsername, acc]) => {
+      const differenceAmount = acc.notebook - acc.system;
+      return {
+        commercialUsername,
+        notebookTotalAmount: acc.notebook,
+        systemTotalAmount: acc.system,
+        differenceAmount,
+        status: Math.abs(differenceAmount) < EPSILON ? 'CONFORME' : 'ECART'
+      };
+    });
   }
 }

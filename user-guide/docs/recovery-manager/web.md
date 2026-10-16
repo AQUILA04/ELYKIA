@@ -50,7 +50,7 @@ Avant de choisir **Confirmer l’opération**, contrôlez le résumé financier.
 
 ## Contrôler la tontine depuis le web
 
-La fiche membre tontine donne accès au bouton **Contrôle terrain** pour le Chef de recouvrement. Le contrôle se réalise mois par mois : l’utilisateur sélectionne les mois, saisit les montants indiqués sur le carnet et peut ajouter une note. La fiche conserve ensuite le total système, le total carnet, l’écart, le statut **Conforme** ou **Disparité**, la date et l’auteur.
+La fiche membre tontine donne accès au bouton **Contrôle terrain** pour le Chef de recouvrement. Lorsque plusieurs commerciaux ont collecté pour le même membre, le formulaire présente **un bloc par commercial**. Dans chaque bloc, sélectionnez les mois concernés et saisissez le montant marqué dans le carnet de ce commercial. L’écart s’affiche pour chaque commercial, puis au total. Un commercial laissé sans mois sélectionné reste **non contrôlé** pour cette visite. La fiche conserve ensuite le total système, le total carnet, l’écart, le statut **Conforme** ou **Disparité**, le détail par commercial, la date et l’auteur.
 
 La vérification administrative du carnet est une action distincte du contrôle terrain. Le badge **Carnet vérifié** peut être appliqué ou retiré seulement si vous disposez des habilitations nécessaires ; il atteste la vérification physique du carnet sans modifier les montants des collectes ni l’état du contrôle terrain.
 
