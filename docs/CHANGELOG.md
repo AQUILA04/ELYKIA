@@ -483,6 +483,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
 
+## Customer-space — [0.14.1] — 2026-10-16
+
+### Changed
+
+- Écran **Code PIN** : le lien **Code PIN oublié ?** est gris, sans soulignement.
+
 ## Customer-space — [0.14.0] — 2026-10-16
 
 ### Added

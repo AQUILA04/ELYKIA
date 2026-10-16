@@ -149,8 +149,7 @@
   color: var(--elyk-navy);
 }
 
-.otp-resend,
-.auth-text-link {
+.otp-resend {
   display: block;
   width: 100%;
   margin-top: 8px;
@@ -167,6 +166,26 @@
   &:disabled {
     color: var(--elyk-gray-text);
     text-decoration: none;
+    cursor: not-allowed;
+  }
+}
+
+.auth-text-link {
+  display: block;
+  width: 100%;
+  margin-top: 4px;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--elyk-gray-text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.6;
     cursor: not-allowed;
   }
 }
