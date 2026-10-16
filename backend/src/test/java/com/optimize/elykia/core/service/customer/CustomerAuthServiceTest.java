@@ -43,7 +43,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -402,6 +404,142 @@ class CustomerAuthServiceTest {
         request.setPin("1234");
 
         assertThrows(CustomValidationException.class, () -> customerAuthService.setupPin(request));
+    }
+
+    @Test
+    void sendForgotPinOtp_allowsWhenPinConfigured() {
+        User user = user("90123456", true);
+        Client client = client(42L, ClientActivationStatus.ACTIVE);
+        UUID sessionId = UUID.fromString("33333333-3333-3333-3333-333333333333");
+
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.of(user));
+        when(contextService.requireClient("90123456")).thenReturn(client);
+        when(customerOtpService.sendOtp("90123456"))
+                .thenReturn(new OtpSendResponse(sessionId, Instant.parse("2030-01-01T00:00:00Z"),
+                        null, "SMS", null, null, "R3ST"));
+
+        CustomerOtpSendResponse response = customerAuthService.sendForgotPinOtp(phone("90123456"));
+
+        assertEquals(sessionId, response.getSessionId());
+        assertEquals("R3ST", response.getReference());
+    }
+
+    @Test
+    void sendForgotPinOtp_rejectsWhenPinNotConfigured() {
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456"))
+                .thenReturn(Optional.of(user("90123456", false)));
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> customerAuthService.sendForgotPinOtp(phone("90123456")));
+
+        assertEquals("Configurez d'abord votre code PIN.", ex.getMessage());
+        verifyNoInteractions(customerOtpService);
+    }
+
+    @Test
+    void sendForgotPinOtp_rejectsUnknownAccount() {
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class,
+                () -> customerAuthService.sendForgotPinOtp(phone("90123456")));
+        verifyNoInteractions(customerOtpService);
+    }
+
+    @Test
+    void sendForgotPinOtp_rejectsRejectedClient() {
+        User user = user("90123456", true);
+        Client client = client(42L, ClientActivationStatus.REJECTED);
+        client.setActivationRejectionReason("Dossier incomplet");
+
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.of(user));
+        when(contextService.requireClient("90123456")).thenReturn(client);
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> customerAuthService.sendForgotPinOtp(phone("90123456")));
+
+        assertTrue(ex.getMessage().contains("Dossier incomplet"));
+        verifyNoInteractions(customerOtpService);
+    }
+
+    @Test
+    void verifyForgotPinOtp_returnsResetProof() {
+        User user = user("90123456", true);
+        Client client = client(42L, ClientActivationStatus.ACTIVE);
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.of(user));
+        when(contextService.requireClient("90123456")).thenReturn(client);
+        when(customerOtpService.verifyResetOtp("90123456", "123456")).thenReturn("reset-proof");
+
+        CustomerOtpVerifyRequest request = new CustomerOtpVerifyRequest();
+        request.setPhone("90123456");
+        request.setCode("123456");
+        CustomerOtpVerifyResponse response = customerAuthService.verifyForgotPinOtp(request);
+
+        assertTrue(response.isVerified());
+        assertEquals("reset-proof", response.getOtpProofToken());
+        verify(customerOtpService, never()).verifyOtp("90123456", "123456");
+    }
+
+    @Test
+    void resetPin_replacesPinAndReturnsToken() {
+        User user = user("90123456", true);
+        user.getUserAccount().setPassword("old-hash");
+        Client client = client(42L, ClientActivationStatus.ACTIVE);
+        Authentication auth = mock(Authentication.class);
+
+        doNothing().when(customerOtpService).assertResetProofToken("90123456", "reset-proof");
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("5678", "old-hash")).thenReturn(false);
+        when(passwordEncoder.encode("5678")).thenReturn("new-hash");
+        when(userRepository.save(user)).thenReturn(user);
+        when(authenticationManager.authenticate(any())).thenReturn(auth);
+        when(contextService.requireClient("90123456")).thenReturn(client);
+        when(jwtUtils.generateJwtToken(auth)).thenReturn("jwt");
+
+        CustomerSetupPinRequest request = new CustomerSetupPinRequest();
+        request.setPhone("90123456");
+        request.setOtpProofToken("reset-proof");
+        request.setPin("5678");
+        CustomerLoginResponse response = customerAuthService.resetPin(request);
+
+        assertEquals("jwt", response.getToken());
+        assertEquals("new-hash", user.getUserAccount().getPassword());
+        assertTrue(user.getUserAccount().getPinConfigured());
+        verify(activityLogService).recordServerEvent(
+                eq("AUTH"), eq("PIN_RESET"), eq("90123456"), eq(42L), eq("PIN réinitialisé"), eq(null));
+    }
+
+    @Test
+    void resetPin_rejectsSamePin() {
+        User user = user("90123456", true);
+        user.getUserAccount().setPassword("old-hash");
+
+        doNothing().when(customerOtpService).assertResetProofToken("90123456", "reset-proof");
+        when(userRepository.findByUserAccount_usernameIgnoreCase("90123456")).thenReturn(Optional.of(user));
+        when(passwordEncoder.matches("1234", "old-hash")).thenReturn(true);
+
+        CustomerSetupPinRequest request = new CustomerSetupPinRequest();
+        request.setPhone("90123456");
+        request.setOtpProofToken("reset-proof");
+        request.setPin("1234");
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> customerAuthService.resetPin(request));
+        assertEquals("Choisissez un code PIN différent.", ex.getMessage());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void resetPin_rejectsActivationProof() {
+        doThrow(new CustomValidationException("Preuve OTP invalide."))
+                .when(customerOtpService).assertResetProofToken("90123456", "activation-proof");
+
+        CustomerSetupPinRequest request = new CustomerSetupPinRequest();
+        request.setPhone("90123456");
+        request.setOtpProofToken("activation-proof");
+        request.setPin("5678");
+
+        assertThrows(CustomValidationException.class, () -> customerAuthService.resetPin(request));
+        verify(userRepository, never()).save(any());
     }
 
     @Test

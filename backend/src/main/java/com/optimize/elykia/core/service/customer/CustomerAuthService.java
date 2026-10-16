@@ -230,6 +230,101 @@ public class CustomerAuthService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public CustomerOtpSendResponse sendForgotPinOtp(CustomerPhoneRequest request) {
+        String username = PhoneNormalizer.requireTogoMobile(request.getPhone());
+        try {
+            requireUserWithConfiguredPin(username);
+            Client client = requireResetClient(username);
+            OtpSendResponse hub = customerOtpService.sendOtp(username);
+            activityLogService.recordServerEvent(
+                    "AUTH", "OTP_SENT", username, client.getId(),
+                    "OTP réinitialisation PIN envoyé", Map.of(
+                            "purpose", "reset",
+                            "channel", hub.channel() != null ? hub.channel() : "SMS",
+                            "reference", hub.reference() != null ? hub.reference() : ""));
+            return CustomerOtpSendResponse.builder()
+                    .sessionId(hub.sessionId())
+                    .expiresAt(hub.expiresAt())
+                    .channel(hub.channel() != null ? hub.channel() : "SMS")
+                    .reference(hub.reference())
+                    .build();
+        } catch (RuntimeException e) {
+            activityLogService.recordServerEvent(
+                    "AUTH", "OTP_SEND_FAILED", username, null,
+                    e.getMessage(), Map.of("purpose", "reset", "reason", e.getClass().getSimpleName()));
+            throw e;
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerOtpVerifyResponse verifyForgotPinOtp(CustomerOtpVerifyRequest request) {
+        String username = PhoneNormalizer.requireTogoMobile(request.getPhone());
+        try {
+            requireUserWithConfiguredPin(username);
+            Client client = requireResetClient(username);
+            String proof = customerOtpService.verifyResetOtp(username, request.getCode());
+            activityLogService.recordServerEvent(
+                    "AUTH", "OTP_VERIFIED", username, client.getId(),
+                    "OTP réinitialisation PIN vérifié", Map.of("purpose", "reset"));
+            return CustomerOtpVerifyResponse.builder()
+                    .verified(true)
+                    .otpProofToken(proof)
+                    .build();
+        } catch (RuntimeException e) {
+            activityLogService.recordServerEvent(
+                    "AUTH", "OTP_FAILED", username, null,
+                    e.getMessage(), Map.of("purpose", "reset", "stage", "verify"));
+            throw e;
+        }
+    }
+
+    @Transactional
+    public CustomerLoginResponse resetPin(CustomerSetupPinRequest request) {
+        String username = PhoneNormalizer.requireTogoMobile(request.getPhone());
+        customerOtpService.assertResetProofToken(username, request.getOtpProofToken());
+        User user = requireUserWithConfiguredPin(username);
+        String currentHash = user.getUserAccount().getPassword();
+        if (StringUtilsHasText(currentHash) && passwordEncoder.matches(request.getPin(), currentHash)) {
+            throw new CustomValidationException("Choisissez un code PIN différent.");
+        }
+        user.getUserAccount().setPassword(passwordEncoder.encode(request.getPin()));
+        user.getUserAccount().setPinConfigured(Boolean.TRUE);
+        userRepository.save(user);
+
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, request.getPin()));
+        Client client = requireResetClient(username);
+        CustomerLoginResponse response = buildLoginResponse(user, auth, client);
+        activityLogService.recordServerEvent(
+                "AUTH", "PIN_RESET", username, client.getId(),
+                "PIN réinitialisé", null);
+        return response;
+    }
+
+    private User requireUserWithConfiguredPin(String username) {
+        User user = userRepository.findByUserAccount_usernameIgnoreCase(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Compte introuvable pour ce numéro."));
+        if (!Boolean.TRUE.equals(user.getUserAccount().getPinConfigured())) {
+            throw new CustomValidationException("Configurez d'abord votre code PIN.");
+        }
+        return user;
+    }
+
+    private Client requireResetClient(String username) {
+        try {
+            Client client = contextService.requireClient(username);
+            assertNotRejected(client);
+            return client;
+        } catch (ResourceNotFoundException e) {
+            if ("client.not.found".equals(e.getMessage())) {
+                throw new ResourceNotFoundException(
+                        "Aucun dossier client associé à ce numéro. Contactez votre agence.");
+            }
+            throw e;
+        }
+    }
+
     @Transactional
     public CustomerLoginResponse register(CustomerRegisterRequest request) {
         CustomerLoginResponse response = customerRegistrationService.register(request);

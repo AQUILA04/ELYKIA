@@ -185,8 +185,10 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
       case 'phone': return isReturningVisitor() ? 'Bon retour !' : 'Bienvenue';
       case 'pin': return 'Code PIN';
       case 'otp':
-      case 'register-otp': return 'Vérification SMS';
+      case 'register-otp':
+      case 'reset-otp': return 'Vérification SMS';
       case 'setup-pin': return 'Créer votre PIN';
+      case 'reset-pin': return 'Nouveau code PIN';
       case 'register-consent': return 'Pas encore client';
       case 'register-form': return 'Bienvenue';
       case 'register-pin': return 'Créer votre PIN';
@@ -201,10 +203,12 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
       case 'pin': return this.maskedName ? `Bonjour ${this.maskedName}` : 'Saisissez votre code PIN';
       case 'otp':
       case 'register-otp':
+      case 'reset-otp':
         return this.otpReference
           ? `Saisissez le code à 6 chiffres reçu par SMS associé à la référence ${this.otpReference}`
           : 'Un code a été envoyé par SMS';
-      case 'setup-pin': return 'Choisissez un code PIN à 4-6 chiffres';
+      case 'setup-pin':
+      case 'reset-pin': return 'Choisissez un code PIN à 4-6 chiffres';
       case 'register-form': return 'Renseignez vos informations et votre photo';
       case 'register-pin': return 'Choisissez un code PIN à 4-6 chiffres';
       default: return '';
@@ -335,7 +339,20 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     }
   }
 
-  private async startOtp(nextStep: 'otp' | 'register-otp'): Promise<void> {
+  async forgotPin(): Promise<void> {
+    if (this.step !== 'pin' || this.isLoading) return;
+    this.isLoading = true;
+    this.error = '';
+    this.otpForm.reset();
+    this.otpProofToken = '';
+    try {
+      await this.startOtp('reset-otp');
+    } finally {
+      this.isLoading = false;
+    }
+  }
+
+  private async startOtp(nextStep: 'otp' | 'register-otp' | 'reset-otp'): Promise<void> {
     const startedFrom = this.step;
     this.journal.track('OTP_SEND_REQUESTED', 'AUTH', { flow: nextStep });
     try {
@@ -350,7 +367,10 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
         this.journal.track('OTP_SENT', 'AUTH', { flow: nextStep, mock: true, reference: this.otpReference });
         return;
       }
-      const res = await firstValueFrom(this.api.sendOtp({ phone: this.phone }));
+      const request = nextStep === 'reset-otp'
+        ? this.api.sendForgotPinOtp({ phone: this.phone })
+        : this.api.sendOtp({ phone: this.phone });
+      const res = await firstValueFrom(request);
       if (this.step !== startedFrom) {
         return;
       }
@@ -370,10 +390,10 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
 
   async resendOtp(): Promise<void> {
     if (!this.canResendOtp) return;
-    if (this.step !== 'otp' && this.step !== 'register-otp') return;
+    if (this.step !== 'otp' && this.step !== 'register-otp' && this.step !== 'reset-otp') return;
     this.isLoading = true;
     this.error = '';
-    this.journal.track('OTP_SEND_REQUESTED', 'AUTH', { resend: true });
+    this.journal.track('OTP_SEND_REQUESTED', 'AUTH', { resend: true, flow: this.step });
     try {
       if (isE2eMode()) {
         this.otpReference = E2E_OTP_REFERENCE;
@@ -383,7 +403,10 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
         this.journal.track('OTP_SENT', 'AUTH', { resend: true, mock: true, reference: this.otpReference });
         return;
       }
-      const res = await firstValueFrom(this.api.sendOtp({ phone: this.phone }));
+      const request = this.step === 'reset-otp'
+        ? this.api.sendForgotPinOtp({ phone: this.phone })
+        : this.api.sendOtp({ phone: this.phone });
+      const res = await firstValueFrom(request);
       this.otpReference = res.reference?.trim() || '';
       this.otpForm.reset();
       this.error = this.otpReference
@@ -420,30 +443,40 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
 
   async submitOtp(): Promise<void> {
     if (this.otpForm.invalid) return;
+    const resettingPin = this.step === 'reset-otp';
     this.isLoading = true;
     this.error = '';
-    this.journal.track('OTP_VERIFY_ATTEMPT', 'AUTH');
+    this.journal.track('OTP_VERIFY_ATTEMPT', 'AUTH', { flow: this.step });
     try {
       if (isE2eMode()) {
         console.info('[E2E] verify OTP court-circuité — preuve mock (code saisi:', this.otpForm.value.otp, ')');
         this.otpProofToken = 'e2e-mock-otp-proof';
+        if (resettingPin) {
+          this.setupPinForm.reset();
+          this.step = 'reset-pin';
+        } else {
+          this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
+          if (this.isRegistrationFlow) {
+            await this.loadLocalities();
+          }
+        }
+        this.journal.track('OTP_VERIFIED', 'AUTH', { mock: true, flow: resettingPin ? 'reset-otp' : this.step });
+        return;
+      }
+      const res = await firstValueFrom(resettingPin
+        ? this.api.verifyForgotPinOtp({ phone: this.phone, code: this.otpForm.value.otp })
+        : this.api.verifyOtp({ phone: this.phone, code: this.otpForm.value.otp }));
+      this.otpProofToken = res.otpProofToken;
+      if (resettingPin) {
+        this.setupPinForm.reset();
+        this.step = 'reset-pin';
+      } else {
         this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
         if (this.isRegistrationFlow) {
           await this.loadLocalities();
         }
-        this.journal.track('OTP_VERIFIED', 'AUTH', { mock: true });
-        return;
       }
-      const res = await firstValueFrom(this.api.verifyOtp({
-        phone: this.phone,
-        code: this.otpForm.value.otp,
-      }));
-      this.otpProofToken = res.otpProofToken;
-      this.step = this.isRegistrationFlow ? 'register-form' : 'setup-pin';
-      if (this.isRegistrationFlow) {
-        await this.loadLocalities();
-      }
-      this.journal.track('OTP_VERIFIED', 'AUTH');
+      this.journal.track('OTP_VERIFIED', 'AUTH', { flow: resettingPin ? 'reset-pin' : this.step });
     } catch (e: unknown) {
       this.error = this.extractError(e) || 'Code incorrect. Réessayez.';
       this.journal.track('OTP_FAILED', 'AUTH', { stage: 'verify', reason: this.error });
@@ -473,6 +506,20 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
     }
     this.journal.track('PIN_SETUP', 'AUTH');
     await this.completeLogin(this.api.setupPin({
+      phone: this.phone,
+      pin: this.setupPinForm.value.pin,
+      otpProofToken: this.otpProofToken,
+    }));
+  }
+
+  async submitResetPin(): Promise<void> {
+    if (this.setupPinForm.invalid) return;
+    if (this.setupPinForm.hasError('pinMismatch')) {
+      this.error = 'Les codes PIN ne correspondent pas.';
+      return;
+    }
+    this.journal.track('PIN_RESET', 'AUTH');
+    await this.completeLogin(this.api.resetPin({
       phone: this.phone,
       pin: this.setupPinForm.value.pin,
       otpProofToken: this.otpProofToken,
@@ -606,8 +653,18 @@ export class AuthPage implements ViewWillEnter, OnDestroy {
       this.otpReference = '';
       this.clearResendTimer();
       this.resendCountdown = 0;
+    } else if (this.step === 'reset-otp') {
+      this.step = 'pin';
+      this.otpReference = '';
+      this.otpProofToken = '';
+      this.otpForm.reset();
+      this.clearResendTimer();
+      this.resendCountdown = 0;
     } else if (this.step === 'setup-pin') {
       this.step = 'otp';
+    } else if (this.step === 'reset-pin') {
+      this.step = 'reset-otp';
+      this.setupPinForm.reset();
     } else if (this.step === 'register-form') {
       this.step = 'register-otp';
     } else if (this.step === 'register-pin') {

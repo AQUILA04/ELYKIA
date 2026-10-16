@@ -28,6 +28,36 @@ test.describe('Auth PIN login', () => {
     await expect(page.getByTestId('e2e-dashboard-credit-card')).toBeVisible();
   });
 
+  test('forgotten PIN is offered only on the PIN step and opens the dashboard after reset', async ({ page }) => {
+    await mockCustomerApi(page);
+    await page.goto('/auth');
+    await expect(page.getByTestId('e2e-auth-forgot-pin')).toHaveCount(0);
+
+    await fillIonTestId(page, 'e2e-auth-phone-input', '90123456');
+    await page.getByTestId('e2e-auth-phone-submit').click();
+    await expect(page.getByTestId('e2e-auth-pin-input')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('e2e-auth-forgot-pin')).toBeVisible();
+
+    await page.getByTestId('e2e-auth-forgot-pin').click();
+    await expect(page.getByTestId('e2e-auth-otp-input')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('e2e-auth-forgot-pin')).toHaveCount(0);
+
+    await fillIonTestId(page, 'e2e-auth-otp-input', '123456');
+    await page.getByTestId('e2e-auth-otp-submit').click();
+
+    await expect(page.getByTestId('e2e-auth-reset-pin-input')).toBeVisible({ timeout: 10_000 });
+    await fillIonTestId(page, 'e2e-auth-reset-pin-input', '5678');
+    await fillIonTestId(page, 'e2e-auth-reset-pin-confirm', '5678');
+
+    const reset = page.waitForResponse(
+      (r) => r.url().includes('/auth/reset-pin') && r.ok(),
+    );
+    await page.getByTestId('e2e-auth-reset-pin-submit').click();
+    await reset;
+
+    await expect(page.getByTestId('e2e-dashboard-page')).toBeVisible({ timeout: 15_000 });
+  });
+
   test('catalog deep link while logged out returns to catalog after login', async ({ page }) => {
     await mockCustomerApi(page);
     await page.goto('/catalog');

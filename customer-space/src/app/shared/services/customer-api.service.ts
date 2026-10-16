@@ -72,6 +72,18 @@ export class CustomerApiService {
     return this.http.post<CustomerLoginResponse>(`${this.base}/auth/setup-pin`, payload);
   }
 
+  sendForgotPinOtp(payload: CustomerCheckPhoneRequest): Observable<CustomerOtpSendResponse> {
+    return this.http.post<CustomerOtpSendResponse>(`${this.base}/auth/forgot-pin/send-otp`, payload);
+  }
+
+  verifyForgotPinOtp(payload: CustomerOtpVerifyRequest): Observable<CustomerOtpVerifyResponse> {
+    return this.http.post<CustomerOtpVerifyResponse>(`${this.base}/auth/forgot-pin/verify-otp`, payload);
+  }
+
+  resetPin(payload: CustomerSetupPinRequest): Observable<CustomerLoginResponse> {
+    return this.http.post<CustomerLoginResponse>(`${this.base}/auth/reset-pin`, payload);
+  }
+
   register(payload: CustomerRegisterRequest): Observable<CustomerLoginResponse> {
     return this.http.post<CustomerLoginResponse>(`${this.base}/auth/register`, payload);
   }

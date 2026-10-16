@@ -24,6 +24,7 @@ describe('AuthPage', () => {
     sessionStorage.clear();
     api = jasmine.createSpyObj('CustomerApiService', [
       'checkPhone', 'login', 'setupPin', 'sendOtp', 'verifyOtp', 'register', 'getLocalities',
+      'sendForgotPinOtp', 'verifyForgotPinOtp', 'resetPin',
     ]);
     api.checkPhone.and.returnValue(of({ exists: true, pinConfigured: true, maskedName: 'Jean' }));
     api.login.and.returnValue(of({
@@ -35,6 +36,15 @@ describe('AuthPage', () => {
     }));
     api.sendOtp.and.returnValue(of({ channel: 'SMS', reference: 'Y4GP' }));
     api.verifyOtp.and.returnValue(of({ verified: true, otpProofToken: 'proof-token' }));
+    api.sendForgotPinOtp.and.returnValue(of({ channel: 'SMS', reference: 'R3ST' }));
+    api.verifyForgotPinOtp.and.returnValue(of({ verified: true, otpProofToken: 'reset-proof' }));
+    api.resetPin.and.returnValue(of({
+      token: 't',
+      clientId: '1',
+      fullName: 'Jean',
+      phone: '90123456',
+      expiresAt: new Date(Date.now() + 86_400_000).toISOString(),
+    }));
     api.getLocalities.and.returnValue(of([{ id: 1, name: 'Tokoin' }, { id: 2, name: 'Agoè' }]));
 
     featureFlags = jasmine.createSpyObj('FeatureFlagService', ['refresh', 'isCustomerSpaceAvailable']);
@@ -250,6 +260,97 @@ describe('AuthPage', () => {
     expect(fixture.nativeElement.textContent).toContain(
       'Pas encore de compte ? Saisissez simplement votre numéro de téléphone',
     );
+  });
+
+  it('shows the forgotten PIN link only while entering the PIN', async () => {
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-testid="e2e-auth-forgot-pin"]')).toBeNull();
+
+    fixture.componentInstance.phoneForm.patchValue({ phone: '90123456' });
+    await fixture.componentInstance.submitPhone();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-testid="e2e-auth-forgot-pin"]')?.textContent)
+      .toContain('Code PIN oublié');
+
+    fixture.componentInstance.step = 'setup-pin';
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-testid="e2e-auth-forgot-pin"]')).toBeNull();
+
+    fixture.componentInstance.step = 'register-pin';
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[data-testid="e2e-auth-forgot-pin"]')).toBeNull();
+  });
+
+  it('sends a reset SMS then asks for a new PIN', async () => {
+    fixture.componentInstance.phone = '90123456';
+    fixture.componentInstance.step = 'pin';
+
+    await fixture.componentInstance.forgotPin();
+
+    expect(api.sendForgotPinOtp).toHaveBeenCalledWith({ phone: '90123456' });
+    expect(api.sendOtp).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.step).toBe('reset-otp');
+    expect(fixture.componentInstance.otpReference).toBe('R3ST');
+
+    fixture.componentInstance.otpForm.patchValue({ otp: '123456' });
+    await fixture.componentInstance.submitOtp();
+
+    expect(api.verifyForgotPinOtp).toHaveBeenCalledWith({ phone: '90123456', code: '123456' });
+    expect(api.verifyOtp).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.otpProofToken).toBe('reset-proof');
+    expect(fixture.componentInstance.step).toBe('reset-pin');
+  });
+
+  it('blocks a reset when the two PIN codes differ', async () => {
+    fixture.componentInstance.step = 'reset-pin';
+    fixture.componentInstance.phone = '90123456';
+    fixture.componentInstance.otpProofToken = 'reset-proof';
+    fixture.componentInstance.setupPinForm.patchValue({ pin: '1234', confirmPin: '9999' });
+
+    await fixture.componentInstance.submitResetPin();
+
+    expect(fixture.componentInstance.setupPinForm.invalid).toBeTrue();
+    expect(api.resetPin).not.toHaveBeenCalled();
+  });
+
+  it('opens the session after the new PIN is confirmed', async () => {
+    history.pushState({}, '', '/auth');
+    fixture.componentInstance.step = 'reset-pin';
+    fixture.componentInstance.phone = '90123456';
+    fixture.componentInstance.otpProofToken = 'reset-proof';
+    fixture.componentInstance.setupPinForm.patchValue({ pin: '5678', confirmPin: '5678' });
+
+    await fixture.componentInstance.submitResetPin();
+
+    expect(api.resetPin).toHaveBeenCalledWith({
+      phone: '90123456',
+      pin: '5678',
+      otpProofToken: 'reset-proof',
+    });
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/dashboard');
+    history.pushState({}, '', '/');
+  });
+
+  it('returns from the reset SMS screen to the PIN screen', () => {
+    fixture.componentInstance.step = 'reset-otp';
+    fixture.componentInstance.otpReference = 'R3ST';
+    fixture.componentInstance.goBack();
+
+    expect(fixture.componentInstance.step).toBe('pin');
+    expect(fixture.componentInstance.otpReference).toBe('');
+  });
+
+  it('resends the reset code through the dedicated request', async () => {
+    fixture.componentInstance.phone = '90123456';
+    fixture.componentInstance.step = 'reset-otp';
+    fixture.componentInstance.resendCountdown = 0;
+    api.sendForgotPinOtp.and.returnValue(of({ channel: 'SMS', reference: 'R4ST' }));
+
+    await fixture.componentInstance.resendOtp();
+
+    expect(api.sendForgotPinOtp).toHaveBeenCalledWith({ phone: '90123456' });
+    expect(api.sendOtp).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.otpReference).toBe('R4ST');
   });
 
   it('verifies OTP then moves to setup-pin', async () => {
