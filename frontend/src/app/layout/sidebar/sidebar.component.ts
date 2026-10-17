@@ -363,6 +363,7 @@ export class SidebarComponent implements OnInit {
   hasAccessToParameters(): boolean {
     return this.userService.hasProfile('GESTIONNAIRE') ||
            this.userService.hasProfile('MANAGER') ||
+           this.userService.hasProfile(UserProfile.ADMIN) ||
            this.userService.hasProfile('SUPER_ADMIN');
   }
 

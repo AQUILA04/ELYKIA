@@ -51,6 +51,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
 
+## Frontend — [2.33.2] — 2026-10-17
+
+### Changed
+
+- Le menu Configuration affiche Paramètres, Mobile Money et Frais de retrait pour le profil administrateur.
+
 ## Frontend — [2.33.1] — 2026-10-17
 
 ### Changed
