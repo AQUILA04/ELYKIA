@@ -91,6 +91,13 @@ services:
       NOTIFICATION_HUB_TOKEN_URI: ${NOTIFICATION_HUB_TOKEN_URI:-https://auth.optimizesolux.com/realms/notification-hub/protocol/openid-connect/token}
       NOTIFICATION_HUB_CLIENT_ID: ${NOTIFICATION_HUB_CLIENT_ID:-elykia}
       NOTIFICATION_HUB_CLIENT_SECRET: ${NOTIFICATION_HUB_CLIENT_SECRET:-}
+      # Paiement Mobile Money — API recette (stub). Prod reste désactivé tant que son .env ne le demande pas.
+      # Traefik retire un préfixe /api : l’URL publique du callback porte donc /api/api/v1/...
+      ELYKIA_PAYGATE_ENABLED: ${ELYKIA_PAYGATE_ENABLED:-true}
+      ELYKIA_PAYGATE_BASE_URL: ${ELYKIA_PAYGATE_BASE_URL:-https://paygate-test-api.optimizesolux.com}
+      ELYKIA_PAYGATE_API_KEY: ${ELYKIA_PAYGATE_API_KEY:?ELYKIA_PAYGATE_API_KEY required}
+      ELYKIA_PAYGATE_CALLBACK_SECRET: ${ELYKIA_PAYGATE_CALLBACK_SECRET:?ELYKIA_PAYGATE_CALLBACK_SECRET required}
+      ELYKIA_PAYGATE_CALLBACK_URL: ${ELYKIA_PAYGATE_CALLBACK_URL:-https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks}
     volumes:
       - ${LOG_PATH:-/opt/elykia/test/logs}:/home/app/.optimize-elykia-core/logs
       - ${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/test/photos/pending}:/opt/elykia/photos/pending
