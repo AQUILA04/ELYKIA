@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-10-17
+
+### Changed
+
+- Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
 ## Backend — [1.37.0] — 2026-10-16
 
 ### Added
@@ -44,6 +50,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.33.1] — 2026-10-17
+
+### Changed
+
+- Paramètres généraux : le mode de paiement de l’Espace Client se choisit dans une liste (Déclaration manuelle, Paiement depuis l’application, Les deux).
 
 ## Frontend — [2.33.0] — 2026-10-16
 

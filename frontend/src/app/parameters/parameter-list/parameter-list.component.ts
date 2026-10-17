@@ -1,7 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatDialog } from '@angular/material/dialog';
-import { ParameterService, MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY } from '../parameter.service';
+import {
+  customerPaymentCollectionModeLabel,
+  CUSTOMER_PAYMENT_COLLECTION_MODE_KEY,
+  ParameterService,
+  MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY
+} from '../parameter.service';
 import { Parameter } from '../parameter.model';
 import { ParameterEditComponent } from '../parameter-edit/parameter-edit.component';
 import { NgxSpinnerService } from 'ngx-spinner';
@@ -131,6 +136,13 @@ export class ParameterListComponent implements OnInit {
     if (value === 'true') return 'OUI';
     if (value === 'false') return 'NON';
     return value;
+  }
+
+  displayValue(param: Parameter): string {
+    if (param.key === CUSTOMER_PAYMENT_COLLECTION_MODE_KEY) {
+      return customerPaymentCollectionModeLabel(param.value) ?? param.value;
+    }
+    return param.value;
   }
 
   loadMobileDeviceRestrictionParameter(): void {

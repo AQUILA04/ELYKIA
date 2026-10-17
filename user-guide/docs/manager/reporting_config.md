@@ -190,7 +190,8 @@ Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refu
 
 1. Ouvrez **Configuration** → **Paramètres généraux**.
 2. Repérez **CUSTOMER_PAYMENT_COLLECTION_MODE**.
-3. Indiquez **MANUAL** pour la déclaration avec preuve, **AUTOMATIC** pour le paiement depuis l’application, ou **BOTH** pour laisser le client choisir, puis enregistrez.
+3. Cliquez sur **Modifier**.
+4. Choisissez **Déclaration manuelle**, **Paiement depuis l’application** ou **Les deux**, puis enregistrez.
 
 ### Grilles de frais de retrait
 

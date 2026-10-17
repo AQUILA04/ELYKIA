@@ -2218,7 +2218,7 @@
     "roles": [
       "manager"
     ],
-    "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRéférentiels et Configuration de l'agence\nMode de paiement de l’Espace Client\nOuvrez Configuration → Paramètres généraux .\nRepérez CUSTOMER_PAYMENT_COLLECTION_MODE .\nIndiquez MANUAL pour la déclaration avec preuve, AUTOMATIC pour le paiement depuis l’application, ou BOTH pour laisser le client choisir, puis enregistrez."
+    "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRéférentiels et Configuration de l'agence\nMode de paiement de l’Espace Client\nOuvrez Configuration → Paramètres généraux .\nRepérez CUSTOMER_PAYMENT_COLLECTION_MODE .\nCliquez sur Modifier .\nChoisissez Déclaration manuelle , Paiement depuis l’application ou Les deux , puis enregistrez."
   },
   {
     "id": "manager_reporting_config__4_r_f_rentiels_et_configuration_de_l_agence_gril",

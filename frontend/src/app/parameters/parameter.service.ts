@@ -8,6 +8,18 @@ export const MOBILE_DEVICE_RESTRICTION_PARAMETER_KEY = 'ENABLED_MOBILE_DEVICE_RE
 export const TONTINE_SOCIETY_SHARE_VERSION_KEY = 'TONTINE_SOCIETY_SHARE_VERSION';
 export const TONTINE_SOCIETY_SHARE_VERSION_OPTIONS = ['V1', 'V2'] as const;
 
+export const CUSTOMER_PAYMENT_COLLECTION_MODE_KEY = 'CUSTOMER_PAYMENT_COLLECTION_MODE';
+export const CUSTOMER_PAYMENT_COLLECTION_MODE_OPTIONS = [
+  { value: 'MANUAL', label: 'Déclaration manuelle' },
+  { value: 'AUTOMATIC', label: 'Paiement depuis l’application' },
+  { value: 'BOTH', label: 'Les deux' },
+] as const;
+
+export function customerPaymentCollectionModeLabel(value: string | null | undefined): string | null {
+  const normalized = (value || '').trim().toUpperCase();
+  return CUSTOMER_PAYMENT_COLLECTION_MODE_OPTIONS.find((option) => option.value === normalized)?.label ?? null;
+}
+
 @Injectable({
   providedIn: 'root'
 })

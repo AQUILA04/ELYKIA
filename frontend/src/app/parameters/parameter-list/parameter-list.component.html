@@ -52,7 +52,7 @@
           <span *ngIf="isBoolean(param.value)" class="badge" [ngClass]="{'bg-success': param.value === 'true', 'bg-danger': param.value === 'false'}">
             {{ formatValue(param.value) }}
           </span>
-          <span *ngIf="!isBoolean(param.value)">{{ param.value }}</span>
+          <span *ngIf="!isBoolean(param.value)">{{ displayValue(param) }}</span>
         </td>
         <td>{{ param.description }}</td>
         <td>

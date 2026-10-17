@@ -2,6 +2,8 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import {
+  CUSTOMER_PAYMENT_COLLECTION_MODE_KEY,
+  CUSTOMER_PAYMENT_COLLECTION_MODE_OPTIONS,
   ParameterService,
   TONTINE_SOCIETY_SHARE_VERSION_KEY,
   TONTINE_SOCIETY_SHARE_VERSION_OPTIONS
@@ -21,7 +23,9 @@ export class ParameterEditComponent implements OnInit {
   parameter?: Parameter;
   isBooleanValue = false;
   isSocietyShareVersion = false;
+  isCollectionMode = false;
   readonly societyShareVersionOptions = TONTINE_SOCIETY_SHARE_VERSION_OPTIONS;
+  readonly collectionModeOptions = CUSTOMER_PAYMENT_COLLECTION_MODE_OPTIONS;
 
   constructor(
     private fb: FormBuilder,
@@ -58,12 +62,23 @@ export class ParameterEditComponent implements OnInit {
 
   private refreshValueEditor(key: string | null | undefined, value: string | null | undefined): void {
     this.isSocietyShareVersion = key === TONTINE_SOCIETY_SHARE_VERSION_KEY;
+    this.isCollectionMode = key === CUSTOMER_PAYMENT_COLLECTION_MODE_KEY;
     if (this.isSocietyShareVersion) {
       this.isBooleanValue = false;
       const normalized = (value || '').toString().trim().toUpperCase();
       const nextValue = this.societyShareVersionOptions.includes(normalized as 'V1' | 'V2')
         ? normalized
         : 'V1';
+      if (this.form.get('value')?.value !== nextValue) {
+        this.form.patchValue({ value: nextValue }, { emitEvent: false });
+      }
+      return;
+    }
+    if (this.isCollectionMode) {
+      this.isBooleanValue = false;
+      const normalized = (value || '').toString().trim().toUpperCase();
+      const known = this.collectionModeOptions.some((option) => option.value === normalized);
+      const nextValue = known ? normalized : 'MANUAL';
       if (this.form.get('value')?.value !== nextValue) {
         this.form.patchValue({ value: nextValue }, { emitEvent: false });
       }
@@ -95,6 +110,14 @@ export class ParameterEditComponent implements OnInit {
       if (!this.societyShareVersionOptions.includes(formValue.value)) {
         this.spinner.hide();
         this.toastr.error('La version part société doit être V1 ou V2', 'Erreur');
+        return;
+      }
+    }
+    if (formValue.key === CUSTOMER_PAYMENT_COLLECTION_MODE_KEY) {
+      formValue.value = String(formValue.value || '').trim().toUpperCase();
+      if (!this.collectionModeOptions.some((option) => option.value === formValue.value)) {
+        this.spinner.hide();
+        this.toastr.error('Choisissez un mode de paiement.', 'Erreur');
         return;
       }
     }
