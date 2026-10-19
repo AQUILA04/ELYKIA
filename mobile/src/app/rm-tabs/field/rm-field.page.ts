@@ -1,8 +1,9 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+﻿import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
 import { AlertController, ModalController, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { Subscription } from 'rxjs';
+import { debounceTime, skip } from 'rxjs/operators';
 import { ConnectivityService } from '../../core/services/connectivity.service';
 import { RmFieldListApiService } from '../../core/services/rm/rm-field-list-api.service';
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
@@ -38,6 +39,9 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   private lateNextPage = 0;
   private lateGroups: RmFieldGroup<RmCreditLate>[] = [];
   private tontineGroups: RmFieldGroup<RmPackTontineMember>[] = [];
+  /** Groupes pré-filtrés mis à jour explicitement — évite le recalcul à chaque cycle CD. */
+  filteredTontineGroups: RmFieldGroup<RmPackTontineMember>[] = [];
+  filteredLateGroups: RmFieldGroup<RmCreditLate>[] = [];
   private packSub?: Subscription;
   private viewActive = false;
   private liveRequest = 0;
@@ -49,19 +53,11 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   private keyboardSettleTimer?: ReturnType<typeof setTimeout>;
 
   get byCommercial(): RmFieldGroup<RmCreditLate>[] {
-    return filterRmFieldGroups(this.lateGroups, this.query, item =>
-      [item.clientName, item.clientPhone, item.clientQuarter, item.collector, item.reference]
-        .filter((part): part is string => !!part)
-        .join(' ')
-    );
+    return this.filteredLateGroups;
   }
 
   get tontineByCommercial(): RmFieldGroup<RmPackTontineMember>[] {
-    return filterRmFieldGroups(this.tontineGroups, this.query, item =>
-      [item.clientName, item.clientPhone, item.clientQuarter, item.tontineCollector]
-        .filter((part): part is string => !!part)
-        .join(' ')
-    );
+    return this.filteredTontineGroups;
   }
 
   get tontineClientTotal(): number {
@@ -110,7 +106,11 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   ) {}
 
   ngOnInit(): void {
-    this.packSub = this.scope.pack$.subscribe(() => this.reloadFromPack());
+    // skip(1) : ignore l'émission initiale du BehaviorSubject (traitée dans ionViewWillEnter).
+    // debounceTime(100) : absorbe les appels setPack() en rafale (vérification carnet multiple, etc.).
+    this.packSub = this.scope.pack$
+      .pipe(skip(1), debounceTime(100))
+      .subscribe(() => this.reloadFromPack());
   }
 
   ngOnDestroy(): void {
@@ -135,7 +135,11 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
 
   ionViewWillEnter(): void {
     this.viewActive = true;
-    void this.refreshMode();
+    // Différer le chargement pour laisser la vue s'afficher avant de reconstruire les groupes.
+    requestAnimationFrame(() => {
+      this.reloadFromPack();
+      void this.refreshMode();
+    });
   }
 
   ionViewWillLeave(): void {
@@ -146,6 +150,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   }
 
   onSearchInput(): void {
+    this.updateFilteredGroups();
     if (this.onlineMode) {
       void this.reloadOnlineLists();
     }
@@ -170,6 +175,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     TontineControlDebug.note('field reloadFromPack');
     this.loadLateCredits();
     this.loadTontineMembers();
+    this.updateFilteredGroups();
   }
 
   private async refreshMode(): Promise<void> {
@@ -311,6 +317,20 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
         quarters: Array.from(qMap.entries()).map(([quarter, qItems]) => ({ quarter, items: qItems }))
       };
     });
+    this.updateFilteredGroups();
+  }
+
+  private updateFilteredGroups(): void {
+    this.filteredTontineGroups = filterRmFieldGroups(this.tontineGroups, this.query, item =>
+      [item.clientName, item.clientPhone, item.clientQuarter, item.tontineCollector]
+        .filter((part): part is string => !!part)
+        .join(' ')
+    );
+    this.filteredLateGroups = filterRmFieldGroups(this.lateGroups, this.query, item =>
+      [item.clientName, item.clientPhone, item.clientQuarter, item.collector, item.reference]
+        .filter((part): part is string => !!part)
+        .join(' ')
+    );
   }
 
   openMaps(item: RmCreditLate): void {
@@ -341,6 +361,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
       onSuccess: async verified => {
         item.carnetVerified = verified;
         this.loadLateCredits();
+        this.updateFilteredGroups();
         await this.toast(verified ? 'Carnet vérifié' : 'Vérification annulée');
       },
       onError: message => this.toast(message, 'danger')
@@ -350,26 +371,27 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   async openTontineControl(member: RmPackTontineMember): Promise<void> {
     const waitForKeyboard = this.keyboardSettling;
     TontineControlDebug.note(`open member=${member.id} online=${this.onlineMode} keyboard=${waitForKeyboard}`);
-    const keyboardSettled = waitForKeyboard ? this.hideSearchKeyboard() : Promise.resolve();
+
+    // FIX : attendre la fin complète de l'animation clavier EN PREMIER,
+    // AVANT de charger le détail et d'ouvrir le modal.
+    // La race condition clavier ↔ modal est la cause du gel sur Android.
+    if (waitForKeyboard) {
+      await this.hideSearchKeyboard();
+    }
+
     let detailed = member;
     const needsDetail = !(member.months || []).length
       || !(member.collectors || []).length;
     if (this.onlineMode && needsDetail) {
       try {
-        const [loaded] = await Promise.all([
-          this.fieldListApi.getTontineMember(member.id),
-          keyboardSettled
-        ]);
-        detailed = loaded;
+        detailed = await this.fieldListApi.getTontineMember(member.id);
       } catch (error) {
-        await keyboardSettled;
         TontineControlDebug.note(`detail error ${describeFailure(error)}`);
         await this.toast('Impossible de charger le carnet', 'danger');
         return;
       }
-    } else {
-      await keyboardSettled;
     }
+
     TontineControlDebug.note(
       `detail months=${detailed.months?.length ?? 0} collectors=${detailed.collectors?.length ?? 0}`
     );
@@ -413,7 +435,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
           window.clearTimeout(timer);
           resolve();
         };
-        const timer = window.setTimeout(done, 450);
+        const timer = window.setTimeout(done, 600);
         handlePromise = Keyboard.addListener('keyboardDidHide', done);
         void Keyboard.hide().catch(() => undefined);
       });
@@ -523,3 +545,6 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     await toast.present();
   }
 }
+
+
+
