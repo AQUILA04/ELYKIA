@@ -97,6 +97,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
 
+## Mobile — [2.33.19] — 2026-10-19
+
+### Fixed
+
+- Chef de recouvrement, onglet Terrain : gel définitif de la fiche de contrôle tontine après une recherche. La race condition entre l'animation de fermeture du clavier Android et l'ouverture du modal ionic est éliminée — le clavier est désormais attendu en séquence stricte avant le chargement du détail et la création du modal. Timeout de stabilisation porté à 600 ms.
+- Chef de recouvrement, onglet Terrain : lenteur à la saisie dans la barre de recherche avec plus de 1 500 clients résolue. Les groupes filtrés (tontine et retards) sont précalculés et stockés explicitement plutôt que recalculés à chaque cycle de change detection.
+- Chef de recouvrement, onglet Terrain : lenteur à l'ouverture de l'onglet résolue. Le chargement des groupes est différé d'une frame via requestAnimationFrame pour ne pas bloquer le premier rendu.
+- Chef de recouvrement, onglet Terrain : les appels multiples à reloadFromPack en rafale (vérification carnet en mode sélection, rechargements successifs) sont absorbés par un debounce de 100 ms sur la souscription pack$. L'émission initiale du BehaviorSubject est ignorée au profit de ionViewWillEnter.
+
 ## Mobile — [2.33.18] — 2026-10-19
 
 ### Fixed
