@@ -1,4 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Capacitor, PluginListenerHandle } from '@capacitor/core';
+import { Keyboard } from '@capacitor/keyboard';
 import { AlertController, ModalController, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { ConnectivityService } from '../../core/services/connectivity.service';
@@ -42,6 +44,9 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   selectMode = false;
   selectedIds = new Set<number>();
   busy = false;
+  /** Vrai tant que le clavier de la recherche est ouvert ou en train de se fermer. */
+  private keyboardSettling = false;
+  private keyboardSettleTimer?: ReturnType<typeof setTimeout>;
 
   get byCommercial(): RmFieldGroup<RmCreditLate>[] {
     return filterRmFieldGroups(this.lateGroups, this.query, item =>
@@ -111,6 +116,21 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   ngOnDestroy(): void {
     this.liveRequest++;
     this.packSub?.unsubscribe();
+    this.clearKeyboardTimer();
+  }
+
+  onSearchFocus(): void {
+    this.keyboardSettling = true;
+    this.clearKeyboardTimer();
+  }
+
+  onSearchBlur(): void {
+    this.keyboardSettling = true;
+    this.clearKeyboardTimer();
+    this.keyboardSettleTimer = setTimeout(() => {
+      this.keyboardSettling = false;
+      this.keyboardSettleTimer = undefined;
+    }, 600);
   }
 
   ionViewWillEnter(): void {
@@ -328,22 +348,27 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   }
 
   async openTontineControl(member: RmPackTontineMember): Promise<void> {
-    TontineControlDebug.note(`open member=${member.id} online=${this.onlineMode}`);
-    const active = document.activeElement;
-    if (active instanceof HTMLElement) {
-      active.blur();
-    }
+    const waitForKeyboard = this.keyboardSettling;
+    TontineControlDebug.note(`open member=${member.id} online=${this.onlineMode} keyboard=${waitForKeyboard}`);
+    const keyboardSettled = waitForKeyboard ? this.hideSearchKeyboard() : Promise.resolve();
     let detailed = member;
     const needsDetail = !(member.months || []).length
       || !(member.collectors || []).length;
     if (this.onlineMode && needsDetail) {
       try {
-        detailed = await this.fieldListApi.getTontineMember(member.id);
+        const [loaded] = await Promise.all([
+          this.fieldListApi.getTontineMember(member.id),
+          keyboardSettled
+        ]);
+        detailed = loaded;
       } catch (error) {
+        await keyboardSettled;
         TontineControlDebug.note(`detail error ${describeFailure(error)}`);
         await this.toast('Impossible de charger le carnet', 'danger');
         return;
       }
+    } else {
+      await keyboardSettled;
     }
     TontineControlDebug.note(
       `detail months=${detailed.months?.length ?? 0} collectors=${detailed.collectors?.length ?? 0}`
@@ -352,13 +377,57 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
       component: RmTontineFieldControlSheetComponent,
       componentProps: { member: detailed },
       cssClass: 'rm-tontine-control-modal',
-      backdropDismiss: false
+      backdropDismiss: false,
+      keyboardClose: true
     });
     await modal.present();
     TontineControlDebug.note('modal presented');
     const dismissed = await modal.onDidDismiss();
     TontineControlDebug.note(`modal dismissed role=${dismissed.role || '-'}`);
     this.loadTontineMembers();
+  }
+
+  /**
+   * Le tap sur Contrôle retire déjà le focus. On attend la fin de l'animation
+   * du clavier : l'ouvrir en même temps que la fiche bloque le fil Android.
+   */
+  private async hideSearchKeyboard(): Promise<void> {
+    const active = document.activeElement;
+    if (active instanceof HTMLElement) {
+      active.blur();
+    }
+    this.keyboardSettling = false;
+    this.clearKeyboardTimer();
+    if (!Capacitor.isNativePlatform()) {
+      return;
+    }
+    let handlePromise: Promise<PluginListenerHandle> | undefined;
+    try {
+      await new Promise<void>(resolve => {
+        let settled = false;
+        const done = () => {
+          if (settled) {
+            return;
+          }
+          settled = true;
+          window.clearTimeout(timer);
+          resolve();
+        };
+        const timer = window.setTimeout(done, 450);
+        handlePromise = Keyboard.addListener('keyboardDidHide', done);
+        void Keyboard.hide().catch(() => undefined);
+      });
+    } finally {
+      const handle = await handlePromise?.catch(() => undefined);
+      await handle?.remove();
+    }
+  }
+
+  private clearKeyboardTimer(): void {
+    if (this.keyboardSettleTimer) {
+      clearTimeout(this.keyboardSettleTimer);
+      this.keyboardSettleTimer = undefined;
+    }
   }
 
   toggleSelectMode(): void {
