@@ -1,16 +1,15 @@
-<ion-content class="rm-tfc-content" [scrollY]="true">
-<div class="rm-tfc-sheet">
+<div class="rm-tfc-root">
   <header>
     <div>
       <p class="surtitle">Contrôle carnet tontine</p>
       <h2>{{ member?.clientName || 'Membre' }}</h2>
       <p class="meta">{{ member?.tontineCollector }} · {{ member?.clientQuarter || '—' }} · session {{ member?.sessionYear }}</p>
     </div>
-    <ion-button fill="clear" (click)="dismiss()">
-      <ion-icon slot="icon-only" name="close-outline"></ion-icon>
-    </ion-button>
+    <button type="button" class="close-btn" (click)="dismiss()" aria-label="Fermer">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
   </header>
-
+  <div class="rm-tfc-scroll">
   <section class="summary" *ngIf="selectedRows.length">
     <div class="row">
       <span>Système (sélection)</span>
@@ -106,5 +105,5 @@
     data-testid="e2e-rm-tontine-control-confirm">
     {{ submitting ? 'Enregistrement…' : 'Capturer le contrôle' }}
   </ion-button>
+  </div>
 </div>
-</ion-content>

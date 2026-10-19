@@ -1,14 +1,5 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
-import { Keyboard } from '@capacitor/keyboard';
-import {
-  AlertController,
-  IonSearchbar,
-  ModalController,
-  ToastController,
-  ViewWillEnter,
-  ViewWillLeave
-} from '@ionic/angular';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { AlertController, ModalController, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { ConnectivityService } from '../../core/services/connectivity.service';
 import { RmFieldListApiService } from '../../core/services/rm/rm-field-list-api.service';
@@ -27,8 +18,6 @@ import { countRmFieldItems, filterRmFieldGroups, RmFieldGroup } from './rm-field
   standalone: false,
 })
 export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave {
-  @ViewChild(IonSearchbar) private searchbar?: IonSearchbar;
-
   /** Offline: filters the pack. Online: sent to the backend, which pages the full portfolio. */
   query = '';
   /** Online reads every client from the backend. Offline stays on the day-plan pack. */
@@ -52,10 +41,6 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   selectMode = false;
   selectedIds = new Set<number>();
   busy = false;
-  /** Recherche encore focalisée, ou clavier en train de se fermer après le blur. */
-  private searchFocused = false;
-  private keyboardSettling = false;
-  private keyboardSettleTimer?: ReturnType<typeof setTimeout>;
 
   get byCommercial(): RmFieldGroup<RmCreditLate>[] {
     return filterRmFieldGroups(this.lateGroups, this.query, item =>
@@ -125,30 +110,6 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   ngOnDestroy(): void {
     this.liveRequest++;
     this.packSub?.unsubscribe();
-    if (this.keyboardSettleTimer) {
-      clearTimeout(this.keyboardSettleTimer);
-    }
-  }
-
-  onSearchFocus(): void {
-    this.searchFocused = true;
-    this.keyboardSettling = false;
-    if (this.keyboardSettleTimer) {
-      clearTimeout(this.keyboardSettleTimer);
-      this.keyboardSettleTimer = undefined;
-    }
-  }
-
-  onSearchBlur(): void {
-    this.searchFocused = false;
-    this.keyboardSettling = true;
-    if (this.keyboardSettleTimer) {
-      clearTimeout(this.keyboardSettleTimer);
-    }
-    this.keyboardSettleTimer = setTimeout(() => {
-      this.keyboardSettling = false;
-      this.keyboardSettleTimer = undefined;
-    }, 400);
   }
 
   ionViewWillEnter(): void {
@@ -357,65 +318,30 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   }
 
   async openTontineControl(member: RmPackTontineMember): Promise<void> {
-    const keyboardSettled = this.dismissKeyboardIfNeeded();
+    const active = document.activeElement;
+    if (active instanceof HTMLElement) {
+      active.blur();
+    }
     let detailed = member;
     const needsDetail = !(member.months || []).length
       || !(member.collectors || []).length;
     if (this.onlineMode && needsDetail) {
       try {
-        const [loaded] = await Promise.all([
-          this.fieldListApi.getTontineMember(member.id),
-          keyboardSettled
-        ]);
-        detailed = loaded;
+        detailed = await this.fieldListApi.getTontineMember(member.id);
       } catch {
-        await keyboardSettled;
         await this.toast('Impossible de charger le carnet', 'danger');
         return;
       }
-    } else {
-      await keyboardSettled;
     }
     const modal = await this.modalCtrl.create({
       component: RmTontineFieldControlSheetComponent,
       componentProps: { member: detailed },
-      breakpoints: [0, 0.75, 1],
-      initialBreakpoint: 0.95,
-      // À 95 % Ionic intercepte le geste pour agrandir la feuille : les mois
-      // ne se sélectionnent plus (clavier de recherche) et le scroll se bloque
-      // dès qu'une ligne s'ouvre. false = le contenu défile, le handle déplace la feuille.
-      expandToScroll: false
+      cssClass: 'rm-tontine-control-modal',
+      backdropDismiss: false
     });
     await modal.present();
     await modal.onDidDismiss();
     this.loadTontineMembers();
-  }
-
-  /**
-   * Ferme le clavier de la recherche avant la feuille. S'il reste ouvert,
-   * le viewport bouge pendant l'ouverture et les taps sur les mois sont perdus.
-   */
-  private async dismissKeyboardIfNeeded(): Promise<void> {
-    const mustSettle = this.searchFocused || this.keyboardSettling;
-    const active = document.activeElement;
-    if (active instanceof HTMLElement) {
-      active.blur();
-    }
-    try {
-      const input = await this.searchbar?.getInputElement();
-      input?.blur();
-    } catch {
-      // Barre de recherche pas encore disponible.
-    }
-    if (!mustSettle || !Capacitor.isNativePlatform()) {
-      return;
-    }
-    try {
-      await Keyboard.hide();
-    } catch {
-      // Plugin absent : le blur suffit.
-    }
-    await new Promise<void>(resolve => window.setTimeout(resolve, 280));
   }
 
   toggleSelectMode(): void {

@@ -97,6 +97,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
 
+## Mobile — [2.33.15] — 2026-10-19
+
+### Fixed
+
+- Chef de recouvrement, contrôle tontine Terrain : la fiche s’ouvre en plein écran. Le bouton Fermer, la sélection des mois et le défilement ne passent plus par le geste de la feuille.
+
 ## Mobile — [2.33.14] — 2026-10-19
 
 ### Fixed

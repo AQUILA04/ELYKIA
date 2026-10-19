@@ -1,27 +1,55 @@
 :host {
+  display: block;
   height: 100%;
 }
 
-.rm-tfc-content {
-  --background: #f2f4f8;
-  height: 100%;
-}
-
-.rm-tfc-sheet {
+.rm-tfc-root {
   --rm-navy: #003366;
   --rm-muted: #6b7a99;
   --rm-bg: #f2f4f8;
   --rm-green: #1d8a3c;
   --rm-orange: #c75000;
-  padding: 18px 16px 28px;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
   background: var(--rm-bg);
+}
+
+.rm-tfc-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 0 16px calc(28px + env(safe-area-inset-bottom, 0px));
 }
 
 header {
   display: flex;
   justify-content: space-between;
+  align-items: flex-start;
   gap: 8px;
-  margin-bottom: 14px;
+  flex: 0 0 auto;
+  padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 12px;
+}
+
+.close-btn {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--rm-navy);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.close-btn ion-icon {
+  font-size: 28px;
+  pointer-events: none;
 }
 
 .surtitle {
@@ -168,7 +196,6 @@ h2 {
   border: 1px solid #dde3ec;
   border-radius: 14px;
   padding: 12px;
-  touch-action: manipulation;
 }
 
 .month-row.selected {
