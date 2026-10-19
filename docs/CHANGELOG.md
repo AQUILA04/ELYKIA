@@ -97,6 +97,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
 
+## Mobile — [2.33.17] — 2026-10-19
+
+### Fixed
+
+- Journal mobile : les traces du contrôle tontine n’appellent plus Crashlytics et n’écrivent plus le fichier en parallèle. Cette rafale bloquait le fil Android dès l’ouverture de la fiche.
+
 ## Mobile — [2.33.16] — 2026-10-19
 
 ### Added

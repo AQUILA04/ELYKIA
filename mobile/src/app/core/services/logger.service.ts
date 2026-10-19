@@ -8,6 +8,8 @@ import {Capacitor} from "@capacitor/core";
 })
 export class LoggerService {
   private static inMemoryLogs: string[] = [];
+  /** Une seule écriture disque à la fois : les append parallèles bloquent le pont Android. */
+  private fileQueue: Promise<void> = Promise.resolve();
   // Chemin dans le répertoire de données de l'application
   // Utilise un fichier directement dans le répertoire Documents sans sous-dossier
   private logFileName = 'elykia/app_logs.txt';
@@ -66,23 +68,35 @@ export class LoggerService {
 
   async log(message: string) {
     console.log(message);
-    const timestamp = new Date().toISOString();
-    const logMessage = `[${timestamp}] ${message}\n`;
+    const logMessage = this.remember(message);
+    this.enqueueFileWrite(logMessage);
+    if (Capacitor.getPlatform() !== 'web') {
+      void FirebaseCrashlytics.log({ message: logMessage }).catch(() => undefined);
+    }
+  }
 
-    // Toujours sauvegarder en mémoire
+  /**
+   * Trace de diagnostic : mémoire + fichier, sans Crashlytics.
+   * Les rafales (battement, taps) ne doivent pas bloquer le thread WebView.
+   */
+  trace(message: string): void {
+    const logMessage = this.remember(message);
+    this.enqueueFileWrite(logMessage);
+  }
+
+  private remember(message: string): string {
+    const logMessage = `[${new Date().toISOString()}] ${message}\n`;
     LoggerService.inMemoryLogs.push(logMessage);
-
-    // Limiter les logs en mémoire pour éviter les fuites mémoire
     if (LoggerService.inMemoryLogs.length > 500) {
       LoggerService.inMemoryLogs.splice(0, LoggerService.inMemoryLogs.length - 500);
     }
+    return logMessage;
+  }
 
-    // Essayer de sauvegarder dans le fichier (non-bloquant)
-    this.saveToFileAsync(logMessage);
-    if (Capacitor.getPlatform() !== 'web') {
-      await FirebaseCrashlytics.log({ message: logMessage });
-    }
-
+  private enqueueFileWrite(logMessage: string): void {
+    this.fileQueue = this.fileQueue
+      .then(() => this.saveToFileAsync(logMessage))
+      .catch(() => undefined);
   }
 
   /**
@@ -128,11 +142,8 @@ export class LoggerService {
   async error(message: string, error?: unknown) {
       const errorMessage = error !== undefined ? `${message}: ${this.formatError(error)}` : message;
       console.error(errorMessage);
-      const timestamp = new Date().toISOString();
-      const logMessage = `[${timestamp}] ERROR: ${errorMessage}\n`;
-
-      LoggerService.inMemoryLogs.push(logMessage);
-      this.saveToFileAsync(logMessage);
+      const logMessage = this.remember(`ERROR: ${errorMessage}`);
+      this.enqueueFileWrite(logMessage);
   }
 
   private async saveToFileAsync(logMessage: string) {

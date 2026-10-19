@@ -2,6 +2,17 @@ import { NgZone } from '@angular/core';
 import { LoggerService } from '../../../core/services/logger.service';
 
 const PREFIX = '[TontineControl]';
+
+export function describeFailure(error: unknown): string {
+  if (error instanceof Error) {
+    return `${error.name}: ${error.message}`;
+  }
+  if (error && typeof error === 'object') {
+    const detail = error as { name?: string; message?: string; status?: number; statusText?: string };
+    return `${detail.name || 'object'} ${detail.status ?? ''} ${detail.message || detail.statusText || ''}`.trim();
+  }
+  return String(error);
+}
 const OVERLAYS = new Set([
   'ION-MODAL',
   'ION-BACKDROP',
@@ -27,9 +38,6 @@ export class TontineControlDebug {
   private lastZoneRuns = 0;
   private scrollCount = 0;
   private lastScrollLog = 0;
-  private attrSkipped = 0;
-  private attrPending = '';
-  private attrTimer = 0;
 
   constructor(
     private readonly log: LoggerService,
@@ -42,7 +50,7 @@ export class TontineControlDebug {
       TontineControlDebug.pending.push(message);
       return;
     }
-    void sink.log(`${PREFIX} ${message}`).catch(() => undefined);
+    sink.trace(`${PREFIX} ${message}`);
   }
 
   start(summary: string): void {
@@ -71,11 +79,6 @@ export class TontineControlDebug {
       }
       this.listen(window, 'scroll', () => this.onScroll(), true);
       this.observeOverlays();
-      this.observeAttrs(document.body);
-      this.observeAttrs(document.documentElement);
-      this.observeAttrs(document.querySelector('ion-app'));
-      document.querySelectorAll('ion-modal').forEach(modal => this.observeAttrs(modal));
-      this.observeLongTasks();
       const stable = this.zone.onStable.subscribe(() => {
         this.zoneRuns++;
       });
@@ -97,7 +100,6 @@ export class TontineControlDebug {
   stop(reason: string): void {
     this.write(`stop ${reason} ${this.snapshot()}`);
     window.clearInterval(this.timer);
-    window.clearTimeout(this.attrTimer);
     for (const stop of this.stops) {
       stop();
     }
@@ -152,7 +154,6 @@ export class TontineControlDebug {
         record.addedNodes.forEach(node => {
           if (node instanceof Element && OVERLAYS.has(node.tagName)) {
             this.write(`overlay+ ${node.tagName} ${node.className}`);
-            this.observeAttrs(node);
           }
         });
         record.removedNodes.forEach(node => {
@@ -164,59 +165,6 @@ export class TontineControlDebug {
     });
     obs.observe(document.body, { childList: true, subtree: true });
     this.stops.push(() => obs.disconnect());
-  }
-
-  private observeAttrs(el: Element | null): void {
-    if (!el) {
-      return;
-    }
-    const obs = new MutationObserver(records => {
-      for (const record of records) {
-        if (!(record.target instanceof Element)) {
-          continue;
-        }
-        const value = record.target.getAttribute(record.attributeName || '') || '';
-        this.queueAttr(`attr ${record.target.tagName} ${record.attributeName}=${value.slice(0, 160)}`);
-      }
-    });
-    obs.observe(el, {
-      attributes: true,
-      attributeFilter: ['class', 'style', 'aria-hidden', 'inert', 'aria-modal']
-    });
-    this.stops.push(() => obs.disconnect());
-  }
-
-  private observeLongTasks(): void {
-    if (typeof PerformanceObserver === 'undefined') {
-      return;
-    }
-    try {
-      const observer = new PerformanceObserver(list => {
-        for (const entry of list.getEntries()) {
-          if (entry.duration >= 200) {
-            this.write(`longtask ${Math.round(entry.duration)}ms`);
-          }
-        }
-      });
-      observer.observe({ entryTypes: ['longtask'] });
-      this.stops.push(() => observer.disconnect());
-    } catch {
-      this.write('longtask unsupported');
-    }
-  }
-
-  private queueAttr(line: string): void {
-    this.attrSkipped++;
-    this.attrPending = line;
-    if (this.attrTimer) {
-      return;
-    }
-    this.attrTimer = window.setTimeout(() => {
-      this.attrTimer = 0;
-      const count = this.attrSkipped;
-      this.attrSkipped = 0;
-      this.write(`${this.attrPending} x${count}`);
-    }, 300);
   }
 
   private listen(
@@ -248,6 +196,6 @@ export class TontineControlDebug {
   }
 
   private write(message: string): void {
-    void this.log.log(`${PREFIX} ${message}`).catch(() => undefined);
+    this.log.trace(`${PREFIX} ${message}`);
   }
 }

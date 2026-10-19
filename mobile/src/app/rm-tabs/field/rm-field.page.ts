@@ -6,7 +6,7 @@ import { RmFieldListApiService } from '../../core/services/rm/rm-field-list-api.
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCreditLate, RmPackTontineMember } from '../../core/services/rm/rm.models';
 import { RmTontineFieldControlSheetComponent } from '../../features/rm/tontine-field-control/rm-tontine-field-control-sheet.component';
-import { TontineControlDebug } from '../../features/rm/tontine-field-control/rm-tontine-control-debug';
+import { describeFailure, TontineControlDebug } from '../../features/rm/tontine-field-control/rm-tontine-control-debug';
 import { RmCarnetVerificationWriteService } from '../../core/services/rm/rm-carnet-verification-write.service';
 import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
 import { runConfirmedCarnetToggle } from '../../core/services/rm/rm-carnet-confirm.util';
@@ -205,7 +205,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
         this.lateGrandTotal = lates.totalElements;
       }
     } catch (error) {
-      TontineControlDebug.note(`field reloadOnlineLists error ${error instanceof Error ? error.message : 'unknown'}`);
+      TontineControlDebug.note(`field reloadOnlineLists error ${describeFailure(error)}`);
       if (requestId === this.liveRequest) {
         this.onlineMode = false;
       }
@@ -340,7 +340,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
       try {
         detailed = await this.fieldListApi.getTontineMember(member.id);
       } catch (error) {
-        TontineControlDebug.note(`detail error ${error instanceof Error ? error.message : 'unknown'}`);
+        TontineControlDebug.note(`detail error ${describeFailure(error)}`);
         await this.toast('Impossible de charger le carnet', 'danger');
         return;
       }
