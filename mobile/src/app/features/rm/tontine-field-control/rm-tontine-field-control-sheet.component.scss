@@ -1,3 +1,12 @@
+:host {
+  height: 100%;
+}
+
+.rm-tfc-content {
+  --background: #f2f4f8;
+  height: 100%;
+}
+
 .rm-tfc-sheet {
   --rm-navy: #003366;
   --rm-muted: #6b7a99;
@@ -6,7 +15,6 @@
   --rm-orange: #c75000;
   padding: 18px 16px 28px;
   background: var(--rm-bg);
-  min-height: 100%;
 }
 
 header {
@@ -160,6 +168,7 @@ h2 {
   border: 1px solid #dde3ec;
   border-radius: 14px;
   padding: 12px;
+  touch-action: manipulation;
 }
 
 .month-row.selected {

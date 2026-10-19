@@ -1,5 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { ModalController, ToastController } from '@ionic/angular';
+import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { IonContent, ModalController, ToastController } from '@ionic/angular';
 import { RmPackTontineCollector, RmPackTontineMember } from '../../../core/services/rm/rm.models';
 import { RmTontineFieldControlWriteService } from '../../../core/services/rm/rm-tontine-field-control-write.service';
 import { OnlineWriteError } from '../../../core/services/online-first-write.types';
@@ -34,6 +34,7 @@ const MONTH_NAMES = [
 })
 export class RmTontineFieldControlSheetComponent implements OnInit {
   @Input() member!: RmPackTontineMember;
+  @ViewChild(IonContent) private content?: IonContent;
 
   blocks: CollectorBlock[] = [];
   /** Pack ancien sans collectors : formulaire unique non découpé. */
@@ -133,6 +134,13 @@ export class RmTontineFieldControlSheetComponent implements OnInit {
     } else if (row.notebookAmount === null) {
       row.notebookAmount = row.systemAmount;
     }
+    // Le geste de la feuille coupe le scroll pendant le tap. La ligne
+    // grandit dans la foulée ; on le rétablit une fois le champ affiché.
+    setTimeout(() => {
+      if (this.content) {
+        this.content.scrollY = true;
+      }
+    });
   }
 
   dismiss(): void {
