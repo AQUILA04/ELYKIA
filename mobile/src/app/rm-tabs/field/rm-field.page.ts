@@ -6,6 +6,7 @@ import { RmFieldListApiService } from '../../core/services/rm/rm-field-list-api.
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCreditLate, RmPackTontineMember } from '../../core/services/rm/rm.models';
 import { RmTontineFieldControlSheetComponent } from '../../features/rm/tontine-field-control/rm-tontine-field-control-sheet.component';
+import { TontineControlDebug } from '../../features/rm/tontine-field-control/rm-tontine-control-debug';
 import { RmCarnetVerificationWriteService } from '../../core/services/rm/rm-carnet-verification-write.service';
 import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
 import { runConfirmedCarnetToggle } from '../../core/services/rm/rm-carnet-confirm.util';
@@ -146,6 +147,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   }
 
   private reloadFromPack(): void {
+    TontineControlDebug.note('field reloadFromPack');
     this.loadLateCredits();
     this.loadTontineMembers();
   }
@@ -163,14 +165,17 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     }
     if (!reachable) {
       this.onlineMode = false;
+      TontineControlDebug.note('field refreshMode offline');
       return;
     }
     this.onlineMode = true;
+    TontineControlDebug.note('field refreshMode online');
     await this.reloadOnlineLists();
   }
 
   private async reloadOnlineLists(): Promise<void> {
     const requestId = ++this.liveRequest;
+    TontineControlDebug.note(`field reloadOnlineLists start q="${this.query.trim()}"`);
     this.loadingLive = true;
     this.onlineTontine = [];
     this.onlineLates = [];
@@ -183,8 +188,12 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
         this.fieldListApi.pageLateCredits(search, 0)
       ]);
       if (!this.viewActive || requestId !== this.liveRequest) {
+        TontineControlDebug.note('field reloadOnlineLists ignored');
         return;
       }
+      TontineControlDebug.note(
+        `field reloadOnlineLists ok tontine=${tontine.content?.length ?? 0} lates=${lates.content?.length ?? 0}`
+      );
       this.onlineTontine = tontine.content || [];
       this.onlineLates = lates.content || [];
       this.tontineMatchTotal = tontine.totalElements;
@@ -195,7 +204,8 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
         this.tontineGrandTotal = tontine.totalElements;
         this.lateGrandTotal = lates.totalElements;
       }
-    } catch {
+    } catch (error) {
+      TontineControlDebug.note(`field reloadOnlineLists error ${error instanceof Error ? error.message : 'unknown'}`);
       if (requestId === this.liveRequest) {
         this.onlineMode = false;
       }
@@ -318,6 +328,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   }
 
   async openTontineControl(member: RmPackTontineMember): Promise<void> {
+    TontineControlDebug.note(`open member=${member.id} online=${this.onlineMode}`);
     const active = document.activeElement;
     if (active instanceof HTMLElement) {
       active.blur();
@@ -328,11 +339,15 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     if (this.onlineMode && needsDetail) {
       try {
         detailed = await this.fieldListApi.getTontineMember(member.id);
-      } catch {
+      } catch (error) {
+        TontineControlDebug.note(`detail error ${error instanceof Error ? error.message : 'unknown'}`);
         await this.toast('Impossible de charger le carnet', 'danger');
         return;
       }
     }
+    TontineControlDebug.note(
+      `detail months=${detailed.months?.length ?? 0} collectors=${detailed.collectors?.length ?? 0}`
+    );
     const modal = await this.modalCtrl.create({
       component: RmTontineFieldControlSheetComponent,
       componentProps: { member: detailed },
@@ -340,7 +355,9 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
       backdropDismiss: false
     });
     await modal.present();
-    await modal.onDidDismiss();
+    TontineControlDebug.note('modal presented');
+    const dismissed = await modal.onDidDismiss();
+    TontineControlDebug.note(`modal dismissed role=${dismissed.role || '-'}`);
     this.loadTontineMembers();
   }
 

@@ -1,8 +1,10 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
+import { LoggerService } from '../../../core/services/logger.service';
 import { RmPackTontineCollector, RmPackTontineMember } from '../../../core/services/rm/rm.models';
 import { RmTontineFieldControlWriteService } from '../../../core/services/rm/rm-tontine-field-control-write.service';
 import { OnlineWriteError } from '../../../core/services/online-first-write.types';
+import { TontineControlDebug } from './rm-tontine-control-debug';
 
 interface MonthRow {
   year: number;
@@ -32,8 +34,9 @@ const MONTH_NAMES = [
   styleUrls: ['./rm-tontine-field-control-sheet.component.scss'],
   standalone: false,
 })
-export class RmTontineFieldControlSheetComponent implements OnInit {
+export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() member!: RmPackTontineMember;
+  private readonly debug: TontineControlDebug;
 
   blocks: CollectorBlock[] = [];
   /** Pack ancien sans collectors : formulaire unique non découpé. */
@@ -44,14 +47,23 @@ export class RmTontineFieldControlSheetComponent implements OnInit {
   constructor(
     private readonly modalCtrl: ModalController,
     private readonly fieldControlWrite: RmTontineFieldControlWriteService,
-    private readonly toastCtrl: ToastController
-  ) {}
+    private readonly toastCtrl: ToastController,
+    private readonly host: ElementRef<HTMLElement>,
+    log: LoggerService,
+    zone: NgZone
+  ) {
+    this.debug = new TontineControlDebug(log, zone);
+  }
 
   ngOnInit(): void {
-    const collectors = this.member?.collectors;
-    if (Array.isArray(collectors) && collectors.length > 0) {
+    const months = (this.member?.months || []).length;
+    const collectors = (this.member?.collectors || []).length;
+    this.debug.start(`member=${this.member?.id ?? '-'} months=${months} collectors=${collectors}`);
+    const collectorList = this.member?.collectors;
+    if (Array.isArray(collectorList) && collectorList.length > 0) {
       this.legacyMode = false;
-      this.blocks = collectors.map(c => this.toBlock(c));
+      this.blocks = collectorList.map(c => this.toBlock(c));
+      this.debug.event(`blocks=${this.blocks.length} rows=${this.allRows.length} legacy=false`);
       return;
     }
 
@@ -63,6 +75,15 @@ export class RmTontineFieldControlSheetComponent implements OnInit {
       totalAmount: (this.member?.months || []).reduce((s, m) => s + (m.systemAmount || 0), 0),
       rows: (this.member?.months || []).map(m => this.toRow(commercial, m.year, m.month, m.systemAmount || 0))
     }];
+    this.debug.event(`blocks=${this.blocks.length} rows=${this.allRows.length} legacy=true`);
+  }
+
+  ngAfterViewInit(): void {
+    this.debug.attachScroll(this.host.nativeElement);
+  }
+
+  ngOnDestroy(): void {
+    this.debug.stop('destroy');
   }
 
   get allRows(): MonthRow[] {
@@ -124,6 +145,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit {
   }
 
   toggleRow(row: MonthRow): void {
+    this.debug.event(`toggle ${row.monthName} ${row.year} selected=${!row.selected} submitting=${this.submitting}`);
     if (this.submitting) {
       return;
     }
@@ -136,6 +158,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit {
   }
 
   dismiss(): void {
+    this.debug.event('dismiss');
     void this.modalCtrl.dismiss(null, 'cancel');
   }
 
@@ -144,6 +167,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit {
       return;
     }
 
+    this.debug.event(`confirm rows=${this.selectedRows.length}`);
     this.submitting = true;
     try {
       const result = await this.fieldControlWrite.create({
@@ -164,8 +188,10 @@ export class RmTontineFieldControlSheetComponent implements OnInit {
           : `Contrôle tontine hors ligne (${result.op.status}) — sync ultérieure`,
         result.mode === 'online' ? 'success' : 'warning'
       );
+      this.debug.event(`confirm ok mode=${result.mode} status=${result.op.status}`);
       await this.modalCtrl.dismiss({ op: result.op, mode: result.mode }, 'confirm');
     } catch (error) {
+      this.debug.event(`confirm error ${error instanceof Error ? error.message : 'unknown'}`);
       await this.toast(
         error instanceof OnlineWriteError || error instanceof Error
           ? error.message

@@ -97,6 +97,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
 
+## Mobile — [2.33.16] — 2026-10-19
+
+### Added
+
+- Contrôle tontine Terrain : traces `[TontineControl]` dans le journal de l’application (battement chaque seconde, taps, erreurs, overlays) pour identifier ce qui fige l’écran.
+
 ## Mobile — [2.33.15] — 2026-10-19
 
 ### Fixed
