@@ -3,6 +3,7 @@ import { BaseRepository } from './base.repository';
 import { DatabaseService } from '../services/database.service';
 import { TontineDelivery, TontineDeliveryStatus } from '../../models/tontine.model';
 import { capSQLiteSet } from '@capacitor-community/sqlite';
+import { DateFilter } from '../models/date-filter.model';
 
 @Injectable({
     providedIn: 'root'
@@ -23,18 +24,46 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         };
     }
 
-    override async findUnsynced(commercialUsername: string, limit: number, offset: number): Promise<TontineDelivery[]> {
+    override async findUnsynced(
+        commercialUsername: string,
+        limit: number,
+        offset: number,
+        dateFilter?: DateFilter
+    ): Promise<TontineDelivery[]> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
+
+        const params: any[] = [commercialUsername];
+        let dateClause = '';
+
+        if (dateFilter && (dateFilter.startDate || dateFilter.endDate)) {
+            const dateExpr = `substr(COALESCE(NULLIF(deliveryDate, ''), requestDate), 1, 10)`;
+            const rangeParts: string[] = [];
+            if (dateFilter.startDate) {
+                rangeParts.push(`${dateExpr} >= ?`);
+                params.push(dateFilter.startDate);
+            }
+            if (dateFilter.endDate) {
+                rangeParts.push(`${dateExpr} <= ?`);
+                params.push(dateFilter.endDate);
+            }
+            dateClause = `
+              AND (
+                COALESCE(NULLIF(deliveryDate, ''), NULLIF(requestDate, '')) IS NULL
+                OR (${rangeParts.join(' AND ')})
+              )`;
+        }
+
         const sql = `
             SELECT * FROM tontine_deliveries
             WHERE commercialUsername = ?
               AND (
                 (isSync = 0 AND isLocal = 1)
                 OR needsDeliverSync = 1
-              )
+              )${dateClause}
             LIMIT ? OFFSET ?
         `;
-        const result = await this.databaseService.query(sql, [commercialUsername, limit, offset]);
+        params.push(limit, offset);
+        const result = await this.databaseService.query(sql, params);
         return (result.values || []).map((row: any) => this.mapRow(row));
     }
 

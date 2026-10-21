@@ -37,3 +37,48 @@ describe('TontineDeliveryRepository purgeSyncedOrphans', () => {
     expect(databaseService.execute).not.toHaveBeenCalled();
   });
 });
+
+describe('TontineDeliveryRepository findUnsynced', () => {
+  let repository: TontineDeliveryRepository;
+  let databaseService: jasmine.SpyObj<DatabaseService>;
+
+  beforeEach(() => {
+    databaseService = jasmine.createSpyObj('DatabaseService', ['execute', 'executeSet', 'query']);
+    (databaseService as any)['db'] = {};
+    databaseService.query.and.resolveTo({ values: [] } as any);
+    repository = new TontineDeliveryRepository(databaseService);
+  });
+
+  it('keeps the unsynced query unchanged when no date filter is provided', async () => {
+    await repository.findUnsynced('COM002', 50, 0);
+
+    const [sql, params] = databaseService.query.calls.mostRecent().args;
+    expect(sql).not.toContain('deliveryDate');
+    expect(sql).not.toContain('requestDate');
+    expect(sql).toContain('LIMIT ? OFFSET ?');
+    expect(params).toEqual(['COM002', 50, 0]);
+  });
+
+  it('applies the sync date window in SQL before LIMIT', async () => {
+    await repository.findUnsynced('COM002', 50, 0, {
+      startDate: '2026-10-01',
+      endDate: '2026-10-22'
+    });
+
+    const [sql, params] = databaseService.query.calls.mostRecent().args as [string, unknown[]];
+    const dateExpr = `substr(COALESCE(NULLIF(deliveryDate, ''), requestDate), 1, 10)`;
+    expect(sql).toContain(dateExpr);
+    expect(sql).toContain(`COALESCE(NULLIF(deliveryDate, ''), NULLIF(requestDate, '')) IS NULL`);
+    expect(sql.indexOf('LIMIT ? OFFSET ?')).toBeGreaterThan(sql.indexOf(dateExpr));
+    expect(params).toEqual(['COM002', '2026-10-01', '2026-10-22', 50, 0]);
+  });
+
+  it('omits a missing bound from the date clause', async () => {
+    await repository.findUnsynced('COM002', 20, 5, { startDate: '2026-10-01' });
+
+    const [sql, params] = databaseService.query.calls.mostRecent().args as [string, unknown[]];
+    expect(sql).toContain(`substr(COALESCE(NULLIF(deliveryDate, ''), requestDate), 1, 10) >= ?`);
+    expect(sql).not.toContain('<= ?');
+    expect(params).toEqual(['COM002', '2026-10-01', 20, 5]);
+  });
+});

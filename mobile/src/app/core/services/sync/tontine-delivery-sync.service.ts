@@ -124,20 +124,7 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];
 
-        const unsynced = await this.repository.findUnsynced(commercialUsername, limit, 0);
-
-        if (!dateFilter || (!dateFilter.startDate && !dateFilter.endDate)) {
-            return unsynced;
-        }
-
-        return unsynced.filter(delivery => {
-            const dateValue = delivery.deliveryDate || delivery.requestDate;
-            if (!dateValue) return true;
-            const day = dateValue.substring(0, 10);
-            if (dateFilter.startDate && day < dateFilter.startDate) return false;
-            if (dateFilter.endDate && day > dateFilter.endDate) return false;
-            return true;
-        });
+        return this.repository.findUnsynced(commercialUsername, limit, 0, dateFilter);
     }
 
     override async getUnsyncedCount(): Promise<number> {

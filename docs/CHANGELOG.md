@@ -97,6 +97,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
 
+## Mobile — [2.33.20] — 2026-10-22
+
+### Fixed
+
+- Synchronisation automatique : le filtre de date s’applique aux livraisons tontine avant la limite de lot. Les livraisons de la période partent même s’il reste des livraisons plus anciennes en attente.
+
 ## Mobile — [2.33.19] — 2026-10-19
 
 ### Fixed

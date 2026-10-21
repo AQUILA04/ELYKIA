@@ -194,4 +194,25 @@ describe('TontineDeliverySyncService', () => {
     expect(repository.getServerId).not.toHaveBeenCalledWith('9009', 'tontine-delivery');
     expect(repository.markDeliverSynced).toHaveBeenCalledWith('9009');
   }));
+
+  it('forwards the date filter to findUnsynced and syncs every row the repository returns', fakeAsync(() => {
+    const dateFilter = { startDate: '2026-10-01', endDate: '2026-10-22' };
+    const delivery = baseDelivery({
+      requestDate: '2020-01-01T00:00:00.000Z',
+      deliveryDate: '2020-01-01T00:00:00.000Z'
+    });
+    repository.findUnsynced.and.resolveTo([delivery]);
+
+    service.syncBatch(50, dateFilter).then(() => undefined);
+    flushMicrotasks();
+
+    expect(repository.findUnsynced).toHaveBeenCalledWith('COM002', 50, 0, dateFilter);
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/api/v1/tontines/deliveries`);
+    expect(req.request.method).toBe('POST');
+    req.flush({ data: { id: 9001, status: 'PENDING', deliveryStatus: 'PENDING' } });
+    flushMicrotasks();
+
+    expect(repository.markAsSynced).toHaveBeenCalledWith('local-d1', '9001');
+  }));
 });
