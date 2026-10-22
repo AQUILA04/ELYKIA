@@ -51,6 +51,7 @@ export class DailyReportComponent implements OnInit {
     isRecoveryManager = false;
     isManager = false;
     isSecretary = false;
+    isAdmin = false;
     canViewFinancialKpis = false;
     showMargins = false; // Toggle for margin visibility
     isDownloading = false;
@@ -120,6 +121,8 @@ export class DailyReportComponent implements OnInit {
         this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
         this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
         this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
+        this.isAdmin = this.userService.hasProfile(UserProfile.ADMIN)
+            || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
         this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
 
         const roles = this.tokenStorage.getUser()?.roles;
@@ -657,77 +660,77 @@ export class DailyReportComponent implements OnInit {
     }
 
     canReallocateSurplus(report: DailyCommercialReport): boolean {
-        if (!(this.isManager || this.isSecretary) || !report) {
+        if (!(this.isManager || this.isSecretary || this.isAdmin) || !report) {
             return false;
         }
-        return this.getSurplusDeposited(report) > 0 && this.getTotalRemaining(report) > 0;
-    }
-
-    previewReallocation(report: DailyCommercialReport): {
-        amount: number;
-        credit: number;
-        tontine: number;
-        newBalance: number;
-        surplusAfter: number;
-        remainingAfter: number;
-    } {
-        let surplus = this.getSurplusDeposited(report);
-        let creditGap = this.getRemainingCredit(report);
-        let tontineGap = this.getRemainingTontine(report);
-        let balanceGap = this.getRemainingNewBalance(report);
-
-        const credit = Math.min(surplus, creditGap);
-        surplus -= credit;
-        creditGap -= credit;
-
-        const tontine = Math.min(surplus, tontineGap);
-        surplus -= tontine;
-        tontineGap -= tontine;
-
-        const newBalance = Math.min(surplus, balanceGap);
-        surplus -= newBalance;
-        balanceGap -= newBalance;
-
-        const amount = credit + tontine + newBalance;
-        return {
-            amount,
-            credit,
-            tontine,
-            newBalance,
-            surplusAfter: surplus,
-            remainingAfter: creditGap + tontineGap + balanceGap
-        };
+        const pastGap = report.historicalRemaining || 0;
+        return this.getSurplusDeposited(report) > 0
+            && (this.getTotalRemaining(report) > 0 || pastGap > 0);
     }
 
     confirmReallocateSurplus(report: DailyCommercialReport): void {
         if (!this.canReallocateSurplus(report) || this.reallocatingSurplus) {
             return;
         }
-        const preview = this.previewReallocation(report);
-        if (preview.amount <= 0) {
+        const start = this.periodStart;
+        const end = this.periodEnd;
+        if (!report?.commercialUsername || !start || !end) {
             return;
         }
-        const format = (value: number) =>
-            new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value) + ' FCFA';
-        const parts = [
-            preview.credit > 0 ? `crédit ${format(preview.credit)}` : null,
-            preview.tontine > 0 ? `tontine ${format(preview.tontine)}` : null,
-            preview.newBalance > 0 ? `solde ${format(preview.newBalance)}` : null
-        ].filter(Boolean).join(', ');
-        const message =
-            `Équilibrer ${format(preview.amount)} de surplus vers les manquants (${parts}) ?\n` +
-            `Reste après : ${format(preview.remainingAfter)} · Surplus restant : ${format(preview.surplusAfter)}\n` +
-            `Le total versé ne change pas.`;
-
-        void this.alertService.showConfirmation(
-            'Équilibrer le surplus',
-            message.replace(/\n/g, '<br>'),
-            'Équilibrer'
-        ).then((confirmed) => {
-            if (confirmed) {
-                this.runReallocateSurplus(report);
+        this.reallocatingSurplus = true;
+        this.cashDepositService.previewReallocateSurplus(report.commercialUsername, start, end).subscribe({
+            next: (preview) => {
+                this.reallocatingSurplus = false;
+                if (!preview || (preview.totalReallocated || 0) <= 0) {
+                    this.alertService.showError('Aucun montant à équilibrer.');
+                    return;
+                }
+                void this.alertService.showConfirmation(
+                    'Équilibrer le surplus',
+                    this.buildReallocationMessage(preview),
+                    'Équilibrer'
+                ).then((confirmed) => {
+                    if (confirmed) {
+                        this.runReallocateSurplus(report);
+                    }
+                });
+            },
+            error: (err) => {
+                this.reallocatingSurplus = false;
+                this.alertService.showError(err?.error?.message || err?.error || 'Équilibrage impossible.');
             }
         });
+    }
+
+    private buildReallocationMessage(preview: SurplusReallocation): string {
+        const format = (value: number) =>
+            new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value) + ' FCFA';
+        const byDate = new Map<string, { credit: number; tontine: number; newBalance: number }>();
+        for (const line of preview.lines || []) {
+            const key = line.targetDate || line.depositDate;
+            const current = byDate.get(key) || { credit: 0, tontine: 0, newBalance: 0 };
+            current.credit += line.creditAllocated || 0;
+            current.tontine += line.tontineAllocated || 0;
+            current.newBalance += line.newBalanceAllocated || 0;
+            byDate.set(key, current);
+        }
+        const days = Array.from(byDate.entries()).map(([date, amounts]) => {
+            const parts = [
+                amounts.credit > 0 ? `crédit ${format(amounts.credit)}` : null,
+                amounts.tontine > 0 ? `tontine ${format(amounts.tontine)}` : null,
+                amounts.newBalance > 0 ? `solde ${format(amounts.newBalance)}` : null
+            ].filter(Boolean).join(', ');
+            const label = this.formatIsoDate(date);
+            return `${label} : ${parts}`;
+        }).join('<br>');
+        return `Équilibrer ${format(preview.totalReallocated || 0)} de surplus ?<br>${days}<br>`
+            + `Reste après : ${format(preview.remainingAfter || 0)} · Surplus restant : ${format(preview.surplusRemaining || 0)}<br>`
+            + `Le total versé ne change pas. Les jours les plus anciens sont couverts en premier.`;
+    }
+
+    private formatIsoDate(value: string): string {
+        const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value || '');
+        return match ? `${match[3]}/${match[2]}/${match[1]}` : value;
     }
 
     private runReallocateSurplus(report: DailyCommercialReport): void {
@@ -766,7 +769,13 @@ export class DailyReportComponent implements OnInit {
             item.tontineAllocated > 0 ? `tontine ${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(item.tontineAllocated)}` : null,
             item.newBalanceAllocated > 0 ? `solde ${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(item.newBalanceAllocated)}` : null
         ].filter(Boolean).join(', ');
-        return `Équilibré le ${when} par ${item.performedBy} — ${amount} FCFA réaffectés (${parts || '—'})`;
+        const dates = (item.lines || [])
+            .map(line => line.targetDate)
+            .filter((date): date is string => !!date)
+            .filter((date, index, all) => all.indexOf(date) === index)
+            .map(date => this.formatIsoDate(date));
+        const covered = dates.length > 0 ? ` — jours couverts : ${dates.join(', ')}` : '';
+        return `Équilibré le ${when} par ${item.performedBy} — ${amount} FCFA réaffectés (${parts || '—'})${covered}`;
     }
 
     getDepositStatus(report: DailyCommercialReport): 'status-red' | 'status-green' | 'status-orange' {

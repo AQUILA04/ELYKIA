@@ -5,6 +5,7 @@ import com.optimize.elykia.core.dto.report.CommercialTontineYearlySummaryDto;
 import com.optimize.elykia.core.dto.report.RemainingAtClientsPageDto;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
+import com.optimize.elykia.core.service.accounting.CashSurplusReallocationService;
 import com.optimize.elykia.core.service.report.CommercialReportMonthlyService;
 import com.optimize.elykia.core.service.report.CommercialTontineYearlySummaryService;
 import com.optimize.elykia.core.service.report.DailyReportPdfService;
@@ -46,6 +47,7 @@ public class DailyReportController {
     private final RemainingAtClientsService remainingAtClientsService;
     private final RemainingAtClientsPdfService remainingAtClientsPdfService;
     private final CommercialTontineYearlySummaryService commercialTontineYearlySummaryService;
+    private final CashSurplusReallocationService cashSurplusReallocationService;
 
     @GetMapping
     @Operation(summary = "Get daily report for a specific commercial and date")
@@ -67,18 +69,18 @@ public class DailyReportController {
             @RequestParam(value = "collector", required = false) String collector) {
 
         User currentUser = userService.getCurrentUser();
-
+        List<DailyCommercialReport> reports;
         if (currentUser.is(UserProfilConstant.PROMOTER)) {
-            return ResponseEntity.ok(repository.findAggregatedByDateBetweenAndCommercialUsername(
-                    currentUser.getUsername(), startDate, endDate));
+            reports = repository.findAggregatedByDateBetweenAndCommercialUsername(
+                    currentUser.getUsername(), startDate, endDate);
+        } else if (collector != null && !collector.isEmpty()) {
+            reports = repository.findAggregatedByDateBetweenAndCommercialUsername(
+                    collector, startDate, endDate);
         } else {
-            if (collector != null && !collector.isEmpty()) {
-                return ResponseEntity.ok(repository.findAggregatedByDateBetweenAndCommercialUsername(
-                        collector, startDate, endDate));
-            } else {
-                return ResponseEntity.ok(repository.findAggregatedByDateBetween(startDate, endDate));
-            }
+            reports = repository.findAggregatedByDateBetween(startDate, endDate);
         }
+        cashSurplusReallocationService.attachHistoricalRemaining(reports, startDate);
+        return ResponseEntity.ok(reports);
     }
 
     @GetMapping("/yearly-summary")

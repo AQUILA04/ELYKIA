@@ -53,15 +53,18 @@ Dès qu'un commercial est ciblé dans la barre de filtre, deux blocs de bilan an
 Sur la fiche d’un commercial (après sélection dans le filtre) :
 * **A Verser (Crédit / Tontine / Solde Nx)** : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.
 * **Versé** : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention **dont surplus non catégorisé** s’affiche sous le montant.
-* **Reste** : ce qui manque encore en crédit, tontine ou solde (le surplus n’y est pas soustrait tant qu’il n’a pas été équilibré).
+* **Reste** : ce qui manque encore en crédit, tontine ou solde. Un montant déjà couvert par un surplus porte la mention **dont couvert par surplus** : il diminue le reste, sans changer le montant versé de ce jour.
 
 #### 4. Équilibrer le surplus
-Quand un commercial a à la fois un **surplus non catégorisé** et un **reste** sur la période affichée, le bouton **Équilibrer le surplus** apparaît pour le gestionnaire et la secrétaire.
+Le bouton **Équilibrer le surplus** apparaît pour le gestionnaire, la secrétaire et l’administrateur lorsqu’un commercial a un **surplus non catégorisé** et un manque en crédit, tontine ou solde. Ce manque peut être sur la période affichée ou sur un jour plus ancien.
 
 1. Cliquez sur **Équilibrer le surplus**.
-2. Confirmez le montant qui sera réaffecté (crédit, puis tontine, puis solde des nouveaux comptes) : le total versé ne change pas.
-3. Après validation, le surplus diminue, le reste diminue d’autant, et une mention reste visible sur la fiche : date, heure, auteur et montants réaffectés.
-4. La même opération apparaît dans le **Journal des opérations** avec le type **Équilibrage surplus** (filtrable).
+2. Confirmez le montant et les jours couverts. Le surplus sert d’abord les jours les plus anciens : crédit, puis tontine, puis solde des nouveaux comptes. Le total versé ne change pas.
+3. Après validation, le surplus diminue et le reste du jour couvert diminue d’autant. Si l’argent a été encaissé un autre jour, ce jour affiche **dont couvert par surplus** et son montant versé reste celui qui a été encaissé.
+4. Une mention reste visible sur la fiche : date, heure, auteur, montants et jours couverts.
+5. La même opération apparaît dans le **Journal des opérations** avec le type **Équilibrage surplus** (filtrable).
+
+Un jour déjà transformé en écart de caisse n’est pas repris par cet équilibrage.
 
 <!-- CAPTURE À INSÉRER : Fiche commercial avec « dont surplus non catégorisé », bouton Équilibrer le surplus et mention d’équilibrage. -->
 

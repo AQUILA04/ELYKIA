@@ -2428,15 +2428,17 @@
 <p>Sur la fiche d’un commercial (après sélection dans le filtre) :
 * <strong>A Verser (Crédit / Tontine / Solde Nx)</strong> : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.
 * <strong>Versé</strong> : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention <strong>dont surplus non catégorisé</strong> s’affiche sous le montant.
-* <strong>Reste</strong> : ce qui manque encore en crédit, tontine ou solde (le surplus n’y est pas soustrait tant qu’il n’a pas été équilibré).</p>
+* <strong>Reste</strong> : ce qui manque encore en crédit, tontine ou solde. Un montant déjà couvert par un surplus porte la mention <strong>dont couvert par surplus</strong> : il diminue le reste, sans changer le montant versé de ce jour.</p>
 <h4 id="4-equilibrer-le-surplus">4. Équilibrer le surplus</h4>
-<p>Quand un commercial a à la fois un <strong>surplus non catégorisé</strong> et un <strong>reste</strong> sur la période affichée, le bouton <strong>Équilibrer le surplus</strong> apparaît pour le gestionnaire et la secrétaire.</p>
+<p>Le bouton <strong>Équilibrer le surplus</strong> apparaît pour le gestionnaire, la secrétaire et l’administrateur lorsqu’un commercial a un <strong>surplus non catégorisé</strong> et un manque en crédit, tontine ou solde. Ce manque peut être sur la période affichée ou sur un jour plus ancien.</p>
 <ol>
 <li>Cliquez sur <strong>Équilibrer le surplus</strong>.</li>
-<li>Confirmez le montant qui sera réaffecté (crédit, puis tontine, puis solde des nouveaux comptes) : le total versé ne change pas.</li>
-<li>Après validation, le surplus diminue, le reste diminue d’autant, et une mention reste visible sur la fiche : date, heure, auteur et montants réaffectés.</li>
+<li>Confirmez le montant et les jours couverts. Le surplus sert d’abord les jours les plus anciens : crédit, puis tontine, puis solde des nouveaux comptes. Le total versé ne change pas.</li>
+<li>Après validation, le surplus diminue et le reste du jour couvert diminue d’autant. Si l’argent a été encaissé un autre jour, ce jour affiche <strong>dont couvert par surplus</strong> et son montant versé reste celui qui a été encaissé.</li>
+<li>Une mention reste visible sur la fiche : date, heure, auteur, montants et jours couverts.</li>
 <li>La même opération apparaît dans le <strong>Journal des opérations</strong> avec le type <strong>Équilibrage surplus</strong> (filtrable).</li>
 </ol>
+<p>Un jour déjà transformé en écart de caisse n’est pas repris par cet équilibrage.</p>
 <h4 id="5-tableau-de-performance-par-commercial-vue-agence">5. Tableau de performance par commercial (vue agence)</h4>
 <p>Lorsque aucun agent n'est filtré, un tableau comparatif classe les commerciaux de l'agence selon leurs réalisations de la période (ventes, recouvrements, tontine, nouveaux comptes et total produit).</p>
 <hr />

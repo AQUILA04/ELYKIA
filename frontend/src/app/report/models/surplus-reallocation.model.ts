@@ -2,6 +2,7 @@ export interface SurplusReallocationLine {
     cashDepositId?: number;
     depositReference?: string;
     depositDate: string;
+    targetDate?: string;
     surplusTaken: number;
     creditAllocated: number;
     tontineAllocated: number;

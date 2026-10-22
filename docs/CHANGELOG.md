@@ -15,6 +15,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.38.0] — 2026-10-22
+
+### Added
+
+- Équilibrage de surplus : l’administrateur et le super-administrateur peuvent l’exécuter. Le surplus de la période peut couvrir un manque crédit, tontine ou solde plus ancien du même commercial, du jour le plus ancien au plus récent. Le reste de ce jour baisse ; son montant versé ne change pas. Un jour déjà constitué en écart de caisse est ignoré. Aperçu `GET /api/cash-deposits/reallocate-surplus/preview`.
+
 ## Backend — [1.37.1] — 2026-10-22
 
 ### Changed
@@ -56,6 +62,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.34.0] — 2026-10-22
+
+### Added
+
+- Rapport journalier : le bouton **Équilibrer le surplus** est aussi proposé à l’administrateur. Il couvre un manque plus ancien du commercial lorsqu’il en existe un. La confirmation liste les jours couverts. Une mention **dont couvert par surplus** apparaît sur le jour concerné.
 
 ## Frontend — [2.33.3] — 2026-10-22
 

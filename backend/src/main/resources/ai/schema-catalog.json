@@ -557,7 +557,25 @@
         },
         {
           "name": "total_surplus_amount_deposited",
-          "type": "double"
+          "type": "double",
+          "description": "Surplus de versement non affecté à une catégorie"
+        },
+        {
+          "name": "surplus_coverage_credit",
+          "type": "double",
+          "description": "Manque crédit de ce jour couvert par un surplus",
+          "synonyms": ["couvert par surplus crédit"]
+        },
+        {
+          "name": "surplus_coverage_tontine",
+          "type": "double",
+          "description": "Manque tontine de ce jour couvert par un surplus",
+          "synonyms": ["couvert par surplus tontine"]
+        },
+        {
+          "name": "surplus_coverage_new_balance",
+          "type": "double",
+          "description": "Manque solde nouveaux comptes de ce jour couvert par un surplus"
         },
         {
           "name": "total_advances_amount",
