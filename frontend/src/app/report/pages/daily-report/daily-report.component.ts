@@ -12,6 +12,7 @@ import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { CashDepositModalComponent } from '../../components/cash-deposit-modal/cash-deposit-modal.component';
 import { RemainingAtClientsDialogComponent } from '../../components/remaining-at-clients-dialog/remaining-at-clients-dialog.component';
+import { SurplusReallocationDialogComponent } from '../../components/surplus-reallocation-dialog/surplus-reallocation-dialog.component';
 import { DailyOperationLog } from '../../models/daily-operation-log.model';
 import { DailyOperationService } from '../../service/daily-operation.service';
 import { CashDepositService } from '../../service/cash-deposit.service';
@@ -51,6 +52,7 @@ export class DailyReportComponent implements OnInit {
     isRecoveryManager = false;
     isManager = false;
     isSecretary = false;
+    isAdmin = false;
     canViewFinancialKpis = false;
     showMargins = false; // Toggle for margin visibility
     isDownloading = false;
@@ -92,7 +94,6 @@ export class DailyReportComponent implements OnInit {
 
     aggregatedReportData: any = null;
     surplusReallocations: SurplusReallocation[] = [];
-    reallocatingSurplus = false;
     yearlySummary: CommercialYearlySummary | null = null;
     yearlySummaryLoading = false;
     yearlyTontineSummary: CommercialTontineYearlySummary | null = null;
@@ -120,6 +121,8 @@ export class DailyReportComponent implements OnInit {
         this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
         this.isManager = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
         this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
+        this.isAdmin = this.userService.hasProfile(UserProfile.ADMIN)
+            || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
         this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
 
         const roles = this.tokenStorage.getUser()?.roles;
@@ -657,100 +660,48 @@ export class DailyReportComponent implements OnInit {
     }
 
     canReallocateSurplus(report: DailyCommercialReport): boolean {
-        if (!(this.isManager || this.isSecretary) || !report) {
+        if (!(this.isManager || this.isSecretary || this.isAdmin) || !report) {
             return false;
         }
-        return this.getSurplusDeposited(report) > 0 && this.getTotalRemaining(report) > 0;
-    }
-
-    previewReallocation(report: DailyCommercialReport): {
-        amount: number;
-        credit: number;
-        tontine: number;
-        newBalance: number;
-        surplusAfter: number;
-        remainingAfter: number;
-    } {
-        let surplus = this.getSurplusDeposited(report);
-        let creditGap = this.getRemainingCredit(report);
-        let tontineGap = this.getRemainingTontine(report);
-        let balanceGap = this.getRemainingNewBalance(report);
-
-        const credit = Math.min(surplus, creditGap);
-        surplus -= credit;
-        creditGap -= credit;
-
-        const tontine = Math.min(surplus, tontineGap);
-        surplus -= tontine;
-        tontineGap -= tontine;
-
-        const newBalance = Math.min(surplus, balanceGap);
-        surplus -= newBalance;
-        balanceGap -= newBalance;
-
-        const amount = credit + tontine + newBalance;
-        return {
-            amount,
-            credit,
-            tontine,
-            newBalance,
-            surplusAfter: surplus,
-            remainingAfter: creditGap + tontineGap + balanceGap
-        };
+        const pastGap = report.historicalRemaining || 0;
+        return this.getSurplusDeposited(report) > 0
+            && (this.getTotalRemaining(report) > 0 || pastGap > 0);
     }
 
     confirmReallocateSurplus(report: DailyCommercialReport): void {
-        if (!this.canReallocateSurplus(report) || this.reallocatingSurplus) {
+        if (!this.canReallocateSurplus(report)) {
             return;
         }
-        const preview = this.previewReallocation(report);
-        if (preview.amount <= 0) {
-            return;
-        }
-        const format = (value: number) =>
-            new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value) + ' FCFA';
-        const parts = [
-            preview.credit > 0 ? `crédit ${format(preview.credit)}` : null,
-            preview.tontine > 0 ? `tontine ${format(preview.tontine)}` : null,
-            preview.newBalance > 0 ? `solde ${format(preview.newBalance)}` : null
-        ].filter(Boolean).join(', ');
-        const message =
-            `Équilibrer ${format(preview.amount)} de surplus vers les manquants (${parts}) ?\n` +
-            `Reste après : ${format(preview.remainingAfter)} · Surplus restant : ${format(preview.surplusAfter)}\n` +
-            `Le total versé ne change pas.`;
-
-        void this.alertService.showConfirmation(
-            'Équilibrer le surplus',
-            message.replace(/\n/g, '<br>'),
-            'Équilibrer'
-        ).then((confirmed) => {
-            if (confirmed) {
-                this.runReallocateSurplus(report);
-            }
-        });
-    }
-
-    private runReallocateSurplus(report: DailyCommercialReport): void {
         const start = this.periodStart;
         const end = this.periodEnd;
         if (!report?.commercialUsername || !start || !end) {
             return;
         }
-        this.reallocatingSurplus = true;
-        this.cashDepositService.reallocateSurplus(report.commercialUsername, start, end).subscribe({
-            next: (result) => {
-                this.reallocatingSurplus = false;
-                const amount = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 })
-                    .format(result.totalReallocated || 0);
-                this.alertService.showSuccess(`Surplus équilibré : ${amount} FCFA réaffectés.`);
-                this.loadReports();
-                this.loadYearlySummary();
-            },
-            error: (err) => {
-                this.reallocatingSurplus = false;
-                this.alertService.showError(err?.error?.message || err?.error || 'Équilibrage impossible.');
+        const dialogRef = this.dialog.open(SurplusReallocationDialogComponent, {
+            width: '980px',
+            maxWidth: '96vw',
+            panelClass: 'surplus-reallocation-dialog-panel',
+            data: {
+                commercialUsername: report.commercialUsername,
+                startDate: start,
+                endDate: end
             }
         });
+        dialogRef.afterClosed().subscribe((result) => {
+            if (!result) {
+                return;
+            }
+            const amount = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 })
+                .format(result.totalReallocated || 0);
+            this.alertService.showSuccess(`Surplus équilibré : ${amount} FCFA réaffectés.`);
+            this.loadReports();
+            this.loadYearlySummary();
+        });
+    }
+
+    private formatIsoDate(value: string): string {
+        const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value || '');
+        return match ? `${match[3]}/${match[2]}/${match[1]}` : value;
     }
 
     formatReallocationSummary(item: SurplusReallocation): string {
@@ -766,7 +717,13 @@ export class DailyReportComponent implements OnInit {
             item.tontineAllocated > 0 ? `tontine ${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(item.tontineAllocated)}` : null,
             item.newBalanceAllocated > 0 ? `solde ${new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(item.newBalanceAllocated)}` : null
         ].filter(Boolean).join(', ');
-        return `Équilibré le ${when} par ${item.performedBy} — ${amount} FCFA réaffectés (${parts || '—'})`;
+        const dates = (item.lines || [])
+            .map(line => line.targetDate)
+            .filter((date): date is string => !!date)
+            .filter((date, index, all) => all.indexOf(date) === index)
+            .map(date => this.formatIsoDate(date));
+        const covered = dates.length > 0 ? ` — jours couverts : ${dates.join(', ')}` : '';
+        return `Équilibré le ${when} par ${item.performedBy} — ${amount} FCFA réaffectés (${parts || '—'})${covered}`;
     }
 
     getDepositStatus(report: DailyCommercialReport): 'status-red' | 'status-green' | 'status-orange' {

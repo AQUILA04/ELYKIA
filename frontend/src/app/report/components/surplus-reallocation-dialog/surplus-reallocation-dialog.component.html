@@ -1,0 +1,129 @@
+<div class="surplus-reallocation-dialog" data-testid="e2e-surplus-reallocation-dialog">
+  <header class="dialog-header">
+    <div class="dialog-header-text">
+      <p class="dialog-surtitle">Rapport journalier</p>
+      <h2 class="dialog-title">Équilibrer le surplus</h2>
+      <p class="dialog-subtitle">
+        {{ data.commercialUsername | uppercase }} — surplus de la période du
+        {{ formatDate(data.startDate) }} au {{ formatDate(data.endDate) }}.
+        Le total versé ne change pas.
+      </p>
+    </div>
+    <button type="button" class="btn-close" (click)="close()" aria-label="Fermer" [disabled]="saving">&times;</button>
+  </header>
+
+  <div class="dialog-body" [attr.aria-busy]="loading || saving">
+    <div *ngIf="loading && !preview" class="empty-state">
+      <div class="empty-title">Calcul du partage…</div>
+    </div>
+
+    <ng-container *ngIf="preview as view">
+      <div class="kpi-strip">
+        <div class="kpi-card kpi-total">
+          <span class="kpi-label">Surplus de la période</span>
+          <span class="kpi-value">{{ view.surplusBefore | number:'1.0-0' }} <small>FCFA</small></span>
+        </div>
+        <div class="kpi-card kpi-amount">
+          <span class="kpi-label">Sera affecté</span>
+          <span class="kpi-value">{{ view.totalReallocated | number:'1.0-0' }} <small>FCFA</small></span>
+        </div>
+        <div class="kpi-card kpi-green">
+          <span class="kpi-label">Surplus restant</span>
+          <span class="kpi-value">{{ view.surplusRemaining | number:'1.0-0' }} <small>FCFA</small></span>
+        </div>
+        <div class="kpi-card kpi-delai">
+          <span class="kpi-label">Reste après</span>
+          <span class="kpi-value">{{ view.remainingAfter | number:'1.0-0' }} <small>FCFA</small></span>
+        </div>
+      </div>
+
+      <p class="source-line" *ngIf="view.surplusByDay?.length">
+        Dont
+        <span *ngFor="let source of view.surplusByDay; let last = last">
+          {{ formatDate(source.date) }} : {{ source.surplus | number:'1.0-0' }} FCFA<span *ngIf="!last"> · </span>
+        </span>
+      </p>
+
+      <label class="option-row">
+        <input type="checkbox"
+               name="includeNewBalance"
+               [(ngModel)]="includeNewBalance"
+               (ngModelChange)="onIncludeNewBalanceChange()"
+               [disabled]="loading || saving">
+        <span>Utiliser le surplus pour les soldes des nouveaux comptes</span>
+      </label>
+      <p class="option-help">
+        Le surplus sert le crédit, puis la tontine. Le montant qui reste passe aux jours suivants.
+        Avec la case cochée, le solde d’un jour est couvert après le crédit et la tontine de ce jour.
+      </p>
+      <p class="option-help" *ngIf="showSoldeHint">
+        Aucun crédit ou tontine à couvrir. Cochez la case pour utiliser le surplus sur les soldes.
+      </p>
+
+      <div class="table-card">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Prioritaire</th>
+                <th>Jour</th>
+                <th class="col-amount">Crédit</th>
+                <th class="col-amount">Tontine</th>
+                <th class="col-amount">Solde</th>
+                <th class="col-amount">Affecté</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let day of days" [class.priority-row]="isPriority(day)">
+                <td>
+                  <label class="priority-check">
+                    <input type="checkbox"
+                           [checked]="isPriority(day)"
+                           [disabled]="loading || saving"
+                           [attr.aria-label]="'Prioriser le ' + formatDate(day.date)"
+                           (change)="togglePriority(day, $any($event.target).checked)">
+                  </label>
+                </td>
+                <td>
+                  <span class="mono">{{ formatDate(day.date) }}</span>
+                  <span class="before-badge" *ngIf="day.beforePeriod">Avant la période</span>
+                </td>
+                <td class="col-amount">
+                  <div class="gap mono">{{ day.creditGap | number:'1.0-0' }}</div>
+                  <div class="allocated-detail">Affecté {{ day.creditAllocated | number:'1.0-0' }}</div>
+                </td>
+                <td class="col-amount">
+                  <div class="gap mono">{{ day.tontineGap | number:'1.0-0' }}</div>
+                  <div class="allocated-detail">Affecté {{ day.tontineAllocated | number:'1.0-0' }}</div>
+                </td>
+                <td class="col-amount">
+                  <div class="gap mono">{{ day.newBalanceGap | number:'1.0-0' }}</div>
+                  <div class="allocated-detail">Affecté {{ day.newBalanceAllocated | number:'1.0-0' }}</div>
+                </td>
+                <td class="col-amount">
+                  <span class="mono allocated-total">{{ allocated(day) | number:'1.0-0' }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <p class="option-help table-note" *ngIf="loading">Nouveau calcul…</p>
+    </ng-container>
+
+    <p class="option-help" *ngIf="preview && error">{{ error }}</p>
+
+    <div *ngIf="!loading && error && !preview" class="empty-state">
+      <div class="empty-title">{{ error }}</div>
+      <button type="button" class="btn-primary" (click)="reload()">Réessayer</button>
+    </div>
+  </div>
+
+  <footer class="dialog-footer">
+    <button type="button" class="btn-secondary" (click)="close()" [disabled]="saving">Annuler</button>
+    <button type="button" class="btn-primary" data-testid="e2e-surplus-reallocation-confirm"
+            (click)="confirm()" [disabled]="!canConfirm">
+      {{ saving ? 'Équilibrage…' : 'Équilibrer' }}
+    </button>
+  </footer>
+</div>

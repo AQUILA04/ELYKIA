@@ -31,6 +31,9 @@ public class CashSurplusReallocationLine {
     @Column(nullable = false)
     private LocalDate depositDate;
 
+    /** Jour dont le manque est couvert par ce versement. */
+    private LocalDate targetDate;
+
     @Column(nullable = false)
     private Double surplusTaken = 0.0;
 

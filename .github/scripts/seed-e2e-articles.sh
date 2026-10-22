@@ -10,7 +10,7 @@ SQL_FILE="$REPO_ROOT/backend/src/main/resources/db/legacy/V14__insert_articles.s
 PGHOST="${PGHOST:-localhost}"
 PGPORT="${PGPORT:-5432}"
 PGUSER="${PGUSER:-oec}"
-if [ -z "${PGPASSWORD:-}" ]; then
+if [[ -z "${PGPASSWORD:-}" ]]; then
   echo "PGPASSWORD est requis (mot de passe du rôle Postgres de test)." >&2
   exit 1
 fi

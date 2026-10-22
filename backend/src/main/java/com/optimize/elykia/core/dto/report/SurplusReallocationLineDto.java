@@ -11,6 +11,7 @@ public class SurplusReallocationLineDto {
     Long cashDepositId;
     String depositReference;
     LocalDate depositDate;
+    LocalDate targetDate;
     Double surplusTaken;
     Double creditAllocated;
     Double tontineAllocated;

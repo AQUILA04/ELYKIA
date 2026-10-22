@@ -25,4 +25,6 @@ public class SurplusReallocationDto {
     Double remainingAfter;
     Double totalReallocated;
     List<SurplusReallocationLineDto> lines;
+    List<SurplusReallocationDayDto> days;
+    List<SurplusReallocationSourceDto> surplusByDay;
 }

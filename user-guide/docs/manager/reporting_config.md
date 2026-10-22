@@ -53,15 +53,23 @@ Dès qu'un commercial est ciblé dans la barre de filtre, deux blocs de bilan an
 Sur la fiche d’un commercial (après sélection dans le filtre) :
 * **A Verser (Crédit / Tontine / Solde Nx)** : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.
 * **Versé** : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention **dont surplus non catégorisé** s’affiche sous le montant.
-* **Reste** : ce qui manque encore en crédit, tontine ou solde (le surplus n’y est pas soustrait tant qu’il n’a pas été équilibré).
+* **Reste** : ce qui manque encore en crédit, tontine ou solde. Un montant déjà couvert par un surplus porte la mention **dont couvert par surplus** : il diminue le reste, sans changer le montant versé de ce jour.
 
 #### 4. Équilibrer le surplus
-Quand un commercial a à la fois un **surplus non catégorisé** et un **reste** sur la période affichée, le bouton **Équilibrer le surplus** apparaît pour le gestionnaire et la secrétaire.
+Le bouton **Équilibrer le surplus** est proposé lorsqu’un commercial a un **surplus non catégorisé** et un manque en crédit, tontine ou solde. Ce manque peut être sur la période affichée ou sur un jour plus ancien.
 
 1. Cliquez sur **Équilibrer le surplus**.
-2. Confirmez le montant qui sera réaffecté (crédit, puis tontine, puis solde des nouveaux comptes) : le total versé ne change pas.
-3. Après validation, le surplus diminue, le reste diminue d’autant, et une mention reste visible sur la fiche : date, heure, auteur et montants réaffectés.
-4. La même opération apparaît dans le **Journal des opérations** avec le type **Équilibrage surplus** (filtrable).
+2. La fenêtre indique le surplus de toute la période affichée, avec le montant de chaque jour.
+3. Le tableau liste chaque jour en manque : crédit, tontine, solde, et le montant qui sera affecté. Un jour antérieur à la période porte la mention **Avant la période**.
+4. La case **Utiliser le surplus pour les soldes des nouveaux comptes** est décochée. Le surplus sert alors le crédit, puis la tontine. Ce qui reste passe au crédit et à la tontine des jours suivants. Cochez la case pour que le solde d’un jour soit couvert après le crédit et la tontine de ce jour.
+5. Cochez **Prioritaire** sur les jours à servir en premier. Ces jours sont traités du plus ancien au plus récent. Le surplus qui reste va ensuite aux autres jours, du plus ancien au plus récent. Sans case prioritaire, les jours les plus anciens sont servis en premier.
+6. Le total qui sera affecté, le surplus restant et le reste après se mettent à jour quand vous changez une case.
+7. Cliquez sur **Équilibrer**. Le total versé ne change pas.
+8. Après validation, le surplus diminue et le reste du jour couvert diminue d’autant. Si l’argent a été encaissé un autre jour, ce jour affiche **dont couvert par surplus** et son montant versé reste celui qui a été encaissé.
+9. Une mention reste visible sur la fiche : date, heure, auteur, montants et jours couverts.
+10. La même opération apparaît dans le **Journal des opérations** avec le type **Équilibrage surplus** (filtrable).
+
+Un jour déjà transformé en écart de caisse n’est pas repris par cet équilibrage.
 
 <!-- CAPTURE À INSÉRER : Fiche commercial avec « dont surplus non catégorisé », bouton Équilibrer le surplus et mention d’équilibrage. -->
 

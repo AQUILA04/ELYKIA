@@ -498,16 +498,28 @@
                                         <span class="kpi-label">A Verser (Crédit)</span>
                                         <span class="kpi-value">{{ getCreditToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
                                         <span class="kpi-hint">Versé: {{ (report.totalCreditAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingCredit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-hint text-amber-700" *ngIf="(report.surplusCoverageCredit || 0) > 0">
+                                            dont couvert par surplus :
+                                            {{ report.surplusCoverageCredit | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
                                     </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">A Verser (Tontine)</span>
                                         <span class="kpi-value">{{ getTontineToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
                                         <span class="kpi-hint">Versé: {{ (report.totalTontineAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingTontine(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-hint text-amber-700" *ngIf="(report.surplusCoverageTontine || 0) > 0">
+                                            dont couvert par surplus :
+                                            {{ report.surplusCoverageTontine | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
                                     </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">A Verser (Solde Nx)</span>
                                         <span class="kpi-value">{{ getNewBalanceToDeposit(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
                                         <span class="kpi-hint">Versé: {{ (report.totalNewBalanceAmountDeposited || 0) | currency:'XOF':'symbol':'1.0-0' }} · Reste: {{ getRemainingNewBalance(report) | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-hint text-amber-700" *ngIf="(report.surplusCoverageNewBalance || 0) > 0">
+                                            dont couvert par surplus :
+                                            {{ report.surplusCoverageNewBalance | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
                                     </div>
                                     <div class="kpi-card">
                                         <span class="kpi-label">A Verser</span>
@@ -549,7 +561,6 @@
                                     *ngIf="canReallocateSurplus(report)">
                                     <button mat-stroked-button color="primary" class="w-100"
                                         data-testid="e2e-daily-report-reallocate-surplus-btn"
-                                        [disabled]="reallocatingSurplus"
                                         (click)="confirmReallocateSurplus(report)">
                                         <mat-icon class="mr-2">balance</mat-icon>
                                         Équilibrer le surplus

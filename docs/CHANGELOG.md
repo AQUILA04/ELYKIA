@@ -23,7 +23,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
-## Backend — [1.37.2] — 2026-10-22
+## Backend — [1.39.1] — 2026-10-22
 
 ### Security
 
@@ -31,6 +31,22 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - L’amorçage des comptes est désactivé sur ces profils. Ailleurs, il ne s’active que si `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true`, avec un mot de passe fourni par `LOCAL_SEED_PASSWORD`.
 - L’actuator du profil prod n’expose plus que health et prometheus.
 - Flyway Maven n’a plus d’identifiants dans le pom. La commande les reçoit par `-Dflyway.url`, `-Dflyway.user` et `-Dflyway.password`.
+
+## Backend — [1.39.0] — 2026-10-22
+
+### Added
+
+- L’aperçu d’équilibrage de surplus liste chaque jour en manque, même si le montant affecté est 0, et le surplus de chaque jour de la période. L’enregistrement accepte les jours prioritaires et le choix d’inclure les soldes de nouveaux comptes.
+
+### Changed
+
+- Sans demande explicite, le surplus sert le crédit puis la tontine. Le montant qui reste passe aux jours suivants. Les soldes de nouveaux comptes ne sont couverts que si l’appel le demande. Les jours choisis sont servis en premier, du plus ancien au plus récent.
+
+## Backend — [1.38.0] — 2026-10-22
+
+### Added
+
+- Équilibrage de surplus : l’administrateur et le super-administrateur peuvent l’exécuter. Le surplus de la période peut couvrir un manque crédit, tontine ou solde plus ancien du même commercial, du jour le plus ancien au plus récent. Le reste de ce jour baisse ; son montant versé ne change pas. Un jour déjà constitué en écart de caisse est ignoré. Aperçu `GET /api/cash-deposits/reallocate-surplus/preview`.
 
 ## Backend — [1.37.1] — 2026-10-22
 
@@ -74,11 +90,23 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
 
-## Frontend — [2.33.4] — 2026-10-22
+## Frontend — [2.35.1] — 2026-10-22
 
 ### Security
 
 - Les tests E2E lisent les mots de passe uniquement dans les variables `E2E_*_PASSWORD` et `PGPASSWORD`.
+
+## Frontend — [2.35.0] — 2026-10-22
+
+### Added
+
+- Rapport journalier : **Équilibrer le surplus** ouvre une fenêtre qui montre le surplus de toute la période et, pour chaque jour en manque, le montant qui sera affecté. La case des soldes de nouveaux comptes est décochée. Les jours cochés **Prioritaire** sont servis en premier.
+
+## Frontend — [2.34.0] — 2026-10-22
+
+### Added
+
+- Rapport journalier : le bouton **Équilibrer le surplus** est aussi proposé à l’administrateur. Il couvre un manque plus ancien du commercial lorsqu’il en existe un. La confirmation liste les jours couverts. Une mention **dont couvert par surplus** apparaît sur le jour concerné.
 
 ## Frontend — [2.33.3] — 2026-10-22
 

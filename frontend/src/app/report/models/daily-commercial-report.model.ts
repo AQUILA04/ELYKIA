@@ -24,6 +24,10 @@ export interface DailyCommercialReport {
     totalTontineAmountDeposited?: number;
     totalNewBalanceAmountDeposited?: number;
     totalSurplusAmountDeposited?: number;
+    surplusCoverageCredit?: number;
+    surplusCoverageTontine?: number;
+    surplusCoverageNewBalance?: number;
+    historicalRemaining?: number;
     creditSalesMargin?: number;
     stockRequestMargin?: number;
     totalAdvancesAmount?: number;
@@ -48,15 +52,21 @@ export function newBalanceToDeposit(report: DailyCommercialReport): number {
 }
 
 export function remainingCredit(report: DailyCommercialReport): number {
-    return Math.max(0, creditToDeposit(report) - (report.totalCreditAmountDeposited || 0));
+    return Math.max(0, creditToDeposit(report)
+        - (report.totalCreditAmountDeposited || 0)
+        - (report.surplusCoverageCredit || 0));
 }
 
 export function remainingTontine(report: DailyCommercialReport): number {
-    return Math.max(0, tontineToDeposit(report) - (report.totalTontineAmountDeposited || 0));
+    return Math.max(0, tontineToDeposit(report)
+        - (report.totalTontineAmountDeposited || 0)
+        - (report.surplusCoverageTontine || 0));
 }
 
 export function remainingNewBalance(report: DailyCommercialReport): number {
-    return Math.max(0, newBalanceToDeposit(report) - (report.totalNewBalanceAmountDeposited || 0));
+    return Math.max(0, newBalanceToDeposit(report)
+        - (report.totalNewBalanceAmountDeposited || 0)
+        - (report.surplusCoverageNewBalance || 0));
 }
 
 export function totalRemainingToDeposit(report: DailyCommercialReport): number {

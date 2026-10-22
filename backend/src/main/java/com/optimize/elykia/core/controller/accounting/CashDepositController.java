@@ -42,13 +42,27 @@ public class CashDepositController {
         return ResponseEntity.ok(cashDepositService.cancelDeposit(id));
     }
 
+    @GetMapping("/reallocate-surplus/preview")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
+    public ResponseEntity<SurplusReallocationDto> previewReallocateSurplus(
+            @RequestParam String commercialUsername,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(defaultValue = "false") boolean includeNewBalance,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) List<LocalDate> priorityDates) {
+        return ResponseEntity.ok(surplusReallocationService.preview(
+                commercialUsername, startDate, endDate, includeNewBalance, priorityDates));
+    }
+
     @PostMapping("/reallocate-surplus")
     @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
     public ResponseEntity<SurplusReallocationDto> reallocateSurplus(@RequestBody SurplusReallocationRequest request) {
         return ResponseEntity.ok(surplusReallocationService.reallocate(
                 request.getCommercialUsername(),
                 request.getStartDate(),
-                request.getEndDate()));
+                request.getEndDate(),
+                Boolean.TRUE.equals(request.getIncludeNewBalance()),
+                request.getPriorityDates()));
     }
 
     @GetMapping("/surplus-reallocations")
