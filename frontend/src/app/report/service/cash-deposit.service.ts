@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
-import { SurplusReallocation } from '../models/surplus-reallocation.model';
+import { SurplusReallocation, SurplusReallocationOptions } from '../models/surplus-reallocation.model';
 
 @Injectable({
     providedIn: 'root'
@@ -21,19 +21,35 @@ export class CashDepositService {
         return this.http.post(`${this.apiUrl}/${id}/cancel`, {});
     }
 
-    previewReallocateSurplus(commercialUsername: string, startDate: string, endDate: string): Observable<SurplusReallocation> {
-        const params = new HttpParams()
+    previewReallocateSurplus(
+        commercialUsername: string,
+        startDate: string,
+        endDate: string,
+        options: SurplusReallocationOptions
+    ): Observable<SurplusReallocation> {
+        let params = new HttpParams()
             .set('commercialUsername', commercialUsername)
             .set('startDate', startDate)
-            .set('endDate', endDate);
+            .set('endDate', endDate)
+            .set('includeNewBalance', String(options.includeNewBalance));
+        for (const date of options.priorityDates || []) {
+            params = params.append('priorityDates', date);
+        }
         return this.http.get<SurplusReallocation>(`${this.apiUrl}/reallocate-surplus/preview`, { params });
     }
 
-    reallocateSurplus(commercialUsername: string, startDate: string, endDate: string): Observable<SurplusReallocation> {
+    reallocateSurplus(
+        commercialUsername: string,
+        startDate: string,
+        endDate: string,
+        options: SurplusReallocationOptions
+    ): Observable<SurplusReallocation> {
         return this.http.post<SurplusReallocation>(`${this.apiUrl}/reallocate-surplus`, {
             commercialUsername,
             startDate,
-            endDate
+            endDate,
+            includeNewBalance: options.includeNewBalance,
+            priorityDates: options.priorityDates
         });
     }
 
