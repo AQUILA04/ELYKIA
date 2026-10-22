@@ -847,6 +847,39 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#c-annuler-un-brouillon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. Annuler un brouillon
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-stock-magasin-pendant-linventaire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Stock magasin pendant l'inventaire
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#e-suspendre-et-reprendre" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E. Suspendre et reprendre
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1927,6 +1960,39 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#c-annuler-un-brouillon" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        C. Annuler un brouillon
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#d-stock-magasin-pendant-linventaire" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        D. Stock magasin pendant l'inventaire
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#e-suspendre-et-reprendre" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        E. Suspendre et reprendre
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -2109,13 +2175,30 @@
     C --&gt; D["4. Réconcilier les écarts&lt;br/&gt;&amp; Clôturer"]
 </code></pre></div>
 <ol>
-<li><strong>Création de session</strong> : Cliquez sur le bouton vert <strong>« Créer un inventaire »</strong>. La session passe à l'état <strong>En cours</strong> et affiche la date, le statut et l'auteur.</li>
+<li><strong>Création de session</strong> : Cliquez sur le bouton vert <strong>« Créer un inventaire »</strong>. La session est créée au statut <strong>Brouillon</strong> et affiche la date, le statut et l'auteur. Elle passe à <strong>En cours</strong> dès que des quantités physiques sont enregistrées.</li>
 <li><strong>Impression de la feuille de comptage</strong> : Cliquez sur <strong>« Télécharger PDF »</strong> pour éditer le document de comptage vierge destiné aux équipes de magasin.</li>
 <li><strong>Saisie des quantités réelles</strong> : Cliquez sur <strong>« Saisir quantités physiques »</strong>. Dans la fenêtre qui s'ouvre, saisissez les quantités effectivement dénombrées pour chaque référence d'article.</li>
 <li><strong>Réconciliation des écarts</strong> :</li>
 <li>Cliquez sur <strong>« Réconcilier les écarts »</strong> pour afficher la balance comparative : <code>Quantité Théorique Système</code> vs <code>Quantité Physique Constatée</code> = <code>Écart (Surplus ou Manquant)</code>.</li>
 <li>Enregistrez les motifs d'écart (casse, avarie, vol, erreur de saisie).</li>
 <li><strong>Clôture définitive</strong> : Cliquez sur <strong>« Clôturer l'inventaire »</strong>. Les stocks théoriques sont automatiquement réalignés sur le comptage physique approuvé et la session est archivée dans l'<strong>Historique des inventaires</strong> (accessible via l'onglet ou le bouton Historique).</li>
+</ol>
+<h3 id="c-annuler-un-brouillon">C. Annuler un brouillon</h3>
+<ol>
+<li>Tant que le statut affiché est <strong>Brouillon</strong>, cliquez sur <strong>« Annuler l'inventaire »</strong>.</li>
+<li>Confirmez. Le stock du magasin n'est pas modifié.</li>
+<li>Le bouton <strong>« Créer un inventaire »</strong> redevient disponible.</li>
+<li>Dans <strong>Historique inventaires</strong>, le filtre <strong>Annulé</strong> retrouve cette session.</li>
+</ol>
+<h3 id="d-stock-magasin-pendant-linventaire">D. Stock magasin pendant l'inventaire</h3>
+<p>Tant que l'inventaire est <strong>Brouillon</strong> ou <strong>En cours</strong>, les entrées de stock, la remise à zéro, la livraison d'une sortie et le retour de marchandise vers le magasin sont refusés. Le message affiché est : « Un inventaire est en cours. Veuillez attendre la fin de l'inventaire avant de continuer cette opération. »</p>
+<p>Les ventes et les crédits pris sur le stock du commercial restent possibles. Une demande de sortie peut être créée ; sa livraison attend la fin ou la suspension de l'inventaire.</p>
+<h3 id="e-suspendre-et-reprendre">E. Suspendre et reprendre</h3>
+<ol>
+<li>Sur un inventaire <strong>Brouillon</strong> ou <strong>En cours</strong>, cliquez sur <strong>« Suspendre l'inventaire »</strong> et confirmez. Le statut devient <strong>Suspendu</strong>. Les entrées et sorties de magasin redeviennent possibles. Un autre inventaire ne peut pas être créé tant que celui-ci est suspendu.</li>
+<li>Pour continuer le comptage, cliquez sur <strong>« Reprendre l'inventaire »</strong>.</li>
+<li>Confirmez : « La reprise recalcule les quantités théoriques à partir du stock actuel. Les quantités physiques déjà saisies seront effacées. »</li>
+<li>Le statut repasse à <strong>En cours</strong>. Saisissez à nouveau les quantités physiques.</li>
 </ol>
 <hr />
 <h2 id="6-historique-des-annulations-de-ventes-menu-ventes-annulation-ventes">6. Historique des annulations de ventes (Menu Ventes &gt; Annulation Ventes)</h2>

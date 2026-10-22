@@ -107,7 +107,7 @@ export class AddInventoryComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Erreur lors de la soumission:', err);
-        this.alertService.showError('Erreur lors de la soumission de l\'entrée de stock');
+        this.alertService.showError(err?.error?.message || 'Erreur lors de la soumission de l\'entrée de stock');
         this.isSubmitting = false;
       }
     });

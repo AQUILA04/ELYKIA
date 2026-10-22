@@ -297,6 +297,27 @@ export class InventoryService {
     );
   }
 
+  cancelInventory(inventoryId: number): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.post<any>(`${this.inventoryApiUrl}/${inventoryId}/cancel`, {}, { headers }).pipe(
+      map((response: any) => response.data || response)
+    );
+  }
+
+  suspendInventory(inventoryId: number): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.post<any>(`${this.inventoryApiUrl}/${inventoryId}/suspend`, {}, { headers }).pipe(
+      map((response: any) => response.data || response)
+    );
+  }
+
+  resumeInventory(inventoryId: number): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.post<any>(`${this.inventoryApiUrl}/${inventoryId}/resume`, {}, { headers }).pipe(
+      map((response: any) => response.data || response)
+    );
+  }
+
   downloadInventoryPdf(inventoryId: number): Observable<Blob> {
     const headers = this.getHeader();
     return this.http.get(`${this.inventoryApiUrl}/${inventoryId}/pdf`, {

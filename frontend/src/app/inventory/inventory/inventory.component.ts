@@ -41,6 +41,8 @@ export class InventoryComponent implements OnInit, OnDestroy {
   isGestionnaire = false;
   fifoEnabled = false;
   currentInventory: InventoryDto | null = null;
+  readonly warehouseBlockedMessage =
+    'Un inventaire est en cours. Veuillez attendre la fin de l\'inventaire avant de continuer cette opération.';
 
   currentDate = new Date();
   lastUpdate = new Date();
@@ -93,6 +95,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
       DRAFT: 'Brouillon',
       IN_PROGRESS: 'En cours',
       COMPLETED: 'Clôturé',
+      SUSPENDED: 'Suspendu',
       CANCELLED: 'Annulé'
     };
     return labels[status] ?? status;
@@ -149,7 +152,15 @@ export class InventoryComponent implements OnInit, OnDestroy {
     this.onSearch();
   }
 
+  get warehouseStockLocked(): boolean {
+    const status = this.currentInventory?.status;
+    return status === 'DRAFT' || status === 'IN_PROGRESS';
+  }
+
   resetAllStock(): void {
+    if (this.blockWarehouseOperation()) {
+      return;
+    }
     this.alertService.showDeleteConfirmation(
       'Êtes-vous sûr de vouloir réinitialiser le stock de TOUS les articles à zéro ? Cette action est irréversible.'
     ).then((result: boolean) => {
@@ -173,6 +184,9 @@ export class InventoryComponent implements OnInit, OnDestroy {
   }
 
   resetStockForArticle(articleId: number, articleName: string): void {
+    if (this.blockWarehouseOperation()) {
+      return;
+    }
     this.alertService.showDeleteConfirmation(
       `Êtes-vous sûr de vouloir réinitialiser le stock de l'article "${articleName}" à zéro ?`
     ).then((result: boolean) => {
@@ -203,6 +217,9 @@ export class InventoryComponent implements OnInit, OnDestroy {
   }
 
   addItem(): void {
+    if (this.blockWarehouseOperation()) {
+      return;
+    }
     this.saveState();
     this.router.navigate(['/inventory/add']);
   }
@@ -217,7 +234,7 @@ export class InventoryComponent implements OnInit, OnDestroy {
   loadCurrentInventory(): void {
     this.inventoryService.getCurrentInventory().subscribe({
       next: (inventory: InventoryDto | null) => {
-        if (inventory && (inventory.status === 'IN_PROGRESS' || inventory.status === 'DRAFT')) {
+        if (inventory && (inventory.status === 'IN_PROGRESS' || inventory.status === 'DRAFT' || inventory.status === 'SUSPENDED')) {
           this.currentInventory = inventory;
         } else {
           this.currentInventory = null;
@@ -338,6 +355,90 @@ export class InventoryComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  cancelInventory(): void {
+    if (!this.currentInventory?.id || this.currentInventory.status !== 'DRAFT') {
+      return;
+    }
+    this.alertService.showConfirmation(
+      'Annuler l\'inventaire',
+      'Annuler cet inventaire en brouillon ? Aucun stock ne sera modifié. Vous pourrez ensuite en créer un nouveau.'
+    ).then((result: boolean) => {
+      if (result) {
+        this.isProcessing = true;
+        this.inventoryService.cancelInventory(this.currentInventory!.id).subscribe({
+          next: () => {
+            this.isProcessing = false;
+            this.alertService.showDefaultSucces('Inventaire annulé. Vous pouvez en créer un nouveau.');
+            this.currentInventory = null;
+            this.refresh();
+          },
+          error: (err) => {
+            this.isProcessing = false;
+            this.alertService.showError(err?.error?.message || 'Une erreur est survenue lors de l\'annulation.');
+          }
+        });
+      }
+    });
+  }
+
+  suspendInventory(): void {
+    if (!this.currentInventory?.id) {
+      return;
+    }
+    this.alertService.showConfirmation(
+      'Suspendre l\'inventaire',
+      'Suspendre cet inventaire ? Les entrées et sorties de magasin redeviendront possibles. À la reprise, les quantités théoriques seront recalculées.'
+    ).then((result: boolean) => {
+      if (result) {
+        this.isProcessing = true;
+        this.inventoryService.suspendInventory(this.currentInventory!.id).subscribe({
+          next: (inventory: InventoryDto) => {
+            this.isProcessing = false;
+            this.currentInventory = inventory;
+            this.alertService.showDefaultSucces('Inventaire suspendu. Le stock magasin est de nouveau modifiable.');
+          },
+          error: (err) => {
+            this.isProcessing = false;
+            this.alertService.showError(err?.error?.message || 'Une erreur est survenue lors de la suspension.');
+          }
+        });
+      }
+    });
+  }
+
+  resumeInventory(): void {
+    if (!this.currentInventory?.id) {
+      return;
+    }
+    this.alertService.showConfirmation(
+      'Reprendre l\'inventaire',
+      'La reprise recalcule les quantités théoriques à partir du stock actuel. Les quantités physiques déjà saisies seront effacées.'
+    ).then((result: boolean) => {
+      if (result) {
+        this.isProcessing = true;
+        this.inventoryService.resumeInventory(this.currentInventory!.id).subscribe({
+          next: (inventory: InventoryDto) => {
+            this.isProcessing = false;
+            this.currentInventory = inventory;
+            this.alertService.showDefaultSucces('Inventaire repris. Les quantités théoriques ont été recalculées.');
+          },
+          error: (err) => {
+            this.isProcessing = false;
+            this.alertService.showError(err?.error?.message || 'Une erreur est survenue lors de la reprise.');
+          }
+        });
+      }
+    });
+  }
+
+  private blockWarehouseOperation(): boolean {
+    if (!this.warehouseStockLocked) {
+      return false;
+    }
+    this.alertService.showError(this.warehouseBlockedMessage);
+    return true;
   }
 
   private saveState(): void {

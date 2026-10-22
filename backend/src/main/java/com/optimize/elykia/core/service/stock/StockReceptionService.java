@@ -26,6 +26,7 @@ import com.optimize.elykia.core.repository.StockReceptionRepository;
 import com.optimize.elykia.core.service.expense.ExpenseService;
 import com.optimize.elykia.core.service.store.ArticleHistoryService;
 import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.core.service.store.InventoryWarehouseGuard;
 import com.optimize.elykia.core.util.ArticleSortOrder;
 import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.util.UserProfilConstant;
@@ -61,6 +62,18 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
     private final ExpenseTypeRepository expenseTypeRepository;
     private final UserService userService;
     private final StockReceptionItemRepository stockReceptionItemRepository;
+    private InventoryWarehouseGuard inventoryWarehouseGuard;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
+        this.inventoryWarehouseGuard = inventoryWarehouseGuard;
+    }
+
+    private void assertWarehouseStockMutable() {
+        if (inventoryWarehouseGuard != null) {
+            inventoryWarehouseGuard.assertWarehouseStockMutable();
+        }
+    }
 
     public StockReceptionService(
             StockReceptionRepository repository,
@@ -244,6 +257,7 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
 
     @Transactional
     public StockReceptionDto validateReception(Long id, StockReceptionValidateRequest request) {
+        assertWarehouseStockMutable();
         stockValuationFacade.lockAndIsFifoEnabled();
 
         StockReception reception = ((StockReceptionRepository) getRepository()).findByIdWithItems(id)
@@ -389,6 +403,7 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
 
     @Transactional
     public String cancelReception(Long id) {
+        assertWarehouseStockMutable();
         stockValuationFacade.lockAndIsFifoEnabled();
 
         StockReception reception = ((StockReceptionRepository) getRepository()).findByIdWithItems(id)

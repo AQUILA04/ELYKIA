@@ -20,6 +20,11 @@ public interface InventoryRepository extends GenericRepository<Inventory, Long> 
     Optional<Inventory> findCurrentInventory(@Param("statuses") List<InventoryStatus> statuses);
 
     default Optional<Inventory> findCurrentInventory() {
+        return findCurrentInventory(List.of(
+                InventoryStatus.DRAFT, InventoryStatus.IN_PROGRESS, InventoryStatus.SUSPENDED));
+    }
+
+    default Optional<Inventory> findInventoryLockingWarehouse() {
         return findCurrentInventory(List.of(InventoryStatus.DRAFT, InventoryStatus.IN_PROGRESS));
     }
 

@@ -71,10 +71,22 @@ public class ArticlesService extends GenericService<Articles, Long> {
     private final ParameterService parameterService;
     private final ApplicationEventPublisher eventPublisher;
     private BusinessMetricsPublisher metricsPublisher;
+    private InventoryWarehouseGuard inventoryWarehouseGuard;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
     public void setMetricsPublisher(BusinessMetricsPublisher metricsPublisher) {
         this.metricsPublisher = metricsPublisher;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
+        this.inventoryWarehouseGuard = inventoryWarehouseGuard;
+    }
+
+    private void assertWarehouseStockMutable() {
+        if (inventoryWarehouseGuard != null) {
+            inventoryWarehouseGuard.assertWarehouseStockMutable();
+        }
     }
 
     protected ArticlesService(ArticlesRepository repository,
@@ -130,6 +142,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
             CacheNames.ARTICLES_ENABLED_PAGE
     }, allEntries = true)
     public void resetAllStockQuantities() {
+        assertWarehouseStockMutable();
         int page = 0;
         Page<Articles> articlesPage;
         do {
@@ -149,6 +162,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
             CacheNames.ARTICLES_ENABLED_PAGE
     }, allEntries = true)
     public Articles resetStockForArticle(Long id) {
+        assertWarehouseStockMutable();
         Articles article = getById(id); // Trouve l'article ou lève une exception s'il n'existe pas
         article.setStockQuantity(0); // Met la quantité à zéro
         articleHistoryService
@@ -351,6 +365,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
             CacheNames.ARTICLES_ENABLED_PAGE
     }, allEntries = true)
     public String makeStockEntries(StockEntryDto stockEntryDto) {
+        assertWarehouseStockMutable();
         final String connectedUser = userService.getCurrentUser().getUsername();
 
         AtomicReference<Double> totalCheck = new AtomicReference<>(0.0);
@@ -406,6 +421,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
 
     @Transactional
     public String makeStockRelease(CreditArticles creditArticles) {
+        assertWarehouseStockMutable();
         final String connectedUser = userService.getCurrentUser().getUsername();
         Articles articles = getById(creditArticles.getArticlesId());
         ArticleHistory articleHistory = ArticleHistory.buildReleaseHistory(articles, creditArticles.getQuantity(),

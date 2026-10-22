@@ -325,6 +325,20 @@
   color: var(--red);
   border: 1px solid #fca5a5;
 }
+.inventory-page .status-suspended {
+  background: var(--navy-pale);
+  color: var(--navy);
+  border: 1px solid var(--border);
+}
+.inventory-page .inventory-lock-notice {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--orange-pale);
+  color: var(--orange);
+  font-size: 13px;
+  font-weight: 600;
+}
 
 .inventory-page .ops-block {
   padding: 16px 20px;

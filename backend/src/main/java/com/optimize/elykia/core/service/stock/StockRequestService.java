@@ -21,6 +21,7 @@ import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.StockRequestRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.core.service.store.InventoryWarehouseGuard;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +78,18 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private CommercialMonthlyStockService commercialMonthlyStockService;
     private BusinessMetricsPublisher metricsPublisher;
     private StockRequestOrderLinkService stockRequestOrderLinkService;
+    private InventoryWarehouseGuard inventoryWarehouseGuard;
+
+    @Autowired
+    public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
+        this.inventoryWarehouseGuard = inventoryWarehouseGuard;
+    }
+
+    private void assertWarehouseStockMutable() {
+        if (inventoryWarehouseGuard != null) {
+            inventoryWarehouseGuard.assertWarehouseStockMutable();
+        }
+    }
 
     public StockRequestService(StockRequestRepository repository,
             ArticlesService articlesService,
@@ -281,6 +294,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
      */
     public StockRequest createValidateAndDeliverForPriceRealignment(
             String collector, Articles article, int quantity, String note) {
+        assertWarehouseStockMutable();
         if (quantity <= 0) {
             throw new CustomValidationException("Quantité de sortie invalide pour le réalignement de prix.");
         }
@@ -299,6 +313,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     }
 
     public PartialDeliveryResponseDTO deliverRequest(Long requestId) {
+        assertWarehouseStockMutable();
         boolean fifoEnabled = stockValuationFacade.lockAndIsFifoEnabled();
 
         StockRequest request = getByIdForDelivery(requestId);

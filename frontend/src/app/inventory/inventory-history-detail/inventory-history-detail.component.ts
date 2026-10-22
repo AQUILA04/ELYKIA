@@ -94,6 +94,8 @@ export class InventoryHistoryDetailComponent implements OnInit, OnDestroy {
       IN_PROGRESS: 'En cours',
       COMPLETED: 'Clôturé',
       RECONCILED: 'Réconcilié',
+      SUSPENDED: 'Suspendu',
+      CANCELLED: 'Annulé',
       PENDING: 'En attente',
       VALIDATED: 'Validé',
       DEBT: 'Dette',
