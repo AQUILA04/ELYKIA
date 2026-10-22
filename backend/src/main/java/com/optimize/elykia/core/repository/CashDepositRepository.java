@@ -24,6 +24,10 @@ public interface CashDepositRepository extends GenericRepository<CashDeposit, Lo
 
     Optional<CashDeposit> findByReference(String reference);
 
+    List<CashDeposit> findByDepositGroupIdOrderByDateAscIdAsc(String depositGroupId);
+
+    List<CashDeposit> findByDepositGroupIdIn(Collection<String> depositGroupIds);
+
     @org.springframework.data.jpa.repository.Query("""
             SELECT COALESCE(SUM(COALESCE(cd.creditAmount, cd.amount)), 0)
             FROM CashDeposit cd

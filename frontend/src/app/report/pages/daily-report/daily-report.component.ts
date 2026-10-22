@@ -740,16 +740,41 @@ export class DailyReportComponent implements OnInit {
         }
     }
 
+    get visibleDeposits(): any[] {
+        const start = this.periodStart;
+        const end = this.periodEnd;
+        return this.deposits.filter(dep => {
+            if (!dep.parentDepositId || !dep.captureDate || !start || !end) {
+                return true;
+            }
+            return dep.captureDate < start || dep.captureDate > end;
+        });
+    }
+
+    depositTotal(dep: any): number {
+        return dep.physicalAmount != null ? dep.physicalAmount : (dep.amount || 0);
+    }
+
+    depositTontine(dep: any): number {
+        const extra = (dep.catchupAllocations || [])
+            .reduce((sum: number, slice: any) => sum + (slice.amount || 0), 0);
+        return (dep.tontineAmount || 0) + extra;
+    }
+
+    showCaptureHint(dep: any): boolean {
+        return !!dep.captureDate && dep.captureDate !== dep.date && !dep.catchupAllocations?.length;
+    }
+
     canCancelDeposit(dep: any): boolean {
-        if (!this.isManager || dep.amount <= 0) return false;
+        if (!(this.isManager || this.isAdmin) || this.depositTotal(dep) <= 0) return false;
 
         // Ensure not already cancelled
         const origRef = dep.reference || dep.id;
         const isAlreadyCancelled = this.deposits.some((d: any) =>
-            d.amount < 0 && d.reference === `CANCEL-${origRef}`);
+            d.reference === `CANCEL-${origRef}` && this.depositTotal(d) <= 0);
         if (isAlreadyCancelled) return false;
 
-        const depDate = new Date(dep.date);
+        const depDate = new Date(dep.captureDate || dep.date);
         const today = new Date();
         depDate.setHours(0, 0, 0, 0);
         today.setHours(0, 0, 0, 0);

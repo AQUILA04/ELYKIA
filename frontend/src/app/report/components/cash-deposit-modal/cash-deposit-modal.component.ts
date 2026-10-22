@@ -25,6 +25,8 @@ export class CashDepositModalComponent implements OnInit {
     newBalanceAmount: number = 0;
     surplusAmount: number = 0;
     billetageData: any = {};
+    catchupCaps: { collectionDate: string, cap?: number, capturedAmount?: number, openRemaining?: number }[] = [];
+    catchupLines: { collectionDate: string, amount: number }[] = [];
 
     isSubmitting = false;
     private requestReference = '';
@@ -41,10 +43,34 @@ export class CashDepositModalComponent implements OnInit {
         this.remainingTontine = data.remainingTontine ?? 0;
         this.remainingNewBalance = data.remainingNewBalance ?? 0;
         this.date = data.date;
+        this.catchupCaps = data.catchupCaps || [];
     }
 
     ngOnInit(): void {
         this.requestReference = this.generateRequestReference();
+        if (!this.date || !this.commercialUsername) {
+            return;
+        }
+        this.cashDepositService.previewCatchupAllocation(this.commercialUsername, this.date).subscribe({
+            next: (preview) => {
+                this.remainingCredit = preview.remainingCredit ?? 0;
+                this.remainingTontine = preview.remainingTontine ?? 0;
+                this.remainingNewBalance = preview.remainingNewBalance ?? 0;
+                this.catchupCaps = preview.slices || [];
+                this.remainingAmount = preview.totalRemaining ?? this.dayRemaining();
+                if (this.depositAmount > 0) {
+                    this.autoAllocate();
+                }
+            },
+            error: () => {
+                this.snackBar.open('Les rattrapages du jour n\'ont pas pu être chargés.', 'Fermer', { duration: 3000 });
+            }
+        });
+    }
+
+    dayRemaining(): number {
+        return this.remainingCredit + this.remainingTontine + this.remainingNewBalance
+            + this.catchupCaps.reduce((sum, slice) => sum + this.sliceLimit(slice), 0);
     }
 
     onBilletageChange(event: { totalAmount: number, ticketingData: any }) {
@@ -57,16 +83,44 @@ export class CashDepositModalComponent implements OnInit {
         let remaining = this.depositAmount;
         this.creditAmount = Math.min(remaining, this.remainingCredit);
         remaining -= this.creditAmount;
-        this.tontineAmount = Math.min(remaining, this.remainingTontine);
-        remaining -= this.tontineAmount;
+        const todayTontine = Math.min(remaining, this.remainingTontine);
+        remaining -= todayTontine;
         this.newBalanceAmount = Math.min(remaining, this.remainingNewBalance);
         remaining -= this.newBalanceAmount;
+        this.catchupLines = [];
+        let catchupTotal = 0;
+        for (const slice of this.catchupCaps) {
+            const take = Math.min(remaining, this.sliceLimit(slice));
+            this.catchupLines.push({ collectionDate: slice.collectionDate, amount: take });
+            catchupTotal += take;
+            remaining -= take;
+        }
+        this.tontineAmount = todayTontine + catchupTotal;
         this.surplusAmount = Math.max(0, remaining);
     }
 
     onCategoryChange(): void {
         const categoriesTotal = this.creditAmount + this.tontineAmount + this.newBalanceAmount;
         this.surplusAmount = Math.max(0, this.depositAmount - categoriesTotal);
+        this.catchupLines = this.distributeTontine(this.tontineAmount);
+    }
+
+    /** Rattrapage saisi ce jour, sans dépasser le reste encore dû de la date. */
+    private sliceLimit(slice: { cap?: number, capturedAmount?: number, openRemaining?: number }): number {
+        if (slice.capturedAmount != null && slice.openRemaining != null) {
+            return Math.min(Math.max(0, slice.capturedAmount), Math.max(0, slice.openRemaining));
+        }
+        return slice.cap || 0;
+    }
+
+    private distributeTontine(tontine: number): { collectionDate: string, amount: number }[] {
+        let left = Math.max(0, tontine);
+        left -= Math.min(left, this.remainingTontine);
+        return this.catchupCaps.map(slice => {
+            const take = Math.min(left, this.sliceLimit(slice));
+            left -= take;
+            return { collectionDate: slice.collectionDate, amount: take };
+        });
     }
 
     get allocationMismatch(): boolean {

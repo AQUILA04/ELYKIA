@@ -105,6 +105,19 @@
             <div class="alert alert-info" *ngIf="hasPhysicalShortage">
                 Manquant de {{ (-physicalGap) | currency:'XOF':'symbol':'1.0-0' }} par rapport au solde système — vous pourrez compléter avec un versement ultérieur.
             </div>
+
+            <div class="catchup-block" *ngIf="catchupCaps.length > 0" data-testid="e2e-cash-deposit-catchups">
+                <div class="section-header">
+                    <span class="section-title">Rattrapages du jour</span>
+                    <span class="section-hint">Répartis automatiquement sur la date de chaque cotisation</span>
+                </div>
+                <ul class="catchup-list">
+                    <li *ngFor="let line of catchupLines">
+                        <span>{{ line.collectionDate | date:'dd/MM/yyyy' }}</span>
+                        <span class="mono">{{ line.amount | currency:'XOF':'symbol':'1.0-0' }}</span>
+                    </li>
+                </ul>
+            </div>
         </div>
     </mat-dialog-content>
 

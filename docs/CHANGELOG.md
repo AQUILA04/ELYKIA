@@ -23,6 +23,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.41.0] — 2026-10-22
+
+### Added
+
+- Le versement espèce d'un jour inclut les rattrapages tontine saisis ce jour-là. Chaque date reçoit le total de rattrapage créé ce jour pour elle. Un solde plus ancien encore dû sur cette date n'est pas soldé par ce versement.
+- L'annulation d'un versement est ouverte à l'administrateur et au super administrateur, en plus du gestionnaire. Un versement réparti s'annule en une fois, dans les 3 jours du jour d'encaissement.
+
 ## Backend — [1.40.0] — 2026-10-22
 
 ### Added
@@ -97,6 +104,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.37.0] — 2026-10-22
+
+### Added
+
+- La fenêtre de versement du rapport journalier affiche les rattrapages tontine du jour et le montant affecté à chaque date.
+- L'historique des versements regroupe un encaissement réparti sur une seule ligne, avec le détail des dates. L'administrateur peut annuler un versement depuis cet onglet.
 
 ## Frontend — [2.36.0] — 2026-10-22
 

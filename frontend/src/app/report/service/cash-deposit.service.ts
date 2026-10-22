@@ -13,6 +13,13 @@ export class CashDepositService {
 
     constructor(private http: HttpClient) { }
 
+    previewCatchupAllocation(commercialUsername: string, date: string): Observable<any> {
+        const params = new HttpParams()
+            .set('commercialUsername', commercialUsername)
+            .set('date', date);
+        return this.http.get<any>(`${this.apiUrl}/catchup-allocation`, { params });
+    }
+
     createDeposit(deposit: any): Observable<any> {
         return this.http.post(this.apiUrl, deposit);
     }

@@ -10,6 +10,8 @@ import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;
 import com.optimize.elykia.core.service.report.DailyOperationService;
 import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.core.service.accounting.CashDepositCatchupAllocator.CatchupCap;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -17,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,7 +43,14 @@ class CashDepositServiceTest {
     @Mock private DailyCommercialReportPersistence reportPersistence;
     @Mock private DailyOperationService dailyOperationService;
     @Mock private UserService userService;
+    @Mock private CashDepositCatchupService catchupService;
     @Mock private User currentUser;
+
+    @BeforeEach
+    void noCatchupsByDefault() {
+        lenient().when(catchupService.caps(any(), any())).thenReturn(List.of());
+        lenient().when(catchupService.openTontine(any())).thenReturn(0.0);
+    }
 
     @Test
     void createDeposit_appliesCategorySplitToDailyReportAndRecordsCashDepositOperation() {
@@ -152,6 +163,88 @@ class CashDepositServiceTest {
     }
 
     @Test
+    void createDeposit_splitsTontineCatchupsOntoTheirCollectionDates() {
+        CashDepositService service = service();
+        LocalDate captureDate = LocalDate.of(2026, 10, 22);
+        LocalDate older = LocalDate.of(2026, 10, 20);
+        LocalDate newer = LocalDate.of(2026, 10, 21);
+        CashDeposit deposit = deposit(captureDate, "commercial.a", 1_500.0, 200.0, 1_300.0, 0.0, 0.0);
+        DailyCommercialReport today = new DailyCommercialReport();
+        today.setTontineCollectionsAmount(500.0);
+        DailyCommercialReport report20 = new DailyCommercialReport();
+        DailyCommercialReport report21 = new DailyCommercialReport();
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.getUsername()).thenReturn("gestionnaire.a");
+        when(cashDepositRepository.existsByReference("DEP-001")).thenReturn(false);
+        when(dailyReportRepository.findByDateAndCommercialUsername(captureDate, "commercial.a"))
+                .thenReturn(Optional.of(today));
+        when(dailyReportRepository.findByDateAndCommercialUsername(older, "commercial.a"))
+                .thenReturn(Optional.of(report20));
+        when(dailyReportRepository.findByDateAndCommercialUsername(newer, "commercial.a"))
+                .thenReturn(Optional.of(report21));
+        when(catchupService.openTontine(today)).thenReturn(500.0);
+        when(catchupService.caps("commercial.a", captureDate)).thenReturn(List.of(
+                new CatchupCap(older, 400.0, 400.0, 400.0),
+                new CatchupCap(newer, 400.0, 300.0, 300.0)));
+        when(reportPersistence.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(cashDepositRepository.save(any(CashDeposit.class))).thenAnswer(invocation -> {
+            CashDeposit saved = invocation.getArgument(0);
+            if (saved.getId() == null) {
+                saved.setId(saved.getParentDeposit() == null ? 80L : 81L);
+            }
+            return saved;
+        });
+
+        CashDeposit saved = service.createDeposit(deposit);
+
+        assertEquals(800.0, saved.getAmount());
+        assertEquals(200.0, saved.getCreditAmount());
+        assertEquals(600.0, saved.getTontineAmount());
+        assertEquals(captureDate, saved.getCaptureDate());
+        assertNotNull(saved.getDepositGroupId());
+        assertEquals(800.0, today.getTotalAmountDeposited());
+        assertEquals(600.0, today.getTotalTontineAmountDeposited());
+        assertEquals(400.0, report20.getTotalTontineAmountDeposited());
+        assertEquals(300.0, report21.getTotalTontineAmountDeposited());
+        verify(dailyOperationService).logOperation(
+                eq("commercial.a"), eq(OperationType.CASH_DEPOSIT), eq(400.0), any(), any(),
+                eq(0.0), eq(0.0), eq(older));
+        verify(dailyOperationService).logOperation(
+                eq("commercial.a"), eq(OperationType.CASH_DEPOSIT), eq(1_500.0), eq("Versement 80"),
+                contains("Rattrapages tontine"));
+    }
+
+    @Test
+    void cancelDeposit_acceptsAdminProfile() {
+        CashDepositService service = service();
+        LocalDate date = LocalDate.now();
+        CashDeposit original = deposit(date, "commercial.a", 400.0, 400.0, 0.0, 0.0, 0.0);
+        original.setId(60L);
+        DailyCommercialReport report = new DailyCommercialReport();
+        report.setTotalAmountDeposited(400.0);
+        report.setTotalCreditAmountDeposited(400.0);
+        when(cashDepositRepository.findById(60L)).thenReturn(Optional.of(original));
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(currentUser.is(UserProfilConstant.ADMIN)).thenReturn(true);
+        when(currentUser.getUsername()).thenReturn("admin.a");
+        when(cashDepositRepository.existsByReference("CANCEL-DEP-001")).thenReturn(false);
+        when(dailyReportRepository.findByDateAndCommercialUsername(date, "commercial.a")).thenReturn(Optional.of(report));
+        when(reportPersistence.save(report)).thenReturn(report);
+        when(cashDepositRepository.save(any(CashDeposit.class))).thenAnswer(invocation -> {
+            CashDeposit saved = invocation.getArgument(0);
+            saved.setId(61L);
+            return saved;
+        });
+
+        CashDeposit cancellation = service.cancelDeposit(60L);
+
+        assertEquals(-400.0, cancellation.getAmount());
+        assertEquals("admin.a", cancellation.getReceivedBy());
+        assertEquals(0.0, report.getTotalAmountDeposited());
+    }
+
+    @Test
     void cancelDeposit_rejectsUserWithoutManagerProfileBeforeAnyAccountingMutation() {
         // Given
         CashDepositService service = service();
@@ -173,7 +266,7 @@ class CashDepositServiceTest {
 
     private CashDepositService service() {
         return new CashDepositService(cashDepositRepository, dailyReportRepository, reportPersistence,
-                dailyOperationService, userService);
+                dailyOperationService, userService, catchupService);
     }
 
     private CashDeposit deposit(LocalDate date, String commercial, double amount, double credit,

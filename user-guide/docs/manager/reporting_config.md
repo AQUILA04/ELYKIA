@@ -55,6 +55,17 @@ Sur la fiche d’un commercial (après sélection dans le filtre) :
 * **Versé** : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention **dont surplus non catégorisé** s’affiche sous le montant.
 * **Reste** : ce qui manque encore en crédit, tontine ou solde. Un montant déjà couvert par un surplus porte la mention **dont couvert par surplus** : il diminue le reste, sans changer le montant versé de ce jour.
 
+#### Versement du jour
+
+Lorsque la période affichée est un seul jour et qu’il reste un montant à remettre :
+
+1. Cliquez sur **Faire un versement**.
+2. Comptez les espèces dans le billetage.
+3. Si des cotisations tontine de jours précédents ont été saisies ce jour-là, la fenêtre liste ces dates sous **Rattrapages du jour**. Le **Reste à verser** ajoute le total de ces rattrapages au crédit, à la tontine et au solde des nouveaux comptes du jour. Chaque date reçoit le montant saisi ce jour pour elle. Un montant plus ancien encore dû sur cette date n’est pas encaissé par ce versement : il reste à remettre sur sa propre date. Le jour en cours est servi d’abord, puis les dates de rattrapage les plus anciennes.
+4. Cliquez sur **Valider le versement**. Chaque date de cotisation reçoit sa part tontine. Ce qui dépasse les montants dus reste un surplus du jour d’encaissement.
+
+<!-- CAPTURE À INSÉRER : Fenêtre Nouveau versement avec le bloc Rattrapages du jour. -->
+
 #### 4. Équilibrer le surplus
 Le bouton **Équilibrer le surplus** est proposé lorsqu’un commercial a un **surplus non catégorisé** et un manque en crédit, tontine ou solde. Ce manque peut être sur la période affichée ou sur un jour plus ancien.
 
@@ -100,6 +111,8 @@ Réservé aux chefs de recouvrement et aux gestionnaires d'agence :
 Cet onglet audite tous les versements de caisse enregistrés au guichet :
 * Décomposition par source financière : Crédit, Tontine, Dépôts initiaux des nouveaux comptes, Surplus éventuels, et Total versé.
 * Permet de rapprocher les montants déclarés par les agents avec les liquidités réelles reçues en caisse.
+* Un versement qui couvre des rattrapages tontine s’affiche sur le jour d’encaissement avec le total compté et le détail de chaque date. Sur la date de cotisation, la ligne ne reprend que la part tontine de ce jour, avec la mention du jour où l’argent a été reçu.
+* Le bouton d’annulation reste disponible pendant 3 jours à compter du jour d’encaissement, tant que le versement n’a pas été inclus dans une remise. Annuler un versement qui couvre des rattrapages retire la part de chaque date en une seule fois.
 
 ---
 

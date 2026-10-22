@@ -838,6 +838,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#versement-du-jour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Versement du jour
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#4-equilibrer-le-surplus" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1881,6 +1892,34 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../admin/cash_deposit_cancellation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Annulation d'un versement
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1976,6 +2015,17 @@
     <span class="md-ellipsis">
       
         3. Fiche d’un commercial : à verser, versé et reste
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#versement-du-jour" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Versement du jour
       
     </span>
   </a>
@@ -2305,6 +2355,16 @@
 * <strong>A Verser (Crédit / Tontine / Solde Nx)</strong> : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.
 * <strong>Versé</strong> : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention <strong>dont surplus non catégorisé</strong> s’affiche sous le montant.
 * <strong>Reste</strong> : ce qui manque encore en crédit, tontine ou solde. Un montant déjà couvert par un surplus porte la mention <strong>dont couvert par surplus</strong> : il diminue le reste, sans changer le montant versé de ce jour.</p>
+<h4 id="versement-du-jour">Versement du jour</h4>
+<p>Lorsque la période affichée est un seul jour et qu’il reste un montant à remettre :</p>
+<ol>
+<li>Cliquez sur <strong>Faire un versement</strong>.</li>
+<li>Comptez les espèces dans le billetage.</li>
+<li>Si des cotisations tontine de jours précédents ont été saisies ce jour-là, la fenêtre liste ces dates sous <strong>Rattrapages du jour</strong>. Le <strong>Reste à verser</strong> ajoute le total de ces rattrapages au crédit, à la tontine et au solde des nouveaux comptes du jour. Chaque date reçoit le montant saisi ce jour pour elle. Un montant plus ancien encore dû sur cette date n’est pas encaissé par ce versement : il reste à remettre sur sa propre date. Le jour en cours est servi d’abord, puis les dates de rattrapage les plus anciennes.</li>
+<li>Cliquez sur <strong>Valider le versement</strong>. Chaque date de cotisation reçoit sa part tontine. Ce qui dépasse les montants dus reste un surplus du jour d’encaissement.</li>
+</ol>
+<!-- CAPTURE À INSÉRER : Fenêtre Nouveau versement avec le bloc Rattrapages du jour. -->
+
 <h4 id="4-equilibrer-le-surplus">4. Équilibrer le surplus</h4>
 <p>Le bouton <strong>Équilibrer le surplus</strong> est proposé lorsqu’un commercial a un <strong>surplus non catégorisé</strong> et un manque en crédit, tontine ou solde. Ce manque peut être sur la période affichée ou sur un jour plus ancien.</p>
 <ol>
@@ -2342,7 +2402,9 @@
 <h3 id="e-onglet-4-versements-de-caisse">E. Onglet 4 : Versements de caisse</h3>
 <p>Cet onglet audite tous les versements de caisse enregistrés au guichet :
 * Décomposition par source financière : Crédit, Tontine, Dépôts initiaux des nouveaux comptes, Surplus éventuels, et Total versé.
-* Permet de rapprocher les montants déclarés par les agents avec les liquidités réelles reçues en caisse.</p>
+* Permet de rapprocher les montants déclarés par les agents avec les liquidités réelles reçues en caisse.
+* Un versement qui couvre des rattrapages tontine s’affiche sur le jour d’encaissement avec le total compté et le détail de chaque date. Sur la date de cotisation, la ligne ne reprend que la part tontine de ce jour, avec la mention du jour où l’argent a été reçu.
+* Le bouton d’annulation reste disponible pendant 3 jours à compter du jour d’encaissement, tant que le versement n’a pas été inclus dans une remise. Annuler un versement qui couvre des rattrapages retire la part de chaque date en une seule fois.</p>
 <hr />
 <h3 id="f-onglet-5-remise-au-gestionnaire">F. Onglet 5 : Remise au gestionnaire</h3>
 <p>Cet onglet permet de réaliser le versement des fonds collectés de la période au gestionnaire en déduisant les dépenses justificatives. Pour le détail complet du cycle de remise, consultez le guide <a href="../finance/">Finances &amp; Remises</a>.</p>

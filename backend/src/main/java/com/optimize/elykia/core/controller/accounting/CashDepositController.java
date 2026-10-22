@@ -1,8 +1,10 @@
 package com.optimize.elykia.core.controller.accounting;
 
+import com.optimize.elykia.core.dto.report.CatchupAllocationPreviewDto;
 import com.optimize.elykia.core.dto.report.SurplusReallocationDto;
 import com.optimize.elykia.core.dto.report.SurplusReallocationRequest;
 import com.optimize.elykia.core.entity.report.CashDeposit;
+import com.optimize.elykia.core.service.accounting.CashDepositCatchupService;
 import com.optimize.elykia.core.service.accounting.CashDepositService;
 import com.optimize.elykia.core.service.accounting.CashSurplusReallocationService;
 import com.optimize.elykia.core.util.UserPermissionConstant;
@@ -29,8 +31,16 @@ import org.springframework.web.bind.annotation.*;
 public class CashDepositController {
 
     private final CashDepositService cashDepositService;
+    private final CashDepositCatchupService catchupService;
     private final CashSurplusReallocationService surplusReallocationService;
     private final UserService userService;
+
+    @GetMapping("/catchup-allocation")
+    public ResponseEntity<CatchupAllocationPreviewDto> previewCatchupAllocation(
+            @RequestParam String commercialUsername,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return ResponseEntity.ok(catchupService.preview(commercialUsername, date));
+    }
 
     @PostMapping
     public ResponseEntity<CashDeposit> createDeposit(@RequestBody CashDeposit deposit) {

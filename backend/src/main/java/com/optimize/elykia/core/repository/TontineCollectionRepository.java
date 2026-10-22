@@ -367,6 +367,24 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             @Param("dayStart") java.time.LocalDateTime dayStart,
             @Param("dayEnd") java.time.LocalDateTime dayEnd);
 
+    /**
+     * Lignes de rattrapage saisies le jour : date métier et montant.
+     */
+    @Query("""
+            SELECT tc.collectionDate, tc.amount
+            FROM TontineCollection tc
+            WHERE UPPER(tc.commercialUsername) = UPPER(:commercial)
+              AND tc.state = :state
+              AND tc.createdDate >= :dayStart
+              AND tc.createdDate < :dayEnd
+              AND (tc.collectionDate < :dayStart OR tc.collectionDate >= :dayEnd)
+            """)
+    java.util.List<Object[]> findCatchupRowsByCommercialAndCreatedDate(
+            @Param("commercial") String commercial,
+            @Param("state") State state,
+            @Param("dayStart") java.time.LocalDateTime dayStart,
+            @Param("dayEnd") java.time.LocalDateTime dayEnd);
+
     @Query("""
             SELECT new com.optimize.elykia.core.dto.TontineMemberContributionByCommercialDto(
                 tc.commercialUsername,

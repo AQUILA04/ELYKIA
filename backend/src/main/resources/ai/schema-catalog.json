@@ -651,6 +651,21 @@
           "type": "varchar"
         },
         {
+          "name": "capture_date",
+          "type": "date",
+          "description": "Jour d'encaissement choisi dans le rapport journalier"
+        },
+        {
+          "name": "deposit_group_id",
+          "type": "varchar",
+          "description": "Identifiant du versement physique lorsqu'il est réparti sur plusieurs dates"
+        },
+        {
+          "name": "parent_deposit_id",
+          "type": "bigint",
+          "description": "Ligne parente du versement, pour une part de rattrapage tontine"
+        },
+        {
           "name": "daily_report_id",
           "type": "bigint",
           "description": "FK daily_commercial_report"
@@ -660,6 +675,11 @@
         {
           "column": "daily_report_id",
           "refTable": "daily_commercial_report",
+          "refColumn": "id"
+        },
+        {
+          "column": "parent_deposit_id",
+          "refTable": "cash_deposit",
           "refColumn": "id"
         }
       ]

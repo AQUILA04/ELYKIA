@@ -50,6 +50,7 @@ nav:
     - Menu Administration: admin/index.md
     - Journal espace client (Audit): admin/customer_activity_audit.md
     - Annulation de ventes: admin/sale_cancellation.md
+    - Annulation d'un versement: admin/cash_deposit_cancellation.md
 
 markdown_extensions:
   - admonition

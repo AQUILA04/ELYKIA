@@ -691,15 +691,21 @@
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Solde Nx</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Surplus</th>
                                 <th class="py-2 px-4 text-sm font-medium text-gray-500 text-right">Total</th>
-                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-center" *ngIf="isManager">
+                                <th class="py-2 px-4 text-sm font-medium text-gray-500 text-center" *ngIf="isManager || isAdmin">
                                     Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr *ngFor="let dep of deposits" class="border-b border-gray-100 hover:bg-gray-50">
+                            <ng-container *ngFor="let dep of visibleDeposits">
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
                                 <td class="py-2 px-4 text-sm">{{ dep.date | date:'dd/MM' }} {{ dep.createdAt |
                                     date:'HH:mm' }}</td>
-                                <td class="py-2 px-4 text-sm font-mono text-gray-500">{{ dep.reference }}</td>
+                                <td class="py-2 px-4 text-sm font-mono text-gray-500">
+                                    {{ dep.reference }}
+                                    <div class="text-xs text-gray-500" *ngIf="showCaptureHint(dep)">
+                                        Encaissé le {{ dep.captureDate | date:'dd/MM/yyyy' }}
+                                    </div>
+                                </td>
                                 <td class="py-2 px-4 text-sm text-gray-700 font-medium">{{ dep.commercialUsername }}
                                 </td>
                                 <td class="py-2 px-4 text-sm font-semibold text-gray-700">{{ dep.receivedBy }}</td>
@@ -707,7 +713,7 @@
                                     {{ (dep.creditAmount ?? dep.amount) | currency:'XOF':'symbol':'1.0-0' }}
                                 </td>
                                 <td class="py-2 px-4 text-sm font-mono text-right text-green-700">
-                                    {{ (dep.tontineAmount || 0) | currency:'XOF':'symbol':'1.0-0' }}
+                                    {{ depositTontine(dep) | currency:'XOF':'symbol':'1.0-0' }}
                                 </td>
                                 <td class="py-2 px-4 text-sm font-mono text-right text-green-700">
                                     {{ (dep.newBalanceAmount || 0) | currency:'XOF':'symbol':'1.0-0' }}
@@ -716,15 +722,24 @@
                                     {{ (dep.surplusAmount || 0) | currency:'XOF':'symbol':'1.0-0' }}
                                 </td>
                                 <td class="py-2 px-4 text-sm font-mono text-right font-medium text-green-600">
-                                    {{ dep.amount | currency:'XOF':'symbol':'1.0-0' }}
+                                    {{ depositTotal(dep) | currency:'XOF':'symbol':'1.0-0' }}
                                 </td>
-                                <td class="py-2 px-4 text-sm text-center" *ngIf="isManager">
+                                <td class="py-2 px-4 text-sm text-center" *ngIf="isManager || isAdmin">
                                     <button mat-icon-button color="warn" matTooltip="Annuler le versement"
                                         *ngIf="canCancelDeposit(dep)" (click)="confirmCancelDeposit(dep)">
                                         <mat-icon>cancel</mat-icon>
                                     </button>
                                 </td>
                             </tr>
+                            <tr *ngIf="dep.catchupAllocations?.length" class="border-b border-gray-100 bg-gray-50">
+                                <td [attr.colspan]="(isManager || isAdmin) ? 10 : 9" class="py-2 px-4 text-xs text-gray-600">
+                                    <span *ngFor="let slice of dep.catchupAllocations; let last = last">
+                                        Rattrapage {{ slice.date | date:'dd/MM/yyyy' }} :
+                                        {{ slice.amount | currency:'XOF':'symbol':'1.0-0' }}<span *ngIf="!last"> · </span>
+                                    </span>
+                                </td>
+                            </tr>
+                            </ng-container>
                         </tbody>
                     </table>
                     <div class="mt-4">

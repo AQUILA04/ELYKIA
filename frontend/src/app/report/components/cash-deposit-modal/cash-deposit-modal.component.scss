@@ -392,6 +392,29 @@
   }
 }
 
+.cash-deposit-modal .catchup-block {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.cash-deposit-modal .catchup-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--navy);
+  }
+}
+
 .cash-deposit-modal .spinner-small {
   width: 16px;
   height: 16px;
