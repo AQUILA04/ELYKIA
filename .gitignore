@@ -73,3 +73,20 @@ android/**
 /deploy/test
 /deploy/prod
 /deploy/tools
+
+# Secrets — jamais versionnés
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+**/google-services.json
+**/firebase.config.local.ts
+.cursor/local-secrets.env
+backend/src/main/resources/application-local.yml
+backend/src/main/resources/application-francis.yml
+backend/src/main/resources/application-jeff.yml

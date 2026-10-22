@@ -93,6 +93,8 @@ if [[ ! -f "$TEST_ENV" ]]; then
 POSTGRES_USER=elykia_test
 POSTGRES_PASSWORD='${DB_PASSWORD_TEST:-change_me_test_password}'
 POSTGRES_DB=elykia_test_db
+# openssl rand -base64 48 — obligatoire, distinct de la prod
+JWT_SECRET=
 
 SPRING_PROFILES_ACTIVE=prod
 SERVER_PORT=8080
@@ -100,6 +102,8 @@ LOG_PATH=/opt/elykia/test/logs
 
 API_URL=https://elykia-test.amenouveve-yaveh.com/api
 GA_MEASUREMENT_ID=
+# Clé web Firebase du frontend admin. Ne pas commiter la valeur.
+FIREBASE_API_KEY=
 
 # MinIO
 MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
@@ -128,6 +132,8 @@ if [[ ! -f "$PROD_ENV" ]]; then
 POSTGRES_USER=elykia_prod
 POSTGRES_PASSWORD='${DB_PASSWORD_PROD:-change_me_strong_prod_password}'
 POSTGRES_DB=elykia_prod_db
+# openssl rand -base64 48 — obligatoire, distinct du test
+JWT_SECRET=
 
 SPRING_PROFILES_ACTIVE=prod
 SERVER_PORT=8080
@@ -135,6 +141,8 @@ LOG_PATH=/opt/elykia/prod/logs
 
 API_URL=https://elykia.amenouveve-yaveh.com/api
 GA_MEASUREMENT_ID=
+# Clé web Firebase du frontend admin. Ne pas commiter la valeur.
+FIREBASE_API_KEY=
 
 # MinIO
 MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}

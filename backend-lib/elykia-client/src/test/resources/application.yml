@@ -1,0 +1,7 @@
+spring:
+  datasource:
+    password: elykia
+
+minio:
+  access-key: elykia-test-access-key
+  secret-key: elykia-test-secret-key

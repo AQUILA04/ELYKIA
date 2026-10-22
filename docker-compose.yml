@@ -5,9 +5,9 @@ services:
     image: postgres:15-alpine
     container_name: elykia-postgres
     environment:
-      POSTGRES_DB: oec_v2
-      POSTGRES_USER: francis
-      POSTGRES_PASSWORD: Africa2025
+      POSTGRES_DB: ${POSTGRES_DB:-oec_v2}
+      POSTGRES_USER: ${POSTGRES_USER:-elykia}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD required}
     ports:
       - "5432:5432"
     volumes:
@@ -23,9 +23,10 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/oec_v2
-      SPRING_DATASOURCE_USERNAME: francis
-      SPRING_DATASOURCE_PASSWORD: Africa2025
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-oec_v2}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-elykia}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required}
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
     depends_on:
       - postgres

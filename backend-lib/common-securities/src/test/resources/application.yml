@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    password: elykia
+
+bezkoder:
+  app:
+    jwtSecret: elykia-test-jwt-secret-must-remain-local-and-never-be-used-outside-tests-2026
+
+security:
+  config:
+    auto-initialize:
+      enabled: false

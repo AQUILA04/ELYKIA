@@ -2,9 +2,9 @@ spring:
   application:
     name: optimize-elykia-client
   datasource:
-    url: jdbc:postgresql://localhost:5432/elykiadb
-    username: francis
-    password: Anid2022
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/elykiadb}
+    username: ${SPRING_DATASOURCE_USERNAME:elykia}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: update
@@ -17,8 +17,8 @@ spring:
 
 minio:
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
-  access-key: ${MINIO_ACCESS_KEY:minioadmin}
-  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  access-key: ${MINIO_ACCESS_KEY:}
+  secret-key: ${MINIO_SECRET_KEY:}
   bucket: ${MINIO_BUCKET:elykia-clients}
   reports-bucket: ${MINIO_REPORTS_BUCKET:elykia-reports}
   public-url: ${MINIO_PUBLIC_URL:http://localhost:9000}

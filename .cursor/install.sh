@@ -9,7 +9,25 @@ cd "$REPO_ROOT"
 
 DB_NAME="oec"
 DB_USER="oec"
-DB_PASSWORD="APP2024"
+SECRETS_FILE="$REPO_ROOT/.cursor/local-secrets.env"
+if [[ ! -f "$SECRETS_FILE" ]]; then
+  DB_PASSWORD="$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-24)"
+  JWT_SECRET="$(openssl rand -base64 48 | tr -d '\n')"
+  umask 077
+  cat > "$SECRETS_FILE" << EOF
+DB_PASSWORD=${DB_PASSWORD}
+SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+JWT_SECRET=${JWT_SECRET}
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+LOCAL_SEED_PASSWORD=${DB_PASSWORD}
+EOF
+fi
+# shellcheck disable=SC1090
+set -a
+source "$SECRETS_FILE"
+set +a
+DB_PASSWORD="${SPRING_DATASOURCE_PASSWORD:?SPRING_DATASOURCE_PASSWORD manquant dans $SECRETS_FILE}"
 
 echo "==> Installing system packages (maven, postgresql)"
 sudo apt-get update -qq
@@ -23,6 +41,7 @@ for _ in $(seq 1 30); do sudo -u postgres pg_isready -q && break; sleep 1; done
 echo "==> Ensuring database role, database and grants"
 sudo -u postgres psql -tc "SELECT 1 FROM pg_roles WHERE rolname='${DB_USER}'" | grep -q 1 \
   || sudo -u postgres psql -c "CREATE ROLE ${DB_USER} LOGIN PASSWORD '${DB_PASSWORD}';"
+sudo -u postgres psql -c "ALTER ROLE ${DB_USER} PASSWORD '${DB_PASSWORD}';"
 sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='${DB_NAME}'" | grep -q 1 \
   || sudo -u postgres createdb -O "${DB_USER}" "${DB_NAME}"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};"
