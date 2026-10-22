@@ -380,6 +380,8 @@ export class InventoryComponent implements OnInit, OnDestroy {
           }
         });
       }
+    }).catch(() => {
+      this.alertService.showError('Une erreur est survenue lors de l\'annulation.');
     });
   }
 
@@ -405,6 +407,8 @@ export class InventoryComponent implements OnInit, OnDestroy {
           }
         });
       }
+    }).catch(() => {
+      this.alertService.showError('Une erreur est survenue lors de la suspension.');
     });
   }
 
@@ -430,6 +434,8 @@ export class InventoryComponent implements OnInit, OnDestroy {
           }
         });
       }
+    }).catch(() => {
+      this.alertService.showError('Une erreur est survenue lors de la reprise.');
     });
   }
 

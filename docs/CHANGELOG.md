@@ -102,7 +102,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Added
 
-- Sur Inventaires, le gestionnaire peut annuler un brouillon, suspendre la session et la reprendre.
+- Sur Inventaires, le gestionnaire peut annuler un brouillon, suspendre la session et la reprendre. Si la confirmation échoue, un message d'erreur s'affiche.
 - Pendant un inventaire en brouillon ou en cours, les entrées de stock et la remise à zéro sont bloquées, avec le message d'attente de fin d'inventaire.
 - L'historique des inventaires affiche les statuts Annulé et Suspendu.
 
