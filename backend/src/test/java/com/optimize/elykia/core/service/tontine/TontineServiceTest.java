@@ -39,6 +39,7 @@ import java.util.Optional;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.client.dto.BulkAssignCollectorsDto;
+import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.dto.BulkTontineAssignCollectorDto;
 import com.optimize.elykia.core.dto.TontineMemberAmountHistoryArchiveDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
@@ -56,6 +57,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @ExtendWith(MockitoExtension.class)
 class TontineServiceTest {
@@ -208,6 +210,110 @@ class TontineServiceTest {
         ArgumentCaptor<TontineCollectionEvent> eventCaptor = ArgumentCaptor.forClass(TontineCollectionEvent.class);
         verify(eventPublisher).publishEvent(eventCaptor.capture());
         assertEquals("COM015", eventCaptor.getValue().getCollector());
+    }
+
+    @Test
+    void recordCollection_promoterCannotCollectForOtherTontineCollector() {
+        int year = LocalDate.now().getYear();
+        TontineSession activeSession = session(10L, year, TontineSessionStatus.ACTIVE);
+        Client client = new Client();
+        client.setTontineCollector("COM003");
+        TontineMember member = member(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
+        member.setId(50L);
+        member.setClient(client);
+        member.setTontineSession(activeSession);
+
+        User promoter = promoterOnly("COM015");
+        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(activeSession));
+        when(tontineMemberRepository.findById(50L)).thenReturn(Optional.of(member));
+        when(userService.getCurrentUser()).thenReturn(promoter);
+
+        TontineCollectionDto dto = new TontineCollectionDto();
+        dto.setMemberId(50L);
+        dto.setAmount(500.0);
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> service.recordCollection(dto));
+        assertTrue(ex.getMessage().contains("commercial tontine"));
+        verify(tontineCollectionRepository, never()).save(any());
+    }
+
+    @Test
+    void recordCollection_promoterOwnsTontineCollector_succeeds() {
+        int year = LocalDate.now().getYear();
+        TontineSession activeSession = session(10L, year, TontineSessionStatus.ACTIVE);
+        activeSession.setStartDate(LocalDate.of(year, 2, 1));
+        activeSession.setEndDate(LocalDate.of(year, 11, 30));
+        Client client = new Client();
+        client.setTontineCollector("COM015");
+        client.setFirstname("Client");
+        client.setLastname("A1");
+        TontineMember member = member(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
+        member.setId(50L);
+        member.setClient(client);
+        member.setTontineSession(activeSession);
+        member.setAmount(1000.0);
+
+        User promoter = promoterOnly("COM015");
+        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(activeSession));
+        when(tontineMemberRepository.findById(50L)).thenReturn(Optional.of(member));
+        when(userService.getCurrentUser()).thenReturn(promoter);
+        when(allocationPolicyResolver.resolve()).thenReturn(allocationPolicy);
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(
+                50L, State.ENABLED)).thenReturn(List.of());
+        when(tontineCollectionRepository.save(any(TontineCollection.class))).thenAnswer(inv -> {
+            TontineCollection c = inv.getArgument(0);
+            c.setId(100L);
+            c.setCreatedDate(LocalDateTime.now());
+            return c;
+        });
+
+        TontineCollectionDto dto = new TontineCollectionDto();
+        dto.setMemberId(50L);
+        dto.setAmount(500.0);
+
+        service.recordCollection(dto);
+        verify(tontineCollectionRepository).save(any(TontineCollection.class));
+    }
+
+    @Test
+    void recordCollection_staffCanCollectForAnyTontineCollector() {
+        int year = LocalDate.now().getYear();
+        TontineSession activeSession = session(10L, year, TontineSessionStatus.ACTIVE);
+        activeSession.setStartDate(LocalDate.of(year, 2, 1));
+        activeSession.setEndDate(LocalDate.of(year, 11, 30));
+        Client client = new Client();
+        client.setTontineCollector("COM003");
+        client.setFirstname("Client");
+        client.setLastname("A1");
+        TontineMember member = member(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
+        member.setId(50L);
+        member.setClient(client);
+        member.setTontineSession(activeSession);
+        member.setAmount(1000.0);
+
+        User staff = staffUser("SEC001");
+        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(activeSession));
+        when(tontineMemberRepository.findById(50L)).thenReturn(Optional.of(member));
+        when(userService.getCurrentUser()).thenReturn(staff);
+        when(allocationPolicyResolver.resolve()).thenReturn(allocationPolicy);
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(
+                50L, State.ENABLED)).thenReturn(List.of());
+        when(tontineCollectionRepository.save(any(TontineCollection.class))).thenAnswer(inv -> {
+            TontineCollection c = inv.getArgument(0);
+            c.setId(101L);
+            c.setCreatedDate(LocalDateTime.now());
+            return c;
+        });
+
+        TontineCollectionDto dto = new TontineCollectionDto();
+        dto.setMemberId(50L);
+        dto.setAmount(500.0);
+
+        service.recordCollection(dto);
+        ArgumentCaptor<TontineCollection> saved = ArgumentCaptor.forClass(TontineCollection.class);
+        verify(tontineCollectionRepository).save(saved.capture());
+        assertEquals("COM003", saved.getValue().getCommercialUsername());
     }
 
     @Test
@@ -667,5 +773,21 @@ class TontineServiceTest {
         TontineMember member = new TontineMember();
         member.setDeliveryStatus(deliveryStatus);
         return member;
+    }
+
+    private static User promoterOnly(String username) {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn(username);
+        when(user.is(UserProfilConstant.SECRETARY)).thenReturn(false);
+        when(user.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(user.is(UserProfilConstant.ADMIN)).thenReturn(false);
+        when(user.is(UserProfilConstant.PROMOTER)).thenReturn(true);
+        return user;
+    }
+
+    private static User staffUser(String username) {
+        User user = mock(User.class);
+        when(user.is(UserProfilConstant.PROMOTER)).thenReturn(false);
+        return user;
     }
 }

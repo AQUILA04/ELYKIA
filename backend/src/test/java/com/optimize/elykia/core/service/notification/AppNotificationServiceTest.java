@@ -46,6 +46,35 @@ class AppNotificationServiceTest {
     private AppNotificationService service;
 
     @Test
+    void assertPromoterOwnsCreditCollector_rejectsOtherCollectorsPortfolio() {
+        User promoter = promoterOnly("COM015");
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> AppNotificationService.assertPromoterOwnsCreditCollector(promoter, "COM003"));
+        assertTrue(ex.getMessage().contains("commercial crédit"));
+    }
+
+    @Test
+    void assertPromoterOwnsCreditCollector_allowsOwnPortfolioAndStaff() {
+        AppNotificationService.assertPromoterOwnsCreditCollector(promoterOnly("COM015"), "COM015");
+        AppNotificationService.assertPromoterOwnsCreditCollector(staffUser("SEC001"), "COM003");
+        AppNotificationService.assertPromoterOwnsCreditCollector(null, "COM003");
+    }
+
+    @Test
+    void assertPromoterOwnsTontineCollector_rejectsOtherCollectorsPortfolio() {
+        User promoter = promoterOnly("COM015");
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> AppNotificationService.assertPromoterOwnsTontineCollector(promoter, "COM003"));
+        assertTrue(ex.getMessage().contains("commercial tontine"));
+    }
+
+    @Test
+    void assertPromoterOwnsTontineCollector_allowsOwnPortfolioAndStaff() {
+        AppNotificationService.assertPromoterOwnsTontineCollector(promoterOnly("COM015"), "COM015");
+        AppNotificationService.assertPromoterOwnsTontineCollector(staffUser("SEC001"), "COM003");
+    }
+
+    @Test
     void unreadCount_rejectsStorekeeper() {
         User user = mock(User.class);
         when(user.getUsername()).thenReturn("STORE1");
@@ -56,6 +85,22 @@ class AppNotificationServiceTest {
 
         assertThrows(CustomValidationException.class, () -> service.unreadCount(user));
         verify(notificationRepository, never()).countUnreadUnresolvedForUser(any(), any());
+    }
+
+    private static User promoterOnly(String username) {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn(username);
+        when(user.is(UserProfilConstant.SECRETARY)).thenReturn(false);
+        when(user.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(user.is(UserProfilConstant.ADMIN)).thenReturn(false);
+        when(user.is(UserProfilConstant.PROMOTER)).thenReturn(true);
+        return user;
+    }
+
+    private static User staffUser(String username) {
+        User user = mock(User.class);
+        when(user.is(UserProfilConstant.PROMOTER)).thenReturn(false);
+        return user;
     }
 
     @Test

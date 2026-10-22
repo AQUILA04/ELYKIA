@@ -4,8 +4,10 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.entities.service.GenericService;
+import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.service.ClientService;
+import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.dto.CollectorDailyStakeDto;
 import com.optimize.elykia.core.dto.CreditTimelineDto;
 import com.optimize.elykia.core.dto.CreditTimelineMobileDto;
@@ -54,6 +56,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
     private final AccountingDayService accountingDayService;
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final ClientReliquatService clientReliquatService;
+    private final UserService userService;
     private final TransactionTemplate requiresNewTransactionTemplate;
     private CreditPaymentEventService creditPaymentEventService;
     private CreditEnrichmentService creditEnrichmentService;
@@ -68,6 +71,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
             AccountingDayService accountingDayService,
             org.springframework.context.ApplicationEventPublisher eventPublisher,
             ClientReliquatService clientReliquatService,
+            UserService userService,
             PlatformTransactionManager transactionManager) {
         super(repository);
         this.creditMapper = creditMapper;
@@ -77,6 +81,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         this.accountingDayService = accountingDayService;
         this.eventPublisher = eventPublisher;
         this.clientReliquatService = clientReliquatService;
+        this.userService = userService;
         this.requiresNewTransactionTemplate = new TransactionTemplate(transactionManager);
         this.requiresNewTransactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
@@ -123,6 +128,8 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
 
     private CreditTimeline doMakeDailyStake(CreditTimelineDto dto) {
         Credit credit = creditService.getById(dto.getCreditId());
+        AppNotificationService.assertPromoterOwnsCreditCollector(
+                userService.getCurrentUser(), credit.getCollector());
         applyAutoReliquatForClosure(dto, credit);
 
         CreditTimeline creditTimeline = creditMapper.toCreditTimeline(dto);
@@ -370,6 +377,8 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         }
 
         Credit credit = creditOptional.get();
+        AppNotificationService.assertPromoterOwnsCreditCollector(
+                userService.getCurrentUser(), credit.getCollector());
         Double stakeAmount = amount;
         if (isNormalStake) {
             stakeAmount = credit.getDailyStake();

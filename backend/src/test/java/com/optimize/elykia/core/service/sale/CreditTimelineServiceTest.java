@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.service.sale;
 
 import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.entity.accounting.DailyAccountancy;
@@ -45,6 +46,8 @@ class CreditTimelineServiceTest {
     private ApplicationEventPublisher eventPublisher;
     @Mock
     private ClientReliquatService clientReliquatService;
+    @Mock
+    private UserService userService;
     @Mock
     private PlatformTransactionManager transactionManager;
     @Mock

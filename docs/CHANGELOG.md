@@ -15,6 +15,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.37.1] — 2026-10-22
+
+### Changed
+
+- Un commercial ne peut plus enregistrer un recouvrement crédit ou une collecte tontine pour un client qui ne lui est plus affecté. Le message d’erreur indique clairement le motif. Les profils autres que commercial restent autorisés à saisir pour le compte d’un commercial.
+
 ## Backend — [1.37.0] — 2026-10-16
 
 ### Added
@@ -50,6 +56,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.33.3] — 2026-10-22
+
+### Changed
+
+- Guide commercial mobile : précision sur le refus d’enregistrement si le client n’est plus dans le portefeuille crédit ou tontine.
 
 ## Frontend — [2.33.2] — 2026-10-17
 

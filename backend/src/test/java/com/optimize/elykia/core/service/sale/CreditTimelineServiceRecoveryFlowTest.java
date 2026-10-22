@@ -1,7 +1,11 @@
 package com.optimize.elykia.core.service.sale;
 
+import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.service.ClientService;
+import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.dto.CollectorDailyStakeDto;
 import com.optimize.elykia.core.dto.CreditTimelineDto;
 import com.optimize.elykia.core.dto.DefaultDailyStakeUnitDto;
@@ -33,12 +37,14 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -69,6 +75,8 @@ class CreditTimelineServiceRecoveryFlowTest {
     @Mock
     private ClientReliquatService clientReliquatService;
     @Mock
+    private UserService userService;
+    @Mock
     private PlatformTransactionManager transactionManager;
     @Mock
     private TransactionStatus transactionStatus;
@@ -89,6 +97,7 @@ class CreditTimelineServiceRecoveryFlowTest {
                 accountingDayService,
                 eventPublisher,
                 clientReliquatService,
+                userService,
                 transactionManager
         );
     }
@@ -254,6 +263,74 @@ class CreditTimelineServiceRecoveryFlowTest {
     }
 
     @Test
+    void defaultDailyStakeByCollector_promoterCannotRecoverOtherCollectorsCredit() {
+        User promoter = promoterOnly("COM015");
+        when(accountingDayService.ensureAccountingReadyForOperations()).thenReturn(LocalDate.of(2026, 7, 17));
+        when(creditService.getRepository()).thenReturn(creditRepository);
+        when(userService.getCurrentUser()).thenReturn(promoter);
+
+        Credit otherCredit = inProgressCredit(10L, "COM003", 100.0, 1000.0);
+        when(repository.existsByReference("REC-OTHER")).thenReturn(false);
+        when(creditRepository.findByIdAndStatus(10L, CreditStatus.INPROGRESS)).thenReturn(Optional.of(otherCredit));
+
+        CollectorDailyStakeDto dto = new CollectorDailyStakeDto();
+        dto.setCollector("COM015");
+        DefaultDailyStakeUnitDto unit = new DefaultDailyStakeUnitDto();
+        unit.setCreditId(10L);
+        unit.setRecoveryId("REC-OTHER");
+        dto.setStakeUnits(List.of(unit));
+
+        SpecialDailyStakeResponseDto response = service.defaultDailyStakeByCollector(dto);
+
+        assertTrue(response.getSuccessRecoveryIds().isEmpty());
+        assertEquals(1, response.getFailedRecoveries().size());
+        assertEquals("REC-OTHER", response.getFailedRecoveries().get(0).getRecoveryId());
+        assertTrue(response.getFailedRecoveries().get(0).getErrorMessage().contains("commercial crédit"));
+        verify(repository, never()).save(any(CreditTimeline.class));
+    }
+
+    @Test
+    void makeDailyStake_promoterOwnsCollector_succeeds() {
+        User promoter = promoterOnly("COM015");
+        when(repository.existsByReference(anyString())).thenReturn(false);
+        when(accountingDayService.ensureAccountingReadyForOperations()).thenReturn(LocalDate.of(2026, 7, 17));
+        when(userService.getCurrentUser()).thenReturn(promoter);
+
+        Credit credit = inProgressCredit(1L, "COM015", 100.0, 1000.0);
+        CreditTimelineDto dto = stakeDto(1L, 100.0, "REC-OWN");
+        CreditTimeline mapped = new CreditTimeline();
+        mapped.setAmount(100.0);
+        mapped.setReference("REC-OWN");
+
+        when(creditMapper.toCreditTimeline(any())).thenReturn(mapped);
+        when(creditService.getById(1L)).thenReturn(credit);
+        when(dailyAccountancyService.getByCollectorOrCreateNew("COM015")).thenReturn(new DailyAccountancy());
+        when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(repository.save(any(CreditTimeline.class))).thenAnswer(inv -> {
+            CreditTimeline saved = inv.getArgument(0);
+            saved.setId(51L);
+            return saved;
+        });
+
+        CreditTimeline result = service.makeDailyStake(dto);
+        assertEquals(51L, result.getId());
+    }
+
+    @Test
+    void makeDailyStake_promoterOtherCollector_throws() {
+        User promoter = promoterOnly("COM015");
+        when(repository.existsByReference(anyString())).thenReturn(false);
+        when(accountingDayService.ensureAccountingReadyForOperations()).thenReturn(LocalDate.of(2026, 7, 17));
+        when(userService.getCurrentUser()).thenReturn(promoter);
+        when(creditService.getById(1L)).thenReturn(inProgressCredit(1L, "COM003", 100.0, 1000.0));
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> service.makeDailyStake(stakeDto(1L, 100.0, "REC-FORBIDDEN")));
+        assertTrue(ex.getMessage().contains("commercial crédit"));
+        verify(repository, never()).save(any(CreditTimeline.class));
+    }
+
+    @Test
     void makeDailyStake_returnsExistingTimelineWithoutEnsureWhenReferenceAlreadySynced() {
         CreditTimeline existing = new CreditTimeline();
         existing.setId(7L);
@@ -341,5 +418,15 @@ class CreditTimelineServiceRecoveryFlowTest {
         client.setLastname("Test");
         credit.setClient(client);
         return credit;
+    }
+
+    private static User promoterOnly(String username) {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn(username);
+        when(user.is(UserProfilConstant.SECRETARY)).thenReturn(false);
+        when(user.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(user.is(UserProfilConstant.ADMIN)).thenReturn(false);
+        when(user.is(UserProfilConstant.PROMOTER)).thenReturn(true);
+        return user;
     }
 }

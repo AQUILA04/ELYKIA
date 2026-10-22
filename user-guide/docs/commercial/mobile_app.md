@@ -181,6 +181,8 @@ Ne perdez pas de temps à chercher qui doit payer aujourd'hui :
    * Le ticket de caisse s'affiche avec la date, l'heure, le montant payé et le solde restant.
    * Touchez **Imprimer** : votre imprimante Bluetooth de ceinture imprime le ticket officiel pour la cliente.
 
+> **Portefeuille crédit** : vous ne pouvez encaisser que les clientes qui vous sont affectées en commercial crédit. Si une cliente a été réaffectée à un autre commercial, l’enregistrement du recouvrement est refusé avec un message clair. Actualisez vos données (synchronisation) pour ne garder que votre portefeuille à jour.
+
 ---
 
 ## 5. Module Tontine : l'épargne collective
@@ -235,6 +237,8 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 4. **Imprimez le reçu de cotisation** :
    * Le reçu officiel s'affiche avec le nom de la membre, la somme du jour et le **Total cotisé à ce jour**.
    * Touchez le bouton bleu **Imprimer** pour donner son ticket papier à la membre.
+
+> **Portefeuille tontine** : vous ne pouvez collecter que pour les membres qui vous sont affectées en commercial tontine. Si une membre a été réaffectée à un autre commercial, l’enregistrement de la cotisation est refusé avec un message clair. Actualisez vos données (synchronisation) pour ne garder que votre carnet à jour.
 
 ### E. Remettre les articles de fin d'année (Livraison tontine)
 Pendant la campagne, la membre peut déjà choisir ses articles. La remise en mains propres se fait après la clôture de la session.

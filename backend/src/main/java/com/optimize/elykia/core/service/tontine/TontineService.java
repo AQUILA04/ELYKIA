@@ -29,6 +29,7 @@ import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
+import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicy;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicyResolver;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
@@ -421,6 +422,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
 
         TontineMember member = this.getById(dto.getMemberId());
+        Client client = member.getClient();
+        AppNotificationService.assertPromoterOwnsTontineCollector(
+                userService.getCurrentUser(),
+                client != null ? client.getTontineCollector() : null);
 
         LocalDate allocationDate = LocalDate.now();
         LocalDateTime collectionDateTime = LocalDateTime.now();
