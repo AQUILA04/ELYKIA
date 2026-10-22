@@ -175,4 +175,34 @@ public interface DebtDocumentRepository extends JpaRepository<DebtDocument, Long
             @Param("holder") String holder,
             @Param("year") int year,
             @Param("month") int month);
+
+    @Query("""
+            SELECT d.periodDay FROM DebtDocument d
+            WHERE UPPER(d.holderUsername) = UPPER(:holder)
+              AND d.debtType IN (
+                com.optimize.elykia.core.enumaration.DebtType.CASH_SHORTAGE,
+                com.optimize.elykia.core.enumaration.DebtType.CASH_SURPLUS)
+              AND d.periodGrain = com.optimize.elykia.core.enumaration.DebtPeriodGrain.DAY
+              AND d.periodDay IS NOT NULL
+              AND d.periodDay <= :end
+              AND d.status <> com.optimize.elykia.core.enumaration.DebtStatus.CANCELLED
+            """)
+    List<LocalDate> findActiveCashDaysUpTo(
+            @Param("holder") String holder,
+            @Param("end") LocalDate end);
+
+    @Query("""
+            SELECT d.holderUsername, d.periodDay FROM DebtDocument d
+            WHERE UPPER(d.holderUsername) IN :holders
+              AND d.debtType IN (
+                com.optimize.elykia.core.enumaration.DebtType.CASH_SHORTAGE,
+                com.optimize.elykia.core.enumaration.DebtType.CASH_SURPLUS)
+              AND d.periodGrain = com.optimize.elykia.core.enumaration.DebtPeriodGrain.DAY
+              AND d.periodDay IS NOT NULL
+              AND d.periodDay < :before
+              AND d.status <> com.optimize.elykia.core.enumaration.DebtStatus.CANCELLED
+            """)
+    List<Object[]> findActiveCashDaysBefore(
+            @Param("holders") Collection<String> holders,
+            @Param("before") LocalDate before);
 }

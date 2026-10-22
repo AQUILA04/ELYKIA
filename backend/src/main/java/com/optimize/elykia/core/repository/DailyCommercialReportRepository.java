@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,18 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
 
         List<DailyCommercialReport> findByCommercialUsernameAndDateBetweenOrderByDateAsc(String commercialUsername,
                         LocalDate startDate, LocalDate endDate);
+
+        List<DailyCommercialReport> findByCommercialUsernameIgnoreCaseAndDateLessThanEqualOrderByDateAsc(
+                        String commercialUsername, LocalDate endDate);
+
+        @Query("""
+                        SELECT d FROM DailyCommercialReport d
+                        WHERE d.date < :before
+                          AND UPPER(d.commercialUsername) IN :usernames
+                        """)
+        List<DailyCommercialReport> findBeforeDateForCommercials(
+                        @Param("before") LocalDate before,
+                        @Param("usernames") Collection<String> usernames);
 
         @Query("SELECT new com.optimize.elykia.core.entity.report.DailyCommercialReport(" +
                         "d.commercialUsername, " +
@@ -47,7 +60,10 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
                         "SUM(d.totalReliquatGeneratedAmount), " +
                         "SUM(d.totalReliquatUsedAmount), " +
                         "SUM(d.tontineCatchupCount), " +
-                        "SUM(d.tontineCatchupAmount)) " +
+                        "SUM(d.tontineCatchupAmount), " +
+                        "SUM(d.surplusCoverageCredit), " +
+                        "SUM(d.surplusCoverageTontine), " +
+                        "SUM(d.surplusCoverageNewBalance)) " +
                         "FROM DailyCommercialReport d " +
                         "WHERE d.date BETWEEN :startDate AND :endDate " +
                         "GROUP BY d.commercialUsername")
@@ -83,7 +99,10 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
                         "SUM(d.totalReliquatGeneratedAmount), " +
                         "SUM(d.totalReliquatUsedAmount), " +
                         "SUM(d.tontineCatchupCount), " +
-                        "SUM(d.tontineCatchupAmount)) " +
+                        "SUM(d.tontineCatchupAmount), " +
+                        "SUM(d.surplusCoverageCredit), " +
+                        "SUM(d.surplusCoverageTontine), " +
+                        "SUM(d.surplusCoverageNewBalance)) " +
                         "FROM DailyCommercialReport d " +
                         "WHERE d.commercialUsername = :commercialUsername " +
                         "AND d.date BETWEEN :startDate AND :endDate " +

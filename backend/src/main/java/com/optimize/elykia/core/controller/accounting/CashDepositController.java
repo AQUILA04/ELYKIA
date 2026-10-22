@@ -42,6 +42,15 @@ public class CashDepositController {
         return ResponseEntity.ok(cashDepositService.cancelDeposit(id));
     }
 
+    @GetMapping("/reallocate-surplus/preview")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
+    public ResponseEntity<SurplusReallocationDto> previewReallocateSurplus(
+            @RequestParam String commercialUsername,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(surplusReallocationService.preview(commercialUsername, startDate, endDate));
+    }
+
     @PostMapping("/reallocate-surplus")
     @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
     public ResponseEntity<SurplusReallocationDto> reallocateSurplus(@RequestBody SurplusReallocationRequest request) {

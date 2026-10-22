@@ -45,6 +45,34 @@ describe('daily-commercial-report.model', () => {
     expect(report.tontineCatchupCount).toBe(2);
     expect(report.tontineCatchupAmount).toBe(4200);
   });
+
+  it('subtracts surplus coverage from the remaining amount', () => {
+    const report = {
+      commercialUsername: 'agent1',
+      date: '2026-10-05',
+      totalStockRequestAmount: 0,
+      creditSalesCount: 0,
+      creditSalesAmount: 0,
+      newClientsCount: 0,
+      newAccountsBalance: 0,
+      collectionsCount: 0,
+      collectionsAmount: 0,
+      ordersCount: 0,
+      ordersAmount: 0,
+      tontineMembersCount: 0,
+      tontineCollectionsCount: 1,
+      tontineCollectionsAmount: 40000,
+      tontineDeliveriesCount: 0,
+      tontineDeliveriesAmount: 0,
+      totalAmountToDeposit: 40000,
+      totalAmountDeposited: 0,
+      totalTontineAmountDeposited: 0,
+      surplusCoverageTontine: 27100
+    };
+
+    expect(remainingTontine(report)).toBe(12900);
+    expect(totalRemainingToDeposit(report)).toBe(12900);
+  });
 });
 
 describe('daily-report catch-up deep-link query params', () => {

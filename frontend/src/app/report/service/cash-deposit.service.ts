@@ -21,6 +21,14 @@ export class CashDepositService {
         return this.http.post(`${this.apiUrl}/${id}/cancel`, {});
     }
 
+    previewReallocateSurplus(commercialUsername: string, startDate: string, endDate: string): Observable<SurplusReallocation> {
+        const params = new HttpParams()
+            .set('commercialUsername', commercialUsername)
+            .set('startDate', startDate)
+            .set('endDate', endDate);
+        return this.http.get<SurplusReallocation>(`${this.apiUrl}/reallocate-surplus/preview`, { params });
+    }
+
     reallocateSurplus(commercialUsername: string, startDate: string, endDate: string): Observable<SurplusReallocation> {
         return this.http.post<SurplusReallocation>(`${this.apiUrl}/reallocate-surplus`, {
             commercialUsername,
