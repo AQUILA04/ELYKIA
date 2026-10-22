@@ -30,6 +30,7 @@ import { CashDepositModalComponent } from './components/cash-deposit-modal/cash-
 import { RecoveryManagerReportTabComponent } from './components/recovery-manager-report-tab/recovery-manager-report-tab.component';
 import { CashPeriodRemittanceTabComponent } from './components/cash-period-remittance-tab/cash-period-remittance-tab.component';
 import { RemainingAtClientsDialogComponent } from './components/remaining-at-clients-dialog/remaining-at-clients-dialog.component';
+import { SurplusReallocationDialogComponent } from './components/surplus-reallocation-dialog/surplus-reallocation-dialog.component';
 
 @NgModule({
   declarations: [
@@ -40,6 +41,7 @@ import { RemainingAtClientsDialogComponent } from './components/remaining-at-cli
     RecoveryManagerReportTabComponent,
     CashPeriodRemittanceTabComponent,
     RemainingAtClientsDialogComponent,
+    SurplusReallocationDialogComponent,
   ],
   imports: [
     CommonModule,

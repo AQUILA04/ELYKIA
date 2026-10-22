@@ -2,8 +2,10 @@ package com.optimize.elykia.core.service.accounting;
 
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.dto.report.SurplusReallocationDayDto;
 import com.optimize.elykia.core.dto.report.SurplusReallocationDto;
 import com.optimize.elykia.core.dto.report.SurplusReallocationLineDto;
+import com.optimize.elykia.core.dto.report.SurplusReallocationSourceDto;
 import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.entity.report.CashPeriodRemittance;
 import com.optimize.elykia.core.entity.report.CashSurplusReallocation;
@@ -29,6 +31,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -66,16 +69,23 @@ public class CashSurplusReallocationService {
     }
 
     @Transactional(readOnly = true)
-    public SurplusReallocationDto preview(String commercialUsername, LocalDate startDate, LocalDate endDate) {
+    public SurplusReallocationDto preview(String commercialUsername, LocalDate startDate, LocalDate endDate,
+            boolean includeNewBalance, List<LocalDate> priorityDates) {
         User currentUser = userService.getCurrentUser();
         assertCanReallocate(currentUser);
-        return compute(commercialUsername, startDate, endDate, currentUser.getUsername()).toDto();
+        return compute(commercialUsername, startDate, endDate, currentUser.getUsername(), includeNewBalance,
+                priorityDates, true).toDto();
     }
 
-    public SurplusReallocationDto reallocate(String commercialUsername, LocalDate startDate, LocalDate endDate) {
+    public SurplusReallocationDto reallocate(String commercialUsername, LocalDate startDate, LocalDate endDate,
+            boolean includeNewBalance, List<LocalDate> priorityDates) {
         User currentUser = userService.getCurrentUser();
         assertCanReallocate(currentUser);
-        AllocationPlan plan = compute(commercialUsername, startDate, endDate, currentUser.getUsername());
+        AllocationPlan plan = compute(commercialUsername, startDate, endDate, currentUser.getUsername(),
+                includeNewBalance, priorityDates, false);
+        if (plan.totalReallocated <= 0.01) {
+            throw new RuntimeException("Aucun montant n'a pu être réaffecté.");
+        }
         apply(plan);
 
         CashSurplusReallocation reallocation = new CashSurplusReallocation();
@@ -174,7 +184,7 @@ public class CashSurplusReallocationService {
     }
 
     private AllocationPlan compute(String commercialUsername, LocalDate startDate, LocalDate endDate,
-            String performedBy) {
+            String performedBy, boolean includeNewBalance, List<LocalDate> priorityDates, boolean preview) {
         if (!StringUtils.hasText(commercialUsername) || startDate == null || endDate == null) {
             throw new RuntimeException("Commercial et période sont obligatoires.");
         }
@@ -207,6 +217,15 @@ public class CashSurplusReallocationService {
             throw new RuntimeException("Aucun surplus non catégorisé à équilibrer sur cette période.");
         }
 
+        Set<LocalDate> priority = new HashSet<>();
+        if (priorityDates != null) {
+            for (LocalDate date : priorityDates) {
+                if (date != null) {
+                    priority.add(date);
+                }
+            }
+        }
+
         List<DayNeed> targets = new ArrayList<>();
         double remainingBefore = 0.0;
         for (DailyCommercialReport report : history) {
@@ -220,12 +239,15 @@ public class CashSurplusReallocationService {
             if (total <= 0.01) {
                 continue;
             }
-            targets.add(new DayNeed(report, credit, tontine, balance));
+            targets.add(new DayNeed(report, credit, tontine, balance, priority.contains(report.getDate()),
+                    includeNewBalance));
             remainingBefore += total;
         }
         if (remainingBefore <= 0.01) {
             throw new RuntimeException("Aucun manquant crédit, tontine ou solde à combler.");
         }
+        targets.sort(Comparator.comparing((DayNeed need) -> !need.priority)
+                .thenComparing(need -> need.report.getDate()));
 
         List<CashDeposit> surplusDeposits = cashDepositRepository.findSurplusDepositsForPeriod(commercial, startDate,
                 endDate);
@@ -305,8 +327,23 @@ public class CashSurplusReallocationService {
         }
 
         double totalReallocated = creditAllocated + tontineAllocated + newBalanceAllocated;
-        if (totalReallocated <= 0.01) {
+        if (!preview && totalReallocated <= 0.01) {
             throw new RuntimeException("Aucun montant n'a pu être réaffecté.");
+        }
+
+        List<SurplusReallocationSourceDto> surplusByDay = new ArrayList<>();
+        for (DailyCommercialReport report : history) {
+            if (report.getDate() == null || report.getDate().isBefore(startDate) || lockedDays.contains(report.getDate())) {
+                continue;
+            }
+            double surplus = safe(report.getTotalSurplusAmountDeposited());
+            if (surplus <= 0.01) {
+                continue;
+            }
+            surplusByDay.add(SurplusReallocationSourceDto.builder()
+                    .date(report.getDate())
+                    .surplus(surplus)
+                    .build());
         }
 
         AllocationPlan plan = new AllocationPlan();
@@ -326,6 +363,7 @@ public class CashSurplusReallocationService {
         plan.lines = lines;
         plan.pools = pools;
         plan.targets = targets;
+        plan.surplusByDay = surplusByDay;
         return plan;
     }
 
@@ -484,6 +522,10 @@ public class CashSurplusReallocationService {
 
     private static final class DayNeed {
         private final DailyCommercialReport report;
+        private final double creditGap;
+        private final double tontineGap;
+        private final double newBalanceGap;
+        private final boolean priority;
         private double credit;
         private double tontine;
         private double newBalance;
@@ -491,11 +533,16 @@ public class CashSurplusReallocationService {
         private double coverageTontine;
         private double coverageNewBalance;
 
-        private DayNeed(DailyCommercialReport report, double credit, double tontine, double newBalance) {
+        private DayNeed(DailyCommercialReport report, double credit, double tontine, double newBalance,
+                boolean priority, boolean includeNewBalance) {
             this.report = report;
+            this.creditGap = credit;
+            this.tontineGap = tontine;
+            this.newBalanceGap = newBalance;
+            this.priority = priority;
             this.credit = credit;
             this.tontine = tontine;
-            this.newBalance = newBalance;
+            this.newBalance = includeNewBalance ? newBalance : 0.0;
         }
 
         private double remaining() {
@@ -536,6 +583,7 @@ public class CashSurplusReallocationService {
         private List<CashSurplusReallocationLine> lines = List.of();
         private List<DepositPool> pools = List.of();
         private List<DayNeed> targets = List.of();
+        private List<SurplusReallocationSourceDto> surplusByDay = List.of();
 
         private SurplusReallocationDto toDto() {
             List<SurplusReallocationLineDto> lineDtos = lines.stream()
@@ -565,6 +613,18 @@ public class CashSurplusReallocationService {
                     .remainingAfter(remainingAfter)
                     .totalReallocated(totalReallocated)
                     .lines(lineDtos)
+                    .days(targets.stream().map(need -> SurplusReallocationDayDto.builder()
+                            .date(need.report.getDate())
+                            .creditGap(need.creditGap)
+                            .tontineGap(need.tontineGap)
+                            .newBalanceGap(need.newBalanceGap)
+                            .creditAllocated(need.coverageCredit)
+                            .tontineAllocated(need.coverageTontine)
+                            .newBalanceAllocated(need.coverageNewBalance)
+                            .priority(need.priority)
+                            .beforePeriod(periodStart != null && need.report.getDate().isBefore(periodStart))
+                            .build()).toList())
+                    .surplusByDay(surplusByDay)
                     .build();
         }
     }

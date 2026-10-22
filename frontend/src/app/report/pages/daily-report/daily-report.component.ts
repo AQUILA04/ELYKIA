@@ -12,6 +12,7 @@ import { DatePipe } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { CashDepositModalComponent } from '../../components/cash-deposit-modal/cash-deposit-modal.component';
 import { RemainingAtClientsDialogComponent } from '../../components/remaining-at-clients-dialog/remaining-at-clients-dialog.component';
+import { SurplusReallocationDialogComponent } from '../../components/surplus-reallocation-dialog/surplus-reallocation-dialog.component';
 import { DailyOperationLog } from '../../models/daily-operation-log.model';
 import { DailyOperationService } from '../../service/daily-operation.service';
 import { CashDepositService } from '../../service/cash-deposit.service';
@@ -93,7 +94,6 @@ export class DailyReportComponent implements OnInit {
 
     aggregatedReportData: any = null;
     surplusReallocations: SurplusReallocation[] = [];
-    reallocatingSurplus = false;
     yearlySummary: CommercialYearlySummary | null = null;
     yearlySummaryLoading = false;
     yearlyTontineSummary: CommercialTontineYearlySummary | null = null;
@@ -669,7 +669,7 @@ export class DailyReportComponent implements OnInit {
     }
 
     confirmReallocateSurplus(report: DailyCommercialReport): void {
-        if (!this.canReallocateSurplus(report) || this.reallocatingSurplus) {
+        if (!this.canReallocateSurplus(report)) {
             return;
         }
         const start = this.periodStart;
@@ -677,83 +677,31 @@ export class DailyReportComponent implements OnInit {
         if (!report?.commercialUsername || !start || !end) {
             return;
         }
-        this.reallocatingSurplus = true;
-        this.cashDepositService.previewReallocateSurplus(report.commercialUsername, start, end).subscribe({
-            next: (preview) => {
-                this.reallocatingSurplus = false;
-                if (!preview || (preview.totalReallocated || 0) <= 0) {
-                    this.alertService.showError('Aucun montant à équilibrer.');
-                    return;
-                }
-                void this.alertService.showConfirmation(
-                    'Équilibrer le surplus',
-                    this.buildReallocationMessage(preview),
-                    'Équilibrer'
-                ).then((confirmed) => {
-                    if (confirmed) {
-                        this.runReallocateSurplus(report);
-                    }
-                });
-            },
-            error: (err) => {
-                this.reallocatingSurplus = false;
-                this.alertService.showError(err?.error?.message || err?.error || 'Équilibrage impossible.');
+        const dialogRef = this.dialog.open(SurplusReallocationDialogComponent, {
+            width: '980px',
+            maxWidth: '96vw',
+            panelClass: 'surplus-reallocation-dialog-panel',
+            data: {
+                commercialUsername: report.commercialUsername,
+                startDate: start,
+                endDate: end
             }
         });
-    }
-
-    private buildReallocationMessage(preview: SurplusReallocation): string {
-        const format = (value: number) =>
-            new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 }).format(value) + ' FCFA';
-        const byDate = new Map<string, { credit: number; tontine: number; newBalance: number }>();
-        for (const line of preview.lines || []) {
-            const key = line.targetDate || line.depositDate;
-            const current = byDate.get(key) || { credit: 0, tontine: 0, newBalance: 0 };
-            current.credit += line.creditAllocated || 0;
-            current.tontine += line.tontineAllocated || 0;
-            current.newBalance += line.newBalanceAllocated || 0;
-            byDate.set(key, current);
-        }
-        const days = Array.from(byDate.entries()).map(([date, amounts]) => {
-            const parts = [
-                amounts.credit > 0 ? `crédit ${format(amounts.credit)}` : null,
-                amounts.tontine > 0 ? `tontine ${format(amounts.tontine)}` : null,
-                amounts.newBalance > 0 ? `solde ${format(amounts.newBalance)}` : null
-            ].filter(Boolean).join(', ');
-            const label = this.formatIsoDate(date);
-            return `${label} : ${parts}`;
-        }).join('<br>');
-        return `Équilibrer ${format(preview.totalReallocated || 0)} de surplus ?<br>${days}<br>`
-            + `Reste après : ${format(preview.remainingAfter || 0)} · Surplus restant : ${format(preview.surplusRemaining || 0)}<br>`
-            + `Le total versé ne change pas. Les jours les plus anciens sont couverts en premier.`;
+        dialogRef.afterClosed().subscribe((result) => {
+            if (!result) {
+                return;
+            }
+            const amount = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 })
+                .format(result.totalReallocated || 0);
+            this.alertService.showSuccess(`Surplus équilibré : ${amount} FCFA réaffectés.`);
+            this.loadReports();
+            this.loadYearlySummary();
+        });
     }
 
     private formatIsoDate(value: string): string {
         const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value || '');
         return match ? `${match[3]}/${match[2]}/${match[1]}` : value;
-    }
-
-    private runReallocateSurplus(report: DailyCommercialReport): void {
-        const start = this.periodStart;
-        const end = this.periodEnd;
-        if (!report?.commercialUsername || !start || !end) {
-            return;
-        }
-        this.reallocatingSurplus = true;
-        this.cashDepositService.reallocateSurplus(report.commercialUsername, start, end).subscribe({
-            next: (result) => {
-                this.reallocatingSurplus = false;
-                const amount = new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 0 })
-                    .format(result.totalReallocated || 0);
-                this.alertService.showSuccess(`Surplus équilibré : ${amount} FCFA réaffectés.`);
-                this.loadReports();
-                this.loadYearlySummary();
-            },
-            error: (err) => {
-                this.reallocatingSurplus = false;
-                this.alertService.showError(err?.error?.message || err?.error || 'Équilibrage impossible.');
-            }
-        });
     }
 
     formatReallocationSummary(item: SurplusReallocation): string {

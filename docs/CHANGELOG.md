@@ -15,6 +15,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.39.0] — 2026-10-22
+
+### Added
+
+- L’aperçu d’équilibrage de surplus liste chaque jour en manque, même si le montant affecté est 0, et le surplus de chaque jour de la période. L’enregistrement accepte les jours prioritaires et le choix d’inclure les soldes de nouveaux comptes.
+
+### Changed
+
+- Sans demande explicite, le surplus sert le crédit puis la tontine. Le montant qui reste passe aux jours suivants. Les soldes de nouveaux comptes ne sont couverts que si l’appel le demande. Les jours choisis sont servis en premier, du plus ancien au plus récent.
+
 ## Backend — [1.38.0] — 2026-10-22
 
 ### Added
@@ -62,6 +72,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.35.0] — 2026-10-22
+
+### Added
+
+- Rapport journalier : **Équilibrer le surplus** ouvre une fenêtre qui montre le surplus de toute la période et, pour chaque jour en manque, le montant qui sera affecté. La case des soldes de nouveaux comptes est décochée. Les jours cochés **Prioritaire** sont servis en premier.
 
 ## Frontend — [2.34.0] — 2026-10-22
 
