@@ -102,6 +102,8 @@ LOG_PATH=/opt/elykia/test/logs
 
 API_URL=https://elykia-test.amenouveve-yaveh.com/api
 GA_MEASUREMENT_ID=
+# Clé web Firebase du frontend admin. Ne pas commiter la valeur.
+FIREBASE_API_KEY=
 
 # MinIO
 MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}
@@ -139,6 +141,8 @@ LOG_PATH=/opt/elykia/prod/logs
 
 API_URL=https://elykia.amenouveve-yaveh.com/api
 GA_MEASUREMENT_ID=
+# Clé web Firebase du frontend admin. Ne pas commiter la valeur.
+FIREBASE_API_KEY=
 
 # MinIO
 MINIO_ROOT_USER=${MINIO_ROOT_USER:-minioadmin}

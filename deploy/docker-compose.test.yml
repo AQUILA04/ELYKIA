@@ -125,6 +125,7 @@ services:
     environment:
       API_URL: ${API_URL:-https://elykia-test.amenouveve-yaveh.com/api}
       GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
+      FIREBASE_API_KEY: ${FIREBASE_API_KEY:-}
     networks:
       - traefik-public
     labels:

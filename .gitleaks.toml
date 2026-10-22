@@ -3,9 +3,23 @@ title = "ELYKIA gitleaks"
 [extend]
 useDefault = true
 
-[allowlist]
+[[allowlists]]
 description = "Historique documentaire et secret de test isolé"
 paths = [
   '''docs/CHANGELOG\.md''',
   '''(?:^|/)src/test/''',
+]
+
+[[allowlists]]
+description = "Jetons fictifs des exemples de documentation"
+regexes = [
+  '''YOUR_TOKEN''',
+  '''JWT_TOKEN''',
+  '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.\.\.''',
+]
+
+[[allowlists]]
+description = "Empreintes de fichiers BMAD, pas des secrets"
+paths = [
+  '''_bmad/_config/files-manifest\.csv''',
 ]

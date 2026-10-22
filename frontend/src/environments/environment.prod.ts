@@ -9,7 +9,7 @@ export const environment = {
     authtoken: 'auth-token',
   },
   firebase: {
-    apiKey: "AIzaSyA_GIQFgCEpbPuByXuQwu6-EwPO21pAV7s",
+    apiKey: (globalThis as any).__env?.firebaseApiKey || '',
     authDomain: "elykia-47182.firebaseapp.com",
     projectId: "elykia-47182",
     storageBucket: "elykia-47182.firebasestorage.app",

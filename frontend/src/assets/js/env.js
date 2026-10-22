@@ -7,6 +7,7 @@
   global.__env = global.__env || {};
   global.__env.apiUrl = '__API_URL__';
   global.__env.gaMeasurementId = '__GA_MEASUREMENT_ID__';
+  global.__env.firebaseApiKey = '__FIREBASE_API_KEY__';
   global.__env.production = true;
   global.__env.config = {
     authuser: 'auth-user',

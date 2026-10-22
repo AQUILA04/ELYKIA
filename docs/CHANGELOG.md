@@ -14,7 +14,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Security
 
 - **Deploy —** `JWT_SECRET` est obligatoire dans les compose test, prod et DigitalOcean, et dans les modèles `.env`. Sans cette variable le backend ne démarre pas.
-- **CI —** le scan gitleaks parcourt les fichiers suivis à chaque push et pull request. Les logs de déploiement n’affichent plus les identifiants SSH.
+- **CI —** le scan gitleaks parcourt les fichiers suivis à chaque push et pull request. Les logs de déploiement n’affichent plus les identifiants SSH. Les exemples de documentation avec un jeton fictif ne sont pas signalés.
 - **Docs —** les guides de démarrage et d’E2E n’indiquent plus de mot de passe. Les secrets locaux restent dans l’environnement ou dans `.cursor/local-secrets.env`.
 
 ## Docs & Infra — 2026-10-17
@@ -89,6 +89,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.35.2] — 2026-10-22
+
+### Security
+
+- La clé web Firebase n’est plus dans les sources. En production elle est injectée au démarrage du conteneur par `FIREBASE_API_KEY`.
 
 ## Frontend — [2.35.1] — 2026-10-22
 
