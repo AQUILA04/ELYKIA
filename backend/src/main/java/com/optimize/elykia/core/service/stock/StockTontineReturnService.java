@@ -14,6 +14,7 @@ import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.StockTontineReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.core.service.store.InventoryWarehouseGuard;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.util.ArticleSortOrder;
@@ -38,6 +39,18 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
     private final ArticlesService articlesService;
     private final StockMovementService stockMovementService;
     private final StockValuationFacade stockValuationFacade;
+    private InventoryWarehouseGuard inventoryWarehouseGuard;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
+        this.inventoryWarehouseGuard = inventoryWarehouseGuard;
+    }
+
+    private void assertWarehouseStockMutable() {
+        if (inventoryWarehouseGuard != null) {
+            inventoryWarehouseGuard.assertWarehouseStockMutable();
+        }
+    }
 
     protected StockTontineReturnService(StockTontineReturnRepository repository,
             UserService userService,
@@ -95,6 +108,9 @@ public class StockTontineReturnService extends GenericService<StockTontineReturn
      */
     public StockTontineReturn createAndValidateForPriceRealignment(
             String collector, Articles article, int quantity, String comment, boolean reintegrateToWarehouse) {
+        if (reintegrateToWarehouse) {
+            assertWarehouseStockMutable();
+        }
         if (quantity <= 0) {
             throw new CustomValidationException("Quantité de retour tontine invalide pour le réalignement de prix.");
         }

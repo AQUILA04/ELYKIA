@@ -230,7 +230,9 @@
 .inventory-history-page .status-completed,
 .inventory-history-page .status-reconciled { background: #e6f6ec; color: var(--green); }
 .inventory-history-page .status-in_progress { background: #fff4e8; color: var(--orange); }
-.inventory-history-page .status-draft { background: var(--navy-pale); color: var(--navy); }
+.inventory-history-page .status-draft,
+.inventory-history-page .status-suspended { background: var(--navy-pale); color: var(--navy); }
+.inventory-history-page .status-cancelled { background: #fdecec; color: var(--red); }
 
 .inventory-history-page .loading-state,
 .inventory-history-page .empty-state {

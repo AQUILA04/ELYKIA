@@ -23,6 +23,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.40.0] — 2026-10-22
+
+### Added
+
+- Un inventaire encore en brouillon peut être annulé. Le stock magasin n'est pas modifié, et un nouvel inventaire peut être créé.
+- Pendant un inventaire en brouillon ou en cours, les entrées, les livraisons de sortie, les retours vers le magasin et la remise à zéro sont refusés avec un message explicite.
+- Un inventaire ouvert peut être suspendu pour autoriser ces opérations, puis repris. La reprise recalcule les quantités théoriques sur le stock du moment et efface les quantités physiques déjà saisies.
+
 ## Backend — [1.39.1] — 2026-10-22
 
 ### Security
@@ -89,6 +97,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.36.0] — 2026-10-22
+
+### Added
+
+- Sur Inventaires, le gestionnaire peut annuler un brouillon, suspendre la session et la reprendre. Si la confirmation échoue, un message d'erreur s'affiche.
+- Pendant un inventaire en brouillon ou en cours, les entrées de stock et la remise à zéro sont bloquées, avec le message d'attente de fin d'inventaire.
+- L'historique des inventaires affiche les statuts Annulé et Suspendu.
 
 ## Frontend — [2.35.2] — 2026-10-22
 

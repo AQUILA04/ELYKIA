@@ -24,9 +24,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -199,6 +201,72 @@ public class InventoryService extends GenericService<Inventory, Long> {
             metricsPublisher.inventoryFinalized();
         }
         inventory.setCompletedAt(LocalDateTime.now());
+        return update(inventory);
+    }
+
+    @Transactional
+    public Inventory cancelDraftInventory(Long inventoryId) {
+        Inventory inventory = getById(inventoryId);
+        if (inventory.getStatus() != InventoryStatus.DRAFT) {
+            throw new ApplicationException("Seul un inventaire en brouillon peut être annulé.");
+        }
+        boolean hasPhysicalQuantity = inventoryItemRepository.findByInventoryId(inventoryId).stream()
+                .anyMatch(item -> item.getPhysicalQuantity() != null);
+        if (hasPhysicalQuantity) {
+            throw new ApplicationException("Impossible d'annuler cet inventaire : des quantités physiques ont déjà été saisies.");
+        }
+        inventory.setStatus(InventoryStatus.CANCELLED);
+        inventory.setCompletedAt(LocalDateTime.now());
+        return update(inventory);
+    }
+
+    @Transactional
+    public Inventory suspendInventory(Long inventoryId) {
+        Inventory inventory = getById(inventoryId);
+        if (inventory.getStatus() != InventoryStatus.DRAFT && inventory.getStatus() != InventoryStatus.IN_PROGRESS) {
+            throw new ApplicationException("Seuls les inventaires en brouillon ou en cours peuvent être suspendus.");
+        }
+        inventory.setStatus(InventoryStatus.SUSPENDED);
+        return update(inventory);
+    }
+
+    @Transactional
+    public Inventory resumeInventory(Long inventoryId) {
+        Inventory inventory = getById(inventoryId);
+        if (inventory.getStatus() != InventoryStatus.SUSPENDED) {
+            throw new ApplicationException("Seul un inventaire suspendu peut être repris.");
+        }
+
+        List<InventoryItem> items = inventoryItemRepository.findByInventoryId(inventoryId);
+        Set<Long> existingArticleIds = new HashSet<>();
+        for (InventoryItem item : items) {
+            Articles article = item.getArticle();
+            existingArticleIds.add(article.getId());
+            item.setSystemQuantity(article.getStockQuantity() != null ? article.getStockQuantity() : 0);
+            item.setPhysicalQuantity(null);
+            item.setDifference(null);
+            item.setStatus(InventoryItemStatus.PENDING);
+            item.setReconciliationComment(null);
+            item.setReconciledBy(null);
+            item.setReconciledAt(null);
+            item.setMarkAsDebt(false);
+            item.setDebtCancelled(false);
+        }
+
+        Page<Articles> articlesPage = articlesRepository.findByState(State.ENABLED, Pageable.unpaged());
+        for (Articles article : articlesPage.getContent()) {
+            if (existingArticleIds.contains(article.getId())) {
+                continue;
+            }
+            InventoryItem item = new InventoryItem();
+            item.setInventory(inventory);
+            item.setArticle(article);
+            item.setSystemQuantity(article.getStockQuantity() != null ? article.getStockQuantity() : 0);
+            item.setStatus(InventoryItemStatus.PENDING);
+            inventory.addItem(item);
+        }
+
+        inventory.setStatus(InventoryStatus.IN_PROGRESS);
         return update(inventory);
     }
 

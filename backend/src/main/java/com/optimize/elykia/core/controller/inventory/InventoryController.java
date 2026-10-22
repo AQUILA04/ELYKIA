@@ -127,6 +127,30 @@ public class InventoryController {
         return new ResponseEntity<>(ResponseUtil.successResponse(dto), HttpStatus.OK);
     }
 
+    @PostMapping("/{id}/cancel")
+    @PreAuthorize("hasAnyRole('ROLE_CREATE_INVENTORY', 'ROLE_REPORT', 'ROLE_STOREKEEPER')")
+    @Operation(summary = "Annuler un inventaire encore en brouillon")
+    public ResponseEntity<Response> cancelDraftInventory(@PathVariable Long id) {
+        InventoryDto dto = inventoryService.toInventoryDto(inventoryService.cancelDraftInventory(id));
+        return new ResponseEntity<>(ResponseUtil.successResponse(dto), HttpStatus.OK);
+    }
+
+    @PostMapping("/{id}/suspend")
+    @PreAuthorize("hasAnyRole('ROLE_CREATE_INVENTORY', 'ROLE_REPORT', 'ROLE_STOREKEEPER')")
+    @Operation(summary = "Suspendre l'inventaire ouvert pour débloquer le stock magasin")
+    public ResponseEntity<Response> suspendInventory(@PathVariable Long id) {
+        InventoryDto dto = inventoryService.toInventoryDto(inventoryService.suspendInventory(id));
+        return new ResponseEntity<>(ResponseUtil.successResponse(dto), HttpStatus.OK);
+    }
+
+    @PostMapping("/{id}/resume")
+    @PreAuthorize("hasAnyRole('ROLE_CREATE_INVENTORY', 'ROLE_REPORT', 'ROLE_STOREKEEPER')")
+    @Operation(summary = "Reprendre un inventaire suspendu et refaire le snapshot des quantités")
+    public ResponseEntity<Response> resumeInventory(@PathVariable Long id) {
+        InventoryDto dto = inventoryService.toInventoryDto(inventoryService.resumeInventory(id));
+        return new ResponseEntity<>(ResponseUtil.successResponse(dto), HttpStatus.OK);
+    }
+
     @GetMapping("/{id}/pdf")
     @PreAuthorize("hasAnyRole('ROLE_CREATE_INVENTORY', 'ROLE_REPORT', 'ROLE_STOREKEEPER')")
     @Operation(summary = "Télécharger le PDF de contrôle d'inventaire")

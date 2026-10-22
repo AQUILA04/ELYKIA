@@ -16,6 +16,7 @@ import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.event.StockTontineRequestDeliveredEvent;
 import com.optimize.elykia.core.repository.StockTontineRequestRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.core.service.store.InventoryWarehouseGuard;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.core.util.UserProfilConstant;
@@ -56,6 +57,18 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     private final AccountingDayService accountingDayService;
     private final TemplateEngine templateEngine;
     private final PdfHtmlRenderer pdfHtmlRenderer;
+    private InventoryWarehouseGuard inventoryWarehouseGuard;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
+        this.inventoryWarehouseGuard = inventoryWarehouseGuard;
+    }
+
+    private void assertWarehouseStockMutable() {
+        if (inventoryWarehouseGuard != null) {
+            inventoryWarehouseGuard.assertWarehouseStockMutable();
+        }
+    }
 
     protected StockTontineRequestService(StockTontineRequestRepository repository,
             UserService userService,
@@ -148,6 +161,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
      */
     public StockTontineRequest createValidateAndDeliverForPriceRealignment(
             String collector, Articles article, int quantity, String note) {
+        assertWarehouseStockMutable();
         if (quantity <= 0) {
             throw new CustomValidationException("Quantité de sortie tontine invalide pour le réalignement de prix.");
         }
@@ -166,6 +180,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     }
 
     public PartialDeliveryResponseDTO deliver(Long id) {
+        assertWarehouseStockMutable();
         boolean fifoEnabled = stockValuationFacade.lockAndIsFifoEnabled();
 
         StockTontineRequest request = getByIdForDelivery(id);

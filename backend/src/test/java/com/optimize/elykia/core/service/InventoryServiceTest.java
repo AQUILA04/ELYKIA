@@ -29,6 +29,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -148,6 +149,102 @@ class InventoryServiceTest {
         assertEquals(InventoryStatus.COMPLETED, result.getStatus());
         assertNotNull(result.getCompletedAt());
         verify(inventoryRepository).saveAndFlush(inventory);
+    }
+
+    @Test
+    void cancelDraftInventory_marksDraftAsCancelledWithoutTouchingStock() {
+        Inventory inventory = inventory(InventoryStatus.DRAFT);
+        InventoryItem pending = inventoryItem(inventory, article(3L, "Article brouillon", 15), InventoryItemStatus.PENDING);
+        when(inventoryRepository.findById(INVENTORY_ID)).thenReturn(Optional.of(inventory));
+        when(inventoryItemRepository.findByInventoryId(INVENTORY_ID)).thenReturn(List.of(pending));
+        when(inventoryRepository.saveAndFlush(inventory)).thenReturn(inventory);
+
+        Inventory result = inventoryService.cancelDraftInventory(INVENTORY_ID);
+
+        assertEquals(InventoryStatus.CANCELLED, result.getStatus());
+        assertNotNull(result.getCompletedAt());
+        assertEquals(15, pending.getArticle().getStockQuantity());
+        verify(inventoryRepository).saveAndFlush(inventory);
+    }
+
+    @Test
+    void cancelDraftInventory_rejectsInventoryThatIsNoLongerDraft() {
+        Inventory inventory = inventory(InventoryStatus.IN_PROGRESS);
+        when(inventoryRepository.findById(INVENTORY_ID)).thenReturn(Optional.of(inventory));
+
+        assertThrows(ApplicationException.class, () -> inventoryService.cancelDraftInventory(INVENTORY_ID));
+        verify(inventoryRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void cancelDraftInventory_rejectsDraftThatAlreadyHasAPhysicalQuantity() {
+        Inventory inventory = inventory(InventoryStatus.DRAFT);
+        InventoryItem counted = inventoryItem(inventory, article(3L, "Article compté", 15), InventoryItemStatus.PENDING);
+        counted.setPhysicalQuantity(12);
+        when(inventoryRepository.findById(INVENTORY_ID)).thenReturn(Optional.of(inventory));
+        when(inventoryItemRepository.findByInventoryId(INVENTORY_ID)).thenReturn(List.of(counted));
+
+        assertThrows(ApplicationException.class, () -> inventoryService.cancelDraftInventory(INVENTORY_ID));
+        verify(inventoryRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void suspendInventory_movesDraftToSuspended() {
+        Inventory inventory = inventory(InventoryStatus.DRAFT);
+        when(inventoryRepository.findById(INVENTORY_ID)).thenReturn(Optional.of(inventory));
+        when(inventoryRepository.saveAndFlush(inventory)).thenReturn(inventory);
+
+        Inventory result = inventoryService.suspendInventory(INVENTORY_ID);
+
+        assertEquals(InventoryStatus.SUSPENDED, result.getStatus());
+    }
+
+    @Test
+    void suspendInventory_rejectsCompletedInventory() {
+        Inventory inventory = inventory(InventoryStatus.COMPLETED);
+        when(inventoryRepository.findById(INVENTORY_ID)).thenReturn(Optional.of(inventory));
+
+        assertThrows(ApplicationException.class, () -> inventoryService.suspendInventory(INVENTORY_ID));
+        verify(inventoryRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void resumeInventory_refreshesSnapshotClearsPhysicalQuantitiesAndAddsMissingArticles() {
+        Inventory inventory = inventory(InventoryStatus.SUSPENDED);
+        Articles existing = article(3L, "Article déjà suivi", 20);
+        InventoryItem counted = inventoryItem(inventory, existing, InventoryItemStatus.DEBT);
+        counted.setPhysicalQuantity(12);
+        counted.setDifference(-3);
+        counted.setReconciliationComment("ancien écart");
+        Articles createdDuringSuspension = article(8L, "Article nouveau", 5);
+        when(inventoryRepository.findById(INVENTORY_ID)).thenReturn(Optional.of(inventory));
+        when(inventoryItemRepository.findByInventoryId(INVENTORY_ID)).thenReturn(List.of(counted));
+        when(articlesRepository.findByState(eq(State.ENABLED), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(existing, createdDuringSuspension)));
+        when(inventoryRepository.saveAndFlush(inventory)).thenReturn(inventory);
+
+        Inventory result = inventoryService.resumeInventory(INVENTORY_ID);
+
+        assertEquals(InventoryStatus.IN_PROGRESS, result.getStatus());
+        assertEquals(20, counted.getSystemQuantity());
+        assertNull(counted.getPhysicalQuantity());
+        assertNull(counted.getDifference());
+        assertEquals(InventoryItemStatus.PENDING, counted.getStatus());
+        assertNull(counted.getReconciliationComment());
+        assertEquals(1, result.getItems().size());
+        InventoryItem added = result.getItems().get(0);
+        assertEquals(8L, added.getArticle().getId());
+        assertEquals(5, added.getSystemQuantity());
+        assertEquals(InventoryItemStatus.PENDING, added.getStatus());
+    }
+
+    @Test
+    void resumeInventory_rejectsInventoryThatIsNotSuspended() {
+        Inventory inventory = inventory(InventoryStatus.IN_PROGRESS);
+        when(inventoryRepository.findById(INVENTORY_ID)).thenReturn(Optional.of(inventory));
+
+        assertThrows(ApplicationException.class, () -> inventoryService.resumeInventory(INVENTORY_ID));
+        verify(articlesRepository, never()).findByState(eq(State.ENABLED), any(Pageable.class));
     }
 
     private Inventory inventory(InventoryStatus status) {

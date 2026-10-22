@@ -20,6 +20,7 @@ import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.DebtDocumentRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.core.service.store.InventoryWarehouseGuard;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.util.ArticleSortOrder;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
@@ -52,6 +53,18 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private BusinessMetricsPublisher metricsPublisher;
     private DebtDocumentRepository debtDocumentRepository;
+    private InventoryWarehouseGuard inventoryWarehouseGuard;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
+        this.inventoryWarehouseGuard = inventoryWarehouseGuard;
+    }
+
+    private void assertWarehouseStockMutable() {
+        if (inventoryWarehouseGuard != null) {
+            inventoryWarehouseGuard.assertWarehouseStockMutable();
+        }
+    }
 
     public StockReturnService(StockReturnRepository repository,
             ArticlesService articlesService,
@@ -149,6 +162,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
     }
 
     public StockReturn validateReturn(Long returnId) {
+        assertWarehouseStockMutable();
         stockValuationFacade.lockAndIsFifoEnabled();
 
         StockReturn stockReturn = getByIdForValidation(returnId);
@@ -351,6 +365,7 @@ public class StockReturnService extends GenericService<StockReturn, Long> {
         repository.save(stockReturn);
 
         if (autoValidate) {
+            assertWarehouseStockMutable();
             for (StockReturnDto.StockReturnItemDto itemDto : dto.getItems()) {
                 CommercialMonthlyStockItem stockItem = resolveHistoriqueStockItem(targetStock, itemDto);
                 applyHistoriqueStockItemUpdate(stockReturn, targetStock, stockItem, itemDto.getQuantity());

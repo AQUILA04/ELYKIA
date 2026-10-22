@@ -135,13 +135,33 @@ graph LR
     C --> D["4. Réconcilier les écarts<br/>& Clôturer"]
 ```
 
-1. **Création de session** : Cliquez sur le bouton vert **« Créer un inventaire »**. La session passe à l'état **En cours** et affiche la date, le statut et l'auteur.
+1. **Création de session** : Cliquez sur le bouton vert **« Créer un inventaire »**. La session est créée au statut **Brouillon** et affiche la date, le statut et l'auteur. Elle passe à **En cours** dès que des quantités physiques sont enregistrées.
 2. **Impression de la feuille de comptage** : Cliquez sur **« Télécharger PDF »** pour éditer le document de comptage vierge destiné aux équipes de magasin.
 3. **Saisie des quantités réelles** : Cliquez sur **« Saisir quantités physiques »**. Dans la fenêtre qui s'ouvre, saisissez les quantités effectivement dénombrées pour chaque référence d'article.
 4. **Réconciliation des écarts** :
    * Cliquez sur **« Réconcilier les écarts »** pour afficher la balance comparative : `Quantité Théorique Système` vs `Quantité Physique Constatée` = `Écart (Surplus ou Manquant)`.
    * Enregistrez les motifs d'écart (casse, avarie, vol, erreur de saisie).
 5. **Clôture définitive** : Cliquez sur **« Clôturer l'inventaire »**. Les stocks théoriques sont automatiquement réalignés sur le comptage physique approuvé et la session est archivée dans l'**Historique des inventaires** (accessible via l'onglet ou le bouton Historique).
+
+### C. Annuler un brouillon
+
+1. Tant que le statut affiché est **Brouillon**, cliquez sur **« Annuler l'inventaire »**.
+2. Confirmez. Le stock du magasin n'est pas modifié.
+3. Le bouton **« Créer un inventaire »** redevient disponible.
+4. Dans **Historique inventaires**, le filtre **Annulé** retrouve cette session.
+
+### D. Stock magasin pendant l'inventaire
+
+Tant que l'inventaire est **Brouillon** ou **En cours**, les entrées de stock, la remise à zéro, la livraison d'une sortie et le retour de marchandise vers le magasin sont refusés. Le message affiché est : « Un inventaire est en cours. Veuillez attendre la fin de l'inventaire avant de continuer cette opération. »
+
+Les ventes et les crédits pris sur le stock du commercial restent possibles. Une demande de sortie peut être créée ; sa livraison attend la fin ou la suspension de l'inventaire.
+
+### E. Suspendre et reprendre
+
+1. Sur un inventaire **Brouillon** ou **En cours**, cliquez sur **« Suspendre l'inventaire »** et confirmez. Le statut devient **Suspendu**. Les entrées et sorties de magasin redeviennent possibles. Un autre inventaire ne peut pas être créé tant que celui-ci est suspendu.
+2. Pour continuer le comptage, cliquez sur **« Reprendre l'inventaire »**.
+3. Confirmez : « La reprise recalcule les quantités théoriques à partir du stock actuel. Les quantités physiques déjà saisies seront effacées. »
+4. Le statut repasse à **En cours**. Saisissez à nouveau les quantités physiques.
 
 ---
 

@@ -79,7 +79,7 @@
 
       <div class="session-block" *ngIf="currentInventory">
         <div class="session-meta">
-          <span class="session-label">Inventaire en cours</span>
+          <span class="session-label">{{ currentInventory.status === 'SUSPENDED' ? 'Inventaire suspendu' : 'Inventaire en cours' }}</span>
           <div class="session-details">
             <span class="meta-item">
               <span class="meta-key">Date</span>
@@ -117,11 +117,27 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             Clôturer l'inventaire
           </button>
+          <button *ngIf="isGestionnaire && currentInventory.status === 'DRAFT'"
+                  type="button" class="btn-inv btn-inv-danger" (click)="cancelInventory()" [disabled]="isProcessing">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            Annuler l'inventaire
+          </button>
+          <button *ngIf="isGestionnaire && (currentInventory.status === 'DRAFT' || currentInventory.status === 'IN_PROGRESS')"
+                  type="button" class="btn-inv btn-inv-warning" (click)="suspendInventory()" [disabled]="isProcessing">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Suspendre l'inventaire
+          </button>
+          <button *ngIf="isGestionnaire && currentInventory.status === 'SUSPENDED'"
+                  type="button" class="btn-inv btn-inv-primary" (click)="resumeInventory()" [disabled]="isProcessing">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Reprendre l'inventaire
+          </button>
         </div>
       </div>
 
       <div class="ops-block">
         <span class="ops-label">Opérations générales</span>
+        <p class="inventory-lock-notice" *ngIf="warehouseStockLocked" role="alert">{{ warehouseBlockedMessage }}</p>
         <div class="actions-grid ops-actions">
           <button *ngIf="!currentInventory" type="button" class="btn-inv btn-inv-primary" (click)="createInventory()" [disabled]="isProcessing">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
@@ -131,12 +147,16 @@
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             Historique inventaires
           </button>
-          <button type="button" class="btn-inv btn-inv-primary" (click)="addItem()" [disabled]="isProcessing"
+          <button type="button" class="btn-inv btn-inv-primary" (click)="addItem()"
+            [disabled]="isProcessing || warehouseStockLocked"
+            [attr.title]="warehouseStockLocked ? warehouseBlockedMessage : null"
             data-testid="e2e-inventory-add-stock">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
             Entrées stock
           </button>
-          <button *ngxPermissionsOnly="['ROLE_REPORT']" type="button" class="btn-inv btn-inv-danger" (click)="resetAllStock()" [disabled]="isProcessing">
+          <button *ngxPermissionsOnly="['ROLE_REPORT']" type="button" class="btn-inv btn-inv-danger" (click)="resetAllStock()"
+            [disabled]="isProcessing || warehouseStockLocked"
+            [attr.title]="warehouseStockLocked ? warehouseBlockedMessage : null">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
             Reset stock global
           </button>
@@ -208,7 +228,9 @@
               <td><span class="col-qty">{{ item.stockQuantity }}</span></td>
               <td class="col-actions">
                 <button *ngxPermissionsOnly="['ROLE_REPORT']" type="button" class="btn-detail btn-danger"
-                        (click)="resetStockForArticle(item.id, item.name)" title="Reset stock article" [disabled]="isProcessing">
+                        (click)="resetStockForArticle(item.id, item.name)"
+                        [attr.title]="warehouseStockLocked ? warehouseBlockedMessage : 'Reset stock article'"
+                        [disabled]="isProcessing || warehouseStockLocked">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
                   Reset
                 </button>
