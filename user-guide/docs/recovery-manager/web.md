@@ -30,6 +30,8 @@ Sur une ligne de retard, choisissez **Terrain**. Le formulaire rappelle la réf�
 
 Après enregistrement, la fiche crédit peut afficher la section **Contrôle terrain** avec les montants système et carnet, l’écart, le statut et l’auteur du contrôle.
 
+Le commercial traite ensuite la disparité dans **Écarts de carnet**. S’il accepte un carnet supérieur au système, la mise manquante et le manquant de caisse sont créés. S’il rejette le constat, un motif est enregistré et aucun mouvement n’est passé. Lorsque le système dépasse le carnet, la suite est une contestation : le commercial rejette le constat, sans annulation de mise.
+
 ## Vérifier un carnet de vente à crédit
 
 La vérification du carnet est une action distincte du contrôle terrain. Elle atteste que le carnet physique a été inspecté, sans modifier les montants ni le résultat du contrôle.
@@ -50,7 +52,7 @@ Avant de choisir **Confirmer l’opération**, contrôlez le résumé financier.
 
 ## Contrôler la tontine depuis le web
 
-La fiche membre tontine donne accès au bouton **Contrôle terrain** pour le Chef de recouvrement. Lorsque plusieurs commerciaux ont collecté pour le même membre, le formulaire présente **un bloc par commercial**. Dans chaque bloc, sélectionnez les mois concernés et saisissez le montant marqué dans le carnet de ce commercial. L’écart s’affiche pour chaque commercial, puis au total. Un commercial laissé sans mois sélectionné reste **non contrôlé** pour cette visite. La fiche conserve ensuite le total système, le total carnet, l’écart, le statut **Conforme** ou **Disparité**, le détail par commercial, la date et l’auteur.
+La fiche membre tontine donne accès au bouton **Contrôle terrain** pour le Chef de recouvrement. Lorsque plusieurs commerciaux ont collecté pour le même membre, le formulaire présente **un bloc par commercial**. Dans chaque bloc, sélectionnez les mois concernés et saisissez le montant marqué dans le carnet de ce commercial. L’écart s’affiche pour chaque commercial, puis au total. Un commercial laissé sans mois sélectionné reste **non contrôlé** pour cette visite. La fiche conserve ensuite le total système, le total carnet, l’écart, le statut **Conforme** ou **Disparité**, le détail par commercial, la date et l’auteur. Le commercial concerné retrouve ses mois en disparité dans **Écarts de carnet** pour les accepter ou les rejeter.
 
 La vérification administrative du carnet est une action distincte du contrôle terrain. Le badge **Carnet vérifié** peut être appliqué ou retiré seulement si vous disposez des habilitations nécessaires ; il atteste la vérification physique du carnet sans modifier les montants des collectes ni l’état du contrôle terrain.
 

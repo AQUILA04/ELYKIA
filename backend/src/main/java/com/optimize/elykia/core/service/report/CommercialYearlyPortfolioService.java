@@ -5,6 +5,7 @@ import com.optimize.elykia.core.dto.report.CommercialYearlySummaryDto;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CommercialReportMonthlyRepository;
 import com.optimize.elykia.core.repository.CreditCollectorHistoryRepository;
+import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.service.debt.DebtService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class CommercialYearlyPortfolioService {
     private final CreditRepository creditRepository;
     private final CreditCollectorHistoryRepository collectorHistoryRepository;
     private final DebtService debtService;
+    private final CreditFieldControlRepository creditFieldControlRepository;
 
     @Transactional(readOnly = true)
     public CommercialYearlySummaryDto buildYearlySummary(String commercialUsername, int year) {
@@ -60,6 +62,10 @@ public class CommercialYearlyPortfolioService {
 
         DebtService.MerchandiseYearlyDebtTotals debtTotals =
                 debtService.merchandiseYearlyTotals(commercialUsername, year);
+        double controlledNotebook = safeDouble(
+                creditFieldControlRepository.sumLatestNotebookForCollector(commercialUsername));
+        double pendingNotebook = safeDouble(
+                creditFieldControlRepository.sumPendingPositiveDifferenceForCollector(commercialUsername));
 
         return CommercialYearlySummaryDto.builder()
                 .year(year)
@@ -76,6 +82,8 @@ public class CommercialYearlyPortfolioService {
                 .remainingAtClientAmount(remainingAtClient)
                 .merchandiseDebtGlobalAmount(debtTotals.globalDebt())
                 .merchandiseDebtSettledAmount(debtTotals.totalSettled())
+                .controlledNotebookAmount(controlledNotebook)
+                .pendingNotebookAboveSystemAmount(pendingNotebook)
                 .build();
     }
 

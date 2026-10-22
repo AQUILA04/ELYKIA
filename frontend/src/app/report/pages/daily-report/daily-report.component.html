@@ -223,6 +223,19 @@
                                             </span>
                                             <span class="yearly-kpi-hint">Règlements sur dettes marchandise</span>
                                         </div>
+                                        <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-kpi-controlled-notebook">
+                                            <span class="yearly-kpi-label">Total carnets</span>
+                                            <span class="yearly-kpi-value">
+                                                {{ (yearlySummaryView.controlledNotebookAmount || 0) | number:'1.0-0' }}
+                                                <small>FCFA</small>
+                                            </span>
+                                            <span class="yearly-kpi-hint" *ngIf="(yearlySummaryView.pendingNotebookAboveSystemAmount || 0) > 0">
+                                                Écarts encore ouverts : {{ yearlySummaryView.pendingNotebookAboveSystemAmount | number:'1.0-0' }} FCFA
+                                            </span>
+                                            <span class="yearly-kpi-hint" *ngIf="!(yearlySummaryView.pendingNotebookAboveSystemAmount || 0)">
+                                                Somme des carnets contrôlés
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             </mat-card-content>
@@ -242,7 +255,7 @@
                                 <div *ngIf="yearlyTontineSummaryLoading" class="loading-container">
                                     <mat-spinner diameter="36"></mat-spinner>
                                 </div>
-                                <div class="yearly-kpi-strip yearly-kpi-strip-three"
+                                <div class="yearly-kpi-strip"
                                      *ngIf="!yearlyTontineSummaryLoading">
                                     <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-tontine-kpi-collections">
                                         <span class="yearly-kpi-label">Collectes tontine</span>
@@ -270,6 +283,19 @@
                                             <small>FCFA</small>
                                         </span>
                                         <span class="yearly-kpi-hint">Collectes − versements</span>
+                                    </div>
+                                    <div class="yearly-kpi kpi-total" data-testid="e2e-yearly-tontine-kpi-controlled-notebook">
+                                        <span class="yearly-kpi-label">Total carnets</span>
+                                        <span class="yearly-kpi-value">
+                                            {{ (yearlyTontineSummaryView.controlledNotebookAmount || 0) | number:'1.0-0' }}
+                                            <small>FCFA</small>
+                                        </span>
+                                        <span class="yearly-kpi-hint" *ngIf="(yearlyTontineSummaryView.pendingNotebookAboveSystemAmount || 0) > 0">
+                                            Écarts encore ouverts : {{ yearlyTontineSummaryView.pendingNotebookAboveSystemAmount | number:'1.0-0' }} FCFA
+                                        </span>
+                                        <span class="yearly-kpi-hint" *ngIf="!(yearlyTontineSummaryView.pendingNotebookAboveSystemAmount || 0)">
+                                            Somme des carnets contrôlés
+                                        </span>
                                     </div>
                                 </div>
                             </mat-card-content>

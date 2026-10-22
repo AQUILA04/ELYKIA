@@ -36,10 +36,12 @@ Dès qu'un commercial est ciblé dans la barre de filtre, deux blocs de bilan an
   * **Versements crédit** : Montant cumulé des remboursements déjà encaissés et remis en caisse.
   * **Reste chez le commercial** : Valeur des marchandises actuellement sous la responsabilité physique de l'agent.
   * **Reste chez le client** : Montant total restant dû par les clients du portefeuille. Un clic sur ce montant ouvre la liste nominative des clients débiteurs avec option d'export PDF.
+  * **Total carnets** : somme des montants relevés sur les carnets déjà contrôlés. Le sous-texte indique le montant des écarts encore ouverts lorsque le carnet dépasse le système.
 * **Bilan Tontine Annuel** :
   * Total des cotisations collectées sur l'année.
   * Montant des versements tontine remis au siège.
   * Reste des cotisations entre les mains du commercial en attente de versement.
+  * **Total carnets** : même lecture que sur le bilan crédit, limitée aux lignes de tontine de l’année contrôlées pour ce commercial.
 
 #### 2. Cartes d'indicateurs de la période
 * **Ventes crédit** : Montant total vendu, nombre de contrats signés et marge brute (si activée).

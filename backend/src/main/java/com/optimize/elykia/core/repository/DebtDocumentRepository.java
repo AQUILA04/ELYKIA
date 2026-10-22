@@ -140,6 +140,7 @@ public interface DebtDocumentRepository extends JpaRepository<DebtDocument, Long
               AND d.periodYear = :year
               AND d.periodMonth = :month
               AND d.status <> com.optimize.elykia.core.enumaration.DebtStatus.CANCELLED
+              AND (d.debtOrigin IS NULL OR d.debtOrigin = com.optimize.elykia.core.enumaration.DebtOrigin.CASH_CONSTITUTION)
             """)
     Optional<DebtDocument> findActiveCashMonth(
             @Param("holder") String holder,
@@ -155,6 +156,7 @@ public interface DebtDocumentRepository extends JpaRepository<DebtDocument, Long
               AND d.periodGrain = com.optimize.elykia.core.enumaration.DebtPeriodGrain.DAY
               AND d.periodDay = :day
               AND d.status <> com.optimize.elykia.core.enumaration.DebtStatus.CANCELLED
+              AND (d.debtOrigin IS NULL OR d.debtOrigin = com.optimize.elykia.core.enumaration.DebtOrigin.CASH_CONSTITUTION)
             """)
     Optional<DebtDocument> findActiveCashDay(
             @Param("holder") String holder,
@@ -170,6 +172,7 @@ public interface DebtDocumentRepository extends JpaRepository<DebtDocument, Long
               AND d.periodYear = :year
               AND d.periodMonth = :month
               AND d.status <> com.optimize.elykia.core.enumaration.DebtStatus.CANCELLED
+              AND (d.debtOrigin IS NULL OR d.debtOrigin = com.optimize.elykia.core.enumaration.DebtOrigin.CASH_CONSTITUTION)
             """)
     List<LocalDate> findActiveCashDaysInMonth(
             @Param("holder") String holder,
@@ -186,6 +189,7 @@ public interface DebtDocumentRepository extends JpaRepository<DebtDocument, Long
               AND d.periodDay IS NOT NULL
               AND d.periodDay <= :end
               AND d.status <> com.optimize.elykia.core.enumaration.DebtStatus.CANCELLED
+              AND (d.debtOrigin IS NULL OR d.debtOrigin = com.optimize.elykia.core.enumaration.DebtOrigin.CASH_CONSTITUTION)
             """)
     List<LocalDate> findActiveCashDaysUpTo(
             @Param("holder") String holder,
@@ -201,8 +205,43 @@ public interface DebtDocumentRepository extends JpaRepository<DebtDocument, Long
               AND d.periodDay IS NOT NULL
               AND d.periodDay < :before
               AND d.status <> com.optimize.elykia.core.enumaration.DebtStatus.CANCELLED
+              AND (d.debtOrigin IS NULL OR d.debtOrigin = com.optimize.elykia.core.enumaration.DebtOrigin.CASH_CONSTITUTION)
             """)
     List<Object[]> findActiveCashDaysBefore(
             @Param("holders") Collection<String> holders,
             @Param("before") LocalDate before);
+
+    @Query("""
+            SELECT d FROM DebtDocument d
+            WHERE LOWER(d.holderUsername) = LOWER(:holder)
+              AND d.debtOrigin = com.optimize.elykia.core.enumaration.DebtOrigin.FIELD_CONTROL
+              AND d.debtType = com.optimize.elykia.core.enumaration.DebtType.CASH_SHORTAGE
+              AND d.periodDay = :day
+              AND d.cashCategory = :category
+              AND d.status IN (
+                com.optimize.elykia.core.enumaration.DebtStatus.OPEN,
+                com.optimize.elykia.core.enumaration.DebtStatus.PARTIALLY_SETTLED)
+            ORDER BY d.id ASC
+            """)
+    List<DebtDocument> findOpenFieldControlShortages(
+            @Param("holder") String holder,
+            @Param("day") LocalDate day,
+            @Param("category") String category);
+
+    @Query("""
+            SELECT d.periodDay, COALESCE(SUM(d.remainingAmount), 0)
+            FROM DebtDocument d
+            WHERE LOWER(d.holderUsername) = LOWER(:holder)
+              AND d.debtOrigin = com.optimize.elykia.core.enumaration.DebtOrigin.FIELD_CONTROL
+              AND d.debtType = com.optimize.elykia.core.enumaration.DebtType.CASH_SHORTAGE
+              AND d.periodDay BETWEEN :start AND :end
+              AND d.status IN (
+                com.optimize.elykia.core.enumaration.DebtStatus.OPEN,
+                com.optimize.elykia.core.enumaration.DebtStatus.PARTIALLY_SETTLED)
+            GROUP BY d.periodDay
+            """)
+    List<Object[]> sumOpenFieldControlRemainingByDay(
+            @Param("holder") String holder,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end);
 }

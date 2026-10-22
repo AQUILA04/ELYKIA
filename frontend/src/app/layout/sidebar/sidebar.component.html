@@ -387,6 +387,16 @@
             <span class="hide-menu">Dettes</span>
           </a>
         </li>
+        <li class="sidebar-item" *ngIf="canSeeCarnetEcarts()">
+          <a class="sidebar-link" routerLink="/carnet-ecarts" aria-expanded="false"
+             [ngClass]="{ 'active': isRouteActive('/carnet-ecarts') }"
+             data-testid="e2e-sidebar-carnet-ecarts">
+            <span>
+              <mat-icon>menu_book</mat-icon>
+            </span>
+            <span class="hide-menu">Écarts de carnet</span>
+          </a>
+        </li>
 
         <!-- MENU CONFIGURATION -->
         <li class="sidebar-item" *ngIf="!isStorekeeper() && !isRecoveryManager()">

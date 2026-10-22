@@ -14,6 +14,7 @@ import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.enumaration.*;
 import com.optimize.elykia.core.repository.*;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRules;
 import com.optimize.elykia.core.util.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -555,7 +556,9 @@ public class DebtService {
                 : 0D;
         double cashSales = sumCashSales(commercial, day, day);
         double declared = toDeposit + cashSales;
-        return new CashGap(toDeposit, cashSales, deposited, declared - deposited,
+        double openFieldControl = openFieldControlRemaining(commercial, day);
+        return new CashGap(toDeposit, cashSales, deposited,
+                CarnetEcartRules.constitutionGap(declared, deposited, openFieldControl),
                 report != null ? safe(report.getTotalAdvancesAmount()) : 0D,
                 report != null ? safe(report.getCollectionsAmount()) : 0D,
                 report != null ? safe(report.getTontineCollectionsAmount()) : 0D,
@@ -592,7 +595,9 @@ public class DebtService {
             cashSales += sumCashSales(commercial, d, d);
         }
         double declared = toDeposit + cashSales;
-        return new CashGap(toDeposit, cashSales, deposited, declared - deposited,
+        double openFieldControl = openFieldControlRemaining(commercial, start, end, excludedDays);
+        return new CashGap(toDeposit, cashSales, deposited,
+                CarnetEcartRules.constitutionGap(declared, deposited, openFieldControl),
                 advances, collections, tontine, newBalance);
     }
 
@@ -677,6 +682,174 @@ public class DebtService {
         return surplus;
     }
 
+    /**
+     * Manquant immédiat lié à l'acceptation d'un écart de carnet.
+     * Autorisé pour le jour courant, contrairement à la constitution de caisse.
+     */
+    @Transactional
+    public DebtDocument createFieldControlShortage(
+            String commercialUsername,
+            LocalDate day,
+            double amount,
+            String cashCategory,
+            Long decisionId,
+            String label) {
+        if (commercialUsername == null || commercialUsername.isBlank()) {
+            throw new CustomValidationException("Le commercial du manquant est obligatoire.");
+        }
+        if (day == null) {
+            throw new CustomValidationException("Le jour du manquant est obligatoire.");
+        }
+        if (amount <= CarnetEcartRules.MONEY_EPSILON) {
+            throw new CustomValidationException("Le montant du manquant est nul.");
+        }
+        DebtDocument document = newDebtDocument(
+                commercialUsername.trim(),
+                DebtHolderProfile.COMMERCIAL,
+                DebtType.CASH_SHORTAGE,
+                DebtPeriodGrain.DAY,
+                day.getYear(),
+                day.getMonthValue(),
+                day);
+        document.setDebtOrigin(DebtOrigin.FIELD_CONTROL);
+        document.setCashCategory(cashCategory);
+        document.setCarnetEcartDecisionId(decisionId);
+        DailyCommercialReport report = dailyCommercialReportRepository
+                .findByDateAndCommercialUsername(day, commercialUsername.trim())
+                .orElse(null);
+        document.setDailyReport(report);
+        DebtLine line = new DebtLine();
+        line.setLineCode("CARNET");
+        line.setLabel(label != null ? label : "Manquant carnet");
+        line.setAmount(ceil(amount));
+        line.setSortOrder(0);
+        document.addLine(line);
+        document.setGrossAmount(ceil(amount));
+        document.refreshRemainingAndStatus();
+        return debtDocumentRepository.save(document);
+    }
+
+    /**
+     * Impute un versement caisse sur les manquants de carnet ouverts du même jour et de la même catégorie.
+     */
+    @Transactional
+    public void imputeFieldControlFromDeposit(
+            String commercialUsername,
+            LocalDate day,
+            double creditAmount,
+            double tontineAmount,
+            String depositReference) {
+        if (commercialUsername == null || day == null || depositReference == null) {
+            return;
+        }
+        String note = imputationNote(depositReference);
+        if (!debtSettlementRepository.findByNote(note).isEmpty()) {
+            return;
+        }
+        List<DebtAllocation> allocations = new ArrayList<>();
+        double applied = 0D;
+        applied += allocateCategory(commercialUsername, day, "CREDIT", creditAmount, allocations);
+        applied += allocateCategory(commercialUsername, day, "TONTINE", tontineAmount, allocations);
+        if (allocations.isEmpty() || applied <= 0D) {
+            return;
+        }
+        DebtSettlement settlement = new DebtSettlement();
+        settlement.setReference(nextSettlementReference());
+        settlement.setSettlementMode(DebtSettlementMode.CASH);
+        settlement.setAmount(ceil(applied));
+        settlement.setNote(note);
+        settlement.setPerformedBy(currentUsername());
+        settlement.setPerformedAt(LocalDateTime.now());
+        for (DebtAllocation allocation : allocations) {
+            settlement.addAllocation(allocation);
+        }
+        debtSettlementRepository.save(settlement);
+    }
+
+    @Transactional
+    public void reverseFieldControlImputation(String depositReference) {
+        if (depositReference == null) {
+            return;
+        }
+        String note = imputationNote(depositReference);
+        List<DebtSettlement> settlements = debtSettlementRepository.findByNote(note);
+        for (DebtSettlement settlement : settlements) {
+            if (settlement.getAllocations() == null) {
+                continue;
+            }
+            for (DebtAllocation allocation : settlement.getAllocations()) {
+                DebtDocument debt = allocation.getDebtDocument();
+                if (debt == null) {
+                    continue;
+                }
+                double back = safe(allocation.getAmount());
+                debt.setPaidAmount(Math.max(0D, safe(debt.getPaidAmount()) - back));
+                debt.refreshRemainingAndStatus();
+                debtDocumentRepository.save(debt);
+            }
+            settlement.setNote(note + ":REVERSED");
+            debtSettlementRepository.save(settlement);
+        }
+    }
+
+    private double allocateCategory(
+            String commercial,
+            LocalDate day,
+            String category,
+            double available,
+            List<DebtAllocation> allocations) {
+        if (available <= CarnetEcartRules.MONEY_EPSILON) {
+            return 0D;
+        }
+        double left = available;
+        double applied = 0D;
+        List<DebtDocument> debts = debtDocumentRepository.findOpenFieldControlShortages(commercial, day, category);
+        for (DebtDocument debt : debts) {
+            if (left <= CarnetEcartRules.MONEY_EPSILON) {
+                break;
+            }
+            double take = Math.min(safe(debt.getRemainingAmount()), left);
+            take = ceil(take);
+            if (take <= 0D) {
+                continue;
+            }
+            debt.setPaidAmount(safe(debt.getPaidAmount()) + take);
+            debt.refreshRemainingAndStatus();
+            debtDocumentRepository.save(debt);
+            DebtAllocation allocation = new DebtAllocation();
+            allocation.setDebtDocument(debt);
+            allocation.setAmount(take);
+            allocations.add(allocation);
+            left -= take;
+            applied += take;
+        }
+        return applied;
+    }
+
+    private double openFieldControlRemaining(String commercial, LocalDate day) {
+        return openFieldControlRemaining(commercial, day, day, Set.of());
+    }
+
+    private double openFieldControlRemaining(
+            String commercial, LocalDate start, LocalDate end, Set<LocalDate> excludedDays) {
+        double total = 0D;
+        for (Object[] row : debtDocumentRepository.sumOpenFieldControlRemainingByDay(commercial, start, end)) {
+            if (row == null || row.length < 2 || row[0] == null) {
+                continue;
+            }
+            LocalDate day = (LocalDate) row[0];
+            if (excludedDays != null && excludedDays.contains(day)) {
+                continue;
+            }
+            total += row[1] != null ? ((Number) row[1]).doubleValue() : 0D;
+        }
+        return total;
+    }
+
+    private static String imputationNote(String depositReference) {
+        return "IMPUTE-DEP:" + depositReference;
+    }
+
     private DebtDocument newDebtDocument(
             String holder,
             DebtHolderProfile profile,
@@ -695,6 +868,7 @@ public class DebtService {
         document.setPeriodMonth(month);
         document.setPeriodDay(day);
         document.setStatus(DebtStatus.OPEN);
+        document.setDebtOrigin(DebtOrigin.CASH_CONSTITUTION);
         document.setCreatedBy(currentUsername());
         return document;
     }

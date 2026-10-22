@@ -23,4 +23,8 @@ export interface CommercialYearlySummary {
     merchandiseDebtGlobalAmount?: number;
     /** Total réglé sur ces dettes marchandise. */
     merchandiseDebtSettledAmount?: number;
+    /** Somme des carnets du dernier contrôle terrain. */
+    controlledNotebookAmount?: number;
+    /** Écarts encore ouverts, carnet supérieur au système. */
+    pendingNotebookAboveSystemAmount?: number;
 }

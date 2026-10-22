@@ -20,6 +20,14 @@ public interface DebtSettlementRepository extends JpaRepository<DebtSettlement, 
     List<DebtSettlement> findByDebtDocumentId(@Param("debtId") Long debtId);
 
     @Query("""
+            SELECT DISTINCT s FROM DebtSettlement s
+            LEFT JOIN FETCH s.allocations a
+            LEFT JOIN FETCH a.debtDocument
+            WHERE s.note = :note
+            """)
+    List<DebtSettlement> findByNote(@Param("note") String note);
+
+    @Query("""
             SELECT COALESCE(SUM(a.amount), 0)
             FROM DebtAllocation a
             WHERE a.debtDocument.id = :debtId

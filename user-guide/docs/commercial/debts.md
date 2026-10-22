@@ -11,7 +11,7 @@ Le menu **Dettes** vous permet de consulter vos positions ouvertes ou réglées 
 ## Ce que vous voyez
 
 - **Marchandise** : articles et quantités passés en dette à partir d’un mois de stock terminé, avec le montant et le reste à régler.
-- **Caisse** : manquant ou surplus constitué pour un jour ou un mois passé, avec le détail des rubriques (avances, recouvrements, tontine, ventes au comptant, versé).
+- **Caisse** : manquant ou surplus constitué pour un jour ou un mois passé, avec le détail des rubriques (avances, recouvrements, tontine, ventes au comptant, versé). Un manquant créé en acceptant un écart de carnet apparaît aussi ici. Un versement du même jour le règle.
 - **Historique des règlements** : chaque paiement enregistré sur la position.
 
 ## Lien avec le stock mensuel
@@ -23,3 +23,5 @@ Le menu **Dettes** vous permet de consulter vos positions ouvertes ou réglées 
 ## Bilan annuel
 
 Sur le **Rapport journalier**, le bilan annuel crédit affiche aussi la **Dette globale** et la **Dette réglée** de l’année pour votre portefeuille.
+
+Les bilans crédit et tontine affichent **Total carnets** : la somme des carnets déjà contrôlés. Lorsqu’il reste des disparités à traiter, le sous-texte indique le montant des écarts encore ouverts.

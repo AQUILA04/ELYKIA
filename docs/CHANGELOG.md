@@ -23,6 +23,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.42.0] — 2026-10-22
+
+### Added
+
+- File des écarts de carnet : le commercial accepte ou rejette une disparité, seul ou par lot. L’acceptation d’un carnet supérieur au système crée la mise manquante (rattrapage tontine hors mois courant, reliquat crédit si le reste dû est dépassé) et un manquant de caisse. Un versement du même jour et de la même catégorie impute ce manquant. La constitution d’écart ne le compte pas une seconde fois.
+- Les bilans annuels crédit et tontine exposent la somme des carnets contrôlés et le montant des écarts encore ouverts.
+- Une notification prévient le commercial lorsqu’un contrôle terrain est enregistré en disparité.
+
 ## Backend — [1.41.0] — 2026-10-22
 
 ### Added
@@ -104,6 +112,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.38.0] — 2026-10-22
+
+### Added
+
+- Page **Écarts de carnet** : file, filtres, acceptation et rejet à l’unité ou en lot. Le menu est proposé au commercial, au gestionnaire et à l’administrateur.
+- Rapport journalier : les bilans crédit et tontine affichent **Total carnets** et le montant des écarts encore ouverts.
+- Les notifications d’écart de carnet portent le libellé **Écart de carnet**.
 
 ## Frontend — [2.37.0] — 2026-10-22
 

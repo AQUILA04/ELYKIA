@@ -77,6 +77,7 @@ test.describe('Bilan crédit annuel @p1 @web @august-2026 @regression', () => {
     await expect(portfolioRow.getByTestId('e2e-yearly-kpi-deposits')).toContainText('Versements crédit');
     await expect(portfolioRow.getByTestId('e2e-yearly-kpi-remaining-commercial')).toContainText('Reste chez le commercial');
     await expect(portfolioRow.getByTestId('e2e-yearly-kpi-remaining-client')).toContainText('Reste chez le client');
+    await expect(portfolioRow.getByTestId('e2e-yearly-kpi-controlled-notebook')).toContainText('Total carnets');
   });
 
   test('W-P1-02 reste commercial = portefeuille − versements (API = UI)', async ({ page }) => {
@@ -193,6 +194,7 @@ test.describe('Bilan crédit annuel @p1 @web @august-2026 @regression', () => {
     await expect(page.getByTestId('e2e-yearly-tontine-kpi-collections')).toContainText('Collectes tontine');
     await expect(page.getByTestId('e2e-yearly-tontine-kpi-deposits')).toContainText('Versements tontine');
     await expect(page.getByTestId('e2e-yearly-tontine-kpi-remaining')).toContainText('Reste chez le commercial');
+    await expect(page.getByTestId('e2e-yearly-tontine-kpi-controlled-notebook')).toContainText('Total carnets');
 
     const uiCollections = await kpiAmount(page, 'e2e-yearly-tontine-kpi-collections');
     const uiDeposits = await kpiAmount(page, 'e2e-yearly-tontine-kpi-deposits');

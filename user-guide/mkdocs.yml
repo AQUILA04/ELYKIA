@@ -39,6 +39,7 @@ nav:
     - Clients & Comptes: commercial/clients_accounts.md
     - Stocks: commercial/stock.md
     - Dettes: commercial/debts.md
+    - Écarts de carnet: commercial/ecarts_carnet.md
     - Ventes & Commandes: commercial/sales_orders.md
     - Tontines: commercial/tontine.md
     - Application Mobile: commercial/mobile_app.md

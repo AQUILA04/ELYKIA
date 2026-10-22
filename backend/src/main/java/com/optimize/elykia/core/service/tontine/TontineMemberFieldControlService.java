@@ -17,7 +17,10 @@ import com.optimize.elykia.core.enumaration.FieldControlStatus;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
+import com.optimize.elykia.core.service.notification.AppNotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +40,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TontineMemberFieldControlService {
 
     private static final double EPSILON = 0.0001d;
@@ -46,6 +50,12 @@ public class TontineMemberFieldControlService {
     private final TontineMemberFieldControlRepository repository;
     private final TontineMemberRepository tontineMemberRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
+    private AppNotificationService appNotificationService;
+
+    @Autowired(required = false)
+    public void setAppNotificationService(AppNotificationService appNotificationService) {
+        this.appNotificationService = appNotificationService;
+    }
 
     @Transactional
     public TontineMemberFieldControlDto create(Long memberId, CreateTontineMemberFieldControlDto dto) {
@@ -119,7 +129,40 @@ public class TontineMemberFieldControlService {
         entity.setDifferenceAmount(differenceTotal);
         entity.setStatus(Math.abs(differenceTotal) < EPSILON ? FieldControlStatus.CONFORME : FieldControlStatus.ECART);
 
-        return toDto(repository.save(entity), memberId);
+        TontineMemberFieldControl saved = repository.save(entity);
+        notifyEcart(saved, member);
+        return toDto(saved, memberId);
+    }
+
+    private void notifyEcart(TontineMemberFieldControl saved, TontineMember member) {
+        if (saved.getStatus() != FieldControlStatus.ECART || appNotificationService == null) {
+            return;
+        }
+        String clientName = member.getClient() != null ? member.getClient().getFullName() : null;
+        Map<String, Double> byCommercial = new LinkedHashMap<>();
+        for (TontineMemberFieldControlLine line : saved.getLines()) {
+            if (!StringUtils.hasText(line.getCommercialUsername())) {
+                continue;
+            }
+            if (Math.abs(line.getDifferenceAmount() != null ? line.getDifferenceAmount() : 0d) <= 0.5d) {
+                continue;
+            }
+            double positive = Math.max(0d, line.getDifferenceAmount() != null ? line.getDifferenceAmount() : 0d);
+            byCommercial.merge(line.getCommercialUsername().trim(), positive, Double::sum);
+        }
+        for (Map.Entry<String, Double> entry : byCommercial.entrySet()) {
+            try {
+                appNotificationService.notifyCarnetEcart(
+                        entry.getKey(),
+                        clientName,
+                        saved.getId(),
+                        "TONTINE:" + entry.getKey(),
+                        entry.getValue());
+            } catch (RuntimeException ex) {
+                log.warn("Notification d'écart de carnet non envoyée pour le membre {} : {}",
+                        member.getId(), ex.getMessage());
+            }
+        }
     }
 
     @Transactional(readOnly = true)

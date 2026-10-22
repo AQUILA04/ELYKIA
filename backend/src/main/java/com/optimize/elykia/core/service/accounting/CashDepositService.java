@@ -13,6 +13,7 @@ import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.service.accounting.CashDepositCatchupAllocator.Allocation;
 import com.optimize.elykia.core.service.accounting.CashDepositCatchupAllocator.Slice;
 import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;
+import com.optimize.elykia.core.service.debt.DebtService;
 import com.optimize.elykia.core.service.report.DailyOperationService;
 import com.optimize.elykia.core.util.CashDepositCategoryCalculator;
 import com.optimize.elykia.core.util.UserProfilConstant;
@@ -45,6 +46,7 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
     private final DailyOperationService dailyOperationService;
     private final UserService userService;
     private final CashDepositCatchupService catchupService;
+    private DebtService debtService;
 
     public CashDepositService(CashDepositRepository repository,
             DailyCommercialReportRepository dailyReportRepository,
@@ -58,6 +60,11 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         this.dailyOperationService = dailyOperationService;
         this.userService = userService;
         this.catchupService = catchupService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setDebtService(DebtService debtService) {
+        this.debtService = debtService;
     }
 
     public CashDeposit createDeposit(CashDeposit deposit) {
@@ -166,6 +173,23 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
                 "Versement " + saved.getId(),
                 logDetail);
 
+        if (debtService != null) {
+            debtService.imputeFieldControlFromDeposit(
+                    deposit.getCommercialUsername(),
+                    deposit.getDate(),
+                    safe(deposit.getCreditAmount()),
+                    safe(deposit.getTontineAmount()),
+                    saved.getReference());
+            for (Slice slice : allocation.slices()) {
+                debtService.imputeFieldControlFromDeposit(
+                        deposit.getCommercialUsername(),
+                        slice.date(),
+                        0.0,
+                        slice.amount(),
+                        deposit.getReference() + "/" + slice.date());
+            }
+        }
+
         return saved;
     }
 
@@ -251,6 +275,12 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
                 "Annulation Versement N° " + anchor.getId(),
                 "Annulation du versement N° " + anchor.getId() + " par " + currentUser.getUsername()
                         + " pour la date du " + basis);
+
+        if (debtService != null) {
+            for (CashDeposit line : positive) {
+                debtService.reverseFieldControlImputation(line.getReference());
+            }
+        }
 
         return returned != null ? returned : cancelAnchor;
     }

@@ -3,7 +3,9 @@ package com.optimize.elykia.core.service.report;
 import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.dto.report.CommercialTontineYearlySummaryDto;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
+import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
+import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ public class CommercialTontineYearlySummaryService {
 
     private final TontineCollectionRepository tontineCollectionRepository;
     private final DailyCommercialReportRepository dailyCommercialReportRepository;
+    private final TontineMemberFieldControlRepository tontineMemberFieldControlRepository;
 
     @Transactional(readOnly = true)
     public CommercialTontineYearlySummaryDto buildYearlySummary(String commercialUsername, int year) {
@@ -40,6 +43,12 @@ public class CommercialTontineYearlySummaryService {
                 .sumTontineDepositedByCommercialAndDateBetween(
                         commercialUsername, yearStart, yearEnd);
         double deposited = depositedValue != null ? depositedValue : 0.0;
+        double controlledNotebook = number(new Object[] {
+                tontineMemberFieldControlRepository.sumLatestNotebookForCollector(commercialUsername, year)
+        }, 0).doubleValue();
+        double pendingNotebook = number(new Object[] {
+                tontineMemberFieldControlRepository.sumPendingPositiveDifferenceForCollector(commercialUsername, year)
+        }, 0).doubleValue();
 
         return CommercialTontineYearlySummaryDto.builder()
                 .year(year)
@@ -48,6 +57,8 @@ public class CommercialTontineYearlySummaryService {
                 .totalTontineCollectionsCount(collectionsCount)
                 .totalTontineDepositedAmount(deposited)
                 .remainingAtCommercialAmount(collected - deposited)
+                .controlledNotebookAmount(controlledNotebook)
+                .pendingNotebookAboveSystemAmount(pendingNotebook)
                 .build();
     }
 

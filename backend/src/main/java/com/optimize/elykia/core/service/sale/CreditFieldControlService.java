@@ -9,7 +9,10 @@ import com.optimize.elykia.core.entity.sale.CreditFieldControl;
 import com.optimize.elykia.core.enumaration.FieldControlStatus;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.service.notification.AppNotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +23,19 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CreditFieldControlService {
 
     private static final double EPSILON = 0.0001d;
 
     private final CreditFieldControlRepository repository;
     private final CreditRepository creditRepository;
+    private AppNotificationService appNotificationService;
+
+    @Autowired(required = false)
+    public void setAppNotificationService(AppNotificationService appNotificationService) {
+        this.appNotificationService = appNotificationService;
+    }
 
     @Transactional
     public CreditFieldControlDto create(Long creditId, CreateCreditFieldControlDto dto) {
@@ -52,7 +62,23 @@ public class CreditFieldControlService {
         entity.setObservedBy(SecurityContextHolder.getContext().getAuthentication().getName());
         entity.setNote(dto.getNote());
 
-        return toDto(repository.save(entity));
+        CreditFieldControl saved = repository.save(entity);
+        if (saved.getStatus() == FieldControlStatus.ECART && appNotificationService != null
+                && credit.getCollector() != null) {
+            try {
+                String clientName = credit.getClient() != null ? credit.getClient().getFullName() : null;
+                appNotificationService.notifyCarnetEcart(
+                        credit.getCollector(),
+                        clientName,
+                        saved.getId(),
+                        "CREDIT:" + credit.getCollector(),
+                        Math.max(0d, differenceAmount));
+            } catch (RuntimeException ex) {
+                log.warn("Notification d'écart de carnet non envoyée pour le crédit {} : {}",
+                        credit.getId(), ex.getMessage());
+            }
+        }
+        return toDto(saved);
     }
 
     @Transactional(readOnly = true)

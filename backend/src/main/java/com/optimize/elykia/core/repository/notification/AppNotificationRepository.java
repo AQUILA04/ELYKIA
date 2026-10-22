@@ -17,6 +17,9 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
     Optional<AppNotification> findByTypeAndEntityIdAndResolvedAtIsNull(
             AppNotificationType type, Long entityId);
 
+    Optional<AppNotification> findByTypeAndEntityIdAndEntityReferenceAndResolvedAtIsNull(
+            AppNotificationType type, Long entityId, String entityReference);
+
     Optional<AppNotification> findFirstByTypeAndEntityIdOrderByIdDesc(
             AppNotificationType type, Long entityId);
 
@@ -48,6 +51,8 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
                           UPPER(n.tontineCollector) = UPPER(:username)
                           OR (n.tontineCollector IS NULL AND UPPER(n.targetCollector) = UPPER(:username))
                      ))
+                 OR (n.type = com.optimize.elykia.core.enumaration.AppNotificationType.CARNET_ECART
+                     AND UPPER(n.targetCollector) = UPPER(:username))
               )
             ORDER BY n.operationDate DESC, n.id DESC
             """)
@@ -79,6 +84,8 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
                           UPPER(n.tontineCollector) = UPPER(:username)
                           OR (n.tontineCollector IS NULL AND UPPER(n.targetCollector) = UPPER(:username))
                      ))
+                 OR (n.type = com.optimize.elykia.core.enumaration.AppNotificationType.CARNET_ECART
+                     AND UPPER(n.targetCollector) = UPPER(:username))
               )
               AND n.id NOT IN (
                   SELECT r.notificationId FROM AppNotificationRead r
@@ -122,6 +129,8 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
                           UPPER(n.tontineCollector) = UPPER(:username)
                           OR (n.tontineCollector IS NULL AND UPPER(n.targetCollector) = UPPER(:username))
                      ))
+                 OR (n.type = com.optimize.elykia.core.enumaration.AppNotificationType.CARNET_ECART
+                     AND UPPER(n.targetCollector) = UPPER(:username))
               )
               AND n.id NOT IN (
                   SELECT r.notificationId FROM AppNotificationRead r
