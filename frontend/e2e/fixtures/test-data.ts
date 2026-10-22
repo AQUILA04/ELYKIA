@@ -1,65 +1,45 @@
 /**
  * Identifiants des comptes de test.
- *
- * mag001 :
- * - Environnement vierge (init `application.yml`) → `Maga1234`
- * - Base locale Francis → `Afric@`
- * - Autre repli → `Abcd1234`
- * - Surcharge explicite → `E2E_MAG001_PASSWORD`
+ * Le mot de passe vient uniquement de la variable d'environnement indiquée.
  */
+const PASSWORD_ENV = {
+  gestionnaire: 'E2E_GES003_PASSWORD',
+  magasinier: 'E2E_MAG001_PASSWORD',
+  commercial: 'E2E_COMMERCIAL_PASSWORD',
+  secretaire: 'E2E_SEC_PASSWORD',
+  recoveryManager: 'E2E_RM_PASSWORD',
+  admin: 'E2E_ADMIN_PASSWORD',
+} as const;
+
 export const USER_ACCOUNTS = {
   gestionnaire: {
     username: process.env['E2E_GES003_USERNAME'] ?? 'ges003',
-    passwordCandidates: uniqueStrings([
-      process.env['E2E_GES003_PASSWORD'],
-      'Abcd1234',
-    ]),
+    passwordCandidates: uniqueStrings([process.env['E2E_GES003_PASSWORD']]),
     label: 'GESTIONNAIRE',
   },
   magasinier: {
     username: process.env['E2E_MAG001_USERNAME'] ?? 'mag001',
-    passwordCandidates: uniqueStrings([
-      process.env['E2E_MAG001_PASSWORD'],
-      'Afric@',
-      'Maga1234',
-      'Abcd1234',
-    ]),
+    passwordCandidates: uniqueStrings([process.env['E2E_MAG001_PASSWORD']]),
     label: 'STOREKEEPER',
   },
   commercial: {
     username: process.env['E2E_COMMERCIAL_USERNAME'] ?? 'COM020',
-    passwordCandidates: uniqueStrings([
-      process.env['E2E_COMMERCIAL_PASSWORD'],
-      'ChangeMe020',
-      'Abcd1234',
-    ]),
+    passwordCandidates: uniqueStrings([process.env['E2E_COMMERCIAL_PASSWORD']]),
     label: 'PROMOTER',
   },
   secretaire: {
     username: process.env['E2E_SEC_USERNAME'] ?? 'secret001',
-    passwordCandidates: uniqueStrings([
-      process.env['E2E_SEC_PASSWORD'],
-      'Secret1234',
-      'Abcd1234',
-    ]),
+    passwordCandidates: uniqueStrings([process.env['E2E_SEC_PASSWORD']]),
     label: 'SECRETARY',
   },
   recoveryManager: {
     username: process.env['E2E_RM_USERNAME'] ?? 'recov001',
-    passwordCandidates: uniqueStrings([
-      process.env['E2E_RM_PASSWORD'],
-      'Recover1234',
-      'Abcd1234',
-    ]),
+    passwordCandidates: uniqueStrings([process.env['E2E_RM_PASSWORD']]),
     label: 'RECOVERY_MANAGER',
   },
   admin: {
     username: process.env['E2E_ADMIN_USERNAME'] ?? 'manager',
-    passwordCandidates: uniqueStrings([
-      process.env['E2E_ADMIN_PASSWORD'],
-      'Africa',
-      'Abcd1234',
-    ]),
+    passwordCandidates: uniqueStrings([process.env['E2E_ADMIN_PASSWORD']]),
     label: 'ADMIN',
   },
 } as const;
@@ -169,6 +149,12 @@ export async function resolveCredentials(userKey: E2eUserKey): Promise<ResolvedC
   }
 
   const account = USER_ACCOUNTS[userKey];
+  const passwordEnv = PASSWORD_ENV[userKey];
+  if (account.passwordCandidates.length === 0) {
+    throw new Error(
+      `Mot de passe absent pour ${account.username}. Définir ${passwordEnv}.`,
+    );
+  }
 
   for (const password of account.passwordCandidates) {
     const ok = await trySignIn(account.username, password);

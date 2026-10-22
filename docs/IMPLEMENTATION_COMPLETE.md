@@ -61,11 +61,11 @@ mvn spring-boot:run
 
 # 4. Tester
 curl http://localhost:8080/api/v1/tontines/sessions \
-  -H "Authorization: Bearer YOUR_TOKEN"
+  -H "Authorization: Bearer <token>"
 
 # 5. Exporter
 curl http://localhost:8080/api/v1/tontines/sessions/1/export/excel \
-  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Authorization: Bearer <token>" \
   -o session.xlsx
 ```
 

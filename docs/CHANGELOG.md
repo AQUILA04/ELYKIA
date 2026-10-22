@@ -9,11 +9,28 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-10-22
+
+### Security
+
+- **Deploy —** `JWT_SECRET` est obligatoire dans les compose test, prod et DigitalOcean, et dans les modèles `.env`. Sans cette variable le backend ne démarre pas.
+- **CI —** le scan gitleaks parcourt les fichiers suivis à chaque push et pull request. Les logs de déploiement n’affichent plus les identifiants SSH.
+- **Docs —** les guides de démarrage et d’E2E n’indiquent plus de mot de passe. Les secrets locaux restent dans l’environnement ou dans `.cursor/local-secrets.env`.
+
 ## Docs & Infra — 2026-10-17
 
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Backend — [1.37.2] — 2026-10-22
+
+### Security
+
+- Les profils prod, uat et formation ne contiennent plus de mot de passe de base ni de clé de signature. Ces valeurs viennent de `SPRING_DATASOURCE_PASSWORD` et `JWT_SECRET`.
+- L’amorçage des comptes est désactivé sur ces profils. Ailleurs, il ne s’active que si `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true`, avec un mot de passe fourni par `LOCAL_SEED_PASSWORD`.
+- L’actuator du profil prod n’expose plus que health et prometheus.
+- Flyway Maven n’a plus d’identifiants dans le pom. La commande les reçoit par `-Dflyway.url`, `-Dflyway.user` et `-Dflyway.password`.
 
 ## Backend — [1.37.1] — 2026-10-22
 
@@ -56,6 +73,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.33.4] — 2026-10-22
+
+### Security
+
+- Les tests E2E lisent les mots de passe uniquement dans les variables `E2E_*_PASSWORD` et `PGPASSWORD`.
 
 ## Frontend — [2.33.3] — 2026-10-22
 
@@ -108,6 +131,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.33.21] — 2026-10-22
+
+### Security
+
+- Les comptes E2E mobile n’ont plus de mot de passe de repli. La variable d’environnement correspondante est obligatoire. Le jeton d’exemple des fixtures n’est plus une session réelle.
 
 ## Mobile — [2.33.20] — 2026-10-22
 

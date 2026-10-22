@@ -195,7 +195,7 @@ Le script `import-db.sh` :
 - par défaut le script vous demandera une confirmation interactive avant de lancer la sauvegarde et la restauration ;
   pour lancer en mode non interactif (p.ex. dans un job automatisé), utilisez `NONINTERACTIVE=1`.
 
-> **Fichiers `.env`** : les secrets Postgres sont dans `/opt/elykia/test/.env` et `/opt/elykia/prod/.env` (pas dans `deploy/.env`).
+> **Fichiers `.env`** : les secrets (Postgres, `JWT_SECRET`, MinIO, Paygate, Notification Hub) sont dans `/opt/elykia/test/.env` et `/opt/elykia/prod/.env` (pas dans Git). `JWT_SECRET` est obligatoire : sans lui le backend ne démarre pas. Le générer avec `openssl rand -base64 48`, une valeur par environnement. Ne pas réutiliser une clé déjà publiée dans Git. Ne pas définir `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED` sur le VPS.
 
 ### Dépannage import / backup
 

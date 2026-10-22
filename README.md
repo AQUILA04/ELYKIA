@@ -63,14 +63,26 @@ ELYKIA/
 Créer une base PostgreSQL locale alignée sur le profil `prod` du backend :
 
 - Base : `oec`
-- Utilisateur / mot de passe : voir `backend/src/main/resources/application-prod.yml`
+- Utilisateur : `oec`
+- Mot de passe : choisi localement, jamais commité
 
 ```bash
-# Exemple (psql)
+# Exemple (psql). Remplacer le mot de passe par une valeur locale.
 CREATE DATABASE oec;
-CREATE USER oec WITH PASSWORD 'APP2024';
+CREATE USER oec WITH PASSWORD 'choisir-un-mot-de-passe';
 GRANT ALL PRIVILEGES ON DATABASE oec TO oec;
 ```
+
+Avant de lancer le backend, exporter au minimum :
+
+```bash
+export SPRING_DATASOURCE_PASSWORD='le-mot-de-passe-choisi'
+export JWT_SECRET="$(openssl rand -base64 48)"
+export MINIO_ACCESS_KEY=minioadmin
+export MINIO_SECRET_KEY=minioadmin
+```
+
+`JWT_SECRET` signe les sessions. Une nouvelle valeur déconnecte les utilisateurs déjà connectés.
 
 ### 2. Backend (port 8081)
 
@@ -107,7 +119,7 @@ Application : [http://localhost:4200](http://localhost:4200)
 
 L'URL API est configurée dans `frontend/src/environments/environment.ts` (`http://localhost:8081`).
 
-Comptes de test par défaut (après premier démarrage backend) : `ges003` / `Abcd1234`, `mag001` / `Maga1234`, `COM020` / `ChangeMe020`.
+Les comptes d’amorçage (`ges003`, `mag001`, `COM020`, …) ne sont créés que si `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true` et `LOCAL_SEED_PASSWORD` sont définis. Le profil `prod` désactive cet amorçage.
 
 ### 4. Mobile
 

@@ -2,9 +2,9 @@ spring:
   application:
     name: optimize-elykia-core
   datasource:
-    url: jdbc:postgresql://localhost:5432/oec
-    username: oec
-    password: APP2024
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/oec}
+    username: ${SPRING_DATASOURCE_USERNAME:oec}
+    password: ${SPRING_DATASOURCE_PASSWORD}
   jpa:
     hibernate:
       ddl-auto: none
@@ -35,19 +35,19 @@ app:
     root:
       lastname: ADLER
       firstname: Francis
-      email: francis.ahonsou@gmail.com
-      phone: 92181351
+      email: ${APP_ROOT_EMAIL:root@localhost}
+      phone: ${APP_ROOT_PHONE:00000000}
       gender: MALE
     manager:
       lastname: AKOFA
       firstname: Yasmine
-      email: franics.ahonsou@gmail.com
-      phone: 97497965
+      email: ${APP_MANAGER_EMAIL:manager@localhost}
+      phone: ${APP_MANAGER_PHONE:00000000}
       gender: FEMALE
 
 bezkoder:
   app:
-    jwtSecret: cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
+    jwtSecret: ${JWT_SECRET}
     jwtExpirationMs: 86400000
     jwtRefreshExpirationMs: 86400000
 logging:
@@ -65,7 +65,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,prometheus
     prometheus:
       enabled: true
   info:
@@ -102,5 +102,15 @@ server:
 #    in: header
 #    description: >-
 #      Enter the token with the `Bearer: ` prefix, e.g. "Bearer abcde12345".
+
+# Pas de valeur par défaut : le process doit recevoir ces variables.
+minio:
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+
+security:
+  config:
+    auto-initialize:
+      enabled: false
 
 

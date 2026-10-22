@@ -6,7 +6,7 @@
   "terminals": [
     {
       "name": "backend",
-      "command": "cd backend && java -jar target/optimize-elykia-core-*.jar"
+      "command": "set -a && . .cursor/local-secrets.env && set +a && cd backend && java -jar target/optimize-elykia-core-*.jar"
     },
     {
       "name": "frontend",

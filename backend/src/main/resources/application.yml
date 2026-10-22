@@ -95,8 +95,11 @@ security:
       active: 2
       society: "AMENOUVEVE-YAVEH"
   config:
+    # Désactivé par défaut. prod, uat et formation le forcent à false.
+    # Amorçage local uniquement : SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true
+    # et LOCAL_SEED_PASSWORD (choisi hors Git).
     auto-initialize:
-      enabled: true
+      enabled: ${SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED:false}
     profiles: SUPER_ADMIN,ADMIN,USER,PROMOTER,GESTIONNAIRE,STOREKEEPER,SECRETARY,RECOVERY_MANAGER,CLIENT
     permissions: ROLE_ADMIN,ROLE_USER,ROLE_SUPER_ADMIN,ROLE_CONSULT_CLIENT,ROLE_CONSULT_LOCALITY,ROLE_CONSULT_CREDIT,ROLE_CONSULT_TONTINE,ROLE_CONSULT_ACCOUNT,
       ROLE_EDIT_CREDIT,ROLE_PROMOTER,ROLE_EDIT_TONTINE,ROLE_CONSULT_DASHBOARD,ROLE_OPEN_CASH_DESK,ROLE_CLOSE_CASH_DESK,ROLE_CONSULT_OPEN_ACCOUNTING_DAY,
@@ -130,7 +133,7 @@ security:
       accounts:
         "root":
           username: root
-          password: Africa
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: SUPER_ADMIN
           user-details:
             firstname: root
@@ -140,7 +143,7 @@ security:
             email: root@elykia.com
         "manager":
           username: manager
-          password: Africa
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: ADMIN
           user-details:
             firstname: Manager
@@ -150,7 +153,7 @@ security:
             email: manager@elykia.com
         "ges003":
           username: ges003
-          password: Abcd1234
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: GESTIONNAIRE
           user-details:
             firstname: ges003
@@ -160,7 +163,7 @@ security:
             email: gestionnaire03@elykia.com
         "secret001":
           username: secret001
-          password: Secret1234
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: SECRETARY
           user-details:
             firstname: secretaire
@@ -170,7 +173,7 @@ security:
             email: secretaire001@elykia.com
         "mag001":
           username: mag001
-          password: Maga1234
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: STOREKEEPER
           user-details:
             firstname: Magasinier
@@ -180,7 +183,7 @@ security:
             email: magasinier01@elykia.com
         "recov001":
           username: recov001
-          password: Recover1234
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: RECOVERY_MANAGER
           user-details:
             firstname: Chef recouvrement
@@ -190,7 +193,7 @@ security:
             email: chef.recouvrement@elykia.com
         "COM001":
           username: COM001
-          password: ChangeMe001
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM001
@@ -200,7 +203,7 @@ security:
             email: com001@email.com
         "COM002":
           username: COM002
-          password: ChangeMe002
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM002
@@ -210,7 +213,7 @@ security:
             email: com002@email.com
         "COM003":
           username: COM003
-          password: ChangeMe003
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM003
@@ -220,7 +223,7 @@ security:
             email: com003@email.com
         "COM004":
           username: COM004
-          password: ChangeMe004
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM004
@@ -230,7 +233,7 @@ security:
             email: com004@email.com
         "COM005":
           username: COM005
-          password: ChangeMe005
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM005
@@ -240,7 +243,7 @@ security:
             email: com005@email.com
         "COM006":
           username: COM006
-          password: ChangeMe006
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM006
@@ -250,7 +253,7 @@ security:
             email: com006@email.com
         "COM007":
           username: COM007
-          password: ChangeMe007
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM007
@@ -260,7 +263,7 @@ security:
             email: com007@email.com
         "COM008":
           username: COM008
-          password: ChangeMe008
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM008
@@ -270,7 +273,7 @@ security:
             email: com008@email.com
         "COM009":
           username: COM009
-          password: ChangeMe009
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM009
@@ -280,7 +283,7 @@ security:
             email: com009@email.com
         "COM010":
           username: COM010
-          password: ChangeMe010
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM010
@@ -290,7 +293,7 @@ security:
             email: com010@email.com
         "COM011":
           username: COM011
-          password: ChangeMe011
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM011
@@ -301,7 +304,7 @@ security:
 
         "COM012":
           username: COM012
-          password: ChangeMe012
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM012
@@ -312,7 +315,7 @@ security:
 
         "COM013":
           username: COM013
-          password: ChangeMe013
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM013
@@ -323,7 +326,7 @@ security:
 
         "COM014":
           username: COM014
-          password: ChangeMe014
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM014
@@ -333,7 +336,7 @@ security:
             email: com014@email.com
         "COM015":
           username: COM015
-          password: ChangeMe015
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM015
@@ -343,7 +346,7 @@ security:
             email: com015@email.com
         "COM016":
           username: COM016
-          password: ChangeMe016
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM016
@@ -353,7 +356,7 @@ security:
             email: com016@email.com
         "COM017":
           username: COM017
-          password: ChangeMe017
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM017
@@ -363,7 +366,7 @@ security:
             email: com017@email.com
         "COM018":
           username: COM018
-          password: ChangeMe018
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM018
@@ -373,7 +376,7 @@ security:
             email: com018@email.com
         "COM019":
           username: COM019
-          password: ChangeMe019
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM019
@@ -383,7 +386,7 @@ security:
             email: com019@email.com
         "COM020":
           username: COM020
-          password: ChangeMe020
+          password: ${LOCAL_SEED_PASSWORD:}
           profil: PROMOTER
           user-details:
             firstname: COM020

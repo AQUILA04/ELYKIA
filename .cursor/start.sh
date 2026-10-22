@@ -5,7 +5,17 @@ set -euo pipefail
 
 DB_NAME="oec"
 DB_USER="oec"
-DB_PASSWORD="APP2024"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SECRETS_FILE="$REPO_ROOT/.cursor/local-secrets.env"
+if [[ ! -f "$SECRETS_FILE" ]]; then
+  echo "Fichier absent : $SECRETS_FILE. Lancer .cursor/install.sh d'abord." >&2
+  exit 1
+fi
+# shellcheck disable=SC1090
+set -a
+source "$SECRETS_FILE"
+set +a
+DB_PASSWORD="${SPRING_DATASOURCE_PASSWORD:?SPRING_DATASOURCE_PASSWORD manquant}"
 
 PG_CLUSTER_VERSION="$(pg_lsclusters -h | awk 'NR==1{print $1}')"
 echo "==> Starting PostgreSQL cluster ${PG_CLUSTER_VERSION}/main"

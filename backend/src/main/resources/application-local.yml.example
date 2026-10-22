@@ -1,0 +1,24 @@
+# Copier vers application-local.yml (ignoré par Git) et l'activer :
+#   spring.profiles.active=local
+# ou ajouter "local" au profil déjà utilisé.
+#
+# Les mots de passe restent dans l'environnement, pas dans ce fichier.
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/oec
+    username: oec
+    password: ${SPRING_DATASOURCE_PASSWORD}
+
+bezkoder:
+  app:
+    jwtSecret: ${JWT_SECRET}
+
+minio:
+  access-key: ${MINIO_ACCESS_KEY}
+  secret-key: ${MINIO_SECRET_KEY}
+
+security:
+  config:
+    auto-initialize:
+      enabled: ${SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED:false}

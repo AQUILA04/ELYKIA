@@ -48,26 +48,27 @@ frontend/
 
 ## Comptes de test
 
-Comptes initialisés par le backend (`application.yml`, profil `prod`) :
+Les usernames viennent de `application.yml`. Le mot de passe n’est pas dans Git : au démarrage du backend de test, `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true` et `LOCAL_SEED_PASSWORD` créent les comptes manquants avec ce seul mot de passe. Playwright le reçoit via les variables ci-dessous (la même valeur que `LOCAL_SEED_PASSWORD`).
 
-| Rôle | Username | Mot de passe par défaut | Usage golden path |
-|------|----------|-------------------------|-------------------|
-| Gestionnaire | `ges003` | `Abcd1234` | Validation stock, tontine, rapports |
-| Administrateur | `manager` | `Africa` | Annulation de ventes (`ROLE_ADMIN`) |
-| Magasinier | `mag001` | `Maga1234` ou `Abcd1234` | Livraison sorties stock |
-| Commercial terrain | `COM020` | `ChangeMe020` | Ventes, collectes, livraison tontine, rattrapage |
-| Commercial agence | `COM001` | (voir config) | Ventes comptant (`CSH-`) |
-
-Les mots de passe sont résolus automatiquement (`resolveCredentials`) avec repli sur plusieurs candidats. Surcharge possible via variables d'environnement :
+| Rôle | Username | Variable | Usage golden path |
+|------|----------|----------|-------------------|
+| Gestionnaire | `ges003` | `E2E_GES003_PASSWORD` | Validation stock, tontine, rapports |
+| Administrateur | `manager` | `E2E_ADMIN_PASSWORD` | Annulation de ventes |
+| Magasinier | `mag001` | `E2E_MAG001_PASSWORD` | Livraison sorties stock |
+| Commercial terrain | `COM020` | `E2E_COMMERCIAL_PASSWORD` | Ventes, collectes, livraison tontine, rattrapage |
+| Secrétaire | `secret001` | `E2E_SEC_PASSWORD` | Parcours secrétariat |
+| Chef de recouvrement | `recov001` | `E2E_RM_PASSWORD` | Recouvrement |
+| Commercial agence | `COM001` | `E2E_AGENCY_COMMERCIAL_USERNAME` | Ventes comptant (`CSH-`) |
 
 ```bash
-E2E_GES003_PASSWORD=...
-E2E_ADMIN_PASSWORD=...
-E2E_ADMIN_USERNAME=manager
-E2E_MAG001_PASSWORD=...
-E2E_COMM001_PASSWORD=...
-E2E_COMMERCIAL_PASSWORD=...
-E2E_AGENCY_COMMERCIAL_USERNAME=COM001
+export LOCAL_SEED_PASSWORD='mot-de-passe-local'
+export E2E_GES003_PASSWORD="$LOCAL_SEED_PASSWORD"
+export E2E_ADMIN_PASSWORD="$LOCAL_SEED_PASSWORD"
+export E2E_MAG001_PASSWORD="$LOCAL_SEED_PASSWORD"
+export E2E_COMMERCIAL_PASSWORD="$LOCAL_SEED_PASSWORD"
+export E2E_SEC_PASSWORD="$LOCAL_SEED_PASSWORD"
+export E2E_RM_PASSWORD="$LOCAL_SEED_PASSWORD"
+export PGPASSWORD='mot-de-passe-postgres'
 ```
 
 ## Golden path — 31 étapes
@@ -132,7 +133,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=prod
 .github/scripts/seed-e2e-articles.sh
 
 # Ou directement avec psql
-PGPASSWORD=APP2024 psql -h localhost -U oec -d oec \
+PGPASSWORD="$PGPASSWORD" psql -h localhost -U oec -d oec \
   -f backend/src/main/resources/db/legacy/V14__insert_articles.sql
 ```
 

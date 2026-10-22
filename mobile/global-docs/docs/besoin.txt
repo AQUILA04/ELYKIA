@@ -55,9 +55,9 @@ Au click sur le bouton, le username et le mot de passe sont récupérer et envoy
         "ROLE_STOREKEEPER_DASHBOARD",
         "ROLE_STOREKEEPER"
     ],
-    "refreshToken": "62b20b92-aab5-436a-a210-ceec9029a5ed",
+    "refreshToken": "e2e-mock-refresh-token",
     "tokenType": "Bearer",
-    "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYWcwMDEiLCJpYXQiOjE3NTMzNTA3MDAsImF1dGhvcml0aWVzIjpbeyJhdXRob3JpdHkiOiJST0xFX1NUT1JFS0VFUEVSX0RBU0hCT0FSRCJ9LHsiYXV0aG9yaXR5IjoiUk9MRV9TVE9SRUtFRVBFUiJ9XSwiZXhwIjoxNzUzNDM3MTAwfQ.wBOTmudwKs9BnFLj9q1H5idN16f5ufIbNb3WOpJQl98"
+    "accessToken": "e2e-mock-access-token"
 }
 
 

@@ -262,6 +262,10 @@ test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @re
 });
 
 function backdateTontineMemberRegistration(memberId: number, registrationTimestamp: string): void {
+  const pgPassword = process.env['PGPASSWORD'];
+  if (!pgPassword) {
+    throw new Error('PGPASSWORD est requis pour dater l’inscription tontine.');
+  }
   execFileSync(
     'psql',
     [
@@ -277,7 +281,7 @@ function backdateTontineMemberRegistration(memberId: number, registrationTimesta
       `UPDATE tontine_member SET registration_date = TIMESTAMP '${registrationTimestamp}' WHERE id = ${memberId};`,
     ],
     {
-      env: { ...process.env, PGPASSWORD: 'APP2024' },
+      env: { ...process.env, PGPASSWORD: pgPassword },
       stdio: ['ignore', 'pipe', 'pipe'],
     },
   );

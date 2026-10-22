@@ -1,0 +1,11 @@
+title = "ELYKIA gitleaks"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Historique documentaire et secret de test isolé"
+paths = [
+  '''docs/CHANGELOG\.md''',
+  '''(?:^|/)src/test/''',
+]
