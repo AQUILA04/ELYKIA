@@ -1850,10 +1850,10 @@
 <p><strong>Ne doublez pas une clôture hors ligne.</strong> Après confirmation, consultez l’onglet <strong>Plus</strong> pour vérifier si l’opération a été synchronisée ou placée dans la file d’attente.</p>
 </blockquote>
 <h2 id="onglet-terrain-carnets-credit-et-tontine">Onglet Terrain : carnets crédit et tontine</h2>
-<p>L’onglet <strong>Terrain</strong> regroupe les portefeuilles par commercial et par localité. Il distingue les retards des membres tontine.</p>
-<p>En ligne, l’onglet affiche tous les membres tontine et tous les retards, sans se limiter au plan du jour. La liste se complète au fil du défilement. Deux boutons, <strong>Tontine</strong> et <strong>Retards</strong>, permettent de passer d’une liste à l’autre. Hors ligne, l’onglet utilise le pack du plan du jour.</p>
+<p>L’onglet <strong>Terrain</strong> regroupe les portefeuilles par commercial et par localité. Il distingue les crédits en cours des membres tontine.</p>
+<p>En ligne, l’onglet affiche tous les membres tontine et tous les crédits en cours, y compris ceux qui ne sont pas en retard, sans se limiter au plan du jour. La liste se complète au fil du défilement. Deux boutons, <strong>Tontine</strong> et <strong>Crédits</strong>, permettent de passer d’une liste à l’autre. Hors ligne, les crédits en cours sont ceux des commerciaux et des localités du plan du jour.</p>
 <p>La recherche en haut de la liste filtre par nom, téléphone, localité ou commercial. En ligne, elle interroge l’ensemble des données. Hors ligne, elle filtre le pack.</p>
-<p>Sous la recherche, deux totaux indiquent le nombre de clients tontine et le nombre de clients en retard. Ce sont les totaux complets, pas seulement les lignes déjà affichées. Pendant une recherche, le premier nombre correspond à tous les résultats et le second au total général.</p>
+<p>Sous la recherche, deux totaux indiquent le nombre de clients tontine et le nombre de clients dont un crédit est en cours. Ce sont les totaux complets, pas seulement les lignes déjà affichées. Pendant une recherche, le premier nombre correspond à tous les résultats et le second au total général.</p>
 <table>
 <thead>
 <tr>
@@ -1863,8 +1863,8 @@
 </thead>
 <tbody>
 <tr>
-<td>Retards</td>
-<td>Vérifier ou annuler la vérification d’un carnet, puis utiliser <strong>Naviguer</strong> lorsqu’une position est disponible.</td>
+<td>Crédits</td>
+<td>Vérifier ou annuler la vérification d’un carnet, lancer un <strong>Contrôle</strong>, puis utiliser <strong>Naviguer</strong> lorsqu’une position est disponible. Le badge <strong>Retard</strong> signale un crédit en retard.</td>
 </tr>
 <tr>
 <td>Tontine</td>
@@ -1872,9 +1872,10 @@
 </tr>
 </tbody>
 </table>
-<p>Le contrôle tontine ouvre un formulaire par commercial lorsque plusieurs agents ont collecté pour le membre. Dans chaque bloc (le commercial actuel est signalé), sélectionnez les mois à contrôler et saisissez le montant écrit dans le carnet de ce commercial. L’application calcule la comparaison <strong>Système / Carnet / Écart</strong> pour le commercial et pour l’ensemble de la sélection, et accepte une note. Vous pouvez contrôler un seul commercial lors d’une visite : les autres restent non contrôlés. Le badge <strong>Vérifié</strong> indique la vérification de carnet. Le badge <strong>CONFORME</strong> ou <strong>ECART</strong> correspond au dernier contrôle, même s’il date d’un autre jour. Ces deux informations sont complémentaires et ne doivent pas être confondues.</p>
-<p>Lorsqu’un écart est affiché, son montant apparaît à côté du badge, avec la mention <strong>Déjà contrôlé</strong>. Si cet écart n’a pas encore été accepté, le formulaire reprend les montants déjà saisis et le bouton <strong>Modifier le contrôle</strong> met à jour ce contrôle. Si le dernier contrôle est <strong>CONFORME</strong>, ou si l’écart a été accepté ou refusé, un nouveau contrôle peut être enregistré avec <strong>Capturer le contrôle</strong>.</p>
-<!-- CAPTURE À INSÉRER : Mobile Chef de recouvrement — onglet Terrain avec membres tontine, badge Vérifié et contrôle par mois. -->
+<p>La clôture d’un crédit en retard se fait sur l’onglet <strong>Retards</strong>.</p>
+<p>Le contrôle d’un crédit compare le montant écrit dans le carnet au montant déjà enregistré. Le contrôle tontine ouvre un formulaire par commercial lorsque plusieurs agents ont collecté pour le membre. Dans chaque bloc (le commercial actuel est signalé), sélectionnez les mois à contrôler et saisissez le montant écrit dans le carnet de ce commercial. L’application calcule la comparaison <strong>Système / Carnet / Écart</strong> pour le commercial et pour l’ensemble de la sélection, et accepte une note. Vous pouvez contrôler un seul commercial lors d’une visite : les autres restent non contrôlés. Le badge <strong>Vérifié</strong> indique la vérification de carnet. Le badge <strong>CONFORME</strong> ou <strong>ECART</strong> correspond au dernier contrôle, même s’il date d’un autre jour. Ces deux informations sont complémentaires et ne doivent pas être confondues.</p>
+<p>Lorsqu’un écart est affiché, son montant apparaît à côté du badge, avec la mention <strong>Déjà contrôlé</strong>. Si cet écart n’a pas encore été accepté, le formulaire reprend les montants déjà saisis et le bouton <strong>Modifier le contrôle</strong> met à jour ce contrôle. Si le dernier contrôle est <strong>CONFORME</strong>, ou si l’écart a été accepté ou refusé, un nouveau contrôle peut être enregistré avec <strong>Capturer le contrôle</strong>. Ce choix entre modification et nouveau contrôle est le même pour un crédit et pour un membre tontine.</p>
+<!-- CAPTURE À INSÉRER : Mobile Chef de recouvrement — onglet Terrain, liste Crédits avec badge Retard et bouton Contrôle. -->
 
 <h2 id="onglet-clients-contact-gps-et-changement-de-commercial">Onglet Clients : contact, GPS et changement de commercial</h2>
 <p>L’onglet <strong>Clients</strong> recherche les clients contenus dans le pack par nom, téléphone ou localité. Chaque carte montre le téléphone, le quartier, les commerciaux crédit et tontine, ainsi que l’état GPS.</p>

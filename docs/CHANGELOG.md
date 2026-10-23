@@ -34,6 +34,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.42.4] — 2026-10-23
+
+### Added
+
+- Terrain chef de recouvrement : liste paginée de tous les crédits en cours, et champ `inProgressCredits` du pack du jour. Les crédits en retard restent la file de l’onglet Retards. Le dernier contrôle est joint à chaque ligne de crédits en cours.
+
 ## Backend — [1.42.3] — 2026-10-23
 
 ### Changed
@@ -151,6 +157,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Le menu **Stock Commercial** regroupe les anciens écrans Stock Tontine. Sur Demandes Sortie, Stock et Retours, le sélecteur **Crédit** / **Tontine** recharge les données du canal choisi. Les adresses `/stock-tontine/...` redirigent vers ces écrans. Les API crédit et tontine restent séparées.
 
+## Frontend — [2.38.3] — 2026-10-23
+
+### Added
+
+- Rapport journalier, Vue d'ensemble : le bloc **Synthèse caisse** affiche, pour la période choisie, les dépenses avec et sans approvisionnement, le total versé de toutes les caisses, et le solde de caisse (versé moins les dépenses hors approvisionnement).
+
 ## Frontend — [2.38.2] — 2026-10-23
 
 ### Fixed
@@ -261,6 +273,22 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.33.25] — 2026-10-23
+
+### Changed
+
+- Terrain : la ligne d’un crédit en cours a une seule présentation, en ligne comme hors ligne.
+
+## Mobile — [2.33.24] — 2026-10-23
+
+### Changed
+
+- Chef de recouvrement, onglet Terrain : le segment **Crédits** liste tous les crédits en cours. Le badge **Retard** marque ceux qui le sont. **Contrôle** ouvre la feuille de contrôle carnet. L’onglet **Retards** reste la file des retards et la clôture.
+
+### Docs
+
+- Guide chef de recouvrement mobile : crédits en cours sur Terrain. Index RAG et guide HTML régénérés.
 
 ## Mobile — [2.33.23] — 2026-10-23
 

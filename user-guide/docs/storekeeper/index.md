@@ -13,6 +13,6 @@ Le magasinier sécurise la circulation physique de la marchandise : catalogue, r
 | Servir les demandes validées | Livrer les demandes au statut Validée, en Crédit ou en Tontine. |
 | Traiter les retours | Réceptionner les retours autorisés et conserver leur traçabilité. |
 | Contrôler le physique | Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. |
-| Suivre vos dettes | Dettes | Consulter les montants d’inventaire enregistrés à votre nom. |
+| Suivre vos dettes | Consulter les montants d’inventaire enregistrés à votre nom. |
 
 Consultez les pages dédiées pour [les articles](articles.md), [les inventaires et entrées](inventory.md), [les dettes](debts.md) et [le stock](stock_commercial.md).

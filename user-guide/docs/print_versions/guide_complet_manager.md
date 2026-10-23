@@ -18,6 +18,7 @@ Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Ar
 |---|---|---|
 | Démarrer et contrôler l’activité | Caisse, Clients, Ventes | Sécuriser les opérations du jour et les portefeuilles. |
 | Garantir la disponibilité des articles | Articles, Inventaires, Stock Commercial | Suivre les réceptions, sorties, retours et écarts. |
+| Suivre et régler les dettes | Dettes, Stock mensuel, Rapport journalier, Inventaires | Constituer les dettes marchandise / caisse / inventaire et enregistrer les règlements. |
 | Contrôler l’argent et la performance | Rapport Journalier, Dépenses | Lire les indicateurs, les versements et les remises. |
 | Suivre l’espace client | Inscriptions clients | Valider les inscriptions de l’espace client. |
 | Paramétrer l’agence | Configuration | Maintenir les référentiels et les paramètres. |
@@ -470,8 +471,9 @@ Pour accéder à la liste des réceptions, ouvrez le menu latéral **Stock Comme
 2. **Étape « En attente »** : Une référence de réception unique est générée. Les articles ne sont **pas encore intégrés** au stock vendable.
 3. **Contrôle et Validation par le gestionnaire** :
    * Rendez-vous dans **Stock Commercial > Historique Entrée**.
-   * Cliquez sur **« Voir »** pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran.
-   * **Valider** : Confirme la conformité de la réception. Le stock magasin est **instantanément augmenté**. Le montant de la réception est calculé avec le prix d'achat en vigueur dans le catalogue au moment de la validation.
+   * Cliquez sur **« Voir »** pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran, ou directement sur **« Valider »**.
+   * Une fenêtre de confirmation liste les articles. Les prix d'achat (unitaire, ou prix du colis / demi-colis) sont préremplis avec le catalogue : vous pouvez les modifier ou les laisser tels quels.
+   * Cliquez sur **« Confirmer la validation »** : le stock magasin est **instantanément augmenté** avec les prix confirmés. En cas d'erreur, le message s'affiche dans la fenêtre : corrigez puis renvoyez.
    * **Refuser** : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à **Refusé**.
    * **Abandonner** : Permet au créateur de la réception en attente de supprimer sa saisie avant validation si une erreur a été commise.
    * **Annuler** : Réservé aux gestionnaires habilités pour annuler une réception déjà validée suite à une régularisation comptable, décrémentant le stock du magasin.
@@ -484,7 +486,7 @@ Pour accéder à la liste des réceptions, ouvrez le menu latéral **Stock Comme
 | **Annulée** | Gris | Le stock préalablement ajouté est **retiré** | Voir |
 
 ### B. Consulter le détail et télécharger les documents
-1. **Ouvrir le détail** : cliquez sur **« Voir »**. Vous retrouvez la référence, la date, le reçu par, le montant total, puis la liste des articles avec quantité, prix unitaire d'achat et prix total de chaque ligne.
+1. **Ouvrir le détail** : cliquez sur **« Voir »**. Vous retrouvez la référence, la date, le reçu par, le montant total, puis la liste des articles avec quantité, prix d'achat et prix total de chaque ligne.
 2. **Télécharger la fiche d'une entrée** : depuis le détail, cliquez sur **« Télécharger PDF »**. Le document reprend les articles, les quantités et le montant total de l'entrée.
 3. **Télécharger le récapitulatif d'une journée** :
    * Sur **Historique Entrée**, choisissez une **date** dans le filtre.
@@ -566,13 +568,33 @@ graph LR
     C --> D["4. Réconcilier les écarts<br/>& Clôturer"]
 ```
 
-1. **Création de session** : Cliquez sur le bouton vert **« Créer un inventaire »**. La session passe à l'état **En cours** et affiche la date, le statut et l'auteur.
+1. **Création de session** : Cliquez sur le bouton vert **« Créer un inventaire »**. La session est créée au statut **Brouillon** et affiche la date, le statut et l'auteur. Elle passe à **En cours** dès que des quantités physiques sont enregistrées.
 2. **Impression de la feuille de comptage** : Cliquez sur **« Télécharger PDF »** pour éditer le document de comptage vierge destiné aux équipes de magasin.
 3. **Saisie des quantités réelles** : Cliquez sur **« Saisir quantités physiques »**. Dans la fenêtre qui s'ouvre, saisissez les quantités effectivement dénombrées pour chaque référence d'article.
 4. **Réconciliation des écarts** :
    * Cliquez sur **« Réconcilier les écarts »** pour afficher la balance comparative : `Quantité Théorique Système` vs `Quantité Physique Constatée` = `Écart (Surplus ou Manquant)`.
    * Enregistrez les motifs d'écart (casse, avarie, vol, erreur de saisie).
 5. **Clôture définitive** : Cliquez sur **« Clôturer l'inventaire »**. Les stocks théoriques sont automatiquement réalignés sur le comptage physique approuvé et la session est archivée dans l'**Historique des inventaires** (accessible via l'onglet ou le bouton Historique).
+
+### C. Annuler un brouillon
+
+1. Tant que le statut affiché est **Brouillon**, cliquez sur **« Annuler l'inventaire »**.
+2. Confirmez. Le stock du magasin n'est pas modifié.
+3. Le bouton **« Créer un inventaire »** redevient disponible.
+4. Dans **Historique inventaires**, le filtre **Annulé** retrouve cette session.
+
+### D. Stock magasin pendant l'inventaire
+
+Tant que l'inventaire est **Brouillon** ou **En cours**, les entrées de stock, la remise à zéro, la livraison d'une sortie et le retour de marchandise vers le magasin sont refusés. Le message affiché est : « Un inventaire est en cours. Veuillez attendre la fin de l'inventaire avant de continuer cette opération. »
+
+Les ventes et les crédits pris sur le stock du commercial restent possibles. Une demande de sortie peut être créée ; sa livraison attend la fin ou la suspension de l'inventaire.
+
+### E. Suspendre et reprendre
+
+1. Sur un inventaire **Brouillon** ou **En cours**, cliquez sur **« Suspendre l'inventaire »** et confirmez. Le statut devient **Suspendu**. Les entrées et sorties de magasin redeviennent possibles. Un autre inventaire ne peut pas être créé tant que celui-ci est suspendu.
+2. Pour continuer le comptage, cliquez sur **« Reprendre l'inventaire »**.
+3. Confirmez : « La reprise recalcule les quantités théoriques à partir du stock actuel. Les quantités physiques déjà saisies seront effacées. »
+4. Le statut repasse à **En cours**. Saisissez à nouveau les quantités physiques.
 
 ---
 
@@ -763,7 +785,7 @@ Les filtres définis dans la barre supérieure s'appliquent automatiquement à l
 * **Période** : Boutons rapides **« Aujourd'hui »**, **« Cette semaine »**, **« Ce mois »**, ou **« Personnalisé »** (avec calendrier interactif pour choisir une plage *Du ... Au ...*).
 * **Filtre Commercial** :
   * **Pour un commercial** : Votre nom est pré-sélectionné automatiquement. Vous visualisez uniquement vos propres données d'activité (vos ventes, vos recouvrements, vos collectes).
-  * **Pour un gestionnaire** : Vous pouvez laisser le champ vide pour obtenir la consolidation globale de toute l'agence, ou sélectionner un commercial dans la liste pour auditer son portefeuille spécifique.
+  * **Pour un gestionnaire** : Vous pouvez laisser le champ vide pour obtenir la consolidation globale de toute l'agence, ou sélectionner un commercial dans la liste pour auditer son portefeuille spécifique. La **Synthèse caisse** de la Vue d'ensemble reste celle de toutes les caisses, même lorsqu'un commercial est choisi.
 * **Bouton « Voir marges » / « Masquer marges »** : Disponible pour les profils habilités, ce bouton permet d'afficher ou de masquer les indicateurs de marge commerciale brute calculée sur les ventes.
 * **Bouton « Réinitialiser »** : Remet les filtres sur la période par défaut.
 
@@ -782,24 +804,45 @@ Dès qu'un commercial est ciblé dans la barre de filtre, deux blocs de bilan an
   * **Versements crédit** : Montant cumulé des remboursements déjà encaissés et remis en caisse.
   * **Reste chez le commercial** : Valeur des marchandises actuellement sous la responsabilité physique de l'agent.
   * **Reste chez le client** : Montant total restant dû par les clients du portefeuille. Un clic sur ce montant ouvre la liste nominative des clients débiteurs avec option d'export PDF.
+  * **Total carnets** : somme des montants relevés sur les carnets déjà contrôlés. Le sous-texte indique le montant des écarts encore ouverts lorsque le carnet dépasse le système.
 * **Bilan Tontine Annuel** :
   * Total des cotisations collectées sur l'année.
   * Montant des versements tontine remis au siège.
   * Reste des cotisations entre les mains du commercial en attente de versement.
+  * **Total carnets** : même lecture que sur le bilan crédit, limitée aux lignes de tontine de l’année contrôlées pour ce commercial.
 
 #### 2. Cartes d'indicateurs de la période
 * **Ventes crédit** : Montant total vendu, nombre de contrats signés et marge brute (si activée).
 * **Recouvrements crédit** : Montant total encaissé et nombre de règlements d'échéances.
 * **Tontine** : Montant total des cotisations perçues et nombre de collectes réalisées.
 * **Nouveaux comptes** : Montant des dépôts initiaux d'ouverture et nombre de nouveaux clients enrôlés.
-* **Dépenses** : Cumul des charges décaissées sur la période.
-* **Solde net** : Solde théorique d'encaissement net de caisse.
+
+#### Synthèse caisse
+Sur la Vue d'ensemble, le bloc **Synthèse caisse** reprend l'ensemble des caisses pour la période choisie (**Aujourd'hui**, **Cette semaine**, **Ce mois** ou **Personnalisé**). Le choix d'un commercial ne change pas ces quatre montants.
+
+1. **Dépenses (avec approvisionnement)** : total de toutes les dépenses de la période, approvisionnements compris.
+2. **Dépenses (sans approvisionnement)** : total des dépenses de la période, hors approvisionnements.
+3. **Total versé (période)** : somme des versements de tous les commerciaux sur la période.
+4. **Solde de caisse** : total versé moins les dépenses sans approvisionnement. C'est le solde de caisse à la fin de la journée, ou de la période sélectionnée.
+
+<!-- CAPTURE À INSÉRER : Bloc Synthèse caisse de la Vue d'ensemble avec les quatre montants. -->
 
 #### 3. Fiche d’un commercial : à verser, versé et reste
 Sur la fiche d’un commercial (après sélection dans le filtre) :
 * **A Verser (Crédit / Tontine / Solde Nx)** : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.
 * **Versé** : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention **dont surplus non catégorisé** s’affiche sous le montant.
 * **Reste** : ce qui manque encore en crédit, tontine ou solde. Un montant déjà couvert par un surplus porte la mention **dont couvert par surplus** : il diminue le reste, sans changer le montant versé de ce jour.
+
+#### Versement du jour
+
+Lorsque la période affichée est un seul jour et qu’il reste un montant à remettre :
+
+1. Cliquez sur **Faire un versement**.
+2. Comptez les espèces dans le billetage.
+3. Si des cotisations tontine de jours précédents ont été saisies ce jour-là, la fenêtre liste ces dates sous **Rattrapages du jour**. Le **Reste à verser** ajoute le total de ces rattrapages au crédit, à la tontine et au solde des nouveaux comptes du jour. Chaque date reçoit le montant saisi ce jour pour elle. Un montant plus ancien encore dû sur cette date n’est pas encaissé par ce versement : il reste à remettre sur sa propre date. Le jour en cours est servi d’abord, puis les dates de rattrapage les plus anciennes.
+4. Cliquez sur **Valider le versement**. Chaque date de cotisation reçoit sa part tontine. Ce qui dépasse les montants dus reste un surplus du jour d’encaissement.
+
+<!-- CAPTURE À INSÉRER : Fenêtre Nouveau versement avec le bloc Rattrapages du jour. -->
 
 #### 4. Équilibrer le surplus
 Le bouton **Équilibrer le surplus** est proposé lorsqu’un commercial a un **surplus non catégorisé** et un manque en crédit, tontine ou solde. Ce manque peut être sur la période affichée ou sur un jour plus ancien.
@@ -816,6 +859,8 @@ Le bouton **Équilibrer le surplus** est proposé lorsqu’un commercial a un **
 10. La même opération apparaît dans le **Journal des opérations** avec le type **Équilibrage surplus** (filtrable).
 
 Un jour déjà transformé en écart de caisse n’est pas repris par cet équilibrage.
+
+<!-- CAPTURE À INSÉRER : Fiche commercial avec « dont surplus non catégorisé », bouton Équilibrer le surplus et mention d’équilibrage. -->
 
 #### 5. Tableau de performance par commercial (vue agence)
 Lorsque aucun agent n'est filtré, un tableau comparatif classe les commerciaux de l'agence selon leurs réalisations de la période (ventes, recouvrements, tontine, nouveaux comptes et total produit).
@@ -844,6 +889,8 @@ Réservé aux chefs de recouvrement et aux gestionnaires d'agence :
 Cet onglet audite tous les versements de caisse enregistrés au guichet :
 * Décomposition par source financière : Crédit, Tontine, Dépôts initiaux des nouveaux comptes, Surplus éventuels, et Total versé.
 * Permet de rapprocher les montants déclarés par les agents avec les liquidités réelles reçues en caisse.
+* Un versement qui couvre des rattrapages tontine s’affiche sur le jour d’encaissement avec le total compté et le détail de chaque date. Sur la date de cotisation, la ligne ne reprend que la part tontine de ce jour, avec la mention du jour où l’argent a été reçu.
+* Le bouton d’annulation reste disponible pendant 3 jours à compter du jour d’encaissement, tant que le versement n’a pas été inclus dans une remise. Annuler un versement qui couvre des rattrapages retire la part de chaque date en une seule fois.
 
 ---
 
@@ -925,9 +972,38 @@ Pour les profils administrateurs ou gestionnaires autorisés, le menu latéral *
 | **Types d'Articles** | Définition des catégories du catalogue de marchandises (Électroménager, Multimédia, Mobilier, etc.). Chaque type peut avoir une photo : **Choisir une photo** (5 Mo maximum), aperçu, puis enregistrement. La photo est réduite automatiquement. |
 | **Types de Dépense** | Référentiel des motifs de décaissement d'exploitation (Carburant, Loyer, Maintenance, etc.). |
 | **Mobile Money** | Configuration des numéros de transfert d'argent (Mixx by YAS et Moov Money) attribués à chaque commercial pour les règlements clients à distance. |
-| **Paramètres généraux** | Réglage des clés système fondamentales, notamment le mode de calcul de la part société de la tontine. |
+| **Frais de retrait** | Grilles de frais de retrait Mixx by Yas et Flooz, utilisées lorsque le client paie depuis l’Espace Client. |
+| **Paramètres généraux** | Réglage des clés système fondamentales, notamment le mode de calcul de la part société de la tontine et la valorisation du stock magasin. |
 
-> **Prudence d'administration.** La modification d'un paramètre général est une opération sensible qui engage la cohérence des écritures passées et futures. Toute modification doit respecter les consignes strictes de la direction. Si vous n'avez pas accès à ces écrans, vous ne disposez pas des habilitations nécessaires.
+### Activer la valorisation du stock magasin par lots
+
+1. Ouvrez **Configuration** → **Paramètres généraux**.
+2. Repérez le paramètre de valorisation du stock magasin (`ENABLED_FIFO_STOCK_VALUATION`).
+3. Passez sa valeur à **true**, puis enregistrez.
+
+À l'enregistrement, le stock déjà en magasin est repris sur un premier lot pour chaque article concerné. Les prochaines entrées de stock s'ajoutent ensuite derrière ce premier lot. Les quantités affichées ne changent pas.
+
+Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refusée et le paramètre reste désactivé. Complétez le prix d'achat de l'article (ou validez une réception avec prix), puis réessayez.
+
+### Mode de paiement de l’Espace Client
+
+1. Ouvrez **Configuration** → **Paramètres généraux**.
+2. Repérez **CUSTOMER_PAYMENT_COLLECTION_MODE**.
+3. Cliquez sur **Modifier**.
+4. Choisissez **Déclaration manuelle**, **Paiement depuis l’application** ou **Les deux**, puis enregistrez.
+
+### Grilles de frais de retrait
+
+1. Ouvrez **Configuration** → **Frais de retrait**.
+2. Choisissez **Mixx by Yas** ou **Flooz**.
+3. Saisissez **De**, **À** et **Frais**, puis appuyez sur **Ajouter**.
+4. Les tranches d’un même réseau ne doivent pas se chevaucher.
+5. **Modifier** recharge la tranche dans le formulaire. Ajustez les montants, puis appuyez sur **Enregistrer**.
+6. **Retirer** enlève une tranche.
+
+Pour une mise comprise dans une tranche, ces frais sont ajoutés avant les frais du paiement en ligne.
+
+> **Prudence d'administration.** La modification d'un paramètre général est une opération sensible qui engage la cohérence des écritures passées et futures. Une fois la valorisation par lots activée, ne la désactivez pas. Toute modification doit respecter les consignes strictes de la direction. Si vous n'avez pas accès à ces écrans, vous ne disposez pas des habilitations nécessaires.
 
 ---
 

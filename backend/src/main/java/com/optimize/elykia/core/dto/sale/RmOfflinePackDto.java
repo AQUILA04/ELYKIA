@@ -20,6 +20,8 @@ public class RmOfflinePackDto {
     private RmOfflinePackStatsDto stats;
     private List<RmCommercialRefDto> commercials;
     private List<CreditLateDTO> lateCredits;
+    /** Crédits au statut en cours du périmètre du plan (à jour ou en retard). */
+    private List<CreditLateDTO> inProgressCredits;
     private List<RmPackClientDto> clients;
     /** Dernier contrôle par crédit du pack (nom de champ conservé). */
     private List<CreditFieldControlDto> creditFieldControlsToday;

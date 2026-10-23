@@ -26,6 +26,10 @@ export class RmFieldListApiService {
     return this.page<RmCreditLate>('late-credits', search, page);
   }
 
+  pageCredits(search: string, page: number): Promise<RmServerPage<RmCreditLate>> {
+    return this.page<RmCreditLate>('credits', search, page);
+  }
+
   async getTontineMember(id: number): Promise<RmPackTontineMember> {
     const res = await firstValueFrom(
       this.http.get<ApiResponse<RmPackTontineMember>>(`${this.baseUrl}/tontine-members/${id}`)

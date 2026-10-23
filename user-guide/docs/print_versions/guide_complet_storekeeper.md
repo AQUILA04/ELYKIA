@@ -16,11 +16,12 @@ Le magasinier sécurise la circulation physique de la marchandise : catalogue, r
 |---|---|
 | Préparer les articles | Vérifier la référence, le type, le stock et les informations de la fiche article. |
 | Réceptionner correctement | Créer une entrée puis attendre sa validation lorsqu’elle est requise. |
-| Servir les demandes validées | Livrer les demandes de stock commercial ou tontine au bon statut. |
+| Servir les demandes validées | Livrer les demandes au statut Validée, en Crédit ou en Tontine. |
 | Traiter les retours | Réceptionner les retours autorisés et conserver leur traçabilité. |
 | Contrôler le physique | Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. |
+| Suivre vos dettes | Consulter les montants d’inventaire enregistrés à votre nom. |
 
-Consultez les pages dédiées pour [les articles](articles.md), [les inventaires et entrées](inventory.md) et [le stock](stock_commercial.md).
+Consultez les pages dédiées pour [les articles](articles.md), [les inventaires et entrées](inventory.md), [les dettes](debts.md) et [le stock](stock_commercial.md).
 
 
 \newpage
@@ -154,6 +155,7 @@ graph TD
 4. **Étape 4 : Analyse contradictoire des écarts** :
    * En concertation avec le gestionnaire, examinez les écarts éventuels (`Surplus` ou `Manquant`).
    * Vérifiez si des entrées ou des sorties n'ont pas été omises avant que le gestionnaire ne procède à la clôture définitive de la session.
+   * Lorsqu’un manquant est enregistré comme dette à votre nom, vous pouvez en suivre le montant et le règlement dans le menu **Dettes**.
 
 
 

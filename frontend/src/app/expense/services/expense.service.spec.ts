@@ -52,6 +52,29 @@ describe('ExpenseService', () => {
             req.flush(dummyResponse);
         });
 
+        it('getExpensesByPeriod should return expenses for the date range', () => {
+            const dummyResponse: ApiResponse<Expense[]> = {
+                statusCode: 200,
+                message: 'Success',
+                service: 'EXPENSE-SERVICE',
+                timestamp: new Date().toISOString(),
+                data: [
+                    { id: 1, amount: 1500, expenseDate: '2026-10-23', expenseTypeId: 2, expenseTypeName: 'Carburant' }
+                ]
+            };
+
+            service.getExpensesByPeriod('2026-10-23', '2026-10-23').subscribe(response => {
+                expect(response).toEqual(dummyResponse.data);
+            });
+
+            const req = httpMock.expectOne(request =>
+                request.url === `${apiUrl}/by-period`
+                && request.params.get('startDate') === '2026-10-23'
+                && request.params.get('endDate') === '2026-10-23');
+            expect(req.request.method).toBe('GET');
+            req.flush(dummyResponse);
+        });
+
         it('createExpense should POST and return new expense', () => {
             const newExpense: Expense = { amount: 100, description: 'Test', expenseDate: '2023-01-01', expenseTypeId: 1 };
             const dummyResponse: ApiResponse<Expense> = {

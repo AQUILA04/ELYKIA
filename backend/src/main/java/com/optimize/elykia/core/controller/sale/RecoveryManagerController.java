@@ -227,6 +227,18 @@ public class RecoveryManagerController {
         );
     }
 
+    @GetMapping("/field/credits")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> pageInProgressCredits(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(creditLateService.getInProgressCreditsPage(search, page, size)),
+                HttpStatus.OK
+        );
+    }
+
     @PatchMapping("/clients/{id}/contact")
     @PreAuthorize("hasRole('RECOVERY_MANAGER')")
     public ResponseEntity<Response> updateClientContact(
