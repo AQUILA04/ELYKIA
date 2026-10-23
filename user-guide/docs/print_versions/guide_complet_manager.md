@@ -12,7 +12,7 @@ Ce guide accompagne les gestionnaires et secrétaires dans les tâches de pilota
 
 ## Votre espace de pilotage
 
-Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Articles**, aux modules **Stock Commercial** et **Stock Tontine**, aux **Ventes**, aux **Tontines**, aux **Dépenses**, à la **Configuration**, au **Rapport Journalier** et aux **Inventaires**. Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.
+Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Articles**, au **Stock Commercial** (sélecteur **Crédit** / **Tontine**), aux **Ventes**, aux **Tontines**, aux **Dépenses**, à la **Configuration**, au **Rapport Journalier** et aux **Inventaires**. Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.
 
 | Priorité | Où intervenir | Finalité |
 |---|---|---|
@@ -433,7 +433,7 @@ Dans l'application ELYKIA, la marchandise suit un circuit d'approvisionnement et
 L'organisation repose sur **trois niveaux étanches de stock** :
 1. **Stock Central Magasin** : Stock physique détenu au dépôt principal, administré par le magasinier et audité par les inventaires.
 2. **Stock Commercial** (accessible via le menu latéral **Stock Commercial**) : Stock opérationnel attribué aux commerciaux pour les ventes directes au comptant et à crédit.
-3. **Stock Tontine** (accessible via le menu latéral **Stock Tontine**) : Stock tampon strictement réservé aux livraisons de fin d'exercice des membres épargnants de la tontine, interdisant tout mélange avec le flux commercial standard.
+3. **Stock Tontine** : même menu **Stock Commercial**, sélecteur **Tontine**. Stock réservé aux livraisons de fin d'exercice des membres de la tontine.
 
 ---
 
@@ -527,14 +527,18 @@ Le réapprovisionnement suit un flux rigoureux en 3 étapes : **Création $\righ
 
 ---
 
-## 4. Module Stock Tontine
+## 4. Stock Tontine (sélecteur Tontine)
 
-Le **Stock Tontine** dispose de son propre sous-menu indépendant dans la barre latérale (**Stock Tontine > Demandes Sortie**, **Stock** et **Retours**).
+Dans **Stock Commercial**, les écrans **Demandes Sortie**, **Stock** et **Retours** proposent le sélecteur **Crédit** / **Tontine** sous le titre.
 
-* **Étanche et dédié** : Les articles sortis sous ce module ne peuvent en aucun cas être vendus à crédit dans le circuit commercial régulier.
-* **Finalité opérationnelle** : Ce stock est constitué en fin d'année pour préparer les paniers de distribution de fin d'exercice des membres de la tontine ayant cotisé régulièrement.
-* Le cycle d'approbation (**Créée $\rightarrow$ Validée $\rightarrow$ Livrée**) et de retour est rigoureusement identique à celui du stock commercial.
+1. Ouvrez l'écran voulu.
+2. Cliquez sur **Tontine**.
+3. La liste, les filtres et les actions se rechargent pour les mouvements tontine.
+
+* Ce stock prépare les paniers de fin d'exercice des membres ayant cotisé.
+* Le cycle d'approbation (**Créée → Validée → Livrée**) et le retour (**En attente → Réceptionné**) suivent les mêmes boutons que le stock crédit.
 * Sur **Demandes Sortie**, **« Voir »** ouvre le détail : la référence est en haut. Pour une demande **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. **« Télécharger »** enregistre la fiche de cette demande.
+* **Stock** affiche le suivi par année. **Retours** permet de **Réceptionner** un retour au statut **En attente**.
 
 ---
 

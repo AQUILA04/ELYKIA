@@ -152,10 +152,10 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
 
-  // === ROUTES STOCK TONTINE (Nouveau Module) ===
+  // Anciennes URLs Stock Tontine : redirigées vers Stock Commercial ?channel=tontine
   {
     path: 'stock-tontine',
-    loadChildren: () => import('./stock-tontine/stock-tontine.module').then(m => m.StockTontineModule),
+    loadChildren: () => import('./stock/stock-legacy-redirect.module').then(m => m.StockLegacyRedirectModule),
     canActivate: [AuthGuard]
   },
 

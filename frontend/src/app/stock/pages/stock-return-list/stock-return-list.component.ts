@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PageEvent } from '@angular/material/paginator';
 import { ToastrService } from 'ngx-toastr';
 import { AlertService } from 'src/app/shared/service/alert.service';
@@ -9,8 +9,11 @@ import { UserProfile } from '../../../shared/models/user-profile.enum';
 import { StockReturn, StockReturnItem, StockReturnListItem } from '../../models/stock-return.model';
 import { StockListFilter } from '../../services/stock-request.service';
 import { StockReturnKpis, StockReturnService } from '../../services/stock-return.service';
+import { StockTontineReturnService } from '../../../stock-tontine/services/stock-tontine-return.service';
+import { StockChannel } from '../../models/stock-channel';
+import { StockChannelService } from '../../services/stock-channel.service';
 import { coerceStockItems, formatArticleLabel } from '../../utils/stock-detail.util';
-import { forkJoin } from 'rxjs';
+import { Observable, forkJoin } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 import {
   buildPreviousMonthOptions,
@@ -34,8 +37,10 @@ interface StockReturnListState {
   encapsulation: ViewEncapsulation.None
 })
 export class StockReturnListComponent implements OnInit, OnDestroy {
-  private readonly STATE_KEY = 'stockReturnListState';
   private dateIntervalId?: ReturnType<typeof setInterval>;
+  private channelReady = false;
+
+  channel: StockChannel = 'credit';
 
   returns: StockReturnListItem[] = [];
   page = 0;
@@ -65,12 +70,38 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
 
   constructor(
     private stockReturnService: StockReturnService,
+    private tontineReturnService: StockTontineReturnService,
+    private stockChannel: StockChannelService,
     private authService: AuthService,
     private userService: UserService,
     private toastr: ToastrService,
     private alertService: AlertService,
+    private router: Router,
     private route: ActivatedRoute
   ) {}
+
+  private get stateKey(): string {
+    return this.channel === 'tontine' ? 'stockTontineReturnListState' : 'stockReturnListState';
+  }
+
+  private loadPage(filter: StockListFilter, page: number, size: number): Observable<any> {
+    if (this.channel === 'tontine') {
+      return this.tontineReturnService.getAllReturns(filter, page, size);
+    }
+    return this.stockReturnService.getAll(filter, page, size);
+  }
+
+  private kpisApi() {
+    return this.channel === 'tontine' ? this.tontineReturnService : this.stockReturnService;
+  }
+
+  private exportApi() {
+    return this.channel === 'tontine' ? this.tontineReturnService : this.stockReturnService;
+  }
+
+  private detailApi() {
+    return this.channel === 'tontine' ? this.tontineReturnService : this.stockReturnService;
+  }
 
   ngOnInit(): void {
     this.previousMonths = buildPreviousMonthOptions();
@@ -78,11 +109,38 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER)
       || this.userService.hasProfile(UserProfile.ADMIN);
-    this.canSelectCommercial = !this.isPromoter;
 
-    this.restoreState();
-    this.refresh();
-    this.openDetailsFromQueryParam();
+    this.route.queryParamMap.subscribe(params => {
+      const next = this.stockChannel.resolve(params.get('channel'));
+      if (params.get('channel') !== next) {
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { channel: next },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+        return;
+      }
+      const changed = this.channelReady && this.channel !== next;
+      this.channel = next;
+      this.stockChannel.remember(next);
+      this.canSelectCommercial = !this.isPromoter;
+      if (changed) {
+        this.closeDetails();
+        this.selectedReturnIds.clear();
+        this.page = 0;
+      }
+      this.restoreState();
+      if (!this.canSelectCommercial) {
+        this.selectedCommercial = null;
+      }
+      this.refresh();
+      if (!changed) {
+        this.openDetailsFromQueryParam();
+      }
+      this.channelReady = true;
+    });
+
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
     }, 1000);
@@ -93,6 +151,27 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
     if (this.dateIntervalId) {
       clearInterval(this.dateIntervalId);
     }
+  }
+
+  get pageTitle(): string {
+    return this.channel === 'tontine' ? 'Retours stock tontine' : 'Retours stock';
+  }
+
+  get pageSubtitle(): string {
+    const kind = this.channel === 'tontine' ? 'tontine' : 'crédit';
+    return `Retours de stock ${kind} · Filtres période et commercial conservés à la navigation`;
+  }
+
+  get breadcrumbLabel(): string {
+    return this.channel === 'tontine' ? 'Mon stock tontine' : 'Mon stock';
+  }
+
+  onChannelChange(channel: StockChannel): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { channel, id: null },
+      queryParamsHandling: 'merge'
+    });
   }
 
   get periodLabel(): string {
@@ -114,7 +193,7 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
   }
 
   loadKpis(): void {
-    this.stockReturnService.getKpis(this.listFilter).subscribe({
+    this.kpisApi().getKpis(this.listFilter).subscribe({
       next: (kpis) => { this.kpis = kpis; },
       error: (err) => console.error('Erreur chargement KPI retours stock', err)
     });
@@ -122,7 +201,7 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
 
   loadReturns(): void {
     this.isLoading = true;
-    this.stockReturnService.getAll(this.listFilter, this.page, this.size).subscribe({
+    this.loadPage(this.listFilter, this.page, this.size).subscribe({
       next: (page) => {
         this.handlePage(page);
         this.lastUpdate = new Date();
@@ -173,13 +252,14 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
   onExportPdf(): void {
     const range = resolveStockPeriodRange(this.selectedPeriod);
     this.exportLoading = true;
-    this.stockReturnService.exportPdf(range.startDate, range.endDate, this.selectedCommercial).subscribe({
+    this.exportApi().exportPdf(range.startDate, range.endDate, this.selectedCommercial).subscribe({
       next: (data) => {
         const blob = new Blob([data], { type: 'application/pdf' });
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `fiche_retours_stock_${range.startDate}_${range.endDate}.pdf`;
+        const prefix = this.channel === 'tontine' ? 'fiche_retours_stock_tontine' : 'fiche_retours_stock';
+        link.download = `${prefix}_${range.startDate}_${range.endDate}.pdf`;
         link.click();
         window.URL.revokeObjectURL(url);
         this.exportLoading = false;
@@ -236,9 +316,10 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
       return;
     }
     this.exportSelectionLoading = true;
-    this.stockReturnService.exportPdfByRequestIds(requestIds).subscribe({
+    this.exportApi().exportPdfByRequestIds(requestIds).subscribe({
       next: (data) => {
-        this.downloadPdfBlob(data, `fiche_retours_stock_selection_${new Date().getTime()}.pdf`);
+        const prefix = this.channel === 'tontine' ? 'fiche_retours_stock_tontine_selection' : 'fiche_retours_stock_selection';
+        this.downloadPdfBlob(data, `${prefix}_${new Date().getTime()}.pdf`);
         this.alertService.toastSuccess('Fiche des retours sélectionnés téléchargée avec succès');
         this.exportSelectionLoading = false;
       },
@@ -252,9 +333,10 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
   onExportSingleReturnPdf(stockReturn: StockReturnListItem): void {
     if (!stockReturn.id) return;
     this.exportSelectionLoading = true;
-    this.stockReturnService.exportPdfByRequestIds([stockReturn.id]).subscribe({
+    this.exportApi().exportPdfByRequestIds([stockReturn.id]).subscribe({
       next: (data) => {
-        this.downloadPdfBlob(data, `fiche_retour_stock_${stockReturn.id}.pdf`);
+        const prefix = this.channel === 'tontine' ? 'fiche_retour_stock_tontine' : 'fiche_retour_stock';
+        this.downloadPdfBlob(data, `${prefix}_${stockReturn.id}.pdf`);
         this.alertService.toastSuccess('Fiche du retour téléchargée avec succès');
         this.exportSelectionLoading = false;
       },
@@ -272,7 +354,7 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
     this.alertService.showConfirmation('Confirmation', 'Confirmer la réception de ce retour ?').then((confirmed) => {
       if (confirmed) {
         this.processingId = stockReturn.id!;
-        this.stockReturnService.validate(stockReturn.id!).pipe(
+        this.detailApi().validate(stockReturn.id!).pipe(
           finalize(() => { this.processingId = null; })
         ).subscribe({
           next: () => {
@@ -324,14 +406,14 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
     this.selectedReturn = null;
     this.detailsLoading = true;
     forkJoin({
-      detail: this.stockReturnService.getById(stockReturn.id),
-      items: this.stockReturnService.getItemsById(stockReturn.id)
+      detail: this.detailApi().getById(stockReturn.id),
+      items: this.detailApi().getItemsById(stockReturn.id)
     }).subscribe({
       next: ({ detail, items }) => {
         this.selectedReturn = {
           ...detail,
           items: coerceStockItems(items)
-        };
+        } as StockReturn;
         this.detailsLoading = false;
       },
       error: () => {
@@ -408,11 +490,11 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
       page: this.page,
       size: this.size
     };
-    sessionStorage.setItem(this.STATE_KEY, JSON.stringify(state));
+    sessionStorage.setItem(this.stateKey, JSON.stringify(state));
   }
 
   private restoreState(): void {
-    const saved = sessionStorage.getItem(this.STATE_KEY);
+    const saved = sessionStorage.getItem(this.stateKey);
     if (!saved) return;
     try {
       const state = JSON.parse(saved) as StockReturnListState;

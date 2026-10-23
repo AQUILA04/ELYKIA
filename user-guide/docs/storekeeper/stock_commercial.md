@@ -1,10 +1,18 @@
-# Gestion physique du stock commercial (Sorties & Retours)
+# Gestion physique du stock (Sorties & Retours)
 
 Le magasinier est l'acteur clé de la délivrance physique des articles aux commerciaux. Aucune marchandise ne doit quitter le magasin sans bon de sortie validé, et aucun retour ne doit être réintégré sans contrôle contradictoire de son état physique.
+
+Le menu **Stock Commercial** regroupe les sorties, le stock et les retours. Sur chaque écran, le sélecteur **Crédit** / **Tontine** (sous le titre) recharge la liste pour le stock choisi.
+
+1. Ouvrez **Stock Commercial**, puis **Demandes Sortie**, **Stock** ou **Retours**.
+2. Cliquez sur **Crédit** pour les ventes, ou sur **Tontine** pour les livraisons de fin de cycle.
+3. Les filtres, le tableau et les boutons (**Voir**, **Livrer**, **Réceptionner**, **Télécharger**) s'appliquent au choix affiché.
 
 ---
 
 ## 1. Servir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie)
+
+Choisissez **Crédit** sur le sélecteur avant de préparer une sortie de vente.
 
 Toutes les demandes de sortie validées par la gestion arrivent dans le menu **Stock Commercial > Demandes Sortie** (accessible si vous disposez des habilitations requises).
 
@@ -35,7 +43,7 @@ Toutes les demandes de sortie validées par la gestion arrivent dans le menu **S
 
 ## 2. Traitement physique des retours d'articles (Menu Stock Commercial > Retours)
 
-Lorsqu'un commercial restitue des articles au dépôt central (invendus de tournée, emballages détériorés, réajustement de dotation), l'opération est traitée dans **Stock Commercial > Retours**.
+Lorsqu'un commercial restitue des articles au dépôt central (invendus de tournée, emballages détériorés, réajustement de dotation), l'opération est traitée dans **Stock Commercial > Retours**, sélecteur **Crédit**.
 
 ### A. Réceptionner un retour conforme
 1. Le commercial présente les articles au magasin avec son numéro de déclaration de retour.
@@ -49,4 +57,32 @@ Lorsqu'un commercial restitue des articles au dépôt central (invendus de tourn
 ### B. Refus d'un retour non conforme
 * Si un article est détérioré par la faute du commercial ou incomplet, le magasinier ou le gestionnaire clique sur **« Refuser »**.
 * Le retour passe au statut **Refusé** : le stock central n'est pas incrémenté et l'article reste sous la responsabilité comptable du commercial jusqu'à règlement du litige.
+
+---
+
+## 3. Sorties et retours tontine (sélecteur Tontine)
+
+À l'approche des fêtes de fin d'année et de la clôture des cycles de cotisation, les commerciaux reçoivent des dotations d'articles destinés aux membres tontine. Ces mouvements se traitent dans le même menu, avec le sélecteur **Tontine**.
+
+<!-- CAPTURE À INSÉRER : Demandes de sortie avec le sélecteur Tontine actif et le bouton Livrer. -->
+
+### A. Délivrance
+1. Ouvrez **Stock Commercial > Demandes Sortie**.
+2. Cliquez sur **Tontine**.
+3. Repérez la demande au statut **Validée**.
+4. Cliquez sur **« Voir »** pour examiner les articles et les quantités. La référence s'affiche en haut. **« Télécharger »** enregistre la fiche de cette demande.
+5. Rassemblez les colis et vérifiez les références avec le commercial au guichet.
+6. Cliquez sur **« Livrer »**.
+   * Le stock dépôt tontine est débité.
+   * Le commercial est crédité de sa dotation tontine.
+   * La demande passe au statut **Livrée**.
+
+La remise au membre se fait ensuite dans le menu **Tontines**, sur la fiche du membre.
+
+### B. Retour
+1. Ouvrez **Stock Commercial > Retours** et cliquez sur **Tontine**.
+2. Examinez la ligne au statut **En attente**.
+3. Après inspection des emballages, cliquez sur **« Réceptionner »** pour réintégrer les articles au stock tontine.
+
+Le suivi des quantités annuelles se fait dans **Stock Commercial > Stock**, sélecteur **Tontine**.
 

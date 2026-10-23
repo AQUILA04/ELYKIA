@@ -380,12 +380,12 @@ export async function findStockReturnRow(
 
 function stockTontineRequestRowLocator(page: Page, reference: string): Locator {
   return page.locator(
-    `[data-testid="e2e-stock-tontine-request-row"][data-reference="${reference}"]`,
+    `[data-testid="e2e-stock-request-row"][data-reference="${reference}"]`,
   );
 }
 
 export async function findStockTontineRequestRow(page: Page, reference: string): Promise<Locator> {
-  await page.goto('/stock-tontine/request');
+  await page.goto('/stock/request?channel=tontine');
   await page.locator('ngx-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
 
   for (let pageIndex = 0; pageIndex < 15; pageIndex++) {

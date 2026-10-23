@@ -1,11 +1,11 @@
 <div class="main-container stock-return-page a1" data-testid="e2e-stock-return-list">
   <div class="page-fixed-head">
     <div class="breadcrumb-bar">
-      <a routerLink="/stock/my-stock" class="breadcrumb-link">
+      <a [routerLink]="['/stock/my-stock']" [queryParams]="{ channel: channel }" class="breadcrumb-link">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
           <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
         </svg>
-        Mon stock
+        {{ breadcrumbLabel }}
       </a>
       <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
     </div>
@@ -21,18 +21,19 @@
             <polyline points="1 4 1 10 7 10"/>
             <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
           </svg>
-          <h1 class="page-title">Retours stock</h1>
+          <h1 class="page-title">{{ pageTitle }}</h1>
         </div>
         <button class="btn-refresh" (click)="refresh()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           Actualiser
         </button>
       </div>
-      <p class="page-subtitle">Retours de stock commercial · Filtres période et commercial conservés à la navigation</p>
+      <p class="page-subtitle">{{ pageSubtitle }}</p>
     </div>
   </div>
 
   <div class="page-scroll-body">
+    <app-stock-channel-segment [channel]="channel" (channelChange)="onChannelChange($event)"></app-stock-channel-segment>
     <div class="kpi-strip a3" *ngIf="kpis">
       <div class="kpi-card kpi-total">
         <div class="kpi-label">Total retours</div>
@@ -94,7 +95,7 @@
       </span>
 
       <div class="toolbar-actions" *ngIf="isStoreKeeper || isPromoter">
-        <button class="btn-primary" routerLink="/stock/return/create" data-testid="e2e-stock-return-new-btn">
+        <button class="btn-primary" [routerLink]="['/stock/return/create']" [queryParams]="{ channel: channel }" data-testid="e2e-stock-return-new-btn">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
           Nouveau retour
         </button>
@@ -169,11 +170,11 @@
                         [disabled]="processingId === ret.id">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 </button>
-                <button *ngIf="(isStoreKeeper || (currentUser?.username === ret.collector)) && ret.status === 'CREATED'"
+                <button *ngIf="channel === 'credit' && (isStoreKeeper || (currentUser?.username === ret.collector)) && ret.status === 'CREATED'"
                         class="btn-detail btn-danger" (click)="cancel(ret)" title="Annuler">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
-                <button *ngIf="isStoreKeeper && ret.status === 'CREATED'"
+                <button *ngIf="channel === 'credit' && isStoreKeeper && ret.status === 'CREATED'"
                         class="btn-detail btn-danger" (click)="refuse(ret)" title="Refuser">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                 </button>

@@ -10,6 +10,9 @@ import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { MonthEndCalculator } from '../../../shared/utils/month-end-calculator';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
+import { StockChannel } from '../../models/stock-channel';
+import { StockChannelService } from '../../services/stock-channel.service';
+import { StockTontineRequestService } from '../../../stock-tontine/services/stock-tontine-request.service';
 
 @Component({
   selector: 'app-stock-request-create',
@@ -29,6 +32,7 @@ export class StockRequestCreateComponent implements OnInit {
   isSubmitting = false;
   isEditMode = false;
   requestId?: number;
+  channel: StockChannel = 'credit';
 
   constructor(
     private fb: FormBuilder,
@@ -40,7 +44,9 @@ export class StockRequestCreateComponent implements OnInit {
     private spinner: NgxSpinnerService,
     private userService: UserService,
     private featureFlagService: FeatureFlagService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private stockChannel: StockChannelService,
+    private tontineRequestService: StockTontineRequestService
   ) {
     this.form = this.fb.group({
       items: [[], Validators.required], // Changed to single control for ArticleSelector
@@ -49,6 +55,22 @@ export class StockRequestCreateComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const editing = !!this.route.snapshot.paramMap.get('id');
+      const next = this.stockChannel.resolve(params.get('channel'));
+      this.channel = editing ? 'credit' : next;
+      if (params.get('channel') !== this.channel) {
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { channel: this.channel },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+      } else {
+        this.stockChannel.remember(this.channel);
+      }
+    });
+
     this.calculateDaysUntilMonthEnd();
     this.currentUser = this.authService.getCurrentUser();
     this.loadAgents();
@@ -154,11 +176,24 @@ export class StockRequestCreateComponent implements OnInit {
           } else {
             this.toastr.success('Demande modifiée avec succès');
             this.spinner.hide();
-            this.router.navigate(['/stock/request']);
+            this.router.navigate(['/stock/request'], { queryParams: { channel: 'credit' } });
           }
         },
         error: (error: any) => {
           this.toastr.error(error.error?.message || error.message || 'Erreur lors de la modification de la demande');
+          this.spinner.hide();
+          this.isSubmitting = false;
+        }
+      });
+    } else if (this.channel === 'tontine') {
+      this.tontineRequestService.create(request).subscribe({
+        next: () => {
+          this.toastr.success('Demande créée avec succès');
+          this.spinner.hide();
+          this.router.navigate(['/stock/request'], { queryParams: { channel: 'tontine' } });
+        },
+        error: (error: any) => {
+          this.toastr.error(error.error?.message || error.message || 'Erreur lors de la création de la demande');
           this.spinner.hide();
           this.isSubmitting = false;
         }
@@ -178,7 +213,7 @@ export class StockRequestCreateComponent implements OnInit {
           } else {
             this.toastr.success('Demande créée avec succès');
             this.spinner.hide();
-            this.router.navigate(['/stock/request']);
+            this.router.navigate(['/stock/request'], { queryParams: { channel: 'credit' } });
           }
         },
         error: (error: any) => {

@@ -1,10 +1,13 @@
 <ngx-spinner bdColor="rgba(51,51,51,0.8)" size="medium" color="#fff" type="ball-scale-multiple"></ngx-spinner>
 
-<div class="container" data-testid="e2e-my-stock-dashboard">
+<div class="container" [attr.data-testid]="channel === 'tontine' ? 'e2e-tontine-my-stock-dashboard' : 'e2e-my-stock-dashboard'">
   <div class="header-fixed">
-    <h1>Stock Mensuel</h1>
+    <h1>{{ channel === 'tontine' ? 'Stock Tontine Annuel' : 'Stock Mensuel' }}</h1>
   </div>
 
+  <app-stock-channel-segment [channel]="channel" (channelChange)="onChannelChange($event)"></app-stock-channel-segment>
+
+  <ng-container *ngIf="channel === 'credit'">
   <div class="filter-row">
     <div class="header-actions">
       <ng-container *ngIf="showStockReturnHistory">
@@ -217,4 +220,7 @@
     <mat-icon class="empty-icon">inventory</mat-icon>
     <p>Aucune donnée de stock trouvée.</p>
   </div>
+  </ng-container>
+
+  <app-my-tontine-stock-dashboard *ngIf="channel === 'tontine'" [embedded]="true"></app-my-tontine-stock-dashboard>
 </div>

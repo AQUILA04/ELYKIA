@@ -1,3 +1,12 @@
+.container.embedded {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  min-height: 0;
+  max-width: none;
+}
+
 .container {
     margin: 80px auto 20px auto;
     padding: 24px;

@@ -8,7 +8,7 @@ _Ce document est une compilation de la documentation pour impression._
 
 Le magasinier sécurise la circulation physique de la marchandise : catalogue, réceptions, inventaires, sorties, retours et stock tontine. Il ne valide pas automatiquement chaque étape ; les boutons disponibles dans les listes indiquent les actions autorisées à son profil.
 
-<!-- CAPTURE À INSÉRER : Menu d’un magasinier avec Articles, Stock Commercial, Stock Tontine, Inventaires et Historique Entrée. -->
+<!-- CAPTURE À INSÉRER : Menu d’un magasinier avec Articles, Stock Commercial, Inventaires et Historique Entrée. -->
 
 ## Vos priorités
 
@@ -20,7 +20,7 @@ Le magasinier sécurise la circulation physique de la marchandise : catalogue, r
 | Traiter les retours | Réceptionner les retours autorisés et conserver leur traçabilité. |
 | Contrôler le physique | Participer à l’inventaire, à la saisie et au traitement des écarts selon vos droits. |
 
-Consultez les pages dédiées pour [les articles](articles.md), [les inventaires et entrées](inventory.md), [le stock commercial](stock_commercial.md) et [le stock tontine](stock_tontine.md).
+Consultez les pages dédiées pour [les articles](articles.md), [les inventaires et entrées](inventory.md) et [le stock](stock_commercial.md).
 
 
 \newpage
@@ -163,38 +163,37 @@ graph TD
 
 ---
 
-# Gestion physique du stock tontine (Guide Magasinier)
+# Gestion physique du stock tontine
 
-Le module **Stock Tontine** applique les mêmes exigences de rigueur logistique que le stock commercial, mais dans un circuit **totalement étanche et isolé**.
+Les sorties et retours tontine se traitent dans **Stock Commercial**, avec le sélecteur **Tontine**.
 
 ---
 
-## 1. Servir une sortie de stock tontine (Menu Stock Tontine > Demandes Sortie)
+## 1. Servir une sortie de stock tontine
 
-À l'approche des fêtes de fin d'année et de la clôture des cycles de cotisation, les commerciaux reçoivent des dotations d'articles pré-commandés par les membres tontine.
+À l'approche des fêtes de fin d'année et de la clôture des cycles de cotisation, les commerciaux reçoivent des dotations d'articles destinés aux membres tontine.
 
-<!-- CAPTURE À INSÉRER : Liste des demandes de sortie de stock tontine avec filtres et bouton Livrer pour le magasinier. -->
+<!-- CAPTURE À INSÉRER : Demandes de sortie avec le sélecteur Tontine actif et le bouton Livrer. -->
 
 ### A. Contrôle et délivrance physique
-1. Dans le menu latéral gauche, ouvrez **Stock Tontine > Demandes Sortie** (accessible si vous disposez des habilitations nécessaires).
+1. Ouvrez **Stock Commercial > Demandes Sortie**, puis cliquez sur **Tontine**.
 2. Repérez la demande au statut **Validée**.
-3. Cliquez sur **« Voir »** pour examiner le panier d'articles réservés pour les membres de la zone. La référence de la demande s'affiche en haut. **« Télécharger »** enregistre la fiche de cette demande.
+3. Cliquez sur **« Voir »** pour examiner les articles et les quantités. La référence de la demande s'affiche en haut. **« Télécharger »** enregistre la fiche de cette demande.
 4. Rassemblez les colis correspondants et vérifiez les références avec le commercial au guichet.
 5. Cliquez sur le bouton **« Livrer »**.
-   * Le stock dépôt est débité du compte tontine.
-   * Le commercial est crédité de sa dotation de distribution tontine.
+   * Le stock dépôt tontine est débité.
+   * Le commercial est crédité de sa dotation tontine.
    * La demande passe au statut **Livrée**.
 
-> **Distinction fondamentale.** La validation de la sortie par le magasinier décharge le dépôt au profit du commercial. Elle ne marque **PAS** la livraison au client final : c'est le commercial ou le gestionnaire qui actera la remise finale au membre sur la fiche de ce dernier dans le module **Tontines**.
+La remise au membre se fait ensuite dans le menu **Tontines**, sur la fiche du membre.
 
 ---
 
-## 2. Retours d'articles tontine (Menu Stock Tontine > Retours)
+## 2. Retours d'articles tontine
 
-Si un membre tontine a modifié son choix d'article, s'il a dépassé son solde ou si un reliquat de campagne doit être rapatrié au magasin :
-1. Le commercial dépose les articles au magasin et initie une déclaration dans **Stock Tontine > Retours**.
-2. Le magasinier examine la ligne au statut **En attente**.
-3. Après inspection physique des emballages, le magasinier clique sur **« Réceptionner »** pour réintégrer les articles au stock central tontine.
+1. Ouvrez **Stock Commercial > Retours** et cliquez sur **Tontine**.
+2. Examinez la ligne au statut **En attente**.
+3. Après inspection des emballages, cliquez sur **« Réceptionner »** pour réintégrer les articles au stock tontine.
 
 
 

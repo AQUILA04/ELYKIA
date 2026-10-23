@@ -145,6 +145,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
 
+## Frontend — [2.39.0] — 2026-10-23
+
+### Changed
+
+- Le menu **Stock Commercial** regroupe les anciens écrans Stock Tontine. Sur Demandes Sortie, Stock et Retours, le sélecteur **Crédit** / **Tontine** recharge les données du canal choisi. Les adresses `/stock-tontine/...` redirigent vers ces écrans. Les API crédit et tontine restent séparées.
+
 ## Frontend — [2.38.2] — 2026-10-23
 
 ### Fixed

@@ -2,7 +2,7 @@
 
 <div class="container">
   <div class="form-header">
-    <h1>Nouveau Retour Stock</h1>
+    <h1>{{ channel === 'tontine' ? 'Nouveau retour stock tontine' : 'Nouveau Retour Stock' }}</h1>
   </div>
 
   <form [formGroup]="form" (ngSubmit)="onSubmit()" data-testid="e2e-stock-return-form">
@@ -41,7 +41,7 @@
     </div>
 
     <div class="actions">
-      <button type="button" class="btn btn-cancel" routerLink="/stock/return">Annuler</button>
+      <button type="button" class="btn btn-cancel" [routerLink]="['/stock/return']" [queryParams]="{ channel: channel }">Annuler</button>
       <button type="submit" class="btn btn-submit" [disabled]="form.invalid || (isStoreKeeper && !selectedCommercial)" data-testid="e2e-stock-return-submit">
         <mat-icon>undo</mat-icon> Valider le Retour
       </button>

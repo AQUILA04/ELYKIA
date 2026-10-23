@@ -36,6 +36,8 @@ export interface StockRequest {
   status?: StockRequestStatus;
   items?: StockRequestItem[];
   totalCreditSalePrice?: number;
+  /** Présent sur le détail tontine (même écran, autre API). */
+  totalSalePrice?: number;
   totalPurchasePrice?: number;
   accountingDate?: string;
   month?: number;
