@@ -13,7 +13,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Fixed
 
-- **CI E2E —** `JWT_SECRET` du job e2e-web est une clé Base64 valide. Le signin seed (`ges003`) ne renvoie plus `Illegal base64 character: '-'`.
+- **CI E2E —** `JWT_SECRET` du job e2e-web est généré à l’exécution (`openssl rand -base64 48`), sans valeur versionnée. Le signin seed (`ges003`) reçoit une clé Base64 valide et gitleaks ne signale plus de fuite.
 - **CI E2E —** le backend de test démarre avec l’amorçage des comptes activé et vérifie la connexion de `ges003` avant Playwright. Les échecs de seed apparaissent avant les tests UI.
 
 ## Docs & Infra — 2026-10-22
