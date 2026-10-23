@@ -56,6 +56,7 @@ import { Drivers, Storage } from '@ionic/storage';
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 import localeFrExtra from '@angular/common/locales/extra/fr';
+import { SessionExpiredInterceptor } from './core/interceptors/session-expired.interceptor';
 import { TimeoutInterceptor } from './core/interceptors/timeout.interceptor';
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
 import { NetworkErrorHandlerInterceptor } from './core/interceptors/network-error.interceptor';
@@ -109,6 +110,12 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
       provide: APP_INITIALIZER,
       useFactory: (storage: Storage) => () => storage.create(),
       deps: [Storage],
+      multi: true,
+    },
+    {
+      // Le plus extérieur : un 401 avalé ne doit pas retomber dans le timeout.
+      provide: HTTP_INTERCEPTORS,
+      useClass: SessionExpiredInterceptor,
       multi: true,
     },
     {

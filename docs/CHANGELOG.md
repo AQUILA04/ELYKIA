@@ -249,6 +249,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
 
+## Mobile — [2.33.22] — 2026-10-23
+
+### Fixed
+
+- Une session non reconnue ramène à l’écran de connexion avec le message « Session expirée », au lieu de laisser l’écran bloqué sur une erreur de chargement.
+
 ## Mobile — [2.33.21] — 2026-10-22
 
 ### Security
