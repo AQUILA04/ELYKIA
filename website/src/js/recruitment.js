@@ -5,6 +5,7 @@
   var apiBase = window.ELYKIA_API_BASE || '';
 
   var offersContainer = document.getElementById('recruitment-offers');
+  var recruitmentSection = document.getElementById('recruitment');
   var modal = document.getElementById('recruitment-modal');
   var modalBackdrop = document.getElementById('recruitment-modal-backdrop');
   var modalClose = document.getElementById('recruitment-modal-close');
@@ -14,10 +15,16 @@
   var formError = document.getElementById('recruitment-form-error');
   var formSuccess = document.getElementById('recruitment-form-success');
 
+  function setRecruitmentVisible(visible) {
+    if (recruitmentSection) recruitmentSection.hidden = !visible;
+    document.querySelectorAll('.js-recruitment-nav').forEach(function (el) {
+      el.hidden = !visible;
+    });
+    if (!visible && offersContainer) offersContainer.innerHTML = '';
+  }
+
   if (!offersContainer || !apiBase) {
-    if (offersContainer) {
-      offersContainer.innerHTML = '<p class="recruitment__empty">Les offres seront bientôt disponibles.</p>';
-    }
+    setRecruitmentVisible(false);
     return;
   }
 
@@ -29,9 +36,10 @@
 
   function renderOffers(offers) {
     if (!offers || !offers.length) {
-      offersContainer.innerHTML = '<p class="recruitment__empty">Aucune offre pour le moment. Revenez bientôt !</p>';
+      setRecruitmentVisible(false);
       return;
     }
+    setRecruitmentVisible(true);
 
     offersContainer.innerHTML = offers.map(function (offer) {
       var highlights = (offer.highlights || []).map(function (h) {
@@ -60,8 +68,12 @@
     });
   }
 
+  function recruitmentUrl(path) {
+    return apiBase.replace(/\/+$/, '') + '/api/public/recruitment' + path;
+  }
+
   function loadOffers() {
-    fetch(apiBase + '/public/recruitment/offers')
+    fetch(recruitmentUrl('/offers'))
       .then(function (res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);
         return res.json();
@@ -71,7 +83,7 @@
         renderOffers(Array.isArray(data) ? data : []);
       })
       .catch(function () {
-        offersContainer.innerHTML = '<p class="recruitment__empty">Impossible de charger les offres pour le moment.</p>';
+        setRecruitmentVisible(false);
       });
   }
 
@@ -109,7 +121,7 @@
         fd.set('cv', cv.files[0]);
       }
 
-      fetch(apiBase + '/public/recruitment/applications', {
+      fetch(recruitmentUrl('/applications'), {
         method: 'POST',
         body: fd
       })

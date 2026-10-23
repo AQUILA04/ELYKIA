@@ -170,7 +170,7 @@
 
   // ── Impact Carousel ────────────────────────────────────────
   const track   = document.getElementById('carousel-track');
-  const dots    = document.querySelectorAll('.impact__dot');
+  const dotsContainer = document.getElementById('carousel-dots');
   const prevBtn = document.getElementById('carousel-prev');
   const nextBtn = document.getElementById('carousel-next');
 
@@ -179,9 +179,15 @@
     const total     = slides.length;
     let current     = 0;
     let autoTimer   = null;
+    let dots        = [];
+    let lastVisible = null;
 
     function getVisibleCount() {
       return window.innerWidth <= 768 ? 1 : 2;
+    }
+
+    function positionCount() {
+      return Math.max(1, total - getVisibleCount() + 1);
     }
 
     function getSlideWidth() {
@@ -190,9 +196,25 @@
       return (track.parentElement.offsetWidth - gap * (visible - 1)) / visible + gap;
     }
 
+    function renderDots() {
+      if (!dotsContainer) return;
+      const count = positionCount();
+      dotsContainer.innerHTML = '';
+      for (let i = 0; i < count; i++) {
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'impact__dot';
+        dot.setAttribute('aria-label', 'Photo ' + (i + 1));
+        dot.addEventListener('click', () => { stopAuto(); goTo(i); startAuto(); });
+        dotsContainer.appendChild(dot);
+      }
+      dots = Array.from(dotsContainer.querySelectorAll('.impact__dot'));
+    }
+
     function goTo(index) {
-      const maxIndex = total - getVisibleCount();
+      const maxIndex = Math.max(0, total - getVisibleCount());
       current = Math.max(0, Math.min(index, maxIndex));
+      if (dots.length !== positionCount()) renderDots();
       track.style.transform = `translateX(-${current * getSlideWidth()}px)`;
       dots.forEach((dot, i) => {
         dot.classList.toggle('impact__dot--active', i === current);
@@ -202,7 +224,7 @@
     function startAuto() {
       stopAuto();
       autoTimer = setInterval(() => {
-        const maxIndex = total - getVisibleCount();
+        const maxIndex = Math.max(0, total - getVisibleCount());
         goTo(current >= maxIndex ? 0 : current + 1);
       }, 4500);
     }
@@ -214,10 +236,6 @@
     if (prevBtn) prevBtn.addEventListener('click', () => { stopAuto(); goTo(current - 1); startAuto(); });
     if (nextBtn) nextBtn.addEventListener('click', () => { stopAuto(); goTo(current + 1); startAuto(); });
 
-    dots.forEach((dot, i) => {
-      dot.addEventListener('click', () => { stopAuto(); goTo(i); startAuto(); });
-    });
-
     // Touch / swipe
     let touchStartX = 0;
     track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; stopAuto(); }, { passive: true });
@@ -227,8 +245,27 @@
       startAuto();
     });
 
-    window.addEventListener('resize', () => goTo(current), { passive: true });
+    window.addEventListener('resize', () => {
+      const visible = getVisibleCount();
+      if (visible !== lastVisible) {
+        lastVisible = visible;
+        renderDots();
+      }
+      goTo(current);
+    }, { passive: true });
+
+    lastVisible = getVisibleCount();
+    renderDots();
+    goTo(0);
     startAuto();
+  }
+
+  // ── Android APK (espace client, servi depuis MinIO via l'API) ──
+  const androidBtn = document.getElementById('android-download');
+  const apiBase = String(window.ELYKIA_API_BASE || '').replace(/\/+$/, '');
+  if (androidBtn && /^https?:\/\/[^\s'"<>]+$/.test(apiBase)) {
+    // ELYKIA_API_BASE se termine par /api ; Traefik retire ce préfixe avant Spring.
+    androidBtn.href = apiBase + '/api/v1/customer/app/release/download';
   }
 
   // ── Hero Image Slider ────────────────────────────────────
@@ -295,17 +332,6 @@
     });
   }
   initTilt();
-
-  // ── Notify button ─────────────────────────────────────────
-  const notifyBtn = document.getElementById('notify-btn');
-  if (notifyBtn) {
-    notifyBtn.addEventListener('click', () => {
-      notifyBtn.textContent = '✓ Vous serez notifié !';
-      notifyBtn.style.color = '#A8DADC';
-      notifyBtn.style.borderColor = 'rgba(168,218,220,0.4)';
-      notifyBtn.disabled = true;
-    });
-  }
 
   // ── Parallax on hero visual ────────────────────────────────
   const heroVisual = document.querySelector('.hero__image-wrapper');

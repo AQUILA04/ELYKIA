@@ -13,10 +13,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Added
 
+- **Website —** le bouton Android de la page d'accueil télécharge l'APK de l'espace client (fichier publié sur MinIO, servi par l'API). Le bouton iOS indique « Coming soon ».
 - **Cursor —** règle frontend : les confirmations passent par `AlertService`. `confirm()`, `alert()` et SweetAlert direct sont interdits hors de ce service.
+
+### Changed
+
+- **Website —** le carrousel « Notre impact quotidien » conserve deux photos de terrain, retire la troisième, et enchaîne cinq photos d'équipe. Les pastilles suivent le nombre de photos visibles.
 
 ### Fixed
 
+- **Website —** lorsqu'aucune offre d'emploi n'est publiée, ou si les offres ne peuvent pas être chargées, la section Recrutement et ses liens de menu restent masqués.
 - **CI E2E —** `JWT_SECRET` du job e2e-web est généré à l’exécution (`openssl rand -base64 48`), sans valeur versionnée. Le signin seed (`ges003`) reçoit une clé Base64 valide et gitleaks ne signale plus de fuite.
 - **CI E2E —** le backend de test démarre avec l’amorçage des comptes activé et vérifie la connexion de `ges003` avant Playwright. Les échecs de seed apparaissent avant les tests UI.
 

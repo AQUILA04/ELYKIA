@@ -16,7 +16,7 @@
   <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="css/style.css?v=20260929">
+  <link rel="stylesheet" href="css/style.css?v=20261023">
 </head>
 <body>
 
@@ -32,7 +32,7 @@
         <li><a href="#how-it-works" class="nav__link">Comment ça marche</a></li>
         <li><a href="#products" class="nav__link">Produits</a></li>
         <li><a href="#tontine" class="nav__link">Tontine</a></li>
-        <li><a href="#recruitment" class="nav__link">Recrutement</a></li>
+        <li class="js-recruitment-nav" hidden><a href="#recruitment" class="nav__link">Recrutement</a></li>
       </ul>
 
       <div class="nav__cta">
@@ -55,7 +55,7 @@
         <li><a href="#how-it-works" class="nav__link">Comment ça marche</a></li>
         <li><a href="#products" class="nav__link">Produits</a></li>
         <li><a href="#tontine" class="nav__link">Tontine</a></li>
-        <li><a href="#recruitment" class="nav__link">Recrutement</a></li>
+        <li class="js-recruitment-nav" hidden><a href="#recruitment" class="nav__link">Recrutement</a></li>
       </ul>
       <div style="margin-top: auto; padding-top: 24px; display: flex; flex-direction: column; gap: 12px;">
         <a href="https://clients.amenouveve-yaveh.com/auth" data-customer-space-path="/auth" class="btn btn--outline btn--full">Se connecter à l'espace client</a>
@@ -174,16 +174,29 @@
               <div class="impact__slide-caption">Déchargement des marchandises</div>
             </div>
             <div class="impact__slide">
-              <img src="assets/images/impact-03.png" alt="Équipe commerciale livrant des produits dans un marché animé de Lomé" loading="lazy">
-              <div class="impact__slide-caption">Livraison dans les marchés de Lomé</div>
+              <img src="assets/images/impact-04.jpg" alt="Équipe Aménouvévé-Yaveh en tenue bleue dans le hall du siège" loading="lazy">
+              <div class="impact__slide-caption">L'équipe au siège</div>
+            </div>
+            <div class="impact__slide">
+              <img src="assets/images/impact-05.jpg" alt="Équipe en polo bleu consultant une tablette dans les locaux" loading="lazy">
+              <div class="impact__slide-caption">Point d'équipe</div>
+            </div>
+            <div class="impact__slide">
+              <img src="assets/images/impact-06.jpg" alt="Deux collègues présentant le suivi des opérations sur une tablette" loading="lazy">
+              <div class="impact__slide-caption">Suivi des opérations</div>
+            </div>
+            <div class="impact__slide">
+              <img src="assets/images/impact-07.jpg" alt="Réunion de l'équipe logistique autour d'une table avec documents et tablette" loading="lazy">
+              <div class="impact__slide-caption">Réunion logistique</div>
+            </div>
+            <div class="impact__slide">
+              <img src="assets/images/impact-08.jpg" alt="Équipe terrain devant les camionnettes de livraison" loading="lazy">
+              <div class="impact__slide-caption">Équipe terrain et livraisons</div>
             </div>
           </div>
         </div>
 
-        <div class="impact__dots" id="carousel-dots">
-          <button class="impact__dot impact__dot--active" data-index="0" aria-label="Slide 1"></button>
-          <button class="impact__dot" data-index="1" aria-label="Slide 2"></button>
-        </div>
+        <div class="impact__dots" id="carousel-dots"></div>
       </div>
     </section>
 
@@ -386,15 +399,13 @@
     </section>
 
     <!-- ── Recrutement (dynamique) ── -->
-    <section class="recruitment" id="recruitment">
+    <section class="recruitment" id="recruitment" hidden>
       <div class="container">
         <div class="section__header">
           <span class="section__tag">Rejoignez l'équipe</span>
           <h2 class="section__title">Nos offres d'emploi</h2>
         </div>
-        <div id="recruitment-offers" class="recruitment-offers" aria-live="polite">
-          <p class="recruitment__loading">Chargement des offres…</p>
-        </div>
+        <div id="recruitment-offers" class="recruitment-offers" aria-live="polite"></div>
       </div>
     </section>
 
@@ -507,7 +518,7 @@
           <div class="app-cta__content reveal reveal--left">
             <span class="app-cta__tag">Application mobile</span>
             <h2 class="app-cta__title">Gérez vos crédits en toute simplicité</h2>
-            <p class="app-cta__description">Notre nouvelle application arrive ! Consultez l'état de vos finances, gérez vos commandes et suivez vos livraisons facilement.</p>
+            <p class="app-cta__description">Consultez l'état de vos finances, gérez vos commandes et suivez vos livraisons facilement depuis votre téléphone.</p>
             <ul class="app-cta__features">
               <li class="app-cta__feature">
                 <span class="app-cta__feature-icon">
@@ -529,24 +540,20 @@
               </li>
             </ul>
             <div class="app-cta__actions store-buttons">
-              <a href="#" class="btn--store" aria-label="Télécharger sur Google Play">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M3.18 23.76c.3.17.64.24.98.2l12.09-6.98-2.59-2.6-10.48 9.38zm-1.6-20.7C1.22 3.4 1 3.83 1 4.38v15.24c0 .55.22.98.58 1.32l.07.06 8.54-8.54v-.2L1.65 3.13l-.07.07-.1-.14zm17.7 9.5l-2.43-1.4-2.73 2.73 2.73 2.73 2.45-1.41c.7-.4.7-1.05 0-1.45l-.02-.2zM4.16.24L16.25 7.2 13.66 9.8 3.18.42A1.1 1.1 0 014.16.24z"/></svg>
+              <a href="#" id="android-download" class="btn--store" aria-label="Télécharger l'application Android">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85-.29-.15-.65-.06-.83.22l-1.88 3.24c-1.4-.59-2.96-.92-4.47-.92s-3.07.33-4.47.92L5.65 5.67c-.19-.29-.58-.38-.87-.2-.28.18-.37.54-.22.83L6.4 9.48C3.3 11.25 1.28 14.44 1 18h22c-.28-3.56-2.3-6.75-5.4-8.52zM7 15.25c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25zm10 0c-.69 0-1.25-.56-1.25-1.25s.56-1.25 1.25-1.25 1.25.56 1.25 1.25-.56 1.25-1.25 1.25z"/></svg>
                 <span>
-                  <span class="btn--store-sub">Télécharger sur</span>
-                  <span class="btn--store-main">Google Play</span>
+                  <span class="btn--store-sub">Télécharger l'APK</span>
+                  <span class="btn--store-main">Android</span>
                 </span>
               </a>
-              <a href="#" class="btn--store" aria-label="Télécharger sur l'App Store">
-                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+              <span class="btn--store btn--store--soon" role="note" aria-label="Application iOS bientôt disponible">
+                <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
                 <span>
-                  <span class="btn--store-sub">Télécharger sur</span>
-                  <span class="btn--store-main">App Store</span>
+                  <span class="btn--store-sub">iOS</span>
+                  <span class="btn--store-main">Coming soon</span>
                 </span>
-              </a>
-              <button class="btn--notify" id="notify-btn">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-                Être notifié du lancement
-              </button>
+              </span>
             </div>
           </div>
 
@@ -591,7 +598,7 @@
         <div>
           <h4 class="footer__col-title">Entreprise</h4>
           <ul class="footer__links">
-            <li><a href="#recruitment" class="footer__link">Recrutement</a></li>
+            <li class="js-recruitment-nav" hidden><a href="#recruitment" class="footer__link">Recrutement</a></li>
             <li><a href="#app" class="footer__link">Application mobile</a></li>
             <li><a href="https://clients.amenouveve-yaveh.com/auth" data-customer-space-path="/auth" class="footer__link">Se connecter à l'espace client</a></li>
           </ul>
@@ -622,6 +629,6 @@
 
   <script src="js/config.js"></script>
   <script src="js/recruitment.js"></script>
-  <script src="js/main.js?v=20260929"></script>
+  <script src="js/main.js?v=20261023"></script>
 </body>
 </html>
