@@ -258,20 +258,23 @@ export class MyStockDashboardComponent implements OnInit {
       return;
     }
     const amount = this.getTotalStockValue(stock);
-    if (!confirm(`Créer une dette de ${Math.round(amount).toLocaleString('fr-FR')} FCFA pour ${stock.collector} (${this.getMonthName(stock.month)} ${stock.year}) ?`)) {
-      return;
-    }
-    this.creatingDebtStockId = stock.id;
-    this.debtService.createMerchandise(stock.id).subscribe({
-      next: (debt) => {
-        this.creatingDebtStockId = null;
-        this.alertService.showSuccess(`Dette ${debt.reference} créée.`);
-        this.loadCurrentStock();
-      },
-      error: (err) => {
-        this.creatingDebtStockId = null;
-        this.alertService.showError(err?.error?.message || 'Création de dette impossible.');
+    const message = `Créer une dette de ${Math.round(amount).toLocaleString('fr-FR')} FCFA pour ${stock.collector} (${this.getMonthName(stock.month)} ${stock.year}) ?`;
+    this.alertService.showConfirmation('Confirmation', message, 'Oui', 'Annuler').then((confirmed) => {
+      if (!confirmed) {
+        return;
       }
+      this.creatingDebtStockId = stock.id;
+      this.debtService.createMerchandise(stock.id).subscribe({
+        next: (debt) => {
+          this.creatingDebtStockId = null;
+          this.alertService.showSuccess(`Dette ${debt.reference} créée.`);
+          this.loadCurrentStock();
+        },
+        error: (err) => {
+          this.creatingDebtStockId = null;
+          this.alertService.showError(err?.error?.message || 'Création de dette impossible.');
+        }
+      });
     });
   }
 

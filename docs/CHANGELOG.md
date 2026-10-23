@@ -11,9 +11,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra — 2026-10-23
 
+### Added
+
+- **Cursor —** règle frontend : les confirmations passent par `AlertService`. `confirm()`, `alert()` et SweetAlert direct sont interdits hors de ce service.
+
 ### Fixed
 
-- **CI E2E —** `JWT_SECRET` du job e2e-web est une clé Base64 valide. Le signin seed (`ges003`) ne renvoie plus `Illegal base64 character: '-'`.
+- **CI E2E —** `JWT_SECRET` du job e2e-web est généré à l’exécution (`openssl rand -base64 48`), sans valeur versionnée. Le signin seed (`ges003`) reçoit une clé Base64 valide et gitleaks ne signale plus de fuite.
 - **CI E2E —** le backend de test démarre avec l’amorçage des comptes activé et vérifie la connexion de `ges003` avant Playwright. Les échecs de seed apparaissent avant les tests UI.
 
 ## Docs & Infra — 2026-10-22
@@ -35,6 +39,8 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - L’équilibrage d’un surplus est enregistré jusqu’au bout. Le journal des opérations refusait la ligne « Équilibrage surplus », et toute l’opération était annulée.
+- La file des écarts de carnet s’ouvre sans filtre commercial. La comparaison du collecteur n’envoie plus un paramètre non typé à PostgreSQL.
+- La recherche de la liste des types d’article filtre par nom, code ou description.
 
 ## Backend — [1.42.1] — 2026-10-23
 
@@ -131,6 +137,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.38.1] — 2026-10-23
+
+### Changed
+
+- La création d’une dette marchandise (stock commercial) et d’un écart de caisse (rapport journalier) demande confirmation dans la fenêtre de l’application, plus dans celle du navigateur.
 
 ## Frontend — [2.38.0] — 2026-10-22
 
