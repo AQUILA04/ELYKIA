@@ -564,24 +564,31 @@ export class DailyReportComponent implements OnInit {
         if (!day || !report?.commercialUsername) {
             return;
         }
-        if (!confirm(`Constituer l'écart de caisse de ${report.commercialUsername} pour le ${day} ?`)) {
-            return;
-        }
-        this.isLoading = true;
-        this.debtService.createCash({
-            commercialUsername: report.commercialUsername,
-            periodGrain: 'DAY',
-            day
-        }).subscribe({
-            next: (debt) => {
-                this.isLoading = false;
-                this.alertService.showSuccess(`Dette ${debt.reference} créée (${debt.debtType}).`);
-                this.router.navigate(['/debts', debt.id]);
-            },
-            error: (err) => {
-                this.isLoading = false;
-                this.alertService.showError(err?.error?.message || 'Création de dette caisse impossible.');
+        this.alertService.showConfirmation(
+            'Confirmation',
+            `Constituer l'écart de caisse de ${report.commercialUsername} pour le ${day} ?`,
+            'Oui',
+            'Annuler'
+        ).then((confirmed) => {
+            if (!confirmed) {
+                return;
             }
+            this.isLoading = true;
+            this.debtService.createCash({
+                commercialUsername: report.commercialUsername,
+                periodGrain: 'DAY',
+                day
+            }).subscribe({
+                next: (debt) => {
+                    this.isLoading = false;
+                    this.alertService.showSuccess(`Dette ${debt.reference} créée (${debt.debtType}).`);
+                    this.router.navigate(['/debts', debt.id]);
+                },
+                error: (err) => {
+                    this.isLoading = false;
+                    this.alertService.showError(err?.error?.message || 'Création de dette caisse impossible.');
+                }
+            });
         });
     }
 

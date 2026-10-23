@@ -11,12 +11,18 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ArticleTypeServiceTest {
@@ -71,5 +77,28 @@ class ArticleTypeServiceTest {
         assertThat(result.getId()).isEqualTo(1L);
         assertThat(articleType.getPhotoObjectKey()).isEqualTo("article-types/1.jpg");
         verify(articleTypeRepository, times(1)).saveAndFlush(any(ArticleType.class));
+    }
+
+    @Test
+    void list_ShouldSearchEnabledTypesByTrimmedTerm() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(articleTypeRepository.searchEnabled("elec", pageable)).thenReturn(Page.empty());
+
+        Page<ArticleType> result = articleTypeService.list("  elec  ", pageable);
+
+        assertThat(result.getContent()).isEmpty();
+        verify(articleTypeRepository).searchEnabled("elec", pageable);
+    }
+
+    @Test
+    void list_BlankSearchShouldReturnEnabledPage() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(articleTypeRepository.findByState(com.optimize.common.entities.enums.State.ENABLED, pageable))
+                .thenReturn(Page.empty());
+
+        articleTypeService.list("   ", pageable);
+
+        verify(articleTypeRepository).findByState(com.optimize.common.entities.enums.State.ENABLED, pageable);
+        verify(articleTypeRepository, never()).searchEnabled(any(), any());
     }
 }

@@ -38,7 +38,7 @@ public interface CreditFieldControlRepository extends GenericRepository<CreditFi
                 WHERE c2.credit.id = c.credit.id
                   AND c2.state = com.optimize.common.entities.enums.State.ENABLED
               )
-              AND (:commercial IS NULL OR LOWER(cr.collector) = LOWER(:commercial))
+              AND LOWER(cr.collector) = LOWER(COALESCE(:commercial, cr.collector))
             """)
     List<CreditFieldControl> findLatestEcarts(@Param("commercial") String commercial);
 

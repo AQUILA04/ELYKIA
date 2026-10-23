@@ -11,6 +11,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra — 2026-10-23
 
+### Added
+
+- **Cursor —** règle frontend : les confirmations passent par `AlertService`. `confirm()`, `alert()` et SweetAlert direct sont interdits hors de ce service.
+
 ### Fixed
 
 - **CI E2E —** `JWT_SECRET` du job e2e-web est généré à l’exécution (`openssl rand -base64 48`), sans valeur versionnée. Le signin seed (`ges003`) reçoit une clé Base64 valide et gitleaks ne signale plus de fuite.
@@ -29,6 +33,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Backend — [1.42.2] — 2026-10-23
+
+### Fixed
+
+- La file des écarts de carnet s’ouvre sans filtre commercial. La comparaison du collecteur n’envoie plus un paramètre non typé à PostgreSQL.
+- La recherche de la liste des types d’article filtre par nom, code ou description.
 
 ## Backend — [1.42.1] — 2026-10-23
 
@@ -125,6 +136,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.38.1] — 2026-10-23
+
+### Changed
+
+- La création d’une dette marchandise (stock commercial) et d’un écart de caisse (rapport journalier) demande confirmation dans la fenêtre de l’application, plus dans celle du navigateur.
 
 ## Frontend — [2.38.0] — 2026-10-22
 

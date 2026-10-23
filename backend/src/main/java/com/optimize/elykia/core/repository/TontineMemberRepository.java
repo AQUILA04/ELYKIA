@@ -298,10 +298,13 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
         LEFT JOIN tm.delivery d
         WHERE s.year = :year
         AND (:commercial IS NULL OR c.tontineCollector = :commercial)
-        AND (:search IS NULL OR LOWER(c.firstname) LIKE LOWER(CONCAT('%', :search, '%')) 
-                OR LOWER(c.lastname) LIKE LOWER(CONCAT('%', :search, '%')) 
-                OR LOWER(c.phone) LIKE LOWER(CONCAT('%', :search, '%')) 
-                OR LOWER(c.code) LIKE LOWER(CONCAT('%', :search, '%')))     
+        AND (
+            COALESCE(:search, '') = ''
+            OR LOWER(c.firstname) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%'))
+            OR LOWER(c.lastname) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%'))
+            OR LOWER(c.phone) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%'))
+            OR LOWER(c.code) LIKE LOWER(CONCAT('%', COALESCE(:search, ''), '%'))
+        )     
         AND (:deliveryStatus IS NULL OR tm.deliveryStatus = :deliveryStatus)
         AND (:carnetVerified IS NULL OR tm.carnetVerified = :carnetVerified)
         AND (:registrationSource IS NULL OR tm.registrationSource = :registrationSource)

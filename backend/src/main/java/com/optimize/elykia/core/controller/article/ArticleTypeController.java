@@ -55,8 +55,10 @@ public class ArticleTypeController {
 
     @GetMapping
     @Operation(summary = "List article types with pagination")
-    public ResponseEntity<Response> list(Pageable pageable) {
-        Page<ArticleType> page = articleTypeService.getAll(pageable);
+    public ResponseEntity<Response> list(
+            @RequestParam(required = false) String search,
+            Pageable pageable) {
+        Page<ArticleType> page = articleTypeService.list(search, pageable);
         articlePhotoService.attachTypeUrls(page.getContent());
         return new ResponseEntity<Response>(ResponseUtil.successResponse(page), HttpStatus.OK);
     }

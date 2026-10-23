@@ -6,8 +6,11 @@ import com.optimize.elykia.core.entity.article.ArticleType;
 import com.optimize.elykia.core.mapper.ArticleTypeMapper;
 import com.optimize.elykia.core.repository.ArticleTypeRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @Transactional(readOnly = true)
@@ -36,6 +39,13 @@ public class ArticleTypeService extends GenericService<ArticleType, Long> {
         ArticleType articleType = articleTypeMapper.toEntity(dto);
         articleType.setPhotoObjectKey(existing.getPhotoObjectKey());
         return update(articleType);
+    }
+
+    public Page<ArticleType> list(String search, Pageable pageable) {
+        if (!StringUtils.hasText(search)) {
+            return getAll(pageable);
+        }
+        return getRepository().searchEnabled(search.trim(), pageable);
     }
 
     @Override

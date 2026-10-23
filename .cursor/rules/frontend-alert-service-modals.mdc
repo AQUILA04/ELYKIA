@@ -1,0 +1,41 @@
+---
+description: Confirmations et alertes frontend uniquement via AlertService
+globs: frontend/src/app/**/*.{ts,html}
+alwaysApply: false
+---
+
+# Modales de confirmation — AlertService
+
+Dans le frontend admin ELYKIA, les confirmations et messages bloquants passent par [`AlertService`](frontend/src/app/shared/service/alert.service.ts). C’est cette classe qui applique le thème SweetAlert de l’application.
+
+## Obligatoire
+
+- Confirmation : `alertService.showConfirmation(title, text, confirmButtonText, cancelButtonText)` (retourne `Promise<boolean>`).
+- Succès, erreur, info, avertissement : `showSuccess`, `showError`, `showInfo`, `showWarning`, `toastSuccess`, `toastError`.
+- Suppression : `showDeleteConfirmation`.
+
+## Interdit
+
+- `confirm()`, `alert()`, `prompt()`, `window.confirm`, `window.alert`.
+- `import Swal from 'sweetalert2'` et `Swal.fire` **en dehors de** `frontend/src/app/shared/service/alert.service.ts`.
+- Appeler SweetAlert directement depuis un composant, un service métier ou un guard.
+
+## Exception
+
+Les formulaires ou parcours trop riches pour une alerte (saisie, onglets, liste éditable) restent des modales métier HTML ou `MatDialog`. Leur bouton de validation peut s’appeler `confirm()` : ce n’est pas le `confirm` du navigateur.
+
+## Exemple
+
+```typescript
+this.alertService.showConfirmation(
+  'Confirmation',
+  `Créer une dette de ${amount} FCFA pour ${collector} ?`,
+  'Oui',
+  'Annuler'
+).then((confirmed) => {
+  if (!confirmed) {
+    return;
+  }
+  // appel métier
+});
+```
