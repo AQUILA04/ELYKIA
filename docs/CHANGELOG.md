@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-10-23
+
+### Fixed
+
+- **CI E2E —** le backend de test démarre avec l’amorçage des comptes activé et vérifie la connexion de `ges003` avant Playwright. Les échecs de seed apparaissent avant les tests UI.
+
 ## Docs & Infra — 2026-10-22
 
 ### Security
@@ -22,6 +28,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Backend — [1.42.1] — 2026-10-23
+
+### Fixed
+
+- Les profils déployés lisent `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED` pour l’amorçage des comptes. La CI E2E peut ainsi créer `ges003` / `mag001` avec `LOCAL_SEED_PASSWORD` sans réactiver l’amorçage sur Contabo.
 
 ## Backend — [1.42.0] — 2026-10-22
 

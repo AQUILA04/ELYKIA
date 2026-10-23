@@ -175,17 +175,41 @@ jobs:
           LOCAL_SEED_PASSWORD: elykia_e2e_seed
         run: |
           JAR=$(ls backend/target/*.jar | grep -v 'original' | head -n1)
-          nohup java -jar "$JAR" --spring.profiles.active=prod > backend-e2e.log 2>&1 &
+          # Argument CLI : prioritaire sur application-prod.yml (auto-init sinon false).
+          nohup java -jar "$JAR" \
+            --spring.profiles.active=prod \
+            --security.config.auto-initialize.enabled=true \
+            > backend-e2e.log 2>&1 &
           echo $! > backend-e2e.pid
           for i in $(seq 1 60); do
             if curl -sf http://localhost:8081/actuator/health > /dev/null; then
               echo "Backend ready after ${i} attempt(s)"
-              exit 0
+              break
+            fi
+            if [ "$i" -eq 60 ]; then
+              echo "Backend failed to start" >&2
+              tail -n 80 backend-e2e.log || true
+              exit 1
             fi
             sleep 5
           done
-          echo "Backend failed to start" >&2
-          tail -n 80 backend-e2e.log || true
+          # Attendre la fin de ApplicationReadyEvent (seed comptes) puis vérifier ges003.
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /tmp/e2e-signin.json -w "%{http_code}" \
+              -X POST http://localhost:8081/api/auth/signin \
+              -H 'Content-Type: application/json' \
+              -d '{"username":"ges003","password":"elykia_e2e_seed"}' || true)
+            if [ "$code" = "200" ] && grep -Eq '"accessToken"|"token"' /tmp/e2e-signin.json; then
+              echo "Seed account ges003 authenticated after ${i} attempt(s)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Seed accounts missing or password mismatch (HTTP ${code:-none})" >&2
+          echo "--- signin body ---" >&2
+          cat /tmp/e2e-signin.json 2>/dev/null || true
+          echo "--- backend log (tail) ---" >&2
+          tail -n 120 backend-e2e.log || true
           exit 1
 
       - name: Seed reference articles (legacy V14)

@@ -111,6 +111,7 @@ minio:
 security:
   config:
     auto-initialize:
-      enabled: false
+      # false hors CI. Les tests E2E passent SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true.
+      enabled: ${SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED:false}
 
 
