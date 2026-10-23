@@ -23,7 +23,6 @@ export class SidebarComponent implements OnInit {
   isCaisseOpen: boolean = false;
   isSecurityOpen: boolean = false;
   isStockOpen: boolean = false;
-  isStockTontineOpen: boolean = false; // AJOUTÉ
   isVentesOpen: boolean = false; // AJOUTÉ
   isTontineOpen: boolean = false;
   isConfigurationOpen: boolean = false;
@@ -134,7 +133,7 @@ export class SidebarComponent implements OnInit {
       '/article', '/localitylist', '/credit', '/out-list', '/tontine-list',
       '/account/list', '/client/list', '/report', '/inventory/list', '/gestion-list',
       '/operation-list', '/deposit-list', '/user/list', '/commercial/list',
-      '/article-type', '/expense/types', '/parameters', '/stock', '/stock-tontine'
+      '/article-type', '/expense/types', '/parameters', '/stock'
     ];
 
     // Vérifier si une autre route commence par la même base
@@ -166,16 +165,6 @@ export class SidebarComponent implements OnInit {
     } else {
       this.router.navigate(['/stock/request']);
       this.isStockOpen = true;
-    }
-  }
-
-  // AJOUTÉ : Gestionnaire de clic pour le menu Stock Tontine
-  onStockTontineClick() {
-    if (this.activeRoute.startsWith('/stock-tontine')) {
-      this.isStockTontineOpen = !this.isStockTontineOpen;
-    } else {
-      this.router.navigate(['/stock-tontine/request']);
-      this.isStockTontineOpen = true;
     }
   }
 
@@ -274,13 +263,6 @@ export class SidebarComponent implements OnInit {
         this.isStockOpen = false;
       }
 
-      // AJOUTÉ : Gestion de l'état ouvert/fermé pour Stock Tontine
-      if (this.activeRoute.startsWith('/stock-tontine')) {
-        this.isStockTontineOpen = true;
-      } else {
-        this.isStockTontineOpen = false;
-      }
-
       // Gestion de l'état ouvert/fermé pour Ventes
       if (this.activeRoute.startsWith('/credit')) {
         this.isVentesOpen = true;
@@ -323,7 +305,6 @@ export class SidebarComponent implements OnInit {
     this.isCaisseOpen = false;
     this.isSecurityOpen = false;
     this.isStockOpen = false;
-    this.isStockTontineOpen = false; // AJOUTÉ
     this.isVentesOpen = false;
     this.isTontineOpen = false;
     this.isConfigurationOpen = false;

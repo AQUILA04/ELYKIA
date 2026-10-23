@@ -1,15 +1,23 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PageEvent } from '@angular/material/paginator';
 import { ToastrService } from 'ngx-toastr';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from '../../../auth/service/auth.service';
 import { UserService } from '../../../user/service/user.service';
-import { Router } from '@angular/router';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { UserProfile } from '../../../shared/models/user-profile.enum';
 import { StockRequest, StockRequestListItem } from '../../models/stock-request.model';
 import { StockListFilter, StockRequestKpis, StockRequestService } from '../../services/stock-request.service';
+import { StockTontineRequestService } from '../../../stock-tontine/services/stock-tontine-request.service';
+import { StockChannel } from '../../models/stock-channel';
+import { StockChannelService } from '../../services/stock-channel.service';
+import {
+  StockChannelPage,
+  stockListCrumb,
+  stockListHeading,
+  stockListSubtitle
+} from '../../utils/stock-channel-page';
 import { coerceStockItems } from '../../utils/stock-detail.util';
 import { forkJoin } from 'rxjs';
 import { finalize } from 'rxjs/operators';
@@ -35,8 +43,10 @@ interface StockRequestListState {
   encapsulation: ViewEncapsulation.None
 })
 export class StockRequestListComponent implements OnInit, OnDestroy {
-  private readonly STATE_KEY = 'stockRequestListState';
   private dateIntervalId?: ReturnType<typeof setInterval>;
+  private channels: StockChannelPage;
+
+  channel: StockChannel = 'credit';
 
   requests: StockRequestListItem[] = [];
   page = 0;
@@ -70,6 +80,8 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
 
   constructor(
     private stockRequestService: StockRequestService,
+    private tontineRequestService: StockTontineRequestService,
+    stockChannel: StockChannelService,
     private authService: AuthService,
     private userService: UserService,
     private toastr: ToastrService,
@@ -77,7 +89,17 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     private router: Router,
     private featureFlagService: FeatureFlagService,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    this.channels = new StockChannelPage(stockChannel, router, route);
+  }
+
+  private get stateKey(): string {
+    return this.channel === 'tontine' ? 'stockTontineRequestListState' : 'stockRequestListState';
+  }
+
+  private requestApi() {
+    return this.channel === 'tontine' ? this.tontineRequestService : this.stockRequestService;
+  }
 
   ngOnInit(): void {
     this.previousMonths = buildPreviousMonthOptions();
@@ -88,16 +110,30 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER);
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
-    this.canSelectCommercial = !this.isPromoter && (this.isManager || this.isSecretary || this.isStoreKeeper);
-
     const hasEditRole = this.authService.hasRole('ROLE_EDIT_STOCK_REQUEST');
     this.featureFlagService.flags$.subscribe(flags => {
       this.canEditStockRequest = hasEditRole && !!flags[FeatureFlags.EditStockRequest];
     });
 
-    this.restoreState();
-    this.refresh();
-    this.openDetailsFromQueryParam();
+    this.route.queryParamMap.subscribe(params => {
+      const adopted = this.channels.adopt(params.get('channel'));
+      if (!adopted) {
+        return;
+      }
+      this.channel = adopted.channel;
+      if (adopted.changed) {
+        this.closeDetails();
+        this.selectedRequestIds.clear();
+        this.page = 0;
+      }
+      this.restoreState();
+      this.applyCommercialFilterRights();
+      this.refresh();
+      if (!adopted.changed) {
+        this.openDetailsFromQueryParam();
+      }
+    });
+
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
     }, 1000);
@@ -107,6 +143,37 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     this.saveState();
     if (this.dateIntervalId) {
       clearInterval(this.dateIntervalId);
+    }
+  }
+
+  get requestHeading(): string {
+    return stockListHeading('request', this.channel);
+  }
+
+  get requestSubtitle(): string {
+    return stockListSubtitle('request', this.channel);
+  }
+
+  get requestCrumb(): string {
+    return stockListCrumb(this.channel);
+  }
+
+  get requestChannelQuery(): { channel: StockChannel } {
+    return { channel: this.channel };
+  }
+
+  onRequestChannel(channel: StockChannel): void {
+    this.channels.select(channel);
+  }
+
+  private applyCommercialFilterRights(): void {
+    if (this.channel === 'tontine') {
+      this.canSelectCommercial = !this.isPromoter && (this.isManager || this.isSecretary);
+    } else {
+      this.canSelectCommercial = !this.isPromoter && (this.isManager || this.isSecretary || this.isStoreKeeper);
+    }
+    if (!this.canSelectCommercial) {
+      this.selectedCommercial = null;
     }
   }
 
@@ -129,7 +196,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
   }
 
   loadKpis(): void {
-    this.stockRequestService.getKpis(this.listFilter).subscribe({
+    this.requestApi().getKpis(this.listFilter).subscribe({
       next: (kpis) => { this.kpis = kpis; },
       error: (err) => console.error('Erreur chargement KPI demandes stock', err)
     });
@@ -137,7 +204,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
 
   loadRequests(): void {
     this.isLoading = true;
-    this.stockRequestService.getAll(this.listFilter, this.page, this.size).subscribe({
+    this.requestApi().getAll(this.listFilter, this.page, this.size).subscribe({
       next: (page) => {
         this.handlePage(page);
         this.lastUpdate = new Date();
@@ -188,24 +255,23 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
   onExportPdf(): void {
     const range = resolveStockPeriodRange(this.selectedPeriod);
     this.exportLoading = true;
-    this.stockRequestService.exportPdf(range.startDate, range.endDate, this.selectedCommercial).subscribe({
-      next: (data) => {
-        const blob = new Blob([data], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `fiche_sortie_stock_${range.startDate}_${range.endDate}.pdf`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-        this.exportLoading = false;
-        this.alertService.toastSuccess('Fiche de sortie téléchargée avec succès');
-      },
-      error: (err) => {
-        console.error('Export error', err);
-        this.alertService.toastError('Erreur lors du téléchargement du PDF');
-        this.exportLoading = false;
-      }
+    this.requestApi().exportPdf(range.startDate, range.endDate, this.selectedCommercial).subscribe({
+      next: (data) => this.finishRequestExport(data, range.startDate, range.endDate),
+      error: (err) => this.failRequestExport(err)
     });
+  }
+
+  private finishRequestExport(data: Blob, startDate: string, endDate: string): void {
+    const prefix = this.channel === 'tontine' ? 'fiche_sortie_stock_tontine' : 'fiche_sortie_stock';
+    this.downloadPdfBlob(data, `${prefix}_${startDate}_${endDate}.pdf`);
+    this.exportLoading = false;
+    this.alertService.toastSuccess('Fiche de sortie téléchargée avec succès');
+  }
+
+  private failRequestExport(err: unknown): void {
+    console.error('Export error', err);
+    this.alertService.toastError('Erreur lors du téléchargement du PDF');
+    this.exportLoading = false;
   }
 
   get selectedCount(): number {
@@ -251,9 +317,10 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
       return;
     }
     this.exportSelectionLoading = true;
-    this.stockRequestService.exportPdfByRequestIds(requestIds).subscribe({
+    this.requestApi().exportPdfByRequestIds(requestIds).subscribe({
       next: (data) => {
-        this.downloadPdfBlob(data, `fiche_sortie_stock_selection_${new Date().getTime()}.pdf`);
+        const prefix = this.channel === 'tontine' ? 'fiche_sortie_stock_tontine_selection' : 'fiche_sortie_stock_selection';
+        this.downloadPdfBlob(data, `${prefix}_${new Date().getTime()}.pdf`);
         this.alertService.toastSuccess('Fiche de sortie sélectionnée téléchargée avec succès');
         this.exportSelectionLoading = false;
       },
@@ -269,10 +336,11 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
       return;
     }
     this.exportSelectionLoading = true;
-    this.stockRequestService.exportPdfByRequestIds([request.id]).subscribe({
+    this.requestApi().exportPdfByRequestIds([request.id]).subscribe({
       next: (data) => {
         const suffix = request.reference ?? `demande_${request.id}`;
-        this.downloadPdfBlob(data, `fiche_sortie_stock_${suffix}.pdf`);
+        const prefix = this.channel === 'tontine' ? 'fiche_sortie_stock_tontine' : 'fiche_sortie_stock';
+        this.downloadPdfBlob(data, `${prefix}_${suffix}.pdf`);
         this.alertService.toastSuccess('Fiche de la demande téléchargée avec succès');
         this.exportSelectionLoading = false;
       },
@@ -286,7 +354,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
   validate(request: StockRequestListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Valider cette demande ?').then((confirmed) => {
       if (confirmed) {
-        this.stockRequestService.validate(request.id!).subscribe({
+        this.requestApi().validate(request.id!).subscribe({
           next: () => {
             this.toastr.success('Demande validée');
             this.refresh();
@@ -307,7 +375,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     this.alertService.showConfirmation('Confirmation', 'Confirmer la livraison de cette demande ?').then((confirmed) => {
       if (confirmed) {
         this.processingId = request.id!;
-        this.stockRequestService.deliver(request.id!).pipe(
+        this.requestApi().deliver(request.id!).pipe(
           finalize(() => { this.processingId = null; })
         ).subscribe({
           next: (resp: any) => {
@@ -335,7 +403,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
   cancel(request: StockRequestListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Annuler cette demande ?').then((confirmed) => {
       if (confirmed) {
-        this.stockRequestService.cancel(request.id!).subscribe({
+        this.requestApi().cancel(request.id!).subscribe({
           next: () => {
             this.toastr.success('Demande annulée');
             this.refresh();
@@ -351,7 +419,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
   refuse(request: StockRequestListItem): void {
     this.alertService.showConfirmation('Confirmation', 'Refuser cette demande ?').then((confirmed) => {
       if (confirmed) {
-        this.stockRequestService.refuse(request.id!).subscribe({
+        this.requestApi().refuse(request.id!).subscribe({
           next: () => {
             this.toastr.success('Demande refusée');
             this.refresh();
@@ -373,8 +441,8 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     this.selectedRequest = null;
     this.detailsLoading = true;
     forkJoin({
-      detail: this.stockRequestService.getById(request.id),
-      items: this.stockRequestService.getItemsById(request.id)
+      detail: this.requestApi().getById(request.id),
+      items: this.requestApi().getItemsById(request.id)
     }).subscribe({
       next: ({ detail, items }) => {
         this.selectedRequest = {
@@ -413,8 +481,8 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
       return;
     }
     forkJoin({
-      detail: this.stockRequestService.getById(requestId),
-      items: this.stockRequestService.getItemsById(requestId)
+      detail: this.requestApi().getById(requestId),
+      items: this.requestApi().getItemsById(requestId)
     }).subscribe({
       next: ({ detail, items }) => {
         if (this.selectedRequest?.id !== requestId) {
@@ -430,7 +498,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
   }
 
   edit(request: StockRequestListItem): void {
-    this.router.navigate(['/stock/request/edit', request.id]);
+    this.router.navigate(['/stock/request/edit', request.id], { queryParams: { channel: 'credit' } });
   }
 
   getStatusClass(status: string | undefined): string {
@@ -483,11 +551,11 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
       page: this.page,
       size: this.size
     };
-    sessionStorage.setItem(this.STATE_KEY, JSON.stringify(state));
+    sessionStorage.setItem(this.stateKey, JSON.stringify(state));
   }
 
   private restoreState(): void {
-    const saved = sessionStorage.getItem(this.STATE_KEY);
+    const saved = sessionStorage.getItem(this.stateKey);
     if (!saved) return;
     try {
       const state = JSON.parse(saved) as StockRequestListState;

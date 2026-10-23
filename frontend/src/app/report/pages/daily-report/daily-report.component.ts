@@ -22,6 +22,11 @@ import { AlertService } from 'src/app/shared/service/alert.service';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-permission.constant';
 import { DebtService } from 'src/app/debt/services/debt.service';
+import { ExpenseService } from 'src/app/expense/services/expense.service';
+import { Expense } from 'src/app/expense/models/expense.model';
+import { cashDeskBalance, sumExpenseAmounts } from '../../models/cash-synthesis';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
     selector: 'app-daily-report',
@@ -97,6 +102,10 @@ export class DailyReportComponent implements OnInit {
     depositsPageSize = 20;
 
     aggregatedReportData: any = null;
+    periodExpenses: Expense[] = [];
+    allPeriodReports: DailyCommercialReport[] = [];
+    cashSynthesisLoading = false;
+    private cashSynthesisRequest = 0;
     surplusReallocations: SurplusReallocation[] = [];
     yearlySummary: CommercialYearlySummary | null = null;
     yearlySummaryLoading = false;
@@ -117,7 +126,8 @@ export class DailyReportComponent implements OnInit {
         private authService: AuthService,
         private route: ActivatedRoute,
         private router: Router,
-        private debtService: DebtService
+        private debtService: DebtService,
+        private expenseService: ExpenseService
     ) { }
 
     ngOnInit(): void {
@@ -257,6 +267,7 @@ export class DailyReportComponent implements OnInit {
         const startStr = this.datePipe.transform(this.range.value.start, 'yyyy-MM-dd') || '';
         const endStr = this.datePipe.transform(this.range.value.end, 'yyyy-MM-dd') || '';
         const collector = this.selectedAgent || undefined;
+        this.loadCashSynthesis(startStr, endStr);
 
         this.dailyReportService.getReports(startStr, endStr, collector).subscribe({
             next: (data) => {
@@ -395,6 +406,68 @@ export class DailyReportComponent implements OnInit {
             return this.tokenStorage.getUser()?.username ?? null;
         }
         return this.selectedAgent;
+    }
+
+    private loadCashSynthesis(startStr: string, endStr: string): void {
+        const requestId = ++this.cashSynthesisRequest;
+        if (this.isPromoter || !startStr || !endStr) {
+            this.periodExpenses = [];
+            this.allPeriodReports = [];
+            this.cashSynthesisLoading = false;
+            return;
+        }
+
+        this.cashSynthesisLoading = true;
+        const expenses$ = this.expenseService.getExpensesByPeriod(startStr, endStr).pipe(
+            catchError((err) => {
+                console.error('Error loading period expenses', err);
+                return of([] as Expense[]);
+            })
+        );
+        const reports$ = this.selectedAgent
+            ? this.dailyReportService.getReports(startStr, endStr).pipe(
+                catchError((err) => {
+                    console.error('Error loading cash synthesis reports', err);
+                    return of([] as DailyCommercialReport[]);
+                })
+            )
+            : of([] as DailyCommercialReport[]);
+
+        forkJoin({ expenses: expenses$, reports: reports$ }).subscribe({
+            next: ({ expenses, reports }) => {
+                if (requestId !== this.cashSynthesisRequest) {
+                    return;
+                }
+                this.periodExpenses = expenses || [];
+                this.allPeriodReports = reports || [];
+                this.cashSynthesisLoading = false;
+            },
+            error: () => {
+                if (requestId !== this.cashSynthesisRequest) {
+                    return;
+                }
+                this.periodExpenses = [];
+                this.allPeriodReports = [];
+                this.cashSynthesisLoading = false;
+            }
+        });
+    }
+
+    get totalExpensesWithApprovisionnement(): number {
+        return sumExpenseAmounts(this.periodExpenses);
+    }
+
+    get totalExpensesWithoutApprovisionnement(): number {
+        return sumExpenseAmounts(this.periodExpenses, { excludeSupply: true });
+    }
+
+    get periodTotalDepositedAll(): number {
+        const source = this.selectedAgent ? this.allPeriodReports : this.reports;
+        return source.reduce((sum, report) => sum + (report.totalAmountDeposited || 0), 0);
+    }
+
+    get cashBalance(): number {
+        return cashDeskBalance(this.periodTotalDepositedAll, this.totalExpensesWithoutApprovisionnement);
     }
 
     calculateAggregatedReport() {

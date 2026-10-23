@@ -19,8 +19,10 @@ Ce guide présente les parcours de terrain disponibles sur le web et, dans sa de
 | Distribuer et suivre | Ventes | Créer une vente, suivre son statut et encaisser les mises. |
 | Collecter l’épargne | Tontines | Inscrire, collecter, suivre la progression et préparer la livraison. |
 | Rendre compte | Caisse, Rapport Journalier | Contrôler les versements et les opérations de la période. |
+| Suivre vos dettes | Dettes | Consulter vos positions marchandise et caisse, et leur règlement. |
+| Traiter une disparité | Écarts de carnet | Accepter la mise manquante ou rejeter le constat. |
 
-Suivez les pages [Clients et comptes](clients_accounts.md), [Stock](stock.md), [Ventes et commandes](sales_orders.md), [Tontines](tontine.md) et [Application mobile](mobile_app.md).
+Suivez les pages [Clients et comptes](clients_accounts.md), [Stock](stock.md), [Dettes](debts.md), [Écarts de carnet](ecarts_carnet.md), [Ventes et commandes](sales_orders.md), [Tontines](tontine.md) et [Application mobile](mobile_app.md).
 
 
 \newpage
@@ -222,7 +224,8 @@ Chaque panneau mensuel calcule automatiquement 6 métriques financières de cont
 |---|---|---|---|
 | **Valeur Stock Restant** | Bleu Cyan (`inventory_2`) | Valeur marchande des articles encore physiquement en possession du commercial. | Calculée sur la base du prix unitaire pondéré des articles non vendus. |
 | **Valeur Stock Vendu** | Vert (`monetization_on`) | Montant total des ventes (crédit et comptant) conclues sur le stock du mois. | **Carte Cliquable** : Un clic ouvre instantanément la liste détaillée de l'ensemble des crédits et ventes associés. |
-| **Valeur Total Dû** | Orange (`account_balance_wallet`) | Valeur globale totale de l'ensemble des marchandises confiées sur le mois (Stock restant + Stock vendu). | Représente l'engagement financier total initial du commercial. |
+| **Valeur Dette** | Orange | Valorisation des quantités passées en dette pour ce mois (y compris après règlement). | La carte n’apparaît que lorsque ce montant est supérieur à 0. Elle indique aussi la part déjà réglée. |
+| **Valeur Total Dû** | Orange (`account_balance_wallet`) | Valeur globale : stock vendu + dette + stock restant. | Engagement financier du mois. |
 | **Montant Recouvré** | Vert Émeraude (`payments`) | Cumul réel des versements et encaissements perçus auprès des clients sur les ventes de ce stock. | Mesure le cash effectif rentré en caisse. |
 | **Reste à Recouvrer** | Ambre (`hourglass_empty`) | Montant global restant à percevoir (Valeur du stock physique restant + créances clients non encore soldées). | Reste à recouvrer = Total Dû $-$ Montant Recouvré. |
 | **Taux de Recouvrement** | Bleu Marine (`trending_up`) | Pourcentage d'efficacité de remboursement réalisé sur la valeur totale confiée. | Taux (%) = (Montant Recouvré / Valeur Total Dû) $\times$ 100. |
@@ -233,8 +236,12 @@ Au sein de chaque panneau mensuel, le tableau détaille pour chaque référence 
 * **Pris (Magasin)** : Quantité totale livrée par le magasin central. *(Cellule cliquable pour inspecter le détail des bons de sortie).*
 * **Vendu (Clients)** : Quantité totale écoulée auprès de la clientèle. *(Cellule cliquable pour ouvrir la liste des ventes clientes correspondantes).*
 * **Retourné** : Quantité réintégrée au magasin central.
-* **Restant** : Quantité nette actuellement détenue : $\text{Restant} = \text{Pris} - \text{Vendu} - \text{Retourné}$.
-* **Valeur Restante (FCFA)** : Valorisation financière du reliquat au Prix Moyen Pondéré (PMP).
+* **Restant** : Quantité encore chez vous.
+* **Dette** / **Valeur Dette** : quantités et montant des articles déjà transformés en dette pour ce mois.
+* **Valeur Restante (FCFA)** : valorisation financière du reliquat au prix du stock.
+
+### D. Consulter vos dettes
+Voir la page dédiée [Vos dettes](debts.md).
 
 ---
 
@@ -776,6 +783,8 @@ Dès que vous vous connectez avec votre identifiant et votre mot de passe, vous 
   * **Mois** : le cumul du mois en cours.
   * **Année** : le bilan complet de l'année.
 
+Si une opération en ligne est refusée parce que la session n’est plus reconnue, l’application revient à l’écran de connexion et affiche **Session expirée**. Saisissez à nouveau votre identifiant et votre mot de passe.
+
 ### B. Les 6 compteurs clés (Indicateurs financiers)
 1. **Ventes (FCFA)** : montant total des marchandises que vous avez vendues à crédit sur la période.
 2. **Recouvrements (FCFA)** : montant total des mises quotidiennes que vous avez encaissées en espèces ou par transfert d'argent.
@@ -938,6 +947,8 @@ Ne perdez pas de temps à chercher qui doit payer aujourd'hui :
    * Le ticket de caisse s'affiche avec la date, l'heure, le montant payé et le solde restant.
    * Touchez **Imprimer** : votre imprimante Bluetooth de ceinture imprime le ticket officiel pour la cliente.
 
+> **Portefeuille crédit** : vous ne pouvez encaisser que les clientes qui vous sont affectées en commercial crédit. Si une cliente a été réaffectée à un autre commercial, l’enregistrement du recouvrement est refusé avec un message clair. Actualisez vos données (synchronisation) pour ne garder que votre portefeuille à jour.
+
 ---
 
 ## 5. Module Tontine : l'épargne collective
@@ -992,6 +1003,8 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 4. **Imprimez le reçu de cotisation** :
    * Le reçu officiel s'affiche avec le nom de la membre, la somme du jour et le **Total cotisé à ce jour**.
    * Touchez le bouton bleu **Imprimer** pour donner son ticket papier à la membre.
+
+> **Portefeuille tontine** : vous ne pouvez collecter que pour les membres qui vous sont affectées en commercial tontine. Si une membre a été réaffectée à un autre commercial, l’enregistrement de la cotisation est refusé avec un message clair. Actualisez vos données (synchronisation) pour ne garder que votre carnet à jour.
 
 ### E. Remettre les articles de fin d'année (Livraison tontine)
 Pendant la campagne, la membre peut déjà choisir ses articles. La remise en mains propres se fait après la clôture de la session.

@@ -17,7 +17,7 @@ Les filtres définis dans la barre supérieure s'appliquent automatiquement à l
 * **Période** : Boutons rapides **« Aujourd'hui »**, **« Cette semaine »**, **« Ce mois »**, ou **« Personnalisé »** (avec calendrier interactif pour choisir une plage *Du ... Au ...*).
 * **Filtre Commercial** :
   * **Pour un commercial** : Votre nom est pré-sélectionné automatiquement. Vous visualisez uniquement vos propres données d'activité (vos ventes, vos recouvrements, vos collectes).
-  * **Pour un gestionnaire** : Vous pouvez laisser le champ vide pour obtenir la consolidation globale de toute l'agence, ou sélectionner un commercial dans la liste pour auditer son portefeuille spécifique.
+  * **Pour un gestionnaire** : Vous pouvez laisser le champ vide pour obtenir la consolidation globale de toute l'agence, ou sélectionner un commercial dans la liste pour auditer son portefeuille spécifique. La **Synthèse caisse** de la Vue d'ensemble reste celle de toutes les caisses, même lorsqu'un commercial est choisi.
 * **Bouton « Voir marges » / « Masquer marges »** : Disponible pour les profils habilités, ce bouton permet d'afficher ou de masquer les indicateurs de marge commerciale brute calculée sur les ventes.
 * **Bouton « Réinitialiser »** : Remet les filtres sur la période par défaut.
 
@@ -48,8 +48,16 @@ Dès qu'un commercial est ciblé dans la barre de filtre, deux blocs de bilan an
 * **Recouvrements crédit** : Montant total encaissé et nombre de règlements d'échéances.
 * **Tontine** : Montant total des cotisations perçues et nombre de collectes réalisées.
 * **Nouveaux comptes** : Montant des dépôts initiaux d'ouverture et nombre de nouveaux clients enrôlés.
-* **Dépenses** : Cumul des charges décaissées sur la période.
-* **Solde net** : Solde théorique d'encaissement net de caisse.
+
+#### Synthèse caisse
+Sur la Vue d'ensemble, le bloc **Synthèse caisse** reprend l'ensemble des caisses pour la période choisie (**Aujourd'hui**, **Cette semaine**, **Ce mois** ou **Personnalisé**). Le choix d'un commercial ne change pas ces quatre montants.
+
+1. **Dépenses (avec approvisionnement)** : total de toutes les dépenses de la période, approvisionnements compris.
+2. **Dépenses (sans approvisionnement)** : total des dépenses de la période, hors approvisionnements.
+3. **Total versé (période)** : somme des versements de tous les commerciaux sur la période.
+4. **Solde de caisse** : total versé moins les dépenses sans approvisionnement. C'est le solde de caisse à la fin de la journée, ou de la période sélectionnée.
+
+<!-- CAPTURE À INSÉRER : Bloc Synthèse caisse de la Vue d'ensemble avec les quatre montants. -->
 
 #### 3. Fiche d’un commercial : à verser, versé et reste
 Sur la fiche d’un commercial (après sélection dans le filtre) :

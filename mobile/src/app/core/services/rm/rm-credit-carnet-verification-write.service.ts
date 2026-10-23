@@ -53,8 +53,10 @@ export class RmCreditCarnetVerificationWriteService {
       setVerifiedApi: (id, verified) => this.api.setVerified(id, verified),
       bulkSetApi: (ids, verified) => this.api.bulkSet(ids, verified),
       upsert: op => this.queue.upsert(op),
-      applyPackMutation: (id, verified, at, by) =>
-        mutatePackCarnetFlag(this.scope, 'lateCredits', id, verified, at, by)
+      applyPackMutation: async (id, verified, at, by) => {
+        await mutatePackCarnetFlag(this.scope, 'lateCredits', id, verified, at, by);
+        await mutatePackCarnetFlag(this.scope, 'inProgressCredits', id, verified, at, by);
+      }
     };
   }
 }

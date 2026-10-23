@@ -6,7 +6,7 @@ Ce guide accompagne les gestionnaires et secrétaires dans les tâches de pilota
 
 ## Votre espace de pilotage
 
-Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Articles**, aux modules **Stock Commercial** et **Stock Tontine**, aux **Ventes**, aux **Tontines**, aux **Dépenses**, à la **Configuration**, au **Rapport Journalier** et aux **Inventaires**. Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.
+Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Articles**, au **Stock Commercial** (sélecteur **Crédit** / **Tontine**), aux **Ventes**, aux **Tontines**, aux **Dépenses**, à la **Configuration**, au **Rapport Journalier** et aux **Inventaires**. Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.
 
 | Priorité | Où intervenir | Finalité |
 |---|---|---|

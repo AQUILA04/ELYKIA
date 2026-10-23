@@ -1,0 +1,12 @@
+<nav class="stock-channel-segment" role="tablist" aria-label="Type de stock" *ngIf="channels.showsSegment()">
+  <button type="button" role="tab" class="segment-btn"
+          data-testid="e2e-stock-channel-credit"
+          [class.active]="channel === 'credit'"
+          [attr.aria-selected]="channel === 'credit'"
+          (click)="select('credit')">Crédit</button>
+  <button type="button" role="tab" class="segment-btn"
+          data-testid="e2e-stock-channel-tontine"
+          [class.active]="channel === 'tontine'"
+          [attr.aria-selected]="channel === 'tontine'"
+          (click)="select('tontine')">Tontine</button>
+</nav>

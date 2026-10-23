@@ -14,7 +14,7 @@ PROFILES = {
         'storekeeper/index.md',
         'storekeeper/articles.md',
         'storekeeper/inventory.md',
-        'storekeeper/stock_tontine.md',
+        'storekeeper/debts.md',
         'storekeeper/stock_commercial.md'
     ],
     'commercial': [

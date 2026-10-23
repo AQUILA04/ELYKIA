@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { TontineStockService } from '../../services/tontine-stock.service';
 import { AuthService } from '../../../auth/service/auth.service';
 import { TontineStock } from '../../models/tontine-stock.model';
@@ -16,6 +16,8 @@ import { AlertService } from 'src/app/shared/service/alert.service';
   styleUrls: ['./my-tontine-stock-dashboard.component.scss']
 })
 export class MyTontineStockDashboardComponent implements OnInit {
+
+  @Input() embedded = false;
 
   groupedStocks: any[] = [];
 

@@ -15,6 +15,8 @@ import { StockMovementDialogComponent } from '../../components/stock-movement-di
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { DebtService } from 'src/app/debt/services/debt.service';
+import { StockChannel } from '../../models/stock-channel';
+import { StockChannelService } from '../../services/stock-channel.service';
 
 interface MyStockDashboardState {
   selectedAgent: string | null;
@@ -54,6 +56,7 @@ export class MyStockDashboardComponent implements OnInit {
   private exportingStockKeys = new Set<string>();
   private pendingSalesOpen: { collector: string; year: number; month: number } | null = null;
   creatingDebtStockId: number | null = null;
+  channel: StockChannel = 'credit';
 
   constructor(
     private commercialStockService: CommercialStockService,
@@ -66,8 +69,17 @@ export class MyStockDashboardComponent implements OnInit {
     private alertService: AlertService,
     private route: ActivatedRoute,
     private router: Router,
-    private debtService: DebtService
+    private debtService: DebtService,
+    private stockChannel: StockChannelService
   ) { }
+
+  onChannelChange(channel: StockChannel): void {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { channel },
+      queryParamsHandling: 'merge'
+    });
+  }
 
   ngOnInit(): void {
     this.currentUser = this.authService.getCurrentUser();
@@ -88,6 +100,23 @@ export class MyStockDashboardComponent implements OnInit {
     this.restoreState();
     this.loadAgents();
     this.route.queryParams.subscribe(params => {
+      const next = this.stockChannel.resolve(params['channel']);
+      if (params['channel'] !== next) {
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { channel: next },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+        return;
+      }
+      this.channel = next;
+      this.stockChannel.remember(next);
+      if (next === 'tontine') {
+        this.spinner.hide();
+        return;
+      }
+
       const openSales = params['openSales'] === '1' || params['openSales'] === 1 || params['openSales'] === true;
       const collector = params['collector'] as string | undefined;
       const year = params['year'] ? +params['year'] : undefined;
