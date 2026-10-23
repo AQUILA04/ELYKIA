@@ -168,7 +168,8 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/oec
           SPRING_DATASOURCE_USERNAME: oec
           SPRING_DATASOURCE_PASSWORD: elykia_e2e
-          JWT_SECRET: elykia-e2e-jwt-secret-not-used-outside-ci
+          # JwtUtils décode en Base64 (openssl rand -base64 48) — pas de tirets bruts.
+          JWT_SECRET: n3HLqXNZGYjia9Oo/fLISdVqyuQC7qORrDN1k1LKbhjLLx3R0ek94tpO12K3qim2
           MINIO_ACCESS_KEY: elykia_e2e
           MINIO_SECRET_KEY: elykia_e2e
           SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED: "true"
