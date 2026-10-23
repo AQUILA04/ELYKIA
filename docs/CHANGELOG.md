@@ -30,6 +30,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.42.2] — 2026-10-23
+
+### Fixed
+
+- L’équilibrage d’un surplus est enregistré jusqu’au bout. Le journal des opérations refusait la ligne « Équilibrage surplus », et toute l’opération était annulée.
+
 ## Backend — [1.42.1] — 2026-10-23
 
 ### Fixed
