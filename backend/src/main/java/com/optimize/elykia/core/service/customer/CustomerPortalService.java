@@ -17,6 +17,7 @@ import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
+import com.optimize.elykia.core.enumaration.CreditPurpose;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
@@ -34,6 +35,8 @@ import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
 import com.optimize.elykia.core.repository.customer.CustomerTontineMmSubmissionRepository;
 import com.optimize.elykia.core.repository.CreditArticlesRepository;
+import com.optimize.elykia.core.service.adhesion.AdhesionService;
+import com.optimize.elykia.core.service.adhesion.CustomerAdhesionRequestService;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.store.ArticlePhotoService;
@@ -84,6 +87,8 @@ public class CustomerPortalService {
     private final PaymentProofService paymentProofService;
     private final ArticlePhotoService articlePhotoService;
     private final CustomerAutomaticPaymentService customerAutomaticPaymentService;
+    private final AdhesionService adhesionService;
+    private final CustomerAdhesionRequestService customerAdhesionRequestService;
 
     public static final double TONTINE_MIN_DAILY_STAKE = 100.0;
 
@@ -531,7 +536,9 @@ public class CustomerPortalService {
             return oi;
         }).collect(Collectors.toSet());
         dto.setItems(items);
+        dto.setCreditPurpose(parseCreditPurpose(request.getCreditPurpose()));
         Order order = orderService.createOrder(dto, OrderSource.CUSTOMER_SPACE);
+        adhesionService.assertCreditAllowed(client, order.getCreditPurpose(), order.getTotalAmount());
         return CustomerOrderResponse.builder()
                 .orderId(String.valueOf(order.getId()))
                 .reference("CMD-" + order.getId())
@@ -539,6 +546,28 @@ public class CustomerPortalService {
                 .totalAmount(order.getTotalAmount())
                 .createdAt(order.getOrderDate().toString())
                 .build();
+    }
+
+    public com.optimize.elykia.core.dto.adhesion.CustomerAdhesionOverviewDto adhesionOverview() {
+        Client client = requireActiveClient();
+        return customerAdhesionRequestService.overview(client.getId());
+    }
+
+    public com.optimize.elykia.core.dto.adhesion.CustomerAdhesionSubmissionDto declareAdhesion(
+            com.optimize.elykia.core.dto.customer.CustomerAdhesionDeclarationRequest request) {
+        Client client = requireActiveClient();
+        return customerAdhesionRequestService.declare(client, request);
+    }
+
+    private CreditPurpose parseCreditPurpose(String raw) {
+        if (!StringUtils.hasText(raw)) {
+            return CreditPurpose.PERSONAL;
+        }
+        try {
+            return CreditPurpose.valueOf(raw.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new CustomValidationException("La finalité du crédit est invalide.");
+        }
     }
 
     private Client requireActiveClient() {

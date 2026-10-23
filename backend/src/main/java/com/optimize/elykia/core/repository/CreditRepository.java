@@ -237,7 +237,8 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
 
     default boolean hasCreditInProgress(Long clientId){
         return hasCreditInProgressForPurpose(clientId, CreditPurpose.PERSONAL)
-                || hasCreditInProgressForPurpose(clientId, CreditPurpose.BUSINESS);
+                || hasCreditInProgressForPurpose(clientId, CreditPurpose.BUSINESS)
+                || hasCreditInProgressForPurpose(clientId, CreditPurpose.EVENT);
     }
 
 

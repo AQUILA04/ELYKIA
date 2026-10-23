@@ -97,7 +97,7 @@ Pour créer une vente, cliquez sur le bouton bleu **« + Nouvelle vente »** en 
 | **Articles et stock disponible** | Les articles sont déduits du **Stock Commercial** de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus. | Les articles sont recherchés directement dans le stock général du magasin. |
 | **Prix appliqué** | Prix de vente à crédit (prix contractuel avec marge tontine/crédit). | Prix de vente au comptant. |
 | **Paiement et échéances** | Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue. | Règlement intégral immédiat au comptoir. Aucun échéancier journalier. |
-| **Usage du crédit** | Choix entre usage **Personnel** ou **Professionnel** si le client bénéficie de l'habilitation crédit professionnel. | Sans objet. |
+| **Usage du crédit** | Choix **Personnel**, **Professionnel** ou **Événement** selon les adhésions actives du client. Un seul crédit ouvert par type. | Sans objet. |
 
 ### Reçu de caisse et impression immédiate
 Si l'impression immédiate est activée dans votre agence :

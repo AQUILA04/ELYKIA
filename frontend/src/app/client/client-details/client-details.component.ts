@@ -1,12 +1,11 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ClientService, Client, BusinessCreditAuthorizationEvent } from '../service/client.service';
+import { ClientService, Client, AdhesionSubmission, ClientAdhesion } from '../service/client.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { CreditService } from 'src/app/credit/service/credit.service';
 import { PageEvent } from '@angular/material/paginator';
-import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { AlertService } from 'src/app/shared/service/alert.service';
@@ -38,10 +37,11 @@ export class ClientDetailsComponent implements OnInit {
   cotisationPageSize = 10;
   totalCotisationElements = 0;
 
-  dualCreditEnabled = false;
   isGestionnaire = false;
-  authorizationHistory: BusinessCreditAuthorizationEvent[] = [];
-  authorizationLoading = false;
+  adhesions: ClientAdhesion[] = [];
+  adhesionSubmissions: AdhesionSubmission[] = [];
+  adhesionLoading = false;
+  topUpAmounts: Record<string, number> = {};
 
   constructor(
     private route: ActivatedRoute,
@@ -51,7 +51,6 @@ export class ClientDetailsComponent implements OnInit {
     private tokenStorage: TokenStorageService,
     private spinner: NgxSpinnerService,
     private sanitizer: DomSanitizer,
-    private featureFlagService: FeatureFlagService,
     private userService: UserService,
     private alertService: AlertService,
     private clientPhotoUrlService: ClientPhotoUrlService
@@ -60,7 +59,6 @@ export class ClientDetailsComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.dualCreditEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
     this.isGestionnaire = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
     this.route.params.subscribe(params => {
       this.clientId = +params['id'];
@@ -83,9 +81,7 @@ export class ClientDetailsComponent implements OnInit {
         if (response && response.data) {
           this.client = response.data;
           this.resolveProfilPhoto(response.data);
-          if (this.dualCreditEnabled && this.isGestionnaire) {
-            this.loadAuthorizationHistory(this.clientId);
-          }
+          this.loadAdhesions(this.clientId);
         }
         this.checkLoadingComplete();
       },
@@ -245,50 +241,127 @@ export class ClientDetailsComponent implements OnInit {
     }
   }
 
-  loadAuthorizationHistory(clientId: number): void {
-    this.clientService.getBusinessCreditAuthorizationHistory(clientId).subscribe({
-      next: (history) => {
-        this.authorizationHistory = history;
-      },
-      error: (err) => console.error('Erreur chargement historique habilitation business', err)
+  loadAdhesions(clientId: number): void {
+    this.clientService.getAdhesions(clientId).subscribe({
+      next: (adhesions) => { this.adhesions = adhesions; },
+      error: (err) => console.error('Erreur chargement des adhésions', err)
     });
+    if (this.isGestionnaire) {
+      this.clientService.getAdhesionSubmissions(clientId).subscribe({
+        next: (rows) => { this.adhesionSubmissions = rows; },
+        error: (err) => console.error('Erreur chargement des déclarations d\'adhésion', err)
+      });
+    }
   }
 
-  authorizeBusinessCredit(): void {
+  adhesionLabel(type: string): string {
+    switch (type) {
+      case 'BUSINESS': return 'Business';
+      case 'EVENT': return 'Événement';
+      default: return 'Personnel';
+    }
+  }
+
+  hasActive(type: ClientAdhesion['adhesionType']): boolean {
+    return this.adhesions.some(item => item.adhesionType === type && item.status === 'ACTIVE');
+  }
+
+  pendingSubmissions(): AdhesionSubmission[] {
+    return this.adhesionSubmissions.filter(item => item.status === 'INITIE');
+  }
+
+  subscribeAdhesion(type: ClientAdhesion['adhesionType']): void {
     if (!this.client) {
       return;
     }
-    this.authorizationLoading = true;
-    this.clientService.authorizeBusinessCredit(this.client.id).subscribe({
-      next: (response) => {
-        this.client = response.data;
-        this.loadAuthorizationHistory(this.client.id);
-        this.alertService.toastSuccess('Client habilité au crédit business');
-        this.authorizationLoading = false;
+    const fee = type === 'PERSONAL' ? '500' : '2 000';
+    this.alertService.showConfirmation(
+      'Souscrire une adhésion',
+      `Encaisser ${fee} FCFA pour l'adhésion ${this.adhesionLabel(type)} ?`,
+      'Encaisser',
+      'Annuler'
+    ).then((confirmed) => {
+      if (!confirmed || !this.client) {
+        return;
+      }
+      this.adhesionLoading = true;
+      this.clientService.subscribeAdhesion(this.client.id, type).subscribe({
+        next: (adhesions) => {
+          this.adhesions = adhesions;
+          this.adhesionLoading = false;
+          this.alertService.toastSuccess('Adhésion enregistrée');
+          this.loadClient(this.clientId);
+        },
+        error: (err) => {
+          this.adhesionLoading = false;
+          this.alertService.showError(err.error?.message || 'Impossible d\'enregistrer l\'adhésion');
+        }
+      });
+    });
+  }
+
+  topUpAdhesion(type: ClientAdhesion['adhesionType']): void {
+    if (!this.client) {
+      return;
+    }
+    const amount = Number(this.topUpAmounts[type]);
+    if (!amount || amount <= 0) {
+      this.alertService.showWarning('Indiquez un montant à ajouter au solde.');
+      return;
+    }
+    this.adhesionLoading = true;
+    this.clientService.topUpAdhesion(this.client.id, type, amount).subscribe({
+      next: (adhesions) => {
+        this.adhesions = adhesions;
+        this.topUpAmounts[type] = 0;
+        this.adhesionLoading = false;
+        this.alertService.toastSuccess('Solde mis à jour');
       },
       error: (err) => {
-        this.alertService.showError(err.error?.message || 'Impossible d\'habiliter le client');
-        this.authorizationLoading = false;
+        this.adhesionLoading = false;
+        this.alertService.showError(err.error?.message || 'Impossible d\'ajouter au solde');
       }
     });
   }
 
-  revokeBusinessCredit(): void {
-    if (!this.client) {
-      return;
-    }
-    this.authorizationLoading = true;
-    this.clientService.revokeBusinessCreditAuthorization(this.client.id).subscribe({
-      next: (response) => {
-        this.client = response.data;
-        this.loadAuthorizationHistory(this.client.id);
-        this.alertService.toastSuccess('Habilitation crédit business retirée');
-        this.authorizationLoading = false;
+  validateSubmission(submission: AdhesionSubmission): void {
+    this.adhesionLoading = true;
+    this.clientService.validateAdhesionSubmission(this.clientId, submission.id).subscribe({
+      next: () => {
+        this.adhesionLoading = false;
+        this.alertService.toastSuccess('Déclaration validée');
+        this.loadAdhesions(this.clientId);
+        this.loadClient(this.clientId);
       },
       error: (err) => {
-        this.alertService.showError(err.error?.message || 'Impossible de retirer l\'habilitation');
-        this.authorizationLoading = false;
+        this.adhesionLoading = false;
+        this.alertService.showError(err.error?.message || 'Validation impossible');
       }
+    });
+  }
+
+  rejectSubmission(submission: AdhesionSubmission): void {
+    this.alertService.showConfirmation(
+      'Rejeter la déclaration',
+      'La déclaration Mobile Money sera rejetée.',
+      'Rejeter',
+      'Annuler'
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.adhesionLoading = true;
+      this.clientService.rejectAdhesionSubmission(this.clientId, submission.id, 'Rejetée par le gestionnaire').subscribe({
+        next: () => {
+          this.adhesionLoading = false;
+          this.alertService.toastSuccess('Déclaration rejetée');
+          this.loadAdhesions(this.clientId);
+        },
+        error: (err) => {
+          this.adhesionLoading = false;
+          this.alertService.showError(err.error?.message || 'Rejet impossible');
+        }
+      });
     });
   }
 }

@@ -20,6 +20,8 @@ public interface AccountRepository extends GenericRepository<Account, Long> {
 
     Optional<Account> findByClient_IdAndState(Long clientId, State state);
 
+    Optional<Account> findFirstByAccountNumber(String accountNumber);
+
     default Page<Account> elasticsearch(String keyword, Pageable pageable) {
         return findAll(getElasticsearchCriteria(keyword), pageable);
     }

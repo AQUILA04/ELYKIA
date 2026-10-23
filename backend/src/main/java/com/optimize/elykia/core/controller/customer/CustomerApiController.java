@@ -38,6 +38,17 @@ public class CustomerApiController {
         return ResponseEntity.ok(customerPortalService.getDashboard());
     }
 
+    @GetMapping("/adhesions")
+    public ResponseEntity<com.optimize.elykia.core.dto.adhesion.CustomerAdhesionOverviewDto> adhesions() {
+        return ResponseEntity.ok(customerPortalService.adhesionOverview());
+    }
+
+    @PostMapping("/adhesions/declarations")
+    public ResponseEntity<com.optimize.elykia.core.dto.adhesion.CustomerAdhesionSubmissionDto> declareAdhesion(
+            @Valid @RequestBody com.optimize.elykia.core.dto.customer.CustomerAdhesionDeclarationRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(customerPortalService.declareAdhesion(request));
+    }
+
     @GetMapping("/purchases")
     public ResponseEntity<List<CustomerPurchaseDto>> getPurchases() {
         return ResponseEntity.ok(customerPortalService.getPurchases());

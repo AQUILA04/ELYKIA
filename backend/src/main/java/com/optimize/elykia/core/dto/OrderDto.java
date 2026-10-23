@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.elykia.core.enumaration.CreditPurpose;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -17,6 +18,7 @@ public class OrderDto {
     @NotEmpty(message = "La liste des articles ne peut pas être vide.")
     private Set<OrderItemDto> items;
     
+    private CreditPurpose creditPurpose;
     private String operationConsentCode;
     private Double confirmedAmount;
     private String syncConsentCode;

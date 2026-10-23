@@ -295,10 +295,40 @@ export interface CartItem {
   quantity: number;
 }
 
+export type AdhesionType = 'PERSONAL' | 'BUSINESS' | 'EVENT';
+
+export interface CustomerAdhesion {
+  id: number;
+  clientId: number;
+  adhesionType: AdhesionType;
+  status: string;
+  adhesionFee: number;
+  feeWaived: boolean;
+  balance: number;
+  creditCeiling: number;
+  source: string;
+}
+
+export interface CustomerAdhesionSubmission {
+  id: number;
+  adhesionType: AdhesionType;
+  requestKind: 'SUBSCRIBE' | 'TOP_UP';
+  mobileMoneyAmount: number;
+  mobileMoneyReference: string;
+  status: string;
+  rejectionReason?: string;
+}
+
+export interface CustomerAdhesionOverview {
+  adhesions: CustomerAdhesion[];
+  submissions: CustomerAdhesionSubmission[];
+}
+
 export interface OrderRequest {
   items: { articleId: string; quantity: number }[];
   deliveryAddress?: string;
   notes?: string;
+  creditPurpose?: AdhesionType;
 }
 
 export interface OrderResponse {

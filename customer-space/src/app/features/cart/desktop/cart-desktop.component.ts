@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { CartLine } from '../../../shared/services/cart.service';
-import { CustomerArticle } from '../../../shared/models/customer.model';
+import { AdhesionType, CustomerAdhesion, CustomerArticle } from '../../../shared/models/customer.model';
 import { ElykDesktopPageComponent } from '../../../shared/ui';
 
 @Component({
@@ -25,6 +25,15 @@ export class CartDesktopComponent {
   readonly decrement = output<CartLine>();
   readonly remove = output<CartLine>();
   readonly submit = output<void>();
+  readonly purposes = input<CustomerAdhesion[]>([]);
+  readonly creditPurpose = input('PERSONAL');
+  readonly purposeChange = output<AdhesionType>();
+  purposeLabel(type: string): string {
+    if (type === 'BUSINESS') return 'Professionnel';
+    if (type === 'EVENT') return 'Événement';
+    return 'Personnel';
+  }
+
   readonly label = input<(a: CustomerArticle) => string>((a) => a.name || '');
   readonly lineTotal = input<(l: CartLine) => number>((l) => l.article.creditSalePrice * l.quantity);
 }

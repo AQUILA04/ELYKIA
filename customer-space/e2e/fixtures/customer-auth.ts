@@ -312,6 +312,36 @@ export async function mockCustomerApi(page: Page): Promise<void> {
       return;
     }
 
+    if (url.includes('/adhesions/declarations') && method === 'POST') {
+      await route.fulfill(jsonResponse({
+        id: 9,
+        adhesionType: 'BUSINESS',
+        requestKind: 'SUBSCRIBE',
+        status: 'INITIE',
+        mobileMoneyAmount: 2000,
+        mobileMoneyReference: 'MM-E2E',
+      }, 201));
+      return;
+    }
+
+    if (url.includes('/adhesions') && method === 'GET') {
+      await route.fulfill(jsonResponse({
+        adhesions: [{
+          id: 1,
+          clientId: 42,
+          adhesionType: 'PERSONAL',
+          status: 'ACTIVE',
+          adhesionFee: 500,
+          feeWaived: false,
+          balance: 500,
+          creditCeiling: 35000,
+          source: 'COUNTER',
+        }],
+        submissions: [],
+      }));
+      return;
+    }
+
     await route.fulfill(jsonResponse({ message: 'Not mocked' }, 404));
   });
 }

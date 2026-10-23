@@ -40,6 +40,7 @@ export class DesktopSidebarComponent implements OnInit, OnDestroy {
     { label: 'Accueil', path: '/dashboard', icon: 'home-outline', testId: 'e2e-nav-dashboard' },
     { label: 'Achats', path: '/purchases', icon: 'receipt-outline', testId: 'e2e-nav-purchases' },
     { label: 'Tontine', path: '/tontines', icon: 'albums-outline', testId: 'e2e-nav-tontines' },
+    { label: 'Adhésions', path: '/adhesions', icon: 'card-outline', testId: 'e2e-nav-adhesions' },
     { label: 'Commander', path: '/catalog', icon: 'bag-add-outline', testId: 'e2e-nav-catalog' },
     { label: 'Panier', path: '/cart', icon: 'cart-outline', testId: 'e2e-nav-cart', badge: 'cart' },
     {

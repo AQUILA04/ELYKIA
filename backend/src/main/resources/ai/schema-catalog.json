@@ -83,6 +83,12 @@
           "name": "carnet_verified_by",
           "type": "varchar",
           "description": "Username de l'agent ayant vérifié le carnet"
+        },
+        {
+          "name": "credit_purpose",
+          "type": "varchar",
+          "description": "Finalité du crédit : PERSONAL (plafond 35000), BUSINESS ou EVENT (plafond = solde de l'adhésion x coefficient)",
+          "synonyms": ["personnel", "business", "événement", "adhésion"]
         }
       ],
       "relations": [
@@ -171,6 +177,38 @@
           "name": "unit_price",
           "type": "double"
         }
+      ]
+    },
+    {
+      "name": "client_adhesion",
+      "description": "Adhésion du client (personnelle, business ou événement) avec son propre solde",
+      "synonyms": ["adhésion", "dépôt initial", "plafond crédit"],
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "client_id", "type": "bigint", "description": "FK client" },
+        { "name": "adhesion_type", "type": "varchar", "description": "PERSONAL, BUSINESS ou EVENT", "synonyms": ["type d'adhésion"] },
+        { "name": "status", "type": "varchar", "description": "PENDING, ACTIVE, SUSPENDED, CLOSED" },
+        { "name": "adhesion_fee", "type": "double", "description": "Montant d'adhésion encaissé" },
+        { "name": "fee_waived", "type": "boolean", "description": "Vrai si l'adhésion est offerte via le business" },
+        { "name": "balance", "type": "double", "description": "Solde de cette adhésion (base du plafond business/événement)", "synonyms": ["solde"] },
+        { "name": "source", "type": "varchar", "description": "MIGRATION, COUNTER, CUSTOMER_SPACE, BUSINESS_UNLOCK" }
+      ],
+      "relations": [
+        { "column": "client_id", "refTable": "client", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "adhesion_balance_movement",
+      "description": "Mouvement de solde d'une adhésion (frais, recharge, reprise)",
+      "synonyms": ["recharge adhésion", "dépôt adhésion"],
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "client_adhesion_id", "type": "bigint", "description": "FK client_adhesion" },
+        { "name": "amount", "type": "double", "description": "Montant du mouvement" },
+        { "name": "movement_type", "type": "varchar", "description": "ADHESION_FEE, TOP_UP, ADJUSTMENT, MIGRATION, OPENING" }
+      ],
+      "relations": [
+        { "column": "client_adhesion_id", "refTable": "client_adhesion", "refColumn": "id" }
       ]
     },
     {

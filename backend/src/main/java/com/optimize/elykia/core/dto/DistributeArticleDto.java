@@ -62,6 +62,7 @@ public class DistributeArticleDto {
         stockEntryDto.setArticleEntries(stockEntries);
         distributeArticleDto.setArticles(stockEntryDto);
         distributeArticleDto.setAdvance(0.0);
+        distributeArticleDto.setCreditPurpose(order.getCreditPurpose());
         return distributeArticleDto;
     }
 }

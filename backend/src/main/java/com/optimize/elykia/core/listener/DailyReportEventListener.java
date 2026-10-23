@@ -419,6 +419,25 @@ public class DailyReportEventListener {
                                                 + ")");
         }
 
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleAdhesionCash(com.optimize.elykia.core.event.AdhesionCashEvent event) {
+                if (event.getCollector() == null || event.getCollector().isBlank() || event.getAmount() <= 0) {
+                        return;
+                }
+                log.info("Processing AdhesionCashEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                double currentDeposit = report.getTotalAmountToDeposit() != null ? report.getTotalAmountToDeposit() : 0.0;
+                report.setTotalAmountToDeposit(currentDeposit + event.getAmount());
+                reportPersistence.save(report);
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                event.getOperationType(),
+                                event.getAmount(),
+                                event.getLabel(),
+                                event.getDescription());
+        }
+
         private DailyCommercialReport getOrCreateReport(String commercialUsername) {
                 return getOrCreateReport(commercialUsername, LocalDate.now());
         }

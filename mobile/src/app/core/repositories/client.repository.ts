@@ -30,6 +30,16 @@ export class ClientRepository extends BaseRepository<Client, string> {
         super(databaseService);
     }
 
+    async saveAdhesions(clientId: string, adhesions: unknown): Promise<void> {
+        if (!this.databaseService['db']) {
+            throw new Error('Database not initialized.');
+        }
+        await this.databaseService.execute(
+            'UPDATE clients SET adhesionsJson = ? WHERE id = ?',
+            [JSON.stringify(adhesions ?? []), String(clientId)]
+        );
+    }
+
     async saveAll(entities: Client[]): Promise<void> {
         if (!this.databaseService['db']) {
             throw new Error('Database not initialized.');

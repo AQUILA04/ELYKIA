@@ -439,6 +439,12 @@ optimize:
         client-secret: ${NOTIFICATION_HUB_CLIENT_SECRET:}
 
 app:
+  credit:
+    dividend: 6
+    personal-ceiling: 35000
+    personal-fee: 500
+    business-fee: 2000
+    event-fee: 2000
   folder: ${user.home}/.optimize-elykia-core/operations/
   customer:
     mobile-money:
@@ -450,7 +456,7 @@ app:
       init-data[0]:
         key: ENABLED_ACCOUNT_BALANCE_CONTROL
         value: true
-        description: Activer la vérification du solde du compte du client pour limiter le montant de crédit qu'il peut prendre
+        description: Obsolète. Les plafonds de crédit sont déterminés par les adhésions (personnel, business, événement) et non plus par ce paramètre global.
       init-data[1]:
         key: AGENCY_COLLECTOR
         value: COM001

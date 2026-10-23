@@ -40,7 +40,8 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   showReceiptModal = false;
   receiptData: any = {};
   dualCreditEnabled = false;
-  creditPurpose: 'PERSONAL' | 'BUSINESS' = 'PERSONAL';
+  creditPurpose: 'PERSONAL' | 'BUSINESS' | 'EVENT' = 'PERSONAL';
+  clientAdhesions: { adhesionType: string; status: string; creditCeiling: number }[] = [];
 
   private subscriptions: Subscription[] = [];
 
@@ -106,10 +107,46 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     return clientId != null ? this.resolveClient(clientId) : undefined;
   }
 
+  get availablePurposes(): Array<'PERSONAL' | 'BUSINESS' | 'EVENT'> {
+    const active = this.clientAdhesions
+      .filter(item => item.status === 'ACTIVE')
+      .map(item => item.adhesionType as 'PERSONAL' | 'BUSINESS' | 'EVENT');
+    if (active.length > 0) {
+      return Array.from(new Set(active));
+    }
+    if (this.dualCreditEnabled && this.selectedClient?.businessCreditAuthorized) {
+      return ['PERSONAL', 'BUSINESS'];
+    }
+    return ['PERSONAL'];
+  }
+
   get showCreditPurposeSelector(): boolean {
-    return this.dualCreditEnabled
-      && this.saleType === 'CREDIT'
-      && !!this.selectedClient?.businessCreditAuthorized;
+    return this.saleType === 'CREDIT' && this.availablePurposes.length > 1;
+  }
+
+  purposeLabel(purpose: string): string {
+    if (purpose === 'BUSINESS') return 'Professionnel';
+    if (purpose === 'EVENT') return 'Événement';
+    return 'Personnel';
+  }
+
+  private loadClientAdhesions(clientId: number): void {
+    if (!clientId) {
+      this.clientAdhesions = [];
+      return;
+    }
+    this.clientService.getAdhesions(clientId).subscribe({
+      next: (adhesions) => {
+        this.clientAdhesions = adhesions;
+        if (!this.showCreditPurposeSelector) {
+          this.creditForm.patchValue({ creditPurpose: 'PERSONAL' }, { emitEvent: false });
+          this.creditPurpose = 'PERSONAL';
+        }
+      },
+      error: () => {
+        this.clientAdhesions = [];
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -134,14 +171,11 @@ export class CreditAddComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.creditForm.get('clientId')?.valueChanges.subscribe(() => {
-      if (!this.showCreditPurposeSelector) {
-        this.creditForm.patchValue({ creditPurpose: 'PERSONAL' }, { emitEvent: false });
-        this.creditPurpose = 'PERSONAL';
-      }
+    this.creditForm.get('clientId')?.valueChanges.subscribe((clientId: number) => {
+      this.loadClientAdhesions(clientId);
     });
 
-    this.creditForm.get('creditPurpose')?.valueChanges.subscribe((purpose: 'PERSONAL' | 'BUSINESS') => {
+    this.creditForm.get('creditPurpose')?.valueChanges.subscribe((purpose: 'PERSONAL' | 'BUSINESS' | 'EVENT') => {
       this.creditPurpose = purpose || 'PERSONAL';
     });
 
@@ -412,9 +446,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
         totalAmount: formValue.totalAmount,
         commercial: formValue.commercial
       };
-      if (this.dualCreditEnabled && this.selectedClient?.businessCreditAuthorized) {
-        payload.creditPurpose = formValue.creditPurpose || 'PERSONAL';
-      }
+      payload.creditPurpose = this.showCreditPurposeSelector
+        ? (formValue.creditPurpose || 'PERSONAL')
+        : 'PERSONAL';
       submitObservable = this.creditService.distributeArticles(payload);
     } else {
       const payload = {

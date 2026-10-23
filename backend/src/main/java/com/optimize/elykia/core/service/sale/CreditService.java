@@ -6,7 +6,6 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.service.ClientService;
@@ -26,6 +25,7 @@ import com.optimize.elykia.core.repository.spec.CreditSpecification;
 import com.optimize.elykia.core.service.stock.CommercialMonthlyStockItemSoldValueHistoryService;
 import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
+import com.optimize.elykia.core.service.adhesion.AdhesionService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
 import com.optimize.elykia.core.service.bi.BiAggregationService;
@@ -61,8 +61,6 @@ public class CreditService extends GenericService<Credit, Long> {
     private final CreditMapper creditMapper;
     private final ClientService clientService;
     private final UserService userService;
-    @Value(value = "${app.credit.dividend}")
-    private Integer dividend;
     private final ArticlesService articlesService;
     private final CreditArticlesService creditArticlesService;
     private final DailyAccountancyService dailyAccountancyService;
@@ -79,7 +77,7 @@ public class CreditService extends GenericService<Credit, Long> {
     private CommercialStockMovementService commercialStockMovementService;
     private CommercialMonthlyStockItemSoldValueHistoryService soldValueHistoryService;
     private TontineStockService tontineStockService;
-    private ParameterService parameterService;
+    private AdhesionService adhesionService;
     private BusinessMetricsPublisher metricsPublisher;
     private ClientReliquatRepository clientReliquatRepository;
 
@@ -145,9 +143,10 @@ public class CreditService extends GenericService<Credit, Long> {
         if (Objects.nonNull(creditDto.getType()) && OperationType.CASH.equals(creditDto.getType())) {
             return createCashSale(creditDto);
         }
-        CreditPurpose explicitPurpose = creditDto.getCreditPurpose();
+        CreditPurpose explicitPurpose = creditDto.getCreditPurpose() != null
+                ? creditDto.getCreditPurpose() : CreditPurpose.PERSONAL;
         Credit credit = creditMapper.toEntity(creditDto);
-        credit.setCreditPurpose(explicitPurpose != null ? explicitPurpose : CreditPurpose.PERSONAL);
+        credit.setCreditPurpose(explicitPurpose);
         creditControlProcess(credit);
         creditUnicity(credit, explicitPurpose);
 
@@ -276,15 +275,6 @@ public class CreditService extends GenericService<Credit, Long> {
             throw new CustomValidationException("Le client " + credit.getClient().getFullName()
                     + " possède déjà une vente " + explicitPurpose + " en cours !");
         }
-        if (CreditPurpose.BUSINESS.equals(explicitPurpose)) {
-            Client client = credit.getClient();
-            if (client == null) {
-                client = clientService.getById(clientId);
-            }
-            if (!client.isBusinessCreditAuthorized()) {
-                throw new CustomValidationException("Ce client n'est pas habilité pour un crédit professionnel.");
-            }
-        }
     }
 
     public void syncClientCreditFlagsAfterClose(Credit credit) {
@@ -298,8 +288,11 @@ public class CreditService extends GenericService<Credit, Long> {
             if (!getRepository().hasCreditInProgressForPurpose(clientId, CreditPurpose.BUSINESS)) {
                 clientService.updateBusinessCreditInProgress(clientId, Boolean.FALSE);
             }
-        }
-        if (!getRepository().hasCreditInProgressForPurpose(clientId, CreditPurpose.PERSONAL)) {
+        } else if (CreditPurpose.EVENT.equals(purpose)) {
+            if (!getRepository().hasCreditInProgressForPurpose(clientId, CreditPurpose.EVENT)) {
+                clientService.updateEventCreditInProgress(clientId, Boolean.FALSE);
+            }
+        } else if (!getRepository().hasCreditInProgressForPurpose(clientId, CreditPurpose.PERSONAL)) {
             clientService.updateCreditStatus(clientId, Boolean.FALSE);
         }
     }
@@ -308,11 +301,7 @@ public class CreditService extends GenericService<Credit, Long> {
         credit = super.create(credit);
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
-        if (CreditPurpose.BUSINESS.equals(explicitPurpose)) {
-            clientService.updateBusinessCreditInProgress(clientId, Boolean.TRUE);
-        } else {
-            clientService.updateCreditStatus(clientId, Boolean.TRUE);
-        }
+        markPurposeInProgress(clientId, explicitPurpose);
 
         // Enrichissement BI automatique
         if (creditEnrichmentService != null) {
@@ -537,12 +526,23 @@ public class CreditService extends GenericService<Credit, Long> {
     }
 
 
+    private void markPurposeInProgress(Long clientId, CreditPurpose purpose) {
+        if (CreditPurpose.BUSINESS.equals(purpose)) {
+            clientService.updateBusinessCreditInProgress(clientId, Boolean.TRUE);
+        } else if (CreditPurpose.EVENT.equals(purpose)) {
+            clientService.updateEventCreditInProgress(clientId, Boolean.TRUE);
+        } else {
+            clientService.updateCreditStatus(clientId, Boolean.TRUE);
+        }
+    }
+
     private void setupCredit(Credit credit, Client client) {
         credit.setUp();
-
-        if (parameterService.isEnabled("ENABLED_ACCOUNT_BALANCE_CONTROL")) {
-            client.hasValidAccount();
-            client.allowCreditAmountControl(credit.getTotalAmount(), dividend);
+        if (credit.getCreditPurpose() == null) {
+            credit.setCreditPurpose(CreditPurpose.PERSONAL);
+        }
+        if (adhesionService != null && credit.getTotalAmount() != null && credit.getTotalAmount() > 0) {
+            adhesionService.assertCreditAllowed(client, credit.getCreditPurpose(), credit.getTotalAmount());
         }
 
         credit.setClient(client);
@@ -600,7 +600,12 @@ public class CreditService extends GenericService<Credit, Long> {
         if (!clientCredit.isMobileFinancialTermsLocked()) {
             clientCredit.setTotalAmount(clientCredit.getTotalAmountByCalcul());
         }
-        CreditPurpose explicitPurpose = dto.getCreditPurpose();
+        CreditPurpose explicitPurpose = dto.getCreditPurpose() != null
+                ? dto.getCreditPurpose() : CreditPurpose.PERSONAL;
+        clientCredit.setCreditPurpose(explicitPurpose);
+        if (adhesionService != null) {
+            adhesionService.assertCreditAllowed(client, explicitPurpose, clientCredit.getTotalAmount());
+        }
         creditUnicity(clientCredit, explicitPurpose);
 
         // La référence idempotente doit être fixée avant le mouvement de stock : elle est la clé de
@@ -623,12 +628,7 @@ public class CreditService extends GenericService<Credit, Long> {
         repository.saveAndFlush(clientCredit);
         this.marginAndBIAggregationOperation(clientCredit);
 
-        // Mettre à jour le statut du client
-        if (CreditPurpose.BUSINESS.equals(explicitPurpose)) {
-            clientService.updateBusinessCreditInProgress(client.getId(), Boolean.TRUE);
-        } else {
-            clientService.updateCreditStatus(client.getId(), Boolean.TRUE);
-        }
+        markPurposeInProgress(client.getId(), explicitPurpose);
 
         return CreditRespDto.fromCredit(clientCredit);
     }
@@ -1152,8 +1152,8 @@ public class CreditService extends GenericService<Credit, Long> {
 
 
     @Autowired
-    public void setParameterService(ParameterService parameterService) {
-        this.parameterService = parameterService;
+    public void setAdhesionService(AdhesionService adhesionService) {
+        this.adhesionService = adhesionService;
     }
 
     @Autowired

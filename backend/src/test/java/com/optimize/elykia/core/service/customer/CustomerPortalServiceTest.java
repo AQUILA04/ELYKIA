@@ -28,6 +28,8 @@ import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
+import com.optimize.elykia.core.service.adhesion.AdhesionService;
+import com.optimize.elykia.core.service.adhesion.CustomerAdhesionRequestService;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.store.ArticlePhotoService;
@@ -327,7 +329,9 @@ class CustomerPortalServiceTest {
                 tontineAmountHistoryHelper,
                 mock(PaymentProofService.class),
                 articlePhotoService,
-                mock(CustomerAutomaticPaymentService.class));
+                mock(CustomerAutomaticPaymentService.class),
+                mock(AdhesionService.class),
+                mock(CustomerAdhesionRequestService.class));
     }
 
     private void stubJoinableSession(int year) {

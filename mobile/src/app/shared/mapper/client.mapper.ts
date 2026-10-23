@@ -1,4 +1,5 @@
 import { Client } from '../../models/client.model';
+import { ClientAdhesionSnapshot } from '../../models/credit-purpose.model';
 import { Util } from '../../core/util/util';
 
 export class ClientMapper {
@@ -32,6 +33,7 @@ export class ClientMapper {
       businessCreditAuthorized: Boolean(clientBackend.businessCreditAuthorized),
       businessCreditAuthorizedBy: clientBackend.businessCreditAuthorizedBy ?? undefined,
       businessCreditAuthorizedAt: clientBackend.businessCreditAuthorizedAt ?? undefined,
+      adhesions: ClientMapper.parseAdhesions(clientBackend.adhesions ?? clientBackend.adhesionsJson),
       createdAt: clientBackend.createdAt ?? new Date().toISOString(),
       syncHash: clientBackend.syncHash,
       code: clientBackend.code,
@@ -75,5 +77,23 @@ export class ClientMapper {
 
   static fromLocal(row: any): Client {
     return this.toLocal(row);
+  }
+
+  static parseAdhesions(raw: unknown): ClientAdhesionSnapshot[] | undefined {
+    if (!raw) {
+      return undefined;
+    }
+    if (Array.isArray(raw)) {
+      return raw as ClientAdhesionSnapshot[];
+    }
+    if (typeof raw === 'string') {
+      try {
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed as ClientAdhesionSnapshot[] : undefined;
+      } catch {
+        return undefined;
+      }
+    }
+    return undefined;
   }
 }

@@ -127,10 +127,20 @@ Lorsqu'un commercial quitte l'entreprise, change de zone ou qu'un rééquilibrag
 
 ---
 
-### D. Autorisation de Crédit Business (Gestion du double crédit)
-Sur chaque ligne client, le gestionnaire habilité dispose d'un bouton d'approbation dédié :
-* **Badge vert « B »** : Indique que le client est habilité à contracter un **crédit business/professionnel** en plus de son crédit personnel usuel.
-* **Action « Autoriser / Retirer crédit business »** : Permet au gestionnaire d'octroyer ou de révoquer ce privilège après examen de la solvabilité du client.
+### D. Adhésions et plafonds de crédit
+
+Sur la fiche client, le bloc **Adhésions** indique, pour chaque type, le statut, le solde et le plafond de crédit.
+
+<!-- CAPTURE À INSÉRER : Bloc Adhésions de la fiche client avec soldes, plafonds et boutons de souscription. -->
+
+1. **Adhésion personnelle (500)** : le dépôt de 500 FCFA ouvre le crédit personnel, plafonné à **35 000 FCFA**. Un ajout au solde augmente le solde affiché. Le plafond personnel reste 35 000 FCFA.
+2. **Adhésion business (2 000)** : le dépôt de 2 000 FCFA devient le solde de départ. Le plafond du crédit professionnel est égal à **6 fois ce solde**. Cette souscription ouvre aussi le crédit personnel (plafond 35 000 FCFA) et le crédit événement, sans autre frais. Le crédit événement démarre avec un solde à 0 : utilisez **Ajouter au solde** pour augmenter son plafond (6 fois le solde).
+3. **Adhésion événement (2 000)** : même règle de plafond (6 fois le solde) pour un crédit événement, lorsque cette adhésion n'est pas déjà ouverte.
+4. Un client ne peut avoir qu'un crédit ouvert de chaque type à la fois : personnel, professionnel, événement.
+5. Les comptes déjà ouverts apparaissent en adhésion personnelle. Le badge **Adhésion business** s'affiche lorsque l'adhésion business est active.
+6. Les déclarations Mobile Money en attente figurent sous le bloc. **Valider** applique la souscription ou l'ajout au solde après contrôle du transfert. **Rejeter** écarte la déclaration.
+
+À l'ouverture d'un compte, le dépôt saisi devient le solde de l'adhésion personnelle. Le crédit personnel reste plafonné à 35 000 FCFA.
 
 ---
 

@@ -15,4 +15,6 @@ public class CustomerOrderRequest {
     private List<CustomerOrderItemRequest> items;
     private String deliveryAddress;
     private String notes;
+    /** PERSONAL, BUSINESS ou EVENT. Absent = personnel. */
+    private String creditPurpose;
 }

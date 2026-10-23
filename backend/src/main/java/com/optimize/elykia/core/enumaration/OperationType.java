@@ -21,5 +21,9 @@ public enum OperationType {
     SURPLUS_REALLOCATION,
     CREDIT,
     TONTINE,
-    CASH
+    CASH,
+    ADHESION_PERSONAL,
+    ADHESION_BUSINESS,
+    ADHESION_EVENT,
+    ADHESION_TOP_UP
 }

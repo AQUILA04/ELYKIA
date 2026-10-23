@@ -40,6 +40,12 @@
       <div class="summary-row"><span>Sous-total</span><span>{{ totalAmount() | number:'1.0-0' }} FCFA</span></div>
       <div class="summary-row"><span>Frais de livraison</span><span style="color:#15803d;">Gratuit</span></div>
       <div class="summary-total" data-testid="e2e-cart-total"><span>Total</span><strong>{{ totalAmount() | number:'1.0-0' }} FCFA</strong></div>
+      <label class="field" *ngIf="purposes().length > 1" data-testid="e2e-cart-purpose">
+        Type de crédit
+        <select [value]="creditPurpose()" (change)="purposeChange.emit($any($event.target).value)">
+          <option *ngFor="let item of purposes()" [value]="item.adhesionType">{{ purposeLabel(item.adhesionType) }} — plafond {{ item.creditCeiling | number:'1.0-0' }} F</option>
+        </select>
+      </label>
       <div class="info-box" style="margin-top:16px;">
         <ion-icon name="information-circle-outline"></ion-icon>
         <p>Le crédit démarre à la livraison. Votre commande sera validée par l'agence avant livraison.</p>

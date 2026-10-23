@@ -74,9 +74,7 @@ L'application sépare strictement les responsabilités commerciales pour une tra
 * **Type de client** *(Obligatoire)* : Choix entre `Client` (client final bénéficiaire) ou `Commercial` (compte interne pour un commercial).
 * **Compte associé & Solde initial** :
   * **Numéro de compte** : Généré automatiquement par le système.
-  * **Solde initial en FCFA** *(Obligatoire)* : Saisie du montant d'ouverture de compte, soumis à un plancher et un plafond réglementaires :
-    * **Montant minimum** : `500 FCFA`.
-    * **Montant maximum** : `2 000 000 FCFA`.
+  * **Solde initial en FCFA** *(Obligatoire)* : Dépôt d'ouverture, entre **500 FCFA** et **2 000 000 FCFA**. Ce montant devient le solde de l'adhésion personnelle. Le crédit personnel reste plafonné à **35 000 FCFA**, même si le dépôt est plus élevé.
 
 Cliquez sur **« Enregistrer »** pour créer le dossier client.
 
@@ -98,6 +96,8 @@ En cliquant sur le nom d'un client dans la liste, vous accédez à sa **Fiche Cl
   * **Montant total payé à date** (FCFA) : Somme réelle des remboursements déjà perçus.
   * **Achats terminés** : Nombre de crédits entièrement soldés avec succès.
   * **Achats en retard** : Nombre de crédits en défaut de paiement.
+
+Le bloc **Adhésions** liste chaque type ouvert (personnel, business, événement) avec son statut, son solde et son plafond de crédit. Le crédit personnel est plafonné à 35 000 FCFA. Le crédit professionnel et le crédit événement sont plafonnés à 6 fois le solde du type correspondant.
 
 ### B. Les 3 Onglets chronologiques d'opérations
 1. **Onglet « Achats »** : Liste détaillée des crédits actuellement en cours de remboursement, avec la référence, les articles associés, la mise journalière, le montant total et le reste à payer.

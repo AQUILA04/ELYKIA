@@ -443,8 +443,28 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
     return Math.max(0, this.vm.adjustedAdvance);
   }
 
+  get availablePurposes(): CreditPurpose[] {
+    const adhesions = this.vm.client?.adhesions ?? [];
+    const active = adhesions
+      .filter(item => item.status === 'ACTIVE')
+      .map(item => item.adhesionType);
+    if (active.length > 0) {
+      return Array.from(new Set(active));
+    }
+    if (this.dualCreditEnabled && this.vm.client?.businessCreditAuthorized) {
+      return ['PERSONAL', 'BUSINESS'];
+    }
+    return ['PERSONAL'];
+  }
+
   get showCreditPurposeSelector(): boolean {
-    return this.dualCreditEnabled && !!this.vm.client?.businessCreditAuthorized;
+    return this.availablePurposes.length > 1;
+  }
+
+  purposeLabel(purpose: CreditPurpose): string {
+    if (purpose === 'BUSINESS') return 'Professionnel';
+    if (purpose === 'EVENT') return 'Événement';
+    return 'Personnel';
   }
 
   onCreditPurposeChange(purpose: CreditPurpose): void {
@@ -489,6 +509,14 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
       if (client.businessCreditInProgress || existingDistributions.some(d => this.distributionBlocksPurpose(d, 'BUSINESS'))) {
         return 'Ce client a déjà un crédit professionnel en cours. Veuillez le solder avant d\'en créer un nouveau.';
       }
+    } else if (existingDistributions.some(d => this.distributionBlocksPurpose(d, 'EVENT'))) {
+      return 'Ce client a déjà un crédit événement en cours. Veuillez le solder avant d\'en créer un nouveau.';
+    }
+
+    const adhesion = (client.adhesions ?? []).find(item => item.adhesionType === purpose && item.status === 'ACTIVE');
+    if (adhesion && this.vm.totalAmount > adhesion.creditCeiling) {
+      const ceiling = new Intl.NumberFormat('fr-FR').format(adhesion.creditCeiling);
+      return `Le montant dépasse le plafond de ${ceiling} FCFA pour le crédit ${this.purposeLabel(purpose).toLowerCase()}.`;
     }
 
     return null;
@@ -650,7 +678,7 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
       type: 'CLIENT'
     };
 
-    if (this.dualCreditEnabled && vm.client?.businessCreditAuthorized) {
+    if (this.showCreditPurposeSelector) {
       distributionData['creditPurpose'] = this.creditPurpose;
     }
 

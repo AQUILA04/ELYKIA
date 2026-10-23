@@ -83,11 +83,9 @@
             <div class="form-field form-field-full" *ngIf="showCreditPurposeSelector">
               <label>Finalité du crédit</label>
               <div class="segment-toggle segment-toggle-secondary" role="group" aria-label="Finalité du crédit">
-                <label class="segment-btn" [class.active]="creditForm.get('creditPurpose')?.value === 'PERSONAL'">
-                  <input type="radio" formControlName="creditPurpose" value="PERSONAL"> Personnel
-                </label>
-                <label class="segment-btn" [class.active]="creditForm.get('creditPurpose')?.value === 'BUSINESS'">
-                  <input type="radio" formControlName="creditPurpose" value="BUSINESS"> Professionnel
+                <label class="segment-btn" *ngFor="let purpose of availablePurposes"
+                       [class.active]="creditForm.get('creditPurpose')?.value === purpose">
+                  <input type="radio" formControlName="creditPurpose" [value]="purpose"> {{ purposeLabel(purpose) }}
                 </label>
               </div>
             </div>

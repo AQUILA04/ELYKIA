@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit , inject} from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { Router, RouterModule } from '@angular/router';
 import { Subscription, firstValueFrom } from 'rxjs';
@@ -7,7 +8,7 @@ import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { CartService, CartLine } from '../../shared/services/cart.service';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { articleDisplayName } from '../../shared/utils/article-display';
-import { CustomerArticle } from '../../shared/models/customer.model';
+import { AdhesionType, CustomerAdhesion, CustomerArticle } from '../../shared/models/customer.model';
 import { ElykPageHeaderComponent } from '../../shared/ui';
 
 /** Page Panier — Type C. */
@@ -17,7 +18,7 @@ import { CartDesktopComponent } from './desktop/cart-desktop.component';
   selector: 'app-cart',
   standalone: true,
   imports: [
-    CartDesktopComponent,CommonModule, IonicModule, RouterModule, ElykPageHeaderComponent],
+    CartDesktopComponent, CommonModule, FormsModule, IonicModule, RouterModule, ElykPageHeaderComponent],
   templateUrl: './cart.page.html',
   styleUrls: ['./cart.page.scss'],
 })
@@ -27,6 +28,8 @@ export class CartPage implements OnInit, OnDestroy {
   lines: CartLine[] = [];
   isSubmitting = false;
   error = '';
+  adhesions: CustomerAdhesion[] = [];
+  creditPurpose: AdhesionType = 'PERSONAL';
   private sub?: Subscription;
 
   constructor(
@@ -40,6 +43,20 @@ export class CartPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.sub = this.cart.cart$.subscribe((lines) => { this.lines = lines; });
     this.lines = this.cart.lines;
+    this.api.getAdhesions().subscribe({
+      next: (overview) => { this.adhesions = (overview.adhesions ?? []).filter(item => item.status === 'ACTIVE'); },
+      error: () => { this.adhesions = []; },
+    });
+  }
+
+  get purposeChoices(): CustomerAdhesion[] {
+    return this.adhesions;
+  }
+
+  purposeLabel(type: string): string {
+    if (type === 'BUSINESS') return 'Professionnel';
+    if (type === 'EVENT') return 'Événement';
+    return 'Personnel';
   }
 
   ngOnDestroy(): void { this.sub?.unsubscribe(); }
@@ -77,7 +94,10 @@ export class CartPage implements OnInit, OnDestroy {
     this.isSubmitting = true;
     this.error = '';
     try {
-      const res = await firstValueFrom(this.api.submitOrder({ items: this.cart.toOrderItems() }));
+      const res = await firstValueFrom(this.api.submitOrder({
+        items: this.cart.toOrderItems(),
+        creditPurpose: this.purposeChoices.length > 1 ? this.creditPurpose : 'PERSONAL',
+      }));
       this.journal.track('ORDER_SUBMITTED', 'BUSINESS', {
         reference: res.reference,
         amount: res.totalAmount,
