@@ -470,7 +470,9 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 .recruitment-card__description { color: var(--color-on-surface-variant); margin-bottom: var(--space-3); }
 .recruitment__empty, .recruitment__loading { text-align: center; color: var(--color-on-surface-variant); padding: var(--space-6); }
 
-.recruitment-modal[hidden] { display: none !important; }
+.recruitment-modal[hidden],
+#recruitment[hidden],
+.js-recruitment-nav[hidden] { display: none !important; }
 .recruitment-modal { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 16px; }
 .recruitment-modal__backdrop { position: absolute; inset: 0; background: rgba(15,23,42,0.55); }
 .recruitment-modal__dialog {
@@ -581,6 +583,8 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
   transition: all var(--dur-base) var(--ease-out);
 }
 .btn--store:hover { background: rgba(255,255,255,0.20); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+.btn--store--soon { cursor: default; opacity: 0.72; pointer-events: none; }
+.btn--store--soon:hover { background: rgba(255,255,255,0.10); transform: none; box-shadow: none; }
 .btn--store-sub { font-size: 10px; font-weight: 400; opacity: 0.7; display: block; }
 .btn--store-main { font-size: 14px; font-weight: 700; display: block; }
 .btn--notify {
