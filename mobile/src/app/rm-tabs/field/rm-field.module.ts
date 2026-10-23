@@ -4,12 +4,20 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RmFieldPage } from './rm-field.page';
+import { RmFieldControlSheetModule } from '../../features/rm/field-control/rm-field-control-sheet.module';
 import { RmTontineFieldControlSheetModule } from '../../features/rm/tontine-field-control/rm-tontine-field-control-sheet.module';
 
 const routes: Routes = [{ path: '', component: RmFieldPage }];
 
 @NgModule({
-  imports: [CommonModule, FormsModule, IonicModule, RouterModule.forChild(routes), RmTontineFieldControlSheetModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonicModule,
+    RouterModule.forChild(routes),
+    RmTontineFieldControlSheetModule,
+    RmFieldControlSheetModule
+  ],
   declarations: [RmFieldPage]
 })
 export class RmFieldPageModule {}
