@@ -31,6 +31,10 @@ import { RattrapageCreditAddComponent } from './rattrapage/rattrapage-credit-add
 import { AlerteFinMoisComponent } from './components/alerte-fin-mois/alerte-fin-mois.component';
 import { OptionMoisProchainComponent } from './components/option-mois-prochain/option-mois-prochain.component';
 import { StockReturnHistoriqueComponent } from './stock-return-historique/stock-return-historique.component';
+import { StockChannelSegmentComponent } from './components/stock-channel-segment/stock-channel-segment.component';
+import { MyTontineStockDashboardComponent } from '../stock-tontine/pages/my-tontine-stock-dashboard/my-tontine-stock-dashboard.component';
+import { TontineStockMovementDialogComponent } from '../stock-tontine/components/tontine-stock-movement-dialog/tontine-stock-movement-dialog.component';
+import { TontineDeliveryDetailsDialogComponent } from '../stock-tontine/components/tontine-delivery-details-dialog/tontine-delivery-details-dialog.component';
 
 
 @NgModule({
@@ -49,7 +53,11 @@ import { StockReturnHistoriqueComponent } from './stock-return-historique/stock-
     RattrapageCreditAddComponent,
     AlerteFinMoisComponent,
     OptionMoisProchainComponent,
-    StockReturnHistoriqueComponent
+    StockReturnHistoriqueComponent,
+    StockChannelSegmentComponent,
+    MyTontineStockDashboardComponent,
+    TontineStockMovementDialogComponent,
+    TontineDeliveryDetailsDialogComponent
   ],
   imports: [
     CommonModule,

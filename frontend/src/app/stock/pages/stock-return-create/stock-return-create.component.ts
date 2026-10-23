@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import { StockReturnService } from '../../services/stock-return.service';
 import { CommercialStockService } from '../../services/commercial-stock.service';
 import { AuthService } from '../../../auth/service/auth.service';
@@ -9,6 +8,11 @@ import { UserProfile } from '../../../shared/models/user-profile.enum';
 import { ToastrService } from 'ngx-toastr';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ClientService } from '../../../client/service/client.service';
+import { ActivatedRoute, Router } from '@angular/router';
+import { StockChannel } from '../../models/stock-channel';
+import { StockChannelService } from '../../services/stock-channel.service';
+import { StockTontineReturnService } from '../../../stock-tontine/services/stock-tontine-return.service';
+import { TontineStockService } from '../../../stock-tontine/services/tontine-stock.service';
 
 @Component({
   selector: 'app-stock-return-create',
@@ -23,14 +27,19 @@ export class StockReturnCreateComponent implements OnInit {
   commercials: any[] = [];
   selectedCommercial: string | null = null;
   isStoreKeeper: boolean = false;
+  channel: StockChannel = 'credit';
 
   constructor(
     private fb: FormBuilder,
     private stockReturnService: StockReturnService,
+    private tontineReturnService: StockTontineReturnService,
     private commercialStockService: CommercialStockService,
+    private tontineStockService: TontineStockService,
     private authService: AuthService,
     private userService: UserService,
     private router: Router,
+    private route: ActivatedRoute,
+    private stockChannel: StockChannelService,
     private toastr: ToastrService,
     private spinner: NgxSpinnerService,
     private clientService: ClientService
@@ -41,6 +50,26 @@ export class StockReturnCreateComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.route.queryParamMap.subscribe(params => {
+      const next = this.stockChannel.resolve(params.get('channel'));
+      const changed = this.channel !== next;
+      this.channel = next;
+      if (params.get('channel') !== next) {
+        this.router.navigate([], {
+          relativeTo: this.route,
+          queryParams: { channel: next },
+          queryParamsHandling: 'merge',
+          replaceUrl: true
+        });
+        return;
+      }
+      this.stockChannel.remember(next);
+      if (changed && this.selectedCommercial) {
+        this.form.patchValue({ items: [] });
+        this.loadAvailableStock(this.selectedCommercial);
+      }
+    });
+
     this.currentUser = this.authService.getCurrentUser();
     this.isStoreKeeper = this.userService.hasProfile(UserProfile.STOREKEEPER) || this.userService.hasProfile(UserProfile.ADMIN);
 
@@ -80,6 +109,10 @@ export class StockReturnCreateComponent implements OnInit {
   }
 
   loadAvailableStock(username: string): void {
+    if (this.channel === 'tontine') {
+      this.loadTontineStock(username);
+      return;
+    }
     this.spinner.show();
     this.commercialStockService.getAvailableItems(username).subscribe({
       next: (items) => {
@@ -92,6 +125,30 @@ export class StockReturnCreateComponent implements OnInit {
           creditSalePrice: item.creditSalePrice,
           stockQuantity: item.quantityRemaining,
           // Champs additionnels pour l'affichage
+          marque: '',
+          model: ''
+        }));
+        this.spinner.hide();
+      },
+      error: () => {
+        this.toastr.error('Erreur lors du chargement du stock');
+        this.spinner.hide();
+      }
+    });
+  }
+
+  private loadTontineStock(username: string): void {
+    this.spinner.show();
+    this.tontineStockService.getStockByCommercial(username).subscribe({
+      next: (response: any) => {
+        const items = Array.isArray(response) ? response : (response?.data?.content) || [];
+        this.availableStockItems = items.map((item: any) => ({
+          id: item.articleId,
+          articleName: item.articleName,
+          commercialName: item.commercial,
+          sellingPrice: item.unitPrice,
+          creditSalePrice: item.unitPrice,
+          stockQuantity: item.availableQuantity,
           marque: '',
           model: ''
         }));
@@ -123,11 +180,14 @@ export class StockReturnCreateComponent implements OnInit {
     };
 
     this.spinner.show();
-    this.stockReturnService.create(stockReturn).subscribe({
+    const create$ = this.channel === 'tontine'
+      ? this.tontineReturnService.create(stockReturn)
+      : this.stockReturnService.create(stockReturn);
+    create$.subscribe({
       next: () => {
         this.toastr.success('Retour créé avec succès');
         this.spinner.hide();
-        this.router.navigate(['/stock/return']);
+        this.router.navigate(['/stock/return'], { queryParams: { channel: this.channel } });
       },
       error: (err) => {
         this.toastr.error(err.error?.message || 'Erreur lors de la création du retour');

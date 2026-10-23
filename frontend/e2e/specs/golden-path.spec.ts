@@ -551,19 +551,20 @@ test.describe.serial('Golden path — prérequis métier', () => {
   test('étape 20 — créer une demande de stock tontine pour COM020', async ({ page }) => {
     test.setTimeout(90_000);
     await loginAsGestionnaire(page);
-    await page.getByTestId('e2e-sidebar-stock-tontine').click();
-    await page.getByTestId('e2e-sidebar-stock-tontine-request').click();
-    await page.getByTestId('e2e-stock-tontine-request-new-btn').click();
+    await page.getByTestId('e2e-sidebar-stock-commercial').click();
+    await page.getByTestId('e2e-sidebar-stock-request').click();
+    await page.getByTestId('e2e-stock-channel-tontine').click();
+    await page.getByTestId('e2e-stock-request-new-btn').click();
 
-    await expect(page.getByTestId('e2e-stock-tontine-request-form')).toBeVisible();
-    await selectNgSelectOption(page, 'e2e-stock-tontine-request-collector', TEST_COMMERCIAL_USERNAME);
+    await expect(page.getByTestId('e2e-stock-request-form')).toBeVisible();
+    await selectNgSelectOption(page, 'e2e-stock-request-collector', TEST_COMMERCIAL_USERNAME);
     await selectArticleInSelector(page, 0, testArticle.label, E2E_STOCK_TONTINE_REQUEST_QTY, testArticle.id);
-    await page.getByTestId('e2e-stock-tontine-request-submit').click();
+    await page.getByTestId('e2e-stock-request-submit').click();
 
-    await expect(page).toHaveURL(/\/stock-tontine\/request/, { timeout: 30_000 });
+    await expect(page).toHaveURL(/\/stock\/request\?.*channel=tontine/, { timeout: 30_000 });
 
     const createdRow = page
-      .locator('[data-testid="e2e-stock-tontine-request-row"][data-status="CREATED"]')
+      .locator('[data-testid="e2e-stock-request-row"][data-status="CREATED"]')
       .filter({ hasText: TEST_COMMERCIAL_USERNAME })
       .first();
 
@@ -577,8 +578,8 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await loginAsGestionnaire(page);
 
     const createdRow = await findStockTontineRequestRow(page, stockTontineRequestReference);
-    await expect(createdRow.getByTestId('e2e-stock-tontine-request-validate')).toBeVisible();
-    await createdRow.getByTestId('e2e-stock-tontine-request-validate').click();
+    await expect(createdRow.getByTestId('e2e-stock-request-validate')).toBeVisible();
+    await createdRow.getByTestId('e2e-stock-request-validate').click();
     await confirmSwal(page);
 
     await expectStockTontineRequestValidated(stockTontineRequestReference);
@@ -589,8 +590,8 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await loginAsMagasinier(page);
 
     const validatedRow = await findStockTontineRequestRow(page, stockTontineRequestReference);
-    await expect(validatedRow.getByTestId('e2e-stock-tontine-request-deliver')).toBeVisible();
-    await validatedRow.getByTestId('e2e-stock-tontine-request-deliver').click();
+    await expect(validatedRow.getByTestId('e2e-stock-request-deliver')).toBeVisible();
+    await validatedRow.getByTestId('e2e-stock-request-deliver').click();
     await confirmSwal(page);
 
     await expectStockTontineRequestDelivered(stockTontineRequestReference);
@@ -599,8 +600,9 @@ test.describe.serial('Golden path — prérequis métier', () => {
 
   test('étape 23 — vérifier le stock tontine annuel de COM020', async ({ page }) => {
     await loginAsGestionnaire(page);
-    await page.getByTestId('e2e-sidebar-stock-tontine').click();
-    await page.getByTestId('e2e-sidebar-stock-tontine-my-stock').click();
+    await page.getByTestId('e2e-sidebar-stock-commercial').click();
+    await page.getByTestId('e2e-sidebar-stock-my-stock').click();
+    await page.getByTestId('e2e-stock-channel-tontine').click();
     await selectNgSelectOption(page, 'e2e-tontine-my-stock-agent-select', TEST_COMMERCIAL_USERNAME);
 
     const panel = page.getByTestId('e2e-tontine-my-stock-panel').filter({ hasText: TEST_COMMERCIAL_USERNAME }).first();

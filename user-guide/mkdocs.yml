@@ -32,7 +32,6 @@ nav:
     - Gestion des Articles: storekeeper/articles.md
     - Inventaire: storekeeper/inventory.md
     - Dettes: storekeeper/debts.md
-    - Stock Tontine: storekeeper/stock_tontine.md
     - Stock Commercial: storekeeper/stock_commercial.md
   - Guide Commercial:
     - Vue d'ensemble: commercial/index.md

@@ -74,9 +74,9 @@ export class MovementTableComponent {
             case 'STOCK_RETURN':
                 return ['/stock/return'];
             case 'STOCK_TONTINE_REQUEST':
-                return ['/stock-tontine/request'];
+                return ['/stock/request'];
             case 'STOCK_TONTINE_RETURN':
-                return ['/stock-tontine/return'];
+                return ['/stock/return'];
             case 'INVENTORY':
                 return ['/inventory/history', movement.referenceId];
             default:
@@ -91,9 +91,10 @@ export class MovementTableComponent {
         switch (movement.referenceType) {
             case 'STOCK_REQUEST':
             case 'STOCK_RETURN':
+                return { id: movement.referenceId, channel: 'credit' };
             case 'STOCK_TONTINE_REQUEST':
             case 'STOCK_TONTINE_RETURN':
-                return { id: movement.referenceId };
+                return { id: movement.referenceId, channel: 'tontine' };
             default:
                 return null;
         }

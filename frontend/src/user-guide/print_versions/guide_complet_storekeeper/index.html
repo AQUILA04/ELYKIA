@@ -907,34 +907,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../storekeeper/stock_tontine/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Stock Tontine
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../storekeeper/stock_commercial/" class="md-nav__link">
         
   
@@ -1606,7 +1578,7 @@
 <p>\newpage</p>
 <h1 id="guide-magasinier">Guide Magasinier</h1>
 <p>Le magasinier sécurise la circulation physique de la marchandise : catalogue, réceptions, inventaires, sorties, retours et stock tontine. Il ne valide pas automatiquement chaque étape ; les boutons disponibles dans les listes indiquent les actions autorisées à son profil.</p>
-<!-- CAPTURE À INSÉRER : Menu d’un magasinier avec Articles, Stock Commercial, Stock Tontine, Inventaires et Historique Entrée. -->
+<!-- CAPTURE À INSÉRER : Menu d’un magasinier avec Articles, Stock Commercial, Inventaires et Historique Entrée. -->
 
 <h2 id="vos-priorites">Vos priorités</h2>
 <table>
@@ -1627,7 +1599,7 @@
 </tr>
 <tr>
 <td>Servir les demandes validées</td>
-<td>Livrer les demandes de stock commercial ou tontine au bon statut.</td>
+<td>Livrer les demandes au statut Validée, en Crédit ou en Tontine.</td>
 </tr>
 <tr>
 <td>Traiter les retours</td>
@@ -1639,11 +1611,11 @@
 </tr>
 <tr>
 <td>Suivre vos dettes</td>
-<td>Dettes</td>
+<td>Consulter les montants d’inventaire enregistrés à votre nom.</td>
 </tr>
 </tbody>
 </table>
-<p>Consultez les pages dédiées pour <a href="articles.md">les articles</a>, <a href="inventory.md">les inventaires et entrées</a>, <a href="debts.md">les dettes</a>, <a href="stock_commercial.md">le stock commercial</a> et <a href="stock_tontine.md">le stock tontine</a>.</p>
+<p>Consultez les pages dédiées pour <a href="articles.md">les articles</a>, <a href="inventory.md">les inventaires et entrées</a>, <a href="debts.md">les dettes</a> et <a href="stock_commercial.md">le stock</a>.</p>
 <p>\newpage</p>
 <hr />
 <h1 id="gestion-des-articles-et-seuils-de-stock-guide-magasinier">Gestion des articles et seuils de stock (Guide Magasinier)</h1>
@@ -1775,33 +1747,32 @@
 </ol>
 <p>\newpage</p>
 <hr />
-<h1 id="gestion-physique-du-stock-tontine-guide-magasinier">Gestion physique du stock tontine (Guide Magasinier)</h1>
-<p>Le module <strong>Stock Tontine</strong> applique les mêmes exigences de rigueur logistique que le stock commercial, mais dans un circuit <strong>totalement étanche et isolé</strong>.</p>
+<h1 id="gestion-physique-du-stock-tontine">Gestion physique du stock tontine</h1>
+<p>Les sorties et retours tontine se traitent dans <strong>Stock Commercial</strong>, avec le sélecteur <strong>Tontine</strong>.</p>
 <hr />
-<h2 id="1-servir-une-sortie-de-stock-tontine-menu-stock-tontine-demandes-sortie">1. Servir une sortie de stock tontine (Menu Stock Tontine &gt; Demandes Sortie)</h2>
-<p>À l'approche des fêtes de fin d'année et de la clôture des cycles de cotisation, les commerciaux reçoivent des dotations d'articles pré-commandés par les membres tontine.</p>
-<!-- CAPTURE À INSÉRER : Liste des demandes de sortie de stock tontine avec filtres et bouton Livrer pour le magasinier. -->
+<h2 id="1-servir-une-sortie-de-stock-tontine">1. Servir une sortie de stock tontine</h2>
+<p>À l'approche des fêtes de fin d'année et de la clôture des cycles de cotisation, les commerciaux reçoivent des dotations d'articles destinés aux membres tontine.</p>
+<!-- CAPTURE À INSÉRER : Demandes de sortie avec le sélecteur Tontine actif et le bouton Livrer. -->
 
 <h3 id="a-controle-et-delivrance-physique">A. Contrôle et délivrance physique</h3>
 <ol>
-<li>Dans le menu latéral gauche, ouvrez <strong>Stock Tontine &gt; Demandes Sortie</strong> (accessible si vous disposez des habilitations nécessaires).</li>
+<li>Ouvrez <strong>Stock Commercial &gt; Demandes Sortie</strong>, puis cliquez sur <strong>Tontine</strong>.</li>
 <li>Repérez la demande au statut <strong>Validée</strong>.</li>
-<li>Cliquez sur <strong>« Voir »</strong> pour examiner le panier d'articles réservés pour les membres de la zone. La référence de la demande s'affiche en haut. <strong>« Télécharger »</strong> enregistre la fiche de cette demande.</li>
+<li>Cliquez sur <strong>« Voir »</strong> pour examiner les articles et les quantités. La référence de la demande s'affiche en haut. <strong>« Télécharger »</strong> enregistre la fiche de cette demande.</li>
 <li>Rassemblez les colis correspondants et vérifiez les références avec le commercial au guichet.</li>
 <li>Cliquez sur le bouton <strong>« Livrer »</strong>.</li>
-<li>Le stock dépôt est débité du compte tontine.</li>
-<li>Le commercial est crédité de sa dotation de distribution tontine.</li>
+<li>Le stock dépôt tontine est débité.</li>
+<li>Le commercial est crédité de sa dotation tontine.</li>
 <li>La demande passe au statut <strong>Livrée</strong>.</li>
 </ol>
-<blockquote>
-<p><strong>Distinction fondamentale.</strong> La validation de la sortie par le magasinier décharge le dépôt au profit du commercial. Elle ne marque <strong>PAS</strong> la livraison au client final : c'est le commercial ou le gestionnaire qui actera la remise finale au membre sur la fiche de ce dernier dans le module <strong>Tontines</strong>.</p>
-</blockquote>
+<p>La remise au membre se fait ensuite dans le menu <strong>Tontines</strong>, sur la fiche du membre.</p>
 <hr />
-<h2 id="2-retours-darticles-tontine-menu-stock-tontine-retours">2. Retours d'articles tontine (Menu Stock Tontine &gt; Retours)</h2>
-<p>Si un membre tontine a modifié son choix d'article, s'il a dépassé son solde ou si un reliquat de campagne doit être rapatrié au magasin :
-1. Le commercial dépose les articles au magasin et initie une déclaration dans <strong>Stock Tontine &gt; Retours</strong>.
-2. Le magasinier examine la ligne au statut <strong>En attente</strong>.
-3. Après inspection physique des emballages, le magasinier clique sur <strong>« Réceptionner »</strong> pour réintégrer les articles au stock central tontine.</p>
+<h2 id="2-retours-darticles-tontine">2. Retours d'articles tontine</h2>
+<ol>
+<li>Ouvrez <strong>Stock Commercial &gt; Retours</strong> et cliquez sur <strong>Tontine</strong>.</li>
+<li>Examinez la ligne au statut <strong>En attente</strong>.</li>
+<li>Après inspection des emballages, cliquez sur <strong>« Réceptionner »</strong> pour réintégrer les articles au stock tontine.</li>
+</ol>
 <p>\newpage</p>
 <hr />
 <h1 id="gestion-physique-du-stock-commercial-sorties-retours">Gestion physique du stock commercial (Sorties &amp; Retours)</h1>

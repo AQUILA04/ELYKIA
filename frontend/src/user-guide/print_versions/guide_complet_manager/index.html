@@ -907,34 +907,6 @@
   
   
     <li class="md-nav__item">
-      <a href="../../storekeeper/stock_tontine/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Stock Tontine
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
       <a href="../../storekeeper/stock_commercial/" class="md-nav__link">
         
   
@@ -1609,7 +1581,7 @@
 <!-- CAPTURE À INSÉRER : Accueil web d’un gestionnaire avec le menu développé et les indicateurs du tableau de bord. -->
 
 <h2 id="votre-espace-de-pilotage">Votre espace de pilotage</h2>
-<p>Le menu peut notamment donner accès au <strong>Dashboard</strong>, aux <strong>Clients</strong>, aux <strong>Articles</strong>, aux modules <strong>Stock Commercial</strong> et <strong>Stock Tontine</strong>, aux <strong>Ventes</strong>, aux <strong>Tontines</strong>, aux <strong>Dépenses</strong>, à la <strong>Configuration</strong>, au <strong>Rapport Journalier</strong> et aux <strong>Inventaires</strong>. Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.</p>
+<p>Le menu peut notamment donner accès au <strong>Dashboard</strong>, aux <strong>Clients</strong>, aux <strong>Articles</strong>, au <strong>Stock Commercial</strong> (sélecteur <strong>Crédit</strong> / <strong>Tontine</strong>), aux <strong>Ventes</strong>, aux <strong>Tontines</strong>, aux <strong>Dépenses</strong>, à la <strong>Configuration</strong>, au <strong>Rapport Journalier</strong> et aux <strong>Inventaires</strong>. Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.</p>
 <table>
 <thead>
 <tr>
@@ -2095,7 +2067,7 @@
 <p>L'organisation repose sur <strong>trois niveaux étanches de stock</strong> :
 1. <strong>Stock Central Magasin</strong> : Stock physique détenu au dépôt principal, administré par le magasinier et audité par les inventaires.
 2. <strong>Stock Commercial</strong> (accessible via le menu latéral <strong>Stock Commercial</strong>) : Stock opérationnel attribué aux commerciaux pour les ventes directes au comptant et à crédit.
-3. <strong>Stock Tontine</strong> (accessible via le menu latéral <strong>Stock Tontine</strong>) : Stock tampon strictement réservé aux livraisons de fin d'exercice des membres épargnants de la tontine, interdisant tout mélange avec le flux commercial standard.</p>
+3. <strong>Stock Tontine</strong> : même menu <strong>Stock Commercial</strong>, sélecteur <strong>Tontine</strong>. Stock réservé aux livraisons de fin d'exercice des membres de la tontine.</p>
 <hr />
 <h2 id="1-referentiel-articles-et-valorisation-du-stock">1. Référentiel Articles et Valorisation du Stock</h2>
 <p>Pour consulter l'ensemble des articles, rendez-vous dans le menu latéral puis cliquez sur <strong>Articles</strong>.</p>
@@ -2211,14 +2183,21 @@
 <li><strong>Fiche sortie PDF globale</strong> : Export synthétique sur la période active (<em>Aujourd'hui, Cette semaine, Ce mois, Mois précédents</em>).</li>
 </ul>
 <hr />
-<h2 id="4-module-stock-tontine">4. Module Stock Tontine</h2>
-<p>Le <strong>Stock Tontine</strong> dispose de son propre sous-menu indépendant dans la barre latérale (<strong>Stock Tontine &gt; Demandes Sortie</strong>, <strong>Stock</strong> et <strong>Retours</strong>).</p>
-<ul>
-<li><strong>Étanche et dédié</strong> : Les articles sortis sous ce module ne peuvent en aucun cas être vendus à crédit dans le circuit commercial régulier.</li>
-<li><strong>Finalité opérationnelle</strong> : Ce stock est constitué en fin d'année pour préparer les paniers de distribution de fin d'exercice des membres de la tontine ayant cotisé régulièrement.</li>
-<li>Le cycle d'approbation (<strong>Créée $\rightarrow$ Validée $\rightarrow$ Livrée</strong>) et de retour est rigoureusement identique à celui du stock commercial.</li>
+<h2 id="4-stock-tontine-selecteur-tontine">4. Stock Tontine (sélecteur Tontine)</h2>
+<p>Dans <strong>Stock Commercial</strong>, les écrans <strong>Demandes Sortie</strong>, <strong>Stock</strong> et <strong>Retours</strong> proposent le sélecteur <strong>Crédit</strong> / <strong>Tontine</strong> sous le titre.</p>
+<ol>
+<li>Ouvrez l'écran voulu.</li>
+<li>Cliquez sur <strong>Tontine</strong>.</li>
+<li>
+<p>La liste, les filtres et les actions se rechargent pour les mouvements tontine.</p>
+</li>
+<li>
+<p>Ce stock prépare les paniers de fin d'exercice des membres ayant cotisé.</p>
+</li>
+<li>Le cycle d'approbation (<strong>Créée → Validée → Livrée</strong>) et le retour (<strong>En attente → Réceptionné</strong>) suivent les mêmes boutons que le stock crédit.</li>
 <li>Sur <strong>Demandes Sortie</strong>, <strong>« Voir »</strong> ouvre le détail : la référence est en haut. Pour une demande <strong>Créée</strong>, <strong>« Valider »</strong> et <strong>« Refuser »</strong> sont en bas de la fenêtre. <strong>« Télécharger »</strong> enregistre la fiche de cette demande.</li>
-</ul>
+<li><strong>Stock</strong> affiche le suivi par année. <strong>Retours</strong> permet de <strong>Réceptionner</strong> un retour au statut <strong>En attente</strong>.</li>
+</ol>
 <hr />
 <h2 id="5-inventaires-physiques-et-reconciliation-des-ecarts">5. Inventaires physiques et réconciliation des écarts</h2>
 <p>Accessible via le menu latéral <strong>Inventaires</strong>, ce module permet de confronter le stock théorique calculé par l'informatique au stock physique réel compté sur les étagères du magasin dépôt.</p>

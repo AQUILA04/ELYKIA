@@ -8,6 +8,8 @@ Le **Stock Commercial** représente la marchandise physique effectivement confi�
 
 Pour s'approvisionner, le commercial ou son responsable initie une **Demande de sortie stock**.
 
+Sous le titre de **Demandes Sortie**, **Stock** et **Retours**, le sélecteur **Crédit** / **Tontine** affiche soit le stock des ventes, soit le stock des livraisons tontine. Cliquez sur le choix voulu avant de créer une demande, de consulter le stock ou d'enregistrer un retour.
+
 <!-- CAPTURE À INSÉRER : Formulaire Nouvelle demande de sortie stock avec sélection des articles, quantités et bouton d'envoi. -->
 
 ### A. Création de la demande (Bouton + Nouvelle demande)
