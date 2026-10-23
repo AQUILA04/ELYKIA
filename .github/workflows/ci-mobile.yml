@@ -162,6 +162,9 @@ jobs:
         echo "Checking application tag:"
         grep -A 5 "usesCleartextTraffic" android/app/src/main/AndroidManifest.xml || echo "No cleartext traffic config found!"
 
+        echo "Applying ELYKIA launcher icons..."
+        ../.github/scripts/apply-mobile-android-icons.sh android
+
     - name: Grant execute permission for gradlew
       run: |
         chmod +x android/gradlew

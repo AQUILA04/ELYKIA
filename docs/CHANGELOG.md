@@ -328,6 +328,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
 
+## Mobile — [2.34.1] — 2026-10-24
+
+### Changed
+
+- L'icône de l'application Android est le logo ELYKIA, à la place de l'icône Ionic par défaut.
+
 ## Mobile — [2.34.0] — 2026-10-23
 
 ### Added

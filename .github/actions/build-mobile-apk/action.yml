@@ -123,6 +123,7 @@ runs:
         ../.github/scripts/configure-android-firebase.sh android
         ../.github/scripts/sync-android-version.sh android
         ../.github/scripts/install-app-update-plugin.sh android
+        ../.github/scripts/apply-mobile-android-icons.sh android
 
     - name: Prepare Android keystore
       shell: bash
