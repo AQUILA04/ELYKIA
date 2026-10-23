@@ -262,6 +262,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
 
+## Mobile — [2.33.25] — 2026-10-23
+
+### Changed
+
+- Terrain : la ligne d’un crédit en cours a une seule présentation, en ligne comme hors ligne.
+
 ## Mobile — [2.33.24] — 2026-10-23
 
 ### Changed
