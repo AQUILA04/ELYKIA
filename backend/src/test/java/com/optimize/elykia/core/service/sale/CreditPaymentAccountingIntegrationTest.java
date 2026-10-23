@@ -1,7 +1,10 @@
 package com.optimize.elykia.core.service.sale;
 
+import com.optimize.elykia.client.entity.Account;
 import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.client.enumeration.AccountStatus;
 import com.optimize.elykia.client.enumeration.ClientType;
+import com.optimize.elykia.client.repository.AccountRepository;
 import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.core.dto.CollectorDailyStakeDto;
 import com.optimize.elykia.core.dto.CreditRespDto;
@@ -25,6 +28,7 @@ import com.optimize.elykia.core.repository.CommercialStockMovementRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.service.accounting.DailyAccountingService;
+import com.optimize.elykia.core.service.adhesion.AdhesionService;
 import com.optimize.elykia.core.support.IntegrationTestSupport;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
@@ -52,6 +56,8 @@ class CreditPaymentAccountingIntegrationTest extends IntegrationTestSupport {
     @Autowired private DailyAccountingService dailyAccountingService;
     @Autowired private ArticlesRepository articlesRepository;
     @Autowired private ClientRepository clientRepository;
+    @Autowired private AccountRepository accountRepository;
+    @Autowired private AdhesionService adhesionService;
     @Autowired private CreditRepository creditRepository;
     @Autowired private CreditTimelineRepository timelineRepository;
     @Autowired private CommercialMonthlyStockRepository monthlyStockRepository;
@@ -66,6 +72,7 @@ class CreditPaymentAccountingIntegrationTest extends IntegrationTestSupport {
                 accountingDate.atStartOfDay(), accountingDate.atTime(23, 59, 59)));
         Articles article = persistArticle("CREDIT-CHAIN-ARTICLE", 10, 800.0, 1_500.0);
         Client client = persistClient("client.credit.chain");
+        openActivePersonalAdhesion(client);
         CommercialMonthlyStockItem stockItem = persistCommercialStock(article, 4, 1_500.0, 800.0);
         DistributeArticleDto distribution = distribution(client.getId(), article.getId(), 2, CREDIT_REFERENCE);
 
@@ -200,6 +207,16 @@ class CreditPaymentAccountingIntegrationTest extends IntegrationTestSupport {
         client.setClientType(ClientType.CLIENT);
         client.setCreditInProgress(false);
         return clientRepository.saveAndFlush(client);
+    }
+
+    private void openActivePersonalAdhesion(Client client) {
+        Account account = new Account();
+        account.setClient(client);
+        account.setAccountNumber("ACC-CHAIN-INT-001");
+        account.setAccountBalance(500);
+        account.setStatus(AccountStatus.ACTIF);
+        accountRepository.saveAndFlush(account);
+        adhesionService.ensurePersonalFromAccountOpening(client.getId(), 500);
     }
 
     private CommercialMonthlyStockItem persistCommercialStock(

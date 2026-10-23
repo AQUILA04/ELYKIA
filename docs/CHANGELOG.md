@@ -34,6 +34,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.43.2] — 2026-10-23
+
+### Fixed
+
+- Le test de la chaîne vente à crédit, encaissement et clôture ouvre un compte actif et une adhésion personnelle avant la distribution.
+
 ## Backend — [1.43.1] — 2026-10-23
 
 ### Fixed
