@@ -38,6 +38,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Fixed
 
+- L’équilibrage d’un surplus est enregistré jusqu’au bout. Le journal des opérations refusait la ligne « Équilibrage surplus », et toute l’opération était annulée.
 - La file des écarts de carnet s’ouvre sans filtre commercial. La comparaison du collecteur n’envoie plus un paramètre non typé à PostgreSQL.
 - La recherche de la liste des types d’article filtre par nom, code ou description.
 
