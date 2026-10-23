@@ -275,7 +275,7 @@ export class ClientDetailsComponent implements OnInit {
       return;
     }
     const fee = type === 'PERSONAL' ? '500' : '2 000';
-    this.alertService.showConfirmation(
+    void this.alertService.showConfirmation(
       'Souscrire une adhésion',
       `Encaisser ${fee} FCFA pour l'adhésion ${this.adhesionLabel(type)} ?`,
       'Encaisser',
@@ -341,7 +341,7 @@ export class ClientDetailsComponent implements OnInit {
   }
 
   rejectSubmission(submission: AdhesionSubmission): void {
-    this.alertService.showConfirmation(
+    void this.alertService.showConfirmation(
       'Rejeter la déclaration',
       'La déclaration Mobile Money sera rejetée.',
       'Rejeter',
