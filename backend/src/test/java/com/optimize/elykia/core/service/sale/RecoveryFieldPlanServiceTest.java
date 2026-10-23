@@ -29,12 +29,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -252,6 +254,33 @@ class RecoveryFieldPlanServiceTest {
         // Then
         assertTrue(exception.getMessage().contains("Latitude et longitude"));
         verify(clientService, never()).updatePhoneAndGeo(eq(7L), any(), any(), any(), any());
+    }
+
+    @Test
+    void buildOfflinePack_listsInProgressCreditsWithoutReplacingLateCredits() {
+        RecoveryFieldDayPlan plan = activePlan(4L, LocalDate.now(), "[\"commercial.a\"]", "[\"Nord\"]");
+        when(planRepository.findByIdAndRecoveryManagerUsername(4L, "manager.a")).thenReturn(Optional.of(plan));
+        CreditLateDTO late = CreditLateDTO.builder()
+                .id(1L).clientId(10L).clientQuarter("Nord").collector("commercial.a").build();
+        CreditLateDTO current = CreditLateDTO.builder()
+                .id(2L).clientId(11L).clientQuarter("Nord").collector("commercial.a").build();
+        CreditLateDTO otherQuarter = CreditLateDTO.builder()
+                .id(3L).clientId(12L).clientQuarter("Sud").collector("commercial.a").build();
+        when(creditLateService.getLateCredits("commercial.a", null, null)).thenReturn(List.of(late));
+        when(creditLateService.getInProgressCredits("commercial.a"))
+                .thenReturn(List.of(late, current, otherQuarter));
+        when(creditRepository.findById(any())).thenReturn(Optional.empty());
+        when(creditFieldControlRepository.findLatestByCreditIds(any())).thenReturn(List.of());
+        when(recontrolPolicy.viewCredits(any())).thenReturn(Map.of());
+
+        var pack = service.buildOfflinePack(4L, "manager.a", false);
+
+        assertEquals(List.of(1L), pack.getLateCredits().stream().map(CreditLateDTO::getId).toList());
+        assertEquals(List.of(1L, 2L), pack.getInProgressCredits().stream().map(CreditLateDTO::getId).toList());
+        assertEquals(2, pack.getClients().size());
+        assertEquals(28_000L, pack.getStats().getEstimatedBytes());
+        verify(creditFieldControlRepository).findLatestByCreditIds(argThat(ids ->
+                ids.contains(1L) && ids.contains(2L) && !ids.contains(3L)));
     }
 
     private FieldDayPlanRequestDto planRequest(LocalDate date, List<String> commercials, List<String> quarters) {

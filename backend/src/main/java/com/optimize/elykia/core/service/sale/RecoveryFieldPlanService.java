@@ -299,29 +299,17 @@ public class RecoveryFieldPlanService {
                 .map(q -> q.trim().toLowerCase(Locale.ROOT))
                 .collect(Collectors.toSet());
 
-        List<CreditLateDTO> lateCredits = new ArrayList<>();
-        for (String commercial : commercials) {
-            List<CreditLateDTO> forCommercial = creditLateService.getLateCredits(commercial, null, null);
-            if (quarterFilter.isEmpty()) {
-                lateCredits.addAll(forCommercial);
-            } else {
-                forCommercial.stream()
-                        .filter(dto -> dto.getClientQuarter() != null
-                                && quarterFilter.contains(dto.getClientQuarter().trim().toLowerCase(Locale.ROOT)))
-                        .forEach(lateCredits::add);
-            }
-        }
+        List<CreditLateDTO> lateCredits = loadPlanCredits(commercials, quarterFilter, false);
+        List<CreditLateDTO> inProgressCredits = loadPlanCredits(commercials, quarterFilter, true);
 
         Map<Long, RmPackClientDto> clientsById = new LinkedHashMap<>();
-        for (CreditLateDTO late : lateCredits) {
-            if (late.getClientId() == null || clientsById.containsKey(late.getClientId())) {
-                continue;
-            }
-            clientsById.put(late.getClientId(), loadClientDto(late));
-        }
+        addPackClients(clientsById, lateCredits);
+        addPackClients(clientsById, inProgressCredits);
 
-        List<Long> creditIds = lateCredits.stream().map(CreditLateDTO::getId).filter(Objects::nonNull).toList();
-        List<CreditFieldControlDto> controlsToday = loadLatestFieldControls(creditIds);
+        LinkedHashSet<Long> creditIds = new LinkedHashSet<>();
+        inProgressCredits.stream().map(CreditLateDTO::getId).filter(Objects::nonNull).forEach(creditIds::add);
+        lateCredits.stream().map(CreditLateDTO::getId).filter(Objects::nonNull).forEach(creditIds::add);
+        List<CreditFieldControlDto> controlsToday = loadLatestFieldControls(new ArrayList<>(creditIds));
 
         List<RmPackTontineMemberDto> tontineMembers = includeTontine
                 ? loadTontineMembers(commercials, quarterFilter, clientsById)
@@ -338,7 +326,7 @@ public class RecoveryFieldPlanService {
                 .map(u -> RmCommercialRefDto.builder().username(u).displayName(u).build())
                 .toList();
 
-        long estimatedBytes = lateCredits.size() * BYTES_PER_LATE_CREDIT_ESTIMATE
+        long estimatedBytes = (lateCredits.size() + inProgressCredits.size()) * BYTES_PER_LATE_CREDIT_ESTIMATE
                 + clientsById.size() * 2_000L
                 + tontineMembers.size() * BYTES_PER_TONTINE_MEMBER_ESTIMATE;
 
@@ -354,11 +342,45 @@ public class RecoveryFieldPlanService {
                         .build())
                 .commercials(commercialRefs)
                 .lateCredits(lateCredits)
+                .inProgressCredits(inProgressCredits)
                 .clients(new ArrayList<>(clientsById.values()))
                 .creditFieldControlsToday(controlsToday)
                 .tontineMembers(tontineMembers)
                 .tontineFieldControlsToday(tontineControlsToday)
                 .build();
+    }
+
+    private List<CreditLateDTO> loadPlanCredits(
+            List<String> commercials,
+            Set<String> quarterFilter,
+            boolean inProgress) {
+        List<CreditLateDTO> credits = new ArrayList<>();
+        for (String commercial : commercials) {
+            List<CreditLateDTO> forCommercial = inProgress
+                    ? creditLateService.getInProgressCredits(commercial)
+                    : creditLateService.getLateCredits(commercial, null, null);
+            if (quarterFilter.isEmpty()) {
+                credits.addAll(forCommercial);
+            } else {
+                forCommercial.stream()
+                        .filter(dto -> matchesQuarter(dto.getClientQuarter(), quarterFilter))
+                        .forEach(credits::add);
+            }
+        }
+        return credits;
+    }
+
+    private static boolean matchesQuarter(String quarter, Set<String> quarterFilter) {
+        return quarter != null && quarterFilter.contains(quarter.trim().toLowerCase(Locale.ROOT));
+    }
+
+    private void addPackClients(Map<Long, RmPackClientDto> clientsById, List<CreditLateDTO> credits) {
+        for (CreditLateDTO credit : credits) {
+            if (credit.getClientId() == null || clientsById.containsKey(credit.getClientId())) {
+                continue;
+            }
+            clientsById.put(credit.getClientId(), loadClientDto(credit));
+        }
     }
 
     public Page<RmFieldTontineRowDto> pageTontineMembers(String search, int page, int size) {

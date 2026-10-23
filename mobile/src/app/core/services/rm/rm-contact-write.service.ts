@@ -103,7 +103,7 @@ export class RmContactWriteService {
       clients.push(client);
     }
 
-    const lateCredits = (pack.lateCredits || []).map(late => {
+    const withPhone = (late: RmOfflinePack['lateCredits'][number]) => {
       if (late.clientId !== client.id) {
         return late;
       }
@@ -111,9 +111,11 @@ export class RmContactWriteService {
         ...late,
         clientPhone: client.phone ?? late.clientPhone
       };
-    });
+    };
+    const lateCredits = (pack.lateCredits || []).map(withPhone);
+    const inProgressCredits = pack.inProgressCredits?.map(withPhone);
 
-    const nextPack: RmOfflinePack = { ...pack, clients, lateCredits };
+    const nextPack: RmOfflinePack = { ...pack, clients, lateCredits, inProgressCredits };
     await this.scope.setPack(nextPack);
   }
 }

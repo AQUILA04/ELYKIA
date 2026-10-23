@@ -3,9 +3,13 @@ package com.optimize.elykia.core.service;
 import com.optimize.elykia.core.dto.CreditLateDTO;
 import com.optimize.elykia.core.dto.CreditLateSummaryDTO;
 import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.entity.sale.CreditFieldControl;
 import com.optimize.elykia.core.enumaration.LateType;
 import com.optimize.elykia.core.repository.ClientReliquatRepository;
+import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
 import com.optimize.elykia.core.util.ClientReliquatNetRemaining;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,6 +26,8 @@ import java.time.temporal.ChronoUnit;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,6 +45,8 @@ public class CreditLateService {
 
     private final CreditRepository creditRepository;
     private final ClientReliquatRepository clientReliquatRepository;
+    private final CreditFieldControlRepository creditFieldControlRepository;
+    private final CarnetEcartRecontrolPolicy recontrolPolicy;
     private final TemplateEngine templateEngine;
 
     public List<CreditLateDTO> getLateCredits(String collector, Integer month, String locality) {
@@ -97,6 +105,47 @@ public class CreditLateService {
                 .map(credit -> buildLateDTO(credit, today))
                 .collect(Collectors.toCollection(ArrayList::new));
         applyClientReliquatDeduction(dtos);
+        return new PageImpl<>(dtos, pageable, credits.getTotalElements());
+    }
+
+    /**
+     * In-progress credits of one collector, including those that are not late.
+     * Late fields stay empty when the credit is up to date.
+     */
+    @Transactional(readOnly = true)
+    public List<CreditLateDTO> getInProgressCredits(String collector) {
+        if (collector == null || collector.isBlank()) {
+            return List.of();
+        }
+        LocalDate today = LocalDate.now();
+        List<CreditLateDTO> credits = creditRepository.findInProgressCreditsByCollector(collector).stream()
+                .map(credit -> buildLateDTO(credit, today))
+                .collect(Collectors.toCollection(ArrayList::new));
+        applyClientReliquatDeduction(credits);
+        credits.sort(Comparator
+                .comparing((CreditLateDTO dto) -> dto.getClientName() == null ? "" : dto.getClientName(),
+                        String.CASE_INSENSITIVE_ORDER)
+                .thenComparing(dto -> dto.getId() == null ? 0L : dto.getId()));
+        return credits;
+    }
+
+    /**
+     * Paginated in-progress credits for the online field list. Late fields are filled only when the credit is late.
+     */
+    @Transactional(readOnly = true)
+    public Page<CreditLateDTO> getInProgressCreditsPage(String search, int page, int size) {
+        String folded = foldSearch(search);
+        String digits = folded.replaceAll("\\D", "");
+        int safeSize = Math.min(Math.max(size, 1), 40);
+        int safePage = Math.max(page, 0);
+        Pageable pageable = PageRequest.of(safePage, safeSize);
+        Page<Credit> credits = creditRepository.searchInProgressCredits(folded, digits, pageable);
+        LocalDate today = LocalDate.now();
+        List<CreditLateDTO> dtos = credits.getContent().stream()
+                .map(credit -> buildLateDTO(credit, today))
+                .collect(Collectors.toCollection(ArrayList::new));
+        applyClientReliquatDeduction(dtos);
+        attachLatestControls(dtos);
         return new PageImpl<>(dtos, pageable, credits.getTotalElements());
     }
 
@@ -200,6 +249,78 @@ public class CreditLateService {
                     .clientReliquatApplied(applied)
                     .build());
         }
+    }
+
+    private void attachLatestControls(List<CreditLateDTO> rows) {
+        List<Long> ids = rows.stream().map(CreditLateDTO::getId).filter(Objects::nonNull).toList();
+        if (ids.isEmpty()) {
+            return;
+        }
+        List<CreditFieldControl> latest = dedupeLatestCredit(
+                creditFieldControlRepository.findLatestByCreditIds(ids));
+        Map<Long, EcartDecisionView> views = recontrolPolicy.viewCredits(latest);
+        Map<Long, CreditFieldControl> byCredit = new HashMap<>();
+        for (CreditFieldControl control : latest) {
+            Long creditId = control.getCredit() != null ? control.getCredit().getId() : null;
+            if (creditId != null) {
+                byCredit.put(creditId, control);
+            }
+        }
+        for (int i = 0; i < rows.size(); i++) {
+            CreditLateDTO row = rows.get(i);
+            CreditFieldControl control = row.getId() != null ? byCredit.get(row.getId()) : null;
+            if (control == null) {
+                continue;
+            }
+            EcartDecisionView view = control.getId() != null
+                    ? views.getOrDefault(control.getId(), EcartDecisionView.none())
+                    : EcartDecisionView.none();
+            rows.set(i, row.toBuilder()
+                    .latestControlStatus(control.getStatus() != null ? control.getStatus().name() : null)
+                    .latestDifferenceAmount(control.getDifferenceAmount())
+                    .latestNotebookTotalAmount(control.getNotebookTotalAmount())
+                    .latestControlNote(control.getNote())
+                    .latestObservedAt(control.getObservedAt())
+                    .ecartDecisionStatus(view.status())
+                    .modifiable(view.modifiable())
+                    .build());
+        }
+    }
+
+    private List<CreditFieldControl> dedupeLatestCredit(List<CreditFieldControl> controls) {
+        Map<Long, CreditFieldControl> best = new LinkedHashMap<>();
+        if (controls == null) {
+            return List.of();
+        }
+        for (CreditFieldControl control : controls) {
+            Long creditId = control.getCredit() != null ? control.getCredit().getId() : null;
+            if (creditId == null) {
+                continue;
+            }
+            CreditFieldControl current = best.get(creditId);
+            if (current == null || isNewerControl(control, current)) {
+                best.put(creditId, control);
+            }
+        }
+        return new ArrayList<>(best.values());
+    }
+
+    private static boolean isNewerControl(CreditFieldControl candidate, CreditFieldControl current) {
+        LocalDateTime candidateAt = candidate.getObservedAt();
+        LocalDateTime currentAt = current.getObservedAt();
+        if (candidateAt == null) {
+            return false;
+        }
+        if (currentAt == null) {
+            return true;
+        }
+        int compared = candidateAt.compareTo(currentAt);
+        if (compared != 0) {
+            return compared > 0;
+        }
+        long left = candidate.getId() != null ? candidate.getId() : 0L;
+        long right = current.getId() != null ? current.getId() : 0L;
+        return left > right;
     }
 
     private CreditLateDTO buildLateDTO(Credit credit, LocalDate today) {

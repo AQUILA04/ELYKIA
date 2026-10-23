@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.elykia.core.enumaration.CarnetEcartStatus;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.LateType;
 import lombok.Builder;
@@ -54,4 +55,13 @@ public class CreditLateDTO {
     private Boolean carnetVerified;
     private LocalDateTime carnetVerifiedAt;
     private String carnetVerifiedBy;
+
+    /** Dernier contrôle carnet, renseigné sur la liste terrain des crédits en cours. */
+    private String latestControlStatus;
+    private Double latestDifferenceAmount;
+    private Double latestNotebookTotalAmount;
+    private String latestControlNote;
+    private LocalDateTime latestObservedAt;
+    private CarnetEcartStatus ecartDecisionStatus;
+    private Boolean modifiable;
 }

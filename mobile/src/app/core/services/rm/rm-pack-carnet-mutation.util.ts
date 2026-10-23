@@ -1,7 +1,7 @@
 import { RmOfflinePack } from './rm.models';
 import { RmScopeService } from './rm-scope.service';
 
-type PackListKey = 'lateCredits' | 'tontineMembers';
+type PackListKey = 'lateCredits' | 'inProgressCredits' | 'tontineMembers';
 
 interface PackCarnetItem {
   id: number;

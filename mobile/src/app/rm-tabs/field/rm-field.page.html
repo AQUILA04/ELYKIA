@@ -28,14 +28,14 @@
         <strong data-testid="e2e-rm-field-tontine-count">{{ clientCountLabel(tontineClientVisible, tontineClientTotal) }}</strong>
       </article>
       <article>
-        <span>Retards</span>
-        <strong data-testid="e2e-rm-field-late-count">{{ clientCountLabel(lateClientVisible, lateClientTotal) }}</strong>
+        <span>Crédits</span>
+        <strong data-testid="e2e-rm-field-late-count">{{ clientCountLabel(creditClientVisible, creditClientTotal) }}</strong>
       </article>
     </div>
 
     <div class="segments" *ngIf="onlineMode">
       <button type="button" [class.on]="segment === 'tontine'" (click)="setSegment('tontine')">Tontine</button>
-      <button type="button" [class.on]="segment === 'lates'" (click)="setSegment('lates')">Retards</button>
+      <button type="button" [class.on]="segment === 'credits'" (click)="setSegment('credits')">Crédits</button>
     </div>
 
     <section class="block" *ngIf="onlineMode && segment === 'tontine'">
@@ -85,16 +85,23 @@
       </article>
     </section>
 
-    <section class="block" *ngIf="onlineMode && segment === 'lates'">
-      <h2>Retards</h2>
+    <section class="block" *ngIf="onlineMode && segment === 'credits'">
+      <h2>Crédits en cours</h2>
       <article class="quarter-card">
-        <div class="row" *ngFor="let item of onlineLates">
+        <div class="row" *ngFor="let item of onlineCredits">
           <div class="row-main">
             <strong>{{ item.clientName }}</strong>
             <span>{{ item.collector || '—' }} · {{ item.clientQuarter || 'Non spécifié' }}</span>
             <span>{{ formatAmount(item.totalAmountRemaining || 0) }} FCFA</span>
+            <span class="badge late" *ngIf="isLate(item)">Retard</span>
             <span class="badge verified" *ngIf="item.carnetVerified"
                   data-testid="e2e-rm-credit-carnet-badge">Vérifié</span>
+            <ng-container *ngIf="creditControlFor(item) as ctrl">
+              <span class="badge" [class.ok]="ctrl.status === 'CONFORME'" [class.ecart]="ctrl.status === 'ECART'"
+                    data-testid="e2e-rm-field-credit-badge">{{ ctrl.status }}</span>
+              <span class="badge ecart" *ngIf="ctrl.status === 'ECART'">Écart {{ formatAmount(ctrl.differenceAmount || 0) }} FCFA</span>
+              <span class="badge warn">Déjà contrôlé</span>
+            </ng-container>
           </div>
           <div class="row-actions">
             <ion-button size="small" fill="solid" class="rm-solid-btn" (click)="toggleCreditCarnet(item)"
@@ -102,6 +109,8 @@
                         data-testid="e2e-rm-credit-carnet-verify">
               {{ item.carnetVerified ? 'Annuler' : 'Vérifier' }}
             </ion-button>
+            <ion-button size="small" fill="outline" (click)="openFieldControl(item)"
+                        data-testid="e2e-rm-field-credit-control">Contrôle</ion-button>
             <ion-button size="small" fill="outline" (click)="openMaps(item)">Naviguer</ion-button>
           </div>
         </div>
@@ -162,15 +171,22 @@
 
     <ng-container *ngIf="!onlineMode">
     <section *ngFor="let block of byCommercial" class="block">
-      <h2>Retards — {{ block.commercial }}</h2>
+      <h2>Crédits — {{ block.commercial }}</h2>
       <article *ngFor="let q of block.quarters" class="quarter-card">
         <h3>Localité · {{ q.quarter }} · {{ q.items.length }}</h3>
         <div class="row" *ngFor="let item of q.items">
           <div class="row-main">
             <strong>{{ item.clientName }}</strong>
             <span>{{ formatAmount(item.totalAmountRemaining || 0) }} FCFA</span>
+            <span class="badge late" *ngIf="isLate(item)">Retard</span>
             <span class="badge verified" *ngIf="item.carnetVerified"
                   data-testid="e2e-rm-credit-carnet-badge">Vérifié</span>
+            <ng-container *ngIf="creditControlFor(item) as ctrl">
+              <span class="badge" [class.ok]="ctrl.status === 'CONFORME'" [class.ecart]="ctrl.status === 'ECART'"
+                    data-testid="e2e-rm-field-credit-badge">{{ ctrl.status }}</span>
+              <span class="badge ecart" *ngIf="ctrl.status === 'ECART'">Écart {{ formatAmount(ctrl.differenceAmount || 0) }} FCFA</span>
+              <span class="badge warn">Déjà contrôlé</span>
+            </ng-container>
           </div>
           <div class="row-actions">
             <ion-button size="small" fill="solid" class="rm-solid-btn" (click)="toggleCreditCarnet(item)"
@@ -178,6 +194,8 @@
                         data-testid="e2e-rm-credit-carnet-verify">
               {{ item.carnetVerified ? 'Annuler' : 'Vérifier' }}
             </ion-button>
+            <ion-button size="small" fill="outline" (click)="openFieldControl(item)"
+                        data-testid="e2e-rm-field-credit-control">Contrôle</ion-button>
             <ion-button size="small" fill="outline" (click)="openMaps(item)">Naviguer</ion-button>
           </div>
         </div>
@@ -186,13 +204,13 @@
     </ng-container>
 
     <p class="empty" *ngIf="!onlineMode && !byCommercial.length && !tontineByCommercial.length">
-      {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun retard ni membre tontine dans le pack.' }}
+      {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun crédit en cours ni membre tontine dans le pack.' }}
     </p>
     <p class="empty" *ngIf="onlineMode && !loadingLive && segment === 'tontine' && !onlineTontine.length">
       {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun membre tontine.' }}
     </p>
-    <p class="empty" *ngIf="onlineMode && !loadingLive && segment === 'lates' && !onlineLates.length">
-      {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun retard.' }}
+    <p class="empty" *ngIf="onlineMode && !loadingLive && segment === 'credits' && !onlineCredits.length">
+      {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun crédit en cours.' }}
     </p>
   </div>
   <ion-infinite-scroll
