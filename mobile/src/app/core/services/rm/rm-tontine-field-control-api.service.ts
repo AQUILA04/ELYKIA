@@ -25,4 +25,13 @@ export class RmTontineFieldControlApiService {
     );
     return res.data;
   }
+
+  async getLatest(memberId: number): Promise<RmTontineFieldControlDto> {
+    const res = await firstValueFrom(
+      this.http.get<ApiResponse<RmTontineFieldControlDto>>(
+        `${this.baseUrl}/${memberId}/field-controls/latest`
+      )
+    );
+    return res.data;
+  }
 }

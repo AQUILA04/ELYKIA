@@ -33,7 +33,10 @@ export class RmTontineFieldControlQueueService {
   async upsert(op: RmTontineFieldControlOp): Promise<void> {
     await this.ready;
     const next = [...this.opsSubject.value];
-    const idx = next.findIndex(o => o.localId === op.localId || o.reference === op.reference);
+    let idx = next.findIndex(o => o.localId === op.localId || o.reference === op.reference);
+    if (idx < 0) {
+      idx = next.findIndex(o => !o.isSync && o.tontineMemberId === op.tontineMemberId);
+    }
     if (idx >= 0) {
       next[idx] = op;
     } else {

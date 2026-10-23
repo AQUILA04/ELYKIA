@@ -17,6 +17,8 @@ import com.optimize.elykia.core.enumaration.FieldControlStatus;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,6 +53,7 @@ public class TontineMemberFieldControlService {
     private final TontineMemberFieldControlRepository repository;
     private final TontineMemberRepository tontineMemberRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
+    private final CarnetEcartRecontrolPolicy recontrolPolicy;
     private AppNotificationService appNotificationService;
 
     @Autowired(required = false)
@@ -92,46 +96,142 @@ public class TontineMemberFieldControlService {
 
         List<TontineCollection> collections = tontineCollectionRepository
                 .findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(memberId, State.ENABLED);
+        List<TontineMemberFieldControlLine> desiredLines = buildLines(dto.getMonths(), collections);
+        LocalDateTime observedAt = dto.getObservedAt() != null ? dto.getObservedAt() : LocalDateTime.now();
+        String observedBy = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        TontineMemberFieldControl latest = findLatest(memberId).orElse(null);
+        if (latest != null && recontrolPolicy != null && recontrolPolicy.mustModifyTontine(latest)) {
+            rewriteControl(latest, reference, observedAt, observedBy, dto.getNote(), desiredLines);
+            TontineMemberFieldControl saved = repository.save(latest);
+            notifyEcart(saved, member);
+            return toDto(saved, memberId);
+        }
 
         TontineMemberFieldControl entity = new TontineMemberFieldControl();
         entity.setTontineMember(member);
         entity.setReference(reference);
-        entity.setObservedAt(dto.getObservedAt() != null ? dto.getObservedAt() : LocalDateTime.now());
-        entity.setObservedBy(SecurityContextHolder.getContext().getAuthentication().getName());
+        entity.setObservedAt(observedAt);
+        entity.setObservedBy(observedBy);
         entity.setNote(dto.getNote());
+        for (TontineMemberFieldControlLine line : desiredLines) {
+            entity.addLine(line);
+        }
+        applyTotals(entity);
 
-        double notebookTotal = 0d;
-        double systemTotal = 0d;
+        TontineMemberFieldControl saved = repository.save(entity);
+        notifyEcart(saved, member);
+        return toDto(saved, memberId);
+    }
 
-        for (CreateTontineMemberFieldControlMonthDto monthDto : dto.getMonths()) {
+    private Optional<TontineMemberFieldControl> findLatest(Long memberId) {
+        Optional<TontineMemberFieldControl> found = repository
+                .findFirstByTontineMember_idAndStateOrderByObservedAtDesc(memberId, State.ENABLED);
+        return found != null ? found : Optional.empty();
+    }
+
+    private List<TontineMemberFieldControlLine> buildLines(
+            List<CreateTontineMemberFieldControlMonthDto> months,
+            List<TontineCollection> collections) {
+        List<TontineMemberFieldControlLine> lines = new ArrayList<>();
+        for (CreateTontineMemberFieldControlMonthDto monthDto : months) {
             String commercial = monthDto.getCommercialUsername();
             double systemAmount = sumCollectionsForMonth(
                     collections, monthDto.getYear(), monthDto.getMonth(), commercial);
             double notebookAmount = monthDto.getNotebookAmount() != null ? monthDto.getNotebookAmount() : 0d;
-            double difference = notebookAmount - systemAmount;
-
             TontineMemberFieldControlLine line = new TontineMemberFieldControlLine();
             line.setYear(monthDto.getYear());
             line.setMonth(monthDto.getMonth());
             line.setCommercialUsername(commercial);
             line.setNotebookAmount(notebookAmount);
             line.setSystemAmount(systemAmount);
-            line.setDifferenceAmount(difference);
-            entity.addLine(line);
+            line.setDifferenceAmount(notebookAmount - systemAmount);
+            lines.add(line);
+        }
+        return lines;
+    }
 
-            notebookTotal += notebookAmount;
-            systemTotal += systemAmount;
+    private void rewriteControl(
+            TontineMemberFieldControl entity,
+            String reference,
+            LocalDateTime observedAt,
+            String observedBy,
+            String note,
+            List<TontineMemberFieldControlLine> desiredLines) {
+        Set<Long> lockedIds = recontrolPolicy != null
+                ? recontrolPolicy.terminalTontineLineIds(entity)
+                : Set.of();
+        if (lockedIds == null) {
+            lockedIds = Set.of();
+        }
+        Set<String> lockedKeys = new HashSet<>();
+        if (entity.getLines() != null) {
+            for (TontineMemberFieldControlLine line : entity.getLines()) {
+                if (line.getId() != null && lockedIds.contains(line.getId())) {
+                    lockedKeys.add(lineKey(line.getCommercialUsername(), line.getYear(), line.getMonth()));
+                }
+            }
         }
 
-        double differenceTotal = notebookTotal - systemTotal;
+        if (lockedKeys.isEmpty()) {
+            entity.getLines().clear();
+            for (TontineMemberFieldControlLine line : desiredLines) {
+                entity.addLine(line);
+            }
+        } else {
+            Set<String> desiredKeys = desiredLines.stream()
+                    .map(line -> lineKey(line.getCommercialUsername(), line.getYear(), line.getMonth()))
+                    .collect(Collectors.toCollection(HashSet::new));
+            entity.getLines().removeIf(line -> {
+                String key = lineKey(line.getCommercialUsername(), line.getYear(), line.getMonth());
+                return !lockedKeys.contains(key) && !desiredKeys.contains(key);
+            });
+            for (TontineMemberFieldControlLine desired : desiredLines) {
+                String key = lineKey(desired.getCommercialUsername(), desired.getYear(), desired.getMonth());
+                if (lockedKeys.contains(key)) {
+                    continue;
+                }
+                TontineMemberFieldControlLine existing = entity.getLines().stream()
+                        .filter(line -> key.equals(lineKey(
+                                line.getCommercialUsername(), line.getYear(), line.getMonth())))
+                        .findFirst()
+                        .orElse(null);
+                if (existing != null) {
+                    existing.setNotebookAmount(desired.getNotebookAmount());
+                    existing.setSystemAmount(desired.getSystemAmount());
+                    existing.setDifferenceAmount(desired.getDifferenceAmount());
+                    existing.setCommercialUsername(desired.getCommercialUsername());
+                } else {
+                    entity.addLine(desired);
+                }
+            }
+        }
+
+        entity.setReference(reference);
+        entity.setObservedAt(observedAt);
+        entity.setObservedBy(observedBy);
+        entity.setNote(note);
+        applyTotals(entity);
+    }
+
+    private void applyTotals(TontineMemberFieldControl entity) {
+        double notebookTotal = 0d;
+        double systemTotal = 0d;
+        for (TontineMemberFieldControlLine line : entity.getLines()) {
+            notebookTotal += line.getNotebookAmount() != null ? line.getNotebookAmount() : 0d;
+            systemTotal += line.getSystemAmount() != null ? line.getSystemAmount() : 0d;
+        }
         entity.setNotebookTotalAmount(notebookTotal);
         entity.setSystemTotalAmount(systemTotal);
-        entity.setDifferenceAmount(differenceTotal);
-        entity.setStatus(Math.abs(differenceTotal) < EPSILON ? FieldControlStatus.CONFORME : FieldControlStatus.ECART);
+        entity.setDifferenceAmount(notebookTotal - systemTotal);
+        entity.setStatus(Math.abs(notebookTotal - systemTotal) < EPSILON
+                ? FieldControlStatus.CONFORME
+                : FieldControlStatus.ECART);
+    }
 
-        TontineMemberFieldControl saved = repository.save(entity);
-        notifyEcart(saved, member);
-        return toDto(saved, memberId);
+    private static String lineKey(String commercial, Integer year, Integer month) {
+        String normalized = commercial != null ? commercial.trim().toLowerCase(Locale.ROOT) : "";
+        return normalized + "|" + year + "-" + month;
     }
 
     private void notifyEcart(TontineMemberFieldControl saved, TontineMember member) {
@@ -213,6 +313,7 @@ public class TontineMemberFieldControlService {
 
         List<TontineMemberFieldControlCollectorDto> collectors = buildCollectorSummaries(lines);
         List<String> uncontrolled = resolveUncontrolledCollectors(memberId, collectors);
+        EcartDecisionView view = decisionView(entity);
 
         return TontineMemberFieldControlDto.builder()
                 .id(entity.getId())
@@ -228,7 +329,17 @@ public class TontineMemberFieldControlService {
                 .lines(lines)
                 .collectors(collectors)
                 .uncontrolledCollectors(uncontrolled)
+                .ecartDecisionStatus(view.status())
+                .modifiable(view.modifiable())
                 .build();
+    }
+
+    private EcartDecisionView decisionView(TontineMemberFieldControl entity) {
+        if (recontrolPolicy == null || entity == null || entity.getId() == null) {
+            return EcartDecisionView.none();
+        }
+        EcartDecisionView view = recontrolPolicy.viewTontine(entity);
+        return view != null ? view : EcartDecisionView.none();
     }
 
     private List<TontineMemberFieldControlCollectorDto> buildCollectorSummaries(

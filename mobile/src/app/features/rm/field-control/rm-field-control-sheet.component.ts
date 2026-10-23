@@ -4,6 +4,15 @@ import { RmCreditLate } from '../../../core/services/rm/rm.models';
 import { RmFieldControlWriteService } from '../../../core/services/rm/rm-field-control-write.service';
 import { OnlineWriteError } from '../../../core/services/online-first-write.types';
 
+export interface RmPreviousFieldControl {
+  status?: string;
+  differenceAmount?: number;
+  notebookTotalAmount?: number;
+  note?: string;
+  ecartDecisionStatus?: string | null;
+  modifiable?: boolean;
+}
+
 @Component({
   selector: 'app-rm-field-control-sheet',
   templateUrl: './rm-field-control-sheet.component.html',
@@ -12,6 +21,7 @@ import { OnlineWriteError } from '../../../core/services/online-first-write.type
 })
 export class RmFieldControlSheetComponent implements OnInit {
   @Input() credit!: RmCreditLate;
+  @Input() previous: RmPreviousFieldControl | null = null;
 
   notebookTotalAmount: number | null = null;
   note = '';
@@ -25,7 +35,25 @@ export class RmFieldControlSheetComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    if (this.modifying && this.previous?.notebookTotalAmount != null) {
+      this.notebookTotalAmount = this.previous.notebookTotalAmount;
+      this.note = this.previous.note || '';
+      return;
+    }
     this.notebookTotalAmount = this.systemPaid;
+  }
+
+  get modifying(): boolean {
+    if (!this.previous) {
+      return false;
+    }
+    if (typeof this.previous.modifiable === 'boolean') {
+      return this.previous.modifiable;
+    }
+    if (this.previous.status !== 'ECART') {
+      return false;
+    }
+    return !this.previous.ecartDecisionStatus || this.previous.ecartDecisionStatus === 'PENDING';
   }
 
   get systemPaid(): number {
@@ -80,9 +108,10 @@ export class RmFieldControlSheetComponent implements OnInit {
         clientName: this.credit.clientName,
         creditReference: this.credit.reference
       });
+      const verb = this.modifying ? 'modifié' : 'enregistré';
       await this.toast(
         result.mode === 'online'
-          ? `Contrôle enregistré (${result.op.status})`
+          ? `Contrôle ${verb} (${result.op.status})`
           : `Contrôle hors ligne (${result.op.status}) — sync ultérieure`,
         result.mode === 'online' ? 'success' : 'warning'
       );

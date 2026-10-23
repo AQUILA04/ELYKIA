@@ -84,6 +84,12 @@ export interface RmPackTontineMember {
   months: RmPackTontineMonth[];
   /** Répartition système par commercial collecteur (packs récents). */
   collectors?: RmPackTontineCollector[];
+  /** Dernier contrôle (liste en ligne). */
+  latestControlStatus?: string;
+  latestDifferenceAmount?: number;
+  latestObservedAt?: string;
+  ecartDecisionStatus?: string | null;
+  modifiable?: boolean;
 }
 
 export interface RmCreditLate {
@@ -123,6 +129,8 @@ export interface RmPackTontineFieldControlToday {
   differenceAmount?: number;
   note?: string;
   observedAt?: string;
+  ecartDecisionStatus?: string | null;
+  modifiable?: boolean;
   lines?: {
     year: number;
     month: number;

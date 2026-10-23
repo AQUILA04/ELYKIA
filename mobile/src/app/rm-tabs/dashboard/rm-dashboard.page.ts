@@ -35,7 +35,14 @@ export class RmDashboardPage implements OnInit, OnDestroy {
   selectedYear = new Date().getFullYear();
   selectedMonth = new Date().getMonth() + 1;
   carnetBusy = false;
-  private controlByCredit = new Map<number, string>();
+  private controlByCredit = new Map<number, {
+    status?: string;
+    differenceAmount?: number;
+    notebookTotalAmount?: number;
+    note?: string;
+    ecartDecisionStatus?: string | null;
+    modifiable?: boolean;
+  }>();
   private subs: Subscription[] = [];
 
   constructor(
@@ -111,6 +118,10 @@ export class RmDashboardPage implements OnInit, OnDestroy {
   }
 
   controlStatus(creditId: number): string | null {
+    return this.controlByCredit.get(creditId)?.status || null;
+  }
+
+  controlMeta(creditId: number) {
     return this.controlByCredit.get(creditId) || null;
   }
 
@@ -129,7 +140,7 @@ export class RmDashboardPage implements OnInit, OnDestroy {
     event?.stopPropagation();
     const modal = await this.modalCtrl.create({
       component: RmFieldControlSheetComponent,
-      componentProps: { credit: item },
+      componentProps: { credit: item, previous: this.controlMeta(item.id) },
       cssClass: 'rm-close-modal'
     });
     await modal.present();
@@ -198,7 +209,14 @@ export class RmDashboardPage implements OnInit, OnDestroy {
     }
     for (const c of controls as any[]) {
       if (c?.creditId != null && c?.status) {
-        this.controlByCredit.set(Number(c.creditId), String(c.status));
+        this.controlByCredit.set(Number(c.creditId), {
+          status: String(c.status),
+          differenceAmount: c.differenceAmount,
+          notebookTotalAmount: c.notebookTotalAmount,
+          note: c.note,
+          ecartDecisionStatus: c.ecartDecisionStatus,
+          modifiable: c.modifiable
+        });
       }
     }
   }

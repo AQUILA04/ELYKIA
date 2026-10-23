@@ -14,6 +14,7 @@ import com.optimize.elykia.core.enumaration.FieldControlStatus;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,8 +27,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,6 +47,8 @@ class TontineMemberFieldControlServiceTest {
     private TontineMemberRepository tontineMemberRepository;
     @Mock
     private TontineCollectionRepository tontineCollectionRepository;
+    @Mock
+    private CarnetEcartRecontrolPolicy recontrolPolicy;
     @InjectMocks
     private TontineMemberFieldControlService service;
 
@@ -220,6 +225,94 @@ class TontineMemberFieldControlServiceTest {
         assertEquals(null, result.getLines().get(0).getCommercialUsername());
         assertTrue(result.getCollectors().isEmpty());
         assertEquals(List.of("COM015"), result.getUncontrolledCollectors());
+    }
+
+    @Test
+    void create_updatesPendingEcartInsteadOfAppendingHistory() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("field.agent", "n/a"));
+        TontineMember member = member(10L, "COM003");
+        TontineMemberFieldControl pending = new TontineMemberFieldControl();
+        pending.setId(77L);
+        pending.setTontineMember(member);
+        pending.setReference("CTRL-OLD");
+        pending.setStatus(FieldControlStatus.ECART);
+        pending.setObservedAt(LocalDateTime.of(2026, 2, 1, 8, 0));
+        pending.setObservedBy("field.agent");
+        TontineMemberFieldControlLine previous = new TontineMemberFieldControlLine();
+        previous.setId(5L);
+        previous.setYear(2026);
+        previous.setMonth(2);
+        previous.setCommercialUsername("COM003");
+        previous.setNotebookAmount(120_000.0);
+        previous.setSystemAmount(100_000.0);
+        previous.setDifferenceAmount(20_000.0);
+        pending.addLine(previous);
+
+        CreateTontineMemberFieldControlDto request = request("CTRL-NEW", month(2026, 2, "COM003", 110_000.0));
+        when(repository.existsByReference("CTRL-NEW")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member));
+        when(repository.findFirstByTontineMember_idAndStateOrderByObservedAtDesc(10L, State.ENABLED))
+                .thenReturn(Optional.of(pending));
+        when(recontrolPolicy.mustModifyTontine(pending)).thenReturn(true);
+        when(recontrolPolicy.terminalTontineLineIds(pending)).thenReturn(Set.of());
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of(collection(100_000.0, LocalDateTime.of(2026, 2, 4, 9, 0), "COM003")));
+        when(repository.save(any(TontineMemberFieldControl.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TontineMemberFieldControlDto result = service.create(10L, request);
+
+        assertEquals(77L, result.getId());
+        assertEquals("CTRL-NEW", result.getReference());
+        assertEquals(110_000.0, result.getNotebookTotalAmount());
+        assertEquals(10_000.0, result.getDifferenceAmount());
+        assertEquals(FieldControlStatus.ECART, result.getStatus());
+        assertEquals(1, result.getLines().size());
+    }
+
+    @Test
+    void create_appendsControlWhenLatestEcartIsAlreadyAccepted() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("field.agent", "n/a"));
+        TontineMember member = member(10L, "COM003");
+        TontineMemberFieldControl accepted = new TontineMemberFieldControl();
+        accepted.setId(77L);
+        accepted.setTontineMember(member);
+        accepted.setReference("CTRL-OLD");
+        accepted.setStatus(FieldControlStatus.ECART);
+        accepted.addLine(line(2026, 2, "COM003", 110_000.0, 100_000.0));
+
+        CreateTontineMemberFieldControlDto request = request("CTRL-NEXT", month(2026, 2, "COM003", 100_000.0));
+        when(repository.existsByReference("CTRL-NEXT")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member));
+        when(repository.findFirstByTontineMember_idAndStateOrderByObservedAtDesc(10L, State.ENABLED))
+                .thenReturn(Optional.of(accepted));
+        when(recontrolPolicy.mustModifyTontine(accepted)).thenReturn(false);
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of(collection(100_000.0, LocalDateTime.of(2026, 2, 4, 9, 0), "COM003")));
+        when(repository.save(any(TontineMemberFieldControl.class))).thenAnswer(invocation -> {
+            TontineMemberFieldControl control = invocation.getArgument(0);
+            assertNotEquals(77L, control.getId());
+            control.setId(88L);
+            return control;
+        });
+
+        TontineMemberFieldControlDto result = service.create(10L, request);
+
+        assertEquals(88L, result.getId());
+        assertEquals(FieldControlStatus.CONFORME, result.getStatus());
+    }
+
+    private TontineMemberFieldControlLine line(
+            int year, int month, String commercial, double notebook, double system) {
+        TontineMemberFieldControlLine line = new TontineMemberFieldControlLine();
+        line.setYear(year);
+        line.setMonth(month);
+        line.setCommercialUsername(commercial);
+        line.setNotebookAmount(notebook);
+        line.setSystemAmount(system);
+        line.setDifferenceAmount(notebook - system);
+        return line;
     }
 
     private CreateTontineMemberFieldControlDto request(String reference, CreateTontineMemberFieldControlMonthDto... months) {

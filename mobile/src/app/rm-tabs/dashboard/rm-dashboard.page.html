@@ -96,14 +96,19 @@
           <p class="phone" *ngIf="item.clientPhone">{{ item.clientPhone }}</p>
           <span class="ctrl-badge verified" *ngIf="item.carnetVerified"
                 data-testid="e2e-rm-credit-carnet-badge">Vérifié</span>
-          <span
-            class="ctrl-badge"
-            *ngIf="controlStatus(item.id) as st"
-            [class.ok]="st === 'CONFORME'"
-            [class.ecart]="st === 'ECART'"
-            data-testid="e2e-rm-control-badge">
-            {{ st }}
-          </span>
+          <ng-container *ngIf="controlMeta(item.id) as ctrl">
+            <span
+              class="ctrl-badge"
+              [class.ok]="ctrl.status === 'CONFORME'"
+              [class.ecart]="ctrl.status === 'ECART'"
+              data-testid="e2e-rm-control-badge">
+              {{ ctrl.status }}
+            </span>
+            <span class="ctrl-badge ecart" *ngIf="ctrl.status === 'ECART'">
+              Écart {{ formatAmount(ctrl.differenceAmount || 0) }}
+            </span>
+            <span class="ctrl-badge warn">Déjà contrôlé</span>
+          </ng-container>
         </div>
         <div class="late-side">
           <strong>{{ formatAmount(item.totalAmountRemaining || 0) }}</strong>

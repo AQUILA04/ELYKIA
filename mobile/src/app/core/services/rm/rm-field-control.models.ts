@@ -43,4 +43,6 @@ export interface RmFieldControlDto {
   observedAt?: string;
   observedBy?: string;
   note?: string;
+  ecartDecisionStatus?: string | null;
+  modifiable?: boolean;
 }

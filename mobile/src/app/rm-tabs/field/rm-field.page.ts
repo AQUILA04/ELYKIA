@@ -7,7 +7,9 @@ import { debounceTime, skip } from 'rxjs/operators';
 import { ConnectivityService } from '../../core/services/connectivity.service';
 import { RmFieldListApiService } from '../../core/services/rm/rm-field-list-api.service';
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
-import { RmCreditLate, RmPackTontineMember } from '../../core/services/rm/rm.models';
+import { RmCreditLate, RmPackTontineFieldControlToday, RmPackTontineMember } from '../../core/services/rm/rm.models';
+import { RmTontineFieldControlApiService } from '../../core/services/rm/rm-tontine-field-control-api.service';
+import { RmTontineFieldControlDto } from '../../core/services/rm/rm-tontine-field-control.models';
 import { RmTontineFieldControlSheetComponent } from '../../features/rm/tontine-field-control/rm-tontine-field-control-sheet.component';
 import { describeFailure, TontineControlDebug } from '../../features/rm/tontine-field-control/rm-tontine-control-debug';
 import { RmCarnetVerificationWriteService } from '../../core/services/rm/rm-carnet-verification-write.service';
@@ -102,7 +104,8 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     private readonly alertCtrl: AlertController,
     private readonly toastCtrl: ToastController,
     private readonly carnetWrite: RmCarnetVerificationWriteService,
-    private readonly creditCarnetWrite: RmCreditCarnetVerificationWriteService
+    private readonly creditCarnetWrite: RmCreditCarnetVerificationWriteService,
+    private readonly tontineControlApi: RmTontineFieldControlApiService
   ) {}
 
   ngOnInit(): void {
@@ -395,9 +398,20 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     TontineControlDebug.note(
       `detail months=${detailed.months?.length ?? 0} collectors=${detailed.collectors?.length ?? 0}`
     );
+    const known = this.controlFor(member);
+    let latestControl = known;
+    const modifying = this.isModifiable(known);
+    if (this.onlineMode && modifying) {
+      try {
+        latestControl = this.toControlSummary(await this.tontineControlApi.getLatest(member.id));
+      } catch (error) {
+        TontineControlDebug.note(`latest control error ${describeFailure(error)}`);
+      }
+    }
+
     const modal = await this.modalCtrl.create({
       component: RmTontineFieldControlSheetComponent,
-      componentProps: { member: detailed },
+      componentProps: { member: detailed, modifying, latestControl },
       cssClass: 'rm-tontine-control-modal',
       backdropDismiss: false,
       keyboardClose: true
@@ -406,6 +420,14 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     TontineControlDebug.note('modal presented');
     const dismissed = await modal.onDidDismiss();
     TontineControlDebug.note(`modal dismissed role=${dismissed.role || '-'}`);
+    const op = (dismissed.data as { op?: { status?: string; differenceAmount?: number; observedAt?: string } } | undefined)?.op;
+    if (dismissed.role === 'confirm' && op) {
+      member.latestControlStatus = op.status;
+      member.latestDifferenceAmount = op.differenceAmount;
+      member.latestObservedAt = op.observedAt;
+      member.ecartDecisionStatus = op.status === 'ECART' ? 'PENDING' : null;
+      member.modifiable = op.status === 'ECART';
+    }
     this.loadTontineMembers();
   }
 
@@ -530,10 +552,52 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     }
   }
 
-  controlStatus(member: RmPackTontineMember): string | null {
+  controlFor(member: RmPackTontineMember): RmPackTontineFieldControlToday | null {
+    if (this.onlineMode) {
+      if (!member.latestControlStatus) {
+        return null;
+      }
+      return {
+        tontineMemberId: member.id,
+        status: member.latestControlStatus,
+        differenceAmount: member.latestDifferenceAmount,
+        observedAt: member.latestObservedAt,
+        ecartDecisionStatus: member.ecartDecisionStatus,
+        modifiable: member.modifiable
+      };
+    }
     const controls = this.scope.getPack()?.tontineFieldControlsToday ?? [];
-    const found = controls.find(c => c.tontineMemberId === member.id);
-    return found?.status ?? null;
+    return controls.find(c => c.tontineMemberId === member.id) ?? null;
+  }
+
+  private toControlSummary(dto: RmTontineFieldControlDto): RmPackTontineFieldControlToday {
+    return {
+      tontineMemberId: dto.tontineMemberId,
+      reference: dto.reference,
+      status: dto.status,
+      notebookTotalAmount: dto.notebookTotalAmount,
+      systemTotalAmount: dto.systemTotalAmount,
+      differenceAmount: dto.differenceAmount,
+      note: dto.note,
+      observedAt: dto.observedAt,
+      ecartDecisionStatus: dto.ecartDecisionStatus,
+      modifiable: dto.modifiable,
+      lines: dto.lines,
+      collectors: dto.collectors
+    };
+  }
+
+  isModifiable(control: RmPackTontineFieldControlToday | null): boolean {
+    if (!control) {
+      return false;
+    }
+    if (typeof control.modifiable === 'boolean') {
+      return control.modifiable;
+    }
+    if (control.status !== 'ECART') {
+      return false;
+    }
+    return !control.ecartDecisionStatus || control.ecartDecisionStatus === 'PENDING';
   }
 
   formatAmount(value: number): string {

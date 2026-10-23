@@ -10,6 +10,11 @@
     </ion-button>
   </header>
 
+  <p class="already-controlled" *ngIf="modifying">
+    Ce client a déjà été contrôlé. L'écart n'est pas encore accepté : enregistrer modifie ce contrôle.
+    <span *ngIf="previous?.differenceAmount != null"> Écart actuel : {{ formatAmount(previous?.differenceAmount || 0) }} FCFA.</span>
+  </p>
+
   <section class="summary">
     <div class="row">
       <span>Système (payé)</span>
@@ -53,6 +58,6 @@
     [disabled]="!isValid || submitting"
     (click)="confirm()"
     data-testid="e2e-rm-control-confirm">
-    {{ submitting ? 'Enregistrement…' : 'Capturer le contrôle' }}
+    {{ submitting ? 'Enregistrement…' : (modifying ? 'Modifier le contrôle' : 'Capturer le contrôle') }}
   </ion-button>
 </div>

@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,6 +23,19 @@ public interface CreditFieldControlRepository extends GenericRepository<CreditFi
             LocalDateTime end,
             State state
     );
+
+    @Query("""
+            SELECT c FROM CreditFieldControl c
+            JOIN FETCH c.credit
+            WHERE c.state = com.optimize.common.entities.enums.State.ENABLED
+              AND c.credit.id IN :creditIds
+              AND c.observedAt = (
+                SELECT MAX(c2.observedAt) FROM CreditFieldControl c2
+                WHERE c2.credit.id = c.credit.id
+                  AND c2.state = com.optimize.common.entities.enums.State.ENABLED
+              )
+            """)
+    List<CreditFieldControl> findLatestByCreditIds(@Param("creditIds") Collection<Long> creditIds);
 
     boolean existsByReference(String reference);
 

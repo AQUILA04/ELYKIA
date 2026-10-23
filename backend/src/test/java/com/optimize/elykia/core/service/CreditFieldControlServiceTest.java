@@ -9,6 +9,7 @@ import com.optimize.elykia.core.entity.sale.CreditFieldControl;
 import com.optimize.elykia.core.enumaration.FieldControlStatus;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
 import com.optimize.elykia.core.service.sale.CreditFieldControlService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,6 +43,8 @@ class CreditFieldControlServiceTest {
     private CreditFieldControlRepository controlRepository;
     @Mock
     private CreditRepository creditRepository;
+    @Mock
+    private CarnetEcartRecontrolPolicy recontrolPolicy;
     @InjectMocks
     private CreditFieldControlService creditFieldControlService;
 
@@ -114,6 +118,55 @@ class CreditFieldControlServiceTest {
         assertEquals(FieldControlStatus.ECART, result.getStatus());
         verify(creditRepository, never()).findById(any());
         verify(controlRepository, never()).save(any());
+    }
+
+    @Test
+    void create_updatesPendingEcartInsteadOfAppendingHistory() {
+        authenticateAs("field.agent");
+        Credit credit = credit(180.0);
+        CreditFieldControl pending = control(credit, "CTRL-OLD", 220.0, 180.0, FieldControlStatus.ECART);
+        pending.setId(44L);
+        when(controlRepository.existsByReference("CTRL-NEW")).thenReturn(false);
+        when(creditRepository.findById(CREDIT_ID)).thenReturn(Optional.of(credit));
+        when(controlRepository.findFirstByCredit_idAndStateOrderByObservedAtDesc(CREDIT_ID, State.ENABLED))
+                .thenReturn(Optional.of(pending));
+        when(recontrolPolicy.mustModifyCredit(pending)).thenReturn(true);
+        when(controlRepository.save(any(CreditFieldControl.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        CreditFieldControlDto result = creditFieldControlService.create(
+                CREDIT_ID, controlDto("CTRL-NEW", 250.0, null));
+
+        assertEquals(44L, result.getId());
+        assertEquals("CTRL-NEW", result.getReference());
+        assertEquals(70.0, result.getDifferenceAmount());
+        assertEquals(FieldControlStatus.ECART, result.getStatus());
+        verify(controlRepository).save(pending);
+    }
+
+    @Test
+    void create_appendsControlWhenLatestIsConforme() {
+        authenticateAs("field.agent");
+        Credit credit = credit(180.0);
+        CreditFieldControl conforme = control(credit, "CTRL-OK", 180.0, 180.0, FieldControlStatus.CONFORME);
+        conforme.setId(44L);
+        when(controlRepository.existsByReference("CTRL-NEXT")).thenReturn(false);
+        when(creditRepository.findById(CREDIT_ID)).thenReturn(Optional.of(credit));
+        when(controlRepository.findFirstByCredit_idAndStateOrderByObservedAtDesc(CREDIT_ID, State.ENABLED))
+                .thenReturn(Optional.of(conforme));
+        when(recontrolPolicy.mustModifyCredit(conforme)).thenReturn(false);
+        when(controlRepository.save(any(CreditFieldControl.class))).thenAnswer(invocation -> {
+            CreditFieldControl saved = invocation.getArgument(0);
+            assertNotEquals(44L, saved.getId());
+            saved.setId(90L);
+            return saved;
+        });
+
+        CreditFieldControlDto result = creditFieldControlService.create(
+                CREDIT_ID, controlDto("CTRL-NEXT", 200.0, null));
+
+        assertEquals(90L, result.getId());
+        assertEquals(FieldControlStatus.ECART, result.getStatus());
     }
 
     @Test

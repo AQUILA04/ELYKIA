@@ -67,6 +67,8 @@ export interface RmTontineFieldControlDto {
   observedAt?: string;
   observedBy?: string;
   note?: string;
+  ecartDecisionStatus?: string | null;
+  modifiable?: boolean;
   lines?: RmTontineFieldControlLineDto[];
   collectors?: RmTontineFieldControlCollectorDto[];
   uncontrolledCollectors?: string[];

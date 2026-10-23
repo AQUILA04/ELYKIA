@@ -10,6 +10,9 @@
     </button>
   </header>
   <div class="rm-tfc-scroll">
+  <p class="already-controlled" *ngIf="modifying" data-testid="e2e-rm-tontine-already-controlled">
+    Ce client a déjà été contrôlé. L'écart n'est pas encore accepté : enregistrer modifie ce contrôle.
+  </p>
   <section class="summary" *ngIf="selectedRows.length">
     <div class="row">
       <span>Système (sélection)</span>
@@ -103,7 +106,7 @@
     [disabled]="!isValid || submitting"
     (click)="confirm()"
     data-testid="e2e-rm-tontine-control-confirm">
-    {{ submitting ? 'Enregistrement…' : 'Capturer le contrôle' }}
+    {{ submitting ? 'Enregistrement…' : (modifying ? 'Modifier le contrôle' : 'Capturer le contrôle') }}
   </ion-button>
   </div>
 </div>

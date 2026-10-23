@@ -66,6 +66,12 @@
             <span>{{ formatAmount(item.totalContribution || 0) }} FCFA cotisés</span>
             <span class="badge verified" *ngIf="item.carnetVerified"
                   data-testid="e2e-rm-carnet-badge">Vérifié</span>
+            <ng-container *ngIf="controlFor(item) as ctrl">
+              <span class="badge" [class.ok]="ctrl.status === 'CONFORME'" [class.ecart]="ctrl.status === 'ECART'"
+                    data-testid="e2e-rm-tontine-badge">{{ ctrl.status }}</span>
+              <span class="badge ecart" *ngIf="ctrl.status === 'ECART'">Écart {{ formatAmount(ctrl.differenceAmount || 0) }} FCFA</span>
+              <span class="badge warn">Déjà contrôlé</span>
+            </ng-container>
           </div>
           <div class="row-actions">
             <ion-button size="small" fill="solid" class="rm-solid-btn" (click)="toggleCarnet(item)"
@@ -132,10 +138,14 @@
               <span>{{ formatAmount(item.totalContribution || 0) }} FCFA cotisés</span>
               <span class="badge verified" *ngIf="item.carnetVerified"
                     data-testid="e2e-rm-carnet-badge">Vérifié</span>
-              <span class="badge" *ngIf="controlStatus(item) as st" [class.ok]="st === 'CONFORME'" [class.ecart]="st === 'ECART'"
-                data-testid="e2e-rm-tontine-badge">
-                {{ st }}
-              </span>
+              <ng-container *ngIf="controlFor(item) as ctrl">
+                <span class="badge" [class.ok]="ctrl.status === 'CONFORME'" [class.ecart]="ctrl.status === 'ECART'"
+                  data-testid="e2e-rm-tontine-badge">
+                  {{ ctrl.status }}
+                </span>
+                <span class="badge ecart" *ngIf="ctrl.status === 'ECART'">Écart {{ formatAmount(ctrl.differenceAmount || 0) }} FCFA</span>
+                <span class="badge warn">Déjà contrôlé</span>
+              </ng-container>
             </div>
             <div class="row-actions">
               <ion-button size="small" fill="solid" class="rm-solid-btn" (click)="toggleCarnet(item)"

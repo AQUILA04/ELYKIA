@@ -30,6 +30,8 @@ import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.CreditLateService;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -42,7 +44,6 @@ import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -67,6 +68,7 @@ public class RecoveryFieldPlanService {
     private final TontineMemberFieldControlRepository tontineMemberFieldControlRepository;
     private final ClientService clientService;
     private final ObjectMapper objectMapper;
+    private final CarnetEcartRecontrolPolicy recontrolPolicy;
 
     public FieldDayPlanDto createOrReplacePlan(FieldDayPlanRequestDto request, String recoveryManagerUsername) {
         validateRequest(request);
@@ -319,7 +321,7 @@ public class RecoveryFieldPlanService {
         }
 
         List<Long> creditIds = lateCredits.stream().map(CreditLateDTO::getId).filter(Objects::nonNull).toList();
-        List<CreditFieldControlDto> controlsToday = loadFieldControlsToday(creditIds);
+        List<CreditFieldControlDto> controlsToday = loadLatestFieldControls(creditIds);
 
         List<RmPackTontineMemberDto> tontineMembers = includeTontine
                 ? loadTontineMembers(commercials, quarterFilter, clientsById)
@@ -329,7 +331,7 @@ public class RecoveryFieldPlanService {
                 .filter(Objects::nonNull)
                 .toList();
         List<TontineMemberFieldControlDto> tontineControlsToday = includeTontine
-                ? loadTontineFieldControlsToday(tontineMemberIds)
+                ? loadLatestTontineFieldControls(tontineMemberIds)
                 : List.of();
 
         List<RmCommercialRefDto> commercialRefs = commercials.stream()
@@ -362,12 +364,40 @@ public class RecoveryFieldPlanService {
     public Page<RmFieldTontineRowDto> pageTontineMembers(String search, int page, int size) {
         String folded = foldSearch(search);
         String digits = folded.replaceAll("\\D", "");
-        return tontineMemberRepository.pageFieldRows(
+        Page<RmFieldTontineRowDto> rows = tontineMemberRepository.pageFieldRows(
                 LocalDate.now().getYear(),
                 State.ENABLED,
                 folded.isEmpty() ? null : folded,
                 digits.isEmpty() ? null : digits,
                 PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 40)));
+        List<Long> memberIds = rows.getContent().stream()
+                .map(RmFieldTontineRowDto::getId)
+                .filter(Objects::nonNull)
+                .toList();
+        if (memberIds.isEmpty()) {
+            return rows;
+        }
+        Map<Long, TontineMemberFieldControl> latestByMember = dedupeLatestTontine(
+                tontineMemberFieldControlRepository.findLatestByMemberIds(memberIds));
+        Map<Long, EcartDecisionView> views = recontrolPolicy != null
+                ? recontrolPolicy.viewTontines(latestByMember.values())
+                : Map.of();
+        return rows.map(row -> {
+            TontineMemberFieldControl control = latestByMember.get(row.getId());
+            if (control == null) {
+                return row;
+            }
+            EcartDecisionView view = control.getId() != null
+                    ? views.getOrDefault(control.getId(), EcartDecisionView.none())
+                    : EcartDecisionView.none();
+            String status = control.getStatus() != null ? control.getStatus().name() : null;
+            return row.withLatestControl(
+                    status,
+                    control.getDifferenceAmount(),
+                    control.getObservedAt(),
+                    view.status(),
+                    view.modifiable());
+        });
     }
 
     public RmPackTontineMemberDto getTontineMemberForField(Long id) {
@@ -621,18 +651,45 @@ public class RecoveryFieldPlanService {
         return result;
     }
 
-    private List<TontineMemberFieldControlDto> loadTontineFieldControlsToday(List<Long> memberIds) {
+    /**
+     * Dernier contrôle de chaque membre du pack (le champ JSON historique reste
+     * {@code tontineFieldControlsToday} pour les packs déjà consommés).
+     */
+    private List<TontineMemberFieldControlDto> loadLatestTontineFieldControls(List<Long> memberIds) {
         if (memberIds == null || memberIds.isEmpty()) {
             return List.of();
         }
-        LocalDateTime start = LocalDate.now().atStartOfDay();
-        LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
-        List<TontineMemberFieldControl> controls = tontineMemberFieldControlRepository
-                .findByTontineMember_IdInAndObservedAtBetweenAndState(memberIds, start, end, State.ENABLED);
-        return controls.stream().map(this::toTontineFieldControlDto).toList();
+        List<TontineMemberFieldControl> controls = dedupeLatestTontine(
+                tontineMemberFieldControlRepository.findLatestByMemberIds(memberIds)).values().stream().toList();
+        Map<Long, EcartDecisionView> views = recontrolPolicy != null
+                ? recontrolPolicy.viewTontines(controls)
+                : Map.of();
+        return controls.stream()
+                .map(entity -> toTontineFieldControlDto(entity, views.get(entity.getId())))
+                .toList();
     }
 
-    private TontineMemberFieldControlDto toTontineFieldControlDto(TontineMemberFieldControl entity) {
+    private Map<Long, TontineMemberFieldControl> dedupeLatestTontine(List<TontineMemberFieldControl> controls) {
+        Map<Long, TontineMemberFieldControl> best = new LinkedHashMap<>();
+        if (controls == null) {
+            return best;
+        }
+        for (TontineMemberFieldControl control : controls) {
+            Long memberId = control.getTontineMember() != null ? control.getTontineMember().getId() : null;
+            if (memberId == null) {
+                continue;
+            }
+            TontineMemberFieldControl current = best.get(memberId);
+            if (current == null || isNewer(control, current)) {
+                best.put(memberId, control);
+            }
+        }
+        return best;
+    }
+
+    private TontineMemberFieldControlDto toTontineFieldControlDto(
+            TontineMemberFieldControl entity,
+            EcartDecisionView view) {
         List<TontineMemberFieldControlLineDto> lines = entity.getLines() == null
                 ? List.of()
                 : entity.getLines().stream()
@@ -688,6 +745,8 @@ public class RecoveryFieldPlanService {
                 .lines(lines)
                 .collectors(collectors)
                 .uncontrolledCollectors(List.of())
+                .ecartDecisionStatus(view != null ? view.status() : null)
+                .modifiable(view != null && view.modifiable())
                 .build();
     }
 
@@ -759,18 +818,67 @@ public class RecoveryFieldPlanService {
                 .build();
     }
 
-    private List<CreditFieldControlDto> loadFieldControlsToday(List<Long> creditIds) {
+    /**
+     * Dernier contrôle de chaque crédit du pack (champ JSON {@code creditFieldControlsToday}).
+     */
+    private List<CreditFieldControlDto> loadLatestFieldControls(List<Long> creditIds) {
         if (creditIds.isEmpty()) {
             return List.of();
         }
-        LocalDateTime start = LocalDate.now().atStartOfDay();
-        LocalDateTime end = LocalDate.now().atTime(LocalTime.MAX);
-        List<CreditFieldControl> controls = creditFieldControlRepository
-                .findByCredit_IdInAndObservedAtBetweenAndState(creditIds, start, end, State.ENABLED);
-        return controls.stream().map(this::toFieldControlDto).toList();
+        List<CreditFieldControl> controls = dedupeLatestCredit(
+                creditFieldControlRepository.findLatestByCreditIds(creditIds));
+        Map<Long, EcartDecisionView> views = recontrolPolicy != null
+                ? recontrolPolicy.viewCredits(controls)
+                : Map.of();
+        return controls.stream()
+                .map(entity -> toFieldControlDto(entity, views.get(entity.getId())))
+                .toList();
     }
 
-    private CreditFieldControlDto toFieldControlDto(CreditFieldControl entity) {
+    private List<CreditFieldControl> dedupeLatestCredit(List<CreditFieldControl> controls) {
+        Map<Long, CreditFieldControl> best = new LinkedHashMap<>();
+        if (controls == null) {
+            return List.of();
+        }
+        for (CreditFieldControl control : controls) {
+            Long creditId = control.getCredit() != null ? control.getCredit().getId() : null;
+            if (creditId == null) {
+                continue;
+            }
+            CreditFieldControl current = best.get(creditId);
+            if (current == null || isNewer(control.getObservedAt(), control.getId(),
+                    current.getObservedAt(), current.getId())) {
+                best.put(creditId, control);
+            }
+        }
+        return new ArrayList<>(best.values());
+    }
+
+    private static boolean isNewer(TontineMemberFieldControl candidate, TontineMemberFieldControl current) {
+        return isNewer(candidate.getObservedAt(), candidate.getId(), current.getObservedAt(), current.getId());
+    }
+
+    private static boolean isNewer(
+            LocalDateTime candidateAt,
+            Long candidateId,
+            LocalDateTime currentAt,
+            Long currentId) {
+        if (candidateAt == null) {
+            return false;
+        }
+        if (currentAt == null) {
+            return true;
+        }
+        int compared = candidateAt.compareTo(currentAt);
+        if (compared != 0) {
+            return compared > 0;
+        }
+        long left = candidateId != null ? candidateId : 0L;
+        long right = currentId != null ? currentId : 0L;
+        return left > right;
+    }
+
+    private CreditFieldControlDto toFieldControlDto(CreditFieldControl entity, EcartDecisionView view) {
         return CreditFieldControlDto.builder()
                 .id(entity.getId())
                 .creditId(entity.getCredit() != null ? entity.getCredit().getId() : null)
@@ -782,6 +890,8 @@ public class RecoveryFieldPlanService {
                 .observedAt(entity.getObservedAt())
                 .observedBy(entity.getObservedBy())
                 .note(entity.getNote())
+                .ecartDecisionStatus(view != null ? view.status() : null)
+                .modifiable(view != null && view.modifiable())
                 .build();
     }
 

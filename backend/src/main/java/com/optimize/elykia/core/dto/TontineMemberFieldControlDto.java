@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.elykia.core.enumaration.CarnetEcartStatus;
 import com.optimize.elykia.core.enumaration.FieldControlStatus;
 import lombok.Builder;
 import lombok.Getter;
@@ -25,4 +26,8 @@ public class TontineMemberFieldControlDto {
     private List<TontineMemberFieldControlCollectorDto> collectors;
     /** Commerciaux du membre absents de ce contrôle (non contrôlés). */
     private List<String> uncontrolledCollectors;
+    /** PENDING tant que l'écart n'est pas tranché ; null si le contrôle n'est pas un écart ouvert. */
+    private CarnetEcartStatus ecartDecisionStatus;
+    /** Vrai uniquement lorsqu'un nouvel envoi doit modifier ce contrôle. */
+    private Boolean modifiable;
 }

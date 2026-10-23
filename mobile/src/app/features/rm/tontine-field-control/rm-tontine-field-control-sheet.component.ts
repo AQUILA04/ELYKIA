@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { LoggerService } from '../../../core/services/logger.service';
-import { RmPackTontineCollector, RmPackTontineMember } from '../../../core/services/rm/rm.models';
+import { RmPackTontineCollector, RmPackTontineFieldControlToday, RmPackTontineMember } from '../../../core/services/rm/rm.models';
 import { RmTontineFieldControlWriteService } from '../../../core/services/rm/rm-tontine-field-control-write.service';
 import { OnlineWriteError } from '../../../core/services/online-first-write.types';
 import { TontineControlDebug } from './rm-tontine-control-debug';
@@ -36,6 +36,8 @@ const MONTH_NAMES = [
 })
 export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() member!: RmPackTontineMember;
+  @Input() modifying = false;
+  @Input() latestControl: RmPackTontineFieldControlToday | null = null;
   private readonly debug: TontineControlDebug;
 
   blocks: CollectorBlock[] = [];
@@ -64,6 +66,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       this.legacyMode = false;
       this.blocks = collectorList.map(c => this.toBlock(c));
       this.debug.event(`blocks=${this.blocks.length} rows=${this.allRows.length} legacy=false`);
+      this.prefillPreviousControl();
       return;
     }
 
@@ -76,6 +79,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       rows: (this.member?.months || []).map(m => this.toRow(commercial, m.year, m.month, m.systemAmount || 0))
     }];
     this.debug.event(`blocks=${this.blocks.length} rows=${this.allRows.length} legacy=true`);
+    this.prefillPreviousControl();
   }
 
   ngAfterViewInit(): void {
@@ -182,9 +186,10 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
         })),
         note: this.note
       });
+      const verb = this.modifying ? 'modifié' : 'enregistré';
       await this.toast(
         result.mode === 'online'
-          ? `Contrôle tontine enregistré (${result.op.status})`
+          ? `Contrôle tontine ${verb} (${result.op.status})`
           : `Contrôle tontine hors ligne (${result.op.status}) — sync ultérieure`,
         result.mode === 'online' ? 'success' : 'warning'
       );
@@ -216,6 +221,24 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       rows: (collector.months || []).map(m =>
         this.toRow(commercial, m.year, m.month, m.systemAmount || 0))
     };
+  }
+
+  private prefillPreviousControl(): void {
+    if (!this.modifying || !this.latestControl?.lines?.length) {
+      return;
+    }
+    this.note = this.latestControl.note || '';
+    for (const line of this.latestControl.lines) {
+      const row = this.allRows.find(candidate =>
+        candidate.year === line.year
+        && candidate.month === line.month
+        && candidate.commercialUsername.toLowerCase() === (line.commercialUsername || '').trim().toLowerCase());
+      if (!row) {
+        continue;
+      }
+      row.selected = true;
+      row.notebookAmount = line.notebookAmount;
+    }
   }
 
   private toRow(

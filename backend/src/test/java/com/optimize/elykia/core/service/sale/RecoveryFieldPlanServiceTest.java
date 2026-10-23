@@ -18,6 +18,7 @@ import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.CreditLateService;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,6 +61,8 @@ class RecoveryFieldPlanServiceTest {
     @Mock
     private ClientService clientService;
     @Mock
+    private CarnetEcartRecontrolPolicy recontrolPolicy;
+    @Mock
     private Client client;
 
     private RecoveryFieldPlanService service;
@@ -75,7 +78,8 @@ class RecoveryFieldPlanServiceTest {
                 tontineCollectionRepository,
                 tontineMemberFieldControlRepository,
                 clientService,
-                new ObjectMapper());
+                new ObjectMapper(),
+                recontrolPolicy);
     }
 
     @Test

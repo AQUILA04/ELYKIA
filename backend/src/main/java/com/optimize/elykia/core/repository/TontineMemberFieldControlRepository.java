@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +26,20 @@ public interface TontineMemberFieldControlRepository extends GenericRepository<T
 
     @EntityGraph(attributePaths = "lines")
     Optional<TontineMemberFieldControl> findByReference(String reference);
+
+    @Query("""
+            SELECT DISTINCT c FROM TontineMemberFieldControl c
+            JOIN FETCH c.lines
+            JOIN FETCH c.tontineMember m
+            WHERE c.state = com.optimize.common.entities.enums.State.ENABLED
+              AND m.id IN :memberIds
+              AND c.observedAt = (
+                SELECT MAX(c2.observedAt) FROM TontineMemberFieldControl c2
+                WHERE c2.tontineMember.id = m.id
+                  AND c2.state = com.optimize.common.entities.enums.State.ENABLED
+              )
+            """)
+    List<TontineMemberFieldControl> findLatestByMemberIds(@Param("memberIds") Collection<Long> memberIds);
 
     @EntityGraph(attributePaths = {"lines", "tontineMember"})
     List<TontineMemberFieldControl> findByTontineMember_IdInAndObservedAtBetweenAndState(

@@ -52,7 +52,10 @@ export class RmTontineFieldControlWriteService {
           lastError: null
         };
         await this.queue.upsert(synced);
-        await this.applyPackMutation(synced);
+        await this.applyPackMutation(synced, {
+          ecartDecisionStatus: dto.ecartDecisionStatus,
+          modifiable: dto.modifiable
+        });
         return synced;
       },
       saveOffline: async () => {
@@ -100,7 +103,10 @@ export class RmTontineFieldControlWriteService {
     };
   }
 
-  private async applyPackMutation(op: RmTontineFieldControlOp): Promise<void> {
+  private async applyPackMutation(
+    op: RmTontineFieldControlOp,
+    decision?: { ecartDecisionStatus?: string | null; modifiable?: boolean }
+  ): Promise<void> {
     const pack = this.scope.getPack();
     if (!pack) {
       return;
@@ -118,6 +124,10 @@ export class RmTontineFieldControlWriteService {
       status: op.status,
       note: op.note,
       observedAt: op.observedAt,
+      ecartDecisionStatus: decision
+        ? (decision.ecartDecisionStatus ?? null)
+        : (op.status === 'ECART' ? 'PENDING' : null),
+      modifiable: decision ? decision.modifiable === true : op.status === 'ECART',
       lines: op.months.map(m => ({
         year: m.year,
         month: m.month,

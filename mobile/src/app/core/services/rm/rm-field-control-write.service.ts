@@ -46,7 +46,10 @@ export class RmFieldControlWriteService {
           lastError: null
         };
         await this.queue.upsert(synced);
-        await this.applyPackMutation(synced);
+        await this.applyPackMutation(synced, {
+          ecartDecisionStatus: dto.ecartDecisionStatus,
+          modifiable: dto.modifiable
+        });
         return synced;
       },
       saveOffline: async () => {
@@ -87,7 +90,10 @@ export class RmFieldControlWriteService {
     };
   }
 
-  private async applyPackMutation(op: RmFieldControlOp): Promise<void> {
+  private async applyPackMutation(
+    op: RmFieldControlOp,
+    decision?: { ecartDecisionStatus?: string | null; modifiable?: boolean }
+  ): Promise<void> {
     const pack = this.scope.getPack();
     if (!pack) {
       return;
@@ -104,7 +110,11 @@ export class RmFieldControlWriteService {
       differenceAmount: op.differenceAmount,
       status: op.status,
       note: op.note,
-      observedAt: op.observedAt
+      observedAt: op.observedAt,
+      ecartDecisionStatus: decision
+        ? (decision.ecartDecisionStatus ?? null)
+        : (op.status === 'ECART' ? 'PENDING' : null),
+      modifiable: decision ? decision.modifiable === true : op.status === 'ECART'
     };
     const idx = todayControls.findIndex((c: any) => c?.creditId === op.creditId || c?.reference === op.reference);
     if (idx >= 0) {

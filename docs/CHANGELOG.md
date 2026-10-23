@@ -34,6 +34,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.42.3] — 2026-10-23
+
+### Changed
+
+- Contrôle carnet : un écart encore en attente est mis à jour au lieu d’en créer un second. Un contrôle conforme, ou un écart déjà accepté ou refusé, enregistre un nouveau contrôle.
+- Le pack terrain et la liste tontine en ligne exposent le dernier contrôle, son écart et s’il peut encore être modifié.
+
 ## Backend — [1.42.2] — 2026-10-23
 
 ### Fixed
@@ -248,6 +255,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.33.23] — 2026-10-23
+
+### Changed
+
+- Chef de recouvrement, onglet Terrain : un client déjà contrôlé reste dans la liste, avec le résultat du dernier contrôle, le montant de l’écart et la mention « Déjà contrôlé ».
+- Tant que l’écart n’est pas accepté, **Contrôle** devient **Modifier le contrôle** et reprend les montants saisis. Après acceptation ou refus, ou si le contrôle est conforme, un nouveau contrôle peut être saisi. Même principe sur l’onglet Retards.
+
+### Docs
+
+- Guide chef de recouvrement mobile : écart visible et modification d’un contrôle déjà fait. Index RAG et guide HTML régénérés.
 
 ## Mobile — [2.33.22] — 2026-10-23
 

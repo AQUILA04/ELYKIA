@@ -32,6 +32,8 @@ Chaque carte affiche le client, la référence, le commercial, le téléphone lo
 
 Le formulaire compare le montant payé dans le système au montant observé sur le carnet. Saisissez le montant réellement lu, ajoutez une note si nécessaire, puis choisissez **Capturer le contrôle**. Le résultat affiche un statut **CONFORME** ou **ECART**.
 
+Si ce crédit a déjà un écart qui n’a pas encore été accepté, la carte indique **Déjà contrôlé** et le montant de l’écart. Le formulaire reprend le montant saisi et le bouton devient **Modifier le contrôle**. Lorsque l’écart a été accepté ou refusé, ou si le dernier contrôle est **CONFORME**, un nouveau contrôle peut être saisi.
+
 ### Clôture totale ou partielle
 
 Le formulaire de clôture rappelle le client, la référence, le commercial, le restant dû brut et le reliquat appliqué, le cas échéant. Choisissez **Total** ou **Partiel**, puis saisissez le montant encaissé. En mode partiel, des raccourcis facilitent la saisie rapide :
@@ -58,7 +60,9 @@ Sous la recherche, deux totaux indiquent le nombre de clients tontine et le nomb
 | Retards | Vérifier ou annuler la vérification d’un carnet, puis utiliser **Naviguer** lorsqu’une position est disponible. |
 | Tontine | Vérifier ou annuler la vérification d’un carnet, lancer un contrôle, ou passer en mode sélection pour une vérification en masse. |
 
-Le contrôle tontine ouvre un formulaire par commercial lorsque plusieurs agents ont collecté pour le membre. Dans chaque bloc (le commercial actuel est signalé), sélectionnez les mois à contrôler et saisissez le montant écrit dans le carnet de ce commercial. L’application calcule la comparaison **Système / Carnet / Écart** pour le commercial et pour l’ensemble de la sélection, et accepte une note. Vous pouvez contrôler un seul commercial lors d’une visite : les autres restent non contrôlés. Le badge **Vérifié** indique la vérification de carnet, tandis que le badge **CONFORME** ou **ECART** correspond au résultat d’un contrôle : ces deux informations sont complémentaires et ne doivent pas être confondues.
+Le contrôle tontine ouvre un formulaire par commercial lorsque plusieurs agents ont collecté pour le membre. Dans chaque bloc (le commercial actuel est signalé), sélectionnez les mois à contrôler et saisissez le montant écrit dans le carnet de ce commercial. L’application calcule la comparaison **Système / Carnet / Écart** pour le commercial et pour l’ensemble de la sélection, et accepte une note. Vous pouvez contrôler un seul commercial lors d’une visite : les autres restent non contrôlés. Le badge **Vérifié** indique la vérification de carnet. Le badge **CONFORME** ou **ECART** correspond au dernier contrôle, même s’il date d’un autre jour. Ces deux informations sont complémentaires et ne doivent pas être confondues.
+
+Lorsqu’un écart est affiché, son montant apparaît à côté du badge, avec la mention **Déjà contrôlé**. Si cet écart n’a pas encore été accepté, le formulaire reprend les montants déjà saisis et le bouton **Modifier le contrôle** met à jour ce contrôle. Si le dernier contrôle est **CONFORME**, ou si l’écart a été accepté ou refusé, un nouveau contrôle peut être enregistré avec **Capturer le contrôle**.
 
 <!-- CAPTURE À INSÉRER : Mobile Chef de recouvrement — onglet Terrain avec membres tontine, badge Vérifié et contrôle par mois. -->
 

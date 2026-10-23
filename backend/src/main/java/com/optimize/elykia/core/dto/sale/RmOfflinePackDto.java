@@ -21,7 +21,9 @@ public class RmOfflinePackDto {
     private List<RmCommercialRefDto> commercials;
     private List<CreditLateDTO> lateCredits;
     private List<RmPackClientDto> clients;
+    /** Dernier contrôle par crédit du pack (nom de champ conservé). */
     private List<CreditFieldControlDto> creditFieldControlsToday;
     private List<RmPackTontineMemberDto> tontineMembers;
+    /** Dernier contrôle par membre tontine du pack (nom de champ conservé). */
     private List<TontineMemberFieldControlDto> tontineFieldControlsToday;
 }

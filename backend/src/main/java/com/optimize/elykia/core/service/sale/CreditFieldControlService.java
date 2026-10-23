@@ -9,6 +9,8 @@ import com.optimize.elykia.core.entity.sale.CreditFieldControl;
 import com.optimize.elykia.core.enumaration.FieldControlStatus;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +33,7 @@ public class CreditFieldControlService {
 
     private final CreditFieldControlRepository repository;
     private final CreditRepository creditRepository;
+    private final CarnetEcartRecontrolPolicy recontrolPolicy;
     private AppNotificationService appNotificationService;
 
     @Autowired(required = false)
@@ -50,6 +54,26 @@ public class CreditFieldControlService {
         double systemAmountPaid = credit.getTotalAmountPaid() != null ? credit.getTotalAmountPaid() : 0d;
         double notebookAmount = dto.getNotebookTotalAmount() != null ? dto.getNotebookTotalAmount() : 0d;
         double differenceAmount = notebookAmount - systemAmountPaid;
+        FieldControlStatus status = Math.abs(differenceAmount) < EPSILON
+                ? FieldControlStatus.CONFORME
+                : FieldControlStatus.ECART;
+        LocalDateTime observedAt = dto.getObservedAt() != null ? dto.getObservedAt() : LocalDateTime.now();
+        String observedBy = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        CreditFieldControl latest = findLatest(creditId).orElse(null);
+        if (latest != null && recontrolPolicy != null && recontrolPolicy.mustModifyCredit(latest)) {
+            latest.setReference(reference);
+            latest.setNotebookTotalAmount(notebookAmount);
+            latest.setSystemTotalAmountPaid(systemAmountPaid);
+            latest.setDifferenceAmount(differenceAmount);
+            latest.setStatus(status);
+            latest.setObservedAt(observedAt);
+            latest.setObservedBy(observedBy);
+            latest.setNote(dto.getNote());
+            CreditFieldControl saved = repository.save(latest);
+            notifyEcart(saved, credit, differenceAmount);
+            return toDto(saved);
+        }
 
         CreditFieldControl entity = new CreditFieldControl();
         entity.setCredit(credit);
@@ -57,28 +81,39 @@ public class CreditFieldControlService {
         entity.setNotebookTotalAmount(notebookAmount);
         entity.setSystemTotalAmountPaid(systemAmountPaid);
         entity.setDifferenceAmount(differenceAmount);
-        entity.setStatus(Math.abs(differenceAmount) < EPSILON ? FieldControlStatus.CONFORME : FieldControlStatus.ECART);
-        entity.setObservedAt(dto.getObservedAt() != null ? dto.getObservedAt() : LocalDateTime.now());
-        entity.setObservedBy(SecurityContextHolder.getContext().getAuthentication().getName());
+        entity.setStatus(status);
+        entity.setObservedAt(observedAt);
+        entity.setObservedBy(observedBy);
         entity.setNote(dto.getNote());
 
         CreditFieldControl saved = repository.save(entity);
-        if (saved.getStatus() == FieldControlStatus.ECART && appNotificationService != null
-                && credit.getCollector() != null) {
-            try {
-                String clientName = credit.getClient() != null ? credit.getClient().getFullName() : null;
-                appNotificationService.notifyCarnetEcart(
-                        credit.getCollector(),
-                        clientName,
-                        saved.getId(),
-                        "CREDIT:" + credit.getCollector(),
-                        Math.max(0d, differenceAmount));
-            } catch (RuntimeException ex) {
-                log.warn("Notification d'écart de carnet non envoyée pour le crédit {} : {}",
-                        credit.getId(), ex.getMessage());
-            }
-        }
+        notifyEcart(saved, credit, differenceAmount);
         return toDto(saved);
+    }
+
+    private void notifyEcart(CreditFieldControl saved, Credit credit, double differenceAmount) {
+        if (saved.getStatus() != FieldControlStatus.ECART || appNotificationService == null
+                || credit.getCollector() == null) {
+            return;
+        }
+        try {
+            String clientName = credit.getClient() != null ? credit.getClient().getFullName() : null;
+            appNotificationService.notifyCarnetEcart(
+                    credit.getCollector(),
+                    clientName,
+                    saved.getId(),
+                    "CREDIT:" + credit.getCollector(),
+                    Math.max(0d, differenceAmount));
+        } catch (RuntimeException ex) {
+            log.warn("Notification d'écart de carnet non envoyée pour le crédit {} : {}",
+                    credit.getId(), ex.getMessage());
+        }
+    }
+
+    private Optional<CreditFieldControl> findLatest(Long creditId) {
+        Optional<CreditFieldControl> found = repository
+                .findFirstByCredit_idAndStateOrderByObservedAtDesc(creditId, State.ENABLED);
+        return found != null ? found : Optional.empty();
     }
 
     @Transactional(readOnly = true)
@@ -96,6 +131,7 @@ public class CreditFieldControlService {
     }
 
     private CreditFieldControlDto toDto(CreditFieldControl entity) {
+        EcartDecisionView view = decisionView(entity);
         return CreditFieldControlDto.builder()
                 .id(entity.getId())
                 .creditId(entity.getCredit() != null ? entity.getCredit().getId() : null)
@@ -107,6 +143,16 @@ public class CreditFieldControlService {
                 .observedAt(entity.getObservedAt())
                 .observedBy(entity.getObservedBy())
                 .note(entity.getNote())
+                .ecartDecisionStatus(view.status())
+                .modifiable(view.modifiable())
                 .build();
+    }
+
+    private EcartDecisionView decisionView(CreditFieldControl entity) {
+        if (recontrolPolicy == null || entity == null || entity.getId() == null) {
+            return EcartDecisionView.none();
+        }
+        EcartDecisionView view = recontrolPolicy.viewCredit(entity);
+        return view != null ? view : EcartDecisionView.none();
     }
 }
