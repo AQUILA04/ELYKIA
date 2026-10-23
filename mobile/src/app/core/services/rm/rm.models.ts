@@ -118,6 +118,14 @@ export interface RmCreditLate {
   carnetVerified?: boolean;
   carnetVerifiedAt?: string;
   carnetVerifiedBy?: string;
+  /** Dernier contrôle, renseigné sur la liste des crédits en cours. */
+  latestControlStatus?: string;
+  latestDifferenceAmount?: number;
+  latestNotebookTotalAmount?: number;
+  latestControlNote?: string;
+  latestObservedAt?: string;
+  ecartDecisionStatus?: string | null;
+  modifiable?: boolean;
 }
 
 export interface RmPackTontineFieldControlToday {
@@ -155,6 +163,8 @@ export interface RmOfflinePack {
   stats: RmOfflinePackStats;
   commercials: RmCommercialRef[];
   lateCredits: RmCreditLate[];
+  /** Crédits en cours du plan. Absent des packs téléchargés avant cette liste. */
+  inProgressCredits?: RmCreditLate[];
   clients: RmPackClient[];
   creditFieldControlsToday: unknown[];
   tontineMembers: RmPackTontineMember[];

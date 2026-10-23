@@ -6,7 +6,7 @@ import { RmCloseApiService } from './rm-close-api.service';
 import { RmCloseQueueService } from './rm-close-queue.service';
 import { RmScopeService } from './rm-scope.service';
 import { RmCloseOp, RmCloseRequest, RmCloseResult } from './rm-close.models';
-import { RmOfflinePack } from './rm.models';
+import { RmCreditLate, RmOfflinePack } from './rm.models';
 
 @Injectable({ providedIn: 'root' })
 export class RmCloseWriteService {
@@ -93,33 +93,18 @@ export class RmCloseWriteService {
       return;
     }
 
-    const lateCredits = [...(pack.lateCredits || [])];
-    const idx = lateCredits.findIndex(c => c.id === op.creditId);
-    if (idx < 0) {
+    const lateCredits = this.applyClose([...(pack.lateCredits || [])], op);
+    if (!lateCredits) {
       return;
     }
-
-    const current = lateCredits[idx];
-    const remaining = current.totalAmountRemaining ?? op.originalRemaining ?? 0;
-    const paid = current.totalAmountPaid ?? 0;
-
-    if (!op.isPartial) {
-      lateCredits.splice(idx, 1);
-    } else {
-      const nextRemaining = Math.max(0, remaining - op.amount);
-      lateCredits[idx] = {
-        ...current,
-        totalAmountRemaining: nextRemaining,
-        totalAmountPaid: paid + op.amount
-      };
-      if (nextRemaining <= 0) {
-        lateCredits.splice(idx, 1);
-      }
-    }
+    const inProgressCredits = pack.inProgressCredits
+      ? (this.applyClose([...pack.inProgressCredits], op) ?? pack.inProgressCredits)
+      : pack.inProgressCredits;
 
     const nextPack: RmOfflinePack = {
       ...pack,
       lateCredits,
+      inProgressCredits,
       stats: {
         ...pack.stats,
         lateCredits: lateCredits.length,
@@ -128,5 +113,30 @@ export class RmCloseWriteService {
       }
     };
     await this.scope.setPack(nextPack);
+  }
+
+  /** Returns null when the credit is absent from the list. */
+  private applyClose(credits: RmCreditLate[], op: RmCloseOp): RmCreditLate[] | null {
+    const idx = credits.findIndex(c => c.id === op.creditId);
+    if (idx < 0) {
+      return null;
+    }
+    const current = credits[idx];
+    const remaining = current.totalAmountRemaining ?? op.originalRemaining ?? 0;
+    const paid = current.totalAmountPaid ?? 0;
+    if (!op.isPartial) {
+      credits.splice(idx, 1);
+      return credits;
+    }
+    const nextRemaining = Math.max(0, remaining - op.amount);
+    credits[idx] = {
+      ...current,
+      totalAmountRemaining: nextRemaining,
+      totalAmountPaid: paid + op.amount
+    };
+    if (nextRemaining <= 0) {
+      credits.splice(idx, 1);
+    }
+    return credits;
   }
 }

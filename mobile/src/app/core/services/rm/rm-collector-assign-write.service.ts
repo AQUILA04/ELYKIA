@@ -78,12 +78,14 @@ export class RmCollectorAssignWriteService {
       };
     });
 
-    const lateCredits = (pack.lateCredits || []).map(late => {
+    const retargetCollector = (late: RmOfflinePack['lateCredits'][number]) => {
       if (!op.transferInProgressCredits || !op.collector || late.clientId == null || !clientIds.has(late.clientId)) {
         return late;
       }
       return { ...late, collector: op.collector };
-    });
+    };
+    const lateCredits = (pack.lateCredits || []).map(retargetCollector);
+    const inProgressCredits = pack.inProgressCredits?.map(retargetCollector);
 
     const tontineMembers = (pack.tontineMembers || []).map(member => {
       if (!op.tontineCollector || member.clientId == null || !clientIds.has(member.clientId)) {
@@ -92,7 +94,7 @@ export class RmCollectorAssignWriteService {
       return { ...member, tontineCollector: op.tontineCollector };
     });
 
-    return { ...pack, clients, lateCredits, tontineMembers };
+    return { ...pack, clients, lateCredits, inProgressCredits, tontineMembers };
   }
 
   private buildOp(

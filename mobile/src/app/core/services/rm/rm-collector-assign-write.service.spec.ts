@@ -23,6 +23,7 @@ describe('RmCollectorAssignWriteService', () => {
     stats: { lateCredits: 1, clients: 1, estimatedBytes: 1000 },
     commercials: [{ username: 'COM020', displayName: 'COM020' }],
     lateCredits: [{ id: 9, clientId: 11, collector: 'COM020' }],
+    inProgressCredits: [{ id: 8, clientId: 11, collector: 'COM020' }],
     clients: [{ id: 11, collector: 'COM020', tontineCollector: 'COM020' }],
     creditFieldControlsToday: [],
     tontineMembers: [{ id: 4, clientId: 11, tontineCollector: 'COM020', months: [] }],
@@ -87,6 +88,7 @@ describe('RmCollectorAssignWriteService', () => {
     const next = scope.setPack.calls.mostRecent().args[0] as RmOfflinePack;
     expect(next.clients[0].collector).toBe('COM021');
     expect(next.lateCredits[0].collector).toBe('COM021');
+    expect(next.inProgressCredits?.[0].collector).toBe('COM021');
   });
 
   it('falls back offline without calling the API when coordinator uses saveOffline', async () => {
@@ -107,6 +109,7 @@ describe('RmCollectorAssignWriteService', () => {
     const next = scope.setPack.calls.mostRecent().args[0] as RmOfflinePack;
     expect(next.tontineMembers[0].tontineCollector).toBe('COM021');
     expect(next.lateCredits[0].collector).toBe('COM020');
+    expect(next.inProgressCredits?.[0].collector).toBe('COM020');
   });
 
   it('does not queue when a 4xx business error is thrown from saveOnline', async () => {
@@ -139,5 +142,6 @@ describe('RmCollectorAssignWriteService', () => {
     const next = service.applyPackMutationSync(pack, op);
     expect(next.clients[0].collector).toBe('COM099');
     expect(next.lateCredits[0].collector).toBe('COM020');
+    expect(next.inProgressCredits?.[0].collector).toBe('COM020');
   });
 });

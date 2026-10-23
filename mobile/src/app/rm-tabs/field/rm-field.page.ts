@@ -10,6 +10,7 @@ import { RmScopeService } from '../../core/services/rm/rm-scope.service';
 import { RmCreditLate, RmPackTontineFieldControlToday, RmPackTontineMember } from '../../core/services/rm/rm.models';
 import { RmTontineFieldControlApiService } from '../../core/services/rm/rm-tontine-field-control-api.service';
 import { RmTontineFieldControlDto } from '../../core/services/rm/rm-tontine-field-control.models';
+import { RmFieldControlSheetComponent, RmPreviousFieldControl } from '../../features/rm/field-control/rm-field-control-sheet.component';
 import { RmTontineFieldControlSheetComponent } from '../../features/rm/tontine-field-control/rm-tontine-field-control-sheet.component';
 import { describeFailure, TontineControlDebug } from '../../features/rm/tontine-field-control/rm-tontine-control-debug';
 import { RmCarnetVerificationWriteService } from '../../core/services/rm/rm-carnet-verification-write.service';
@@ -28,22 +29,22 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   query = '';
   /** Online reads every client from the backend. Offline stays on the day-plan pack. */
   onlineMode = false;
-  segment: 'tontine' | 'lates' = 'tontine';
+  segment: 'tontine' | 'credits' = 'tontine';
   loadingLive = false;
   loadingMore = false;
   onlineTontine: RmPackTontineMember[] = [];
-  onlineLates: RmCreditLate[] = [];
+  onlineCredits: RmCreditLate[] = [];
   private tontineMatchTotal = 0;
-  private lateMatchTotal = 0;
+  private creditMatchTotal = 0;
   private tontineGrandTotal = 0;
-  private lateGrandTotal = 0;
+  private creditGrandTotal = 0;
   private tontineNextPage = 0;
-  private lateNextPage = 0;
-  private lateGroups: RmFieldGroup<RmCreditLate>[] = [];
+  private creditNextPage = 0;
+  private creditGroups: RmFieldGroup<RmCreditLate>[] = [];
   private tontineGroups: RmFieldGroup<RmPackTontineMember>[] = [];
   /** Groupes pré-filtrés mis à jour explicitement — évite le recalcul à chaque cycle CD. */
   filteredTontineGroups: RmFieldGroup<RmPackTontineMember>[] = [];
-  filteredLateGroups: RmFieldGroup<RmCreditLate>[] = [];
+  filteredCreditGroups: RmFieldGroup<RmCreditLate>[] = [];
   private packSub?: Subscription;
   private viewActive = false;
   private liveRequest = 0;
@@ -55,7 +56,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   private keyboardSettleTimer?: ReturnType<typeof setTimeout>;
 
   get byCommercial(): RmFieldGroup<RmCreditLate>[] {
-    return this.filteredLateGroups;
+    return this.filteredCreditGroups;
   }
 
   get tontineByCommercial(): RmFieldGroup<RmPackTontineMember>[] {
@@ -66,16 +67,16 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     return this.onlineMode ? this.tontineGrandTotal : countRmFieldItems(this.tontineGroups);
   }
 
-  get lateClientTotal(): number {
-    return this.onlineMode ? this.lateGrandTotal : countRmFieldItems(this.lateGroups);
+  get creditClientTotal(): number {
+    return this.onlineMode ? this.creditGrandTotal : countRmFieldItems(this.creditGroups);
   }
 
   get tontineClientVisible(): number {
     return this.onlineMode ? this.tontineMatchTotal : countRmFieldItems(this.tontineByCommercial);
   }
 
-  get lateClientVisible(): number {
-    return this.onlineMode ? this.lateMatchTotal : countRmFieldItems(this.byCommercial);
+  get creditClientVisible(): number {
+    return this.onlineMode ? this.creditMatchTotal : countRmFieldItems(this.byCommercial);
   }
 
   get activeHasMore(): boolean {
@@ -85,7 +86,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     if (this.segment === 'tontine') {
       return this.onlineTontine.length < this.tontineMatchTotal;
     }
-    return this.onlineLates.length < this.lateMatchTotal;
+    return this.onlineCredits.length < this.creditMatchTotal;
   }
 
   clientCountLabel(visible: number, total: number): string {
@@ -159,7 +160,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     }
   }
 
-  setSegment(segment: 'tontine' | 'lates'): void {
+  setSegment(segment: 'tontine' | 'credits'): void {
     this.segment = segment;
   }
 
@@ -176,7 +177,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
 
   private reloadFromPack(): void {
     TontineControlDebug.note('field reloadFromPack');
-    this.loadLateCredits();
+    this.loadInProgressCredits();
     this.loadTontineMembers();
     this.updateFilteredGroups();
   }
@@ -207,31 +208,31 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     TontineControlDebug.note(`field reloadOnlineLists start q="${this.query.trim()}"`);
     this.loadingLive = true;
     this.onlineTontine = [];
-    this.onlineLates = [];
+    this.onlineCredits = [];
     this.tontineNextPage = 0;
-    this.lateNextPage = 0;
+    this.creditNextPage = 0;
     try {
       const search = this.query.trim();
-      const [tontine, lates] = await Promise.all([
+      const [tontine, credits] = await Promise.all([
         this.fieldListApi.pageTontineMembers(search, 0),
-        this.fieldListApi.pageLateCredits(search, 0)
+        this.fieldListApi.pageCredits(search, 0)
       ]);
       if (!this.viewActive || requestId !== this.liveRequest) {
         TontineControlDebug.note('field reloadOnlineLists ignored');
         return;
       }
       TontineControlDebug.note(
-        `field reloadOnlineLists ok tontine=${tontine.content?.length ?? 0} lates=${lates.content?.length ?? 0}`
+        `field reloadOnlineLists ok tontine=${tontine.content?.length ?? 0} credits=${credits.content?.length ?? 0}`
       );
       this.onlineTontine = tontine.content || [];
-      this.onlineLates = lates.content || [];
+      this.onlineCredits = credits.content || [];
       this.tontineMatchTotal = tontine.totalElements;
-      this.lateMatchTotal = lates.totalElements;
+      this.creditMatchTotal = credits.totalElements;
       this.tontineNextPage = 1;
-      this.lateNextPage = 1;
+      this.creditNextPage = 1;
       if (!search) {
         this.tontineGrandTotal = tontine.totalElements;
-        this.lateGrandTotal = lates.totalElements;
+        this.creditGrandTotal = credits.totalElements;
       }
     } catch (error) {
       TontineControlDebug.note(`field reloadOnlineLists error ${describeFailure(error)}`);
@@ -245,7 +246,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     }
   }
 
-  private async appendOnlinePage(segment: 'tontine' | 'lates'): Promise<void> {
+  private async appendOnlinePage(segment: 'tontine' | 'credits'): Promise<void> {
     if (this.loadingMore || this.loadingLive) {
       return;
     }
@@ -258,10 +259,10 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
         this.tontineMatchTotal = page.totalElements;
         this.tontineNextPage += 1;
       } else {
-        const page = await this.fieldListApi.pageLateCredits(search, this.lateNextPage);
-        this.onlineLates = this.onlineLates.concat(page.content || []);
-        this.lateMatchTotal = page.totalElements;
-        this.lateNextPage += 1;
+        const page = await this.fieldListApi.pageCredits(search, this.creditNextPage);
+        this.onlineCredits = this.onlineCredits.concat(page.content || []);
+        this.creditMatchTotal = page.totalElements;
+        this.creditNextPage += 1;
       }
     } catch {
       await this.toast('Impossible de charger la suite', 'danger');
@@ -270,17 +271,20 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     }
   }
 
-  private loadLateCredits(): void {
-    const lates = this.scope.getPack()?.lateCredits ?? [];
+  private loadInProgressCredits(): void {
+    const pack = this.scope.getPack();
+    const credits = pack?.inProgressCredits !== undefined
+      ? (pack.inProgressCredits ?? [])
+      : (pack?.lateCredits ?? []);
     const commercialMap = new Map<string, RmCreditLate[]>();
-    for (const item of lates) {
+    for (const item of credits) {
       const c = item.collector || '—';
       if (!commercialMap.has(c)) {
         commercialMap.set(c, []);
       }
       commercialMap.get(c)!.push(item);
     }
-    this.lateGroups = Array.from(commercialMap.entries()).map(([commercial, items]) => {
+    this.creditGroups = Array.from(commercialMap.entries()).map(([commercial, items]) => {
       const qMap = new Map<string, RmCreditLate[]>();
       for (const item of items) {
         const q = item.clientQuarter?.trim() || 'Non spécifié';
@@ -329,11 +333,76 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
         .filter((part): part is string => !!part)
         .join(' ')
     );
-    this.filteredLateGroups = filterRmFieldGroups(this.lateGroups, this.query, item =>
+    this.filteredCreditGroups = filterRmFieldGroups(this.creditGroups, this.query, item =>
       [item.clientName, item.clientPhone, item.clientQuarter, item.collector, item.reference]
         .filter((part): part is string => !!part)
         .join(' ')
     );
+  }
+
+  isLate(item: RmCreditLate): boolean {
+    return !!item.lateType || (item.lateDaysDelai ?? 0) > 0;
+  }
+
+  creditControlFor(item: RmCreditLate): RmPreviousFieldControl | null {
+    if (this.onlineMode) {
+      if (!item.latestControlStatus) {
+        return null;
+      }
+      return {
+        status: item.latestControlStatus,
+        differenceAmount: item.latestDifferenceAmount,
+        notebookTotalAmount: item.latestNotebookTotalAmount,
+        note: item.latestControlNote,
+        ecartDecisionStatus: item.ecartDecisionStatus,
+        modifiable: item.modifiable
+      };
+    }
+    const controls = this.scope.getPack()?.creditFieldControlsToday;
+    if (!Array.isArray(controls)) {
+      return null;
+    }
+    const found = (controls as RmPreviousFieldControl[]).find(
+      (control: RmPreviousFieldControl & { creditId?: number }) => Number(control?.creditId) === item.id
+    );
+    if (!found?.status) {
+      return null;
+    }
+    return found;
+  }
+
+  async openFieldControl(item: RmCreditLate): Promise<void> {
+    if (this.keyboardSettling) {
+      await this.hideSearchKeyboard();
+    }
+    const previous = this.creditControlFor(item);
+    const modal = await this.modalCtrl.create({
+      component: RmFieldControlSheetComponent,
+      componentProps: { credit: item, previous },
+      cssClass: 'rm-close-modal',
+      backdropDismiss: false,
+      keyboardClose: true
+    });
+    await modal.present();
+    const dismissed = await modal.onDidDismiss();
+    const op = (dismissed.data as { op?: {
+      status?: string;
+      differenceAmount?: number;
+      notebookTotalAmount?: number;
+      note?: string;
+      observedAt?: string;
+    } } | undefined)?.op;
+    if (dismissed.role === 'confirm' && op) {
+      item.latestControlStatus = op.status;
+      item.latestDifferenceAmount = op.differenceAmount;
+      item.latestNotebookTotalAmount = op.notebookTotalAmount;
+      item.latestControlNote = op.note;
+      item.latestObservedAt = op.observedAt;
+      item.ecartDecisionStatus = op.status === 'ECART' ? 'PENDING' : null;
+      item.modifiable = op.status === 'ECART';
+      this.loadInProgressCredits();
+      this.updateFilteredGroups();
+    }
   }
 
   openMaps(item: RmCreditLate): void {
@@ -363,7 +432,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
       execute: () => this.creditCarnetWrite.setVerified(item, next).then(() => undefined),
       onSuccess: async verified => {
         item.carnetVerified = verified;
-        this.loadLateCredits();
+        this.loadInProgressCredits();
         this.updateFilteredGroups();
         await this.toast(verified ? 'Carnet vérifié' : 'Vérification annulée');
       },
