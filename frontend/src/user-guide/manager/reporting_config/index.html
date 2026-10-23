@@ -827,6 +827,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#synthese-caisse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Synthèse caisse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#3-fiche-dun-commercial-a-verser-verse-et-reste" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2039,6 +2050,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#synthese-caisse" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Synthèse caisse
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#3-fiche-dun-commercial-a-verser-verse-et-reste" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2349,7 +2371,7 @@
 * <strong>Période</strong> : Boutons rapides <strong>« Aujourd'hui »</strong>, <strong>« Cette semaine »</strong>, <strong>« Ce mois »</strong>, ou <strong>« Personnalisé »</strong> (avec calendrier interactif pour choisir une plage <em>Du ... Au ...</em>).
 * <strong>Filtre Commercial</strong> :
   * <strong>Pour un commercial</strong> : Votre nom est pré-sélectionné automatiquement. Vous visualisez uniquement vos propres données d'activité (vos ventes, vos recouvrements, vos collectes).
-  * <strong>Pour un gestionnaire</strong> : Vous pouvez laisser le champ vide pour obtenir la consolidation globale de toute l'agence, ou sélectionner un commercial dans la liste pour auditer son portefeuille spécifique.
+  * <strong>Pour un gestionnaire</strong> : Vous pouvez laisser le champ vide pour obtenir la consolidation globale de toute l'agence, ou sélectionner un commercial dans la liste pour auditer son portefeuille spécifique. La <strong>Synthèse caisse</strong> de la Vue d'ensemble reste celle de toutes les caisses, même lorsqu'un commercial est choisi.
 * <strong>Bouton « Voir marges » / « Masquer marges »</strong> : Disponible pour les profils habilités, ce bouton permet d'afficher ou de masquer les indicateurs de marge commerciale brute calculée sur les ventes.
 * <strong>Bouton « Réinitialiser »</strong> : Remet les filtres sur la période par défaut.</p>
 <hr />
@@ -2377,9 +2399,17 @@
 <li><strong>Recouvrements crédit</strong> : Montant total encaissé et nombre de règlements d'échéances.</li>
 <li><strong>Tontine</strong> : Montant total des cotisations perçues et nombre de collectes réalisées.</li>
 <li><strong>Nouveaux comptes</strong> : Montant des dépôts initiaux d'ouverture et nombre de nouveaux clients enrôlés.</li>
-<li><strong>Dépenses</strong> : Cumul des charges décaissées sur la période.</li>
-<li><strong>Solde net</strong> : Solde théorique d'encaissement net de caisse.</li>
 </ul>
+<h4 id="synthese-caisse">Synthèse caisse</h4>
+<p>Sur la Vue d'ensemble, le bloc <strong>Synthèse caisse</strong> reprend l'ensemble des caisses pour la période choisie (<strong>Aujourd'hui</strong>, <strong>Cette semaine</strong>, <strong>Ce mois</strong> ou <strong>Personnalisé</strong>). Le choix d'un commercial ne change pas ces quatre montants.</p>
+<ol>
+<li><strong>Dépenses (avec approvisionnement)</strong> : total de toutes les dépenses de la période, approvisionnements compris.</li>
+<li><strong>Dépenses (sans approvisionnement)</strong> : total des dépenses de la période, hors approvisionnements.</li>
+<li><strong>Total versé (période)</strong> : somme des versements de tous les commerciaux sur la période.</li>
+<li><strong>Solde de caisse</strong> : total versé moins les dépenses sans approvisionnement. C'est le solde de caisse à la fin de la journée, ou de la période sélectionnée.</li>
+</ol>
+<!-- CAPTURE À INSÉRER : Bloc Synthèse caisse de la Vue d'ensemble avec les quatre montants. -->
+
 <h4 id="3-fiche-dun-commercial-a-verser-verse-et-reste">3. Fiche d’un commercial : à verser, versé et reste</h4>
 <p>Sur la fiche d’un commercial (après sélection dans le filtre) :
 * <strong>A Verser (Crédit / Tontine / Solde Nx)</strong> : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.

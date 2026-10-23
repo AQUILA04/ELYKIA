@@ -302,6 +302,46 @@
                         </mat-card>
                     </div>
 
+                    <!-- Synthèse caisse (toutes caisses, période filtrée) -->
+                    <div class="aggregated-report mb-4" *ngIf="!isPromoter" data-testid="e2e-daily-report-cash-synthesis">
+                        <mat-card class="example-card">
+                            <mat-card-header>
+                                <mat-card-title>SYNTHÈSE CAISSE</mat-card-title>
+                                <mat-card-subtitle>Toutes caisses · période sélectionnée</mat-card-subtitle>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <div *ngIf="cashSynthesisLoading" class="loading-container">
+                                    <mat-spinner diameter="36"></mat-spinner>
+                                </div>
+                                <div class="kpi-grid" *ngIf="!cashSynthesisLoading">
+                                    <div class="kpi-card" data-testid="e2e-daily-report-expenses-with-supply">
+                                        <span class="kpi-label">Dépenses (avec approvisionnement)</span>
+                                        <span class="kpi-value">{{ totalExpensesWithApprovisionnement |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card" data-testid="e2e-daily-report-expenses-without-supply">
+                                        <span class="kpi-label">Dépenses (sans approvisionnement)</span>
+                                        <span class="kpi-value">{{ totalExpensesWithoutApprovisionnement |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card" data-testid="e2e-daily-report-period-deposited">
+                                        <span class="kpi-label">Total versé (période)</span>
+                                        <span class="kpi-value">{{ periodTotalDepositedAll |
+                                            currency:'XOF':'symbol':'1.0-0' }}</span>
+                                    </div>
+                                    <div class="kpi-card" data-testid="e2e-daily-report-cash-balance">
+                                        <span class="kpi-label">Solde de caisse</span>
+                                        <span class="kpi-value"
+                                            [ngClass]="{'text-danger': cashBalance < 0, 'text-success': cashBalance >= 0}">
+                                            {{ cashBalance | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
+                                        <span class="kpi-hint">Versé − dépenses sans approvisionnement</span>
+                                    </div>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+
                     <!-- Aggregated Report Panel -->
                     <div class="aggregated-report mb-4" *ngIf="aggregatedReportData && !isPromoter">
                         <mat-card class="example-card">

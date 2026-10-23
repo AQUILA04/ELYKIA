@@ -151,6 +151,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
 
+## Frontend — [2.38.3] — 2026-10-23
+
+### Added
+
+- Rapport journalier, Vue d'ensemble : le bloc **Synthèse caisse** affiche, pour la période choisie, les dépenses avec et sans approvisionnement, le total versé de toutes les caisses, et le solde de caisse (versé moins les dépenses hors approvisionnement).
+
 ## Frontend — [2.38.2] — 2026-10-23
 
 ### Fixed

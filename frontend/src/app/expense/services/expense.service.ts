@@ -44,6 +44,13 @@ export class ExpenseService {
         return this.http.get<ApiResponse<ExpenseKpi[]>>(`${this.apiUrl}/dashboard-kpis`).pipe(map(res => res.data));
     }
 
+    getExpensesByPeriod(startDate: string, endDate: string): Observable<Expense[]> {
+        const params = new HttpParams()
+            .set('startDate', startDate)
+            .set('endDate', endDate);
+        return this.http.get<ApiResponse<Expense[]>>(`${this.apiUrl}/by-period`, { params }).pipe(map(res => res.data));
+    }
+
     // Expense Type Methods
     getExpenseTypes(): Observable<ExpenseType[]> {
         return this.http.get<ApiResponse<ExpenseType[]>>(`${this.typeApiUrl}/all`).pipe(map(res => res.data));
