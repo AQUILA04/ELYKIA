@@ -96,6 +96,6 @@ minio:
 security:
   config:
     auto-initialize:
-      enabled: false
+      enabled: ${SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED:false}
 
 
