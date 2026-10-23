@@ -26,6 +26,8 @@ import { DEVICE_NOT_AUTHORIZED_CODE } from '../interceptors/device-auth.intercep
 export class AuthService {
   private _user: User | null = null;
   private _isAuthenticated = false;
+  private sessionExpiryHandled = false;
+  private sessionExpiredNotice = false;
 
   constructor(
     private http: HttpClient,
@@ -48,7 +50,7 @@ export class AuthService {
     if (value) {
       const user = JSON.parse(value);
       this._user = user;
-      this._isAuthenticated = true;
+      this.openSession();
       this.store.dispatch(AuthActions.loginSuccess({ user }));
       await this.dailyConsentState.restoreFromPreferences(user.username);
     }
@@ -64,6 +66,35 @@ export class AuthService {
 
   mustChangePassword(): boolean {
     return this._user?.mustChangePassword === true;
+  }
+
+  /**
+   * Ferme la session locale quand une API métier répond 401.
+   * @returns true si une session était ouverte (la déconnexion est engagée ou déjà en cours).
+   */
+  handleUnauthorized(): boolean {
+    if (!this._isAuthenticated) {
+      return false;
+    }
+    if (!this.sessionExpiryHandled) {
+      this.sessionExpiryHandled = true;
+      this.sessionExpiredNotice = true;
+      void this.log.log('Session refusée (401) : déconnexion automatique.');
+      this.store.dispatch(AuthActions.logout());
+    }
+    return true;
+  }
+
+  /** À lire une fois sur l'écran de connexion, après une déconnexion automatique. */
+  consumeSessionExpiredNotice(): boolean {
+    const pending = this.sessionExpiredNotice;
+    this.sessionExpiredNotice = false;
+    return pending;
+  }
+
+  private openSession(): void {
+    this._isAuthenticated = true;
+    this.sessionExpiryHandled = false;
   }
 
   async changePassword(newPassword: string, forced = false, oldPassword?: string): Promise<void> {
@@ -105,7 +136,7 @@ export class AuthService {
           return this.http.post<AuthResponse>(`${environment.apiUrl}/api/auth/signin`, enrichedRequest).pipe(
             switchMap(response => from(this.processAuthResponse(response, enrichedRequest.password))),
             tap(() => {
-              this._isAuthenticated = true;
+              this.openSession();
               this.log.log('Online login successful.');
             }),
             catchError(error => {
@@ -290,7 +321,7 @@ export class AuthService {
         );
       }
       this._user = storedUser;
-      this._isAuthenticated = true;
+      this.openSession();
       console.log('Offline login successful');
       await this.log.log('Offline login successful');
       // Dispatch login success to update the store

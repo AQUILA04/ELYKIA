@@ -9,15 +9,21 @@ import { Subject } from 'rxjs';
 import { LoggerService } from 'src/app/core/services/logger.service';
 import { DataInitializationService } from 'src/app/core/services/data-initialization.service';
 import { DatabaseService } from 'src/app/core/services/database.service';
+import { AuthService } from 'src/app/core/services/auth.service';
 
 describe('LoginPage', () => {
   let component: LoginPage;
   let fixture: ComponentFixture<LoginPage>;
   let filesystemPermissionService: jasmine.SpyObj<FilesystemPermissionService>;
+  let authService: jasmine.SpyObj<AuthService>;
+  let alertController: jasmine.SpyObj<AlertController>;
 
   beforeEach(async () => {
     filesystemPermissionService = jasmine.createSpyObj('FilesystemPermissionService', ['ensurePublicStorageAccess']);
     filesystemPermissionService.ensurePublicStorageAccess.and.resolveTo({ granted: true, deniedAfterRequest: false });
+    authService = jasmine.createSpyObj('AuthService', ['consumeSessionExpiredNotice']);
+    authService.consumeSessionExpiredNotice.and.returnValue(false);
+    alertController = jasmine.createSpyObj('AlertController', ['create']);
 
     await TestBed.configureTestingModule({
       declarations: [LoginPage],
@@ -26,7 +32,8 @@ describe('LoginPage', () => {
         provideMockStore(),
         provideMockActions(() => new Subject()),
         { provide: FilesystemPermissionService, useValue: filesystemPermissionService },
-        { provide: AlertController, useValue: jasmine.createSpyObj('AlertController', ['create']) },
+        { provide: AuthService, useValue: authService },
+        { provide: AlertController, useValue: alertController },
         { provide: LoadingController, useValue: jasmine.createSpyObj('LoadingController', ['create']) },
         { provide: ModalController, useValue: jasmine.createSpyObj('ModalController', ['create']) },
         { provide: ToastController, useValue: jasmine.createSpyObj('ToastController', ['create']) },
@@ -48,5 +55,19 @@ describe('LoginPage', () => {
   it('should request filesystem permission on view enter', async () => {
     await component.ionViewWillEnter();
     expect(filesystemPermissionService.ensurePublicStorageAccess).toHaveBeenCalled();
+  });
+
+  it('should explain that the session expired', async () => {
+    authService.consumeSessionExpiredNotice.and.returnValue(true);
+    const alert = { present: jasmine.createSpy('present').and.resolveTo() };
+    alertController.create.and.resolveTo(alert as never);
+
+    await component.ionViewWillEnter();
+
+    expect(alertController.create).toHaveBeenCalledWith(jasmine.objectContaining({
+      header: 'Session expirée',
+      message: 'Votre session n\'est plus valide. Reconnectez-vous pour continuer.',
+    }));
+    expect(alert.present).toHaveBeenCalled();
   });
 });

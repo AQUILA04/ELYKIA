@@ -17,6 +17,7 @@ import { RestoreResult } from 'src/app/core/models/restore.models';
 import { FilesystemPermissionService } from 'src/app/core/services/filesystem-permission.service';
 import { Browser } from '@capacitor/browser';
 import { getWebBaseUrl } from 'src/app/core/utils/web-base-url.util';
+import { AuthService } from 'src/app/core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -46,7 +47,8 @@ export class LoginPage implements OnInit, OnDestroy, ViewWillEnter {
     private dataInitializationService: DataInitializationService,
     private loadingController: LoadingController,
     private dbService: DatabaseService, // Inject DatabaseService
-    private filesystemPermissionService: FilesystemPermissionService
+    private filesystemPermissionService: FilesystemPermissionService,
+    private authService: AuthService
   ) {
     this.error$ = this.store.select(AuthSelectors.selectAuthError);
     this.isOnline$ = this.store.select(selectIsOnline);
@@ -62,8 +64,19 @@ export class LoginPage implements OnInit, OnDestroy, ViewWillEnter {
     });
   }
 
-  ionViewWillEnter() {
-    void this.requestFilesystemPermissionIfNeeded();
+  async ionViewWillEnter(): Promise<void> {
+    await this.presentSessionExpiredNoticeIfNeeded();
+    await this.requestFilesystemPermissionIfNeeded();
+  }
+
+  private async presentSessionExpiredNoticeIfNeeded(): Promise<void> {
+    if (!this.authService.consumeSessionExpiredNotice()) {
+      return;
+    }
+    await this.presentAlert(
+      'Session expirée',
+      'Votre session n\'est plus valide. Reconnectez-vous pour continuer.'
+    );
   }
 
   private async requestFilesystemPermissionIfNeeded(): Promise<void> {

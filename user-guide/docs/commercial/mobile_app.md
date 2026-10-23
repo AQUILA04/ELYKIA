@@ -20,6 +20,8 @@ Dès que vous vous connectez avec votre identifiant et votre mot de passe, vous 
   * **Mois** : le cumul du mois en cours.
   * **Année** : le bilan complet de l'année.
 
+Si une opération en ligne est refusée parce que la session n’est plus reconnue, l’application revient à l’écran de connexion et affiche **Session expirée**. Saisissez à nouveau votre identifiant et votre mot de passe.
+
 ### B. Les 6 compteurs clés (Indicateurs financiers)
 1. **Ventes (FCFA)** : montant total des marchandises que vous avez vendues à crédit sur la période.
 2. **Recouvrements (FCFA)** : montant total des mises quotidiennes que vous avez encaissées en espèces ou par transfert d'argent.
