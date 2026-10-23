@@ -1643,9 +1643,19 @@
 <td>Caisse, Rapport Journalier</td>
 <td>Contrôler les versements et les opérations de la période.</td>
 </tr>
+<tr>
+<td>Suivre vos dettes</td>
+<td>Dettes</td>
+<td>Consulter vos positions marchandise et caisse, et leur règlement.</td>
+</tr>
+<tr>
+<td>Traiter une disparité</td>
+<td>Écarts de carnet</td>
+<td>Accepter la mise manquante ou rejeter le constat.</td>
+</tr>
 </tbody>
 </table>
-<p>Suivez les pages <a href="clients_accounts.md">Clients et comptes</a>, <a href="stock.md">Stock</a>, <a href="sales_orders.md">Ventes et commandes</a>, <a href="tontine.md">Tontines</a> et <a href="mobile_app.md">Application mobile</a>.</p>
+<p>Suivez les pages <a href="clients_accounts.md">Clients et comptes</a>, <a href="stock.md">Stock</a>, <a href="debts.md">Dettes</a>, <a href="ecarts_carnet.md">Écarts de carnet</a>, <a href="sales_orders.md">Ventes et commandes</a>, <a href="tontine.md">Tontines</a> et <a href="mobile_app.md">Application mobile</a>.</p>
 <p>\newpage</p>
 <hr />
 <h1 id="clients-et-comptes-repertoire-enrolement-suivi">Clients et comptes (Répertoire, Enrôlement &amp; Suivi)</h1>
@@ -1843,10 +1853,16 @@
 <td><strong>Carte Cliquable</strong> : Un clic ouvre instantanément la liste détaillée de l'ensemble des crédits et ventes associés.</td>
 </tr>
 <tr>
+<td><strong>Valeur Dette</strong></td>
+<td>Orange</td>
+<td>Valorisation des quantités passées en dette pour ce mois (y compris après règlement).</td>
+<td>La carte n’apparaît que lorsque ce montant est supérieur à 0. Elle indique aussi la part déjà réglée.</td>
+</tr>
+<tr>
 <td><strong>Valeur Total Dû</strong></td>
 <td>Orange (<code>account_balance_wallet</code>)</td>
-<td>Valeur globale totale de l'ensemble des marchandises confiées sur le mois (Stock restant + Stock vendu).</td>
-<td>Représente l'engagement financier total initial du commercial.</td>
+<td>Valeur globale : stock vendu + dette + stock restant.</td>
+<td>Engagement financier du mois.</td>
 </tr>
 <tr>
 <td><strong>Montant Recouvré</strong></td>
@@ -1874,8 +1890,11 @@
 * <strong>Pris (Magasin)</strong> : Quantité totale livrée par le magasin central. <em>(Cellule cliquable pour inspecter le détail des bons de sortie).</em>
 * <strong>Vendu (Clients)</strong> : Quantité totale écoulée auprès de la clientèle. <em>(Cellule cliquable pour ouvrir la liste des ventes clientes correspondantes).</em>
 * <strong>Retourné</strong> : Quantité réintégrée au magasin central.
-* <strong>Restant</strong> : Quantité nette actuellement détenue : $\text{Restant} = \text{Pris} - \text{Vendu} - \text{Retourné}$.
-* <strong>Valeur Restante (FCFA)</strong> : Valorisation financière du reliquat au Prix Moyen Pondéré (PMP).</p>
+* <strong>Restant</strong> : Quantité encore chez vous.
+* <strong>Dette</strong> / <strong>Valeur Dette</strong> : quantités et montant des articles déjà transformés en dette pour ce mois.
+* <strong>Valeur Restante (FCFA)</strong> : valorisation financière du reliquat au prix du stock.</p>
+<h3 id="d-consulter-vos-dettes">D. Consulter vos dettes</h3>
+<p>Voir la page dédiée <a href="debts.md">Vos dettes</a>.</p>
 <hr />
 <h2 id="3-retours-de-marchandise-au-magasin-menu-stock-commercial-retours">3. Retours de marchandise au magasin (Menu Stock Commercial &gt; Retours)</h2>
 <p>Lorsqu'un commercial souhaite réintégrer un article invendu, défectueux ou faire une fin de tournée, il crée une opération de retour dans <strong>Stock Commercial &gt; Retours</strong>.</p>
@@ -2445,6 +2464,7 @@
 <li><strong>Mois</strong> : le cumul du mois en cours.</li>
 <li><strong>Année</strong> : le bilan complet de l'année.</li>
 </ul>
+<p>Si une opération en ligne est refusée parce que la session n’est plus reconnue, l’application revient à l’écran de connexion et affiche <strong>Session expirée</strong>. Saisissez à nouveau votre identifiant et votre mot de passe.</p>
 <h3 id="b-les-6-compteurs-cles-indicateurs-financiers">B. Les 6 compteurs clés (Indicateurs financiers)</h3>
 <ol>
 <li><strong>Ventes (FCFA)</strong> : montant total des marchandises que vous avez vendues à crédit sur la période.</li>
@@ -2596,6 +2616,9 @@ L'objectif est d'avoir une courbe verte qui suit toujours de très près la cour
 <li>Le ticket de caisse s'affiche avec la date, l'heure, le montant payé et le solde restant.</li>
 <li>Touchez <strong>Imprimer</strong> : votre imprimante Bluetooth de ceinture imprime le ticket officiel pour la cliente.</li>
 </ol>
+<blockquote>
+<p><strong>Portefeuille crédit</strong> : vous ne pouvez encaisser que les clientes qui vous sont affectées en commercial crédit. Si une cliente a été réaffectée à un autre commercial, l’enregistrement du recouvrement est refusé avec un message clair. Actualisez vos données (synchronisation) pour ne garder que votre portefeuille à jour.</p>
+</blockquote>
 <hr />
 <h2 id="5-module-tontine-lepargne-collective">5. Module Tontine : l'épargne collective</h2>
 <p>Le module <strong>Tontine</strong> permet aux clientes de mettre de l'argent de côté chaque jour ou chaque semaine pour s'offrir des vivres, des appareils électroménagers ou des cadeaux en fin d'année.</p>
@@ -2650,6 +2673,9 @@ L'objectif est d'avoir une courbe verte qui suit toujours de très près la cour
 <li>Le reçu officiel s'affiche avec le nom de la membre, la somme du jour et le <strong>Total cotisé à ce jour</strong>.</li>
 <li>Touchez le bouton bleu <strong>Imprimer</strong> pour donner son ticket papier à la membre.</li>
 </ol>
+<blockquote>
+<p><strong>Portefeuille tontine</strong> : vous ne pouvez collecter que pour les membres qui vous sont affectées en commercial tontine. Si une membre a été réaffectée à un autre commercial, l’enregistrement de la cotisation est refusé avec un message clair. Actualisez vos données (synchronisation) pour ne garder que votre carnet à jour.</p>
+</blockquote>
 <h3 id="e-remettre-les-articles-de-fin-dannee-livraison-tontine">E. Remettre les articles de fin d'année (Livraison tontine)</h3>
 <p>Pendant la campagne, la membre peut déjà choisir ses articles. La remise en mains propres se fait après la clôture de la session.</p>
 <ol>
