@@ -34,6 +34,31 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.43.2] — 2026-10-23
+
+### Fixed
+
+- Le test de la chaîne vente à crédit, encaissement et clôture ouvre un compte actif et une adhésion personnelle avant la distribution.
+
+## Backend — [1.43.1] — 2026-10-23
+
+### Fixed
+
+- L'ouverture d'un compte crée l'adhésion personnelle après l'enregistrement du compte. Le démarrage de l'application n'est plus bloqué par le listener de cet événement.
+
+## Backend — [1.43.0] — 2026-10-23
+
+### Added
+
+- Adhésions client personnel, business et événement : solde et frais séparés sur le compte unique. L'adhésion business ouvre aussi le crédit personnel et le crédit événement. Le plafond personnel est fixe (35 000 FCFA). Les plafonds business et événement valent le solde du type multiplié par le dividende.
+- Les comptes existants sont migrés en adhésion personnelle. Les frais d'adhésion et les recharges alimentent le rapport journalier.
+- L'espace client peut déclarer une souscription ou une recharge Mobile Money. Le gestionnaire valide ou rejette la déclaration.
+
+### Changed
+
+- Le plafond d'un crédit dépend de l'adhésion active du type choisi. Le paramètre global de contrôle du solde de compte ne décide plus du plafond.
+- Un seul crédit ouvert est autorisé par type : personnel, professionnel, événement.
+
 ## Backend — [1.42.4] — 2026-10-23
 
 ### Added
@@ -150,6 +175,29 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.40.1] — 2026-10-23
+
+### Fixed
+
+- La confirmation d'une souscription ou d'un rejet d'adhésion ne laisse plus de promesse sans traitement.
+
+## Frontend — [2.40.0] — 2026-10-23
+
+### Added
+
+- Fiche client : bloc Adhésions (solde, plafond, souscription, ajout au solde, validation des déclarations Mobile Money).
+- Nouvelle vente : choix Personnel, Professionnel ou Événement selon les adhésions actives.
+- Rapport journalier : filtres Adhésion personnelle, Adhésion business, Adhésion événement et Recharge d'adhésion.
+
+### Changed
+
+- L'ouverture de compte présente le dépôt comme solde de l'adhésion personnelle, avec un crédit personnel plafonné à 35 000 FCFA.
+- Le badge Adhésion business remplace l'action d'autorisation ou de retrait du crédit business.
+
+### Docs
+
+- Guide gestionnaire, commercial et espace client : adhésions, plafonds et déclaration Mobile Money. Index RAG et guide HTML régénérés.
 
 ## Frontend — [2.39.0] — 2026-10-23
 
@@ -273,6 +321,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.34.0] — 2026-10-23
+
+### Added
+
+- Nouvelle distribution : choix Personnel, Professionnel ou Événement selon les adhésions synchronisées, avec le plafond du type avant confirmation.
+- Un seul crédit ouvert par type. Les adhésions sont enregistrées sur le téléphone après la synchronisation des clients.
 
 ## Mobile — [2.33.25] — 2026-10-23
 
@@ -813,6 +868,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.17.0] — 2026-10-23
+
+### Added
+
+- Écran Mes adhésions : soldes, plafonds, et déclaration Mobile Money d'une souscription ou d'un ajout au solde.
+- Panier : choix du type de crédit lorsque plusieurs adhésions sont actives.
 
 ## Customer-space — [0.16.0] — 2026-10-16
 

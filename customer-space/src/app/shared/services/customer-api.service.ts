@@ -40,6 +40,8 @@ import {
   CustomerInitialDepositRequest,
   CustomerNotification,
   CustomerPaymentProof,
+  CustomerAdhesionOverview,
+  CustomerAdhesionSubmission,
 } from '../models/customer.model';
 
 /**
@@ -121,6 +123,21 @@ export class CustomerApiService {
 
   getDashboard(): Observable<CustomerDashboard> {
     return this.http.get<CustomerDashboard>(`${this.base}/dashboard`);
+  }
+
+  getAdhesions(): Observable<CustomerAdhesionOverview> {
+    return this.http.get<CustomerAdhesionOverview>(`${this.base}/adhesions`);
+  }
+
+  declareAdhesion(payload: {
+    adhesionType: string;
+    requestKind: string;
+    mobileMoneyPhone: string;
+    amount: number;
+    mobileMoneyReference: string;
+    notes?: string;
+  }): Observable<CustomerAdhesionSubmission> {
+    return this.http.post<CustomerAdhesionSubmission>(`${this.base}/adhesions/declarations`, payload);
   }
 
   // ─── ACHATS ──────────────────────────────────────────────────────────────

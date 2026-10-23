@@ -27,6 +27,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/dashboard/dashboard.page').then(m => m.DashboardPage),
   },
   {
+    path: 'adhesions',
+    canActivate: [CustomerAuthGuard],
+    loadComponent: () => import('./features/adhesions/adhesions.page').then(m => m.AdhesionsPage),
+  },
+  {
     path: 'purchases',
     canActivate: [CustomerAuthGuard],
     loadComponent: () => import('./features/purchases/purchases.page').then(m => m.PurchasesPage),

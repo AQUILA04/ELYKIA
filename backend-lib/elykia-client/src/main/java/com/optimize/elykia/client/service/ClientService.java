@@ -892,6 +892,26 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     @Transactional
+    public Client updateEventCreditInProgress(Long clientId, Boolean status) {
+        Client client = getById(clientId);
+        client.setEventCreditInProgress(Boolean.TRUE.equals(status));
+        return super.update(client);
+    }
+
+    @Transactional
+    public void markBusinessCreditAuthorizedFromAdhesion(Long clientId, String performedBy) {
+        Client client = getById(clientId);
+        if (client.isBusinessCreditAuthorized()) {
+            return;
+        }
+        client.setBusinessCreditAuthorized(true);
+        client.setBusinessCreditAuthorizedBy(performedBy);
+        client.setBusinessCreditAuthorizedAt(LocalDateTime.now());
+        super.update(client);
+        persistAuthorizationEvent(clientId, BusinessCreditAuthorizationAction.AUTHORIZED, performedBy);
+    }
+
+    @Transactional
     public ClientRespDto authorizeBusinessCredit(Long clientId, String performedBy) {
         Client client = getById(clientId);
         if (client.isBusinessCreditAuthorized()) {

@@ -151,6 +151,9 @@ export class MigrationService {
       case 34:
         await this.migrateToV34(db);
         break;
+      case 35:
+        await this.migrateToV35(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -925,6 +928,10 @@ export class MigrationService {
       'sellingPrice',
       'REAL DEFAULT 0'
     );
+  }
+
+  private async migrateToV35(db: SQLiteDBConnection): Promise<void> {
+    await this.migrateAddColumnIfMissing(db, 'v35', 'clients', 'adhesionsJson', 'TEXT');
   }
 
   /** Migration simple : une colonne optionnelle + logs awaités (fiabilité Sonar). */

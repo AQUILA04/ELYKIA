@@ -1,4 +1,5 @@
 import { Locality } from './locality.model';
+import { ClientAdhesionSnapshot } from './credit-purpose.model';
 
 export interface Client {
   id: string;
@@ -26,6 +27,7 @@ export interface Client {
   businessCreditAuthorized?: boolean;
   businessCreditAuthorizedBy?: string;
   businessCreditAuthorizedAt?: string;
+  adhesions?: ClientAdhesionSnapshot[];
   /** Dérivé des distributions : au moins une distribution avec remainingAmount > 0 */
   hasActiveCredit?: boolean;
   isLocal?: boolean;

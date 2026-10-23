@@ -107,9 +107,7 @@ L'application sépare strictement les responsabilités commerciales pour une tra
 * **Type de client** *(Obligatoire)* : Choix entre `Client` (client final bénéficiaire) ou `Commercial` (compte interne pour un commercial).
 * **Compte associé & Solde initial** :
   * **Numéro de compte** : Généré automatiquement par le système.
-  * **Solde initial en FCFA** *(Obligatoire)* : Saisie du montant d'ouverture de compte, soumis à un plancher et un plafond réglementaires :
-    * **Montant minimum** : `500 FCFA`.
-    * **Montant maximum** : `2 000 000 FCFA`.
+  * **Solde initial en FCFA** *(Obligatoire)* : Dépôt d'ouverture, entre **500 FCFA** et **2 000 000 FCFA**. Ce montant devient le solde de l'adhésion personnelle. Le crédit personnel reste plafonné à **35 000 FCFA**, même si le dépôt est plus élevé.
 
 Cliquez sur **« Enregistrer »** pour créer le dossier client.
 
@@ -377,7 +375,7 @@ Pour créer une vente, cliquez sur le bouton bleu **« + Nouvelle vente »** en 
 | **Articles et stock disponible** | Les articles sont déduits du **Stock Commercial** de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus. | Les articles sont recherchés directement dans le stock général du magasin. |
 | **Prix appliqué** | Prix de vente à crédit (prix contractuel avec marge tontine/crédit). | Prix de vente au comptant. |
 | **Paiement et échéances** | Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue. | Règlement intégral immédiat au comptoir. Aucun échéancier journalier. |
-| **Usage du crédit** | Choix entre usage **Personnel** ou **Professionnel** si le client bénéficie de l'habilitation crédit professionnel. | Sans objet. |
+| **Usage du crédit** | Choix **Personnel**, **Professionnel** ou **Événement** selon les adhésions actives du client. Un seul crédit ouvert par type. | Sans objet. |
 
 ### Reçu de caisse et impression immédiate
 Si l'impression immédiate est activée dans votre agence :
@@ -897,7 +895,8 @@ Une fois la cliente enregistrée, vous pouvez lui remettre des articles à créd
 2. **Choisissez la cliente** :
    * Touchez **Sélectionner un client**.
    * Tapez son nom et touchez sa fiche.
-   * *Règle de protection* : si la cliente a déjà un crédit standard non terminé, l'application vous avertit pour éviter qu'elle ne s'endette au-delà de ses capacités.
+   * *Règle de protection* : si la cliente a déjà un crédit non terminé du même type, l'application vous avertit. Un seul crédit ouvert est possible pour le personnel, un pour le professionnel et un pour l'événement.
+   * Si plusieurs adhésions sont actives, choisissez **Personnel**, **Professionnel** ou **Événement**. L'écran indique le plafond du type choisi. Le personnel reste plafonné à 35 000 FCFA. Le professionnel et l'événement sont plafonnés à 6 fois le solde de l'adhésion. Synchronisez vos données pour récupérer les adhésions à jour.
 3. **Choisissez les articles dans votre sacoche** :
    * La liste affiche les articles que vous avez physiquement sur vous.
    * Appuyez sur **+** ou **-** pour régler les quantités. Vous ne pouvez pas vendre plus d'articles que ce que vous avez réellement dans votre stock.

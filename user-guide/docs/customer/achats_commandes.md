@@ -6,6 +6,7 @@ Cet écran vous permet de suivre vos crédits, commander des produits et déclar
 
 1. Ouvrez l’application Espace Client.
 2. Sur **Accueil**, consultez votre crédit en cours et les raccourcis **Payer**, **Commander**, **Achats**, **Tontine**.
+3. Appuyez sur **Mes adhésions et plafonds** pour voir le solde et le plafond de chaque adhésion active.
 
 ## Mes achats
 
@@ -48,11 +49,20 @@ Si aucun frais de retrait n’est prévu pour votre mise, le paiement direct n�
 2. Chaque produit affiche sa photo lorsqu’elle est disponible, avec son nom et son prix.
 3. Recherchez un produit ou filtrez par catégorie.
 4. Appuyez sur **Ajouter**, puis ouvrez le panier.
-5. Sur **Mon panier**, ajustez les quantités, consultez le **résumé de la commande**, puis appuyez sur **Passer la commande**.
+5. Sur **Mon panier**, ajustez les quantités, consultez le **résumé de la commande**, puis appuyez sur **Passer la commande**. Si plusieurs adhésions sont actives, choisissez le type de crédit (**Personnel**, **Professionnel** ou **Événement**) avant de valider. Le plafond affiché est celui de ce type.
+
+## Mes adhésions
+
+1. Depuis l'accueil, ouvrez **Mes adhésions et plafonds**. Sur ordinateur, le menu **Adhésions** mène au même écran.
+2. Chaque carte indique le type, le statut, le solde et le plafond de crédit.
+   * **Personnel** : plafond 35 000 FCFA.
+   * **Business** et **Événement** : plafond égal à 6 fois le solde de ce type. L'adhésion business ouvre aussi le crédit personnel et le crédit événement.
+3. Pour souscrire ou ajouter de l'argent au solde, envoyez le montant par Mobile Money, puis remplissez **Déclarer un dépôt Mobile Money** : opération, type, numéro d'envoi et référence du transfert. Pour un ajout au solde, saisissez aussi le montant.
+4. Appuyez sur **Envoyer la déclaration**. L'agence vérifie le transfert avant de l'appliquer.
 
 ## Sur ordinateur
 
-1. Utilisez le menu à gauche : **Accueil**, **Achats**, **Commander**, **Panier**, **Profil**.
-2. Sur **Accueil**, les montants de crédit s’affichent en cartes en haut de page, avec les actions rapides à droite.
+1. Utilisez le menu à gauche : **Accueil**, **Achats**, **Commander**, **Adhésions**, **Panier**, **Profil**.
+2. Sur **Accueil**, les montants de crédit s’affichent en cartes en haut de page, avec les actions rapides à droite. **Adhésions** ouvre vos soldes et plafonds.
 3. Sur **Achats**, la liste apparaît en tableau : cliquez une ligne pour le détail. Le panneau de droite propose **Payer une mise** et **Voir le suivi des mises**.
 4. Sur **Commander**, les catégories sont à gauche, les produits au centre (avec leur photo lorsqu’elle est disponible), et un mini-panier à droite. Ouvrez **Voir le panier** pour finaliser.

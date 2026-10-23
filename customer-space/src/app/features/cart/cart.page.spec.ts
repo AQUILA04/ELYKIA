@@ -21,6 +21,7 @@ describe('CartPage', () => {
           provide: CustomerApiService,
           useValue: {
             submitOrder: () => of({ reference: 'CMD-1', totalAmount: 10000 }),
+            getAdhesions: () => of({ adhesions: [], submissions: [] }),
           },
         },
       ],

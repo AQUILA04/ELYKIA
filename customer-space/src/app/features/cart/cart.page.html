@@ -11,6 +11,9 @@
     (increment)="increment($event)"
     (decrement)="decrement($event)"
     (remove)="removeLine($event)"
+    [purposes]="purposeChoices"
+    [creditPurpose]="creditPurpose"
+    (purposeChange)="creditPurpose = $event"
     (submit)="submitOrder()">
   </app-cart-desktop>
 </ng-container>
@@ -76,6 +79,14 @@
         <div class="summary-row">
           <span>Frais de livraison</span>
           <span class="summary-free">Gratuit</span>
+        </div>
+        <div class="summary-row" *ngIf="purposeChoices.length > 1" data-testid="e2e-cart-purpose">
+          <label for="cart-purpose">Crédit</label>
+          <select id="cart-purpose" [(ngModel)]="creditPurpose">
+            <option *ngFor="let adhesion of purposeChoices" [value]="adhesion.adhesionType">
+              {{ purposeLabel(adhesion.adhesionType) }} — plafond {{ adhesion.creditCeiling | number:'1.0-0' }}
+            </option>
+          </select>
         </div>
         <div class="summary-divider"></div>
         <div class="summary-row summary-total" data-testid="e2e-cart-total">

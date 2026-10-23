@@ -256,28 +256,6 @@ export class ClientListComponent implements OnInit, OnDestroy {
     this.router.navigate(['/client/add', clientId]);
   }
 
-  authorizeBusinessCredit(client: Client, event: Event): void {
-    event.stopPropagation();
-    this.clientService.authorizeBusinessCredit(client.id).subscribe({
-      next: (response) => {
-        Object.assign(client, response.data);
-        this.alertService.toastSuccess('Client habilité au crédit business');
-      },
-      error: (err) => this.alertService.showError(err.error?.message || 'Erreur lors de l\'habilitation')
-    });
-  }
-
-  revokeBusinessCredit(client: Client, event: Event): void {
-    event.stopPropagation();
-    this.clientService.revokeBusinessCreditAuthorization(client.id).subscribe({
-      next: (response) => {
-        Object.assign(client, response.data);
-        this.alertService.toastSuccess('Habilitation retirée');
-      },
-      error: (err) => this.alertService.showError(err.error?.message || 'Erreur lors de la révocation')
-    });
-  }
-
   onCommercialSelected(commercial: string | null): void {
     this.selectedCommercial = commercial;
     this.currentPage = 0;

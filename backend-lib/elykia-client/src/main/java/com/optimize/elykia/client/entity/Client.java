@@ -88,6 +88,9 @@ public class Client extends Auditable<String> {
     @Column(name = "business_credit_authorized_at")
     private java.time.LocalDateTime businessCreditAuthorizedAt;
 
+    @Column(name = "event_credit_in_progress", columnDefinition = "boolean default false")
+    private boolean eventCreditInProgress = false;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "activation_status", nullable = false, length = 20)
     private ClientActivationStatus activationStatus = ClientActivationStatus.ACTIVE;

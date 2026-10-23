@@ -69,6 +69,33 @@ export interface NewClientData {
   longitude?: number;
 }
 
+export interface ClientAdhesion {
+  id: number;
+  clientId: number;
+  adhesionType: 'PERSONAL' | 'BUSINESS' | 'EVENT';
+  status: string;
+  adhesionFee: number;
+  feeWaived: boolean;
+  balance: number;
+  creditCeiling: number;
+  source: string;
+  activatedAt?: string;
+}
+
+export interface AdhesionSubmission {
+  id: number;
+  clientId: number;
+  adhesionType: 'PERSONAL' | 'BUSINESS' | 'EVENT';
+  requestKind: 'SUBSCRIBE' | 'TOP_UP';
+  mobileMoneyPhone: string;
+  mobileMoneyAmount: number;
+  mobileMoneyReference: string;
+  notes?: string;
+  status: string;
+  createdAt?: string;
+  rejectionReason?: string;
+}
+
 export interface ApiResponse<T> {
   status: string;
   statusCode: number;
@@ -243,16 +270,46 @@ export class ClientService {
     );
   }
 
-  authorizeBusinessCredit(clientId: number): Observable<ApiResponse<Client>> {
+  getAdhesions(clientId: number): Observable<ClientAdhesion[]> {
     const headers = this.getHeader();
-    return this.http.post<ApiResponse<Client>>(
-      `${this.apiUrl}/${clientId}/business-credit-authorization`, {}, { headers });
+    return this.http.get<ApiResponse<ClientAdhesion[]>>(
+      `${this.apiUrl}/${clientId}/adhesions`, { headers }
+    ).pipe(map(response => response.data ?? []));
   }
 
-  revokeBusinessCreditAuthorization(clientId: number): Observable<ApiResponse<Client>> {
+  subscribeAdhesion(clientId: number, adhesionType: ClientAdhesion['adhesionType']): Observable<ClientAdhesion[]> {
     const headers = this.getHeader();
-    return this.http.delete<ApiResponse<Client>>(
-      `${this.apiUrl}/${clientId}/business-credit-authorization`, { headers });
+    return this.http.post<ApiResponse<ClientAdhesion[]>>(
+      `${this.apiUrl}/${clientId}/adhesions`, { adhesionType }, { headers }
+    ).pipe(map(response => response.data ?? []));
+  }
+
+  topUpAdhesion(clientId: number, adhesionType: ClientAdhesion['adhesionType'], amount: number): Observable<ClientAdhesion[]> {
+    const headers = this.getHeader();
+    return this.http.post<ApiResponse<ClientAdhesion[]>>(
+      `${this.apiUrl}/${clientId}/adhesions/${adhesionType}/top-up`, { amount }, { headers }
+    ).pipe(map(response => response.data ?? []));
+  }
+
+  getAdhesionSubmissions(clientId: number): Observable<AdhesionSubmission[]> {
+    const headers = this.getHeader();
+    return this.http.get<ApiResponse<AdhesionSubmission[]>>(
+      `${this.apiUrl}/${clientId}/adhesion-submissions`, { headers }
+    ).pipe(map(response => response.data ?? []));
+  }
+
+  validateAdhesionSubmission(clientId: number, submissionId: number): Observable<AdhesionSubmission> {
+    const headers = this.getHeader();
+    return this.http.post<ApiResponse<AdhesionSubmission>>(
+      `${this.apiUrl}/${clientId}/adhesion-submissions/${submissionId}/validate`, {}, { headers }
+    ).pipe(map(response => response.data));
+  }
+
+  rejectAdhesionSubmission(clientId: number, submissionId: number, reason: string): Observable<AdhesionSubmission> {
+    const headers = this.getHeader();
+    return this.http.post<ApiResponse<AdhesionSubmission>>(
+      `${this.apiUrl}/${clientId}/adhesion-submissions/${submissionId}/reject`, { reason }, { headers }
+    ).pipe(map(response => response.data));
   }
 
   getBusinessCreditAuthorizationHistory(clientId: number): Observable<BusinessCreditAuthorizationEvent[]> {

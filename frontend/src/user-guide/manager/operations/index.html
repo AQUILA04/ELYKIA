@@ -764,10 +764,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#d-autorisation-de-credit-business-gestion-du-double-credit" class="md-nav__link">
+  <a href="#d-adhesions-et-plafonds-de-credit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        D. Autorisation de Crédit Business (Gestion du double crédit)
+        D. Adhésions et plafonds de crédit
       
     </span>
   </a>
@@ -2045,10 +2045,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#d-autorisation-de-credit-business-gestion-du-double-credit" class="md-nav__link">
+  <a href="#d-adhesions-et-plafonds-de-credit" class="md-nav__link">
     <span class="md-ellipsis">
       
-        D. Autorisation de Crédit Business (Gestion du double crédit)
+        D. Adhésions et plafonds de crédit
       
     </span>
   </a>
@@ -2355,10 +2355,19 @@
 <li><strong>Validation</strong> : Cliquez sur <strong>« Valider »</strong> pour appliquer les réaffectations. L'historique des changements de commercial est intégralement archivé pour audit.</li>
 </ol>
 <hr />
-<h3 id="d-autorisation-de-credit-business-gestion-du-double-credit">D. Autorisation de Crédit Business (Gestion du double crédit)</h3>
-<p>Sur chaque ligne client, le gestionnaire habilité dispose d'un bouton d'approbation dédié :
-* <strong>Badge vert « B »</strong> : Indique que le client est habilité à contracter un <strong>crédit business/professionnel</strong> en plus de son crédit personnel usuel.
-* <strong>Action « Autoriser / Retirer crédit business »</strong> : Permet au gestionnaire d'octroyer ou de révoquer ce privilège après examen de la solvabilité du client.</p>
+<h3 id="d-adhesions-et-plafonds-de-credit">D. Adhésions et plafonds de crédit</h3>
+<p>Sur la fiche client, le bloc <strong>Adhésions</strong> indique, pour chaque type, le statut, le solde et le plafond de crédit.</p>
+<!-- CAPTURE À INSÉRER : Bloc Adhésions de la fiche client avec soldes, plafonds et boutons de souscription. -->
+
+<ol>
+<li><strong>Adhésion personnelle (500)</strong> : le dépôt de 500 FCFA ouvre le crédit personnel, plafonné à <strong>35 000 FCFA</strong>. Un ajout au solde augmente le solde affiché. Le plafond personnel reste 35 000 FCFA.</li>
+<li><strong>Adhésion business (2 000)</strong> : le dépôt de 2 000 FCFA devient le solde de départ. Le plafond du crédit professionnel est égal à <strong>6 fois ce solde</strong>. Cette souscription ouvre aussi le crédit personnel (plafond 35 000 FCFA) et le crédit événement, sans autre frais. Le crédit événement démarre avec un solde à 0 : utilisez <strong>Ajouter au solde</strong> pour augmenter son plafond (6 fois le solde).</li>
+<li><strong>Adhésion événement (2 000)</strong> : même règle de plafond (6 fois le solde) pour un crédit événement, lorsque cette adhésion n'est pas déjà ouverte.</li>
+<li>Un client ne peut avoir qu'un crédit ouvert de chaque type à la fois : personnel, professionnel, événement.</li>
+<li>Les comptes déjà ouverts apparaissent en adhésion personnelle. Le badge <strong>Adhésion business</strong> s'affiche lorsque l'adhésion business est active.</li>
+<li>Les déclarations Mobile Money en attente figurent sous le bloc. <strong>Valider</strong> applique la souscription ou l'ajout au solde après contrôle du transfert. <strong>Rejeter</strong> écarte la déclaration.</li>
+</ol>
+<p>À l'ouverture d'un compte, le dépôt saisi devient le solde de l'adhésion personnelle. Le crédit personnel reste plafonné à 35 000 FCFA.</p>
 <hr />
 <h2 id="6-commandes-passees-en-ligne-menu-services-en-ligne-commandes">6. Commandes passées en ligne (Menu Services en ligne &gt; Commandes)</h2>
 <p>Les commandes passées par les clients depuis l’Espace Client apparaissent dans <strong>Services en ligne</strong> &gt; <strong>Commandes</strong>.</p>

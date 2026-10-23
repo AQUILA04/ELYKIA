@@ -58,12 +58,11 @@
         <span class="section-title">Finalité du crédit</span>
       </div>
       <ion-segment mode="md" [value]="creditPurpose" (ionChange)="onCreditPurposeChange($any($event.detail.value))" class="elyk-segment">
-        <ion-segment-button value="PERSONAL">
-          <ion-label>Personnel</ion-label>
+        @for (purpose of availablePurposes; track purpose) {
+        <ion-segment-button [value]="purpose">
+          <ion-label>{{ purposeLabel(purpose) }}</ion-label>
         </ion-segment-button>
-        <ion-segment-button value="BUSINESS">
-          <ion-label>Professionnel</ion-label>
-        </ion-segment-button>
+        }
       </ion-segment>
     </div>
     }

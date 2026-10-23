@@ -1,0 +1,76 @@
+<ng-container *ngIf="layout.isDesktop(); else mobileView">
+  <app-elyk-desktop-page
+    eyebrow="ESPACE CLIENT"
+    title="Mes adhésions"
+    subtitle="Soldes et plafonds de crédit"
+    [showBack]="true"
+    (back)="goBack()"
+    data-testid="e2e-adhesions-page">
+    <ng-container *ngTemplateOutlet="body"></ng-container>
+  </app-elyk-desktop-page>
+</ng-container>
+
+<ng-template #mobileView>
+  <ion-content class="page-content adhesions-page" data-testid="e2e-adhesions-page">
+    <app-elyk-page-header
+      eyebrow="ESPACE CLIENT"
+      title="Mes adhésions"
+      subtitle="Soldes et plafonds de crédit"
+      [showBack]="true"
+      (back)="goBack()">
+    </app-elyk-page-header>
+    <div class="adhesions-body elyk-typec-body">
+      <ng-container *ngTemplateOutlet="body"></ng-container>
+    </div>
+  </ion-content>
+</ng-template>
+
+<ng-template #body>
+  <div *ngIf="isLoading" class="elyk-skeleton-card">
+    <ion-skeleton-text animated style="width:60%;height:18px;"></ion-skeleton-text>
+  </div>
+
+  <article class="adhesion-card elyk-animate" *ngFor="let adhesion of adhesions" [attr.data-testid]="'e2e-adhesion-' + adhesion.adhesionType">
+    <h2>{{ label(adhesion.adhesionType) }}</h2>
+    <p>{{ adhesion.status === 'ACTIVE' ? 'Active' : 'En attente' }}</p>
+    <p>Solde : {{ adhesion.balance | number:'1.0-0' }} FCFA</p>
+    <p>Plafond de crédit : {{ adhesion.creditCeiling | number:'1.0-0' }} FCFA</p>
+  </article>
+
+  <p *ngIf="!isLoading && adhesions.length === 0">Aucune adhésion pour le moment.</p>
+
+  <section class="declare-card elyk-animate" data-testid="e2e-adhesion-form">
+    <h2>Déclarer un dépôt Mobile Money</h2>
+    <p>Personnel : 500 FCFA, plafond 35 000. Business et événement : 2 000 FCFA, plafond égal à 6 fois le solde. L'adhésion business ouvre aussi le crédit personnel et le crédit événement.</p>
+    <label for="adhesion-kind">Opération</label>
+    <select id="adhesion-kind" [(ngModel)]="requestKind" data-testid="e2e-adhesion-kind">
+      <option value="SUBSCRIBE">Souscription</option>
+      <option value="TOP_UP">Ajout au solde</option>
+    </select>
+    <label for="adhesion-type">Type</label>
+    <select id="adhesion-type" [(ngModel)]="adhesionType" data-testid="e2e-adhesion-type">
+      <option value="PERSONAL">Personnel</option>
+      <option value="BUSINESS">Business</option>
+      <option value="EVENT">Événement</option>
+    </select>
+    <label for="adhesion-phone">Numéro d'envoi</label>
+    <input id="adhesion-phone" type="tel" [(ngModel)]="phone" data-testid="e2e-adhesion-phone" />
+    <label for="adhesion-ref">Référence du transfert</label>
+    <input id="adhesion-ref" type="text" [(ngModel)]="reference" data-testid="e2e-adhesion-reference" />
+    <label for="adhesion-amount" *ngIf="requestKind === 'TOP_UP'">Montant ajouté</label>
+    <input *ngIf="requestKind === 'TOP_UP'" id="adhesion-amount" type="number" inputmode="numeric" [(ngModel)]="topUpAmount" data-testid="e2e-adhesion-amount" />
+    <p *ngIf="requestKind === 'SUBSCRIBE'">Montant à envoyer : {{ declaredAmount() | number:'1.0-0' }} FCFA</p>
+    <p class="elyk-form-error" *ngIf="error" data-testid="e2e-adhesion-error">{{ error }}</p>
+    <p *ngIf="success" data-testid="e2e-adhesion-success">{{ success }}</p>
+    <ion-button expand="block" class="elyk-btn-gold" data-testid="e2e-adhesion-submit" [disabled]="isSubmitting" (click)="submit()">
+      Envoyer la déclaration
+    </ion-button>
+  </section>
+
+  <section *ngIf="submissions.length">
+    <h2>Déclarations</h2>
+    <p *ngFor="let submission of submissions">
+      {{ label(submission.adhesionType) }} — {{ submission.status }} — {{ submission.mobileMoneyAmount | number:'1.0-0' }} FCFA
+    </p>
+  </section>
+</ng-template>

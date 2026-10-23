@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, from, of, concatMap, BehaviorSubject, throwError } from 'rxjs';
+import { Observable, from, of, concatMap, BehaviorSubject, throwError, firstValueFrom } from 'rxjs';
 import {switchMap, catchError, map} from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { DatabaseService } from './database.service';
@@ -196,6 +196,22 @@ export class ClientService {
     );
   }
 
+  private async syncAdhesions(commercialUsername: string): Promise<void> {
+    try {
+      const url = `${environment.apiUrl}/api/v1/adhesions/by-commercial/${encodeURIComponent(commercialUsername)}`;
+      const response = await firstValueFrom(
+        this.http.get<ApiResponse<Array<{ clientId: number; adhesions: unknown[] }>>>(url)
+      );
+      const groups = response?.data ?? [];
+      for (const group of groups) {
+        await this.clientRepository.saveAdhesions(String(group.clientId), group.adhesions ?? []);
+      }
+      await this.log.log(`[ClientService] Adhesions synchronisées pour ${groups.length} client(s).`);
+    } catch (error) {
+      await this.log.log(`[ClientService] Sync adhésions ignorée: ${this.log.formatError(error)}`);
+    }
+  }
+
   private fetchClientsFromApi(commercialUsername: string): Observable<Client[]> {
     // We start the pagination process. We don't accumulate clients anymore.
     return this.fetchPageAndSave(commercialUsername, 0, this.PAGE_SIZE);
@@ -248,9 +264,9 @@ export class ClientService {
                   // Recursive call, but we wrap it in from() because it returns an Observable
                   // We wait for the next page to complete
                   return await this.fetchPageAndSave(commercialUsername, page + 1, size).toPromise() || [];
-              } else {
-                  return []; // Done
               }
+              await this.syncAdhesions(commercialUsername);
+              return [];
           }),
           catchError(error => {
               const detail = error instanceof Error ? error.message : this.log.formatError(error);

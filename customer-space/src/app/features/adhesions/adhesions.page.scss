@@ -1,0 +1,30 @@
+.adhesions-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 32px;
+}
+
+.adhesion-card,
+.declare-card {
+  background: var(--elyk-surface, #fff);
+  border: 1px solid var(--elyk-border, #e6ebf2);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+.declare-card label {
+  display: block;
+  margin-top: 12px;
+  font-size: 13px;
+}
+
+.declare-card input,
+.declare-card select {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 4px;
+  border-radius: 8px;
+  border: 1px solid var(--elyk-border, #d5deea);
+  padding: 8px 12px;
+}

@@ -101,7 +101,7 @@ export class DatabaseService {
     // 2. Migrations incrémentielles (natif uniquement).
     // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
     const currentVersion = await this.db.getVersion();
-    const targetVersion = 34; // articles.sellingPrice for tontine catalogue order
+    const targetVersion = 35; // client adhesions snapshot for credit ceilings
     const dbVersion = currentVersion.version ?? 2;
     const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -283,6 +283,7 @@ export class DatabaseService {
             businessCreditAuthorized BOOLEAN DEFAULT 0,
             businessCreditAuthorizedBy TEXT,
             businessCreditAuthorizedAt TEXT,
+            adhesionsJson TEXT,
             isLocal BOOLEAN DEFAULT 1,
             isSync BOOLEAN DEFAULT 0,
             syncDate DATETIME,

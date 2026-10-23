@@ -305,6 +305,7 @@ public class OrderService extends GenericService<Order, Long> {
         order.setOrderDate(LocalDateTime.now());
         order.setStatus(OrderStatus.PENDING);
         order.setSource(source != null ? source : OrderSource.STAFF);
+        order.setCreditPurpose(dto.getCreditPurpose() != null ? dto.getCreditPurpose() : com.optimize.elykia.core.enumaration.CreditPurpose.PERSONAL);
 
         Set<OrderItem> items = new HashSet<>();
         double totalAmount = 0.0;

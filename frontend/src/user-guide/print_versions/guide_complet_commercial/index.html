@@ -1703,11 +1703,7 @@
 <li><strong>Type de client</strong> <em>(Obligatoire)</em> : Choix entre <code>Client</code> (client final bénéficiaire) ou <code>Commercial</code> (compte interne pour un commercial).</li>
 <li><strong>Compte associé &amp; Solde initial</strong> :</li>
 <li><strong>Numéro de compte</strong> : Généré automatiquement par le système.</li>
-<li><strong>Solde initial en FCFA</strong> <em>(Obligatoire)</em> : Saisie du montant d'ouverture de compte, soumis à un plancher et un plafond réglementaires :<ul>
-<li><strong>Montant minimum</strong> : <code>500 FCFA</code>.</li>
-<li><strong>Montant maximum</strong> : <code>2 000 000 FCFA</code>.</li>
-</ul>
-</li>
+<li><strong>Solde initial en FCFA</strong> <em>(Obligatoire)</em> : Dépôt d'ouverture, entre <strong>500 FCFA</strong> et <strong>2 000 000 FCFA</strong>. Ce montant devient le solde de l'adhésion personnelle. Le crédit personnel reste plafonné à <strong>35 000 FCFA</strong>, même si le dépôt est plus élevé.</li>
 </ul>
 <p>Cliquez sur <strong>« Enregistrer »</strong> pour créer le dossier client.</p>
 <hr />
@@ -2070,7 +2066,7 @@
 </tr>
 <tr>
 <td><strong>Usage du crédit</strong></td>
-<td>Choix entre usage <strong>Personnel</strong> ou <strong>Professionnel</strong> si le client bénéficie de l'habilitation crédit professionnel.</td>
+<td>Choix <strong>Personnel</strong>, <strong>Professionnel</strong> ou <strong>Événement</strong> selon les adhésions actives du client. Un seul crédit ouvert par type.</td>
 <td>Sans objet.</td>
 </tr>
 </tbody>
@@ -2541,7 +2537,8 @@ L'objectif est d'avoir une courbe verte qui suit toujours de très près la cour
 <li><strong>Choisissez la cliente</strong> :</li>
 <li>Touchez <strong>Sélectionner un client</strong>.</li>
 <li>Tapez son nom et touchez sa fiche.</li>
-<li><em>Règle de protection</em> : si la cliente a déjà un crédit standard non terminé, l'application vous avertit pour éviter qu'elle ne s'endette au-delà de ses capacités.</li>
+<li><em>Règle de protection</em> : si la cliente a déjà un crédit non terminé du même type, l'application vous avertit. Un seul crédit ouvert est possible pour le personnel, un pour le professionnel et un pour l'événement.</li>
+<li>Si plusieurs adhésions sont actives, choisissez <strong>Personnel</strong>, <strong>Professionnel</strong> ou <strong>Événement</strong>. L'écran indique le plafond du type choisi. Le personnel reste plafonné à 35 000 FCFA. Le professionnel et l'événement sont plafonnés à 6 fois le solde de l'adhésion. Synchronisez vos données pour récupérer les adhésions à jour.</li>
 <li><strong>Choisissez les articles dans votre sacoche</strong> :</li>
 <li>La liste affiche les articles que vous avez physiquement sur vous.</li>
 <li>Appuyez sur <strong>+</strong> ou <strong>-</strong> pour régler les quantités. Vous ne pouvez pas vendre plus d'articles que ce que vous avez réellement dans votre stock.</li>

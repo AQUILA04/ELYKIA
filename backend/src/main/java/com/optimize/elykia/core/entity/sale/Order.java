@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.optimize.common.entities.entity.BaseEntity;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.dto.ActiveStockRequestInfo;
+import com.optimize.elykia.core.enumaration.CreditPurpose;
 import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import jakarta.persistence.*;
@@ -44,6 +45,10 @@ public class Order extends BaseEntity<String> {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
     private OrderSource source = OrderSource.STAFF;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "credit_purpose", length = 20)
+    private CreditPurpose creditPurpose = CreditPurpose.PERSONAL;
 
     @Column(name = "operation_consent_code")
     private String operationConsentCode;
