@@ -254,7 +254,8 @@ export class MyStockDashboardComponent implements OnInit {
   }
 
   createMerchandiseDebt(stock: CommercialMonthlyStock): void {
-    if (!stock?.id || !this.canCreateMerchandiseDebt(stock)) {
+    const stockId = stock?.id;
+    if (stockId == null || !this.canCreateMerchandiseDebt(stock)) {
       return;
     }
     const amount = this.getTotalStockValue(stock);
@@ -263,8 +264,8 @@ export class MyStockDashboardComponent implements OnInit {
       if (!confirmed) {
         return;
       }
-      this.creatingDebtStockId = stock.id;
-      this.debtService.createMerchandise(stock.id).subscribe({
+      this.creatingDebtStockId = stockId;
+      this.debtService.createMerchandise(stockId).subscribe({
         next: (debt) => {
           this.creatingDebtStockId = null;
           this.alertService.showSuccess(`Dette ${debt.reference} créée.`);

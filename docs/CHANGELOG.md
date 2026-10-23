@@ -138,6 +138,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
 
+## Frontend — [2.38.2] — 2026-10-23
+
+### Fixed
+
+- La création d’une dette marchandise compile à nouveau : l’identifiant du stock est conservé après la confirmation.
+
 ## Frontend — [2.38.1] — 2026-10-23
 
 ### Changed
