@@ -79,7 +79,7 @@ export class AuthService {
     if (!this.sessionExpiryHandled) {
       this.sessionExpiryHandled = true;
       this.sessionExpiredNotice = true;
-      this.log.log('Session refusée (401) : déconnexion automatique.');
+      void this.log.log('Session refusée (401) : déconnexion automatique.');
       this.store.dispatch(AuthActions.logout());
     }
     return true;
