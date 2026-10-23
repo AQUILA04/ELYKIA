@@ -12,6 +12,12 @@ import { StockReturnKpis, StockReturnService } from '../../services/stock-return
 import { StockTontineReturnService } from '../../../stock-tontine/services/stock-tontine-return.service';
 import { StockChannel } from '../../models/stock-channel';
 import { StockChannelService } from '../../services/stock-channel.service';
+import {
+  StockChannelPage,
+  stockListCrumb,
+  stockListHeading,
+  stockListSubtitle
+} from '../../utils/stock-channel-page';
 import { coerceStockItems, formatArticleLabel } from '../../utils/stock-detail.util';
 import { Observable, forkJoin } from 'rxjs';
 import { finalize } from 'rxjs/operators';
@@ -38,7 +44,7 @@ interface StockReturnListState {
 })
 export class StockReturnListComponent implements OnInit, OnDestroy {
   private dateIntervalId?: ReturnType<typeof setInterval>;
-  private channelReady = false;
+  private channels: StockChannelPage;
 
   channel: StockChannel = 'credit';
 
@@ -71,14 +77,16 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
   constructor(
     private stockReturnService: StockReturnService,
     private tontineReturnService: StockTontineReturnService,
-    private stockChannel: StockChannelService,
+    stockChannel: StockChannelService,
     private authService: AuthService,
     private userService: UserService,
     private toastr: ToastrService,
     private alertService: AlertService,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    this.channels = new StockChannelPage(stockChannel, router, route);
+  }
 
   private get stateKey(): string {
     return this.channel === 'tontine' ? 'stockTontineReturnListState' : 'stockReturnListState';
@@ -111,21 +119,13 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
       || this.userService.hasProfile(UserProfile.ADMIN);
 
     this.route.queryParamMap.subscribe(params => {
-      const next = this.stockChannel.resolve(params.get('channel'));
-      if (params.get('channel') !== next) {
-        this.router.navigate([], {
-          relativeTo: this.route,
-          queryParams: { channel: next },
-          queryParamsHandling: 'merge',
-          replaceUrl: true
-        });
+      const adoptedReturn = this.channels.adopt(params.get('channel'));
+      if (adoptedReturn == null) {
         return;
       }
-      const changed = this.channelReady && this.channel !== next;
-      this.channel = next;
-      this.stockChannel.remember(next);
+      this.channel = adoptedReturn.channel;
       this.canSelectCommercial = !this.isPromoter;
-      if (changed) {
+      if (adoptedReturn.changed) {
         this.closeDetails();
         this.selectedReturnIds.clear();
         this.page = 0;
@@ -135,10 +135,9 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
         this.selectedCommercial = null;
       }
       this.refresh();
-      if (!changed) {
+      if (!adoptedReturn.changed) {
         this.openDetailsFromQueryParam();
       }
-      this.channelReady = true;
     });
 
     this.dateIntervalId = setInterval(() => {
@@ -153,25 +152,24 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
     }
   }
 
-  get pageTitle(): string {
-    return this.channel === 'tontine' ? 'Retours stock tontine' : 'Retours stock';
+  get returnHeading(): string {
+    return stockListHeading('return', this.channel);
   }
 
-  get pageSubtitle(): string {
-    const kind = this.channel === 'tontine' ? 'tontine' : 'crédit';
-    return `Retours de stock ${kind} · Filtres période et commercial conservés à la navigation`;
+  get returnSubtitle(): string {
+    return stockListSubtitle('return', this.channel);
   }
 
-  get breadcrumbLabel(): string {
-    return this.channel === 'tontine' ? 'Mon stock tontine' : 'Mon stock';
+  get returnCrumb(): string {
+    return stockListCrumb(this.channel);
   }
 
-  onChannelChange(channel: StockChannel): void {
-    this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { channel, id: null },
-      queryParamsHandling: 'merge'
-    });
+  get returnChannelQuery(): { channel: StockChannel } {
+    return { channel: this.channel };
+  }
+
+  onReturnChannel(channel: StockChannel): void {
+    this.channels.select(channel);
   }
 
   get periodLabel(): string {
@@ -253,24 +251,22 @@ export class StockReturnListComponent implements OnInit, OnDestroy {
     const range = resolveStockPeriodRange(this.selectedPeriod);
     this.exportLoading = true;
     this.exportApi().exportPdf(range.startDate, range.endDate, this.selectedCommercial).subscribe({
-      next: (data) => {
-        const blob = new Blob([data], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        const prefix = this.channel === 'tontine' ? 'fiche_retours_stock_tontine' : 'fiche_retours_stock';
-        link.download = `${prefix}_${range.startDate}_${range.endDate}.pdf`;
-        link.click();
-        window.URL.revokeObjectURL(url);
-        this.exportLoading = false;
-        this.alertService.toastSuccess('Fiche des retours téléchargée avec succès');
-      },
-      error: (err) => {
-        console.error('Export error', err);
-        this.alertService.toastError('Erreur lors du téléchargement du PDF');
-        this.exportLoading = false;
-      }
+      next: (data) => this.finishReturnExport(data, range.startDate, range.endDate),
+      error: (err) => this.failReturnExport(err)
     });
+  }
+
+  private finishReturnExport(data: Blob, startDate: string, endDate: string): void {
+    const prefix = this.channel === 'tontine' ? 'fiche_retours_stock_tontine' : 'fiche_retours_stock';
+    this.downloadPdfBlob(data, `${prefix}_${startDate}_${endDate}.pdf`);
+    this.exportLoading = false;
+    this.alertService.toastSuccess('Fiche des retours téléchargée avec succès');
+  }
+
+  private failReturnExport(err: unknown): void {
+    console.error('Export error', err);
+    this.alertService.toastError('Erreur lors du téléchargement du PDF');
+    this.exportLoading = false;
   }
 
   get selectedCount(): number {

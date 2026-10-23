@@ -168,35 +168,13 @@ export class StockRequestCreateComponent implements OnInit {
 
     if (this.isEditMode && this.requestId) {
       this.stockRequestService.update(this.requestId, request as any).subscribe({
-        next: (resp: any) => {
-          if (resp && resp.statusCode && resp.statusCode !== 200) {
-            this.toastr.error(resp.message || 'Erreur lors de la modification de la demande');
-            this.spinner.hide();
-            this.isSubmitting = false;
-          } else {
-            this.toastr.success('Demande modifiée avec succès');
-            this.spinner.hide();
-            this.router.navigate(['/stock/request'], { queryParams: { channel: 'credit' } });
-          }
-        },
-        error: (error: any) => {
-          this.toastr.error(error.error?.message || error.message || 'Erreur lors de la modification de la demande');
-          this.spinner.hide();
-          this.isSubmitting = false;
-        }
+        next: (resp: any) => this.finishCreditWrite(resp, 'Demande modifiée avec succès', 'Erreur lors de la modification de la demande'),
+        error: (error: any) => this.failWrite(error, 'Erreur lors de la modification de la demande')
       });
     } else if (this.channel === 'tontine') {
       this.tontineRequestService.create(request).subscribe({
-        next: () => {
-          this.toastr.success('Demande créée avec succès');
-          this.spinner.hide();
-          this.router.navigate(['/stock/request'], { queryParams: { channel: 'tontine' } });
-        },
-        error: (error: any) => {
-          this.toastr.error(error.error?.message || error.message || 'Erreur lors de la création de la demande');
-          this.spinner.hide();
-          this.isSubmitting = false;
-        }
+        next: () => this.finishTontineWrite(),
+        error: (error: any) => this.failWrite(error, 'Erreur lors de la création de la demande')
       });
     } else {
       const requestDto = {
@@ -205,23 +183,33 @@ export class StockRequestCreateComponent implements OnInit {
       };
 
       this.stockRequestService.create(requestDto).subscribe({
-        next: (resp: any) => {
-          if (resp && resp.statusCode && resp.statusCode !== 200) {
-            this.toastr.error(resp.message || 'Erreur lors de la création de la demande');
-            this.spinner.hide();
-            this.isSubmitting = false;
-          } else {
-            this.toastr.success('Demande créée avec succès');
-            this.spinner.hide();
-            this.router.navigate(['/stock/request'], { queryParams: { channel: 'credit' } });
-          }
-        },
-        error: (error: any) => {
-          this.toastr.error(error.error?.message || error.message || 'Erreur lors de la création de la demande');
-          this.spinner.hide();
-          this.isSubmitting = false;
-        }
+        next: (resp: any) => this.finishCreditWrite(resp, 'Demande créée avec succès', 'Erreur lors de la création de la demande'),
+        error: (error: any) => this.failWrite(error, 'Erreur lors de la création de la demande')
       });
     }
+  }
+
+  private finishCreditWrite(resp: any, success: string, failure: string): void {
+    if (resp && resp.statusCode && resp.statusCode !== 200) {
+      this.toastr.error(resp.message || failure);
+      this.spinner.hide();
+      this.isSubmitting = false;
+      return;
+    }
+    this.toastr.success(success);
+    this.spinner.hide();
+    this.router.navigate(['/stock/request'], { queryParams: { channel: 'credit' } });
+  }
+
+  private finishTontineWrite(): void {
+    this.toastr.success('Demande créée avec succès');
+    this.spinner.hide();
+    this.router.navigate(['/stock/request'], { queryParams: { channel: 'tontine' } });
+  }
+
+  private failWrite(error: any, failure: string): void {
+    this.toastr.error(error.error?.message || error.message || failure);
+    this.spinner.hide();
+    this.isSubmitting = false;
   }
 }
