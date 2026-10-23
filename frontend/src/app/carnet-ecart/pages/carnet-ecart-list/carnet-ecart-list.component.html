@@ -1,0 +1,208 @@
+<div class="main-container carnet-ecart-page a1" data-testid="e2e-carnet-ecart-list">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/dashboard" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+        </svg>
+        Tableau de bord
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">Contrôle terrain</span>
+        <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="page-icon">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+            <path d="M8 7h8"/><path d="M8 11h6"/>
+          </svg>
+          <h1 class="page-title">Écarts de carnet</h1>
+        </div>
+        <button type="button" class="btn-refresh" (click)="load()" [disabled]="loading" data-testid="e2e-carnet-ecart-refresh">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Actualiser
+        </button>
+      </div>
+      <p class="page-subtitle">Acceptez une disparité pour enregistrer la mise manquante et le manquant de caisse, ou rejetez-la avec un motif.</p>
+    </div>
+  </div>
+
+  <div class="page-scroll-body">
+    <div class="kpi-strip a3">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Lignes affichées</div>
+        <div class="kpi-value">{{ items.length }}</div>
+        <div class="kpi-sub">Selon le filtre en cours</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Acceptables</div>
+        <div class="kpi-value">{{ pendingCount }}</div>
+        <div class="kpi-sub">Carnet supérieur au système</div>
+      </div>
+      <div class="kpi-card kpi-delai">
+        <div class="kpi-label">Montant à rattraper</div>
+        <div class="kpi-value">{{ acceptableTotal | number:'1.0-0' }}</div>
+        <div class="kpi-sub">FCFA · mise et manquant</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Sélection</div>
+        <div class="kpi-value">{{ selected.size }}</div>
+        <div class="kpi-sub">Lignes cochées</div>
+      </div>
+    </div>
+
+    <div class="banner banner-ok" *ngIf="resultMessage" role="status" data-testid="e2e-carnet-ecart-result">{{ resultMessage }}</div>
+    <div class="banner banner-error" *ngIf="errorMessage" role="alert" data-testid="e2e-carnet-ecart-error">{{ errorMessage }}</div>
+
+    <div class="toolbar a4">
+      <div class="filter-fields">
+        <div class="filter-field">
+          <span class="toolbar-label">File</span>
+          <div class="collector-type-pills" role="group" aria-label="File des écarts">
+            <button type="button" class="pill-btn" [class.active]="queue === 'PENDING'" (click)="queue = 'PENDING'; load()" data-testid="e2e-carnet-ecart-queue-pending">En attente</button>
+            <button type="button" class="pill-btn" [class.active]="queue === 'INVERSE'" (click)="queue = 'INVERSE'; load()" data-testid="e2e-carnet-ecart-queue-inverse">Écart inverse</button>
+            <button type="button" class="pill-btn" [class.active]="queue === 'ACCEPTED'" (click)="queue = 'ACCEPTED'; load()">Acceptés</button>
+            <button type="button" class="pill-btn" [class.active]="queue === 'REJECTED'" (click)="queue = 'REJECTED'; load()">Rejetés</button>
+          </div>
+        </div>
+        <div class="filter-field">
+          <span class="toolbar-label">Type</span>
+          <div class="collector-type-pills" role="group" aria-label="Type de dossier">
+            <button type="button" class="pill-btn" [class.active]="domain === ''" (click)="domain = ''; load()">Tous</button>
+            <button type="button" class="pill-btn pill-btn-tontine" [class.active]="domain === 'TONTINE'" (click)="domain = 'TONTINE'; load()">Tontine</button>
+            <button type="button" class="pill-btn pill-btn-credit" [class.active]="domain === 'CREDIT'" (click)="domain = 'CREDIT'; load()">Vente</button>
+          </div>
+        </div>
+        <div class="filter-field filter-field-commercial" *ngIf="canFilterCommercial">
+          <label class="toolbar-label" for="carnet-ecart-commercial">Commercial</label>
+          <input id="carnet-ecart-commercial" class="search-input" type="text" [(ngModel)]="commercial"
+                 (keydown.enter)="load()" placeholder="Identifiant" data-testid="e2e-carnet-ecart-commercial">
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button type="button" class="btn-clear" (click)="commercial = ''; domain = ''; queue = 'PENDING'; load()">Réinitialiser</button>
+        <span class="result-count"><strong>{{ items.length }}</strong> écart(s)</span>
+      </div>
+    </div>
+
+    <div class="selection-bar" *ngIf="selected.size > 0">
+      <span>{{ selected.size }} sélectionné(s)</span>
+      <button type="button" class="btn-primary" [disabled]="acting" (click)="askAccept(selectedKeys)" data-testid="e2e-carnet-ecart-accept-selection">
+        Accepter la sélection
+      </button>
+      <button type="button" class="btn-danger" [disabled]="acting" (click)="askReject(selectedKeys)" data-testid="e2e-carnet-ecart-reject-selection">
+        Rejeter la sélection
+      </button>
+    </div>
+
+    <div class="table-card a5">
+      <div class="table-wrapper">
+        <div class="empty-state" *ngIf="loading">
+          <div class="empty-icon" aria-hidden="true">⏳</div>
+          <div class="empty-title">Chargement</div>
+          <div class="empty-sub">Les écarts de carnet arrivent.</div>
+        </div>
+        <div class="empty-state" *ngIf="!loading && items.length === 0">
+          <div class="empty-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          </div>
+          <div class="empty-title">Aucun écart</div>
+          <div class="empty-sub">Aucune ligne ne correspond à ce filtre.</div>
+        </div>
+        <table class="data-table" *ngIf="!loading && items.length > 0">
+          <thead>
+            <tr>
+              <th>
+                <input type="checkbox" [checked]="allSelected" (change)="toggleAll($any($event.target).checked)" aria-label="Tout sélectionner">
+              </th>
+              <th>Dossier</th>
+              <th>Client</th>
+              <th>Commercial</th>
+              <th>Système</th>
+              <th>Carnet</th>
+              <th>Écart</th>
+              <th>Sens</th>
+              <th>Constat</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let item of items">
+              <tr [attr.data-testid]="'e2e-carnet-ecart-row-' + item.key">
+                <td>
+                  <input type="checkbox" [checked]="selected.has(item.key)" (change)="toggle(item.key, $any($event.target).checked)" [attr.aria-label]="'Sélectionner ' + (item.subjectReference || item.clientName)">
+                </td>
+                <td>
+                  <div class="col-client">{{ domainLabel(item) }}</div>
+                  <div class="col-ref">{{ item.subjectReference || '—' }}</div>
+                </td>
+                <td>{{ item.clientName || '—' }}</td>
+                <td>
+                  <span *ngIf="item.commercialKnown">{{ item.commercialUsername }}</span>
+                  <span class="status-pill status-warn" *ngIf="!item.commercialKnown">Commercial non identifié</span>
+                </td>
+                <td class="col-amount">{{ item.systemAmount | number:'1.0-0' }}</td>
+                <td class="col-amount">{{ item.notebookAmount | number:'1.0-0' }}</td>
+                <td class="col-amount">{{ item.differenceAmount | number:'1.0-0' }}</td>
+                <td><span class="status-pill" [class.status-ok]="item.direction === 'NOTEBOOK_ABOVE_SYSTEM'" [class.status-warn]="item.direction !== 'NOTEBOOK_ABOVE_SYSTEM'">{{ directionLabel(item) }}</span></td>
+                <td>{{ item.observedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="col-actions">
+                  <button type="button" class="btn-detail" *ngIf="item.acceptableAmount > 0" [disabled]="acting" (click)="askAccept([item.key])">Accepter</button>
+                  <button type="button" class="btn-detail btn-danger" *ngIf="item.status === 'PENDING'" [disabled]="acting" (click)="askReject([item.key])">Rejeter</button>
+                </td>
+              </tr>
+              <tr *ngIf="item.months?.length" class="month-row">
+                <td colspan="10">
+                  <span class="month-chip" *ngFor="let month of item.months">
+                    {{ monthLabel(month.month, month.year) }} · écart {{ month.differenceAmount | number:'1.0-0' }} FCFA
+                    <em *ngIf="month.status !== 'PENDING'">· {{ month.status === 'ACCEPTED' ? 'Accepté' : 'Rejeté' }}</em>
+                  </span>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" *ngIf="showAccept" role="presentation" (click)="cancelDialog()">
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="accept-title" (click)="$event.stopPropagation()" data-testid="e2e-carnet-ecart-accept-dialog">
+      <h2 id="accept-title">Accepter l’écart</h2>
+      <p *ngIf="acceptPreviewAmount > 0">
+        Une mise de <strong>{{ acceptPreviewAmount | number:'1.0-0' }} FCFA</strong> sera enregistrée,
+        et un manquant de caisse du même montant sera ouvert pour le commercial.
+      </p>
+      <p *ngIf="acceptPreviewAmount <= 0">
+        Aucune mise ne sera créée : le carnet n’est pas supérieur au système.
+      </p>
+      <p *ngIf="inverseSelectedCount > 0">
+        {{ inverseSelectedCount }} ligne(s) où le système dépasse le carnet seront ignorées. Vous pouvez les rejeter avec un motif.
+      </p>
+      <div class="dialog-actions">
+        <button type="button" class="btn-clear" (click)="cancelDialog()">Annuler</button>
+        <button type="button" class="btn-primary" [disabled]="acting || acceptPreviewAmount <= 0" (click)="confirmAccept()" data-testid="e2e-carnet-ecart-accept-confirm">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" *ngIf="showReject" role="presentation" (click)="cancelDialog()">
+    <div class="dialog-card" role="dialog" aria-modal="true" aria-labelledby="reject-title" (click)="$event.stopPropagation()" data-testid="e2e-carnet-ecart-reject-dialog">
+      <h2 id="reject-title">Rejeter l’écart</h2>
+      <p>Aucune mise et aucun manquant ne seront créés. Le motif est obligatoire.</p>
+      <label class="toolbar-label" for="reject-note">Motif</label>
+      <textarea id="reject-note" class="reject-note" rows="4" [(ngModel)]="rejectNote" data-testid="e2e-carnet-ecart-reject-note" aria-describedby="reject-hint"></textarea>
+      <p id="reject-hint" class="empty-sub">Décrivez pourquoi le constat ne doit pas être repris en caisse.</p>
+      <div class="dialog-actions">
+        <button type="button" class="btn-clear" (click)="cancelDialog()">Annuler</button>
+        <button type="button" class="btn-danger" [disabled]="acting || !rejectNote.trim()" (click)="confirmReject()" data-testid="e2e-carnet-ecart-reject-confirm">Rejeter</button>
+      </div>
+    </div>
+  </div>
+</div>

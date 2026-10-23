@@ -370,6 +370,7 @@ public class AppNotificationService {
                 }
                 yield username.equalsIgnoreCase(nullToEmpty(targetCollector));
             }
+            case CARNET_ECART -> username.equalsIgnoreCase(nullToEmpty(targetCollector));
         };
     }
 
@@ -452,6 +453,34 @@ public class AppNotificationService {
                 n.getLinkQuery(),
                 read,
                 n.getResolvedAt() != null);
+    }
+
+    @Transactional
+    public void notifyCarnetEcart(String commercialUsername, String clientName, Long controlId,
+            String referenceKey, double amount) {
+        if (!StringUtils.hasText(commercialUsername) || controlId == null) {
+            return;
+        }
+        if (notificationRepository
+                .findByTypeAndEntityIdAndEntityReferenceAndResolvedAtIsNull(
+                        AppNotificationType.CARNET_ECART, controlId, referenceKey)
+                .isPresent()) {
+            return;
+        }
+        AppNotification notification = new AppNotification();
+        notification.setType(AppNotificationType.CARNET_ECART);
+        notification.setEntityId(controlId);
+        notification.setEntityReference(referenceKey);
+        notification.setTitle("Écart de carnet");
+        notification.setMessage((clientName != null ? clientName : "Client")
+                + " · écart de carnet à traiter"
+                + (amount > 0 ? " · " + Math.round(amount) + " FCFA" : ""));
+        notification.setClientName(clientName);
+        notification.setTargetCollector(commercialUsername.trim());
+        notification.setOperationDate(LocalDate.now());
+        notification.setAmount(amount);
+        notification.setLinkPath("/carnet-ecarts");
+        notificationRepository.save(notification);
     }
 
     private static String resolveCreditCollector(Credit credit, Client client) {

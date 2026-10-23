@@ -362,7 +362,9 @@ export class DailyReportComponent implements OnInit {
             remainingAtCommercialAmount: 0,
             remainingAtClientAmount: 0,
             merchandiseDebtGlobalAmount: 0,
-            merchandiseDebtSettledAmount: 0
+            merchandiseDebtSettledAmount: 0,
+            controlledNotebookAmount: 0,
+            pendingNotebookAboveSystemAmount: 0
         };
     }
 
@@ -378,7 +380,9 @@ export class DailyReportComponent implements OnInit {
             totalTontineCollectionsAmount: 0,
             totalTontineCollectionsCount: 0,
             totalTontineDepositedAmount: 0,
-            remainingAtCommercialAmount: 0
+            remainingAtCommercialAmount: 0,
+            controlledNotebookAmount: 0,
+            pendingNotebookAboveSystemAmount: 0
         };
     }
 

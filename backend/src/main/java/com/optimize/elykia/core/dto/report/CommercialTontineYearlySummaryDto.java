@@ -12,4 +12,8 @@ public class CommercialTontineYearlySummaryDto {
     long totalTontineCollectionsCount;
     double totalTontineDepositedAmount;
     double remainingAtCommercialAmount;
+    /** Somme des montants lus sur les carnets au dernier contrôle de la session. */
+    double controlledNotebookAmount;
+    /** Écarts encore ouverts où le carnet dépasse le système. */
+    double pendingNotebookAboveSystemAmount;
 }

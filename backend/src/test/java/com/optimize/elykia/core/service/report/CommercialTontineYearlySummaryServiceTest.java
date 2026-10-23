@@ -4,6 +4,7 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.dto.report.CommercialTontineYearlySummaryDto;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
+import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,13 +23,15 @@ class CommercialTontineYearlySummaryServiceTest {
 
     @Mock private TontineCollectionRepository tontineCollectionRepository;
     @Mock private DailyCommercialReportRepository dailyCommercialReportRepository;
+    @Mock private TontineMemberFieldControlRepository tontineMemberFieldControlRepository;
 
     private CommercialTontineYearlySummaryService service;
 
     @BeforeEach
     void setUp() {
         service = new CommercialTontineYearlySummaryService(
-                tontineCollectionRepository, dailyCommercialReportRepository);
+                tontineCollectionRepository, dailyCommercialReportRepository,
+                tontineMemberFieldControlRepository);
     }
 
     @Test

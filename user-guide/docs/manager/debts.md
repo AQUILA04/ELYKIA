@@ -43,3 +43,14 @@ Sur le **Rapport journalier**, pour un commercial sélectionné, le bilan annuel
 
 - **Dette globale** : somme des dettes marchandise de l’année ;
 - **Dette réglée** : total déjà réglé sur ces dettes.
+
+Les deux bilans affichent aussi **Total carnets**, avec le montant des écarts de carnet encore ouverts.
+
+## Manquant issu d’un écart de carnet
+
+Lorsqu’un écart est accepté dans **Écarts de carnet**, un manquant de caisse est ouvert au nom du commercial, pour le jour de la mise. Il apparaît dans **Dettes**.
+
+1. Ouvrez **Écarts de carnet**. Le filtre **Commercial** limite la file à un identifiant.
+2. **Accepter** crée la mise et le manquant. **Rejeter** exige un motif et ne crée aucun mouvement.
+3. Un versement du même jour, sur la vente ou sur la tontine selon le dossier, règle ce manquant.
+4. Constituer l’écart de caisse de ce jour ne compte pas une seconde fois le manquant encore ouvert.

@@ -30,4 +30,8 @@ public class CommercialYearlySummaryDto {
     double merchandiseDebtGlobalAmount;
     /** Somme des règlements imputés sur ces dettes marchandise. */
     double merchandiseDebtSettledAmount;
+    /** Somme des montants lus sur les carnets au dernier contrôle. */
+    double controlledNotebookAmount;
+    /** Écarts encore ouverts où le carnet dépasse le système. */
+    double pendingNotebookAboveSystemAmount;
 }

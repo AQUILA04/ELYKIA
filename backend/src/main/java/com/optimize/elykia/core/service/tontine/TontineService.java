@@ -22,6 +22,7 @@ import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
 import com.optimize.elykia.core.enumaration.TontineMemberUpdateScope;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.event.TontineCollectionCancelledEvent;
+import com.optimize.elykia.core.event.TontineCollectionEvent;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberAmountHistoryArchiveRepository;
 import com.optimize.elykia.core.repository.TontineMemberAmountHistoryRepository;
@@ -506,6 +507,115 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
 
         return TontineCollectionRespDto.fromTontineCollection(savedCollection);
+    }
+
+    public record FieldControlTontinePosting(
+            Long collectionId,
+            String reference,
+            String commercialUsername,
+            String clientName,
+            LocalDate operationDate,
+            double amount,
+            boolean alreadyExisted) {
+    }
+
+    /**
+     * Collecte interne d'un écart de carnet. Le commercial est celui de la ligne contrôlée,
+     * pas le collecteur actuel du client, et l'opérateur n'a pas à être ce commercial.
+     * L'événement de caisse est publié par {@link #publishFieldControlCollection}.
+     */
+    public FieldControlTontinePosting recordFieldControlCollection(
+            Long memberId,
+            double amount,
+            LocalDate operationDate,
+            String commercialUsername,
+            String reference) {
+        assertTontineWritesAllowed();
+        if (StringUtils.hasText(reference) && tontineCollectionRepository.existsByReference(reference)) {
+            TontineCollection existing = tontineCollectionRepository.findByReference(reference).orElseThrow();
+            return toFieldControlPosting(existing, true);
+        }
+        if (!StringUtils.hasText(commercialUsername)) {
+            throw new CustomValidationException("Le commercial de la ligne de carnet est obligatoire.");
+        }
+        if (amount <= 0.5d) {
+            throw new CustomValidationException("Le montant de la mise de carnet est nul.");
+        }
+        TontineSession currentSession = getActiveSession();
+        if (!TontineSessionStatus.ACTIVE.equals(currentSession.getStatus())) {
+            throw new CustomValidationException(
+                    "La session de cette année est déjà clôturée. Vous ne pouvez plus enregistrer de collecte.");
+        }
+        TontineMember member = getById(memberId);
+        LocalDate today = LocalDate.now();
+        LocalDate allocationDate = today;
+        LocalDateTime collectionDateTime = LocalDateTime.now();
+        boolean catchup = operationDate != null && operationDate.isBefore(today);
+        if (catchup) {
+            validateCatchupCollectionDate(member, currentSession, operationDate);
+            allocationDate = operationDate;
+            collectionDateTime = operationDate.atStartOfDay();
+        } else if (operationDate != null && operationDate.isAfter(today)) {
+            throw new CustomValidationException(
+                    "La date de rattrapage doit être strictement antérieure à la date du jour.");
+        }
+
+        TontineCollection collection = new TontineCollection();
+        collection.setTontineMember(member);
+        collection.setAmount(amount);
+        collection.setIsDeliveryCollection(Boolean.FALSE);
+        collection.setCollectionDate(collectionDateTime);
+        collection.setCommercialUsername(commercialUsername.trim());
+        collection.setReference(reference);
+        collection.setNotes(catchup ? "Rattrapage contrôle carnet" : "Contrôle carnet");
+        collection.setAdvanceToNextMonth(Boolean.FALSE);
+        collection.setContributionMonth(allocationDate.withDayOfMonth(1));
+
+        List<TontineCollection> collectionsForReplay = new ArrayList<>(
+                tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(
+                        member.getId(), State.ENABLED));
+        collectionsForReplay.add(collection);
+        recalculateMemberFromCollections(member, collectionsForReplay);
+        super.update(member);
+        updateSessionRevenue(member.getTontineSession());
+        TontineCollection saved = tontineCollectionRepository.save(collection);
+        if (metricsPublisher != null) {
+            metricsPublisher.tontineCollectionRecorded(saved.getCommercialUsername(), amount);
+        }
+        return toFieldControlPosting(saved, false);
+    }
+
+    public void publishFieldControlCollection(FieldControlTontinePosting posting) {
+        if (posting == null || posting.alreadyExisted() || eventPublisher == null) {
+            return;
+        }
+        LocalDate operationDate = posting.operationDate() != null ? posting.operationDate() : LocalDate.now();
+        eventPublisher.publishEvent(new TontineCollectionEvent(
+                this,
+                posting.amount(),
+                posting.commercialUsername(),
+                posting.clientName(),
+                operationDate,
+                LocalDate.now(),
+                posting.collectionId(),
+                posting.reference()));
+    }
+
+    private FieldControlTontinePosting toFieldControlPosting(TontineCollection collection, boolean alreadyExisted) {
+        String clientName = collection.getTontineMember() != null && collection.getTontineMember().getClient() != null
+                ? collection.getTontineMember().getClient().getFullName()
+                : null;
+        LocalDate operationDate = collection.getCollectionDate() != null
+                ? collection.getCollectionDate().toLocalDate()
+                : LocalDate.now();
+        return new FieldControlTontinePosting(
+                collection.getId(),
+                collection.getReference(),
+                collection.getCommercialUsername(),
+                clientName,
+                operationDate,
+                collection.getAmount() != null ? collection.getAmount() : 0d,
+                alreadyExisted);
     }
 
     public TontineCatchupPreviewDto getCatchupPreview(Long memberId, LocalDate collectionDate) {

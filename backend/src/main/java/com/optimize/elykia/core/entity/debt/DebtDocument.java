@@ -6,6 +6,7 @@ import com.optimize.elykia.core.entity.inventory.Inventory;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.enumaration.DebtHolderProfile;
+import com.optimize.elykia.core.enumaration.DebtOrigin;
 import com.optimize.elykia.core.enumaration.DebtPeriodGrain;
 import com.optimize.elykia.core.enumaration.DebtStatus;
 import com.optimize.elykia.core.enumaration.DebtType;
@@ -87,6 +88,17 @@ public class DebtDocument extends Auditable<String> {
     @JoinColumn(name = "inventory_id")
     @JsonIgnore
     private Inventory inventory;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "debt_origin", nullable = false, length = 30)
+    private DebtOrigin debtOrigin = DebtOrigin.CASH_CONSTITUTION;
+
+    /** CREDIT ou TONTINE pour un manquant issu d'un contrôle de carnet. */
+    @Column(name = "cash_category", length = 20)
+    private String cashCategory;
+
+    @Column(name = "carnet_ecart_decision_id")
+    private Long carnetEcartDecisionId;
 
     @Column(name = "created_by", length = 100)
     private String createdBy;

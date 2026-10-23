@@ -380,6 +380,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'carnet-ecarts',
+    loadChildren: () => import('./carnet-ecart/carnet-ecart.module').then(m => m.CarnetEcartModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'security',
     loadChildren: () => import('./security/security.module').then(m => m.SecurityModule),
     canActivate: [AuthGuard]

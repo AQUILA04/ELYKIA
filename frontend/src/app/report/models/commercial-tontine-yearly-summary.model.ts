@@ -5,4 +5,8 @@ export interface CommercialTontineYearlySummary {
     totalTontineCollectionsCount: number;
     totalTontineDepositedAmount: number;
     remainingAtCommercialAmount: number;
+    /** Somme des carnets du dernier contrôle terrain. */
+    controlledNotebookAmount?: number;
+    /** Écarts encore ouverts, carnet supérieur au système. */
+    pendingNotebookAboveSystemAmount?: number;
 }

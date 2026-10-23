@@ -1215,11 +1215,43 @@
         { "name": "remaining_amount", "type": "double", "synonyms": ["reste à payer"] },
         { "name": "monthly_stock_id", "type": "bigint" },
         { "name": "daily_report_id", "type": "bigint" },
-        { "name": "inventory_id", "type": "bigint" }
+        { "name": "inventory_id", "type": "bigint" },
+        { "name": "debt_origin", "type": "varchar", "description": "CASH_CONSTITUTION ou FIELD_CONTROL (manquant issu d'un écart de carnet accepté)" },
+        { "name": "cash_category", "type": "varchar", "description": "CREDIT ou TONTINE pour un manquant de carnet" },
+        { "name": "carnet_ecart_decision_id", "type": "bigint" }
       ],
       "relations": [
         { "column": "monthly_stock_id", "refTable": "commercial_monthly_stock", "refColumn": "id" },
-        { "column": "inventory_id", "refTable": "inventory", "refColumn": "id" }
+        { "column": "inventory_id", "refTable": "inventory", "refColumn": "id" },
+        { "column": "carnet_ecart_decision_id", "refTable": "carnet_ecart_decision", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "carnet_ecart_decision",
+      "description": "Décision du commercial sur un écart constaté entre le carnet du client et le système (accepté ou rejeté)",
+      "synonyms": ["écart carnet", "disparité carnet", "contrôle terrain accepté"],
+      "rowLevelFilter": "commercial_username",
+      "columns": [
+        { "name": "id", "type": "bigint" },
+        { "name": "domain", "type": "varchar", "description": "CREDIT ou TONTINE" },
+        { "name": "credit_field_control_id", "type": "bigint" },
+        { "name": "tontine_field_control_id", "type": "bigint" },
+        { "name": "tontine_line_id", "type": "bigint" },
+        { "name": "commercial_username", "type": "varchar", "synonyms": ["commercial"] },
+        { "name": "system_amount", "type": "double", "synonyms": ["montant système"] },
+        { "name": "notebook_amount", "type": "double", "synonyms": ["montant carnet"] },
+        { "name": "difference_amount", "type": "double", "synonyms": ["écart"] },
+        { "name": "direction", "type": "varchar" },
+        { "name": "status", "type": "varchar", "description": "ACCEPTED ou REJECTED" },
+        { "name": "rejection_note", "type": "varchar" },
+        { "name": "decided_by", "type": "varchar" },
+        { "name": "decided_at", "type": "timestamp" },
+        { "name": "mise_reference", "type": "varchar" },
+        { "name": "debt_document_id", "type": "bigint" },
+        { "name": "operation_date", "type": "date" }
+      ],
+      "relations": [
+        { "column": "debt_document_id", "refTable": "debt_document", "refColumn": "id" }
       ]
     },
     {

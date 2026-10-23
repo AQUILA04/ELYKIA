@@ -219,6 +219,14 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
      * (appeler {@link AccountingDayService#ensureAccountingReadyForOperations()} avant d'ouvrir la TX métier).
      */
     public void dailyStakeFactor(Credit credit, CreditTimeline creditTimeline) {
+        dailyStakeFactor(credit, creditTimeline, true);
+    }
+
+    /**
+     * @param publishEvent faux lorsque l'appelant publie l'événement après une écriture liée
+     *                     (manquant de carnet) pour rester dans la même transaction.
+     */
+    public void dailyStakeFactor(Credit credit, CreditTimeline creditTimeline, boolean publishEvent) {
         try {
             DailyAccountancy dailyAccountancy = dailyAccountancyService.getByCollectorOrCreateNew(credit.getCollector());
             credit.checkInProgressStatus();
@@ -259,7 +267,7 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
                 }
             }
 
-            if (eventPublisher != null) {
+            if (publishEvent && eventPublisher != null) {
                 String ref = credit.getReference() + " | Client : " + credit.getClient().getFullName();
                 eventPublisher.publishEvent(new CreditCollectionEvent(
                         this,
@@ -337,6 +345,77 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
             }
         });
         return new SpecialDailyStakeResponseDto(successRecoveryIds, failedRecoveries);
+    }
+
+    public record FieldControlCreditPosting(
+            double imputedOnCredit,
+            double reliquat,
+            double cash,
+            String reference,
+            String collector,
+            String creditReference,
+            boolean alreadyExisted) {
+    }
+
+    /**
+     * Mise interne d'un écart de carnet accepté. N'exige pas que l'opérateur soit le commercial du crédit.
+     * L'événement de caisse n'est pas publié : l'appelant le fait après la création du manquant.
+     */
+    public FieldControlCreditPosting postFieldControlRecovery(Long creditId, double cashAmount, String reference) {
+        ensureAccountingReadyOrFail("fieldControlRecovery");
+        if (StringUtils.hasText(reference) && getRepository().existsByReference(reference)) {
+            CreditTimeline existing = getRepository().findByReference(reference).orElseThrow();
+            double imputed = existing.getAmount() != null ? existing.getAmount() : 0d;
+            double reliquat = existing.getReliquatGeneratedAmount() != null ? existing.getReliquatGeneratedAmount() : 0d;
+            return new FieldControlCreditPosting(
+                    imputed, reliquat, imputed + reliquat, reference, existing.getCollector(),
+                    existing.getCredit() != null ? existing.getCredit().getReference() : null,
+                    true);
+        }
+        Credit credit = creditService.getById(creditId);
+        double remaining = credit.getTotalAmountRemaining() != null ? credit.getTotalAmountRemaining() : 0d;
+        com.optimize.elykia.core.service.carnet.CarnetEcartRules.CreditSplit split =
+                com.optimize.elykia.core.service.carnet.CarnetEcartRules.creditSplit(cashAmount, remaining);
+        if (split.imputedOnCredit() > com.optimize.elykia.core.service.carnet.CarnetEcartRules.MONEY_EPSILON) {
+            CreditTimeline timeline = new CreditTimeline();
+            timeline.setCredit(credit);
+            timeline.setAmount(split.imputedOnCredit());
+            timeline.setReliquatGeneratedAmount(split.reliquat());
+            timeline.setReliquatUsedAmount(0d);
+            timeline.setReference(reference);
+            timeline.setCollector(credit.getCollector());
+            timeline.setNormalStake(Boolean.FALSE);
+            dailyStakeFactor(credit, timeline, false);
+        }
+        if (split.reliquat() > com.optimize.elykia.core.service.carnet.CarnetEcartRules.MONEY_EPSILON
+                && credit.getClientId() != null) {
+            clientReliquatService.addReliquat(credit.getClientId(), split.reliquat(), reference, null);
+        }
+        return new FieldControlCreditPosting(
+                split.imputedOnCredit(),
+                split.reliquat(),
+                split.cash(),
+                reference,
+                credit.getCollector(),
+                credit.getReference(),
+                false);
+    }
+
+    public void publishFieldControlCash(FieldControlCreditPosting posting) {
+        if (posting == null || posting.alreadyExisted() || eventPublisher == null) {
+            return;
+        }
+        if (posting.cash() <= com.optimize.elykia.core.service.carnet.CarnetEcartRules.MONEY_EPSILON) {
+            return;
+        }
+        eventPublisher.publishEvent(new CreditCollectionEvent(
+                this,
+                posting.imputedOnCredit(),
+                posting.collector(),
+                posting.creditReference(),
+                posting.reference(),
+                posting.reliquat(),
+                0d));
     }
 
     private void ensureAccountingReadyOrFail(String context) {

@@ -102,6 +102,8 @@ export class NotificationsPageComponent implements OnInit, OnDestroy {
         return 'Rattrapage';
       case 'TONTINE_PAYMENT_DECLARATION':
         return 'Cotisation tontine';
+      case 'CARNET_ECART':
+        return 'Écart de carnet';
       default:
         return 'Notification';
     }

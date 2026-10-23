@@ -14,5 +14,6 @@ Ce guide présente les parcours de terrain disponibles sur le web et, dans sa de
 | Collecter l’épargne | Tontines | Inscrire, collecter, suivre la progression et préparer la livraison. |
 | Rendre compte | Caisse, Rapport Journalier | Contrôler les versements et les opérations de la période. |
 | Suivre vos dettes | Dettes | Consulter vos positions marchandise et caisse, et leur règlement. |
+| Traiter une disparité | Écarts de carnet | Accepter la mise manquante ou rejeter le constat. |
 
-Suivez les pages [Clients et comptes](clients_accounts.md), [Stock](stock.md), [Dettes](debts.md), [Ventes et commandes](sales_orders.md), [Tontines](tontine.md) et [Application mobile](mobile_app.md).
+Suivez les pages [Clients et comptes](clients_accounts.md), [Stock](stock.md), [Dettes](debts.md), [Écarts de carnet](ecarts_carnet.md), [Ventes et commandes](sales_orders.md), [Tontines](tontine.md) et [Application mobile](mobile_app.md).
