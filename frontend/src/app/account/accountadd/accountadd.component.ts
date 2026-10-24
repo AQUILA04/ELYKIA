@@ -7,6 +7,7 @@ import { AccountService } from '../service/account.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AuthService } from '../../auth/service/auth.service';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 
 @Component({
   selector: 'app-account-add',
@@ -26,6 +27,7 @@ export class AccountAddComponent implements OnInit, OnDestroy {
   accountNumberExists = false;
   accountNumber = '';
   currentDate = new Date();
+  dualCreditEnabled = false;
 
   get isEditMode(): boolean {
     return !!this.accountId;
@@ -38,7 +40,8 @@ export class AccountAddComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private alertService: AlertService,
     private tokenStorage: TokenStorageService,
-    private authService: AuthService
+    private authService: AuthService,
+    private featureFlagService: FeatureFlagService
   ) {
     this.tokenStorage.checkConnectedUser();
     this.accountForm = this.formBuilder.group({
@@ -49,6 +52,7 @@ export class AccountAddComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.dualCreditEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
     this.currentUser = this.authService.getCurrentUser();
 
     combineLatest([this.route.params, this.route.queryParams]).pipe(

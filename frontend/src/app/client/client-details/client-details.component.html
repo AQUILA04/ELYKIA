@@ -28,7 +28,7 @@
             <span *ngIf="client.businessCreditInProgress" class="status-chip chip-credit">
               <mat-icon>business_center</mat-icon> Crédit business en cours
             </span>
-            <span *ngIf="client.businessCreditAuthorized" class="status-chip chip-tontine">
+            <span *ngIf="dualCreditEnabled && client.businessCreditAuthorized" class="status-chip chip-tontine">
               <mat-icon>verified</mat-icon> Adhésion business
             </span>
             <span *ngIf="client.isTontineMember" class="status-chip chip-tontine">
@@ -61,7 +61,7 @@
       <div class="details-profile-col">
         <app-client-info-card [client]="client" [safeProfilPhotoUrl]="safeProfilPhotoUrl"></app-client-info-card>
 
-        <div class="business-auth-card">
+        <div class="business-auth-card" *ngIf="dualCreditEnabled">
           <h3 class="business-auth-title">Adhésions</h3>
           <p class="business-auth-hint">
             Personnel : dépôt 500 FCFA, crédit jusqu'à 35 000 FCFA.

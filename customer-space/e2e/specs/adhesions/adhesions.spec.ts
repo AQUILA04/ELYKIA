@@ -3,6 +3,10 @@ import { loginAsCustomer } from '../../fixtures/customer-auth';
 
 test.describe('Adhesions', () => {
   test('shows the personal ceiling and sends a declaration', async ({ page }) => {
+    await page.addInitScript(() => {
+      const target = window as Window & { __E2E_FLAGS__?: Record<string, boolean> };
+      target.__E2E_FLAGS__ = { ...(target.__E2E_FLAGS__ ?? {}), dualCreditAuthorization: true };
+    });
     await loginAsCustomer(page);
     await page.goto('/adhesions');
 

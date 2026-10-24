@@ -14,6 +14,7 @@ import { NotificationBellComponent } from '../../shared/components/notification-
 import { CustomerTabBarComponent } from '../../shared/layout/customer-tab-bar/customer-tab-bar.component';
 import { ElykPageHeaderComponent } from '../../shared/ui';
 import { environment } from '../../../environments/environment';
+import { FeatureFlagService, FeatureFlags } from '../../shared/services/feature-flag.service';
 
 /** Page Tableau de Bord — Type C. */
 import { LayoutService } from '../../shared/layout/layout.service';
@@ -36,6 +37,11 @@ import { DashboardDesktopComponent } from './desktop/dashboard-desktop.component
 })
 export class DashboardPage implements ViewWillEnter {
   readonly layout = inject(LayoutService);
+  private readonly featureFlags = inject(FeatureFlagService);
+
+  get showAdhesions(): boolean {
+    return this.featureFlags.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
+  }
   dashboard: CustomerDashboard | null = null;
   isLoading = true;
   loadError = false;

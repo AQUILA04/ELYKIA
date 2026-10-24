@@ -34,6 +34,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.43.3] — 2026-10-24
+
+### Changed
+
+- Les adhésions business et événement, le plafond personnel de 35 000 FCFA et un crédit ouvert par type ne s'appliquent que si le paramètre `DUAL_CREDIT_AUTHORIZATION` est activé, en miroir du remote config `dualCreditAuthorization`.
+- Paramètre désactivé : seul le crédit personnel est accepté. Le plafond redevient le solde du compte multiplié par le dividende lorsque le contrôle de solde est actif. Un crédit déjà ouvert bloque toute nouvelle vente.
+
 ## Backend — [1.43.2] — 2026-10-23
 
 ### Fixed
@@ -175,6 +182,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.40.2] — 2026-10-24
+
+### Changed
+
+- Le bloc Adhésions, le choix Professionnel / Événement et le plafond personnel de 35 000 FCFA n'apparaissent que si le remote config `dualCreditAuthorization` est activé.
+- Réglage désactivé : la vente reste un crédit personnel, et l'ouverture de compte affiche de nouveau le solde du compte.
 
 ## Frontend — [2.40.1] — 2026-10-23
 
@@ -321,6 +335,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.34.1] — 2026-10-24
+
+### Changed
+
+- Les crédits professionnel et événement, ainsi que leur plafond, ne sont proposés que si le remote config `dualCreditAuthorization` est activé.
+- Réglage désactivé : une vente est refusée dès qu'un crédit est déjà en cours, quel que soit son type.
 
 ## Mobile — [2.34.0] — 2026-10-23
 
@@ -868,6 +889,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.17.1] — 2026-10-24
+
+### Changed
+
+- L'écran Adhésions, le menu correspondant et le choix du type de crédit au panier n'apparaissent que si le remote config `dualCreditAuthorization` est activé.
 
 ## Customer-space — [0.17.0] — 2026-10-23
 
