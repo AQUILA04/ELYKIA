@@ -3,6 +3,7 @@ import { of } from 'rxjs';
 import { CartPage } from './cart.page';
 import { CartService } from '../../shared/services/cart.service';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
+import { FeatureFlagService } from '../../shared/services/feature-flag.service';
 import { IonicModule } from '@ionic/angular';
 import { Router } from '@angular/router';
 import { RouterTestingModule } from '@angular/router/testing';
@@ -24,6 +25,10 @@ describe('CartPage', () => {
             getAdhesions: () => of({ adhesions: [], submissions: [] }),
           },
         },
+        {
+          provide: FeatureFlagService,
+          useValue: { isFeatureEnabled: () => false },
+        },
       ],
     }).compileComponents();
     cart = TestBed.inject(CartService);
@@ -39,6 +44,14 @@ describe('CartPage', () => {
     await fixture.componentInstance.submitOrder();
     expect(router.navigate).toHaveBeenCalled();
     expect(cart.totalItems).toBe(0);
+  });
+
+  it('keeps a single personal credit when multi-adhesion is off', () => {
+    fixture.componentInstance.adhesions = [
+      { adhesionType: 'PERSONAL', status: 'ACTIVE', creditCeiling: 35000 } as never,
+      { adhesionType: 'BUSINESS', status: 'ACTIVE', creditCeiling: 12000 } as never,
+    ];
+    expect(fixture.componentInstance.purposeChoices.length).toBe(0);
   });
 
   it('removes a line and clears the cart', () => {

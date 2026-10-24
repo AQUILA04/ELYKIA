@@ -66,7 +66,7 @@
       </div>
 
       <div class="field-group">
-        <label class="field-label" for="accountBalance">Dépôt d'ouverture (solde personnel) <span class="req">*</span></label>
+        <label class="field-label" for="accountBalance">{{ dualCreditEnabled ? "Dépôt d'ouverture (solde personnel)" : 'Solde du compte' }} <span class="req">*</span></label>
         <input
           id="accountBalance"
           type="number"
@@ -75,7 +75,8 @@
           min="500"
           max="2000000"
           placeholder="Ex : 5000">
-        <span class="field-hint">Ce dépôt devient le solde de l'adhésion personnelle. Le crédit personnel reste plafonné à 35 000 FCFA. Montant entre 500 et 2 000 000 XOF.</span>
+        <span class="field-hint" *ngIf="dualCreditEnabled">Ce dépôt devient le solde de l'adhésion personnelle. Le crédit personnel reste plafonné à 35 000 FCFA. Montant entre 500 et 2 000 000 XOF.</span>
+        <span class="field-hint" *ngIf="!dualCreditEnabled">Montant entre 500 et 2 000 000 XOF.</span>
         <span class="field-error" *ngIf="accountForm.get('accountBalance')?.errors?.['required'] && accountForm.get('accountBalance')?.touched">
           Le solde du compte est requis.
         </span>

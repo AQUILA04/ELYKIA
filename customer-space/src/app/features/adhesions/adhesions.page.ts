@@ -11,6 +11,7 @@ import {
   CustomerAdhesion,
   CustomerAdhesionSubmission,
 } from '../../shared/models/customer.model';
+import { FeatureFlagService, FeatureFlags } from '../../shared/services/feature-flag.service';
 
 @Component({
   selector: 'app-adhesions',
@@ -22,7 +23,12 @@ import {
 export class AdhesionsPage implements OnInit {
   private readonly api = inject(CustomerApiService);
   private readonly router = inject(Router);
+  private readonly featureFlags = inject(FeatureFlagService);
   readonly layout = inject(LayoutService);
+
+  get showAdhesions(): boolean {
+    return this.featureFlags.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
+  }
 
   adhesions: CustomerAdhesion[] = [];
   submissions: CustomerAdhesionSubmission[] = [];
@@ -37,6 +43,10 @@ export class AdhesionsPage implements OnInit {
   topUpAmount: number | null = null;
 
   ngOnInit(): void {
+    if (!this.showAdhesions) {
+      this.isLoading = false;
+      return;
+    }
     this.reload();
   }
 

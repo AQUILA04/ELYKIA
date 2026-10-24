@@ -7,6 +7,7 @@ import { CartService } from '../../services/cart.service';
 import { CustomerSessionService } from '../../services/customer-session.service';
 import { CustomerNotificationInboxService } from '../../services/customer-notification-inbox.service';
 import { APP_VERSION } from '../../../../environments/app-version';
+import { FeatureFlagService, FeatureFlags } from '../../services/feature-flag.service';
 
 interface NavItem {
   label: string;
@@ -28,6 +29,7 @@ export class DesktopSidebarComponent implements OnInit, OnDestroy {
   private readonly sessionService = inject(CustomerSessionService);
   private readonly cartService = inject(CartService);
   private readonly notificationInbox = inject(CustomerNotificationInboxService);
+  private readonly featureFlags = inject(FeatureFlagService);
 
   readonly appVersion = APP_VERSION;
   readonly cartCount = signal(0);
@@ -36,7 +38,7 @@ export class DesktopSidebarComponent implements OnInit, OnDestroy {
   readonly phone = signal('');
   readonly activePath = signal('');
 
-  readonly navItems: NavItem[] = [
+  private readonly allNavItems: NavItem[] = [
     { label: 'Accueil', path: '/dashboard', icon: 'home-outline', testId: 'e2e-nav-dashboard' },
     { label: 'Achats', path: '/purchases', icon: 'receipt-outline', testId: 'e2e-nav-purchases' },
     { label: 'Tontine', path: '/tontines', icon: 'albums-outline', testId: 'e2e-nav-tontines' },
@@ -54,6 +56,13 @@ export class DesktopSidebarComponent implements OnInit, OnDestroy {
   ];
 
   private subs = new Subscription();
+
+  get navItems(): NavItem[] {
+    if (this.featureFlags.isFeatureEnabled(FeatureFlags.DualCreditAuthorization)) {
+      return this.allNavItems;
+    }
+    return this.allNavItems.filter((item) => item.path !== '/adhesions');
+  }
 
   ngOnInit(): void {
     this.syncSession();

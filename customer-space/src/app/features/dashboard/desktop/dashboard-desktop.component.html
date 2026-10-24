@@ -52,7 +52,7 @@
             <a class="qa-btn" routerLink="/catalog"><ion-icon name="bag-add-outline"></ion-icon><span>Commander</span></a>
             <a class="qa-btn" routerLink="/purchases"><ion-icon name="receipt-outline"></ion-icon><span>Achats</span></a>
             <a class="qa-btn" routerLink="/tontines" data-testid="e2e-dashboard-tontine-btn"><ion-icon name="albums-outline"></ion-icon><span>Tontine</span></a>
-            <a class="qa-btn" routerLink="/adhesions" data-testid="e2e-dashboard-adhesions-link"><ion-icon name="card-outline"></ion-icon><span>Adhésions</span></a>
+            <a *ngIf="showAdhesions()" class="qa-btn" routerLink="/adhesions" data-testid="e2e-dashboard-adhesions-link"><ion-icon name="card-outline"></ion-icon><span>Adhésions</span></a>
           </div>
         </aside>
       </div>

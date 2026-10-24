@@ -23,6 +23,7 @@ export class DashboardDesktopComponent {
   readonly creditReference = input('');
   readonly formattedNextDate = input('');
   readonly retry = output<void>();
+  readonly showAdhesions = input(false);
 
   fmt(n: number | undefined): string {
     return (n ?? 0).toLocaleString('fr-FR') + ' F';

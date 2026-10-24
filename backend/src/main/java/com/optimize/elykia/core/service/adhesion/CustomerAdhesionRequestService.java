@@ -50,6 +50,7 @@ public class CustomerAdhesionRequestService {
     }
 
     public CustomerAdhesionSubmissionDto declare(Client client, CustomerAdhesionDeclarationRequest request) {
+        adhesionService.requireDualCreditAuthorization();
         if (client == null || client.getId() == null) {
             throw new CustomValidationException("Client introuvable.");
         }

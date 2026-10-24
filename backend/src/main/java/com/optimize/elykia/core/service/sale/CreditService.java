@@ -148,9 +148,10 @@ public class CreditService extends GenericService<Credit, Long> {
         Credit credit = creditMapper.toEntity(creditDto);
         credit.setCreditPurpose(explicitPurpose);
         creditControlProcess(credit);
-        creditUnicity(credit, explicitPurpose);
+        creditUnicity(credit, dualCreditAuthorizationEnabled() ? explicitPurpose : null);
 
-        CreditRespDto result = createAndProcessCredit(credit, creditDto.getClientId(), explicitPurpose);
+        CreditRespDto result = createAndProcessCredit(credit, creditDto.getClientId(),
+                dualCreditAuthorizationEnabled() ? explicitPurpose : CreditPurpose.PERSONAL);
         if (metricsPublisher != null) {
             metricsPublisher.creditCreated(credit.getCollector(),
                     credit.getType() != null ? credit.getType().name() : "CREDIT");
@@ -600,13 +601,15 @@ public class CreditService extends GenericService<Credit, Long> {
         if (!clientCredit.isMobileFinancialTermsLocked()) {
             clientCredit.setTotalAmount(clientCredit.getTotalAmountByCalcul());
         }
-        CreditPurpose explicitPurpose = dto.getCreditPurpose() != null
+        CreditPurpose requested = dto.getCreditPurpose() != null
                 ? dto.getCreditPurpose() : CreditPurpose.PERSONAL;
-        clientCredit.setCreditPurpose(explicitPurpose);
         if (adhesionService != null) {
-            adhesionService.assertCreditAllowed(client, explicitPurpose, clientCredit.getTotalAmount());
+            adhesionService.assertCreditAllowed(client, requested, clientCredit.getTotalAmount());
         }
-        creditUnicity(clientCredit, explicitPurpose);
+        boolean dualCredit = dualCreditAuthorizationEnabled();
+        CreditPurpose explicitPurpose = dualCredit ? requested : CreditPurpose.PERSONAL;
+        clientCredit.setCreditPurpose(explicitPurpose);
+        creditUnicity(clientCredit, dualCredit ? explicitPurpose : null);
 
         // La référence idempotente doit être fixée avant le mouvement de stock : elle est la clé de
         // traçabilité partagée entre le crédit et son ledger commercial.
@@ -1154,6 +1157,10 @@ public class CreditService extends GenericService<Credit, Long> {
     @Autowired
     public void setAdhesionService(AdhesionService adhesionService) {
         this.adhesionService = adhesionService;
+    }
+
+    private boolean dualCreditAuthorizationEnabled() {
+        return adhesionService != null && adhesionService.isDualCreditAuthorizationEnabled();
     }
 
     @Autowired

@@ -108,14 +108,14 @@ export class CreditAddComponent implements OnInit, OnDestroy {
   }
 
   get availablePurposes(): Array<'PERSONAL' | 'BUSINESS' | 'EVENT'> {
+    if (!this.dualCreditEnabled) {
+      return ['PERSONAL'];
+    }
     const active = this.clientAdhesions
       .filter(item => item.status === 'ACTIVE')
       .map(item => item.adhesionType as 'PERSONAL' | 'BUSINESS' | 'EVENT');
     if (active.length > 0) {
       return Array.from(new Set(active));
-    }
-    if (this.dualCreditEnabled && this.selectedClient?.businessCreditAuthorized) {
-      return ['PERSONAL', 'BUSINESS'];
     }
     return ['PERSONAL'];
   }

@@ -10,6 +10,7 @@ import { CustomerApiService } from '../../shared/services/customer-api.service';
 import { articleDisplayName } from '../../shared/utils/article-display';
 import { AdhesionType, CustomerAdhesion, CustomerArticle } from '../../shared/models/customer.model';
 import { ElykPageHeaderComponent } from '../../shared/ui';
+import { FeatureFlagService, FeatureFlags } from '../../shared/services/feature-flag.service';
 
 /** Page Panier — Type C. */
 import { LayoutService } from '../../shared/layout/layout.service';
@@ -25,6 +26,7 @@ import { CartDesktopComponent } from './desktop/cart-desktop.component';
 export class CartPage implements OnInit, OnDestroy {
   readonly layout = inject(LayoutService);
   private readonly journal = inject(UserJournalService);
+  private readonly featureFlags = inject(FeatureFlagService);
   lines: CartLine[] = [];
   isSubmitting = false;
   error = '';
@@ -50,6 +52,9 @@ export class CartPage implements OnInit, OnDestroy {
   }
 
   get purposeChoices(): CustomerAdhesion[] {
+    if (!this.featureFlags.isFeatureEnabled(FeatureFlags.DualCreditAuthorization)) {
+      return [];
+    }
     return this.adhesions;
   }
 

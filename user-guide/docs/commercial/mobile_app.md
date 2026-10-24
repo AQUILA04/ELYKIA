@@ -132,8 +132,8 @@ Une fois la cliente enregistrée, vous pouvez lui remettre des articles à créd
 2. **Choisissez la cliente** :
    * Touchez **Sélectionner un client**.
    * Tapez son nom et touchez sa fiche.
-   * *Règle de protection* : si la cliente a déjà un crédit non terminé du même type, l'application vous avertit. Un seul crédit ouvert est possible pour le personnel, un pour le professionnel et un pour l'événement.
-   * Si plusieurs adhésions sont actives, choisissez **Personnel**, **Professionnel** ou **Événement**. L'écran indique le plafond du type choisi. Le personnel reste plafonné à 35 000 FCFA. Le professionnel et l'événement sont plafonnés à 6 fois le solde de l'adhésion. Synchronisez vos données pour récupérer les adhésions à jour.
+   * *Règle de protection* : si la cliente a déjà un crédit non terminé, l'application vous avertit. Tant que les crédits professionnel et événement ne sont pas proposés, un seul crédit personnel est possible.
+   * Lorsque l'écran propose **Personnel**, **Professionnel** ou **Événement**, choisissez le type. Un seul crédit ouvert est possible pour chacun. L'écran indique le plafond du type choisi. Le personnel reste plafonné à 35 000 FCFA. Le professionnel et l'événement sont plafonnés à 6 fois le solde de l'adhésion. Synchronisez vos données pour récupérer les adhésions à jour.
 3. **Choisissez les articles dans votre sacoche** :
    * La liste affiche les articles que vous avez physiquement sur vous.
    * Appuyez sur **+** ou **-** pour régler les quantités. Vous ne pouvez pas vendre plus d'articles que ce que vous avez réellement dans votre stock.

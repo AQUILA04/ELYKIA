@@ -456,7 +456,7 @@ app:
       init-data[0]:
         key: ENABLED_ACCOUNT_BALANCE_CONTROL
         value: true
-        description: Obsolète. Les plafonds de crédit sont déterminés par les adhésions (personnel, business, événement) et non plus par ce paramètre global.
+        description: Lorsque les adhésions multiples sont désactivées, limite le crédit personnel au solde du compte multiplié par le dividende.
       init-data[1]:
         key: AGENCY_COLLECTOR
         value: COM001
@@ -485,6 +485,10 @@ app:
         key: CUSTOMER_PAYMENT_COLLECTION_MODE
         value: MANUAL
         description: "Mode de déclaration des paiements Espace Client : MANUAL, AUTOMATIC ou BOTH."
+      init-data[8]:
+        key: DUAL_CREDIT_AUTHORIZATION
+        value: false
+        description: "Active les adhésions business et événement, le plafond personnel de 35 000 FCFA et un crédit ouvert par type. Désactivé : seul le crédit personnel habituel s'applique, selon le solde du compte. À aligner avec le remote config dualCreditAuthorization."
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}
