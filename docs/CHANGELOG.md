@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-10-24
+
+### Fixed
+
+- **Website —** les cinq photos d'équipe du carrousel « Notre impact quotidien » sont publiées avec le site (`impact-04.png` à `impact-08.png`). Elles s'affichent comme les photos de terrain déjà en place.
+
 ## Docs & Infra — 2026-10-23
 
 ### Added
