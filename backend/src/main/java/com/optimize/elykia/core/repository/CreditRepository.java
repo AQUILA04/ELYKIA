@@ -839,6 +839,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                OR lower(coalesce(c.reference, '')) LIKE '%' || :search || '%'
                OR (:digits <> '' AND regexp_replace(coalesce(cl.phone, ''), '\\D', '', 'g') LIKE '%' || :digits || '%')
           )
+        """ + RmFieldListProgressSql.CREDIT_NATIVE + """
         ORDER BY cl.lastname ASC NULLS LAST, cl.firstname ASC NULLS LAST, c.id ASC
         """,
         countQuery = """
@@ -856,9 +857,14 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                OR lower(coalesce(c.reference, '')) LIKE '%' || :search || '%'
                OR (:digits <> '' AND regexp_replace(coalesce(cl.phone, ''), '\\D', '', 'g') LIKE '%' || :digits || '%')
           )
-        """,
+        """ + RmFieldListProgressSql.CREDIT_NATIVE,
         nativeQuery = true)
-    Page<Credit> searchInProgressCredits(@Param("search") String search, @Param("digits") String digits, Pageable pageable);
+    Page<Credit> searchInProgressCredits(
+            @Param("search") String search,
+            @Param("digits") String digits,
+            @Param("progress") String progress,
+            @Param("since") java.time.LocalDateTime since,
+            Pageable pageable);
 
     @Query(value = """
         SELECT DISTINCT c.collector FROM credit c 

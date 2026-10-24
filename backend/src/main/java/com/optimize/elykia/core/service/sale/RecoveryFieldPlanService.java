@@ -22,6 +22,7 @@ import com.optimize.elykia.core.entity.sale.RecoveryFieldDayPlan;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControl;
 import com.optimize.elykia.core.enumaration.FieldDayPlanStatus;
+import com.optimize.elykia.core.enumaration.RmFieldListProgress;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
@@ -383,14 +384,18 @@ public class RecoveryFieldPlanService {
         }
     }
 
-    public Page<RmFieldTontineRowDto> pageTontineMembers(String search, int page, int size) {
+    public Page<RmFieldTontineRowDto> pageTontineMembers(
+            String search, int page, int size, RmFieldListProgress progress) {
         String folded = foldSearch(search);
         String digits = folded.replaceAll("\\D", "");
+        RmFieldListProgress effective = progress != null ? progress : RmFieldListProgress.ALL;
         Page<RmFieldTontineRowDto> rows = tontineMemberRepository.pageFieldRows(
                 LocalDate.now().getYear(),
                 State.ENABLED,
                 folded.isEmpty() ? null : folded,
                 digits.isEmpty() ? null : digits,
+                effective.name(),
+                LocalDateTime.now().minusDays(RmFieldProgressRules.WINDOW_DAYS),
                 PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 40)));
         List<Long> memberIds = rows.getContent().stream()
                 .map(RmFieldTontineRowDto::getId)

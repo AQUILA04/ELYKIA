@@ -17,6 +17,13 @@ import { RmCarnetVerificationWriteService } from '../../core/services/rm/rm-carn
 import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
 import { runConfirmedCarnetToggle } from '../../core/services/rm/rm-carnet-confirm.util';
 import { countRmFieldItems, filterRmFieldGroups, RmFieldGroup } from './rm-field-search.util';
+import {
+  filterRmFieldGroupsByProgress,
+  matchesRmFieldProgress,
+  RmFieldControlSnapshot,
+  RmFieldProgressFilter,
+  toRmFieldListProgress
+} from './rm-field-progress.util';
 
 @Component({
   selector: 'app-rm-field',
@@ -27,6 +34,8 @@ import { countRmFieldItems, filterRmFieldGroups, RmFieldGroup } from './rm-field
 export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave {
   /** Offline: filters the pack. Online: sent to the backend, which pages the full portfolio. */
   query = '';
+  /** Tous / À faire / Déjà fait. À faire = jamais contrôlé. */
+  progressFilter: RmFieldProgressFilter = 'all';
   /** Online reads every client from the backend. Offline stays on the day-plan pack. */
   onlineMode = false;
   segment: 'tontine' | 'credits' = 'tontine';
@@ -90,11 +99,33 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   }
 
   clientCountLabel(visible: number, total: number): string {
-    const noun = total > 1 ? 'clients' : 'client';
-    if (this.query.trim() && visible !== total) {
+    const narrowed = !!this.query.trim() || this.progressFilter !== 'all';
+    if (narrowed && total > 0 && visible !== total) {
+      const noun = total > 1 ? 'clients' : 'client';
       return `${visible} / ${total} ${noun}`;
     }
-    return `${total} ${noun}`;
+    const shown = narrowed ? visible : total;
+    const noun = shown > 1 ? 'clients' : 'client';
+    return `${shown} ${noun}`;
+  }
+
+  emptyListLabel(kind: 'pack' | 'tontine' | 'credits'): string {
+    if (this.query.trim()) {
+      return 'Aucun résultat pour cette recherche.';
+    }
+    if (this.progressFilter === 'todo') {
+      return 'Aucun dossier encore à contrôler.';
+    }
+    if (this.progressFilter === 'done') {
+      return 'Aucun contrôle déjà fait.';
+    }
+    if (kind === 'tontine') {
+      return 'Aucun membre tontine.';
+    }
+    if (kind === 'credits') {
+      return 'Aucun crédit en cours.';
+    }
+    return 'Aucun crédit en cours ni membre tontine dans le pack.';
   }
 
   constructor(
@@ -164,6 +195,17 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     this.segment = segment;
   }
 
+  setProgress(filter: RmFieldProgressFilter): void {
+    if (this.progressFilter === filter) {
+      return;
+    }
+    this.progressFilter = filter;
+    this.updateFilteredGroups();
+    if (this.onlineMode) {
+      void this.reloadOnlineLists();
+    }
+  }
+
   async loadMore(event: Event): Promise<void> {
     const target = event.target as HTMLIonInfiniteScrollElement | null;
     try {
@@ -213,9 +255,10 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     this.creditNextPage = 0;
     try {
       const search = this.query.trim();
+      const progress = toRmFieldListProgress(this.progressFilter);
       const [tontine, credits] = await Promise.all([
-        this.fieldListApi.pageTontineMembers(search, 0),
-        this.fieldListApi.pageCredits(search, 0)
+        this.fieldListApi.pageTontineMembers(search, 0, progress),
+        this.fieldListApi.pageCredits(search, 0, progress)
       ]);
       if (!this.viewActive || requestId !== this.liveRequest) {
         TontineControlDebug.note('field reloadOnlineLists ignored');
@@ -230,7 +273,7 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
       this.creditMatchTotal = credits.totalElements;
       this.tontineNextPage = 1;
       this.creditNextPage = 1;
-      if (!search) {
+      if (!search && this.progressFilter === 'all') {
         this.tontineGrandTotal = tontine.totalElements;
         this.creditGrandTotal = credits.totalElements;
       }
@@ -253,13 +296,14 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     this.loadingMore = true;
     try {
       const search = this.query.trim();
+      const progress = toRmFieldListProgress(this.progressFilter);
       if (segment === 'tontine') {
-        const page = await this.fieldListApi.pageTontineMembers(search, this.tontineNextPage);
+        const page = await this.fieldListApi.pageTontineMembers(search, this.tontineNextPage, progress);
         this.onlineTontine = this.onlineTontine.concat(page.content || []);
         this.tontineMatchTotal = page.totalElements;
         this.tontineNextPage += 1;
       } else {
-        const page = await this.fieldListApi.pageCredits(search, this.creditNextPage);
+        const page = await this.fieldListApi.pageCredits(search, this.creditNextPage, progress);
         this.onlineCredits = this.onlineCredits.concat(page.content || []);
         this.creditMatchTotal = page.totalElements;
         this.creditNextPage += 1;
@@ -328,16 +372,73 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   }
 
   private updateFilteredGroups(): void {
-    this.filteredTontineGroups = filterRmFieldGroups(this.tontineGroups, this.query, item =>
+    const tontine = filterRmFieldGroups(this.tontineGroups, this.query, item =>
       [item.clientName, item.clientPhone, item.clientQuarter, item.tontineCollector]
         .filter((part): part is string => !!part)
         .join(' ')
     );
-    this.filteredCreditGroups = filterRmFieldGroups(this.creditGroups, this.query, item =>
+    const credits = filterRmFieldGroups(this.creditGroups, this.query, item =>
       [item.clientName, item.clientPhone, item.clientQuarter, item.collector, item.reference]
         .filter((part): part is string => !!part)
         .join(' ')
     );
+    this.filteredTontineGroups = filterRmFieldGroupsByProgress(
+      tontine,
+      this.progressFilter,
+      item => this.packTontineSnapshot(item)
+    );
+    this.filteredCreditGroups = filterRmFieldGroupsByProgress(
+      credits,
+      this.progressFilter,
+      item => this.packCreditSnapshot(item)
+    );
+  }
+
+  private packCreditSnapshot(item: RmCreditLate): RmFieldControlSnapshot {
+    const controls = this.scope.getPack()?.creditFieldControlsToday;
+    if (!Array.isArray(controls)) {
+      return {};
+    }
+    const found = (controls as Array<RmFieldControlSnapshot & { creditId?: number }>).find(
+      control => Number(control?.creditId) === item.id
+    );
+    if (!found?.status && !found?.observedAt) {
+      return {};
+    }
+    return found ?? {};
+  }
+
+  private packTontineSnapshot(member: RmPackTontineMember): RmFieldControlSnapshot {
+    const found = (this.scope.getPack()?.tontineFieldControlsToday ?? [])
+      .find(control => control.tontineMemberId === member.id);
+    if (!found?.status && !found?.observedAt) {
+      return {};
+    }
+    return {
+      observedAt: found?.observedAt,
+      status: found?.status,
+      ecartDecisionStatus: found?.ecartDecisionStatus,
+      modifiable: found?.modifiable
+    };
+  }
+
+  private reconcileOnlineRow(kind: 'tontine' | 'credits', id: number, snapshot: RmFieldControlSnapshot): void {
+    if (!this.onlineMode || matchesRmFieldProgress(this.progressFilter, snapshot)) {
+      return;
+    }
+    if (kind === 'tontine') {
+      const next = this.onlineTontine.filter(member => member.id !== id);
+      if (next.length !== this.onlineTontine.length) {
+        this.onlineTontine = next;
+        this.tontineMatchTotal = Math.max(0, this.tontineMatchTotal - 1);
+      }
+      return;
+    }
+    const next = this.onlineCredits.filter(credit => credit.id !== id);
+    if (next.length !== this.onlineCredits.length) {
+      this.onlineCredits = next;
+      this.creditMatchTotal = Math.max(0, this.creditMatchTotal - 1);
+    }
   }
 
   isLate(item: RmCreditLate): boolean {
@@ -400,6 +501,12 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
       item.latestObservedAt = op.observedAt;
       item.ecartDecisionStatus = op.status === 'ECART' ? 'PENDING' : null;
       item.modifiable = op.status === 'ECART';
+      this.reconcileOnlineRow('credits', item.id, {
+        observedAt: item.latestObservedAt,
+        status: item.latestControlStatus,
+        ecartDecisionStatus: item.ecartDecisionStatus,
+        modifiable: item.modifiable
+      });
       this.loadInProgressCredits();
       this.updateFilteredGroups();
     }
@@ -496,6 +603,12 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
       member.latestObservedAt = op.observedAt;
       member.ecartDecisionStatus = op.status === 'ECART' ? 'PENDING' : null;
       member.modifiable = op.status === 'ECART';
+      this.reconcileOnlineRow('tontine', member.id, {
+        observedAt: member.latestObservedAt,
+        status: member.latestControlStatus,
+        ecartDecisionStatus: member.ecartDecisionStatus,
+        modifiable: member.modifiable
+      });
     }
     this.loadTontineMembers();
   }

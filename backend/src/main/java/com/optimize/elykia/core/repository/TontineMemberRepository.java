@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -377,7 +378,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("collector") String collector,
                 @Param("state") State state);
 
-        @Query("""
+        @Query(value = """
                 SELECT new com.optimize.elykia.core.dto.sale.RmFieldTontineRowDto(
                     tm.id,
                     c.id,
@@ -406,12 +407,34 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                     OR lower(coalesce(c.phone, '')) LIKE concat('%', :search, '%')
                     OR (:digits IS NOT NULL AND lower(cast(function('replace', coalesce(c.phone, ''), ' ', '') as string)) LIKE concat('%', :digits, '%'))
                   )
+                """ + RmFieldListProgressSql.TONTINE_JPQL + """
                 ORDER BY c.lastname ASC, c.firstname ASC, tm.id ASC
-                """)
+                """,
+                countQuery = """
+                SELECT COUNT(tm.id)
+                FROM TontineMember tm
+                JOIN tm.tontineSession s
+                JOIN tm.client c
+                WHERE s.year = :year
+                  AND tm.state = :state
+                  AND (
+                    :search IS NULL
+                    OR cast(function('translate', lower(concat(coalesce(c.firstname, ''), ' ', coalesce(c.lastname, ''))),
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
+                    OR cast(function('translate', lower(coalesce(c.quarter, '')),
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
+                    OR cast(function('translate', lower(coalesce(c.tontineCollector, '')),
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
+                    OR lower(coalesce(c.phone, '')) LIKE concat('%', :search, '%')
+                    OR (:digits IS NOT NULL AND lower(cast(function('replace', coalesce(c.phone, ''), ' ', '') as string)) LIKE concat('%', :digits, '%'))
+                  )
+                """ + RmFieldListProgressSql.TONTINE_JPQL)
         Page<RmFieldTontineRowDto> pageFieldRows(
                 @Param("year") Integer year,
                 @Param("state") State state,
                 @Param("search") String search,
                 @Param("digits") String digits,
+                @Param("progress") String progress,
+                @Param("since") LocalDateTime since,
                 Pageable pageable);
 }

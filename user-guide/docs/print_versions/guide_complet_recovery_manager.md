@@ -176,7 +176,17 @@ En ligne, l’onglet affiche tous les membres tontine et tous les crédits en co
 
 La recherche en haut de la liste filtre par nom, téléphone, localité ou commercial. En ligne, elle interroge l’ensemble des données. Hors ligne, elle filtre le pack.
 
-Sous la recherche, deux totaux indiquent le nombre de clients tontine et le nombre de clients dont un crédit est en cours. Ce sont les totaux complets, pas seulement les lignes déjà affichées. Pendant une recherche, le premier nombre correspond à tous les résultats et le second au total général.
+Sous la recherche, deux totaux indiquent le nombre de clients tontine et le nombre de clients dont un crédit est en cours. Ce sont les totaux complets, pas seulement les lignes déjà affichées. Pendant une recherche, le premier nombre correspond aux résultats et le second au total général.
+
+Sous ces totaux, trois pastilles filtrent la liste en un geste : **Tous**, **À faire** et **Déjà fait**. Le même filtre s’applique aux crédits et aux membres tontine, en ligne comme hors ligne.
+
+| Pastille | Ce qu’elle affiche |
+|---|---|
+| **Tous** | L’ensemble des dossiers. Un dossier déjà contrôlé il y a plus de 30 jours se trouve ici : vous pouvez y lancer un nouveau contrôle. |
+| **À faire** | Seulement les dossiers qui n’ont encore jamais eu de contrôle terrain. |
+| **Déjà fait** | Les contrôles dont l’écart n’est pas encore accepté ou refusé, ainsi que les contrôles déjà terminés depuis moins de 30 jours. |
+
+Un contrôle terminé depuis plus de 30 jours (conforme, ou écart déjà accepté ou refusé) reste dans **Tous**, où un nouveau contrôle peut être lancé.
 
 | Zone | Action |
 |---|---|

@@ -5,6 +5,8 @@ import com.optimize.elykia.core.dto.CreditLateSummaryDTO;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditFieldControl;
 import com.optimize.elykia.core.enumaration.LateType;
+import com.optimize.elykia.core.enumaration.RmFieldListProgress;
+import com.optimize.elykia.core.service.sale.RmFieldProgressRules;
 import com.optimize.elykia.core.repository.ClientReliquatRepository;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
@@ -133,13 +135,20 @@ public class CreditLateService {
      * Paginated in-progress credits for the online field list. Late fields are filled only when the credit is late.
      */
     @Transactional(readOnly = true)
-    public Page<CreditLateDTO> getInProgressCreditsPage(String search, int page, int size) {
+    public Page<CreditLateDTO> getInProgressCreditsPage(
+            String search, int page, int size, RmFieldListProgress progress) {
         String folded = foldSearch(search);
         String digits = folded.replaceAll("\\D", "");
         int safeSize = Math.min(Math.max(size, 1), 40);
         int safePage = Math.max(page, 0);
         Pageable pageable = PageRequest.of(safePage, safeSize);
-        Page<Credit> credits = creditRepository.searchInProgressCredits(folded, digits, pageable);
+        RmFieldListProgress effective = progress != null ? progress : RmFieldListProgress.ALL;
+        Page<Credit> credits = creditRepository.searchInProgressCredits(
+                folded,
+                digits,
+                effective.name(),
+                LocalDateTime.now().minusDays(RmFieldProgressRules.WINDOW_DAYS),
+                pageable);
         LocalDate today = LocalDate.now();
         List<CreditLateDTO> dtos = credits.getContent().stream()
                 .map(credit -> buildLateDTO(credit, today))
