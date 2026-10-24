@@ -4,6 +4,7 @@ import { IonicModule } from '@ionic/angular';
 import { RouterTestingModule } from '@angular/router/testing';
 import { AdhesionsPage } from './adhesions.page';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
+import { FeatureFlagService, FeatureFlags } from '../../shared/services/feature-flag.service';
 
 describe('AdhesionsPage', () => {
   let fixture: ComponentFixture<AdhesionsPage>;
@@ -31,6 +32,10 @@ describe('AdhesionsPage', () => {
             }),
             declareAdhesion: () => of({ id: 9, status: 'INITIE' }),
           },
+        },
+        {
+          provide: FeatureFlagService,
+          useValue: { isFeatureEnabled: (flag: FeatureFlags) => flag === FeatureFlags.DualCreditAuthorization },
         },
       ],
     }).compileComponents();

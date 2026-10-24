@@ -12,6 +12,7 @@ import { isE2eMode } from '../utils/e2e';
 
 export enum FeatureFlags {
   CustomerSpaceAvailable = 'customerSpaceAvailable',
+  DualCreditAuthorization = 'dualCreditAuthorization',
 }
 
 const REMOTE_CONFIG_FETCH_TIMEOUT_MS = 10_000;
@@ -21,6 +22,7 @@ const SKIP_REMOTE_CONFIG_SESSION_KEY = 'elykia.customerSpace.skipRemoteConfig';
 export class FeatureFlagService {
   private readonly defaultFlags: Record<string, boolean> = {
     [FeatureFlags.CustomerSpaceAvailable]: true,
+    [FeatureFlags.DualCreditAuthorization]: false,
   };
 
   private flagsState = new BehaviorSubject<Record<string, boolean>>(this.defaultFlags);

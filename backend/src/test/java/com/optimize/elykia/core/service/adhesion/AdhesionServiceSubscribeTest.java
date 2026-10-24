@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service.adhesion;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.client.entity.Account;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.AccountStatus;
@@ -50,6 +51,8 @@ class AdhesionServiceSubscribeTest {
     private UserService userService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private ParameterService parameterService;
 
     private AdhesionService service;
 
@@ -61,7 +64,9 @@ class AdhesionServiceSubscribeTest {
                 clientService,
                 accountRepository,
                 userService,
-                eventPublisher);
+                eventPublisher,
+                parameterService);
+        when(parameterService.isEnabled(AdhesionService.DUAL_CREDIT_AUTHORIZATION)).thenReturn(true);
         ReflectionTestUtils.setField(service, "dividend", 6);
         ReflectionTestUtils.setField(service, "personalCeiling", 35_000d);
         ReflectionTestUtils.setField(service, "personalFee", 500d);

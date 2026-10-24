@@ -444,15 +444,15 @@ export class NewDistributionPage implements OnInit, OnDestroy, CanComponentDeact
   }
 
   get availablePurposes(): CreditPurpose[] {
+    if (!this.dualCreditEnabled) {
+      return ['PERSONAL'];
+    }
     const adhesions = this.vm.client?.adhesions ?? [];
     const active = adhesions
       .filter(item => item.status === 'ACTIVE')
       .map(item => item.adhesionType);
     if (active.length > 0) {
       return Array.from(new Set(active));
-    }
-    if (this.dualCreditEnabled && this.vm.client?.businessCreditAuthorized) {
-      return ['PERSONAL', 'BUSINESS'];
     }
     return ['PERSONAL'];
   }

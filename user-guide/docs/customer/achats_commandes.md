@@ -6,7 +6,7 @@ Cet écran vous permet de suivre vos crédits, commander des produits et déclar
 
 1. Ouvrez l’application Espace Client.
 2. Sur **Accueil**, consultez votre crédit en cours et les raccourcis **Payer**, **Commander**, **Achats**, **Tontine**.
-3. Appuyez sur **Mes adhésions et plafonds** pour voir le solde et le plafond de chaque adhésion active.
+3. Lorsque l'accueil affiche **Mes adhésions et plafonds**, appuyez dessus pour voir le solde et le plafond de chaque adhésion active.
 
 ## Mes achats
 
@@ -49,11 +49,11 @@ Si aucun frais de retrait n’est prévu pour votre mise, le paiement direct n�
 2. Chaque produit affiche sa photo lorsqu’elle est disponible, avec son nom et son prix.
 3. Recherchez un produit ou filtrez par catégorie.
 4. Appuyez sur **Ajouter**, puis ouvrez le panier.
-5. Sur **Mon panier**, ajustez les quantités, consultez le **résumé de la commande**, puis appuyez sur **Passer la commande**. Si plusieurs adhésions sont actives, choisissez le type de crédit (**Personnel**, **Professionnel** ou **Événement**) avant de valider. Le plafond affiché est celui de ce type.
+5. Sur **Mon panier**, ajustez les quantités, consultez le **résumé de la commande**, puis appuyez sur **Passer la commande**. Lorsque le panier propose un type de crédit, choisissez **Personnel**, **Professionnel** ou **Événement** avant de valider. Le plafond affiché est celui de ce type.
 
 ## Mes adhésions
 
-1. Depuis l'accueil, ouvrez **Mes adhésions et plafonds**. Sur ordinateur, le menu **Adhésions** mène au même écran.
+1. Lorsque l'accueil affiche **Mes adhésions et plafonds**, ouvrez-le. Sur ordinateur, le menu **Adhésions** mène au même écran lorsqu'il est présent.
 2. Chaque carte indique le type, le statut, le solde et le plafond de crédit.
    * **Personnel** : plafond 35 000 FCFA.
    * **Business** et **Événement** : plafond égal à 6 fois le solde de ce type. L'adhésion business ouvre aussi le crédit personnel et le crédit événement.
@@ -62,7 +62,7 @@ Si aucun frais de retrait n’est prévu pour votre mise, le paiement direct n�
 
 ## Sur ordinateur
 
-1. Utilisez le menu à gauche : **Accueil**, **Achats**, **Commander**, **Adhésions**, **Panier**, **Profil**.
-2. Sur **Accueil**, les montants de crédit s’affichent en cartes en haut de page, avec les actions rapides à droite. **Adhésions** ouvre vos soldes et plafonds.
+1. Utilisez le menu à gauche : **Accueil**, **Achats**, **Commander**, **Panier**, **Profil**. **Adhésions** s'ajoute à ce menu lorsqu'il est ouvert pour vous.
+2. Sur **Accueil**, les montants de crédit s’affichent en cartes en haut de page, avec les actions rapides à droite. **Adhésions**, lorsqu'il est proposé, ouvre vos soldes et plafonds.
 3. Sur **Achats**, la liste apparaît en tableau : cliquez une ligne pour le détail. Le panneau de droite propose **Payer une mise** et **Voir le suivi des mises**.
 4. Sur **Commander**, les catégories sont à gauche, les produits au centre (avec leur photo lorsqu’elle est disponible), et un mini-panier à droite. Ouvrez **Voir le panier** pour finaliser.

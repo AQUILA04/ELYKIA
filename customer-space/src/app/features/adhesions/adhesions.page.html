@@ -26,6 +26,7 @@
 </ng-template>
 
 <ng-template #body>
+  <ng-container *ngIf="showAdhesions">
   <div *ngIf="isLoading" class="elyk-skeleton-card">
     <ion-skeleton-text animated style="width:60%;height:18px;"></ion-skeleton-text>
   </div>
@@ -73,4 +74,5 @@
       {{ label(submission.adhesionType) }} — {{ submission.status }} — {{ submission.mobileMoneyAmount | number:'1.0-0' }} FCFA
     </p>
   </section>
+  </ng-container>
 </ng-template>

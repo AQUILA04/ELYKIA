@@ -10,6 +10,7 @@ import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { ClientPhotoUrlService } from 'src/app/shared/service/client-photo-url.service';
+import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
 
 @Component({
   selector: 'app-client-details',
@@ -38,6 +39,7 @@ export class ClientDetailsComponent implements OnInit {
   totalCotisationElements = 0;
 
   isGestionnaire = false;
+  dualCreditEnabled = false;
   adhesions: ClientAdhesion[] = [];
   adhesionSubmissions: AdhesionSubmission[] = [];
   adhesionLoading = false;
@@ -53,13 +55,15 @@ export class ClientDetailsComponent implements OnInit {
     private sanitizer: DomSanitizer,
     private userService: UserService,
     private alertService: AlertService,
-    private clientPhotoUrlService: ClientPhotoUrlService
+    private clientPhotoUrlService: ClientPhotoUrlService,
+    private featureFlagService: FeatureFlagService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
 
   ngOnInit(): void {
     this.isGestionnaire = this.userService.hasProfile(UserProfile.GESTIONNAIRE);
+    this.dualCreditEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DualCreditAuthorization);
     this.route.params.subscribe(params => {
       this.clientId = +params['id'];
       this.loadAllData();
@@ -81,7 +85,9 @@ export class ClientDetailsComponent implements OnInit {
         if (response && response.data) {
           this.client = response.data;
           this.resolveProfilPhoto(response.data);
-          this.loadAdhesions(this.clientId);
+          if (this.dualCreditEnabled) {
+            this.loadAdhesions(this.clientId);
+          }
         }
         this.checkLoadingComplete();
       },

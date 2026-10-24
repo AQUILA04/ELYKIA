@@ -300,7 +300,9 @@ Lorsqu'un commercial quitte l'entreprise, change de zone ou qu'un rééquilibrag
 
 ### D. Adhésions et plafonds de crédit
 
-Sur la fiche client, le bloc **Adhésions** indique, pour chaque type, le statut, le solde et le plafond de crédit.
+Le bloc **Adhésions** apparaît sur la fiche client lorsque les crédits professionnel et événement sont ouverts pour votre organisation. Tant que ce bloc n'est pas affiché, la vente reste un crédit personnel : un seul crédit à la fois, et le montant autorisé dépend du solde du compte.
+
+Lorsque le bloc est affiché, il indique, pour chaque type, le statut, le solde et le plafond de crédit.
 
 1. **Adhésion personnelle (500)** : le dépôt de 500 FCFA ouvre le crédit personnel, plafonné à **35 000 FCFA**. Un ajout au solde augmente le solde affiché. Le plafond personnel reste 35 000 FCFA.
 2. **Adhésion business (2 000)** : le dépôt de 2 000 FCFA devient le solde de départ. Le plafond du crédit professionnel est égal à **6 fois ce solde**. Cette souscription ouvre aussi le crédit personnel (plafond 35 000 FCFA) et le crédit événement, sans autre frais. Le crédit événement démarre avec un solde à 0 : utilisez **Ajouter au solde** pour augmenter son plafond (6 fois le solde).
@@ -309,7 +311,7 @@ Sur la fiche client, le bloc **Adhésions** indique, pour chaque type, le statut
 5. Les comptes déjà ouverts apparaissent en adhésion personnelle. Le badge **Adhésion business** s'affiche lorsque l'adhésion business est active.
 6. Les déclarations Mobile Money en attente figurent sous le bloc. **Valider** applique la souscription ou l'ajout au solde après contrôle du transfert. **Rejeter** écarte la déclaration.
 
-À l'ouverture d'un compte, le dépôt saisi devient le solde de l'adhésion personnelle. Le crédit personnel reste plafonné à 35 000 FCFA.
+À l'ouverture d'un compte, le dépôt saisi est le solde du compte. Lorsque le bloc **Adhésions** est affiché, ce dépôt est aussi le solde de l'adhésion personnelle et le crédit personnel reste plafonné à 35 000 FCFA.
 
 ---
 

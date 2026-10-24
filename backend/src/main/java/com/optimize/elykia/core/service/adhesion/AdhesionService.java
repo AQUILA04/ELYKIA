@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service.adhesion;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.client.entity.Account;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.AccountStatus;
@@ -41,6 +42,14 @@ import java.util.Objects;
 @Transactional
 public class AdhesionService {
 
+    /**
+     * Jumeau serveur du remote config Firebase {@code dualCreditAuthorization}.
+     * Désactivé : seul le crédit personnel historique s'applique.
+     */
+    public static final String DUAL_CREDIT_AUTHORIZATION = "DUAL_CREDIT_AUTHORIZATION";
+
+    private static final String LEGACY_BALANCE_CONTROL = "ENABLED_ACCOUNT_BALANCE_CONTROL";
+
     private static final EnumSet<AdhesionStatus> OPEN_STATUSES =
             EnumSet.of(AdhesionStatus.PENDING, AdhesionStatus.ACTIVE, AdhesionStatus.SUSPENDED);
 
@@ -50,6 +59,7 @@ public class AdhesionService {
     private final AccountRepository accountRepository;
     private final UserService userService;
     private final ApplicationEventPublisher eventPublisher;
+    private final ParameterService parameterService;
 
     @Value("${app.credit.dividend:6}")
     private int dividend;
@@ -100,6 +110,17 @@ public class AdhesionService {
                 .toList();
     }
 
+    public boolean isDualCreditAuthorizationEnabled() {
+        return parameterService.isEnabled(DUAL_CREDIT_AUTHORIZATION);
+    }
+
+    public void requireDualCreditAuthorization() {
+        if (!isDualCreditAuthorizationEnabled()) {
+            throw new CustomValidationException(
+                    "Les adhésions business et événement ne sont pas activées.");
+        }
+    }
+
     public List<AdhesionViewDto> subscribeAtCounter(Long clientId, AdhesionType type) {
         String performedBy = requireGestionnaire();
         applySubscribe(clientId, type, AdhesionSource.COUNTER, performedBy, true);
@@ -118,6 +139,7 @@ public class AdhesionService {
             AdhesionSource source,
             String performedBy,
             boolean publishCash) {
+        requireDualCreditAuthorization();
         if (type == null) {
             throw new CustomValidationException("Le type d'adhésion est obligatoire.");
         }
@@ -166,6 +188,7 @@ public class AdhesionService {
     }
 
     public void applyTopUp(Long clientId, AdhesionType type, double amount, String performedBy, boolean publishCash) {
+        requireDualCreditAuthorization();
         if (amount <= 0) {
             throw new CustomValidationException("Le montant à ajouter doit être positif.");
         }
@@ -221,6 +244,10 @@ public class AdhesionService {
         if (client == null) {
             throw new CustomValidationException("Client introuvable.");
         }
+        if (!isDualCreditAuthorizationEnabled()) {
+            assertLegacyPersonalCredit(client, purpose, amount);
+            return;
+        }
         if (client.getClientType() != null && !ClientType.CLIENT.equals(client.getClientType())) {
             return;
         }
@@ -236,6 +263,21 @@ public class AdhesionService {
                 adhesion.getBalance(),
                 dividend,
                 personalCeiling);
+    }
+
+    /**
+     * Remote config éteint : un seul palier, l'adhésion personnelle.
+     * Le plafond redevient celui du solde de compte lorsque le contrôle historique est actif.
+     */
+    private void assertLegacyPersonalCredit(Client client, CreditPurpose purpose, Double amount) {
+        if (purpose != null && purpose != CreditPurpose.PERSONAL) {
+            throw new CustomValidationException("Seul le crédit personnel est disponible.");
+        }
+        if (!parameterService.isEnabled(LEGACY_BALANCE_CONTROL)) {
+            return;
+        }
+        client.hasValidAccount();
+        client.allowCreditAmountControl(amount == null ? 0d : amount, dividend);
     }
 
     public double feeFor(AdhesionType type) {
