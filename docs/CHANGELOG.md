@@ -40,6 +40,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.43.3] — 2026-10-24
+
+### Added
+
+- Liste Terrain en ligne : paramètre `progress` (`ALL`, `TODO`, `DONE`) sur les crédits en cours et les membres tontine. À faire = jamais contrôlé. Déjà fait = écart encore ouvert, ou contrôle terminé depuis moins de 30 jours. Les contrôles plus anciens restent dans Tous.
+
 ## Backend — [1.43.2] — 2026-10-23
 
 ### Fixed
@@ -181,6 +187,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.40.2] — 2026-10-24
+
+### Changed
+
+- Guide d'utilisation servi dans l'application : l'onglet Terrain du chef de recouvrement décrit les pastilles Tous, À faire et Déjà fait.
 
 ## Frontend — [2.40.1] — 2026-10-23
 
@@ -327,6 +339,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.34.2] — 2026-10-24
+
+### Added
+
+- Onglet Terrain du chef de recouvrement : pastilles **Tous**, **À faire** et **Déjà fait**. À faire ne contient que les dossiers jamais contrôlés. Déjà fait contient les écarts encore ouverts et les contrôles terminés depuis moins de 30 jours. Les contrôles plus anciens restent dans Tous, où un nouveau contrôle est possible.
 
 ## Mobile — [2.34.1] — 2026-10-24
 

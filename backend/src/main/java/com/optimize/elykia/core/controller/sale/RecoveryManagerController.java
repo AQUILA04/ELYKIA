@@ -16,6 +16,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
+import com.optimize.elykia.core.enumaration.RmFieldListProgress;
 import com.optimize.elykia.core.service.CreditLateService;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -199,9 +200,11 @@ public class RecoveryManagerController {
     public ResponseEntity<Response> pageTontineMembers(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "30") int size) {
+            @RequestParam(defaultValue = "30") int size,
+            @RequestParam(required = false, defaultValue = "ALL") String progress) {
         return new ResponseEntity<>(
-                ResponseUtil.successResponse(recoveryFieldPlanService.pageTontineMembers(search, page, size)),
+                ResponseUtil.successResponse(recoveryFieldPlanService.pageTontineMembers(
+                        search, page, size, RmFieldListProgress.from(progress))),
                 HttpStatus.OK
         );
     }
@@ -232,9 +235,11 @@ public class RecoveryManagerController {
     public ResponseEntity<Response> pageInProgressCredits(
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "30") int size) {
+            @RequestParam(defaultValue = "30") int size,
+            @RequestParam(required = false, defaultValue = "ALL") String progress) {
         return new ResponseEntity<>(
-                ResponseUtil.successResponse(creditLateService.getInProgressCreditsPage(search, page, size)),
+                ResponseUtil.successResponse(creditLateService.getInProgressCreditsPage(
+                        search, page, size, RmFieldListProgress.from(progress))),
                 HttpStatus.OK
         );
     }

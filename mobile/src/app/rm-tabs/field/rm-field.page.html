@@ -33,6 +33,18 @@
       </article>
     </div>
 
+    <div class="segments" role="tablist" aria-label="Avancement des contrôles" data-testid="e2e-rm-field-progress">
+      <button type="button" role="tab" [attr.aria-selected]="progressFilter === 'all'"
+              [class.on]="progressFilter === 'all'" (click)="setProgress('all')"
+              data-testid="e2e-rm-field-progress-all">Tous</button>
+      <button type="button" role="tab" [attr.aria-selected]="progressFilter === 'todo'"
+              [class.on]="progressFilter === 'todo'" (click)="setProgress('todo')"
+              data-testid="e2e-rm-field-progress-todo">À faire</button>
+      <button type="button" role="tab" [attr.aria-selected]="progressFilter === 'done'"
+              [class.on]="progressFilter === 'done'" (click)="setProgress('done')"
+              data-testid="e2e-rm-field-progress-done">Déjà fait</button>
+    </div>
+
     <div class="segments" *ngIf="onlineMode">
       <button type="button" [class.on]="segment === 'tontine'" (click)="setSegment('tontine')">Tontine</button>
       <button type="button" [class.on]="segment === 'credits'" (click)="setSegment('credits')">Crédits</button>
@@ -159,13 +171,13 @@
     </ng-container>
 
     <p class="empty" *ngIf="!onlineMode && !byCommercial.length && !tontineByCommercial.length">
-      {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun crédit en cours ni membre tontine dans le pack.' }}
+      {{ emptyListLabel('pack') }}
     </p>
     <p class="empty" *ngIf="onlineMode && !loadingLive && segment === 'tontine' && !onlineTontine.length">
-      {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun membre tontine.' }}
+      {{ emptyListLabel('tontine') }}
     </p>
     <p class="empty" *ngIf="onlineMode && !loadingLive && segment === 'credits' && !onlineCredits.length">
-      {{ query.trim() ? 'Aucun résultat pour cette recherche.' : 'Aucun crédit en cours.' }}
+      {{ emptyListLabel('credits') }}
     </p>
 
     <ng-template #creditRow let-item let-showPlace="showPlace">
