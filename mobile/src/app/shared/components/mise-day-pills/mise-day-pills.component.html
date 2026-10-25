@@ -1,0 +1,42 @@
+<div class="mise-day-pills">
+  <div class="mise-grid" role="group" aria-label="Jours cochés sur le carnet">
+    <button
+      type="button"
+      class="mise-chip"
+      *ngFor="let day of days"
+      [class.in-range]="isCovered(day) && !isSelected(day)"
+      [class.selected]="isSelected(day)"
+      [attr.aria-pressed]="isCovered(day)"
+      [attr.aria-label]="'Jour ' + day"
+      [attr.data-testid]="testIdPrefix + '-' + day"
+      [disabled]="disabled"
+      (click)="onChipClick(day)">
+      {{ day }}
+    </button>
+  </div>
+
+  <button
+    type="button"
+    class="extend-btn"
+    (click)="extend()"
+    [disabled]="disabled"
+    data-testid="e2e-rm-extend-month">
+    Étendre le mois
+  </button>
+
+  <div class="mise-result" [class.has-value]="selectedCount > 0">
+    <div class="mise-result-left">
+      <span class="mise-result-label">Somme des mises</span>
+      <span class="mise-result-count" *ngIf="selectedUpTo !== null">
+        {{ selectedCount }} mise{{ selectedCount > 1 ? 's' : '' }} × {{ formatAmount(dailyMise) }}
+      </span>
+      <span class="mise-result-count mise-result-hint" *ngIf="selectedUpTo === null">
+        Touchez le dernier jour coché
+      </span>
+    </div>
+    <span class="mise-result-amount" *ngIf="selectedUpTo !== null">
+      {{ formatAmount(misesAmount) }} FCFA
+    </span>
+    <span class="mise-result-dash" *ngIf="selectedUpTo === null">—</span>
+  </div>
+</div>

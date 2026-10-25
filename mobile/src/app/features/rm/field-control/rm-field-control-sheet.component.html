@@ -5,7 +5,7 @@
       <h2>{{ credit?.clientName || 'Client' }}</h2>
       <p class="meta">{{ credit?.reference }} · {{ credit?.collector }}</p>
     </div>
-    <ion-button fill="clear" (click)="dismiss()">
+    <ion-button fill="clear" (click)="dismiss()" aria-label="Fermer">
       <ion-icon slot="icon-only" name="close-outline"></ion-icon>
     </ion-button>
   </header>
@@ -17,8 +17,24 @@
 
   <section class="summary">
     <div class="row">
+      <span>Mise journalière</span>
+      <strong>{{ formatAmount(dailyStake) }} FCFA</strong>
+    </div>
+    <div class="row">
+      <span>Montant total</span>
+      <strong>{{ formatAmount(creditTotal) }} FCFA</strong>
+    </div>
+    <div class="row">
       <span>Système (payé)</span>
       <strong>{{ formatAmount(systemPaid) }} FCFA</strong>
+    </div>
+    <div class="row" *ngIf="usePills">
+      <span>Somme des mises</span>
+      <strong>{{ formatAmount(misesAmount) }} FCFA</strong>
+    </div>
+    <div class="row" *ngIf="usePills">
+      <span>Total carnet</span>
+      <strong data-testid="e2e-rm-control-notebook">{{ formatAmount(notebookTotal) }} FCFA</strong>
     </div>
     <div class="row">
       <span>Écart estimé</span>
@@ -29,12 +45,44 @@
     </div>
   </section>
 
-  <section class="card">
-    <label>Montant observé sur le carnet</label>
+  <section class="card" *ngIf="usePills">
+    <label for="rm-control-advance">Avance lue sur le carnet</label>
     <ion-input
+      id="rm-control-advance"
       type="number"
       inputmode="decimal"
-      [(ngModel)]="notebookTotalAmount"
+      [(ngModel)]="observedAdvance"
+      (ionInput)="validate()"
+      class="amount-input"
+      data-testid="e2e-rm-control-advance">
+    </ion-input>
+    <p class="advance-recorded">
+      Avance enregistrée : {{ formatAmount(systemAdvance) }} FCFA
+      <span class="advance-flag" [class.match]="advanceMatches" [class.diff]="!advanceMatches">
+        {{ advanceMatches ? 'Identique' : 'Différente' }}
+      </span>
+    </p>
+  </section>
+
+  <section class="card" *ngIf="usePills">
+    <app-mise-day-pills
+      [dailyMise]="dailyStake"
+      [maxDays]="maxDays"
+      [selectedUpTo]="selectedUpTo"
+      [disabled]="submitting"
+      (selectedUpToChange)="onDaysSelected($event)"
+      (maxDaysChange)="onDaysExtended($event)">
+    </app-mise-day-pills>
+    <p class="error" *ngIf="amountError">{{ amountError }}</p>
+  </section>
+
+  <section class="card" *ngIf="!usePills">
+    <label for="rm-control-amount">Montant observé sur le carnet</label>
+    <ion-input
+      id="rm-control-amount"
+      type="number"
+      inputmode="decimal"
+      [(ngModel)]="manualNotebook"
       (ionInput)="validate()"
       class="amount-input"
       data-testid="e2e-rm-control-amount">
@@ -43,8 +91,9 @@
   </section>
 
   <section class="card">
-    <label>Note (optionnelle)</label>
+    <label for="rm-control-note">Note (optionnelle)</label>
     <ion-textarea
+      id="rm-control-note"
       [(ngModel)]="note"
       rows="3"
       placeholder="Observation terrain…"

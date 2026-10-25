@@ -144,10 +144,26 @@ test.describe('Plan et contrôles RM @p1 @mobile @rm @august-2026 @regression', 
 
     await clickIonic(openControl);
     await expect(page.getByText('Contrôle carnet')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId('e2e-rm-control-sheet-status')).toContainText('CONFORME');
+    await expect(page.getByText('Mise journalière')).toBeVisible();
 
-    await fillIonNumber(page, 'e2e-rm-control-amount', '999001');
-    await expect(page.getByTestId('e2e-rm-control-sheet-status')).toContainText('ECART');
+    const status = page.getByTestId('e2e-rm-control-sheet-status');
+    const day1 = page.getByTestId('e2e-rm-mise-day-1');
+    const manualAmount = page.getByTestId('e2e-rm-control-amount');
+    await expect(day1.or(manualAmount)).toBeVisible({ timeout: 8_000 });
+    if (await day1.isVisible()) {
+      const covered = page.locator('[data-testid^="e2e-rm-mise-day-"][aria-pressed="true"]');
+      if ((await covered.count()) === 0) {
+        await day1.click();
+      }
+      await fillIonNumber(page, 'e2e-rm-control-advance', '999001');
+      if ((await status.innerText()).includes('CONFORME')) {
+        await page.getByTestId('e2e-rm-mise-day-2').click();
+      }
+      await expect(status).toContainText('ECART');
+    } else {
+      await fillIonNumber(page, 'e2e-rm-control-amount', '999001');
+      await expect(status).toContainText('ECART');
+    }
 
     await clickIonic(page.getByTestId('e2e-rm-control-confirm'));
     await expect(page.getByText(/Contrôle (enregistré|hors ligne)/)).toBeVisible({ timeout: 20_000 });
@@ -191,13 +207,23 @@ test.describe('Plan et contrôles RM @p1 @mobile @rm @august-2026 @regression', 
     const month = page.getByTestId('e2e-rm-tontine-month').first();
     await expect(month).toBeAttached({ timeout: 8_000 });
     await month.click();
-    await expect(page.getByTestId('e2e-rm-tontine-sheet-status')).toContainText('CONFORME', { timeout: 8_000 });
 
-    const notebook = month.locator('ion-input input').first();
-    await notebook.fill('');
-    await notebook.fill('888002');
-    await notebook.blur();
-    await expect(page.getByTestId('e2e-rm-tontine-sheet-status')).toContainText('ECART');
+    const status = page.getByTestId('e2e-rm-tontine-sheet-status');
+    const day1 = month.getByTestId('e2e-rm-mise-day-1');
+    const manualAmount = month.locator('ion-input input').first();
+    await expect(day1.or(manualAmount)).toBeVisible({ timeout: 8_000 });
+    if (await day1.isVisible()) {
+      await day1.click();
+      if ((await status.innerText()).includes('CONFORME')) {
+        await month.getByTestId('e2e-rm-mise-day-2').click();
+      }
+      await expect(status).toContainText('ECART');
+    } else {
+      await manualAmount.fill('');
+      await manualAmount.fill('888002');
+      await manualAmount.blur();
+      await expect(status).toContainText('ECART');
+    }
 
     await clickIonic(page.getByTestId('e2e-rm-tontine-control-confirm'));
     await expect(page.getByText(/Contrôle tontine (enregistré|hors ligne)/)).toBeVisible({ timeout: 20_000 });

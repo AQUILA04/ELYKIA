@@ -30,7 +30,15 @@ Chaque carte affiche le client, la référence, le commercial, le téléphone lo
 
 ### Contrôle crédit
 
-Le formulaire compare le montant payé dans le système au montant observé sur le carnet. Saisissez le montant réellement lu, ajoutez une note si nécessaire, puis choisissez **Capturer le contrôle**. Le résultat affiche un statut **CONFORME** ou **ECART**.
+Le formulaire rappelle la **mise journalière**, le **montant total** du crédit et le montant déjà payé.
+
+1. Saisissez l’**avance lue sur le carnet**. L’avance déjà enregistrée s’affiche à côté, avec la mention **Identique** ou **Différente**.
+2. Les pastilles vont de **1** à **31**. Touchez le dernier jour coché sur le carnet : les jours du 1 jusqu’à ce numéro passent au vert. La **somme des mises** se calcule en même temps.
+3. Le **total carnet** additionne cette somme et l’avance saisie.
+4. Si le carnet compte plus de 31 jours, choisissez **Étendre le mois**. Chaque appui ajoute 31 numéros : 62, puis 93, et ainsi de suite.
+5. Ajoutez une note si besoin, puis **Capturer le contrôle**. Le résultat affiche **CONFORME** lorsque le total carnet correspond au montant payé, sinon **ECART**.
+
+Lorsque la mise journalière n’est pas affichée, saisissez directement le montant lu sur le carnet.
 
 Si ce crédit a déjà un écart qui n’a pas encore été accepté, la carte indique **Déjà contrôlé** et le montant de l’écart. Le formulaire reprend le montant saisi et le bouton devient **Modifier le contrôle**. Lorsque l’écart a été accepté ou refusé, ou si le dernier contrôle est **CONFORME**, un nouveau contrôle peut être saisi.
 
@@ -72,7 +80,9 @@ Un contrôle terminé depuis plus de 30 jours (conforme, ou écart déjà accept
 
 La clôture d’un crédit en retard se fait sur l’onglet **Retards**.
 
-Le contrôle d’un crédit compare le montant écrit dans le carnet au montant déjà enregistré. Le contrôle tontine ouvre un formulaire par commercial lorsque plusieurs agents ont collecté pour le membre. Dans chaque bloc (le commercial actuel est signalé), sélectionnez les mois à contrôler et saisissez le montant écrit dans le carnet de ce commercial. L’application calcule la comparaison **Système / Carnet / Écart** pour le commercial et pour l’ensemble de la sélection, et accepte une note. Vous pouvez contrôler un seul commercial lors d’une visite : les autres restent non contrôlés. Le badge **Vérifié** indique la vérification de carnet. Le badge **CONFORME** ou **ECART** correspond au dernier contrôle, même s’il date d’un autre jour. Ces deux informations sont complémentaires et ne doivent pas être confondues.
+Le contrôle d’un crédit affiche la mise journalière et le montant total, puis l’avance lue sur le carnet à côté de l’avance déjà enregistrée. Touchez le dernier jour coché : les pastilles du 1 jusqu’à ce jour passent au vert, la somme des mises s’affiche, et le total carnet ajoute l’avance. **Étendre le mois** ajoute 31 jours lorsque le carnet dépasse 31.
+
+Le contrôle tontine ouvre un formulaire par commercial lorsque plusieurs agents ont collecté pour le membre. Dans chaque bloc (le commercial actuel est signalé), cochez les mois à contrôler. Pour chaque mois coché, la mise du mois est affichée avec des pastilles de 1 à 31. Touchez le dernier jour coché : le montant du mois se calcule automatiquement. **Étendre le mois** ajoute 31 pastilles pour ce mois-là. La comparaison **Système / Carnet / Écart** s’affiche pour le commercial et pour l’ensemble de la sélection. Une note peut être ajoutée. Vous pouvez contrôler un seul commercial lors d’une visite : les autres restent non contrôlés. Le badge **Vérifié** indique la vérification de carnet. Le badge **CONFORME** ou **ECART** correspond au dernier contrôle, même s’il date d’un autre jour. Ces deux informations sont complémentaires et ne doivent pas être confondues.
 
 Lorsqu’un écart est affiché, son montant apparaît à côté du badge, avec la mention **Déjà contrôlé**. Si cet écart n’a pas encore été accepté, le formulaire reprend les montants déjà saisis et le bouton **Modifier le contrôle** met à jour ce contrôle. Si le dernier contrôle est **CONFORME**, ou si l’écart a été accepté ou refusé, un nouveau contrôle peut être enregistré avec **Capturer le contrôle**. Ce choix entre modification et nouveau contrôle est le même pour un crédit et pour un membre tontine.
 
