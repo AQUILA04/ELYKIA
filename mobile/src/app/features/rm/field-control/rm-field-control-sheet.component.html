@@ -69,9 +69,9 @@
       [dailyMise]="dailyStake"
       [maxDays]="maxDays"
       [selectedUpTo]="selectedUpTo"
+      [allowExtend]="false"
       [disabled]="submitting"
-      (selectedUpToChange)="onDaysSelected($event)"
-      (maxDaysChange)="onDaysExtended($event)">
+      (selectedUpToChange)="onDaysSelected($event)">
     </app-mise-day-pills>
     <p class="error" *ngIf="amountError">{{ amountError }}</p>
   </section>

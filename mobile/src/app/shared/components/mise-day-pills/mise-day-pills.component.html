@@ -15,14 +15,26 @@
     </button>
   </div>
 
-  <button
-    type="button"
-    class="extend-btn"
-    (click)="extend()"
-    [disabled]="disabled"
-    data-testid="e2e-rm-extend-month">
-    Étendre le mois
-  </button>
+  <div class="day-actions" *ngIf="showExtend || showReduce">
+    <button
+      type="button"
+      class="extend-btn"
+      *ngIf="showExtend"
+      (click)="extend()"
+      [disabled]="disabled"
+      data-testid="e2e-rm-extend-month">
+      Étendre le mois
+    </button>
+    <button
+      type="button"
+      class="reduce-btn"
+      *ngIf="showReduce"
+      (click)="reduce()"
+      [disabled]="disabled"
+      data-testid="e2e-rm-reduce-month">
+      Réduire le mois
+    </button>
+  </div>
 
   <div class="mise-result" [class.has-value]="selectedCount > 0">
     <div class="mise-result-left">

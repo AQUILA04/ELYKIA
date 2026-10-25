@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { MISE_DAY_STEP, misesTotal } from './mise-day-pills.logic';
+import { canShowExtend, MISE_DAY_STEP, misesTotal, nextReducedMaxDays } from './mise-day-pills.logic';
 
 @Component({
   selector: 'app-mise-day-pills',
@@ -13,6 +13,8 @@ export class MiseDayPillsComponent {
   /** null = aucun jour choisi. 0 = zéro jour coché, total des mises nul. */
   @Input() selectedUpTo: number | null = null;
   @Input() disabled = false;
+  /** Le crédit reste sur 31 jours : pas d'extension ni de réduction. */
+  @Input() allowExtend = true;
   @Input() testIdPrefix = 'e2e-rm-mise-day';
   @Output() selectedUpToChange = new EventEmitter<number | null>();
   @Output() maxDaysChange = new EventEmitter<number>();
@@ -34,6 +36,14 @@ export class MiseDayPillsComponent {
     return this.selectedUpTo != null && this.selectedUpTo > 0 ? this.selectedUpTo : 0;
   }
 
+  get showExtend(): boolean {
+    return this.allowExtend && canShowExtend(this.selectedUpTo, this.maxDays);
+  }
+
+  get showReduce(): boolean {
+    return this.allowExtend && nextReducedMaxDays(this.selectedUpTo, this.maxDays) != null;
+  }
+
   isCovered(day: number): boolean {
     return this.selectedUpTo != null && this.selectedUpTo > 0 && day <= this.selectedUpTo;
   }
@@ -50,11 +60,19 @@ export class MiseDayPillsComponent {
   }
 
   extend(): void {
-    if (this.disabled) {
+    if (this.disabled || !this.showExtend) {
       return;
     }
     const current = Math.max(MISE_DAY_STEP, Math.floor(this.maxDays || MISE_DAY_STEP));
     this.maxDaysChange.emit(current + MISE_DAY_STEP);
+  }
+
+  reduce(): void {
+    const next = nextReducedMaxDays(this.selectedUpTo, this.maxDays);
+    if (this.disabled || next == null) {
+      return;
+    }
+    this.maxDaysChange.emit(next);
   }
 
   formatAmount(value: number): string {
