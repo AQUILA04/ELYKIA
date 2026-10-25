@@ -36,6 +36,8 @@ public class CreditLateDTO {
     /** Reliquat client imputé sur ce crédit pour le calcul du restant net. */
     private Double      clientReliquatApplied;
     private Double      dailyStake;
+    /** Avance déjà enregistrée sur le crédit (comparaison carnet). */
+    private Double      advance;
 
     // Dates
     private LocalDate   beginDate;

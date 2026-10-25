@@ -1,3 +1,10 @@
+:host {
+  display: block;
+  max-height: 92vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .rm-fc-sheet {
   --rm-navy: #003366;
   --rm-muted: #6b7a99;
@@ -99,6 +106,37 @@ ion-textarea {
 
 .amount-input {
   font-size: 22px;
+}
+
+.advance-recorded {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 10px 0 0;
+  color: var(--rm-muted);
+  font-size: 13px;
+}
+
+.advance-flag {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.advance-flag.match {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.advance-flag.diff {
+  background: #ffedd5;
+  color: #c2410c;
 }
 
 .error {

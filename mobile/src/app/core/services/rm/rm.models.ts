@@ -108,6 +108,8 @@ export interface RmCreditLate {
   totalAmountRemaining?: number;
   clientReliquatApplied?: number;
   dailyStake?: number;
+  /** Avance déjà enregistrée sur le crédit. */
+  advance?: number;
   beginDate?: string;
   expectedEndDate?: string;
   remainingDaysCount?: number;

@@ -387,6 +387,7 @@ public class CreditLateService {
                 .totalAmountRemaining(credit.getTotalAmountRemaining())
                 .clientReliquatApplied(0.0)
                 .dailyStake(credit.getDailyStake())
+                .advance(credit.getAdvance() != null ? credit.getAdvance() : 0.0)
                 .beginDate(credit.getBeginDate())
                 .expectedEndDate(credit.getExpectedEndDate())
                 .remainingDaysCount(credit.getRemainingDaysCount())

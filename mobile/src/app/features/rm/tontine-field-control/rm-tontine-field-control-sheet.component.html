@@ -32,11 +32,11 @@
   </section>
 
   <p class="hint" *ngIf="!legacyMode">
-    Contrôlez chaque commercial séparément : sélectionnez les mois et saisissez le montant marqué dans son carnet.
+    Contrôlez chaque commercial séparément : cochez les mois, puis touchez le dernier jour coché sur le carnet.
   </p>
   <p class="hint legacy" *ngIf="legacyMode">
     Ce pack ne découpe pas encore les montants par commercial. Retéléchargez le pack du jour pour contrôler COM par COM.
-    En attendant, saisissez le total carnet mois par mois.
+    En attendant, indiquez les jours cochés mois par mois.
   </p>
 
   <section class="collector-block" *ngFor="let block of blocks" [attr.data-commercial]="block.commercialUsername">
@@ -76,14 +76,27 @@
           </div>
         </div>
         <div class="month-input" *ngIf="row.selected" (click)="$event.stopPropagation()">
-          <label>Montant carnet</label>
-          <ion-input
-            type="number"
-            inputmode="decimal"
-            [(ngModel)]="row.notebookAmount"
-            [disabled]="submitting"
-            class="amount-input">
-          </ion-input>
+          <ng-container *ngIf="!row.useManual">
+            <p class="mise-readonly">Mise : {{ formatAmount(dailyMise) }} FCFA</p>
+            <app-mise-day-pills
+              [dailyMise]="dailyMise"
+              [maxDays]="row.maxDays"
+              [selectedUpTo]="row.selectedUpTo"
+              [disabled]="submitting"
+              (selectedUpToChange)="onDaysSelected(row, $event)"
+              (maxDaysChange)="onDaysExtended(row, $event)">
+            </app-mise-day-pills>
+          </ng-container>
+          <ng-container *ngIf="row.useManual">
+            <label>Montant carnet</label>
+            <ion-input
+              type="number"
+              inputmode="decimal"
+              [(ngModel)]="row.notebookAmount"
+              [disabled]="submitting"
+              class="amount-input">
+            </ion-input>
+          </ng-container>
         </div>
       </article>
     </div>

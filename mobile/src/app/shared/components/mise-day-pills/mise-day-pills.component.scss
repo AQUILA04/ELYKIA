@@ -1,0 +1,116 @@
+.mise-day-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mise-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.mise-chip {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid #c5d0de;
+  background: #fff;
+  color: #475569;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.mise-chip:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.mise-chip.in-range,
+.mise-chip.selected {
+  background: #166534;
+  border-color: #14532d;
+  color: #fff;
+}
+
+.mise-chip.selected {
+  box-shadow: 0 0 0 2px #bbf7d0;
+}
+
+.extend-btn {
+  min-height: 44px;
+  border-radius: 12px;
+  border: 1.5px solid #003366;
+  background: #fff;
+  color: #003366;
+  font-size: 14px;
+  font-weight: 700;
+  padding: 10px 14px;
+}
+
+.extend-btn:disabled {
+  opacity: 0.55;
+}
+
+.mise-result {
+  background: #e8eef6;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.mise-result.has-value {
+  background: #dcfce7;
+}
+
+.mise-result-left {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.mise-result-label {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mise-result-count {
+  font-size: 13px;
+  color: #003366;
+  font-variant-numeric: tabular-nums;
+}
+
+.mise-result-hint {
+  color: #64748b;
+}
+
+.mise-result-amount {
+  font-size: 16px;
+  font-weight: 800;
+  color: #14532d;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.mise-result-dash {
+  font-size: 18px;
+  color: #64748b;
+  font-weight: 700;
+}

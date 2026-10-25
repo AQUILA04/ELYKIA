@@ -235,7 +235,14 @@ h2 {
 
 .month-input {
   margin-top: 10px;
-  padding-left: 34px;
+}
+
+.mise-readonly {
+  margin: 0 0 8px;
+  color: var(--rm-navy);
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 label {

@@ -5,6 +5,7 @@ import { RmPackTontineCollector, RmPackTontineFieldControlToday, RmPackTontineMe
 import { RmTontineFieldControlWriteService } from '../../../core/services/rm/rm-tontine-field-control-write.service';
 import { OnlineWriteError } from '../../../core/services/online-first-write.types';
 import { TontineControlDebug } from './rm-tontine-control-debug';
+import { fitNotebookDays, MISE_DAY_STEP } from '../../../shared/components/mise-day-pills/mise-day-pills.logic';
 
 interface MonthRow {
   year: number;
@@ -14,6 +15,9 @@ interface MonthRow {
   systemAmount: number;
   selected: boolean;
   notebookAmount: number | null;
+  selectedUpTo: number | null;
+  maxDays: number;
+  useManual: boolean;
 }
 
 interface CollectorBlock {
@@ -114,15 +118,17 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     return Math.abs(this.difference) < 0.0001 ? 'CONFORME' : 'ECART';
   }
 
+  get dailyMise(): number {
+    const amount = Number(this.member?.amount);
+    return Number.isFinite(amount) && amount > 0 ? amount : 0;
+  }
+
   get isValid(): boolean {
     const selected = this.selectedRows;
     if (!selected.length) {
       return false;
     }
-    return selected.every(r =>
-      !!r.commercialUsername
-      && r.notebookAmount !== null
-      && Number(r.notebookAmount) >= 0);
+    return selected.every(r => this.rowReady(r));
   }
 
   blockSelectedRows(block: CollectorBlock): MonthRow[] {
@@ -155,10 +161,21 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     }
     row.selected = !row.selected;
     if (!row.selected) {
-      row.notebookAmount = null;
-    } else if (row.notebookAmount === null) {
+      this.resetRowAmount(row);
+      return;
+    }
+    if (row.useManual && row.notebookAmount === null) {
       row.notebookAmount = row.systemAmount;
     }
+  }
+
+  onDaysSelected(row: MonthRow, days: number | null): void {
+    row.selectedUpTo = days;
+    row.notebookAmount = days === null ? null : days * this.dailyMise;
+  }
+
+  onDaysExtended(row: MonthRow, maxDays: number): void {
+    row.maxDays = maxDays;
   }
 
   dismiss(): void {
@@ -237,8 +254,40 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
         continue;
       }
       row.selected = true;
-      row.notebookAmount = line.notebookAmount;
+      this.applyNotebook(row, line.notebookAmount);
     }
+  }
+
+  private rowReady(row: MonthRow): boolean {
+    if (!row.commercialUsername || row.notebookAmount === null || Number(row.notebookAmount) < 0) {
+      return false;
+    }
+    if (row.useManual) {
+      return true;
+    }
+    return row.selectedUpTo !== null;
+  }
+
+  private resetRowAmount(row: MonthRow): void {
+    row.notebookAmount = null;
+    row.selectedUpTo = null;
+    row.maxDays = MISE_DAY_STEP;
+  }
+
+  private applyNotebook(row: MonthRow, notebookAmount: number): void {
+    if (row.useManual) {
+      row.notebookAmount = notebookAmount;
+      return;
+    }
+    const fit = fitNotebookDays(notebookAmount, 0, this.dailyMise);
+    if (!fit.exact) {
+      row.useManual = true;
+      row.notebookAmount = notebookAmount;
+      return;
+    }
+    row.selectedUpTo = fit.days;
+    row.maxDays = fit.maxDays;
+    row.notebookAmount = fit.days * this.dailyMise;
   }
 
   private toRow(
@@ -253,7 +302,10 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       commercialUsername,
       systemAmount,
       selected: false,
-      notebookAmount: null
+      notebookAmount: null,
+      selectedUpTo: null,
+      maxDays: MISE_DAY_STEP,
+      useManual: this.dailyMise <= 0
     };
   }
 

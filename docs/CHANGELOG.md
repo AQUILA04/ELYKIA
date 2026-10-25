@@ -46,6 +46,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.43.5] — 2026-10-25
+
+### Added
+
+- Le pack terrain du chef de recouvrement inclut l'avance déjà enregistrée sur chaque crédit, pour la comparer à l'avance lue sur le carnet.
+
 ## Backend — [1.43.4] — 2026-10-24
 
 ### Changed
@@ -359,6 +365,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.34.4] — 2026-10-25
+
+### Changed
+
+- Contrôle carnet crédit : la mise journalière et le montant total sont affichés. L'avance lue sur le carnet est comparée à l'avance enregistrée. Des pastilles de 1 à 31 calculent la somme des mises ; le total carnet ajoute l'avance. **Étendre le mois** ajoute 31 jours.
+- Contrôle carnet tontine : chaque mois coché affiche la mise et des pastilles de 1 à 31. Le montant du mois se calcule automatiquement. **Étendre le mois** ajoute 31 jours pour ce mois.
 
 ## Mobile — [2.34.3] — 2026-10-24
 
