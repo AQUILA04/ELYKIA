@@ -366,6 +366,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
 
+## Mobile — [2.34.5] — 2026-10-25
+
+### Changed
+
+- Contrôle crédit : les pastilles restent de 1 à 31. Le bouton **Étendre le mois** n'est plus proposé.
+- Contrôle tontine : **Étendre le mois** apparaît lorsque le dernier jour affiché est coché. **Réduire le mois** retire un bloc de 31 jours. Cocher un jour inférieur à 31 ramène la liste à 31.
+
 ## Mobile — [2.34.4] — 2026-10-25
 
 ### Changed

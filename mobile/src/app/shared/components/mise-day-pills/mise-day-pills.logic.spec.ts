@@ -1,4 +1,12 @@
-import { extendedMaxDays, fitNotebookDays, misesTotal, MISE_DAY_STEP } from './mise-day-pills.logic';
+import {
+  canShowExtend,
+  extendedMaxDays,
+  fitNotebookDays,
+  maxDaysAfterSelection,
+  misesTotal,
+  MISE_DAY_STEP,
+  nextReducedMaxDays
+} from './mise-day-pills.logic';
 
 describe('mise-day-pills.logic', () => {
   it('starts at 31 days and grows by blocks of 31', () => {
@@ -34,6 +42,27 @@ describe('mise-day-pills.logic', () => {
     const fit = fitNotebookDays(2500, 2500, 500);
     expect(fit.exact).toBe(true);
     expect(fit.days).toBe(0);
+  });
+
+  it('shows extend only when the last visible day is selected', () => {
+    expect(canShowExtend(15, 31)).toBe(false);
+    expect(canShowExtend(31, 31)).toBe(true);
+    expect(canShowExtend(31, 62)).toBe(false);
+    expect(canShowExtend(62, 62)).toBe(true);
+  });
+
+  it('reduces one block of 31 when the selection still fits', () => {
+    expect(nextReducedMaxDays(31, 62)).toBe(31);
+    expect(nextReducedMaxDays(31, 93)).toBe(62);
+    expect(nextReducedMaxDays(40, 62)).toBe(null);
+    expect(nextReducedMaxDays(15, 31)).toBe(null);
+  });
+
+  it('collapses an unused extension when the selection drops below 31', () => {
+    expect(maxDaysAfterSelection(15, 62)).toBe(31);
+    expect(maxDaysAfterSelection(null, 93)).toBe(31);
+    expect(maxDaysAfterSelection(31, 62)).toBe(62);
+    expect(maxDaysAfterSelection(40, 62)).toBe(62);
   });
 
   it('multiplies the selected days by the daily mise', () => {

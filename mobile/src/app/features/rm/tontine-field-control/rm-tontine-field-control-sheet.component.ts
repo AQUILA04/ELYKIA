@@ -5,7 +5,7 @@ import { RmPackTontineCollector, RmPackTontineFieldControlToday, RmPackTontineMe
 import { RmTontineFieldControlWriteService } from '../../../core/services/rm/rm-tontine-field-control-write.service';
 import { OnlineWriteError } from '../../../core/services/online-first-write.types';
 import { TontineControlDebug } from './rm-tontine-control-debug';
-import { fitNotebookDays, MISE_DAY_STEP } from '../../../shared/components/mise-day-pills/mise-day-pills.logic';
+import { fitNotebookDays, maxDaysAfterSelection, MISE_DAY_STEP } from '../../../shared/components/mise-day-pills/mise-day-pills.logic';
 
 interface MonthRow {
   year: number;
@@ -172,6 +172,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
   onDaysSelected(row: MonthRow, days: number | null): void {
     row.selectedUpTo = days;
     row.notebookAmount = days === null ? null : days * this.dailyMise;
+    row.maxDays = maxDaysAfterSelection(days, row.maxDays);
   }
 
   onDaysExtended(row: MonthRow, maxDays: number): void {

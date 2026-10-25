@@ -46,18 +46,34 @@
   box-shadow: 0 0 0 2px #bbf7d0;
 }
 
-.extend-btn {
+.day-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.extend-btn,
+.reduce-btn {
+  flex: 1;
   min-height: 44px;
   border-radius: 12px;
-  border: 1.5px solid #003366;
   background: #fff;
-  color: #003366;
   font-size: 14px;
   font-weight: 700;
   padding: 10px 14px;
 }
 
-.extend-btn:disabled {
+.extend-btn {
+  border: 1.5px solid #003366;
+  color: #003366;
+}
+
+.reduce-btn {
+  border: 1.5px solid #64748b;
+  color: #334155;
+}
+
+.extend-btn:disabled,
+.reduce-btn:disabled {
   opacity: 0.55;
 }
 

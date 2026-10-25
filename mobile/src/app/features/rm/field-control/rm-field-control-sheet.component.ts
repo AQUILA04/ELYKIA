@@ -54,9 +54,14 @@ export class RmFieldControlSheetComponent implements OnInit {
     }
 
     const fit = fitNotebookDays(target, this.systemAdvance, this.dailyStake);
-    if (fit.exact) {
+    if (fit.exact && fit.days <= MISE_DAY_STEP) {
       this.selectedUpTo = fit.days;
-      this.maxDays = fit.maxDays;
+      this.maxDays = MISE_DAY_STEP;
+      return;
+    }
+    if (this.modifying && fit.exact && fit.days > MISE_DAY_STEP) {
+      this.usePills = false;
+      this.manualNotebook = target;
     }
   }
 
@@ -128,12 +133,9 @@ export class RmFieldControlSheetComponent implements OnInit {
   }
 
   onDaysSelected(days: number | null): void {
-    this.selectedUpTo = days;
+    this.selectedUpTo = days == null ? null : Math.min(days, MISE_DAY_STEP);
+    this.maxDays = MISE_DAY_STEP;
     this.validate();
-  }
-
-  onDaysExtended(maxDays: number): void {
-    this.maxDays = maxDays;
   }
 
   validate(): void {
