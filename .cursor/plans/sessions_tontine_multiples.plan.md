@@ -3,7 +3,7 @@ name: Sessions de tontine multiples
 overview: Remplacer la session annuelle unique par autant de sessions datées que le métier le souhaite (Pâques, vacances, événement), un client pouvant adhérer à plusieurs sessions en parallèle. Chaque session garde son propre cycle ouvert, clôturé, terminé.
 todos:
   - id: lot-1-modele
-    content: Migration (nom, code, dates obligatoires, fin de l’unicité par année), création explicite, conservation de la session annuelle existante
+    content: Migration (nom, code, type annuelle ou complémentaire, dates). L’annuelle se crée seule si elle manque ; les autres sont créées par GESTIONNAIRE, ADMIN ou SUPER_ADMIN
     status: pending
   - id: lot-2-adhesion
     content: Adhésion par session, écritures (cotisation, commande, livraison, carnet) contrôlées sur la session du membre
@@ -29,6 +29,8 @@ Règles demandées :
 - Chaque session a une date de début et une date de fin.
 - Un client peut être membre de plusieurs sessions en même temps.
 - Chaque adhésion conserve sa mise, ses cotisations, son carnet et sa livraison.
+- La session annuelle de l’année civile est créée automatiquement dès qu’elle n’existe pas encore.
+- Les autres sessions (Pâques, vacances, événement) sont créées volontairement par un gestionnaire, un admin ou un super-admin.
 
 ## Constat dans le code
 
@@ -88,15 +90,16 @@ Deux sessions peuvent se chevaucher. Pâques tombe pendant la campagne annuelle 
 4. **Adhésion.** Unicité `(client_id, tontine_session_id)` pour les adhésions actives. Le même client a une ligne `TontineMember` par session. Mise, fréquence, part société, mois validés, carnet et livraison restent sur cette ligne.
 5. **Commercial tontine.** Inchangé : le commercial est celui du client (`tontineCollector`). Pas de commercial différent par session dans ce lot.
 6. **Statut tontine du client.** Vrai tant qu’il existe au moins une adhésion active non livrée. La livraison d’une session ne retire le statut que si aucune autre adhésion n’est ouverte.
-7. **Écritures.** Inscription, cotisation, rattrapage, contrôle de carnet, commande et livraison lisent le statut **de la session de l’adhésion**, plus « la session de l’année ». Une cotisation n’est acceptée que si sa date tombe dans `[startDate, endDate]` de cette session et que la session est `ACTIVE`.
+7. **Écritures.** Inscription, cotisation, rattrapage, contrôle de carnet, commande et livraison lisent le statut de la session de l’adhésion. Une cotisation n’est acceptée que si sa date tombe dans `[startDate, endDate]` de cette session et que la session est `ACTIVE`.
 8. **Carnet.** Les mois proposés sont les mois calendaires couverts par `[startDate, endDate]`, plus la liste fixe février–novembre. Une session de décembre ou de janvier devient contrôlable. Le plafond de 10 × 31 jours reste un maximum : une session courte valide moins de mois parce qu’elle a moins de jours.
 9. **Stock.** L’unicité passe à `(commercial, article_id, tontine_session_id)`. Chaque campagne a son stock de livraison. Les lignes actuelles sont rattachées à la session annuelle de leur année (la colonne `tontineSessionId` existe déjà).
-10. **Création.** Plus de création silencieuse au premier appel. Une session naît d’un écran ou d’un appel explicite : nom, code, début, fin. Un raccourci « Session annuelle » préremplit le 1er février et le 30 novembre. Droit : le même périmètre que l’édition tontine (`ROLE_EDIT_TONTINE` / admin).
-11. **Modification.** Tant que la session est `ACTIVE` : nom et dates modifiables si aucune cotisation ne tombe hors du nouvel intervalle. Session avec adhérents : pas de suppression. Session vide : désactivation.
-12. **Clôture.** La tâche quotidienne ferme chaque session dont la date de fin est passée. Le passage à `ENDED` se fait quand toutes les livraisons sont faites, ou par une action manuelle. Le job du 31 décembre est retiré.
-13. **Session par défaut, le temps de la bascule.** `getActiveSession()` ne peut plus être le point d’entrée métier. Les appels existants sont classés : ceux qui reçoivent déjà un `memberId` ou un `sessionId` utilisent cette session ; le repli « session annuelle de l’année » (`code` `ANNUELLE-{year}`) ne sert que pour les clients pas encore migrés (mobile ancien, exports sans filtre). Il ne crée plus de ligne.
-14. **Archives.** « Archiver » et « Archiver et réinitialiser » exigent une session choisie. La réinitialisation efface les cotisations de cette session seulement. Elle ne sert pas à ouvrir Pâques.
-15. **Reconduction.** Le guide dit que les membres n’ont pas à être réinscrits d’une année sur l’autre. Le code, lui, remet à zéro la session en cours et laisse la session de l’année suivante vide. Ce lot ne change pas ce geste en copie automatique. Une action ultérieure « Reconduire les membres » copiera client et mise d’une session close vers une session nouvelle, en créant de nouvelles adhésions, sans effacer l’historique.
+10. **Session annuelle, création automatique.** Une colonne `kind` distingue `ANNUAL` et `EXTRA`. Pour chaque année civile, il existe au plus une session `ANNUAL` (index unique partiel sur `year` où `kind = ANNUAL`). `ensureAnnualSession(year)` reprend le comportement actuel de `getActiveSession()` : si cette ligne manque, le système la crée, statut `ACTIVE`, du 1er février au 30 novembre, nom `Session annuelle {year}`, code `ANNUELLE-{year}`. Cela se produit au premier besoin de l’année (inscription, cotisation, ouverture du tableau de bord, synchro mobile), que d’autres sessions existent déjà ou non. Personne ne la saisit à la main. Elle ne se recrée pas si elle est déjà là, y compris lorsqu’elle est `CLOSED` ou `ENDED`.
+11. **Autres sessions, création volontaire.** Pâques, vacances et événement sont des sessions `EXTRA`. Seuls les profils `GESTIONNAIRE`, `ADMIN` et `SUPER_ADMIN` peuvent les créer (`UserProfilConstant`). Le formulaire demande le nom, le début et la fin. Le code est proposé, modifiable, unique. Un commercial, un magasinier, un secrétaire ou un client ne voit pas l’action et l’API la refuse. L’endpoint refuse aussi un second `kind = ANNUAL` pour la même année.
+12. **Modification.** Ces trois profils peuvent ajuster le nom et les dates d’une session `ACTIVE`, annuelle comprise, si aucune cotisation ne tombe hors du nouvel intervalle. Ils ne peuvent pas supprimer l’annuelle. Une session complémentaire avec adhérents ne se supprime pas. Une session complémentaire vide peut être désactivée.
+13. **Clôture.** La tâche quotidienne ferme chaque session dont la date de fin est passée. Le passage à `ENDED` se fait quand toutes les livraisons sont faites, ou par une action manuelle des trois profils. Le job du 31 décembre est retiré.
+14. **Quelle session par défaut.** Sans `sessionId`, l’inscription, l’Espace Client historique et le mobile ancien visent la session annuelle de l’année, créée au besoin par `ensureAnnualSession`. Dès qu’un écran envoie un `sessionId`, ou qu’une cotisation porte un `memberId`, c’est la session de cette adhésion qui s’applique. `getActiveSession()` devient cet assureur de l’annuelle : il ne choisit pas une session Pâques au motif qu’elle est `ACTIVE`.
+15. **Archives.** « Archiver » et « Archiver et réinitialiser » exigent une session choisie. La réinitialisation efface les cotisations de cette session seulement. Elle ne sert pas à ouvrir Pâques. L’action reste réservée aux profils qui lancent déjà cette opération.
+16. **Reconduction.** Le guide dit que les membres n’ont pas à être réinscrits d’une année sur l’autre. Le code, lui, remet à zéro la session en cours et laisse la session de l’année suivante vide. Ce lot ne change pas ce geste en copie automatique. Une action ultérieure « Reconduire les membres » copiera client et mise d’une session close vers une session nouvelle, en créant de nouvelles adhésions, sans effacer l’historique.
 
 Hors de ce lot : mise minimum ou part société différente par session, commercial différent par session, fusion de deux campagnes, paiement unique ventilé automatiquement sur plusieurs adhésions.
 
@@ -104,7 +107,8 @@ Hors de ce lot : mise minimum ou part société différente par session, commerc
 
 ```text
 tontine_session
-  id, name, code UNIQUE, year, start_date, end_date, status, total_revenue
+  id, name, code UNIQUE, kind (ANNUAL | EXTRA), year, start_date, end_date, status, total_revenue
+  UNIQUE (year) WHERE kind = 'ANNUAL'
 
 tontine_member
   id, tontine_session_id, client_id
@@ -119,6 +123,7 @@ Migration des lignes existantes :
 
 - `name` = `Session annuelle {year}`
 - `code` = `ANNUELLE-{year}`
+- `kind` = `ANNUAL`
 - dates déjà présentes, on ne les réécrit pas
 - puis suppression de l’unicité sur `year`, ajout de l’unicité sur `code`, `name` obligatoire
 
@@ -126,12 +131,14 @@ Le catalog IA (`tontine_session.description` = « Session annuelle tontine ») e
 
 ## Parcours
 
-### Gestionnaire — créer une session
+### Gestionnaire, admin ou super-admin — ouvrir une campagne en plus
 
-1. Menu Tontines → Sessions → Nouvelle session.
-2. Saisir le nom, le début et la fin. Le code est proposé à partir du nom et de l’année, modifiable.
-3. Enregistrer. La session apparaît dans le sélecteur sous la forme « Pâques 2026 · 1 mar – 20 avr · Ouverte ».
-4. Les indicateurs, la liste, l’export et la comparaison suivent la session choisie, par identifiant.
+La session annuelle de l’année est déjà là. Si elle manque, elle apparaît au premier accès, du 1er février au 30 novembre, sans formulaire.
+
+1. Menu Tontines → Sessions → Nouvelle session. Le bouton n’est visible que pour `GESTIONNAIRE`, `ADMIN` et `SUPER_ADMIN`.
+2. Saisir le nom, le début et la fin. Le code est proposé à partir du nom et de l’année, modifiable. Le type enregistré est complémentaire (`EXTRA`), jamais annuelle.
+3. Enregistrer. La session apparaît dans le sélecteur sous la forme « Pâques 2026 · 1 mar – 20 avr · Ouverte », à côté de « Session annuelle 2026 ».
+4. Les indicateurs, la liste, l’export et la comparaison suivent la session choisie, par identifiant. Le sélecteur s’ouvre sur l’annuelle de l’année.
 
 ### Commercial — inscrire et encaisser
 
@@ -154,11 +161,11 @@ Le formulaire de carnet s’ouvre sur une adhésion. Les mois cochables sont ceu
 
 ### Lot 1 — Modèle et création
 
-- Migration et catalog IA.
-- API créer / modifier / lister une session (nom, code, dates, statut, nombre d’adhérents).
-- Arrêt de la création automatique.
-- Les lectures actuelles par année continuent de résoudre `ANNUELLE-{year}` tant que les lots 2 et 3 ne sont pas livrés, pour ne pas casser le mobile déjà en magasin.
-- Tests : deux sessions la même année ; rejet si fin ≤ début ; rejet si code déjà pris ; la session historique reste lisible.
+- Migration et catalog IA, avec `kind`.
+- `ensureAnnualSession(year)` crée la session `ANNUAL` du 1er février au 30 novembre lorsqu’elle manque, et la retrouve lorsqu’elle existe.
+- API créer une session `EXTRA` : réservée à `GESTIONNAIRE`, `ADMIN`, `SUPER_ADMIN`. Refus pour les autres profils. Refus d’une seconde annuelle la même année.
+- Les lectures actuelles par année continuent de résoudre l’annuelle `ANNUELLE-{year}` tant que les lots 2 et 3 ne sont pas livrés, pour ne pas casser le mobile déjà en magasin.
+- Tests : l’annuelle manquante est créée au premier appel ; un second appel ne duplique pas ; Pâques peut exister sans empêcher la création de l’annuelle ; un commercial reçoit 403 sur la création ; fin ≤ début et code déjà pris sont refusés ; la session historique reste lisible et marquée `ANNUAL`.
 
 ### Lot 2 — Adhésion et écritures
 
@@ -170,7 +177,7 @@ Le formulaire de carnet s’ouvre sur une adhésion. Les mois cochables sont ceu
 
 ### Lot 3 — Écrans
 
-- Web : formulaire de création, sélecteur nom + dates + statut, listes et stats filtrées par id, comparaison par sessions (l’API `compare` prend des ids ; l’année reste un filtre d’affichage).
+- Web : bouton Nouvelle session limité à `GESTIONNAIRE`, `ADMIN` et `SUPER_ADMIN` ; sélecteur nom + dates + statut, ouvert sur l’annuelle ; listes et stats filtrées par id ; comparaison par sessions (l’API `compare` prend des ids ; l’année reste un filtre d’affichage).
 - Mobile : plusieurs sessions locales, sélecteur, synchro des sessions ouvertes et en livraison. `getTontineSession()` ne renvoie plus « la dernière année ».
 - Espace Client : liste des sessions rejoignables et détail par adhésion.
 - Guide utilisateur (gestionnaire, commercial, client), index RAG, HTML du guide, changelog des composants touchés.
@@ -184,7 +191,7 @@ Le formulaire de carnet s’ouvre sur une adhésion. Les mois cochables sont ceu
 
 ## Risques
 
-- **`getActiveSession()` est appelé partout** (inscription, cotisation, carnet, export, reset, portail, migration d’allocation). Un oubli réapplique la règle annuelle. Le lot 2 liste chaque appelant et le fait échouer en test s’il ignore la session du membre.
+- **`getActiveSession()` est appelé partout** (inscription, cotisation, carnet, export, reset, portail, migration d’allocation). Il reste l’assureur de l’annuelle et continue de la créer si elle manque. Un oubli enverrait une cotisation Pâques sur l’annuelle. Le lot 2 liste chaque appelant : avec un membre ou un `sessionId`, c’est cette session ; sans cible, c’est l’annuelle.
 - **Mobile hors ligne.** Un APK ancien ne connaît qu’une session. Le repli `ANNUELLE-{year}` du lot 1 évite de perdre la campagne annuelle. Les sessions supplémentaires n’apparaissent qu’avec l’application du lot 3. Le documenter dans le changelog mobile.
 - **Caisse.** Deux cotisations le même jour pour le même client sont deux encaissements. L’écran doit nommer la session sur la ligne, sinon le commercial croit à un doublon.
 - **Réinitialisation.** Lancée sur la mauvaise session, elle efface les cotisations. L’écran demande le nom de la session et une confirmation.
@@ -194,7 +201,8 @@ Le formulaire de carnet s’ouvre sur une adhésion. Les mois cochables sont ceu
 
 ## Vérification attendue en fin de chantier
 
-- Créer « Pâques » et « Vacances » la même année que la session annuelle, chacune avec début et fin.
+- Au premier accès d’une année vide, la session annuelle existe, du 1er février au 30 novembre, sans saisie.
+- Un commercial ne peut pas créer de session. Un gestionnaire, un admin ou un super-admin crée « Pâques » et « Vacances » la même année, chacune avec début et fin. Une seconde annuelle est refusée.
 - Inscrire le même client aux trois. Trois fiches, trois mises.
 - Encaisser sur Pâques sans mouvement sur l’annuelle.
 - Clôturer Pâques à sa date de fin : commande bloquée, livraison possible, annuelle toujours ouverte.
