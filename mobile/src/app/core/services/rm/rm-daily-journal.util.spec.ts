@@ -2,7 +2,7 @@ import { RmCloseOp } from './rm-close.models';
 import { RmFieldControlOp } from './rm-field-control.models';
 import { RmContactPatch } from './rm-contact.models';
 import { RmCollectorAssignOp } from './rm-collector-assign.models';
-import { buildRmDailyJournal, RmDailyJournalSources } from './rm-daily-journal.util';
+import { buildRmDailyJournal, buildRmDailyJournalHtml, RmDailyJournalSources } from './rm-daily-journal.util';
 
 const now = new Date(2026, 9, 27, 18, 0, 0);
 const today = new Date(2026, 9, 27, 9, 15, 0).toISOString();
@@ -104,5 +104,31 @@ describe('buildRmDailyJournal', () => {
     }));
     expect(journal.operations.map(row => row.dossier)).toEqual(['Ama Koffi', 'Ama Koffi', 'Client 13']);
     expect(journal.operations[2].detail).toBe('Crédit COM012');
+  });
+
+  it('prépare un document autonome qui contient le statut sans rien demander au réseau', () => {
+    const journal = buildRmDailyJournal(sources({
+      creditControls: [{
+        localId: 'c1',
+        reference: 'CF-1',
+        creditId: 4,
+        notebookTotalAmount: 100,
+        systemTotalAmountPaid: 80,
+        differenceAmount: 20,
+        status: 'ECART',
+        clientName: 'Ama <Koffi>',
+        observedAt: today,
+        createdAt: today,
+        isSync: false,
+        lastError: 'Réseau indisponible'
+      }]
+    }), () => undefined, now);
+
+    const html = buildRmDailyJournalHtml(journal, 'RM01');
+    expect(html).toContain('Rapport journalier');
+    expect(html).toContain('Échec');
+    expect(html).toContain('Ama &lt;Koffi&gt;');
+    expect(html).toContain('RM01');
+    expect(html).not.toContain('http');
   });
 });

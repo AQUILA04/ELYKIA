@@ -219,3 +219,73 @@ export function buildRmDailyJournal(
     operations: rows
   };
 }
+
+/** Document autonome : le fichier est produit sur le téléphone, sans appel réseau. */
+export function buildRmDailyJournalHtml(journal: RmDailyJournal, operatorLabel: string): string {
+  const synced = journal.operations.filter(row => row.status === RM_JOURNAL_STATUS.synced).length;
+  const local = journal.operations.filter(row => row.status === RM_JOURNAL_STATUS.local).length;
+  const failed = journal.operations.filter(row => row.status === RM_JOURNAL_STATUS.failed).length;
+  const body = journal.operations.length === 0
+    ? '<p class="empty">Aucune opération enregistrée pour cette journée.</p>'
+    : `<table class="ops">
+        <thead>
+          <tr><th>#</th><th>Heure</th><th>Opération</th><th>Dossier</th><th>Statut</th><th>Détail</th></tr>
+        </thead>
+        <tbody>
+          ${journal.operations.map((row, index) => `<tr>
+            <td>${index + 1}</td>
+            <td>${escapeHtml(row.time)}</td>
+            <td>${escapeHtml(row.operationType)}</td>
+            <td>${escapeHtml(row.dossier)}</td>
+            <td>${escapeHtml(row.status)}</td>
+            <td>${escapeHtml(row.detail)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  return `<!DOCTYPE html>
+<html><head><meta charset="UTF-8"/>
+<style>
+  body { font-family: Helvetica, Arial, sans-serif; color: #1a2a44; font-size: 12px; }
+  .brand { background: #003366; color: #fff; padding: 14px 16px; }
+  h1 { margin: 0 0 4px; font-size: 18px; }
+  .brand p { margin: 0; font-size: 11px; }
+  .meta, .kpi { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .meta td, .kpi td { border: 1px solid #dde3ec; padding: 8px; vertical-align: top; }
+  .label { display: block; font-size: 9px; color: #6b7a99; text-transform: uppercase; }
+  .kpi strong { font-size: 16px; color: #003366; }
+  table.ops { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  table.ops th { background: #003366; color: #fff; text-align: left; padding: 6px; font-size: 10px; }
+  table.ops td { border: 1px solid #dde3ec; padding: 6px; }
+  .empty { margin-top: 16px; }
+</style></head>
+<body>
+  <div class="brand">
+    <h1>AMENOUVEVE-YAVEH</h1>
+    <p>TOKOIN HÔPITAL · 96 18 68 22</p>
+    <p>Rapport journalier</p>
+  </div>
+  <table class="meta">
+    <tr>
+      <td><span class="label">Journée</span>${escapeHtml(journal.journalDate)}</td>
+      <td><span class="label">Chef de recouvrement</span>${escapeHtml(operatorLabel || 'Chef de recouvrement')}</td>
+    </tr>
+  </table>
+  <table class="kpi">
+    <tr>
+      <td><span class="label">Opérations</span><strong>${journal.operations.length}</strong></td>
+      <td><span class="label">Synchronisées</span><strong>${synced}</strong></td>
+      <td><span class="label">En local</span><strong>${local}</strong></td>
+      <td><span class="label">Échecs</span><strong>${failed}</strong></td>
+    </tr>
+  </table>
+  ${body}
+</body></html>`;
+}
+
+function escapeHtml(value: string): string {
+  return (value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}

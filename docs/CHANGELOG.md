@@ -48,9 +48,9 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Backend — [1.43.7] — 2026-10-27
 
-### Added
+### Changed
 
-- Rapport journalier du chef de recouvrement : le PDF reprend les opérations du jour (type, dossier, heure, statut Synchronisé, Local ou Échec) et se génère à la demande du téléphone.
+- L'assistant décrit le rapport du jour du chef de recouvrement comme un fichier enregistré sur le téléphone, avec ou sans réseau.
 
 ## Backend — [1.43.6] — 2026-10-27
 
@@ -219,6 +219,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
+
+## Frontend — [2.40.6] — 2026-10-27
+
+### Changed
+
+- Guide du chef de recouvrement : le rapport du jour est enregistré sur le téléphone, avec ou sans réseau.
 
 ## Frontend — [2.40.5] — 2026-10-27
 
@@ -390,6 +396,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.34.8] — 2026-10-27
+
+### Fixed
+
+- Le rapport du jour est écrit sur le téléphone à partir des opérations déjà enregistrées. Il ne demande plus de réseau, y compris lorsque la synchronisation échoue faute de connexion.
 
 ## Mobile — [2.34.7] — 2026-10-27
 

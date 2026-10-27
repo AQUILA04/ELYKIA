@@ -2,16 +2,13 @@ package com.optimize.elykia.core.controller.sale;
 
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
-import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.sale.CloseCreditsRequestDto;
 import com.optimize.elykia.core.dto.sale.FieldDayPlanRequestDto;
 import com.optimize.elykia.core.dto.sale.MonthlyRecoveryRateDto;
 import com.optimize.elykia.core.dto.sale.RecoveryManagerReportSummaryDto;
 import com.optimize.elykia.core.dto.sale.RmClientContactUpdateDto;
-import com.optimize.elykia.core.dto.sale.RmDailyJournalPdfRequest;
 import com.optimize.elykia.core.service.report.RecoveryManagerReportPdfService;
-import com.optimize.elykia.core.service.report.RmDailyJournalPdfService;
 import com.optimize.elykia.core.service.sale.RecoveryFieldPlanService;
 import com.optimize.elykia.core.service.sale.RecoveryManagerService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -44,7 +41,6 @@ public class RecoveryManagerController {
 
     private final RecoveryManagerService recoveryManagerService;
     private final RecoveryManagerReportPdfService reportPdfService;
-    private final RmDailyJournalPdfService dailyJournalPdfService;
     private final RecoveryFieldPlanService recoveryFieldPlanService;
     private final CreditLateService creditLateService;
     private final UserService userService;
@@ -135,34 +131,6 @@ public class RecoveryManagerController {
         headers.setContentType(MediaType.APPLICATION_PDF);
         headers.setContentDispositionFormData("filename", "rapport_recouvrement_terrain.pdf");
         return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-    }
-
-    /**
-     * Rapport des opérations du jour saisies sur le téléphone du chef.
-     * La journée est celle de l'appareil, transmise dans la requête.
-     */
-    @PostMapping(value = "/daily-journal/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
-    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
-    public ResponseEntity<byte[]> downloadDailyJournal(@RequestBody @Valid RmDailyJournalPdfRequest request) {
-        byte[] pdfBytes = dailyJournalPdfService.generate(request, operatorLabel(userService.getCurrentUser()));
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDispositionFormData("filename", "rapport-chef-du-jour.pdf");
-        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-    }
-
-    private String operatorLabel(User user) {
-        if (user == null) {
-            return "Chef de recouvrement";
-        }
-        String first = user.getFirstname() != null ? user.getFirstname().trim() : "";
-        String last = user.getLastname() != null ? user.getLastname().trim() : "";
-        String name = (first + " " + last).trim();
-        String username = user.getUsername() != null ? user.getUsername().trim() : "";
-        if (name.isBlank()) {
-            return username.isBlank() ? "Chef de recouvrement" : username;
-        }
-        return username.isBlank() ? name : name + " (" + username + ")";
     }
 
     @GetMapping("/field-plans/collector-stats")

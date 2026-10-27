@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { Capacitor } from '@capacitor/core';
 import { Directory, Filesystem } from '@capacitor/filesystem';
-import { firstValueFrom } from 'rxjs';
-import { environment } from '../../../../environments/environment';
+import { AuthService } from '../auth.service';
 import { ExportLocationService } from '../export-location.service';
+import { PdfReportService } from '../pdf-report.service';
 import { RmScopeService } from './rm-scope.service';
 import { RmCloseQueueService } from './rm-close-queue.service';
 import { RmContactQueueService } from './rm-contact-queue.service';
@@ -13,16 +12,15 @@ import { RmTontineFieldControlQueueService } from './rm-tontine-field-control-qu
 import { RmCarnetVerificationQueueService } from './rm-carnet-verification-queue.service';
 import { RmCreditCarnetVerificationQueueService } from './rm-credit-carnet-verification-queue.service';
 import { RmCollectorAssignQueueService } from './rm-collector-assign-queue.service';
-import { buildRmDailyJournal, RmDailyJournalOperation } from './rm-daily-journal.util';
+import { buildRmDailyJournal, buildRmDailyJournalHtml } from './rm-daily-journal.util';
 
 const REPORT_DIR = 'elykia/rapports';
 
 @Injectable({ providedIn: 'root' })
 export class RmDailyJournalService {
-  private readonly pdfUrl = `${environment.apiUrl}/api/v1/recovery-manager/daily-journal/pdf`;
-
   constructor(
-    private readonly http: HttpClient,
+    private readonly pdfReport: PdfReportService,
+    private readonly auth: AuthService,
     private readonly scope: RmScopeService,
     private readonly exportLocation: ExportLocationService,
     private readonly closeQueue: RmCloseQueueService,
@@ -34,7 +32,7 @@ export class RmDailyJournalService {
     private readonly assignQueue: RmCollectorAssignQueueService
   ) {}
 
-  /** Enregistre le PDF du jour. `open` déclenche aussi le téléchargement ou l'ouverture du fichier. */
+  /** Écrit le PDF du jour sur le téléphone. Aucun appel réseau. */
   async saveToday(options: { open: boolean }): Promise<void> {
     const now = new Date();
     const [closes, creditControls, tontineControls, creditCarnets, tontineCarnets, contacts, assigns] =
@@ -52,17 +50,16 @@ export class RmDailyJournalService {
       clientId => this.clientName(clientId),
       now
     );
-    const bytes = await firstValueFrom(this.http.post(this.pdfUrl, {
-      journalDate: journal.journalDate,
-      operations: journal.operations.map(toRequestRow)
-    }, { responseType: 'arraybuffer' }));
-
     const fileName = `rapport-chef-${journal.isoDate}.pdf`;
+    const pdfBase64 = await this.pdfReport.generatePDF(
+      buildRmDailyJournalHtml(journal, this.auth.currentUser?.username || 'Chef de recouvrement'),
+      fileName
+    );
     const directory = Capacitor.getPlatform() === 'web' ? Directory.Data : Directory.Documents;
     const filePath = `${REPORT_DIR}/${fileName}`;
     await Filesystem.writeFile({
       path: filePath,
-      data: toBase64(bytes),
+      data: pdfBase64,
       directory,
       recursive: true
     });
@@ -95,30 +92,4 @@ export class RmDailyJournalService {
     }
     return pack?.tontineMembers?.find(row => row.clientId === clientId)?.clientName;
   }
-}
-
-function toRequestRow(row: RmDailyJournalOperation): {
-  operationType: string;
-  dossier: string;
-  time: string;
-  status: string;
-  detail: string;
-} {
-  return {
-    operationType: row.operationType,
-    dossier: row.dossier,
-    time: row.time,
-    status: row.status,
-    detail: row.detail
-  };
-}
-
-function toBase64(bytes: ArrayBuffer): string {
-  const view = new Uint8Array(bytes);
-  let binary = '';
-  const chunk = 0x8000;
-  for (let offset = 0; offset < view.length; offset += chunk) {
-    binary += String.fromCharCode(...view.subarray(offset, offset + chunk));
-  }
-  return btoa(binary);
 }
