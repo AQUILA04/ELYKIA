@@ -56,6 +56,7 @@ import { AddMultipleMembersModalComponent } from './components/modals/add-multip
 import { RecordCollectionModalComponent } from './components/modals/record-collection-modal/record-collection-modal.component';
 import { RecordCatchupCollectionModalComponent } from './components/modals/record-catchup-collection-modal/record-catchup-collection-modal.component';
 import { SessionSettingsModalComponent } from './components/modals/session-settings-modal/session-settings-modal.component';
+import { CreateSessionModalComponent } from './components/modals/create-session-modal/create-session-modal.component';
 import { DeliveryArticleSelectionModalComponent } from './components/modals/delivery-article-selection-modal/delivery-article-selection-modal.component';
 import { TontineFieldControlModalComponent } from './components/modals/tontine-field-control-modal/tontine-field-control-modal.component';
 
@@ -93,6 +94,7 @@ import { TontineSessionService } from './services/tontine-session.service';
     RecordCollectionModalComponent,
     RecordCatchupCollectionModalComponent,
     SessionSettingsModalComponent,
+    CreateSessionModalComponent,
     DeliveryArticleSelectionModalComponent,
     TontineFieldControlModalComponent,
 

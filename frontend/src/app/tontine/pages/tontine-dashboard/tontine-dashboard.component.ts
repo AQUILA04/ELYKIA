@@ -21,6 +21,7 @@ import {
 } from '../../types/tontine.types';
 import { AddMemberModalComponent } from '../../components/modals/add-member-modal/add-member-modal.component';
 import { SessionSettingsModalComponent } from '../../components/modals/session-settings-modal/session-settings-modal.component';
+import { CreateSessionModalComponent } from '../../components/modals/create-session-modal/create-session-modal.component';
 import { AddMultipleMembersModalComponent } from '../../components/modals/add-multiple-members-modal/add-multiple-members-modal.component';
 import { UserService } from "../../../user/service/user.service";
 import { UserProfile } from "../../../shared/models/user-profile.enum";
@@ -59,6 +60,8 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   showHistoricalAlertMessage = false;
   isRecoveryManager = false;
   isPromoter = false;
+  canManageSessions = false;
+  selectedSession: TontineSession | null = null;
   exportingPdf = false;
   exportingCarnetPdf = false;
   canVerify = false;
@@ -96,6 +99,9 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     this.loadCurrentSessionAndMembers();
     this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
+    this.canManageSessions = this.userService.hasProfile(UserProfile.GESTIONNAIRE)
+      || this.userService.hasProfile(UserProfile.ADMIN)
+      || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
     void this.permissionsService.hasPermission(['ROLE_TONTINE_CARNET_VERIFY', 'ROLE_ADMIN']).then((has) => {
       this.canVerify = !!has;
     });
@@ -197,7 +203,6 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
       takeUntil(this.destroy$)
     ).subscribe({
       next: () => {
-        this.loadMembers();
         this.refreshKpis();
       },
       error: () => {
@@ -481,9 +486,21 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
     this.router.navigate(['/tontine/member', member.id]);
   }
 
+  openCreateSessionModal(): void {
+    const dialogRef = this.dialog.open(CreateSessionModalComponent, {
+      width: '520px'
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.showSuccess('Session créée');
+      }
+    });
+  }
+
   openAddMemberModal(): void {
     const dialogRef = this.dialog.open(AddMemberModalComponent, {
-      width: '500px'
+      width: '500px',
+      data: { sessionId: this.selectedSession?.id }
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -495,14 +512,14 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   }
 
   openSessionSettings(): void {
-    const currentSession = this.tontineService.getCurrentState().currentSession;
     const dialogRef = this.dialog.open(SessionSettingsModalComponent, {
       width: '500px',
-      data: { session: currentSession }
+      data: { session: this.selectedSession }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        this.sessionService.requestRefresh();
         this.showSuccess('Session mise à jour avec succès');
       }
     });
@@ -511,7 +528,8 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   openAddMultipleMembersModal(): void {
     const dialogRef = this.dialog.open(AddMultipleMembersModalComponent, {
       width: '700px',
-      disableClose: true
+      disableClose: true,
+      data: { sessionId: this.selectedSession?.id }
     });
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
@@ -522,12 +540,13 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   }
 
   onSessionChange(session: TontineSession): void {
+    this.selectedSession = session;
     this.isHistoricalView = session.status !== TontineSessionStatus.ACTIVE;
-    this.showHistoricalAlertMessage = this.isHistoricalView && session.status === TontineSessionStatus.ENDED;
-    // Keep filters; only reset pagination when switching session
+    this.showHistoricalAlertMessage = session.status === TontineSessionStatus.ENDED;
     this.memberQueryParams = {
       ...this.memberQueryParams,
-      page: 0
+      page: 0,
+      sessionId: session.id
     };
     this.loadMembers();
     this.refreshKpis(session.id, this.memberQueryParams.commercial);

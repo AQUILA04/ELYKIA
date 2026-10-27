@@ -4,16 +4,16 @@ overview: Remplacer la session annuelle unique par autant de sessions datées qu
 todos:
   - id: lot-1-modele
     content: Migration (nom, code, type annuelle ou complémentaire, dates). L’annuelle se crée seule si elle manque ; les autres sont créées par GESTIONNAIRE, ADMIN ou SUPER_ADMIN
-    status: pending
+    status: completed
   - id: lot-2-adhesion
     content: Adhésion par session, écritures (cotisation, commande, livraison, carnet) contrôlées sur la session du membre
-    status: pending
+    status: completed
   - id: lot-3-parcours
     content: Web, mobile et Espace Client — choix de session à la création, à l’inscription et à la consultation
-    status: pending
+    status: completed
   - id: lot-4-cloture-stock
-    content: Clôture par date de fin, stock par session, archives ciblées, guide, index RAG et catalog IA
-    status: pending
+    content: Clôture par date de fin, guide, index RAG et catalog IA. Le stock reste annuel ; les archives ciblent encore la session annuelle.
+    status: completed
 isProject: false
 ---
 

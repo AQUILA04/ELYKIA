@@ -8,13 +8,11 @@ import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
-import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.service.carnet.CarnetVerificationSupport;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,7 +21,6 @@ import java.util.List;
 public class TontineMemberCarnetVerificationService {
 
     private final TontineMemberRepository tontineMemberRepository;
-    private final TontineSessionRepository tontineSessionRepository;
 
     @Transactional
     public TontineMemberRespDto setVerified(Long memberId, boolean verified) {
@@ -42,38 +39,25 @@ public class TontineMemberCarnetVerificationService {
                 "Au moins un membre doit être sélectionné.",
                 "Maximum " + CarnetVerificationSupport.MAX_BULK + " membres par opération.");
         CarnetVerificationSupport.requireBulkMarkOnly(verified);
-        TontineSession active = requireActiveSession();
         List<TontineMember> members = tontineMemberRepository.findAllById(memberIds);
         CarnetVerificationSupport.assertAllFound(members, memberIds, "tontine.member.not.found");
         return CarnetVerificationSupport.bulkApply(
                 members,
                 memberIds,
                 verified,
-                member -> assertBelongsToSession(member, active),
+                this::assertMemberSessionActive,
                 tontineMemberRepository::saveAll);
     }
 
     private void assertWritable(TontineMember member) {
-        TontineSession active = requireActiveSession();
-        assertBelongsToSession(member, active);
+        assertMemberSessionActive(member);
     }
 
-    private void assertBelongsToSession(TontineMember member, TontineSession active) {
-        if (member.getTontineSession() == null || !active.getId().equals(member.getTontineSession().getId())) {
-            throw new CustomValidationException(
-                    "La vérification de carnet n'est possible que sur la session tontine en cours.");
-        }
-    }
-
-    private TontineSession requireActiveSession() {
-        int currentYear = LocalDate.now().getYear();
-        TontineSession session = tontineSessionRepository.findByYear(currentYear)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Aucune session de tontine active trouvée pour l'année en cours."));
-        if (session.getStatus() != TontineSessionStatus.ACTIVE) {
+    private void assertMemberSessionActive(TontineMember member) {
+        TontineSession session = member.getTontineSession();
+        if (session == null || session.getStatus() != TontineSessionStatus.ACTIVE) {
             throw new CustomValidationException(
                     "La vérification de carnet n'est possible que sur une session tontine active.");
         }
-        return session;
     }
 }

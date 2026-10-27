@@ -34,7 +34,7 @@
   <app-elyk-page-header
     eyebrow="ESPACE TONTINE"
     title="Rejoindre la session"
-    [subtitle]="session?.year ? ('Session ' + session?.year) : 'Inscription tontine'"
+    [subtitle]="sessionTitle(session)"
     [showBack]="true"
     (back)="goBack()">
   </app-elyk-page-header>
@@ -46,6 +46,20 @@
     </div>
 
     <ng-container *ngIf="!isLoadingSession">
+      <section class="join-card elyk-animate" *ngIf="joinableSessions.length > 1">
+        <div class="elyk-section-head">
+          <h2>Choisir la session</h2>
+          <p>Vous pouvez participer à plusieurs sessions en même temps.</p>
+        </div>
+        <ion-item
+          button
+          *ngFor="let item of joinableSessions"
+          (click)="selectSession(item)"
+          [detail]="false">
+          <ion-label>{{ sessionTitle(item) }}</ion-label>
+          <ion-icon *ngIf="item.id === session?.id" name="checkmark-circle" slot="end" color="primary"></ion-icon>
+        </ion-item>
+      </section>
       <section class="join-card elyk-animate" data-testid="e2e-tontine-join-stake">
         <div class="elyk-section-head">
           <h2>Votre mise journalière</h2>

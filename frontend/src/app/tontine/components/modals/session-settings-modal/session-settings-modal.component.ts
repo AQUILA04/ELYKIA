@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { TontineService } from '../../../services/tontine.service';
 import { TontineSession } from '../../../types/tontine.types';
+import { TontineSessionService } from '../../../services/tontine-session.service';
 
 @Component({
   selector: 'app-session-settings-modal',
@@ -18,9 +19,11 @@ export class SessionSettingsModalComponent implements OnInit {
     private fb: FormBuilder,
     private dialogRef: MatDialogRef<SessionSettingsModalComponent>,
     private tontineService: TontineService,
+    private sessionService: TontineSessionService,
     @Inject(MAT_DIALOG_DATA) public data: { session: TontineSession | null }
   ) {
     this.form = this.fb.group({
+      name: ['', [Validators.maxLength(120)]],
       startDate: [null, Validators.required],
       endDate: [null, Validators.required]
     });
@@ -29,8 +32,9 @@ export class SessionSettingsModalComponent implements OnInit {
   ngOnInit(): void {
     if (this.data.session) {
       this.form.patchValue({
-        startDate: new Date(this.data.session.startDate),
-        endDate: new Date(this.data.session.endDate)
+        name: this.data.session.name || '',
+        startDate: this.parseDate(this.data.session.startDate),
+        endDate: this.parseDate(this.data.session.endDate)
       });
     }
   }
@@ -44,12 +48,18 @@ export class SessionSettingsModalComponent implements OnInit {
     this.error = null;
 
     const sessionData = {
+      name: (this.form.value.name || '').trim() || undefined,
       startDate: this.formatDate(this.form.value.startDate),
       endDate: this.formatDate(this.form.value.endDate)
     };
+    const sessionId = this.data.session?.id;
+    const request = sessionId
+      ? this.tontineService.updateSession(sessionId, sessionData)
+      : this.tontineService.updateCurrentSession(sessionData);
 
-    this.tontineService.updateCurrentSession(sessionData).subscribe({
+    request.subscribe({
       next: () => {
+        this.sessionService.requestRefresh();
         this.dialogRef.close(true);
       },
       error: (error) => {
@@ -57,6 +67,11 @@ export class SessionSettingsModalComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  private parseDate(value: string): Date {
+    const [year, month, day] = value.substring(0, 10).split('-').map(Number);
+    return new Date(year, (month || 1) - 1, day || 1);
   }
 
   private formatDate(date: Date): string {

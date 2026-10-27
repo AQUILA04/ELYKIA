@@ -11,6 +11,7 @@ import com.optimize.elykia.core.dto.SessionStatsDto;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
+import com.optimize.elykia.core.enumaration.TontineSessionKind;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
@@ -167,8 +168,8 @@ class TontineSessionServiceTest {
     void compareSessions_calculatesGrowthAndFindsBestAndWorstYear() {
         TontineSession year2025 = session(25L, 2025, 0.0);
         TontineSession year2026 = session(26L, 2026, 0.0);
-        when(sessionRepository.findByYear(2025)).thenReturn(Optional.of(year2025));
-        when(sessionRepository.findByYear(2026)).thenReturn(Optional.of(year2026));
+        when(sessionRepository.findByYearAndKind(2025, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(year2025));
+        when(sessionRepository.findByYearAndKind(2026, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(year2026));
         when(memberRepository.findByTontineSessionIdAndState(25L, State.ENABLED))
                 .thenReturn(List.of(member("commercial.a", 100.0, TontineMemberDeliveryStatus.DELIVERED)));
         when(memberRepository.findByTontineSessionIdAndState(26L, State.ENABLED))

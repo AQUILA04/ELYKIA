@@ -1,5 +1,8 @@
 export interface TontineSession {
     id: string;
+    name?: string;
+    code?: string;
+    kind?: 'ANNUAL' | 'EXTRA';
     year: number;
     startDate: string;
     endDate: string;

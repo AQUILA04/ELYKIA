@@ -10,14 +10,15 @@ La tontine vous permet d’épargner un peu chaque jour et de recevoir vos produ
 2. Appuyez sur l’onglet **Tontine** en bas de l’écran.
 3. L’écran **Mes tontines** s’affiche.
 
-## Rejoindre la session en cours
+## Rejoindre une session
 
 Lorsque une session est ouverte et que vous n’y êtes pas encore inscrit :
 
-1. Sur **Mes tontines**, consultez la carte **Session … en cours** (statut **Ouverte**).
+1. Sur **Mes tontines**, consultez la carte de la session (statut **Ouverte**). Le nom de la session et les dates sont indiqués.
 2. Vérifiez la date de début et la **fin prévue**.
 3. Lisez la section **Comment ça marche**.
 4. Appuyez sur **Rejoindre la session**.
+5. Si plusieurs sessions sont proposées, appuyez sur le nom de celle que vous voulez rejoindre, puis continuez. Vous pouvez participer à plusieurs sessions en même temps. Chacune apparaît ensuite dans **Mes tontines** avec son nom.
 
 <!-- CAPTURE À INSÉRER : Bouton Rejoindre la session sur la carte session. -->
 
@@ -53,7 +54,7 @@ Sans premier paiement, appuyez directement sur **Confirmer mon inscription**.
 
 ## Suivre vos tontines
 
-- Si vous êtes déjà inscrit, un bandeau rappelle la session et la fin prévue, suivi de la liste de vos tontines.
+- Si vous êtes déjà inscrit, un bandeau rappelle le nom de la session et la fin prévue, suivi de la liste de vos tontines. Chaque ligne porte le nom de sa session.
 - Appuyez sur une ligne pour ouvrir le **Détail tontine**.
 
 ### Détail tontine

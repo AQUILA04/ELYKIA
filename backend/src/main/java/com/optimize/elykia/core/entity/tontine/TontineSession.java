@@ -3,6 +3,7 @@ package com.optimize.elykia.core.entity.tontine;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.optimize.common.entities.entity.BaseEntity;
+import com.optimize.elykia.core.enumaration.TontineSessionKind;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -22,7 +23,17 @@ public class TontineSession extends BaseEntity<String> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, length = 120)
+    private String name;
+
+    @Column(nullable = false, unique = true, length = 40)
+    private String code;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TontineSessionKind kind = TontineSessionKind.ANNUAL;
+
+    @Column(nullable = false)
     private Integer year;
 
     @Column(nullable = false)

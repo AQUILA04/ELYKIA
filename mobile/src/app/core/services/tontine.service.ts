@@ -194,24 +194,27 @@ export class TontineService {
      * Fetch active session from API and save to DB
      */
     fetchAndSaveSession(): Observable<any> {
-        console.log('TontineService: Fetching active session...');
+        console.log('TontineService: Fetching operational sessions...');
         return this.getHeaders().pipe(
-            switchMap(headers => this.http.get<any>(`${this.apiUrl}/tontines/sessions/current`, { headers })),
-            map(response => {
-                return response.data;
-            }),
-            switchMap(session => {
-                if (session) {
-                    return from(this.dbService.saveTontineSession(session)).pipe(
-                        map(() => session),
-                        catchError(err => {
-                          this.log.log('TontineService: Error saving session to DB: ' + JSON.stringify(err));
-                            console.error('TontineService: Error saving session to DB:', err);
-                            throw err;
-                        })
-                    );
+            switchMap(headers => this.http.get<any>(`${this.apiUrl}/tontines/sessions/operational`, { headers }).pipe(
+                map(response => response?.data || []),
+                catchError(() => this.http.get<any>(`${this.apiUrl}/tontines/sessions/current`, { headers }).pipe(
+                    map(response => response?.data ? [response.data] : [])
+                ))
+            )),
+            switchMap(sessions => {
+                const list = Array.isArray(sessions) ? sessions : [];
+                if (list.length === 0) {
+                    return of(null);
                 }
-                return of(null);
+                return from(Promise.all(list.map(session => this.dbService.saveTontineSession(session)))).pipe(
+                    map(() => this.pickAnnualSession(list)),
+                    catchError(err => {
+                      this.log.log('TontineService: Error saving session to DB: ' + JSON.stringify(err));
+                        console.error('TontineService: Error saving session to DB:', err);
+                        throw err;
+                    })
+                );
             }),
             catchError(error => {
               this.log.recordException('TontineService.fetchAndSaveSession' + JSON.stringify(error));
@@ -552,6 +555,17 @@ export class TontineService {
      */
     getSession(): Observable<any> {
         return from(this.dbService.getTontineSession());
+    }
+
+    listLocalSessions(): Promise<any[]> {
+        return this.dbService.listTontineSessions();
+    }
+
+    private pickAnnualSession(sessions: any[]): any {
+        const year = new Date().getFullYear();
+        return sessions.find(session => session.kind === 'ANNUAL' && session.year === year)
+            || sessions.find(session => session.status === 'ACTIVE')
+            || sessions[0];
     }
 
     /**

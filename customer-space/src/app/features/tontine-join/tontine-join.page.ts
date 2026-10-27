@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ViewWillEnter } from '@ionic/angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { UserJournalService } from '../../core/telemetry/user-journal.service';
 import { CustomerApiService } from '../../shared/services/customer-api.service';
@@ -49,6 +49,7 @@ export class TontineJoinPage implements ViewWillEnter {
   private readonly journal = inject(UserJournalService);
   readonly stakeShortcuts = STAKE_SHORTCUTS;
   session: CustomerTontineSession | null = null;
+  joinableSessions: CustomerTontineSession[] = [];
   stakeForm: FormGroup;
   paymentForm: FormGroup;
   includeInitialPayment = false;
@@ -66,6 +67,7 @@ export class TontineJoinPage implements ViewWillEnter {
   constructor(
     private api: CustomerApiService,
     private router: Router,
+    private route: ActivatedRoute,
     private fb: FormBuilder,
   ) {
     this.stakeForm = this.fb.group({
@@ -87,8 +89,17 @@ export class TontineJoinPage implements ViewWillEnter {
     this.error = '';
     try {
       // Toujours confirmer côté backend avant d'afficher le formulaire d'inscription.
-      this.session = await firstValueFrom(this.api.getCurrentTontineSession());
-      if (this.session.alreadyMember && this.session.memberId) {
+      const requestedId = this.route.snapshot.queryParamMap.get('sessionId');
+      try {
+        this.joinableSessions = await firstValueFrom(this.api.listJoinableTontineSessions());
+      } catch {
+        this.joinableSessions = [];
+      }
+      const picked = requestedId
+        ? this.joinableSessions.find(item => item.id === requestedId)
+        : undefined;
+      this.session = picked || await firstValueFrom(this.api.getCurrentTontineSession());
+      if (this.session.alreadyMember && this.session.memberId && !requestedId) {
         void this.router.navigate(['/tontines', this.session.memberId], { replaceUrl: true });
         return;
       }
@@ -106,6 +117,18 @@ export class TontineJoinPage implements ViewWillEnter {
     } finally {
       this.isLoadingSession = false;
     }
+  }
+
+  selectSession(session: CustomerTontineSession): void {
+    this.session = session;
+    this.error = session.joinable ? '' : 'Cette session n’accepte plus d’inscription.';
+  }
+
+  sessionTitle(session: CustomerTontineSession | null): string {
+    if (!session) {
+      return 'Inscription tontine';
+    }
+    return session.name || (session.year ? `Session ${session.year}` : 'Inscription tontine');
   }
 
   get dailyStake(): number {
@@ -236,6 +259,7 @@ export class TontineJoinPage implements ViewWillEnter {
     this.error = '';
     try {
       const payload: {
+        sessionId?: number;
         dailyStake: number;
         initialPayment?: {
           mobileMoneyPhone: string;
@@ -246,6 +270,9 @@ export class TontineJoinPage implements ViewWillEnter {
         };
         automaticInitialPayment?: { network: string; phone: string };
       } = { dailyStake: this.dailyStake };
+      if (this.session?.id) {
+        payload.sessionId = Number(this.session.id);
+      }
       if (this.includeInitialPayment && !this.showManualPayment && this.automaticSelection) {
         payload.automaticInitialPayment = this.automaticSelection;
       } else if (this.includeInitialPayment) {

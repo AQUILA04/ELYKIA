@@ -22,6 +22,7 @@ public class CustomerTontineContributionSummaryDto {
     private String sessionStartDate;
     private String sessionEndDate;
     private String sessionStatus;
+    private String sessionName;
 
     public CustomerTontineContributionSummaryDto(
             Long memberId,
@@ -36,7 +37,8 @@ public class CustomerTontineContributionSummaryDto {
             LocalDateTime registrationDate,
             LocalDate sessionStartDate,
             LocalDate sessionEndDate,
-            TontineSessionStatus sessionStatus) {
+            TontineSessionStatus sessionStatus,
+            String sessionName) {
         this.memberId = memberId != null ? String.valueOf(memberId) : null;
         this.sessionYear = sessionYear;
         this.deliveryStatus = deliveryStatus != null ? deliveryStatus.name() : null;
@@ -50,5 +52,6 @@ public class CustomerTontineContributionSummaryDto {
         this.sessionStartDate = sessionStartDate != null ? sessionStartDate.toString() : null;
         this.sessionEndDate = sessionEndDate != null ? sessionEndDate.toString() : null;
         this.sessionStatus = sessionStatus != null ? sessionStatus.name() : null;
+        this.sessionName = sessionName;
     }
 }

@@ -206,6 +206,10 @@ export class CustomerApiService {
     return this.http.get<CustomerTontineSession>(`${this.base}/tontine/session/current`);
   }
 
+  listJoinableTontineSessions(): Observable<CustomerTontineSession[]> {
+    return this.http.get<CustomerTontineSession[]>(`${this.base}/tontine/sessions`);
+  }
+
   getTontineJoinRecipients(): Observable<MobileMoneyRecipient> {
     return this.http.get<MobileMoneyRecipient>(`${this.base}/tontine/mobile-money-recipients`);
   }

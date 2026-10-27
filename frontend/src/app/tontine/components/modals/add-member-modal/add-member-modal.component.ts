@@ -26,7 +26,7 @@ export class AddMemberModalComponent implements OnInit, OnDestroy {
     private dialogRef: MatDialogRef<AddMemberModalComponent>,
     private tontineService: TontineService,
     private authService: AuthService,
-    @Optional() @Inject(MAT_DIALOG_DATA) public data: { member?: TontineMember }
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: { member?: TontineMember; sessionId?: number }
   ) {
     this.isEditMode = !!data?.member;
     this.initialAmount = data?.member?.amount || null;
@@ -80,6 +80,7 @@ export class AddMemberModalComponent implements OnInit, OnDestroy {
 
     const memberData = {
       clientId: finalClientId,
+      sessionId: this.isEditMode ? undefined : this.data?.sessionId,
       frequency: frequency || undefined,
       amount: amount || undefined,
       notes: notes || undefined,

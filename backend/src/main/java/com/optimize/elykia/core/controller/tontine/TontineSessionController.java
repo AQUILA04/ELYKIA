@@ -4,11 +4,14 @@ import com.lowagie.text.DocumentException;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.CompareSessionsRequestDto;
+import com.optimize.elykia.core.dto.CreateTontineSessionDto;
 import com.optimize.elykia.core.dto.SessionComparisonDto;
 import com.optimize.elykia.core.dto.SessionStatsDto;
 import com.optimize.elykia.core.dto.TontineSessionDto;
+import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.service.tontine.TontineExportService;
+import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.TontineSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -38,7 +41,25 @@ import java.util.List;
 public class TontineSessionController {
 
     private final TontineSessionService sessionService;
+    private final TontineService tontineService;
     private final TontineExportService exportService;
+
+    @PostMapping
+    @PreAuthorize("hasAnyRole('ROLE_GESTIONNAIRE', 'ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @Operation(summary = "Créer une session complémentaire")
+    public ResponseEntity<Response> create(@Valid @RequestBody CreateTontineSessionDto dto) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.createExtraSession(dto)),
+                HttpStatus.CREATED);
+    }
+
+    @PutMapping("/{sessionId}")
+    @PreAuthorize("hasAnyRole('ROLE_GESTIONNAIRE', 'ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
+    @Operation(summary = "Modifier les dates ou le nom d'une session ouverte")
+    public ResponseEntity<Response> update(@PathVariable Long sessionId,
+            @Valid @RequestBody TontineSessionUpdateDto dto) {
+        return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.updateSession(sessionId, dto)),
+                HttpStatus.OK);
+    }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ROLE_TONTINE', 'ROLE_CONSULT_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_ADMIN')")

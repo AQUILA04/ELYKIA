@@ -73,23 +73,4 @@ public class TontineSessionScheduler {
         }
         log.info("closeExpiredTontineSessions terminé en {} ms", System.currentTimeMillis() - start);
     }
-
-    // Runs every year on December 31st at 1:00 AM
-    @Scheduled(cron = "0 0 1 31 12 ?")
-    @Transactional
-    public void endYearlyTontineSessions() {
-        // Find all sessions that are currently CLOSED
-        List<TontineSession> sessionsToEnd = tontineSessionRepository.findByStatus(TontineSessionStatus.CLOSED);
-
-        if (!sessionsToEnd.isEmpty()) {
-            log.info("Found {} tontine sessions to mark as ENDED at year end.", sessionsToEnd.size());
-            for (TontineSession session : sessionsToEnd) {
-                session.setStatus(TontineSessionStatus.ENDED);
-                tontineSessionRepository.save(session);
-                log.info("Tontine session {} for year {} marked as ENDED.", session.getId(), session.getYear());
-            }
-        } else {
-            log.info("No CLOSED tontine sessions found to mark as ENDED at year end.");
-        }
-    }
 }

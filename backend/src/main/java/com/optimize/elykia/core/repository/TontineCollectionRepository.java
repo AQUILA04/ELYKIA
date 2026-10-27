@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 public interface TontineCollectionRepository extends GenericRepository<TontineCollection, Long> {
@@ -26,6 +27,17 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
     java.util.List<TontineCollection> findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(Long memberId, State state);
 
     long countByTontineMember_IdAndCollectionDateBetweenAndState(Long memberId, java.time.LocalDateTime start, java.time.LocalDateTime end, State state);
+
+    @Query("""
+            SELECT COUNT(c) FROM TontineCollection c
+            WHERE c.tontineMember.tontineSession.id = :sessionId
+              AND c.state = com.optimize.common.entities.enums.State.ENABLED
+              AND (c.collectionDate < :start OR c.collectionDate > :end)
+            """)
+    long countEnabledOutsideSessionRange(
+            @Param("sessionId") Long sessionId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end);
 
     @Query("""
             SELECT new com.optimize.elykia.core.dto.TontineMemberMonthlyAggregateDto(

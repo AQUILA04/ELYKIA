@@ -11,6 +11,7 @@ import com.optimize.elykia.core.dto.TontineMemberFieldControlLineDto;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
+import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControl;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControlLine;
 import com.optimize.elykia.core.enumaration.FieldControlStatus;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -77,10 +79,7 @@ public class TontineMemberFieldControlService {
 
         Set<String> seen = new HashSet<>();
         for (CreateTontineMemberFieldControlMonthDto monthDto : dto.getMonths()) {
-            if (!TONTINE_CALENDAR_MONTHS.contains(monthDto.getMonth())) {
-                throw new CustomValidationException(
-                        "Le mois " + monthDto.getMonth() + " n'est pas un mois de session tontine (février–novembre).");
-            }
+            assertMonthInsideSession(member, monthDto.getYear(), monthDto.getMonth());
             String commercial = normalizeCommercial(monthDto.getCommercialUsername());
             if (!StringUtils.hasText(commercial)) {
                 throw new CustomValidationException("Le commercial est obligatoire pour chaque mois contrôlé.");
@@ -412,6 +411,26 @@ public class TontineMemberFieldControlService {
         }
         uncontrolled.sort(String.CASE_INSENSITIVE_ORDER);
         return uncontrolled;
+    }
+
+    private static void assertMonthInsideSession(TontineMember member, Integer year, Integer month) {
+        TontineSession session = member != null ? member.getTontineSession() : null;
+        if (session == null || session.getStartDate() == null || session.getEndDate() == null) {
+            if (month == null || !TONTINE_CALENDAR_MONTHS.contains(month)) {
+                throw new CustomValidationException(
+                        "Le mois " + month + " n'est pas un mois de session tontine (février–novembre).");
+            }
+            return;
+        }
+        if (year == null || month == null) {
+            throw new CustomValidationException("Le mois contrôlé est incomplet.");
+        }
+        LocalDate target = LocalDate.of(year, month, 1);
+        if (target.isBefore(session.getStartDate().withDayOfMonth(1))
+                || target.isAfter(session.getEndDate().withDayOfMonth(1))) {
+            throw new CustomValidationException(
+                    "Le mois " + month + "/" + year + " est en dehors de la session « " + session.getName() + " ».");
+        }
     }
 
     private static String normalizeCommercial(String value) {

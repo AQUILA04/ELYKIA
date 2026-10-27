@@ -46,6 +46,19 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.44.0] — 2026-10-27
+
+### Added
+
+- Plusieurs sessions de tontine dans la même année. La session annuelle est créée automatiquement (1er février – 30 novembre). Les sessions complémentaires sont créées par le gestionnaire, l'admin ou le super-admin, avec un nom et des dates.
+- Un client peut être membre de plusieurs sessions. Les cotisations, commandes et livraisons suivent la session du membre. La livraison d'une session laisse le client inscrit tant qu'une autre session est encore ouverte.
+- Catalogue IA : `tontine_session` décrit le nom, le code, le type, les dates et le statut.
+
+### Changed
+
+- La clôture automatique suit la date de fin de chaque session. Le passage groupé au statut terminé le 31 décembre est retiré.
+- Le contrôle de carnet et les mois contrôlés suivent les dates de la session du membre.
+
 ## Backend — [1.43.5] — 2026-10-25
 
 ### Added
@@ -207,6 +220,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
 
+## Frontend — [2.41.0] — 2026-10-27
+
+### Added
+
+- Tontines : liste des sessions avec nom et dates, bouton **Nouvelle session**, inscription d'un membre sur la session affichée.
+
+### Changed
+
+- Les paramètres de session modifient la session sélectionnée.
+
 ## Frontend — [2.40.3] — 2026-10-24
 
 ### Changed
@@ -365,6 +388,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.35.0] — 2026-10-27
+
+### Added
+
+- Tontine : synchronisation des sessions ouvertes et en livraison, et choix de la session sur le tableau de bord. L'inscription locale est rattachée à la session choisie.
 
 ## Mobile — [2.34.5] — 2026-10-25
 
@@ -945,6 +974,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.18.0] — 2026-10-27
+
+### Added
+
+- Mes tontines affiche le nom de chaque session. L'inscription propose les sessions ouvertes et permet d'en rejoindre plusieurs.
 
 ## Customer-space — [0.17.1] — 2026-10-24
 

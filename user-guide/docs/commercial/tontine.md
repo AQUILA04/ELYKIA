@@ -37,9 +37,20 @@ En haut de l'écran, les cartes récapitulatives vous informent en temps réel s
 - **Collectes à la livraison** : Montants perçus lors de la délivrance des articles.
 
 ### Session en cours vs Sessions antérieures
-- **Session en cours (Active)** : La campagne annuelle est ouverte. Toutes les opérations quotidiennes (inscriptions, cotisations, ajustements de mise, vérifications de carnet) sont accessibles.
-- **Sessions passées (Historiques)** : Permet de consulter les campagnes précédentes en mode consultation seule. Un bandeau d'information rappelle que les modifications y sont désactivées. Le bouton **« Session actuelle »** vous ramène immédiatement à l'année en cours.
-- **Comparaison pluriannuelle** : Le bouton **Comparer** vous permet de sélectionner de 2 à 5 années pour observer l'évolution du nombre d'adhérents et des montants collectés.
+- **Session ouverte** : Les inscriptions, cotisations, ajustements de mise et vérifications de carnet sont accessibles.
+- **Livraisons en cours** : La session est fermée aux nouvelles cotisations. Les remises d'articles restent possibles.
+- **Session terminée** : Consultation seule. Un bandeau rappelle que les modifications sont désactivées.
+- **Comparaison pluriannuelle** : Le bouton **Comparer** vous permet de sélectionner de 2 à 5 années pour observer l'évolution du nombre d'adhérents et des montants collectés de la session annuelle de chaque année.
+
+### Plusieurs sessions dans l'année
+La session annuelle, du 1er février au 30 novembre, est ouverte d'elle-même pour l'année. D'autres sessions peuvent exister en parallèle, par exemple pour Pâques, les vacances ou un événement.
+
+1. Sur **Tontines > Liste**, ouvrez la liste **Session**.
+2. Chaque ligne affiche le nom, la date de début, la date de fin et l'état.
+3. Si le bouton **Nouvelle session** est affiché, saisissez le nom, la date de début et la date de fin. Le code est facultatif. Appuyez sur **Créer**.
+4. Choisissez la session dans la liste avant **Ajouter un Membre** ou **Ajout Multiple**. L'inscription est enregistrée sur la session affichée.
+5. Un même client peut être membre de plusieurs sessions en même temps.
+6. Le bouton **Paramètres**, lorsqu'il est affiché, modifie le nom et les dates de la session ouverte sélectionnée.
 
 ### Téléchargements et exports PDF
 La barre d'outils propose des exports prêts à imprimer :

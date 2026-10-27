@@ -61,6 +61,12 @@ public class TontineController {
         return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.getActiveSession()), HttpStatus.OK);
     }
 
+    @GetMapping("/sessions/operational")
+    public ResponseEntity<Response> listOperationalSessions() {
+        return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.listOperationalSessions()),
+                HttpStatus.OK);
+    }
+
     @PutMapping("/sessions/current")
     public ResponseEntity<Response> updateCurrentSession(@RequestBody @Valid TontineSessionUpdateDto dto) {
         return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.updateCurrentSession(dto)),
@@ -115,11 +121,12 @@ public class TontineController {
             @RequestParam(required = false) String commercial,
             @RequestParam(required = false) String deliveryStatus,
             @RequestParam(required = false) Boolean carnetVerified,
-            @RequestParam(required = false) String registrationSource) {
+            @RequestParam(required = false) String registrationSource,
+            @RequestParam(required = false) Long sessionId) {
         User user = tontineService.getUserService().getCurrentUser();
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 tontineService.getMembers(user, search, deliveryStatus, commercial, carnetVerified,
-                        registrationSource, pageable)), HttpStatus.OK);
+                        registrationSource, sessionId, pageable)), HttpStatus.OK);
     }
 
     @GetMapping("/members/history")

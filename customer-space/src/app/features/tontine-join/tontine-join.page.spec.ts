@@ -15,9 +15,11 @@ describe('TontineJoinPage', () => {
   beforeEach(async () => {
     api = jasmine.createSpyObj('CustomerApiService', [
       'getCurrentTontineSession',
+      'listJoinableTontineSessions',
       'getTontineJoinRecipients',
       'joinTontineSession',
     ]);
+    api.listJoinableTontineSessions.and.returnValue(of([]));
     api.getCurrentTontineSession.and.returnValue(
       of({
         available: true,

@@ -97,11 +97,12 @@ export class DatabaseService {
 
     // 1. Créer les tables pour s'assurer qu'elles existent pour les nouveaux utilisateurs
     await this.createTables();
+    await this.ensureTontineSessionColumns();
 
     // 2. Migrations incrémentielles (natif uniquement).
     // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
     const currentVersion = await this.db.getVersion();
-    const targetVersion = 35; // client adhesions snapshot for credit ceilings
+    const targetVersion = 36; // tontine session name, code and kind
     const dbVersion = currentVersion.version ?? 2;
     const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -533,6 +534,9 @@ export class DatabaseService {
         CREATE TABLE IF NOT EXISTS tontine_sessions (
             id TEXT PRIMARY KEY,
             year INTEGER,
+            name TEXT,
+            code TEXT,
+            kind TEXT,
             startDate TEXT,
             endDate TEXT,
             status TEXT,
@@ -2178,6 +2182,19 @@ export class DatabaseService {
     } as Client;
   }
 
+  private async ensureTontineSessionColumns(): Promise<void> {
+    if (!this.db) {
+      return;
+    }
+    const info = await this.db.query('PRAGMA table_info(tontine_sessions)');
+    const names = new Set((info.values || []).map((row: any) => row.name));
+    for (const column of ['name', 'code', 'kind']) {
+      if (!names.has(column)) {
+        await this.db.execute(`ALTER TABLE tontine_sessions ADD COLUMN ${column} TEXT`);
+      }
+    }
+  }
+
   /**
    * ==========================================
    * TONTINE METHODS
@@ -2189,24 +2206,42 @@ export class DatabaseService {
 
     const query = `
       INSERT OR REPLACE INTO tontine_sessions (
-        id, year, startDate, endDate, status, memberCount, totalCollected, isSync, syncDate, syncHash
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, year, name, code, kind, startDate, endDate, status, memberCount, totalCollected, isSync, syncDate, syncHash
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     // Generate hash for change detection if needed, or use provided hash
     const syncHash = session.syncHash || this.generateHash(session, ['id', 'status', 'totalCollected', 'startDate', 'endDate']);
 
     await this.db.run(query, [
-      session.id, session.year, session.startDate, session.endDate, session.status,
+      session.id, session.year, session.name ?? null, session.code ?? null, session.kind ?? null,
+      session.startDate, session.endDate, session.status,
       session.memberCount, session.totalCollected, 1, new Date().toISOString(), syncHash
     ]);
   }
 
   async getTontineSession(): Promise<any> {
     if (!this.db) throw new Error('Database not initialized.');
-    // Return the latest session regardless of status
-    const result = await this.db.query('SELECT * FROM tontine_sessions ORDER BY year DESC, id DESC LIMIT 1');
+    const result = await this.db.query(`
+      SELECT * FROM tontine_sessions
+      ORDER BY CASE WHEN kind = 'ANNUAL' AND year = CAST(strftime('%Y','now') AS INTEGER) THEN 0 ELSE 1 END,
+               CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END,
+               year DESC, id DESC
+      LIMIT 1
+    `);
     return result.values?.[0] || null;
+  }
+
+  async listTontineSessions(): Promise<any[]> {
+    if (!this.db) throw new Error('Database not initialized.');
+    const result = await this.db.query(`
+      SELECT * FROM tontine_sessions
+      WHERE status IN ('ACTIVE', 'CLOSED')
+      ORDER BY year DESC,
+               CASE WHEN kind = 'ANNUAL' THEN 0 ELSE 1 END,
+               startDate DESC
+    `);
+    return result.values || [];
   }
 
   async saveTontineMembers(members: any[]): Promise<void> {

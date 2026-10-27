@@ -383,22 +383,57 @@
     },
     {
       "name": "tontine_session",
-      "description": "Session annuelle tontine",
+      "description": "Session de tontine. Une session annuelle (kind ANNUAL) par année civile, plus des sessions complémentaires (kind EXTRA) pour Pâques, vacances ou un événement.",
       "synonyms": [
-        "session tontine"
+        "session tontine",
+        "session annuelle",
+        "session Pâques",
+        "campagne tontine"
       ],
       "columns": [
         {
           "name": "id",
-          "type": "bigint"
+          "type": "bigint",
+          "description": "Identifiant"
+        },
+        {
+          "name": "name",
+          "type": "varchar",
+          "description": "Nom affiché de la session",
+          "synonyms": ["nom de session"]
+        },
+        {
+          "name": "code",
+          "type": "varchar",
+          "description": "Code unique. L'annuelle est ANNUELLE-{année}."
+        },
+        {
+          "name": "kind",
+          "type": "varchar",
+          "description": "ANNUAL pour la session annuelle, EXTRA pour une session complémentaire",
+          "synonyms": ["type de session"]
         },
         {
           "name": "year",
-          "type": "integer"
+          "type": "integer",
+          "description": "Année civile de la date de début"
+        },
+        {
+          "name": "start_date",
+          "type": "date",
+          "description": "Date de début",
+          "synonyms": ["début de session"]
+        },
+        {
+          "name": "end_date",
+          "type": "date",
+          "description": "Date de fin",
+          "synonyms": ["fin de session"]
         },
         {
           "name": "status",
-          "type": "varchar"
+          "type": "varchar",
+          "description": "ACTIVE, CLOSED ou ENDED"
         }
       ]
     },

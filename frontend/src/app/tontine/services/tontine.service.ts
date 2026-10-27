@@ -15,6 +15,7 @@ import {
   CreateTontineMemberDto,
   CreateTontineCollectionDto,
   UpdateSessionDto,
+  CreateTontineSessionDto,
   TontineFilters,
   ApiResponse,
   PaginatedResponse,
@@ -127,6 +128,9 @@ export class TontineService {
     }
     if (queryParams.registrationSource) {
       params = params.set('registrationSource', queryParams.registrationSource);
+    }
+    if (queryParams.sessionId != null) {
+      params = params.set('sessionId', queryParams.sessionId.toString());
     }
 
     return this.http.get<ApiResponse<PaginatedResponse<TontineMember>>>(`${this.apiUrl}/members`, { headers, params })
@@ -368,6 +372,18 @@ export class TontineService {
         }),
         catchError(this.handleApiError.bind(this))
       );
+  }
+
+  createSession(sessionData: CreateTontineSessionDto): Observable<ApiResponse<TontineSession>> {
+    const headers = this.getHeaders();
+    return this.http.post<ApiResponse<TontineSession>>(this.sessionApiUrl, sessionData, { headers })
+      .pipe(catchError(this.handleApiError.bind(this)));
+  }
+
+  updateSession(sessionId: number, sessionData: UpdateSessionDto): Observable<ApiResponse<TontineSession>> {
+    const headers = this.getHeaders();
+    return this.http.put<ApiResponse<TontineSession>>(`${this.sessionApiUrl}/${sessionId}`, sessionData, { headers })
+      .pipe(catchError(this.handleApiError.bind(this)));
   }
 
   updateCurrentSession(sessionData: UpdateSessionDto): Observable<ApiResponse<TontineSession>> {

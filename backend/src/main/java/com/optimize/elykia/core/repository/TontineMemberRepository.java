@@ -20,7 +20,16 @@ import java.util.Optional;
 
 public interface TontineMemberRepository extends GenericRepository<TontineMember, Long> {
 
-        Optional<TontineMember> findByTontineSession_YearAndClient_Id(Integer year, Long clientId);
+        Optional<TontineMember> findByTontineSession_IdAndClient_IdAndState(Long sessionId, Long clientId, State state);
+
+        @Query("""
+                SELECT COUNT(tm) FROM TontineMember tm
+                WHERE tm.client.id = :clientId
+                  AND tm.state = com.optimize.common.entities.enums.State.ENABLED
+                  AND tm.deliveryStatus <> com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus.DELIVERED
+                  AND tm.id <> :memberId
+                """)
+        long countOtherOpenMemberships(@Param("clientId") Long clientId, @Param("memberId") Long memberId);
         List<TontineMember> findByClient_IdAndStateOrderByRegistrationDateDesc(Long clientId, State state);
 
         Page<TontineMember> findByTontineSession_YearAndClient_Collector(Integer year, String collectorUsername,
@@ -81,7 +90,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.registrationDate,
             tm.tontineSession.startDate,
             tm.tontineSession.endDate,
-            tm.tontineSession.status
+            tm.tontineSession.status,
+            tm.tontineSession.name
         )
         FROM TontineMember tm
         WHERE tm.client.id = :clientId
@@ -241,7 +251,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
         LEFT JOIN tm.tontineSession s
         LEFT JOIN tm.client c
         LEFT JOIN tm.delivery d
-        WHERE s.year = :year
+        WHERE ((:sessionId IS NULL AND s.year = :year) OR (:sessionId IS NOT NULL AND s.id = :sessionId))
         AND (:commercial IS NULL OR c.tontineCollector = :commercial)
         AND (:deliveryStatus IS NULL OR tm.deliveryStatus = :deliveryStatus)
         AND (:carnetVerified IS NULL OR tm.carnetVerified = :carnetVerified)
@@ -253,6 +263,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("deliveryStatus") TontineMemberDeliveryStatus deliveryStatus,
                 @Param("carnetVerified") Boolean carnetVerified,
                 @Param("registrationSource") TontineMemberRegistrationSource registrationSource,
+                @Param("sessionId") Long sessionId,
                 Pageable pageable);
 
 
@@ -297,7 +308,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
         LEFT JOIN tm.tontineSession s
         LEFT JOIN tm.client c
         LEFT JOIN tm.delivery d
-        WHERE s.year = :year
+        WHERE ((:sessionId IS NULL AND s.year = :year) OR (:sessionId IS NOT NULL AND s.id = :sessionId))
         AND (:commercial IS NULL OR c.tontineCollector = :commercial)
         AND (
             COALESCE(:search, '') = ''
@@ -317,6 +328,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("deliveryStatus") TontineMemberDeliveryStatus deliveryStatus,
                 @Param("carnetVerified") Boolean carnetVerified,
                 @Param("registrationSource") TontineMemberRegistrationSource registrationSource,
+                @Param("sessionId") Long sessionId,
                 Pageable pageable);
 
         @Query("""

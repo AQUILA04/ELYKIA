@@ -74,6 +74,11 @@ public class CustomerApiController {
         return ResponseEntity.ok(customerPortalService.getCurrentTontineSession());
     }
 
+    @GetMapping("/tontine/sessions")
+    public ResponseEntity<List<CustomerTontineSessionDto>> listJoinableTontineSessions() {
+        return ResponseEntity.ok(customerPortalService.listJoinableTontineSessions());
+    }
+
     @GetMapping("/tontine/mobile-money-recipients")
     public ResponseEntity<CustomerMobileMoneyRecipientDto> getTontineJoinRecipients() {
         return ResponseEntity.ok(customerPortalService.getTontineJoinRecipients());
