@@ -21,6 +21,11 @@ export class RmFieldControlQueueService {
     this.opsSubject.next(Array.isArray(ops) ? ops : []);
   }
 
+  async listAll(): Promise<RmFieldControlOp[]> {
+    await this.ready;
+    return [...this.opsSubject.value];
+  }
+
   async listPending(): Promise<RmFieldControlOp[]> {
     await this.ready;
     return this.opsSubject.value.filter(o => !o.isSync);

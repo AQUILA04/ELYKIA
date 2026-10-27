@@ -34,6 +34,11 @@ export class RmOfflineOpsQueueStore<T extends RmOfflineOpBase> {
     this.opsSubject.next(Array.isArray(ops) ? ops : []);
   }
 
+  async listAll(): Promise<T[]> {
+    await this.ensureReady();
+    return [...this.opsSubject.value];
+  }
+
   async listPending(): Promise<T[]> {
     await this.ensureReady();
     return this.opsSubject.value.filter(o => !o.isSync);

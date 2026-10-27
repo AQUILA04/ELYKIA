@@ -21,6 +21,11 @@ export class RmTontineFieldControlQueueService {
     this.opsSubject.next(Array.isArray(ops) ? ops : []);
   }
 
+  async listAll(): Promise<RmTontineFieldControlOp[]> {
+    await this.ready;
+    return [...this.opsSubject.value];
+  }
+
   async listPending(): Promise<RmTontineFieldControlOp[]> {
     await this.ready;
     return this.opsSubject.value.filter(o => !o.isSync);

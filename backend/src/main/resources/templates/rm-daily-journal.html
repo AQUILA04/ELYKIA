@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${pdfDocumentTitle}">Rapport journalier</title>
+    <th:block th:replace="~{pdf/fragments :: styles}"></th:block>
+</head>
+<body>
+    <div th:replace="~{pdf/fragments :: header}"></div>
+
+    <table class="pdf-meta">
+        <tr>
+            <td>
+                <span class="pdf-meta-label">Journée</span>
+                <span class="pdf-meta-value" th:text="${doc.journalDate}">27/10/2026</span>
+            </td>
+            <td>
+                <span class="pdf-meta-label">Chef de recouvrement</span>
+                <span class="pdf-meta-value" th:text="${doc.operatorLabel}">Chef</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <span class="pdf-meta-label">Généré le</span>
+                <span class="pdf-meta-value" th:text="${doc.generationDate}">27/10/2026 15:00</span>
+            </td>
+        </tr>
+    </table>
+
+    <table class="pdf-kpi">
+        <tr>
+            <td>
+                <div class="kpi-label">Opérations</div>
+                <div class="kpi-value" th:text="${doc.operationCount}">0</div>
+            </td>
+            <td class="kpi-green">
+                <div class="kpi-label">Synchronisées</div>
+                <div class="kpi-value" th:text="${doc.syncedCount}">0</div>
+            </td>
+            <td class="kpi-cyan">
+                <div class="kpi-label">En local</div>
+                <div class="kpi-value" th:text="${doc.localCount}">0</div>
+            </td>
+            <td class="kpi-orange">
+                <div class="kpi-label">Échecs</div>
+                <div class="kpi-value" th:text="${doc.failedCount}">0</div>
+            </td>
+        </tr>
+    </table>
+
+    <div th:if="${doc.operationCount == 0}" class="pdf-empty">
+        Aucune opération enregistrée pour cette journée.
+    </div>
+
+    <div th:if="${doc.operationCount > 0}">
+        <div class="pdf-section-title">Opérations de la journée</div>
+        <table class="data-table">
+            <thead>
+            <tr>
+                <th class="num">#</th>
+                <th>Heure</th>
+                <th>Opération</th>
+                <th>Dossier</th>
+                <th>Statut</th>
+                <th>Détail</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row, stat : ${doc.operations}">
+                <td class="num" th:text="${stat.count}">1</td>
+                <td th:text="${row.time}">09:15</td>
+                <td th:text="${row.operationType}">Contrôle crédit</td>
+                <td th:text="${row.dossier}">Ama Koffi</td>
+                <td th:text="${row.status}">Échec</td>
+                <td th:text="${row.detail}">ECART</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

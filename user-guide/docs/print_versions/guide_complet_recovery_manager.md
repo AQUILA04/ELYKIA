@@ -149,7 +149,7 @@ En haut à droite, l’icône carte ouvre à nouveau l’écran du plan du jour 
 
 Les dossiers sont regroupés par localité. Des filtres par commercial sélectionné dans le plan permettent de concentrer la tournée.
 
-Chaque carte affiche le client, la référence, le commercial, le téléphone lorsque disponible, le montant restant et les jours de retard. Le badge **Vérifié** indique qu’un carnet a déjà été certifié. Les boutons **Vérifier**, **Contrôle** et **Clôturer** ouvrent les actions correspondantes. **Vérifier** certifie le carnet physique ; **Contrôle** compare les montants système et carnet.
+Chaque carte affiche le client, la référence, le commercial, le téléphone lorsque disponible, le montant restant et les jours de retard. La pastille **Sync** indique que les opérations de ce dossier sont déjà transmises. La pastille **Local** indique qu’une opération de ce dossier est encore sur le téléphone. Le badge **Vérifié** indique qu’un carnet a déjà été certifié. Les boutons **Vérifier**, **Contrôle** et **Clôturer** ouvrent les actions correspondantes. **Vérifier** certifie le carnet physique ; **Contrôle** compare les montants système et carnet.
 
 ### Contrôle crédit
 
@@ -197,6 +197,8 @@ Lorsque le pack est téléchargé ou actualisé, chaque crédit et chaque membre
 
 Un nouveau contrôle peut être saisi lorsque le dernier contrôle est **CONFORME**, ou lorsque l’écart a été accepté ou refusé. Un écart encore ouvert se modifie.
 
+Chaque ligne de crédit et chaque ligne de tontine affiche aussi la pastille **Sync** ou **Local**. **Sync** signifie que les opérations de ce dossier sont déjà transmises. **Local** signifie qu’un contrôle, une vérification de carnet, une clôture, un contact ou un transfert lié à ce dossier est encore sur le téléphone.
+
 | Zone | Action |
 |---|---|
 | Crédits | Vérifier ou annuler la vérification d’un carnet, lancer un **Contrôle**, puis utiliser **Naviguer** lorsqu’une position est disponible. Le badge **Retard** signale un crédit en retard. |
@@ -214,7 +216,7 @@ Lorsqu’un écart est affiché, son montant apparaît à côté du badge, avec 
 
 ## Onglet Clients : contact, GPS et changement de commercial
 
-L’onglet **Clients** recherche les clients contenus dans le pack par nom, téléphone ou localité. Chaque carte montre le téléphone, le quartier, les commerciaux crédit et tontine, ainsi que l’état GPS.
+L’onglet **Clients** recherche les clients contenus dans le pack par nom, téléphone ou localité. Chaque carte montre le téléphone, le quartier, les commerciaux crédit et tontine, ainsi que l’état GPS. La pastille **Sync** ou **Local** suit le même principe que sur Terrain : **Local** apparaît lorsqu’un contact, un transfert, ou une opération liée à un crédit ou à une tontine de ce client est encore sur le téléphone.
 
 Touchez une carte pour modifier uniquement les données autorisées : le **téléphone** et la **géolocalisation**. Le quartier est visible comme information de périmètre et reste en lecture seule. Utilisez **Mettre à jour ma position** lorsque vous êtes sur le lieu du client ; utilisez **Ouvrir Maps** pour consulter une position déjà enregistrée.
 
@@ -227,11 +229,14 @@ L’onglet **Plus** est le point de contrôle de la journée. Il présente le pl
 | Action | Quand l’utiliser |
 |---|---|
 | **Synchroniser** | Après une période hors ligne ou avant la fin de tournée, pour transmettre les opérations en attente. |
+| **Télécharger le rapport du jour** | Pour enregistrer à nouveau le PDF des opérations du jour, ou l’ouvrir lorsque vous en avez besoin. |
 | **Actualiser le pack** | Lorsque le périmètre ou les informations téléchargées doivent être renouvelés. |
 | **Changer le plan du jour** | Lorsque les commerciaux ou les localités à traiter changent. L'écran du plan s'ouvre à nouveau pour préparer un nouveau pack. |
 | **Mettre à jour l’application** | Lorsqu’une version officielle est proposée par l’application. |
 
 Traitez les erreurs affichées avant de recommencer une opération. Une opération placée dans la file est déjà enregistrée localement ; la ressaisie créerait un risque de doublon. La synchronisation priorise les données de contact et les contrôles avant les clôtures, afin de conserver la cohérence du compte rendu terrain.
+
+À la fin de **Synchroniser**, l’application enregistre le rapport du jour en PDF, que les opérations soient toutes transmises ou qu’une partie ait échoué. Le document reprend les opérations faites dans la journée : le type, le dossier, l’heure et le statut **Synchronisé**, **Local** ou **Échec**. Une nouvelle synchronisation le même jour remplace le PDF déjà enregistré. **Télécharger le rapport du jour** permet de le récupérer à nouveau.
 
 
 \newpage

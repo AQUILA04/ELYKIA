@@ -158,6 +158,19 @@ ion-content.rm-content {
 }
 .row strong { display: block; color: #003366; font-size: 14px; }
 .row span { color: var(--rm-muted); font-size: 12px; }
+.row .elyk-badge {
+  display: inline-flex;
+  margin: 4px 6px 0 0;
+  font-size: 10px;
+}
+.row .elyk-badge--local {
+  background: #e8eef6;
+  color: #6b7a99;
+}
+.row .elyk-badge--sync {
+  background: #e6f5eb;
+  color: #1d8a3c;
+}
 .badge {
   display: inline-block;
   margin-top: 4px;

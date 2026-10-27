@@ -26,6 +26,10 @@ export class RmCloseQueueService {
     return [...this.opsSubject.value];
   }
 
+  async listAll(): Promise<RmCloseOp[]> {
+    return this.list();
+  }
+
   async listPending(): Promise<RmCloseOp[]> {
     return (await this.list()).filter(o => !o.isSync);
   }

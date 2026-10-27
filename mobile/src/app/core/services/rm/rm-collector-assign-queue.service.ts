@@ -21,6 +21,11 @@ export class RmCollectorAssignQueueService {
     this.opsSubject.next(Array.isArray(ops) ? ops : []);
   }
 
+  async listAll(): Promise<RmCollectorAssignOp[]> {
+    await this.ready;
+    return [...this.opsSubject.value];
+  }
+
   async listPending(): Promise<RmCollectorAssignOp[]> {
     await this.ready;
     return this.opsSubject.value.filter(o => !o.isSync);

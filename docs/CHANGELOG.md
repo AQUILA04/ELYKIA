@@ -46,6 +46,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.43.7] — 2026-10-27
+
+### Added
+
+- Rapport journalier du chef de recouvrement : le PDF reprend les opérations du jour (type, dossier, heure, statut Synchronisé, Local ou Échec) et se génère à la demande du téléphone.
+
 ## Backend — [1.43.6] — 2026-10-27
 
 ### Changed
@@ -214,6 +220,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
 
+## Frontend — [2.40.5] — 2026-10-27
+
+### Changed
+
+- Guide d'utilisation du chef de recouvrement : pastilles **Sync** et **Local** sur les dossiers, et rapport du jour enregistré à la fin de la synchronisation.
+
 ## Frontend — [2.40.4] — 2026-10-27
 
 ### Changed
@@ -378,6 +390,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.34.7] — 2026-10-27
+
+### Added
+
+- Retards, Terrain et Clients : chaque dossier affiche la pastille **Sync** ou **Local**, selon que ses opérations sont déjà transmises ou encore sur le téléphone.
+- À la fin de **Synchroniser**, le rapport du jour est enregistré en PDF, que la synchronisation réussisse ou échoue. **Télécharger le rapport du jour** dans **Plus** permet de le récupérer à nouveau.
 
 ## Mobile — [2.34.6] — 2026-10-27
 

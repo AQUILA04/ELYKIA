@@ -74,6 +74,8 @@
           </ion-checkbox>
           <div class="row-main">
             <strong>{{ item.clientName }}</strong>
+            <span class="elyk-badge" [class.elyk-badge--local]="isTontineLocal(item)" [class.elyk-badge--sync]="!isTontineLocal(item)"
+                  data-testid="e2e-rm-sync-badge">{{ isTontineLocal(item) ? 'Local' : 'Sync' }}</span>
             <span>{{ item.tontineCollector || '—' }} · {{ item.clientQuarter || 'Non spécifié' }}</span>
             <span>{{ formatAmount(item.totalContribution || 0) }} FCFA cotisés</span>
             <span class="badge verified" *ngIf="item.carnetVerified"
@@ -133,6 +135,8 @@
             </ion-checkbox>
             <div class="row-main">
               <strong>{{ item.clientName }}</strong>
+              <span class="elyk-badge" [class.elyk-badge--local]="isTontineLocal(item)" [class.elyk-badge--sync]="!isTontineLocal(item)"
+                    data-testid="e2e-rm-sync-badge">{{ isTontineLocal(item) ? 'Local' : 'Sync' }}</span>
               <span>{{ formatAmount(item.totalContribution || 0) }} FCFA cotisés</span>
               <span class="badge verified" *ngIf="item.carnetVerified"
                     data-testid="e2e-rm-carnet-badge">Vérifié</span>
@@ -184,6 +188,8 @@
       <div class="row">
         <div class="row-main">
           <strong>{{ item.clientName }}</strong>
+          <span class="elyk-badge" [class.elyk-badge--local]="isCreditLocal(item)" [class.elyk-badge--sync]="!isCreditLocal(item)"
+                data-testid="e2e-rm-sync-badge">{{ isCreditLocal(item) ? 'Local' : 'Sync' }}</span>
           <span *ngIf="showPlace">{{ item.collector || '—' }} · {{ item.clientQuarter || 'Non spécifié' }}</span>
           <span>{{ formatAmount(item.totalAmountRemaining || 0) }} FCFA</span>
           <span class="badge late" *ngIf="isLate(item)">Retard</span>
