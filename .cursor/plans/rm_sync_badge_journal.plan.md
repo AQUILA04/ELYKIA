@@ -10,4 +10,4 @@ Un dossier est **Local** tant qu'une opération qui le concerne n'est pas transm
 
 Le journal est construit sur le téléphone à partir des opérations dont la date locale est celle du jour. Statuts : Synchronisé, Local, Échec.
 
-Le PDF est produit sur le téléphone, dans `elykia/rapports/rapport-chef-AAAA-MM-JJ.pdf`, sans appel réseau. L'enregistrement a lieu à la fin de chaque synchronisation, succès ou échec. Le bouton **Télécharger le rapport du jour** régénère le même fichier et l'ouvre.
+Le PDF suit le rapport journalier commercial : HTML local, `PdfReportService.generatePDF`, puis `savePDFToExternalStorage` dans `elykia/rapport` avec `generateFilename`. L'enregistrement a lieu à la fin de chaque synchronisation, succès ou échec. Le bouton **Télécharger le rapport du jour** relance le même enregistrement.

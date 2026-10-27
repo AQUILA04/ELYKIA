@@ -174,9 +174,10 @@ export class RmMorePage implements OnInit, OnDestroy {
     }
     try {
       loading.message = 'Enregistrement du rapport du jour…';
-      await this.dailyJournal.saveToday({ open: false });
+      await this.dailyJournal.saveToday();
+      await this.toast('Rapport PDF généré automatiquement', 'success');
     } catch (reportError) {
-      console.warn('Rapport journalier non enregistré:', reportError);
+      console.error(reportError);
       await this.toast('Le rapport du jour n’a pas pu être enregistré.', 'warning');
     } finally {
       await loading.dismiss();
@@ -184,14 +185,14 @@ export class RmMorePage implements OnInit, OnDestroy {
   }
 
   async downloadDailyReport(): Promise<void> {
-    const loading = await this.loadingCtrl.create({ message: 'Préparation du rapport du jour…', spinner: 'crescent' });
+    const loading = await this.loadingCtrl.create({ message: 'Enregistrement des données en cours...', spinner: 'crescent' });
     await loading.present();
     try {
-      await this.dailyJournal.saveToday({ open: true });
-      await this.toast('Rapport du jour enregistré.', 'success');
+      const filename = await this.dailyJournal.saveToday();
+      await this.toast(`PDF sauvegardé : ${filename}`, 'success');
     } catch (reportError) {
-      console.warn('Téléchargement du rapport journalier impossible:', reportError);
-      await this.toast('Impossible de télécharger le rapport du jour.', 'danger');
+      console.error(reportError);
+      await this.toast('Erreur lors de la sauvegarde du PDF', 'danger');
     } finally {
       await loading.dismiss();
     }

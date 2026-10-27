@@ -220,66 +220,113 @@ export function buildRmDailyJournal(
   };
 }
 
-/** Document autonome : le fichier est produit sur le téléphone, sans appel réseau. */
+/** Même mise en page que le rapport journalier commercial : HTML local, puis PDF sur le téléphone. */
 export function buildRmDailyJournalHtml(journal: RmDailyJournal, operatorLabel: string): string {
+  const formattedDate = journal.journalDate;
   const synced = journal.operations.filter(row => row.status === RM_JOURNAL_STATUS.synced).length;
   const local = journal.operations.filter(row => row.status === RM_JOURNAL_STATUS.local).length;
   const failed = journal.operations.filter(row => row.status === RM_JOURNAL_STATUS.failed).length;
-  const body = journal.operations.length === 0
-    ? '<p class="empty">Aucune opération enregistrée pour cette journée.</p>'
-    : `<table class="ops">
-        <thead>
-          <tr><th>#</th><th>Heure</th><th>Opération</th><th>Dossier</th><th>Statut</th><th>Détail</th></tr>
-        </thead>
-        <tbody>
-          ${journal.operations.map((row, index) => `<tr>
-            <td>${index + 1}</td>
-            <td>${escapeHtml(row.time)}</td>
-            <td>${escapeHtml(row.operationType)}</td>
-            <td>${escapeHtml(row.dossier)}</td>
-            <td>${escapeHtml(row.status)}</td>
-            <td>${escapeHtml(row.detail)}</td>
-          </tr>`).join('')}
-        </tbody>
-      </table>`;
-  return `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"/>
-<style>
-  body { font-family: Helvetica, Arial, sans-serif; color: #1a2a44; font-size: 12px; }
-  .brand { background: #003366; color: #fff; padding: 14px 16px; }
-  h1 { margin: 0 0 4px; font-size: 18px; }
-  .brand p { margin: 0; font-size: 11px; }
-  .meta, .kpi { width: 100%; border-collapse: collapse; margin-top: 12px; }
-  .meta td, .kpi td { border: 1px solid #dde3ec; padding: 8px; vertical-align: top; }
-  .label { display: block; font-size: 9px; color: #6b7a99; text-transform: uppercase; }
-  .kpi strong { font-size: 16px; color: #003366; }
-  table.ops { width: 100%; border-collapse: collapse; margin-top: 12px; }
-  table.ops th { background: #003366; color: #fff; text-align: left; padding: 6px; font-size: 10px; }
-  table.ops td { border: 1px solid #dde3ec; padding: 6px; }
-  .empty { margin-top: 16px; }
-</style></head>
-<body>
-  <div class="brand">
-    <h1>AMENOUVEVE-YAVEH</h1>
-    <p>TOKOIN HÔPITAL · 96 18 68 22</p>
-    <p>Rapport journalier</p>
-  </div>
-  <table class="meta">
-    <tr>
-      <td><span class="label">Journée</span>${escapeHtml(journal.journalDate)}</td>
-      <td><span class="label">Chef de recouvrement</span>${escapeHtml(operatorLabel || 'Chef de recouvrement')}</td>
-    </tr>
-  </table>
-  <table class="kpi">
-    <tr>
-      <td><span class="label">Opérations</span><strong>${journal.operations.length}</strong></td>
-      <td><span class="label">Synchronisées</span><strong>${synced}</strong></td>
-      <td><span class="label">En local</span><strong>${local}</strong></td>
-      <td><span class="label">Échecs</span><strong>${failed}</strong></td>
-    </tr>
-  </table>
-  ${body}
-</body></html>`;
+  const types = [...new Set(journal.operations.map(row => row.operationType))];
+  const tables = types.length === 0
+    ? journalTable('Opérations', [])
+    : types.map(type => journalTable(type, journal.operations.filter(row => row.operationType === type))).join('');
+
+  return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Rapport Journalier - ${escapeHtml(formattedDate)}</title>
+        <style>
+          body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+          .header { text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #003366; }
+          .header h1 { margin: 0; font-size: 24pt; color: #003366; text-transform: uppercase; }
+          .header p { margin: 5px 0; font-size: 11pt; color: #666; }
+          .kpi-section { background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+          .kpi-section h2 { margin: 0 0 15px 0; font-size: 14pt; color: #003366; text-transform: uppercase; }
+          .kpi-item { padding: 8px 0; border-bottom: 1px solid #ddd; }
+          .kpi-label { font-weight: bold; color: #555; }
+          .kpi-value { color: #003366; font-weight: bold; }
+          .table-section { margin-bottom: 30px; }
+          .table-section h3 { margin: 0 0 10px 0; font-size: 12pt; color: #003366; text-transform: uppercase; border-bottom: 2px solid #003366; padding-bottom: 5px; }
+          table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
+          th { background: #003366; color: white; padding: 8px; text-align: left; font-size: 9pt; font-weight: bold; }
+          td { padding: 6px 8px; border-bottom: 1px solid #ddd; font-size: 9pt; }
+          tr:nth-child(even) { background: #f9f9f9; }
+          .status-local { color: #757575; font-weight: bold; }
+          .status-sync { color: #4CAF50; font-weight: bold; }
+          .status-failed { color: #c75000; font-weight: bold; }
+          .empty-message { text-align: center; color: #999; font-style: italic; padding: 20px; }
+          .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; font-size: 9pt; color: #999; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Rapport Journalier</h1>
+            <p><strong>Date:</strong> ${escapeHtml(formattedDate)}</p>
+            <p><strong>Chef de recouvrement:</strong> ${escapeHtml(operatorLabel || 'Chef de recouvrement')}</p>
+          </div>
+          <div class="kpi-section">
+            <h2>Résumé du Jour</h2>
+            <div class="kpi-item"><span class="kpi-label">Opérations:</span> <span class="kpi-value">${journal.operations.length}</span></div>
+            <div class="kpi-item"><span class="kpi-label">Sync:</span> <span class="kpi-value">${synced}</span></div>
+            <div class="kpi-item"><span class="kpi-label">Local:</span> <span class="kpi-value">${local}</span></div>
+            <div class="kpi-item"><span class="kpi-label">Échec:</span> <span class="kpi-value">${failed}</span></div>
+          </div>
+          ${tables}
+          <div class="footer">
+            <p>Document généré le ${escapeHtml(new Date().toLocaleString('fr-FR'))}</p>
+            <p>© ELYKIA - Tous droits réservés</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+}
+
+function journalTable(title: string, rows: RmDailyJournalOperation[]): string {
+  if (rows.length === 0) {
+    return `
+        <div class="table-section">
+          <h3>${escapeHtml(title)}</h3>
+          <div class="empty-message">Aucune donnée disponible</div>
+        </div>
+      `;
+  }
+  const dataRows = rows.map((row, index) => {
+    const label = pdfStatusLabel(row.status);
+    const cssClass = label === 'Sync' ? 'status-sync' : label === 'Échec' ? 'status-failed' : 'status-local';
+    return `<tr>
+      <td>${index + 1}</td>
+      <td>${escapeHtml(row.time)}</td>
+      <td>${escapeHtml(row.dossier)}</td>
+      <td>${escapeHtml(row.detail)}</td>
+      <td class="${cssClass}">${escapeHtml(label)}</td>
+    </tr>`;
+  }).join('');
+  return `
+      <div class="table-section">
+        <h3>${escapeHtml(title)}</h3>
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Heure</th><th>Dossier</th><th>Détails</th><th>Statut</th></tr>
+          </thead>
+          <tbody>${dataRows}</tbody>
+        </table>
+      </div>
+    `;
+}
+
+function pdfStatusLabel(status: RmJournalStatus): string {
+  if (status === RM_JOURNAL_STATUS.synced) {
+    return 'Sync';
+  }
+  if (status === RM_JOURNAL_STATUS.failed) {
+    return 'Échec';
+  }
+  return 'Local';
 }
 
 function escapeHtml(value: string): string {

@@ -125,10 +125,10 @@ describe('buildRmDailyJournal', () => {
     }), () => undefined, now);
 
     const html = buildRmDailyJournalHtml(journal, 'RM01');
-    expect(html).toContain('Rapport journalier');
-    expect(html).toContain('Échec');
+    expect(html).toContain('Rapport Journalier');
+    expect(html).toContain('class="status-failed">Échec');
     expect(html).toContain('Ama &lt;Koffi&gt;');
-    expect(html).toContain('RM01');
-    expect(html).not.toContain('http');
+    expect(html).toContain('Chef de recouvrement:</strong> RM01');
+    expect(html).toContain('<th>Statut</th>');
   });
 });

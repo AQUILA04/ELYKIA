@@ -220,6 +220,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
 
+## Frontend — [2.40.7] — 2026-10-27
+
+### Changed
+
+- Guide du chef de recouvrement : le rapport du jour reprend les statuts **Sync**, **Local** et **Échec**, et il est enregistré sur le téléphone.
+
 ## Frontend — [2.40.6] — 2026-10-27
 
 ### Changed
@@ -396,6 +402,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.34.9] — 2026-10-27
+
+### Changed
+
+- Le rapport du jour du chef de recouvrement est enregistré comme le rapport journalier : fichier PDF dans le dossier des rapports du téléphone, à la fin de la synchronisation et depuis **Télécharger le rapport du jour**.
 
 ## Mobile — [2.34.8] — 2026-10-27
 
