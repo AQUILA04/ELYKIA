@@ -8,8 +8,12 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.dto.CreditLateDTO;
 import com.optimize.elykia.core.dto.sale.FieldDayPlanRequestDto;
 import com.optimize.elykia.core.dto.sale.RmClientContactUpdateDto;
+import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.entity.sale.CreditFieldControl;
 import com.optimize.elykia.core.entity.sale.RecoveryFieldDayPlan;
+import com.optimize.elykia.core.enumaration.FieldControlStatus;
 import com.optimize.elykia.core.enumaration.FieldDayPlanStatus;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
@@ -27,12 +31,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -281,6 +287,43 @@ class RecoveryFieldPlanServiceTest {
         assertEquals(28_000L, pack.getStats().getEstimatedBytes());
         verify(creditFieldControlRepository).findLatestByCreditIds(argThat(ids ->
                 ids.contains(1L) && ids.contains(2L) && !ids.contains(3L)));
+    }
+
+    @Test
+    void buildOfflinePack_keepsAControlFromAPreviousDay() {
+        RecoveryFieldDayPlan plan = activePlan(4L, LocalDate.now(), "[\"commercial.a\"]", "[]");
+        when(planRepository.findByIdAndRecoveryManagerUsername(4L, "manager.a")).thenReturn(Optional.of(plan));
+        CreditLateDTO current = CreditLateDTO.builder()
+                .id(2L).clientId(11L).collector("commercial.a").build();
+        when(creditLateService.getLateCredits("commercial.a", null, null)).thenReturn(List.of());
+        when(creditLateService.getInProgressCredits("commercial.a")).thenReturn(List.of(current));
+        when(creditRepository.findById(any())).thenReturn(Optional.empty());
+
+        Credit credit = new Credit();
+        credit.setId(2L);
+        LocalDateTime observedAt = LocalDateTime.now().minusDays(1).withNano(0);
+        CreditFieldControl control = new CreditFieldControl();
+        control.setId(90L);
+        control.setCredit(credit);
+        control.setReference("CFC-YESTERDAY");
+        control.setNotebookTotalAmount(1000d);
+        control.setSystemTotalAmountPaid(1000d);
+        control.setDifferenceAmount(0d);
+        control.setStatus(FieldControlStatus.CONFORME);
+        control.setObservedAt(observedAt);
+        control.setObservedBy("manager.a");
+        when(creditFieldControlRepository.findLatestByCreditIds(any())).thenReturn(List.of(control));
+        when(recontrolPolicy.viewCredits(any())).thenReturn(Map.of(90L, EcartDecisionView.none()));
+
+        var pack = service.buildOfflinePack(4L, "manager.a", false);
+
+        assertNotNull(pack.getCreditFieldControlsToday());
+        assertEquals(1, pack.getCreditFieldControlsToday().size());
+        var dto = pack.getCreditFieldControlsToday().get(0);
+        assertEquals(2L, dto.getCreditId());
+        assertEquals(FieldControlStatus.CONFORME, dto.getStatus());
+        assertEquals(observedAt, dto.getObservedAt());
+        assertEquals("manager.a", dto.getObservedBy());
     }
 
     private FieldDayPlanRequestDto planRequest(LocalDate date, List<String> commercials, List<String> quarters) {

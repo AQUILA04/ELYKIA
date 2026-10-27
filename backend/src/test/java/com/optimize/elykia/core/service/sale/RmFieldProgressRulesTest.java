@@ -24,42 +24,29 @@ class RmFieldProgressRulesTest {
     void neverControlledIsTodoOnly() {
         Snapshot none = new Snapshot(false, null, false);
 
-        assertEquals(Bucket.TODO, RmFieldProgressRules.classify(none, NOW));
-        assertTrue(RmFieldProgressRules.matches(RmFieldListProgress.TODO, none, NOW));
-        assertTrue(RmFieldProgressRules.matches(RmFieldListProgress.ALL, none, NOW));
-        assertFalse(RmFieldProgressRules.matches(RmFieldListProgress.DONE, none, NOW));
+        assertEquals(Bucket.TODO, RmFieldProgressRules.classify(none));
+        assertTrue(RmFieldProgressRules.matches(RmFieldListProgress.TODO, none));
+        assertTrue(RmFieldProgressRules.matches(RmFieldListProgress.ALL, none));
+        assertFalse(RmFieldProgressRules.matches(RmFieldListProgress.DONE, none));
     }
 
     @Test
-    void closedControlInsideThirtyDaysIsDone() {
-        Snapshot recent = new Snapshot(true, NOW.minusDays(10), false);
+    void anyExistingControlIsDoneWhateverItsDate() {
+        Snapshot yesterday = new Snapshot(true, NOW.minusDays(1), false);
+        Snapshot archived = new Snapshot(true, NOW.minusDays(400), false);
 
-        assertEquals(Bucket.DONE, RmFieldProgressRules.classify(recent, NOW));
-        assertFalse(RmFieldProgressRules.matches(RmFieldListProgress.TODO, recent, NOW));
-        assertTrue(RmFieldProgressRules.matches(RmFieldListProgress.DONE, recent, NOW));
-    }
-
-    @Test
-    void boundaryOfThirtyDaysStaysDone() {
-        assertTrue(RmFieldProgressRules.isRecent(NOW.minusDays(30), NOW));
-        assertFalse(RmFieldProgressRules.isRecent(NOW.minusDays(30).minusSeconds(1), NOW));
-    }
-
-    @Test
-    void closedControlOlderThanThirtyDaysIsVisibleInAllOnly() {
-        Snapshot archived = new Snapshot(true, NOW.minusDays(31), false);
-
-        assertEquals(Bucket.ALL_ONLY, RmFieldProgressRules.classify(archived, NOW));
-        assertTrue(RmFieldProgressRules.matches(RmFieldListProgress.ALL, archived, NOW));
-        assertFalse(RmFieldProgressRules.matches(RmFieldListProgress.TODO, archived, NOW));
-        assertFalse(RmFieldProgressRules.matches(RmFieldListProgress.DONE, archived, NOW));
+        assertEquals(Bucket.DONE, RmFieldProgressRules.classify(yesterday));
+        assertEquals(Bucket.DONE, RmFieldProgressRules.classify(archived));
+        assertFalse(RmFieldProgressRules.matches(RmFieldListProgress.TODO, archived));
+        assertTrue(RmFieldProgressRules.matches(RmFieldListProgress.DONE, archived));
+        assertTrue(RmFieldProgressRules.matches(RmFieldListProgress.ALL, archived));
     }
 
     @Test
     void openGapStaysDoneWhateverItsAge() {
         Snapshot pending = new Snapshot(true, NOW.minusDays(90), true);
 
-        assertEquals(Bucket.DONE, RmFieldProgressRules.classify(pending, NOW));
+        assertEquals(Bucket.DONE, RmFieldProgressRules.classify(pending));
         assertTrue(RmFieldProgressRules.creditOpenGap(FieldControlStatus.ECART, 1_500d, CarnetEcartStatus.PENDING));
         assertTrue(RmFieldProgressRules.creditOpenGap(FieldControlStatus.ECART, 1_500d, null));
         assertFalse(RmFieldProgressRules.creditOpenGap(FieldControlStatus.ECART, 1_500d, CarnetEcartStatus.ACCEPTED));
@@ -92,9 +79,10 @@ class RmFieldProgressRulesTest {
     void sqlPredicatesExposeTheSameThreeBuckets() {
         assertTrue(RmFieldListProgressSql.CREDIT_NATIVE.contains(":progress = 'TODO'"));
         assertTrue(RmFieldListProgressSql.CREDIT_NATIVE.contains(":progress = 'DONE'"));
-        assertTrue(RmFieldListProgressSql.CREDIT_NATIVE.contains("ABS(latest.difference_amount) > 0.5"));
+        assertFalse(RmFieldListProgressSql.CREDIT_NATIVE.contains(":since"));
         assertTrue(RmFieldListProgressSql.TONTINE_JPQL.contains(":progress = 'TODO'"));
-        assertTrue(RmFieldListProgressSql.TONTINE_JPQL.contains("ABS(line.differenceAmount) > 0.5"));
-        assertTrue(RmFieldListProgressSql.TONTINE_JPQL.contains("latest.observedAt >= :since"));
+        assertTrue(RmFieldListProgressSql.TONTINE_JPQL.contains(":progress = 'DONE'"));
+        assertFalse(RmFieldListProgressSql.TONTINE_JPQL.contains(":since"));
+        assertFalse(RmFieldListProgressSql.TONTINE_JPQL.contains("observedAt"));
     }
 }

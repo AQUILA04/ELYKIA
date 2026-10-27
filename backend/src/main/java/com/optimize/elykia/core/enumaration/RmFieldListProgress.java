@@ -6,7 +6,7 @@ import java.util.Locale;
 
 /**
  * Filtre de la liste Terrain en ligne.
- * ALL = tous les dossiers, TODO = jamais contrôlés, DONE = écart ouvert ou clôturé depuis moins de 30 jours.
+ * ALL = tous les dossiers, TODO = jamais contrôlés, DONE = déjà contrôlés, quelle que soit la date.
  */
 public enum RmFieldListProgress {
     ALL,

@@ -62,15 +62,17 @@ La recherche en haut de la liste filtre par nom, téléphone, localité ou comme
 
 Sous la recherche, deux totaux indiquent le nombre de clients tontine et le nombre de clients dont un crédit est en cours. Ce sont les totaux complets, pas seulement les lignes déjà affichées. Pendant une recherche, le premier nombre correspond aux résultats et le second au total général.
 
-Sous ces totaux, trois pastilles filtrent la liste en un geste : **Tous**, **À faire** et **Déjà fait**. Le même filtre s’applique aux crédits et aux membres tontine, en ligne comme hors ligne.
+Sous ces totaux, trois pastilles filtrent la liste en un geste : **Tous**, **À faire** et **Déjà fait**. Le même filtre s’applique aux crédits et aux membres tontine, en ligne comme hors ligne. Le chiffre avant la barre est le nombre de dossiers de la pastille. Le chiffre après la barre est le total des dossiers.
 
 | Pastille | Ce qu’elle affiche |
 |---|---|
-| **Tous** | L’ensemble des dossiers. Un dossier déjà contrôlé il y a plus de 30 jours se trouve ici : vous pouvez y lancer un nouveau contrôle. |
+| **Tous** | L’ensemble des dossiers. |
 | **À faire** | Seulement les dossiers qui n’ont encore jamais eu de contrôle terrain. |
-| **Déjà fait** | Les contrôles dont l’écart n’est pas encore accepté ou refusé, ainsi que les contrôles déjà terminés depuis moins de 30 jours. |
+| **Déjà fait** | Les dossiers qui ont déjà un contrôle terrain. Un contrôle fait un autre jour reste compté. |
 
-Un contrôle terminé depuis plus de 30 jours (conforme, ou écart déjà accepté ou refusé) reste dans **Tous**, où un nouveau contrôle peut être lancé.
+Lorsque le pack est téléchargé ou actualisé, chaque crédit et chaque membre tontine du plan reprend son dernier contrôle déjà enregistré. Les cartes **Tontine** et **Crédits** suivent donc tout le travail déjà fait sur ces dossiers, et pas seulement les contrôles du jour.
+
+Un nouveau contrôle peut être saisi lorsque le dernier contrôle est **CONFORME**, ou lorsque l’écart a été accepté ou refusé. Un écart encore ouvert se modifie.
 
 | Zone | Action |
 |---|---|

@@ -10,17 +10,13 @@ import java.time.LocalDateTime;
 /**
  * Classification Terrain partagée avec les prédicats SQL de
  * {@code RmFieldListProgressSql}. À faire = jamais contrôlé.
- * Déjà fait = écart encore ouvert, ou contrôle clôturé dans les 30 derniers jours.
- * Un contrôle clôturé plus ancien n'est visible que dans Tous.
+ * Déjà fait = un contrôle existe déjà, quelle que soit sa date.
  */
 public final class RmFieldProgressRules {
 
-    public static final int WINDOW_DAYS = 30;
-
     public enum Bucket {
         TODO,
-        DONE,
-        ALL_ONLY
+        DONE
     }
 
     public record Snapshot(boolean hasControl, LocalDateTime observedAt, boolean openGap) {
@@ -29,33 +25,22 @@ public final class RmFieldProgressRules {
     private RmFieldProgressRules() {
     }
 
-    public static Bucket classify(Snapshot snapshot, LocalDateTime now) {
+    public static Bucket classify(Snapshot snapshot) {
         if (snapshot == null || !snapshot.hasControl()) {
             return Bucket.TODO;
         }
-        if (snapshot.openGap() || isRecent(snapshot.observedAt(), now)) {
-            return Bucket.DONE;
-        }
-        return Bucket.ALL_ONLY;
+        return Bucket.DONE;
     }
 
-    public static boolean matches(RmFieldListProgress progress, Snapshot snapshot, LocalDateTime now) {
+    public static boolean matches(RmFieldListProgress progress, Snapshot snapshot) {
         if (progress == null || progress == RmFieldListProgress.ALL) {
             return true;
         }
-        Bucket bucket = classify(snapshot, now);
+        Bucket bucket = classify(snapshot);
         if (progress == RmFieldListProgress.TODO) {
             return bucket == Bucket.TODO;
         }
         return bucket == Bucket.DONE;
-    }
-
-    /** {@code observedAt >= now - 30 jours}. Une date absente n'est pas récente. */
-    public static boolean isRecent(LocalDateTime observedAt, LocalDateTime now) {
-        if (observedAt == null || now == null) {
-            return false;
-        }
-        return !observedAt.isBefore(now.minusDays(WINDOW_DAYS));
     }
 
     /**

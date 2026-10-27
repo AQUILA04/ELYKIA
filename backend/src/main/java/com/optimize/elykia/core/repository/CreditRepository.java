@@ -863,7 +863,6 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("search") String search,
             @Param("digits") String digits,
             @Param("progress") String progress,
-            @Param("since") java.time.LocalDateTime since,
             Pageable pageable);
 
     @Query(value = """

@@ -395,7 +395,6 @@ public class RecoveryFieldPlanService {
                 folded.isEmpty() ? null : folded,
                 digits.isEmpty() ? null : digits,
                 effective.name(),
-                LocalDateTime.now().minusDays(RmFieldProgressRules.WINDOW_DAYS),
                 PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 40)));
         List<Long> memberIds = rows.getContent().stream()
                 .map(RmFieldTontineRowDto::getId)
@@ -679,8 +678,8 @@ public class RecoveryFieldPlanService {
     }
 
     /**
-     * Dernier contrôle de chaque membre du pack (le champ JSON historique reste
-     * {@code tontineFieldControlsToday} pour les packs déjà consommés).
+     * Dernier contrôle de chaque membre du pack, quelle que soit sa date
+     * (le champ JSON historique reste {@code tontineFieldControlsToday}).
      */
     private List<TontineMemberFieldControlDto> loadLatestTontineFieldControls(List<Long> memberIds) {
         if (memberIds == null || memberIds.isEmpty()) {
@@ -846,7 +845,10 @@ public class RecoveryFieldPlanService {
     }
 
     /**
-     * Dernier contrôle de chaque crédit du pack (champ JSON {@code creditFieldControlsToday}).
+     * Dernier contrôle de chaque crédit du pack, quelle que soit sa date
+     * (champ JSON historique {@code creditFieldControlsToday}).
+     * Les cartes Terrain s'appuient sur ce contrôle pour compter tout le travail
+     * déjà fait sur les dossiers téléchargés.
      */
     private List<CreditFieldControlDto> loadLatestFieldControls(List<Long> creditIds) {
         if (creditIds.isEmpty()) {

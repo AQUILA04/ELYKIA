@@ -34,7 +34,7 @@ import {
 export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave {
   /** Offline: filters the pack. Online: sent to the backend, which pages the full portfolio. */
   query = '';
-  /** Tous / À faire / Déjà fait. À faire = jamais contrôlé. */
+  /** Tous / À faire / Déjà fait. À faire = jamais contrôlé. Déjà fait = contrôlé, quelle que soit la date. */
   progressFilter: RmFieldProgressFilter = 'all';
   /** Online reads every client from the backend. Offline stays on the day-plan pack. */
   onlineMode = false;

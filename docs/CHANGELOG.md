@@ -46,6 +46,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.43.6] — 2026-10-27
+
+### Changed
+
+- Le pack terrain reprend le dernier contrôle de chaque crédit et de chaque membre tontine téléchargé, quelle que soit la date de ce contrôle.
+- Les pastilles Terrain **À faire** et **Déjà fait** comptent tout ce travail : **Déjà fait** regroupe les dossiers déjà contrôlés, y compris un contrôle d'un jour précédent. **À faire** reste réservé aux dossiers jamais contrôlés.
+
 ## Backend — [1.43.5] — 2026-10-25
 
 ### Added
@@ -207,6 +214,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
 
+## Frontend — [2.40.4] — 2026-10-27
+
+### Changed
+
+- Guide d'utilisation du chef de recouvrement : les pastilles **À faire** et **Déjà fait** décrivent tout le travail déjà enregistré sur les dossiers du plan, y compris les contrôles des jours précédents.
+
 ## Frontend — [2.40.3] — 2026-10-24
 
 ### Changed
@@ -365,6 +378,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.34.6] — 2026-10-27
+
+### Changed
+
+- Terrain : **Déjà fait** compte chaque dossier déjà contrôlé, même si le contrôle date d'un autre jour. **À faire** ne garde que les dossiers jamais contrôlés.
+- Le téléchargement et l'actualisation du pack conservent le dernier contrôle déjà enregistré sur chaque dossier, ainsi que les contrôles encore en attente de synchronisation.
 
 ## Mobile — [2.34.5] — 2026-10-25
 
