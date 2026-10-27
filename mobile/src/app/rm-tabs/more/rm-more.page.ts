@@ -29,6 +29,7 @@ import { RmTontineFieldControlOp } from '../../core/services/rm/rm-tontine-field
 import { RmCarnetVerificationOp } from '../../core/services/rm/rm-carnet-verification.models';
 import { RmCreditCarnetVerificationOp } from '../../core/services/rm/rm-credit-carnet-verification.models';
 import { RmCollectorAssignOp } from '../../core/services/rm/rm-collector-assign.models';
+import { RmDailyJournalService } from '../../core/services/rm/rm-daily-journal.service';
 import { MobileAppReleaseInfo } from 'src/app/models/mobile-app-release.model';
 import { environment } from 'src/environments/environment';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
@@ -71,6 +72,7 @@ export class RmMorePage implements OnInit, OnDestroy {
     private readonly creditCarnetSync: RmCreditCarnetVerificationSyncService,
     private readonly assignQueue: RmCollectorAssignQueueService,
     private readonly assignSync: RmCollectorAssignSyncService,
+    private readonly dailyJournal: RmDailyJournalService,
     private readonly store: Store,
     private readonly router: Router,
     private readonly loadingCtrl: LoadingController,
@@ -148,7 +150,6 @@ export class RmMorePage implements OnInit, OnDestroy {
       const carnets = await this.carnetSync.syncPending();
       const creditCarnets = await this.creditCarnetSync.syncPending();
       const closes = await this.closeSync.syncPending();
-      await loading.dismiss();
       const synced = assigns.synced + contacts.synced + controls.synced + tontineControls.synced
         + carnets.synced + creditCarnets.synced + closes.synced;
       const failed = assigns.failed + contacts.failed + controls.failed + tontineControls.failed
@@ -169,8 +170,31 @@ export class RmMorePage implements OnInit, OnDestroy {
         );
       }
     } catch (e: any) {
-      await loading.dismiss();
       await this.toast(e?.message || 'Échec sync', 'danger');
+    }
+    try {
+      loading.message = 'Enregistrement du rapport du jour…';
+      await this.dailyJournal.saveToday();
+      await this.toast('Rapport PDF généré automatiquement', 'success');
+    } catch (reportError) {
+      console.error(reportError);
+      await this.toast('Le rapport du jour n’a pas pu être enregistré.', 'warning');
+    } finally {
+      await loading.dismiss();
+    }
+  }
+
+  async downloadDailyReport(): Promise<void> {
+    const loading = await this.loadingCtrl.create({ message: 'Enregistrement des données en cours...', spinner: 'crescent' });
+    await loading.present();
+    try {
+      const filename = await this.dailyJournal.saveToday();
+      await this.toast(`PDF sauvegardé : ${filename}`, 'success');
+    } catch (reportError) {
+      console.error(reportError);
+      await this.toast('Erreur lors de la sauvegarde du PDF', 'danger');
+    } finally {
+      await loading.dismiss();
     }
   }
 

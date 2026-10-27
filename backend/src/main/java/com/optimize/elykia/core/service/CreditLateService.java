@@ -6,7 +6,6 @@ import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditFieldControl;
 import com.optimize.elykia.core.enumaration.LateType;
 import com.optimize.elykia.core.enumaration.RmFieldListProgress;
-import com.optimize.elykia.core.service.sale.RmFieldProgressRules;
 import com.optimize.elykia.core.repository.ClientReliquatRepository;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
@@ -147,7 +146,6 @@ public class CreditLateService {
                 folded,
                 digits,
                 effective.name(),
-                LocalDateTime.now().minusDays(RmFieldProgressRules.WINDOW_DAYS),
                 pageable);
         LocalDate today = LocalDate.now();
         List<CreditLateDTO> dtos = credits.getContent().stream()

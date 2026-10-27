@@ -15,6 +15,7 @@ import { RmTontineFieldControlSheetComponent } from '../../features/rm/tontine-f
 import { describeFailure, TontineControlDebug } from '../../features/rm/tontine-field-control/rm-tontine-control-debug';
 import { RmCarnetVerificationWriteService } from '../../core/services/rm/rm-carnet-verification-write.service';
 import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
+import { RmDossierSyncBadgeService } from '../../core/services/rm/rm-dossier-sync-badge.service';
 import { runConfirmedCarnetToggle } from '../../core/services/rm/rm-carnet-confirm.util';
 import { countRmFieldItems, filterRmFieldGroups, RmFieldGroup } from './rm-field-search.util';
 import {
@@ -34,7 +35,7 @@ import {
 export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLeave {
   /** Offline: filters the pack. Online: sent to the backend, which pages the full portfolio. */
   query = '';
-  /** Tous / À faire / Déjà fait. À faire = jamais contrôlé. */
+  /** Tous / À faire / Déjà fait. À faire = jamais contrôlé. Déjà fait = contrôlé, quelle que soit la date. */
   progressFilter: RmFieldProgressFilter = 'all';
   /** Online reads every client from the backend. Offline stays on the day-plan pack. */
   onlineMode = false;
@@ -55,6 +56,9 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
   filteredTontineGroups: RmFieldGroup<RmPackTontineMember>[] = [];
   filteredCreditGroups: RmFieldGroup<RmCreditLate>[] = [];
   private packSub?: Subscription;
+  private syncSub?: Subscription;
+  /** Force le rafraîchissement des pastilles Sync / Local. */
+  syncStamp = 0;
   private viewActive = false;
   private liveRequest = 0;
   selectMode = false;
@@ -137,7 +141,8 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     private readonly toastCtrl: ToastController,
     private readonly carnetWrite: RmCarnetVerificationWriteService,
     private readonly creditCarnetWrite: RmCreditCarnetVerificationWriteService,
-    private readonly tontineControlApi: RmTontineFieldControlApiService
+    private readonly tontineControlApi: RmTontineFieldControlApiService,
+    private readonly syncBadges: RmDossierSyncBadgeService
   ) {}
 
   ngOnInit(): void {
@@ -146,11 +151,15 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     this.packSub = this.scope.pack$
       .pipe(skip(1), debounceTime(100))
       .subscribe(() => this.reloadFromPack());
+    this.syncSub = this.syncBadges.changes$.subscribe(() => {
+      this.syncStamp++;
+    });
   }
 
   ngOnDestroy(): void {
     this.liveRequest++;
     this.packSub?.unsubscribe();
+    this.syncSub?.unsubscribe();
     this.clearKeyboardTimer();
   }
 
@@ -784,6 +793,14 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
 
   formatAmount(value: number): string {
     return new Intl.NumberFormat('fr-FR').format(Math.round(value || 0));
+  }
+
+  isCreditLocal(item: RmCreditLate): boolean {
+    return this.syncStamp >= 0 && this.syncBadges.isCreditLocal(item.id, item.clientId);
+  }
+
+  isTontineLocal(item: RmPackTontineMember): boolean {
+    return this.syncStamp >= 0 && this.syncBadges.isTontineLocal(item.id, item.clientId);
   }
 
   private async toast(message: string, color: 'success' | 'danger' | 'warning' = 'success'): Promise<void> {

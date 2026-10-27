@@ -21,6 +21,11 @@ export class RmContactQueueService {
     this.patchesSubject.next(Array.isArray(patches) ? patches : []);
   }
 
+  async listAll(): Promise<RmContactPatch[]> {
+    await this.ready;
+    return [...this.patchesSubject.value];
+  }
+
   async listPending(): Promise<RmContactPatch[]> {
     await this.ready;
     return this.patchesSubject.value.filter(p => !p.isSync);

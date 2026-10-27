@@ -13,6 +13,7 @@ import {
   FieldDayPlan,
   MonthlyRecoveryRate
 } from '../../core/services/rm/rm.models';
+import { RmDossierSyncBadgeService } from '../../core/services/rm/rm-dossier-sync-badge.service';
 import { RmCloseSheetComponent } from '../../features/rm/close/rm-close-sheet.component';
 import { RmFieldControlSheetComponent } from '../../features/rm/field-control/rm-field-control-sheet.component';
 
@@ -35,6 +36,7 @@ export class RmDashboardPage implements OnInit, OnDestroy {
   selectedYear = new Date().getFullYear();
   selectedMonth = new Date().getMonth() + 1;
   carnetBusy = false;
+  syncStamp = 0;
   private controlByCredit = new Map<number, {
     status?: string;
     differenceAmount?: number;
@@ -53,7 +55,8 @@ export class RmDashboardPage implements OnInit, OnDestroy {
     private readonly modalCtrl: ModalController,
     private readonly alertCtrl: AlertController,
     private readonly toastCtrl: ToastController,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly syncBadges: RmDossierSyncBadgeService
   ) {}
 
   ngOnInit(): void {
@@ -78,6 +81,9 @@ export class RmDashboardPage implements OnInit, OnDestroy {
       }),
       this.monthlyRecovery.offline$.subscribe(offline => {
         this.monthlyRateOffline = offline;
+      }),
+      this.syncBadges.changes$.subscribe(() => {
+        this.syncStamp++;
       })
     );
     void this.refreshMonthlyRate();
@@ -180,6 +186,10 @@ export class RmDashboardPage implements OnInit, OnDestroy {
 
   formatAmount(value: number): string {
     return new Intl.NumberFormat('fr-FR').format(Math.round(value || 0));
+  }
+
+  isCreditLocal(item: RmCreditLate): boolean {
+    return this.syncStamp >= 0 && this.syncBadges.isCreditLocal(item.id, item.clientId);
   }
 
   formatRate(value: number | null | undefined): string {

@@ -92,6 +92,8 @@
       <article class="late-card" *ngFor="let item of group.items">
         <div class="late-main">
           <h3>{{ item.clientName || 'Client' }}</h3>
+          <span class="elyk-badge" [class.elyk-badge--local]="isCreditLocal(item)" [class.elyk-badge--sync]="!isCreditLocal(item)"
+                data-testid="e2e-rm-sync-badge">{{ isCreditLocal(item) ? 'Local' : 'Sync' }}</span>
           <p>{{ item.reference }} · {{ item.collector }}</p>
           <p class="phone" *ngIf="item.clientPhone">{{ item.clientPhone }}</p>
           <span class="ctrl-badge verified" *ngIf="item.carnetVerified"

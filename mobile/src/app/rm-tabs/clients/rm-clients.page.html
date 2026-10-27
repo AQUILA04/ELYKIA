@@ -58,7 +58,11 @@
           </ng-template>
         </div>
         <div class="info">
-          <h3>{{ c.fullName || (c.firstname + ' ' + c.lastname) }}</h3>
+          <div class="name-line">
+            <h3>{{ c.fullName || (c.firstname + ' ' + c.lastname) }}</h3>
+            <span class="elyk-badge" [class.elyk-badge--local]="isClientLocal(c)" [class.elyk-badge--sync]="!isClientLocal(c)"
+                  data-testid="e2e-rm-sync-badge">{{ isClientLocal(c) ? 'Local' : 'Sync' }}</span>
+          </div>
           <p>{{ c.phone || '—' }} · {{ c.quarter || '—' }}</p>
           <p class="meta" data-testid="e2e-rm-client-collector">
             Crédit {{ c.collector || '—' }}

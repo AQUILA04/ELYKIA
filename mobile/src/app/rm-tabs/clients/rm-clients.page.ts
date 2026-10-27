@@ -6,6 +6,7 @@ import { RmPackClient } from '../../core/services/rm/rm.models';
 import { RmClientEditSheetComponent } from '../../features/rm/client-edit/rm-client-edit-sheet.component';
 import { RmCollectorAssignSheetComponent } from '../../features/rm/collector-assign/rm-collector-assign-sheet.component';
 import { ClientPhotoUrlService } from '../../core/services/client/client-photo-url.service';
+import { RmDossierSyncBadgeService } from '../../core/services/rm/rm-dossier-sync-badge.service';
 
 @Component({
   selector: 'app-rm-clients',
@@ -21,12 +22,15 @@ export class RmClientsPage implements OnInit, OnDestroy {
   /** Short-lived signed thumb URLs keyed by client id. */
   private signedAvatars = new Map<number, string>();
   private sub?: Subscription;
+  private syncSub?: Subscription;
+  syncStamp = 0;
 
   constructor(
     private readonly scope: RmScopeService,
     private readonly modalCtrl: ModalController,
     private readonly clientPhotoUrlService: ClientPhotoUrlService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
+    private readonly syncBadges: RmDossierSyncBadgeService
   ) {}
 
   ngOnInit(): void {
@@ -38,10 +42,15 @@ export class RmClientsPage implements OnInit, OnDestroy {
       this.selectedIds = new Set([...this.selectedIds].filter(id => valid.has(id)));
       void this.prefetchSignedAvatars(this.clients);
     });
+    this.syncSub = this.syncBadges.changes$.subscribe(() => {
+      this.syncStamp++;
+      this.cdr.markForCheck();
+    });
   }
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
+    this.syncSub?.unsubscribe();
   }
 
   get filtered(): RmPackClient[] {
@@ -101,6 +110,10 @@ export class RmClientsPage implements OnInit, OnDestroy {
       return null;
     }
     return this.signedAvatars.get(c.id) ?? null;
+  }
+
+  isClientLocal(client: RmPackClient): boolean {
+    return this.syncStamp >= 0 && this.syncBadges.isClientLocal(client.id);
   }
 
   initials(c: RmPackClient): string {

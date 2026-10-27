@@ -26,7 +26,7 @@ En haut à droite, l’icône carte ouvre à nouveau l’écran du plan du jour 
 
 Les dossiers sont regroupés par localité. Des filtres par commercial sélectionné dans le plan permettent de concentrer la tournée.
 
-Chaque carte affiche le client, la référence, le commercial, le téléphone lorsque disponible, le montant restant et les jours de retard. Le badge **Vérifié** indique qu’un carnet a déjà été certifié. Les boutons **Vérifier**, **Contrôle** et **Clôturer** ouvrent les actions correspondantes. **Vérifier** certifie le carnet physique ; **Contrôle** compare les montants système et carnet.
+Chaque carte affiche le client, la référence, le commercial, le téléphone lorsque disponible, le montant restant et les jours de retard. La pastille **Sync** indique que les opérations de ce dossier sont déjà transmises. La pastille **Local** indique qu’une opération de ce dossier est encore sur le téléphone. Le badge **Vérifié** indique qu’un carnet a déjà été certifié. Les boutons **Vérifier**, **Contrôle** et **Clôturer** ouvrent les actions correspondantes. **Vérifier** certifie le carnet physique ; **Contrôle** compare les montants système et carnet.
 
 ### Contrôle crédit
 
@@ -62,15 +62,19 @@ La recherche en haut de la liste filtre par nom, téléphone, localité ou comme
 
 Sous la recherche, deux totaux indiquent le nombre de clients tontine et le nombre de clients dont un crédit est en cours. Ce sont les totaux complets, pas seulement les lignes déjà affichées. Pendant une recherche, le premier nombre correspond aux résultats et le second au total général.
 
-Sous ces totaux, trois pastilles filtrent la liste en un geste : **Tous**, **À faire** et **Déjà fait**. Le même filtre s’applique aux crédits et aux membres tontine, en ligne comme hors ligne.
+Sous ces totaux, trois pastilles filtrent la liste en un geste : **Tous**, **À faire** et **Déjà fait**. Le même filtre s’applique aux crédits et aux membres tontine, en ligne comme hors ligne. Le chiffre avant la barre est le nombre de dossiers de la pastille. Le chiffre après la barre est le total des dossiers.
 
 | Pastille | Ce qu’elle affiche |
 |---|---|
-| **Tous** | L’ensemble des dossiers. Un dossier déjà contrôlé il y a plus de 30 jours se trouve ici : vous pouvez y lancer un nouveau contrôle. |
+| **Tous** | L’ensemble des dossiers. |
 | **À faire** | Seulement les dossiers qui n’ont encore jamais eu de contrôle terrain. |
-| **Déjà fait** | Les contrôles dont l’écart n’est pas encore accepté ou refusé, ainsi que les contrôles déjà terminés depuis moins de 30 jours. |
+| **Déjà fait** | Les dossiers qui ont déjà un contrôle terrain. Un contrôle fait un autre jour reste compté. |
 
-Un contrôle terminé depuis plus de 30 jours (conforme, ou écart déjà accepté ou refusé) reste dans **Tous**, où un nouveau contrôle peut être lancé.
+Lorsque le pack est téléchargé ou actualisé, chaque crédit et chaque membre tontine du plan reprend son dernier contrôle déjà enregistré. Les cartes **Tontine** et **Crédits** suivent donc tout le travail déjà fait sur ces dossiers, et pas seulement les contrôles du jour.
+
+Un nouveau contrôle peut être saisi lorsque le dernier contrôle est **CONFORME**, ou lorsque l’écart a été accepté ou refusé. Un écart encore ouvert se modifie.
+
+Chaque ligne de crédit et chaque ligne de tontine affiche aussi la pastille **Sync** ou **Local**. **Sync** signifie que les opérations de ce dossier sont déjà transmises. **Local** signifie qu’un contrôle, une vérification de carnet, une clôture, un contact ou un transfert lié à ce dossier est encore sur le téléphone.
 
 | Zone | Action |
 |---|---|
@@ -89,7 +93,7 @@ Lorsqu’un écart est affiché, son montant apparaît à côté du badge, avec 
 
 ## Onglet Clients : contact, GPS et changement de commercial
 
-L’onglet **Clients** recherche les clients contenus dans le pack par nom, téléphone ou localité. Chaque carte montre le téléphone, le quartier, les commerciaux crédit et tontine, ainsi que l’état GPS.
+L’onglet **Clients** recherche les clients contenus dans le pack par nom, téléphone ou localité. Chaque carte montre le téléphone, le quartier, les commerciaux crédit et tontine, ainsi que l’état GPS. La pastille **Sync** ou **Local** suit le même principe que sur Terrain : **Local** apparaît lorsqu’un contact, un transfert, ou une opération liée à un crédit ou à une tontine de ce client est encore sur le téléphone.
 
 Touchez une carte pour modifier uniquement les données autorisées : le **téléphone** et la **géolocalisation**. Le quartier est visible comme information de périmètre et reste en lecture seule. Utilisez **Mettre à jour ma position** lorsque vous êtes sur le lieu du client ; utilisez **Ouvrir Maps** pour consulter une position déjà enregistrée.
 
@@ -102,8 +106,11 @@ L’onglet **Plus** est le point de contrôle de la journée. Il présente le pl
 | Action | Quand l’utiliser |
 |---|---|
 | **Synchroniser** | Après une période hors ligne ou avant la fin de tournée, pour transmettre les opérations en attente. |
+| **Télécharger le rapport du jour** | Pour enregistrer à nouveau le PDF des opérations du jour, ou l’ouvrir lorsque vous en avez besoin. |
 | **Actualiser le pack** | Lorsque le périmètre ou les informations téléchargées doivent être renouvelés. |
 | **Changer le plan du jour** | Lorsque les commerciaux ou les localités à traiter changent. L'écran du plan s'ouvre à nouveau pour préparer un nouveau pack. |
 | **Mettre à jour l’application** | Lorsqu’une version officielle est proposée par l’application. |
 
 Traitez les erreurs affichées avant de recommencer une opération. Une opération placée dans la file est déjà enregistrée localement ; la ressaisie créerait un risque de doublon. La synchronisation priorise les données de contact et les contrôles avant les clôtures, afin de conserver la cohérence du compte rendu terrain.
+
+À la fin de **Synchroniser**, l’application enregistre le rapport du jour en PDF sur le téléphone, avec ou sans réseau, que les opérations soient toutes transmises ou qu’une partie ait échoué. Le document reprend les opérations faites dans la journée : le type, le dossier, l’heure et le statut **Sync**, **Local** ou **Échec**. Chaque synchronisation enregistre un nouveau PDF. **Télécharger le rapport du jour** en enregistre un autre.

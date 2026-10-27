@@ -18,6 +18,10 @@ export class RmCreditCarnetVerificationQueueService {
     this.ops$ = this.store.ops$;
   }
 
+  listAll(): Promise<RmCreditCarnetVerificationOp[]> {
+    return this.store.listAll();
+  }
+
   listPending(): Promise<RmCreditCarnetVerificationOp[]> {
     return this.store.listPending();
   }

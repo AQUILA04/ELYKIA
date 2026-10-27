@@ -1,8 +1,5 @@
 import { RmFieldGroup } from './rm-field-search.util';
 
-/** Fenêtre glissante des contrôles déjà clôturés encore listés dans « Déjà fait ». */
-export const RM_FIELD_PROGRESS_WINDOW_DAYS = 30;
-
 export type RmFieldProgressFilter = 'all' | 'todo' | 'done';
 
 export type RmFieldListProgress = 'ALL' | 'TODO' | 'DONE';
@@ -14,7 +11,7 @@ export interface RmFieldControlSnapshot {
   modifiable?: boolean | null;
 }
 
-export type RmFieldProgressBucket = 'todo' | 'done' | 'allOnly';
+export type RmFieldProgressBucket = 'todo' | 'done';
 
 export function toRmFieldListProgress(filter: RmFieldProgressFilter): RmFieldListProgress {
   if (filter === 'todo') {
@@ -35,53 +32,26 @@ export function hasRmFieldControl(snapshot: RmFieldControlSnapshot | null | unde
 }
 
 /**
- * Écart encore ouvert : décision en attente, ou écart encore modifiable.
- * Un contrôle conforme, accepté ou refusé n'est pas ouvert.
+ * À faire = jamais contrôlé.
+ * Déjà fait = un contrôle existe déjà, quelle que soit sa date.
  */
-export function isRmFieldOpenGap(snapshot: RmFieldControlSnapshot): boolean {
-  if (snapshot.ecartDecisionStatus === 'PENDING') {
-    return true;
-  }
-  return snapshot.status === 'ECART' && snapshot.modifiable === true;
-}
-
-/** observedAt >= maintenant − 30 jours calendaires. */
-export function isRmFieldWithinWindow(observedAt: string | null | undefined, now: Date): boolean {
-  if (!observedAt) {
-    return false;
-  }
-  const time = Date.parse(observedAt);
-  if (Number.isNaN(time)) {
-    return false;
-  }
-  const cutoff = new Date(now.getTime());
-  cutoff.setDate(cutoff.getDate() - RM_FIELD_PROGRESS_WINDOW_DAYS);
-  return time >= cutoff.getTime();
-}
-
 export function classifyRmFieldProgress(
-  snapshot: RmFieldControlSnapshot | null | undefined,
-  now: Date = new Date()
+  snapshot: RmFieldControlSnapshot | null | undefined
 ): RmFieldProgressBucket {
   if (!hasRmFieldControl(snapshot)) {
     return 'todo';
   }
-  const control = snapshot as RmFieldControlSnapshot;
-  if (isRmFieldOpenGap(control) || isRmFieldWithinWindow(control.observedAt, now)) {
-    return 'done';
-  }
-  return 'allOnly';
+  return 'done';
 }
 
 export function matchesRmFieldProgress(
   filter: RmFieldProgressFilter,
-  snapshot: RmFieldControlSnapshot | null | undefined,
-  now: Date = new Date()
+  snapshot: RmFieldControlSnapshot | null | undefined
 ): boolean {
   if (filter === 'all') {
     return true;
   }
-  const bucket = classifyRmFieldProgress(snapshot, now);
+  const bucket = classifyRmFieldProgress(snapshot);
   if (filter === 'todo') {
     return bucket === 'todo';
   }
@@ -91,8 +61,7 @@ export function matchesRmFieldProgress(
 export function filterRmFieldGroupsByProgress<T>(
   groups: RmFieldGroup<T>[],
   filter: RmFieldProgressFilter,
-  snapshotOf: (item: T) => RmFieldControlSnapshot | null | undefined,
-  now: Date = new Date()
+  snapshotOf: (item: T) => RmFieldControlSnapshot | null | undefined
 ): RmFieldGroup<T>[] {
   if (filter === 'all') {
     return groups;
@@ -103,7 +72,7 @@ export function filterRmFieldGroupsByProgress<T>(
       quarters: group.quarters
         .map(quarter => ({
           quarter: quarter.quarter,
-          items: quarter.items.filter(item => matchesRmFieldProgress(filter, snapshotOf(item), now))
+          items: quarter.items.filter(item => matchesRmFieldProgress(filter, snapshotOf(item)))
         }))
         .filter(quarter => quarter.items.length > 0)
     }))

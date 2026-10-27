@@ -46,6 +46,19 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Backend — [1.43.7] — 2026-10-27
+
+### Changed
+
+- L'assistant décrit le rapport du jour du chef de recouvrement comme un fichier enregistré sur le téléphone, avec ou sans réseau.
+
+## Backend — [1.43.6] — 2026-10-27
+
+### Changed
+
+- Le pack terrain reprend le dernier contrôle de chaque crédit et de chaque membre tontine téléchargé, quelle que soit la date de ce contrôle.
+- Les pastilles Terrain **À faire** et **Déjà fait** comptent tout ce travail : **Déjà fait** regroupe les dossiers déjà contrôlés, y compris un contrôle d'un jour précédent. **À faire** reste réservé aux dossiers jamais contrôlés.
+
 ## Backend — [1.43.5] — 2026-10-25
 
 ### Added
@@ -207,6 +220,30 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Liste Terrain tontine : la recherche paginée type le résultat de `translate` / `replace` en texte, pour que le contexte Spring démarre.
 
+## Frontend — [2.40.7] — 2026-10-27
+
+### Changed
+
+- Guide du chef de recouvrement : le rapport du jour reprend les statuts **Sync**, **Local** et **Échec**, et il est enregistré sur le téléphone.
+
+## Frontend — [2.40.6] — 2026-10-27
+
+### Changed
+
+- Guide du chef de recouvrement : le rapport du jour est enregistré sur le téléphone, avec ou sans réseau.
+
+## Frontend — [2.40.5] — 2026-10-27
+
+### Changed
+
+- Guide d'utilisation du chef de recouvrement : pastilles **Sync** et **Local** sur les dossiers, et rapport du jour enregistré à la fin de la synchronisation.
+
+## Frontend — [2.40.4] — 2026-10-27
+
+### Changed
+
+- Guide d'utilisation du chef de recouvrement : les pastilles **À faire** et **Déjà fait** décrivent tout le travail déjà enregistré sur les dossiers du plan, y compris les contrôles des jours précédents.
+
 ## Frontend — [2.40.3] — 2026-10-24
 
 ### Changed
@@ -365,6 +402,32 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Fiche membre tontine : la mention des commerciaux non contrôlés compile en production.
+
+## Mobile — [2.34.9] — 2026-10-27
+
+### Changed
+
+- Le rapport du jour du chef de recouvrement est enregistré comme le rapport journalier : fichier PDF dans le dossier des rapports du téléphone, à la fin de la synchronisation et depuis **Télécharger le rapport du jour**.
+
+## Mobile — [2.34.8] — 2026-10-27
+
+### Fixed
+
+- Le rapport du jour est écrit sur le téléphone à partir des opérations déjà enregistrées. Il ne demande plus de réseau, y compris lorsque la synchronisation échoue faute de connexion.
+
+## Mobile — [2.34.7] — 2026-10-27
+
+### Added
+
+- Retards, Terrain et Clients : chaque dossier affiche la pastille **Sync** ou **Local**, selon que ses opérations sont déjà transmises ou encore sur le téléphone.
+- À la fin de **Synchroniser**, le rapport du jour est enregistré en PDF, que la synchronisation réussisse ou échoue. **Télécharger le rapport du jour** dans **Plus** permet de le récupérer à nouveau.
+
+## Mobile — [2.34.6] — 2026-10-27
+
+### Changed
+
+- Terrain : **Déjà fait** compte chaque dossier déjà contrôlé, même si le contrôle date d'un autre jour. **À faire** ne garde que les dossiers jamais contrôlés.
+- Le téléchargement et l'actualisation du pack conservent le dernier contrôle déjà enregistré sur chaque dossier, ainsi que les contrôles encore en attente de synchronisation.
 
 ## Mobile — [2.34.5] — 2026-10-25
 
