@@ -253,8 +253,12 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
 
     private TontineSession persistActiveSession() {
         TontineSession session = new TontineSession();
-        session.setYear(LocalDate.now().getYear());
-        session.setStartDate(LocalDate.of(LocalDate.now().getYear(), 1, 1));
+        int year = LocalDate.now().getYear();
+        session.setYear(year);
+        session.setName("Session annuelle " + year);
+        session.setCode("ANNUELLE-" + year);
+        session.setKind(com.optimize.elykia.core.enumaration.TontineSessionKind.ANNUAL);
+        session.setStartDate(LocalDate.of(year, 1, 1));
         session.setEndDate(LocalDate.of(LocalDate.now().getYear(), 12, 31));
         session.setStatus(TontineSessionStatus.ACTIVE);
         session.setTotalRevenue(0.0);

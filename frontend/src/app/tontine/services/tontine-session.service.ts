@@ -1,6 +1,6 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { Observable, throwError, BehaviorSubject, Subject } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
@@ -19,6 +19,8 @@ export class TontineSessionService {
 
   private currentSessionSubject = new BehaviorSubject<TontineSession | null>(null);
   public currentSession$ = this.currentSessionSubject.asObservable();
+  private readonly refreshSubject = new Subject<void>();
+  readonly refresh$ = this.refreshSubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -70,6 +72,10 @@ export class TontineSessionService {
       params,
       responseType: 'blob'
     }).pipe(catchError(this.handleError));
+  }
+
+  requestRefresh(): void {
+    this.refreshSubject.next();
   }
 
   setCurrentSession(session: TontineSession): void {

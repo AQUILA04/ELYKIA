@@ -72,7 +72,8 @@ class TontineAllocationMigrationServiceTest {
         TontineSession session = new TontineSession();
         session.setId(22L);
         when(runRepository.findLatestByStatusIn(any())).thenReturn(Optional.empty());
-        when(sessionRepository.findByYear(LocalDate.now().getYear())).thenReturn(Optional.of(session));
+        when(sessionRepository.findByYearAndKind(LocalDate.now().getYear(),
+                com.optimize.elykia.core.enumaration.TontineSessionKind.ANNUAL)).thenReturn(Optional.of(session));
         when(memberRepository.countEnabledBySessionId(22L)).thenReturn(12L);
         when(runRepository.save(any(TontineAllocationMigrationRun.class))).thenAnswer(invocation -> {
             TontineAllocationMigrationRun run = invocation.getArgument(0);

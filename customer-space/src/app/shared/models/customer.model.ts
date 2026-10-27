@@ -152,6 +152,7 @@ export interface MobileMoneyRecipient {
 export interface CustomerTontineContributionSummary {
   memberId: string;
   sessionYear: number;
+  sessionName?: string;
   deliveryStatus: TontineDeliveryStatus;
   dailyStake: number;
   totalContribution: number;
@@ -199,6 +200,9 @@ export interface CustomerTontinePaymentPage {
 
 export interface CustomerTontineSession {
   available: boolean;
+  id?: string;
+  name?: string;
+  kind?: string;
   year?: number;
   startDate?: string;
   endDate?: string;
@@ -218,6 +222,7 @@ export interface CustomerTontineInitialPaymentRequest {
 }
 
 export interface CustomerTontineJoinRequest {
+  sessionId?: number;
   dailyStake: number;
   initialPayment?: CustomerTontineInitialPaymentRequest;
   automaticInitialPayment?: { network: string; phone: string };

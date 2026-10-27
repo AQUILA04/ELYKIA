@@ -1721,8 +1721,12 @@ export class SynchronizationService {
     if (!clientServerId) {
       throw new Error(`Impossible de trouver l'ID serveur pour le client local ${member.clientId}`);
     }
+    const sessionId = member.tontineSessionId && /^\d+$/.test(String(member.tontineSessionId))
+      ? parseInt(String(member.tontineSessionId), 10)
+      : undefined;
     return {
       clientId: parseInt(clientServerId, 10),
+      sessionId,
       frequency: member.frequency,
       amount: member.amount,
       notes: member.notes

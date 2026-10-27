@@ -10,7 +10,10 @@ import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
+import com.optimize.elykia.core.dto.CreateTontineSessionDto;
+import com.optimize.elykia.core.enumaration.TontineSessionKind;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
+import org.springframework.security.access.AccessDeniedException;
 import com.optimize.elykia.core.event.TontineCollectionCancelledEvent;
 import com.optimize.elykia.core.event.TontineCollectionEvent;
 import com.optimize.elykia.core.event.TontineMemberEnrolledEvent;
@@ -105,7 +108,8 @@ class TontineServiceTest {
     @Test
     void getActiveSession_createsCurrentYearSessionWithTontineCalendarWhenMissing() {
         int currentYear = LocalDate.now().getYear();
-        when(tontineSessionRepository.findByYear(currentYear)).thenReturn(Optional.empty());
+        when(tontineSessionRepository.findByYearAndKind(currentYear, TontineSessionKind.ANNUAL))
+                .thenReturn(Optional.empty());
         when(tontineSessionRepository.save(any(TontineSession.class))).thenAnswer(invocation -> {
             TontineSession session = invocation.getArgument(0);
             session.setId(10L);
@@ -119,7 +123,54 @@ class TontineServiceTest {
         assertEquals(LocalDate.of(currentYear, 2, 1), result.getStartDate());
         assertEquals(LocalDate.of(currentYear, 11, 30), result.getEndDate());
         assertEquals(TontineSessionStatus.ACTIVE, result.getStatus());
+        assertEquals("Session annuelle " + currentYear, result.getName());
+        assertEquals("ANNUELLE-" + currentYear, result.getCode());
+        assertEquals(TontineSessionKind.ANNUAL, result.getKind());
         verify(tontineSessionRepository).save(any(TontineSession.class));
+    }
+
+    @Test
+    void ensureAnnualSession_doesNotRecreateWhenPresent() {
+        int year = LocalDate.now().getYear();
+        TontineSession existing = session(7L, year, TontineSessionStatus.ACTIVE);
+        existing.setKind(TontineSessionKind.ANNUAL);
+        when(tontineSessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL))
+                .thenReturn(Optional.of(existing));
+
+        TontineSession result = service.ensureAnnualSession(year);
+
+        assertEquals(7L, result.getId());
+        verify(tontineSessionRepository, never()).save(any());
+    }
+
+    @Test
+    void createExtraSession_rejectsCommercial() {
+        User commercial = mock(User.class);
+        when(commercial.is(any())).thenReturn(false);
+        when(userService.getCurrentUser()).thenReturn(commercial);
+        CreateTontineSessionDto dto = new CreateTontineSessionDto();
+        dto.setName("Pâques");
+        dto.setStartDate(LocalDate.of(2026, 4, 1));
+        dto.setEndDate(LocalDate.of(2026, 4, 20));
+
+        assertThrows(AccessDeniedException.class, () -> service.createExtraSession(dto));
+        verify(tontineSessionRepository, never()).save(any());
+    }
+
+    @Test
+    void createExtraSession_rejectsEndNotAfterStart() {
+        User admin = mock(User.class);
+        when(admin.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(admin.is(UserProfilConstant.ADMIN)).thenReturn(true);
+        when(userService.getCurrentUser()).thenReturn(admin);
+        CreateTontineSessionDto dto = new CreateTontineSessionDto();
+        dto.setName("Pâques");
+        dto.setStartDate(LocalDate.of(2026, 4, 20));
+        dto.setEndDate(LocalDate.of(2026, 4, 1));
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> service.createExtraSession(dto));
+        assertTrue(ex.getMessage().contains("postérieure"));
     }
 
     @Test
@@ -128,7 +179,7 @@ class TontineServiceTest {
         TontineSession session = session(10L, currentYear, TontineSessionStatus.ACTIVE);
         TontineMember inProgress = member(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
         TontineMember alreadyPending = member(TontineMemberDeliveryStatus.PENDING);
-        when(tontineSessionRepository.findByYear(currentYear)).thenReturn(Optional.of(session));
+        when(tontineSessionRepository.findByYearAndKind(currentYear, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(session));
         when(tontineMemberRepository.findByTontineSessionIdAndState(
                 10L, State.ENABLED, PageRequest.of(0, 100)))
                 .thenReturn(new PageImpl<>(List.of(inProgress, alreadyPending)));
@@ -146,7 +197,7 @@ class TontineServiceTest {
     void closeCurrentSession_doesNothingWhenSessionIsAlreadyClosed() {
         int currentYear = LocalDate.now().getYear();
         TontineSession session = session(10L, currentYear, TontineSessionStatus.CLOSED);
-        when(tontineSessionRepository.findByYear(currentYear)).thenReturn(Optional.of(session));
+        when(tontineSessionRepository.findByYearAndKind(currentYear, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(session));
 
         TontineSession result = service.closeCurrentSession();
 
@@ -160,7 +211,7 @@ class TontineServiceTest {
     void reopenCurrentSessionForE2e_reactivatesClosedSession() {
         int currentYear = LocalDate.now().getYear();
         TontineSession session = session(10L, currentYear, TontineSessionStatus.CLOSED);
-        when(tontineSessionRepository.findByYear(currentYear)).thenReturn(Optional.of(session));
+        when(tontineSessionRepository.findByYearAndKind(currentYear, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(session));
         when(tontineSessionRepository.save(session)).thenReturn(session);
 
         TontineSession result = service.reopenCurrentSessionForE2e();
@@ -173,8 +224,8 @@ class TontineServiceTest {
     void recordCollection_usesClientTontineCollectorNotOperatorUsername() {
         int year = LocalDate.now().getYear();
         TontineSession activeSession = session(10L, year, TontineSessionStatus.ACTIVE);
-        activeSession.setStartDate(LocalDate.of(year, 2, 1));
-        activeSession.setEndDate(LocalDate.of(year, 11, 30));
+        activeSession.setStartDate(LocalDate.of(year, 1, 1));
+        activeSession.setEndDate(LocalDate.of(year, 12, 31));
         Client client = new Client();
         client.setTontineCollector("COM015");
         client.setFirstname("Client");
@@ -185,7 +236,6 @@ class TontineServiceTest {
         member.setTontineSession(activeSession);
         member.setAmount(1000.0);
 
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(activeSession));
         when(tontineMemberRepository.findById(50L)).thenReturn(Optional.of(member));
         when(allocationPolicyResolver.resolve()).thenReturn(allocationPolicy);
         when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(
@@ -224,7 +274,6 @@ class TontineServiceTest {
         member.setTontineSession(activeSession);
 
         User promoter = promoterOnly("COM015");
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(activeSession));
         when(tontineMemberRepository.findById(50L)).thenReturn(Optional.of(member));
         when(userService.getCurrentUser()).thenReturn(promoter);
 
@@ -242,8 +291,8 @@ class TontineServiceTest {
     void recordCollection_promoterOwnsTontineCollector_succeeds() {
         int year = LocalDate.now().getYear();
         TontineSession activeSession = session(10L, year, TontineSessionStatus.ACTIVE);
-        activeSession.setStartDate(LocalDate.of(year, 2, 1));
-        activeSession.setEndDate(LocalDate.of(year, 11, 30));
+        activeSession.setStartDate(LocalDate.of(year, 1, 1));
+        activeSession.setEndDate(LocalDate.of(year, 12, 31));
         Client client = new Client();
         client.setTontineCollector("COM015");
         client.setFirstname("Client");
@@ -255,7 +304,6 @@ class TontineServiceTest {
         member.setAmount(1000.0);
 
         User promoter = promoterOnly("COM015");
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(activeSession));
         when(tontineMemberRepository.findById(50L)).thenReturn(Optional.of(member));
         when(userService.getCurrentUser()).thenReturn(promoter);
         when(allocationPolicyResolver.resolve()).thenReturn(allocationPolicy);
@@ -280,8 +328,8 @@ class TontineServiceTest {
     void recordCollection_staffCanCollectForAnyTontineCollector() {
         int year = LocalDate.now().getYear();
         TontineSession activeSession = session(10L, year, TontineSessionStatus.ACTIVE);
-        activeSession.setStartDate(LocalDate.of(year, 2, 1));
-        activeSession.setEndDate(LocalDate.of(year, 11, 30));
+        activeSession.setStartDate(LocalDate.of(year, 1, 1));
+        activeSession.setEndDate(LocalDate.of(year, 12, 31));
         Client client = new Client();
         client.setTontineCollector("COM003");
         client.setFirstname("Client");
@@ -293,7 +341,6 @@ class TontineServiceTest {
         member.setAmount(1000.0);
 
         User staff = staffUser("SEC001");
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(activeSession));
         when(tontineMemberRepository.findById(50L)).thenReturn(Optional.of(member));
         when(userService.getCurrentUser()).thenReturn(staff);
         when(allocationPolicyResolver.resolve()).thenReturn(allocationPolicy);
@@ -573,8 +620,8 @@ class TontineServiceTest {
         client.setTontineCollector("COM001");
 
         when(clientService.getById(55L)).thenReturn(client);
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(session));
-        when(tontineMemberRepository.findByTontineSession_YearAndClient_Id(year, 55L)).thenReturn(Optional.empty());
+        when(tontineSessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(session));
+        when(tontineMemberRepository.findByTontineSession_IdAndClient_IdAndState(session.getId(), 55L, State.ENABLED)).thenReturn(Optional.empty());
         when(parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE")).thenReturn(true);
         when(tontineMemberRepository.save(any(TontineMember.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -613,8 +660,8 @@ class TontineServiceTest {
         client.setTontineCollector("COM001");
 
         when(clientService.getById(55L)).thenReturn(client);
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(session));
-        when(tontineMemberRepository.findByTontineSession_YearAndClient_Id(year, 55L)).thenReturn(Optional.empty());
+        when(tontineSessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(session));
+        when(tontineMemberRepository.findByTontineSession_IdAndClient_IdAndState(session.getId(), 55L, State.ENABLED)).thenReturn(Optional.empty());
         when(parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE")).thenReturn(true);
         when(tontineMemberRepository.save(any(TontineMember.class))).thenAnswer(inv -> inv.getArgument(0));
 
@@ -693,8 +740,8 @@ class TontineServiceTest {
         client.setTontineCollector(tontineCollector);
 
         when(clientService.getById(55L)).thenReturn(client);
-        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(session));
-        when(tontineMemberRepository.findByTontineSession_YearAndClient_Id(year, 55L)).thenReturn(Optional.empty());
+        when(tontineSessionRepository.findByYearAndKind(year, TontineSessionKind.ANNUAL)).thenReturn(Optional.of(session));
+        when(tontineMemberRepository.findByTontineSession_IdAndClient_IdAndState(session.getId(), 55L, State.ENABLED)).thenReturn(Optional.empty());
         when(parameterService.isEnabled("USE_MEMBER_REGISTRATION_DATE_FOR_SHARE")).thenReturn(true);
         when(tontineMemberRepository.save(any(TontineMember.class))).thenAnswer(inv -> {
             TontineMember saved = inv.getArgument(0);
@@ -720,6 +767,7 @@ class TontineServiceTest {
         when(tontineMemberRepository.findMembersDto(
                 eq(year), eq(null), eq(null), eq(null),
                 eq(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE),
+                eq(null),
                 any()))
                 .thenReturn(new PageImpl<>(List.of()));
 
@@ -728,6 +776,7 @@ class TontineServiceTest {
         verify(tontineMemberRepository).findMembersDto(
                 eq(year), eq(null), eq(null), eq(null),
                 eq(com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE),
+                eq(null),
                 any());
     }
 

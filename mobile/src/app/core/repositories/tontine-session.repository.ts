@@ -26,8 +26,8 @@ export class TontineSessionRepository extends BaseRepository<TontineSession, str
 
         const query = `
       INSERT OR REPLACE INTO tontine_sessions (
-        id, year, startDate, endDate, status, memberCount, totalCollected, isSync, syncDate, syncHash
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        id, year, name, code, kind, startDate, endDate, status, memberCount, totalCollected, isSync, syncDate, syncHash
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
         for (const session of entities) {
@@ -36,7 +36,7 @@ export class TontineSessionRepository extends BaseRepository<TontineSession, str
             const syncHash = s.syncHash || this.generateHash(s, ['id', 'status', 'totalCollected', 'startDate', 'endDate']);
 
             await this.databaseService['db'].run(query, [
-                s.id, s.year, s.startDate, s.endDate, s.status,
+                s.id, s.year, s.name ?? null, s.code ?? null, s.kind ?? null, s.startDate, s.endDate, s.status,
                 s.memberCount, s.totalCollected, 1, new Date().toISOString(), syncHash
             ]);
         }

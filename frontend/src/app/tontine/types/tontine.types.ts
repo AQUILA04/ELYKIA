@@ -3,6 +3,9 @@
 
 export interface TontineSession {
   readonly id: number;
+  readonly name?: string;
+  readonly code?: string;
+  readonly kind?: 'ANNUAL' | 'EXTRA';
   readonly year: number;
   readonly startDate: string;
   readonly endDate: string;
@@ -151,6 +154,7 @@ export enum TontineMemberDeliveryStatus {
 // DTOs pour les API calls
 export interface CreateTontineMemberDto {
   readonly clientId: number;
+  readonly sessionId?: number;
   readonly frequency?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
   readonly amount?: number;
   readonly notes?: string;
@@ -168,6 +172,14 @@ export interface CreateTontineCollectionDto {
 }
 
 export interface UpdateSessionDto {
+  readonly name?: string;
+  readonly startDate: string;
+  readonly endDate: string;
+}
+
+export interface CreateTontineSessionDto {
+  readonly name: string;
+  readonly code?: string;
   readonly startDate: string;
   readonly endDate: string;
 }
@@ -267,6 +279,7 @@ export interface TontineMemberQueryParams {
   commercial?: string;
   carnetVerified?: boolean;
   registrationSource?: 'STAFF' | 'CUSTOMER_SPACE';
+  sessionId?: number;
 }
 
 // Interface for parameters emitted by the filter bar component

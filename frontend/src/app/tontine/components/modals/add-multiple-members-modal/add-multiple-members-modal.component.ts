@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { MatDialogRef } from '@angular/material/dialog';
+import { Component, Inject, OnInit, Optional } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { ClientService } from 'src/app/client/service/client.service';
 import { TontineService } from '../../../services/tontine.service';
 import { CreateTontineMemberDto } from '../../../types/tontine.types';
@@ -39,7 +39,8 @@ export class AddMultipleMembersModalComponent implements OnInit {
     private clientService: ClientService,
     private tontineService: TontineService,
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    @Optional() @Inject(MAT_DIALOG_DATA) public data: { sessionId?: number } | null
   ) {}
 
   ngOnInit(): void {
@@ -150,6 +151,7 @@ export class AddMultipleMembersModalComponent implements OnInit {
       if(amount < 200) amount = 200;
       return {
         clientId: cid,
+        sessionId: this.data?.sessionId,
         amount,
         frequency: override.frequency || this.globalFrequency || undefined,
       };

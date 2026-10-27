@@ -96,6 +96,14 @@ export class TontinesPage implements ViewWillEnter {
     return Math.max(0, diff);
   }
 
+  sessionHeading(session: CustomerTontineSession | null = this.session): string {
+    return session?.name || (session?.year ? `Session ${session.year}` : 'Session');
+  }
+
+  contributionHeading(item: CustomerTontineContributionSummary): string {
+    return item.sessionName || (item.sessionYear ? `Session ${item.sessionYear}` : 'Session');
+  }
+
   formatFrDate(iso?: string): string {
     if (!iso) {
       return '—';
