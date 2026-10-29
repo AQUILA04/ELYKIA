@@ -605,13 +605,31 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     TontineControlDebug.note('modal presented');
     const dismissed = await modal.onDidDismiss();
     TontineControlDebug.note(`modal dismissed role=${dismissed.role || '-'}`);
-    const op = (dismissed.data as { op?: { status?: string; differenceAmount?: number; observedAt?: string } } | undefined)?.op;
+    const op = (dismissed.data as {
+      op?: {
+        status?: string;
+        differenceAmount?: number;
+        observedAt?: string;
+        carnetVerified?: boolean;
+        carnetVerifiedAt?: string;
+        carnetVerifiedBy?: string;
+      };
+    } | undefined)?.op;
     if (dismissed.role === 'confirm' && op) {
       member.latestControlStatus = op.status;
       member.latestDifferenceAmount = op.differenceAmount;
       member.latestObservedAt = op.observedAt;
       member.ecartDecisionStatus = op.status === 'ECART' ? 'PENDING' : null;
       member.modifiable = op.status === 'ECART';
+      if (op.carnetVerified) {
+        member.carnetVerified = true;
+        if (op.carnetVerifiedAt) {
+          member.carnetVerifiedAt = op.carnetVerifiedAt;
+        }
+        if (op.carnetVerifiedBy) {
+          member.carnetVerifiedBy = op.carnetVerifiedBy;
+        }
+      }
       this.reconcileOnlineRow('tontine', member.id, {
         observedAt: member.latestObservedAt,
         status: member.latestControlStatus,

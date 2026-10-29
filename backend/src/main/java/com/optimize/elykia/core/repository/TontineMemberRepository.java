@@ -234,7 +234,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.carnetVerifiedAt,
             tm.carnetVerifiedBy,
             tm.registrationSource,
-            CASE WHEN tm.registrationSource = com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE THEN true ELSE false END
+            CASE WHEN tm.registrationSource = com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE THEN true ELSE false END,
+            false
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s
@@ -290,7 +291,8 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
             tm.carnetVerifiedAt,
             tm.carnetVerifiedBy,
             tm.registrationSource,
-            CASE WHEN tm.registrationSource = com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE THEN true ELSE false END
+            CASE WHEN tm.registrationSource = com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource.CUSTOMER_SPACE THEN true ELSE false END,
+            false
         )
         FROM TontineMember tm
         LEFT JOIN tm.tontineSession s

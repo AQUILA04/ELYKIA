@@ -34,6 +34,9 @@ export interface TontineMemberFieldControlDto {
   lines: TontineMemberFieldControlLineDto[];
   collectors?: TontineMemberFieldControlCollectorDto[];
   uncontrolledCollectors?: string[];
+  carnetVerified?: boolean;
+  carnetVerifiedAt?: string | null;
+  carnetVerifiedBy?: string | null;
 }
 
 export interface CreateTontineMemberFieldControlMonthPayload {

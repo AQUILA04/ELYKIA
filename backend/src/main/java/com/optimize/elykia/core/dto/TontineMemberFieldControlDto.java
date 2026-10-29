@@ -30,4 +30,8 @@ public class TontineMemberFieldControlDto {
     private CarnetEcartStatus ecartDecisionStatus;
     /** Vrai uniquement lorsqu'un nouvel envoi doit modifier ce contrôle. */
     private Boolean modifiable;
+    /** État du carnet après ce contrôle (vérifié si le paramètre d'auto-vérification est actif). */
+    private Boolean carnetVerified;
+    private LocalDateTime carnetVerifiedAt;
+    private String carnetVerifiedBy;
 }

@@ -19,7 +19,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -2338,6 +2338,7 @@
 <li><strong>Par statut de livraison</strong> : Filtrez les membres en cours de session, ceux dont la livraison est en attente, validée ou déjà terminée.</li>
 <li><strong>Par état du carnet</strong> : Affichez uniquement les membres dont le carnet est vérifié ou ceux restant à contrôler.</li>
 <li><strong>Par origine</strong> : Choisissez <strong>Espace client</strong> pour ne voir que les membres qui se sont inscrits eux-mêmes depuis l'application Espace Client, ou <strong>Personnel</strong> pour ceux inscrits par l'agence. Dans la liste, ces auto-inscrits portent le badge violet <strong>Espace client</strong> sous leur nom.</li>
+<li><strong>Badge Déjà contrôlé</strong> : dans la colonne <strong>Carnet</strong>, à côté de l'état de vérification. Il apparaît lorsqu'un contrôle de carnet terrain a déjà été enregistré pour ce membre.</li>
 </ul>
 <hr />
 <h2 id="4-fiche-detaillee-dun-membre">4. Fiche détaillée d'un membre</h2>
@@ -2349,6 +2350,7 @@
 <li><strong>Badge d'état du carnet</strong> :</li>
 <li>🟢 <strong>Carnet vérifié</strong> : Indique la date, l'heure et le nom de l'agent qui a certifié le carnet.</li>
 <li>⚪ <strong>Carnet non vérifié</strong> : Indique que le carnet physique n'a pas encore été visé.</li>
+<li><strong>Badge Déjà contrôlé</strong> : affiché à côté de l'état du carnet lorsqu'un contrôle de carnet terrain a déjà été enregistré pour ce membre.</li>
 <li><strong>Bouton Vérifier / Annuler la vérification</strong> : Permet à un utilisateur habilité d'apposer ou de retirer la certification du carnet en un clic.</li>
 <li><strong>Bouton Télécharger</strong> : Génère une attestation PDF complète des cotisations du membre.</li>
 <li><strong>Bouton Contrôle terrain</strong> : Permet au chef de recouvrement de consigner un audit contradictoire.</li>
@@ -2372,6 +2374,7 @@
 - <strong>Écart constaté</strong> : Différence entre le système et le carnet.
 - <strong>Statut</strong> : 🟢 <strong>Conforme</strong> (aucun écart) ou 🔴 <strong>Disparité</strong> (différence constatée).
 - Date, nom du contrôleur, remarques éventuelles et décomposition mois par mois pour localiser précisément tout écart.</p>
+<p>Après l'enregistrement, le badge <strong>Déjà contrôlé</strong> s'affiche sur la fiche et dans la liste. Si l'agence a activé la vérification automatique du carnet, le badge <strong>Carnet vérifié</strong> s'applique en même temps. Si ce réglage est désactivé, seul le contrôle est enregistré et l'état de vérification du carnet ne change pas.</p>
 <h3 id="5-progression-sur-les-10-mois-fevrier-a-novembre">5. Progression sur les 10 mois (Février à Novembre)</h3>
 <p>Le cycle annuel de tontine compte exactement 10 mois d'épargne. Chaque mois nécessite <strong>31 jours de mise</strong> pour être considéré comme validé :
 - Une grille présente les 10 mois de l'année (<em>Février, Mars, Avril, Mai, Juin, Juillet, Août, Septembre, Octobre, Novembre</em>).
@@ -2511,10 +2514,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "navigation.sections"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.expand", "navigation.sections"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copi\u00e9 dans le presse-papier", "clipboard.copy": "Copier dans le presse-papier", "search.result.more.one": "1 de plus sur cette page", "search.result.more.other": "# de plus sur cette page", "search.result.none": "Aucun document trouv\u00e9", "search.result.one": "1 document trouv\u00e9", "search.result.other": "# documents trouv\u00e9s", "search.result.placeholder": "Taper pour d\u00e9marrer la recherche", "search.result.term.missing": "Non trouv\u00e9", "select.version": "S\u00e9lectionner la version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.c21346df.min.js"></script>
       
     
   </body>

@@ -73,6 +73,8 @@
                   data-testid="e2e-tontine-carnet-row-badge">
               {{ member.carnetVerified ? 'Vérifié' : '—' }}
             </span>
+            <span class="field-controlled-badge" *ngIf="member.fieldControlled"
+                  data-testid="e2e-tontine-field-controlled-badge">Déjà contrôlé</span>
           </td>
         </ng-container>
 
@@ -123,6 +125,8 @@
         <span class="carnet-badge" [class.is-verified]="member.carnetVerified" [class.is-pending]="!member.carnetVerified">
           {{ member.carnetVerified ? 'Carnet vérifié' : 'Carnet non vérifié' }}
         </span>
+        <span class="field-controlled-badge" *ngIf="member.fieldControlled"
+              data-testid="e2e-tontine-field-controlled-badge">Déjà contrôlé</span>
         <div class="mobile-card-meta">
           <span>{{ getCommercial(member) }}</span>
           <span>{{ formatDate(member.registrationDate) }}</span>

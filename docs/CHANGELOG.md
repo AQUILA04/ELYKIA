@@ -46,6 +46,25 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.40.8] — 2026-10-29
+
+### Added
+
+- Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
+
+## Mobile — [2.34.10] — 2026-10-29
+
+### Added
+
+- Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.43.8] — 2026-10-29
+
+### Added
+
+- Paramètre `TONTINE_AUTO_VERIFY_ON_FIELD_CONTROL` : activé, un contrôle de carnet terrain marque le membre tontine comme vérifié ; désactivé, seul le contrôle est enregistré.
+- La liste des membres tontine indique si un contrôle de carnet terrain existe déjà. Le pack terrain du chef de recouvrement emporte le réglage de vérification automatique.
+
 ## Backend — [1.43.7] — 2026-10-27
 
 ### Changed

@@ -7,10 +7,13 @@ import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlDto;
 import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlMonthDto;
 import com.optimize.elykia.core.dto.TontineMemberFieldControlDto;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
+import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControl;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControlLine;
+import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.FieldControlStatus;
+import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
@@ -24,12 +27,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -49,6 +54,8 @@ class TontineMemberFieldControlServiceTest {
     private TontineCollectionRepository tontineCollectionRepository;
     @Mock
     private CarnetEcartRecontrolPolicy recontrolPolicy;
+    @Mock
+    private ParameterService parameterService;
     @InjectMocks
     private TontineMemberFieldControlService service;
 
@@ -301,6 +308,58 @@ class TontineMemberFieldControlServiceTest {
 
         assertEquals(88L, result.getId());
         assertEquals(FieldControlStatus.CONFORME, result.getStatus());
+        assertFalse(Boolean.TRUE.equals(result.getCarnetVerified()));
+        verify(tontineMemberRepository, never()).save(any());
+    }
+
+    @Test
+    void create_verifiesCarnetWhenParameterIsEnabledOnActiveSession() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("field.agent", "n/a"));
+        when(parameterService.isEnabled(TontineMemberFieldControlService.AUTO_VERIFY_PARAMETER_KEY)).thenReturn(true);
+        TontineMember member = activeSessionMember();
+        CreateTontineMemberFieldControlDto request = request("CTRL-AUTO", month(2026, 2, "COM003", 100_000.0));
+        when(repository.existsByReference("CTRL-AUTO")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of(collection(100_000.0, LocalDateTime.of(2026, 2, 4, 9, 0), "COM003")));
+        when(repository.save(any(TontineMemberFieldControl.class))).thenAnswer(invocation -> {
+            TontineMemberFieldControl control = invocation.getArgument(0);
+            control.setId(92L);
+            return control;
+        });
+        when(tontineMemberRepository.save(any(TontineMember.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TontineMemberFieldControlDto result = service.create(10L, request);
+
+        assertTrue(result.getCarnetVerified());
+        assertEquals("field.agent", result.getCarnetVerifiedBy());
+        assertTrue(member.getCarnetVerified());
+        verify(tontineMemberRepository).save(member);
+    }
+
+    @Test
+    void create_recordsControlOnlyWhenSessionIsNotActive() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("field.agent", "n/a"));
+        when(parameterService.isEnabled(TontineMemberFieldControlService.AUTO_VERIFY_PARAMETER_KEY)).thenReturn(true);
+        TontineMember member = activeSessionMember();
+        member.getTontineSession().setStatus(TontineSessionStatus.CLOSED);
+        CreateTontineMemberFieldControlDto request = request("CTRL-CLOSED", month(2026, 2, "COM003", 100_000.0));
+        when(repository.existsByReference("CTRL-CLOSED")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of(collection(100_000.0, LocalDateTime.of(2026, 2, 4, 9, 0), "COM003")));
+        when(repository.save(any(TontineMemberFieldControl.class))).thenAnswer(invocation -> {
+            TontineMemberFieldControl control = invocation.getArgument(0);
+            control.setId(93L);
+            return control;
+        });
+
+        TontineMemberFieldControlDto result = service.create(10L, request);
+
+        assertFalse(Boolean.TRUE.equals(result.getCarnetVerified()));
+        verify(tontineMemberRepository, never()).save(any());
     }
 
     private TontineMemberFieldControlLine line(
@@ -338,6 +397,16 @@ class TontineMemberFieldControlServiceTest {
         Client client = new Client();
         client.setTontineCollector(currentCollector);
         member.setClient(client);
+        return member;
+    }
+
+    private TontineMember activeSessionMember() {
+        TontineMember member = member(10L, "COM003");
+        TontineSession session = new TontineSession();
+        session.setYear(LocalDate.now().getYear());
+        session.setStatus(TontineSessionStatus.ACTIVE);
+        member.setTontineSession(session);
+        member.setCarnetVerified(false);
         return member;
     }
 

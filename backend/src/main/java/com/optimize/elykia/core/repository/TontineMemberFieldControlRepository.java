@@ -24,6 +24,16 @@ public interface TontineMemberFieldControlRepository extends GenericRepository<T
 
     boolean existsByReference(String reference);
 
+    boolean existsByTontineMember_IdAndState(Long tontineMemberId, State state);
+
+    @Query("""
+            SELECT DISTINCT c.tontineMember.id
+            FROM TontineMemberFieldControl c
+            WHERE c.state = com.optimize.common.entities.enums.State.ENABLED
+              AND c.tontineMember.id IN :memberIds
+            """)
+    List<Long> findMemberIdsWithEnabledControl(@Param("memberIds") Collection<Long> memberIds);
+
     @EntityGraph(attributePaths = "lines")
     Optional<TontineMemberFieldControl> findByReference(String reference);
 

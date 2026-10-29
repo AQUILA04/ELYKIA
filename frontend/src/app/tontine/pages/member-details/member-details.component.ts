@@ -305,6 +305,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       this.isFieldControlBusy = false;
       if (saved && this.member) {
         this.loadFieldControl(this.member.id);
+        this.loadMemberDetails(this.member.id);
       }
     });
   }
@@ -402,7 +403,14 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
         ).subscribe({
           next: (response) => {
             if (response.data) {
-              this.member = { ...this.member!, ...response.data };
+              const incomingControlled = response.data.fieldControlled;
+              this.member = {
+                ...this.member!,
+                ...response.data,
+                fieldControlled: typeof incomingControlled === 'boolean'
+                  ? incomingControlled
+                  : this.member!.fieldControlled
+              };
               this.showSuccess(nextVerified ? 'Carnet marqué comme vérifié' : 'Vérification annulée');
             }
           },
@@ -411,6 +419,10 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
           }
         });
       });
+  }
+
+  get hasFieldControl(): boolean {
+    return this.fieldControlLatest != null || this.member?.fieldControlled === true;
   }
 
   getFieldControlMonthLabel(month: number): string {

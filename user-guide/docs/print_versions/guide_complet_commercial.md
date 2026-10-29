@@ -611,6 +611,7 @@ La barre de recherche et de filtres vous permet de cibler des dossiers précis. 
 - **Par statut de livraison** : Filtrez les membres en cours de session, ceux dont la livraison est en attente, validée ou déjà terminée.
 - **Par état du carnet** : Affichez uniquement les membres dont le carnet est vérifié ou ceux restant à contrôler.
 - **Par origine** : Choisissez **Espace client** pour ne voir que les membres qui se sont inscrits eux-mêmes depuis l'application Espace Client, ou **Personnel** pour ceux inscrits par l'agence. Dans la liste, ces auto-inscrits portent le badge violet **Espace client** sous leur nom.
+- **Badge Déjà contrôlé** : dans la colonne **Carnet**, à côté de l'état de vérification. Il apparaît lorsqu'un contrôle de carnet terrain a déjà été enregistré pour ce membre.
 
 ---
 
@@ -624,6 +625,7 @@ En cliquant sur un membre, vous ouvrez sa fiche complète à 360°, véritable d
 - **Badge d'état du carnet** :
   - 🟢 **Carnet vérifié** : Indique la date, l'heure et le nom de l'agent qui a certifié le carnet.
   - ⚪ **Carnet non vérifié** : Indique que le carnet physique n'a pas encore été visé.
+- **Badge Déjà contrôlé** : affiché à côté de l'état du carnet lorsqu'un contrôle de carnet terrain a déjà été enregistré pour ce membre.
 - **Bouton Vérifier / Annuler la vérification** : Permet à un utilisateur habilité d'apposer ou de retirer la certification du carnet en un clic.
 - **Bouton Télécharger** : Génère une attestation PDF complète des cotisations du membre.
 - **Bouton Contrôle terrain** : Permet au chef de recouvrement de consigner un audit contradictoire.
@@ -649,6 +651,8 @@ Lorsqu'un chef de recouvrement contrôle le carnet au domicile du client, un vol
 - **Écart constaté** : Différence entre le système et le carnet.
 - **Statut** : 🟢 **Conforme** (aucun écart) ou 🔴 **Disparité** (différence constatée).
 - Date, nom du contrôleur, remarques éventuelles et décomposition mois par mois pour localiser précisément tout écart.
+
+Après l'enregistrement, le badge **Déjà contrôlé** s'affiche sur la fiche et dans la liste. Si l'agence a activé la vérification automatique du carnet, le badge **Carnet vérifié** s'applique en même temps. Si ce réglage est désactivé, seul le contrôle est enregistré et l'état de vérification du carnet ne change pas.
 
 ### 5. Progression sur les 10 mois (Février à Novembre)
 Le cycle annuel de tontine compte exactement 10 mois d'épargne. Chaque mois nécessite **31 jours de mise** pour être considéré comme validé :

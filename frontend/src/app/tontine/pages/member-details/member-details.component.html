@@ -35,6 +35,8 @@
                   data-testid="e2e-tontine-carnet-badge">
               {{ member.carnetVerified ? 'Carnet vérifié' : 'Carnet non vérifié' }}
             </span>
+            <span class="field-controlled-badge" *ngIf="hasFieldControl"
+                  data-testid="e2e-tontine-member-field-controlled-badge">Déjà contrôlé</span>
             <span *ngIf="member.selfRegistered || member.registrationSource === 'CUSTOMER_SPACE'"
                   class="badge badge-self"
                   title="Inscrit via l'Espace client"

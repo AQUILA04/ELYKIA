@@ -489,6 +489,10 @@ app:
         key: DUAL_CREDIT_AUTHORIZATION
         value: false
         description: "Active les adhésions business et événement, le plafond personnel de 35 000 FCFA et un crédit ouvert par type. Désactivé : seul le crédit personnel habituel s'applique, selon le solde du compte. À aligner avec le remote config dualCreditAuthorization."
+      init-data[9]:
+        key: TONTINE_AUTO_VERIFY_ON_FIELD_CONTROL
+        value: false
+        description: "Activé : un contrôle de carnet terrain marque le membre tontine comme vérifié. Désactivé : seul le contrôle est enregistré."
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}

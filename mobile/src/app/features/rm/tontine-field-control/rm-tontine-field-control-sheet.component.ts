@@ -205,10 +205,12 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
         note: this.note
       });
       const verb = this.modifying ? 'modifié' : 'enregistré';
+      const newlyVerified = result.op.carnetVerified === true && this.member?.carnetVerified !== true;
+      const verifiedNote = newlyVerified ? ' Carnet vérifié.' : '';
       await this.toast(
         result.mode === 'online'
-          ? `Contrôle tontine ${verb} (${result.op.status})`
-          : `Contrôle tontine hors ligne (${result.op.status}) — sync ultérieure`,
+          ? `Contrôle tontine ${verb} (${result.op.status}).${verifiedNote}`
+          : `Contrôle tontine hors ligne (${result.op.status}) — sync ultérieure.${verifiedNote}`,
         result.mode === 'online' ? 'success' : 'warning'
       );
       this.debug.event(`confirm ok mode=${result.mode} status=${result.op.status}`);

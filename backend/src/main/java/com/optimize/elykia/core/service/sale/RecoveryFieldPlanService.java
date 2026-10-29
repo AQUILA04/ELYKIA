@@ -31,7 +31,9 @@ import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.CreditLateService;
+import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
+import com.optimize.elykia.core.service.tontine.TontineMemberFieldControlService;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +72,7 @@ public class RecoveryFieldPlanService {
     private final ClientService clientService;
     private final ObjectMapper objectMapper;
     private final CarnetEcartRecontrolPolicy recontrolPolicy;
+    private final ParameterService parameterService;
 
     public FieldDayPlanDto createOrReplacePlan(FieldDayPlanRequestDto request, String recoveryManagerUsername) {
         validateRequest(request);
@@ -348,6 +351,8 @@ public class RecoveryFieldPlanService {
                 .creditFieldControlsToday(controlsToday)
                 .tontineMembers(tontineMembers)
                 .tontineFieldControlsToday(tontineControlsToday)
+                .tontineAutoVerifyOnFieldControl(parameterService != null && parameterService.isEnabled(
+                        TontineMemberFieldControlService.AUTO_VERIFY_PARAMETER_KEY))
                 .build();
     }
 

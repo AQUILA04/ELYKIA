@@ -22,6 +22,7 @@ import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.CreditLateService;
+import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,6 +72,8 @@ class RecoveryFieldPlanServiceTest {
     @Mock
     private CarnetEcartRecontrolPolicy recontrolPolicy;
     @Mock
+    private ParameterService parameterService;
+    @Mock
     private Client client;
 
     private RecoveryFieldPlanService service;
@@ -87,7 +90,8 @@ class RecoveryFieldPlanServiceTest {
                 tontineMemberFieldControlRepository,
                 clientService,
                 new ObjectMapper(),
-                recontrolPolicy);
+                recontrolPolicy,
+                parameterService);
     }
 
     @Test
@@ -285,6 +289,7 @@ class RecoveryFieldPlanServiceTest {
         assertEquals(List.of(1L, 2L), pack.getInProgressCredits().stream().map(CreditLateDTO::getId).toList());
         assertEquals(2, pack.getClients().size());
         assertEquals(28_000L, pack.getStats().getEstimatedBytes());
+        assertEquals(Boolean.FALSE, pack.getTontineAutoVerifyOnFieldControl());
         verify(creditFieldControlRepository).findLatestByCreditIds(argThat(ids ->
                 ids.contains(1L) && ids.contains(2L) && !ids.contains(3L)));
     }
