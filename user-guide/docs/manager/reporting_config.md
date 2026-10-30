@@ -224,6 +224,14 @@ Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refu
 3. Cliquez sur **Modifier**.
 4. Choisissez **Déclaration manuelle**, **Paiement depuis l’application** ou **Les deux**, puis enregistrez.
 
+### Vérification automatique après un contrôle de carnet tontine
+
+1. Ouvrez **Configuration** → **Paramètres généraux**.
+2. Repérez **TONTINE_AUTO_VERIFY_ON_FIELD_CONTROL**.
+3. Cliquez sur **Modifier**.
+4. Choisissez **OUI** pour que chaque contrôle de carnet terrain marque le membre tontine comme vérifié, y compris hors connexion après actualisation du pack terrain.
+5. Laissez **NON** pour n’enregistrer que le contrôle. Le badge **Déjà contrôlé** s’affiche quand même, et le carnet reste à vérifier jusqu’à une action **Vérifier**.
+
 ### Grilles de frais de retrait
 
 1. Ouvrez **Configuration** → **Frais de retrait**.

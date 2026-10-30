@@ -54,7 +54,9 @@ Avant de choisir **Confirmer l’opération**, contrôlez le résumé financier.
 
 La fiche membre tontine donne accès au bouton **Contrôle terrain** pour le Chef de recouvrement. Lorsque plusieurs commerciaux ont collecté pour le même membre, le formulaire présente **un bloc par commercial**. Dans chaque bloc, sélectionnez les mois concernés et saisissez le montant marqué dans le carnet de ce commercial. L’écart s’affiche pour chaque commercial, puis au total. Un commercial laissé sans mois sélectionné reste **non contrôlé** pour cette visite. La fiche conserve ensuite le total système, le total carnet, l’écart, le statut **Conforme** ou **Disparité**, le détail par commercial, la date et l’auteur. Le commercial concerné retrouve ses mois en disparité dans **Écarts de carnet** pour les accepter ou les rejeter.
 
-La vérification administrative du carnet est une action distincte du contrôle terrain. Le badge **Carnet vérifié** peut être appliqué ou retiré seulement si vous disposez des habilitations nécessaires ; il atteste la vérification physique du carnet sans modifier les montants des collectes ni l’état du contrôle terrain.
+La liste des membres et la fiche affichent le badge **Déjà contrôlé** lorsqu’un contrôle de carnet terrain a déjà été enregistré.
+
+La vérification administrative du carnet est une action distincte du contrôle terrain. Le badge **Carnet vérifié** peut être appliqué ou retiré seulement si vous disposez des habilitations nécessaires ; il atteste la vérification physique du carnet sans modifier les montants des collectes ni l’état du contrôle terrain. Si l’agence a activé la vérification automatique, l’enregistrement du contrôle marque aussi le carnet comme vérifié. Si ce réglage est désactivé, seul le contrôle est enregistré.
 
 ## Suivre le rapport de recouvrement
 

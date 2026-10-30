@@ -28,4 +28,9 @@ public class RmOfflinePackDto {
     private List<RmPackTontineMemberDto> tontineMembers;
     /** Dernier contrôle par membre tontine du pack (nom de champ conservé). */
     private List<TontineMemberFieldControlDto> tontineFieldControlsToday;
+    /**
+     * Copie du paramètre TONTINE_AUTO_VERIFY_ON_FIELD_CONTROL au moment du téléchargement.
+     * Hors ligne, un contrôle de carnet tontine certifie le membre seulement si cette valeur est vraie.
+     */
+    private Boolean tontineAutoVerifyOnFieldControl;
 }

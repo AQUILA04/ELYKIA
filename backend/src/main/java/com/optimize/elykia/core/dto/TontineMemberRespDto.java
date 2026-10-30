@@ -30,7 +30,8 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                                    LocalDateTime carnetVerifiedAt,
                                    String carnetVerifiedBy,
                                    TontineMemberRegistrationSource registrationSource,
-                                   Boolean selfRegistered
+                                   Boolean selfRegistered,
+                                   Boolean fieldControlled
                                    ) {
 
     public static TontineMemberRespDto fromId(Long id) {
@@ -38,7 +39,7 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
             return null;
         }
 
-        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
+        return new TontineMemberRespDto(id, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public static TontineMemberRespDto fromTontineMember(TontineMember member) {
@@ -57,7 +58,17 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 member.getCarnetVerifiedAt(),
                 member.getCarnetVerifiedBy(),
                 source,
-                source == TontineMemberRegistrationSource.CUSTOMER_SPACE);
+                source == TontineMemberRegistrationSource.CUSTOMER_SPACE,
+                null);
+    }
+
+    public TontineMemberRespDto withFieldControlled(Boolean controlled) {
+        return new TontineMemberRespDto(
+                id, tontineSession, client, totalContribution, deliveryStatus, registrationDate, delivery,
+                frequency, amount, notes, societyShare, availableContribution, validatedMonths, currentMonthDays,
+                operationConsentCode, syncConsentCode, totalDeliveryCollections,
+                carnetVerified, carnetVerifiedAt, carnetVerifiedBy, registrationSource, selfRegistered,
+                controlled);
     }
 
     public static Page<TontineMemberRespDto> fromTontineMembers(Page<TontineMember> members) {

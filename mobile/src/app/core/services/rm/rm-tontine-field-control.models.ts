@@ -1,3 +1,5 @@
+export const TONTINE_AUTO_VERIFY_ON_FIELD_CONTROL = 'TONTINE_AUTO_VERIFY_ON_FIELD_CONTROL';
+
 export type RmTontineFieldControlStatus = 'CONFORME' | 'ECART';
 
 export interface RmTontineFieldControlMonthInput {
@@ -23,6 +25,10 @@ export interface RmTontineFieldControlOp {
   createdAt: string;
   isSync: boolean;
   lastError?: string | null;
+  /** Renseigné lorsque ce contrôle a aussi certifié le carnet. */
+  carnetVerified?: boolean;
+  carnetVerifiedAt?: string;
+  carnetVerifiedBy?: string;
 }
 
 export interface RmTontineFieldControlRequest {
@@ -72,4 +78,7 @@ export interface RmTontineFieldControlDto {
   lines?: RmTontineFieldControlLineDto[];
   collectors?: RmTontineFieldControlCollectorDto[];
   uncontrolledCollectors?: string[];
+  carnetVerified?: boolean;
+  carnetVerifiedAt?: string;
+  carnetVerifiedBy?: string;
 }

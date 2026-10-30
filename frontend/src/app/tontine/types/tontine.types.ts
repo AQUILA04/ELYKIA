@@ -40,6 +40,8 @@ export interface TontineMember {
   readonly carnetVerified?: boolean;
   readonly carnetVerifiedAt?: string | null;
   readonly carnetVerifiedBy?: string | null;
+  /** Vrai lorsqu'un contrôle de carnet terrain a déjà été enregistré. */
+  readonly fieldControlled?: boolean;
   /** STAFF | CUSTOMER_SPACE — origine d'inscription du membre */
   readonly registrationSource?: 'STAFF' | 'CUSTOMER_SPACE';
   readonly selfRegistered?: boolean;

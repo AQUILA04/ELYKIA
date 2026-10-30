@@ -24,6 +24,7 @@ import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.event.TontineCollectionCancelledEvent;
 import com.optimize.elykia.core.event.TontineCollectionEvent;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
+import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberAmountHistoryArchiveRepository;
 import com.optimize.elykia.core.repository.TontineMemberAmountHistoryRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
@@ -58,6 +59,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     private final TontineSessionRepository tontineSessionRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
     private TontineMemberAmountHistoryRepository tontineMemberAmountHistoryRepository;
+    private TontineMemberFieldControlRepository tontineMemberFieldControlRepository;
     private TontineMemberAmountHistoryArchiveRepository tontineMemberAmountHistoryArchiveRepository;
     private final ClientService clientService;
     private final UserService userService;
@@ -88,6 +90,11 @@ public class TontineService extends GenericService<TontineMember, Long> {
     @Autowired
     public void setTontineMemberAmountHistoryRepository(TontineMemberAmountHistoryRepository tontineMemberAmountHistoryRepository) {
         this.tontineMemberAmountHistoryRepository = tontineMemberAmountHistoryRepository;
+    }
+
+    @Autowired
+    public void setTontineMemberFieldControlRepository(TontineMemberFieldControlRepository tontineMemberFieldControlRepository) {
+        this.tontineMemberFieldControlRepository = tontineMemberFieldControlRepository;
     }
 
     @Autowired(required = false)
@@ -938,13 +945,38 @@ public class TontineService extends GenericService<TontineMember, Long> {
         if (Objects.isNull(searchFilter)) {
             memberRespDtos= getRepository().findMembersDto(currentYear, commercialFilter, statusFilter, carnetVerified,
                     registrationSourceFilter, pageable);
-            return memberRespDtos;
         } else {
             memberRespDtos = getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter,
                     statusFilter, carnetVerified, registrationSourceFilter, pageable);
-
-            return memberRespDtos;
         }
+        return enrichFieldControlled(memberRespDtos);
+    }
+
+    public TontineMemberRespDto getMemberResponse(Long id) {
+        TontineMember member = getById(id);
+        TontineMemberRespDto dto = TontineMemberRespDto.fromTontineMember(member);
+        if (dto == null || tontineMemberFieldControlRepository == null || member.getId() == null) {
+            return dto;
+        }
+        boolean controlled = tontineMemberFieldControlRepository
+                .existsByTontineMember_IdAndState(member.getId(), State.ENABLED);
+        return dto.withFieldControlled(controlled);
+    }
+
+    private Page<TontineMemberRespDto> enrichFieldControlled(Page<TontineMemberRespDto> page) {
+        if (page == null || page.isEmpty() || tontineMemberFieldControlRepository == null) {
+            return page;
+        }
+        List<Long> ids = page.getContent().stream()
+                .map(TontineMemberRespDto::id)
+                .filter(Objects::nonNull)
+                .toList();
+        if (ids.isEmpty()) {
+            return page;
+        }
+        List<Long> found = tontineMemberFieldControlRepository.findMemberIdsWithEnabledControl(ids);
+        Set<Long> controlled = found == null ? Set.of() : new HashSet<>(found);
+        return page.map(dto -> dto.withFieldControlled(dto.id() != null && controlled.contains(dto.id())));
     }
 
     public Page<TontineMemberRespDto> getMembers(User currentUser, String search, String deliveryStatus, String commercial,

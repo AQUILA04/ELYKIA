@@ -10,7 +10,6 @@ import com.optimize.elykia.core.dto.TontineCollectionDto;
 import com.optimize.elykia.core.dto.TontineCatchupPreviewDto;
 import com.optimize.elykia.core.dto.TontineMemberCarnetVerificationDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
-import com.optimize.elykia.core.dto.TontineMemberRespDto;
 import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
 import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
@@ -154,7 +153,7 @@ public class TontineController {
     @GetMapping("/members/{id}")
     public ResponseEntity<Response> getMemberById(@PathVariable Long id) {
         return new ResponseEntity<>(ResponseUtil.successResponse(
-                TontineMemberRespDto.fromTontineMember(tontineService.getById(id))), HttpStatus.OK);
+                tontineService.getMemberResponse(id)), HttpStatus.OK);
     }
 
     @GetMapping("/members/{id}/contributions-by-commercial")

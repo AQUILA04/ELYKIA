@@ -171,6 +171,11 @@ export interface RmOfflinePack {
   creditFieldControlsToday: unknown[];
   tontineMembers: RmPackTontineMember[];
   tontineFieldControlsToday: RmPackTontineFieldControlToday[];
+  /**
+   * Réglage d'agence copié dans le pack : un contrôle de carnet tontine
+   * marque le membre comme vérifié lorsque la valeur est vraie.
+   */
+  tontineAutoVerifyOnFieldControl?: boolean;
 }
 
 /** Taux de recouvrement mensuel chef (retards délai app, stock live). */

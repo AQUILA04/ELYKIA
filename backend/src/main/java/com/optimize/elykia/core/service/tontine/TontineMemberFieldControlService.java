@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service.tontine;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
+import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlDto;
 import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlMonthDto;
 import com.optimize.elykia.core.dto.TontineMemberFieldControlCollectorDto;
@@ -12,12 +13,15 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.entity.tontine.TontineCollection;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControl;
+import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControlLine;
 import com.optimize.elykia.core.enumaration.FieldControlStatus;
+import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
+import com.optimize.elykia.core.service.carnet.CarnetVerificationSupport;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -46,6 +51,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TontineMemberFieldControlService {
 
+    public static final String AUTO_VERIFY_PARAMETER_KEY = "TONTINE_AUTO_VERIFY_ON_FIELD_CONTROL";
+
     private static final double EPSILON = 0.0001d;
     /** Mois calendaires de la session tontine : février (2) → novembre (11). */
     private static final Set<Integer> TONTINE_CALENDAR_MONTHS = Set.of(2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
@@ -54,6 +61,7 @@ public class TontineMemberFieldControlService {
     private final TontineMemberRepository tontineMemberRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
     private final CarnetEcartRecontrolPolicy recontrolPolicy;
+    private final ParameterService parameterService;
     private AppNotificationService appNotificationService;
 
     @Autowired(required = false)
@@ -100,28 +108,51 @@ public class TontineMemberFieldControlService {
         LocalDateTime observedAt = dto.getObservedAt() != null ? dto.getObservedAt() : LocalDateTime.now();
         String observedBy = SecurityContextHolder.getContext().getAuthentication().getName();
 
+        TontineMemberFieldControl saved;
         TontineMemberFieldControl latest = findLatest(memberId).orElse(null);
         if (latest != null && recontrolPolicy != null && recontrolPolicy.mustModifyTontine(latest)) {
             rewriteControl(latest, reference, observedAt, observedBy, dto.getNote(), desiredLines);
-            TontineMemberFieldControl saved = repository.save(latest);
-            notifyEcart(saved, member);
-            return toDto(saved, memberId);
+            saved = repository.save(latest);
+        } else {
+            TontineMemberFieldControl entity = new TontineMemberFieldControl();
+            entity.setTontineMember(member);
+            entity.setReference(reference);
+            entity.setObservedAt(observedAt);
+            entity.setObservedBy(observedBy);
+            entity.setNote(dto.getNote());
+            for (TontineMemberFieldControlLine line : desiredLines) {
+                entity.addLine(line);
+            }
+            applyTotals(entity);
+            saved = repository.save(entity);
         }
 
-        TontineMemberFieldControl entity = new TontineMemberFieldControl();
-        entity.setTontineMember(member);
-        entity.setReference(reference);
-        entity.setObservedAt(observedAt);
-        entity.setObservedBy(observedBy);
-        entity.setNote(dto.getNote());
-        for (TontineMemberFieldControlLine line : desiredLines) {
-            entity.addLine(line);
-        }
-        applyTotals(entity);
-
-        TontineMemberFieldControl saved = repository.save(entity);
+        maybeAutoVerify(member, observedBy);
         notifyEcart(saved, member);
         return toDto(saved, memberId);
+    }
+
+    /**
+     * Lorsque le paramètre est activé, le contrôle terrain certifie aussi le carnet
+     * de la session active. Désactivé, seul le contrôle est conservé.
+     */
+    private void maybeAutoVerify(TontineMember member, String observedBy) {
+        if (member == null || Boolean.TRUE.equals(member.getCarnetVerified()) || parameterService == null) {
+            return;
+        }
+        if (!parameterService.isEnabled(AUTO_VERIFY_PARAMETER_KEY)) {
+            return;
+        }
+        TontineSession session = member.getTontineSession();
+        if (session == null
+                || session.getStatus() != TontineSessionStatus.ACTIVE
+                || session.getYear() == null
+                || session.getYear() != LocalDate.now().getYear()) {
+            log.info("Contrôle enregistré sans vérification automatique du carnet pour le membre {}", member.getId());
+            return;
+        }
+        CarnetVerificationSupport.apply(member, true, observedBy, LocalDateTime.now());
+        tontineMemberRepository.save(member);
     }
 
     private Optional<TontineMemberFieldControl> findLatest(Long memberId) {
@@ -314,6 +345,7 @@ public class TontineMemberFieldControlService {
         List<TontineMemberFieldControlCollectorDto> collectors = buildCollectorSummaries(lines);
         List<String> uncontrolled = resolveUncontrolledCollectors(memberId, collectors);
         EcartDecisionView view = decisionView(entity);
+        TontineMember member = entity.getTontineMember();
 
         return TontineMemberFieldControlDto.builder()
                 .id(entity.getId())
@@ -331,6 +363,9 @@ public class TontineMemberFieldControlService {
                 .uncontrolledCollectors(uncontrolled)
                 .ecartDecisionStatus(view.status())
                 .modifiable(view.modifiable())
+                .carnetVerified(member != null && Boolean.TRUE.equals(member.getCarnetVerified()))
+                .carnetVerifiedAt(member != null ? member.getCarnetVerifiedAt() : null)
+                .carnetVerifiedBy(member != null ? member.getCarnetVerifiedBy() : null)
                 .build();
     }
 
