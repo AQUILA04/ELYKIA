@@ -8,6 +8,7 @@ import com.optimize.elykia.core.dto.BulkTontineMemberCarnetVerificationDto;
 import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlDto;
 import com.optimize.elykia.core.dto.TontineCollectionDto;
 import com.optimize.elykia.core.dto.TontineCatchupPreviewDto;
+import com.optimize.elykia.core.dto.TontineMemberAdhesionDateDto;
 import com.optimize.elykia.core.dto.TontineMemberCarnetVerificationDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
 import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
@@ -267,6 +268,18 @@ public class TontineController {
     @PutMapping("/members/{id}")
     public ResponseEntity<Response> updateMember(@PathVariable Long id, @RequestBody @Valid TontineMemberDto dto) {
         return new ResponseEntity<>(ResponseUtil.successResponse(tontineService.updateMember(id, dto)), HttpStatus.OK);
+    }
+
+    @PatchMapping("/members/{id}/adhesion-date")
+    @PreAuthorize("hasAnyRole('" + UserPermissionConstant.EDIT_TONTINE_ADHESION_DATE + "', '"
+            + UserPermissionConstant.ADMIN + "', '" + UserPermissionConstant.SU + "')")
+    @Operation(summary = "Modifier la date d'adhésion d'un membre de tontine")
+    public ResponseEntity<Response> updateMemberAdhesionDate(
+            @PathVariable Long id,
+            @RequestBody @Valid TontineMemberAdhesionDateDto dto) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(tontineService.updateAdhesionDate(id, dto.getRegistrationDate())),
+                HttpStatus.OK);
     }
 
     @PostMapping("/collections")

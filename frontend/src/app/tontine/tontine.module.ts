@@ -58,6 +58,7 @@ import { RecordCatchupCollectionModalComponent } from './components/modals/recor
 import { SessionSettingsModalComponent } from './components/modals/session-settings-modal/session-settings-modal.component';
 import { DeliveryArticleSelectionModalComponent } from './components/modals/delivery-article-selection-modal/delivery-article-selection-modal.component';
 import { TontineFieldControlModalComponent } from './components/modals/tontine-field-control-modal/tontine-field-control-modal.component';
+import { EditAdhesionDateModalComponent } from './components/modals/edit-adhesion-date-modal/edit-adhesion-date-modal.component';
 
 // Collectes
 import { TontineCollecteComponent } from './collecte/tontine-collecte.component';
@@ -95,6 +96,7 @@ import { TontineSessionService } from './services/tontine-session.service';
     SessionSettingsModalComponent,
     DeliveryArticleSelectionModalComponent,
     TontineFieldControlModalComponent,
+    EditAdhesionDateModalComponent,
 
     // Collectes
     TontineCollecteComponent,

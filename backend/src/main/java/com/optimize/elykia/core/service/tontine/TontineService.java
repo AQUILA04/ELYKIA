@@ -46,6 +46,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import lombok.Getter;
@@ -55,6 +56,8 @@ import lombok.Getter;
 @Transactional
 @Getter
 public class TontineService extends GenericService<TontineMember, Long> {
+
+    private static final DateTimeFormatter FR_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final TontineSessionRepository tontineSessionRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
@@ -330,6 +333,119 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
 
         return TontineMemberRespDto.fromTontineMember(this.update(member));
+    }
+
+    /**
+     * Recule ou avance la date d'adhésion. Le début de participation suit cette date
+     * (dans les limites de la session), ce qui ouvre les cotisations et rattrapages
+     * depuis le nouveau jour, par exemple d'octobre vers avril.
+     */
+    public TontineMemberRespDto updateAdhesionDate(Long id, LocalDate registrationDate) {
+        assertTontineWritesAllowed();
+        if (registrationDate == null) {
+            throw new CustomValidationException("La date d'adhésion est obligatoire.");
+        }
+
+        TontineMember member = getById(id);
+        TontineSession session = member.getTontineSession();
+        if (session == null || session.getStatus() != TontineSessionStatus.ACTIVE) {
+            throw new CustomValidationException(
+                    "La date d'adhésion ne peut être modifiée que pendant la session en cours.");
+        }
+
+        LocalDate sessionStart = session.getStartDate();
+        LocalDate sessionEnd = session.getEndDate();
+        if (sessionStart != null && registrationDate.isBefore(sessionStart)) {
+            throw new CustomValidationException(
+                    "La date d'adhésion ne peut pas être antérieure au début de la session ("
+                            + FR_DATE.format(sessionStart) + ").");
+        }
+        LocalDate latest = LocalDate.now();
+        if (sessionEnd != null && sessionEnd.isBefore(latest)) {
+            latest = sessionEnd;
+        }
+        if (registrationDate.isAfter(latest)) {
+            throw new CustomValidationException(
+                    "La date d'adhésion ne peut pas être postérieure au " + FR_DATE.format(latest) + ".");
+        }
+
+        if (member.getRegistrationDate() != null
+                && member.getRegistrationDate().toLocalDate().equals(registrationDate)) {
+            return TontineMemberRespDto.fromTontineMember(member);
+        }
+
+        List<TontineCollection> collections = tontineCollectionRepository
+                .findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(member.getId(), State.ENABLED);
+        if (!collections.isEmpty()) {
+            LocalDate earliestCollection = collections.get(0).getCollectionDate().toLocalDate();
+            if (registrationDate.isAfter(earliestCollection)) {
+                throw new CustomValidationException(
+                        "La date d'adhésion ne peut pas être postérieure à une cotisation déjà enregistrée ("
+                                + FR_DATE.format(earliestCollection) + ").");
+            }
+        }
+
+        member.setRegistrationDate(registrationDate.atStartOfDay());
+        alignAmountHistoryWithAdhesion(member, participationStart(member, registrationDate));
+        recalculateMemberFromCollections(member);
+        updateSessionRevenue(session);
+        return TontineMemberRespDto.fromTontineMember(this.update(member));
+    }
+
+    /**
+     * Jour à partir duquel la mise s'applique : la date choisie, sans précéder le début de session.
+     */
+    private LocalDate participationStart(TontineMember member, LocalDate registrationDate) {
+        LocalDate sessionStart = member.getTontineSession() != null
+                ? member.getTontineSession().getStartDate()
+                : null;
+        if (sessionStart != null && registrationDate.isBefore(sessionStart)) {
+            return sessionStart;
+        }
+        return registrationDate;
+    }
+
+    private void alignAmountHistoryWithAdhesion(TontineMember member, LocalDate newStart) {
+        List<TontineMemberAmountHistory> history = member.getAmountHistory();
+        if (history == null) {
+            history = new ArrayList<>();
+            member.setAmountHistory(history);
+        }
+        if (history.isEmpty()) {
+            if (member.getAmount() == null) {
+                return;
+            }
+            TontineMemberAmountHistory created = new TontineMemberAmountHistory();
+            created.setTontineMember(member);
+            created.setAmount(member.getAmount());
+            created.setStartDate(newStart);
+            history.add(created);
+            return;
+        }
+
+        history.sort(Comparator.comparing(TontineMemberAmountHistory::getStartDate));
+        LocalDate earliest = history.get(0).getStartDate();
+        if (newStart.isBefore(earliest)) {
+            history.get(0).setStartDate(newStart);
+            return;
+        }
+        if (newStart.isEqual(earliest)) {
+            return;
+        }
+
+        history.removeIf(entry -> entry.getEndDate() != null && entry.getEndDate().isBefore(newStart));
+        for (TontineMemberAmountHistory entry : history) {
+            if (entry.getStartDate().isBefore(newStart)) {
+                entry.setStartDate(newStart);
+            }
+        }
+        if (history.isEmpty() && member.getAmount() != null) {
+            TontineMemberAmountHistory created = new TontineMemberAmountHistory();
+            created.setTontineMember(member);
+            created.setAmount(member.getAmount());
+            created.setStartDate(newStart);
+            history.add(created);
+        }
     }
 
     private static String normalizeNotes(String notes) {

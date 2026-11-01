@@ -29,6 +29,7 @@ import { RecordCatchupCollectionModalComponent } from '../../components/modals/r
 import { DeliveryArticleSelectionModalComponent } from '../../components/modals/delivery-article-selection-modal/delivery-article-selection-modal.component';
 import { AddMemberModalComponent } from '../../components/modals/add-member-modal/add-member-modal.component';
 import { TontineFieldControlModalComponent } from '../../components/modals/tontine-field-control-modal/tontine-field-control-modal.component';
+import { EditAdhesionDateModalComponent } from '../../components/modals/edit-adhesion-date-modal/edit-adhesion-date-modal.component';
 import { UserProfilConstant } from 'src/app/shared/constants/user-profil.constant';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
@@ -202,7 +203,9 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (response) => {
         const content = response.data?.content ?? [];
-        this.collectionsDataSource.data = [...content];
+        this.collectionsDataSource.data = [...content].sort(
+          (a, b) => new Date(b.collectionDate).getTime() - new Date(a.collectionDate).getTime()
+        );
         this.loadingCollections = false;
         this.lastUpdate = new Date();
       },
@@ -622,7 +625,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
         isCurrent,
         isFuture
       };
-    });
+    }).sort((a, b) => b.year - a.year || b.jsMonth - a.jsMonth);
   }
 
   get loadingMonthlySummary(): boolean {
@@ -753,6 +756,26 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.showError(err?.message || 'Erreur lors de l’annulation de la collecte');
+      }
+    });
+  }
+
+  onEditAdhesionDate(): void {
+    if (!this.member || !this.isSessionActive) {
+      return;
+    }
+
+    const dialogRef = this.dialog.open(EditAdhesionDateModalComponent, {
+      width: '480px',
+      panelClass: 'elykia-tontine-dialog',
+      data: { member: this.member }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && this.member) {
+        this.loadMemberDetails(this.member.id);
+        this.loadAmountHistory(this.member.id);
+        this.showSuccess('Date d\'adhésion mise à jour');
       }
     });
   }

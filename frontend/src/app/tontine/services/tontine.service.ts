@@ -234,6 +234,15 @@ export class TontineService {
       );
   }
 
+  updateMemberAdhesionDate(memberId: number, registrationDate: string): Observable<ApiResponse<TontineMember>> {
+    const headers = this.getHeaders();
+    return this.http.patch<ApiResponse<TontineMember>>(
+      `${this.apiUrl}/members/${memberId}/adhesion-date`,
+      { registrationDate },
+      { headers }
+    ).pipe(catchError(this.handleApiError.bind(this)));
+  }
+
   updateMember(memberId: number, memberData: CreateTontineMemberDto): Observable<ApiResponse<TontineMember>> {
     this.setLoading(true);
     const headers = this.getHeaders();

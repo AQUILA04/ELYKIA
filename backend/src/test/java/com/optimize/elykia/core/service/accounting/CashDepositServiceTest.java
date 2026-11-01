@@ -245,6 +245,82 @@ class CashDepositServiceTest {
     }
 
     @Test
+    void cancelDeposit_rejectsGestionnaireAfterThreeDays() {
+        CashDepositService service = service();
+        CashDeposit original = deposit(LocalDate.now().minusDays(10), "commercial.a", 400.0, 400.0, 0.0, 0.0, 0.0);
+        original.setId(70L);
+        when(cashDepositRepository.findById(70L)).thenReturn(Optional.of(original));
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(true);
+        when(currentUser.is(UserProfilConstant.ADMIN)).thenReturn(false);
+        when(currentUser.is(UserProfilConstant.SU)).thenReturn(false);
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> service.cancelDeposit(70L));
+
+        assertTrue(exception.getMessage().contains("3 jours"));
+        verify(cashDepositRepository, never()).save(any());
+    }
+
+    @Test
+    void cancelDeposit_allowsAdminAfterThreeDays() {
+        CashDepositService service = service();
+        LocalDate date = LocalDate.now().minusDays(40);
+        CashDeposit original = deposit(date, "commercial.a", 400.0, 400.0, 0.0, 0.0, 0.0);
+        original.setId(71L);
+        DailyCommercialReport report = new DailyCommercialReport();
+        report.setTotalAmountDeposited(400.0);
+        report.setTotalCreditAmountDeposited(400.0);
+        when(cashDepositRepository.findById(71L)).thenReturn(Optional.of(original));
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(currentUser.is(UserProfilConstant.ADMIN)).thenReturn(true);
+        when(currentUser.getUsername()).thenReturn("admin.a");
+        when(cashDepositRepository.existsByReference("CANCEL-DEP-001")).thenReturn(false);
+        when(dailyReportRepository.findByDateAndCommercialUsername(date, "commercial.a")).thenReturn(Optional.of(report));
+        when(reportPersistence.save(report)).thenReturn(report);
+        when(cashDepositRepository.save(any(CashDeposit.class))).thenAnswer(invocation -> {
+            CashDeposit saved = invocation.getArgument(0);
+            saved.setId(72L);
+            return saved;
+        });
+
+        CashDeposit cancellation = service.cancelDeposit(71L);
+
+        assertEquals(-400.0, cancellation.getAmount());
+        assertEquals("admin.a", cancellation.getReceivedBy());
+    }
+
+    @Test
+    void cancelDeposit_allowsSuperAdminAfterThreeDays() {
+        CashDepositService service = service();
+        LocalDate date = LocalDate.now().minusDays(40);
+        CashDeposit original = deposit(date, "commercial.a", 250.0, 250.0, 0.0, 0.0, 0.0);
+        original.setId(73L);
+        DailyCommercialReport report = new DailyCommercialReport();
+        report.setTotalAmountDeposited(250.0);
+        report.setTotalCreditAmountDeposited(250.0);
+        when(cashDepositRepository.findById(73L)).thenReturn(Optional.of(original));
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(currentUser.is(UserProfilConstant.ADMIN)).thenReturn(false);
+        when(currentUser.is(UserProfilConstant.SU)).thenReturn(true);
+        when(currentUser.getUsername()).thenReturn("root");
+        when(cashDepositRepository.existsByReference("CANCEL-DEP-001")).thenReturn(false);
+        when(dailyReportRepository.findByDateAndCommercialUsername(date, "commercial.a")).thenReturn(Optional.of(report));
+        when(reportPersistence.save(report)).thenReturn(report);
+        when(cashDepositRepository.save(any(CashDeposit.class))).thenAnswer(invocation -> {
+            CashDeposit saved = invocation.getArgument(0);
+            saved.setId(74L);
+            return saved;
+        });
+
+        CashDeposit cancellation = service.cancelDeposit(73L);
+
+        assertEquals(-250.0, cancellation.getAmount());
+        assertEquals("root", cancellation.getReceivedBy());
+    }
+
+    @Test
     void cancelDeposit_rejectsUserWithoutManagerProfileBeforeAnyAccountingMutation() {
         // Given
         CashDepositService service = service();

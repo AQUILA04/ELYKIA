@@ -305,6 +305,13 @@
       <div class="summary-item">
         <span class="summary-label">Date d'Inscription</span>
         <span class="summary-value mono">{{ member.registrationDate ? formatDateTime(member.registrationDate) : 'N/A' }}</span>
+        <ng-container *ngxPermissionsOnly="['ROLE_EDIT_TONTINE_ADHESION_DATE', 'ROLE_ADMIN', 'ROLE_ROOT']">
+          <button type="button" class="btn-edit-date" *ngIf="isSessionActive"
+                  (click)="onEditAdhesionDate()"
+                  data-testid="e2e-tontine-edit-adhesion-date">
+            Modifier la date
+          </button>
+        </ng-container>
       </div>
       <div class="summary-item">
         <span class="summary-label">Commercial</span>

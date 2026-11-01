@@ -46,6 +46,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.41.0] — 2026-11-01
+
+### Added
+
+- Fiche d'un membre de tontine : le bouton **Modifier la date** permet de corriger la date d'adhésion, afin d'enregistrer les cotisations et les rattrapages depuis le vrai jour de début.
+
+### Changed
+
+- Rapport journalier, onglet **Versements** : l'administrateur et le super administrateur peuvent annuler un versement sans limite de trois jours. Le gestionnaire conserve ce délai.
+- Fiche d'un membre de tontine : la synthèse des collectes par mois et l'historique des collectes affichent le plus récent en haut.
+
 ## Frontend — [2.40.8] — 2026-10-29
 
 ### Added
@@ -57,6 +68,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.44.0] — 2026-11-01
+
+### Added
+
+- Permission de modification de la date d'adhésion d'un membre de tontine, accordée par défaut à l'administrateur et au super administrateur. La mise et les rattrapages partent de cette date, dans les limites de la session.
+
+### Changed
+
+- L'annulation d'un versement n'est plus limitée à trois jours pour l'administrateur et le super administrateur. Le gestionnaire reste limité à ce délai, et un versement déjà remis ne peut toujours pas être annulé.
 
 ## Backend — [1.43.8] — 2026-10-29
 

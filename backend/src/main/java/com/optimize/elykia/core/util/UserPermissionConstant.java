@@ -82,6 +82,8 @@ public class UserPermissionConstant {
     public static final String TONTINE_MEMBER_PDF = "ROLE_TONTINE_MEMBER_PDF";
     /** Marquage « carnet vérifié » tontine (chef de recouvrement par défaut, pas les commerciaux). */
     public static final String TONTINE_CARNET_VERIFY = "ROLE_TONTINE_CARNET_VERIFY";
+    /** Modification de la date d'adhésion d'un membre de tontine (admin et super admin par défaut). */
+    public static final String EDIT_TONTINE_ADHESION_DATE = "ROLE_EDIT_TONTINE_ADHESION_DATE";
     /** Marquage « carnet vérifié » crédit (chef de recouvrement par défaut, pas les commerciaux). */
     public static final String CREDIT_CARNET_VERIFY = "ROLE_CREDIT_CARNET_VERIFY";
 

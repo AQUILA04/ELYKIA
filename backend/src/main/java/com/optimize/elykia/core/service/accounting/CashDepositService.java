@@ -225,9 +225,11 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
                 .findFirst()
                 .orElse(requested);
         LocalDate basis = anchor.getCaptureDate() != null ? anchor.getCaptureDate() : anchor.getDate();
-        long daysBetween = ChronoUnit.DAYS.between(basis, LocalDate.now());
-        if (daysBetween > 3) {
-            throw new RuntimeException("Le délai d'annulation de 3 jours est dépassé.");
+        if (!bypassesCancellationWindow(currentUser)) {
+            long daysBetween = ChronoUnit.DAYS.between(basis, LocalDate.now());
+            if (daysBetween > 3) {
+                throw new RuntimeException("Le délai d'annulation de 3 jours est dépassé.");
+            }
         }
 
         List<CashDeposit> positive = group.stream().filter(line -> safe(line.getAmount()) > 0).toList();
@@ -405,6 +407,11 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         return user.is(UserProfilConstant.GESTIONNAIRE)
                 || user.is(UserProfilConstant.ADMIN)
                 || user.is(UserProfilConstant.SU);
+    }
+
+    /** Admin et super admin annulent un versement sans limite de temps. */
+    private boolean bypassesCancellationWindow(User user) {
+        return user.is(UserProfilConstant.ADMIN) || user.is(UserProfilConstant.SU);
     }
 
     private static String referenceOf(CashDeposit deposit) {
