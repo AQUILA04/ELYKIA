@@ -771,6 +771,26 @@
   font-size: 13px;
 }
 
+.member-details-page .btn-edit-date {
+  align-self: flex-start;
+  margin-top: 2px;
+  padding: 6px 0;
+  min-height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--navy);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.member-details-page .btn-edit-date:hover {
+  color: var(--navy-dark, #002244);
+}
+
 .member-details-page .consent-code {
   font-family: 'DM Mono', monospace;
   font-size: 14px;

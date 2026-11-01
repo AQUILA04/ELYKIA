@@ -862,6 +862,10 @@ export class DailyReportComponent implements OnInit {
             d.reference === `CANCEL-${origRef}` && this.depositTotal(d) <= 0);
         if (isAlreadyCancelled) return false;
 
+        if (this.isAdmin) {
+            return true;
+        }
+
         const depDate = new Date(dep.captureDate || dep.date);
         const today = new Date();
         depDate.setHours(0, 0, 0, 0);

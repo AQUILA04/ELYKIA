@@ -761,6 +761,94 @@ class TontineServiceTest {
         assertEquals("Huile 5l", result.get(0).notes());
     }
 
+    @Test
+    void updateAdhesionDate_movesRegistrationAndOpeningStakeEarlier() {
+        LocalDate today = LocalDate.now();
+        LocalDate sessionStart = today.minusMonths(8).withDayOfMonth(1);
+        LocalDate registered = today.minusMonths(1).withDayOfMonth(1);
+        LocalDate earlier = today.minusMonths(6).withDayOfMonth(1);
+
+        TontineSession session = activeSession(sessionStart, today.plusMonths(1));
+        TontineMember member = adhesionMember(session, registered);
+        TontineMemberAmountHistory history = member.getAmountHistory().get(0);
+
+        when(tontineMemberRepository.findById(100L)).thenReturn(Optional.of(member));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(100L, State.ENABLED))
+                .thenReturn(List.of());
+        when(allocationPolicyResolver.resolve()).thenReturn(allocationPolicy);
+        when(tontineMemberRepository.saveAndFlush(any(TontineMember.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TontineMemberRespDto result = service.updateAdhesionDate(100L, earlier);
+
+        assertEquals(earlier.atStartOfDay(), member.getRegistrationDate());
+        assertEquals(earlier, history.getStartDate());
+        assertEquals(500.0, history.getAmount());
+        assertEquals(earlier.atStartOfDay(), result.registrationDate());
+    }
+
+    @Test
+    void updateAdhesionDate_rejectsDateAfterAnExistingCollection() {
+        LocalDate today = LocalDate.now();
+        LocalDate registered = today.minusDays(20);
+        LocalDate collectionDay = today.minusDays(15);
+        LocalDate tooLate = today.minusDays(10);
+
+        TontineSession session = activeSession(today.minusMonths(8), today.plusMonths(1));
+        TontineMember member = adhesionMember(session, registered);
+        TontineCollection collection = new TontineCollection();
+        collection.setCollectionDate(collectionDay.atStartOfDay());
+
+        when(tontineMemberRepository.findById(100L)).thenReturn(Optional.of(member));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(100L, State.ENABLED))
+                .thenReturn(List.of(collection));
+
+        CustomValidationException exception = assertThrows(
+                CustomValidationException.class,
+                () -> service.updateAdhesionDate(100L, tooLate));
+
+        assertTrue(exception.getMessage().contains("cotisation"));
+        verify(tontineMemberRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void updateAdhesionDate_rejectsClosedSession() {
+        LocalDate today = LocalDate.now();
+        TontineSession session = activeSession(today.minusMonths(8), today.plusMonths(1));
+        session.setStatus(TontineSessionStatus.CLOSED);
+        TontineMember member = adhesionMember(session, today.minusDays(20));
+
+        when(tontineMemberRepository.findById(100L)).thenReturn(Optional.of(member));
+
+        CustomValidationException exception = assertThrows(
+                CustomValidationException.class,
+                () -> service.updateAdhesionDate(100L, today.minusDays(40)));
+
+        assertTrue(exception.getMessage().contains("session en cours"));
+        verify(tontineCollectionRepository, never())
+                .findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(any(), any());
+    }
+
+    private TontineSession activeSession(LocalDate start, LocalDate end) {
+        TontineSession session = session(10L, start.getYear(), TontineSessionStatus.ACTIVE);
+        session.setStartDate(start);
+        session.setEndDate(end);
+        return session;
+    }
+
+    private TontineMember adhesionMember(TontineSession session, LocalDate registered) {
+        TontineMember member = member(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
+        member.setId(100L);
+        member.setAmount(500.0);
+        member.setTontineSession(session);
+        member.setRegistrationDate(registered.atTime(15, 30));
+        TontineMemberAmountHistory history = new TontineMemberAmountHistory();
+        history.setStartDate(registered);
+        history.setAmount(500.0);
+        history.setTontineMember(member);
+        member.getAmountHistory().add(history);
+        return member;
+    }
+
     private TontineSession session(Long id, int year, TontineSessionStatus status) {
         TontineSession session = new TontineSession();
         session.setId(id);

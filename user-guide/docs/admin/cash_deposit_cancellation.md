@@ -21,6 +21,6 @@ Cette page explique comment annuler un versement espèce enregistré depuis le r
 2. Confirmez. Le versement est retiré du jour d'encaissement. Si des rattrapages étaient inclus, la part de chaque date de cotisation est retirée en même temps.
 3. Le crédit, la tontine et le solde des nouveaux comptes du rapport redeviennent à verser pour les montants annulés.
 
-L'annulation est possible pendant **3 jours** à compter du jour où l'argent a été reçu. Passé ce délai, le bouton n'est plus proposé.
+Le bouton d'annulation reste disponible, y compris pour un versement reçu depuis plus de trois jours.
 
 Un versement déjà inclus dans une remise au gestionnaire, en attente ou déjà reçue, ne peut pas être annulé. Le message indique de ne pas poursuivre.

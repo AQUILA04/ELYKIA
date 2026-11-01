@@ -51,6 +51,7 @@ nav:
     - Journal espace client (Audit): admin/customer_activity_audit.md
     - Annulation de ventes: admin/sale_cancellation.md
     - Annulation d'un versement: admin/cash_deposit_cancellation.md
+    - Date d'adhésion tontine: admin/tontine_adhesion_date.md
 
 markdown_extensions:
   - admonition

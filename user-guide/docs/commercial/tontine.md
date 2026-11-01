@@ -121,7 +121,7 @@ Le cycle annuel de tontine compte exactement 10 mois d'épargne. Chaque mois né
 - **Mois à venir** : Mois futurs en attente.
 
 ### 6. Synthèse des collectes et pastilles journalières
-Un tableau liste chaque mois avec :
+Un tableau liste chaque mois. Le mois le plus récent est en haut. Les mois plus anciens suivent, jusqu'à février.
 - Le nombre de cotisations et le montant total en FCFA.
 - **Des pastilles numérotées** : Chaque pastille représente un jour complet de mise acquis par le membre, calculé d'après sa mise journalière en vigueur.
 
@@ -143,7 +143,7 @@ Deux boutons vous permettent d'enregistrer des versements :
 - **Collecte de rattrapage** : Si une cotisation d'un jour antérieur n'avait pas pu être saisie à temps. Vous choisissez la date concernée, confirmez la mise applicable à ce moment-là, et visualisez immédiatement l'effet sur le solde et les mois validés avant de confirmer.
 
 ### 9. Annulation d'une collecte
-En cas d'erreur de saisie, les utilisateurs habilités peuvent annuler une ligne de collecte directement dans l'historique. Après confirmation, l'application recalcule automatiquement le total épargné, le solde disponible, la part société et les compteurs de jours.
+En cas d'erreur de saisie, les utilisateurs habilités peuvent annuler une ligne de collecte directement dans l'historique. Les collectes les plus récentes sont en haut de la liste. Après confirmation, l'application recalcule automatiquement le total épargné, le solde disponible, la part société et les compteurs de jours.
 
 ### Cotisations à distance par Mobile Money
 Les membres peuvent également cotiser en toute autonomie depuis leur Espace Client ELYKIA :
