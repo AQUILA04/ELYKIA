@@ -123,4 +123,24 @@ class StockValuationFacadeTest {
         verify(fifoStockValuationService, never()).registerEntry(
                 any(), anyInt(), anyDouble(), any(), any(), any());
     }
+
+    @Test
+    void alignLotsDoesNothingWhenFifoDisabled() {
+        Articles article = new Articles(1L);
+        when(parameterService.lockAndIsEnabled(StockValuationFacade.FIFO_FLAG_KEY)).thenReturn(false);
+
+        stockValuationFacade.alignLotsToArticleStock(article);
+
+        verify(fifoStockValuationService, never()).alignLotsToArticleStock(any());
+    }
+
+    @Test
+    void alignLotsDelegatesWhenFifoEnabled() {
+        Articles article = new Articles(1L);
+        when(parameterService.lockAndIsEnabled(StockValuationFacade.FIFO_FLAG_KEY)).thenReturn(true);
+
+        stockValuationFacade.alignLotsToArticleStock(article);
+
+        verify(fifoStockValuationService).alignLotsToArticleStock(article);
+    }
 }

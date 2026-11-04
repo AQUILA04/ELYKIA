@@ -3,11 +3,9 @@ package com.optimize.elykia.core.service.stock;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.ArticleStockLot;
-import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.repository.ArticleStockLotRepository;
 import com.optimize.elykia.core.repository.ArticlesRepository;
-import com.optimize.elykia.core.repository.StockReceptionItemRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -42,9 +40,6 @@ class FifoStockActivationServiceTest {
     private ArticleStockLotRepository lotRepository;
 
     @Mock
-    private StockReceptionItemRepository stockReceptionItemRepository;
-
-    @Mock
     private FifoStockValuationService fifoStockValuationService;
 
     @Mock
@@ -71,6 +66,7 @@ class FifoStockActivationServiceTest {
         when(articlesRepository.findAll()).thenReturn(List.of(article));
         when(articlesRepository.findByIdForUpdate(7L)).thenReturn(Optional.of(article));
         when(lotRepository.sumRemainingQuantityByArticleId(7L)).thenReturn(0);
+        when(fifoStockValuationService.resolveOpeningUnitPrice(article)).thenReturn(200.0);
         when(fifoStockValuationService.registerEntry(
                 eq(article),
                 eq(10),
@@ -141,7 +137,7 @@ class FifoStockActivationServiceTest {
     }
 
     @Test
-    void activateFailsWhenOpenLotsDifferFromStock() {
+    void activateFailsWhenOpenLotsExceedStock() {
         Articles article = new Articles(9L);
         article.setName("Disque");
         article.setStockQuantity(10);
@@ -150,14 +146,14 @@ class FifoStockActivationServiceTest {
         when(stockValuationFacade.isFifoEnabled()).thenReturn(true);
         when(articlesRepository.findAll()).thenReturn(List.of(article));
         when(articlesRepository.findByIdForUpdate(9L)).thenReturn(Optional.of(article));
-        when(lotRepository.sumRemainingQuantityByArticleId(9L)).thenReturn(4);
+        when(lotRepository.sumRemainingQuantityByArticleId(9L)).thenReturn(12);
 
         CustomValidationException ex = assertThrows(
                 CustomValidationException.class,
                 () -> fifoStockActivationService.activate());
 
         assertTrue(ex.getMessage().contains("Disque"));
-        assertTrue(ex.getMessage().contains("lots ouverts=4"));
+        assertTrue(ex.getMessage().contains("lots ouverts=12"));
         verify(fifoStockValuationService, never()).registerEntry(
                 any(Articles.class),
                 anyInt(),
@@ -165,6 +161,39 @@ class FifoStockActivationServiceTest {
                 any(ArticleStockLotSourceType.class),
                 any(),
                 any());
+    }
+
+    @Test
+    void activateTopsUpWhenOpenLotsAreShortOfStock() {
+        Articles article = new Articles(8L);
+        article.setName("Onga");
+        article.setStockQuantity(22);
+        article.setPurchasePrice(80.0);
+
+        when(stockValuationFacade.isFifoEnabled()).thenReturn(true);
+        when(articlesRepository.findAll()).thenReturn(List.of(article));
+        when(articlesRepository.findByIdForUpdate(8L)).thenReturn(Optional.of(article));
+        when(lotRepository.sumRemainingQuantityByArticleId(8L)).thenReturn(3);
+        when(fifoStockValuationService.resolveOpeningUnitPrice(article)).thenReturn(80.0);
+        when(fifoStockValuationService.registerEntry(
+                eq(article),
+                eq(19),
+                eq(80.0),
+                eq(ArticleStockLotSourceType.MIGRATION),
+                isNull(),
+                any(LocalDate.class)))
+                .thenReturn(new ArticleStockLot());
+
+        Map<String, Object> result = fifoStockActivationService.activate();
+
+        assertEquals(1, result.get("migratedArticles"));
+        verify(fifoStockValuationService).registerEntry(
+                eq(article),
+                eq(19),
+                eq(80.0),
+                eq(ArticleStockLotSourceType.MIGRATION),
+                isNull(),
+                any(LocalDate.class));
     }
 
     @Test
@@ -178,9 +207,7 @@ class FifoStockActivationServiceTest {
         when(articlesRepository.findAll()).thenReturn(List.of(article));
         when(articlesRepository.findByIdForUpdate(11L)).thenReturn(Optional.of(article));
         when(lotRepository.sumRemainingQuantityByArticleId(11L)).thenReturn(0);
-        when(stockReceptionItemRepository
-                .findValidatedWithPositiveUnitPriceByArticleIdOrderByReceptionDateDesc(11L))
-                .thenReturn(List.of());
+        when(fifoStockValuationService.resolveOpeningUnitPrice(article)).thenReturn(null);
 
         CustomValidationException ex = assertThrows(
                 CustomValidationException.class,
@@ -198,21 +225,16 @@ class FifoStockActivationServiceTest {
     }
 
     @Test
-    void activateUsesLastValidatedReceptionPriceWhenCatalogPriceMissing() {
+    void activateUsesResolvedOpeningPriceWhenCatalogPriceMissing() {
         Articles article = new Articles(12L);
         article.setStockQuantity(6);
         article.setPurchasePrice(0.0);
-
-        StockReceptionItem receptionItem = new StockReceptionItem();
-        receptionItem.setUnitPrice(175.0);
 
         when(stockValuationFacade.isFifoEnabled()).thenReturn(true);
         when(articlesRepository.findAll()).thenReturn(List.of(article));
         when(articlesRepository.findByIdForUpdate(12L)).thenReturn(Optional.of(article));
         when(lotRepository.sumRemainingQuantityByArticleId(12L)).thenReturn(0);
-        when(stockReceptionItemRepository
-                .findValidatedWithPositiveUnitPriceByArticleIdOrderByReceptionDateDesc(12L))
-                .thenReturn(List.of(receptionItem));
+        when(fifoStockValuationService.resolveOpeningUnitPrice(article)).thenReturn(175.0);
         when(fifoStockValuationService.registerEntry(
                 eq(article),
                 eq(6),

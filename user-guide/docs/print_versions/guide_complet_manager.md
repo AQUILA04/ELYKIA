@@ -994,6 +994,8 @@ Pour les profils administrateurs ou gestionnaires autorisés, le menu latéral *
 
 À l'enregistrement, le stock déjà en magasin est repris sur un premier lot pour chaque article concerné. Les prochaines entrées de stock s'ajoutent ensuite derrière ce premier lot. Les quantités affichées ne changent pas.
 
+La livraison d'une demande de sortie suit la quantité en magasin. Si cette quantité est plus élevée que ce qui a été repris à l'activation, la différence est valorisée au prix d'achat de l'article et sert après le stock déjà repris. La livraison aboutit dès que le magasin couvre la demande.
+
 Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refusée et le paramètre reste désactivé. Complétez le prix d'achat de l'article (ou validez une réception avec prix), puis réessayez.
 
 ### Mode de paiement de l’Espace Client

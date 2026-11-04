@@ -75,6 +75,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.44.2] — 2026-11-04
+
+### Fixed
+
+- Livraison d'une demande de sortie en valorisation par lots : le stock déjà en magasin à l'activation est repris sur un premier lot, et une entrée ou un ajustement ultérieur qui a augmenté la quantité sans nouveau lot ne bloque plus la livraison. La quantité manquante est valorisée au prix d'achat et sert après ce premier lot, tant que le stock affiché couvre la demande.
+- Un ajustement d'inventaire (hausse ou baisse) recale les lots sur la quantité en magasin.
+- Si des lots existent déjà mais couvrent moins que le stock, l'activation complète l'écart au lieu de refuser.
+
+### Docs
+
+- Guide gestionnaire : la livraison d'une demande de sortie suit la quantité en magasin lorsque celle-ci dépasse le stock repris à l'activation. Index RAG et guide HTML régénérés.
+
 ## Backend — [1.44.1] — 2026-11-04
 
 ### Added

@@ -2,11 +2,9 @@ package com.optimize.elykia.core.service.stock;
 
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.core.entity.article.Articles;
-import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.repository.ArticleStockLotRepository;
 import com.optimize.elykia.core.repository.ArticlesRepository;
-import com.optimize.elykia.core.repository.StockReceptionItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +24,6 @@ public class FifoStockActivationService {
 
     private final ArticlesRepository articlesRepository;
     private final ArticleStockLotRepository lotRepository;
-    private final StockReceptionItemRepository stockReceptionItemRepository;
     private final FifoStockValuationService fifoStockValuationService;
     private final StockValuationFacade stockValuationFacade;
 
@@ -55,13 +52,13 @@ public class FifoStockActivationService {
                 skippedArticles++;
                 continue;
             }
-            if (openLotQty > 0) {
+            if (openLotQty > stockQty) {
                 blockingArticles.add(formatArticleLabel(article)
                         + " (stock=" + stockQty + ", lots ouverts=" + openLotQty + ")");
                 continue;
             }
 
-            Double unitPrice = resolveOpeningUnitPrice(article);
+            Double unitPrice = fifoStockValuationService.resolveOpeningUnitPrice(article);
             if (unitPrice == null) {
                 blockingArticles.add(formatArticleLabel(article) + " (prix d'achat manquant)");
                 continue;
@@ -69,7 +66,7 @@ public class FifoStockActivationService {
 
             fifoStockValuationService.registerEntry(
                     article,
-                    stockQty,
+                    stockQty - openLotQty,
                     unitPrice,
                     ArticleStockLotSourceType.MIGRATION,
                     null,
@@ -94,20 +91,6 @@ public class FifoStockActivationService {
     private int remainingLotQuantity(Long articleId) {
         Integer qty = lotRepository.sumRemainingQuantityByArticleId(articleId);
         return qty != null ? qty : 0;
-    }
-
-    private Double resolveOpeningUnitPrice(Articles article) {
-        if (article.getPurchasePrice() > 0) {
-            return article.getPurchasePrice();
-        }
-        List<StockReceptionItem> validatedItems =
-                stockReceptionItemRepository
-                        .findValidatedWithPositiveUnitPriceByArticleIdOrderByReceptionDateDesc(
-                                article.getId());
-        if (validatedItems.isEmpty()) {
-            return null;
-        }
-        return validatedItems.get(0).getUnitPrice();
     }
 
     private static String formatArticleLabel(Articles article) {

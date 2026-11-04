@@ -20,6 +20,7 @@ import com.optimize.elykia.core.repository.InventoryReconciliationRepository;
 import com.optimize.elykia.core.repository.StockMovementRepository;
 import com.optimize.elykia.core.service.debt.DebtService;
 import com.optimize.elykia.core.service.stock.StockMovementService;
+import com.optimize.elykia.core.service.stock.StockValuationFacade;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,12 +44,13 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
     private final StockMovementService stockMovementService;
     private final UserService userService;
     private final DebtService debtService;
+    private final StockValuationFacade stockValuationFacade;
 
     public InventoryReconciliationService(InventoryReconciliationRepository repository,
             InventoryItemRepository inventoryItemRepository, StockMovementRepository stockMovementRepository,
             ArticlesService articlesService, ArticleHistoryService articleHistoryService,
             StockMovementService stockMovementService, UserService userService,
-            @Lazy DebtService debtService) {
+            @Lazy DebtService debtService, StockValuationFacade stockValuationFacade) {
         super(repository);
         this.reconciliationRepository = repository;
         this.inventoryItemRepository = inventoryItemRepository;
@@ -58,6 +60,7 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
         this.stockMovementService = stockMovementService;
         this.userService = userService;
         this.debtService = debtService;
+        this.stockValuationFacade = stockValuationFacade;
     }
 
     @Override
@@ -92,6 +95,7 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
             Integer adjustment = item.getDifference();
             Integer newStock = Math.max(0, article.getStockQuantity() + adjustment);
             article.setStockQuantity(newStock);
+            stockValuationFacade.alignLotsToArticleStock(article);
 
             reconciliation.setReconciliationType(ReconciliationType.ERROR_CORRECTION);
             reconciliation.setAction(ReconciliationAction.ADJUST_TO_PHYSICAL);
@@ -112,6 +116,7 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
             Integer adjustment = item.getDifference();
             Integer newStock = Math.max(0, article.getStockQuantity() + adjustment);
             article.setStockQuantity(newStock);
+            stockValuationFacade.alignLotsToArticleStock(article);
 
             reconciliation.setReconciliationType(ReconciliationType.DEBT_RESOLUTION);
             reconciliation.setAction(ReconciliationAction.MARK_AS_DEBT);
@@ -134,6 +139,7 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
                 Integer restoreQty = Math.abs(item.getDifference());
                 Integer newStock = article.getStockQuantity() + restoreQty;
                 article.setStockQuantity(newStock);
+                stockValuationFacade.alignLotsToArticleStock(article);
                 reconciliation.setStockAfter(newStock);
                 String reason = "Annulation dette magasinier: " + dto.getComment();
                 recordInventoryAdjustmentLedger(item, article, stockBefore, newStock, restoreQty,
@@ -195,6 +201,7 @@ public class InventoryReconciliationService extends GenericService<InventoryReco
         Integer adjustment = item.getDifference();
         Integer newStock = Math.max(0, article.getStockQuantity() + adjustment);
         article.setStockQuantity(newStock);
+        stockValuationFacade.alignLotsToArticleStock(article);
 
         reconciliation.setStockAfter(newStock);
 
