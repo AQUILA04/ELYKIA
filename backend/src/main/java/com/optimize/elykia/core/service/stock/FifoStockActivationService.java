@@ -2,11 +2,9 @@ package com.optimize.elykia.core.service.stock;
 
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.core.entity.article.Articles;
-import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.repository.ArticleStockLotRepository;
 import com.optimize.elykia.core.repository.ArticlesRepository;
-import com.optimize.elykia.core.repository.StockReceptionItemRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +24,6 @@ public class FifoStockActivationService {
 
     private final ArticlesRepository articlesRepository;
     private final ArticleStockLotRepository lotRepository;
-    private final StockReceptionItemRepository stockReceptionItemRepository;
     private final FifoStockValuationService fifoStockValuationService;
     private final StockValuationFacade stockValuationFacade;
 
@@ -38,6 +35,7 @@ public class FifoStockActivationService {
 
         List<Articles> articles = articlesRepository.findAll();
         int migratedArticles = 0;
+        int trimmedArticles = 0;
         int skippedArticles = 0;
         List<String> blockingArticles = new ArrayList<>();
 
@@ -46,22 +44,19 @@ public class FifoStockActivationService {
                     .orElse(articleRef);
 
             int stockQty = article.getStockQuantity() != null ? article.getStockQuantity() : 0;
-            if (stockQty <= 0) {
-                continue;
-            }
-
             int openLotQty = remainingLotQuantity(article.getId());
             if (openLotQty == stockQty) {
                 skippedArticles++;
                 continue;
             }
-            if (openLotQty > 0) {
-                blockingArticles.add(formatArticleLabel(article)
-                        + " (stock=" + stockQty + ", lots ouverts=" + openLotQty + ")");
+            if (openLotQty > stockQty) {
+                fifoStockValuationService.alignLotsToArticleStock(article);
+                fifoStockValuationService.assertLotQuantityMatchesArticle(article);
+                trimmedArticles++;
                 continue;
             }
 
-            Double unitPrice = resolveOpeningUnitPrice(article);
+            Double unitPrice = fifoStockValuationService.resolveOpeningUnitPrice(article);
             if (unitPrice == null) {
                 blockingArticles.add(formatArticleLabel(article) + " (prix d'achat manquant)");
                 continue;
@@ -69,7 +64,7 @@ public class FifoStockActivationService {
 
             fifoStockValuationService.registerEntry(
                     article,
-                    stockQty,
+                    stockQty - openLotQty,
                     unitPrice,
                     ArticleStockLotSourceType.MIGRATION,
                     null,
@@ -86,28 +81,15 @@ public class FifoStockActivationService {
 
         Map<String, Object> result = new HashMap<>();
         result.put("migratedArticles", migratedArticles);
+        result.put("trimmedArticles", trimmedArticles);
         result.put("skippedArticles", skippedArticles);
-        result.put("message", "Lots d'ouverture FIFO créés.");
+        result.put("message", "Lots FIFO alignés sur le stock magasin.");
         return result;
     }
 
     private int remainingLotQuantity(Long articleId) {
         Integer qty = lotRepository.sumRemainingQuantityByArticleId(articleId);
         return qty != null ? qty : 0;
-    }
-
-    private Double resolveOpeningUnitPrice(Articles article) {
-        if (article.getPurchasePrice() > 0) {
-            return article.getPurchasePrice();
-        }
-        List<StockReceptionItem> validatedItems =
-                stockReceptionItemRepository
-                        .findValidatedWithPositiveUnitPriceByArticleIdOrderByReceptionDateDesc(
-                                article.getId());
-        if (validatedItems.isEmpty()) {
-            return null;
-        }
-        return validatedItems.get(0).getUnitPrice();
     }
 
     private static String formatArticleLabel(Articles article) {

@@ -214,7 +214,9 @@ Pour les profils administrateurs ou gestionnaires autorisés, le menu latéral *
 2. Repérez le paramètre de valorisation du stock magasin (`ENABLED_FIFO_STOCK_VALUATION`).
 3. Passez sa valeur à **true**, puis enregistrez.
 
-À l'enregistrement, le stock déjà en magasin est repris sur un premier lot pour chaque article concerné. Les prochaines entrées de stock s'ajoutent ensuite derrière ce premier lot. Les quantités affichées ne changent pas.
+À l'enregistrement, le stock déjà en magasin est repris sur un premier lot pour chaque article concerné. Si des lots existent déjà et couvrent moins que la quantité en magasin, la différence est ajoutée au prix d'achat. Si les lots couvrent plus que la quantité en magasin, l'excédent est soldé pour que les deux quantités coïncident, y compris lorsqu'un article est à zéro. Les quantités affichées ne changent pas. Les prochaines entrées de stock s'ajoutent ensuite derrière ces lots.
+
+La livraison d'une demande de sortie suit la quantité en magasin. Si cette quantité est plus élevée que ce qui a été repris à l'activation, la différence est valorisée au prix d'achat de l'article et sert après le stock déjà repris. La livraison aboutit dès que le magasin couvre la demande.
 
 Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refusée et le paramètre reste désactivé. Complétez le prix d'achat de l'article (ou validez une réception avec prix), puis réessayez.
 

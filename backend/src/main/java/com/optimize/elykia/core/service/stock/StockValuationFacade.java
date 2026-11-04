@@ -82,6 +82,17 @@ public class StockValuationFacade {
         fifoStockValuationService.cancelEntry(receptionItem);
     }
 
+    /**
+     * Recale les lots FIFO sur le stock article déjà modifié (ajustement d'inventaire).
+     * Sans effet lorsque la valorisation par lots est désactivée.
+     */
+    public void alignLotsToArticleStock(Articles article) {
+        if (!lockAndIsFifoEnabled()) {
+            return;
+        }
+        fifoStockValuationService.alignLotsToArticleStock(article);
+    }
+
     public FifoConsumptionResult consume(
             Articles article,
             int quantity,

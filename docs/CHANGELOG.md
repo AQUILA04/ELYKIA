@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-04
+
+### Added
+
+- **Docs —** contrôle en lecture seule sur la prod pour une livraison FIFO refusée : requêtes pour identifier l’article, comparer le stock magasin aux lots, et retrouver qui a validé une entrée, un retour ou une régularisation d’inventaire (`docs/diagnostic-fifo-entrees-sans-lot.md`).
+
 ## Docs & Infra — 2026-10-24
 
 ### Fixed
@@ -74,6 +80,30 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.44.3] — 2026-11-04
+
+### Fixed
+
+- L'activation de la valorisation par lots solde les lots qui dépassent la quantité en magasin, y compris quand cette quantité est à zéro, au lieu de refuser tout le traitement.
+- La remise à zéro d'un article ou de tout le stock solde les lots ouverts en même temps que la quantité.
+- Le démarrage d'une vente qui sort du magasin consomme les lots avant de diminuer la quantité.
+
+### Docs
+
+- Guide gestionnaire : à l'activation, un excédent de lots par rapport à la quantité en magasin est soldé. Index RAG et guide HTML régénérés.
+
+## Backend — [1.44.2] — 2026-11-04
+
+### Fixed
+
+- Livraison d'une demande de sortie en valorisation par lots : le stock déjà en magasin à l'activation est repris sur un premier lot, et une entrée ou un ajustement ultérieur qui a augmenté la quantité sans nouveau lot ne bloque plus la livraison. La quantité manquante est valorisée au prix d'achat et sert après ce premier lot, tant que le stock affiché couvre la demande.
+- Un ajustement d'inventaire (hausse ou baisse) recale les lots sur la quantité en magasin.
+- Si des lots existent déjà mais couvrent moins que le stock, l'activation complète l'écart au lieu de refuser.
+
+### Docs
+
+- Guide gestionnaire : la livraison d'une demande de sortie suit la quantité en magasin lorsque celle-ci dépasse le stock repris à l'activation. Index RAG et guide HTML régénérés.
 
 ## Backend — [1.44.1] — 2026-11-04
 

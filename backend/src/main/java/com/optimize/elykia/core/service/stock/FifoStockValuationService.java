@@ -11,6 +11,10 @@ import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.enumaration.ArticleStockLotStatus;
 import com.optimize.elykia.core.repository.ArticleStockLotConsumptionRepository;
 import com.optimize.elykia.core.repository.ArticleStockLotRepository;
+import com.optimize.elykia.core.repository.ArticlesRepository;
+import com.optimize.elykia.core.repository.StockReceptionItemRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +29,11 @@ public class FifoStockValuationService {
 
     private final ArticleStockLotRepository lotRepository;
     private final ArticleStockLotConsumptionRepository consumptionRepository;
+    private final ArticlesRepository articlesRepository;
+    private final StockReceptionItemRepository stockReceptionItemRepository;
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public ArticleStockLot registerEntry(
             Articles article,
@@ -78,6 +87,92 @@ public class FifoStockValuationService {
             throw new CustomValidationException("La quantité à consommer doit être strictement positive.");
         }
 
+        Articles locked = articlesRepository.findByIdForUpdate(article.getId()).orElse(article);
+        if (entityManager != null && entityManager.contains(locked)) {
+            entityManager.flush();
+            entityManager.refresh(locked);
+        }
+        if (locked != article && locked.getStockQuantity() != null) {
+            article.setStockQuantity(locked.getStockQuantity());
+        }
+
+        topUpUnlottedStock(locked, quantity, ArticleStockLotSourceType.MIGRATION);
+        return consumeFromOpenLots(locked, quantity, movementType, sourceType, sourceId);
+    }
+
+    /**
+     * Aligne les lots sur {@code stockQuantity} après un ajustement déjà appliqué en mémoire
+     * (inventaire). Ne recharge pas l'article : le stock cible est celui passé en argument.
+     */
+    public void alignLotsToArticleStock(Articles article) {
+        int stockQty = stockQuantity(article);
+        int lotQty = getRemainingLotQuantity(article.getId());
+        if (stockQty > lotQty) {
+            registerGap(article, stockQty - lotQty, ArticleStockLotSourceType.INVENTORY_ADJUSTMENT);
+            return;
+        }
+        if (lotQty > stockQty) {
+            consumeFromOpenLots(
+                    article,
+                    lotQty - stockQty,
+                    ArticleStockLotMovementType.ADJUSTMENT,
+                    "INVENTORY",
+                    article.getId());
+        }
+    }
+
+    /**
+     * Prix du lot d'ouverture : prix d'achat catalogue, sinon dernier prix d'une réception validée.
+     */
+    public Double resolveOpeningUnitPrice(Articles article) {
+        if (article.getPurchasePrice() > 0) {
+            return article.getPurchasePrice();
+        }
+        List<StockReceptionItem> validatedItems =
+                stockReceptionItemRepository
+                        .findValidatedWithPositiveUnitPriceByArticleIdOrderByReceptionDateDesc(
+                                article.getId());
+        if (validatedItems.isEmpty()) {
+            return null;
+        }
+        return validatedItems.get(0).getUnitPrice();
+    }
+
+    /**
+     * Le lot d'ouverture ne couvre que le stock présent à l'activation. Une entrée ou un
+     * ajustement qui a augmenté {@code stockQuantity} sans lot laisserait la livraison
+     * échouer alors que le magasin a la quantité. On valorise cet écart au prix d'achat,
+     * derrière les lots déjà ouverts, uniquement quand la sortie en a besoin.
+     */
+    private void topUpUnlottedStock(Articles article, int quantityToConsume, ArticleStockLotSourceType sourceType) {
+        int stockQty = stockQuantity(article);
+        int lotQty = getRemainingLotQuantity(article.getId());
+        int gap = stockQty - lotQty;
+        if (gap <= 0 || lotQty >= quantityToConsume) {
+            return;
+        }
+        registerGap(article, gap, sourceType);
+    }
+
+    private void registerGap(Articles article, int gap, ArticleStockLotSourceType sourceType) {
+        Double unitPrice = resolveOpeningUnitPrice(article);
+        if (unitPrice == null) {
+            throw new CustomValidationException(
+                    "Impossible de valoriser "
+                            + gap
+                            + " unité(s) en stock sans lot FIFO pour l'article "
+                            + article.getCommercialName()
+                            + " : prix d'achat manquant.");
+        }
+        registerEntry(article, gap, unitPrice, sourceType, null, LocalDate.now());
+    }
+
+    private FifoConsumptionResult consumeFromOpenLots(
+            Articles article,
+            int quantity,
+            ArticleStockLotMovementType movementType,
+            String sourceType,
+            Long sourceId) {
         List<ArticleStockLot> openLots = lotRepository.findOpenLotsForArticleOrderByFifo(
                 article.getId(), ArticleStockLotStatus.OPEN);
 
@@ -150,6 +245,10 @@ public class FifoStockValuationService {
     public int getRemainingLotQuantity(Long articleId) {
         Integer qty = lotRepository.sumRemainingQuantityByArticleId(articleId);
         return qty != null ? qty : 0;
+    }
+
+    private static int stockQuantity(Articles article) {
+        return article.getStockQuantity() != null ? article.getStockQuantity() : 0;
     }
 
     public void assertLotQuantityMatchesArticle(Articles article) {

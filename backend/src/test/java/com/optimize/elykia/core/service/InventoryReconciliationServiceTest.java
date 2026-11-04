@@ -15,6 +15,7 @@ import com.optimize.elykia.core.repository.InventoryItemRepository;
 import com.optimize.elykia.core.repository.InventoryReconciliationRepository;
 import com.optimize.elykia.core.repository.StockMovementRepository;
 import com.optimize.elykia.core.service.stock.StockMovementService;
+import com.optimize.elykia.core.service.stock.StockValuationFacade;
 import com.optimize.elykia.core.service.store.ArticleHistoryService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.store.InventoryReconciliationService;
@@ -64,6 +65,8 @@ class InventoryReconciliationServiceTest {
     private UserService userService;
     @Mock
     private com.optimize.elykia.core.service.debt.DebtService debtService;
+    @Mock
+    private StockValuationFacade stockValuationFacade;
     @InjectMocks
     private InventoryReconciliationService inventoryReconciliationService;
 
@@ -111,6 +114,7 @@ class InventoryReconciliationServiceTest {
         verify(stockMovementService).recordMovementWithSnapshot(
                 eq(article), eq(MovementType.INVENTORY_ADJUSTMENT), eq(8), eq(5), eq(0),
                 contains("Correction erreur"), eq(USERNAME), isNull(), isNull(), eq(false));
+        verify(stockValuationFacade).alignLotsToArticleStock(article);
         verify(articlesService).update(article);
         verify(inventoryItemRepository).save(item);
         verify(reconciliationRepository).save(any(InventoryReconciliation.class));
@@ -159,6 +163,7 @@ class InventoryReconciliationServiceTest {
         verify(stockMovementService).recordMovementWithSnapshot(
                 eq(article), eq(MovementType.INVENTORY_ADJUSTMENT), eq(4), eq(10), eq(14),
                 contains("Surplus"), eq(USERNAME), isNull(), isNull(), eq(false));
+        verify(stockValuationFacade).alignLotsToArticleStock(article);
     }
 
     @Test

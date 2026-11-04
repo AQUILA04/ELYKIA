@@ -8,6 +8,9 @@ import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.dto.StockEntryDto;
 import com.optimize.elykia.core.entity.article.ArticleHistory;
 import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.sale.Credit;
+import com.optimize.elykia.core.entity.sale.CreditArticles;
+import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
 import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
@@ -206,14 +209,35 @@ class ArticlesServiceTest {
     @Test
     void resetStockForArticle_ShouldResetQuantityAndCreateHistory() {
         when(userService.getCurrentUser()).thenReturn(currentUser);
-        when(articlesRepository.findById(1L)).thenReturn(Optional.of(article));
-        // GenericService.update calls saveAndFlush
+        when(articlesRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(article));
         when(articlesRepository.saveAndFlush(any(Articles.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         Articles result = articlesService.resetStockForArticle(1L);
 
         assertThat(result.getStockQuantity()).isEqualTo(0);
         verify(articleHistoryService, times(1)).create(any(ArticleHistory.class));
+        verify(stockValuationFacade).alignLotsToArticleStock(article);
         verify(articlesRepository, times(1)).saveAndFlush(any(Articles.class));
+    }
+
+    @Test
+    void makeStockRelease_ShouldConsumeFifoLotsBeforeReducingStock() {
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(articlesRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(article));
+        when(articlesRepository.saveAndFlush(any(Articles.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        Credit credit = new Credit();
+        credit.setId(44L);
+        CreditArticles line = new CreditArticles(1L, 4);
+        line.setCredit(credit);
+
+        articlesService.makeStockRelease(line);
+
+        assertThat(article.getStockQuantity()).isEqualTo(6);
+        verify(stockValuationFacade).consume(
+                eq(article),
+                eq(4),
+                eq(ArticleStockLotMovementType.WAREHOUSE_RELEASE),
+                eq("CREDIT"),
+                eq(44L));
     }
 }
