@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-04
+
+### Added
+
+- **Docs —** contrôle en lecture seule sur la prod pour une livraison FIFO refusée : requêtes pour identifier l’article, comparer le stock magasin aux lots, et retrouver qui a validé une entrée, un retour ou une régularisation d’inventaire (`docs/diagnostic-fifo-entrees-sans-lot.md`).
+
 ## Docs & Infra — 2026-10-24
 
 ### Fixed
