@@ -53,7 +53,8 @@ jobs:
   build-mobile:
     needs: changes
     if: ${{ needs.changes.outputs.mobile == 'true' }}
-    runs-on: ubuntu-latest
+    # ubuntu-latest est passé à 26.04 ; Playwright 1.59 n'y installe pas Chromium.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./mobile
