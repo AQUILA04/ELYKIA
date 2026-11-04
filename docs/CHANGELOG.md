@@ -46,6 +46,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.41.1] — 2026-11-04
+
+### Added
+
+- Rapport journalier, segment **Recouvrement** : l’activité terrain du chef affiche, sur la période choisie, les contrôles carnet crédit et tontine rapportés aux dossiers encore en cours, les clôtures crédit (totales et partielles) et les carnets vérifiés.
+
 ## Frontend — [2.41.0] — 2026-11-01
 
 ### Added
@@ -68,6 +74,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.44.1] — 2026-11-04
+
+### Added
+
+- Rapport de recouvrement : les contrôles carnet crédit et tontine du chef, les clôtures crédit et les vérifications de carnet sont calculés sur la période du rapport, avec le total des dossiers encore en cours.
 
 ## Backend — [1.44.0] — 2026-11-01
 

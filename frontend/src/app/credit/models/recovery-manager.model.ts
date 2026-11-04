@@ -36,6 +36,27 @@ export interface RecoveryManagerReportSummaryDto {
   remittanceByCommercial: CommercialRemittanceDto[];
 }
 
+/** Activité terrain du chef sur la période du rapport journalier. */
+export interface RecoveryManagerActivityDto {
+  creditControlsDone: number;
+  creditControlsEvents: number;
+  creditPortfolioTotal: number;
+  creditControlsConforme: number;
+  creditControlsEcart: number;
+  creditCoveragePercent: number;
+  tontineControlsDone: number;
+  tontineControlsEvents: number;
+  tontinePortfolioTotal: number;
+  tontineControlsConforme: number;
+  tontineControlsEcart: number;
+  tontineCoveragePercent: number;
+  creditClosuresCount: number;
+  creditFullClosures: number;
+  creditPartialClosures: number;
+  creditCarnetVerifications: number;
+  tontineCarnetVerifications: number;
+}
+
 /** Taux de recouvrement mensuel chef (retards délai app, stock live). */
 export interface MonthlyRecoveryRateDto {
   year: number;

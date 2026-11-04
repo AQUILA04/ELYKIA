@@ -887,6 +887,7 @@ Le **Journal** est le registre chronologique et exhaustif de toutes les transact
 
 ### D. Onglet 3 : Recouvrement terrain
 Réservé aux chefs de recouvrement et aux gestionnaires d'agence :
+* **Activité terrain** : Contrôles carnet crédit et contrôles carnet tontine faits sur la période, chacun rapporté au total des dossiers encore en cours. Le détail indique les contrôles conformes et les écarts. Les clôtures crédit (totales et partielles) et les carnets vérifiés sur la période sont affichés à côté. Le filtre Commercial réduit ces totaux au portefeuille de l’agent choisi.
 * **Taux du mois** : Pourcentage d'efficacité de recouvrement sur le mois courant (montant encaissé sur le terrain rapporté au montant total exigible de tous les retards de délai de l'agence).
 * **Indicateurs clés** : Total collecté, nombre d'interventions terrain et nombre de commerciaux audités.
 * **Tableau « À remettre par commercial »** : Décompte précis des sommes perçues sur le terrain par dossier commercial.

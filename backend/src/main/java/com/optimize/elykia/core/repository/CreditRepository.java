@@ -1181,4 +1181,28 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("type") OperationType type,
             @Param("statuses") Collection<CreditStatus> statuses,
             @Param("state") com.optimize.common.entities.enums.State state);
+
+    @Query("""
+            SELECT COUNT(c) FROM Credit c
+            WHERE c.state = com.optimize.common.entities.enums.State.ENABLED
+              AND c.status = com.optimize.elykia.core.enumaration.CreditStatus.INPROGRESS
+              AND (:commercial IS NULL OR LOWER(c.collector) = LOWER(:commercial))
+            """)
+    long countEnabledInProgress(@Param("commercial") String commercial);
+
+    @Query("""
+            SELECT COUNT(c) FROM Credit c
+            WHERE c.state = com.optimize.common.entities.enums.State.ENABLED
+              AND c.carnetVerified = true
+              AND c.carnetVerifiedBy IS NOT NULL
+              AND LOWER(c.carnetVerifiedBy) = LOWER(:observer)
+              AND c.carnetVerifiedAt >= :startAt
+              AND c.carnetVerifiedAt < :endAt
+              AND (:commercial IS NULL OR LOWER(c.collector) = LOWER(:commercial))
+            """)
+    long countCarnetVerifiedByObserver(
+            @Param("observer") String observer,
+            @Param("startAt") java.time.LocalDateTime startAt,
+            @Param("endAt") java.time.LocalDateTime endAt,
+            @Param("commercial") String commercial);
 }

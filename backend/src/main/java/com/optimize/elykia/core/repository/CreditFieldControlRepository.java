@@ -92,4 +92,48 @@ public interface CreditFieldControlRepository extends GenericRepository<CreditFi
               )
             """, nativeQuery = true)
     Double sumPendingPositiveDifferenceForCollector(@Param("commercial") String commercial);
+
+    /**
+     * Dernier contrôle de la période, limité aux crédits encore en cours.
+     * Colonnes : dossiers, conformes, écarts.
+     */
+    @Query(value = """
+            SELECT COUNT(*) AS dossiers,
+                   COALESCE(SUM(CASE WHEN latest.status = 'CONFORME' THEN 1 ELSE 0 END), 0) AS conforme,
+                   COALESCE(SUM(CASE WHEN latest.status = 'ECART' THEN 1 ELSE 0 END), 0) AS ecart
+            FROM (
+                SELECT DISTINCT ON (c.credit_id) c.status
+                FROM credit_field_control c
+                JOIN credit cr ON cr.id = c.credit_id
+                WHERE c.visibility = 'ENABLED'
+                  AND cr.visibility = 'ENABLED'
+                  AND cr.status = 'INPROGRESS'
+                  AND c.observed_at >= :startAt
+                  AND c.observed_at < :endAt
+                  AND LOWER(c.observed_by) = LOWER(:observer)
+                  AND (CAST(:commercial AS text) IS NULL OR LOWER(cr.collector) = LOWER(CAST(:commercial AS text)))
+                ORDER BY c.credit_id, c.observed_at DESC, c.id DESC
+            ) latest
+            """, nativeQuery = true)
+    List<Object[]> summarizeInProgressCoverage(
+            @Param("observer") String observer,
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("commercial") String commercial);
+
+    @Query(value = """
+            SELECT COUNT(c.id)
+            FROM credit_field_control c
+            JOIN credit cr ON cr.id = c.credit_id
+            WHERE c.visibility = 'ENABLED'
+              AND c.observed_at >= :startAt
+              AND c.observed_at < :endAt
+              AND LOWER(c.observed_by) = LOWER(:observer)
+              AND (CAST(:commercial AS text) IS NULL OR LOWER(cr.collector) = LOWER(CAST(:commercial AS text)))
+            """, nativeQuery = true)
+    long countEvents(
+            @Param("observer") String observer,
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("commercial") String commercial);
 }

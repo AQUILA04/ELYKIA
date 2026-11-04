@@ -3,7 +3,8 @@ import { RecoveryManagerService } from '../../../credit/service/recovery-manager
 import {
   RecoveryManagerReportSummaryDto,
   RecoveryManagerOperation,
-  MonthlyRecoveryRateDto
+  MonthlyRecoveryRateDto,
+  RecoveryManagerActivityDto
 } from '../../../credit/models/recovery-manager.model';
 import { UserService } from 'src/app/user/service/user.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
@@ -20,6 +21,7 @@ export class RecoveryManagerReportTabComponent implements OnInit, OnChanges {
   @Input() commercialUsername: string | null = null;
 
   summary: RecoveryManagerReportSummaryDto | null = null;
+  activity: RecoveryManagerActivityDto | null = null;
   monthlyRate: MonthlyRecoveryRateDto | null = null;
   operations: RecoveryManagerOperation[] = [];
   isLoading = false;
@@ -65,9 +67,64 @@ export class RecoveryManagerReportTabComponent implements OnInit, OnChanges {
     return label.charAt(0).toUpperCase() + label.slice(1);
   }
 
+  get hasTerrainActivity(): boolean {
+    const activity = this.activity;
+    if (!activity) {
+      return false;
+    }
+    return activity.creditControlsEvents > 0
+      || activity.tontineControlsEvents > 0
+      || activity.creditCarnetVerifications > 0
+      || activity.tontineCarnetVerifications > 0
+      || activity.creditClosuresCount > 0;
+  }
+
+  barWidth(percent: number): number {
+    if (!percent || percent < 0) {
+      return 0;
+    }
+    return Math.min(100, percent);
+  }
+
+  controlHint(events: number, done: number, conforme: number, ecart: number, portfolio: number, emptyLabel: string): string {
+    if (portfolio === 0 && events === 0) {
+      return emptyLabel;
+    }
+    const parts: string[] = [];
+    if (events > done) {
+      parts.push(`${events} contrôle(s) enregistré(s)`);
+    }
+    parts.push(`${conforme} conforme(s)`);
+    parts.push(`${ecart} écart(s)`);
+    return parts.join(' · ');
+  }
+
+  get closureHint(): string {
+    const activity = this.activity;
+    if (!activity || activity.creditClosuresCount === 0) {
+      return 'Aucune clôture sur la période';
+    }
+    return `${activity.creditFullClosures} totale(s) · ${activity.creditPartialClosures} partielle(s)`;
+  }
+
   loadData(): void {
     this.isLoading = true;
     this.showNoData = false;
+    this.activity = null;
+
+    this.recoveryManagerService.getActivity({
+      startDate: this.startDate,
+      endDate: this.endDate,
+      recoveryManagerUsername: this.recoveryManagerUsername || undefined,
+      commercialUsername: this.commercialUsername || undefined
+    }).subscribe({
+      next: (res: any) => {
+        if (res.statusCode === 200 && res.data) {
+          this.activity = res.data;
+        }
+      },
+      error: (err) => console.error('Error loading recovery activity', err)
+    });
 
     this.recoveryManagerService.getReportSummary({
       startDate: this.startDate,

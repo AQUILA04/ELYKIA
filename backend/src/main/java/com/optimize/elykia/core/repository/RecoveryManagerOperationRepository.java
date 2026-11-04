@@ -72,4 +72,16 @@ public interface RecoveryManagerOperationRepository extends GenericRepository<Re
             @Param("endDate") LocalDate endDate,
             @Param("recoveryManagerUsername") String recoveryManagerUsername,
             @Param("commercialUsername") String commercialUsername);
+
+    @Query("SELECT COUNT(r) FROM RecoveryManagerOperation r " +
+            "WHERE r.operationDate BETWEEN :startDate AND :endDate " +
+            "AND (:recoveryManagerUsername IS NULL OR r.recoveryManagerUsername = :recoveryManagerUsername) " +
+            "AND (:commercialUsername IS NULL OR r.commercialUsername = :commercialUsername) " +
+            "AND r.isPartial = :partial")
+    Integer countOperationsByPartial(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("recoveryManagerUsername") String recoveryManagerUsername,
+            @Param("commercialUsername") String commercialUsername,
+            @Param("partial") boolean partial);
 }
