@@ -66,6 +66,7 @@ Ouvrez **Rapport Journalier**, appliquez la période et, lorsque l’interface l
 
 | Partie du rapport | Contenu |
 |---|---|
+| Activité terrain | Contrôles carnet crédit et contrôles carnet tontine faits sur la période, chacun rapporté au total encore en cours. Le détail indique les contrôles conformes et les écarts. Les clôtures crédit (totales et partielles) et les carnets vérifiés sur la période sont affichés à côté. |
 | Taux du mois | Pourcentage de recouvrement du chef sur le mois de fin de période : encaissé terrain / dû live de **tous les retards délai** de l’application. |
 | KPI | Total collecté, nombre d’opérations et nombre de commerciaux concernés. |
 | À remettre par commercial | Nombre d’opérations et montant à remettre pour chaque commercial. |

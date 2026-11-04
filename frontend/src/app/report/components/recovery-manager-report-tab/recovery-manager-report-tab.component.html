@@ -13,7 +13,7 @@
   </div>
 
   <!-- No Data -->
-  <div *ngIf="!isLoading && showNoData" class="empty-state">
+  <div *ngIf="!isLoading && showNoData && !hasTerrainActivity" class="empty-state">
     <mat-icon class="empty-icon">search_off</mat-icon>
     <p class="empty-text">Aucune opération de recouvrement pour cette période.</p>
   </div>
@@ -32,6 +32,67 @@
       </span>
     </div>
   </div>
+
+  <!-- Activité terrain : contrôles sur le portefeuille, clôtures -->
+  <section class="activity-block" *ngIf="!isLoading && activity as act" data-testid="rm-activity">
+    <div class="activity-head">
+      <h3 class="section-title">Activité terrain</h3>
+      <p class="activity-sub">
+        Sur la période du rapport. Chaque total est le portefeuille encore en cours
+        <ng-container *ngIf="commercialUsername"> du commercial choisi</ng-container>.
+      </p>
+    </div>
+    <div class="activity-grid">
+      <article class="activity-card" data-testid="rm-activity-credit-controls">
+        <div class="kpi-label">Contrôles carnet crédit</div>
+        <div class="activity-figure">
+          <span class="kpi-value">{{ act.creditControlsDone }}<span class="activity-of"> / {{ act.creditPortfolioTotal }}</span></span>
+          <span class="activity-pct">{{ act.creditCoveragePercent }} %</span>
+        </div>
+        <div class="coverage-track" role="progressbar"
+          [attr.aria-valuenow]="barWidth(act.creditCoveragePercent)" aria-valuemin="0" aria-valuemax="100"
+          aria-label="Part des crédits en cours contrôlés">
+          <div class="coverage-fill coverage-fill-credit" [style.width.%]="barWidth(act.creditCoveragePercent)"></div>
+        </div>
+        <p class="activity-hint">{{ controlHint(act.creditControlsEvents, act.creditControlsDone, act.creditControlsConforme, act.creditControlsEcart, act.creditPortfolioTotal, 'Aucun crédit en cours') }}</p>
+      </article>
+
+      <article class="activity-card" data-testid="rm-activity-tontine-controls">
+        <div class="kpi-label">Contrôles carnet tontine</div>
+        <div class="activity-figure">
+          <span class="kpi-value">{{ act.tontineControlsDone }}<span class="activity-of"> / {{ act.tontinePortfolioTotal }}</span></span>
+          <span class="activity-pct">{{ act.tontineCoveragePercent }} %</span>
+        </div>
+        <div class="coverage-track" role="progressbar"
+          [attr.aria-valuenow]="barWidth(act.tontineCoveragePercent)" aria-valuemin="0" aria-valuemax="100"
+          aria-label="Part des membres tontine en cours contrôlés">
+          <div class="coverage-fill coverage-fill-tontine" [style.width.%]="barWidth(act.tontineCoveragePercent)"></div>
+        </div>
+        <p class="activity-hint">{{ controlHint(act.tontineControlsEvents, act.tontineControlsDone, act.tontineControlsConforme, act.tontineControlsEcart, act.tontinePortfolioTotal, 'Aucun membre en cours') }}</p>
+      </article>
+
+      <article class="activity-card" data-testid="rm-activity-closures">
+        <div class="kpi-label">Clôtures crédit</div>
+        <div class="kpi-value">{{ act.creditClosuresCount }}</div>
+        <p class="activity-hint">{{ closureHint }}</p>
+      </article>
+
+      <article class="activity-card" data-testid="rm-activity-verifications">
+        <div class="kpi-label">Carnets vérifiés</div>
+        <div class="verify-lines">
+          <div>
+            <span class="verify-count">{{ act.creditCarnetVerifications }}</span>
+            <span class="verify-label">Crédit</span>
+          </div>
+          <div>
+            <span class="verify-count">{{ act.tontineCarnetVerifications }}</span>
+            <span class="verify-label">Tontine</span>
+          </div>
+        </div>
+        <p class="activity-hint">Vérifications enregistrées sur la période</p>
+      </article>
+    </div>
+  </section>
 
   <!-- KPIs Row -->
   <div class="kpi-row" *ngIf="!isLoading && summary">

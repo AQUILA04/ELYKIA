@@ -437,4 +437,34 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("digits") String digits,
                 @Param("progress") String progress,
                 Pageable pageable);
+
+        @Query("""
+                SELECT COUNT(tm) FROM TontineMember tm
+                JOIN tm.tontineSession s
+                JOIN tm.client c
+                WHERE tm.state = com.optimize.common.entities.enums.State.ENABLED
+                  AND s.year = :year
+                  AND tm.deliveryStatus = com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus.SESSION_INPROGRESS
+                  AND (:commercial IS NULL OR LOWER(c.tontineCollector) = LOWER(:commercial))
+                """)
+        long countInProgressForSession(
+                @Param("year") int year,
+                @Param("commercial") String commercial);
+
+        @Query("""
+                SELECT COUNT(tm) FROM TontineMember tm
+                JOIN tm.client c
+                WHERE tm.state = com.optimize.common.entities.enums.State.ENABLED
+                  AND tm.carnetVerified = true
+                  AND tm.carnetVerifiedBy IS NOT NULL
+                  AND LOWER(tm.carnetVerifiedBy) = LOWER(:observer)
+                  AND tm.carnetVerifiedAt >= :startAt
+                  AND tm.carnetVerifiedAt < :endAt
+                  AND (:commercial IS NULL OR LOWER(c.tontineCollector) = LOWER(:commercial))
+                """)
+        long countCarnetVerifiedByObserver(
+                @Param("observer") String observer,
+                @Param("startAt") java.time.LocalDateTime startAt,
+                @Param("endAt") java.time.LocalDateTime endAt,
+                @Param("commercial") String commercial);
 }

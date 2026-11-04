@@ -48,6 +48,19 @@ export class RecoveryManagerService {
     return this.http.get<any>(`${this.BASE}/report/summary`, { params: httpParams });
   }
 
+  getActivity(params: ReportPeriodParams): Observable<any> {
+    let httpParams = new HttpParams()
+      .set('startDate', params.startDate)
+      .set('endDate', params.endDate);
+    if (params.recoveryManagerUsername) {
+      httpParams = httpParams.set('recoveryManagerUsername', params.recoveryManagerUsername);
+    }
+    if (params.commercialUsername) {
+      httpParams = httpParams.set('commercialUsername', params.commercialUsername);
+    }
+    return this.http.get<any>(`${this.BASE}/report/activity`, { params: httpParams });
+  }
+
   getMonthlyRecoveryRate(params: {
     year?: number;
     month?: number;

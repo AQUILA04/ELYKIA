@@ -6,10 +6,12 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.sale.CloseCreditsRequestDto;
 import com.optimize.elykia.core.dto.sale.FieldDayPlanRequestDto;
 import com.optimize.elykia.core.dto.sale.MonthlyRecoveryRateDto;
+import com.optimize.elykia.core.dto.sale.RecoveryManagerActivityDto;
 import com.optimize.elykia.core.dto.sale.RecoveryManagerReportSummaryDto;
 import com.optimize.elykia.core.dto.sale.RmClientContactUpdateDto;
 import com.optimize.elykia.core.service.report.RecoveryManagerReportPdfService;
 import com.optimize.elykia.core.service.sale.RecoveryFieldPlanService;
+import com.optimize.elykia.core.service.sale.RecoveryManagerActivityService;
 import com.optimize.elykia.core.service.sale.RecoveryManagerService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,6 +42,7 @@ import java.time.YearMonth;
 public class RecoveryManagerController {
 
     private final RecoveryManagerService recoveryManagerService;
+    private final RecoveryManagerActivityService recoveryManagerActivityService;
     private final RecoveryManagerReportPdfService reportPdfService;
     private final RecoveryFieldPlanService recoveryFieldPlanService;
     private final CreditLateService creditLateService;
@@ -88,6 +91,26 @@ public class RecoveryManagerController {
                 ResponseUtil.successResponse(recoveryManagerService.getReportSummary(startDate, endDate, username, commercialUsername)),
                 HttpStatus.OK
         );
+    }
+
+    /**
+     * Contrôles carnet, vérifications et clôtures du chef sur la période du rapport.
+     * Les totaux sont le portefeuille crédit et tontine encore en cours.
+     */
+    @GetMapping("/report/activity")
+    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Response> getReportActivity(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String recoveryManagerUsername,
+            @RequestParam(required = false) String commercialUsername) {
+        String username = recoveryManagerUsername;
+        if (username == null || username.isBlank()) {
+            username = userService.getCurrentUser().getUsername();
+        }
+        RecoveryManagerActivityDto dto = recoveryManagerActivityService.getActivity(
+                startDate, endDate, username.trim(), commercialUsername);
+        return new ResponseEntity<>(ResponseUtil.successResponse(dto), HttpStatus.OK);
     }
 
     /**

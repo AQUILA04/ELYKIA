@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -116,4 +117,55 @@ public interface TontineMemberFieldControlRepository extends GenericRepository<T
               )
             """, nativeQuery = true)
     Double sumPendingPositiveDifferenceForCollector(@Param("commercial") String commercial, @Param("year") int year);
+
+    /**
+     * Dernier contrôle de la période, limité aux membres dont la session de l'année est encore en cours.
+     * Colonnes : dossiers, conformes, écarts.
+     */
+    @Query(value = """
+            SELECT COUNT(*) AS dossiers,
+                   COALESCE(SUM(CASE WHEN latest.status = 'CONFORME' THEN 1 ELSE 0 END), 0) AS conforme,
+                   COALESCE(SUM(CASE WHEN latest.status = 'ECART' THEN 1 ELSE 0 END), 0) AS ecart
+            FROM (
+                SELECT DISTINCT ON (c.tontine_member_id) c.status
+                FROM tontine_member_field_control c
+                JOIN tontine_member m ON m.id = c.tontine_member_id
+                JOIN tontine_session s ON s.id = m.tontine_session_id
+                JOIN client cl ON cl.id = m.client_id
+                WHERE c.visibility = 'ENABLED'
+                  AND m.visibility = 'ENABLED'
+                  AND s.year = :sessionYear
+                  AND m.delivery_status = 'SESSION_INPROGRESS'
+                  AND c.observed_at >= :startAt
+                  AND c.observed_at < :endAt
+                  AND LOWER(c.observed_by) = LOWER(:observer)
+                  AND (CAST(:commercial AS text) IS NULL
+                       OR LOWER(cl.tontine_collector) = LOWER(CAST(:commercial AS text)))
+                ORDER BY c.tontine_member_id, c.observed_at DESC, c.id DESC
+            ) latest
+            """, nativeQuery = true)
+    List<Object[]> summarizeInProgressCoverage(
+            @Param("observer") String observer,
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("sessionYear") int sessionYear,
+            @Param("commercial") String commercial);
+
+    @Query(value = """
+            SELECT COUNT(c.id)
+            FROM tontine_member_field_control c
+            JOIN tontine_member m ON m.id = c.tontine_member_id
+            JOIN client cl ON cl.id = m.client_id
+            WHERE c.visibility = 'ENABLED'
+              AND c.observed_at >= :startAt
+              AND c.observed_at < :endAt
+              AND LOWER(c.observed_by) = LOWER(:observer)
+              AND (CAST(:commercial AS text) IS NULL
+                   OR LOWER(cl.tontine_collector) = LOWER(CAST(:commercial AS text)))
+            """, nativeQuery = true)
+    long countEvents(
+            @Param("observer") String observer,
+            @Param("startAt") LocalDateTime startAt,
+            @Param("endAt") LocalDateTime endAt,
+            @Param("commercial") String commercial);
 }
