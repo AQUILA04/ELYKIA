@@ -81,6 +81,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.44.3] — 2026-11-04
+
+### Fixed
+
+- L'activation de la valorisation par lots solde les lots qui dépassent la quantité en magasin, y compris quand cette quantité est à zéro, au lieu de refuser tout le traitement.
+- La remise à zéro d'un article ou de tout le stock solde les lots ouverts en même temps que la quantité.
+- Le démarrage d'une vente qui sort du magasin consomme les lots avant de diminuer la quantité.
+
+### Docs
+
+- Guide gestionnaire : à l'activation, un excédent de lots par rapport à la quantité en magasin est soldé. Index RAG et guide HTML régénérés.
+
 ## Backend — [1.44.2] — 2026-11-04
 
 ### Fixed

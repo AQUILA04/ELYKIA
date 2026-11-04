@@ -19,6 +19,7 @@ import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
+import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
 import com.optimize.elykia.core.enumaration.ReceptionStatus;
 import com.optimize.elykia.core.event.ArticlePriceChangedEvent;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
@@ -143,15 +144,19 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }, allEntries = true)
     public void resetAllStockQuantities() {
         assertWarehouseStockMutable();
+        String username = userService.getCurrentUser().getUsername();
         int page = 0;
         Page<Articles> articlesPage;
         do {
             articlesPage = getAll(PageRequest.of(page, 100));
-            articlesPage.getContent().forEach(article -> articleHistoryService
-                    .create(ArticleHistory.buildResetHistory(article, userService.getCurrentUser().getUsername())));
+            for (Articles article : articlesPage.getContent()) {
+                articleHistoryService.create(ArticleHistory.buildResetHistory(article, username));
+                article.setStockQuantity(0);
+                stockValuationFacade.alignLotsToArticleStock(article);
+                update(article);
+            }
             page++;
         } while (articlesPage.hasNext());
-        getRepository().resetAllStockQuantities();
     }
 
     @Transactional
@@ -163,11 +168,12 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }, allEntries = true)
     public Articles resetStockForArticle(Long id) {
         assertWarehouseStockMutable();
-        Articles article = getById(id); // Trouve l'article ou lève une exception s'il n'existe pas
-        article.setStockQuantity(0); // Met la quantité à zéro
+        Articles article = getRepository().findByIdForUpdate(id).orElseGet(() -> getById(id));
         articleHistoryService
                 .create(ArticleHistory.buildResetHistory(article, userService.getCurrentUser().getUsername()));
-        return update(article); // Sauvegarde les changements
+        article.setStockQuantity(0);
+        stockValuationFacade.alignLotsToArticleStock(article);
+        return update(article);
     }
 
     @Transactional
@@ -423,7 +429,20 @@ public class ArticlesService extends GenericService<Articles, Long> {
     public String makeStockRelease(CreditArticles creditArticles) {
         assertWarehouseStockMutable();
         final String connectedUser = userService.getCurrentUser().getUsername();
-        Articles articles = getById(creditArticles.getArticlesId());
+        Articles articles = getRepository().findByIdForUpdate(creditArticles.getArticlesId())
+                .orElseGet(() -> getById(creditArticles.getArticlesId()));
+        int quantity = creditArticles.getQuantity() != null ? creditArticles.getQuantity() : 0;
+        if (quantity > 0) {
+            Long sourceId = creditArticles.getCredit() != null
+                    ? creditArticles.getCredit().getId()
+                    : creditArticles.getId();
+            stockValuationFacade.consume(
+                    articles,
+                    quantity,
+                    ArticleStockLotMovementType.WAREHOUSE_RELEASE,
+                    "CREDIT",
+                    sourceId);
+        }
         ArticleHistory articleHistory = ArticleHistory.buildReleaseHistory(articles, creditArticles.getQuantity(),
                 connectedUser);
         articleHistory.setBeneficiary(connectedUser);

@@ -137,7 +137,7 @@ class FifoStockActivationServiceTest {
     }
 
     @Test
-    void activateFailsWhenOpenLotsExceedStock() {
+    void activateTrimsWhenOpenLotsExceedStock() {
         Articles article = new Articles(9L);
         article.setName("Disque");
         article.setStockQuantity(10);
@@ -148,12 +148,37 @@ class FifoStockActivationServiceTest {
         when(articlesRepository.findByIdForUpdate(9L)).thenReturn(Optional.of(article));
         when(lotRepository.sumRemainingQuantityByArticleId(9L)).thenReturn(12);
 
-        CustomValidationException ex = assertThrows(
-                CustomValidationException.class,
-                () -> fifoStockActivationService.activate());
+        Map<String, Object> result = fifoStockActivationService.activate();
 
-        assertTrue(ex.getMessage().contains("Disque"));
-        assertTrue(ex.getMessage().contains("lots ouverts=12"));
+        assertEquals(1, result.get("trimmedArticles"));
+        assertEquals(0, result.get("migratedArticles"));
+        verify(fifoStockValuationService).alignLotsToArticleStock(article);
+        verify(fifoStockValuationService).assertLotQuantityMatchesArticle(article);
+        verify(fifoStockValuationService, never()).registerEntry(
+                any(Articles.class),
+                anyInt(),
+                anyDouble(),
+                any(ArticleStockLotSourceType.class),
+                any(),
+                any());
+    }
+
+    @Test
+    void activateTrimsLeftoverLotsWhenWarehouseStockIsZero() {
+        Articles article = new Articles(4L);
+        article.setName("Mais");
+        article.setStockQuantity(0);
+        article.setPurchasePrice(90.0);
+
+        when(stockValuationFacade.isFifoEnabled()).thenReturn(true);
+        when(articlesRepository.findAll()).thenReturn(List.of(article));
+        when(articlesRepository.findByIdForUpdate(4L)).thenReturn(Optional.of(article));
+        when(lotRepository.sumRemainingQuantityByArticleId(4L)).thenReturn(38);
+
+        Map<String, Object> result = fifoStockActivationService.activate();
+
+        assertEquals(1, result.get("trimmedArticles"));
+        verify(fifoStockValuationService).alignLotsToArticleStock(article);
         verify(fifoStockValuationService, never()).registerEntry(
                 any(Articles.class),
                 anyInt(),

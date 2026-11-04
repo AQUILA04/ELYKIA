@@ -35,6 +35,7 @@ public class FifoStockActivationService {
 
         List<Articles> articles = articlesRepository.findAll();
         int migratedArticles = 0;
+        int trimmedArticles = 0;
         int skippedArticles = 0;
         List<String> blockingArticles = new ArrayList<>();
 
@@ -43,18 +44,15 @@ public class FifoStockActivationService {
                     .orElse(articleRef);
 
             int stockQty = article.getStockQuantity() != null ? article.getStockQuantity() : 0;
-            if (stockQty <= 0) {
-                continue;
-            }
-
             int openLotQty = remainingLotQuantity(article.getId());
             if (openLotQty == stockQty) {
                 skippedArticles++;
                 continue;
             }
             if (openLotQty > stockQty) {
-                blockingArticles.add(formatArticleLabel(article)
-                        + " (stock=" + stockQty + ", lots ouverts=" + openLotQty + ")");
+                fifoStockValuationService.alignLotsToArticleStock(article);
+                fifoStockValuationService.assertLotQuantityMatchesArticle(article);
+                trimmedArticles++;
                 continue;
             }
 
@@ -83,8 +81,9 @@ public class FifoStockActivationService {
 
         Map<String, Object> result = new HashMap<>();
         result.put("migratedArticles", migratedArticles);
+        result.put("trimmedArticles", trimmedArticles);
         result.put("skippedArticles", skippedArticles);
-        result.put("message", "Lots d'ouverture FIFO créés.");
+        result.put("message", "Lots FIFO alignés sur le stock magasin.");
         return result;
     }
 
