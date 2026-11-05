@@ -1,89 +1,16 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 import { RmFieldControlOp } from './rm-field-control.models';
 import { RmLocalStore } from './rm-local-store.service';
-
-const QUEUE_KEY = 'rm_field_controls';
+import { RmOfflineOpsQueueStore } from './rm-offline-ops-queue.base';
 
 @Injectable({ providedIn: 'root' })
-export class RmFieldControlQueueService {
-  private readonly opsSubject = new BehaviorSubject<RmFieldControlOp[]>([]);
-  readonly ops$ = this.opsSubject.asObservable();
-  private ready: Promise<void> | null = null;
-
-  constructor(private readonly store: RmLocalStore) {
-    this.store.watchRestore(() => {
-      this.ready = this.hydrate();
-      return this.ready;
-    });
-  }
-
-  private ensureReady(): Promise<void> {
-    if (!this.ready) {
-      this.ready = this.hydrate();
-    }
-    return this.ready;
-  }
-
-  private async hydrate(): Promise<void> {
-    const ops = await this.store.loadOps<RmFieldControlOp>(QUEUE_KEY);
-    this.opsSubject.next(ops);
-  }
-
-  async listAll(): Promise<RmFieldControlOp[]> {
-    await this.ensureReady();
-    return [...this.opsSubject.value];
-  }
-
-  async listPending(): Promise<RmFieldControlOp[]> {
-    await this.ensureReady();
-    return this.opsSubject.value.filter(o => !o.isSync);
-  }
-
-  pendingCount(): number {
-    return this.opsSubject.value.filter(o => !o.isSync).length;
-  }
-
-  async upsert(op: RmFieldControlOp): Promise<void> {
-    await this.ensureReady();
-    const next = [...this.opsSubject.value];
-    let idx = next.findIndex(o => o.localId === op.localId || o.reference === op.reference);
-    if (idx < 0) {
-      idx = next.findIndex(o => !o.isSync && o.creditId === op.creditId);
-    }
-    if (idx >= 0) {
-      next[idx] = op;
-    } else {
-      next.unshift(op);
-    }
-    await this.persist(next);
-  }
-
-  async markSynced(reference: string): Promise<void> {
-    await this.ensureReady();
-    const next = this.opsSubject.value.map(o =>
-      o.reference === reference ? { ...o, isSync: true, lastError: null, syncErrorId: null } : o
+export class RmFieldControlQueueService extends RmOfflineOpsQueueStore<RmFieldControlOp> {
+  constructor(store: RmLocalStore) {
+    super(
+      store,
+      'rm_field_controls',
+      (a, b) => a.reference === b.reference || (!a.isSync && a.creditId === b.creditId),
+      (op) => op.reference
     );
-    await this.persist(next);
-  }
-
-  async markError(reference: string, error: string, syncErrorId?: string | null): Promise<void> {
-    await this.ensureReady();
-    const next = this.opsSubject.value.map(o =>
-      o.reference === reference
-        ? { ...o, lastError: error, syncErrorId: syncErrorId ?? o.syncErrorId ?? null }
-        : o
-    );
-    await this.persist(next);
-  }
-
-  async clearAll(): Promise<void> {
-    await this.ensureReady();
-    await this.persist([]);
-  }
-
-  private async persist(ops: RmFieldControlOp[]): Promise<void> {
-    await this.store.saveOps(QUEUE_KEY, ops);
-    this.opsSubject.next(ops);
   }
 }

@@ -76,12 +76,7 @@
             <strong>{{ item.clientName }}</strong>
             <span class="elyk-badge" [class.elyk-badge--local]="isTontineLocal(item)" [class.elyk-badge--sync]="!isTontineLocal(item)"
                   data-testid="e2e-rm-sync-badge">{{ isTontineLocal(item) ? 'Local' : 'Sync' }}</span>
-            <button type="button" class="sync-error-btn" *ngIf="tontineSyncErrorId(item) as errorId"
-                    (click)="openSyncError($event, errorId)"
-                    aria-label="Erreur de synchronisation"
-                    data-testid="e2e-rm-sync-error">
-              <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
-            </button>
+            <ng-container *ngTemplateOutlet="syncErrorBtn; context: { errorId: tontineSyncErrorId(item) }"></ng-container>
             <span>{{ item.tontineCollector || '—' }} · {{ item.clientQuarter || 'Non spécifié' }}</span>
             <span>{{ formatAmount(item.totalContribution || 0) }} FCFA cotisés</span>
             <span class="badge verified" *ngIf="item.carnetVerified"
@@ -143,12 +138,7 @@
               <strong>{{ item.clientName }}</strong>
               <span class="elyk-badge" [class.elyk-badge--local]="isTontineLocal(item)" [class.elyk-badge--sync]="!isTontineLocal(item)"
                     data-testid="e2e-rm-sync-badge">{{ isTontineLocal(item) ? 'Local' : 'Sync' }}</span>
-              <button type="button" class="sync-error-btn" *ngIf="tontineSyncErrorId(item) as errorId"
-                      (click)="openSyncError($event, errorId)"
-                      aria-label="Erreur de synchronisation"
-                      data-testid="e2e-rm-sync-error">
-                <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
-              </button>
+              <ng-container *ngTemplateOutlet="syncErrorBtn; context: { errorId: tontineSyncErrorId(item) }"></ng-container>
               <span>{{ formatAmount(item.totalContribution || 0) }} FCFA cotisés</span>
               <span class="badge verified" *ngIf="item.carnetVerified"
                     data-testid="e2e-rm-carnet-badge">Vérifié</span>
@@ -202,12 +192,7 @@
           <strong>{{ item.clientName }}</strong>
           <span class="elyk-badge" [class.elyk-badge--local]="isCreditLocal(item)" [class.elyk-badge--sync]="!isCreditLocal(item)"
                 data-testid="e2e-rm-sync-badge">{{ isCreditLocal(item) ? 'Local' : 'Sync' }}</span>
-          <button type="button" class="sync-error-btn" *ngIf="creditSyncErrorId(item) as errorId"
-                  (click)="openSyncError($event, errorId)"
-                  aria-label="Erreur de synchronisation"
-                  data-testid="e2e-rm-sync-error">
-            <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
-          </button>
+          <ng-container *ngTemplateOutlet="syncErrorBtn; context: { errorId: creditSyncErrorId(item) }"></ng-container>
           <span *ngIf="showPlace">{{ item.collector || '—' }} · {{ item.clientQuarter || 'Non spécifié' }}</span>
           <span>{{ formatAmount(item.totalAmountRemaining || 0) }} FCFA</span>
           <span class="badge late" *ngIf="isLate(item)">Retard</span>
@@ -231,6 +216,15 @@
           <ion-button size="small" fill="outline" (click)="openMaps(item)">Naviguer</ion-button>
         </div>
       </div>
+    </ng-template>
+
+    <ng-template #syncErrorBtn let-errorId="errorId">
+      <button type="button" class="sync-error-btn" *ngIf="errorId"
+              (click)="openSyncError($event, errorId)"
+              aria-label="Erreur de synchronisation"
+              data-testid="e2e-rm-sync-error">
+        <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+      </button>
     </ng-template>
   </div>
   <ion-infinite-scroll

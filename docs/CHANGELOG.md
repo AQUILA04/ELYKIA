@@ -91,6 +91,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.35.2] — 2026-11-05
+
+### Changed
+
+- Les files d'attente du chef de recouvrement et la mise à jour depuis l'onglet Plus passent par un code commun, pour rester sous le seuil de duplication.
+
 ## Mobile — [2.35.1] — 2026-11-05
 
 ### Added

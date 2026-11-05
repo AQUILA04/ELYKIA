@@ -4,7 +4,7 @@ import { RmLocalStore } from './rm-local-store.service';
 export interface RmOfflineOpBase {
   localId: string;
   isSync: boolean;
-  lastError: string | null;
+  lastError?: string | null;
   syncErrorId?: string | null;
 }
 
@@ -19,7 +19,8 @@ export class RmOfflineOpsQueueStore<T extends RmOfflineOpBase> {
   constructor(
     private readonly store: RmLocalStore,
     private readonly queueKey: string,
-    private readonly sameEntity: (a: T, b: T) => boolean
+    private readonly sameEntity: (a: T, b: T) => boolean,
+    private readonly syncKey: (op: T) => string = (op) => op.localId
   ) {
     this.store.watchRestore(() => {
       this.ready = this.hydrate();
@@ -65,22 +66,27 @@ export class RmOfflineOpsQueueStore<T extends RmOfflineOpBase> {
     await this.persist(next);
   }
 
-  async markSynced(localId: string): Promise<void> {
+  async markSynced(key: string): Promise<void> {
     await this.ensureReady();
     const next = this.opsSubject.value.map(o =>
-      o.localId === localId ? { ...o, isSync: true, lastError: null, syncErrorId: null } : o
+      this.syncKey(o) === key ? { ...o, isSync: true, lastError: null, syncErrorId: null } : o
     );
     await this.persist(next);
   }
 
-  async markError(localId: string, error: string, syncErrorId?: string | null): Promise<void> {
+  async markError(key: string, error: string, syncErrorId?: string | null): Promise<void> {
     await this.ensureReady();
     const next = this.opsSubject.value.map(o =>
-      o.localId === localId
+      this.syncKey(o) === key
         ? { ...o, lastError: error, syncErrorId: syncErrorId ?? o.syncErrorId ?? null }
         : o
     );
     await this.persist(next);
+  }
+
+  protected async keep(match: (op: T) => boolean): Promise<void> {
+    await this.ensureReady();
+    await this.persist(this.opsSubject.value.filter(match));
   }
 
   async clearAll(): Promise<void> {
