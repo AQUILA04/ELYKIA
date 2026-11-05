@@ -76,7 +76,8 @@ jobs:
   test-customer-space:
     needs: changes
     if: ${{ needs.changes.outputs.customer_space == 'true' }}
-    runs-on: ubuntu-latest
+    # ubuntu-latest est passé à 26.04 ; Playwright 1.60 n'y installe pas Chromium.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./customer-space
@@ -119,7 +120,8 @@ jobs:
   build-customer-space:
     needs: changes
     if: ${{ needs.changes.outputs.customer_space == 'true' }}
-    runs-on: ubuntu-latest
+    # ubuntu-latest est passé à 26.04 ; Playwright 1.60 n'y installe pas Chromium.
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: ./customer-space

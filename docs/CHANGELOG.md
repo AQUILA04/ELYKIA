@@ -11,6 +11,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra — 2026-11-04
 
+### Fixed
+
+- **CI —** les jobs qui installent Chromium via Playwright (`e2e-web`, mobile, espace client) tournent sur `ubuntu-24.04`. L’image `ubuntu-latest` est passée en 26.04, que Playwright 1.60 ne prend pas en charge.
+
 ### Added
 
 - **Docs —** contrôle en lecture seule sur la prod pour une livraison FIFO refusée : requêtes pour identifier l’article, comparer le stock magasin aux lots, et retrouver qui a validé une entrée, un retour ou une régularisation d’inventaire (`docs/diagnostic-fifo-entrees-sans-lot.md`).
