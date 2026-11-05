@@ -30,9 +30,12 @@ import { RmCarnetVerificationOp } from '../../core/services/rm/rm-carnet-verific
 import { RmCreditCarnetVerificationOp } from '../../core/services/rm/rm-credit-carnet-verification.models';
 import { RmCollectorAssignOp } from '../../core/services/rm/rm-collector-assign.models';
 import { RmDailyJournalService } from '../../core/services/rm/rm-daily-journal.service';
+import { DataInitializationService } from '../../core/services/data-initialization.service';
 import { MobileAppReleaseInfo } from 'src/app/models/mobile-app-release.model';
 import { environment } from 'src/environments/environment';
 import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { SyncErrorService } from '../../core/services/sync-error.service';
+import { SyncLogsExportService } from '../../core/services/sync-logs-export.service';
 
 @Component({
   selector: 'app-rm-more',
@@ -51,6 +54,7 @@ export class RmMorePage implements OnInit, OnDestroy {
   pendingCreditCarnetVerifications: RmCreditCarnetVerificationOp[] = [];
   pendingAssigns: RmCollectorAssignOp[] = [];
   appVersion = environment.version;
+  pendingErrorCount = 0;
   updateInProgress = false;
   updateProgressLabel = '';
   private subs: Subscription[] = [];
@@ -79,7 +83,10 @@ export class RmMorePage implements OnInit, OnDestroy {
     private readonly toastCtrl: ToastController,
     private readonly alertController: AlertController,
     private readonly appUpdateService: AppUpdateService,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
+    private readonly syncErrorService: SyncErrorService,
+    private readonly syncLogsExport: SyncLogsExportService,
+    private readonly dataInitialization: DataInitializationService
   ) {}
 
   ngOnInit(): void {
@@ -108,6 +115,7 @@ export class RmMorePage implements OnInit, OnDestroy {
         this.pendingAssigns = ops.filter(o => !o.isSync);
       })
     );
+    void this.refreshErrorCount();
   }
 
   ngOnDestroy(): void {
@@ -142,6 +150,7 @@ export class RmMorePage implements OnInit, OnDestroy {
   async syncPending(): Promise<void> {
     const loading = await this.loadingCtrl.create({ message: 'Synchronisation…', spinner: 'crescent' });
     await loading.present();
+    let failed = 0;
     try {
       const assigns = await this.assignSync.syncPending();
       const contacts = await this.contactSync.syncPending();
@@ -152,7 +161,7 @@ export class RmMorePage implements OnInit, OnDestroy {
       const closes = await this.closeSync.syncPending();
       const synced = assigns.synced + contacts.synced + controls.synced + tontineControls.synced
         + carnets.synced + creditCarnets.synced + closes.synced;
-      const failed = assigns.failed + contacts.failed + controls.failed + tontineControls.failed
+      failed = assigns.failed + contacts.failed + controls.failed + tontineControls.failed
         + carnets.failed + creditCarnets.failed + closes.failed;
       const firstError = assigns.errors[0]
         || contacts.errors[0]
@@ -170,8 +179,13 @@ export class RmMorePage implements OnInit, OnDestroy {
         );
       }
     } catch (e: any) {
+      failed = Math.max(failed, 1);
       await this.toast(e?.message || 'Échec sync', 'danger');
     }
+    if (failed > 0) {
+      await this.syncLogsExport.exportSyncLogsAfterSync();
+    }
+    await this.refreshErrorCount();
     try {
       loading.message = 'Enregistrement du rapport du jour…';
       await this.dailyJournal.saveToday();
@@ -198,8 +212,31 @@ export class RmMorePage implements OnInit, OnDestroy {
     }
   }
 
+  private async refreshErrorCount(): Promise<void> {
+    this.pendingErrorCount = await this.syncErrorService.getPendingErrorsCount();
+    this.cdr.markForCheck();
+  }
+
   async changePlan(): Promise<void> {
     await this.router.navigate(['/rm/plan'], { queryParams: { change: '1' } });
+  }
+
+  async backupDatabase(): Promise<void> {
+    const loading = await this.loadingCtrl.create({ message: 'Enregistrement de la sauvegarde…', spinner: 'crescent' });
+    await loading.present();
+    this.dataInitialization.backupDatabase().subscribe({
+      next: async (saved) => {
+        await loading.dismiss();
+        await this.toast(
+          saved ? 'Sauvegarde enregistrée.' : 'La sauvegarde n’a pas pu être enregistrée.',
+          saved ? 'success' : 'danger'
+        );
+      },
+      error: async () => {
+        await loading.dismiss();
+        await this.toast('La sauvegarde n’a pas pu être enregistrée.', 'danger');
+      }
+    });
   }
 
   logout(): void {
@@ -214,6 +251,23 @@ export class RmMorePage implements OnInit, OnDestroy {
   }
 
   async checkForAppUpdate(): Promise<void> {
+    const running = this.appUpdateService.joinDownload((progress) => this.applyUpdateProgress(progress));
+    if (running) {
+      this.updateInProgress = true;
+      this.updateProgressLabel = 'Téléchargement en cours...';
+      this.cdr.markForCheck();
+      try {
+        await running;
+      } catch {
+        // Le message d'échec est déjà affiché par le téléchargement en cours.
+      } finally {
+        this.updateInProgress = false;
+        this.updateProgressLabel = '';
+        this.cdr.markForCheck();
+      }
+      return;
+    }
+
     if (Capacitor.getPlatform() === 'web') {
       await this.toast(
         'La mise à jour in-app est disponible uniquement sur l\'application Android.',
@@ -239,24 +293,7 @@ export class RmMorePage implements OnInit, OnDestroy {
         return;
       }
 
-      await this.appUpdateService.downloadAndInstall(release, (progress) => {
-        switch (progress.phase) {
-          case 'downloading':
-            this.updateProgressLabel = progress.percent != null
-              ? `Téléchargement... ${progress.percent}%`
-              : 'Téléchargement en cours...';
-            break;
-          case 'verifying':
-            this.updateProgressLabel = 'Vérification du fichier...';
-            break;
-          case 'installing':
-            this.updateProgressLabel = 'Lancement de l\'installation...';
-            break;
-          default:
-            this.updateProgressLabel = 'Mise à jour en cours...';
-        }
-        this.cdr.markForCheck();
-      });
+      await this.appUpdateService.downloadAndInstall(release, (progress) => this.applyUpdateProgress(progress));
 
       await this.toast(
         'Installation lancée. Suivez les instructions Android pour terminer la mise à jour.',
@@ -271,6 +308,25 @@ export class RmMorePage implements OnInit, OnDestroy {
       this.updateProgressLabel = '';
       this.cdr.markForCheck();
     }
+  }
+
+  private applyUpdateProgress(progress: { phase: string; percent?: number }): void {
+    switch (progress.phase) {
+      case 'downloading':
+        this.updateProgressLabel = progress.percent != null
+          ? `Téléchargement... ${progress.percent}%`
+          : 'Téléchargement en cours...';
+        break;
+      case 'verifying':
+        this.updateProgressLabel = 'Vérification du fichier...';
+        break;
+      case 'installing':
+        this.updateProgressLabel = 'Lancement de l\'installation...';
+        break;
+      default:
+        this.updateProgressLabel = 'Mise à jour en cours...';
+    }
+    this.cdr.markForCheck();
   }
 
   private async confirmAppUpdate(release: MobileAppReleaseInfo): Promise<boolean> {

@@ -62,6 +62,12 @@
             <h3>{{ c.fullName || (c.firstname + ' ' + c.lastname) }}</h3>
             <span class="elyk-badge" [class.elyk-badge--local]="isClientLocal(c)" [class.elyk-badge--sync]="!isClientLocal(c)"
                   data-testid="e2e-rm-sync-badge">{{ isClientLocal(c) ? 'Local' : 'Sync' }}</span>
+            <button type="button" class="sync-error-btn" *ngIf="clientSyncErrorId(c) as errorId"
+                    (click)="openSyncError($event, errorId)"
+                    aria-label="Erreur de synchronisation"
+                    data-testid="e2e-rm-sync-error">
+              <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+            </button>
           </div>
           <p>{{ c.phone || '—' }} · {{ c.quarter || '—' }}</p>
           <p class="meta" data-testid="e2e-rm-client-collector">

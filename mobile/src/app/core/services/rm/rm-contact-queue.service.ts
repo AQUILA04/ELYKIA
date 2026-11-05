@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Storage } from '@ionic/storage-angular';
 import { RmContactPatch } from './rm-contact.models';
+import { RmLocalStore } from './rm-local-store.service';
 
 const QUEUE_KEY = 'rm_client_contact_patches';
 
@@ -9,25 +9,34 @@ const QUEUE_KEY = 'rm_client_contact_patches';
 export class RmContactQueueService {
   private readonly patchesSubject = new BehaviorSubject<RmContactPatch[]>([]);
   readonly patches$ = this.patchesSubject.asObservable();
-  private ready: Promise<void>;
+  private ready: Promise<void> | null = null;
 
-  constructor(private readonly storage: Storage) {
-    this.ready = this.hydrate();
+  constructor(private readonly store: RmLocalStore) {
+    this.store.watchRestore(() => {
+      this.ready = this.hydrate();
+      return this.ready;
+    });
+  }
+
+  private ensureReady(): Promise<void> {
+    if (!this.ready) {
+      this.ready = this.hydrate();
+    }
+    return this.ready;
   }
 
   private async hydrate(): Promise<void> {
-    await this.storage.create();
-    const patches = (await this.storage.get(QUEUE_KEY)) as RmContactPatch[] | null;
-    this.patchesSubject.next(Array.isArray(patches) ? patches : []);
+    const patches = await this.store.loadOps<RmContactPatch>(QUEUE_KEY);
+    this.patchesSubject.next(patches);
   }
 
   async listAll(): Promise<RmContactPatch[]> {
-    await this.ready;
+    await this.ensureReady();
     return [...this.patchesSubject.value];
   }
 
   async listPending(): Promise<RmContactPatch[]> {
-    await this.ready;
+    await this.ensureReady();
     return this.patchesSubject.value.filter(p => !p.isSync);
   }
 
@@ -36,7 +45,7 @@ export class RmContactQueueService {
   }
 
   async upsert(patch: RmContactPatch): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     const next = [...this.patchesSubject.value];
     const idx = next.findIndex(p => p.localId === patch.localId || p.reference === patch.reference);
     if (idx >= 0) {
@@ -48,28 +57,30 @@ export class RmContactQueueService {
   }
 
   async markSynced(reference: string): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     const next = this.patchesSubject.value.map(p =>
-      p.reference === reference ? { ...p, isSync: true, lastError: null } : p
+      p.reference === reference ? { ...p, isSync: true, lastError: null, syncErrorId: null } : p
     );
     await this.persist(next);
   }
 
-  async markError(reference: string, error: string): Promise<void> {
-    await this.ready;
+  async markError(reference: string, error: string, syncErrorId?: string | null): Promise<void> {
+    await this.ensureReady();
     const next = this.patchesSubject.value.map(p =>
-      p.reference === reference ? { ...p, lastError: error } : p
+      p.reference === reference
+        ? { ...p, lastError: error, syncErrorId: syncErrorId ?? p.syncErrorId ?? null }
+        : p
     );
     await this.persist(next);
   }
 
   async clearAll(): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     await this.persist([]);
   }
 
   private async persist(patches: RmContactPatch[]): Promise<void> {
-    await this.storage.set(QUEUE_KEY, patches);
+    await this.store.saveOps(QUEUE_KEY, patches);
     this.patchesSubject.next(patches);
   }
 }

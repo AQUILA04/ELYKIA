@@ -1,4 +1,5 @@
 ﻿import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { Capacitor, PluginListenerHandle } from '@capacitor/core';
 import { Keyboard } from '@capacitor/keyboard';
 import { AlertController, ModalController, ToastController, ViewWillEnter, ViewWillLeave } from '@ionic/angular';
@@ -142,7 +143,8 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     private readonly carnetWrite: RmCarnetVerificationWriteService,
     private readonly creditCarnetWrite: RmCreditCarnetVerificationWriteService,
     private readonly tontineControlApi: RmTontineFieldControlApiService,
-    private readonly syncBadges: RmDossierSyncBadgeService
+    private readonly syncBadges: RmDossierSyncBadgeService,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {
@@ -819,6 +821,20 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
 
   isTontineLocal(item: RmPackTontineMember): boolean {
     return this.syncStamp >= 0 && this.syncBadges.isTontineLocal(item.id, item.clientId);
+  }
+
+  tontineSyncErrorId(item: RmPackTontineMember): string | null {
+    return this.syncStamp >= 0 ? this.syncBadges.tontineSyncErrorId(item.id, item.clientId) : null;
+  }
+
+  creditSyncErrorId(item: RmCreditLate): string | null {
+    return this.syncStamp >= 0 ? this.syncBadges.creditSyncErrorId(item.id, item.clientId) : null;
+  }
+
+  openSyncError(event: Event, errorId: string): void {
+    event.stopPropagation();
+    event.preventDefault();
+    void this.router.navigate(['/sync-errors', errorId]);
   }
 
   private async toast(message: string, color: 'success' | 'danger' | 'warning' = 'success'): Promise<void> {

@@ -1,7 +1,13 @@
 import { Injectable, Injector } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { firstValueFrom } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { DatabaseService } from './database.service';
 import { SynchronizationService } from './synchronization.service';
 import { SyncError, SyncLogEntry } from '../../models/sync.model';
+import { selectAuthUser } from '../../store/auth/auth.selectors';
+import { hasRecoveryManagerProfil } from '../utils/rm-user.util';
+import { SyncErrorScope, syncErrorScopeSql } from './sync-error-scope';
 
 @Injectable({
   providedIn: 'root'
@@ -24,7 +30,7 @@ export class SyncErrorService {
     requestData: any,
     entityDisplayName: string,
     entityDetails: any
-  ): Promise<void> {
+  ): Promise<string | null> {
     const errorId = this.generateId();
     const errorMessage = this.extractErrorMessage(error);
     const errorCode = this.extractErrorCode(error);
@@ -51,19 +57,36 @@ export class SyncErrorService {
         entityDisplayName,
         JSON.stringify(entityDetails)
       ]);
+      return errorId;
     } catch (dbError) {
       console.error('Erreur lors de l\'enregistrement de l\'erreur de sync:', dbError);
+      return null;
+    }
+  }
+
+  async resolveSyncError(errorId: string | null | undefined): Promise<void> {
+    if (!errorId) {
+      return;
+    }
+    try {
+      await this.databaseService.execute(
+        `UPDATE sync_logs SET status = 'SUCCESS' WHERE id = ?`,
+        [errorId]
+      );
+    } catch (dbError) {
+      console.error('Erreur lors de la résolution de l\'erreur de sync:', dbError);
     }
   }
 
   /**
    * Récupérer toutes les erreurs de synchronisation
    */
-  async getSyncErrors(): Promise<SyncError[]> {
+  async getSyncErrors(scope?: SyncErrorScope): Promise<SyncError[]> {
     try {
+      const resolved = await this.resolveScope(scope);
       const result = await this.databaseService.query(`
         SELECT * FROM sync_logs
-        WHERE status = 'ERROR'
+        WHERE status = 'ERROR' AND ${syncErrorScopeSql(resolved)}
         ORDER BY syncDate DESC
       `);
 
@@ -80,11 +103,12 @@ export class SyncErrorService {
   /**
    * Récupérer les erreurs par type d'entité
    */
-  async getSyncErrorsByType(entityType: string): Promise<SyncError[]> {
+  async getSyncErrorsByType(entityType: string, scope?: SyncErrorScope): Promise<SyncError[]> {
     try {
+      const resolved = await this.resolveScope(scope);
       const result = await this.databaseService.query(`
         SELECT * FROM sync_logs
-        WHERE status = 'ERROR' AND entityType = ?
+        WHERE status = 'ERROR' AND entityType = ? AND ${syncErrorScopeSql(resolved)}
         ORDER BY syncDate DESC
       `, [entityType]);
 
@@ -98,10 +122,11 @@ export class SyncErrorService {
   /**
    * Récupérer une erreur spécifique par ID
    */
-  async getSyncErrorById(errorId: string): Promise<SyncError | null> {
+  async getSyncErrorById(errorId: string, scope?: SyncErrorScope): Promise<SyncError | null> {
     try {
+      const resolved = await this.resolveScope(scope);
       const result = await this.databaseService.query(`
-        SELECT * FROM sync_logs WHERE id = ?
+        SELECT * FROM sync_logs WHERE id = ? AND ${syncErrorScopeSql(resolved)}
       `, [errorId]);
 
       if (result.values && result.values.length > 0) {
@@ -179,13 +204,16 @@ export class SyncErrorService {
   /**
    * Obtenir le nombre d'erreurs en attente
    */
-  async getPendingErrorsCount(): Promise<number> {
+  async getPendingErrorsCount(scope?: SyncErrorScope): Promise<number> {
     try {
+      const resolved = await this.resolveScope(scope);
       const result = await this.databaseService.query(`
-        SELECT COUNT(*) as count FROM sync_logs WHERE status = 'ERROR'
+        SELECT COUNT(*) as count FROM sync_logs WHERE status = 'ERROR' AND ${syncErrorScopeSql(resolved)}
       `);
 
-      return result.values?.[0]?.[0] || 0;
+      const row = result.values?.[0];
+      const raw = Array.isArray(row) ? row[0] : row?.count;
+      return Number(raw) || 0;
     } catch (error) {
       console.error('Erreur lors du comptage des erreurs:', error);
       return 0;
@@ -454,9 +482,19 @@ export class SyncErrorService {
     };
   }
 
-  /**
-   * Extraire le message d'erreur
-   */
+  private async resolveScope(explicit?: SyncErrorScope): Promise<SyncErrorScope> {
+    if (explicit) {
+      return explicit;
+    }
+    try {
+      const store = this.injector.get(Store);
+      const user = await firstValueFrom(store.select(selectAuthUser).pipe(take(1)));
+      return hasRecoveryManagerProfil(user) ? 'rm' : 'commercial';
+    } catch {
+      return 'commercial';
+    }
+  }
+
   private extractErrorMessage(error: any): string {
     // Cas où l'erreur est dans error.error (réponse API structurée)
     if (error?.error) {

@@ -19,6 +19,8 @@ import { RestoreMonitor, TransactionManager, DataIntegrityValidator, RestoreExce
 import { RestoreResult, SqlStatement, TableCounts, RestoreError } from '../models/restore.models';
 import { RestoreValidator } from './restore-validator.service';
 import { FinancialWriteGuardService } from '../daily-consent/financial-write-guard.service';
+import { notifyRmDataRestored } from './rm/rm-data-restored';
+import { rmSqliteDdl, withRmBackupTables } from './rm/rm-sqlite.tables';
 
 interface DbRowWithHash {
   id: any;
@@ -747,12 +749,12 @@ export class DatabaseService {
         CREATE INDEX IF NOT EXISTS idx_daily_consent_commercial_date
             ON daily_consent_history(commercialUsername, actionDate);
     `;
-    await this.db?.execute(createTables);;
+    await this.db?.execute(createTables + rmSqliteDdl());
   }
 
   private async verifyTables(): Promise<void> {
     try {
-      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items', 'tontine_member_amount_history', 'commercial_stock_snapshot', 'client_reliquats', 'local_data_cleanup_history', 'sync_consent_history', 'daily_consent_history'];
+      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items', 'tontine_member_amount_history', 'commercial_stock_snapshot', 'client_reliquats', 'local_data_cleanup_history', 'sync_consent_history', 'daily_consent_history', 'rm_offline_ops', 'rm_scope'];
       const result = await this.db?.query(`SELECT name FROM sqlite_master WHERE type='table'`);
       const existingTables = result?.values?.map(row => row.name) || [];
       const missingTables = expectedTables.filter(table => !existingTables.includes(table));
@@ -1621,7 +1623,7 @@ export class DatabaseService {
       //   - Les DELETE sont exécutés dans l'ordre parent→enfant (la FK OFF les rend tolérants)
       //   - Les INSERT sont exécutés dans le même ordre, respectant les références parent→enfant
       // Tables ajoutées : commercial_stock_items, orders, order_items, tontine_member_amount_history
-      const tables = [
+      const tables = withRmBackupTables([
         // Tables racines (aucune dépendance FK entrante)
         'users',
         'parameters',
@@ -1669,7 +1671,7 @@ export class DatabaseService {
         'tontine_stocks',
         // Aucune dépendance FK
         'commercial_stock_snapshot'
-      ];
+      ]);
 
       for (const tableName of tables) {
         try {
@@ -2500,6 +2502,7 @@ export class DatabaseService {
         result.integrityCheck = integrityCheck;
 
         console.log(`🎉 Restoration completed in ${duration}ms: ${result.successfulStatements}/${result.totalStatements} successful`);
+        await notifyRmDataRestored();
 
         return result;
 

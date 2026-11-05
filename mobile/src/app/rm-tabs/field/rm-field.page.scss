@@ -171,6 +171,26 @@ ion-content.rm-content {
   background: #e6f5eb;
   color: #1d8a3c;
 }
+.sync-error-btn {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 12px;
+  background: #fee2e2;
+  color: #dc2626;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  vertical-align: middle;
+}
+.sync-error-btn ion-icon {
+  font-size: 22px;
+  color: #dc2626;
+}
 .badge {
   display: inline-block;
   margin-top: 4px;

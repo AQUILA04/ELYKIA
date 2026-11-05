@@ -15,6 +15,7 @@ export interface RmFieldControlOp {
   createdAt: string;
   isSync: boolean;
   lastError?: string | null;
+  syncErrorId?: string | null;
 }
 
 export interface RmFieldControlRequest {

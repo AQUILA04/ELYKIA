@@ -557,6 +557,23 @@ export class MorePage implements OnInit, OnDestroy {
   }
 
   async checkForAppUpdate(): Promise<void> {
+    const running = this.appUpdateService.joinDownload((progress) => this.applyUpdateProgress(progress));
+    if (running) {
+      this.updateInProgress = true;
+      this.updateProgressLabel = 'Téléchargement en cours...';
+      this.cdr.markForCheck();
+      try {
+        await running;
+      } catch {
+        // Le message d'échec est déjà affiché par le téléchargement en cours.
+      } finally {
+        this.updateInProgress = false;
+        this.updateProgressLabel = '';
+        this.cdr.markForCheck();
+      }
+      return;
+    }
+
     if (Capacitor.getPlatform() === 'web') {
       await this.presentToast('La mise à jour in-app est disponible uniquement sur l\'application Android.', 'warning', 'top');
       return;
@@ -579,24 +596,7 @@ export class MorePage implements OnInit, OnDestroy {
         return;
       }
 
-      await this.appUpdateService.downloadAndInstall(release, (progress) => {
-        switch (progress.phase) {
-          case 'downloading':
-            this.updateProgressLabel = progress.percent != null
-              ? `Téléchargement... ${progress.percent}%`
-              : 'Téléchargement en cours...';
-            break;
-          case 'verifying':
-            this.updateProgressLabel = 'Vérification du fichier...';
-            break;
-          case 'installing':
-            this.updateProgressLabel = 'Lancement de l\'installation...';
-            break;
-          default:
-            this.updateProgressLabel = 'Mise à jour en cours...';
-        }
-        this.cdr.markForCheck();
-      });
+      await this.appUpdateService.downloadAndInstall(release, (progress) => this.applyUpdateProgress(progress));
 
       await this.presentToast(
         'Installation lancée. Suivez les instructions Android pour terminer la mise à jour.',
@@ -612,6 +612,25 @@ export class MorePage implements OnInit, OnDestroy {
       this.updateProgressLabel = '';
       this.cdr.markForCheck();
     }
+  }
+
+  private applyUpdateProgress(progress: { phase: string; percent?: number }): void {
+    switch (progress.phase) {
+      case 'downloading':
+        this.updateProgressLabel = progress.percent != null
+          ? `Téléchargement... ${progress.percent}%`
+          : 'Téléchargement en cours...';
+        break;
+      case 'verifying':
+        this.updateProgressLabel = 'Vérification du fichier...';
+        break;
+      case 'installing':
+        this.updateProgressLabel = 'Lancement de l\'installation...';
+        break;
+      default:
+        this.updateProgressLabel = 'Mise à jour en cours...';
+    }
+    this.cdr.markForCheck();
   }
 
   private async confirmAppUpdate(release: MobileAppReleaseInfo): Promise<boolean> {

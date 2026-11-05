@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Storage } from '@ionic/storage-angular';
 import { RmCollectorAssignOp } from './rm-collector-assign.models';
+import { RmLocalStore } from './rm-local-store.service';
 
 const QUEUE_KEY = 'rm_collector_assign_ops';
 
@@ -9,25 +9,34 @@ const QUEUE_KEY = 'rm_collector_assign_ops';
 export class RmCollectorAssignQueueService {
   private readonly opsSubject = new BehaviorSubject<RmCollectorAssignOp[]>([]);
   readonly ops$ = this.opsSubject.asObservable();
-  private ready: Promise<void>;
+  private ready: Promise<void> | null = null;
 
-  constructor(private readonly storage: Storage) {
-    this.ready = this.hydrate();
+  constructor(private readonly store: RmLocalStore) {
+    this.store.watchRestore(() => {
+      this.ready = this.hydrate();
+      return this.ready;
+    });
+  }
+
+  private ensureReady(): Promise<void> {
+    if (!this.ready) {
+      this.ready = this.hydrate();
+    }
+    return this.ready;
   }
 
   private async hydrate(): Promise<void> {
-    await this.storage.create();
-    const ops = (await this.storage.get(QUEUE_KEY)) as RmCollectorAssignOp[] | null;
-    this.opsSubject.next(Array.isArray(ops) ? ops : []);
+    const ops = await this.store.loadOps<RmCollectorAssignOp>(QUEUE_KEY);
+    this.opsSubject.next(ops);
   }
 
   async listAll(): Promise<RmCollectorAssignOp[]> {
-    await this.ready;
+    await this.ensureReady();
     return [...this.opsSubject.value];
   }
 
   async listPending(): Promise<RmCollectorAssignOp[]> {
-    await this.ready;
+    await this.ensureReady();
     return this.opsSubject.value.filter(o => !o.isSync);
   }
 
@@ -36,7 +45,7 @@ export class RmCollectorAssignQueueService {
   }
 
   async upsert(op: RmCollectorAssignOp): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     const next = [...this.opsSubject.value];
     const idx = next.findIndex(o => o.localId === op.localId);
     if (idx >= 0) {
@@ -48,28 +57,30 @@ export class RmCollectorAssignQueueService {
   }
 
   async markSynced(localId: string): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     const next = this.opsSubject.value.map(o =>
-      o.localId === localId ? { ...o, isSync: true, lastError: null } : o
+      o.localId === localId ? { ...o, isSync: true, lastError: null, syncErrorId: null } : o
     );
     await this.persist(next);
   }
 
-  async markError(localId: string, error: string): Promise<void> {
-    await this.ready;
+  async markError(localId: string, error: string, syncErrorId?: string | null): Promise<void> {
+    await this.ensureReady();
     const next = this.opsSubject.value.map(o =>
-      o.localId === localId ? { ...o, lastError: error } : o
+      o.localId === localId
+        ? { ...o, lastError: error, syncErrorId: syncErrorId ?? o.syncErrorId ?? null }
+        : o
     );
     await this.persist(next);
   }
 
   async clearAll(): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     await this.persist([]);
   }
 
   private async persist(ops: RmCollectorAssignOp[]): Promise<void> {
-    await this.storage.set(QUEUE_KEY, ops);
+    await this.store.saveOps(QUEUE_KEY, ops);
     this.opsSubject.next(ops);
   }
 }

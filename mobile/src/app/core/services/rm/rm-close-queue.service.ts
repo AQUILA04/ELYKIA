@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
-import { Storage } from '@ionic/storage-angular';
 import { RmCloseOp } from './rm-close.models';
+import { RmLocalStore } from './rm-local-store.service';
 
 const QUEUE_KEY = 'rm_close_ops';
 
@@ -9,20 +9,29 @@ const QUEUE_KEY = 'rm_close_ops';
 export class RmCloseQueueService {
   private readonly opsSubject = new BehaviorSubject<RmCloseOp[]>([]);
   readonly ops$ = this.opsSubject.asObservable();
-  private ready: Promise<void>;
+  private ready: Promise<void> | null = null;
 
-  constructor(private readonly storage: Storage) {
-    this.ready = this.hydrate();
+  constructor(private readonly store: RmLocalStore) {
+    this.store.watchRestore(() => {
+      this.ready = this.hydrate();
+      return this.ready;
+    });
+  }
+
+  private ensureReady(): Promise<void> {
+    if (!this.ready) {
+      this.ready = this.hydrate();
+    }
+    return this.ready;
   }
 
   private async hydrate(): Promise<void> {
-    await this.storage.create();
-    const ops = (await this.storage.get(QUEUE_KEY)) as RmCloseOp[] | null;
-    this.opsSubject.next(Array.isArray(ops) ? ops : []);
+    const ops = await this.store.loadOps<RmCloseOp>(QUEUE_KEY);
+    this.opsSubject.next(ops);
   }
 
   async list(): Promise<RmCloseOp[]> {
-    await this.ready;
+    await this.ensureReady();
     return [...this.opsSubject.value];
   }
 
@@ -39,7 +48,7 @@ export class RmCloseQueueService {
   }
 
   async upsert(op: RmCloseOp): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     const next = [...this.opsSubject.value];
     const idx = next.findIndex(o => o.localId === op.localId || o.reference === op.reference);
     if (idx >= 0) {
@@ -51,34 +60,36 @@ export class RmCloseQueueService {
   }
 
   async markSynced(reference: string): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     const next = this.opsSubject.value.map(o =>
-      o.reference === reference ? { ...o, isSync: true, lastError: null } : o
+      o.reference === reference ? { ...o, isSync: true, lastError: null, syncErrorId: null } : o
     );
     await this.persist(next);
   }
 
-  async markError(reference: string, error: string): Promise<void> {
-    await this.ready;
+  async markError(reference: string, error: string, syncErrorId?: string | null): Promise<void> {
+    await this.ensureReady();
     const next = this.opsSubject.value.map(o =>
-      o.reference === reference ? { ...o, lastError: error } : o
+      o.reference === reference
+        ? { ...o, lastError: error, syncErrorId: syncErrorId ?? o.syncErrorId ?? null }
+        : o
     );
     await this.persist(next);
   }
 
   async clearSynced(): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     const next = this.opsSubject.value.filter(o => !o.isSync);
     await this.persist(next);
   }
 
   async clearAll(): Promise<void> {
-    await this.ready;
+    await this.ensureReady();
     await this.persist([]);
   }
 
   private async persist(ops: RmCloseOp[]): Promise<void> {
-    await this.storage.set(QUEUE_KEY, ops);
+    await this.store.saveOps(QUEUE_KEY, ops);
     this.opsSubject.next(ops);
   }
 }

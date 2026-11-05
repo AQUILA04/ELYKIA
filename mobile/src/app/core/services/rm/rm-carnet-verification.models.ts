@@ -6,4 +6,5 @@ export interface RmCarnetVerificationOp {
   createdAt: string;
   isSync: boolean;
   lastError: string | null;
+  syncErrorId?: string | null;
 }

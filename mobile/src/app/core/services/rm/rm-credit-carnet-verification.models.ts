@@ -7,4 +7,5 @@ export interface RmCreditCarnetVerificationOp {
   createdAt: string;
   isSync: boolean;
   lastError: string | null;
+  syncErrorId?: string | null;
 }

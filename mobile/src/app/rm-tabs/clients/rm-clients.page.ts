@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { ModalController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { RmScopeService } from '../../core/services/rm/rm-scope.service';
@@ -30,7 +31,8 @@ export class RmClientsPage implements OnInit, OnDestroy {
     private readonly modalCtrl: ModalController,
     private readonly clientPhotoUrlService: ClientPhotoUrlService,
     private readonly cdr: ChangeDetectorRef,
-    private readonly syncBadges: RmDossierSyncBadgeService
+    private readonly syncBadges: RmDossierSyncBadgeService,
+    private readonly router: Router
   ) {}
 
   ngOnInit(): void {
@@ -114,6 +116,16 @@ export class RmClientsPage implements OnInit, OnDestroy {
 
   isClientLocal(client: RmPackClient): boolean {
     return this.syncStamp >= 0 && this.syncBadges.isClientLocal(client.id);
+  }
+
+  clientSyncErrorId(client: RmPackClient): string | null {
+    return this.syncStamp >= 0 ? this.syncBadges.clientSyncErrorId(client.id) : null;
+  }
+
+  openSyncError(event: Event, errorId: string): void {
+    event.stopPropagation();
+    event.preventDefault();
+    void this.router.navigate(['/sync-errors', errorId]);
   }
 
   initials(c: RmPackClient): string {

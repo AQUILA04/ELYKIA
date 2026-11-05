@@ -25,6 +25,7 @@ export interface RmTontineFieldControlOp {
   createdAt: string;
   isSync: boolean;
   lastError?: string | null;
+  syncErrorId?: string | null;
   /** Renseigné lorsque ce contrôle a aussi certifié le carnet. */
   carnetVerified?: boolean;
   carnetVerifiedAt?: string;

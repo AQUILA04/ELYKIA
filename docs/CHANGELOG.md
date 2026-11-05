@@ -56,6 +56,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.41.3] — 2026-11-05
+
+### Changed
+
+- Guide d'utilisation : après la connexion, l'application mobile télécharge seule une version plus récente, puis ouvre l'installation. **Mettre à jour l'application** reste dans l'onglet Plus.
+
+## Frontend — [2.41.2] — 2026-11-05
+
+### Changed
+
+- Guide d'utilisation : le chef de recouvrement consulte les erreurs de synchronisation depuis l'onglet Plus, et l'icône d'avertissement sur une ligne ouvre le détail. **Sauvegarder les données** enregistre une copie du plan, du pack et des opérations encore sur le téléphone.
+
 ## Frontend — [2.41.1] — 2026-11-04
 
 ### Added
@@ -78,6 +90,21 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
+
+## Mobile — [2.35.1] — 2026-11-05
+
+### Added
+
+- À la connexion, l'application vérifie si une version plus récente est disponible, la télécharge en arrière-plan, puis ouvre l'installation Android. **Mettre à jour l'application** reste dans l'onglet Plus.
+
+## Mobile — [2.35.0] — 2026-11-05
+
+### Added
+
+- Chef de recouvrement : l'onglet Plus propose **Erreurs de synchronisation**. La liste et le détail ne montrent que les opérations de sa tournée, même si un commercial a utilisé le même téléphone.
+- Une icône d'avertissement sur Retards, Terrain et Clients ouvre le détail de l'envoi qui a échoué.
+- Le plan du jour, le pack et les opérations encore sur le téléphone entrent dans la sauvegarde et reviennent avec **Restaurer une sauvegarde**.
+- L'onglet Plus propose **Sauvegarder les données** pour enregistrer cette copie tout de suite.
 
 ## Mobile — [2.34.10] — 2026-10-29
 

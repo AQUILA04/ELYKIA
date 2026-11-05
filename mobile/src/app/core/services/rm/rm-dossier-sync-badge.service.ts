@@ -15,7 +15,10 @@ import {
   isClientLocal,
   isCreditLocal,
   isTontineLocal,
-  RmSyncIndex
+  RmSyncIndex,
+  syncErrorIdForClient,
+  syncErrorIdForCredit,
+  syncErrorIdForTontine
 } from './rm-dossier-sync.util';
 
 @Injectable({ providedIn: 'root' })
@@ -69,6 +72,22 @@ export class RmDossierSyncBadgeService {
   }
 
   isClientLocal(clientId: number): boolean {
+    return isClientLocal(this.index, clientId, this.clientLinks(clientId));
+  }
+
+  creditSyncErrorId(creditId: number, clientId?: number | null): string | null {
+    return syncErrorIdForCredit(this.index, creditId, clientId);
+  }
+
+  tontineSyncErrorId(memberId: number, clientId?: number | null): string | null {
+    return syncErrorIdForTontine(this.index, memberId, clientId);
+  }
+
+  clientSyncErrorId(clientId: number): string | null {
+    return syncErrorIdForClient(this.index, clientId, this.clientLinks(clientId));
+  }
+
+  private clientLinks(clientId: number): { creditIds: number[]; memberIds: number[] } {
     const pack = this.scope.getPack();
     const creditIds = [...(pack?.lateCredits ?? []), ...(pack?.inProgressCredits ?? [])]
       .filter(credit => credit.clientId === clientId)
@@ -76,6 +95,6 @@ export class RmDossierSyncBadgeService {
     const memberIds = (pack?.tontineMembers ?? [])
       .filter(member => member.clientId === clientId)
       .map(member => member.id);
-    return isClientLocal(this.index, clientId, { creditIds, memberIds });
+    return { creditIds, memberIds };
   }
 }

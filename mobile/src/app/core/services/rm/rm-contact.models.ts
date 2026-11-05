@@ -9,6 +9,7 @@ export interface RmContactPatch {
   createdAt: string;
   isSync: boolean;
   lastError?: string | null;
+  syncErrorId?: string | null;
 }
 
 export interface RmContactUpdateRequest {
