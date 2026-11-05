@@ -21,12 +21,12 @@ import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
+import com.optimize.elykia.core.event.CarnetEcartDetectedEvent;
 import com.optimize.elykia.core.service.carnet.CarnetVerificationSupport;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,12 +62,7 @@ public class TontineMemberFieldControlService {
     private final TontineCollectionRepository tontineCollectionRepository;
     private final CarnetEcartRecontrolPolicy recontrolPolicy;
     private final ParameterService parameterService;
-    private AppNotificationService appNotificationService;
-
-    @Autowired(required = false)
-    public void setAppNotificationService(AppNotificationService appNotificationService) {
-        this.appNotificationService = appNotificationService;
-    }
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public TontineMemberFieldControlDto create(Long memberId, CreateTontineMemberFieldControlDto dto) {
@@ -128,7 +123,7 @@ public class TontineMemberFieldControlService {
         }
 
         maybeAutoVerify(member, observedBy);
-        notifyEcart(saved, member);
+        publishEcart(saved, member);
         return toDto(saved, memberId);
     }
 
@@ -265,8 +260,8 @@ public class TontineMemberFieldControlService {
         return normalized + "|" + year + "-" + month;
     }
 
-    private void notifyEcart(TontineMemberFieldControl saved, TontineMember member) {
-        if (saved.getStatus() != FieldControlStatus.ECART || appNotificationService == null) {
+    private void publishEcart(TontineMemberFieldControl saved, TontineMember member) {
+        if (saved.getStatus() != FieldControlStatus.ECART) {
             return;
         }
         String clientName = member.getClient() != null ? member.getClient().getFullName() : null;
@@ -281,19 +276,19 @@ public class TontineMemberFieldControlService {
             double positive = Math.max(0d, line.getDifferenceAmount() != null ? line.getDifferenceAmount() : 0d);
             byCommercial.merge(line.getCommercialUsername().trim(), positive, Double::sum);
         }
-        for (Map.Entry<String, Double> entry : byCommercial.entrySet()) {
-            try {
-                appNotificationService.notifyCarnetEcart(
-                        entry.getKey(),
-                        clientName,
-                        saved.getId(),
-                        "TONTINE:" + entry.getKey(),
-                        entry.getValue());
-            } catch (RuntimeException ex) {
-                log.warn("Notification d'écart de carnet non envoyée pour le membre {} : {}",
-                        member.getId(), ex.getMessage());
-            }
+        if (byCommercial.isEmpty()) {
+            return;
         }
+        List<CarnetEcartDetectedEvent.Item> items = new ArrayList<>();
+        for (Map.Entry<String, Double> entry : byCommercial.entrySet()) {
+            items.add(new CarnetEcartDetectedEvent.Item(
+                    entry.getKey(),
+                    clientName,
+                    saved.getId(),
+                    "TONTINE:" + entry.getKey(),
+                    entry.getValue()));
+        }
+        eventPublisher.publishEvent(new CarnetEcartDetectedEvent(items));
     }
 
     @Transactional(readOnly = true)

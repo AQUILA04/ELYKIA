@@ -24,6 +24,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -56,6 +57,8 @@ class TontineMemberFieldControlServiceTest {
     private CarnetEcartRecontrolPolicy recontrolPolicy;
     @Mock
     private ParameterService parameterService;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
     @InjectMocks
     private TontineMemberFieldControlService service;
 

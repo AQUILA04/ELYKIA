@@ -85,6 +85,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.44.4] — 2026-11-05
+
+### Fixed
+
+- La synchronisation d'un contrôle de carnet avec écart aboutit : la notification « écart de carnet » est acceptée par la base.
+- Un échec de cette notification n'annule plus le contrôle : elle est envoyée après l'enregistrement, dans une transaction séparée.
+
 ## Backend — [1.44.3] — 2026-11-04
 
 ### Fixed
