@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-05
+
+### Added
+
+- **Grafana —** alerte e-mail lorsqu'une contrainte Postgres (check, clé étrangère ou doublon) apparaît dans les logs du backend de production. La règle active est dans optimize-common-infra ; la copie du dépôt reste alignée.
+
 ## Docs & Infra — 2026-11-04
 
 ### Fixed
