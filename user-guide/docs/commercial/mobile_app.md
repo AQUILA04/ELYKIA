@@ -52,6 +52,8 @@ Tout en bas de l'écran de votre téléphone, 4 onglets restent toujours visible
 3. **Distributions** : pour suivre tous vos contrats de vente à crédit en cours.
 4. **Plus** : pour régler vos options, lancer la synchronisation manuelle ou consulter vos outils d'aide.
 
+À la connexion, l'application vérifie seule si une version plus récente est disponible. Si c'est le cas, elle la télécharge pendant que vous travaillez, puis ouvre l'installation Android. Dans **Plus**, **Mettre à jour l'application** permet de relancer cette vérification vous-même.
+
 ---
 
 ## 2. Module Clients : gérer vos clientes sur le terrain

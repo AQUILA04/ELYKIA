@@ -13,6 +13,7 @@ import { RmCloseQueueService } from '../../core/services/rm/rm-close-queue.servi
 import { RmContactQueueService } from '../../core/services/rm/rm-contact-queue.service';
 import { RmFieldControlQueueService } from '../../core/services/rm/rm-field-control-queue.service';
 import { RmTontineFieldControlQueueService } from '../../core/services/rm/rm-tontine-field-control-queue.service';
+import { AppUpdateService } from '../../core/services/app-update.service';
 
 @Injectable()
 export class AuthEffects {
@@ -28,7 +29,8 @@ export class AuthEffects {
     private rmCloseQueue: RmCloseQueueService,
     private rmContactQueue: RmContactQueueService,
     private rmFieldControlQueue: RmFieldControlQueueService,
-    private rmTontineFieldControlQueue: RmTontineFieldControlQueueService
+    private rmTontineFieldControlQueue: RmTontineFieldControlQueueService,
+    private appUpdateService: AppUpdateService
   ) {}
 
   login$ = createEffect(() =>
@@ -68,6 +70,9 @@ export class AuthEffects {
       this.actions$.pipe(
         ofType(AuthActions.loginSuccess),
         tap(({ user }) => {
+          if (!user?.mustChangePassword) {
+            this.appUpdateService.startAfterLogin();
+          }
           if (user?.mustChangePassword) {
             this.log.log('[AuthEffects] loginSuccess$ → /change-password');
             this.router.navigateByUrl('/change-password');
@@ -122,6 +127,7 @@ export class AuthEffects {
           void this.rmContactQueue.clearAll();
           void this.rmFieldControlQueue.clearAll();
           void this.rmTontineFieldControlQueue.clearAll();
+          this.appUpdateService.resetSession();
           this.log.log('[AuthEffects] logoutSuccess$ triggered, navigating to /login.');
           this.router.navigateByUrl('/login');
         })

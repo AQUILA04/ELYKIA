@@ -4,6 +4,7 @@ import { from, Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { SyncError } from '../../../../models/sync.model';
 import { SyncErrorService } from '../../../../core/services/sync-error.service';
+import { syncEntityLabel } from '../../../../core/services/rm/rm-sync-failure';
 
 @Component({
   selector: 'app-sync-error-detail',
@@ -13,7 +14,7 @@ import { SyncErrorService } from '../../../../core/services/sync-error.service';
 })
 export class SyncErrorDetailPage implements OnInit {
 
-  syncError$!: Observable<SyncError | null>;
+  syncState$!: Observable<{ error: SyncError | null }>;
 
   constructor(
     private route: ActivatedRoute,
@@ -21,14 +22,18 @@ export class SyncErrorDetailPage implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.syncError$ = this.route.paramMap.pipe(
+    this.syncState$ = this.route.paramMap.pipe(
       switchMap(params => {
         const id = params.get('id');
-        if (id) {
-          return from(this.syncErrorService.getSyncErrorById(id));
+        if (!id) {
+          return from(Promise.resolve({ error: null as SyncError | null }));
         }
-        return from([null]);
+        return from(this.syncErrorService.getSyncErrorById(id).then(error => ({ error })));
       })
     );
+  }
+
+  entityLabel(entityType: string): string {
+    return syncEntityLabel(entityType);
   }
 }

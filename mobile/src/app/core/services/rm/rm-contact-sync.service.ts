@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
 import { OnlineFirstWriteCoordinator } from '../online-first-write.coordinator';
+import { SyncErrorService } from '../sync-error.service';
 import { RmContactApiService } from './rm-contact-api.service';
 import { RmContactQueueService } from './rm-contact-queue.service';
 import { RmContactPatch } from './rm-contact.models';
 import { RmScopeService } from './rm-scope.service';
+import { logRmSyncFailure, resolveRmSyncSuccess, RM_SYNC_ENTITY } from './rm-sync-failure';
 
 export interface RmContactSyncResult {
   synced: number;
@@ -17,7 +19,8 @@ export class RmContactSyncService {
     private readonly queue: RmContactQueueService,
     private readonly api: RmContactApiService,
     private readonly scope: RmScopeService,
-    private readonly coordinator: OnlineFirstWriteCoordinator
+    private readonly coordinator: OnlineFirstWriteCoordinator,
+    private readonly syncErrors: SyncErrorService
   ) {}
 
   async syncPending(): Promise<RmContactSyncResult> {
@@ -29,12 +32,20 @@ export class RmContactSyncService {
     for (const patch of pending) {
       try {
         await this.syncOne(patch);
+        await resolveRmSyncSuccess(this.syncErrors, patch);
         synced += 1;
       } catch (error) {
         failed += 1;
         const message = this.coordinator.extractErrorMessage(error);
         errors.push(`Client ${patch.clientId}: ${message}`);
-        await this.queue.markError(patch.reference, message);
+        const syncErrorId = await logRmSyncFailure(
+          this.syncErrors,
+          RM_SYNC_ENTITY.contact,
+          patch,
+          `Client ${patch.clientId}`,
+          error
+        );
+        await this.queue.markError(patch.reference, message, syncErrorId);
       }
     }
 

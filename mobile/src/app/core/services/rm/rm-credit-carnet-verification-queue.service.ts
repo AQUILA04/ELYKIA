@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Storage } from '@ionic/storage-angular';
 import { RmOfflineOpsQueueStore } from './rm-offline-ops-queue.base';
+import { RmLocalStore } from './rm-local-store.service';
 import { RmCreditCarnetVerificationOp } from './rm-credit-carnet-verification.models';
 
 @Injectable({ providedIn: 'root' })
@@ -9,9 +9,9 @@ export class RmCreditCarnetVerificationQueueService {
   private readonly store: RmOfflineOpsQueueStore<RmCreditCarnetVerificationOp>;
   readonly ops$: Observable<RmCreditCarnetVerificationOp[]>;
 
-  constructor(storage: Storage) {
+  constructor(localStore: RmLocalStore) {
     this.store = new RmOfflineOpsQueueStore(
-      storage,
+      localStore,
       'rm_credit_carnet_verifications',
       (a, b) => a.creditId === b.creditId
     );
@@ -38,8 +38,8 @@ export class RmCreditCarnetVerificationQueueService {
     return this.store.markSynced(localId);
   }
 
-  markError(localId: string, error: string): Promise<void> {
-    return this.store.markError(localId, error);
+  markError(localId: string, error: string, syncErrorId?: string | null): Promise<void> {
+    return this.store.markError(localId, error, syncErrorId);
   }
 
   clearAll(): Promise<void> {

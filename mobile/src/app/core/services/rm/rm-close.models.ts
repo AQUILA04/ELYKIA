@@ -12,6 +12,7 @@ export interface RmCloseOp {
   createdAt: string;
   isSync: boolean;
   lastError?: string | null;
+  syncErrorId?: string | null;
 }
 
 export interface RmCloseRequest {

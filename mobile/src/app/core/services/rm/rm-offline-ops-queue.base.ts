@@ -1,14 +1,15 @@
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Storage } from '@ionic/storage-angular';
+import { RmLocalStore } from './rm-local-store.service';
 
 export interface RmOfflineOpBase {
   localId: string;
   isSync: boolean;
-  lastError: string | null;
+  lastError?: string | null;
+  syncErrorId?: string | null;
 }
 
 /**
- * Ionic Storage-backed offline ops queue (lazy hydrate — no async in constructor).
+ * File d'opérations hors ligne persistée dans SQLite (rm_offline_ops).
  */
 export class RmOfflineOpsQueueStore<T extends RmOfflineOpBase> {
   private readonly opsSubject = new BehaviorSubject<T[]>([]);
@@ -16,10 +17,16 @@ export class RmOfflineOpsQueueStore<T extends RmOfflineOpBase> {
   private ready: Promise<void> | null = null;
 
   constructor(
-    private readonly storage: Storage,
+    private readonly store: RmLocalStore,
     private readonly queueKey: string,
-    private readonly sameEntity: (a: T, b: T) => boolean
-  ) {}
+    private readonly sameEntity: (a: T, b: T) => boolean,
+    private readonly syncKey: (op: T) => string = (op) => op.localId
+  ) {
+    this.store.watchRestore(() => {
+      this.ready = this.hydrate();
+      return this.ready;
+    });
+  }
 
   private ensureReady(): Promise<void> {
     if (!this.ready) {
@@ -29,8 +36,7 @@ export class RmOfflineOpsQueueStore<T extends RmOfflineOpBase> {
   }
 
   private async hydrate(): Promise<void> {
-    await this.storage.create();
-    const ops = (await this.storage.get(this.queueKey)) as T[] | null;
+    const ops = await this.store.loadOps<T>(this.queueKey);
     this.opsSubject.next(Array.isArray(ops) ? ops : []);
   }
 
@@ -60,20 +66,27 @@ export class RmOfflineOpsQueueStore<T extends RmOfflineOpBase> {
     await this.persist(next);
   }
 
-  async markSynced(localId: string): Promise<void> {
+  async markSynced(key: string): Promise<void> {
     await this.ensureReady();
     const next = this.opsSubject.value.map(o =>
-      o.localId === localId ? { ...o, isSync: true, lastError: null } : o
+      this.syncKey(o) === key ? { ...o, isSync: true, lastError: null, syncErrorId: null } : o
     );
     await this.persist(next);
   }
 
-  async markError(localId: string, error: string): Promise<void> {
+  async markError(key: string, error: string, syncErrorId?: string | null): Promise<void> {
     await this.ensureReady();
     const next = this.opsSubject.value.map(o =>
-      o.localId === localId ? { ...o, lastError: error } : o
+      this.syncKey(o) === key
+        ? { ...o, lastError: error, syncErrorId: syncErrorId ?? o.syncErrorId ?? null }
+        : o
     );
     await this.persist(next);
+  }
+
+  protected async keep(match: (op: T) => boolean): Promise<void> {
+    await this.ensureReady();
+    await this.persist(this.opsSubject.value.filter(match));
   }
 
   async clearAll(): Promise<void> {
@@ -82,7 +95,7 @@ export class RmOfflineOpsQueueStore<T extends RmOfflineOpBase> {
   }
 
   private async persist(ops: T[]): Promise<void> {
-    await this.storage.set(this.queueKey, ops);
+    await this.store.saveOps(this.queueKey, ops);
     this.opsSubject.next(ops);
   }
 }

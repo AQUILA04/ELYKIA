@@ -14,6 +14,7 @@ export interface RmCollectorAssignOp {
   createdAt: string;
   isSync: boolean;
   lastError?: string | null;
+  syncErrorId?: string | null;
 }
 
 export interface RmCollectorAssignRequest {

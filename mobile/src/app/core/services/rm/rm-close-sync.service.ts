@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
 import { OnlineWriteError, WriteErrorKind } from '../online-first-write.types';
 import { OnlineFirstWriteCoordinator } from '../online-first-write.coordinator';
+import { SyncErrorService } from '../sync-error.service';
 import { RmCloseApiService } from './rm-close-api.service';
 import { RmCloseQueueService } from './rm-close-queue.service';
 import { RmCloseOp } from './rm-close.models';
+import { logRmSyncFailure, resolveRmSyncSuccess, RM_SYNC_ENTITY } from './rm-sync-failure';
 
 export interface RmCloseSyncResult {
   synced: number;
@@ -16,7 +18,8 @@ export class RmCloseSyncService {
   constructor(
     private readonly queue: RmCloseQueueService,
     private readonly api: RmCloseApiService,
-    private readonly coordinator: OnlineFirstWriteCoordinator
+    private readonly coordinator: OnlineFirstWriteCoordinator,
+    private readonly syncErrors: SyncErrorService
   ) {}
 
   async syncPending(): Promise<RmCloseSyncResult> {
@@ -28,12 +31,20 @@ export class RmCloseSyncService {
     for (const op of pending) {
       try {
         await this.syncOne(op);
+        await resolveRmSyncSuccess(this.syncErrors, op);
         synced += 1;
       } catch (error) {
         failed += 1;
         const message = this.coordinator.extractErrorMessage(error);
         errors.push(`${op.creditReference || op.creditId}: ${message}`);
-        await this.queue.markError(op.reference, message);
+        const syncErrorId = await logRmSyncFailure(
+          this.syncErrors,
+          RM_SYNC_ENTITY.close,
+          op,
+          String(op.creditReference || op.creditId),
+          error
+        );
+        await this.queue.markError(op.reference, message, syncErrorId);
         if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS) {
           // Keep in queue with error — user can dismiss later; still counts as failed
         }

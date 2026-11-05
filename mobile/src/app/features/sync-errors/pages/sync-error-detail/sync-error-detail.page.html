@@ -13,11 +13,12 @@
 </ion-header>
 
 <ion-content class="elyk-content detail-body">
-  <ng-container *ngIf="syncError$ | async as error; else loading">
+  <ng-container *ngIf="syncState$ | async as state; else loading">
+  <ng-container *ngIf="state.error as error; else missing">
     <ion-card class="elyk-card" *ngIf="error">
       <ion-card-header>
         <ion-card-title>{{ error.entityDisplayName }}</ion-card-title>
-        <ion-card-subtitle>{{ error.entityType | titlecase }} · {{ error.operation }}</ion-card-subtitle>
+        <ion-card-subtitle>{{ entityLabel(error.entityType) }} · {{ error.operation }}</ion-card-subtitle>
       </ion-card-header>
       <ion-card-content>
         <div class="detail-row">
@@ -53,6 +54,13 @@
       <ion-card-header><ion-card-title>Détails de l'entité locale</ion-card-title></ion-card-header>
       <ion-card-content><pre class="json-data">{{ error.entityDetails | json }}</pre></ion-card-content>
     </ion-card>
+  </ng-container>
+  <ng-template #missing>
+    <div class="elyk-empty empty-wrap">
+      <h3>Erreur introuvable</h3>
+      <p>Cette erreur n'est pas disponible.</p>
+    </div>
+  </ng-template>
   </ng-container>
 
   <ng-template #loading>

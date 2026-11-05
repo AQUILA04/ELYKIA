@@ -13,7 +13,7 @@ export interface SyncProgress {
 
 export interface SyncError {
   id: string;
-  entityType: 'locality' | 'client' | 'distribution' | 'recovery' | 'account' | 'order' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery';
+  entityType: 'locality' | 'client' | 'distribution' | 'recovery' | 'account' | 'order' | 'tontine-member' | 'tontine-collection' | 'tontine-delivery' | 'rm-close' | 'rm-contact' | 'rm-field-control' | 'rm-tontine-field-control' | 'rm-carnet' | 'rm-credit-carnet' | 'rm-assign';
   entityId: string;
   entityDisplayName: string;
   operation: 'CREATE' | 'UPDATE' | 'DELETE' | 'UPDATE_LOCATION' | 'UPDATE_PHOTO' | 'UPDATE_PHOTO_URL' | 'SKIP';

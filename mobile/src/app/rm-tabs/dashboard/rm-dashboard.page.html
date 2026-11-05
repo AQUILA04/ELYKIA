@@ -94,6 +94,12 @@
           <h3>{{ item.clientName || 'Client' }}</h3>
           <span class="elyk-badge" [class.elyk-badge--local]="isCreditLocal(item)" [class.elyk-badge--sync]="!isCreditLocal(item)"
                 data-testid="e2e-rm-sync-badge">{{ isCreditLocal(item) ? 'Local' : 'Sync' }}</span>
+          <button type="button" class="sync-error-btn" *ngIf="creditSyncErrorId(item) as errorId"
+                  (click)="openSyncError($event, errorId)"
+                  aria-label="Erreur de synchronisation"
+                  data-testid="e2e-rm-sync-error">
+            <ion-icon name="warning-outline" aria-hidden="true"></ion-icon>
+          </button>
           <p>{{ item.reference }} · {{ item.collector }}</p>
           <p class="phone" *ngIf="item.clientPhone">{{ item.clientPhone }}</p>
           <span class="ctrl-badge verified" *ngIf="item.carnetVerified"

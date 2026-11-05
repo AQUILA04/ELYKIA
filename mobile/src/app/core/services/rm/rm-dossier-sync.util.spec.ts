@@ -4,7 +4,10 @@ import {
   isClientLocal,
   isCreditLocal,
   isTontineLocal,
-  RmSyncQueueSnapshot
+  RmSyncQueueSnapshot,
+  syncErrorIdForClient,
+  syncErrorIdForCredit,
+  syncErrorIdForTontine
 } from './rm-dossier-sync.util';
 
 function queues(partial: Partial<RmSyncQueueSnapshot> = {}): RmSyncQueueSnapshot {
@@ -60,6 +63,23 @@ describe('buildRmSyncIndex', () => {
     }));
     expect(isTontineLocal(index, 7)).toBeTrue();
     expect(isTontineLocal(index, 8)).toBeFalse();
+  });
+
+  it('retient l\'erreur la plus récente pour ouvrir son détail', () => {
+    const index = buildRmSyncIndex(queues({
+      closes: [
+        { creditId: 1, isSync: false, syncErrorId: 'recent' },
+        { creditId: 1, isSync: false, syncErrorId: 'older' }
+      ],
+      contacts: [{ clientId: 9, isSync: false, syncErrorId: 'contact-err' }],
+      tontineControls: [{ tontineMemberId: 5, isSync: false, syncErrorId: 'tontine-err' }]
+    }));
+    expect(syncErrorIdForCredit(index, 1)).toBe('recent');
+    expect(syncErrorIdForCredit(index, 2, 9)).toBe('contact-err');
+    expect(syncErrorIdForTontine(index, 5)).toBe('tontine-err');
+    expect(syncErrorIdForClient(index, 9, { creditIds: [1] })).toBe('contact-err');
+    expect(syncErrorIdForClient(index, 8, { creditIds: [1], memberIds: [5] })).toBe('recent');
+    expect(syncErrorIdForCredit(emptyRmSyncIndex(), 1)).toBeNull();
   });
 
   it('relie la carte client au crédit ou au membre encore local', () => {

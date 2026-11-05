@@ -192,6 +192,16 @@ export class RmDashboardPage implements OnInit, OnDestroy {
     return this.syncStamp >= 0 && this.syncBadges.isCreditLocal(item.id, item.clientId);
   }
 
+  creditSyncErrorId(item: RmCreditLate): string | null {
+    return this.syncStamp >= 0 ? this.syncBadges.creditSyncErrorId(item.id, item.clientId) : null;
+  }
+
+  openSyncError(event: Event, errorId: string): void {
+    event.stopPropagation();
+    event.preventDefault();
+    void this.router.navigate(['/sync-errors', errorId]);
+  }
+
   formatRate(value: number | null | undefined): string {
     if (value == null || Number.isNaN(value)) {
       return '—';
