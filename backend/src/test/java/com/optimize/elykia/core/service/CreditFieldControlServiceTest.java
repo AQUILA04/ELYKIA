@@ -18,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -45,6 +46,8 @@ class CreditFieldControlServiceTest {
     private CreditRepository creditRepository;
     @Mock
     private CarnetEcartRecontrolPolicy recontrolPolicy;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
     @InjectMocks
     private CreditFieldControlService creditFieldControlService;
 

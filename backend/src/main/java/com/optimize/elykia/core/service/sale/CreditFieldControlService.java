@@ -7,14 +7,13 @@ import com.optimize.elykia.core.dto.CreditFieldControlDto;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditFieldControl;
 import com.optimize.elykia.core.enumaration.FieldControlStatus;
+import com.optimize.elykia.core.event.CarnetEcartDetectedEvent;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
-import com.optimize.elykia.core.service.notification.AppNotificationService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +25,6 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Slf4j
 public class CreditFieldControlService {
 
     private static final double EPSILON = 0.0001d;
@@ -34,12 +32,7 @@ public class CreditFieldControlService {
     private final CreditFieldControlRepository repository;
     private final CreditRepository creditRepository;
     private final CarnetEcartRecontrolPolicy recontrolPolicy;
-    private AppNotificationService appNotificationService;
-
-    @Autowired(required = false)
-    public void setAppNotificationService(AppNotificationService appNotificationService) {
-        this.appNotificationService = appNotificationService;
-    }
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public CreditFieldControlDto create(Long creditId, CreateCreditFieldControlDto dto) {
@@ -71,7 +64,7 @@ public class CreditFieldControlService {
             latest.setObservedBy(observedBy);
             latest.setNote(dto.getNote());
             CreditFieldControl saved = repository.save(latest);
-            notifyEcart(saved, credit, differenceAmount);
+            publishEcart(saved, credit, differenceAmount);
             return toDto(saved);
         }
 
@@ -87,27 +80,22 @@ public class CreditFieldControlService {
         entity.setNote(dto.getNote());
 
         CreditFieldControl saved = repository.save(entity);
-        notifyEcart(saved, credit, differenceAmount);
+        publishEcart(saved, credit, differenceAmount);
         return toDto(saved);
     }
 
-    private void notifyEcart(CreditFieldControl saved, Credit credit, double differenceAmount) {
-        if (saved.getStatus() != FieldControlStatus.ECART || appNotificationService == null
-                || credit.getCollector() == null) {
+    private void publishEcart(CreditFieldControl saved, Credit credit, double differenceAmount) {
+        if (saved.getStatus() != FieldControlStatus.ECART || !StringUtils.hasText(credit.getCollector())) {
             return;
         }
-        try {
-            String clientName = credit.getClient() != null ? credit.getClient().getFullName() : null;
-            appNotificationService.notifyCarnetEcart(
-                    credit.getCollector(),
-                    clientName,
-                    saved.getId(),
-                    "CREDIT:" + credit.getCollector(),
-                    Math.max(0d, differenceAmount));
-        } catch (RuntimeException ex) {
-            log.warn("Notification d'écart de carnet non envoyée pour le crédit {} : {}",
-                    credit.getId(), ex.getMessage());
-        }
+        String clientName = credit.getClient() != null ? credit.getClient().getFullName() : null;
+        eventPublisher.publishEvent(new CarnetEcartDetectedEvent(List.of(
+                new CarnetEcartDetectedEvent.Item(
+                        credit.getCollector(),
+                        clientName,
+                        saved.getId(),
+                        "CREDIT:" + credit.getCollector(),
+                        Math.max(0d, differenceAmount)))));
     }
 
     private Optional<CreditFieldControl> findLatest(Long creditId) {
