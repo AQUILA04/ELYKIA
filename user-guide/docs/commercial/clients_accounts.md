@@ -132,4 +132,5 @@ Le sous-menu **Comptes** offre une vue d’ensemble des comptes rattachés aux c
 2. Recherchez et sélectionnez le **client** : seuls les clients déjà validés apparaissent dans la liste. Un client encore en attente de validation d’inscription n’est pas proposé.
 3. Si le client n’apparaît pas, validez d’abord son inscription depuis **Services en ligne > Inscriptions**, puis revenez créer le compte.
 4. Renseignez le numéro de compte et le solde initial, puis enregistrez.
+5. Si ce client a déjà un compte, l'enregistrement est refusé. Le message indique son nom et le numéro du compte déjà ouvert.
 

@@ -57,6 +57,7 @@ import { TontineMember, TontineCollection, TontineDelivery } from '../../models/
 import { ReliquatRepository } from './reliquat.repository';
 import { ReliquatSyncUnit, ReliquatSyncRequest, ReliquatSyncResponse } from '../../models/sync.model';
 import { ClientRepository } from '../repositories/client.repository';
+import { isExistingAccountMessage, presentExistingAccountNotice } from './sync/existing-account-message';
 
 /**
  * @deprecated Ce service (synchronization.service) est appelé à disparaître sous peu.
@@ -486,8 +487,10 @@ export class SynchronizationService {
           this.http.put<ApiResponse<AccountSyncResponse>>(`${this.baseUrl}/api/v1/accounts/${accountServerId}`, syncRequest, { headers })
         );
 
-        // Marquer le compte comme synchronisé
-        await this.markAccountAsSynced(account.id, response.data.id.toString());
+        if (!response?.data?.id) {
+          throw new Error(response?.message || 'La mise à jour du compte a renvoyé une réponse vide.');
+        }
+        await this.markAccountAsSynced(account.id, response.data);
 
       } catch (error) {
         await this.logSyncError('account', account.id, 'UPDATE', error, syncRequest, `Compte ${account.accountNumber}`, account);
@@ -517,10 +520,19 @@ export class SynchronizationService {
           this.http.post<ApiResponse<AccountSyncResponse>>(`${this.baseUrl}/api/v1/accounts/sync`, syncRequest, { headers })
         );
 
-        // Marquer le compte comme synchronisé
-        await this.markAccountAsSynced(account.id, response.data.id.toString());
+        if (!response?.data?.id) {
+          throw new Error(response?.message || 'La synchronisation du compte a renvoyé une réponse vide.');
+        }
+        await this.markAccountAsSynced(account.id, response.data);
+        if (isExistingAccountMessage(response.message)) {
+          await presentExistingAccountNotice(response.message);
+        }
 
       } catch (error) {
+        const recovered = await this.recoverExistingAccount(account, error);
+        if (recovered) {
+          return;
+        }
         await this.logSyncError('account', account.id, 'CREATE', error, syncRequest, `Compte ${account.accountNumber}`, account);
         throw error;
       }
@@ -1200,17 +1212,43 @@ export class SynchronizationService {
     }
   }
 
-  private async markAccountAsSynced(localId: string, serverId: string): Promise<void> {
+  private async markAccountAsSynced(localId: string, serverAccount: AccountSyncResponse): Promise<void> {
     try {
+      const serverId = serverAccount.id.toString();
+      if (localId !== serverId) {
+        const clash = await this.databaseService.query(
+          `SELECT id FROM accounts WHERE id = ? LIMIT 1`,
+          [serverId]
+        );
+        if (clash.values && clash.values.length > 0) {
+          await this.databaseService.execute(`DELETE FROM accounts WHERE id = ?`, [localId]);
+          await this.databaseService.execute(
+            `UPDATE accounts SET isSync = 1, isLocal = 0, accountNumber = ?, accountBalance = ?, status = ?, syncDate = datetime('now'), updated = 0 WHERE id = ?`,
+            [serverAccount.accountNumber ?? null, serverAccount.accountBalance ?? 0, serverAccount.status ?? null, serverId]
+          );
+          return;
+        }
+      }
       await this.databaseService.execute(
-        `
-        UPDATE accounts SET isSync = 1, isLocal = 0, id = ?, syncDate = datetime('now') WHERE id = ?
-      `,
-        [serverId, localId]
+        `UPDATE accounts SET isSync = 1, isLocal = 0, id = ?, accountNumber = ?, accountBalance = ?, status = ?, syncDate = datetime('now'), updated = 0 WHERE id = ?`,
+        [serverId, serverAccount.accountNumber ?? null, serverAccount.accountBalance ?? 0, serverAccount.status ?? null, localId]
       );
     } catch (error) {
       console.error('Erreur lors du marquage du compte comme synchronisé:', error);
     }
+  }
+
+  private async recoverExistingAccount(account: Account, error: unknown): Promise<boolean> {
+    const body = (error as { error?: { message?: string; data?: AccountSyncResponse } })?.error;
+    const data = body?.data;
+    if (!data?.id || !isExistingAccountMessage(body?.message)) {
+      return false;
+    }
+    await this.markAccountAsSynced(account.id, data);
+    if (body?.message) {
+      await presentExistingAccountNotice(body.message);
+    }
+    return true;
   }
 
   private async markDistributionAsSynced(localId: string, serverId: string): Promise<void> {

@@ -130,6 +130,8 @@ En cliquant sur le nom d'un client dans la liste, vous accédez à sa **Fiche Cl
   * **Achats terminés** : Nombre de crédits entièrement soldés avec succès.
   * **Achats en retard** : Nombre de crédits en défaut de paiement.
 
+Lorsque le bloc **Adhésions** est affiché, il liste chaque type ouvert (personnel, business, événement) avec son statut, son solde et son plafond de crédit. Le crédit personnel est plafonné à 35 000 FCFA. Le crédit professionnel et le crédit événement sont plafonnés à 6 fois le solde du type correspondant. Sans ce bloc, un seul crédit personnel est possible et le montant autorisé dépend du solde du compte.
+
 ### B. Les 3 Onglets chronologiques d'opérations
 1. **Onglet « Achats »** : Liste détaillée des crédits actuellement en cours de remboursement, avec la référence, les articles associés, la mise journalière, le montant total et le reste à payer.
 2. **Onglet « Historiques »** : Archives de l'ensemble des crédits soldés (entièrement remboursés) ou annulés dans le passé, permettant d'apprécier la ponctualité historique du client.
@@ -163,6 +165,7 @@ Le sous-menu **Comptes** offre une vue d’ensemble des comptes rattachés aux c
 2. Recherchez et sélectionnez le **client** : seuls les clients déjà validés apparaissent dans la liste. Un client encore en attente de validation d’inscription n’est pas proposé.
 3. Si le client n’apparaît pas, validez d’abord son inscription depuis **Services en ligne > Inscriptions**, puis revenez créer le compte.
 4. Renseignez le numéro de compte et le solde initial, puis enregistrez.
+5. Si ce client a déjà un compte, l'enregistrement est refusé. Le message indique son nom et le numéro du compte déjà ouvert.
 
 
 
@@ -181,6 +184,8 @@ Le **Stock Commercial** représente la marchandise physique effectivement confi�
 ## 1. Demander du stock au magasin (Menu Stock Commercial > Demandes Sortie)
 
 Pour s'approvisionner, le commercial ou son responsable initie une **Demande de sortie stock**.
+
+Sous le titre de **Demandes Sortie**, **Stock** et **Retours**, le sélecteur **Crédit** / **Tontine** affiche soit le stock des ventes, soit le stock des livraisons tontine. Cliquez sur le choix voulu avant de créer une demande, de consulter le stock ou d'enregistrer un retour.
 
 <!-- CAPTURE À INSÉRER : Formulaire Nouvelle demande de sortie stock avec sélection des articles, quantités et bouton d'envoi. -->
 
@@ -819,6 +824,8 @@ Tout en bas de l'écran de votre téléphone, 4 onglets restent toujours visible
 3. **Distributions** : pour suivre tous vos contrats de vente à crédit en cours.
 4. **Plus** : pour régler vos options, lancer la synchronisation manuelle ou consulter vos outils d'aide.
 
+À la connexion, l'application vérifie seule si une version plus récente est disponible. Si c'est le cas, elle la télécharge pendant que vous travaillez, puis ouvre l'installation Android. Dans **Plus**, **Mettre à jour l'application** permet de relancer cette vérification vous-même.
+
 ---
 
 ## 2. Module Clients : gérer vos clientes sur le terrain
@@ -1102,6 +1109,7 @@ Sur l'écran d'accueil, l'icône de synchronisation en haut à droite affiche un
 Si une opération n'a pas pu partir (par exemple si un numéro de téléphone manquait sur une cliente) :
 * L'opération n'est jamais perdue : elle est placée dans la boîte **Erreurs de synchronisation** (accessible via **Plus > Erreurs de synchronisation**).
 * Touchez la ligne en échec : un bouton **« Éditer le parent »** vous amène directement sur la fiche à corriger. Dès que vous avez corrigé le champ manquant, relancez la synchronisation : tout rentrera dans l'ordre !
+* Si la cliente a déjà un compte à l'agence, le téléphone reprend ce compte (numéro et solde) et affiche un message qui le précise. Le compte local en double n'est pas créé une seconde fois.
 
 ---
 

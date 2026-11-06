@@ -99,6 +99,42 @@ export class AccountRepository extends BaseRepository<Account, string> {
         );
     }
 
+    /**
+     * Remplace le compte local par le compte déjà ouvert à l'agence :
+     * identifiant serveur, numéro, solde et statut. Le clientId local est conservé
+     * pour que la fiche client continue de joindre ce compte.
+     */
+    async adoptServerAccount(
+        localId: string,
+        server: { id: number | string; accountNumber?: string | null; accountBalance?: number | null; status?: string | null }
+    ): Promise<void> {
+        if (!this.databaseService['db']) {
+            return;
+        }
+        const serverId = String(server.id);
+        const accountNumber = server.accountNumber ?? null;
+        const accountBalance = server.accountBalance ?? 0;
+        const status = server.status ?? null;
+        const syncSql = `UPDATE accounts SET isSync = 1, isLocal = 0, accountNumber = ?, accountBalance = ?, status = ?, syncDate = datetime('now'), updated = 0 WHERE id = ?`;
+
+        if (localId !== serverId) {
+            const clash = await this.databaseService.query(
+                `SELECT id FROM accounts WHERE id = ? LIMIT 1`,
+                [serverId]
+            );
+            if (clash.values && clash.values.length > 0) {
+                await this.databaseService.execute(`DELETE FROM accounts WHERE id = ?`, [localId]);
+                await this.databaseService.execute(syncSql, [accountNumber, accountBalance, status, serverId]);
+                return;
+            }
+        }
+
+        await this.databaseService.execute(
+            `UPDATE accounts SET isSync = 1, isLocal = 0, id = ?, accountNumber = ?, accountBalance = ?, status = ?, syncDate = datetime('now'), updated = 0 WHERE id = ?`,
+            [serverId, accountNumber, accountBalance, status, localId]
+        );
+    }
+
     async saveAll(entities: Account[]): Promise<void> {
         if (!this.databaseService['db']) {
             throw new Error('Database not initialized.');
