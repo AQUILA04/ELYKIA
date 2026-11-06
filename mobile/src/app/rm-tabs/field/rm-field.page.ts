@@ -14,6 +14,7 @@ import { RmTontineFieldControlDto } from '../../core/services/rm/rm-tontine-fiel
 import { RmFieldControlSheetComponent, RmPreviousFieldControl } from '../../features/rm/field-control/rm-field-control-sheet.component';
 import { RmTontineFieldControlSheetComponent } from '../../features/rm/tontine-field-control/rm-tontine-field-control-sheet.component';
 import { describeFailure, TontineControlDebug } from '../../features/rm/tontine-field-control/rm-tontine-control-debug';
+import { memberLacksDailyAmount } from '../../features/rm/tontine-field-control/rm-tontine-month-mise';
 import { RmCarnetVerificationWriteService } from '../../core/services/rm/rm-carnet-verification-write.service';
 import { RmCreditCarnetVerificationWriteService } from '../../core/services/rm/rm-credit-carnet-verification-write.service';
 import { RmDossierSyncBadgeService } from '../../core/services/rm/rm-dossier-sync-badge.service';
@@ -572,13 +573,16 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
     let detailed = member;
     const needsDetail = !(member.months || []).length
       || !(member.collectors || []).length;
-    if (this.onlineMode && needsDetail) {
+    const lacksDailyAmount = memberLacksDailyAmount(member);
+    if (this.onlineMode && (needsDetail || lacksDailyAmount)) {
       try {
         detailed = await this.fieldListApi.getTontineMember(member.id);
       } catch (error) {
         TontineControlDebug.note(`detail error ${describeFailure(error)}`);
-        await this.toast('Impossible de charger le carnet', 'danger');
-        return;
+        if (needsDetail) {
+          await this.toast('Impossible de charger le carnet', 'danger');
+          return;
+        }
       }
     }
 

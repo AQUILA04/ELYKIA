@@ -20,29 +20,48 @@ public class TontineAmountHistoryHelper {
     private final ParameterService parameterService;
 
     public Double getApplicableAmountForDate(TontineMember member, LocalDate date, LocalDate referenceDate) {
+        return applicableAmount(member.getAmount(), member.getAmountHistory(), date, referenceDate);
+    }
+
+    public double getDailyAmountForMonth(TontineMember member, YearMonth month) {
+        return getDailyAmountForMonth(member.getAmount(), member.getAmountHistory(), month);
+    }
+
+    /**
+     * Mise en vigueur au dernier jour du mois.
+     * La liste est lue telle quelle : la collection de l'entité n'est pas remplacée.
+     */
+    public double getDailyAmountForMonth(
+            Double currentAmount,
+            List<TontineMemberAmountHistory> history,
+            YearMonth month) {
+        LocalDate lastDay = month.atEndOfMonth();
+        Double amount = applicableAmount(currentAmount, history, lastDay, lastDay);
+        return amount != null && amount > 0 ? amount : 0.0;
+    }
+
+    private Double applicableAmount(
+            Double currentAmount,
+            List<TontineMemberAmountHistory> history,
+            LocalDate date,
+            LocalDate referenceDate) {
         LocalDate lookupDate = date.withDayOfMonth(date.lengthOfMonth());
         if (lookupDate.isAfter(referenceDate)) {
             lookupDate = referenceDate;
         }
         final LocalDate endOfMonth = lookupDate;
 
-        if (member.getAmountHistory() == null || member.getAmountHistory().isEmpty()) {
-            return member.getAmount();
+        if (history == null || history.isEmpty()) {
+            return currentAmount;
         }
 
-        return member.getAmountHistory().stream()
-                .filter(h -> !h.getStartDate().isAfter(endOfMonth))
+        return history.stream()
+                .filter(h -> h.getStartDate() != null && !h.getStartDate().isAfter(endOfMonth))
                 .filter(h -> h.getEndDate() == null || !h.getEndDate().isBefore(endOfMonth))
                 .sorted(Comparator.comparing(TontineMemberAmountHistory::getStartDate).reversed())
                 .map(TontineMemberAmountHistory::getAmount)
                 .findFirst()
-                .orElse(member.getAmount());
-    }
-
-    public double getDailyAmountForMonth(TontineMember member, YearMonth month) {
-        LocalDate lastDay = month.atEndOfMonth();
-        Double amount = getApplicableAmountForDate(member, lastDay, lastDay);
-        return amount != null && amount > 0 ? amount : 0.0;
+                .orElse(currentAmount);
     }
 
     public LocalDate getEffectiveMemberStartDate(TontineMember member) {

@@ -6,6 +6,7 @@ import { RmTontineFieldControlWriteService } from '../../../core/services/rm/rm-
 import { OnlineWriteError } from '../../../core/services/online-first-write.types';
 import { TontineControlDebug } from './rm-tontine-control-debug';
 import { fitNotebookDays, maxDaysAfterSelection, MISE_DAY_STEP } from '../../../shared/components/mise-day-pills/mise-day-pills.logic';
+import { resolveMonthMise } from './rm-tontine-month-mise';
 
 interface MonthRow {
   year: number;
@@ -13,6 +14,7 @@ interface MonthRow {
   monthName: string;
   commercialUsername: string;
   systemAmount: number;
+  dailyMise: number;
   selected: boolean;
   notebookAmount: number | null;
   selectedUpTo: number | null;
@@ -80,7 +82,8 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       commercialUsername: commercial,
       currentCollector: true,
       totalAmount: (this.member?.months || []).reduce((s, m) => s + (m.systemAmount || 0), 0),
-      rows: (this.member?.months || []).map(m => this.toRow(commercial, m.year, m.month, m.systemAmount || 0))
+      rows: (this.member?.months || []).map(m =>
+        this.toRow(commercial, m.year, m.month, m.systemAmount || 0, m.dailyAmount))
     }];
     this.debug.event(`blocks=${this.blocks.length} rows=${this.allRows.length} legacy=true`);
     this.prefillPreviousControl();
@@ -116,11 +119,6 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
 
   get statusLabel(): 'CONFORME' | 'ECART' {
     return Math.abs(this.difference) < 0.0001 ? 'CONFORME' : 'ECART';
-  }
-
-  get dailyMise(): number {
-    const amount = Number(this.member?.amount);
-    return Number.isFinite(amount) && amount > 0 ? amount : 0;
   }
 
   get isValid(): boolean {
@@ -171,7 +169,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
 
   onDaysSelected(row: MonthRow, days: number | null): void {
     row.selectedUpTo = days;
-    row.notebookAmount = days === null ? null : days * this.dailyMise;
+    row.notebookAmount = days === null ? null : days * row.dailyMise;
     row.maxDays = maxDaysAfterSelection(days, row.maxDays);
   }
 
@@ -239,7 +237,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       currentCollector: collector.currentCollector === true,
       totalAmount: collector.totalAmount || 0,
       rows: (collector.months || []).map(m =>
-        this.toRow(commercial, m.year, m.month, m.systemAmount || 0))
+        this.toRow(commercial, m.year, m.month, m.systemAmount || 0, m.dailyAmount))
     };
   }
 
@@ -282,7 +280,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       row.notebookAmount = notebookAmount;
       return;
     }
-    const fit = fitNotebookDays(notebookAmount, 0, this.dailyMise);
+    const fit = fitNotebookDays(notebookAmount, 0, row.dailyMise);
     if (!fit.exact) {
       row.useManual = true;
       row.notebookAmount = notebookAmount;
@@ -290,25 +288,28 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     }
     row.selectedUpTo = fit.days;
     row.maxDays = fit.maxDays;
-    row.notebookAmount = fit.days * this.dailyMise;
+    row.notebookAmount = fit.days * row.dailyMise;
   }
 
   private toRow(
       commercialUsername: string,
       year: number,
       month: number,
-      systemAmount: number): MonthRow {
+      systemAmount: number,
+      dailyAmount?: number | null): MonthRow {
+    const dailyMise = resolveMonthMise(dailyAmount, this.member?.amount);
     return {
       year,
       month,
       monthName: MONTH_NAMES[month] || `Mois ${month}`,
       commercialUsername,
       systemAmount,
+      dailyMise,
       selected: false,
       notebookAmount: null,
       selectedUpTo: null,
       maxDays: MISE_DAY_STEP,
-      useManual: this.dailyMise <= 0
+      useManual: dailyMise <= 0
     };
   }
 

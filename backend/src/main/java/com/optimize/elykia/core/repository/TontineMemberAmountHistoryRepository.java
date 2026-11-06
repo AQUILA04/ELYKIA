@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -48,4 +49,7 @@ public interface TontineMemberAmountHistoryRepository extends GenericRepository<
             Pageable pageable);
 
     List<TontineMemberAmountHistory> findByTontineMember_IdOrderByStartDateAsc(Long tontineMemberId);
+
+    @Query("SELECT h FROM TontineMemberAmountHistory h JOIN FETCH h.tontineMember m WHERE m.id IN :memberIds")
+    List<TontineMemberAmountHistory> findByMemberIds(@Param("memberIds") Collection<Long> memberIds);
 }

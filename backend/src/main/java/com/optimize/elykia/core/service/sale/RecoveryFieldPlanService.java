@@ -20,6 +20,7 @@ import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditFieldControl;
 import com.optimize.elykia.core.entity.sale.RecoveryFieldDayPlan;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
+import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistory;
 import com.optimize.elykia.core.entity.tontine.TontineMemberFieldControl;
 import com.optimize.elykia.core.enumaration.FieldDayPlanStatus;
 import com.optimize.elykia.core.enumaration.RmFieldListProgress;
@@ -28,12 +29,14 @@ import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.RecoveryFieldDayPlanRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
+import com.optimize.elykia.core.repository.TontineMemberAmountHistoryRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.CreditLateService;
 import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
 import com.optimize.elykia.core.service.tontine.TontineMemberFieldControlService;
+import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,6 +50,7 @@ import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -73,6 +77,8 @@ public class RecoveryFieldPlanService {
     private final ObjectMapper objectMapper;
     private final CarnetEcartRecontrolPolicy recontrolPolicy;
     private final ParameterService parameterService;
+    private final TontineMemberAmountHistoryRepository amountHistoryRepository;
+    private final TontineAmountHistoryHelper amountHistoryHelper;
 
     public FieldDayPlanDto createOrReplacePlan(FieldDayPlanRequestDto request, String recoveryManagerUsername) {
         validateRequest(request);
@@ -445,14 +451,19 @@ public class RecoveryFieldPlanService {
         for (TontineMemberMonthlyAggregateDto agg : tontineCollectionRepository.sumMonthlyByMemberId(id, State.ENABLED)) {
             monthAmounts.put(agg.getYear() + "-" + agg.getMonth(), agg.getTotalAmount());
         }
-        List<RmPackTontineMonthDto> months = buildSessionMonths(sessionYear, monthAmounts);
+        List<TontineMemberAmountHistory> history =
+                amountHistoryRepository.findByTontineMember_IdOrderByStartDateAsc(id);
+        List<RmPackTontineMonthDto> months = buildSessionMonths(
+                sessionYear, monthAmounts, member.getAmount(), history);
         Map<String, LocalDateTime> firstCollectionDates = loadFirstCollectionDates(List.of(id));
         List<RmPackTontineCollectorDto> collectors = buildCollectorsForMember(
                 id,
                 sessionYear,
                 client.getTontineCollector(),
                 tontineCollectionRepository.sumMonthlyByMemberIdAndCommercial(id, State.ENABLED),
-                firstCollectionDates);
+                firstCollectionDates,
+                member.getAmount(),
+                history);
         String firstname = client.getFirstname() != null ? client.getFirstname() : "";
         String lastname = client.getLastname() != null ? client.getLastname() : "";
         String fullName = (firstname + " " + lastname).trim();
@@ -528,6 +539,7 @@ public class RecoveryFieldPlanService {
                 .filter(Objects::nonNull)
                 .toList();
         Map<String, LocalDateTime> firstCollectionDates = loadFirstCollectionDates(memberIds);
+        Map<Long, List<TontineMemberAmountHistory>> historyByMember = loadAmountHistories(memberIds);
 
         List<RmPackTontineMemberDto> result = new ArrayList<>();
         for (TontineMember member : members) {
@@ -555,13 +567,18 @@ public class RecoveryFieldPlanService {
             }
 
             Map<String, Double> monthAmounts = amountsByMemberMonth.getOrDefault(member.getId(), Map.of());
-            List<RmPackTontineMonthDto> months = buildSessionMonths(sessionYear, monthAmounts);
+            List<TontineMemberAmountHistory> history =
+                    historyByMember.getOrDefault(member.getId(), List.of());
+            List<RmPackTontineMonthDto> months = buildSessionMonths(
+                    sessionYear, monthAmounts, member.getAmount(), history);
             List<RmPackTontineCollectorDto> collectors = buildCollectorsForMember(
                     member.getId(),
                     sessionYear,
                     client.getTontineCollector(),
                     byCommercialAggs.getOrDefault(member.getId(), List.of()),
-                    firstCollectionDates);
+                    firstCollectionDates,
+                    member.getAmount(),
+                    history);
 
             result.add(RmPackTontineMemberDto.builder()
                     .id(member.getId())
@@ -584,17 +601,38 @@ public class RecoveryFieldPlanService {
         return result;
     }
 
-    private List<RmPackTontineMonthDto> buildSessionMonths(int sessionYear, Map<String, Double> monthAmounts) {
+    private List<RmPackTontineMonthDto> buildSessionMonths(
+            int sessionYear,
+            Map<String, Double> monthAmounts,
+            Double currentAmount,
+            List<TontineMemberAmountHistory> history) {
         List<RmPackTontineMonthDto> months = new ArrayList<>();
         for (Integer calendarMonth : TONTINE_CALENDAR_MONTHS) {
             String key = sessionYear + "-" + calendarMonth;
+            double dailyAmount = amountHistoryHelper.getDailyAmountForMonth(
+                    currentAmount, history, YearMonth.of(sessionYear, calendarMonth));
             months.add(RmPackTontineMonthDto.builder()
                     .year(sessionYear)
                     .month(calendarMonth)
                     .systemAmount(monthAmounts.getOrDefault(key, 0d))
+                    .dailyAmount(dailyAmount)
                     .build());
         }
         return months;
+    }
+
+    private Map<Long, List<TontineMemberAmountHistory>> loadAmountHistories(List<Long> memberIds) {
+        Map<Long, List<TontineMemberAmountHistory>> byMember = new HashMap<>();
+        if (memberIds == null || memberIds.isEmpty()) {
+            return byMember;
+        }
+        for (TontineMemberAmountHistory entry : amountHistoryRepository.findByMemberIds(memberIds)) {
+            if (entry.getTontineMember() == null || entry.getTontineMember().getId() == null) {
+                continue;
+            }
+            byMember.computeIfAbsent(entry.getTontineMember().getId(), id -> new ArrayList<>()).add(entry);
+        }
+        return byMember;
     }
 
     /** Clé composite memberId|commercialUsername → première date de collecte. */
@@ -630,7 +668,9 @@ public class RecoveryFieldPlanService {
             int sessionYear,
             String currentCollector,
             List<TontineMemberMonthlyByCommercialAggregateDto> aggregates,
-            Map<String, LocalDateTime> firstCollectionDates) {
+            Map<String, LocalDateTime> firstCollectionDates,
+            Double currentAmount,
+            List<TontineMemberAmountHistory> history) {
         Map<String, Map<String, Double>> monthsByCommercial = new LinkedHashMap<>();
         Map<String, Double> totals = new HashMap<>();
         for (TontineMemberMonthlyByCommercialAggregateDto agg : aggregates) {
@@ -676,7 +716,7 @@ public class RecoveryFieldPlanService {
                     .currentCollector(StringUtils.hasText(currentCollector)
                             && commercial.equalsIgnoreCase(currentCollector.trim()))
                     .totalAmount(totals.getOrDefault(commercial, 0d))
-                    .months(buildSessionMonths(sessionYear, monthAmounts))
+                    .months(buildSessionMonths(sessionYear, monthAmounts, currentAmount, history))
                     .build());
         }
         return result;
