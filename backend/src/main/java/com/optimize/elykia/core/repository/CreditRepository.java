@@ -1236,4 +1236,105 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("startAt") java.time.LocalDateTime startAt,
             @Param("endAt") java.time.LocalDateTime endAt,
             @Param("commercial") String commercial);
+
+    @Query(value = """
+            SELECT new com.optimize.elykia.core.dto.portfolio.FormerCreditSeedDto(
+                cr.id, cr.reference, c.id, c.code, c.firstname, c.lastname, c.phone, c.quarter, cr.beginDate)
+            FROM Credit cr
+            JOIN cr.client c
+            WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
+              AND cr.type = com.optimize.elykia.core.enumaration.OperationType.CREDIT
+              AND (cr.collector IS NULL OR LOWER(cr.collector) <> LOWER(:commercial))
+              AND (
+                EXISTS (
+                    SELECT 1 FROM CreditCollectorHistory h
+                    WHERE h.credit = cr
+                      AND h.state = com.optimize.common.entities.enums.State.ENABLED
+                      AND h.oldCollector IS NOT NULL
+                      AND LOWER(h.oldCollector) = LOWER(:commercial)
+                )
+                OR EXISTS (
+                    SELECT 1 FROM CreditTimeline ct
+                    WHERE ct.credit = cr
+                      AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+                      AND ct.collector IS NOT NULL
+                      AND LOWER(ct.collector) = LOWER(:commercial)
+                )
+              )
+            ORDER BY cr.beginDate DESC, cr.id DESC
+            """,
+            countQuery = """
+            SELECT COUNT(cr) FROM Credit cr
+            JOIN cr.client c
+            WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
+              AND cr.type = com.optimize.elykia.core.enumaration.OperationType.CREDIT
+              AND (cr.collector IS NULL OR LOWER(cr.collector) <> LOWER(:commercial))
+              AND (
+                EXISTS (
+                    SELECT 1 FROM CreditCollectorHistory h
+                    WHERE h.credit = cr
+                      AND h.state = com.optimize.common.entities.enums.State.ENABLED
+                      AND h.oldCollector IS NOT NULL
+                      AND LOWER(h.oldCollector) = LOWER(:commercial)
+                )
+                OR EXISTS (
+                    SELECT 1 FROM CreditTimeline ct
+                    WHERE ct.credit = cr
+                      AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+                      AND ct.collector IS NOT NULL
+                      AND LOWER(ct.collector) = LOWER(:commercial)
+                )
+              )
+            """)
+    Page<com.optimize.elykia.core.dto.portfolio.FormerCreditSeedDto> findFormerCredits(
+            @Param("commercial") String commercial,
+            Pageable pageable);
+
+    @Query(value = """
+            SELECT DISTINCT c.id
+            FROM Credit cr
+            JOIN cr.client c
+            WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
+              AND cr.type = com.optimize.elykia.core.enumaration.OperationType.CASH
+              AND (
+                LOWER(cr.agencyCommercial) = LOWER(:commercial)
+                OR LOWER(cr.collector) = LOWER(:commercial)
+              )
+              AND (c.agencyCollector IS NULL OR LOWER(c.agencyCollector) <> LOWER(:commercial))
+            ORDER BY c.id DESC
+            """,
+            countQuery = """
+            SELECT COUNT(DISTINCT c.id)
+            FROM Credit cr
+            JOIN cr.client c
+            WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
+              AND cr.type = com.optimize.elykia.core.enumaration.OperationType.CASH
+              AND (
+                LOWER(cr.agencyCommercial) = LOWER(:commercial)
+                OR LOWER(cr.collector) = LOWER(:commercial)
+              )
+              AND (c.agencyCollector IS NULL OR LOWER(c.agencyCollector) <> LOWER(:commercial))
+            """)
+    Page<Long> findFormerAgencyClientIds(
+            @Param("commercial") String commercial,
+            Pageable pageable);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.portfolio.FormerAgencySaleDto(
+                cr.id, cr.reference, c.id, c.code, c.firstname, c.lastname, c.phone, c.quarter,
+                cr.beginDate, cr.totalAmount)
+            FROM Credit cr
+            JOIN cr.client c
+            WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
+              AND cr.type = com.optimize.elykia.core.enumaration.OperationType.CASH
+              AND c.id IN :clientIds
+              AND (
+                LOWER(cr.agencyCommercial) = LOWER(:commercial)
+                OR LOWER(cr.collector) = LOWER(:commercial)
+              )
+            ORDER BY cr.beginDate DESC, cr.id DESC
+            """)
+    java.util.List<com.optimize.elykia.core.dto.portfolio.FormerAgencySaleDto> findFormerAgencySales(
+            @Param("clientIds") java.util.Collection<Long> clientIds,
+            @Param("commercial") String commercial);
 }

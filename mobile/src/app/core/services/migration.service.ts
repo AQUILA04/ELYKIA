@@ -154,6 +154,9 @@ export class MigrationService {
       case 35:
         await this.migrateToV35(db);
         break;
+      case 36:
+        await this.migrateToV36(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -932,6 +935,70 @@ export class MigrationService {
 
   private async migrateToV35(db: SQLiteDBConnection): Promise<void> {
     await this.migrateAddColumnIfMissing(db, 'v35', 'clients', 'adhesionsJson', 'TEXT');
+  }
+
+  private async migrateToV36(db: SQLiteDBConnection): Promise<void> {
+    await this.log.log('Running migration to v36: former portfolio tables...');
+    await db.execute(`
+      CREATE TABLE IF NOT EXISTS former_tontine_member (
+        id TEXT PRIMARY KEY,
+        memberId INTEGER NOT NULL,
+        sessionYear INTEGER,
+        clientCode TEXT,
+        firstname TEXT,
+        lastname TEXT,
+        phone TEXT,
+        quarter TEXT,
+        ownTotal REAL,
+        commercialUsername TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS former_tontine_collection (
+        id TEXT PRIMARY KEY,
+        memberId INTEGER NOT NULL,
+        amount REAL,
+        collectionDate TEXT,
+        reference TEXT,
+        commercialUsername TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS former_credit (
+        id TEXT PRIMARY KEY,
+        creditId INTEGER NOT NULL,
+        reference TEXT,
+        clientCode TEXT,
+        firstname TEXT,
+        lastname TEXT,
+        phone TEXT,
+        quarter TEXT,
+        handoverDate TEXT,
+        totalAmountAtHandover REAL,
+        totalRemainingAtHandover REAL,
+        ownRecoveriesTotal REAL,
+        commercialUsername TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS former_credit_timeline (
+        id TEXT PRIMARY KEY,
+        creditId INTEGER NOT NULL,
+        amount REAL,
+        operationDate TEXT,
+        reference TEXT,
+        commercialUsername TEXT NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS former_agency_sale (
+        id TEXT PRIMARY KEY,
+        creditId INTEGER NOT NULL,
+        clientId INTEGER NOT NULL,
+        reference TEXT,
+        clientCode TEXT,
+        firstname TEXT,
+        lastname TEXT,
+        phone TEXT,
+        quarter TEXT,
+        saleDate TEXT,
+        totalAmount REAL,
+        commercialUsername TEXT NOT NULL
+      );
+    `);
+    await this.log.log('Migration to v36 successful.');
   }
 
   /** Migration simple : une colonne optionnelle + logs awaités (fiabilité Sonar). */

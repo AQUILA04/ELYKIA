@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.controller.sale;
 
 import com.lowagie.text.DocumentException;
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.*;
@@ -10,6 +11,8 @@ import com.optimize.elykia.core.service.sale.CreditCarnetVerificationService;
 import com.optimize.elykia.core.service.sale.CreditFieldControlService;
 import com.optimize.elykia.core.service.sale.CreditReturnHistoryService;
 import com.optimize.elykia.core.service.sale.CreditListSummaryService;
+import com.optimize.elykia.core.service.portfolio.FormerPortfolioAccess;
+import com.optimize.elykia.core.service.portfolio.FormerPortfolioService;
 import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.core.service.sale.CreditTimelineService;
 import com.optimize.elykia.core.service.report.PdfService;
@@ -40,6 +43,7 @@ import com.optimize.elykia.core.dto.BulkChangeCollectorDto;
 public class CreditController {
 
     private final CreditService creditService;
+    private final FormerPortfolioService formerPortfolioService;
     private final CreditTimelineService creditTimelineService;
     private final PdfService pdfService;
     private final CreditReturnHistoryService creditReturnHistoryService;
@@ -92,18 +96,25 @@ public class CreditController {
 
     @GetMapping(value = "{id}")
     public ResponseEntity<Response> getOne(@PathVariable Long id) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getByIdWithSourceStocks(id)), HttpStatus.OK);
+        FormerPortfolioAccess.Level access = formerPortfolioService.decideCredit(id);
+        if (access == FormerPortfolioAccess.Level.DENIED) {
+            throw new CustomValidationException(FormerPortfolioService.DENIED);
+        }
+        Object body = access == FormerPortfolioAccess.Level.FORMER
+                ? formerPortfolioService.getFormerCredit(id)
+                : creditService.getByIdWithSourceStocks(id);
+        return new ResponseEntity<>(ResponseUtil.successResponse(body), HttpStatus.OK);
     }
 
     @GetMapping(value = "{id}/client-reliquat")
     public ResponseEntity<Response> getClientReliquat(@PathVariable Long id) {
+        formerPortfolioService.assertFullCredit(id);
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getClientReliquatAmount(id)), HttpStatus.OK);
     }
 
     @GetMapping(value = "timeline/{creditId}")
     public ResponseEntity<Response> getCreditDetails(@PathVariable Long creditId) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(creditTimelineService.getAllByCredit(creditId)),
-                HttpStatus.OK);
+        return new ResponseEntity<>(ResponseUtil.successResponse(readCreditTimelines(creditId)), HttpStatus.OK);
     }
 
     @GetMapping
@@ -290,6 +301,14 @@ public class CreditController {
 
     @GetMapping(value = "{creditId}/timelines")
     public ResponseEntity<Response> getTimelines(@PathVariable Long creditId, Pageable pageable) {
+        FormerPortfolioAccess.Level access = formerPortfolioService.decideCredit(creditId);
+        if (access == FormerPortfolioAccess.Level.FORMER) {
+            return new ResponseEntity<>(
+                    ResponseUtil.successResponse(formerPortfolioService.ownCreditTimelines(creditId)), HttpStatus.OK);
+        }
+        if (access == FormerPortfolioAccess.Level.DENIED) {
+            throw new CustomValidationException(FormerPortfolioService.DENIED);
+        }
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getTimelines(creditId, pageable)),
                 HttpStatus.OK);
@@ -322,6 +341,7 @@ public class CreditController {
 
     @GetMapping(value = "{creditId}/articles")
     public ResponseEntity<Response> getCreditArticles(@PathVariable Long creditId) {
+        formerPortfolioService.assertFullCredit(creditId);
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(creditArticlesService.getRepository().findByCredit_id(creditId)),
                 HttpStatus.OK);
@@ -371,19 +391,33 @@ public class CreditController {
 
     @GetMapping(value = "{id}/field-controls/latest")
     public ResponseEntity<Response> getLatestFieldControl(@PathVariable Long id) {
+        formerPortfolioService.assertFullCredit(id);
         return new ResponseEntity<>(ResponseUtil.successResponse(creditFieldControlService.getLatest(id)),
                 HttpStatus.OK);
     }
 
     @GetMapping(value = "{id}/field-controls")
     public ResponseEntity<Response> getFieldControlHistory(@PathVariable Long id) {
+        formerPortfolioService.assertFullCredit(id);
         return new ResponseEntity<>(ResponseUtil.successResponse(creditFieldControlService.getHistory(id)),
                 HttpStatus.OK);
     }
 
     @GetMapping(value = "{id}/collector-history")
     public ResponseEntity<Response> getCollectorHistory(@PathVariable Long id) {
+        formerPortfolioService.assertFullCredit(id);
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.getCollectorHistory(id)), HttpStatus.OK);
+    }
+
+    private Object readCreditTimelines(Long creditId) {
+        FormerPortfolioAccess.Level access = formerPortfolioService.decideCredit(creditId);
+        if (access == FormerPortfolioAccess.Level.DENIED) {
+            throw new CustomValidationException(FormerPortfolioService.DENIED);
+        }
+        if (access == FormerPortfolioAccess.Level.FORMER) {
+            return formerPortfolioService.ownCreditTimelines(creditId);
+        }
+        return creditTimelineService.getAllByCredit(creditId);
     }
 
     @GetMapping(value = "articles/details/{stockItemId}")

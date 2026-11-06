@@ -16,6 +16,22 @@ import java.util.List;
 public interface CreditCollectorHistoryRepository extends JpaRepository<CreditCollectorHistory, Long> {
     List<CreditCollectorHistory> findByCreditIdOrderByChangeDateDesc(Long creditId);
 
+    boolean existsByCredit_IdAndStateAndOldCollectorIgnoreCase(
+            Long creditId, com.optimize.common.entities.enums.State state, String oldCollector);
+
+    @Query("""
+            SELECT h FROM CreditCollectorHistory h
+            JOIN FETCH h.credit cr
+            WHERE cr.id IN :creditIds
+              AND h.state = com.optimize.common.entities.enums.State.ENABLED
+              AND h.oldCollector IS NOT NULL
+              AND LOWER(h.oldCollector) = LOWER(:commercial)
+            ORDER BY h.changeDate DESC
+            """)
+    List<CreditCollectorHistory> findEnabledByCreditsAndOldCollector(
+            @Param("creditIds") java.util.Collection<Long> creditIds,
+            @Param("commercial") String commercial);
+
     @Modifying
     @Query(value = "INSERT INTO credit_collector_history (credit_id, old_collector, new_collector, total_amount, total_amount_paid, total_amount_remaining, change_date, DATE_REG, DATE_MOD, visibility, REG_USER_ID, MOD_USER_ID) " +
             "SELECT id, collector, :newCollector, total_amount, total_amount_paid, total_amount_remaining, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'ENABLED', :regUserId, :modUserId " +

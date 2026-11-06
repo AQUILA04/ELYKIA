@@ -372,6 +372,14 @@ export class SidebarComponent implements OnInit {
     return this.userService.hasProfile(UserProfile.PROMOTER);
   }
 
+  isPromoterOnly(): boolean {
+    return this.isPromoter()
+      && !this.userService.hasProfile(UserProfile.SECRETARY)
+      && !this.userService.hasProfile(UserProfile.GESTIONNAIRE)
+      && !this.userService.hasProfile(UserProfile.ADMIN)
+      && !this.userService.hasProfile(UserProfile.SUPER_ADMIN);
+  }
+
   canSeeCarnetEcarts(): boolean {
     return this.userService.hasProfile(UserProfile.PROMOTER)
       || this.userService.hasProfile(UserProfile.GESTIONNAIRE)

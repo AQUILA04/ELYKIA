@@ -12,6 +12,7 @@ import { Storage } from '@ionic/storage-angular';
 import { selectClientKpiTotalByCommercial, selectDistributionKpiActiveByCommercial, selectCollectionRateKpi } from 'src/app/store/kpi/kpi.selectors';
 import * as KpiActions from 'src/app/store/kpi/kpi.actions';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
+import { User } from 'src/app/models/auth.model';
 import * as CommercialActions from 'src/app/store/commercial/commercial.actions';
 import { DatabaseService } from '../../core/services/database.service';
 import { AlertController, ToastController, LoadingController } from '@ionic/angular';
@@ -62,6 +63,7 @@ export class MorePage implements OnInit, OnDestroy {
   collectionRate$: Observable<number>;
   pendingErrorsCount$!: Observable<number>;
   appVersion: string = environment.version;
+  showFormerPortfolio = false;
   updateInProgress = false;
   updateProgressLabel = '';
 
@@ -111,6 +113,10 @@ export class MorePage implements OnInit, OnDestroy {
     this.autoLock = await this.storage.get('autoLock') || true;
     this.autoLockDuration = await this.storage.get('autoLockDuration') || 2;
     this.allowPastDailyReports = (await this.storage.get('allowPastDailyReports')) === true;
+    this.store.select(selectAuthUser).pipe(takeUntil(this.destroy$)).subscribe(user => {
+      this.showFormerPortfolio = isPromoterOnly(user);
+      this.cdr.markForCheck();
+    });
 
     // Charger les préférences de synchronisation des photos
     const photoPrefs = await this.photoSyncService.getPhotoSyncPreferences();
@@ -605,4 +611,19 @@ export class MorePage implements OnInit, OnDestroy {
       console.error('Photo repair error:', error);
     }
   }
+}
+
+function isPromoterOnly(user: User | null): boolean {
+  if (!user) {
+    return false;
+  }
+  const roles = user.roles ?? [];
+  const has = (name: string) =>
+    user.profil === name || roles.includes(name) || roles.includes(`ROLE_${name}`);
+  return has('PROMOTER')
+    && !has('SECRETARY')
+    && !has('GESTIONNAIRE')
+    && !has('ADMIN')
+    && !has('SUPER_ADMIN')
+    && !has('SU');
 }

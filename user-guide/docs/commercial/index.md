@@ -12,6 +12,7 @@ Ce guide présente les parcours de terrain disponibles sur le web et, dans sa de
 | Obtenir les articles | Stock Commercial | Créer une demande de sortie et suivre sa livraison. |
 | Distribuer et suivre | Ventes | Créer une vente, suivre son statut et encaisser les mises. |
 | Collecter l’épargne | Tontines | Inscrire, collecter, suivre la progression et préparer la livraison. |
+| Relire un ancien dossier | Ancien portefeuille | Consulter les membres, crédits et ventes comptant que vous avez suivis, sans nouvelle saisie. |
 | Rendre compte | Caisse, Rapport Journalier | Contrôler les versements et les opérations de la période. |
 | Suivre vos dettes | Dettes | Consulter vos positions marchandise et caisse, et leur règlement. |
 | Traiter une disparité | Écarts de carnet | Accepter la mise manquante ou rejeter le constat. |
