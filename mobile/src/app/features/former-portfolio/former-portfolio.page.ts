@@ -25,7 +25,8 @@ interface AgencyGroup {
 @Component({
   selector: 'app-former-portfolio',
   templateUrl: './former-portfolio.page.html',
-  styleUrls: ['./former-portfolio.page.scss']
+  styleUrls: ['./former-portfolio.page.scss'],
+  standalone: false
 })
 export class FormerPortfolioPage implements ViewWillEnter {
   tab: 'tontine' | 'credit' | 'agence' = 'tontine';
