@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.controller;
 
+import com.optimize.common.entities.controller.ClientServerErrorLog;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class TransactionRollbackAdvice {
         if (root != ex) {
             log.error("===> Root cause: {}", message, root);
         }
+        ClientServerErrorLog.notify(message);
         return new ResponseEntity<>(
                 ResponseUtil.errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, message),
                 HttpStatus.INTERNAL_SERVER_ERROR);
