@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -87,6 +88,8 @@ public class SaleCancellationService {
                 filter.getCommercialUsername(),
                 filter.getStartDate(),
                 filter.getEndDate(),
+                registeredFrom(filter.getStartDate()),
+                registeredToExclusive(filter.getEndDate()),
                 OperationType.CREDIT,
                 statuses,
                 State.ENABLED);
@@ -192,6 +195,8 @@ public class SaleCancellationService {
                 executeDto.getCommercialUsername(),
                 executeDto.getStartDate(),
                 executeDto.getEndDate(),
+                registeredFrom(executeDto.getStartDate()),
+                registeredToExclusive(executeDto.getEndDate()),
                 OperationType.CREDIT,
                 statuses,
                 State.ENABLED);
@@ -223,13 +228,7 @@ public class SaleCancellationService {
         double excludedAmount = 0.0;
 
         LocalDate now = LocalDate.now();
-        CommercialMonthlyStock monthlyStock = commercialMonthlyStockRepository
-                .findByCollectorAndMonthAndYear(executeDto.getCommercialUsername(), now.getMonthValue(), now.getYear())
-                .orElseThrow(() -> new CustomValidationException(
-                        "Stock mensuel commercial introuvable pour " + executeDto.getCommercialUsername()
-                                + " (" + now.getMonthValue() + "/" + now.getYear() + ")."));
-
-        List<Credit> toCancel = new ArrayList<>();
+        List<Credit> pending = new ArrayList<>();
         for (Credit credit : sales) {
             RecoveryCheck recovery = evaluateRecovery(credit);
             if (recovery.hasRecovery()) {
@@ -244,14 +243,33 @@ public class SaleCancellationService {
                 excludedAmount += nz(credit.getTotalAmount());
                 continue;
             }
-            assertStockRestorable(credit, monthlyStock);
-            LocalDate saleDate = credit.getBeginDate() != null ? credit.getBeginDate() : now;
-            dailyCommercialReportRepository
-                    .findByDateAndCommercialUsername(saleDate, executeDto.getCommercialUsername())
+            pending.add(credit);
+        }
+
+        boolean needsCurrentMonthStock = pending.stream().anyMatch(credit -> !isRattrapage(credit));
+        CommercialMonthlyStock monthlyStock = null;
+        if (needsCurrentMonthStock) {
+            monthlyStock = commercialMonthlyStockRepository
+                    .findByCollectorAndMonthAndYear(executeDto.getCommercialUsername(), now.getMonthValue(), now.getYear())
                     .orElseThrow(() -> new CustomValidationException(
-                            "Rapport journalier absent pour le " + saleDate + " / "
-                                    + executeDto.getCommercialUsername()
-                                    + " (vente " + credit.getReference() + "). Annulation interrompue."));
+                            "Stock mensuel commercial introuvable pour " + executeDto.getCommercialUsername()
+                                    + " (" + now.getMonthValue() + "/" + now.getYear() + ")."));
+        }
+
+        List<Credit> toCancel = new ArrayList<>();
+        for (Credit credit : pending) {
+            if (isRattrapage(credit)) {
+                assertSourceStockRestorable(credit);
+            } else {
+                assertStockRestorable(credit, monthlyStock);
+                LocalDate saleDate = credit.getBeginDate() != null ? credit.getBeginDate() : now;
+                dailyCommercialReportRepository
+                        .findByDateAndCommercialUsername(saleDate, executeDto.getCommercialUsername())
+                        .orElseThrow(() -> new CustomValidationException(
+                                "Rapport journalier absent pour le " + saleDate + " / "
+                                        + executeDto.getCommercialUsername()
+                                        + " (vente " + credit.getReference() + "). Annulation interrompue."));
+            }
             toCancel.add(credit);
         }
 
@@ -273,29 +291,15 @@ public class SaleCancellationService {
                     credit.getTotalAmount());
             pdfCount++;
 
-            restoreCommercialStock(credit, monthlyStock);
-
-            LocalDate saleDate = credit.getBeginDate() != null ? credit.getBeginDate() : now;
-            DailyCommercialReport report = dailyCommercialReportRepository
-                    .findByDateAndCommercialUsername(saleDate, executeDto.getCommercialUsername())
-                    .orElseThrow(() -> new CustomValidationException(
-                            "Rapport journalier absent pour le " + saleDate + " / "
-                                    + executeDto.getCommercialUsername()
-                                    + " (vente " + credit.getReference() + "). Annulation interrompue."));
-
-            report.setCreditSalesCount(Math.max(0, nz(report.getCreditSalesCount()) - 1));
             double saleAmt = nz(credit.getTotalAmount());
-            report.setCreditSalesAmount(Math.max(0.0, nz(report.getCreditSalesAmount()) - saleAmt));
-            Double totalPurch = credit.getTotalPurchase() != null ? credit.getTotalPurchase() : credit.calculTotalPurchase();
-            double margin = saleAmt - nz(totalPurch);
-            report.setCreditSalesMargin(Math.max(0.0, nz(report.getCreditSalesMargin()) - margin));
-
-            double adv = nz(credit.getAdvance());
-            if (adv > 0) {
-                report.setTotalAdvancesAmount(Math.max(0.0, nz(report.getTotalAdvancesAmount()) - adv));
-                report.setTotalAmountToDeposit(Math.max(0.0, nz(report.getTotalAmountToDeposit()) - adv));
+            LocalDate saleDate = credit.getBeginDate() != null ? credit.getBeginDate() : now;
+            LocalDate journalDate = isRattrapage(credit) ? registrationDate(credit) : saleDate;
+            if (isRattrapage(credit)) {
+                restoreRattrapageStock(credit, executeDto.getCommercialUsername());
+            } else {
+                restoreCommercialStock(credit, monthlyStock);
+                adjustDailyReport(credit, executeDto.getCommercialUsername(), saleDate, saleAmt);
             }
-            reportPersistence.save(report);
 
             dailyOperationService.logOperationInCurrentTransaction(
                     executeDto.getCommercialUsername(),
@@ -306,7 +310,7 @@ public class SaleCancellationService {
                             + ", Motif: " + executeDto.getCancellationReason() + ")",
                     0.0,
                     0.0,
-                    saleDate);
+                    journalDate);
 
             credit.setStatus(CreditStatus.CANCELLED);
             credit.setState(State.DELETED);
@@ -343,7 +347,9 @@ public class SaleCancellationService {
                     summaryArts.toString()));
         }
 
-        commercialMonthlyStockRepository.save(monthlyStock);
+        if (monthlyStock != null) {
+            commercialMonthlyStockRepository.save(monthlyStock);
+        }
 
         run.setCancelledSalesCount(cancelledRows.size());
         run.setCancelledSalesAmount(cancelledAmount);
@@ -431,6 +437,95 @@ public class SaleCancellationService {
         return new RecoveryCheck(hasRecovery, paid, recoveryAmount > 0.01 ? recoveryAmount : paid);
     }
 
+    private static LocalDateTime registeredFrom(LocalDate startDate) {
+        return startDate.atStartOfDay();
+    }
+
+    private static LocalDateTime registeredToExclusive(LocalDate endDate) {
+        return endDate.plusDays(1).atStartOfDay();
+    }
+
+    private static boolean isRattrapage(Credit credit) {
+        return RattrapageCreditSupport.isRattrapageReference(credit.getReference());
+    }
+
+    /**
+     * Jour d'enregistrement du rattrapage ({@code DATE_REG}), distinct du mois de la vente.
+     */
+    private static LocalDate registrationDate(Credit credit) {
+        if (credit.getCreatedDate() == null) {
+            return LocalDate.now();
+        }
+        return credit.getCreatedDate().toLocalDate();
+    }
+
+    private void adjustDailyReport(Credit credit, String commercialUsername, LocalDate saleDate, double saleAmt) {
+        DailyCommercialReport report = dailyCommercialReportRepository
+                .findByDateAndCommercialUsername(saleDate, commercialUsername)
+                .orElseThrow(() -> new CustomValidationException(
+                        "Rapport journalier absent pour le " + saleDate + " / "
+                                + commercialUsername
+                                + " (vente " + credit.getReference() + "). Annulation interrompue."));
+
+        report.setCreditSalesCount(Math.max(0, nz(report.getCreditSalesCount()) - 1));
+        report.setCreditSalesAmount(Math.max(0.0, nz(report.getCreditSalesAmount()) - saleAmt));
+        Double totalPurch = credit.getTotalPurchase() != null ? credit.getTotalPurchase() : credit.calculTotalPurchase();
+        double margin = saleAmt - nz(totalPurch);
+        report.setCreditSalesMargin(Math.max(0.0, nz(report.getCreditSalesMargin()) - margin));
+
+        double adv = nz(credit.getAdvance());
+        if (adv > 0) {
+            report.setTotalAdvancesAmount(Math.max(0.0, nz(report.getTotalAdvancesAmount()) - adv));
+            report.setTotalAmountToDeposit(Math.max(0.0, nz(report.getTotalAmountToDeposit()) - adv));
+        }
+        reportPersistence.save(report);
+    }
+
+    private void assertSourceStockRestorable(Credit credit) {
+        if (credit.getArticles() == null || credit.getArticles().isEmpty()) {
+            throw new CustomValidationException(
+                    "La vente " + credit.getReference() + " n'a aucun article à réintégrer en stock.");
+        }
+        for (CreditArticles ca : credit.getArticles()) {
+            resolveSourceStockItem(credit, ca);
+        }
+    }
+
+    private void restoreRattrapageStock(Credit credit, String fallbackCollector) {
+        Set<CommercialMonthlyStock> sourceStocks = new LinkedHashSet<>();
+        for (CreditArticles ca : credit.getArticles()) {
+            CommercialMonthlyStockItem stockItem = resolveSourceStockItem(credit, ca);
+            CommercialMonthlyStock sourceStock = stockItem.getMonthlyStock();
+            String collector = sourceStock != null && StringUtils.hasText(sourceStock.getCollector())
+                    ? sourceStock.getCollector()
+                    : fallbackCollector;
+            applyStockReturn(credit, stockItem, ca, collector);
+            if (sourceStock != null) {
+                sourceStocks.add(sourceStock);
+            }
+        }
+        for (CommercialMonthlyStock sourceStock : sourceStocks) {
+            commercialMonthlyStockRepository.save(sourceStock);
+        }
+    }
+
+    private CommercialMonthlyStockItem resolveSourceStockItem(Credit credit, CreditArticles ca) {
+        if (ca.getArticles() == null) {
+            throw new CustomValidationException(
+                    "Article introuvable sur la vente " + credit.getReference() + " : restitution stock impossible.");
+        }
+        if (ca.getStockItemId() == null) {
+            throw new CustomValidationException(
+                    "Stock source introuvable pour le rattrapage " + credit.getReference() + ".");
+        }
+        CommercialMonthlyStockItem stockItem = commercialMonthlyStockItemRepository
+                .findByIdWithArticle(ca.getStockItemId())
+                .orElseThrow(() -> new CustomValidationException(
+                        "Ligne de stock source introuvable pour le rattrapage " + credit.getReference() + "."));
+        assertSoldCoversReturn(credit, ca, stockItem);
+        return stockItem;
+    }
+
     private void assertStockRestorable(Credit credit, CommercialMonthlyStock monthlyStock) {
         if (credit.getArticles() == null || credit.getArticles().isEmpty()) {
             throw new CustomValidationException(
@@ -458,6 +553,11 @@ public class SaleCancellationService {
                         "Article non trouvé dans le stock du commercial : "
                                 + ca.getArticles().getCommercialName()
                                 + " (vente " + credit.getReference() + ")."));
+        assertSoldCoversReturn(credit, ca, stockItem);
+        return stockItem;
+    }
+
+    private void assertSoldCoversReturn(Credit credit, CreditArticles ca, CommercialMonthlyStockItem stockItem) {
         int qty = ca.getQuantity() != null ? ca.getQuantity() : 0;
         int sold = stockItem.getQuantitySold() != null ? stockItem.getQuantitySold() : 0;
         if (sold < qty) {
@@ -466,52 +566,56 @@ public class SaleCancellationService {
                             + ca.getArticles().getCommercialName()
                             + " (stock vendu actuel : " + sold + ").");
         }
-        return stockItem;
     }
 
     private void restoreCommercialStock(Credit credit, CommercialMonthlyStock monthlyStock) {
         for (CreditArticles ca : credit.getArticles()) {
             CommercialMonthlyStockItem stockItem = resolveStockItem(credit, monthlyStock, ca);
-            int qty = ca.getQuantity() != null ? ca.getQuantity() : 0;
-            int sold = stockItem.getQuantitySold() != null ? stockItem.getQuantitySold() : 0;
-
-            int beforeQty = stockItem.getQuantityRemaining() != null ? stockItem.getQuantityRemaining() : 0;
-            stockItem.setQuantitySold(sold - qty);
-
-            double unitSale = ca.getUnitPrice() != null && ca.getUnitPrice() > 0
-                    ? ca.getUnitPrice()
-                    : nz(stockItem.getWeightedAverageUnitPrice());
-            double lineSold = qty * unitSale;
-            stockItem.setTotalSoldValue(Math.max(0.0, nz(stockItem.getTotalSoldValue()) - lineSold));
-
-            double purchasePmp = ca.getUnitPurchaseCost() != null && ca.getUnitPurchaseCost() > 0
-                    ? ca.getUnitPurchaseCost()
-                    : nz(stockItem.getWeightedAveragePurchasePrice());
-            double lineMargin = qty * (unitSale - purchasePmp);
-            stockItem.setTotalMargeValue(Math.max(0.0, nz(stockItem.getTotalMargeValue()) - lineMargin));
-
-            stockItem.updateRemaining();
-            commercialMonthlyStockItemRepository.save(stockItem);
-
-            commercialStockMovementService.record(
-                    stockItem.getId(),
-                    credit.getId(),
-                    credit.getReference(),
-                    CommercialStockMovementType.SALE_CANCELLATION,
-                    beforeQty,
-                    qty,
-                    stockItem.getQuantityRemaining(),
-                    null,
-                    monthlyStock.getCollector(),
-                    stockItem.getArticle().getId(),
-                    stockItem.getArticle().getCommercialName(),
-                    stockItem.getWeightedAveragePurchasePrice(),
-                    unitSale,
-                    -lineMargin,
-                    "CREDIT_CANCEL",
-                    credit.getId()
-            );
+            applyStockReturn(credit, stockItem, ca, monthlyStock.getCollector());
         }
+    }
+
+    private void applyStockReturn(
+            Credit credit, CommercialMonthlyStockItem stockItem, CreditArticles ca, String collector) {
+        int qty = ca.getQuantity() != null ? ca.getQuantity() : 0;
+        int sold = stockItem.getQuantitySold() != null ? stockItem.getQuantitySold() : 0;
+
+        int beforeQty = stockItem.getQuantityRemaining() != null ? stockItem.getQuantityRemaining() : 0;
+        stockItem.setQuantitySold(sold - qty);
+
+        double unitSale = ca.getUnitPrice() != null && ca.getUnitPrice() > 0
+                ? ca.getUnitPrice()
+                : nz(stockItem.getWeightedAverageUnitPrice());
+        double lineSold = qty * unitSale;
+        stockItem.setTotalSoldValue(Math.max(0.0, nz(stockItem.getTotalSoldValue()) - lineSold));
+
+        double purchasePmp = ca.getUnitPurchaseCost() != null && ca.getUnitPurchaseCost() > 0
+                ? ca.getUnitPurchaseCost()
+                : nz(stockItem.getWeightedAveragePurchasePrice());
+        double lineMargin = qty * (unitSale - purchasePmp);
+        stockItem.setTotalMargeValue(Math.max(0.0, nz(stockItem.getTotalMargeValue()) - lineMargin));
+
+        stockItem.updateRemaining();
+        commercialMonthlyStockItemRepository.save(stockItem);
+
+        commercialStockMovementService.record(
+                stockItem.getId(),
+                credit.getId(),
+                credit.getReference(),
+                CommercialStockMovementType.SALE_CANCELLATION,
+                beforeQty,
+                qty,
+                stockItem.getQuantityRemaining(),
+                null,
+                collector,
+                stockItem.getArticle().getId(),
+                stockItem.getArticle().getCommercialName(),
+                stockItem.getWeightedAveragePurchasePrice(),
+                unitSale,
+                -lineMargin,
+                "CREDIT_CANCEL",
+                credit.getId()
+        );
     }
 
     private static String sanitizeFileToken(String value) {

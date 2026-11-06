@@ -314,9 +314,9 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
       Vous êtes sur le point d'annuler <b>${this.selectedCount} vente(s)</b>
       pour un montant total de <b>${this.selectedAmount.toLocaleString()} FCFA</b>.<br><br>
       <ul style="text-align: left; font-size: 13px;">
-        <li>Le stock sera réintégré dans le stock du commercial du mois en cours.</li>
-        <li>Les rapports journaliers des dates d'opération seront décrémentés.</li>
-        <li>Des fiches d'audit PDF seront générées et archivées sur MinIO.</li>
+        <li>Une vente du mois en cours revient dans le stock de ce mois, et le rapport de son jour est corrigé.</li>
+        <li>Un rattrapage enregistré ce mois-ci revient dans le stock du mois concerné.</li>
+        <li>Des fiches d'audit PDF seront générées et archivées.</li>
         ${unselectedNote}
         ${excludedNote}
       </ul>

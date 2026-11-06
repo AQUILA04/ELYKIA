@@ -20,6 +20,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -1153,31 +1154,61 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             @Param("asOfDate") LocalDate asOfDate,
             @Param("asOfDateTime") java.time.LocalDateTime asOfDateTime);
 
-    @Query("SELECT c FROM Credit c WHERE (c.collector = :collector OR c.agencyCommercial = :collector) " +
-           "AND c.state = :state " +
-           "AND c.type = :type " +
-           "AND c.beginDate >= :startDate AND c.beginDate <= :endDate " +
-           "AND c.status IN :statuses " +
-           "ORDER BY c.beginDate ASC, c.id ASC")
+    @Query("""
+            SELECT c FROM Credit c
+            WHERE (c.collector = :collector OR c.agencyCommercial = :collector)
+              AND c.state = :state
+              AND c.type = :type
+              AND c.status IN :statuses
+              AND (
+                    (
+                      (c.reference IS NULL OR c.reference NOT LIKE 'RAT-%')
+                      AND c.beginDate >= :startDate AND c.beginDate <= :endDate
+                    )
+                    OR (
+                      c.reference LIKE 'RAT-%'
+                      AND c.createdDate >= :registeredFrom
+                      AND c.createdDate < :registeredToExclusive
+                    )
+                  )
+            ORDER BY c.beginDate ASC, c.id ASC
+            """)
     List<Credit> findSalesForCancellation(
             @Param("collector") String collector,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
+            @Param("registeredFrom") LocalDateTime registeredFrom,
+            @Param("registeredToExclusive") LocalDateTime registeredToExclusive,
             @Param("type") OperationType type,
             @Param("statuses") Collection<CreditStatus> statuses,
             @Param("state") com.optimize.common.entities.enums.State state);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT c FROM Credit c WHERE (c.collector = :collector OR c.agencyCommercial = :collector) " +
-           "AND c.state = :state " +
-           "AND c.type = :type " +
-           "AND c.beginDate >= :startDate AND c.beginDate <= :endDate " +
-           "AND c.status IN :statuses " +
-           "ORDER BY c.beginDate ASC, c.id ASC")
+    @Query("""
+            SELECT c FROM Credit c
+            WHERE (c.collector = :collector OR c.agencyCommercial = :collector)
+              AND c.state = :state
+              AND c.type = :type
+              AND c.status IN :statuses
+              AND (
+                    (
+                      (c.reference IS NULL OR c.reference NOT LIKE 'RAT-%')
+                      AND c.beginDate >= :startDate AND c.beginDate <= :endDate
+                    )
+                    OR (
+                      c.reference LIKE 'RAT-%'
+                      AND c.createdDate >= :registeredFrom
+                      AND c.createdDate < :registeredToExclusive
+                    )
+                  )
+            ORDER BY c.beginDate ASC, c.id ASC
+            """)
     List<Credit> findSalesForCancellationForUpdate(
             @Param("collector") String collector,
             @Param("startDate") LocalDate startDate,
             @Param("endDate") LocalDate endDate,
+            @Param("registeredFrom") LocalDateTime registeredFrom,
+            @Param("registeredToExclusive") LocalDateTime registeredToExclusive,
             @Param("type") OperationType type,
             @Param("statuses") Collection<CreditStatus> statuses,
             @Param("state") com.optimize.common.entities.enums.State state);
