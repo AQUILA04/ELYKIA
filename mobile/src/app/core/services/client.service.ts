@@ -20,6 +20,7 @@ import { DistributionRepository } from '../repositories/distribution.repository'
 import { ClientSyncService } from './sync/client-sync.service';
 import { AccountSyncService } from './sync/account-sync.service';
 import { OnlineFirstWriteCoordinator } from './online-first-write.coordinator';
+import { ReliquatService } from './reliquat.service';
 
 export interface ClientInitializationProgress {
   isLoading: boolean;
@@ -62,7 +63,8 @@ export class ClientService {
     private distributionRepository: DistributionRepository,
     private clientSyncService: ClientSyncService,
     private accountSyncService: AccountSyncService,
-    private onlineFirstWriteCoordinator: OnlineFirstWriteCoordinator
+    private onlineFirstWriteCoordinator: OnlineFirstWriteCoordinator,
+    private reliquatService: ReliquatService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -266,6 +268,8 @@ export class ClientService {
                   return await this.fetchPageAndSave(commercialUsername, page + 1, size).toPromise() || [];
               }
               await this.syncAdhesions(commercialUsername);
+              // La purge page 0 a effacé les reliquats synchronisés : les recharger tout de suite.
+              await firstValueFrom(this.reliquatService.refreshReliquatsFromServer(commercialUsername));
               return [];
           }),
           catchError(error => {

@@ -3,8 +3,8 @@ import { ReliquatRepository } from './reliquat.repository';
 import { ClientReliquat, RecoveryPlan } from '../../models/reliquat.model';
 import { LoggerService } from './logger.service';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, from } from 'rxjs';
-import { switchMap, catchError, map } from 'rxjs/operators';
+import { Observable, from, throwError } from 'rxjs';
+import { switchMap, map } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { HealthCheckService } from './health-check.service';
 import { DatabaseService } from './database.service';
@@ -40,25 +40,26 @@ export class ReliquatService {
     private dbService: DatabaseService
   ) {}
 
-  initializeReliquats(commercialUsername: string): Observable<boolean> {
+  /**
+   * Recharge les soldes serveur. Un échec est propagé : après une purge clients
+   * les reliquats locaux ont été effacés, un succès silencieux laisserait le téléphone vide.
+   * Hors ligne, on refuse aussi (le caller décide de réessayer) plutôt que de prétendre que c'est à jour.
+   */
+  refreshReliquatsFromServer(commercialUsername: string): Observable<boolean> {
     return this.healthCheckService.pingBackend().pipe(
       switchMap(isOnline => {
-        if (isOnline) {
-          return this.fetchReliquatsFromApi(commercialUsername).pipe(
-            switchMap(dtos => from(this.persistReliquatsFromServer(commercialUsername, dtos))),
-            catchError((error) => {
-              console.error('Failed to fetch reliquats from API', error);
-              return of(true);
-            })
-          );
+        if (!isOnline) {
+          return throwError(() => new Error('Backend injoignable : reliquats non rechargés'));
         }
-        return of(true);
-      }),
-      catchError(err => {
-        console.error('Reliquat initialization failed:', err);
-        return of(true);
+        return this.fetchReliquatsFromApi(commercialUsername).pipe(
+          switchMap(dtos => from(this.persistReliquatsFromServer(commercialUsername, dtos)))
+        );
       })
     );
+  }
+
+  initializeReliquats(commercialUsername: string): Observable<boolean> {
+    return this.refreshReliquatsFromServer(commercialUsername);
   }
 
   private fetchReliquatsFromApi(commercialUsername: string): Observable<ReliquatServerDto[]> {
@@ -76,6 +77,13 @@ export class ReliquatService {
       const localClientId = await this.resolveLocalClientId(dto.clientId);
       if (!localClientId) {
         this.log.log(`[ReliquatService] Skipping reliquat: client ${dto.clientId} not found locally`);
+        continue;
+      }
+
+      const existing = await this.reliquatRepository.findByClientId(localClientId);
+      if (existing && !existing.isSync) {
+        await this.log.log(`[ReliquatService] Keeping unsynced local reliquat for client ${localClientId}`);
+        savedCount++;
         continue;
       }
 

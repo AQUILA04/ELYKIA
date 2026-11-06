@@ -18,4 +18,18 @@ public interface ClientReliquatRepository extends JpaRepository<ClientReliquat, 
     @Query("SELECT r FROM ClientReliquat r JOIN FETCH r.client c WHERE c.id IN :clientIds")
     List<ClientReliquat> findByClientIdIn(@Param("clientIds") Collection<Long> clientIds);
 
+    /**
+     * Soldes positifs visibles par un commercial, mêmes portefeuilles que le sync clients
+     * (crédit, tontine, agence, recouvrement).
+     */
+    @Query("""
+            SELECT r FROM ClientReliquat r JOIN FETCH r.client c
+            WHERE r.totalAmount > 0
+              AND (c.collector = :commercial
+                OR c.tontineCollector = :commercial
+                OR c.agencyCollector = :commercial
+                OR c.recoveryCollector = :commercial)
+            """)
+    List<ClientReliquat> findPositiveByCommercial(@Param("commercial") String commercial);
+
 }

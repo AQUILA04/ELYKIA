@@ -49,3 +49,41 @@ describe('ReliquatService.computeRecoveryPlan', () => {
     expect(plan.cashNeeded).toBe(200);
   });
 });
+
+describe('ReliquatService.persistReliquatsFromServer', () => {
+  it('restaure un solde serveur et ne remplace pas une ligne locale non synchronisée', async () => {
+    const upserts: Array<{ clientId: string; totalAmount: number; isSync: boolean }> = [];
+    const service = Object.create(ReliquatService.prototype) as ReliquatService & {
+      persistReliquatsFromServer: (commercial: string, dtos: unknown[]) => Promise<boolean>;
+      resolveLocalClientId: (id: string | number) => Promise<string | null>;
+      generateUuid: () => string;
+    };
+    const findByClientId = jasmine.createSpy('findByClientId').and.callFake(async (clientId: string) => {
+      if (clientId === 'local-pending') {
+        return { clientId, isSync: false, totalAmount: 450 };
+      }
+      return null;
+    });
+    (service as unknown as { reliquatRepository: unknown; log: unknown }).reliquatRepository = {
+      deleteSynced: jasmine.createSpy('deleteSynced').and.resolveTo(),
+      findByClientId,
+      upsert: jasmine.createSpy('upsert').and.callFake(async (row: { clientId: string; totalAmount: number; isSync: boolean }) => {
+        upserts.push(row);
+      })
+    };
+    (service as unknown as { log: { log: () => void } }).log = { log: () => undefined };
+    service.resolveLocalClientId = async (id) => `local-${id}`;
+    service.generateUuid = () => 'generated-id';
+
+    const ok = await service.persistReliquatsFromServer('COM019', [
+      { clientId: 'pending', totalAmount: 1 },
+      { clientId: 'server', totalAmount: 800 }
+    ]);
+
+    expect(ok).toBeTrue();
+    expect(upserts.length).toBe(1);
+    expect(upserts[0].clientId).toBe('local-server');
+    expect(upserts[0].totalAmount).toBe(800);
+    expect(upserts[0].isSync).toBeTrue();
+  });
+});

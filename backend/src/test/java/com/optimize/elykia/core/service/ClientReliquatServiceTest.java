@@ -159,21 +159,25 @@ class ClientReliquatServiceTest {
     }
 
     @Test
-    void findByCommercial_returnsOnlyBalancesBelongingToCollector() {
-        // Given
-        Client secondClient = new Client();
-        secondClient.setId(43L);
-        secondClient.setCollector("commercial.b");
-        when(clientReliquatRepository.findAll()).thenReturn(List.of(
-                reliquat(client, 20.0), reliquat(secondClient, 30.0)));
+    void findByCommercial_delegatesToPortfolioQuery() {
+        ClientReliquat balance = reliquat(client, 20.0);
+        when(clientReliquatRepository.findPositiveByCommercial("commercial.a"))
+                .thenReturn(List.of(balance));
 
-        // When
         List<ClientReliquat> result = clientReliquatService.findByCommercial("commercial.a");
 
-        // Then
         assertEquals(1, result.size());
         assertSame(client, result.get(0).getClient());
         assertEquals(20.0, result.get(0).getTotalAmount());
+        verify(clientReliquatRepository).findPositiveByCommercial("commercial.a");
+        verify(clientReliquatRepository, never()).findAll();
+    }
+
+    @Test
+    void findByCommercial_returnsEmptyWhenUsernameBlank() {
+        assertEquals(0, clientReliquatService.findByCommercial(" ").size());
+        assertEquals(0, clientReliquatService.findByCommercial(null).size());
+        verifyNoInteractions(clientReliquatRepository);
     }
 
     private ClientReliquat reliquat(Client reliquatClient, double amount) {
