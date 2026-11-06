@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.controller.tontine;
 
+import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.common.securities.models.User;
@@ -20,6 +21,8 @@ import com.optimize.elykia.core.service.tontine.TontineExportService;
 import com.optimize.elykia.core.service.tontine.TontineMemberCarnetVerificationService;
 import com.optimize.elykia.core.service.tontine.TontineMemberFieldControlService;
 import com.optimize.elykia.core.service.tontine.TontineMemberContributionService;
+import com.optimize.elykia.core.service.portfolio.FormerPortfolioAccess;
+import com.optimize.elykia.core.service.portfolio.FormerPortfolioService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,6 +50,7 @@ import java.util.Set;
 public class TontineController {
 
     private final TontineService tontineService;
+    private final FormerPortfolioService formerPortfolioService;
     private final TontineStockService tontineStockService;
     private final TontineMemberFieldControlService tontineMemberFieldControlService;
     private final TontineMemberCarnetVerificationService tontineMemberCarnetVerificationService;
@@ -153,13 +157,20 @@ public class TontineController {
 
     @GetMapping("/members/{id}")
     public ResponseEntity<Response> getMemberById(@PathVariable Long id) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(
-                tontineService.getMemberResponse(id)), HttpStatus.OK);
+        FormerPortfolioAccess.Level access = formerPortfolioService.decideTontineMember(id);
+        if (access == FormerPortfolioAccess.Level.DENIED) {
+            throw new CustomValidationException(FormerPortfolioService.DENIED);
+        }
+        Object body = access == FormerPortfolioAccess.Level.FORMER
+                ? formerPortfolioService.getFormerTontineMember(id)
+                : tontineService.getMemberResponse(id);
+        return new ResponseEntity<>(ResponseUtil.successResponse(body), HttpStatus.OK);
     }
 
     @GetMapping("/members/{id}/contributions-by-commercial")
     @Operation(summary = "Répartition des cotisations d'un membre par commercial collecteur")
     public ResponseEntity<Response> getMemberContributionsByCommercial(@PathVariable Long id) {
+        formerPortfolioService.assertFullTontineMember(id);
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(tontineMemberContributionService.getByMember(id)),
                 HttpStatus.OK);
@@ -169,6 +180,7 @@ public class TontineController {
     @PreAuthorize("hasAnyRole('" + UserPermissionConstant.TONTINE_MEMBER_PDF + "', '" + UserPermissionConstant.ADMIN + "')")
     @Operation(summary = "Exporter en PDF le détail des cotisations d'un membre")
     public ResponseEntity<byte[]> exportMemberDetailsPdf(@PathVariable Long id) {
+        formerPortfolioService.assertFullTontineMember(id);
         byte[] pdfContent = tontineExportService.exportMemberDetailsPdf(id);
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_PDF);
@@ -180,6 +192,7 @@ public class TontineController {
 
     @GetMapping("/members/{id}/amount-history")
     public ResponseEntity<Response> getMemberAmountHistory(@PathVariable Long id) {
+        formerPortfolioService.assertFullTontineMember(id);
         return new ResponseEntity<>(ResponseUtil.successResponse(
                 tontineService.getMemberAmountHistory(id)), HttpStatus.OK);
     }
@@ -203,6 +216,7 @@ public class TontineController {
 
     @GetMapping("/members/{id}/field-controls/latest")
     public ResponseEntity<Response> getLatestMemberFieldControl(@PathVariable Long id) {
+        formerPortfolioService.assertFullTontineMember(id);
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(tontineMemberFieldControlService.getLatest(id)),
                 HttpStatus.OK);
@@ -210,6 +224,7 @@ public class TontineController {
 
     @GetMapping("/members/{id}/field-controls")
     public ResponseEntity<Response> getMemberFieldControlHistory(@PathVariable Long id) {
+        formerPortfolioService.assertFullTontineMember(id);
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(tontineMemberFieldControlService.getHistory(id)),
                 HttpStatus.OK);
@@ -292,6 +307,7 @@ public class TontineController {
     public ResponseEntity<Response> getCatchupPreview(
             @PathVariable Long memberId,
             @RequestParam LocalDate collectionDate) {
+        formerPortfolioService.assertFullTontineMember(memberId);
         TontineCatchupPreviewDto preview = tontineService.getCatchupPreview(memberId, collectionDate);
         return new ResponseEntity<>(ResponseUtil.successResponse(preview), HttpStatus.OK);
     }
@@ -304,10 +320,15 @@ public class TontineController {
 
     @GetMapping("/members/{memberId}/collections")
     public ResponseEntity<Response> getCollectionHistory(@PathVariable Long memberId, Pageable pageable) {
-        return new ResponseEntity<>(
-                ResponseUtil.successResponse(
-                        tontineService.getTontineCollectionRepository().findByTontineMember_IdAndState(memberId, com.optimize.common.entities.enums.State.ENABLED, pageable)),
-                HttpStatus.OK);
+        FormerPortfolioAccess.Level access = formerPortfolioService.decideTontineMember(memberId);
+        if (access == FormerPortfolioAccess.Level.DENIED) {
+            throw new CustomValidationException(FormerPortfolioService.DENIED);
+        }
+        Object body = access == FormerPortfolioAccess.Level.FORMER
+                ? formerPortfolioService.ownTontineCollections(memberId)
+                : tontineService.getTontineCollectionRepository().findByTontineMember_IdAndState(
+                        memberId, com.optimize.common.entities.enums.State.ENABLED, pageable);
+        return new ResponseEntity<>(ResponseUtil.successResponse(body), HttpStatus.OK);
     }
 
     @DeleteMapping("/collections/{id}")

@@ -51,6 +51,7 @@ import { RecouvrementTableComponent } from './recouvrement/components/recouvreme
 import { CollectorTransfersComponent } from './collector-transfers/collector-transfers.component';
 import { CreditArticlesVendusComponent } from './credit-articles-vendus/credit-articles-vendus.component';
 import { SaleCancellationComponent } from './sale-cancellation/sale-cancellation.component';
+import { FormerPortfolioComponent } from './former-portfolio/former-portfolio.component';
 
 @NgModule({
   declarations: [
@@ -80,6 +81,7 @@ import { SaleCancellationComponent } from './sale-cancellation/sale-cancellation
     CollectorTransfersComponent,
     CreditArticlesVendusComponent,
     SaleCancellationComponent,
+    FormerPortfolioComponent,
   ],
   imports: [
     CommonModule,

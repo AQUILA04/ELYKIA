@@ -467,4 +467,76 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("startAt") java.time.LocalDateTime startAt,
                 @Param("endAt") java.time.LocalDateTime endAt,
                 @Param("commercial") String commercial);
+
+        @Query(value = """
+                SELECT new com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDto(
+                    tm.id,
+                    s.year,
+                    c.id,
+                    c.code,
+                    c.firstname,
+                    c.lastname,
+                    c.phone,
+                    c.quarter,
+                    COALESCE((
+                        SELECT SUM(tc.amount) FROM TontineCollection tc
+                        WHERE tc.tontineMember = tm
+                          AND tc.state = com.optimize.common.entities.enums.State.ENABLED
+                          AND LOWER(tc.commercialUsername) = LOWER(:commercial)
+                    ), 0.0),
+                    (
+                        SELECT COUNT(tc2.id) FROM TontineCollection tc2
+                        WHERE tc2.tontineMember = tm
+                          AND tc2.state = com.optimize.common.entities.enums.State.ENABLED
+                          AND LOWER(tc2.commercialUsername) = LOWER(:commercial)
+                    )
+                )
+                FROM TontineMember tm
+                JOIN tm.client c
+                JOIN tm.tontineSession s
+                WHERE tm.state = com.optimize.common.entities.enums.State.ENABLED
+                  AND (c.tontineCollector IS NULL OR LOWER(c.tontineCollector) <> LOWER(:commercial))
+                  AND (
+                    EXISTS (
+                        SELECT 1 FROM TontineCollection tc3
+                        WHERE tc3.tontineMember = tm
+                          AND tc3.state = com.optimize.common.entities.enums.State.ENABLED
+                          AND LOWER(tc3.commercialUsername) = LOWER(:commercial)
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM com.optimize.elykia.client.entity.ClientCollectorHistory h
+                        WHERE h.clientId = c.id
+                          AND h.collectorType = com.optimize.elykia.client.enumeration.ClientCollectorType.TONTINE
+                          AND h.state = com.optimize.common.entities.enums.State.ENABLED
+                          AND h.oldCollector IS NOT NULL
+                          AND LOWER(h.oldCollector) = LOWER(:commercial)
+                    )
+                  )
+                ORDER BY c.lastname ASC, c.firstname ASC, s.year DESC, tm.id DESC
+                """,
+                countQuery = """
+                SELECT COUNT(tm) FROM TontineMember tm
+                JOIN tm.client c
+                WHERE tm.state = com.optimize.common.entities.enums.State.ENABLED
+                  AND (c.tontineCollector IS NULL OR LOWER(c.tontineCollector) <> LOWER(:commercial))
+                  AND (
+                    EXISTS (
+                        SELECT 1 FROM TontineCollection tc3
+                        WHERE tc3.tontineMember = tm
+                          AND tc3.state = com.optimize.common.entities.enums.State.ENABLED
+                          AND LOWER(tc3.commercialUsername) = LOWER(:commercial)
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM com.optimize.elykia.client.entity.ClientCollectorHistory h
+                        WHERE h.clientId = c.id
+                          AND h.collectorType = com.optimize.elykia.client.enumeration.ClientCollectorType.TONTINE
+                          AND h.state = com.optimize.common.entities.enums.State.ENABLED
+                          AND h.oldCollector IS NOT NULL
+                          AND LOWER(h.oldCollector) = LOWER(:commercial)
+                    )
+                  )
+                """)
+        Page<com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDto> findFormerMembers(
+                @Param("commercial") String commercial,
+                Pageable pageable);
 }

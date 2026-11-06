@@ -182,6 +182,7 @@ public class ClientService extends GenericService<Client, Long> {
         String oldPhone = old.getPhone();
         String oldCollector = old.getCollector();
         String oldTontineCollector = old.getTontineCollector();
+        String oldAgencyCollector = old.getAgencyCollector();
         Client client = clientMapper.toEntity(dto);
         client.setId(clientId);
         preservePhotoFields(old, client);
@@ -191,7 +192,7 @@ public class ClientService extends GenericService<Client, Long> {
         ClientRespDto result = ClientRespDto.fromClient(update(client));
         publishPhoneUpdatedIfChanged(clientId, oldPhone, client.getPhone());
         publishCollectorChangesIfNeeded(clientId, oldCollector, client.getCollector(), oldTontineCollector,
-                client.getTontineCollector());
+                client.getTontineCollector(), oldAgencyCollector, client.getAgencyCollector());
         return result;
     }
 
@@ -707,7 +708,7 @@ public class ClientService extends GenericService<Client, Long> {
                 client.getTontineCollector());
         client.setCollector(dto.getCollector());
         Client updated = update(client);
-        publishCollectorChangesIfNeeded(client.getId(), oldCollector, dto.getCollector(), null, null);
+        publishCollectorChangesIfNeeded(client.getId(), oldCollector, dto.getCollector(), null, null, null, null);
         return updated;
     }
 
@@ -828,7 +829,8 @@ public class ClientService extends GenericService<Client, Long> {
     }
 
     private void publishCollectorChangesIfNeeded(Long clientId, String oldCollector, String newCollector,
-            String oldTontineCollector, String newTontineCollector) {
+            String oldTontineCollector, String newTontineCollector,
+            String oldAgencyCollector, String newAgencyCollector) {
         List<ClientCollectorChangeRecord> changes = new ArrayList<>();
         if (!Objects.equals(oldCollector, newCollector)) {
             changes.add(new ClientCollectorChangeRecord(
@@ -839,6 +841,11 @@ public class ClientService extends GenericService<Client, Long> {
                 changes.add(new ClientCollectorChangeRecord(
                         clientId, ClientCollectorType.TONTINE, oldTontineCollector, newTontineCollector));
             }
+        }
+        if (StringUtils.hasText(newAgencyCollector)
+                && !Objects.equals(oldAgencyCollector, newAgencyCollector)) {
+            changes.add(new ClientCollectorChangeRecord(
+                    clientId, ClientCollectorType.AGENCY, oldAgencyCollector, newAgencyCollector));
         }
         publishCollectorChanges(changes, getCurrentUsername());
     }

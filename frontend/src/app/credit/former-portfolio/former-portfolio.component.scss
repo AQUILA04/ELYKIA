@@ -1,0 +1,195 @@
+.former-portfolio-page {
+  --navy: #003366;
+  --navy-dark: #002244;
+  --navy-pale: #e8eef6;
+  --navy-xpale: #f0f4f9;
+  --bg-page: #f2f4f8;
+  --bg-white: #ffffff;
+  --border: #dde3ec;
+  --text-body: #333333;
+  --text-muted: #6b7a99;
+  --text-light: #9aacc4;
+  --green: #1d8a3c;
+  --kpi-cyan: #0095c8;
+  --shadow-sm: 0 1px 3px rgba(0, 51, 102, 0.08);
+  --radius: 12px;
+  --radius-sm: 8px;
+
+  padding: 28px 24px 60px;
+  max-width: 1200px;
+  margin: 80px auto 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--bg-page);
+  min-height: 100vh;
+  color: var(--text-body);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.former-portfolio-page .a1 { animation: fadeUp .3s .00s ease both; }
+.former-portfolio-page .a2 { animation: fadeUp .3s .05s ease both; }
+.former-portfolio-page .a3 { animation: fadeUp .3s .10s ease both; }
+.former-portfolio-page .a4 { animation: fadeUp .3s .15s ease both; }
+.former-portfolio-page .a5 { animation: fadeUp .3s .20s ease both; }
+
+.former-portfolio-page .breadcrumb-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.former-portfolio-page .breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+.former-portfolio-page .breadcrumb-link svg { width: 16px; height: 16px; }
+.former-portfolio-page .date-display {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.former-portfolio-page .page-header-card,
+.former-portfolio-page .table-card,
+.former-portfolio-page .kpi-card {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+}
+.former-portfolio-page .page-header-card { padding: 22px 26px; margin-bottom: 18px; }
+.former-portfolio-page .header-card-top,
+.former-portfolio-page .header-card-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+.former-portfolio-page .header-surtitle,
+.former-portfolio-page .last-update {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+.former-portfolio-page .title-group { display: flex; align-items: center; gap: 12px; }
+.former-portfolio-page .page-icon { width: 28px; height: 28px; color: var(--navy); flex-shrink: 0; }
+.former-portfolio-page .page-title {
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--navy);
+}
+.former-portfolio-page .page-subtitle { margin: 12px 0 0; font-size: 13px; color: var(--text-muted); }
+
+.former-portfolio-page .btn-refresh,
+.former-portfolio-page .btn-detail,
+.former-portfolio-page .tab-row button {
+  min-height: 44px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.former-portfolio-page .btn-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--navy);
+  background: var(--navy);
+  color: #fff;
+  padding: 0 16px;
+}
+.former-portfolio-page .btn-refresh svg { width: 16px; height: 16px; }
+.former-portfolio-page .btn-detail {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  background: var(--navy-xpale);
+  color: var(--navy);
+  text-decoration: none;
+}
+.former-portfolio-page .btn-detail:disabled { opacity: .45; cursor: default; }
+
+.former-portfolio-page .kpi-strip { display: flex; gap: 12px; margin-bottom: 18px; }
+.former-portfolio-page .kpi-card {
+  min-width: 180px;
+  padding: 16px 18px;
+  border-left: 4px solid var(--kpi-cyan);
+}
+.former-portfolio-page .kpi-card span { display: block; font-size: 12px; color: var(--text-muted); }
+.former-portfolio-page .kpi-card strong {
+  display: block;
+  margin-top: 6px;
+  font-family: 'DM Mono', monospace;
+  font-size: 22px;
+  color: var(--navy);
+}
+
+.former-portfolio-page .toolbar { margin-bottom: 18px; }
+.former-portfolio-page .tab-row { display: flex; gap: 8px; }
+.former-portfolio-page .tab-row button {
+  border: 1px solid var(--border);
+  background: var(--bg-white);
+  color: var(--navy);
+  padding: 0 18px;
+}
+.former-portfolio-page .tab-row button.active {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+
+.former-portfolio-page .table-card { padding: 18px 18px 24px; }
+.former-portfolio-page .readonly-note,
+.former-portfolio-page .loading-note,
+.former-portfolio-page .detail-meta {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.former-portfolio-page .error-note { color: #b91c1c; font-weight: 600; }
+.former-portfolio-page .table-wrapper { overflow-x: auto; }
+.former-portfolio-page table { width: 100%; border-collapse: collapse; }
+.former-portfolio-page th,
+.former-portfolio-page td {
+  text-align: left;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.former-portfolio-page th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--text-muted);
+}
+.former-portfolio-page .num {
+  text-align: right;
+  font-family: 'DM Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.former-portfolio-page .empty-state { text-align: center; padding: 36px 12px; }
+.former-portfolio-page .empty-state h2 { margin: 0 0 8px; color: var(--navy); font-size: 18px; }
+.former-portfolio-page .pager {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+.former-portfolio-page .detail-title {
+  margin: 18px 0 6px;
+  color: var(--navy);
+  font-size: 18px;
+}
+.former-portfolio-page .detail-total { font-weight: 700; color: var(--navy); }
+.former-portfolio-page .back-link { margin-bottom: 8px; }

@@ -401,4 +401,36 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             sumContributionsByMemberAndCommercial(
                     @Param("memberId") Long memberId,
                     @Param("state") State state);
+
+    boolean existsByTontineMember_IdAndStateAndCommercialUsernameIgnoreCase(
+            Long memberId, State state, String commercialUsername);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.portfolio.FormerTontineCollectionDto(
+                tc.tontineMember.id, tc.id, tc.amount, tc.collectionDate, tc.reference)
+            FROM TontineCollection tc
+            WHERE tc.tontineMember.id = :memberId
+              AND tc.state = com.optimize.common.entities.enums.State.ENABLED
+              AND LOWER(tc.commercialUsername) = LOWER(:commercial)
+            ORDER BY tc.collectionDate DESC, tc.id DESC
+            """)
+    java.util.List<com.optimize.elykia.core.dto.portfolio.FormerTontineCollectionDto> findOwnCollections(
+            @Param("memberId") Long memberId,
+            @Param("commercial") String commercial);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.portfolio.FormerTontineCollectionDto(
+                tc.tontineMember.id, tc.id, tc.amount, tc.collectionDate, tc.reference)
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            JOIN tm.client c
+            WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED
+              AND tm.state = com.optimize.common.entities.enums.State.ENABLED
+              AND LOWER(tc.commercialUsername) = LOWER(:commercial)
+              AND (c.tontineCollector IS NULL OR LOWER(c.tontineCollector) <> LOWER(:commercial))
+            ORDER BY tc.collectionDate DESC, tc.id DESC
+            """)
+    java.util.List<com.optimize.elykia.core.dto.portfolio.FormerTontineCollectionDto> findFormerOwnCollections(
+            @Param("commercial") String commercial,
+            Pageable pageable);
 }

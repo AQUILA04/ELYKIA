@@ -1,0 +1,227 @@
+<div class="former-portfolio-page main-container a1">
+  <div class="breadcrumb-bar">
+    <a routerLink="/dashboard" class="breadcrumb-link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Tableau de bord
+    </a>
+    <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-top">
+      <span class="header-surtitle">PORTEFEUILLE</span>
+      <span class="last-update">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <svg class="page-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        </svg>
+        <h1 class="page-title">Ancien portefeuille</h1>
+      </div>
+      <button type="button" class="btn-refresh" (click)="refresh()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Actualiser
+      </button>
+    </div>
+    <p class="page-subtitle">Consultation seule de vos anciens clients et des opérations que vous avez enregistrées.</p>
+  </div>
+
+  <div class="kpi-strip a3" *ngIf="!kind">
+    <article class="kpi-card kpi-total">
+      <span>Dossiers affichés</span>
+      <strong>{{ activeTotal() }}</strong>
+    </article>
+  </div>
+
+  <div class="toolbar a4" *ngIf="!kind">
+    <div class="tab-row" role="tablist" aria-label="Ancien portefeuille">
+      <button type="button" role="tab" [attr.aria-selected]="tab === 'tontine'" [class.active]="tab === 'tontine'" (click)="selectTab('tontine')">Tontine</button>
+      <button type="button" role="tab" [attr.aria-selected]="tab === 'credit'" [class.active]="tab === 'credit'" (click)="selectTab('credit')">Crédit</button>
+      <button type="button" role="tab" [attr.aria-selected]="tab === 'agence'" [class.active]="tab === 'agence'" (click)="selectTab('agence')">Agence</button>
+    </div>
+  </div>
+
+  <div class="table-card a5">
+    <p class="readonly-note">Vous pouvez relire ces opérations. L'enregistrement d'une nouvelle collecte ou d'un nouveau recouvrement se fait sur le portefeuille actuel.</p>
+    <p class="error-note" *ngIf="error" role="alert">{{ error }}</p>
+    <p class="loading-note" *ngIf="loading">Chargement…</p>
+
+    <ng-container *ngIf="!loading && !kind && tab === 'tontine'">
+      <div class="empty-state" *ngIf="!tontinePage?.content?.length">
+        <h2>Aucun ancien membre</h2>
+        <p>Les membres que vous avez suivis apparaissent ici après un changement de commercial.</p>
+      </div>
+      <div class="table-wrapper" *ngIf="tontinePage?.content?.length">
+        <table>
+          <thead>
+            <tr>
+              <th>Membre</th>
+              <th>Code</th>
+              <th>Téléphone</th>
+              <th>Quartier</th>
+              <th>Année</th>
+              <th class="num">Vos collectes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of tontinePage?.content">
+              <td>{{ personName(row.firstname, row.lastname) }}</td>
+              <td>{{ row.clientCode }}</td>
+              <td>{{ row.phone }}</td>
+              <td>{{ row.quarter }}</td>
+              <td>{{ row.sessionYear }}</td>
+              <td class="num">{{ row.ownCollectionsTotal | number:'1.0-0' }} FCFA</td>
+              <td><a class="btn-detail" [routerLink]="['/credit/ancien-portefeuille', 'tontine', row.memberId]" [queryParams]="{ tab: 'tontine' }">Voir</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!loading && !kind && tab === 'credit'">
+      <div class="empty-state" *ngIf="!creditPage?.content?.length">
+        <h2>Aucun ancien crédit</h2>
+        <p>Les contrats que vous avez suivis apparaissent ici après un transfert.</p>
+      </div>
+      <div class="table-wrapper" *ngIf="creditPage?.content?.length">
+        <table>
+          <thead>
+            <tr>
+              <th>Référence</th>
+              <th>Client</th>
+              <th>Passation</th>
+              <th class="num">Montant à la passation</th>
+              <th class="num">Reste à la passation</th>
+              <th class="num">Vos recouvrements</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of creditPage?.content">
+              <td>{{ row.reference }}</td>
+              <td>{{ personName(row.firstname, row.lastname) }}</td>
+              <td>{{ row.handoverDate ? (row.handoverDate | date:'dd/MM/yyyy') : '—' }}</td>
+              <td class="num">{{ row.totalAmountAtHandover != null ? (row.totalAmountAtHandover | number:'1.0-0') + ' FCFA' : '—' }}</td>
+              <td class="num">{{ row.totalRemainingAtHandover != null ? (row.totalRemainingAtHandover | number:'1.0-0') + ' FCFA' : '—' }}</td>
+              <td class="num">{{ row.ownRecoveriesTotal | number:'1.0-0' }} FCFA</td>
+              <td><a class="btn-detail" [routerLink]="['/credit/ancien-portefeuille', 'credit', row.creditId]" [queryParams]="{ tab: 'credit' }">Voir</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!loading && !kind && tab === 'agence'">
+      <div class="empty-state" *ngIf="!agencyPage?.content?.length">
+        <h2>Aucune ancienne vente en agence</h2>
+        <p>Les ventes comptant que vous avez enregistrées apparaissent ici lorsque le client n'est plus suivi par vous en agence.</p>
+      </div>
+      <div class="table-wrapper" *ngIf="agencyPage?.content?.length">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Code</th>
+              <th>Téléphone</th>
+              <th>Quartier</th>
+              <th class="num">Vos ventes</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of agencyPage?.content">
+              <td>{{ personName(row.firstname, row.lastname) }}</td>
+              <td>{{ row.clientCode }}</td>
+              <td>{{ row.phone }}</td>
+              <td>{{ row.quarter }}</td>
+              <td class="num">{{ row.ownSalesTotal | number:'1.0-0' }} FCFA</td>
+              <td><a class="btn-detail" [routerLink]="['/credit/ancien-portefeuille', 'agence', row.clientId]" [queryParams]="{ tab: 'agence' }">Voir</a></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+
+    <div class="pager" *ngIf="!loading && !kind && activeTotalPages() > 1">
+      <button type="button" class="btn-detail" (click)="previousPage()" [disabled]="pageIndex === 0">Précédent</button>
+      <span>Page {{ pageIndex + 1 }} / {{ activeTotalPages() }}</span>
+      <button type="button" class="btn-detail" (click)="nextPage()" [disabled]="pageIndex + 1 >= activeTotalPages()">Suivant</button>
+    </div>
+
+    <ng-container *ngIf="!loading && tontineDetail as detail">
+      <a class="btn-detail back-link" routerLink="/credit/ancien-portefeuille" [queryParams]="{ tab: 'tontine' }">Retour à la liste</a>
+      <h2 class="detail-title">{{ personName(detail.firstname, detail.lastname) }}</h2>
+      <p class="detail-meta">{{ detail.clientCode }} · {{ detail.phone }} · {{ detail.quarter }} · Session {{ detail.sessionYear }}</p>
+      <p class="detail-total">Total de vos collectes : {{ detail.ownCollectionsTotal | number:'1.0-0' }} FCFA</p>
+      <div class="empty-state" *ngIf="!detail.collections?.length">
+        <h2>Aucune collecte enregistrée</h2>
+        <p>Ce membre a été suivi par vous, sans collecte à votre nom.</p>
+      </div>
+      <div class="table-wrapper" *ngIf="detail.collections?.length">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Référence</th><th class="num">Montant</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let line of detail.collections">
+              <td>{{ line.collectionDate | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ line.reference }}</td>
+              <td class="num">{{ line.amount | number:'1.0-0' }} FCFA</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!loading && creditDetail as detail">
+      <a class="btn-detail back-link" routerLink="/credit/ancien-portefeuille" [queryParams]="{ tab: 'credit' }">Retour à la liste</a>
+      <h2 class="detail-title">{{ detail.reference }}</h2>
+      <p class="detail-meta">{{ personName(detail.firstname, detail.lastname) }} · {{ detail.clientCode }} · {{ detail.phone }}</p>
+      <p class="detail-total" *ngIf="detail.totalRemainingAtHandover != null">Reste dû au moment de la passation : {{ detail.totalRemainingAtHandover | number:'1.0-0' }} FCFA</p>
+      <p class="detail-total">Total de vos recouvrements : {{ detail.ownRecoveriesTotal | number:'1.0-0' }} FCFA</p>
+      <div class="empty-state" *ngIf="!detail.timelines?.length">
+        <h2>Aucun recouvrement à votre nom</h2>
+        <p>Le contrat figure dans votre historique de passation.</p>
+      </div>
+      <div class="table-wrapper" *ngIf="detail.timelines?.length">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Référence</th><th class="num">Montant</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let line of detail.timelines">
+              <td>{{ line.operationDate | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ line.reference }}</td>
+              <td class="num">{{ line.amount | number:'1.0-0' }} FCFA</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="!loading && agencyDetail as detail">
+      <a class="btn-detail back-link" routerLink="/credit/ancien-portefeuille" [queryParams]="{ tab: 'agence' }">Retour à la liste</a>
+      <h2 class="detail-title">{{ personName(detail.firstname, detail.lastname) }}</h2>
+      <p class="detail-meta">{{ detail.clientCode }} · {{ detail.phone }} · {{ detail.quarter }}</p>
+      <p class="detail-total">Total de vos ventes comptant : {{ detail.ownSalesTotal | number:'1.0-0' }} FCFA</p>
+      <div class="table-wrapper" *ngIf="detail.sales?.length">
+        <table>
+          <thead>
+            <tr><th>Date</th><th>Référence</th><th class="num">Montant</th></tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let line of detail.sales">
+              <td>{{ line.saleDate | date:'dd/MM/yyyy' }}</td>
+              <td>{{ line.reference }}</td>
+              <td class="num">{{ line.totalAmount | number:'1.0-0' }} FCFA</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </ng-container>
+  </div>
+</div>

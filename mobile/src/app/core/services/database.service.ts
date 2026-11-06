@@ -103,7 +103,7 @@ export class DatabaseService {
     // 2. Migrations incrémentielles (natif uniquement).
     // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
     const currentVersion = await this.db.getVersion();
-    const targetVersion = 35; // client adhesions snapshot for credit ceilings
+    const targetVersion = 36; // former commercial portfolio, read-only tables
     const dbVersion = currentVersion.version ?? 2;
     const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -748,13 +748,71 @@ export class DatabaseService {
         );
         CREATE INDEX IF NOT EXISTS idx_daily_consent_commercial_date
             ON daily_consent_history(commercialUsername, actionDate);
+
+        CREATE TABLE IF NOT EXISTS former_tontine_member (
+            id TEXT PRIMARY KEY,
+            memberId INTEGER NOT NULL,
+            sessionYear INTEGER,
+            clientCode TEXT,
+            firstname TEXT,
+            lastname TEXT,
+            phone TEXT,
+            quarter TEXT,
+            ownTotal REAL,
+            commercialUsername TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS former_tontine_collection (
+            id TEXT PRIMARY KEY,
+            memberId INTEGER NOT NULL,
+            amount REAL,
+            collectionDate TEXT,
+            reference TEXT,
+            commercialUsername TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS former_credit (
+            id TEXT PRIMARY KEY,
+            creditId INTEGER NOT NULL,
+            reference TEXT,
+            clientCode TEXT,
+            firstname TEXT,
+            lastname TEXT,
+            phone TEXT,
+            quarter TEXT,
+            handoverDate TEXT,
+            totalAmountAtHandover REAL,
+            totalRemainingAtHandover REAL,
+            ownRecoveriesTotal REAL,
+            commercialUsername TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS former_credit_timeline (
+            id TEXT PRIMARY KEY,
+            creditId INTEGER NOT NULL,
+            amount REAL,
+            operationDate TEXT,
+            reference TEXT,
+            commercialUsername TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS former_agency_sale (
+            id TEXT PRIMARY KEY,
+            creditId INTEGER NOT NULL,
+            clientId INTEGER NOT NULL,
+            reference TEXT,
+            clientCode TEXT,
+            firstname TEXT,
+            lastname TEXT,
+            phone TEXT,
+            quarter TEXT,
+            saleDate TEXT,
+            totalAmount REAL,
+            commercialUsername TEXT NOT NULL
+        );
     `;
     await this.db?.execute(createTables + rmSqliteDdl());
   }
 
   private async verifyTables(): Promise<void> {
     try {
-      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items', 'tontine_member_amount_history', 'commercial_stock_snapshot', 'client_reliquats', 'local_data_cleanup_history', 'sync_consent_history', 'daily_consent_history', 'rm_offline_ops', 'rm_scope'];
+      const expectedTables = ['users', 'parameters', 'commercials', 'articles', 'localities', 'clients', 'accounts', 'stock_outputs', 'stock_output_items', 'distributions', 'distribution_items', 'orders', 'order_items', 'recoveries', 'sync_logs', 'daily_reports', 'tontine_sessions', 'tontine_members', 'tontine_collections', 'tontine_deliveries', 'tontine_delivery_items', 'commercial_stock_items', 'tontine_member_amount_history', 'commercial_stock_snapshot', 'client_reliquats', 'local_data_cleanup_history', 'sync_consent_history', 'daily_consent_history', 'rm_offline_ops', 'rm_scope', 'former_tontine_member', 'former_tontine_collection', 'former_credit', 'former_credit_timeline', 'former_agency_sale'];
       const result = await this.db?.query(`SELECT name FROM sqlite_master WHERE type='table'`);
       const existingTables = result?.values?.map(row => row.name) || [];
       const missingTables = expectedTables.filter(table => !existingTables.includes(table));

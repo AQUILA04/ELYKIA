@@ -13,10 +13,13 @@ import { CreateTontineComponent } from './components/create-tontine/create-tonti
 import { CollectorTransfersComponent } from './collector-transfers/collector-transfers.component';
 import { CreditArticlesVendusComponent } from './credit-articles-vendus/credit-articles-vendus.component';
 import { SaleCancellationComponent } from './sale-cancellation/sale-cancellation.component';
+import { FormerPortfolioComponent } from './former-portfolio/former-portfolio.component';
 import { NgxPermissionsGuard } from 'ngx-permissions';
 
 const routes: Routes = [
   { path: 'list', component: CreditListComponent },
+  { path: 'ancien-portefeuille', component: FormerPortfolioComponent },
+  { path: 'ancien-portefeuille/:kind/:id', component: FormerPortfolioComponent },
   { path: 'add', component: CreditAddComponent },
   { path: 'add/:id', component: CreditAddComponent },
   { path: 'details/:id', component: CreditDetailsComponent },
