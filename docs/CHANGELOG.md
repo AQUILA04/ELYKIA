@@ -114,6 +114,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Synchronisation d'un compte : lorsqu'un client a déjà un compte à l'agence, le téléphone reprend ce compte (numéro et solde) et affiche un message qui nomme le client, au lieu d'un échec technique.
+- Rechargement des reliquats : l'écriture du journal ne bloque plus le recouvrement si elle échoue.
 
 ## Mobile — [2.35.4] — 2026-11-06
 
