@@ -56,4 +56,20 @@ describe('AccountRepository saveAll clientId merge', () => {
 
     expect(repository.markAsSynced).toHaveBeenCalledWith('uuid-acc', '99');
   });
+
+  it('adopts the agency account onto the local row and keeps the local client id', async () => {
+    await repository.adoptServerAccount('uuid-acc', {
+      id: 44,
+      accountNumber: '0021190079',
+      accountBalance: 1500,
+      status: 'ACTIF'
+    });
+
+    expect(databaseService.execute).toHaveBeenCalledWith(
+      jasmine.stringMatching(/UPDATE accounts SET isSync = 1/),
+      ['44', '0021190079', 1500, 'ACTIF', 'uuid-acc']
+    );
+    const sql = databaseService.execute.calls.mostRecent().args[0] as string;
+    expect(sql).not.toContain('clientId');
+  });
 });

@@ -10,6 +10,7 @@ import { ApiResponse } from '../../../models/api-response.model';
 import { BaseSyncService } from './base-sync.service';
 import { Store } from '@ngrx/store';
 import * as AccountActions from '../../../store/account/account.actions';
+import { isExistingAccountMessage, presentExistingAccountNotice } from './existing-account-message';
 
 @Injectable({
     providedIn: 'root'
@@ -56,24 +57,24 @@ export class AccountSyncService extends BaseSyncService<Account, AccountReposito
                 status: account.status || 'ACTIVE'
             };
 
-            const response = await firstValueFrom(
-                this.http.post<ApiResponse<AccountSyncResponse>>(`${this.baseUrl}/api/v1/accounts/sync`, syncRequest, { headers })
-            );
+            try {
+                const response = await firstValueFrom(
+                    this.http.post<ApiResponse<AccountSyncResponse>>(`${this.baseUrl}/api/v1/accounts/sync`, syncRequest, { headers })
+                );
 
-            if (!response || !response.data) {
-                throw new Error(response?.message || 'Invalid response from server');
+                if (!response || !response.data) {
+                    throw new Error(response?.message || 'Invalid response from server');
+                }
+
+                await this.applyServerAccount(account, response.data, response.message);
+                return response.data;
+            } catch (error) {
+                const recovered = await this.recoverExistingAccount(account, error);
+                if (recovered) {
+                    return recovered;
+                }
+                throw error;
             }
-
-            const serverId = response.data.id.toString();
-
-            await this.repository.saveIdMapping(account.id, serverId, 'account');
-            await this.repository.markAsSynced(account.id, serverId);
-            this.store.dispatch(AccountActions.accountSyncSuccess({
-                localId: account.id,
-                serverId
-            }));
-
-            return response.data;
         } else {
             const responseData = await this.postUpdateAccount(account, clientIdNumber);
             await this.repository.updateSyncStatus(account.id, true);
@@ -125,6 +126,33 @@ export class AccountSyncService extends BaseSyncService<Account, AccountReposito
         }
 
         return response.data;
+    }
+
+    private async applyServerAccount(account: Account, serverAccount: AccountSyncResponse, message?: string): Promise<void> {
+        const serverId = serverAccount.id.toString();
+        await this.repository.saveIdMapping(account.id, serverId, 'account');
+        await this.repository.adoptServerAccount(account.id, serverAccount);
+        this.store.dispatch(AccountActions.accountSyncSuccess({
+            localId: account.id,
+            serverId
+        }));
+        if (isExistingAccountMessage(message)) {
+            await presentExistingAccountNotice(message as string);
+        }
+    }
+
+    /**
+     * Un conflit explicite qui contient le compte existant est repris comme un succès :
+     * le téléphone aligne le client sur ce compte et affiche le message du serveur.
+     */
+    private async recoverExistingAccount(account: Account, error: unknown): Promise<AccountSyncResponse | null> {
+        const body = (error as { error?: { message?: string; data?: AccountSyncResponse } })?.error;
+        const data = body?.data;
+        if (!data?.id || !isExistingAccountMessage(body?.message)) {
+            return null;
+        }
+        await this.applyServerAccount(account, data, body?.message);
+        return data;
     }
 
     protected override getAuthHeaders(): HttpHeaders {

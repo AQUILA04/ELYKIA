@@ -5,6 +5,7 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.client.dto.AccountDto;
 import com.optimize.elykia.client.dto.AccountRespDto;
 import com.optimize.elykia.client.enumeration.AccountStatus;
+import com.optimize.elykia.client.service.AccountCommandResult;
 import com.optimize.elykia.client.service.AccountService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,12 +27,24 @@ public class AccountController {
 
     @PostMapping
     public ResponseEntity<Response> createAccount(@RequestBody @Valid AccountDto accountDto) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(accountService.createAccount(accountDto)), HttpStatus.CREATED);
+        AccountCommandResult result = accountService.createAccountResult(accountDto);
+        if (result.alreadyExists()) {
+            return new ResponseEntity<>(
+                    ResponseUtil.successResponse(result.account(), result.message(), HttpStatus.CONFLICT),
+                    HttpStatus.CONFLICT);
+        }
+        return new ResponseEntity<>(ResponseUtil.successResponse(result.account()), HttpStatus.CREATED);
     }
 
     @PostMapping(value = "sync")
     public ResponseEntity<Response> syncAccount(@RequestBody @Valid AccountDto accountDto) {
-        return new ResponseEntity<>(ResponseUtil.successResponse(accountService.syncAccount(accountDto)), HttpStatus.CREATED);
+        AccountCommandResult result = accountService.syncAccountResult(accountDto);
+        if (result.alreadyExists()) {
+            return new ResponseEntity<>(
+                    ResponseUtil.successResponse(result.account(), result.message(), HttpStatus.OK),
+                    HttpStatus.OK);
+        }
+        return new ResponseEntity<>(ResponseUtil.successResponse(result.account()), HttpStatus.CREATED);
     }
 
     @PutMapping(value = "{id}")

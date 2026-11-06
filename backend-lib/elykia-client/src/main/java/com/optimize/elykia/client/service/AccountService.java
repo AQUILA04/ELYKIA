@@ -14,6 +14,9 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.mapper.AccountMapper;
 import com.optimize.elykia.client.repository.AccountRepository;
 import com.optimize.elykia.client.repository.ClientRepository;
+import jakarta.persistence.EntityManager;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -26,59 +29,96 @@ import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
+@Slf4j
 public class AccountService extends GenericService<Account, Long> {
     private final AccountMapper accountMapper;
 
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final ClientRepository clientRepository;
+    private final EntityManager entityManager;
 
     protected AccountService(AccountRepository repository, AccountMapper accountMapper,
-            org.springframework.context.ApplicationEventPublisher eventPublisher, ClientRepository clientRepository) {
+            org.springframework.context.ApplicationEventPublisher eventPublisher, ClientRepository clientRepository,
+            EntityManager entityManager) {
         super(repository);
         this.accountMapper = accountMapper;
         this.eventPublisher = eventPublisher;
         this.clientRepository = clientRepository;
+        this.entityManager = entityManager;
     }
 
     @Transactional
     public AccountRespDto createAccount(AccountDto accountDto) {
-        requireActiveClient(accountDto.getClientId());
-        Account account = accountMapper.toEntity(accountDto);
-        Account savedAccount = saveOrReactivateAccount(account, AccountStatus.CREATED);
+        return createAccountResult(accountDto).account();
+    }
 
-        publishAccountCreationEvent(savedAccount);
-
-        return AccountRespDto.fromAccount(savedAccount);
+    @Transactional
+    public AccountCommandResult createAccountResult(AccountDto accountDto) {
+        return openAccount(accountDto, AccountStatus.CREATED);
     }
 
     @Transactional
     public AccountRespDto syncAccount(AccountDto accountDto) {
-        requireActiveClient(accountDto.getClientId());
-        Account account = accountMapper.toEntity(accountDto);
-        Account savedAccount = saveOrReactivateAccount(account, AccountStatus.ACTIF);
-
-        publishAccountCreationEvent(savedAccount);
-
-        return AccountRespDto.fromAccount(savedAccount);
+        return syncAccountResult(accountDto).account();
     }
 
-    private Account saveOrReactivateAccount(Account account, AccountStatus status) {
-        Long clientId = account.getClient() != null ? account.getClient().getId() : null;
-        if (clientId != null) {
-            Optional<Account> deletedAccount = getRepository().findByClient_IdAndState(clientId, State.DELETED);
-            if (deletedAccount.isPresent()) {
-                Account existing = deletedAccount.get();
-                existing.setState(State.ENABLED);
-                existing.setAccountBalance(account.getAccountBalance());
-                if (StringUtils.hasText(account.getAccountNumber())) {
-                    existing.setAccountNumber(account.getAccountNumber());
-                }
-                existing.setStatus(status);
-                return update(existing);
+    /**
+     * Synchronise un compte. Si le client en a déjà un, le compte existant est renvoyé
+     * tel quel (solde et numéro d'agence), avec un message qui nomme le client.
+     */
+    @Transactional
+    public AccountCommandResult syncAccountResult(AccountDto accountDto) {
+        return openAccount(accountDto, AccountStatus.ACTIF);
+    }
+
+    private AccountCommandResult openAccount(AccountDto accountDto, AccountStatus status) {
+        Client client = requireActiveClient(accountDto.getClientId());
+        lockClientAccount(client.getId());
+        Account incoming = accountMapper.toEntity(accountDto);
+        Optional<Account> existing = getRepository().findFirstByClient_Id(client.getId());
+        if (existing.isPresent()) {
+            Account found = existing.get();
+            if (found.isDeleted()) {
+                reactivate(found, incoming, status);
+                Account saved = update(found);
+                publishAccountCreationEvent(saved);
+                return AccountCommandResult.created(saved);
             }
+            log.info("Compte déjà existant pour le client {} : compte {}", client.getId(), found.getId());
+            return AccountCommandResult.alreadyExists(found, client);
         }
-        account.setStatus(status);
-        return create(account);
+        incoming.setStatus(status);
+        Account saved = insertAccount(incoming, client);
+        publishAccountCreationEvent(saved);
+        return AccountCommandResult.created(saved);
+    }
+
+    /**
+     * Sérialise les créations simultanées pour un même client afin que la seconde
+     * requête voie le compte de la première au lieu de heurter la contrainte d'unicité.
+     */
+    private void lockClientAccount(Long clientId) {
+        entityManager.createNativeQuery("SELECT pg_advisory_xact_lock(hashtext(?1))")
+                .setParameter(1, "account:client:" + clientId)
+                .getSingleResult();
+    }
+
+    private Account insertAccount(Account incoming, Client client) {
+        try {
+            return create(incoming);
+        } catch (DataIntegrityViolationException ex) {
+            log.warn("Création de compte refusée pour le client {} : contrainte d'unicité", client.getId());
+            throw new CustomValidationException(AccountAlreadyExistsMessage.of(client, null));
+        }
+    }
+
+    private void reactivate(Account existing, Account incoming, AccountStatus status) {
+        existing.setState(State.ENABLED);
+        existing.setAccountBalance(incoming.getAccountBalance());
+        if (StringUtils.hasText(incoming.getAccountNumber())) {
+            existing.setAccountNumber(incoming.getAccountNumber());
+        }
+        existing.setStatus(status);
     }
 
     private void publishAccountCreationEvent(Account account) {
@@ -98,7 +138,7 @@ public class AccountService extends GenericService<Account, Long> {
      * Refuse la création/modification de compte pour un client dont l'inscription
      * n'est pas encore validée (PENDING / REJECTED).
      */
-    private void requireActiveClient(Long clientId) {
+    private Client requireActiveClient(Long clientId) {
         if (clientId == null) {
             throw new CustomValidationException("Le client est obligatoire pour créer un compte.");
         }
@@ -108,6 +148,7 @@ public class AccountService extends GenericService<Account, Long> {
             throw new CustomValidationException(
                     "Ce client n'est pas encore validé : impossible de lui créer un compte.");
         }
+        return client;
     }
 
     // MODIFIÉ : La méthode utilise maintenant le searchTerm pour filtrer les

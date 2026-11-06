@@ -134,8 +134,8 @@ export class AccountAddComponent implements OnInit, OnDestroy {
           this.alertService.showSuccess('Compte mis à jour avec succès');
           this.router.navigate(['/account/list']);
         },
-        error: () => {
-          this.alertService.showError('Erreur lors de la mise à jour du compte');
+        error: (error) => {
+          this.alertService.showError(this.serverMessage(error, 'Erreur lors de la mise à jour du compte'));
           this.isLoading = false;
         }
       });
@@ -145,8 +145,8 @@ export class AccountAddComponent implements OnInit, OnDestroy {
           this.alertService.showSuccess('Compte ajouté avec succès');
           this.router.navigate(['/account/list']);
         },
-        error: () => {
-          this.alertService.showError('Erreur lors de l\'ajout du compte');
+        error: (error) => {
+          this.alertService.showError(this.serverMessage(error, 'Erreur lors de l\'ajout du compte'));
           this.isLoading = false;
         }
       });
@@ -155,5 +155,13 @@ export class AccountAddComponent implements OnInit, OnDestroy {
 
   onCancel(): void {
     this.router.navigate(['/account/list']);
+  }
+
+  private serverMessage(error: { error?: { message?: string } }, fallback: string): string {
+    const message = error?.error?.message;
+    if (message && !message.startsWith('Http failure response')) {
+      return message;
+    }
+    return fallback;
   }
 }

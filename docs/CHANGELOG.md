@@ -62,6 +62,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.41.5] — 2026-11-06
+
+### Changed
+
+- Création d'un compte : si le client en a déjà un, le message indique son nom et le numéro du compte existant.
+
 ## Frontend — [2.41.4] — 2026-11-06
 
 ### Changed
@@ -103,6 +109,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.35.5] — 2026-11-06
+
+### Fixed
+
+- Synchronisation d'un compte : lorsqu'un client a déjà un compte à l'agence, le téléphone reprend ce compte (numéro et solde) et affiche un message qui nomme le client, au lieu d'un échec technique.
+
 ## Mobile — [2.35.4] — 2026-11-06
 
 ### Fixed
@@ -141,6 +153,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.44.6] — 2026-11-06
+
+### Fixed
+
+- Création et synchronisation d'un compte : si le client a déjà un compte, la réponse nomme ce client et renvoie le compte existant, au lieu d'une erreur SQL de doublon. La synchronisation mobile peut ainsi rattacher le client à ce compte.
 
 ## Backend — [1.44.5] — 2026-11-06
 
