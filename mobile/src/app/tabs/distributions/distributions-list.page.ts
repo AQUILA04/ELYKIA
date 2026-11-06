@@ -19,7 +19,6 @@ import { DistributionDetailComponent } from './components/distribution-detail/di
 import { selectAllClients } from '../../store/client/client.selectors';
 import { DistributionView } from '../../models/distribution-view.model';
 import { User } from '../../models/auth.model';
-import { FeatureFlagService, FeatureFlags } from '../../core/services/feature-flag.service';
 
 interface DistributionsViewModel {
   displayedDistributions: Distribution[];
@@ -40,7 +39,6 @@ export class DistributionsListPage implements OnInit, OnDestroy {
   @ViewChild(IonInfiniteScroll) infiniteScroll!: IonInfiniteScroll;
 
   searchControl = new FormControl('');
-  ordersManagementEnabled = false;
 
   // View Model
   vm$: Observable<{
@@ -57,10 +55,8 @@ export class DistributionsListPage implements OnInit, OnDestroy {
     private store: Store,
     private router: Router,
     private modalController: ModalController,
-    private cdr: ChangeDetectorRef,
-    private featureFlagService: FeatureFlagService
+    private cdr: ChangeDetectorRef
   ) {
-    this.ordersManagementEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.OrdersManagement);
     const distributions$ = this.store.select(DistributionSelectors.selectPaginatedDistributions);
     const loading$ = this.store.select(DistributionSelectors.selectDistributionPaginationLoading);
     const error$ = this.store.select(DistributionSelectors.selectDistributionPaginationError);

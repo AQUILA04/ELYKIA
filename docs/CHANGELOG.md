@@ -62,6 +62,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.41.4] — 2026-11-06
+
+### Changed
+
+- Guide d'utilisation : sur le mobile, les commandes se prennent depuis **Plus** (**Liste des commandes**, **Nouvelle commande**) ou depuis la carte **Nouvelle Commande** de l'onglet **Distributions**.
+
 ## Frontend — [2.41.3] — 2026-11-05
 
 ### Changed
@@ -96,6 +102,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
+
+## Mobile — [2.35.3] — 2026-11-06
+
+### Changed
+
+- Les commandes sont toujours disponibles : section **Commandes** de l'onglet Plus, carte **Nouvelle Commande** sur Distributions, et écrans de liste, création et détail. L'interrupteur distant `ordersManagement` ne les masque plus.
 
 ## Mobile — [2.35.2] — 2026-11-05
 

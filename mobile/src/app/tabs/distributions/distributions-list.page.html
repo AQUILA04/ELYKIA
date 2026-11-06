@@ -41,7 +41,7 @@
       </article>
     </section>
 
-    <div class="quick-actions" [class.quick-actions--single]="!ordersManagementEnabled">
+    <div class="quick-actions">
       <div class="action-card elyk-card" (click)="goToNewDistribution()">
         <div class="action-icon-wrap">
           <ion-icon name="add-circle-outline"></ion-icon>
@@ -51,7 +51,7 @@
           <p>Enregistrer une vente à crédit</p>
         </div>
       </div>
-      <div class="action-card elyk-card" *ngIf="ordersManagementEnabled" (click)="goToNewOrder()">
+      <div class="action-card elyk-card" (click)="goToNewOrder()">
         <div class="action-icon-wrap">
           <ion-icon name="receipt-outline"></ion-icon>
         </div>
