@@ -227,7 +227,6 @@ export class SyncMasterService {
       processedItems += (tdResult.success + tdResult.errors);
       this.updateProgress(processedItems, totalItems);
 
-      const commercialUsername = this.authService.currentUser?.username;
       if (commercialUsername) {
         await this.clientService.reconcileCreditInProgress(commercialUsername);
       }

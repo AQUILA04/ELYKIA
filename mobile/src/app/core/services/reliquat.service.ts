@@ -82,7 +82,7 @@ export class ReliquatService {
 
       const existing = await this.reliquatRepository.findByClientId(localClientId);
       if (existing && !existing.isSync) {
-        void this.log.log(`[ReliquatService] Keeping unsynced local reliquat for client ${localClientId}`).catch(() => undefined);
+        await this.log.log(`[ReliquatService] Keeping unsynced local reliquat for client ${localClientId}`);
         savedCount++;
         continue;
       }
