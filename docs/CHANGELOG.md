@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-06
+
+### Changed
+
+- **Grafana —** l'alerte de contrainte cite le texte de l'erreur (nom de la contrainte, ou message renvoyé au client lors d'une erreur 500).
+
 ## Docs & Infra — 2026-11-05
 
 ### Added
@@ -159,6 +165,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.44.8] — 2026-11-06
+
+### Added
+
+- Une erreur 500 est écrite dans les journaux avec le même message que celui renvoyé au client, pour que l'alerte e-mail cite ce texte.
 
 ## Backend — [1.44.7] — 2026-11-06
 

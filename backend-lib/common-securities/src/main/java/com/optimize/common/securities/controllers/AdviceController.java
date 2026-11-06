@@ -1,6 +1,7 @@
 package com.optimize.common.securities.controllers;
 
 import com.optimize.common.entities.config.CustomMessageSource;
+import com.optimize.common.entities.controller.ClientServerErrorLog;
 import com.optimize.common.entities.controller.CommonAdviceController;
 import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
@@ -91,9 +92,7 @@ public class AdviceController extends CommonAdviceController {
             InvalidDataAccessResourceUsageException ex, WebRequest request) {
         String bodyOfResponse = this.messageSource.getMessage(ex.getMessage());
         logger(ex);
-        return new ResponseEntity<>(ResponseUtil
-                .errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, bodyOfResponse),
-                HttpStatus.INTERNAL_SERVER_ERROR);
+        return serverError(bodyOfResponse);
     }
 
     @ExceptionHandler(value
@@ -141,9 +140,7 @@ public class AdviceController extends CommonAdviceController {
             ConstraintViolationException ex, WebRequest request) {
         String bodyOfResponse = this.messageSource.getMessage(ex.getLocalizedMessage());
         logger(ex);
-        return new ResponseEntity<>(ResponseUtil
-                .errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, bodyOfResponse),
-                HttpStatus.INTERNAL_SERVER_ERROR);
+        return serverError(bodyOfResponse);
     }
 
     @ExceptionHandler(value
@@ -152,9 +149,7 @@ public class AdviceController extends CommonAdviceController {
             DataIntegrityViolationException ex, WebRequest request) {
         String bodyOfResponse = this.messageSource.getMessage(ex.getLocalizedMessage());
         logger(ex);
-        return new ResponseEntity<>(ResponseUtil
-                .errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, bodyOfResponse),
-                HttpStatus.INTERNAL_SERVER_ERROR);
+        return serverError(bodyOfResponse);
     }
 
 
@@ -210,11 +205,20 @@ public class AdviceController extends CommonAdviceController {
             bodyOfResponse = "Violation de contrainte d'intégrité : " + cvEx.getLocalizedMessage();
         }
         logger(ex);
+        if (ex instanceof ClientAbortException) {
+            return new ResponseEntity<>(ResponseUtil
+                    .errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, bodyOfResponse),
+                    HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        return serverError(bodyOfResponse);
+    }
+
+    private ResponseEntity<Response> serverError(String bodyOfResponse) {
+        ClientServerErrorLog.notify(bodyOfResponse);
         return new ResponseEntity<>(ResponseUtil
                 .errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, bodyOfResponse),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
 
     private void logger(Exception ex) {
         log.error("===> Error Message: {}", ex.toString(), ex);
