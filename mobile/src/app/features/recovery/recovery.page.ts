@@ -19,6 +19,7 @@ import { LoggerService } from '../../core/services/logger.service';
 import { RecoveryService } from '../../core/services/recovery.service';
 import { computeRecoveryReceiptBalances } from '../../core/services/printing.service';
 import { ReliquatService } from '../../core/services/reliquat.service';
+import { HealthCheckService } from '../../core/services/health-check.service';
 import { ClientReliquat, RecoveryPlan } from '../../models/reliquat.model';
 
 interface RecoveryViewModel {
@@ -69,7 +70,8 @@ export class RecoveryPage implements OnInit, OnDestroy {
     private log: LoggerService,
     private cdr: ChangeDetectorRef,
     private recoveryService: RecoveryService,
-    private reliquatService: ReliquatService
+    private reliquatService: ReliquatService,
+    private healthCheckService: HealthCheckService
   ) { }
 
   ngOnInit() {
@@ -109,6 +111,7 @@ export class RecoveryPage implements OnInit, OnDestroy {
           this.clientReliquat = await this.reliquatService.getReliquatForClient(client.id);
           this.updateRecoveryPlan();
           this.cdr.markForCheck();
+          void this.refreshClientReliquatFromServer(client.id);
         } else {
           this.clientReliquat = null;
           this.recoveryPlan = null;
@@ -195,6 +198,35 @@ export class RecoveryPage implements OnInit, OnDestroy {
     this.recoveryAmount = 0;
     this.receivedAmount = 0;
     this.recoveryPlan = null;
+  }
+
+  /**
+   * Le solde local peut être vide après une purge clients. On le recharge
+   * depuis le serveur avant de proposer « Utiliser ce reliquat ».
+   */
+  private async refreshClientReliquatFromServer(clientId: string): Promise<void> {
+    try {
+      const user = await firstValueFrom(this.store.select(selectAuthUser).pipe(take(1)));
+      if (!user?.username) {
+        return;
+      }
+      const online = await firstValueFrom(this.healthCheckService.pingBackend().pipe(take(1)));
+      if (!online) {
+        return;
+      }
+      await firstValueFrom(this.reliquatService.refreshReliquatsFromServer(user.username));
+      const stillSelected = await firstValueFrom(
+        this.store.select(RecoverySelectors.selectSelectedClient).pipe(take(1))
+      );
+      if (!stillSelected || stillSelected.id !== clientId) {
+        return;
+      }
+      this.clientReliquat = await this.reliquatService.getReliquatForClient(clientId);
+      this.updateRecoveryPlan();
+      this.cdr.markForCheck();
+    } catch (error) {
+      this.log.log(`[RecoveryPage] Reliquat refresh failed for client ${clientId}: ${error}`);
+    }
   }
 
   async openClientSelector() {

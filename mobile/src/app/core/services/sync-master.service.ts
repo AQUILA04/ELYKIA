@@ -21,6 +21,8 @@ import { TontineMemberSyncService } from './sync/tontine-member-sync.service';
 import { TontineCollectionSyncService } from './sync/tontine-collection-sync.service';
 import { TontineDeliverySyncService } from './sync/tontine-delivery-sync.service';
 import { ReliquatSyncService } from './sync/reliquat-sync.service';
+import { ReliquatService } from './reliquat.service';
+import { firstValueFrom } from 'rxjs';
 import { CashDeskService } from './cash-desk.service';
 import { ClientService } from './client.service';
 import { SyncConsentPresenterService } from '../../features/sync-consent/sync-consent-presenter.service';
@@ -63,6 +65,7 @@ export class SyncMasterService {
     private readonly tontineCollectionSyncService: TontineCollectionSyncService,
     private readonly tontineDeliverySyncService: TontineDeliverySyncService,
     private readonly reliquatSyncService: ReliquatSyncService,
+    private readonly reliquatService: ReliquatService,
     private readonly syncConsentPresenter: SyncConsentPresenterService,
     private readonly clientService: ClientService
   ) { }
@@ -178,7 +181,17 @@ export class SyncMasterService {
       this.updateProgress(processedItems, totalItems);
 
       // 9.5 Sync Reliquats (Depends on Clients & Recoveries)
+      // Pull d'abord (soldes créés ailleurs), puis upload des lignes locales non syncées.
+      // Le pull ne remplace pas une ligne isSync=0.
       this.store.dispatch(updateSyncProgress({ progress: { currentPhase: 'reliquats' } }));
+      const commercialUsername = this.authService.currentUser?.username || '';
+      if (commercialUsername) {
+        try {
+          await firstValueFrom(this.reliquatService.refreshReliquatsFromServer(commercialUsername));
+        } catch (error) {
+          console.error('[SyncMaster] Reliquat pull failed, upload continues', error);
+        }
+      }
       this.reliquatSyncService.setFailedClientIds(this.failedClientIds);
       const reliquatResult = await this.reliquatSyncService.syncAll(50, dateFilter);
       batchResult.reliquatsSync = { success: reliquatResult.success, errors: reliquatResult.errors };

@@ -71,11 +71,9 @@ public class ClientReliquatService {
 
     @Transactional(readOnly = true)
     public List<ClientReliquat> findByCommercial(String commercialUsername) {
-        // En supposant que Client a un champ 'collector' (commercial)
-        // On pourrait utiliser une requête dans le repository pour optimiser.
-        // Pour l'instant, on récupère tous et on filtre (à optimiser).
-        return clientReliquatRepository.findAll().stream()
-                .filter(r -> r.getClient().getCollector().equals(commercialUsername))
-                .toList();
+        if (commercialUsername == null || commercialUsername.isBlank()) {
+            return List.of();
+        }
+        return clientReliquatRepository.findPositiveByCommercial(commercialUsername);
     }
 }

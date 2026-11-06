@@ -103,6 +103,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.35.4] — 2026-11-06
+
+### Fixed
+
+- Recouvrement : le reliquat du client est rechargé depuis le serveur après le chargement des clients, à chaque synchronisation, et à l'ouverture d'un recouvrement. Le solde (par exemple 800 FCFA) réapparaît et peut être proposé pour payer, au lieu de rester absent sur le téléphone.
+
 ## Mobile — [2.35.3] — 2026-11-06
 
 ### Changed
@@ -135,6 +141,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.44.5] — 2026-11-06
+
+### Fixed
+
+- Le téléchargement des reliquats vers le mobile inclut les clients du commercial qu'il soit crédit, tontine, agence ou recouvrement, et ne renvoie que les soldes encore positifs.
 
 ## Backend — [1.44.4] — 2026-11-05
 
