@@ -1806,10 +1806,12 @@
 <hr />
 <h2 id="2-ventes-qui-peuvent-etre-annulees">2. Ventes qui peuvent être annulées</h2>
 <ul>
-<li>Seules les ventes <strong>du mois en cours</strong> peuvent être annulées. La période choisie ne peut pas dépasser 31 jours.</li>
+<li>La période choisie reste dans <strong>le mois en cours</strong> et ne peut pas dépasser 31 jours.</li>
+<li>Une vente classique n’apparaît que si son jour de vente est dans cette période.</li>
+<li>Un <strong>rattrapage</strong> enregistré pendant le mois en cours peut être annulé, même s’il concerne un mois déjà passé. Il apparaît lorsque la période couvre le jour où il a été saisi. La date affichée dans le tableau reste le jour de la vente. Un rattrapage saisi lors d’un mois déjà passé ne peut plus être annulé.</li>
 <li>Seules les <strong>ventes à crédit</strong> sont concernées, aux statuts <strong>CREATED</strong>, <strong>VALIDATED</strong> ou <strong>INPROGRESS</strong>. Les ventes au comptant et les livraisons tontine ne le sont pas.</li>
 <li>Une vente sur laquelle un <strong>recouvrement</strong> a déjà été encaissé après la vente ne peut pas être annulée. Elle apparaît dans l’onglet <strong>Ventes rejetées</strong> avec le montant déjà recouvré.</li>
-<li>Une vente qui n’a reçu <strong>que l’avance initiale</strong> peut être annulée : l’avance est retirée des montants à verser du jour de la vente.</li>
+<li>Une vente du mois en cours qui n’a reçu <strong>que l’avance initiale</strong> peut être annulée : l’avance est retirée des montants à verser du jour de la vente.</li>
 </ul>
 <hr />
 <h2 id="3-simuler-lannulation">3. Simuler l’annulation</h2>
@@ -1831,7 +1833,7 @@
 <li>Pour annuler <strong>une seule vente</strong>, décochez <strong>Tout sélectionner</strong> (case de l’en-tête du tableau), puis cochez uniquement la vente voulue.</li>
 <li>Pour retirer une vente du lot, décochez sa case : la ligne s’affiche en grisé et ne sera pas annulée.</li>
 <li>Au-dessus du tableau, le bandeau indique le nombre de ventes sélectionnées et leur montant total.</li>
-<li>L’onglet <strong>Impact stock</strong> affiche les quantités des ventes cochées qui seront remises dans le stock du commercial pour le mois en cours.</li>
+<li>L’onglet <strong>Impact stock</strong> affiche les quantités des ventes cochées qui seront remises au commercial. Une vente du mois en cours revient dans le stock de ce mois. Un rattrapage revient dans le stock du mois auquel il se rapporte.</li>
 <li>L’onglet <strong>Ventes rejetées</strong> liste les ventes qui ne peuvent pas être annulées, avec le motif.</li>
 </ol>
 <p>Les ventes éligibles non cochées restent inchangées : vous pourrez les annuler plus tard avec une nouvelle simulation.</p>
@@ -1847,9 +1849,8 @@
 </ol>
 <p>Pour chaque vente annulée :</p>
 <ul>
-<li>les articles sont remis dans le stock du commercial pour le mois en cours ;</li>
-<li>le nombre de ventes, le montant vendu, la marge, l’avance éventuelle et le montant à verser sont corrigés sur le rapport du jour de la vente ;</li>
-<li>une écriture de contre-passation est ajoutée au journal des opérations, à la date de la vente.</li>
+<li>pour une vente du mois en cours, les articles reviennent dans le stock de ce mois ; le nombre de ventes, le montant vendu, la marge, l’avance éventuelle et le montant à verser sont corrigés sur le rapport du jour de la vente ; une écriture de contre-passation est ajoutée au journal des opérations, à cette même date ;</li>
+<li>pour un rattrapage, les articles reviennent dans le stock du mois concerné, et l’écriture de contre-passation est datée du jour où le rattrapage a été enregistré.</li>
 </ul>
 <p>Si une seule vente du lot ne peut pas être traitée (par exemple, rapport du jour de la vente introuvable), aucune vente n’est annulée et un message d’erreur explique la cause.</p>
 <hr />

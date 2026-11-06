@@ -477,7 +477,7 @@
               </div>
 
               <div class="tab-content-area" *ngIf="simulationTab === 'stock'" role="tabpanel">
-                <p class="tab-hint">Quantités des ventes sélectionnées qui seront réintégrées dans le stock mensuel en cours du commercial :</p>
+                <p class="tab-hint">Quantités des ventes sélectionnées qui seront réintégrées. Une vente du mois en cours revient dans le stock de ce mois. Un rattrapage revient dans le stock du mois auquel il se rapporte.</p>
                 <table class="data-table data-table-sm" *ngIf="selectedStockImpacts.length > 0">
                   <thead>
                     <tr>

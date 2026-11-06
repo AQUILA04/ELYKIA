@@ -91,7 +91,7 @@ class SaleCancellationServiceTest {
         Credit recovered = credit(1L, CreditStatus.INPROGRESS, 10_000, 1_000, 1_000);
         Credit eligible = credit(2L, CreditStatus.INPROGRESS, 20_000, 2_000, 2_000);
         when(creditRepository.findSalesForCancellation(
-                eq("com.a"), any(), any(), eq(OperationType.CREDIT),
+                eq("com.a"), any(), any(), any(), any(), eq(OperationType.CREDIT),
                 eq(SaleCancellationService.CANCELLABLE_STATUSES), eq(State.ENABLED)))
                 .thenReturn(List.of(recovered, eligible));
         when(creditTimelineRepository.existsByCredit_IdAndState(1L, State.ENABLED)).thenReturn(true);
@@ -112,7 +112,7 @@ class SaleCancellationServiceTest {
         Credit second = credit(3L, CreditStatus.INPROGRESS, 10_000, 0, 0);
         attachArticle(second, 50L, 1, 10_000);
         when(creditRepository.findSalesForCancellation(
-                eq("com.a"), any(), any(), eq(OperationType.CREDIT),
+                eq("com.a"), any(), any(), any(), any(), eq(OperationType.CREDIT),
                 eq(SaleCancellationService.CANCELLABLE_STATUSES), eq(State.ENABLED)))
                 .thenReturn(List.of(first, second));
         when(creditTimelineRepository.existsByCredit_IdAndState(any(), eq(State.ENABLED))).thenReturn(false);
@@ -143,7 +143,7 @@ class SaleCancellationServiceTest {
         attachArticle(eligible, 50L, 2, 10_000);
 
         when(creditRepository.findSalesForCancellationForUpdate(
-                eq("com.a"), any(), any(), eq(OperationType.CREDIT),
+                eq("com.a"), any(), any(), any(), any(), eq(OperationType.CREDIT),
                 eq(SaleCancellationService.CANCELLABLE_STATUSES), eq(State.ENABLED)))
                 .thenReturn(List.of(recovered, eligible));
         when(creditTimelineRepository.existsByCredit_IdAndState(2L, State.ENABLED)).thenReturn(false);
@@ -201,7 +201,7 @@ class SaleCancellationServiceTest {
         Credit eligible = credit(2L, CreditStatus.INPROGRESS, 20_000, 2_000, 2_000);
         attachArticle(eligible, 50L, 1, 20_000);
         when(creditRepository.findSalesForCancellationForUpdate(
-                any(), any(), any(), eq(OperationType.CREDIT), any(), eq(State.ENABLED)))
+                any(), any(), any(), any(), any(), eq(OperationType.CREDIT), any(), eq(State.ENABLED)))
                 .thenReturn(List.of(eligible));
         when(creditTimelineRepository.existsByCredit_IdAndState(2L, State.ENABLED)).thenReturn(false);
         when(runRepository.save(any(SaleCancellationRun.class))).thenAnswer(inv -> {
@@ -227,11 +227,94 @@ class SaleCancellationServiceTest {
     void executeIgnoresSalesNotInPreviewIds() {
         Credit extra = credit(3L, CreditStatus.INPROGRESS, 5_000, 0, 0);
         when(creditRepository.findSalesForCancellationForUpdate(
-                any(), any(), any(), eq(OperationType.CREDIT), any(), eq(State.ENABLED)))
+                any(), any(), any(), any(), any(), eq(OperationType.CREDIT), any(), eq(State.ENABLED)))
                 .thenReturn(List.of(extra));
 
         assertThrows(CustomValidationException.class, () -> service.executeCancellation(executeDto(List.of(99L))));
         verify(commercialMonthlyStockRepository, never()).findByCollectorAndMonthAndYear(any(), anyInt(), anyInt());
+    }
+
+    @Test
+    void previewKeepsRattrapageSaleDateWhenRegisteredThisMonth() {
+        LocalDate saleDay = YearMonth.now().minusMonths(1).atEndOfMonth();
+        Credit rattrapage = credit(8L, CreditStatus.INPROGRESS, 12_000, 0, 0);
+        rattrapage.setReference("RAT-OCTOBRE");
+        rattrapage.setBeginDate(saleDay);
+        rattrapage.setCreatedDate(LocalDate.now().atTime(8, 15));
+        when(creditRepository.findSalesForCancellation(
+                eq("com.a"), any(), any(), any(), any(), eq(OperationType.CREDIT),
+                eq(SaleCancellationService.CANCELLABLE_STATUSES), eq(State.ENABLED)))
+                .thenReturn(List.of(rattrapage));
+        when(creditTimelineRepository.existsByCredit_IdAndState(8L, State.ENABLED)).thenReturn(false);
+
+        SaleCancellationPreviewDto preview = service.previewCancellation(filter());
+
+        assertEquals(1, preview.getEligibleCount());
+        assertEquals(saleDay, preview.getEligibleSales().get(0).getSaleDate());
+        YearMonth month = YearMonth.now();
+        verify(creditRepository).findSalesForCancellation(
+                eq("com.a"),
+                eq(month.atDay(1)),
+                eq(LocalDate.now()),
+                eq(month.atDay(1).atStartOfDay()),
+                eq(LocalDate.now().plusDays(1).atStartOfDay()),
+                eq(OperationType.CREDIT),
+                eq(SaleCancellationService.CANCELLABLE_STATUSES),
+                eq(State.ENABLED));
+    }
+
+    @Test
+    void executeCancelsRattrapageRecordedThisMonthOnSourceStock() {
+        LocalDate saleDay = YearMonth.now().minusMonths(1).atEndOfMonth();
+        LocalDate registeredOn = LocalDate.now();
+        Credit rattrapage = credit(8L, CreditStatus.INPROGRESS, 12_000, 1_000, 1_000);
+        rattrapage.setReference("RAT-OCTOBRE");
+        rattrapage.setBeginDate(saleDay);
+        rattrapage.setCreatedDate(registeredOn.atTime(8, 15));
+        attachArticle(rattrapage, 50L, 2, 6_000);
+        rattrapage.getArticles().iterator().next().setStockItemId(7L);
+
+        when(creditRepository.findSalesForCancellationForUpdate(
+                eq("com.a"), any(), any(), any(), any(), eq(OperationType.CREDIT),
+                eq(SaleCancellationService.CANCELLABLE_STATUSES), eq(State.ENABLED)))
+                .thenReturn(List.of(rattrapage));
+        when(creditTimelineRepository.existsByCredit_IdAndState(8L, State.ENABLED)).thenReturn(false);
+        when(userService.getCurrentUser()).thenReturn(null);
+        when(runRepository.save(any(SaleCancellationRun.class))).thenAnswer(inv -> {
+            SaleCancellationRun run = inv.getArgument(0);
+            if (run.getId() == null) {
+                run.setId(99L);
+            }
+            return run;
+        });
+        when(pdfService.generateSaleAuditPdf(any(), any(), any())).thenReturn(new byte[]{1});
+        when(pdfService.generateSummaryReportPdf(any(), any(), any())).thenReturn(new byte[]{2});
+        when(storageService.storeFile(any(), any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(null);
+
+        CommercialMonthlyStockItem stockItem = stockItem(50L, 2, 12_000, 0);
+        CommercialMonthlyStock sourceStock = new CommercialMonthlyStock();
+        sourceStock.setCollector("com.a");
+        sourceStock.setMonth(saleDay.getMonthValue());
+        sourceStock.setYear(saleDay.getYear());
+        stockItem.setMonthlyStock(sourceStock);
+        when(commercialMonthlyStockItemRepository.findByIdWithArticle(7L)).thenReturn(Optional.of(stockItem));
+
+        var result = service.executeCancellation(executeDto(List.of(8L)));
+
+        assertEquals(SaleCancellationRunStatus.COMPLETED, result.getStatus());
+        assertEquals(1, result.getCancelledSalesCount());
+        assertEquals(CreditStatus.CANCELLED, rattrapage.getStatus());
+        assertEquals(State.DELETED, rattrapage.getState());
+        assertEquals(0, stockItem.getQuantitySold());
+        assertEquals(10, stockItem.getQuantityRemaining());
+        verify(commercialMonthlyStockRepository).save(sourceStock);
+        verify(commercialMonthlyStockRepository, never()).findByCollectorAndMonthAndYear(any(), anyInt(), anyInt());
+        verify(dailyCommercialReportRepository, never()).findByDateAndCommercialUsername(any(), any());
+        verify(reportPersistence, never()).save(any());
+        verify(dailyOperationService).logOperationInCurrentTransaction(
+                eq("com.a"), eq(OperationType.CREDIT_SALE_CANCEL), eq(-12_000.0),
+                anyString(), anyString(), eq(0.0), eq(0.0), eq(registeredOn));
     }
 
     private SaleCancellationFilterDto filter() {

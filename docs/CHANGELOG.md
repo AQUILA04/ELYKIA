@@ -62,6 +62,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.41.6] — 2026-11-06
+
+### Changed
+
+- Annulation de ventes : un rattrapage enregistré ce mois-ci peut être annulé même s’il concerne un mois déjà passé. Ses articles reviennent dans le stock de ce mois-là. Une vente du mois en cours revient dans le stock de ce mois, et le rapport de son jour est corrigé.
+
 ## Frontend — [2.41.5] — 2026-11-06
 
 ### Changed
@@ -153,6 +159,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.44.7] — 2026-11-06
+
+### Fixed
+
+- Annulation de ventes : un rattrapage est annulable selon le jour où il a été enregistré, et non selon le mois de la vente. Les articles reviennent dans le stock de ce mois, et le rapport du mois passé n’est pas modifié.
 
 ## Backend — [1.44.6] — 2026-11-06
 
