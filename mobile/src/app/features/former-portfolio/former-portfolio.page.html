@@ -1,0 +1,110 @@
+<ion-header class="ion-no-border stock-header">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/more"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Ancien portefeuille</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="refresh()" [disabled]="loading" aria-label="Actualiser">
+        <ion-icon name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="former-content">
+  <p class="readonly-note">Consultation seule. Ces dossiers ne permettent pas d'enregistrer une collecte ni un recouvrement.</p>
+  <p class="notice" *ngIf="notice" role="status">{{ notice }}</p>
+  <div class="loading" *ngIf="loading">Chargement…</div>
+
+  <ion-segment [(ngModel)]="tab" *ngIf="!selectedMember && !selectedCredit && !selectedAgency">
+    <ion-segment-button value="tontine">
+      <ion-label>Tontine</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="credit">
+      <ion-label>Crédit</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="agence">
+      <ion-label>Agence</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
+  <ng-container *ngIf="!loading && tab === 'tontine' && !selectedMember">
+    <div class="empty" *ngIf="!members.length">
+      <h2>Aucun ancien membre</h2>
+      <p>Les membres que vous avez suivis apparaissent ici après un changement de commercial.</p>
+    </div>
+    <button type="button" class="row" *ngFor="let member of members" (click)="openMember(member)">
+      <strong>{{ name(member) }}</strong>
+      <span>{{ member.clientCode }} · {{ member.phone }}</span>
+      <span>{{ member.ownTotal | number:'1.0-0' }} FCFA · {{ member.sessionYear }}</span>
+    </button>
+  </ng-container>
+
+  <ng-container *ngIf="selectedMember as member">
+    <button type="button" class="back" (click)="closeDetail()">Retour à la liste</button>
+    <h2>{{ name(member) }}</h2>
+    <p>{{ member.clientCode }} · {{ member.phone }} · {{ member.quarter }}</p>
+    <p class="total">Vos collectes : {{ member.ownTotal | number:'1.0-0' }} FCFA</p>
+    <div class="empty" *ngIf="!collections.length">
+      <h2>Aucune collecte enregistrée</h2>
+      <p>Ce membre a été suivi par vous, sans collecte à votre nom.</p>
+    </div>
+    <article class="line" *ngFor="let line of collections">
+      <span>{{ line.collectionDate | date:'dd/MM/yyyy HH:mm' }}</span>
+      <strong>{{ line.amount | number:'1.0-0' }} FCFA</strong>
+    </article>
+  </ng-container>
+
+  <ng-container *ngIf="!loading && tab === 'credit' && !selectedCredit && !selectedMember">
+    <div class="empty" *ngIf="!credits.length">
+      <h2>Aucun ancien crédit</h2>
+      <p>Les contrats que vous avez suivis apparaissent ici après un transfert.</p>
+    </div>
+    <button type="button" class="row" *ngFor="let credit of credits" (click)="openCredit(credit)">
+      <strong>{{ credit.reference }}</strong>
+      <span>{{ name(credit) }} · {{ credit.clientCode }}</span>
+      <span>Vos recouvrements {{ credit.ownRecoveriesTotal | number:'1.0-0' }} FCFA</span>
+    </button>
+  </ng-container>
+
+  <ng-container *ngIf="selectedCredit as credit">
+    <button type="button" class="back" (click)="closeDetail()">Retour à la liste</button>
+    <h2>{{ credit.reference }}</h2>
+    <p>{{ name(credit) }} · {{ credit.phone }}</p>
+    <p class="total" *ngIf="credit.totalRemainingAtHandover != null">
+      Reste à la passation : {{ credit.totalRemainingAtHandover | number:'1.0-0' }} FCFA
+    </p>
+    <p class="total">Vos recouvrements : {{ credit.ownRecoveriesTotal | number:'1.0-0' }} FCFA</p>
+    <div class="empty" *ngIf="!timelines.length">
+      <h2>Aucun recouvrement à votre nom</h2>
+    </div>
+    <article class="line" *ngFor="let line of timelines">
+      <span>{{ line.operationDate | date:'dd/MM/yyyy HH:mm' }}</span>
+      <strong>{{ line.amount | number:'1.0-0' }} FCFA</strong>
+    </article>
+  </ng-container>
+
+  <ng-container *ngIf="!loading && tab === 'agence' && !selectedAgency && !selectedMember && !selectedCredit">
+    <div class="empty" *ngIf="!agency.length">
+      <h2>Aucune ancienne vente en agence</h2>
+      <p>Les ventes comptant enregistrées à votre nom apparaissent ici.</p>
+    </div>
+    <button type="button" class="row" *ngFor="let group of agency" (click)="openAgency(group)">
+      <strong>{{ name(group) }}</strong>
+      <span>{{ group.clientCode }} · {{ group.phone }}</span>
+      <span>{{ group.total | number:'1.0-0' }} FCFA</span>
+    </button>
+  </ng-container>
+
+  <ng-container *ngIf="selectedAgency as group">
+    <button type="button" class="back" (click)="closeDetail()">Retour à la liste</button>
+    <h2>{{ name(group) }}</h2>
+    <p>{{ group.clientCode }} · {{ group.quarter }}</p>
+    <p class="total">Vos ventes comptant : {{ group.total | number:'1.0-0' }} FCFA</p>
+    <article class="line" *ngFor="let sale of group.sales">
+      <span>{{ sale.saleDate | date:'dd/MM/yyyy' }} · {{ sale.reference }}</span>
+      <strong>{{ sale.totalAmount | number:'1.0-0' }} FCFA</strong>
+    </article>
+  </ng-container>
+</ion-content>

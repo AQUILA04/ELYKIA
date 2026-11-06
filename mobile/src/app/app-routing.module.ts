@@ -107,6 +107,11 @@ const routes: Routes = [
     canActivate: [AuthGuard]
   },
   {
+    path: 'former-portfolio',
+    loadChildren: () => import('./features/former-portfolio/former-portfolio.module').then(m => m.FormerPortfolioPageModule),
+    canActivate: [AuthGuard]
+  },
+  {
     path: 'tontine/dashboard',
     loadChildren: () => import('./features/tontine/dashboard/tontine-dashboard.module').then(m => m.TontineDashboardPageModule),
     canActivate: [AuthGuard]

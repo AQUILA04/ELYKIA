@@ -374,3 +374,14 @@ Ce montant correspond très exactement aux espèces physiques que le caissier va
 * **Chaque matin au démarrage** : l'application vous demande de valider votre **Code de consentement journalier**. C'est une signature numérique qui sécurise toutes les opérations que vous ferez au cours de la journée.
 * **Batterie et imprimante Bluetooth** : pensez à recharger votre smartphone et votre imprimante thermique chaque soir. Si l'imprimante n'a plus de batterie pendant la tournée, pas de panique : les reçus restent enregistrés dans le téléphone et vous pourrez les réimprimer plus tard dès que l'imprimante sera branchée.
 * **Mot de passe personnel** : ne donnez jamais votre mot de passe à un tiers. Toutes les opérations effectuées avec votre compte sur le téléphone engagent votre responsabilité financière personnelle.
+
+---
+
+## 10. Ancien portefeuille
+
+1. Ouvrez **Plus**, section **Tontine**, puis **Ancien portefeuille**.
+2. Touchez **Actualiser** lorsque vous avez du réseau : le téléphone enregistre une copie consultable ensuite, même hors ligne.
+3. L'onglet **Tontine** liste vos anciens membres. Touchez un nom pour voir les collectes enregistrées à votre nom.
+4. L'onglet **Crédit** liste les contrats transférés et vos recouvrements.
+5. L'onglet **Agence** liste vos ventes comptant pour les clients que vous ne suivez plus en agence.
+6. Ces écrans n'ont pas de bouton d'enregistrement. Une nouvelle collecte ou un nouveau recouvrement se fait depuis le portefeuille actuel.

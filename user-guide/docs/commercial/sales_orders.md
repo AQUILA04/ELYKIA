@@ -17,6 +17,7 @@ Le menu latéral gauche vous donne accès aux espaces de vente selon vos attribu
 | Menu / Écran | Ce que vous y trouvez | Utilisation au quotidien |
 |---|---|---|
 | **Ventes > Liste** | Le tableau de bord principal des ventes, la recherche multicritères, le suivi des statuts, la fusion de crédits et les réaffectations. | Suivre les contrats en cours, valider les dossiers, enregistrer les encaissements ou réassigner des portefeuilles. |
+| **Ventes > Ancien portefeuille** | Les crédits et les ventes comptant en agence que vous avez suivis. | Relire une passation et vos encaissements, sans enregistrer de nouveau recouvrement. |
 | **Ventes > Retards** | La liste des crédits présentant des impayés (délais dépassés ou échéances dues). | Prioriser les visites de relance, consigner les contrôles terrain et clôturer les dossiers compromis. |
 | **Ventes > Échéances** | Le calendrier des montants attendus aujourd'hui, cette semaine ou sur une date précise. | Anticiper les rentrées de fonds et préparer les tournées quotidiennes. |
 | **Ventes > Recouvrements** | Le journal chronologique de tous les encaissements perçus. | Contrôler la traçabilité des règlements et rectifier d'éventuelles erreurs de saisie. |
@@ -252,4 +253,16 @@ Les commandes sont réparties selon leur avancement :
 2. **Décision** : Acceptez ou refusez la commande (individuellement ou par lot).
 3. **Faire une demande de stock** : Sur une commande en attente ou validée (ou plusieurs cochées), cliquez sur **Faire une demande de stock** pour regrouper les articles en une demande de sortie par commercial. Lorsque cette demande est validée par le gestionnaire, les commandes encore en attente passent automatiquement à **Validée**.
 4. **Vendre / Marquer comme livrée** : Sur une commande validée, transformez-la en vente : la vente est créée automatiquement et la commande passe à **Livrée**.
+
+---
+
+## 12. Ancien portefeuille (Menu Ventes > Ancien portefeuille)
+
+Après un transfert, le contrat quitte votre liste des ventes en cours. Vous pouvez relire la situation au moment de la passation et les encaissements enregistrés à votre nom.
+
+1. Ouvrez **Ventes**, puis **Ancien portefeuille**.
+2. Onglet **Crédit** : chaque ligne affiche la référence, le client, la date de passation, le montant et le reste dû figés à ce moment-là, puis le total de vos recouvrements.
+3. Cliquez sur **Voir** pour le détail de vos recouvrements (date, référence, montant).
+4. Onglet **Agence** : les ventes comptant enregistrées à votre nom, regroupées par client, lorsque vous ne suivez plus ce client pour les opérations en agence.
+5. Cet écran ne propose pas d'encaissement. Les nouveaux recouvrements se saisissent sur les ventes que vous suivez actuellement.
 

@@ -160,6 +160,14 @@
                 <span class="hide-menu">Liste</span>
               </a>
             </li>
+            <li class="sidebar-item submenu-item" *ngIf="isPromoterOnly()">
+              <a class="sidebar-link" routerLink="/credit/ancien-portefeuille"
+                 [queryParams]="{ tab: 'credit' }"
+                 [ngClass]="{ 'active': isSubRouteActive('/credit/ancien-portefeuille') }">
+                <span class="material-icons">history</span>
+                <span class="hide-menu">Ancien portefeuille</span>
+              </a>
+            </li>
             <li class="sidebar-item submenu-item">
               <a class="sidebar-link" routerLink="/credit/late"
                  [ngClass]="{ 'active': isSubRouteActive('/credit/late') }">
@@ -239,6 +247,14 @@
                  [ngClass]="{ 'active': activeRoute === '/tontine' }">
                 <span class="material-icons">list</span>
                 <span class="hide-menu">Liste</span>
+              </a>
+            </li>
+            <li class="sidebar-item submenu-item" *ngIf="isPromoterOnly()">
+              <a class="sidebar-link" routerLink="/credit/ancien-portefeuille"
+                 [queryParams]="{ tab: 'tontine' }"
+                 [ngClass]="{ 'active': isSubRouteActive('/credit/ancien-portefeuille') }">
+                <span class="material-icons">history</span>
+                <span class="hide-menu">Ancien portefeuille</span>
               </a>
             </li>
             <li class="sidebar-item submenu-item">

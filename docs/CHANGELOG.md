@@ -62,6 +62,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.42.0] — 2026-11-06
+
+### Added
+
+- Commercial : menu **Ancien portefeuille** (tontine, crédit, agence). Consultation des anciens clients et des opérations enregistrées à son nom, sans bouton de saisie.
+
 ## Frontend — [2.41.6] — 2026-11-06
 
 ### Changed
@@ -115,6 +121,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.36.0] — 2026-11-06
+
+### Added
+
+- Commercial : **Plus > Ancien portefeuille**. Les anciens membres, crédits et ventes comptant sont téléchargés à part et restent consultables hors ligne, sans saisie.
+
 ## Mobile — [2.35.5] — 2026-11-06
 
 ### Fixed
@@ -159,6 +171,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.45.0] — 2026-11-06
+
+### Added
+
+- Ancien portefeuille commercial : un promoteur retrouve en lecture seule ses anciens membres de tontine, ses crédits transférés et ses ventes comptant en agence, limités aux opérations enregistrées à son nom.
+- Un changement de commercial agence est tracé dans l'historique des affectations.
+
+### Changed
+
+- La fiche membre, les collectes et la fiche crédit d'un promoteur qui n'est plus titulaire ne renvoient plus le dossier du commercial en place.
 
 ## Backend — [1.44.7] — 2026-11-06
 

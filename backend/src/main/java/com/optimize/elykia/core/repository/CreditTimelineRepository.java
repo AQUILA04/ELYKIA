@@ -153,6 +153,47 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
 
     boolean existsByCredit_IdAndState(Long creditId, com.optimize.common.entities.enums.State state);
 
+    boolean existsByCredit_IdAndStateAndCollectorIgnoreCase(
+            Long creditId, com.optimize.common.entities.enums.State state, String collector);
+
     long countByCredit_IdAndState(Long creditId, com.optimize.common.entities.enums.State state);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.portfolio.FormerCreditTimelineDto(
+                ct.credit.id, ct.id, ct.amount, ct.createdDate, ct.reference)
+            FROM CreditTimeline ct
+            WHERE ct.credit.id = :creditId
+              AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+              AND LOWER(ct.collector) = LOWER(:commercial)
+            ORDER BY ct.createdDate DESC, ct.id DESC
+            """)
+    java.util.List<com.optimize.elykia.core.dto.portfolio.FormerCreditTimelineDto> findOwnByCredit(
+            @Param("creditId") Long creditId,
+            @Param("commercial") String commercial);
+
+    @Query("""
+            SELECT new com.optimize.elykia.core.dto.portfolio.FormerCreditTimelineDto(
+                ct.credit.id, ct.id, ct.amount, ct.createdDate, ct.reference)
+            FROM CreditTimeline ct
+            WHERE ct.credit.id IN :creditIds
+              AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+              AND LOWER(ct.collector) = LOWER(:commercial)
+            ORDER BY ct.createdDate DESC, ct.id DESC
+            """)
+    java.util.List<com.optimize.elykia.core.dto.portfolio.FormerCreditTimelineDto> findOwnByCreditIds(
+            @Param("creditIds") java.util.Collection<Long> creditIds,
+            @Param("commercial") String commercial);
+
+    @Query("""
+            SELECT ct.credit.id, COALESCE(SUM(ct.amount), 0)
+            FROM CreditTimeline ct
+            WHERE ct.credit.id IN :creditIds
+              AND ct.state = com.optimize.common.entities.enums.State.ENABLED
+              AND LOWER(ct.collector) = LOWER(:commercial)
+            GROUP BY ct.credit.id
+            """)
+    java.util.List<Object[]> sumOwnAmountByCreditIds(
+            @Param("creditIds") java.util.Collection<Long> creditIds,
+            @Param("commercial") String commercial);
 }
 

@@ -17,6 +17,7 @@ Le menu **Tontines** propose quatre espaces de travail adaptés au déroulement 
 | Menu / Écran | Ce que vous y trouvez | Utilisation au quotidien |
 |---|---|---|
 | **Tontines > Liste** | Le tableau de bord de la session active, les indicateurs d'épargne, la liste des membres et les outils de vérification. | Inscrire de nouveaux membres, suivre les adhésions, vérifier les carnets et consulter la progression. |
+| **Tontines > Ancien portefeuille** | Les membres que vous avez suivis et les collectes enregistrées à votre nom. | Relire un dossier après un changement de commercial, sans enregistrer de nouvelle collecte. |
 | **Tontines > Collectes** | Le journal chronologique de l'ensemble des cotisations enregistrées. | Contrôler les versements perçus, rechercher un paiement par période ou par commercial. |
 | **Tontines > Livraison** | Le suivi des commandes de marchandises de fin d'année. | Suivre les colis à préparer, valider les livraisons et confirmer la remise aux membres. |
 | **Tontines > Archives collectes** | L'historique des campagnes annuelles clôturées. | Consulter et télécharger les récapitulatifs PDF par commercial et par quartier des années antérieures. |
@@ -216,3 +217,15 @@ Toutes les archives générées sont rangées dans une arborescence par année :
    - L'application sauvegarde d'abord l'intégralité des collectes en PDF.
    - Puis elle remet à zéro les compteurs d'épargne de la session active pour ouvrir la nouvelle année.
    - **Tous les membres, leurs coordonnées et leurs affectations commerciales restent précieusement conservés** : les clients n'ont pas besoin d'être réenrôlés pour la nouvelle campagne.
+
+---
+
+## 8. Ancien portefeuille (Menu Tontines > Ancien portefeuille)
+
+Quand un membre change de commercial, il quitte votre liste de la session en cours. Vous pouvez toujours relire ce que vous avez collecté pour lui.
+
+1. Ouvrez **Tontines**, puis **Ancien portefeuille**.
+2. Restez sur l'onglet **Tontine**.
+3. Chaque ligne affiche le nom, le code, le téléphone, le quartier, l'année et le total des collectes enregistrées à votre nom.
+4. Cliquez sur **Voir** : le détail reprend uniquement vos collectes (date, référence, montant) et leur total.
+5. Cet écran ne contient pas de bouton pour enregistrer une collecte. Les nouvelles collectes se saisissent depuis la liste des membres que vous suivez actuellement.
