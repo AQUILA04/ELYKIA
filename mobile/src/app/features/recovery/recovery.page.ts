@@ -225,7 +225,7 @@ export class RecoveryPage implements OnInit, OnDestroy {
       this.updateRecoveryPlan();
       this.cdr.markForCheck();
     } catch (error) {
-      this.log.log(`[RecoveryPage] Reliquat refresh failed for client ${clientId}: ${error}`);
+      await this.log.log(`[RecoveryPage] Reliquat refresh failed for client ${clientId}: ${error}`);
     }
   }
 
