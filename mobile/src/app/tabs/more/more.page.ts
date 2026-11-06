@@ -37,7 +37,6 @@ import {
   HybridSyncPreferenceService
 } from '../../core/services/hybrid-sync-preference.service';
 import { AutoSyncSchedulerService } from '../../core/services/auto-sync-scheduler.service';
-import { FeatureFlagService, FeatureFlags } from '../../core/services/feature-flag.service';
 
 @Component({
   selector: 'app-more',
@@ -50,7 +49,6 @@ export class MorePage implements OnInit, OnDestroy {
   private readonly destroy$ = new Subject<void>();
 
   user$: Observable<Commercial | null>;
-  ordersManagementEnabled = false;
   autoSync = false;
   autoSyncIntervalMinutes: AutoSyncIntervalMinutes = 120;
   autoSyncIntervalLabel = 'Toutes les 2 heures';
@@ -95,10 +93,8 @@ export class MorePage implements OnInit, OnDestroy {
     private readonly exportLocationService: ExportLocationService,
     private readonly appUpdateService: AppUpdateService,
     private readonly hybridSyncPreferenceService: HybridSyncPreferenceService,
-    private readonly autoSyncSchedulerService: AutoSyncSchedulerService,
-    private readonly featureFlagService: FeatureFlagService
+    private readonly autoSyncSchedulerService: AutoSyncSchedulerService
   ) {
-    this.ordersManagementEnabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.OrdersManagement);
     this.user$ = this.store.select(selectAuthUser).pipe(
       switchMap(user => this.store.select(selectCommercialByUsername(user?.username || '')))
     );

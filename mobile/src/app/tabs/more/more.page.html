@@ -164,27 +164,25 @@
       </div>
     </div>
 
-    <ng-container *ngIf="ordersManagementEnabled">
-      <p class="elyk-quarter-title">Commandes</p>
-      <div class="elyk-card elyk-settings-group">
-        <div class="elyk-settings-row is-clickable" routerLink="/tabs/orders">
-          <div class="settings-icon"><ion-icon name="receipt-outline"></ion-icon></div>
-          <div class="settings-body">
-            <h3>Liste des commandes</h3>
-            <p>Voir et gérer toutes les commandes</p>
-          </div>
-          <ion-icon name="chevron-forward" class="elyk-chevron"></ion-icon>
+    <p class="elyk-quarter-title">Commandes</p>
+    <div class="elyk-card elyk-settings-group">
+      <div class="elyk-settings-row is-clickable" routerLink="/tabs/orders">
+        <div class="settings-icon"><ion-icon name="receipt-outline"></ion-icon></div>
+        <div class="settings-body">
+          <h3>Liste des commandes</h3>
+          <p>Voir et gérer toutes les commandes</p>
         </div>
-        <div class="elyk-settings-row is-clickable" routerLink="/tabs/orders/new">
-          <div class="settings-icon"><ion-icon name="add-circle-outline"></ion-icon></div>
-          <div class="settings-body">
-            <h3>Nouvelle commande</h3>
-            <p>Créer une nouvelle commande client</p>
-          </div>
-          <ion-icon name="chevron-forward" class="elyk-chevron"></ion-icon>
-        </div>
+        <ion-icon name="chevron-forward" class="elyk-chevron"></ion-icon>
       </div>
-    </ng-container>
+      <div class="elyk-settings-row is-clickable" routerLink="/tabs/orders/new">
+        <div class="settings-icon"><ion-icon name="add-circle-outline"></ion-icon></div>
+        <div class="settings-body">
+          <h3>Nouvelle commande</h3>
+          <p>Créer une nouvelle commande client</p>
+        </div>
+        <ion-icon name="chevron-forward" class="elyk-chevron"></ion-icon>
+      </div>
+    </div>
 
     <p class="elyk-quarter-title">Données</p>
     <div class="elyk-card elyk-settings-group">

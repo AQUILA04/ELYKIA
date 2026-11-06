@@ -16,10 +16,6 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-
-  &.quick-actions--single {
-    grid-template-columns: 1fr;
-  }
 }
 
 .action-card {

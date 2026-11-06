@@ -1047,8 +1047,8 @@ Ce module vous permet de surveiller votre dotation de marchandises et d'échange
 
 ### B. Prendre une commande client sur catalogue
 Parfois, une cliente veut un congélateur ou une télévision que vous n'avez pas sur vous. Vous pouvez lui réserver l'article grâce aux **Commandes** :
-1. Dans la barre du bas, allez dans **Plus**, puis touchez **Commandes**.
-2. Touchez le bouton rond jaune (**+**) en bas à droite.
+1. Dans la barre du bas, allez dans **Plus**. Dans la section **Commandes**, touchez **Liste des commandes**.
+2. Touchez le bouton rond jaune (**+**) en bas à droite. Vous pouvez aussi ouvrir le formulaire tout de suite : **Nouvelle commande** dans **Plus**, ou la carte **Nouvelle Commande** dans l’onglet **Distributions**.
 3. Sélectionnez votre cliente, puis choisissez les articles dans le catalogue général avec les quantités.
 4. Touchez le bouton **Valider** en bas de l’écran pour enregistrer la commande.
 5. La commande est enregistrée avec le statut **En attente**. Dès que le magasinier prépare le produit et que la vente est conclue, un simple appui sur le bouton **Vendre** transformera la commande en contrat de vente sans rien avoir à retaper !
