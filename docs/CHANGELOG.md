@@ -206,11 +206,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
-## Backend — [1.46.1] — 2026-11-07
+## Backend — [1.46.2] — 2026-11-07
 
 ### Fixed
 
 - Synthèse de caisse : l'ajustement des rattrapages ajoute l'argent encaissé sur la période pour une date antérieure, et retire celui encaissé en dehors de la période.
+
+## Backend — [1.46.1] — 2026-11-07
+
+### Fixed
+
+- Synchronisation d'un compte : si le client a déjà un compte qui n'est pas encore actif, ce compte est activé puis renvoyé avec son numéro et son solde.
 
 ## Backend — [1.46.0] — 2026-11-07
 
