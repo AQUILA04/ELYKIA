@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.controller.accounting;
 
 import com.optimize.elykia.core.dto.report.CatchupAllocationPreviewDto;
+import com.optimize.elykia.core.dto.report.CatchupCashAdjustmentDto;
 import com.optimize.elykia.core.dto.report.SurplusReallocationDto;
 import com.optimize.elykia.core.dto.report.SurplusReallocationRequest;
 import com.optimize.elykia.core.entity.report.CashDeposit;
@@ -34,6 +35,13 @@ public class CashDepositController {
     private final CashDepositCatchupService catchupService;
     private final CashSurplusReallocationService surplusReallocationService;
     private final UserService userService;
+
+    @GetMapping("/catchup-cash-adjustment")
+    public ResponseEntity<CatchupCashAdjustmentDto> catchupCashAdjustment(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(cashDepositService.catchupCashAdjustment(startDate, endDate));
+    }
 
     @GetMapping("/catchup-allocation")
     public ResponseEntity<CatchupAllocationPreviewDto> previewCatchupAllocation(

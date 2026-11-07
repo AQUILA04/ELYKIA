@@ -113,4 +113,24 @@ public interface CashDepositRepository extends GenericRepository<CashDeposit, Lo
             """)
     List<CashDeposit> findPositiveByRemittanceId(
             @org.springframework.data.repository.query.Param("remittanceId") Long remittanceId);
+
+    /**
+     * Lignes de rattrapage (versement fils) dont la date d'encaissement et la date
+     * de cotisation ne sont pas dans la même période. Le signe est appliqué ensuite :
+     * encaissé dans la période pour une cotisation hors période, ou l'inverse.
+     */
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT cd FROM CashDeposit cd
+            WHERE cd.parentDeposit IS NOT NULL
+              AND cd.captureDate IS NOT NULL
+              AND (
+                    (cd.captureDate >= :start AND cd.captureDate <= :end
+                        AND (cd.date < :start OR cd.date > :end))
+                 OR (cd.date >= :start AND cd.date <= :end
+                        AND (cd.captureDate < :start OR cd.captureDate > :end))
+              )
+            """)
+    List<CashDeposit> findCatchupLinesCrossingPeriod(
+            @org.springframework.data.repository.query.Param("start") LocalDate start,
+            @org.springframework.data.repository.query.Param("end") LocalDate end);
 }

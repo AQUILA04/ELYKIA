@@ -321,6 +321,50 @@ class CashDepositServiceTest {
     }
 
     @Test
+    void catchupCashAdjustment_addsCatchupsCapturedInPeriodForDatesOutsideIt() {
+        CashDepositService service = service();
+        LocalDate today = LocalDate.of(2026, 11, 7);
+        when(cashDepositRepository.findCatchupLinesCrossingPeriod(today, today))
+                .thenReturn(List.of(catchupLine(LocalDate.of(2026, 11, 5), today, 7_000.0)));
+
+        assertEquals(7_000.0, service.catchupCashAdjustment(today, today).getAmount());
+    }
+
+    @Test
+    void catchupCashAdjustment_isZeroWhenTheCollectionDateIsAlsoInsideThePeriod() {
+        CashDepositService service = service();
+        LocalDate start = LocalDate.of(2026, 11, 5);
+        LocalDate end = LocalDate.of(2026, 11, 7);
+        when(cashDepositRepository.findCatchupLinesCrossingPeriod(start, end))
+                .thenReturn(List.of(catchupLine(start, end, 7_000.0)));
+
+        assertEquals(0.0, service.catchupCashAdjustment(start, end).getAmount());
+    }
+
+    @Test
+    void catchupCashAdjustment_removesCatchupsCollectedInPeriodButCapturedOutside() {
+        CashDepositService service = service();
+        LocalDate collectionDate = LocalDate.of(2026, 11, 5);
+        when(cashDepositRepository.findCatchupLinesCrossingPeriod(collectionDate, collectionDate))
+                .thenReturn(List.of(catchupLine(collectionDate, LocalDate.of(2026, 11, 7), 7_000.0)));
+
+        assertEquals(-7_000.0, service.catchupCashAdjustment(collectionDate, collectionDate).getAmount());
+    }
+
+    @Test
+    void catchupCashAdjustment_netsACancellationAgainstTheOriginalCatchup() {
+        CashDepositService service = service();
+        LocalDate today = LocalDate.of(2026, 11, 7);
+        LocalDate collectionDate = LocalDate.of(2026, 11, 5);
+        when(cashDepositRepository.findCatchupLinesCrossingPeriod(today, today))
+                .thenReturn(List.of(
+                        catchupLine(collectionDate, today, 7_000.0),
+                        catchupLine(collectionDate, today, -7_000.0)));
+
+        assertEquals(0.0, service.catchupCashAdjustment(today, today).getAmount());
+    }
+
+    @Test
     void cancelDeposit_rejectsUserWithoutManagerProfileBeforeAnyAccountingMutation() {
         // Given
         CashDepositService service = service();
@@ -343,6 +387,15 @@ class CashDepositServiceTest {
     private CashDepositService service() {
         return new CashDepositService(cashDepositRepository, dailyReportRepository, reportPersistence,
                 dailyOperationService, userService, catchupService);
+    }
+
+    private CashDeposit catchupLine(LocalDate collectionDate, LocalDate captureDate, double amount) {
+        CashDeposit line = new CashDeposit();
+        line.setDate(collectionDate);
+        line.setCaptureDate(captureDate);
+        line.setAmount(amount);
+        line.setParentDeposit(new CashDeposit());
+        return line;
     }
 
     private CashDeposit deposit(LocalDate date, String commercial, double amount, double credit,

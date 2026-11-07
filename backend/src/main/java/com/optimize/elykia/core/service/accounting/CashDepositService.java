@@ -4,6 +4,7 @@ import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.report.CashDepositSliceDto;
+import com.optimize.elykia.core.dto.report.CatchupCashAdjustmentDto;
 import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.enumaration.OperationType;
@@ -208,6 +209,46 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         }
         attachGroupDisplay(page.getContent());
         return page;
+    }
+
+    /**
+     * Écart entre l'argent remis pendant la période et les montants déjà portés
+     * sur les rapports des dates de cotisation.
+     */
+    public CatchupCashAdjustmentDto catchupCashAdjustment(LocalDate start, LocalDate end) {
+        if (start == null || end == null || end.isBefore(start)) {
+            return new CatchupCashAdjustmentDto(0.0);
+        }
+        List<CashDeposit> lines = cashDepositRepository().findCatchupLinesCrossingPeriod(start, end);
+        if (lines == null || lines.isEmpty()) {
+            return new CatchupCashAdjustmentDto(0.0);
+        }
+        double amount = lines.stream()
+                .mapToDouble(line -> catchupLineAdjustment(
+                        start, end, line.getCaptureDate(), line.getDate(), safe(line.getAmount())))
+                .sum();
+        return new CatchupCashAdjustmentDto(amount);
+    }
+
+    /**
+     * Rattrapage encaissé dans la période pour une cotisation hors période : montant ajouté.
+     * Cotisation dans la période encaissée hors période : montant retiré.
+     * Une annulation porte un montant négatif et se compense avec la ligne d'origine.
+     */
+    static double catchupLineAdjustment(LocalDate start, LocalDate end, LocalDate captureDate,
+            LocalDate collectionDate, double amount) {
+        if (start == null || end == null || captureDate == null || collectionDate == null) {
+            return 0.0;
+        }
+        boolean capturedInPeriod = !captureDate.isBefore(start) && !captureDate.isAfter(end);
+        boolean collectedInPeriod = !collectionDate.isBefore(start) && !collectionDate.isAfter(end);
+        if (capturedInPeriod && !collectedInPeriod) {
+            return amount;
+        }
+        if (collectedInPeriod && !capturedInPeriod) {
+            return -amount;
+        }
+        return 0.0;
     }
 
     public CashDeposit cancelDeposit(Long id) {

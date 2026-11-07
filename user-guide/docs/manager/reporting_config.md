@@ -54,8 +54,8 @@ Sur la Vue d'ensemble, le bloc **Synthèse caisse** reprend l'ensemble des caiss
 
 1. **Dépenses (avec approvisionnement)** : total de toutes les dépenses de la période, approvisionnements compris.
 2. **Dépenses (sans approvisionnement)** : total des dépenses de la période, hors approvisionnements.
-3. **Total versé (période)** : somme des versements de tous les commerciaux sur la période.
-4. **Solde de caisse** : total versé moins les dépenses sans approvisionnement. C'est le solde de caisse à la fin de la journée, ou de la période sélectionnée.
+3. **Total versé (période)** : argent remis en caisse pendant la période, pour l'ensemble des commerciaux. Les rattrapages de jours précédents remis pendant cette période sont inclus. Un rattrapage remis un autre jour n'entre pas dans ce total.
+4. **Solde de caisse** : total versé moins les dépenses sans approvisionnement. C'est l'argent resté en caisse à la fin de la journée, ou de la période sélectionnée.
 
 <!-- CAPTURE À INSÉRER : Bloc Synthèse caisse de la Vue d'ensemble avec les quatre montants. -->
 
