@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
+
 public interface OrderRepository extends GenericRepository<Order, Long> {
 
     // Note : Les requêtes sont maintenant adaptées à votre logique de "soft delete"
@@ -58,6 +60,28 @@ public interface OrderRepository extends GenericRepository<Order, Long> {
             @Param("status") OrderStatus status,
             @Param("source") OrderSource source,
             @Param("username") String username,
+            Pageable pageable);
+
+    @Query("""
+            SELECT o FROM Order o
+            WHERE o.state <> 'DELETED'
+              AND o.status IN :statuses
+              AND (:source IS NULL OR o.source = :source)
+              AND (:collector IS NULL OR UPPER(o.client.collector) = UPPER(:collector))
+              AND (
+                    COALESCE(:search, '') = ''
+                    OR CAST(o.id AS string) LIKE CONCAT('%', :search, '%')
+                    OR LOWER(COALESCE(o.client.firstname, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR LOWER(COALESCE(o.client.lastname, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR LOWER(COALESCE(o.client.code, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR LOWER(COALESCE(o.client.phone, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+              )
+            """)
+    Page<Order> searchOrders(
+            @Param("statuses") Collection<OrderStatus> statuses,
+            @Param("source") OrderSource source,
+            @Param("collector") String collector,
+            @Param("search") String search,
             Pageable pageable);
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.status = :status AND o.state <> 'DELETED'")

@@ -49,8 +49,33 @@
     </div>
 
     <div class="toolbar a4">
+      <div class="filter-fields">
+        <div class="filter-field filter-field-search">
+          <span class="toolbar-label">Recherche</span>
+          <div class="search-row">
+            <input
+              type="text"
+              class="search-input"
+              [(ngModel)]="searchTerm"
+              (keydown.enter)="onSearch()"
+              placeholder="N°, nom, code, téléphone"
+              aria-label="Recherche">
+            <button type="button" class="btn-search-icon" (click)="onSearch()" title="Rechercher" aria-label="Rechercher">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="filter-field filter-field-commercial" *ngIf="canSelectCommercial">
+          <span class="toolbar-label">Commercial</span>
+          <app-commercial-selector
+            [initialValue]="selectedCommercial"
+            (commercialSelected)="onCommercialSelected($event)">
+          </app-commercial-selector>
+        </div>
+        <button type="button" class="btn-clear" (click)="resetFilters()">Réinitialiser</button>
+      </div>
       <span class="result-count">
-        <strong>{{ ((filteredOrders$ | async) || []).length }}</strong> commande(s) · onglet actif
+        <strong>{{ totalElements }}</strong> commande(s)
       </span>
       <div class="toolbar-actions">
         <button type="button" class="btn-download" [matMenuTriggerFor]="reportsMenu">
@@ -82,16 +107,16 @@
         class="status-tabs"
         animationDuration="300ms">
 
-        <mat-tab *ngFor="let tab of (statusTabs$ | async); trackBy: trackByTabStatus">
+        <mat-tab *ngFor="let tab of statusTabs; trackBy: trackByTabStatus">
           <ng-template mat-tab-label>
             <div class="tab-label">
               <mat-icon class="tab-icon">{{ tab.icon }}</mat-icon>
               <span class="tab-text">{{ tab.label }}</span>
               <span
-                *ngIf="tab.count !== undefined && tab.count > 0"
+                *ngIf="countFor(tab) as tabCount"
                 class="tab-badge"
                 [style.background-color]="getTabColor(tab)">
-                {{ tab.count }}
+                {{ tabCount }}
               </span>
             </div>
           </ng-template>
@@ -105,9 +130,17 @@
               [onlineMode]="onlineMode"
               [showOnlineBadge]="!onlineMode"
               [selectedOrderIds]="selectedOrderIds"
+              [serverTotal]="totalElements"
+              [pageIndex]="pageIndex"
+              [pageSize]="pageSize"
+              [currentUsername]="currentUsername"
+              [canDelete]="canDelete"
+              [canDeny]="canDeny"
+              [canRequestStock]="canRequestStock"
               (selectionChange)="onSelectionChange($event)"
               (actionClick)="onOrderAction($event)"
-              (rowClick)="onRowClick($event)">
+              (rowClick)="onRowClick($event)"
+              (pageChange)="onPageChange($event)">
             </app-order-table>
 
             <div *ngIf="(state$ | async)?.loading" class="table-loading">
@@ -138,6 +171,10 @@
     [visible]="selectedOrders.length > 0"
     [loading]="(state$ | async)?.loading || false"
     [onlineMode]="onlineMode"
+    [currentUsername]="currentUsername"
+    [canDelete]="canDelete"
+    [canDeny]="canDeny"
+    [canRequestStock]="canRequestStock"
     (bulkAction)="onBulkAction($event)"
     (clearSelection)="onClearSelection()">
   </app-order-action-bar>

@@ -13,7 +13,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import com.optimize.elykia.core.util.UserPermissionConstant;
+
+import java.util.List;
 
 import com.optimize.elykia.core.dto.UpdateOrderStatusDto;
 
@@ -56,10 +61,15 @@ public class OrderController {
     @GetMapping
     public ResponseEntity<Response> getAllOrders(
             @RequestParam(required = false) OrderStatus status,
+            @RequestParam(required = false) List<OrderStatus> statuses,
             @RequestParam(required = false) OrderSource source,
+            @RequestParam(required = false) String commercial,
+            @RequestParam(required = false) String search,
             Pageable pageable) {
         return new ResponseEntity<>(
-                ResponseUtil.successResponse(orderService.getAllOrders(status, source, pageable)), HttpStatus.OK);
+                ResponseUtil.successResponse(orderService.getAllOrders(
+                        status, statuses, source, commercial, search, pageable)),
+                HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
@@ -98,6 +108,7 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.DEL_ORDER + "')")
     public ResponseEntity<Response> deleteOrder(@PathVariable Long id) {
         orderService.deleteSoft(id);
         return new ResponseEntity<>(ResponseUtil.successResponse("Order deleted successfully."), HttpStatus.OK);

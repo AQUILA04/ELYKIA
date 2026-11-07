@@ -14,6 +14,7 @@ import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.repository.OrderRepository;
 import com.optimize.elykia.core.repository.StockRequestOrderLinkRepository;
 import com.optimize.elykia.core.service.stock.StockRequestService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
@@ -43,6 +44,7 @@ public class OrderStockRequestService {
         }
         List<Long> distinctIds = orderIds.stream().distinct().toList();
         User currentUser = userService.getCurrentUser();
+        assertCanRequestStock(currentUser);
 
         List<Order> orders = new ArrayList<>();
         for (Long orderId : distinctIds) {
@@ -106,6 +108,15 @@ public class OrderStockRequestService {
             linkRepository.save(link);
         }
         return saved;
+    }
+
+    private void assertCanRequestStock(User user) {
+        boolean allowed = user != null && user.getPermissions() != null && user.getPermissions().stream()
+                .anyMatch(permission -> UserPermissionConstant.ORDER_STOCK_REQUEST.equals(permission.getName()));
+        if (!allowed) {
+            throw new CustomValidationException(
+                    "Vous n'êtes pas autorisé à créer une demande de stock depuis une commande.");
+        }
     }
 
     private void validateEligible(Order order) {

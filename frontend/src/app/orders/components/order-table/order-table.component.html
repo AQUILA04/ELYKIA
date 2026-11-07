@@ -90,7 +90,7 @@
 
   <div class="order-pagination" *ngIf="showPagination && orders.length > 0">
     <mat-paginator
-      [length]="orders.length"
+      [length]="paginatorLength"
       [pageSize]="pageSize"
       [pageIndex]="pageIndex"
       [pageSizeOptions]="pageSizeOptions"

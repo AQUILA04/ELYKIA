@@ -215,14 +215,122 @@
 
 .order-dashboard-page .toolbar {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 16px;
   background: var(--bg-white);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 14px 20px;
   margin-bottom: 16px;
   box-shadow: var(--shadow-sm);
+  overflow: visible;
+  position: relative;
+  z-index: 20;
+}
+
+.order-dashboard-page .filter-fields {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  flex: 1;
+  min-width: 280px;
+}
+
+.order-dashboard-page .filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.order-dashboard-page .filter-field-search {
+  flex: 1 1 240px;
+  min-width: 200px;
+  max-width: 420px;
+}
+
+.order-dashboard-page .filter-field-commercial {
+  flex: 0 1 240px;
+  min-width: 180px;
+  max-width: 280px;
+  position: relative;
+  z-index: 30;
+}
+
+.order-dashboard-page .toolbar-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.order-dashboard-page .search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.order-dashboard-page .search-input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 12px;
+  font-size: 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--navy-xpale);
+  color: var(--navy);
+  box-sizing: border-box;
+}
+
+.order-dashboard-page .search-input:focus {
+  outline: none;
+  border-color: var(--navy);
+  background: white;
+}
+
+.order-dashboard-page .btn-search-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--navy);
+  color: white;
+  cursor: pointer;
+}
+
+.order-dashboard-page .btn-search-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.order-dashboard-page .btn-clear {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.order-dashboard-page .btn-clear:hover {
+  color: var(--navy);
+  border-color: var(--navy);
+}
+
+.order-dashboard-page app-commercial-selector {
+  display: block;
+  width: 100%;
 }
 
 .order-dashboard-page .result-count {

@@ -17,6 +17,7 @@ import {
   OrderStatus,
   OrderSource,
   getAvailableActions,
+  OrderActionContext,
   formatCurrency,
   formatDate,
   getOrderStatusLabel,
@@ -53,10 +54,16 @@ export class OrderTableComponent implements OnChanges {
   @Input() selectedOrderIds: number[] = [];
   @Input() onlineMode: boolean = false;
   @Input() showOnlineBadge: boolean = true;
+  @Input() serverTotal: number | null = null;
+  @Input() currentUsername: string | null = null;
+  @Input() canDelete = false;
+  @Input() canDeny = false;
+  @Input() canRequestStock = false;
 
   @Output() selectionChange = new EventEmitter<OrderSelectionChange>();
   @Output() actionClick = new EventEmitter<OrderTableAction>();
   @Output() rowClick = new EventEmitter<Order>();
+  @Output() pageChange = new EventEmitter<PageEvent>();
 
   selection = new SelectionModel<Order>(true, []);
   pageIndex = 0;
@@ -64,7 +71,9 @@ export class OrderTableComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['orders']) {
-      this.pageIndex = 0;
+      if (this.serverTotal === null) {
+        this.pageIndex = 0;
+      }
       this.updateSelection();
     }
 
@@ -74,11 +83,22 @@ export class OrderTableComponent implements OnChanges {
   }
 
   get paginatedOrders(): Order[] {
+    if (this.serverTotal !== null) {
+      return this.orders;
+    }
     const start = this.pageIndex * this.pageSize;
     return this.orders.slice(start, start + this.pageSize);
   }
 
+  get paginatorLength(): number {
+    return this.serverTotal ?? this.orders.length;
+  }
+
   onPageChange(event: PageEvent): void {
+    if (this.serverTotal !== null) {
+      this.pageChange.emit(event);
+      return;
+    }
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
   }
@@ -145,10 +165,17 @@ export class OrderTableComponent implements OnChanges {
   }
 
   getOrderActions(order: Order): OrderAction[] {
-    return getAvailableActions(order.status, {
+    return getAvailableActions(order, this.actionContext());
+  }
+
+  private actionContext(): OrderActionContext {
+    return {
       onlineMode: this.onlineMode,
-      hasActiveStockRequest: !!order.activeStockRequest
-    });
+      username: this.currentUsername,
+      canDelete: this.canDelete,
+      canDeny: this.canDeny,
+      canRequestStock: this.canRequestStock
+    };
   }
 
   getActionLabel(action: OrderAction): string {

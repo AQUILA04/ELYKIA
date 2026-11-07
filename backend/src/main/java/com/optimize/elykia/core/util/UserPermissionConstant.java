@@ -105,6 +105,8 @@ public class UserPermissionConstant {
     public static final String CONSULT_ORDER = "ROLE_CONSULT_ORDER";
     public static final String EDIT_ORDER = "ROLE_EDIT_ORDER";
     public static final String DEL_ORDER = "ROLE_DEL_ORDER";
+    /** Créer une demande de stock à partir d'une ou plusieurs commandes. Attribuable, non accordé par défaut. */
+    public static final String ORDER_STOCK_REQUEST = "ROLE_ORDER_STOCK_REQUEST";
 
     /** Consultation du journal d'activité espace client (module Audit). */
     public static final String AUDIT = "ROLE_AUDIT";
