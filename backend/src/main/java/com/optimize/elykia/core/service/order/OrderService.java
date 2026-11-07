@@ -287,13 +287,14 @@ public class OrderService extends GenericService<Order, Long> {
             Pageable pageable) {
         List<OrderStatus> effectiveStatuses = resolveStatuses(status, statuses);
         User currentUser = userService.getCurrentUser();
-        String collector = null;
+        // Chaîne vide, pas null : un paramètre String null est lié en bytea et Postgres refuse upper().
+        String collector = "";
         if (AppNotificationService.isPromoterOnly(currentUser)) {
             collector = currentUser.getUsername();
         } else if (StringUtils.hasText(commercial)) {
             collector = commercial.trim();
         }
-        String searchTerm = StringUtils.hasText(search) ? search.trim() : null;
+        String searchTerm = StringUtils.hasText(search) ? search.trim() : "";
 
         Page<Order> ordersPage = getRepository().searchOrders(
                 effectiveStatuses, source, collector, searchTerm, pageable);
