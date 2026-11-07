@@ -182,11 +182,11 @@ class OrderServiceTest {
 
         UpdateOrderStatusDto dto = new UpdateOrderStatusDto();
         dto.setOrderIds(List.of(44L));
-        dto.setNewStatus(OrderStatus.DENIED);
+        dto.setNewStatus(OrderStatus.ACCEPTED);
 
         List<Order> updated = service.updateOrderStatus(dto);
 
-        assertEquals(OrderStatus.DENIED, updated.get(0).getStatus());
+        assertEquals(OrderStatus.ACCEPTED, updated.get(0).getStatus());
         verify(appNotificationService).resolveByTypeAndEntityId(AppNotificationType.CUSTOMER_ORDER, 44L);
     }
 
@@ -198,13 +198,13 @@ class OrderServiceTest {
         Page<Order> page = new PageImpl<>(List.of(order), pageable, 1);
         User promoter = promoterUser("commercial.a");
         when(userService.getCurrentUser()).thenReturn(promoter);
-        when(orderRepository.findByStatusAndClientCollector(OrderStatus.PENDING, "commercial.a", pageable))
+        when(orderRepository.searchOrders(List.of(OrderStatus.PENDING), null, "commercial.a", null, pageable))
                 .thenReturn(page);
 
         Page<Order> result = service.getAllOrders(null, pageable);
 
         assertEquals(1, result.getTotalElements());
-        verify(orderRepository).findByStatusAndClientCollector(OrderStatus.PENDING, "commercial.a", pageable);
+        verify(orderRepository).searchOrders(List.of(OrderStatus.PENDING), null, "commercial.a", null, pageable);
         verify(orderRepository, never()).findByStatus(any(), any());
     }
 
@@ -216,13 +216,67 @@ class OrderServiceTest {
         Page<Order> page = new PageImpl<>(List.of(order), pageable, 1);
         User staff = staffUser("secretary.a");
         when(userService.getCurrentUser()).thenReturn(staff);
-        when(orderRepository.findByStatus(OrderStatus.ACCEPTED, pageable)).thenReturn(page);
+        when(orderRepository.searchOrders(List.of(OrderStatus.ACCEPTED), null, null, null, pageable))
+                .thenReturn(page);
 
         Page<Order> result = service.getAllOrders(OrderStatus.ACCEPTED, pageable);
 
         assertEquals(1, result.getTotalElements());
-        verify(orderRepository).findByStatus(OrderStatus.ACCEPTED, pageable);
+        verify(orderRepository).searchOrders(List.of(OrderStatus.ACCEPTED), null, null, null, pageable);
         verify(orderRepository, never()).findByStatusAndClientCollector(any(), any(), any());
+    }
+
+    @Test
+    void updateOrderStatus_rejectsDenyForPromoter() {
+        OrderService service = service();
+        Order order = pendingOrder(44L, "commercial.a");
+        User promoter = promoterUser("commercial.a");
+        when(userService.getCurrentUser()).thenReturn(promoter);
+        when(orderRepository.findById(44L)).thenReturn(Optional.of(order));
+        UpdateOrderStatusDto dto = new UpdateOrderStatusDto();
+        dto.setOrderIds(List.of(44L));
+        dto.setNewStatus(OrderStatus.DENIED);
+
+        assertThrows(CustomValidationException.class, () -> service.updateOrderStatus(dto));
+        assertEquals(OrderStatus.PENDING, order.getStatus());
+    }
+
+    @Test
+    void updateOrderStatus_allowsDenyForGestionnaire() {
+        OrderService service = service();
+        Order order = pendingOrder(44L, "commercial.a");
+        User manager = gestionnaireUser("ges.a");
+        when(userService.getCurrentUser()).thenReturn(manager);
+        when(orderRepository.findById(44L)).thenReturn(Optional.of(order));
+        when(orderRepository.saveAndFlush(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        UpdateOrderStatusDto dto = new UpdateOrderStatusDto();
+        dto.setOrderIds(List.of(44L));
+        dto.setNewStatus(OrderStatus.DENIED);
+
+        List<Order> updated = service.updateOrderStatus(dto);
+
+        assertEquals(OrderStatus.DENIED, updated.get(0).getStatus());
+    }
+
+    @Test
+    void updateOrderStatus_allowsCancelForCollectorAndRejectsOtherStaff() {
+        OrderService service = service();
+        Order order = pendingOrder(44L, "commercial.a");
+        order.setCreatedBy("author.a");
+        when(orderRepository.findById(44L)).thenReturn(Optional.of(order));
+        when(orderRepository.saveAndFlush(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        User promoter = promoterUser("commercial.a");
+        when(userService.getCurrentUser()).thenReturn(promoter);
+        UpdateOrderStatusDto cancel = new UpdateOrderStatusDto();
+        cancel.setOrderIds(List.of(44L));
+        cancel.setNewStatus(OrderStatus.CANCEL);
+        assertEquals(OrderStatus.CANCEL, service.updateOrderStatus(cancel).get(0).getStatus());
+
+        order.setStatus(OrderStatus.PENDING);
+        User secretary = staffUser("secretary.a");
+        when(userService.getCurrentUser()).thenReturn(secretary);
+        assertThrows(CustomValidationException.class, () -> service.updateOrderStatus(cancel));
     }
 
     @Test
@@ -390,6 +444,16 @@ class OrderServiceTest {
         lenient().when(user.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
         lenient().when(user.is(UserProfilConstant.ADMIN)).thenReturn(false);
         when(user.is(UserProfilConstant.PROMOTER)).thenReturn(false);
+        return user;
+    }
+
+    private User gestionnaireUser(String username) {
+        User user = mock(User.class);
+        when(user.getUsername()).thenReturn(username);
+        lenient().when(user.is(UserProfilConstant.PROMOTER)).thenReturn(false);
+        when(user.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(true);
+        lenient().when(user.is(UserProfilConstant.ADMIN)).thenReturn(false);
+        lenient().when(user.is(UserProfilConstant.SU)).thenReturn(false);
         return user;
     }
 

@@ -181,7 +181,11 @@ export class OrderService {
       .set('sort', `${sortField},${sortDirection}`);
 
     // Ajout des filtres
-    if (filters.status) {
+    if (filters.statuses && filters.statuses.length > 0) {
+      filters.statuses.forEach(status => {
+        params = params.append('statuses', status);
+      });
+    } else if (filters.status) {
       params = params.set('status', filters.status);
     }
     if (filters.source) {
@@ -251,8 +255,12 @@ export class OrderService {
     this.setLoading(true);
     const headers = this.getHeaders();
 
-    return this.http.get<ApiResponse<Order>>(`${this.apiUrl}/${orderId}`, { headers })
+    return this.http.get<ApiResponse<any>>(`${this.apiUrl}/${orderId}`, { headers })
       .pipe(
+        map(response => ({
+          ...response,
+          data: response.data ? this.mapOrdersFromAPI([response.data])[0] : null
+        })),
         tap(() => this.setLoading(false)),
         catchError(this.handleApiError.bind(this))
       );
@@ -621,12 +629,14 @@ export class OrderService {
    */
   private mapOrdersFromAPI(apiOrders: readonly any[]): Order[] {
     return apiOrders.map(apiOrder => ({
+      ...apiOrder,
       id: apiOrder.id,
       client: {
+        ...(apiOrder.client || {}),
         id: apiOrder.client?.id || 0,
         firstname: apiOrder.client?.firstname || '',
         lastname: apiOrder.client?.lastname || '',
-        fullName: apiOrder.client ? `${apiOrder.client.firstname} ${apiOrder.client.lastname}` : '',
+        fullName: apiOrder.client ? `${apiOrder.client.firstname || ''} ${apiOrder.client.lastname || ''}`.trim() : '',
         code: apiOrder.client?.code,
         phone: apiOrder.client?.phone,
         address: apiOrder.client?.address,
@@ -642,7 +652,7 @@ export class OrderService {
       activeStockRequest: apiOrder.activeStockRequest || null,
       createdAt: apiOrder.createdAt,
       updatedAt: apiOrder.updatedAt,
-      createdBy: apiOrder.createdBy
+      createdBy: apiOrder.createdByUsername || apiOrder.createdBy
     }));
   }
 

@@ -10,7 +10,9 @@ import com.optimize.elykia.core.service.stock.StockExportService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.dto.StockRequestCreateDto;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
@@ -42,6 +44,7 @@ public class StockRequestController {
     }
 
     @PostMapping("/from-orders")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.ORDER_STOCK_REQUEST + "')")
     public ResponseEntity<List<StockRequest>> createFromOrders(
             @RequestBody @jakarta.validation.Valid com.optimize.elykia.core.dto.CreateStockRequestFromOrdersDto dto) {
         boolean forNextMonth = dto.getForNextMonth() != null && dto.getForNextMonth();

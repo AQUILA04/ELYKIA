@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectionStrategy, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subject, combineLatest } from 'rxjs';
 import { takeUntil, map, startWith } from 'rxjs/operators';
@@ -15,8 +15,12 @@ import {
   KPICardConfig,
   StatusTabConfig,
   DEFAULT_STATUS_TABS,
-  OrderAction
+  OrderAction,
+  OrderFilters
 } from '../../types/order.types';
+import { AuthService } from 'src/app/auth/service/auth.service';
+import { UserService } from 'src/app/user/service/user.service';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { OrderTableAction, OrderSelectionChange } from '../../components/order-table/order-table.component';
 import { BulkAction } from '../../components/order-action-bar/order-action-bar.component';
 import { OrderDeleteModalComponent } from '../../components/modals/order-delete-modal/order-delete-modal.component';
@@ -35,7 +39,7 @@ import {ToastrService} from "ngx-toastr";
   encapsulation: ViewEncapsulation.None,
   standalone: false
 })
-export class OrderDashboardComponent implements OnInit, OnDestroy {
+export class OrderDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private dateIntervalId?: ReturnType<typeof setInterval>;
 
@@ -48,13 +52,24 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   // Observables
   state$: Observable<OrderState>;
   kpiCards$!: Observable<KPICardConfig[]>;
-  statusTabs$!: Observable<StatusTabConfig[]>;
   filteredOrders$!: Observable<Order[]>;
 
   // État local
   selectedOrders: Order[] = [];
   currentTab: OrderStatus | 'ALL' = OrderStatus.PENDING;
   statusTabs: StatusTabConfig[] = DEFAULT_STATUS_TABS;
+  searchTerm = '';
+  selectedCommercial: string | null = null;
+  canSelectCommercial = false;
+  pageIndex = 0;
+  pageSize = 10;
+  totalElements = 0;
+  currentUsername: string | null = null;
+  canDelete = false;
+  canDeny = false;
+  canRequestStock = false;
+  private tabCounts: Partial<Record<OrderStatus | 'ALL', number>> = {};
+  private suppressTabChange = true;
 
   constructor(
     private orderService: OrderService,
@@ -62,7 +77,10 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private authService: AuthService,
+    private userService: UserService,
+    private cdr: ChangeDetectorRef
   ) {
     this.state$ = this.orderService.state$;
     this.setupObservables();
@@ -74,13 +92,22 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
       this.pageTitle = 'Commandes en ligne';
       this.pageSurtitle = 'SERVICES EN LIGNE';
     }
+    this.applyActionRights();
+    this.restoreState();
     this.loadInitialData();
     this.dateIntervalId = setInterval(() => {
       this.currentDate = new Date();
     }, 1000);
   }
 
+  ngAfterViewInit(): void {
+    setTimeout(() => {
+      this.suppressTabChange = false;
+    });
+  }
+
   ngOnDestroy(): void {
+    this.saveState();
     this.destroy$.next();
     this.destroy$.complete();
     if (this.dateIntervalId) {
@@ -103,17 +130,8 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
       startWith(this.createKPICards(null))
     );
 
-    this.statusTabs$ = this.state$.pipe(
-      map(state => {
-        const tabs = this.createStatusTabs(state.orders);
-        this.statusTabs = tabs;
-        return tabs;
-      }),
-      startWith(DEFAULT_STATUS_TABS)
-    );
-
     this.filteredOrders$ = this.state$.pipe(
-      map(state => this.filterOrdersByTab(state.orders, this.currentTab))
+      map(state => [...state.orders])
     );
   }
 
@@ -132,16 +150,30 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   }
 
   private loadOrders(): void {
-    const filters: { status?: OrderStatus; source?: OrderSource } =
-      this.currentTab !== 'ALL' ? { status: this.currentTab } : {};
+    const filters: OrderFilters = {};
+    if (this.currentTab === 'ALL') {
+      filters.statuses = [OrderStatus.DENIED, OrderStatus.CANCEL];
+    } else {
+      filters.status = this.currentTab;
+    }
     if (this.onlineMode) {
       filters.source = OrderSource.CUSTOMER_SPACE;
     }
-    this.orderService.getOrders(0, 50, filters).pipe(
+    const search = this.searchTerm.trim();
+    if (search) {
+      filters.searchTerm = search;
+    }
+    if (this.canSelectCommercial && this.selectedCommercial) {
+      filters.commercial = this.selectedCommercial;
+    }
+    this.orderService.getOrders(this.pageIndex, this.pageSize, filters).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
       next: () => {
         this.lastUpdate = new Date();
+        this.totalElements = this.orderService.getCurrentState().pagination.totalElements ?? 0;
+        this.tabCounts = { ...this.tabCounts, [this.currentTab]: this.totalElements };
+        this.cdr.markForCheck();
       },
       error: (error) => {
         console.error('Erreur lors du chargement des commandes:', error);
@@ -169,30 +201,54 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
     ];
   }
 
-  private createStatusTabs(orders: readonly Order[]): StatusTabConfig[] {
-    const statusCounts = orders.reduce((counts, order) => {
-      counts[order.status] = (counts[order.status] || 0) + 1;
-      return counts;
-    }, {} as Record<OrderStatus, number>);
-    return DEFAULT_STATUS_TABS.map(tab => ({
-      ...tab,
-      count: tab.status === 'ALL'
-        ? orders.filter(o => o.status === OrderStatus.DENIED || o.status === OrderStatus.CANCEL).length
-        : statusCounts[tab.status] || 0
-    }));
+  countFor(tab: StatusTabConfig): number | undefined {
+    return this.tabCounts[tab.status];
   }
 
-  private filterOrdersByTab(orders: readonly Order[], tab: OrderStatus | 'ALL'): Order[] {
-    if (tab === 'ALL') {
-      return orders.filter(order => order.status === OrderStatus.DENIED || order.status === OrderStatus.CANCEL);
+  onSearch(): void {
+    this.pageIndex = 0;
+    this.onClearSelection();
+    this.saveState();
+    this.loadOrders();
+  }
+
+  onCommercialSelected(username: string | null): void {
+    if (username === this.selectedCommercial) {
+      return;
     }
-    return orders.filter(order => order.status === tab);
+    this.selectedCommercial = username;
+    this.pageIndex = 0;
+    this.onClearSelection();
+    this.saveState();
+    this.loadOrders();
+  }
+
+  resetFilters(): void {
+    this.searchTerm = '';
+    this.selectedCommercial = null;
+    this.pageIndex = 0;
+    this.onClearSelection();
+    this.saveState();
+    this.loadOrders();
+  }
+
+  onPageChange(event: { pageIndex: number; pageSize: number }): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.onClearSelection();
+    this.saveState();
+    this.loadOrders();
   }
 
   onTabChange(tab: StatusTabConfig): void {
+    if (this.suppressTabChange || !tab || tab.status === this.currentTab) {
+      return;
+    }
     this.currentTab = tab.status;
+    this.pageIndex = 0;
     this.orderService.setCurrentTab(tab.status);
-    this.selectedOrders = [];
+    this.onClearSelection();
+    this.saveState();
     this.loadOrders();
   }
 
@@ -452,8 +508,9 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
   }
 
   getTabLabel(tab: StatusTabConfig): string {
-    return tab.count !== undefined && tab.count > 0
-      ? `${tab.label} (${tab.count})`
+    const count = this.countFor(tab);
+    return count !== undefined && count > 0
+      ? `${tab.label} (${count})`
       : tab.label;
   }
 
@@ -479,6 +536,63 @@ export class OrderDashboardComponent implements OnInit, OnDestroy {
 
   get selectedOrderIds(): number[] {
     return [...(this.orderService.getCurrentState().selectedOrders || [])];
+  }
+
+  private get listStateKey(): string {
+    return this.onlineMode ? 'orderOnlineListState' : 'orderListState';
+  }
+
+  private applyActionRights(): void {
+    const user = this.authService.getCurrentUser();
+    this.currentUsername = user?.username ?? null;
+    this.canDelete = this.authService.hasRole('ROLE_DEL_ORDER');
+    this.canDeny = this.userService.hasProfile(UserProfile.GESTIONNAIRE)
+      || this.userService.hasProfile(UserProfile.ADMIN)
+      || this.userService.hasProfile(UserProfile.SUPER_ADMIN);
+    this.canRequestStock = this.authService.hasRole('ROLE_ORDER_STOCK_REQUEST');
+    this.canSelectCommercial = !this.userService.hasProfile(UserProfile.PROMOTER) && (
+      this.userService.hasProfile(UserProfile.GESTIONNAIRE)
+      || this.userService.hasProfile(UserProfile.ADMIN)
+      || this.userService.hasProfile(UserProfile.SUPER_ADMIN)
+      || this.userService.hasProfile(UserProfile.SECRETARY)
+      || this.userService.hasProfile(UserProfile.STOREKEEPER)
+    );
+  }
+
+  private saveState(): void {
+    const state = {
+      searchTerm: this.searchTerm,
+      selectedCommercial: this.canSelectCommercial ? this.selectedCommercial : null,
+      currentTab: this.currentTab,
+      pageIndex: this.pageIndex,
+      pageSize: this.pageSize
+    };
+    sessionStorage.setItem(this.listStateKey, JSON.stringify(state));
+  }
+
+  private restoreState(): void {
+    const saved = sessionStorage.getItem(this.listStateKey);
+    if (!saved) {
+      return;
+    }
+    try {
+      const state = JSON.parse(saved) as {
+        searchTerm?: string;
+        selectedCommercial?: string | null;
+        currentTab?: OrderStatus | 'ALL';
+        pageIndex?: number;
+        pageSize?: number;
+      };
+      this.searchTerm = state.searchTerm ?? '';
+      this.selectedCommercial = this.canSelectCommercial ? (state.selectedCommercial ?? null) : null;
+      const knownTab = DEFAULT_STATUS_TABS.some(tab => tab.status === state.currentTab);
+      this.currentTab = knownTab && state.currentTab ? state.currentTab : OrderStatus.PENDING;
+      this.pageIndex = state.pageIndex ?? 0;
+      this.pageSize = state.pageSize ?? 10;
+      this.orderService.setCurrentTab(this.currentTab);
+    } catch (error) {
+      console.error('Erreur restauration état liste commandes', error);
+    }
   }
 }
 

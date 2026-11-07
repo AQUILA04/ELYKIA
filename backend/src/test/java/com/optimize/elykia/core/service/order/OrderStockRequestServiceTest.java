@@ -2,6 +2,8 @@ package com.optimize.elykia.core.service.order;
 
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.models.UserPermission;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.entity.article.Articles;
@@ -35,6 +37,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 @ExtendWith(MockitoExtension.class)
 class OrderStockRequestServiceTest {
@@ -127,8 +130,22 @@ class OrderStockRequestServiceTest {
         verify(stockRequestService, never()).createRequest(any(), anyBoolean());
     }
 
+    @Test
+    void createFromOrders_rejectsUserWithoutPermission() {
+        User staff = org.mockito.Mockito.mock(User.class);
+        when(staff.getPermissions()).thenReturn(Set.of());
+        when(userService.getCurrentUser()).thenReturn(staff);
+
+        assertThrows(CustomValidationException.class, () -> service.createFromOrders(List.of(10L), false));
+        verify(orderRepository, never()).findById(any());
+    }
+
     private User staffUser() {
-        return org.mockito.Mockito.mock(User.class);
+        User user = mock(User.class);
+        UserPermission permission = mock(UserPermission.class);
+        when(permission.getName()).thenReturn(UserPermissionConstant.ORDER_STOCK_REQUEST);
+        when(user.getPermissions()).thenReturn(Set.of(permission));
+        return user;
     }
 
     private Articles article(Long id) {

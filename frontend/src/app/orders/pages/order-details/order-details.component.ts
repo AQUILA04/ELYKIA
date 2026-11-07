@@ -33,6 +33,9 @@ import {
   getOrderItemArticleSubtitle,
   getOrderItemTotal,
 } from '../../types/order.types';
+import { AuthService } from 'src/app/auth/service/auth.service';
+import { UserService } from 'src/app/user/service/user.service';
+import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { OrderConfirmationModalComponent } from '../../components/modals/order-confirmation-modal/order-confirmation-modal.component';
 import {
   OrderStockRequestModalComponent,
@@ -67,7 +70,9 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     private orderService: OrderService,
     private dialog: MatDialog,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private authService: AuthService,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
@@ -129,13 +134,21 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     if (!this.order) {
       return [];
     }
-    return getAvailableActions(this.order.status, {
+    const user = this.authService.getCurrentUser();
+    return getAvailableActions(this.order, {
       onlineMode: this.onlineMode,
-      hasActiveStockRequest: !!this.order.activeStockRequest
+      username: user?.username ?? null,
+      canDelete: this.authService.hasRole('ROLE_DEL_ORDER'),
+      canDeny: this.userService.hasProfile(UserProfile.GESTIONNAIRE)
+        || this.userService.hasProfile(UserProfile.ADMIN)
+        || this.userService.hasProfile(UserProfile.SUPER_ADMIN),
+      canRequestStock: this.authService.hasRole('ROLE_ORDER_STOCK_REQUEST')
     }).filter(action => action !== OrderAction.VIEW);
   }
   get canEdit(): boolean { return this.order && !this.onlineMode ? canModifyOrder(this.order.status) : false; }
-  get canDelete(): boolean { return this.order ? canDeleteOrder(this.order.status) : false; }
+  get canDelete(): boolean {
+    return !!this.order && this.authService.hasRole('ROLE_DEL_ORDER') && canDeleteOrder(this.order.status);
+  }
   get canSell(): boolean { return this.order ? canSellOrder(this.order.status) : false; }
   get statusLabel(): string { return this.order ? getOrderStatusLabel(this.order.status) : ''; }
   get statusColor(): string { return this.order ? getOrderStatusColor(this.order.status) : 'secondary'; }
