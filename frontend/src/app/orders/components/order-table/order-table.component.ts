@@ -49,6 +49,7 @@ export class OrderTableComponent implements OnChanges {
   @Input() selectable: boolean = true;
   @Input() showPagination: boolean = true;
   @Input() pageSize: number = 10;
+  @Input() pageIndex = 0;
   @Input() pageSizeOptions: number[] = [5, 10, 25, 50];
   @Input() columns: OrderTableColumn[] = [];
   @Input() selectedOrderIds: number[] = [];
@@ -66,7 +67,6 @@ export class OrderTableComponent implements OnChanges {
   @Output() pageChange = new EventEmitter<PageEvent>();
 
   selection = new SelectionModel<Order>(true, []);
-  pageIndex = 0;
   readonly OrderAction = OrderAction;
 
   ngOnChanges(changes: SimpleChanges): void {
