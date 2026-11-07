@@ -127,6 +127,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.36.1] — 2026-11-07
+
+### Fixed
+
+- Chef de recouvrement : au contrôle d’un carnet tontine, la mise affichée et le montant calculé sont ceux en vigueur pour le mois coché. Un mois ancien conserve son ancienne mise lorsque celle-ci a changé. Hors ligne, actualiser le pack après la mise à jour.
+
 ## Mobile — [2.36.0] — 2026-11-06
 
 ### Added
@@ -177,6 +183,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.45.2] — 2026-11-07
+
+### Fixed
+
+- Pack terrain du chef de recouvrement : chaque mois d’un membre tontine indique la mise en vigueur à la fin de ce mois, d’après l’historique des mises.
 
 ## Backend — [1.45.1] — 2026-11-06
 

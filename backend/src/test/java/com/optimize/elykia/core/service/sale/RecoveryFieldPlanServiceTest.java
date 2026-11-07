@@ -8,6 +8,7 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.dto.CreditLateDTO;
 import com.optimize.elykia.core.dto.sale.FieldDayPlanRequestDto;
 import com.optimize.elykia.core.dto.sale.RmClientContactUpdateDto;
+import com.optimize.elykia.core.dto.sale.RmPackTontineMonthDto;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditFieldControl;
 import com.optimize.elykia.core.entity.sale.RecoveryFieldDayPlan;
@@ -18,9 +19,14 @@ import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.RecoveryFieldDayPlanRepository;
+import com.optimize.elykia.core.entity.tontine.TontineMember;
+import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistory;
+import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
+import com.optimize.elykia.core.repository.TontineMemberAmountHistoryRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
+import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
 import com.optimize.elykia.core.service.CreditLateService;
 import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
@@ -74,6 +80,8 @@ class RecoveryFieldPlanServiceTest {
     @Mock
     private ParameterService parameterService;
     @Mock
+    private TontineMemberAmountHistoryRepository amountHistoryRepository;
+    @Mock
     private Client client;
 
     private RecoveryFieldPlanService service;
@@ -91,7 +99,9 @@ class RecoveryFieldPlanServiceTest {
                 clientService,
                 new ObjectMapper(),
                 recontrolPolicy,
-                parameterService);
+                parameterService,
+                amountHistoryRepository,
+                new TontineAmountHistoryHelper(parameterService));
     }
 
     @Test
@@ -329,6 +339,53 @@ class RecoveryFieldPlanServiceTest {
         assertEquals(FieldControlStatus.CONFORME, dto.getStatus());
         assertEquals(observedAt, dto.getObservedAt());
         assertEquals("manager.a", dto.getObservedBy());
+    }
+
+    @Test
+    void getTontineMemberForField_appliesStakeInForceAtEndOfEachMonth() {
+        TontineSession session = new TontineSession();
+        session.setYear(2026);
+        TontineMember member = new TontineMember();
+        member.setId(5L);
+        member.setAmount(1000d);
+        member.setTontineSession(session);
+        member.setClient(client);
+        when(client.getFirstname()).thenReturn("Awa");
+        when(client.getLastname()).thenReturn("Koffi");
+        when(client.getTontineCollector()).thenReturn("com1");
+        when(tontineMemberRepository.findById(5L)).thenReturn(Optional.of(member));
+        when(tontineCollectionRepository.sumMonthlyByMemberId(5L, State.ENABLED)).thenReturn(List.of());
+        when(tontineCollectionRepository.sumMonthlyByMemberIdAndCommercial(5L, State.ENABLED)).thenReturn(List.of());
+        when(tontineCollectionRepository.findFirstCollectionDateByMemberAndCommercial(List.of(5L), State.ENABLED))
+                .thenReturn(List.of());
+        when(amountHistoryRepository.findByTontineMember_IdOrderByStartDateAsc(5L)).thenReturn(List.of(
+                amountHistory(300d, LocalDate.of(2026, 2, 1), LocalDate.of(2026, 10, 31)),
+                amountHistory(1000d, LocalDate.of(2026, 11, 1), null)));
+
+        var dto = service.getTontineMemberForField(5L);
+
+        assertEquals(300d, dailyAmount(dto.getMonths(), 9));
+        assertEquals(300d, dailyAmount(dto.getMonths(), 10));
+        assertEquals(1000d, dailyAmount(dto.getMonths(), 11));
+        assertEquals(300d, dailyAmount(dto.getCollectors().get(0).getMonths(), 9));
+        assertEquals(1000d, dailyAmount(dto.getCollectors().get(0).getMonths(), 11));
+        assertTrue(member.getAmountHistory().isEmpty());
+    }
+
+    private static double dailyAmount(List<RmPackTontineMonthDto> months, int month) {
+        return months.stream()
+                .filter(row -> row.getMonth() == month)
+                .findFirst()
+                .orElseThrow()
+                .getDailyAmount();
+    }
+
+    private static TontineMemberAmountHistory amountHistory(double amount, LocalDate start, LocalDate end) {
+        TontineMemberAmountHistory entry = new TontineMemberAmountHistory();
+        entry.setAmount(amount);
+        entry.setStartDate(start);
+        entry.setEndDate(end);
+        return entry;
     }
 
     private FieldDayPlanRequestDto planRequest(LocalDate date, List<String> commercials, List<String> quarters) {

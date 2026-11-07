@@ -10,4 +10,6 @@ public class RmPackTontineMonthDto {
     /** Calendar month 1–12 (tontine session: 2–11). */
     private Integer month;
     private Double systemAmount;
+    /** Mise journalière en vigueur au dernier jour de ce mois. */
+    private Double dailyAmount;
 }

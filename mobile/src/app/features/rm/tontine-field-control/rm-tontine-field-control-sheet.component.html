@@ -77,9 +77,9 @@
         </div>
         <div class="month-input" *ngIf="row.selected" (click)="$event.stopPropagation()">
           <ng-container *ngIf="!row.useManual">
-            <p class="mise-readonly">Mise : {{ formatAmount(dailyMise) }} FCFA</p>
+            <p class="mise-readonly">Mise : {{ formatAmount(row.dailyMise) }} FCFA</p>
             <app-mise-day-pills
-              [dailyMise]="dailyMise"
+              [dailyMise]="row.dailyMise"
               [maxDays]="row.maxDays"
               [selectedUpTo]="row.selectedUpTo"
               [disabled]="submitting"

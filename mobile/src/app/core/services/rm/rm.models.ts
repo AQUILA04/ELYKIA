@@ -57,6 +57,8 @@ export interface RmPackTontineMonth {
   year: number;
   month: number;
   systemAmount: number;
+  /** Mise journalière en vigueur pour ce mois. Absente des packs téléchargés avant ce champ. */
+  dailyAmount?: number;
 }
 
 export interface RmPackTontineCollector {
