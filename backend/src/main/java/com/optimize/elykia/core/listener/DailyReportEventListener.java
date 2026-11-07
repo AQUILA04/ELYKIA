@@ -14,6 +14,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.LocalDate;
 
@@ -185,7 +187,9 @@ public class DailyReportEventListener {
                                                 + ")");
         }
 
-        @EventListener
+        // Après le commit du recouvrement : un échec ensuite (reliquat absent, rollback)
+        // ne doit pas laisser une ligne de journal ni gonfler le montant à verser.
+        @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
         @Transactional(propagation = Propagation.REQUIRES_NEW)
         public void handleCreditCollection(CreditCollectionEvent event) {
                 log.info("Processing CreditCollectionEvent for collector: {}", event.getCollector());
@@ -228,7 +232,7 @@ public class DailyReportEventListener {
                                 used);
         }
 
-        @EventListener
+        @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
         @Transactional(propagation = Propagation.REQUIRES_NEW)
         public void handleCreditCollectionCancelled(CreditCollectionCancelledEvent event) {
                 log.info("Processing CreditCollectionCancelledEvent for collector: {} on date: {}",

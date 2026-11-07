@@ -213,6 +213,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.46.7] — 2026-11-08
+
+### Fixed
+
+- Recouvrement crédit : le journal et le montant à verser ne sont mis à jour qu'une fois le recouvrement enregistré. Un échec ensuite (reliquat introuvable, annulation de la transaction) ne laisse plus de ligne en double.
+- Journée du 7 novembre 2026 de COM019 : retrait de la ligne de journal orpheline de 2 600 FCFA sur `REC-2026019-BF5594` (16:40). Le montant à verser redescend de 2 100 FCFA et rejoint le versement déjà fait (41 850).
+
 ## Backend — [1.46.6] — 2026-11-07
 
 ### Added
