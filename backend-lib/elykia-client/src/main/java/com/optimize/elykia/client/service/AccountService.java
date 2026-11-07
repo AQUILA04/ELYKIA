@@ -63,8 +63,8 @@ public class AccountService extends GenericService<Account, Long> {
     }
 
     /**
-     * Synchronise un compte. Si le client en a déjà un, le compte existant est renvoyé
-     * tel quel (solde et numéro d'agence), avec un message qui nomme le client.
+     * Synchronise un compte. Si le client en a déjà un, ce compte est renvoyé
+     * (numéro et solde d'agence). Un compte seulement créé est activé avant l'envoi.
      */
     @Transactional
     public AccountCommandResult syncAccountResult(AccountDto accountDto) {
@@ -84,7 +84,13 @@ public class AccountService extends GenericService<Account, Long> {
                 publishAccountCreationEvent(saved);
                 return AccountCommandResult.created(saved);
             }
-            log.info("Compte déjà existant pour le client {} : compte {}", client.getId(), found.getId());
+            if (status == AccountStatus.ACTIF && found.getStatus() == AccountStatus.CREATED) {
+                found.setStatus(AccountStatus.ACTIF);
+                found = update(found);
+                log.info("Compte {} du client {} activé lors de la synchronisation", found.getId(), client.getId());
+            } else {
+                log.info("Compte déjà existant pour le client {} : compte {}", client.getId(), found.getId());
+            }
             return AccountCommandResult.alreadyExists(found, client);
         }
         incoming.setStatus(status);

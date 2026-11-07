@@ -337,7 +337,7 @@ Sur l'écran d'accueil, l'icône de synchronisation en haut à droite affiche un
 Si une opération n'a pas pu partir (par exemple si un numéro de téléphone manquait sur une cliente) :
 * L'opération n'est jamais perdue : elle est placée dans la boîte **Erreurs de synchronisation** (accessible via **Plus > Erreurs de synchronisation**).
 * Touchez la ligne en échec : un bouton **« Éditer le parent »** vous amène directement sur la fiche à corriger. Dès que vous avez corrigé le champ manquant, relancez la synchronisation : tout rentrera dans l'ordre !
-* Si la cliente a déjà un compte à l'agence, le téléphone reprend ce compte (numéro et solde) et affiche un message qui le précise. Le compte local en double n'est pas créé une seconde fois.
+* Si la cliente a déjà un compte à l'agence, le téléphone reprend ce compte (numéro et solde) et affiche un message qui le précise. Le compte local en double n'est pas créé une seconde fois. Si ce compte n'était pas encore actif, il le devient.
 
 ---
 

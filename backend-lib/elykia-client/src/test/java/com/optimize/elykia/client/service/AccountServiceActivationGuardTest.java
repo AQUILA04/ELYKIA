@@ -112,6 +112,29 @@ class AccountServiceActivationGuardTest {
     }
 
     @Test
+    void syncAccount_activatesCreatedAccountBeforeReturningIt() {
+        stubLock();
+        AccountDto dto = accountDto(3038L);
+        Client client = activeClient(3038L, "lntris", "lupin");
+        Account existing = existingAccount(3571L, "0021022942", 2000, client);
+        existing.setStatus(AccountStatus.CREATED);
+        when(clientRepository.findById(3038L)).thenReturn(Optional.of(client));
+        when(accountRepository.findFirstByClient_Id(3038L)).thenReturn(Optional.of(existing));
+        when(accountMapper.toEntity(dto)).thenReturn(new Account());
+        when(accountRepository.saveAndFlush(existing)).thenReturn(existing);
+
+        AccountCommandResult result = accountService.syncAccountResult(dto);
+
+        assertTrue(result.alreadyExists());
+        assertEquals(AccountStatus.ACTIF, existing.getStatus());
+        assertEquals(AccountStatus.ACTIF, result.account().status());
+        assertEquals("0021022942", result.account().accountNumber());
+        assertEquals(2000, result.account().accountBalance());
+        verify(accountRepository).saveAndFlush(existing);
+        verify(eventPublisher, never()).publishEvent(any());
+    }
+
+    @Test
     void createAccount_returnsExistingAccountWithoutInsert() {
         stubLock();
         AccountDto dto = accountDto(12L);
@@ -127,6 +150,24 @@ class AccountServiceActivationGuardTest {
         assertEquals("Le client Awa Koffi a déjà un compte (n° 0021020003).", result.message());
         assertEquals(7L, result.account().id());
         verify(accountRepository, never()).save(any());
+    }
+
+    @Test
+    void createAccount_leavesCreatedAccountInactive() {
+        stubLock();
+        AccountDto dto = accountDto(12L);
+        Client client = activeClient(12L, "Awa", "Koffi");
+        Account existing = existingAccount(7L, "0021020003", 500, client);
+        existing.setStatus(AccountStatus.CREATED);
+        when(clientRepository.findById(12L)).thenReturn(Optional.of(client));
+        when(accountRepository.findFirstByClient_Id(12L)).thenReturn(Optional.of(existing));
+        when(accountMapper.toEntity(dto)).thenReturn(new Account());
+
+        AccountCommandResult result = accountService.createAccountResult(dto);
+
+        assertEquals(AccountStatus.CREATED, existing.getStatus());
+        assertEquals(AccountStatus.CREATED, result.account().status());
+        verify(accountRepository, never()).saveAndFlush(any());
     }
 
     @Test
