@@ -13,6 +13,7 @@ import com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDetailDto;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
+import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CreditCollectorHistoryRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
@@ -141,6 +142,33 @@ class FormerPortfolioServiceTest {
         when(creditRepository.findById(9L)).thenReturn(Optional.of(sale));
 
         assertThat(service.decideCredit(9L)).isEqualTo(FormerPortfolioAccess.Level.FORMER);
+    }
+
+    @Test
+    void cancelledSaleStaysReadableForStaff() {
+        User manager = mock(User.class);
+        when(manager.is(UserProfilConstant.PROMOTER)).thenReturn(false);
+        when(userService.getCurrentUser()).thenReturn(manager);
+        Credit sale = new Credit();
+        sale.setId(1L);
+        sale.setState(State.DELETED);
+        sale.setStatus(CreditStatus.CANCELLED);
+        sale.setCollector("COM020");
+        when(creditRepository.findById(1L)).thenReturn(Optional.of(sale));
+
+        assertThat(service.decideCredit(1L)).isEqualTo(FormerPortfolioAccess.Level.FULL);
+    }
+
+    @Test
+    void deletedSaleThatIsNotCancelledStaysHidden() {
+        Credit sale = new Credit();
+        sale.setId(2L);
+        sale.setState(State.DELETED);
+        sale.setStatus(CreditStatus.CREATED);
+        when(creditRepository.findById(2L)).thenReturn(Optional.of(sale));
+
+        assertThatThrownBy(() -> service.decideCredit(2L))
+                .isInstanceOf(CustomValidationException.class);
     }
 
     @Test

@@ -21,6 +21,7 @@ import com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDto;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditCollectorHistory;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
+import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.repository.CreditCollectorHistoryRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
@@ -367,7 +368,8 @@ public class FormerPortfolioService {
 
     private Credit loadCredit(Long creditId) {
         return creditRepository.findById(creditId)
-                .filter(credit -> credit.getState() == State.ENABLED)
+                .filter(credit -> credit.getState() == State.ENABLED
+                        || credit.getStatus() == CreditStatus.CANCELLED)
                 .orElseThrow(() -> new CustomValidationException("Vente introuvable."));
     }
 
