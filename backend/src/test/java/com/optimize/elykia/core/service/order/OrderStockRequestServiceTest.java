@@ -11,7 +11,10 @@ import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.entity.sale.OrderItem;
 import com.optimize.elykia.core.entity.stock.StockRequest;
 import com.optimize.elykia.core.entity.stock.StockRequestOrderLink;
+import com.optimize.elykia.core.dto.PendingOrderStockPreviewDto;
+import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
+import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.repository.OrderRepository;
 import com.optimize.elykia.core.repository.StockRequestOrderLinkRepository;
 import com.optimize.elykia.core.service.stock.StockRequestService;
@@ -33,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -138,6 +142,76 @@ class OrderStockRequestServiceTest {
 
         assertThrows(CustomValidationException.class, () -> service.createFromOrders(List.of(10L), false));
         verify(orderRepository, never()).findById(any());
+    }
+
+    @Test
+    void createFromPending_groupsEveryPendingOrderByCollector() {
+        User staff = staffUser();
+        when(userService.getCurrentUser()).thenReturn(staff);
+        Order order1 = order(10L, OrderStatus.PENDING, "commercial.a", item(article(1L), 2));
+        Order order2 = order(12L, OrderStatus.PENDING, "commercial.b", item(article(1L), 1));
+        when(orderRepository.findEligiblePendingForStockRequest(
+                eq(OrderStatus.PENDING), isNull(), eq(""), any()))
+                .thenReturn(List.of(order1, order2));
+        when(stockRequestService.createRequest(any(StockRequest.class), eq(false)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(linkRepository.save(any(StockRequestOrderLink.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        List<StockRequest> created = service.createFromPending(null, false);
+
+        assertEquals(2, created.size());
+        verify(stockRequestService, times(2)).createRequest(any(StockRequest.class), eq(false));
+    }
+
+    @Test
+    void createFromPending_limitsPromoterToOwnOrders() {
+        User promoter = staffUser();
+        when(promoter.is(UserProfilConstant.PROMOTER)).thenReturn(true);
+        when(promoter.getUsername()).thenReturn("commercial.a");
+        when(userService.getCurrentUser()).thenReturn(promoter);
+        Order own = order(10L, OrderStatus.PENDING, "commercial.a", item(article(1L), 2));
+        when(orderRepository.findEligiblePendingForStockRequest(
+                eq(OrderStatus.PENDING), eq(OrderSource.CUSTOMER_SPACE), eq("commercial.a"), any()))
+                .thenReturn(List.of(own));
+        when(stockRequestService.createRequest(any(StockRequest.class), eq(true)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+        when(linkRepository.save(any(StockRequestOrderLink.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        List<StockRequest> created = service.createFromPending(OrderSource.CUSTOMER_SPACE, true);
+
+        assertEquals(1, created.size());
+        assertEquals("commercial.a", created.get(0).getCollector());
+    }
+
+    @Test
+    void createFromPending_rejectsWhenNothingEligible() {
+        User staff = staffUser();
+        when(userService.getCurrentUser()).thenReturn(staff);
+        when(orderRepository.findEligiblePendingForStockRequest(any(), any(), any(), any()))
+                .thenReturn(List.of());
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> service.createFromPending(null, false));
+        assertTrue(ex.getMessage().contains("Aucune commande en attente"));
+        verify(stockRequestService, never()).createRequest(any(), anyBoolean());
+    }
+
+    @Test
+    void previewPending_sumsQuantitiesPerCommercial() {
+        User staff = staffUser();
+        when(userService.getCurrentUser()).thenReturn(staff);
+        Order order1 = order(10L, OrderStatus.PENDING, "commercial.a", item(article(1L), 2));
+        Order order2 = order(11L, OrderStatus.PENDING, "commercial.a", item(article(1L), 3));
+        when(orderRepository.findEligiblePendingForStockRequest(any(), any(), eq(""), any()))
+                .thenReturn(List.of(order1, order2));
+
+        PendingOrderStockPreviewDto preview = service.previewPending(null);
+
+        assertEquals(2, preview.getOrderCount());
+        assertEquals(1, preview.getGroups().size());
+        assertEquals(5, preview.getGroups().get(0).getArticles().get(0).getQuantity());
     }
 
     private User staffUser() {

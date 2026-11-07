@@ -366,6 +366,7 @@
   box-shadow: var(--shadow-sm);
 }
 .order-dashboard-page .btn-primary:hover { background: var(--navy-dark); }
+.order-dashboard-page .btn-primary:disabled { opacity: .55; cursor: not-allowed; }
 .order-dashboard-page .btn-primary svg { width: 14px; height: 14px; }
 
 .order-dashboard-page .btn-download {

@@ -65,6 +65,7 @@ export class OrderTableComponent implements OnChanges {
   @Output() actionClick = new EventEmitter<OrderTableAction>();
   @Output() rowClick = new EventEmitter<Order>();
   @Output() pageChange = new EventEmitter<PageEvent>();
+  @Output() downloadClick = new EventEmitter<Order>();
 
   selection = new SelectionModel<Order>(true, []);
   readonly OrderAction = OrderAction;
@@ -162,6 +163,11 @@ export class OrderTableComponent implements OnChanges {
   onActionClick(order: Order, action: OrderAction, event: Event): void {
     event.stopPropagation();
     this.actionClick.emit({ order, action });
+  }
+
+  onDownloadClick(order: Order, event: Event): void {
+    event.stopPropagation();
+    this.downloadClick.emit(order);
   }
 
   getOrderActions(order: Order): OrderAction[] {

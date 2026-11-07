@@ -51,6 +51,22 @@ public class StockRequestController {
         return ResponseEntity.ok(orderStockRequestService.createFromOrders(dto.getOrderIds(), forNextMonth));
     }
 
+    @GetMapping("/from-pending-orders/preview")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.ORDER_STOCK_REQUEST + "')")
+    public ResponseEntity<com.optimize.elykia.core.dto.PendingOrderStockPreviewDto> previewPendingOrders(
+            @RequestParam(required = false) com.optimize.elykia.core.enumaration.OrderSource source) {
+        return ResponseEntity.ok(orderStockRequestService.previewPending(source));
+    }
+
+    @PostMapping("/from-pending-orders")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.ORDER_STOCK_REQUEST + "')")
+    public ResponseEntity<List<StockRequest>> createFromPendingOrders(
+            @RequestBody(required = false) com.optimize.elykia.core.dto.CreatePendingStockRequestDto dto) {
+        boolean forNextMonth = dto != null && Boolean.TRUE.equals(dto.getForNextMonth());
+        com.optimize.elykia.core.enumaration.OrderSource source = dto == null ? null : dto.getSource();
+        return ResponseEntity.ok(orderStockRequestService.createFromPending(source, forNextMonth));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<StockRequest> updateRequest(@PathVariable Long id, @RequestBody StockRequest updateDto) {
         return ResponseEntity.ok(service.updateRequest(id, updateDto));

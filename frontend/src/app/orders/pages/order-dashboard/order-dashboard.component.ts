@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, Subject, combineLatest } from 'rxjs';
-import { takeUntil, map, startWith } from 'rxjs/operators';
+import { takeUntil, map, startWith, finalize } from 'rxjs/operators';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -16,7 +16,8 @@ import {
   StatusTabConfig,
   DEFAULT_STATUS_TABS,
   OrderAction,
-  OrderFilters
+  OrderFilters,
+  PendingStockRequestPreview
 } from '../../types/order.types';
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { UserService } from 'src/app/user/service/user.service';
@@ -68,6 +69,7 @@ export class OrderDashboardComponent implements OnInit, AfterViewInit, OnDestroy
   canDelete = false;
   canDeny = false;
   canRequestStock = false;
+  pendingStockBusy = false;
   private tabCounts: Partial<Record<OrderStatus | 'ALL', number>> = {};
   private suppressTabChange = true;
 
@@ -417,6 +419,89 @@ export class OrderDashboardComponent implements OnInit, AfterViewInit, OnDestroy
               });
           }
       });
+  }
+
+  downloadOrderSheet(order: Order): void {
+    this.orderService.downloadOrderSheet(order.id).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe({
+      next: (data) => this.savePdf(data, `fiche-commande-${order.id}.pdf`),
+      error: (err) => this.showError(err?.error?.message || 'Erreur lors du téléchargement de la fiche')
+    });
+  }
+
+  requestStockForAllPending(): void {
+    if (!this.canRequestStock || this.pendingStockBusy) {
+      return;
+    }
+    const source = this.onlineMode ? OrderSource.CUSTOMER_SPACE : undefined;
+    this.pendingStockBusy = true;
+    this.cdr.markForCheck();
+    this.orderService.previewPendingStockRequests(source).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.pendingStockBusy = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: (preview: PendingStockRequestPreview) => this.openPendingStockDialog(preview, source),
+      error: (err) => this.showError(err?.error?.message || err?.message || 'Erreur lors de la préparation de la demande de stock')
+    });
+  }
+
+  private openPendingStockDialog(preview: PendingStockRequestPreview, source?: OrderSource): void {
+    if (!preview?.groups?.length) {
+      this.showError('Aucune commande en attente éligible pour une demande de stock.');
+      return;
+    }
+    const dialogRef = this.dialog.open(OrderStockRequestModalComponent, {
+      width: '560px',
+      data: {
+        orderCount: preview.orderCount,
+        groups: preview.groups.map(group => ({
+          collector: group.collector,
+          orderIds: [...group.orderIds],
+          articles: group.articles.map(article => ({ name: article.name, quantity: article.quantity }))
+        }))
+      }
+    });
+    dialogRef.afterClosed().subscribe((result: OrderStockRequestModalResult | undefined) => {
+      if (!result?.confirmed) {
+        return;
+      }
+      this.pendingStockBusy = true;
+      this.cdr.markForCheck();
+      this.orderService.createStockRequestsFromPending(result.forNextMonth, source).pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.pendingStockBusy = false;
+          this.cdr.markForCheck();
+        })
+      ).subscribe({
+        next: (created) => {
+          const count = Array.isArray(created) ? created.length : 1;
+          this.showSuccess(
+            count > 1
+              ? `${count} demandes de stock créées`
+              : 'Demande de stock créée avec succès'
+          );
+          this.loadOrders();
+          this.onClearSelection();
+        },
+        error: (err) => this.showError(err?.error?.message || err?.message || 'Erreur lors de la création de la demande de stock')
+      });
+    });
+  }
+
+  private savePdf(data: Blob, filename: string): void {
+    const blob = new Blob([data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    window.URL.revokeObjectURL(url);
+    this.showSuccess('Fiche de commande téléchargée');
   }
 
   private createStockRequest(orders: Order[]): void {

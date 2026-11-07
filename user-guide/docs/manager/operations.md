@@ -160,6 +160,14 @@ Les commandes passées par les clients depuis l’Espace Client apparaissent dan
 6. Sur une commande en attente, cliquez sur **Valider**. Pour en traiter plusieurs, cochez-les puis cliquez sur **Valider la sélection**.
 7. Pour écarter une commande en attente, cliquez sur **Refuser**. La même action existe pour une sélection : **Refuser la sélection**. La commande passe dans l’onglet **Autres**.
 8. Une fois la commande validée et la marchandise chez le commercial, cliquez sur **Marquer comme livrée** : la vente est créée automatiquement et la commande passe à **Livrée**.
+9. Sur chaque ligne, cliquez sur **Fiche** pour télécharger la fiche. Le bouton est présent pour une commande en attente, validée, livrée, refusée ou annulée. Dans le détail, le bouton s’appelle **Télécharger la fiche**. Le document reprend l’entreprise, le nom et le prénom du client, son téléphone, son quartier, son adresse, le commercial associé, la date, le statut et les articles avec le montant.
+10. Cliquez sur **Demande de stock (en attente)** pour préparer une demande par commercial. Chaque demande regroupe les commandes en ligne en attente de ce commercial qui ne sont pas déjà dans une demande de stock. La fenêtre rappelle les articles et les quantités. Cochez **Pour le mois prochain** si la sortie doit porter sur le mois suivant, puis confirmez.
+
+### Menu Commandes
+
+1. Ouvrez **Commandes**.
+2. **Fiche** sur la liste, et **Télécharger la fiche** dans le détail, sont disponibles pour chaque commande, quel que soit son statut.
+3. **Demande de stock (en attente)** prépare une demande par commercial. Chaque demande regroupe les commandes en attente de ce commercial qui ne sont pas déjà dans une demande de stock.
 
 ---
 

@@ -4,6 +4,7 @@ import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
+import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -11,6 +12,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
+import java.util.List;
 
 public interface OrderRepository extends GenericRepository<Order, Long> {
 
@@ -83,6 +85,29 @@ public interface OrderRepository extends GenericRepository<Order, Long> {
             @Param("collector") String collector,
             @Param("search") String search,
             Pageable pageable);
+
+    @Query("""
+            SELECT o FROM Order o
+            JOIN FETCH o.client c
+            WHERE o.status = :status
+              AND o.state <> 'DELETED'
+              AND (:source IS NULL OR o.source = :source)
+              AND (:collector = '' OR UPPER(c.collector) = UPPER(:collector))
+              AND c.collector IS NOT NULL
+              AND TRIM(c.collector) <> ''
+              AND NOT EXISTS (
+                    SELECT l.id FROM StockRequestOrderLink l
+                    JOIN l.stockRequest sr
+                    WHERE l.order.id = o.id
+                      AND l.state <> 'DELETED'
+                      AND sr.status IN :activeStatuses
+              )
+            """)
+    List<Order> findEligiblePendingForStockRequest(
+            @Param("status") OrderStatus status,
+            @Param("source") OrderSource source,
+            @Param("collector") String collector,
+            @Param("activeStatuses") Collection<StockRequestStatus> activeStatuses);
 
     @Query("SELECT COUNT(o) FROM Order o WHERE o.status = :status AND o.state <> 'DELETED'")
     long countByStatus(@Param("status") OrderStatus status);

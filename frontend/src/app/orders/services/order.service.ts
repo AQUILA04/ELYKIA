@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
-import { map, catchError, tap, finalize } from 'rxjs/operators';
+import { Observable, throwError, BehaviorSubject, from } from 'rxjs';
+import { map, catchError, tap, finalize, mergeMap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { LoadingStateService, LOADING_OPERATIONS } from './loading-state.service';
@@ -20,6 +20,8 @@ import {
   PaginatedResponse,
   OrderStatus,
   OrderState,
+  OrderSource,
+  PendingStockRequestPreview,
   ORDER_CONSTANTS
 } from '../types/order.types';
 import { AuthService } from "../../auth/service/auth.service";
@@ -442,6 +444,56 @@ export class OrderService {
     const url = `${environment.apiUrl}/api/stock-requests/from-orders`;
     return this.http.post<any[]>(url, { orderIds, forNextMonth }, { headers }).pipe(
       catchError(this.handleApiError.bind(this))
+    );
+  }
+
+  previewPendingStockRequests(source?: OrderSource): Observable<PendingStockRequestPreview> {
+    const headers = this.getHeaders();
+    let params = new HttpParams();
+    if (source) {
+      params = params.set('source', source);
+    }
+    return this.http.get<PendingStockRequestPreview>(
+      `${environment.apiUrl}/api/stock-requests/from-pending-orders/preview`,
+      { headers, params }
+    );
+  }
+
+  createStockRequestsFromPending(forNextMonth: boolean, source?: OrderSource): Observable<any[]> {
+    const headers = this.getHeaders();
+    return this.http.post<any[]>(
+      `${environment.apiUrl}/api/stock-requests/from-pending-orders`,
+      { forNextMonth, source: source ?? null },
+      { headers }
+    );
+  }
+
+  downloadOrderSheet(orderId: number): Observable<Blob> {
+    const token = this.tokenStorage.getToken();
+    const headers = new HttpHeaders({ Authorization: `Bearer ${token}` });
+    return this.http.get(`${this.apiUrl}/${orderId}/pdf`, {
+      headers,
+      responseType: 'blob'
+    }).pipe(catchError((err: HttpErrorResponse) => this.mapBlobError(err)));
+  }
+
+  private mapBlobError(err: HttpErrorResponse): Observable<never> {
+    if (!(err.error instanceof Blob)) {
+      return throwError(() => err);
+    }
+    return from(err.error.text()).pipe(
+      mergeMap((text: string) => {
+        let message = 'Erreur lors du téléchargement de la fiche';
+        try {
+          const body = JSON.parse(text);
+          if (body?.message) {
+            message = body.message;
+          }
+        } catch {
+          // La réponse d'erreur n'est pas du JSON.
+        }
+        return throwError(() => ({ error: { message } }));
+      })
     );
   }
 

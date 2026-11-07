@@ -257,6 +257,10 @@ Les commandes sont réparties selon leur avancement :
 2. **Accepter** : sur une commande en attente, cliquez sur **Accepter**. Pour plusieurs commandes, cochez-les puis cliquez sur **Accepter la sélection**.
 3. **Annuler** : le bouton **Annuler** apparaît sur une commande que vous avez créée, ou qui a été créée pour vous. La commande passe dans l’onglet **Autres**.
 4. **Vendre** : sur une commande validée, transformez-la en vente. La vente est créée automatiquement et la commande passe à **Livrée**.
+5. **Fiche** : sur chaque ligne, cliquez sur **Fiche** pour télécharger la fiche de la commande. Le bouton est présent pour une commande en attente, validée, livrée, refusée ou annulée.
+6. Ouvrez la commande, puis cliquez sur **Télécharger la fiche**. Le document reprend l’entreprise, le nom et le prénom du client, son téléphone, son quartier, son adresse, le commercial associé, la date, le statut et les articles avec le montant.
+7. **Demande de stock (en attente)** prépare une demande de stock pour toutes les commandes en attente qui ne sont pas déjà dans une demande. La fenêtre rappelle les articles et les quantités. Cochez **Pour le mois prochain** si la sortie doit porter sur le mois suivant, puis confirmez.
+8. Sur **Services en ligne** > **Commandes**, **Fiche** et **Télécharger la fiche** fonctionnent de la même façon. **Demande de stock (en attente)** ne reprend alors que les commandes en ligne en attente.
 
 ---
 

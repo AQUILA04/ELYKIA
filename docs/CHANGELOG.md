@@ -68,6 +68,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.43.3] — 2026-11-07
+
+### Added
+
+- Commandes : le bouton **Fiche** sur chaque ligne, et **Télécharger la fiche** dans le détail, téléchargent la fiche quel que soit le statut.
+- Commandes : **Demande de stock (en attente)** prépare une demande pour toutes les commandes en attente du périmètre, une par commercial lorsque plusieurs commerciaux sont concernés.
+
 ## Frontend — [2.43.2] — 2026-11-07
 
 ### Fixed
@@ -205,6 +212,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.46.6] — 2026-11-07
+
+### Added
+
+- Fiche PDF d'une commande (client, commercial, date, statut, articles), téléchargeable pour tous les statuts.
+- Création d'une demande de stock pour toutes les commandes en attente : le commercial ne couvre que son portefeuille ; une demande est créée par commercial.
 
 ## Backend — [1.46.5] — 2026-11-07
 

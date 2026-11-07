@@ -9,7 +9,9 @@ export interface OrderStockRequestGroup {
 }
 
 export interface OrderStockRequestModalData {
-  orders: Order[];
+  orders?: Order[];
+  groups?: OrderStockRequestGroup[];
+  orderCount?: number;
 }
 
 export interface OrderStockRequestModalResult {
@@ -31,7 +33,7 @@ export class OrderStockRequestModalComponent {
     public dialogRef: MatDialogRef<OrderStockRequestModalComponent, OrderStockRequestModalResult>,
     @Inject(MAT_DIALOG_DATA) public data: OrderStockRequestModalData
   ) {
-    this.groups = this.buildGroups(data.orders || []);
+    this.groups = data.groups?.length ? data.groups : this.buildGroups(data.orders || []);
   }
 
   onConfirm(): void {
@@ -43,6 +45,9 @@ export class OrderStockRequestModalComponent {
   }
 
   get orderCount(): number {
+    if (this.data.orderCount != null) {
+      return this.data.orderCount;
+    }
     return this.data.orders?.length || 0;
   }
 

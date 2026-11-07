@@ -39,6 +39,7 @@ public class OrderController {
 
     private final OrderService orderService;
     private final PdfService pdfService;
+    private final com.optimize.elykia.core.service.order.OrderSheetPdfService orderSheetPdfService;
 
     @PostMapping
     public ResponseEntity<Response> createOrder(@RequestBody @Valid OrderDto dto) {
@@ -80,6 +81,15 @@ public class OrderController {
     @PatchMapping("/status")
     public ResponseEntity<Response> updateOrderStatus(@RequestBody @Valid UpdateOrderStatusDto dto) {
         return new ResponseEntity<>(ResponseUtil.successResponse(orderService.updateOrderStatus(dto)), HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> downloadOrderSheet(@PathVariable Long id) {
+        byte[] pdf = orderSheetPdfService.generate(id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=fiche-commande-" + id + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 
     @GetMapping("/{id}")

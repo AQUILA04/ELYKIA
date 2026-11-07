@@ -4,14 +4,17 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.core.dto.PendingOrderStockPreviewDto;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.entity.sale.OrderItem;
 import com.optimize.elykia.core.entity.stock.StockRequest;
 import com.optimize.elykia.core.entity.stock.StockRequestItem;
 import com.optimize.elykia.core.entity.stock.StockRequestOrderLink;
+import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.repository.OrderRepository;
+import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.repository.StockRequestOrderLinkRepository;
 import com.optimize.elykia.core.service.stock.StockRequestService;
 import com.optimize.elykia.core.util.UserPermissionConstant;
@@ -22,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +71,110 @@ public class OrderStockRequestService {
             created.add(createForCollector(entry.getKey(), entry.getValue(), forNextMonth));
         }
         return created;
+    }
+
+    public PendingOrderStockPreviewDto previewPending(OrderSource source) {
+        List<PendingOrderStockPreviewDto.Group> groups = toPreviewGroups(loadEligiblePending(source));
+        int orderCount = groups.stream().mapToInt(group -> group.getOrderIds().size()).sum();
+        return PendingOrderStockPreviewDto.builder()
+                .orderCount(orderCount)
+                .groups(groups)
+                .build();
+    }
+
+    public List<StockRequest> createFromPending(OrderSource source, boolean forNextMonth) {
+        List<Order> orders = loadEligiblePending(source).stream()
+                .filter(order -> order.getItems() != null && !order.getItems().isEmpty())
+                .toList();
+        if (orders.isEmpty()) {
+            throw new CustomValidationException(
+                    "Aucune commande en attente éligible pour une demande de stock.");
+        }
+
+        Map<String, List<Order>> byCollector = orders.stream()
+                .collect(Collectors.groupingBy(
+                        order -> order.getClient().getCollector().trim(),
+                        LinkedHashMap::new,
+                        Collectors.toList()));
+
+        List<StockRequest> created = new ArrayList<>();
+        for (Map.Entry<String, List<Order>> entry : byCollector.entrySet()) {
+            created.add(createForCollector(entry.getKey(), entry.getValue(), forNextMonth));
+        }
+        return created;
+    }
+
+    private List<Order> loadEligiblePending(OrderSource source) {
+        User currentUser = userService.getCurrentUser();
+        assertCanRequestStock(currentUser);
+        String collector = "";
+        if (AppNotificationService.isPromoterOnly(currentUser)) {
+            collector = currentUser.getUsername() == null ? "" : currentUser.getUsername().trim();
+            if (!StringUtils.hasText(collector)) {
+                throw new CustomValidationException("Commercial introuvable.");
+            }
+        }
+        List<Order> found = orderRepository.findEligiblePendingForStockRequest(
+                OrderStatus.PENDING,
+                source,
+                collector,
+                OrderService.ACTIVE_STOCK_REQUEST_STATUSES);
+        Map<Long, Order> unique = new LinkedHashMap<>();
+        for (Order order : found) {
+            if (order.getId() == null || order.getClient() == null
+                    || !StringUtils.hasText(order.getClient().getCollector())) {
+                continue;
+            }
+            if (StringUtils.hasText(collector)
+                    && !collector.equalsIgnoreCase(order.getClient().getCollector().trim())) {
+                continue;
+            }
+            if (order.getItems() != null) {
+                Hibernate.initialize(order.getItems());
+            }
+            unique.putIfAbsent(order.getId(), order);
+        }
+        return new ArrayList<>(unique.values());
+    }
+
+    private List<PendingOrderStockPreviewDto.Group> toPreviewGroups(List<Order> orders) {
+        Map<String, List<Order>> byCollector = orders.stream()
+                .filter(order -> order.getItems() != null && !order.getItems().isEmpty())
+                .collect(Collectors.groupingBy(
+                        order -> order.getClient().getCollector().trim(),
+                        LinkedHashMap::new,
+                        Collectors.toList()));
+
+        List<PendingOrderStockPreviewDto.Group> groups = new ArrayList<>();
+        for (Map.Entry<String, List<Order>> entry : byCollector.entrySet()) {
+            Map<String, Integer> quantities = new LinkedHashMap<>();
+            List<Long> orderIds = new ArrayList<>();
+            for (Order order : entry.getValue()) {
+                orderIds.add(order.getId());
+                for (OrderItem item : order.getItems()) {
+                    Articles article = item.getArticle();
+                    String name = article != null && StringUtils.hasText(article.getName())
+                            ? article.getName().trim()
+                            : "Article";
+                    int quantity = item.getQuantity() == null ? 0 : item.getQuantity();
+                    quantities.merge(name, quantity, Integer::sum);
+                }
+            }
+            orderIds.sort(Comparator.naturalOrder());
+            List<PendingOrderStockPreviewDto.ArticleLine> articles = quantities.entrySet().stream()
+                    .map(article -> PendingOrderStockPreviewDto.ArticleLine.builder()
+                            .name(article.getKey())
+                            .quantity(article.getValue())
+                            .build())
+                    .toList();
+            groups.add(PendingOrderStockPreviewDto.Group.builder()
+                    .collector(entry.getKey())
+                    .orderIds(orderIds)
+                    .articles(articles)
+                    .build());
+        }
+        groups.sort(Comparator.comparing(PendingOrderStockPreviewDto.Group::getCollector, String.CASE_INSENSITIVE_ORDER));
+        return groups;
     }
 
     private StockRequest createForCollector(String collector, List<Order> orders, boolean forNextMonth) {

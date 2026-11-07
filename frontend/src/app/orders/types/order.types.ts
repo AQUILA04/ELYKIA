@@ -30,6 +30,22 @@ export interface Order {
   readonly activeStockRequest?: ActiveStockRequestInfo | null;
 }
 
+export interface PendingStockArticleLine {
+  readonly name: string;
+  readonly quantity: number;
+}
+
+export interface PendingStockRequestGroup {
+  readonly collector: string;
+  readonly orderIds: number[];
+  readonly articles: PendingStockArticleLine[];
+}
+
+export interface PendingStockRequestPreview {
+  readonly orderCount: number;
+  readonly groups: PendingStockRequestGroup[];
+}
+
 export interface ActiveStockRequestInfo {
   readonly id: number;
   readonly reference: string;
