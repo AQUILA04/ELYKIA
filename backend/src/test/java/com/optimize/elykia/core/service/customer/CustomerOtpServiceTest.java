@@ -104,9 +104,16 @@ class CustomerOtpServiceTest {
         when(otpClient.verifyOtp(any(OtpVerifyRequest.class)))
                 .thenReturn(new OtpVerifyResponse(true, "VALID"));
         String proof = service.verifyOtp("90123456", "123456");
-        String tampered = proof.substring(0, proof.length() - 2) + "ff";
+        String tampered = flipLastCharacter(proof);
 
         assertThrows(CustomValidationException.class, () -> service.assertProofToken("90123456", tampered));
+    }
+
+    /** La signature hexadécimale se termine parfois par ff : la remplacer par ff ne changeait alors rien. */
+    private static String flipLastCharacter(String value) {
+        int last = value.length() - 1;
+        char flipped = value.charAt(last) == '0' ? '1' : '0';
+        return value.substring(0, last) + flipped;
     }
 
     @Test
