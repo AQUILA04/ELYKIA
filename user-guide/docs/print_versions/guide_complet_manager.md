@@ -304,6 +304,8 @@ Le bloc **Adhésions** apparaît sur la fiche client lorsque les crédits profes
 
 Lorsque le bloc est affiché, il indique, pour chaque type, le statut, le solde et le plafond de crédit.
 
+<!-- CAPTURE À INSÉRER : Bloc Adhésions de la fiche client avec soldes, plafonds et boutons de souscription. -->
+
 1. **Adhésion personnelle (500)** : le dépôt de 500 FCFA ouvre le crédit personnel, plafonné à **35 000 FCFA**. Un ajout au solde augmente le solde affiché. Le plafond personnel reste 35 000 FCFA.
 2. **Adhésion business (2 000)** : le dépôt de 2 000 FCFA devient le solde de départ. Le plafond du crédit professionnel est égal à **6 fois ce solde**. Cette souscription ouvre aussi le crédit personnel (plafond 35 000 FCFA) et le crédit événement, sans autre frais. Le crédit événement démarre avec un solde à 0 : utilisez **Ajouter au solde** pour augmenter son plafond (6 fois le solde).
 3. **Adhésion événement (2 000)** : même règle de plafond (6 fois le solde) pour un crédit événement, lorsque cette adhésion n'est pas déjà ouverte.
@@ -834,8 +836,8 @@ Sur la Vue d'ensemble, le bloc **Synthèse caisse** reprend l'ensemble des caiss
 
 1. **Dépenses (avec approvisionnement)** : total de toutes les dépenses de la période, approvisionnements compris.
 2. **Dépenses (sans approvisionnement)** : total des dépenses de la période, hors approvisionnements.
-3. **Total versé (période)** : somme des versements de tous les commerciaux sur la période.
-4. **Solde de caisse** : total versé moins les dépenses sans approvisionnement. C'est le solde de caisse à la fin de la journée, ou de la période sélectionnée.
+3. **Total versé (période)** : argent remis en caisse pendant la période, pour l'ensemble des commerciaux. Les rattrapages de jours précédents remis pendant cette période sont inclus. Un rattrapage remis un autre jour n'entre pas dans ce total.
+4. **Solde de caisse** : total versé moins les dépenses sans approvisionnement. C'est l'argent resté en caisse à la fin de la journée, ou de la période sélectionnée.
 
 <!-- CAPTURE À INSÉRER : Bloc Synthèse caisse de la Vue d'ensemble avec les quatre montants. -->
 

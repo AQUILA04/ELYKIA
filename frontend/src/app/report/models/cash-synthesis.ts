@@ -17,6 +17,10 @@ export function sumExpenseAmounts(
     }, 0);
 }
 
+export function depositedForCashDesk(reportTotal: number, catchupAdjustment: number): number {
+    return (Number(reportTotal) || 0) + (Number(catchupAdjustment) || 0);
+}
+
 export function cashDeskBalance(totalDeposited: number, expensesWithoutSupply: number): number {
     return (Number(totalDeposited) || 0) - (Number(expensesWithoutSupply) || 0);
 }

@@ -1,4 +1,4 @@
-import { cashDeskBalance, isSupplyExpense, sumExpenseAmounts } from './cash-synthesis';
+import { cashDeskBalance, depositedForCashDesk, isSupplyExpense, sumExpenseAmounts } from './cash-synthesis';
 
 describe('cash-synthesis', () => {
     const expenses = [
@@ -26,5 +26,11 @@ describe('cash-synthesis', () => {
     it('computes the cash balance as deposits minus expenses without supply', () => {
         expect(cashDeskBalance(8000, 1000)).toBe(7000);
         expect(cashDeskBalance(500, 1000)).toBe(-500);
+    });
+
+    it('adds catch-ups received in the period to the deposited total', () => {
+        expect(depositedForCashDesk(8000, 7000)).toBe(15000);
+        expect(depositedForCashDesk(15000, 0)).toBe(15000);
+        expect(depositedForCashDesk(7000, -7000)).toBe(0);
     });
 });

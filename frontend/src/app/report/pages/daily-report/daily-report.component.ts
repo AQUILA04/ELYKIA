@@ -24,7 +24,7 @@ import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-
 import { DebtService } from 'src/app/debt/services/debt.service';
 import { ExpenseService } from 'src/app/expense/services/expense.service';
 import { Expense } from 'src/app/expense/models/expense.model';
-import { cashDeskBalance, sumExpenseAmounts } from '../../models/cash-synthesis';
+import { cashDeskBalance, depositedForCashDesk, sumExpenseAmounts } from '../../models/cash-synthesis';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -104,6 +104,7 @@ export class DailyReportComponent implements OnInit {
     aggregatedReportData: any = null;
     periodExpenses: Expense[] = [];
     allPeriodReports: DailyCommercialReport[] = [];
+    catchupCashAdjustment = 0;
     cashSynthesisLoading = false;
     private cashSynthesisRequest = 0;
     surplusReallocations: SurplusReallocation[] = [];
@@ -413,6 +414,7 @@ export class DailyReportComponent implements OnInit {
         if (this.isPromoter || !startStr || !endStr) {
             this.periodExpenses = [];
             this.allPeriodReports = [];
+            this.catchupCashAdjustment = 0;
             this.cashSynthesisLoading = false;
             return;
         }
@@ -432,14 +434,21 @@ export class DailyReportComponent implements OnInit {
                 })
             )
             : of([] as DailyCommercialReport[]);
+        const catchupAdjustment$ = this.cashDepositService.getCatchupCashAdjustment(startStr, endStr).pipe(
+            catchError((err) => {
+                console.error('Error loading catchup cash adjustment', err);
+                return of(0);
+            })
+        );
 
-        forkJoin({ expenses: expenses$, reports: reports$ }).subscribe({
-            next: ({ expenses, reports }) => {
+        forkJoin({ expenses: expenses$, reports: reports$, catchupAdjustment: catchupAdjustment$ }).subscribe({
+            next: ({ expenses, reports, catchupAdjustment }) => {
                 if (requestId !== this.cashSynthesisRequest) {
                     return;
                 }
                 this.periodExpenses = expenses || [];
                 this.allPeriodReports = reports || [];
+                this.catchupCashAdjustment = catchupAdjustment || 0;
                 this.cashSynthesisLoading = false;
             },
             error: () => {
@@ -448,6 +457,7 @@ export class DailyReportComponent implements OnInit {
                 }
                 this.periodExpenses = [];
                 this.allPeriodReports = [];
+                this.catchupCashAdjustment = 0;
                 this.cashSynthesisLoading = false;
             }
         });
@@ -463,7 +473,8 @@ export class DailyReportComponent implements OnInit {
 
     get periodTotalDepositedAll(): number {
         const source = this.selectedAgent ? this.allPeriodReports : this.reports;
-        return source.reduce((sum, report) => sum + (report.totalAmountDeposited || 0), 0);
+        const reportTotal = source.reduce((sum, report) => sum + (report.totalAmountDeposited || 0), 0);
+        return depositedForCashDesk(reportTotal, this.catchupCashAdjustment);
     }
 
     get cashBalance(): number {
