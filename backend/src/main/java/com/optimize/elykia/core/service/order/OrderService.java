@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.order;
 
+import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.security.services.UserService;
@@ -22,6 +23,8 @@ import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.customer.CustomerNotificationService;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.sale.CreditService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.core.util.UserProfilConstant;
 import org.hibernate.Hibernate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -206,6 +209,7 @@ public class OrderService extends GenericService<Order, Long> {
             OrderStatus newStatus = dto.getNewStatus();
 
             validateStatusTransition(oldStatus, newStatus);
+            assertStatusChangeAllowed(currentUser, order, newStatus);
 
             order.setStatus(newStatus);
             Order updatedOrder = super.update(order);
@@ -270,27 +274,98 @@ public class OrderService extends GenericService<Order, Long> {
 
     @Transactional(readOnly = true)
     public Page<Order> getAllOrders(OrderStatus status, OrderSource source, Pageable pageable) {
-        OrderStatus finalStatus = (status == null) ? OrderStatus.PENDING : status;
-        User currentUser = userService.getCurrentUser();
-        Page<Order> ordersPage;
-        if (AppNotificationService.isPromoterOnly(currentUser)) {
-            if (source != null) {
-                ordersPage = getRepository().findByStatusAndSourceAndClientCollector(
-                        finalStatus, source, currentUser.getUsername(), pageable);
-            } else {
-                ordersPage = getRepository().findByStatusAndClientCollector(
-                        finalStatus, currentUser.getUsername(), pageable);
-            }
-        } else if (source != null) {
-            ordersPage = getRepository().findByStatusAndSource(finalStatus, source, pageable);
-        } else {
-            ordersPage = getRepository().findByStatus(finalStatus, pageable);
-        }
+        return getAllOrders(status, null, source, null, null, pageable);
+    }
 
+    @Transactional(readOnly = true)
+    public Page<Order> getAllOrders(
+            OrderStatus status,
+            List<OrderStatus> statuses,
+            OrderSource source,
+            String commercial,
+            String search,
+            Pageable pageable) {
+        List<OrderStatus> effectiveStatuses = resolveStatuses(status, statuses);
+        User currentUser = userService.getCurrentUser();
+        String collector = null;
+        if (AppNotificationService.isPromoterOnly(currentUser)) {
+            collector = currentUser.getUsername();
+        } else if (StringUtils.hasText(commercial)) {
+            collector = commercial.trim();
+        }
+        String searchTerm = StringUtils.hasText(search) ? search.trim() : null;
+
+        Page<Order> ordersPage = getRepository().searchOrders(
+                effectiveStatuses, source, collector, searchTerm, pageable);
         ordersPage.getContent().forEach(order -> Hibernate.initialize(order.getItems()));
         enrichActiveStockRequest(ordersPage.getContent());
-
         return ordersPage;
+    }
+
+    private List<OrderStatus> resolveStatuses(OrderStatus status, List<OrderStatus> statuses) {
+        if (statuses != null && !statuses.isEmpty()) {
+            return statuses.stream().distinct().toList();
+        }
+        if (status != null) {
+            return List.of(status);
+        }
+        return List.of(OrderStatus.PENDING);
+    }
+
+    @Override
+    public boolean deleteSoft(Long id) throws ApplicationException {
+        assertCanDeleteOrder(userService.getCurrentUser());
+        return super.deleteSoft(id);
+    }
+
+    void assertStatusChangeAllowed(User user, Order order, OrderStatus newStatus) {
+        if (newStatus == OrderStatus.DENIED) {
+            assertCanDeny(user);
+        }
+        if (newStatus == OrderStatus.CANCEL) {
+            assertCanCancel(user, order);
+        }
+    }
+
+    private void assertCanDeny(User user) {
+        boolean allowed = user != null && (
+                user.is(UserProfilConstant.GESTIONNAIRE)
+                        || user.is(UserProfilConstant.ADMIN)
+                        || user.is(UserProfilConstant.SU));
+        if (!allowed) {
+            throw new CustomValidationException(
+                    "Seuls le gestionnaire et l'administrateur peuvent refuser une commande.");
+        }
+    }
+
+    private void assertCanCancel(User user, Order order) {
+        String username = user != null ? user.getUsername() : null;
+        if (!sameUser(username, order.getCreatedBy()) && !sameUser(username, orderCollector(order))) {
+            throw new CustomValidationException(
+                    "Seul le commercial qui a créé la commande, ou celui pour qui elle a été créée, peut l'annuler.");
+        }
+    }
+
+    private void assertCanDeleteOrder(User user) {
+        if (!hasPermission(user, UserPermissionConstant.DEL_ORDER)) {
+            throw new CustomValidationException("Vous n'êtes pas autorisé à supprimer une commande.");
+        }
+    }
+
+    private static boolean hasPermission(User user, String permission) {
+        if (user == null || user.getPermissions() == null) {
+            return false;
+        }
+        return user.getPermissions().stream().anyMatch(item -> permission.equals(item.getName()));
+    }
+
+    private static boolean sameUser(String username, String other) {
+        return StringUtils.hasText(username) && StringUtils.hasText(other) && username.equalsIgnoreCase(other.trim());
+    }
+
+    private static String orderCollector(Order order) {
+        Client client = order.getClient();
+        return client != null ? client.getCollector() : null;
     }
 
     public Order createOrder(OrderDto dto) {

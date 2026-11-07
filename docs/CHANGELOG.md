@@ -68,6 +68,22 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.43.1] — 2026-11-07
+
+### Fixed
+
+- Commandes : la pagination de la liste est bien reliée au tableau, ce qui permet au build de production de passer.
+
+## Frontend — [2.43.0] — 2026-11-07
+
+### Added
+
+- Commandes : recherche (numéro, nom, code, téléphone) et filtre par commercial, conservés au retour sur la page. L’acceptation se fait aussi sur plusieurs commandes cochées.
+
+### Changed
+
+- Commandes : **Supprimer** suit le droit de suppression, **Annuler** est réservé au commercial auteur ou destinataire, **Refuser** au gestionnaire et à l’administrateur, **Faire une demande de stock** au droit attribué.
+
 ## Frontend — [2.42.0] — 2026-11-06
 
 ### Added
@@ -183,6 +199,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.46.0] — 2026-11-07
+
+### Added
+
+- Liste des commandes filtrable par recherche, commercial et plusieurs statuts (onglet Autres). Le droit `ROLE_ORDER_STOCK_REQUEST` permet d’attribuer la création d’une demande de stock depuis une commande.
+
+### Changed
+
+- Suppression d’une commande réservée au droit de suppression. Le refus est réservé au gestionnaire et à l’administrateur. L’annulation est réservée au commercial qui a créé la commande ou pour qui elle a été créée.
 
 ## Backend — [1.45.2] — 2026-11-07
 

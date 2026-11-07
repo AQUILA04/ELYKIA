@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.entity.sale;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.optimize.common.entities.entity.BaseEntity;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.dto.ActiveStockRequestInfo;
@@ -66,4 +67,12 @@ public class Order extends BaseEntity<String> {
     /** Demande de stock active liée (CREATED / VALIDATED / DELIVERED), remplie en service. */
     @Transient
     private ActiveStockRequestInfo activeStockRequest;
+
+    /**
+     * Auteur de la commande. Le champ d'audit {@code createdBy} est ignoré par Jackson.
+     */
+    @JsonProperty("createdByUsername")
+    public String getCreatedByUsername() {
+        return getCreatedBy();
+    }
 }

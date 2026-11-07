@@ -322,11 +322,13 @@ Les commandes passées par les clients depuis l’Espace Client apparaissent dan
 <!-- CAPTURE À INSÉRER : Liste des commandes en ligne avec onglets En attente / Validées / Livrées et barre d’actions groupées. -->
 
 1. Ouvrez **Services en ligne** > **Commandes**.
-2. Parcourez les onglets **En attente**, **Validées**, **Livrées** et **Autres**.
-3. Sur une commande en attente, cliquez sur **Valider** (ou sélectionnez plusieurs commandes puis **Valider la sélection**).
-4. Pour réapprovisionner le commercial concerné : **Faire une demande de stock** (sur une commande seule, ou sur plusieurs commandes cochées). Une fenêtre récapitule les articles par commercial ; confirmez pour créer la demande de sortie. Si plusieurs commerciaux sont concernés, une demande est créée pour chacun.
-5. Quand le gestionnaire **valide** cette demande de sortie dans **Stock Commercial** > **Demandes Sortie**, les commandes encore en attente liées passent automatiquement à **Validée**.
-6. Une fois la marchandise chez le commercial et la commande validée, cliquez sur **Marquer comme livrée** : la vente est créée automatiquement et la commande passe à **Livrée**.
+2. Dans **Recherche**, saisissez un numéro de commande, un nom, un code ou un téléphone, puis cliquez sur la loupe ou appuyez sur Entrée.
+3. Dans **Commercial**, choisissez une personne pour n’afficher que ses commandes. **Réinitialiser** efface la recherche et le commercial.
+4. La recherche, le commercial et l’onglet restent en place lorsque vous quittez la page et y revenez.
+5. Parcourez les onglets **En attente**, **Validées**, **Livrées** et **Autres**.
+6. Sur une commande en attente, cliquez sur **Valider**. Pour en traiter plusieurs, cochez-les puis cliquez sur **Valider la sélection**.
+7. Pour écarter une commande en attente, cliquez sur **Refuser**. La même action existe pour une sélection : **Refuser la sélection**. La commande passe dans l’onglet **Autres**.
+8. Une fois la commande validée et la marchandise chez le commercial, cliquez sur **Marquer comme livrée** : la vente est créée automatiquement et la commande passe à **Livrée**.
 
 ---
 

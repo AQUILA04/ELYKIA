@@ -7,7 +7,7 @@ import {
   SimpleChanges,
   ChangeDetectionStrategy 
 } from '@angular/core';
-import { Order, OrderAction, OrderStatus, canCreateStockRequest } from '../../types/order.types';
+import { Order, OrderAction, getAvailableActions, OrderActionContext } from '../../types/order.types';
 
 export interface BulkAction {
   action: OrderAction;
@@ -26,6 +26,10 @@ export class OrderActionBarComponent implements OnChanges {
   @Input() visible: boolean = false;
   @Input() loading: boolean = false;
   @Input() onlineMode: boolean = false;
+  @Input() currentUsername: string | null = null;
+  @Input() canDelete = false;
+  @Input() canDeny = false;
+  @Input() canRequestStock = false;
 
   @Output() bulkAction = new EventEmitter<BulkAction>();
   @Output() clearSelection = new EventEmitter<void>();
@@ -33,7 +37,8 @@ export class OrderActionBarComponent implements OnChanges {
   availableActions: OrderAction[] = [];
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedOrders'] || changes['onlineMode']) {
+    if (changes['selectedOrders'] || changes['onlineMode'] || changes['currentUsername']
+        || changes['canDelete'] || changes['canDeny'] || changes['canRequestStock']) {
       this.updateAvailableActions();
     }
   }
@@ -44,37 +49,24 @@ export class OrderActionBarComponent implements OnChanges {
       return;
     }
 
-    const allStatuses = this.selectedOrders.map(order => order.status);
-    const uniqueStatuses = [...new Set(allStatuses)];
-    const possibleActions: OrderAction[] = [];
+    const context = this.actionContext();
+    const perOrder = this.selectedOrders.map(order => getAvailableActions(order, context));
+    const shared = perOrder[0].filter(action =>
+      action !== OrderAction.VIEW
+      && action !== OrderAction.EDIT
+      && perOrder.every(actions => actions.includes(action))
+    );
+    this.availableActions = shared;
+  }
 
-    if (uniqueStatuses.length === 1 && uniqueStatuses[0] === OrderStatus.PENDING) {
-      possibleActions.push(OrderAction.ACCEPT, OrderAction.DENY, OrderAction.DELETE);
-    } else if (uniqueStatuses.length === 1 && uniqueStatuses[0] === OrderStatus.ACCEPTED) {
-      possibleActions.push(OrderAction.SELL);
-    } else if (uniqueStatuses.every(status => status === OrderStatus.DENIED || status === OrderStatus.CANCEL)) {
-      possibleActions.push(OrderAction.DELETE);
-    }
-
-    if (!uniqueStatuses.includes(OrderStatus.SOLD)) {
-      if (!possibleActions.includes(OrderAction.DELETE)) {
-        const canDeleteAll = this.selectedOrders.every(order =>
-          order.status === OrderStatus.PENDING ||
-          order.status === OrderStatus.DENIED ||
-          order.status === OrderStatus.CANCEL
-        );
-        if (canDeleteAll) {
-          possibleActions.push(OrderAction.DELETE);
-        }
-      }
-    }
-
-    const canStockRequestAll = this.selectedOrders.every(order => canCreateStockRequest(order));
-    if (canStockRequestAll) {
-      possibleActions.push(OrderAction.STOCK_REQUEST);
-    }
-
-    this.availableActions = possibleActions;
+  private actionContext(): OrderActionContext {
+    return {
+      onlineMode: this.onlineMode,
+      username: this.currentUsername,
+      canDelete: this.canDelete,
+      canDeny: this.canDeny,
+      canRequestStock: this.canRequestStock
+    };
   }
 
   onBulkAction(action: OrderAction): void {

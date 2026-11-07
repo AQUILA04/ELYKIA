@@ -530,11 +530,15 @@ Les commandes sont réparties selon leur avancement :
 - **Livrées** : Commandes converties en ventes.
 - **Autres** : Demandes refusées ou annulées.
 
+1. Dans **Recherche**, saisissez un numéro de commande, un nom, un code ou un téléphone, puis cliquez sur la loupe ou appuyez sur Entrée.
+2. La recherche et l’onglet en cours restent affichés lorsque vous quittez la page et y revenez.
+3. **Réinitialiser** efface la recherche et ramène la première page.
+
 ### Traitement d'une commande
 1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités.
-2. **Décision** : Acceptez ou refusez la commande (individuellement ou par lot).
-3. **Faire une demande de stock** : Sur une commande en attente ou validée (ou plusieurs cochées), cliquez sur **Faire une demande de stock** pour regrouper les articles en une demande de sortie par commercial. Lorsque cette demande est validée par le gestionnaire, les commandes encore en attente passent automatiquement à **Validée**.
-4. **Vendre / Marquer comme livrée** : Sur une commande validée, transformez-la en vente : la vente est créée automatiquement et la commande passe à **Livrée**.
+2. **Accepter** : sur une commande en attente, cliquez sur **Accepter**. Pour plusieurs commandes, cochez-les puis cliquez sur **Accepter la sélection**.
+3. **Annuler** : le bouton **Annuler** apparaît sur une commande que vous avez créée, ou qui a été créée pour vous. La commande passe dans l’onglet **Autres**.
+4. **Vendre** : sur une commande validée, transformez-la en vente. La vente est créée automatiquement et la commande passe à **Livrée**.
 
 
 

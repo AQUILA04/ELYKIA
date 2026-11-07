@@ -146,6 +146,7 @@ export interface UpdateOrderStatusDto {
 // Interfaces pour les filtres et la recherche
 export interface OrderFilters {
   status?: OrderStatus;
+  statuses?: OrderStatus[];
   source?: OrderSource;
   clientName?: string;
   commercial?: string;
@@ -154,6 +155,14 @@ export interface OrderFilters {
   minAmount?: number;
   maxAmount?: number;
   searchTerm?: string;
+}
+
+export interface OrderActionContext {
+  onlineMode?: boolean;
+  username?: string | null;
+  canDelete?: boolean;
+  canDeny?: boolean;
+  canRequestStock?: boolean;
 }
 
 export interface OrderTableColumn {
@@ -358,27 +367,40 @@ export const canCreateStockRequest = (order: { status: OrderStatus; activeStockR
     && !order.activeStockRequest;
 };
 
+export const canUserCancelOrder = (order: Order, username?: string | null): boolean => {
+  const me = username?.trim().toLowerCase();
+  if (!me) {
+    return false;
+  }
+  const author = order.createdBy?.trim().toLowerCase();
+  const collector = order.client?.collector?.trim().toLowerCase();
+  return me === author || me === collector;
+};
+
 export const getAvailableActions = (
-  status: OrderStatus,
-  options?: { onlineMode?: boolean; hasActiveStockRequest?: boolean }
+  order: Order,
+  context: OrderActionContext = {}
 ): OrderAction[] => {
+  const status = order.status;
   const actions: OrderAction[] = [OrderAction.VIEW];
-  const onlineMode = options?.onlineMode === true;
-  const hasActiveStockRequest = options?.hasActiveStockRequest === true;
+  const onlineMode = context.onlineMode === true;
 
   if (canModifyOrder(status) && !onlineMode) {
     actions.push(OrderAction.EDIT);
   }
 
-  if (canDeleteOrder(status)) {
+  if (context.canDelete && canDeleteOrder(status)) {
     actions.push(OrderAction.DELETE);
   }
 
   if (canAcceptOrder(status)) {
-    actions.push(OrderAction.ACCEPT, OrderAction.DENY);
+    actions.push(OrderAction.ACCEPT);
+    if (context.canDeny) {
+      actions.push(OrderAction.DENY);
+    }
   }
 
-  if ((status === OrderStatus.PENDING || status === OrderStatus.ACCEPTED) && !hasActiveStockRequest) {
+  if (context.canRequestStock && canCreateStockRequest(order)) {
     actions.push(OrderAction.STOCK_REQUEST);
   }
 
@@ -386,7 +408,10 @@ export const getAvailableActions = (
     actions.push(OrderAction.SELL);
   }
 
-  if (status !== OrderStatus.CANCEL && status !== OrderStatus.SOLD && status !== OrderStatus.ACCEPTED) {
+  if (canUserCancelOrder(order, context.username)
+      && status !== OrderStatus.CANCEL
+      && status !== OrderStatus.SOLD
+      && status !== OrderStatus.ACCEPTED) {
     actions.push(OrderAction.CANCEL);
   }
 
