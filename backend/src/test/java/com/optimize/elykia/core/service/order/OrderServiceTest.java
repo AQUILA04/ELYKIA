@@ -198,13 +198,13 @@ class OrderServiceTest {
         Page<Order> page = new PageImpl<>(List.of(order), pageable, 1);
         User promoter = promoterUser("commercial.a");
         when(userService.getCurrentUser()).thenReturn(promoter);
-        when(orderRepository.searchOrders(List.of(OrderStatus.PENDING), null, "commercial.a", null, pageable))
+        when(orderRepository.searchOrders(List.of(OrderStatus.PENDING), null, "commercial.a", "", pageable))
                 .thenReturn(page);
 
         Page<Order> result = service.getAllOrders(null, pageable);
 
         assertEquals(1, result.getTotalElements());
-        verify(orderRepository).searchOrders(List.of(OrderStatus.PENDING), null, "commercial.a", null, pageable);
+        verify(orderRepository).searchOrders(List.of(OrderStatus.PENDING), null, "commercial.a", "", pageable);
         verify(orderRepository, never()).findByStatus(any(), any());
     }
 
@@ -216,13 +216,13 @@ class OrderServiceTest {
         Page<Order> page = new PageImpl<>(List.of(order), pageable, 1);
         User staff = staffUser("secretary.a");
         when(userService.getCurrentUser()).thenReturn(staff);
-        when(orderRepository.searchOrders(List.of(OrderStatus.ACCEPTED), null, null, null, pageable))
+        when(orderRepository.searchOrders(List.of(OrderStatus.ACCEPTED), null, "", "", pageable))
                 .thenReturn(page);
 
         Page<Order> result = service.getAllOrders(OrderStatus.ACCEPTED, pageable);
 
         assertEquals(1, result.getTotalElements());
-        verify(orderRepository).searchOrders(List.of(OrderStatus.ACCEPTED), null, null, null, pageable);
+        verify(orderRepository).searchOrders(List.of(OrderStatus.ACCEPTED), null, "", "", pageable);
         verify(orderRepository, never()).findByStatusAndClientCollector(any(), any(), any());
     }
 

@@ -69,9 +69,9 @@ public interface OrderRepository extends GenericRepository<Order, Long> {
             WHERE o.state <> 'DELETED'
               AND o.status IN :statuses
               AND (:source IS NULL OR o.source = :source)
-              AND (:collector IS NULL OR UPPER(o.client.collector) = UPPER(:collector))
+              AND (:collector = '' OR UPPER(o.client.collector) = UPPER(:collector))
               AND (
-                    COALESCE(:search, '') = ''
+                    :search = ''
                     OR CAST(o.id AS string) LIKE CONCAT('%', :search, '%')
                     OR LOWER(COALESCE(o.client.firstname, '')) LIKE LOWER(CONCAT('%', :search, '%'))
                     OR LOWER(COALESCE(o.client.lastname, '')) LIKE LOWER(CONCAT('%', :search, '%'))
