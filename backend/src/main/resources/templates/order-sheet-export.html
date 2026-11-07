@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xml:lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
     <title th:text="${pdfDocumentTitle}">Fiche de commande</title>
@@ -30,7 +30,7 @@
 <body>
     <div th:replace="~{pdf/fragments :: header}"></div>
 
-    <table class="pdf-meta">
+    <table class="pdf-meta" role="presentation">
         <tr>
             <td>
                 <span class="pdf-meta-label">Référence</span>
@@ -61,7 +61,7 @@
 
     <div class="client-block">
         <div class="pdf-section-title">Client</div>
-        <table class="pdf-meta">
+        <table class="pdf-meta" role="presentation">
             <tr>
                 <td>
                     <span class="pdf-meta-label">Nom</span>
@@ -113,7 +113,7 @@
         </tbody>
     </table>
 
-    <table class="sheet-total">
+    <table class="sheet-total" role="presentation">
         <tr>
             <td class="label">Montant total</td>
             <td class="value" th:text="${doc.totalAmount}">0 FCFA</td>
