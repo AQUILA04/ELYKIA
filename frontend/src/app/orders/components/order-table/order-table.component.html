@@ -60,6 +60,14 @@
           </td>
           <td class="col-actions">
             <button
+              type="button"
+              class="btn-detail"
+              (click)="onDownloadClick(order, $event)"
+              title="Télécharger la fiche">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v12"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m7 10 5 5 5-5"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 21h14"/></svg>
+              Fiche
+            </button>
+            <button
               *ngFor="let action of getOrderActions(order); trackBy: trackByAction"
               type="button"
               class="btn-detail"

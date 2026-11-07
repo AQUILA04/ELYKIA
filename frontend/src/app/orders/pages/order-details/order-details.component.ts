@@ -192,6 +192,34 @@ export class OrderDetailsComponent implements OnInit, OnDestroy {
     this.confirmAction(title, message, () => this.performSell());
   }
 
+  downloadSheet(): void {
+    if (!this.order || this.isProcessing) {
+      return;
+    }
+    const orderId = this.order.id;
+    this.isProcessing = true;
+    this.cdr.markForCheck();
+    this.orderService.downloadOrderSheet(orderId).pipe(
+      takeUntil(this.destroy$),
+      finalize(() => {
+        this.isProcessing = false;
+        this.cdr.markForCheck();
+      })
+    ).subscribe({
+      next: (data) => {
+        const blob = new Blob([data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `fiche-commande-${orderId}.pdf`;
+        link.click();
+        window.URL.revokeObjectURL(url);
+        this.showSuccess('Fiche de commande téléchargée');
+      },
+      error: (err) => this.showError(err?.error?.message || 'Erreur lors du téléchargement de la fiche')
+    });
+  }
+
   createStockRequest(): void {
     if (!this.order) return;
     const dialogRef = this.dialog.open(OrderStockRequestModalComponent, {

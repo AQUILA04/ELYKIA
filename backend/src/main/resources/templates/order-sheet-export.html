@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${pdfDocumentTitle}">Fiche de commande</title>
+    <th:block th:replace="~{pdf/fragments :: styles}"></th:block>
+    <style>
+        table.data-table td.amount,
+        table.data-table th.amount { text-align: right; }
+        table.sheet-total { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table.sheet-total td { border: 1px solid #003366; padding: 8px 10px; }
+        table.sheet-total .label {
+            width: 70%;
+            background-color: #e8eef6;
+            color: #003366;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 8px;
+            letter-spacing: 0.06em;
+        }
+        table.sheet-total .value {
+            text-align: right;
+            font-size: 14px;
+            font-weight: bold;
+            color: #003366;
+        }
+        .client-block { page-break-inside: avoid; }
+    </style>
+</head>
+<body>
+    <div th:replace="~{pdf/fragments :: header}"></div>
+
+    <table class="pdf-meta">
+        <tr>
+            <td>
+                <span class="pdf-meta-label">Référence</span>
+                <span class="pdf-meta-value" th:text="${doc.reference}">CMD-1</span>
+            </td>
+            <td>
+                <span class="pdf-meta-label">Date de la commande</span>
+                <span class="pdf-meta-value" th:text="${doc.orderDate}">07/11/2026 10:00</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <span class="pdf-meta-label">Statut</span>
+                <span class="pdf-meta-value" th:text="${doc.statusLabel}">En attente</span>
+            </td>
+            <td>
+                <span class="pdf-meta-label">Origine</span>
+                <span class="pdf-meta-value" th:text="${doc.sourceLabel}">Agence</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <span class="pdf-meta-label">Commercial associé</span>
+                <span class="pdf-meta-value" th:text="${doc.commercialLabel}">Commercial</span>
+            </td>
+        </tr>
+    </table>
+
+    <div class="client-block">
+        <div class="pdf-section-title">Client</div>
+        <table class="pdf-meta">
+            <tr>
+                <td>
+                    <span class="pdf-meta-label">Nom</span>
+                    <span class="pdf-meta-value" th:text="${doc.clientLastname}">—</span>
+                </td>
+                <td>
+                    <span class="pdf-meta-label">Prénom</span>
+                    <span class="pdf-meta-value" th:text="${doc.clientFirstname}">—</span>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <span class="pdf-meta-label">Téléphone</span>
+                    <span class="pdf-meta-value" th:text="${doc.clientPhone}">—</span>
+                </td>
+                <td>
+                    <span class="pdf-meta-label">Quartier</span>
+                    <span class="pdf-meta-value" th:text="${doc.clientQuarter}">—</span>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <span class="pdf-meta-label">Adresse</span>
+                    <span class="pdf-meta-value" th:text="${doc.clientAddress}">—</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="pdf-section-title">Articles</div>
+    <table class="data-table">
+        <thead>
+        <tr>
+            <th class="num">#</th>
+            <th>Désignation</th>
+            <th class="amount">Qté</th>
+            <th class="amount">Prix unitaire</th>
+            <th class="amount">Montant</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="line : ${doc.lines}">
+            <td class="num" th:text="${line.index}">1</td>
+            <td th:text="${line.designation}">Article</td>
+            <td class="amount" th:text="${line.quantity}">1</td>
+            <td class="amount" th:text="${line.unitPrice}">0 FCFA</td>
+            <td class="amount" th:text="${line.lineAmount}">0 FCFA</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <table class="sheet-total">
+        <tr>
+            <td class="label">Montant total</td>
+            <td class="value" th:text="${doc.totalAmount}">0 FCFA</td>
+        </tr>
+    </table>
+</body>
+</html>

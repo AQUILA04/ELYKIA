@@ -45,9 +45,16 @@
       </p>
     </div>
 
-    <div class="actions-toolbar a3" *ngIf="availableActions.length > 0">
+    <div class="actions-toolbar a3">
       <span class="toolbar-label">Actions</span>
       <div class="actions-group">
+        <button
+          type="button"
+          class="btn-detail"
+          [disabled]="isProcessing"
+          (click)="downloadSheet()">
+          Télécharger la fiche
+        </button>
         <button
           *ngFor="let action of availableActions"
           type="button"

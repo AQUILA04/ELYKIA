@@ -78,6 +78,15 @@
         <strong>{{ totalElements }}</strong> commande(s)
       </span>
       <div class="toolbar-actions">
+        <button
+          type="button"
+          class="btn-primary"
+          *ngIf="canRequestStock"
+          [disabled]="pendingStockBusy"
+          (click)="requestStockForAllPending()">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          Demande de stock (en attente)
+        </button>
         <button type="button" class="btn-download" [matMenuTriggerFor]="reportsMenu">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg>
           Rapports
@@ -140,7 +149,8 @@
               (selectionChange)="onSelectionChange($event)"
               (actionClick)="onOrderAction($event)"
               (rowClick)="onRowClick($event)"
-              (pageChange)="onPageChange($event)">
+              (pageChange)="onPageChange($event)"
+              (downloadClick)="downloadOrderSheet($event)">
             </app-order-table>
 
             <div *ngIf="(state$ | async)?.loading" class="table-loading">

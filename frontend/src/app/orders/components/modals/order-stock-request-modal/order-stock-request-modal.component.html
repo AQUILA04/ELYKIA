@@ -15,8 +15,11 @@
       <h3>
         <mat-icon>person</mat-icon>
         {{ group.collector }}
-        <span class="cmd-refs">
+        <span class="cmd-refs" *ngIf="group.orderIds.length <= 8">
           ({{ group.orderIds.length }} cmd · CMD-{{ group.orderIds.join(', CMD-') }})
+        </span>
+        <span class="cmd-refs" *ngIf="group.orderIds.length > 8">
+          ({{ group.orderIds.length }} commandes)
         </span>
       </h3>
       <ul>
