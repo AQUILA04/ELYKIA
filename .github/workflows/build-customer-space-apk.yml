@@ -92,7 +92,7 @@ jobs:
             local apk_runs run_id run_number jobs_json job_line job_name job_status job_conclusion sha
 
             apk_runs=$(curl -sf -H "Authorization: Bearer $GITHUB_TOKEN" \
-              "https://api.github.com/repos/${REPO}/actions/workflows/${workflow_file}/runs?per_page=30")
+              "https://api.github.com/repos/${REPO}/actions/workflows/${workflow_file}/runs?per_page=60")
 
             while read -r run_id run_number; do
               [ -z "$run_id" ] && continue
