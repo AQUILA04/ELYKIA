@@ -493,6 +493,10 @@ app:
         key: TONTINE_AUTO_VERIFY_ON_FIELD_CONTROL
         value: false
         description: "Activé : un contrôle de carnet terrain marque le membre tontine comme vérifié. Désactivé : seul le contrôle est enregistré."
+      init-data[10]:
+        key: RESTRICT_UNIT_PRICE_VISIBILITY
+        value: true
+        description: "Activé : le prix unitaire et le montant de ligne sont réservés au gestionnaire et aux profils admin. Désactivé : tous les profils voient les prix unitaires."
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}

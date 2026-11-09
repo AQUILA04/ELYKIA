@@ -6,6 +6,7 @@ import { NgxSpinnerModule } from 'ngx-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginatorModule } from '@angular/material/paginator';
+import { SharedComponentsModule } from '../shared/components/shared-components.module';
 import { DebtRoutingModule } from './debt-routing.module';
 import { DebtListComponent } from './pages/debt-list/debt-list.component';
 import { DebtDetailComponent } from './pages/debt-detail/debt-detail.component';
@@ -16,6 +17,7 @@ import { DebtDetailComponent } from './pages/debt-detail/debt-detail.component';
     CommonModule,
     FormsModule,
     DebtRoutingModule,
+    SharedComponentsModule,
     NgxPermissionsModule,
     NgxSpinnerModule,
     MatButtonModule,

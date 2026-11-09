@@ -98,8 +98,8 @@
             <th class="num">#</th>
             <th>Désignation</th>
             <th class="amount">Qté</th>
-            <th class="amount">Prix unitaire</th>
-            <th class="amount">Montant</th>
+            <th class="amount" th:if="${showUnitPrice != false}">Prix unitaire</th>
+            <th class="amount" th:if="${showUnitPrice != false}">Montant</th>
         </tr>
         </thead>
         <tbody>
@@ -107,8 +107,8 @@
             <td class="num" th:text="${line.index}">1</td>
             <td th:text="${line.designation}">Article</td>
             <td class="amount" th:text="${line.quantity}">1</td>
-            <td class="amount" th:text="${line.unitPrice}">0 FCFA</td>
-            <td class="amount" th:text="${line.lineAmount}">0 FCFA</td>
+            <td class="amount" th:if="${showUnitPrice != false}" th:text="${line.unitPrice}">0 FCFA</td>
+            <td class="amount" th:if="${showUnitPrice != false}" th:text="${line.lineAmount}">0 FCFA</td>
         </tr>
         </tbody>
     </table>

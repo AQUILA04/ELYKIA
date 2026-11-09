@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.client;
 
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
@@ -50,6 +52,7 @@ public class ClientListPdfService {
         ClientListExportPdfDto dto = buildDto(commercialUsername, clients, kpis);
 
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         PdfDocumentIdentity.applyTo(context, DOCUMENT_TITLE);
         context.setVariable("doc", dto);
         String html = templateEngine.process("client-list-export", context);

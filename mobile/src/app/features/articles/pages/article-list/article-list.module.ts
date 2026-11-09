@@ -8,6 +8,7 @@ import { IonicModule } from '@ionic/angular';
 import { ArticleListPageRoutingModule } from './article-list-routing.module';
 
 import { ArticleListPage } from './article-list.page';
+import { IfUnitPriceDirective } from 'src/app/shared/directives/if-unit-price.directive';
 
 @NgModule({
   imports: [
@@ -16,7 +17,8 @@ import { ArticleListPage } from './article-list.page';
     ReactiveFormsModule,
     IonicModule,
     ArticleListPageRoutingModule,
-    ScrollingModule
+    ScrollingModule,
+    IfUnitPriceDirective
   ],
   declarations: [ArticleListPage]
 })

@@ -12,6 +12,7 @@ import { ParameterEditComponent } from '../parameter-edit/parameter-edit.compone
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ToastrService } from 'ngx-toastr';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
+import { UnitPriceVisibilityService } from 'src/app/shared/service/unit-price-visibility.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -36,10 +37,12 @@ export class ParameterListComponent implements OnInit {
     private dialog: MatDialog,
     private spinner: NgxSpinnerService,
     private toastr: ToastrService,
-    private featureFlagService: FeatureFlagService
+    private featureFlagService: FeatureFlagService,
+    private unitPriceVisibility: UnitPriceVisibilityService
   ) { }
 
   ngOnInit(): void {
+    this.unitPriceVisibility.refresh(true).subscribe();
     this.mobileDeviceManagementEnabled = this.featureFlagService.isFeatureEnabled(
       FeatureFlags.MobileDeviceManagement
     );
@@ -82,6 +85,7 @@ export class ParameterListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        this.unitPriceVisibility.refresh(true).subscribe();
         this.loadParameters();
       }
     });
@@ -95,6 +99,7 @@ export class ParameterListComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
+        this.unitPriceVisibility.refresh(true).subscribe();
         this.loadParameters();
       }
     });
@@ -117,6 +122,7 @@ export class ParameterListComponent implements OnInit {
           next: () => {
             this.spinner.hide();
             this.toastr.success('Paramètre supprimé avec succès', 'Succès');
+            this.unitPriceVisibility.refresh(true).subscribe();
             this.loadParameters();
           },
           error: (error) => {

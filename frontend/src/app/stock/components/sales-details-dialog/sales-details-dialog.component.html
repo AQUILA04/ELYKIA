@@ -6,7 +6,7 @@
       <span class="summary-label">Quantité vendue</span>
       <span class="summary-value">{{ data.quantitySold }}</span>
     </div>
-    <div class="summary-card">
+    <div class="summary-card" *appIfUnitPrice>
       <span class="summary-label">PMP actuel</span>
       <span class="summary-value">{{ data.weightedAverageUnitPrice | number:'1.0-0' }} FCFA</span>
     </div>

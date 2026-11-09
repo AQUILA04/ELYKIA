@@ -378,14 +378,14 @@ Pour créer une vente, cliquez sur le bouton bleu **« + Nouvelle vente »** en 
 | **Commercial responsable** | **Obligatoire**. En tant que commercial, votre nom est automatiquement renseigné. En tant que gestionnaire, vous choisissez le commercial qui portera la vente. | Non requis. La vente est une opération directe en boutique. |
 | **Choix du client** | La liste propose les clients déjà rattachés au commercial sélectionné. | Recherche universelle parmi l'ensemble des clients de l'agence. |
 | **Articles et stock disponible** | Les articles sont déduits du **Stock Commercial** de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus. | Les articles sont recherchés directement dans le stock général du magasin. |
-| **Prix appliqué** | Prix de vente à crédit (prix contractuel avec marge tontine/crédit). | Prix de vente au comptant. |
+| **Montant de la vente** | Le montant suit le tarif du crédit. | Le montant suit le tarif du comptant. |
 | **Paiement et échéances** | Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue. | Règlement intégral immédiat au comptoir. Aucun échéancier journalier. |
 | **Usage du crédit** | Sans le bloc **Adhésions**, un seul crédit personnel. Lorsque plusieurs adhésions sont actives, choix **Personnel**, **Professionnel** ou **Événement**. Un seul crédit ouvert par type. | Sans objet. |
 
 ### Reçu de caisse et impression immédiate
 Si l'impression immédiate est activée dans votre agence :
 1. Dès que vous enregistrez la vente, une fenêtre affiche l'aperçu du ticket de caisse thermique (format 80 mm).
-2. Le reçu détaille : l'en-tête ELYKIA, la référence unique du contrat, le nom et téléphone du client, le nom du commercial, la liste des articles avec prix et quantités, le total, l'acompte versé, le solde restant et la mise journalière convenue.
+2. Le reçu détaille : l'en-tête ELYKIA, la référence unique du contrat, le nom et téléphone du client, le nom du commercial, la liste des articles et des quantités, le montant total, l'acompte versé, le solde restant et la mise journalière convenue.
 3. Cliquez sur **Imprimer** pour sortir le ticket destiné au client.
 
 ---
@@ -422,7 +422,7 @@ En ouvrant un crédit, vous accédez à un dossier complet regroupant l'ensemble
 - **Contrôle terrain** : Si un chef de recouvrement a inspecté le carnet du client, cette section affiche le montant système, le montant noté sur le carnet papier, l'écart éventuel, le statut (🟢 **Conforme** ou 🔴 **Disparité**) ainsi que les observations de l'auditeur.
 
 ### 6. Articles livrés
-Tableau listant chaque article avec sa désignation, sa catégorie, la quantité livrée, son prix unitaire et le montant total de la ligne.
+Tableau listant chaque article avec sa désignation, sa catégorie et la quantité livrée. Le montant total du crédit reste affiché au-dessus du tableau.
 
 ### 7. Situation de recouvrement et compteurs de retard
 Un bandeau évalue la ponctualité des règlements du client :
@@ -511,9 +511,9 @@ Cet écran regroupe les ventes par article et par commercial.
 1. Ouvrez le menu **Ventes**, puis **Articles**.
 2. Choisissez la période : **Ce jour**, **Cette semaine**, **Ce mois** ou **Personnalisé** (dates **Du** et **Au**).
 3. Pour limiter la liste à une personne, choisissez-la dans **Commercial**. **Tous les commerciaux** affiche l’ensemble.
-4. Le bandeau **Montant total** indique la somme des prix de toutes les lignes correspondant à ces filtres, y compris celles des autres pages.
-5. Chaque ligne affiche l’article, le commercial, la **Quantité totale**, le **Prix unitaire** et le **Prix total**.
-6. Cliquez sur **Télécharger** pour obtenir le PDF de la même sélection : les colonnes de prix et le montant total y figurent aussi.
+4. Le bandeau **Montant total** indique le montant de toutes les ventes correspondant à ces filtres, y compris celles des autres pages.
+5. Chaque ligne affiche l’article, le commercial et la **Quantité totale**.
+6. Cliquez sur **Télécharger** pour obtenir le PDF de la même sélection : les articles, les quantités et le montant total y figurent.
 
 Le téléchargement porte sur un mois au plus.
 
@@ -1053,8 +1053,8 @@ Ce module vous permet de surveiller votre dotation de marchandises et d'échange
 ### A. Consulter les articles et votre stock disponible
 1. Dans la barre du bas, appuyez sur l'onglet **Plus**, puis touchez **Articles** (ou sur l'accueil, touchez la case **Stock**).
 2. Deux onglets vous permettent de tout voir :
-   * **Onglet « Mon Stock »** : affiche uniquement ce que vous avez physiquement sur vous dans votre sacoche ou votre voiture. Pour chaque article, vous voyez la quantité exacte disponible et son prix de vente.
-   * **Onglet « Catalogue »** : affiche tous les articles vendus par l'agence avec leurs prix officiels. Très pratique pour montrer les nouveautés aux clientes sans avoir besoin de tout transporter !
+   * **Onglet « Mon Stock »** : affiche uniquement ce que vous avez physiquement sur vous dans votre sacoche ou votre voiture. Pour chaque article, vous voyez la quantité exacte disponible.
+   * **Onglet « Catalogue »** : affiche tous les articles vendus par l'agence. Très pratique pour montrer les nouveautés aux clientes sans avoir besoin de tout transporter !
 
 ### B. Prendre une commande client sur catalogue
 Parfois, une cliente veut un congélateur ou une télévision que vous n'avez pas sur vous. Vous pouvez lui réserver l'article grâce aux **Commandes** :

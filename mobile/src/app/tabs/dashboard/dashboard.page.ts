@@ -28,6 +28,7 @@ import {
 } from '../../store/kpi/kpi.selectors';
 
 import { LoggerService } from '../../core/services/logger.service';
+import { UnitPriceVisibilityService } from '../../core/services/unit-price-visibility.service';
 import { CashDepositService } from '../../core/services/cash-deposit.service';
 import { HealthCheckService } from '../../core/services/health-check.service';
 import { FeatureFlagService, FeatureFlags } from '../../core/services/feature-flag.service';
@@ -98,7 +99,8 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
     private cashDepositService: CashDepositService,
     private healthCheckService: HealthCheckService,
     public featureFlagService: FeatureFlagService,
-    private localDataCleanupPresenter: LocalDataCleanupPresenterService
+    private localDataCleanupPresenter: LocalDataCleanupPresenterService,
+    private unitPriceVisibility: UnitPriceVisibilityService
   ) { }
 
   ngOnInit() {
@@ -118,6 +120,7 @@ export class DashboardPage implements OnInit, AfterViewInit, OnDestroy {
 
   ionViewWillEnter() {
     console.log('[DashboardPage] ionViewWillEnter triggered');
+    this.unitPriceVisibility.refresh(true).subscribe();
     this.store.dispatch(HealthCheckActions.checkOnlineStatus());
     this.loadDashboardData(this.activePeriod);
     void this.maybeShowLocalDataCleanupModal();

@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.tontine;
 
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.lowagie.text.DocumentException;
 import com.optimize.common.entities.enums.State;
@@ -114,6 +116,7 @@ public class TontineExportService {
 
         // Créer le contexte Thymeleaf
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("stats", stats);
         context.setVariable("members", members);
 
@@ -294,6 +297,7 @@ public class TontineExportService {
 
     private byte[] renderPdf(String template, Object contextDto) {
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("context", contextDto);
         String html = templateEngine.process(template, context);
         ByteArrayOutputStream target = new ByteArrayOutputStream();

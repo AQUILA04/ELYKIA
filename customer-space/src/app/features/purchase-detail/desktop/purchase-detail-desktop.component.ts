@@ -5,11 +5,12 @@ import { RouterModule } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { CustomerPurchase } from '../../../shared/models/customer.model';
 import { ElykDesktopPageComponent } from '../../../shared/ui';
+import { IfUnitPriceDirective } from '../../../shared/directives/if-unit-price.directive';
 
 @Component({
   selector: 'app-purchase-detail-desktop',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, ElykDesktopPageComponent],
+  imports: [CommonModule, IonicModule, RouterModule, ElykDesktopPageComponent, IfUnitPriceDirective],
   templateUrl: './purchase-detail-desktop.component.html',
   styleUrls: ['./purchase-detail-desktop.component.scss'],
 })

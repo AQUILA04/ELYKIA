@@ -1,10 +1,12 @@
-import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnDestroy, OnInit } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { CreditService } from '../../../credit/service/credit.service';
 import { CommercialStockService } from '../../services/commercial-stock.service';
 import { CreditSaleDetail, SoldValueHistoryEntry, SoldValueHistoryRow } from '../../models/sold-value-history.model';
+import { UnitPriceVisibilityService } from 'src/app/shared/service/unit-price-visibility.service';
+import { Subscription } from 'rxjs';
 
 export interface SalesDetailsDialogData {
   stockItemId: number;
@@ -19,7 +21,7 @@ export interface SalesDetailsDialogData {
   templateUrl: './sales-details-dialog.component.html',
   styleUrls: ['./sales-details-dialog.component.scss']
 })
-export class SalesDetailsDialogComponent implements OnInit {
+export class SalesDetailsDialogComponent implements OnInit, OnDestroy {
   salesDetails: CreditSaleDetail[] = [];
   historyRows: SoldValueHistoryRow[] = [];
   loading = true;
@@ -29,20 +31,29 @@ export class SalesDetailsDialogComponent implements OnInit {
     'clientName',
     'movementType',
     'quantity',
-    'saleUnitPrice',
-    'deltaValue',
     'newTotalSoldValue'
   ];
+  private visibilitySub?: Subscription;
 
   constructor(
     public dialogRef: MatDialogRef<SalesDetailsDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: SalesDetailsDialogData,
     private creditService: CreditService,
-    private commercialStockService: CommercialStockService
+    private commercialStockService: CommercialStockService,
+    private unitPriceVisibility: UnitPriceVisibilityService
   ) {}
 
   ngOnInit(): void {
+    this.visibilitySub = this.unitPriceVisibility.showUnitPrice$.subscribe(show => {
+      this.historyColumns = show
+        ? ['createdDate', 'creditReference', 'clientName', 'movementType', 'quantity', 'saleUnitPrice', 'deltaValue', 'newTotalSoldValue']
+        : ['createdDate', 'creditReference', 'clientName', 'movementType', 'quantity', 'newTotalSoldValue'];
+    });
     this.loadData();
+  }
+
+  ngOnDestroy(): void {
+    this.visibilitySub?.unsubscribe();
   }
 
   loadData(): void {

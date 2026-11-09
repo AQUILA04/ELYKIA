@@ -105,8 +105,8 @@
               <th>Article</th>
               <th>Commercial</th>
               <th class="col-qty">Quantité totale</th>
-              <th class="col-amount">Prix unitaire</th>
-              <th class="col-amount">Prix total</th>
+              <th class="col-amount" *appIfUnitPrice>Prix unitaire</th>
+              <th class="col-amount" *appIfUnitPrice>Prix total</th>
             </tr>
           </thead>
           <tbody>
@@ -118,8 +118,8 @@
                 <span *ngIf="!item.commercial" class="col-empty">Sans commercial</span>
               </td>
               <td class="col-qty">{{ item.totalQuantity }}</td>
-              <td class="col-amount">{{ item.unitPrice | number:'1.0-0' }} FCFA</td>
-              <td class="col-amount">{{ item.totalAmount | number:'1.0-0' }} FCFA</td>
+              <td class="col-amount" *appIfUnitPrice>{{ item.unitPrice | number:'1.0-0' }} FCFA</td>
+              <td class="col-amount" *appIfUnitPrice>{{ item.totalAmount | number:'1.0-0' }} FCFA</td>
             </tr>
           </tbody>
         </table>

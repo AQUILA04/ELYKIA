@@ -16,6 +16,7 @@ import { StockOperationDetailPage } from './pages/stock-operation-detail/stock-o
 import { StockOperationCreatePage } from './pages/stock-operation-create/stock-operation-create.page';
 import { StockStatusPipe } from './pipes/stock-status.pipe';
 import { FormsModule } from '@angular/forms';
+import { IfUnitPriceDirective } from 'src/app/shared/directives/if-unit-price.directive';
 
 @NgModule({
   declarations: [
@@ -36,7 +37,8 @@ import { FormsModule } from '@angular/forms';
     CommonModule,
     FormsModule,
     IonicModule,
-    StockRoutingModule
+    StockRoutingModule,
+    IfUnitPriceDirective
   ],
   exports: [
     RequestListComponent,

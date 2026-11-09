@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { UnitPriceVisibilityService } from './unit-price-visibility.service';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
 import { Distribution } from '../../models/distribution.model';
 import { Client } from '../../models/client.model';
@@ -142,7 +143,7 @@ export interface PrintableTontineDelivery {
 })
 export class PrintingService {
 
-  constructor() { }
+  constructor(private unitPriceVisibility: UnitPriceVisibilityService) { }
 
   async printReceipt(printableDistribution: PrintableDistribution): Promise<void> {
     const htmlContent = this.generateReceiptHTML(printableDistribution);
@@ -395,8 +396,9 @@ export class PrintingService {
             <div class="article-item">
               <div class="article-name">${item.article.commercialName || item.article.name}</div>
               <div class="row article-details">
-                <span>${item.quantity} x ${item.unitPrice.toLocaleString('fr-FR')}</span>
-                <span class="article-total">${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>
+                ${this.unitPriceVisibility.snapshot
+                  ? `<span>${item.quantity} x ${item.unitPrice.toLocaleString('fr-FR')}</span><span class="article-total">${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>`
+                  : `<span>Qté ${item.quantity}</span>`}
               </div>
             </div>
           `).join('')}
@@ -577,10 +579,10 @@ export class PrintingService {
           <span>${item.articleName}</span>
           <span>x${item.quantity}</span>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: 7px; margin-top: 2px;">
+        ${this.unitPriceVisibility.snapshot ? `<div style="display: flex; justify-content: space-between; font-size: 7px; margin-top: 2px;">
           <span>${item.unitPrice.toLocaleString('fr-FR')} FCFA/u</span>
           <span style="font-weight: bold;">${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>
-        </div>
+        </div>` : ''}
       </div>
     `).join('');
 

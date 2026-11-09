@@ -5,6 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 
 import { MemberDetailPage } from './member-detail.page';
+import { IfUnitPriceDirective } from 'src/app/shared/directives/if-unit-price.directive';
 
 const routes: Routes = [
     {
@@ -18,7 +19,8 @@ const routes: Routes = [
         CommonModule,
         FormsModule,
         IonicModule,
-        RouterModule.forChild(routes)
+        RouterModule.forChild(routes),
+        IfUnitPriceDirective
     ],
     declarations: [MemberDetailPage]
 })

@@ -639,7 +639,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Application mobile de terrain\nArticles, commandes clients et stock de la sacoche\nA. Consulter les articles et votre stock disponible\nDans la barre du bas, appuyez sur l'onglet Plus , puis touchez Articles (ou sur l'accueil, touchez la case Stock ).\nDeux onglets vous permettent de tout voir :\n Onglet « Mon Stock » : affiche uniquement ce que vous avez physiquement sur vous dans votre sacoche ou votre voiture. Pour chaque article, vous voyez la quantité exacte disponible et son prix de vente.\n Onglet « Catalogue » : affiche tous les articles vendus par l'agence avec leurs prix officiels. Très pratique pour montrer les nouveautés aux clientes sans avoir besoin de tout transporter !"
+    "content": "Application mobile de terrain\nArticles, commandes clients et stock de la sacoche\nA. Consulter les articles et votre stock disponible\nDans la barre du bas, appuyez sur l'onglet Plus , puis touchez Articles (ou sur l'accueil, touchez la case Stock ).\nDeux onglets vous permettent de tout voir :\n Onglet « Mon Stock » : affiche uniquement ce que vous avez physiquement sur vous dans votre sacoche ou votre voiture. Pour chaque article, vous voyez la quantité exacte disponible.\n Onglet « Catalogue » : affiche tous les articles vendus par l'agence. Très pratique pour montrer les nouveautés aux clientes sans avoir besoin de tout transporter !"
   },
   {
     "id": "commercial_mobile_app__6_articles_commandes_clients_et_stock_de_la_saco_66",
@@ -829,7 +829,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Guide des Ventes, Crédits, Recouvrements et Commandes\nEnregistrer une nouvelle vente (Bouton Nouvelle vente)\n\nPour créer une vente, cliquez sur le bouton bleu « + Nouvelle vente » en haut à droite (ou depuis le menu Ventes > Nouvelle vente ).\nChoisir entre Vente à Crédit et Vente au Comptant\n\n Critère Vente à Crédit Vente au Comptant \n --- --- --- \n Commercial responsable Obligatoire . En tant que commercial, votre nom est automatiquement renseigné. En tant que gestionnaire, vous choisissez le commercial qui portera la vente. Non requis. La vente est une opération directe en boutique. \n Choix du client La liste propose les clients déjà rattachés au commercial sélectionné. Recherche universelle parmi l'ensemble des clients de l'agence. \n Articles et stock disponible Les articles sont déduits du Stock Commercial de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus. Les articles sont recherchés directement dans le stock général du magasin. \n Prix appliqué Prix de vente à crédit (prix contractuel avec marge tontine/crédit). Prix de vente au comptant. \n Paiement et échéances Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue. Règlement intégral immédiat au comptoir. Aucun échéancier journalier. \n Usage du crédit Sans le bloc Adhésions , un seul crédit personnel. Lorsque plusieurs adhésions sont actives, choix Personnel , Professionnel ou Événement . Un seul crédit ouvert par type. Sans objet. \nReçu de caisse et impression immédiate\nSi l'impression immédiate est activée dans votre agence :\nDès que vous enregistrez la vente, une fenêtre affiche l'aperçu du ticket de caisse thermique (format 80 mm).\nLe reçu détaille : l'en-tête ELYKIA, la référence unique du contrat, le nom et téléphone du client, le nom du commercial, la liste des articles avec prix et quantités, le total, l'acompte versé, le solde restant et la mise journalière convenue.\nCliquez sur Imprimer pour sortir le ticket destiné au client.\n\n---"
+    "content": "Guide des Ventes, Crédits, Recouvrements et Commandes\nEnregistrer une nouvelle vente (Bouton Nouvelle vente)\n\nPour créer une vente, cliquez sur le bouton bleu « + Nouvelle vente » en haut à droite (ou depuis le menu Ventes > Nouvelle vente ).\nChoisir entre Vente à Crédit et Vente au Comptant\n\n Critère Vente à Crédit Vente au Comptant \n --- --- --- \n Commercial responsable Obligatoire . En tant que commercial, votre nom est automatiquement renseigné. En tant que gestionnaire, vous choisissez le commercial qui portera la vente. Non requis. La vente est une opération directe en boutique. \n Choix du client La liste propose les clients déjà rattachés au commercial sélectionné. Recherche universelle parmi l'ensemble des clients de l'agence. \n Articles et stock disponible Les articles sont déduits du Stock Commercial de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus. Les articles sont recherchés directement dans le stock général du magasin. \n Montant de la vente Le montant suit le tarif du crédit. Le montant suit le tarif du comptant. \n Paiement et échéances Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue. Règlement intégral immédiat au comptoir. Aucun échéancier journalier. \n Usage du crédit Sans le bloc Adhésions , un seul crédit personnel. Lorsque plusieurs adhésions sont actives, choix Personnel , Professionnel ou Événement . Un seul crédit ouvert par type. Sans objet. \nReçu de caisse et impression immédiate\nSi l'impression immédiate est activée dans votre agence :\nDès que vous enregistrez la vente, une fenêtre affiche l'aperçu du ticket de caisse thermique (format 80 mm).\nLe reçu détaille : l'en-tête ELYKIA, la référence unique du contrat, le nom et téléphone du client, le nom du commercial, la liste des articles et des quantités, le montant total, l'acompte versé, le solde restant et la mise journalière convenue.\nCliquez sur Imprimer pour sortir le ticket destiné au client.\n\n---"
   },
   {
     "id": "commercial_sales_orders__4_fiche_d_taill_e_360_d_un_cr_dit",
@@ -899,7 +899,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Guide des Ventes, Crédits, Recouvrements et Commandes\nFiche détaillée 360° d'un crédit\nArticles livrés\n\nTableau listant chaque article avec sa désignation, sa catégorie, la quantité livrée, son prix unitaire et le montant total de la ligne."
+    "content": "Guide des Ventes, Crédits, Recouvrements et Commandes\nFiche détaillée 360° d'un crédit\nArticles livrés\n\nTableau listant chaque article avec sa désignation, sa catégorie et la quantité livrée. Le montant total du crédit reste affiché au-dessus du tableau."
   },
   {
     "id": "commercial_sales_orders__4_fiche_d_taill_e_360_d_un_cr_dit_7_situation_de",
@@ -989,7 +989,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Guide des Ventes, Crédits, Recouvrements et Commandes\nRapport des articles vendus (Menu Ventes > Articles)\n\nCet écran regroupe les ventes par article et par commercial.\nOuvrez le menu Ventes , puis Articles .\nChoisissez la période : Ce jour , Cette semaine , Ce mois ou Personnalisé (dates Du et Au ).\nPour limiter la liste à une personne, choisissez-la dans Commercial . Tous les commerciaux affiche l’ensemble.\nLe bandeau Montant total indique la somme des prix de toutes les lignes correspondant à ces filtres, y compris celles des autres pages.\nChaque ligne affiche l’article, le commercial, la Quantité totale , le Prix unitaire et le Prix total .\nCliquez sur Télécharger pour obtenir le PDF de la même sélection : les colonnes de prix et le montant total y figurent aussi.\n\nLe téléchargement porte sur un mois au plus.\n\n---"
+    "content": "Guide des Ventes, Crédits, Recouvrements et Commandes\nRapport des articles vendus (Menu Ventes > Articles)\n\nCet écran regroupe les ventes par article et par commercial.\nOuvrez le menu Ventes , puis Articles .\nChoisissez la période : Ce jour , Cette semaine , Ce mois ou Personnalisé (dates Du et Au ).\nPour limiter la liste à une personne, choisissez-la dans Commercial . Tous les commerciaux affiche l’ensemble.\nLe bandeau Montant total indique le montant de toutes les ventes correspondant à ces filtres, y compris celles des autres pages.\nChaque ligne affiche l’article, le commercial et la Quantité totale .\nCliquez sur Télécharger pour obtenir le PDF de la même sélection : les articles, les quantités et le montant total y figurent.\n\nLe téléchargement porte sur un mois au plus.\n\n---"
   },
   {
     "id": "commercial_sales_orders__11_gestion_des_commandes_clients_menu_commandes",
@@ -1019,7 +1019,7 @@
       "commercial",
       "manager"
     ],
-    "content": "Guide des Ventes, Crédits, Recouvrements et Commandes\nGestion des commandes clients (Menu Commandes)\nTraitement d'une commande\n Créer une commande : Cliquez sur Créer une commande , sélectionnez le client et ajoutez les articles souhaités avec leurs quantités.\n Accepter : sur une commande en attente, cliquez sur Accepter . Pour plusieurs commandes, cochez-les puis cliquez sur Accepter la sélection .\n Annuler : le bouton Annuler apparaît sur une commande que vous avez créée, ou qui a été créée pour vous. La commande passe dans l’onglet Autres .\n Vendre : sur une commande validée, transformez-la en vente. La vente est créée automatiquement et la commande passe à Livrée .\n Fiche : sur chaque ligne, cliquez sur Fiche pour télécharger la fiche de la commande. Le bouton est présent pour une commande en attente, validée, livrée, refusée ou annulée.\nOuvrez la commande, puis cliquez sur Télécharger la fiche . Le document reprend l’entreprise, le nom et le prénom du client, son téléphone, son quartier, son adresse, le commercial associé, la date, le statut et les articles avec le montant.\n Demande de stock (en attente) prépare une demande de stock pour toutes les commandes en attente qui ne sont pas déjà dans une demande. La fenêtre rappelle les articles et les quantités. Cochez Pour le mois prochain si la sortie doit porter sur le mois suivant, puis confirmez.\nSur Services en ligne > Commandes , Fiche et Télécharger la fiche fonctionnent de la même façon. Demande de stock (en attente) ne reprend alors que les commandes en ligne en attente.\n\n---"
+    "content": "Guide des Ventes, Crédits, Recouvrements et Commandes\nGestion des commandes clients (Menu Commandes)\nTraitement d'une commande\n Créer une commande : Cliquez sur Créer une commande , sélectionnez le client et ajoutez les articles souhaités avec leurs quantités.\n Accepter : sur une commande en attente, cliquez sur Accepter . Pour plusieurs commandes, cochez-les puis cliquez sur Accepter la sélection .\n Annuler : le bouton Annuler apparaît sur une commande que vous avez créée, ou qui a été créée pour vous. La commande passe dans l’onglet Autres .\n Vendre : sur une commande validée, transformez-la en vente. La vente est créée automatiquement et la commande passe à Livrée .\n Fiche : sur chaque ligne, cliquez sur Fiche pour télécharger la fiche de la commande. Le bouton est présent pour une commande en attente, validée, livrée, refusée ou annulée.\nOuvrez la commande, puis cliquez sur Télécharger la fiche . Le document reprend l’entreprise, le nom et le prénom du client, son téléphone, son quartier, son adresse, le commercial associé, la date, le statut, les articles, les quantités et le montant total.\n Demande de stock (en attente) prépare une demande de stock pour toutes les commandes en attente qui ne sont pas déjà dans une demande. La fenêtre rappelle les articles et les quantités. Cochez Pour le mois prochain si la sortie doit porter sur le mois suivant, puis confirmez.\nSur Services en ligne > Commandes , Fiche et Télécharger la fiche fonctionnent de la même façon. Demande de stock (en attente) ne reprend alors que les commandes en ligne en attente.\n\n---"
   },
   {
     "id": "commercial_sales_orders__12_ancien_portefeuille_menu_ventes_ancien_portef",
@@ -1392,7 +1392,7 @@
       "customer",
       "manager"
     ],
-    "content": "Achats et commandes — Espace Client\nMes achats\nAppuyez sur l’onglet Achats .\nFiltrez par Tous , En cours , Terminés ou Initiés .\nAppuyez sur une ligne pour ouvrir le détail.\nDétail d’un achat\nConsultez le montant, le payé et le restant. Un crédit actif s’affiche avec le statut EN COURS .\nAppuyez sur Payer une mise (bouton flottant) pour déclarer un paiement Mobile Money.\nAppuyez sur Voir le suivi des mises pour l’historique des échéances.\nSur le suivi, vous pouvez aussi appuyer sur Payer une mise même si aucune échéance n’est encore listée.\nDéclarer un paiement\nLisez le numéro indiqué pour envoyer votre transfert.\nAjoutez le justificatif du transfert : une capture du message de confirmation, ou le reçu PDF de l’opération. Pour une capture, si une fenêtre Autorisation requise s’affiche, appuyez sur Autoriser . Si vous aviez déjà refusé, appuyez sur Ouvrir les paramètres , activez l’appareil photo ou les photos pour Elykia, puis recommencez.\nAttendez éventuellement le message « Lecture du justificatif… » : la référence du transfert peut se remplir automatiquement. Vérifiez-la et modifiez-la si besoin.\nRenseignez le numéro d’envoi et le montant .\nAppuyez sur Soumettre le paiement en bas de l’écran.\n\nLe justificatif est obligatoire pour envoyer la déclaration.\nPayer depuis l’application\n\nLorsque l’écran propose Payer depuis l’application , ou uniquement le choix du réseau :\nSi deux choix sont proposés, Je paie moi-même sert à faire le transfert de votre côté et à joindre la preuve. Payer depuis l’application demande le montant sur votre mobile money, avec des frais en plus.\nChoisissez Mixx by Yas ou Flooz .\nLisez les frais de retrait , les frais du réseau (en pourcentage) et le total prélevé .\nSaisissez votre numéro, puis appuyez sur Payer .\nConfirmez la demande sur votre téléphone. Le paiement est enregistré lorsque la confirmation aboutit.\n\nSi aucun frais de retrait n’est prévu pour votre mise, le paiement direct n’est pas proposé pour ce réseau."
+    "content": "Achats et commandes — Espace Client\nMes achats\nAppuyez sur l’onglet Achats .\nFiltrez par Tous , En cours , Terminés ou Initiés .\nAppuyez sur une ligne pour ouvrir le détail.\nDétail d’un achat\nConsultez le montant, le payé et le restant. La liste indique chaque article et la quantité. Un crédit actif s’affiche avec le statut EN COURS .\nAppuyez sur Payer une mise (bouton flottant) pour déclarer un paiement Mobile Money.\nAppuyez sur Voir le suivi des mises pour l’historique des échéances.\nSur le suivi, vous pouvez aussi appuyer sur Payer une mise même si aucune échéance n’est encore listée.\nDéclarer un paiement\nLisez le numéro indiqué pour envoyer votre transfert.\nAjoutez le justificatif du transfert : une capture du message de confirmation, ou le reçu PDF de l’opération. Pour une capture, si une fenêtre Autorisation requise s’affiche, appuyez sur Autoriser . Si vous aviez déjà refusé, appuyez sur Ouvrir les paramètres , activez l’appareil photo ou les photos pour Elykia, puis recommencez.\nAttendez éventuellement le message « Lecture du justificatif… » : la référence du transfert peut se remplir automatiquement. Vérifiez-la et modifiez-la si besoin.\nRenseignez le numéro d’envoi et le montant .\nAppuyez sur Soumettre le paiement en bas de l’écran.\n\nLe justificatif est obligatoire pour envoyer la déclaration.\nPayer depuis l’application\n\nLorsque l’écran propose Payer depuis l’application , ou uniquement le choix du réseau :\nSi deux choix sont proposés, Je paie moi-même sert à faire le transfert de votre côté et à joindre la preuve. Payer depuis l’application demande le montant sur votre mobile money, avec des frais en plus.\nChoisissez Mixx by Yas ou Flooz .\nLisez les frais de retrait , les frais du réseau (en pourcentage) et le total prélevé .\nSaisissez votre numéro, puis appuyez sur Payer .\nConfirmez la demande sur votre téléphone. Le paiement est enregistré lorsque la confirmation aboutit.\n\nSi aucun frais de retrait n’est prévu pour votre mise, le paiement direct n’est pas proposé pour ce réseau."
   },
   {
     "id": "customer_achats_commandes__commander",
@@ -1403,7 +1403,7 @@
       "customer",
       "manager"
     ],
-    "content": "Achats et commandes — Espace Client\nCommander\nAppuyez sur l’onglet Commander .\nChaque produit affiche sa photo lorsqu’elle est disponible, avec son nom et son prix.\nRecherchez un produit ou filtrez par catégorie.\nAppuyez sur Ajouter , puis ouvrez le panier.\nSur Mon panier , ajustez les quantités, consultez le résumé de la commande , puis appuyez sur Passer la commande . Lorsque le panier propose un type de crédit, choisissez Personnel , Professionnel ou Événement avant de valider. Le plafond affiché est celui de ce type."
+    "content": "Achats et commandes — Espace Client\nCommander\nAppuyez sur l’onglet Commander .\nChaque produit affiche sa photo lorsqu’elle est disponible, avec son nom.\nRecherchez un produit ou filtrez par catégorie.\nAppuyez sur Ajouter , puis ouvrez le panier.\nSur Mon panier , ajustez les quantités, consultez le résumé de la commande et son total, puis appuyez sur Passer la commande . Lorsque le panier propose un type de crédit, choisissez Personnel , Professionnel ou Événement avant de valider. Le plafond affiché est celui de ce type."
   },
   {
     "id": "customer_achats_commandes__mes_adh_sions",
@@ -1425,7 +1425,7 @@
       "customer",
       "manager"
     ],
-    "content": "Achats et commandes — Espace Client\nSur ordinateur\nUtilisez le menu à gauche : Accueil , Achats , Commander , Panier , Profil . Adhésions s'ajoute à ce menu lorsqu'il est ouvert pour vous.\nSur Accueil , les montants de crédit s’affichent en cartes en haut de page, avec les actions rapides à droite. Adhésions , lorsqu'il est proposé, ouvre vos soldes et plafonds.\nSur Achats , la liste apparaît en tableau : cliquez une ligne pour le détail. Le panneau de droite propose Payer une mise et Voir le suivi des mises .\nSur Commander , les catégories sont à gauche, les produits au centre (avec leur photo lorsqu’elle est disponible), et un mini-panier à droite. Ouvrez Voir le panier pour finaliser."
+    "content": "Achats et commandes — Espace Client\nSur ordinateur\nUtilisez le menu à gauche : Accueil , Achats , Commander , Panier , Profil . Adhésions s'ajoute à ce menu lorsqu'il est ouvert pour vous.\nSur Accueil , les montants de crédit s’affichent en cartes en haut de page, avec les actions rapides à droite. Adhésions , lorsqu'il est proposé, ouvre vos soldes et plafonds.\nSur Achats , la liste apparaît en tableau : cliquez une ligne pour le détail. Le panneau de droite propose Payer une mise et Voir le suivi des mises .\nSur Commander , les catégories sont à gauche, les produits au centre (photo et nom lorsqu’ils sont disponibles), et un mini-panier à droite avec le total. Ouvrez Voir le panier pour finaliser. Le détail d’un achat liste les articles et les quantités, avec le montant de l’achat."
   },
   {
     "id": "customer_connexion",
@@ -2434,6 +2434,15 @@
     "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRéférentiels et Configuration de l'agence\nVérification automatique après un contrôle de carnet tontine\nOuvrez Configuration → Paramètres généraux .\nRepérez TONTINE_AUTO_VERIFY_ON_FIELD_CONTROL .\nCliquez sur Modifier .\nChoisissez OUI pour que chaque contrôle de carnet terrain marque le membre tontine comme vérifié, y compris hors connexion après actualisation du pack terrain.\nLaissez NON pour n’enregistrer que le contrôle. Le badge Déjà contrôlé s’affiche quand même, et le carnet reste à vérifier jusqu’à une action Vérifier ."
   },
   {
+    "id": "manager_reporting_config__4_r_f_rentiels_et_configuration_de_l_agence_prix",
+    "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 4. Référentiels et Configuration de l'agence — Prix unitaires sur les documents",
+    "path": "/user-guide/manager/reporting_config.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste)\nRéférentiels et Configuration de l'agence\nPrix unitaires sur les documents\nOuvrez Configuration → Paramètres généraux .\nRepérez RESTRICT_UNIT_PRICE_VISIBILITY .\nCliquez sur Modifier .\nLaissez true pour réserver le prix unitaire et le montant de chaque ligne au gestionnaire et aux administrateurs. Le montant total du document reste affiché pour tout le monde, y compris sur les PDF.\nPassez la valeur à false , puis enregistrez, pour que chaque profil retrouve le prix unitaire et le montant de ligne sur les écrans et les PDF."
+  },
+  {
     "id": "manager_reporting_config__4_r_f_rentiels_et_configuration_de_l_agence_gril",
     "title": "Rapports d'activité, Assistant ELYKIA IA & Paramètres (Guide Gestionnaire & Analyste) — 4. Référentiels et Configuration de l'agence — Grilles de frais de retrait",
     "path": "/user-guide/manager/reporting_config.html",
@@ -2488,7 +2497,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nEntrées Fournisseurs & Historique des Réceptions\n\nToute livraison de marchandise par un fournisseur doit faire l'objet d'une saisie d'entrée, soumise à une validation préalable obligatoire du gestionnaire avant d'impacter le stock disponible.\n\nPour accéder à la liste des réceptions, ouvrez le menu latéral Stock Commercial , puis cliquez sur Historique Entrée ."
   },
   {
-    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_256",
+    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_257",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 2. Entrées Fournisseurs & Historique des Réceptions — A. Circuit d'approbation d'une réception",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2497,7 +2506,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nEntrées Fournisseurs & Historique des Réceptions\nA. Circuit d'approbation d'une réception\n Saisie de l'entrée : Le magasinier saisit les articles et quantités reçus via le bouton « Entrées stock » de la page Inventaires .\n Étape « En attente » : Une référence de réception unique est générée. Les articles ne sont pas encore intégrés au stock vendable.\n Contrôle et Validation par le gestionnaire :\nRendez-vous dans Stock Commercial > Historique Entrée .\nCliquez sur « Voir » pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran, ou directement sur « Valider » .\nUne fenêtre de confirmation liste les articles. Les prix d'achat (unitaire, ou prix du colis / demi-colis) sont préremplis avec le catalogue : vous pouvez les modifier ou les laisser tels quels.\nCliquez sur « Confirmer la validation » : le stock magasin est instantanément augmenté avec les prix confirmés. En cas d'erreur, le message s'affiche dans la fenêtre : corrigez puis renvoyez.\n Refuser : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à Refusé .\n Abandonner : Permet au créateur de la réception en attente de supprimer sa saisie avant validation si une erreur a été commise.\n Annuler : Réservé aux gestionnaires habilités pour annuler une réception déjà validée suite à une régularisation comptable, décrémentant le stock du magasin.\n\n Statut Réception Badge Couleur Impact sur le Stock Magasin Actions Disponibles \n --- --- --- --- \n En attente Jaune Aucun impact (en cours de contrôle) Valider, Refuser, Abandonner \n Validée Vert Stock magasin augmenté Voir, Annuler (selon vos droits) \n Refusée Rouge Aucun impact (réception rejetée) Voir \n Annulée Gris Le stock préalablement ajouté est retiré Voir"
   },
   {
-    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_257",
+    "id": "manager_stock_sales__2_entr_es_fournisseurs_historique_des_r_ceptions_258",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 2. Entrées Fournisseurs & Historique des Réceptions — B. Consulter le détail et télécharger les documents",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2560,7 +2569,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nInventaires physiques et réconciliation des écarts\n\nAccessible via le menu latéral Inventaires , ce module permet de confronter le stock théorique calculé par l'informatique au stock physique réel compté sur les étagères du magasin dépôt."
   },
   {
-    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_264",
+    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_265",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 5. Inventaires physiques et réconciliation des écarts — A. Indicateurs de valorisation du stock magasin",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2569,7 +2578,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nInventaires physiques et réconciliation des écarts\nA. Indicateurs de valorisation du stock magasin\n\nPour les gestionnaires, le bandeau supérieur présente 5 métriques financières stratégiques :\n Valeur d'achat FIFO / Total achat : Valeur monétaire du stock au coût d'acquisition fournisseur.\n Prix total vente crédit : Valeur projetée de réalisation du stock si l'ensemble des articles est distribué à crédit.\n Marge estimée (crédit) : Marge brute prévisionnelle dégagée sur le stock (Vente crédit $-$ Coût d'achat).\n Prix total vente comptant : Valeur du stock au prix de vente comptant.\n Marge estimée (comptant) : Marge brute projetée au comptant."
   },
   {
-    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_265",
+    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_266",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 5. Inventaires physiques et réconciliation des écarts — B. Déroulement méthodique d'une session d'inventaire",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2578,7 +2587,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nInventaires physiques et réconciliation des écarts\nB. Déroulement méthodique d'une session d'inventaire\n\nUne session d'inventaire se déroule en 4 étapes séquentielles :\n Création de session : Cliquez sur le bouton vert « Créer un inventaire » . La session est créée au statut Brouillon et affiche la date, le statut et l'auteur. Elle passe à En cours dès que des quantités physiques sont enregistrées.\n Impression de la feuille de comptage : Cliquez sur « Télécharger PDF » pour éditer le document de comptage vierge destiné aux équipes de magasin.\n Saisie des quantités réelles : Cliquez sur « Saisir quantités physiques » . Dans la fenêtre qui s'ouvre, saisissez les quantités effectivement dénombrées pour chaque référence d'article.\n Réconciliation des écarts :\nCliquez sur « Réconcilier les écarts » pour afficher la balance comparative : Quantité Théorique Système vs Quantité Physique Constatée = Écart (Surplus ou Manquant).\nEnregistrez les motifs d'écart (casse, avarie, vol, erreur de saisie).\n Clôture définitive : Cliquez sur « Clôturer l'inventaire » . Les stocks théoriques sont automatiquement réalignés sur le comptage physique approuvé et la session est archivée dans l' Historique des inventaires (accessible via l'onglet ou le bouton Historique)."
   },
   {
-    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_266",
+    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_267",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 5. Inventaires physiques et réconciliation des écarts — C. Annuler un brouillon",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2587,7 +2596,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nInventaires physiques et réconciliation des écarts\nC. Annuler un brouillon\nTant que le statut affiché est Brouillon , cliquez sur « Annuler l'inventaire » .\nConfirmez. Le stock du magasin n'est pas modifié.\nLe bouton « Créer un inventaire » redevient disponible.\nDans Historique inventaires , le filtre Annulé retrouve cette session."
   },
   {
-    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_267",
+    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_268",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 5. Inventaires physiques et réconciliation des écarts — D. Stock magasin pendant l'inventaire",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2596,7 +2605,7 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nInventaires physiques et réconciliation des écarts\nD. Stock magasin pendant l'inventaire\n\nTant que l'inventaire est Brouillon ou En cours , les entrées de stock, la remise à zéro, la livraison d'une sortie et le retour de marchandise vers le magasin sont refusés. Le message affiché est : « Un inventaire est en cours. Veuillez attendre la fin de l'inventaire avant de continuer cette opération. »\n\nLes ventes et les crédits pris sur le stock du commercial restent possibles. Une demande de sortie peut être créée ; sa livraison attend la fin ou la suspension de l'inventaire."
   },
   {
-    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_268",
+    "id": "manager_stock_sales__5_inventaires_physiques_et_r_conciliation_des_ca_269",
     "title": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire) — 5. Inventaires physiques et réconciliation des écarts — E. Suspendre et reprendre",
     "path": "/user-guide/manager/stock_sales.html",
     "roles": [
@@ -2694,7 +2703,7 @@
     "content": "Chef de recouvrement — application mobile\nOnglet Retards : prioriser, contrôler et clôturer\nContrôle crédit\n\nLe formulaire rappelle la mise journalière , le montant total du crédit et le montant déjà payé.\nSaisissez l’ avance lue sur le carnet . L’avance déjà enregistrée s’affiche à côté, avec la mention Identique ou Différente .\nLes pastilles vont de 1 à 31 . Touchez le dernier jour coché sur le carnet : les jours du 1 jusqu’à ce numéro passent au vert. La somme des mises se calcule en même temps.\nLe total carnet additionne cette somme et l’avance saisie.\nAjoutez une note si besoin, puis Capturer le contrôle . Le résultat affiche CONFORME lorsque le total carnet correspond au montant payé, sinon ECART .\n\nLorsque la mise journalière n’est pas affichée, saisissez directement le montant lu sur le carnet.\n\nSi ce crédit a déjà un écart qui n’a pas encore été accepté, la carte indique Déjà contrôlé et le montant de l’écart. Le formulaire reprend le montant saisi et le bouton devient Modifier le contrôle . Lorsque l’écart a été accepté ou refusé, ou si le dernier contrôle est CONFORME , un nouveau contrôle peut être saisi."
   },
   {
-    "id": "recovery_manager_mobile__onglet_retards_prioriser_contr_ler_et_cl_turer_c_278",
+    "id": "recovery_manager_mobile__onglet_retards_prioriser_contr_ler_et_cl_turer_c_279",
     "title": "Chef de recouvrement — application mobile — Onglet Retards : prioriser, contrôler et clôturer — Clôture totale ou partielle",
     "path": "/user-guide/recovery-manager/mobile.html",
     "roles": [

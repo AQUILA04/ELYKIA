@@ -17,7 +17,7 @@
   <div class="elyk-desktop-grid elyk-desktop-grid--sidebar" *ngIf="lines().length > 0">
     <div class="elyk-table-wrap">
       <table class="elyk-table">
-        <thead><tr><th>Article</th><th>Quantité</th><th class="num">Prix unit.</th><th class="num">Total</th><th></th></tr></thead>
+        <thead><tr><th>Article</th><th>Quantité</th><th class="num" *appIfUnitPrice>Prix unit.</th><th class="num" *appIfUnitPrice>Total</th><th></th></tr></thead>
         <tbody>
           <tr *ngFor="let line of lines()" [attr.data-testid]="'e2e-cart-line-' + line.article.id">
             <td>{{ label()(line.article) }}</td>
@@ -28,8 +28,8 @@
                 <button type="button" (click)="increment.emit(line)">+</button>
               </div>
             </td>
-            <td class="num">{{ line.article.creditSalePrice | number:'1.0-0' }} F</td>
-            <td class="num">{{ lineTotal()(line) | number:'1.0-0' }} F</td>
+            <td class="num" *appIfUnitPrice>{{ line.article.creditSalePrice | number:'1.0-0' }} F</td>
+            <td class="num" *appIfUnitPrice>{{ lineTotal()(line) | number:'1.0-0' }} F</td>
             <td><button type="button" class="desk-chip" (click)="remove.emit(line)">Retirer</button></td>
           </tr>
         </tbody>

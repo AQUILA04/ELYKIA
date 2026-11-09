@@ -68,24 +68,24 @@
         <thead>
             <tr>
                 <th>Article</th>
-                <th>Prix Unitaire</th>
+                <th th:if="${showUnitPrice != false}">Prix Unitaire</th>
                 <th>Quantité Sortie</th>
                 <th>Quantité Retournée</th>
                 <th>Quantité Nette</th>
-                <th>Montant Net</th>
+                <th th:if="${showUnitPrice != false}">Montant Net</th>
             </tr>
         </thead>
         <tbody>
             <tr th:if="${#lists.isEmpty(context.items)}">
-                <td colspan="6" class="no-data">Aucune donnée trouvée pour cette période.</td>
+                <td class="no-data" th:attr="colspan=${showUnitPrice != false} ? 6 : 4">Aucune donnée trouvée pour cette période.</td>
             </tr>
             <tr th:each="item : ${context.items}">
                 <td th:text="${item.articleName}"></td>
-                <td th:text="${item.unitPrice}"></td>
+                <td th:if="${showUnitPrice != false}" th:text="${item.unitPrice}"></td>
                 <td th:text="${item.totalQuantity}"></td>
                 <td th:text="${item.returnedQuantity}"></td>
                 <td th:text="${item.netQuantity}"></td>
-                <td th:text="${item.netAmount}"></td>
+                <td th:if="${showUnitPrice != false}" th:text="${item.netAmount}"></td>
             </tr>
         </tbody>
     </table>

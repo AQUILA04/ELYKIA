@@ -45,6 +45,7 @@ public class DailyReportPdfService {
         DailyReportExportPdfDto dto = buildDto(startDate, endDate, commercialUsername, kpi, grouped);
 
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("report", dto);
 
         String html = templateEngine.process("daily-report-export", context);

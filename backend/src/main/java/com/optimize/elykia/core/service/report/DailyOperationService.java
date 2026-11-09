@@ -139,6 +139,7 @@ public class DailyOperationService {
                 .build();
 
         org.thymeleaf.context.Context context = new org.thymeleaf.context.Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("context", contextDto);
 
         String html = templateEngine.process("daily-operation-export", context);

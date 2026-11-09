@@ -31,6 +31,7 @@ import { CommercialStockService } from './commercial-stock.service';
 import { User } from '../../models/auth.model';
 import { RestoreResult } from '../models/restore.models';
 import { ParameterService } from './parameter.service';
+import { UnitPriceVisibilityService } from './unit-price-visibility.service';
 import { TontineCollectionRepository } from '../repositories/tontine-collection.repository';
 import { TontineDeliveryRepository } from '../repositories/tontine-delivery.repository';
 
@@ -58,7 +59,8 @@ export class DataInitializationService {
     private commercialStockService: CommercialStockService,
     private parameterService: ParameterService,
     private tontineCollectionRepository: TontineCollectionRepository,
-    private tontineDeliveryRepository: TontineDeliveryRepository
+    private tontineDeliveryRepository: TontineDeliveryRepository,
+    private unitPriceVisibility: UnitPriceVisibilityService
   ) {
     this.store.select(selectAuthUser).subscribe(user => {
       this.commercialUsername = user?.username;
@@ -67,6 +69,7 @@ export class DataInitializationService {
 
   initializeParameters(): Observable<boolean> {
     return this.parameterService.initializeParameters().pipe(
+      switchMap(() => from(this.unitPriceVisibility.syncFromLocal())),
       map(() => true),
       catchError((error) => {
         console.error('Error initializing parameters:', error);

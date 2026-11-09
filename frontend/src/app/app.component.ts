@@ -44,6 +44,7 @@ import { AuthService } from './auth/service/auth.service';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { LayoutService } from './shared/service/layout.service';
+import { UnitPriceVisibilityService } from './shared/service/unit-price-visibility.service';
 
 @Component({
   selector: 'app-root',
@@ -60,12 +61,14 @@ export class AppComponent implements OnInit {
     private permissionsService: NgxPermissionsService,
     private tokenStorageService: TokenStorageService,
     private authService: AuthService,
-    public layoutService: LayoutService
+    public layoutService: LayoutService,
+    private unitPriceVisibility: UnitPriceVisibilityService
   ) { }
 
   ngOnInit(): void {
 
     this.setupSessionSync();
+    this.unitPriceVisibility.ensureLoaded().subscribe();
 
     // Vérifier l'authentification à chaque navigation
     this.router.events.pipe(

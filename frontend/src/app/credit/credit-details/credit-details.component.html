@@ -344,8 +344,8 @@
             <th>Nom de l'article</th>
             <th>Type</th>
             <th>Quantité</th>
-            <th>Prix unitaire</th>
-            <th>Total</th>
+            <th *appIfUnitPrice>Prix unitaire</th>
+            <th *appIfUnitPrice>Total</th>
           </tr>
         </thead>
         <tbody>
@@ -353,8 +353,8 @@
             <td><span class="article-name">{{ item.articles?.commercialName }}</span></td>
             <td><span class="article-type-badge">{{ item.articles?.type || 'N/A' }}</span></td>
             <td><span class="mono-cell">{{ item.quantity }}</span></td>
-            <td><span class="mono-cell">{{ item.unitPrice | number }} FCFA</span></td>
-            <td><span class="total-cell">{{ item.totalPrice || (item.quantity * item.unitPrice) | number }} FCFA</span>
+            <td *appIfUnitPrice><span class="mono-cell">{{ item.unitPrice | number }} FCFA</span></td>
+            <td *appIfUnitPrice><span class="total-cell">{{ item.totalPrice || (item.quantity * item.unitPrice) | number }} FCFA</span>
             </td>
           </tr>
         </tbody>
@@ -368,7 +368,7 @@
           <span class="article-type-badge">{{ item.articles?.type || 'N/A' }}</span>
           <span class="article-card-qty">Qté {{ item.quantity }}</span>
         </div>
-        <div class="article-card-prices">
+        <div class="article-card-prices" *appIfUnitPrice>
           <div>
             <span class="article-card-label">Prix unitaire</span>
             <span class="mono-cell">{{ item.unitPrice | number }} FCFA</span>

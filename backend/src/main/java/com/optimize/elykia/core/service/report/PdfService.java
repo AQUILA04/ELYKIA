@@ -59,6 +59,7 @@ public class PdfService {
         }
 
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("restockItems", data);
 
         String html = templateEngine.process("restock-needed-report", context);
@@ -98,6 +99,7 @@ public class PdfService {
             throw new ResourceNotFoundException("Aucune donnée disponible pour télécharger !");
         }
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("operation", operationDto);
         return templateEngine.process("daily-operation-print", context);
     }
@@ -107,12 +109,14 @@ public class PdfService {
             throw new ResourceNotFoundException("Aucune donnée disponible pour télécharger !");
         }
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("item", dto);
         return templateEngine.process("item-release-sheet", context);
     }
     
     public String generateStockReceptionHtmlFromTemplate(StockReceptionDto dto) {
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("reception", dto);
         context.setVariable("companyName", "AMENOUVEVE - YAVEH");
         context.setVariable("generationDate",
@@ -125,6 +129,7 @@ public class PdfService {
             throw new ResourceNotFoundException("Aucune donnée disponible pour télécharger !");
         }
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("daily", dto);
         context.setVariable("companyName", "AMENOUVEVE - YAVEH");
         context.setVariable("generationDate",
@@ -265,6 +270,7 @@ public class PdfService {
             throw new ResourceNotFoundException("Aucune donnée disponible pour télécharger !");
         }
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("inventory", dto);
         return templateEngine.process("inventory-control-sheet", context);
     }

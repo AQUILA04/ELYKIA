@@ -85,7 +85,7 @@
               <span class="article-name">{{ item.article.name || 'Article #' + item.articleId }}</span>
               <span class="article-quantity">×{{ item.quantity }}</span>
             </div>
-            <div class="article-price elyk-amount">{{ item.totalPrice | number:'1.0-0' }} FCFA</div>
+            <div class="article-price elyk-amount" *appIfUnitPrice>{{ item.totalPrice | number:'1.0-0' }} FCFA</div>
           </div>
         </div>
       </ion-card-content>

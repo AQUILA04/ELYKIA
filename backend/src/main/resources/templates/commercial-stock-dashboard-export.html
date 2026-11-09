@@ -36,37 +36,39 @@
         <thead>
         <tr>
             <th>Article</th>
-            <th>Prix Unitaire</th>
+            <th th:if="${showUnitPrice != false}">Prix Unitaire</th>
             <th>Pris (Magasin)</th>
             <th>Vendu (Clients)</th>
             <th>Retourné</th>
             <th>Restant</th>
-            <th>Valeur Vendue</th>
-            <th>Valeur Restante</th>
+            <th th:if="${showUnitPrice != false}">Valeur Vendue</th>
+            <th th:if="${showUnitPrice != false}">Valeur Restante</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="item : ${context.items}">
             <td th:text="${item.articleName}">Article</td>
-            <td th:text="${item.unitPrice}">0</td>
+            <td th:if="${showUnitPrice != false}" th:text="${item.unitPrice}">0</td>
             <td th:text="${item.quantityTaken}">0</td>
             <td th:text="${item.quantitySold}">0</td>
             <td th:text="${item.quantityReturned}">0</td>
             <td th:text="${item.quantityRemaining}">0</td>
-            <td th:text="${item.soldValue}">0</td>
-            <td th:text="${item.remainingValue}">0</td>
+            <td th:if="${showUnitPrice != false}" th:text="${item.soldValue}">0</td>
+            <td th:if="${showUnitPrice != false}" th:text="${item.remainingValue}">0</td>
         </tr>
         <tr>
             <td><strong>Totaux</strong></td>
-            <td></td>
+            <td th:if="${showUnitPrice != false}"></td>
             <td th:text="${context.totalTaken}">0</td>
             <td th:text="${context.totalSold}">0</td>
             <td th:text="${context.totalReturned}">0</td>
             <td th:text="${context.totalRemaining}">0</td>
-            <td th:text="${context.totalSoldValue}">0</td>
-            <td th:text="${context.totalRemainingValue}">0</td>
+            <td th:if="${showUnitPrice != false}" th:text="${context.totalSoldValue}">0</td>
+            <td th:if="${showUnitPrice != false}" th:text="${context.totalRemainingValue}">0</td>
         </tr>
         </tbody>
     </table>
+    <p th:if="${showUnitPrice == false}"><strong>Valeur vendue totale : </strong><span th:text="${context.totalSoldValue}">0</span></p>
+    <p th:if="${showUnitPrice == false}"><strong>Valeur restante totale : </strong><span th:text="${context.totalRemainingValue}">0</span></p>
 </body>
 </html>

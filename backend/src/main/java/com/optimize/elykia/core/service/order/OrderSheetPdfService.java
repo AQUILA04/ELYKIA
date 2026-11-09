@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.order;
 
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.repository.UserRepository;
 import com.optimize.common.securities.security.services.UserService;
@@ -47,6 +49,7 @@ public class OrderSheetPdfService {
         orderService.assertOrderPortfolioAccess(currentUser, order);
 
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         PdfDocumentIdentity.applyTo(context, DOCUMENT_TITLE);
         context.setVariable("doc", toDto(order));
         String html = templateEngine.process("order-sheet-export", context);

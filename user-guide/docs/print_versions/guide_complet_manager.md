@@ -1017,6 +1017,14 @@ Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refu
 4. Choisissez **OUI** pour que chaque contrôle de carnet terrain marque le membre tontine comme vérifié, y compris hors connexion après actualisation du pack terrain.
 5. Laissez **NON** pour n’enregistrer que le contrôle. Le badge **Déjà contrôlé** s’affiche quand même, et le carnet reste à vérifier jusqu’à une action **Vérifier**.
 
+### Prix unitaires sur les documents
+
+1. Ouvrez **Configuration** → **Paramètres généraux**.
+2. Repérez **RESTRICT_UNIT_PRICE_VISIBILITY**.
+3. Cliquez sur **Modifier**.
+4. Laissez **true** pour réserver le prix unitaire et le montant de chaque ligne au gestionnaire et aux administrateurs. Le montant total du document reste affiché pour tout le monde, y compris sur les PDF.
+5. Passez la valeur à **false**, puis enregistrez, pour que chaque profil retrouve le prix unitaire et le montant de ligne sur les écrans et les PDF.
+
 ### Grilles de frais de retrait
 
 1. Ouvrez **Configuration** → **Frais de retrait**.

@@ -34,16 +34,16 @@
               <tr>
                 <th>Article</th>
                 <th>Qté</th>
-                <th class="text-right">P.U.</th>
-                <th class="text-right">Total</th>
+                <th class="text-right" *appIfUnitPrice>P.U.</th>
+                <th class="text-right" *appIfUnitPrice>Total</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let item of creditArticles[credit.id]">
                 <td>{{ item.articles?.name }}</td>
                 <td>{{ item.quantity }}</td>
-                <td class="text-right">{{ item.articles?.creditSalePrice | number:'1.0-0' }}</td>
-                <td class="text-right">{{ (item.quantity * item.articles?.creditSalePrice) | number:'1.0-0' }}</td>
+                <td class="text-right" *appIfUnitPrice>{{ item.articles?.creditSalePrice | number:'1.0-0' }}</td>
+                <td class="text-right" *appIfUnitPrice>{{ (item.quantity * item.articles?.creditSalePrice) | number:'1.0-0' }}</td>
               </tr>
             </tbody>
           </table>

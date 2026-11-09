@@ -133,7 +133,7 @@
               <span class="item-name">{{ item.articleName }}</span>
               <span class="item-qty">×{{ item.quantity }}</span>
             </div>
-            <span class="item-price elyk-amount">{{ formatCurrency(item.totalPrice) }}</span>
+            <span class="item-price elyk-amount" *appIfUnitPrice>{{ formatCurrency(item.totalPrice) }}</span>
           </div>
           <div class="total-row">
             <span>Total</span>

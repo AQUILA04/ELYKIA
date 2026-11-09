@@ -6,6 +6,7 @@ import { Subscription } from 'rxjs';
 import { ItemService } from '../article/service/item.service';
 import { TokenStorageService } from '../shared/service/token-storage.service';
 import { FeatureFlagService, FeatureFlags } from '../shared/service/feature-flag.service';
+import { UnitPriceVisibilityService } from '../shared/service/unit-price-visibility.service';
 
 @Component({
   selector: 'app-dashboard',
@@ -36,12 +37,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private spinner: NgxSpinnerService,
     private tokenStorage: TokenStorageService,
     private router: Router,
-    private featureFlagService: FeatureFlagService
+    private featureFlagService: FeatureFlagService,
+    private unitPriceVisibility: UnitPriceVisibilityService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
 
   ngOnInit(): void {
+    this.unitPriceVisibility.refresh(true).subscribe();
     this.dashboardV2Enabled = this.featureFlagService.isFeatureEnabled(FeatureFlags.DashboardV2);
     this.flagSub = this.featureFlagService.flags$.subscribe(flags => {
       this.dashboardV2Enabled = flags[FeatureFlags.DashboardV2] ?? false;

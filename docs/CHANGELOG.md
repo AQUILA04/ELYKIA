@@ -11,6 +11,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra — 2026-11-09
 
+### Changed
+
+- **Sonar —** les directives de visibilité du prix unitaire, recopiées dans chaque client, sont exclues du calcul de duplication. Les trois applications ne partagent pas de librairie.
+
 ### Fixed
 
 - **CI —** la promotion d'un APK (mobile et espace client) cherche le dernier build test réussi sur 60 lancements, au lieu de 30. Le build 2.36.1 était au-delà de l'ancienne fenêtre.
@@ -73,6 +77,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.44.3] — 2026-11-09
+
+### Changed
+
+- Commandes, ventes, demandes de sortie, tontines, dettes et détail des ventes : le prix unitaire et le montant de chaque ligne suivent le paramètre **RESTRICT_UNIT_PRICE_VISIBILITY**. Le gestionnaire et les administrateurs continuent de les voir. Le montant total du document reste affiché. Le réglage est relu à l’accueil, dans Paramètres, et au plus toutes les 6 heures.
 
 ## Frontend — [2.44.2] — 2026-11-09
 
@@ -180,6 +190,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.36.2] — 2026-11-09
+
+### Changed
+
+- Commercial : articles, commandes, distributions, livraisons tontine, demandes de stock et reçus imprimés n’affichent le prix unitaire et le montant de ligne que si le paramètre le permet pour le profil connecté. Le montant total du document reste. Hors ligne, la dernière valeur connue s’applique ; sans valeur connue, le prix unitaire reste absent.
+
 ## Mobile — [2.36.1] — 2026-11-07
 
 ### Fixed
@@ -236,6 +252,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.47.2] — 2026-11-09
+
+### Added
+
+- Paramètre **RESTRICT_UNIT_PRICE_VISIBILITY** (activé par défaut). Les PDF de commande, de vente, de sortie, de stock, d’annulation et les rapports mensuels omettent le prix unitaire et le montant de ligne, sauf pour un gestionnaire ou un administrateur. Le montant total du document reste. Désactivé, les colonnes actuelles reviennent.
 
 ## Backend — [1.47.1] — 2026-11-09
 
@@ -1360,6 +1382,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.17.3] — 2026-11-09
+
+### Fixed
+
+- Les tests de l’espace client démarrent sans `HttpClient` : le réglage des prix unitaires reste masqué tant que l’appel n’est pas disponible.
+
+## Customer-space — [0.17.2] — 2026-11-09
+
+### Changed
+
+- Catalogue, panier et détail d’achat (téléphone et ordinateur) : le prix unitaire et le montant de ligne suivent le paramètre d’agence. Le total du panier et le montant de l’achat restent affichés. Le réglage est lu à l’ouverture, puis conservé 6 heures.
 
 ## Customer-space — [0.17.1] — 2026-10-24
 

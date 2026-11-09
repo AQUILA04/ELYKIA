@@ -56,9 +56,9 @@
             <th>Article</th>
             <th>Opération</th>
             <th class="text-center">Qté</th>
-            <th class="text-right">PA unit.</th>
-            <th class="text-right">PV unit.</th>
-            <th class="text-right">Marge</th>
+            <th class="text-right" th:if="${showUnitPrice != false}">PA unit.</th>
+            <th class="text-right" th:if="${showUnitPrice != false}">PV unit.</th>
+            <th class="text-right" th:if="${showUnitPrice != false}">Marge</th>
         </tr>
         </thead>
         <tbody>
@@ -67,11 +67,11 @@
             <td th:text="${line.articleName} ?: '-'"></td>
             <td th:text="${line.movementTypeLabel}"></td>
             <td class="text-center" th:text="${line.quantityMoved}"></td>
-            <td class="text-right"
+            <td class="text-right" th:if="${showUnitPrice != false}"
                 th:text="${line.unitPurchasePrice != null ? #numbers.formatDecimal(line.unitPurchasePrice, 1, 'WHITESPACE', 0, 'COMMA') + ' FCFA' : '-'}"></td>
-            <td class="text-right"
+            <td class="text-right" th:if="${showUnitPrice != false}"
                 th:text="${line.unitSalePrice != null ? #numbers.formatDecimal(line.unitSalePrice, 1, 'WHITESPACE', 0, 'COMMA') + ' FCFA' : '-'}"></td>
-            <td class="text-right"
+            <td class="text-right" th:if="${showUnitPrice != false}"
                 th:text="${#numbers.formatDecimal(line.marginAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
         </tr>
         </tbody>

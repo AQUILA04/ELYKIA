@@ -12,6 +12,7 @@ import { ClientSelectorModalComponent } from '../../../../shared/components/clie
 import { DistributionConfirmationModalComponent } from '../../../../shared/components/distribution-confirmation-modal/distribution-confirmation-modal.component';
 
 import { PrintReceiptModalModule } from '../../../../shared/components/print-receipt-modal/print-receipt-modal.module';
+import { IfUnitPriceDirective } from 'src/app/shared/directives/if-unit-price.directive';
 
 @NgModule({
   imports: [
@@ -21,7 +22,8 @@ import { PrintReceiptModalModule } from '../../../../shared/components/print-rec
     IonicModule,
     NewDistributionPageRoutingModule,
     PrintReceiptModalModule,
-    ScrollingModule
+    ScrollingModule,
+    IfUnitPriceDirective
   ],
   declarations: [
     NewDistributionPage,

@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.tontine;
 
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.optimize.elykia.core.dto.TontineCollectionArchiveRowDto;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +31,7 @@ public class TontineCollectionResetPdfService {
         double totalAmount = rows.stream().mapToDouble(r -> r.amount() != null ? r.amount() : 0.0).sum();
 
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("companyName", COMPANY_NAME);
         context.setVariable("generationDate", LocalDateTime.now().format(GENERATION_FORMAT));
         context.setVariable("sessionYear", sessionYear);

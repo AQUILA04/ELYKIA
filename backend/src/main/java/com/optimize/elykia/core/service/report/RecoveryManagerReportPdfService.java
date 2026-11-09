@@ -39,6 +39,7 @@ public class RecoveryManagerReportPdfService {
         DateTimeFormatter dateFmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("summary", summary);
         context.setVariable("operations", operationsPage.getContent().stream()
                 .map(op -> new OperationPdfRow(

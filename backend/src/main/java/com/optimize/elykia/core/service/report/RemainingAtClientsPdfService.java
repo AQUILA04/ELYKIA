@@ -45,6 +45,7 @@ public class RemainingAtClientsPdfService {
         RemainingAtClientsExportPdfDto dto = buildDto(commercialUsername, year, credits, aggregate);
 
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         PdfDocumentIdentity.applyTo(context, DOCUMENT_TITLE);
         context.setVariable("doc", dto);
         String html = templateEngine.process("remaining-at-clients-export", context);

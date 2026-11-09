@@ -256,7 +256,7 @@
           <tr>
             <th>Article</th>
             <th>Quantité</th>
-            <th>Prix vente unitaire</th>
+            <th *appIfUnitPrice>Prix vente unitaire</th>
             <th *ngIf="isManager">Prix achat unitaire</th>
           </tr>
         </thead>
@@ -264,18 +264,19 @@
           <tr *ngFor="let item of selectedRequest.items">
             <td>{{ item.itemName }}</td>
             <td>{{ item.quantity }}</td>
-            <td>{{ item.unitPrice | number:'1.0-0' }} FCFA</td>
+            <td *appIfUnitPrice>{{ item.unitPrice | number:'1.0-0' }} FCFA</td>
             <td *ngIf="isManager">{{ item.purchasePrice | number:'1.0-0' }} FCFA</td>
           </tr>
         </tbody>
         <tfoot>
           <tr>
             <td colspan="2" class="text-right"><strong>Total :</strong></td>
-            <td><strong>{{ (selectedRequest.totalCreditSalePrice ?? selectedRequest.totalSalePrice) | number:'1.0-0' }} FCFA</strong></td>
+            <td *appIfUnitPrice><strong>{{ (selectedRequest.totalCreditSalePrice ?? selectedRequest.totalSalePrice) | number:'1.0-0' }} FCFA</strong></td>
             <td *ngIf="isManager"><strong>{{ selectedRequest.totalPurchasePrice | number:'1.0-0' }} FCFA</strong></td>
           </tr>
         </tfoot>
       </table>
+      <p class="detail-total" *appIfNoUnitPrice><strong>Montant total : </strong>{{ (selectedRequest.totalCreditSalePrice ?? selectedRequest.totalSalePrice) | number:'1.0-0' }} FCFA</p>
       </ng-container>
     </div>
     <div class="stock-modal-footer">

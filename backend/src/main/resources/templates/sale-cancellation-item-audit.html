@@ -108,8 +108,8 @@
         <th>Code Article</th>
         <th>Désignation Article</th>
         <th style="text-align:right">Quantité Annulée (Réintégrée)</th>
-        <th style="text-align:right">Prix Unitaire (FCFA)</th>
-        <th style="text-align:right">Total Article (FCFA)</th>
+        <th th:if="${showUnitPrice != false}" style="text-align:right">Prix Unitaire (FCFA)</th>
+        <th th:if="${showUnitPrice != false}" style="text-align:right">Total Article (FCFA)</th>
     </tr>
     </thead>
     <tbody>
@@ -117,11 +117,11 @@
         <td th:text="${art.articleCode != null ? art.articleCode : '—'}">ART-01</td>
         <td th:text="${art.articleName}">Ventilateur</td>
         <td style="text-align:right; font-weight: bold;" th:text="'+ ' + ${art.quantity}">+ 1</td>
-        <td style="text-align:right" th:text="${#numbers.formatDecimal(art.unitPrice, 0, 'COMMA', 0, 'POINT')}">25 000</td>
-        <td style="text-align:right" th:text="${#numbers.formatDecimal(art.totalPrice, 0, 'COMMA', 0, 'POINT')}">25 000</td>
+        <td th:if="${showUnitPrice != false}" style="text-align:right" th:text="${#numbers.formatDecimal(art.unitPrice, 0, 'COMMA', 0, 'POINT')}">25 000</td>
+        <td th:if="${showUnitPrice != false}" style="text-align:right" th:text="${#numbers.formatDecimal(art.totalPrice, 0, 'COMMA', 0, 'POINT')}">25 000</td>
     </tr>
     <tr class="total-row">
-        <td colspan="4">MONTANT TOTAL RÉVERSÉ</td>
+        <td th:attr="colspan=${showUnitPrice != false} ? 4 : 2">MONTANT TOTAL RÉVERSÉ</td>
         <td style="text-align:right; color: #c0392b;" th:text="${#numbers.formatDecimal(totalAmount, 0, 'COMMA', 0, 'POINT')} + ' FCFA'">50 000 FCFA</td>
     </tr>
     </tbody>

@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { ScrollingModule } from '@angular/cdk/scrolling';
+import { IfUnitPriceDirective } from './directives/if-unit-price.directive';
+import { IfNoUnitPriceDirective } from './directives/if-no-unit-price.directive';
 
 import { BaseTransactionComponent } from './components/base-transaction/base-transaction.component';
 import { ArticleSelectorComponent } from './components/article-selector/article-selector.component';
@@ -21,7 +23,9 @@ import { ReliquatDisplayComponent } from './components/reliquat-display/reliquat
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
-    ScrollingModule
+    ScrollingModule,
+    IfUnitPriceDirective,
+    IfNoUnitPriceDirective
   ],
   exports: [
     BaseTransactionComponent,
@@ -32,7 +36,9 @@ import { ReliquatDisplayComponent } from './components/reliquat-display/reliquat
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
-    ScrollingModule
+    ScrollingModule,
+    IfUnitPriceDirective,
+    IfNoUnitPriceDirective
   ]
 })
 export class SharedModule { }

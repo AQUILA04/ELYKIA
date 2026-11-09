@@ -12,13 +12,14 @@ import * as DistributionActions from '../../../../store/distribution/distributio
 import { selectAuthUser } from '../../../../store/auth/auth.selectors';
 import { ReliquatService } from '../../../../core/services/reliquat.service';
 import { DistributionRecoveryHistoryComponent } from '../distribution-recovery-history/distribution-recovery-history.component';
+import { IfUnitPriceDirective } from '../../../../shared/directives/if-unit-price.directive';
 
 @Component({
   selector: 'app-distribution-detail',
   templateUrl: './distribution-detail.component.html',
   styleUrls: ['./distribution-detail.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, DistributionRecoveryHistoryComponent],
+  imports: [CommonModule, IonicModule, DistributionRecoveryHistoryComponent, IfUnitPriceDirective],
   providers: [DecimalPipe]
 })
 export class DistributionDetailComponent implements OnInit {

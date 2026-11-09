@@ -52,8 +52,8 @@
             <th>#</th>
             <th>Nom de l'article</th>
             <th>Quantité</th>
-            <th>Prix unitaire</th>
-            <th>Prix total</th>
+            <th th:if="${showUnitPrice != false}">Prix unitaire</th>
+            <th th:if="${showUnitPrice != false}">Prix total</th>
         </tr>
         </thead>
         <tbody >
@@ -61,8 +61,8 @@
             <td th:text="${iterStat.count}"></td>
             <td th:text="${article.name}"></td>
             <td th:text="${article.quantity}"></td>
-            <td th:text="${article.creditSalePrice} + ' F'"></td>
-            <td th:text="${article.totalPrice} + ' F'"></td>
+            <td th:if="${showUnitPrice != false}" th:text="${article.creditSalePrice} + ' F'"></td>
+            <td th:if="${showUnitPrice != false}" th:text="${article.totalPrice} + ' F'"></td>
         </tr>
         </tbody>
     </table>

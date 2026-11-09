@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.sale;
 
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.elykia.core.dto.CreditArticleDetailDto;
 import com.optimize.elykia.core.dto.SoldArticleDto;
@@ -86,6 +88,7 @@ public class CreditArticlesService extends GenericService<CreditArticles, Long> 
         double totalAmount = articles.stream().mapToDouble(a -> a.getTotalAmount() != null ? a.getTotalAmount() : 0d).sum();
 
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         PdfDocumentIdentity.applyTo(context, PDF_TITLE);
         context.setVariable("articles", articles);
         context.setVariable("articlesEmpty", articles.isEmpty());

@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.sale;
 
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.sale.SaleCancellationRun;
@@ -30,6 +32,7 @@ public class SaleCancellationPdfService {
     public byte[] generateSaleAuditPdf(Credit credit, String cancellationReason, String adminUsername) {
         try {
             Context context = new Context();
+            UnitPriceVisibility.apply(context);
             context.setVariable("creditReference", credit.getReference());
             context.setVariable("saleDate", credit.getBeginDate() != null ? credit.getBeginDate().format(DATE_FORMATTER) : "—");
             context.setVariable("clientFullName", credit.getClient() != null ? credit.getClient().getFullName() : "—");
@@ -70,6 +73,7 @@ public class SaleCancellationPdfService {
             List<ExcludedSaleRow> excludedSales) {
         try {
             Context context = new Context();
+            UnitPriceVisibility.apply(context);
             context.setVariable("commercialUsername", run.getCommercialUsername());
             context.setVariable("period", run.getStartDate().format(DATE_FORMATTER) + " au " + run.getEndDate().format(DATE_FORMATTER));
             context.setVariable("adminUsername", run.getTriggeredBy());
