@@ -190,6 +190,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.36.3] — 2026-11-09
+
+### Added
+
+- Commercial : après l’enregistrement ou la modification d’une commande, et depuis le détail d’une commande, un aperçu permet d’imprimer un ticket sur l’imprimante de ceinture. Le prix unitaire et le montant de chaque ligne suivent le même réglage que les autres reçus. Le montant total reste affiché.
+
 ## Mobile — [2.36.2] — 2026-11-09
 
 ### Changed

@@ -97,11 +97,23 @@
   </ng-container>
 </ion-content>
 
-<ion-footer class="elyk-footer-bar" *ngIf="order && canModify">
+<ion-footer class="elyk-footer-bar" *ngIf="order && !isLoading">
   <ion-toolbar>
-    <ion-button expand="block" class="elyk-btn-navy" (click)="editOrder()">
-      <ion-icon name="create-outline" slot="start"></ion-icon>
-      Modifier
-    </ion-button>
+    <ion-grid>
+      <ion-row>
+        <ion-col [size]="canModify ? '6' : '12'">
+          <ion-button expand="block" fill="outline" class="elyk-btn-outline" (click)="printOrder()">
+            <ion-icon name="print-outline" slot="start"></ion-icon>
+            Imprimer
+          </ion-button>
+        </ion-col>
+        <ion-col size="6" *ngIf="canModify">
+          <ion-button expand="block" class="elyk-btn-navy" (click)="editOrder()">
+            <ion-icon name="create-outline" slot="start"></ion-icon>
+            Modifier
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
   </ion-toolbar>
 </ion-footer>

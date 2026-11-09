@@ -5,6 +5,8 @@ import { Distribution } from '../../models/distribution.model';
 import { Client } from '../../models/client.model';
 import { Article } from '../../models/article.model';
 import { Recovery } from '../../models/recovery.model';
+import { Order } from '../../models/order.model';
+import { OrderItem } from '../../models/order-item.model';
 
 export interface PrintableDistribution {
   distribution: Distribution;
@@ -136,6 +138,94 @@ export interface PrintableTontineDelivery {
   };
   totalBudget: number;
   remainingBudget: number;
+}
+
+export interface PrintableOrderItem {
+  articleName: string;
+  quantity: number;
+  unitPrice: number;
+  totalPrice: number;
+}
+
+export interface PrintableOrderClient {
+  fullName?: string | null;
+  firstname?: string | null;
+  lastname?: string | null;
+  code?: string | null;
+  address?: string | null;
+  phone?: string | null;
+}
+
+export interface PrintableOrder {
+  reference: string;
+  createdAt: string;
+  status: string;
+  totalAmount: number;
+  client: PrintableOrderClient;
+  items: PrintableOrderItem[];
+  commercial: {
+    name: string;
+  };
+}
+
+export function formatOrderStatusLabel(status: string | null | undefined): string {
+  switch (status) {
+    case 'PENDING': return 'En attente';
+    case 'ACCEPTED': return 'Acceptée';
+    case 'DENIED': return 'Refusée';
+    case 'CANCEL': return 'Annulée';
+    case 'SOLD': return 'Vendue';
+    default: return status || '—';
+  }
+}
+
+export function buildPrintableOrder(
+  order: Order,
+  options?: {
+    items?: OrderItem[];
+    client?: PrintableOrderClient | null;
+    commercialName?: string | null;
+  }
+): PrintableOrder {
+  const sourceItems = options?.items ?? order.items ?? [];
+  const client = options?.client ?? order.client ?? {};
+
+  return {
+    reference: order.reference,
+    createdAt: order.createdAt,
+    status: order.status,
+    totalAmount: order.totalAmount ?? 0,
+    client: {
+      fullName: client.fullName,
+      firstname: client.firstname,
+      lastname: client.lastname,
+      code: client.code,
+      address: client.address,
+      phone: client.phone
+    },
+    items: sourceItems.map(item => ({
+      articleName: item.articleName || (item.articleId ? `Article ${item.articleId}` : 'Article'),
+      quantity: item.quantity ?? 0,
+      unitPrice: item.unitPrice ?? 0,
+      totalPrice: item.totalPrice ?? 0
+    })),
+    commercial: {
+      name: options?.commercialName || order.commercialId || 'N/A'
+    }
+  };
+}
+
+function escapeReceiptText(value: string | null | undefined): string {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatReceiptAmount(value: number | null | undefined): string {
+  const amount = typeof value === 'number' && Number.isFinite(value) ? value : 0;
+  return amount.toLocaleString('fr-FR');
 }
 
 @Injectable({
@@ -709,6 +799,141 @@ export class PrintingService {
           <p>Merci pour votre confiance!</p>
           <p>Bonne fin d'annee!</p>
           <br>
+          <p>${uniqueId}</p>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  async printOrderReceipt(printableOrder: PrintableOrder): Promise<void> {
+    const htmlContent = this.generateOrderReceiptHTML(printableOrder);
+    const reference = printableOrder.reference || 'commande';
+    await Printer.print({
+      content: htmlContent,
+      name: `recu_commande_${reference}`
+    });
+  }
+
+  private generateOrderReceiptHTML(printableOrder: PrintableOrder): string {
+    const { client, items, commercial } = printableOrder;
+    const createdAt = new Date(printableOrder.createdAt);
+    const hasDate = !Number.isNaN(createdAt.getTime());
+    const dateLabel = hasDate ? createdAt.toLocaleDateString('fr-FR') : (printableOrder.createdAt || 'N/A');
+    const timeLabel = hasDate
+      ? createdAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      : '';
+    const uniqueId = `#CMD${hasDate ? createdAt.getTime().toString() : Date.now().toString()}`;
+    const showUnitPrice = this.unitPriceVisibility.snapshot;
+    const clientCode = client.code?.trim();
+
+    const itemsHTML = items.map(item => `
+      <div class="article-item">
+        <div class="article-name">${escapeReceiptText(item.articleName || 'Article')}</div>
+        <div class="row article-details">
+          ${showUnitPrice
+            ? `<span>${item.quantity} x ${formatReceiptAmount(item.unitPrice)}</span><span class="article-total">${formatReceiptAmount(item.totalPrice)} FCFA</span>`
+            : `<span>Qté ${item.quantity}</span>`}
+        </div>
+      </div>
+    `).join('');
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Recu de Commande</title>
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          @media print { @page { margin: 1mm; } }
+          body {
+            font-family: 'Arial', sans-serif;
+            font-size: 6px;
+            line-height: 1.4;
+            width: 56mm;
+          }
+          .header, .separator, .footer { text-align: center; }
+          .header { font-size: 7px; margin-bottom: 20px; }
+          .separator { border-top: 1px dashed #000; margin: 10px 0; }
+          .footer { margin-top: 20px; font-size: 8px; }
+          .content-wrapper { margin: 0 2mm; }
+          .row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+          }
+          .row .value {
+            white-space: nowrap;
+            padding-left: 5px;
+          }
+          .article-item { margin-bottom: 8px; }
+          .article-name { margin-bottom: 2px; }
+          .article-details { font-size: 6px; color: #333; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          AMENOUVEVE-YAVEH<br>
+          RECU DE COMMANDE
+        </div>
+        <p>----------------------------</p>
+        <div class="separator"></div>
+
+        <div class="content-wrapper">
+          <div class="row">
+            <span>Reference:</span>
+            <span class="value">${escapeReceiptText(printableOrder.reference || 'N/A')}</span>
+          </div>
+          <div class="row">
+            <span>Date:</span>
+            <span class="value">${escapeReceiptText(dateLabel)}</span>
+          </div>
+          <div class="row">
+            <span>Heure:</span>
+            <span class="value">${escapeReceiptText(timeLabel)}</span>
+          </div>
+          <div class="row">
+            <span>Statut:</span>
+            <span class="value">${escapeReceiptText(formatOrderStatusLabel(printableOrder.status))}</span>
+          </div>
+        </div>
+
+        <div class="separator"></div>
+        <div class="content-wrapper">
+          <div style="margin-bottom: 10px;">
+            CLIENT:<br>
+            ${clientCode ? `${escapeReceiptText(clientCode)}<br>` : ''}
+            ${escapeReceiptText(formatClientDisplayName(client))}<br>
+            ${escapeReceiptText(client.address || '')}<br>
+            ${escapeReceiptText(client.phone || '')}
+          </div>
+          <div style="margin-bottom: 10px;">
+            COMMERCIAL: ${escapeReceiptText(commercial.name || 'N/A')}
+          </div>
+        </div>
+        <div class="separator"></div>
+
+        <div class="content-wrapper">
+          <div style="margin-bottom: 10px;">ARTICLES:</div>
+          ${itemsHTML || '<div>Aucun article</div>'}
+        </div>
+
+        <div class="separator"></div>
+        <p>----------------------------</p>
+
+        <div class="content-wrapper">
+          <div class="row total-row">
+            <span>TOTAL:</span>
+            <span class="value">${formatReceiptAmount(printableOrder.totalAmount)} FCFA</span>
+          </div>
+        </div>
+        <p>----------------------------</p>
+
+        <div class="separator"></div>
+        <div class="footer">
+          <p>Merci pour votre confiance!</p>
+          !!!AMENOUVEVE-YAHVE!!!<br>
           <p>${uniqueId}</p>
         </div>
       </body>
