@@ -1,6 +1,11 @@
 package com.optimize.elykia.core.controller.tontine;
 
+import com.optimize.elykia.core.dto.TontineCollectionResetLineDto;
+import com.optimize.elykia.core.dto.TontineCollectionResetMemberDto;
+import com.optimize.elykia.core.dto.TontineCollectionResetReportDayDto;
 import com.optimize.elykia.core.dto.TontineCollectionResetRunDto;
+import com.optimize.elykia.core.dto.TontineCommercialVoidPreviewDto;
+import com.optimize.elykia.core.dto.TontineCommercialVoidRequest;
 import com.optimize.elykia.core.service.tontine.TontineCollectionResetFacadeService;
 import com.optimize.elykia.core.util.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,6 +13,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+
+import java.nio.charset.StandardCharsets;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -75,5 +82,63 @@ public class TontineCollectionResetController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         return ResponseEntity.ok(facadeService.getRuns(page, size));
+    }
+
+    @GetMapping("/commercial/preview")
+    @PreAuthorize(EXECUTE_ROLES)
+    @Operation(summary = "Aperçu de l'annulation des collectes d'un commercial")
+    public ResponseEntity<TontineCommercialVoidPreviewDto> previewCommercial(
+            @RequestParam String commercialUsername,
+            @RequestParam(required = false) Integer sessionYear) {
+        return ResponseEntity.ok(facadeService.previewCommercial(commercialUsername, sessionYear));
+    }
+
+    @PostMapping("/commercial")
+    @PreAuthorize(EXECUTE_ROLES)
+    @Operation(summary = "Archiver puis annuler les collectes d'un commercial")
+    public ResponseEntity<TontineCollectionResetRunDto> voidCommercial(
+            @RequestBody TontineCommercialVoidRequest request) {
+        Integer sessionYear = request != null ? request.sessionYear() : null;
+        String commercial = request != null ? request.commercialUsername() : null;
+        return ResponseEntity.ok(facadeService.voidCommercial(commercial, sessionYear));
+    }
+
+    @GetMapping("/runs/{runId}/lines")
+    @PreAuthorize(CONSULT_ROLES)
+    @Operation(summary = "Lignes archivées d'une annulation")
+    public ResponseEntity<Page<TontineCollectionResetLineDto>> getLines(
+            @PathVariable Long runId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(facadeService.getLines(runId, page, size));
+    }
+
+    @GetMapping("/runs/{runId}/members")
+    @PreAuthorize(CONSULT_ROLES)
+    @Operation(summary = "Compteurs membres avant et après une annulation")
+    public ResponseEntity<Page<TontineCollectionResetMemberDto>> getMembers(
+            @PathVariable Long runId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(facadeService.getMembers(runId, page, size));
+    }
+
+    @GetMapping("/runs/{runId}/report-days")
+    @PreAuthorize(CONSULT_ROLES)
+    @Operation(summary = "Jours de rapport avant et après une annulation")
+    public ResponseEntity<List<TontineCollectionResetReportDayDto>> getReportDays(@PathVariable Long runId) {
+        return ResponseEntity.ok(facadeService.getReportDays(runId));
+    }
+
+    @GetMapping(value = "/runs/{runId}/lines.csv", produces = "text/csv")
+    @PreAuthorize(CONSULT_ROLES)
+    @Operation(summary = "Export CSV des lignes archivées")
+    public ResponseEntity<byte[]> exportLines(@PathVariable Long runId) {
+        byte[] csv = facadeService.exportLinesCsv(runId);
+        return ResponseEntity.ok()
+                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"collectes-annulees-" + runId + ".csv\"")
+                .body(csv);
     }
 }

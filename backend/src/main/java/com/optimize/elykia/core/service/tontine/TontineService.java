@@ -1018,6 +1018,39 @@ public class TontineService extends GenericService<TontineMember, Long> {
         return allocationMigrationService.startMigration(version, version, triggeredBy);
     }
 
+    /**
+     * Replays each member once from the collections still enabled.
+     * Lines of other commercials stay in the list and keep their amount.
+     */
+    public void replayMembersFromEnabledCollections(List<Long> memberIds) {
+        if (memberIds == null || memberIds.isEmpty()) {
+            return;
+        }
+        List<TontineMember> members = new ArrayList<>();
+        getRepository().findAllById(memberIds).forEach(members::add);
+        List<TontineCollection> lines = tontineCollectionRepository
+                .findByTontineMember_IdInAndStateOrderByCollectionDateAscIdAsc(memberIds, State.ENABLED);
+        Map<Long, List<TontineCollection>> byMember = new HashMap<>();
+        for (TontineCollection line : lines) {
+            Long memberId = line.getTontineMember().getId();
+            byMember.computeIfAbsent(memberId, id -> new ArrayList<>()).add(line);
+        }
+        for (TontineMember member : members) {
+            List<TontineCollection> remaining = byMember.getOrDefault(member.getId(), List.of());
+            currentPolicy().recalculateMemberFromCollections(member, remaining);
+            if (!remaining.isEmpty()) {
+                tontineCollectionRepository.saveAll(remaining);
+            }
+            getRepository().save(member);
+        }
+    }
+
+    public void refreshSessionRevenue(Long sessionId) {
+        TontineSession session = tontineSessionRepository.findById(sessionId)
+                .orElseThrow(() -> new CustomValidationException("Session tontine introuvable."));
+        updateSessionRevenue(session);
+    }
+
     private void updateSessionRevenue(TontineSession session) {
         Double totalRevenue = getRepository().sumSocietyShareByTontineSessionId(session.getId(),
                 com.optimize.common.entities.enums.State.ENABLED);

@@ -2,6 +2,7 @@ package com.optimize.elykia.core.entity.report;
 
 import com.optimize.common.entities.entity.Auditable;
 import com.optimize.elykia.core.enumaration.TontineCollectionResetRunStatus;
+import com.optimize.elykia.core.enumaration.TontineCollectionResetScope;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,4 +39,11 @@ public class TontineCollectionResetRun extends Auditable<String> {
 
     @Column(columnDefinition = "TEXT")
     private String errorMessage;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private TontineCollectionResetScope scope = TontineCollectionResetScope.SESSION;
+
+    @Column(length = 255)
+    private String targetCommercialUsername;
 }

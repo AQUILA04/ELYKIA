@@ -2,6 +2,7 @@ package com.optimize.elykia.core.dto;
 
 import com.optimize.elykia.core.entity.report.TontineCollectionResetRun;
 import com.optimize.elykia.core.enumaration.TontineCollectionResetRunStatus;
+import com.optimize.elykia.core.enumaration.TontineCollectionResetScope;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +17,9 @@ public record TontineCollectionResetRunDto(
         Integer membersResetCount,
         Integer pdfFileCount,
         String errorMessage,
-        LocalDateTime createdDate
+        LocalDateTime createdDate,
+        TontineCollectionResetScope scope,
+        String targetCommercialUsername
 ) {
     public static TontineCollectionResetRunDto from(TontineCollectionResetRun run) {
         return new TontineCollectionResetRunDto(
@@ -30,7 +33,9 @@ public record TontineCollectionResetRunDto(
                 run.getMembersResetCount(),
                 run.getPdfFileCount(),
                 run.getErrorMessage(),
-                run.getCreatedDate()
+                run.getCreatedDate(),
+                run.getScope() != null ? run.getScope() : TontineCollectionResetScope.SESSION,
+                run.getTargetCommercialUsername()
         );
     }
 }

@@ -1,10 +1,17 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { NgxPermissionsService } from 'ngx-permissions';
+import { CommercialService } from 'src/app/commercial/service/commercial.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import {
   TontineCollectionResetFileDto,
+  TontineCollectionResetRunNode,
   TontineCollectionResetRunResult,
   TontineCollectionResetService,
-  TontineCollectionResetYearNode
+  TontineCollectionResetYearNode,
+  TontineCommercialVoidPreview,
+  TontineResetLine,
+  TontineResetMember,
+  TontineResetReportDay
 } from '../../services/tontine-collection-reset.service';
 
 interface ResetKpis {
@@ -12,6 +19,17 @@ interface ResetKpis {
   totalRuns: number;
   totalFiles: number;
   latestLabel: string;
+}
+
+interface CommercialOption {
+  username: string;
+  firstname?: string;
+  lastname?: string;
+}
+
+interface CommercialsResponse {
+  data?: { content?: CommercialOption[] };
+  content?: CommercialOption[];
 }
 
 @Component({
@@ -28,6 +46,24 @@ export class TontineCollectionResetComponent implements OnInit, OnDestroy {
   resetting = false;
   resetPending = false;
   downloadingFileId: number | null = null;
+  canVoid = false;
+  loadingCommercials = false;
+  previewing = false;
+  voiding = false;
+  commercials: CommercialOption[] = [];
+  commercialUsername = '';
+  sessionYear = new Date().getFullYear();
+  preview: TontineCommercialVoidPreview | null = null;
+  detailTab: 'lines' | 'members' | 'days' = 'lines';
+  detailRunId: number | null = null;
+  detailLoading = false;
+  exportingCsv = false;
+  lines: TontineResetLine[] = [];
+  linesPage = 0;
+  linesTotal = 0;
+  readonly linesPageSize = 20;
+  members: TontineResetMember[] = [];
+  reportDays: TontineResetReportDay[] = [];
   currentDate = new Date();
   lastUpdate = new Date();
   kpis: ResetKpis = {
@@ -43,16 +79,27 @@ export class TontineCollectionResetComponent implements OnInit, OnDestroy {
   private clockInterval?: ReturnType<typeof setInterval>;
 
   get isProcessing(): boolean {
-    return this.exporting || this.resetting || this.resetPending;
+    return this.exporting || this.resetting || this.resetPending || this.previewing || this.voiding;
   }
 
   constructor(
     private readonly resetService: TontineCollectionResetService,
-    private readonly alertService: AlertService
+    private readonly alertService: AlertService,
+    private readonly commercialService: CommercialService,
+    private readonly permissions: NgxPermissionsService
   ) {}
 
   ngOnInit(): void {
     this.loadTree();
+    void Promise.all([
+      this.permissions.hasPermission('ROLE_RESET_TONTINE_COLLECTIONS'),
+      this.permissions.hasPermission('ROLE_ADMIN')
+    ]).then(([reset, admin]) => {
+      this.canVoid = !!(reset || admin);
+      if (this.canVoid) {
+        this.loadCommercials();
+      }
+    });
     this.clockInterval = setInterval(() => {
       this.currentDate = new Date();
     }, 1000);
@@ -66,6 +113,86 @@ export class TontineCollectionResetComponent implements OnInit, OnDestroy {
 
   refresh(): void {
     this.loadTree();
+  }
+
+  commercialLabel(commercial: CommercialOption): string {
+    const name = [commercial.firstname, commercial.lastname].filter(Boolean).join(' ');
+    return name ? `${commercial.username} — ${name}` : commercial.username;
+  }
+
+  onCommercialChange(): void {
+    this.preview = null;
+  }
+
+  onYearChange(): void {
+    this.preview = null;
+  }
+
+  pagesCount(): number {
+    return Math.max(1, Math.ceil(this.linesTotal / this.linesPageSize));
+  }
+
+  loadPreview(): void {
+    if (!this.commercialUsername || this.isProcessing) {
+      return;
+    }
+    this.sessionYear = Number(this.sessionYear);
+    this.previewing = true;
+    this.resetService.previewCommercial(this.commercialUsername, this.sessionYear).subscribe({
+      next: (preview) => {
+        this.preview = preview;
+        this.previewing = false;
+      },
+      error: (err: { error?: { message?: string } }) => {
+        this.preview = null;
+        this.previewing = false;
+        this.alertService.showError(err?.error?.message || 'Impossible de calculer l\'aperçu.');
+      }
+    });
+  }
+
+  confirmVoid(): void {
+    if (!this.preview || this.isProcessing) {
+      return;
+    }
+    const preview = this.preview;
+    const text = [
+      `Vous allez annuler ${preview.collectionsCount} collecte(s) de ${preview.commercialUsername} pour la session ${preview.sessionYear}, soit ${this.formatAmount(preview.collectionsAmount)}.`,
+      `${preview.membersWithOtherCollections} membre(s) gardent les collectes des autres commerciaux (${this.formatAmount(preview.preservedAmount)} conservés).`,
+      preview.deliveryCollectionsCount
+        ? `${preview.deliveryCollectionsCount} ligne(s) liées à une livraison sont incluses. Les livraisons de marchandises ne sont pas annulées.`
+        : 'Les livraisons de marchandises ne sont pas annulées.',
+      'Les versements déjà remis ne sont pas repris. Une archive est conservée pour le rapprochement.'
+    ].join(' ');
+    void this.alertService.showConfirmation(
+      'Annuler les collectes de ce commercial',
+      text,
+      'Annuler ces collectes',
+      'Revenir'
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.voiding = true;
+      this.resetService.voidCommercial(preview.commercialUsername, preview.sessionYear).subscribe({
+        next: (result) => {
+          this.voiding = false;
+          if (result.status === 'FAILED') {
+            this.alertService.showError(result.errorMessage || 'L\'annulation a échoué.');
+          } else {
+            this.alertService.showSuccess(
+              `Annulation terminée : ${result.collectionsCount} collecte(s), ${result.membersResetCount} membre(s) recalculé(s).`
+            );
+            this.preview = null;
+          }
+          this.loadTree();
+        },
+        error: (err: { error?: { message?: string } }) => {
+          this.voiding = false;
+          this.alertService.showError(err?.error?.message || 'Erreur lors de l\'annulation.');
+        }
+      });
+    });
   }
 
   loadTree(): void {
@@ -182,12 +309,70 @@ export class TontineCollectionResetComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleRun(runId: number): void {
-    if (this.expandedRuns.has(runId)) {
-      this.expandedRuns.delete(runId);
-    } else {
-      this.expandedRuns.add(runId);
+  toggleRun(run: TontineCollectionResetRunNode): void {
+    if (this.expandedRuns.has(run.runId)) {
+      this.expandedRuns.delete(run.runId);
+      return;
     }
+    this.expandedRuns.add(run.runId);
+    if (run.scope === 'COMMERCIAL') {
+      this.openDetail(run.runId);
+    }
+  }
+
+  isCommercialRun(run: TontineCollectionResetRunNode): boolean {
+    return run.scope === 'COMMERCIAL';
+  }
+
+  openDetail(runId: number): void {
+    this.detailRunId = runId;
+    this.detailTab = 'lines';
+    this.linesPage = 0;
+    this.loadLines();
+    this.loadMembers();
+    this.loadReportDays();
+  }
+
+  showTab(tab: 'lines' | 'members' | 'days'): void {
+    this.detailTab = tab;
+  }
+
+  previousLines(): void {
+    if (this.linesPage === 0 || this.detailRunId === null) {
+      return;
+    }
+    this.linesPage -= 1;
+    this.loadLines();
+  }
+
+  nextLines(): void {
+    if (this.detailRunId === null || (this.linesPage + 1) * this.linesPageSize >= this.linesTotal) {
+      return;
+    }
+    this.linesPage += 1;
+    this.loadLines();
+  }
+
+  downloadCsv(runId: number): void {
+    if (this.exportingCsv) {
+      return;
+    }
+    this.exportingCsv = true;
+    this.resetService.downloadLinesCsv(runId).subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `collectes-annulees-${runId}.csv`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+        this.exportingCsv = false;
+      },
+      error: () => {
+        this.exportingCsv = false;
+        this.alertService.showError('Erreur lors de l\'export.');
+      }
+    });
   }
 
   statusLabel(status: string): string {
@@ -230,12 +415,80 @@ export class TontineCollectionResetComponent implements OnInit, OnDestroy {
     };
   }
 
+  private loadCommercials(): void {
+    this.loadingCommercials = true;
+    this.commercialService.getCommercials(0, 1000).subscribe({
+      next: (res: CommercialsResponse | CommercialOption[]) => {
+        this.loadingCommercials = false;
+        const page = Array.isArray(res) ? undefined : res;
+        const payload = page?.data ?? page ?? res;
+        if (payload && !Array.isArray(payload) && Array.isArray(payload.content)) {
+          this.commercials = payload.content;
+        } else if (Array.isArray(payload)) {
+          this.commercials = payload;
+        }
+      },
+      error: () => {
+        this.loadingCommercials = false;
+      }
+    });
+  }
+
+  private loadLines(): void {
+    if (this.detailRunId === null) {
+      return;
+    }
+    this.detailLoading = true;
+    this.resetService.getLines(this.detailRunId, this.linesPage, this.linesPageSize).subscribe({
+      next: (page) => {
+        this.lines = page?.content ?? [];
+        this.linesTotal = page?.totalElements ?? 0;
+        this.detailLoading = false;
+      },
+      error: () => {
+        this.detailLoading = false;
+        this.alertService.showError('Impossible de charger les lignes archivées.');
+      }
+    });
+  }
+
+  private loadMembers(): void {
+    if (this.detailRunId === null) {
+      return;
+    }
+    this.resetService.getMembers(this.detailRunId, 0, 100).subscribe({
+      next: (page) => {
+        this.members = page?.content ?? [];
+      },
+      error: () => {
+        this.members = [];
+      }
+    });
+  }
+
+  private loadReportDays(): void {
+    if (this.detailRunId === null) {
+      return;
+    }
+    this.resetService.getReportDays(this.detailRunId).subscribe({
+      next: (days) => {
+        this.reportDays = days ?? [];
+      },
+      error: () => {
+        this.reportDays = [];
+      }
+    });
+  }
+
   private expandDefaults(): void {
     if (this.tree.length > 0) {
       this.expandedYears.add(this.tree[0].year);
       const firstRun = this.tree[0].runs?.[0];
       if (firstRun) {
         this.expandedRuns.add(firstRun.runId);
+        if (firstRun.scope === 'COMMERCIAL') {
+          this.openDetail(firstRun.runId);
+        }
       }
     }
   }

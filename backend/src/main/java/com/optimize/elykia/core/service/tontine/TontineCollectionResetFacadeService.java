@@ -1,9 +1,19 @@
 package com.optimize.elykia.core.service.tontine;
 
+import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.elykia.core.dto.TontineCollectionResetLineDto;
+import com.optimize.elykia.core.dto.TontineCollectionResetMemberDto;
+import com.optimize.elykia.core.dto.TontineCollectionResetReportDayDto;
 import com.optimize.elykia.core.dto.TontineCollectionResetRunDto;
+import com.optimize.elykia.core.dto.TontineCommercialVoidPreviewDto;
 import com.optimize.elykia.core.entity.report.TontineCollectionResetFile;
+import com.optimize.elykia.core.entity.report.TontineCollectionResetLine;
 import com.optimize.elykia.core.entity.report.TontineCollectionResetRun;
+import com.optimize.elykia.core.enumaration.TontineCollectionResetScope;
 import com.optimize.elykia.core.repository.TontineCollectionResetFileRepository;
+import com.optimize.elykia.core.repository.TontineCollectionResetLineRepository;
+import com.optimize.elykia.core.repository.TontineCollectionResetMemberRepository;
+import com.optimize.elykia.core.repository.TontineCollectionResetReportDayRepository;
 import com.optimize.elykia.core.repository.TontineCollectionResetRunRepository;
 import com.optimize.elykia.core.service.report.monthly.MonthlyReportStorageService;
 import lombok.RequiredArgsConstructor;
@@ -12,15 +22,23 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 public class TontineCollectionResetFacadeService {
 
+    private static final DateTimeFormatter CSV_DATE = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+
     private final TontineCollectionResetRunRepository runRepository;
     private final TontineCollectionResetFileRepository fileRepository;
+    private final TontineCollectionResetLineRepository lineRepository;
+    private final TontineCollectionResetMemberRepository memberRepository;
+    private final TontineCollectionResetReportDayRepository reportDayRepository;
     private final TontineCollectionResetService resetService;
+    private final TontineCommercialCollectionVoidService commercialVoidService;
     private final MonthlyReportStorageService storageService;
 
     @Transactional(readOnly = true)
@@ -42,6 +60,8 @@ public class TontineCollectionResetFacadeService {
             runNode.put("collectionsCount", run.getCollectionsCount());
             runNode.put("collectionsAmount", run.getCollectionsAmount());
             runNode.put("membersResetCount", run.getMembersResetCount());
+            runNode.put("scope", run.getScope() != null ? run.getScope() : TontineCollectionResetScope.SESSION);
+            runNode.put("targetCommercialUsername", run.getTargetCommercialUsername());
             runNode.put("files", fileDtos);
 
             byYear.computeIfAbsent(run.getSessionYear(), y -> new ArrayList<>()).add(runNode);
@@ -67,12 +87,91 @@ public class TontineCollectionResetFacadeService {
     }
 
     @Transactional(readOnly = true)
+    public TontineCommercialVoidPreviewDto previewCommercial(String commercialUsername, Integer sessionYear) {
+        return commercialVoidService.preview(commercialUsername, sessionYear);
+    }
+
+    public TontineCollectionResetRunDto voidCommercial(String commercialUsername, Integer sessionYear) {
+        return commercialVoidService.voidCommercial(commercialUsername, sessionYear);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TontineCollectionResetLineDto> getLines(Long runId, int page, int size) {
+        requireRun(runId);
+        return lineRepository
+                .findByRun_IdOrderByCollectionDateAscIdAsc(runId, PageRequest.of(page, safeSize(size)))
+                .map(TontineCollectionResetLineDto::from);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<TontineCollectionResetMemberDto> getMembers(Long runId, int page, int size) {
+        requireRun(runId);
+        return memberRepository
+                .findByRun_IdOrderByClientNameAscIdAsc(runId, PageRequest.of(page, safeSize(size)))
+                .map(TontineCollectionResetMemberDto::from);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TontineCollectionResetReportDayDto> getReportDays(Long runId) {
+        requireRun(runId);
+        return reportDayRepository.findByRun_IdOrderByReportDateAscIdAsc(runId).stream()
+                .map(TontineCollectionResetReportDayDto::from)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public byte[] exportLinesCsv(Long runId) {
+        TontineCollectionResetRun run = requireRun(runId);
+        List<TontineCollectionResetLine> lines = lineRepository
+                .findByRun_IdOrderByQuarterAscCollectionDateAscIdAsc(runId);
+        StringBuilder csv = new StringBuilder();
+        csv.append('\uFEFF');
+        csv.append("Client;Code;Quartier;Date;Montant;Reference;Livraison;Part societe;Commercial\n");
+        for (TontineCollectionResetLine line : lines) {
+            csv.append(csvCell(line.getClientName())).append(';')
+                    .append(csvCell(line.getClientCode())).append(';')
+                    .append(csvCell(line.getQuarter())).append(';')
+                    .append(line.getCollectionDate() != null ? CSV_DATE.format(line.getCollectionDate()) : "").append(';')
+                    .append(line.getAmount() != null ? line.getAmount() : 0).append(';')
+                    .append(csvCell(line.getReference())).append(';')
+                    .append(Boolean.TRUE.equals(line.getDeliveryCollection()) ? "Oui" : "Non").append(';')
+                    .append(line.getSocietyShareAmount() != null ? line.getSocietyShareAmount() : 0).append(';')
+                    .append(csvCell(run.getTargetCommercialUsername()))
+                    .append('\n');
+        }
+        return csv.toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    @Transactional(readOnly = true)
     public Page<TontineCollectionResetRunDto> getRuns(int page, int size) {
         return runRepository.findAllByOrderByCreatedDateDesc(PageRequest.of(page, size))
                 .map(TontineCollectionResetRunDto::from);
     }
 
     public record DownloadableFile(String fileName, byte[] content) {}
+
+    private TontineCollectionResetRun requireRun(Long runId) {
+        return runRepository.findById(runId)
+                .orElseThrow(() -> new CustomValidationException("Archive introuvable."));
+    }
+
+    private static int safeSize(int size) {
+        if (size < 1) {
+            return 20;
+        }
+        return Math.min(size, 100);
+    }
+
+    private static String csvCell(String value) {
+        if (value == null) {
+            return "";
+        }
+        String escaped = value.replace("\"", "\"\"");
+        if (escaped.contains(";") || escaped.contains("\"") || escaped.contains("\n")) {
+            return "\"" + escaped + "\"";
+        }
+        return escaped;
+    }
 
     private Map<String, Object> toFileDto(TontineCollectionResetFile file) {
         Map<String, Object> dto = new LinkedHashMap<>();

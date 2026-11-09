@@ -74,6 +74,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.44.1] — 2026-11-09
+
+### Fixed
+
+- Archives collectes : le build de production compile la liste des commerciaux, et les confirmations d'annulation sont bien rattachées à leur résultat.
+
+## Frontend — [2.44.0] — 2026-11-09
+
+### Added
+
+- Tontines, Archives collectes : l'administrateur annule les collectes d'un seul commercial sur la session de l'année, après un aperçu. Le gestionnaire ouvre le détail (lignes, membres, jours à rapprocher) et exporte le CSV. Le menu Tontines s'ouvre aussi pour l'administrateur.
+
 ## Frontend — [2.43.3] — 2026-11-07
 
 ### Added
@@ -218,6 +230,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.47.0] — 2026-11-09
+
+### Added
+
+- Annulation des collectes tontine d'un seul commercial sur une session active. Les lignes des autres commerciaux restent, les compteurs des membres partagés sont recalculés, le rapport journalier de ce commercial est reconstruit, et une archive (lignes, membres, jours, PDF) est conservée pour le rapprochement.
 
 ## Backend — [1.46.7] — 2026-11-08
 

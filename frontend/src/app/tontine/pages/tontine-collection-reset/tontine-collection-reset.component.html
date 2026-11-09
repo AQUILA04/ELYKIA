@@ -30,7 +30,7 @@
     <p class="page-subtitle">
       Consultation et téléchargement des archives PDF par commercial tontine et quartier
       <ng-container *ngxPermissionsOnly="['ROLE_RESET_TONTINE_COLLECTIONS', 'ROLE_ADMIN']">
-        · Archivage et réinitialisation des contributions (membres conservés)
+        · Archivage, réinitialisation de session, annulation des collectes d'un commercial
       </ng-container>
     </p>
   </div>
@@ -81,6 +81,53 @@
     <span class="result-count"><strong>{{ kpis.totalFiles }}</strong> fichier(s) PDF</span>
   </div>
 
+  <section class="void-card a4" *ngxPermissionsOnly="['ROLE_RESET_TONTINE_COLLECTIONS', 'ROLE_ADMIN']">
+    <h2 class="void-title">Annuler les collectes d'un commercial</h2>
+    <p class="void-help">
+      Seules les collectes enregistrées par ce commercial sont retirées. Celles des autres commerciaux, sur les mêmes clients, restent en place.
+      L'année proposée est la session en cours.
+    </p>
+    <div class="void-form">
+      <label class="void-field">
+        <span>Commercial</span>
+        <select [(ngModel)]="commercialUsername" (ngModelChange)="onCommercialChange()" [disabled]="isProcessing || loadingCommercials">
+          <option value="">Choisir</option>
+          <option *ngFor="let commercial of commercials" [value]="commercial.username">{{ commercialLabel(commercial) }}</option>
+        </select>
+      </label>
+      <label class="void-field">
+        <span>Année</span>
+        <input type="number" [(ngModel)]="sessionYear" (ngModelChange)="onYearChange()" [disabled]="isProcessing" min="2000" max="2100" />
+      </label>
+      <button type="button" class="btn-download" (click)="loadPreview()" [disabled]="isProcessing || !commercialUsername">
+        <span *ngIf="previewing" class="spinner-small" aria-hidden="true"></span>
+        {{ previewing ? 'Calcul…' : 'Aperçu' }}
+      </button>
+    </div>
+
+    <div class="void-preview" *ngIf="preview">
+      <div class="void-stat">
+        <span class="void-stat-label">Collectes</span>
+        <strong>{{ preview.collectionsCount }}</strong>
+        <span>{{ formatAmount(preview.collectionsAmount) }}</span>
+      </div>
+      <div class="void-stat">
+        <span class="void-stat-label">Membres concernés</span>
+        <strong>{{ preview.membersAffected }}</strong>
+        <span>{{ preview.membersWithOtherCollections }} gardent d'autres collectes</span>
+      </div>
+      <div class="void-stat">
+        <span class="void-stat-label">Montant conservé</span>
+        <strong>{{ formatAmount(preview.preservedAmount) }}</strong>
+        <span>{{ preview.deliveryCollectionsCount }} ligne(s) de livraison</span>
+      </div>
+      <button type="button" class="btn-primary btn-danger" (click)="confirmVoid()" [disabled]="isProcessing || preview.collectionsCount === 0">
+        <span *ngIf="voiding" class="spinner-small" aria-hidden="true"></span>
+        {{ voiding ? 'Annulation…' : 'Annuler ces collectes' }}
+      </button>
+    </div>
+  </section>
+
   <div class="toolbar a4 toolbar-readonly" *ngxPermissionsExcept="['ROLE_RESET_TONTINE_COLLECTIONS', 'ROLE_ADMIN']">
     <span class="toolbar-label">Consultation</span>
     <span class="result-count"><strong>{{ kpis.totalFiles }}</strong> fichier(s) PDF disponibles au téléchargement</span>
@@ -113,16 +160,113 @@
 
           <div class="year-body" *ngIf="isYearExpanded(yearNode.year)">
             <div class="run-block" *ngFor="let run of yearNode.runs">
-              <button type="button" class="run-header" (click)="toggleRun(run.runId)">
+              <button type="button" class="run-header" (click)="toggleRun(run)">
                 <span class="year-chevron" [class.expanded]="isRunExpanded(run.runId)">›</span>
-                <span class="run-title">{{ run.createdDate | date:'dd/MM/yyyy HH:mm' }} · {{ statusLabel(run.status) }}</span>
+                <span class="run-title">
+                  <span *ngIf="isCommercialRun(run)" class="run-scope">Annulation {{ run.targetCommercialUsername }}</span>
+                  {{ run.createdDate | date:'dd/MM/yyyy HH:mm' }} · {{ statusLabel(run.status) }}
+                </span>
                 <span class="run-meta">{{ run.collectionsCount }} collecte(s) · {{ formatAmount(run.collectionsAmount) }}</span>
               </button>
 
               <div class="run-body" *ngIf="isRunExpanded(run.runId)">
                 <div class="run-info">
                   <span>Déclenché par <strong>{{ run.triggeredBy }}</strong></span>
-                  <span *ngIf="run.membersResetCount"> · {{ run.membersResetCount }} membre(s) réinitialisé(s)</span>
+                  <span *ngIf="isCommercialRun(run) && run.membersResetCount"> · {{ run.membersResetCount }} membre(s) recalculé(s)</span>
+                  <span *ngIf="!isCommercialRun(run) && run.membersResetCount"> · {{ run.membersResetCount }} membre(s) réinitialisé(s)</span>
+                  <button *ngIf="isCommercialRun(run)" type="button" class="btn-detail" (click)="downloadCsv(run.runId)" [disabled]="exportingCsv">
+                    {{ exportingCsv ? 'Export…' : 'Exporter CSV' }}
+                  </button>
+                </div>
+                <div class="detail-panel" *ngIf="isCommercialRun(run) && detailRunId === run.runId">
+                  <div class="detail-tabs">
+                    <button type="button" [class.active]="detailTab === 'lines'" (click)="showTab('lines')">Lignes</button>
+                    <button type="button" [class.active]="detailTab === 'members'" (click)="showTab('members')">Membres</button>
+                    <button type="button" [class.active]="detailTab === 'days'" (click)="showTab('days')">Jours à rapprocher</button>
+                  </div>
+                  <div *ngIf="detailLoading && detailTab === 'lines'" class="empty-sub">Chargement…</div>
+                  <table class="data-table" *ngIf="detailTab === 'lines' && !detailLoading">
+                    <thead>
+                      <tr>
+                        <th>Client</th>
+                        <th>Code</th>
+                        <th>Quartier</th>
+                        <th>Date</th>
+                        <th>Référence</th>
+                        <th class="num">Montant</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let line of lines">
+                        <td>{{ line.clientName || '—' }}</td>
+                        <td>{{ line.clientCode || '—' }}</td>
+                        <td>{{ line.quarter || '—' }}</td>
+                        <td>{{ line.collectionDate | date:'dd/MM/yyyy' }}</td>
+                        <td>{{ line.reference || '—' }}</td>
+                        <td class="num">{{ formatAmount(line.amount) }}</td>
+                      </tr>
+                      <tr *ngIf="lines.length === 0">
+                        <td colspan="6">Aucune ligne archivée.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="detail-pager" *ngIf="detailTab === 'lines' && linesTotal > linesPageSize">
+                    <button type="button" class="btn-detail" (click)="previousLines()" [disabled]="linesPage === 0">Précédent</button>
+                    <span>{{ linesPage + 1 }} / {{ pagesCount() }}</span>
+                    <button type="button" class="btn-detail" (click)="nextLines()" [disabled]="(linesPage + 1) * linesPageSize >= linesTotal">Suivant</button>
+                  </div>
+                  <table class="data-table" *ngIf="detailTab === 'members'">
+                    <thead>
+                      <tr>
+                        <th>Client</th>
+                        <th class="num">Retiré</th>
+                        <th class="num">Conservé</th>
+                        <th class="num">Total avant</th>
+                        <th class="num">Total après</th>
+                        <th class="num">Part société avant</th>
+                        <th class="num">Part société après</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let member of members">
+                        <td>{{ member.clientName || '—' }} <span class="muted">{{ member.clientCode }}</span></td>
+                        <td class="num">{{ formatAmount(member.removedAmount) }}</td>
+                        <td class="num">{{ formatAmount(member.keptAmount) }}</td>
+                        <td class="num">{{ formatAmount(member.totalContributionBefore) }}</td>
+                        <td class="num">{{ formatAmount(member.totalContributionAfter) }}</td>
+                        <td class="num">{{ formatAmount(member.societyShareBefore) }}</td>
+                        <td class="num">{{ formatAmount(member.societyShareAfter) }}</td>
+                      </tr>
+                      <tr *ngIf="members.length === 0">
+                        <td colspan="7">Aucun membre archivé.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <table class="data-table" *ngIf="detailTab === 'days'">
+                    <thead>
+                      <tr>
+                        <th>Jour</th>
+                        <th class="num">Tontine avant</th>
+                        <th class="num">Tontine après</th>
+                        <th class="num">À verser avant</th>
+                        <th class="num">À verser après</th>
+                        <th class="num">Déjà versé</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let day of reportDays">
+                        <td>{{ day.reportDate | date:'dd/MM/yyyy' }}</td>
+                        <td class="num">{{ formatAmount(day.collectionsAmountBefore) }}</td>
+                        <td class="num">{{ formatAmount(day.collectionsAmountAfter) }}</td>
+                        <td class="num">{{ formatAmount(day.amountToDepositBefore) }}</td>
+                        <td class="num">{{ formatAmount(day.amountToDepositAfter) }}</td>
+                        <td class="num">{{ formatAmount(day.amountDeposited) }}</td>
+                      </tr>
+                      <tr *ngIf="reportDays.length === 0">
+                        <td colspan="6">Aucun jour de rapport archivé.</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
                 <table class="data-table" *ngIf="run.files.length > 0">
                   <thead>
