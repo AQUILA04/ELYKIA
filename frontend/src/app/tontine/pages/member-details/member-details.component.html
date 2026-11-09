@@ -579,9 +579,9 @@
         <thead>
           <tr>
             <th>Article</th>
-            <th>Prix unitaire</th>
+            <th *appIfUnitPrice>Prix unitaire</th>
             <th>Quantité</th>
-            <th>Total</th>
+            <th *appIfUnitPrice>Total</th>
           </tr>
         </thead>
         <tbody>
@@ -590,9 +590,9 @@
               <div class="col-ref">{{ item.articleCode }}</div>
               <div class="col-client">{{ item.articleName }}</div>
             </td>
-            <td><span class="col-amount">{{ formatCurrency(item.unitPrice) }}</span></td>
+            <td *appIfUnitPrice><span class="col-amount">{{ formatCurrency(item.unitPrice) }}</span></td>
             <td>{{ item.quantity }}</td>
-            <td><span class="col-amount">{{ formatCurrency(item.totalPrice) }}</span></td>
+            <td *appIfUnitPrice><span class="col-amount">{{ formatCurrency(item.totalPrice) }}</span></td>
           </tr>
         </tbody>
       </table>

@@ -135,7 +135,7 @@
       Ajouter un article
     </button>
 
-    <div class="total-bar" *ngIf="shouldShowPriceColumns() || shouldShowPurchasePriceColumn()">
+    <div class="total-bar" *ngIf="(showPrices && !capturePurchasePrice) || shouldShowPurchasePriceColumn()">
       <span class="total-label">Montant total</span>
       <span class="total-value field-mono">{{ totalAmount | number:'1.0-0' }} FCFA</span>
     </div>

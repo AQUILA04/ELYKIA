@@ -67,9 +67,15 @@ export class ParameterService {
     return this.parameterRepo.getByKey(key);
   }
 
+  /** Enregistre une seule clé sans effacer les autres paramètres locaux. */
+  async persistOne(parameter: Parameter): Promise<void> {
+    await this.parameterRepo.saveAll([parameter]);
+  }
+
   /**
    * Checks if a boolean parameter is enabled (true).
    */
+
   async isEnabled(key: string): Promise<boolean> {
     const value = await this.getParameterValue(key);
     return value === 'true';

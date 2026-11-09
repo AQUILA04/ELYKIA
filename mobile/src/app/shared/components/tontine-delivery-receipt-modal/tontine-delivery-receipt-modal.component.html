@@ -76,7 +76,7 @@
             <span class="article-name">{{ item.articleName }}</span>
             <span class="article-qty">×{{ item.quantity }}</span>
           </div>
-          <div class="article-prices">
+          <div class="article-prices" *appIfUnitPrice>
             <span class="unit-price">{{ item.unitPrice | number }} FCFA/u</span>
             <span class="total-price elyk-amount">{{ item.totalPrice | number }} FCFA</span>
           </div>

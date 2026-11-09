@@ -64,9 +64,9 @@
               <span class="qty-val">{{ line.quantity }}</span>
               <button type="button" class="qty-btn" (click)="increment(line)" aria-label="Augmenter">+</button>
             </div>
-            <div class="cl-total">{{ lineTotal(line) | number:'1.0-0' }} FCFA</div>
+            <div class="cl-total" *appIfUnitPrice>{{ lineTotal(line) | number:'1.0-0' }} FCFA</div>
           </div>
-          <div class="cl-price">{{ line.article.creditSalePrice | number:'1.0-0' }} FCFA / unité</div>
+          <div class="cl-price" *appIfUnitPrice>{{ line.article.creditSalePrice | number:'1.0-0' }} FCFA / unité</div>
         </div>
       </article>
 

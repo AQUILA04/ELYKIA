@@ -44,23 +44,23 @@
         <thead>
             <tr>
                 <th>Article</th>
-                <th>Prix Unitaire</th>
+                <th th:if="${showUnitPrice != false}">Prix Unitaire</th>
                 <th>Quantité retournée</th>
-                <th>Valeur retournée</th>
+                <th th:if="${showUnitPrice != false}">Valeur retournée</th>
             </tr>
         </thead>
         <tbody>
             <tr th:if="${#lists.isEmpty(context.items)}">
-                <td colspan="4" class="no-data"
+                <td class="no-data" th:attr="colspan=${showUnitPrice != false} ? 4 : 2"
                     th:text="${context.selectionMode} ? 'Aucune donnée trouvée pour ce/ces retour(s).' : 'Aucune donnée trouvée pour cette période.'">
                     Aucune donnée trouvée.
                 </td>
             </tr>
             <tr th:each="item : ${context.items}">
                 <td th:text="${item.articleName}"></td>
-                <td th:text="${item.unitPrice}"></td>
+                <td th:if="${showUnitPrice != false}" th:text="${item.unitPrice}"></td>
                 <td th:text="${item.totalQuantity}"></td>
-                <td th:text="${item.totalAmount}"></td>
+                <td th:if="${showUnitPrice != false}" th:text="${item.totalAmount}"></td>
             </tr>
         </tbody>
     </table>

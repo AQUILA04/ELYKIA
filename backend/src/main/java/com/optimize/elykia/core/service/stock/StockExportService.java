@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.stock;
 
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.securities.models.User;
@@ -410,6 +412,7 @@ public class StockExportService {
     private byte[] renderPdf(String template, String variableName, Object contextDto) {
         String title = extractTitle(contextDto);
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         PdfDocumentIdentity.applyTo(context, title);
         context.setVariable(variableName, contextDto);
         String html = templateEngine.process(template, context);

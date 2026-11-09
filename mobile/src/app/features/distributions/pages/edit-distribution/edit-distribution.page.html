@@ -74,7 +74,7 @@
               <h3 class="article-name">{{ article.commercialName || article.name }}</h3>
               <p class="article-details">{{ article.type }} · {{ article.marque }}</p>
               <p class="stock-info">Stock disponible: {{ article.stockQuantity }} unités</p>
-              <div class="price-info">
+                <div class="price-info" *appIfUnitPrice>
                 <span class="unit-price elyk-amount">{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
                 @if ((vm.quantities[article.id] || 0) > 0) {
                   <span class="total-price elyk-amount elyk-amount--due">

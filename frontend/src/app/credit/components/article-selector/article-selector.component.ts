@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, FormArray, Validators, ControlValueAccessor, NG
 import { forkJoin, of, Subject, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { ItemService } from 'src/app/article/service/item.service';
+import { UnitPriceVisibilityService } from 'src/app/shared/service/unit-price-visibility.service';
 
 export interface ArticleSelection {
   articleId: number;
@@ -50,6 +51,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   articleForm!: FormGroup;
   availableArticlesPerRow: any[][] = [];
   totalAmount: number = 0;
+  unitPriceVisible = false;
   articlesLoading = false;
 
   private readonly pageSize = 20;
@@ -63,6 +65,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   private loadArticlesSub?: Subscription;
   private selectedArticlesLoadSub?: Subscription;
   private rowSubs: Subscription[] = [];
+  private unitPriceSub?: Subscription;
 
   // ControlValueAccessor
   private onChange: (value: ArticleSelection[]) => void = () => {};
@@ -71,8 +74,10 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
 
   constructor(
     private fb: FormBuilder,
-    private itemService: ItemService
+    private itemService: ItemService,
+    private unitPriceVisibility: UnitPriceVisibilityService
   ) {
+    this.unitPriceVisible = this.unitPriceVisibility.snapshot;
     this.articleForm = this.fb.group({
       articles: this.fb.array([])
     });
@@ -92,6 +97,12 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     }
 
     this.listenForArticleChanges();
+    this.unitPriceSub = this.unitPriceVisibility.showUnitPrice$.subscribe(show => {
+      this.unitPriceVisible = show;
+      if (this.showPrices) {
+        this.calculateTotalAmount();
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -125,6 +136,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   }
 
   ngOnDestroy(): void {
+    this.unitPriceSub?.unsubscribe();
     this.teardownLazyArticlesLoading();
     this.selectedArticlesLoadSub?.unsubscribe();
     this.articlesSub?.unsubscribe();
@@ -639,7 +651,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   }
 
   shouldShowPriceColumns(): boolean {
-    return this.showPrices && !this.capturePurchasePrice;
+    return this.showPrices && this.unitPriceVisible && !this.capturePurchasePrice;
   }
 
   shouldShowPurchasePriceColumn(): boolean {

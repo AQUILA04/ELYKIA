@@ -145,8 +145,8 @@
             <tr>
               <th>Article</th>
               <th class="col-num">Quantité</th>
-              <th class="col-num">Prix unitaire</th>
-              <th class="col-num">Total</th>
+              <th class="col-num" *appIfUnitPrice>Prix unitaire</th>
+              <th class="col-num" *appIfUnitPrice>Total</th>
             </tr>
           </thead>
           <tbody>
@@ -156,8 +156,8 @@
                 <span class="col-sub" *ngIf="getItemArticleSubtitle(item) as subtitle">{{ subtitle }}</span>
               </td>
               <td class="col-num"><span class="col-qty">{{ item.quantity }}</span></td>
-              <td class="col-num"><span class="col-amount">{{ formatCurrency(item.unitPrice) }}</span></td>
-              <td class="col-num"><span class="col-amount">{{ formatCurrency(getItemTotal(item)) }}</span></td>
+              <td class="col-num" *appIfUnitPrice><span class="col-amount">{{ formatCurrency(item.unitPrice) }}</span></td>
+              <td class="col-num" *appIfUnitPrice><span class="col-amount">{{ formatCurrency(getItemTotal(item)) }}</span></td>
             </tr>
           </tbody>
         </table>

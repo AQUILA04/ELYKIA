@@ -2604,9 +2604,9 @@
 <td>Les articles sont recherchés directement dans le stock général du magasin.</td>
 </tr>
 <tr>
-<td><strong>Prix appliqué</strong></td>
-<td>Prix de vente à crédit (prix contractuel avec marge tontine/crédit).</td>
-<td>Prix de vente au comptant.</td>
+<td><strong>Montant de la vente</strong></td>
+<td>Le montant suit le tarif du crédit.</td>
+<td>Le montant suit le tarif du comptant.</td>
 </tr>
 <tr>
 <td><strong>Paiement et échéances</strong></td>
@@ -2623,7 +2623,7 @@
 <h3 id="recu-de-caisse-et-impression-immediate">Reçu de caisse et impression immédiate</h3>
 <p>Si l'impression immédiate est activée dans votre agence :
 1. Dès que vous enregistrez la vente, une fenêtre affiche l'aperçu du ticket de caisse thermique (format 80 mm).
-2. Le reçu détaille : l'en-tête ELYKIA, la référence unique du contrat, le nom et téléphone du client, le nom du commercial, la liste des articles avec prix et quantités, le total, l'acompte versé, le solde restant et la mise journalière convenue.
+2. Le reçu détaille : l'en-tête ELYKIA, la référence unique du contrat, le nom et téléphone du client, le nom du commercial, la liste des articles et des quantités, le montant total, l'acompte versé, le solde restant et la mise journalière convenue.
 3. Cliquez sur <strong>Imprimer</strong> pour sortir le ticket destiné au client.</p>
 <hr />
 <h2 id="4-fiche-detaillee-360-dun-credit">4. Fiche détaillée 360° d'un crédit</h2>
@@ -2661,7 +2661,7 @@
 <li><strong>Contrôle terrain</strong> : Si un chef de recouvrement a inspecté le carnet du client, cette section affiche le montant système, le montant noté sur le carnet papier, l'écart éventuel, le statut (🟢 <strong>Conforme</strong> ou 🔴 <strong>Disparité</strong>) ainsi que les observations de l'auditeur.</li>
 </ul>
 <h3 id="6-articles-livres">6. Articles livrés</h3>
-<p>Tableau listant chaque article avec sa désignation, sa catégorie, la quantité livrée, son prix unitaire et le montant total de la ligne.</p>
+<p>Tableau listant chaque article avec sa désignation, sa catégorie et la quantité livrée. Le montant total du crédit reste affiché au-dessus du tableau.</p>
 <h3 id="7-situation-de-recouvrement-et-compteurs-de-retard">7. Situation de recouvrement et compteurs de retard</h3>
 <p>Un bandeau évalue la ponctualité des règlements du client :
 - 🟢 <em>À jour — aucun retard</em> (0 jour de retard).
@@ -2728,9 +2728,9 @@
 <li>Ouvrez le menu <strong>Ventes</strong>, puis <strong>Articles</strong>.</li>
 <li>Choisissez la période : <strong>Ce jour</strong>, <strong>Cette semaine</strong>, <strong>Ce mois</strong> ou <strong>Personnalisé</strong> (dates <strong>Du</strong> et <strong>Au</strong>).</li>
 <li>Pour limiter la liste à une personne, choisissez-la dans <strong>Commercial</strong>. <strong>Tous les commerciaux</strong> affiche l’ensemble.</li>
-<li>Le bandeau <strong>Montant total</strong> indique la somme des prix de toutes les lignes correspondant à ces filtres, y compris celles des autres pages.</li>
-<li>Chaque ligne affiche l’article, le commercial, la <strong>Quantité totale</strong>, le <strong>Prix unitaire</strong> et le <strong>Prix total</strong>.</li>
-<li>Cliquez sur <strong>Télécharger</strong> pour obtenir le PDF de la même sélection : les colonnes de prix et le montant total y figurent aussi.</li>
+<li>Le bandeau <strong>Montant total</strong> indique le montant de toutes les ventes correspondant à ces filtres, y compris celles des autres pages.</li>
+<li>Chaque ligne affiche l’article, le commercial et la <strong>Quantité totale</strong>.</li>
+<li>Cliquez sur <strong>Télécharger</strong> pour obtenir le PDF de la même sélection : les articles, les quantités et le montant total y figurent.</li>
 </ol>
 <p>Le téléchargement porte sur un mois au plus.</p>
 <hr />
@@ -2754,7 +2754,7 @@
 <li><strong>Annuler</strong> : le bouton <strong>Annuler</strong> apparaît sur une commande que vous avez créée, ou qui a été créée pour vous. La commande passe dans l’onglet <strong>Autres</strong>.</li>
 <li><strong>Vendre</strong> : sur une commande validée, transformez-la en vente. La vente est créée automatiquement et la commande passe à <strong>Livrée</strong>.</li>
 <li><strong>Fiche</strong> : sur chaque ligne, cliquez sur <strong>Fiche</strong> pour télécharger la fiche de la commande. Le bouton est présent pour une commande en attente, validée, livrée, refusée ou annulée.</li>
-<li>Ouvrez la commande, puis cliquez sur <strong>Télécharger la fiche</strong>. Le document reprend l’entreprise, le nom et le prénom du client, son téléphone, son quartier, son adresse, le commercial associé, la date, le statut et les articles avec le montant.</li>
+<li>Ouvrez la commande, puis cliquez sur <strong>Télécharger la fiche</strong>. Le document reprend l’entreprise, le nom et le prénom du client, son téléphone, son quartier, son adresse, le commercial associé, la date, le statut, les articles, les quantités et le montant total.</li>
 <li><strong>Demande de stock (en attente)</strong> prépare une demande de stock pour toutes les commandes en attente qui ne sont pas déjà dans une demande. La fenêtre rappelle les articles et les quantités. Cochez <strong>Pour le mois prochain</strong> si la sortie doit porter sur le mois suivant, puis confirmez.</li>
 <li>Sur <strong>Services en ligne</strong> &gt; <strong>Commandes</strong>, <strong>Fiche</strong> et <strong>Télécharger la fiche</strong> fonctionnent de la même façon. <strong>Demande de stock (en attente)</strong> ne reprend alors que les commandes en ligne en attente.</li>
 </ol>

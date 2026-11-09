@@ -4,6 +4,7 @@ import { NgSelectModule } from '@ng-select/ng-select';
 import { of } from 'rxjs';
 import { ArticleSelectorComponent } from './article-selector.component';
 import { ItemService } from 'src/app/article/service/item.service';
+import { UnitPriceVisibilityService } from 'src/app/shared/service/unit-price-visibility.service';
 
 describe('ArticleSelectorComponent', () => {
   let component: ArticleSelectorComponent;
@@ -30,6 +31,10 @@ describe('ArticleSelectorComponent', () => {
       declarations: [ArticleSelectorComponent],
       imports: [ReactiveFormsModule, NgSelectModule],
       providers: [
+        {
+          provide: UnitPriceVisibilityService,
+          useValue: { showUnitPrice$: of(true), snapshot: true }
+        },
         {
           provide: ItemService,
           useValue: {

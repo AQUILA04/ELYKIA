@@ -16,7 +16,7 @@ Cet écran vous permet de suivre vos crédits, commander des produits et déclar
 
 ### Détail d’un achat
 
-1. Consultez le montant, le payé et le restant. Un crédit actif s’affiche avec le statut **EN COURS**.
+1. Consultez le montant, le payé et le restant. La liste indique chaque article et la quantité. Un crédit actif s’affiche avec le statut **EN COURS**.
 2. Appuyez sur **Payer une mise** (bouton flottant) pour déclarer un paiement Mobile Money.
 3. Appuyez sur **Voir le suivi des mises** pour l’historique des échéances.
 4. Sur le suivi, vous pouvez aussi appuyer sur **Payer une mise** même si aucune échéance n’est encore listée.
@@ -46,10 +46,10 @@ Si aucun frais de retrait n’est prévu pour votre mise, le paiement direct n�
 ## Commander
 
 1. Appuyez sur l’onglet **Commander**.
-2. Chaque produit affiche sa photo lorsqu’elle est disponible, avec son nom et son prix.
+2. Chaque produit affiche sa photo lorsqu’elle est disponible, avec son nom.
 3. Recherchez un produit ou filtrez par catégorie.
 4. Appuyez sur **Ajouter**, puis ouvrez le panier.
-5. Sur **Mon panier**, ajustez les quantités, consultez le **résumé de la commande**, puis appuyez sur **Passer la commande**. Lorsque le panier propose un type de crédit, choisissez **Personnel**, **Professionnel** ou **Événement** avant de valider. Le plafond affiché est celui de ce type.
+5. Sur **Mon panier**, ajustez les quantités, consultez le **résumé de la commande** et son total, puis appuyez sur **Passer la commande**. Lorsque le panier propose un type de crédit, choisissez **Personnel**, **Professionnel** ou **Événement** avant de valider. Le plafond affiché est celui de ce type.
 
 ## Mes adhésions
 
@@ -65,4 +65,4 @@ Si aucun frais de retrait n’est prévu pour votre mise, le paiement direct n�
 1. Utilisez le menu à gauche : **Accueil**, **Achats**, **Commander**, **Panier**, **Profil**. **Adhésions** s'ajoute à ce menu lorsqu'il est ouvert pour vous.
 2. Sur **Accueil**, les montants de crédit s’affichent en cartes en haut de page, avec les actions rapides à droite. **Adhésions**, lorsqu'il est proposé, ouvre vos soldes et plafonds.
 3. Sur **Achats**, la liste apparaît en tableau : cliquez une ligne pour le détail. Le panneau de droite propose **Payer une mise** et **Voir le suivi des mises**.
-4. Sur **Commander**, les catégories sont à gauche, les produits au centre (avec leur photo lorsqu’elle est disponible), et un mini-panier à droite. Ouvrez **Voir le panier** pour finaliser.
+4. Sur **Commander**, les catégories sont à gauche, les produits au centre (photo et nom lorsqu’ils sont disponibles), et un mini-panier à droite avec le total. Ouvrez **Voir le panier** pour finaliser. Le détail d’un achat liste les articles et les quantités, avec le montant de l’achat.

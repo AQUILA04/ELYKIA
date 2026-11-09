@@ -10,11 +10,13 @@ import { creditStatusChipClass, creditStatusLabel } from '../../shared/utils/cre
 /** Page Détail Achat — Type C. */
 import { LayoutService } from '../../shared/layout/layout.service';
 import { PurchaseDetailDesktopComponent } from './desktop/purchase-detail-desktop.component';
+import { IfUnitPriceDirective } from '../../shared/directives/if-unit-price.directive';
+import { IfNoUnitPriceDirective } from '../../shared/directives/if-no-unit-price.directive';
 @Component({
   selector: 'app-purchase-detail',
   standalone: true,
   imports: [
-    PurchaseDetailDesktopComponent,CommonModule, IonicModule, RouterModule, ElykPageHeaderComponent],
+    PurchaseDetailDesktopComponent, CommonModule, IonicModule, RouterModule, ElykPageHeaderComponent, IfUnitPriceDirective, IfNoUnitPriceDirective],
   templateUrl: './purchase-detail.page.html',
   styleUrls: ['./purchase-detail.page.scss'],
 })

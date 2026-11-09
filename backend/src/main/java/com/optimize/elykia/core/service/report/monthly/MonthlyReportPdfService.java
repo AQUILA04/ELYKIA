@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.report.monthly;
 
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+
 import com.itextpdf.html2pdf.HtmlConverter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,7 @@ public class MonthlyReportPdfService {
 
     private Context buildContext(Map<String, Object> snapshot) {
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("snapshot", snapshot);
         context.setVariable("companyName", COMPANY_NAME);
         context.setVariable("generationDate", LocalDateTime.now().format(GENERATION_FORMAT));

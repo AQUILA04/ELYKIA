@@ -55,8 +55,8 @@
                 <th>Article</th>
                 <th>Commercial</th>
                 <th class="qty">Quantité totale</th>
-                <th class="amount">Prix unitaire</th>
-                <th class="amount">Prix total</th>
+                <th class="amount" th:if="${showUnitPrice != false}">Prix unitaire</th>
+                <th class="amount" th:if="${showUnitPrice != false}">Prix total</th>
             </tr>
         </thead>
         <tbody>
@@ -65,8 +65,8 @@
                 <td th:text="${article.articleName}">Article</td>
                 <td th:text="${article.commercial != null ? article.commercial : 'Sans commercial'}">Commercial</td>
                 <td class="qty" th:text="${article.totalQuantity}">0</td>
-                <td class="amount" th:text="${#numbers.formatDecimal(article.unitPrice, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
-                <td class="amount" th:text="${#numbers.formatDecimal(article.totalAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
+                <td class="amount" th:if="${showUnitPrice != false}" th:text="${#numbers.formatDecimal(article.unitPrice, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
+                <td class="amount" th:if="${showUnitPrice != false}" th:text="${#numbers.formatDecimal(article.totalAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
             </tr>
         </tbody>
     </table>

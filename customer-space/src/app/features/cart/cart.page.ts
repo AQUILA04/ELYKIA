@@ -15,11 +15,12 @@ import { FeatureFlagService, FeatureFlags } from '../../shared/services/feature-
 /** Page Panier — Type C. */
 import { LayoutService } from '../../shared/layout/layout.service';
 import { CartDesktopComponent } from './desktop/cart-desktop.component';
+import { IfUnitPriceDirective } from '../../shared/directives/if-unit-price.directive';
 @Component({
   selector: 'app-cart',
   standalone: true,
   imports: [
-    CartDesktopComponent, CommonModule, FormsModule, IonicModule, RouterModule, ElykPageHeaderComponent],
+    CartDesktopComponent, CommonModule, FormsModule, IonicModule, RouterModule, ElykPageHeaderComponent, IfUnitPriceDirective],
   templateUrl: './cart.page.html',
   styleUrls: ['./cart.page.scss'],
 })

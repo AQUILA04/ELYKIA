@@ -15,6 +15,7 @@ import { CommercialStockService } from 'src/app/stock/services/commercial-stock.
 import { ToastrService } from 'ngx-toastr';
 import { saveAs } from 'file-saver';
 import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature-flag.service';
+import { UnitPriceVisibilityService } from 'src/app/shared/service/unit-price-visibility.service';
 import { ArticleSelectorComponent } from '../components/article-selector/article-selector.component';
 import { ClientSelectComponent } from 'src/app/shared/components/client-select/client-select.component';
 
@@ -86,7 +87,8 @@ export class CreditAddComponent implements OnInit, OnDestroy {
     private userService: UserService,
     private commercialStockService: CommercialStockService,
     private toastr: ToastrService,
-    private featureFlagService: FeatureFlagService
+    private featureFlagService: FeatureFlagService,
+    private unitPriceVisibility: UnitPriceVisibilityService
   ) {
     this.tokenStorage.checkConnectedUser();
     this.creditForm = this.formBuilder.group({
@@ -704,8 +706,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
               <div class="article-item">
                 <div class="article-name">${item.name}</div>
                 <div class="row article-details">
-                  <span>${item.quantity} x ${item.unitPrice.toLocaleString('fr-FR')}</span>
-                  <span>${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>
+                  ${this.unitPriceVisibility.snapshot
+                    ? `<span>${item.quantity} x ${item.unitPrice.toLocaleString('fr-FR')}</span><span>${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>`
+                    : `<span>Qté ${item.quantity}</span>`}
                 </div>
               </div>
             `).join('')}
@@ -881,8 +884,9 @@ export class CreditAddComponent implements OnInit, OnDestroy {
               <div class="article-item">
                 <div class="article-name">${item.name}</div>
                 <div class="row article-details">
-                  <span>${item.quantity} x ${item.unitPrice.toLocaleString('fr-FR')}</span>
-                  <span>${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>
+                  ${this.unitPriceVisibility.snapshot
+                    ? `<span>${item.quantity} x ${item.unitPrice.toLocaleString('fr-FR')}</span><span>${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>`
+                    : `<span>Qté ${item.quantity}</span>`}
                 </div>
               </div>
             `).join('')}

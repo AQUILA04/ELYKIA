@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.stock;
 
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
@@ -486,6 +488,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
                 .build();
 
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("context", contextDto);
 
         String html = templateEngine.process("stock-export", context);

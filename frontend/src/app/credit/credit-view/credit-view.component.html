@@ -195,8 +195,8 @@
           <th>Nom de l'article</th>
           <th>Type de l'article</th>
           <th>Quantité</th>
-          <th>Prix unitaire</th>
-          <th>Total</th>
+          <th *appIfUnitPrice>Prix unitaire</th>
+          <th *appIfUnitPrice>Total</th>
         </tr>
       </thead>
       <tbody>
@@ -204,8 +204,8 @@
           <td>{{ articleItem.articles.name }}</td>
           <td>{{ articleItem.articles.type }}</td>
           <td>{{ articleItem.quantity }}</td>
-          <td>{{ articleItem.articles.creditSalePrice }} FCFA</td>
-          <td>{{ articleItem.quantity * articleItem.articles?.creditSalePrice }} FCFA</td>
+          <td *appIfUnitPrice>{{ articleItem.articles.creditSalePrice }} FCFA</td>
+          <td *appIfUnitPrice>{{ articleItem.quantity * articleItem.articles?.creditSalePrice }} FCFA</td>
         </tr>
       </tbody>
     </table>

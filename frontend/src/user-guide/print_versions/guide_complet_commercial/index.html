@@ -2114,9 +2114,9 @@
 <td>Les articles sont recherchés directement dans le stock général du magasin.</td>
 </tr>
 <tr>
-<td><strong>Prix appliqué</strong></td>
-<td>Prix de vente à crédit (prix contractuel avec marge tontine/crédit).</td>
-<td>Prix de vente au comptant.</td>
+<td><strong>Montant de la vente</strong></td>
+<td>Le montant suit le tarif du crédit.</td>
+<td>Le montant suit le tarif du comptant.</td>
 </tr>
 <tr>
 <td><strong>Paiement et échéances</strong></td>
@@ -2133,7 +2133,7 @@
 <h3 id="recu-de-caisse-et-impression-immediate">Reçu de caisse et impression immédiate</h3>
 <p>Si l'impression immédiate est activée dans votre agence :
 1. Dès que vous enregistrez la vente, une fenêtre affiche l'aperçu du ticket de caisse thermique (format 80 mm).
-2. Le reçu détaille : l'en-tête ELYKIA, la référence unique du contrat, le nom et téléphone du client, le nom du commercial, la liste des articles avec prix et quantités, le total, l'acompte versé, le solde restant et la mise journalière convenue.
+2. Le reçu détaille : l'en-tête ELYKIA, la référence unique du contrat, le nom et téléphone du client, le nom du commercial, la liste des articles et des quantités, le montant total, l'acompte versé, le solde restant et la mise journalière convenue.
 3. Cliquez sur <strong>Imprimer</strong> pour sortir le ticket destiné au client.</p>
 <hr />
 <h2 id="4-fiche-detaillee-360-dun-credit">4. Fiche détaillée 360° d'un crédit</h2>
@@ -2171,7 +2171,7 @@
 <li><strong>Contrôle terrain</strong> : Si un chef de recouvrement a inspecté le carnet du client, cette section affiche le montant système, le montant noté sur le carnet papier, l'écart éventuel, le statut (🟢 <strong>Conforme</strong> ou 🔴 <strong>Disparité</strong>) ainsi que les observations de l'auditeur.</li>
 </ul>
 <h3 id="6-articles-livres">6. Articles livrés</h3>
-<p>Tableau listant chaque article avec sa désignation, sa catégorie, la quantité livrée, son prix unitaire et le montant total de la ligne.</p>
+<p>Tableau listant chaque article avec sa désignation, sa catégorie et la quantité livrée. Le montant total du crédit reste affiché au-dessus du tableau.</p>
 <h3 id="7-situation-de-recouvrement-et-compteurs-de-retard">7. Situation de recouvrement et compteurs de retard</h3>
 <p>Un bandeau évalue la ponctualité des règlements du client :
 - 🟢 <em>À jour — aucun retard</em> (0 jour de retard).
@@ -2238,9 +2238,9 @@
 <li>Ouvrez le menu <strong>Ventes</strong>, puis <strong>Articles</strong>.</li>
 <li>Choisissez la période : <strong>Ce jour</strong>, <strong>Cette semaine</strong>, <strong>Ce mois</strong> ou <strong>Personnalisé</strong> (dates <strong>Du</strong> et <strong>Au</strong>).</li>
 <li>Pour limiter la liste à une personne, choisissez-la dans <strong>Commercial</strong>. <strong>Tous les commerciaux</strong> affiche l’ensemble.</li>
-<li>Le bandeau <strong>Montant total</strong> indique la somme des prix de toutes les lignes correspondant à ces filtres, y compris celles des autres pages.</li>
-<li>Chaque ligne affiche l’article, le commercial, la <strong>Quantité totale</strong>, le <strong>Prix unitaire</strong> et le <strong>Prix total</strong>.</li>
-<li>Cliquez sur <strong>Télécharger</strong> pour obtenir le PDF de la même sélection : les colonnes de prix et le montant total y figurent aussi.</li>
+<li>Le bandeau <strong>Montant total</strong> indique le montant de toutes les ventes correspondant à ces filtres, y compris celles des autres pages.</li>
+<li>Chaque ligne affiche l’article, le commercial et la <strong>Quantité totale</strong>.</li>
+<li>Cliquez sur <strong>Télécharger</strong> pour obtenir le PDF de la même sélection : les articles, les quantités et le montant total y figurent.</li>
 </ol>
 <p>Le téléchargement porte sur un mois au plus.</p>
 <hr />
@@ -2743,8 +2743,8 @@ L'objectif est d'avoir une courbe verte qui suit toujours de très près la cour
 <ol>
 <li>Dans la barre du bas, appuyez sur l'onglet <strong>Plus</strong>, puis touchez <strong>Articles</strong> (ou sur l'accueil, touchez la case <strong>Stock</strong>).</li>
 <li>Deux onglets vous permettent de tout voir :</li>
-<li><strong>Onglet « Mon Stock »</strong> : affiche uniquement ce que vous avez physiquement sur vous dans votre sacoche ou votre voiture. Pour chaque article, vous voyez la quantité exacte disponible et son prix de vente.</li>
-<li><strong>Onglet « Catalogue »</strong> : affiche tous les articles vendus par l'agence avec leurs prix officiels. Très pratique pour montrer les nouveautés aux clientes sans avoir besoin de tout transporter !</li>
+<li><strong>Onglet « Mon Stock »</strong> : affiche uniquement ce que vous avez physiquement sur vous dans votre sacoche ou votre voiture. Pour chaque article, vous voyez la quantité exacte disponible.</li>
+<li><strong>Onglet « Catalogue »</strong> : affiche tous les articles vendus par l'agence. Très pratique pour montrer les nouveautés aux clientes sans avoir besoin de tout transporter !</li>
 </ol>
 <h3 id="b-prendre-une-commande-client-sur-catalogue">B. Prendre une commande client sur catalogue</h3>
 <p>Parfois, une cliente veut un congélateur ou une télévision que vous n'avez pas sur vous. Vous pouvez lui réserver l'article grâce aux <strong>Commandes</strong> :

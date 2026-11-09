@@ -78,16 +78,16 @@
             <tr>
               <th>Libellé</th>
               <th class="text-center">Qté</th>
-              <th class="text-right">Prix unit.</th>
-              <th class="text-right">Montant</th>
+              <th class="text-right" *appIfUnitPrice>Prix unit.</th>
+              <th class="text-right" *appIfUnitPrice>Montant</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let line of debt.lines">
               <td>{{ line.articleName || line.label || line.lineCode }}</td>
               <td class="text-center">{{ line.quantity ?? '—' }}</td>
-              <td class="text-right col-amount">{{ line.unitPrice != null ? (line.unitPrice | number:'1.0-0') : '—' }}</td>
-              <td class="text-right col-amount col-amount-strong">{{ line.amount | number:'1.0-0' }}</td>
+              <td class="text-right col-amount" *appIfUnitPrice>{{ line.unitPrice != null ? (line.unitPrice | number:'1.0-0') : '—' }}</td>
+              <td class="text-right col-amount col-amount-strong" *appIfUnitPrice>{{ line.amount | number:'1.0-0' }}</td>
             </tr>
             <tr *ngIf="!debt.lines?.length">
               <td colspan="4" class="empty-inline">Aucune ligne.</td>

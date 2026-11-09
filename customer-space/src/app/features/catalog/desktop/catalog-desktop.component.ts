@@ -6,11 +6,12 @@ import { IonicModule } from '@ionic/angular';
 import { CustomerArticle, CustomerArticleType } from '../../../shared/models/customer.model';
 import { CartLine } from '../../../shared/services/cart.service';
 import { ElykDesktopPageComponent } from '../../../shared/ui';
+import { IfUnitPriceDirective } from '../../../shared/directives/if-unit-price.directive';
 
 @Component({
   selector: 'app-catalog-desktop',
   standalone: true,
-  imports: [CommonModule, IonicModule, RouterModule, ElykDesktopPageComponent],
+  imports: [CommonModule, IonicModule, RouterModule, ElykDesktopPageComponent, IfUnitPriceDirective],
   templateUrl: './catalog-desktop.component.html',
   styleUrls: ['./catalog-desktop.component.scss'],
 })

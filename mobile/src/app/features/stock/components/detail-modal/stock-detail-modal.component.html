@@ -88,8 +88,7 @@
         </div>
         <div class="item-meta">
           <div class="qty-badge">x{{ item.quantity || 0 }}</div>
-          <div class="unit-price" *ngIf="item.unitPrice">{{ item.unitPrice | currency:'XOF':'symbol':'1.0-0' }} / u</div>
-          <div class="unit-price" *ngIf="!item.unitPrice">N/A</div>
+          <div class="unit-price" *appIfUnitPrice>{{ item.unitPrice ? (item.unitPrice | currency:'XOF':'symbol':'1.0-0') + ' / u' : 'N/A' }}</div>
         </div>
       </div>
       <div class="empty-state" *ngIf="items.length === 0">

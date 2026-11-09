@@ -65,9 +65,9 @@
       <thead>
         <tr>
           <th>Article</th>
-          <th>Prix unitaire</th>
+          <th *appIfUnitPrice>Prix unitaire</th>
           <th>Quantité</th>
-          <th>Total</th>
+          <th *appIfUnitPrice>Total</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -79,7 +79,7 @@
               <span class="name">{{ selected.article.name }}</span>
             </div>
           </td>
-          <td>{{ formatCurrency(selected.article.sellingPrice) }}</td>
+          <td *appIfUnitPrice>{{ formatCurrency(selected.article.sellingPrice) }}</td>
           <td>
             <div class="quantity-controls">
               <button mat-icon-button (click)="updateQuantity(selected, -1)" [disabled]="selected.quantity <= 1">
@@ -91,7 +91,7 @@
               </button>
             </div>
           </td>
-          <td class="total-cell">{{ formatCurrency(selected.totalPrice) }}</td>
+          <td class="total-cell" *appIfUnitPrice>{{ formatCurrency(selected.totalPrice) }}</td>
           <td>
             <button mat-icon-button color="warn" (click)="removeArticle(selected)">
               <mat-icon>delete</mat-icon>
@@ -101,7 +101,7 @@
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="3" class="total-label">TOTAL</td>
+          <td colspan="5" class="total-label">TOTAL</td>
           <td colspan="2" class="total-value">{{ formatCurrency(totalAmount) }}</td>
         </tr>
       </tfoot>

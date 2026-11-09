@@ -55,7 +55,8 @@
     <div *ngFor="let item of printableDistribution.articles" class="article-item">
       <div class="article-name">{{ item.article.commercialName || item.article.name }}</div>
       <div class="article-details">
-        {{ item.quantity }} x {{ item.unitPrice | number }} = {{ item.totalPrice | number }} FCFA
+        <ng-container *appIfUnitPrice>{{ item.quantity }} x {{ item.unitPrice | number }} = {{ item.totalPrice | number }} FCFA</ng-container>
+        <ng-container *appIfNoUnitPrice>Qté {{ item.quantity }}</ng-container>
       </div>
     </div>
 

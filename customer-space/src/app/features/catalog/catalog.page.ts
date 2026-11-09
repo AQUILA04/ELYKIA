@@ -13,11 +13,12 @@ import { ElykPageHeaderComponent } from '../../shared/ui';
 /** Page Catalogue — Type C. */
 import { LayoutService } from '../../shared/layout/layout.service';
 import { CatalogDesktopComponent } from './desktop/catalog-desktop.component';
+import { IfUnitPriceDirective } from '../../shared/directives/if-unit-price.directive';
 @Component({
   selector: 'app-catalog',
   standalone: true,
   imports: [
-    CatalogDesktopComponent,CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent],
+    CatalogDesktopComponent, CommonModule, IonicModule, RouterModule, CustomerTabBarComponent, ElykPageHeaderComponent, IfUnitPriceDirective],
   templateUrl: './catalog.page.html',
   styleUrls: ['./catalog.page.scss'],
 })

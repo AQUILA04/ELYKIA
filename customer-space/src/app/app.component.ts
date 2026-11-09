@@ -3,6 +3,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { UserJournalService } from './core/telemetry/user-journal.service';
 import { CustomerSessionService } from './shared/services/customer-session.service';
+import { UnitPriceVisibilityService } from './shared/services/unit-price-visibility.service';
 import { LayoutService } from './shared/layout/layout.service';
 import { isE2eMode } from './shared/utils/e2e';
 import { DEFAULT_POST_LOGIN_URL, readReturnUrlFromLocation } from './shared/utils/return-url';
@@ -18,6 +19,7 @@ export class AppComponent implements OnInit, OnDestroy {
   private readonly session = inject(CustomerSessionService);
   private readonly journal = inject(UserJournalService);
   readonly layout = inject(LayoutService);
+  private readonly unitPriceVisibility = inject(UnitPriceVisibilityService);
 
   showSplash = true;
   readonly showSidebar = signal(false);
@@ -27,6 +29,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.layout.refresh();
+    this.unitPriceVisibility.ensureLoaded().subscribe();
     this.updateSidebarVisibility(this.router.url);
     this.bindExistingSession();
 

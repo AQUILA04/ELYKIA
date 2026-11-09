@@ -5,6 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { EditDistributionPageRoutingModule } from './edit-distribution-routing.module';
 import { EditDistributionPage } from './edit-distribution.page';
+import { IfUnitPriceDirective } from 'src/app/shared/directives/if-unit-price.directive';
 
 @NgModule({
   imports: [
@@ -13,7 +14,8 @@ import { EditDistributionPage } from './edit-distribution.page';
     ReactiveFormsModule,
     IonicModule,
     EditDistributionPageRoutingModule,
-    ScrollingModule
+    ScrollingModule,
+    IfUnitPriceDirective
   ],
   declarations: [
     EditDistributionPage

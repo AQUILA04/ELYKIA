@@ -38,7 +38,7 @@
               </p>
               
               <!-- Prix -->
-              <div class="price-info">
+              <div class="price-info" *appIfUnitPrice>
                 <span class="unit-price">{{ article.creditSalePrice | number:'1.0-0' }} FCFA</span>
                 <span class="total-price" *ngIf="getArticleQuantity(article.id) > 0">
                   {{ getArticleTotal(article.id) | number:'1.0-0' }} FCFA

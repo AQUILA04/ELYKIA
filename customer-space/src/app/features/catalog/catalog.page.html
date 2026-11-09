@@ -79,7 +79,7 @@
           <ion-icon *ngIf="!a.imageUrl" name="cube-outline" aria-hidden="true"></ion-icon>
         </div>
         <h3 class="ac-name">{{ label(a) }}</h3>
-        <p class="ac-price">{{ a.creditSalePrice | number:'1.0-0' }} FCFA</p>
+        <p class="ac-price" *appIfUnitPrice>{{ a.creditSalePrice | number:'1.0-0' }} FCFA</p>
         <div class="ac-actions">
           <button
             type="button"

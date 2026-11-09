@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.tontine;
 
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.client.entity.Client;
@@ -48,6 +50,7 @@ public class TontineCarnetVerificationPdfService {
 
         String documentTitle = verified ? TITLE_VERIFIED : TITLE_PENDING;
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         PdfDocumentIdentity.applyTo(context, documentTitle);
         context.setVariable("doc", dto);
         String html = templateEngine.process("tontine-carnet-verification-export", context);

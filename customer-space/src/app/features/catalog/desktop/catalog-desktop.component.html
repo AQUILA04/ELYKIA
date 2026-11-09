@@ -21,7 +21,7 @@
             <ion-icon *ngIf="!a.imageUrl" name="cube-outline" aria-hidden="true"></ion-icon>
           </div>
           <h3>{{ label()(a) }}</h3>
-          <p class="price">{{ a.creditSalePrice | number:'1.0-0' }} FCFA</p>
+          <p class="price" *appIfUnitPrice>{{ a.creditSalePrice | number:'1.0-0' }} FCFA</p>
           <button type="button" class="add-btn" (click)="add.emit(a)" [attr.data-testid]="'e2e-catalog-add-' + a.id">
             <ion-icon name="add-outline"></ion-icon> Ajouter
           </button>
@@ -38,7 +38,7 @@
       <div *ngIf="cartLines().length === 0" class="desk-muted">Aucun article</div>
       <div *ngFor="let line of cartLines()" style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid var(--elyk-border);font-size:13px;">
         <span>{{ label()(line.article) }} × {{ line.quantity }}</span>
-        <strong>{{ line.article.creditSalePrice * line.quantity | number:'1.0-0' }} F</strong>
+        <strong *appIfUnitPrice>{{ line.article.creditSalePrice * line.quantity | number:'1.0-0' }} F</strong>
       </div>
       <div class="summary-total" *ngIf="cartLines().length">Total {{ cartTotal() | number:'1.0-0' }} F</div>
       <ion-button expand="block" class="elyk-btn-gold" style="margin-top:16px;" routerLink="/cart" data-testid="e2e-catalog-cart-btn">Voir le panier</ion-button>

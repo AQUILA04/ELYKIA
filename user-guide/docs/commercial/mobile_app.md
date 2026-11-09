@@ -277,8 +277,8 @@ Ce module vous permet de surveiller votre dotation de marchandises et d'échange
 ### A. Consulter les articles et votre stock disponible
 1. Dans la barre du bas, appuyez sur l'onglet **Plus**, puis touchez **Articles** (ou sur l'accueil, touchez la case **Stock**).
 2. Deux onglets vous permettent de tout voir :
-   * **Onglet « Mon Stock »** : affiche uniquement ce que vous avez physiquement sur vous dans votre sacoche ou votre voiture. Pour chaque article, vous voyez la quantité exacte disponible et son prix de vente.
-   * **Onglet « Catalogue »** : affiche tous les articles vendus par l'agence avec leurs prix officiels. Très pratique pour montrer les nouveautés aux clientes sans avoir besoin de tout transporter !
+   * **Onglet « Mon Stock »** : affiche uniquement ce que vous avez physiquement sur vous dans votre sacoche ou votre voiture. Pour chaque article, vous voyez la quantité exacte disponible.
+   * **Onglet « Catalogue »** : affiche tous les articles vendus par l'agence. Très pratique pour montrer les nouveautés aux clientes sans avoir besoin de tout transporter !
 
 ### B. Prendre une commande client sur catalogue
 Parfois, une cliente veut un congélateur ou une télévision que vous n'avez pas sur vous. Vous pouvez lui réserver l'article grâce aux **Commandes** :

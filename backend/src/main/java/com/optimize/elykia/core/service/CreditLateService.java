@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service;
 
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+
 import com.optimize.elykia.core.dto.CreditLateDTO;
 import com.optimize.elykia.core.dto.CreditLateSummaryDTO;
 import com.optimize.elykia.core.entity.sale.Credit;
@@ -214,6 +216,7 @@ public class CreditLateService {
                 ));
 
         Context context = new Context();
+        UnitPriceVisibility.apply(context);
         context.setVariable("creditsByQuarter", creditsByQuarter);
         context.setVariable("creditsEmpty", credits.isEmpty());
         context.setVariable("collectorName", collector != null && !collector.isBlank() ? collector : "Tous");

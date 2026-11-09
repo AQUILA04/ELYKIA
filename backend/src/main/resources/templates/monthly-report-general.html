@@ -99,20 +99,20 @@
         <tr>
             <th>Article</th>
             <th class="text-center">Qté</th>
-            <th class="text-right">Prix achat unit.</th>
-            <th class="text-right">Prix crédit unit.</th>
-            <th class="text-right">Marge estimée</th>
+            <th class="text-right" th:if="${showUnitPrice != false}">Prix achat unit.</th>
+            <th class="text-right" th:if="${showUnitPrice != false}">Prix crédit unit.</th>
+            <th class="text-right" th:if="${showUnitPrice != false}">Marge estimée</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="entry : ${snapshot.stockEntries}">
             <td th:text="${entry.articleName}"></td>
             <td class="text-center" th:text="${entry.quantity}"></td>
-            <td class="text-right"
+            <td class="text-right" th:if="${showUnitPrice != false}"
                 th:text="${#numbers.formatDecimal(entry.unitPurchasePrice, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
-            <td class="text-right"
+            <td class="text-right" th:if="${showUnitPrice != false}"
                 th:text="${#numbers.formatDecimal(entry.unitCreditSalePrice, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
-            <td class="text-right"
+            <td class="text-right" th:if="${showUnitPrice != false}"
                 th:text="${#numbers.formatDecimal(entry.estimatedMargin, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></td>
         </tr>
         </tbody>

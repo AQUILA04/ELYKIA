@@ -129,7 +129,7 @@
               </span>
             </div>
 
-            <div class="field-group item-price">
+            <div class="field-group item-price" *appIfUnitPrice>
               <label class="field-label">Prix unitaire</label>
               <input
                 type="number"
@@ -140,7 +140,7 @@
               <span class="field-hint">Défini automatiquement par l'article</span>
             </div>
 
-            <div class="item-total">
+            <div class="item-total" *appIfUnitPrice>
               <span class="item-total-label">Total ligne</span>
               <span class="item-total-value">{{ itemControl.get('totalPrice')?.value | currency:'XOF':'symbol':'1.0-0' }}</span>
             </div>

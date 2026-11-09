@@ -50,8 +50,8 @@
       <div class="article-card elyk-animate" *ngFor="let item of purchase.items">
         <div class="art-name">{{ item.articleName }}</div>
         <div class="art-meta">
-          {{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }} =
-          {{ item.totalPrice | number:'1.0-0' }} FCFA
+          <ng-container *appIfUnitPrice>{{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }} = {{ item.totalPrice | number:'1.0-0' }} FCFA</ng-container>
+          <ng-container *appIfNoUnitPrice>Qté {{ item.quantity }}</ng-container>
         </div>
       </div>
     </ng-container>

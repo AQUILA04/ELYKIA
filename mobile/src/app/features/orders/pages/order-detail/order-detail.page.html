@@ -83,9 +83,10 @@
         <div class="line-item" *ngFor="let item of items">
           <div class="line-main">
             <span class="line-name">{{ item.articleName || ('Article ' + item.articleId) }}</span>
-            <span class="line-meta">{{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }} FCFA</span>
+            <span class="line-meta" *appIfUnitPrice>{{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }} FCFA</span>
+            <span class="line-meta" *appIfNoUnitPrice>Qté {{ item.quantity }}</span>
           </div>
-          <span class="elyk-amount line-total">{{ item.totalPrice | number:'1.0-0' }}</span>
+          <span class="elyk-amount line-total" *appIfUnitPrice>{{ item.totalPrice | number:'1.0-0' }}</span>
         </div>
       </ion-card-content>
     </ion-card>
