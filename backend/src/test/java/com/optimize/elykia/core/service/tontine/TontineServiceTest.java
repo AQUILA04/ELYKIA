@@ -53,6 +53,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -847,6 +848,45 @@ class TontineServiceTest {
         history.setTontineMember(member);
         member.getAmountHistory().add(history);
         return member;
+    }
+
+    @Test
+    void replayMembers_keepsOtherCommercialLinesAndAppliesPolicyTotals() {
+        TontineMember member = new TontineMember();
+        member.setId(7L);
+        member.setTotalContribution(1_500.0);
+        TontineCollection kept = new TontineCollection();
+        kept.setId(2L);
+        kept.setAmount(800.0);
+        kept.setCommercialUsername("bob");
+        kept.setState(State.ENABLED);
+        kept.setTontineMember(member);
+
+        when(tontineMemberRepository.findAllById(List.of(7L))).thenReturn(List.of(member));
+        when(tontineCollectionRepository.findByTontineMember_IdInAndStateOrderByCollectionDateAscIdAsc(
+                List.of(7L), State.ENABLED)).thenReturn(List.of(kept));
+        when(allocationPolicyResolver.resolve()).thenReturn(allocationPolicy);
+        doAnswer(invocation -> {
+            TontineMember replayed = invocation.getArgument(0);
+            List<TontineCollection> lines = invocation.getArgument(1);
+            assertEquals(1, lines.size());
+            assertEquals("bob", lines.get(0).getCommercialUsername());
+            assertEquals(800.0, lines.get(0).getAmount());
+            replayed.setTotalContribution(800.0);
+            replayed.setSocietyShare(50.0);
+            replayed.setAvailableContribution(750.0);
+            replayed.setValidatedMonths(0);
+            replayed.setCurrentMonthDays(2);
+            return null;
+        }).when(allocationPolicy).recalculateMemberFromCollections(any(), any());
+
+        service.replayMembersFromEnabledCollections(List.of(7L));
+
+        assertEquals(800.0, member.getTotalContribution());
+        assertEquals(50.0, member.getSocietyShare());
+        assertEquals(750.0, member.getAvailableContribution());
+        verify(tontineCollectionRepository).saveAll(List.of(kept));
+        verify(tontineMemberRepository).save(member);
     }
 
     private TontineSession session(Long id, int year, TontineSessionStatus status) {

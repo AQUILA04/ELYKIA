@@ -25,6 +25,9 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             Pageable pageable);
     java.util.List<TontineCollection> findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(Long memberId, State state);
 
+    java.util.List<TontineCollection> findByTontineMember_IdInAndStateOrderByCollectionDateAscIdAsc(
+            java.util.Collection<Long> memberIds, State state);
+
     long countByTontineMember_IdAndCollectionDateBetweenAndState(Long memberId, java.time.LocalDateTime start, java.time.LocalDateTime end, State state);
 
     @Query("""

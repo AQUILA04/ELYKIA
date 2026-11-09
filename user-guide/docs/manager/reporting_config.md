@@ -256,3 +256,21 @@ Dans le coin supérieur droit de l'écran, le menu utilisateur assure la sécuri
 * **Informations de profil** : Affiche votre nom, prénom, profil opérationnel et l'agence à laquelle vous êtes rattaché.
 * **Changer de mot de passe** : Permet de renouveler régulièrement votre code d'accès confidentiel.
 * **Déconnexion** : En fin de poste ou avant de quitter votre bureau, cliquez impérativement sur **« Déconnexion »** pour fermer votre session et empêcher tout accès non autorisé à vos données.
+
+---
+
+## 6. Archives des collectes tontine
+
+Ces archives servent à rapprocher une annulation de collectes avec l'argent déjà remis.
+
+1. Dans le menu latéral, cliquez sur **Tontines**, puis sur **Archives collectes**.
+2. Ouvrez l'année, puis l'opération marquée **Annulation** suivie du nom du commercial.
+3. Trois volets sont disponibles :
+   - **Lignes** : chaque collecte retirée, avec le client, la date, la référence et le montant. **Exporter CSV** reprend la même liste.
+   - **Membres** : pour chaque client concerné, le montant **Retiré**, le montant **Conservé** (collectes des autres commerciaux) et les totaux avant et après.
+   - **Jours à rapprocher** : pour chaque jour, la tontine et le montant **À verser** avant et après, plus le montant **Déjà versé**.
+4. **Télécharger** ouvre le PDF du quartier correspondant.
+
+Pour le rapprochement, comparez **Déjà versé** et **À verser après** sur le jour concerné. Le montant déjà remis en caisse ne change pas. L'écart entre les deux est le montant à expliquer avec la caisse. Le rapport journalier du commercial, sur la même date, affiche les montants après annulation.
+
+<!-- CAPTURE À INSÉRER : détail d'une annulation avec les volets Lignes, Membres et Jours à rapprocher -->

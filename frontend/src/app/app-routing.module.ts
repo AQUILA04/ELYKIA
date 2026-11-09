@@ -139,7 +139,7 @@ const routes: Routes = [
     canActivate: [AuthGuard, NgxPermissionsGuard],
     data: {
       permissions: {
-        only: ['ROLE_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_CONSULT_TONTINE'],
+        only: ['ROLE_TONTINE', 'ROLE_EDIT_TONTINE', 'ROLE_CONSULT_TONTINE', 'ROLE_ADMIN'],
         redirectTo: '/home'
       }
     }

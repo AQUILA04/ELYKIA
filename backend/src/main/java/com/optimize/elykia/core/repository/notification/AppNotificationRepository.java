@@ -4,10 +4,13 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.repository.BaseRepository;
 import com.optimize.elykia.core.entity.notification.AppNotification;
 import com.optimize.elykia.core.enumaration.AppNotificationType;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -139,4 +142,18 @@ public interface AppNotificationRepository extends BaseRepository<AppNotificatio
             """)
     long countUnreadUnresolvedExcludingCatchupForPromoter(
             @Param("username") String username, @Param("state") State state);
+
+    @Modifying
+    @Query("""
+            UPDATE AppNotification n
+            SET n.state = com.optimize.common.entities.enums.State.DELETED,
+                n.resolvedAt = :now
+            WHERE n.type = :type
+              AND n.resolvedAt IS NULL
+              AND n.entityId IN :ids
+            """)
+    int cancelUnresolvedByTypeAndEntityIds(
+            @Param("type") AppNotificationType type,
+            @Param("ids") Collection<Long> ids,
+            @Param("now") LocalDateTime now);
 }
