@@ -34,6 +34,8 @@ export class CarnetEcartListComponent implements OnInit, OnDestroy {
   pendingKeys: string[] = [];
   showAccept = false;
   acceptPreviewAmount = 0;
+  selectedTontineInverse = 0;
+  selectedCreditInverse = 0;
 
   private clock?: ReturnType<typeof setInterval>;
 
@@ -78,10 +80,6 @@ export class CarnetEcartListComponent implements OnInit, OnDestroy {
     return Array.from(this.selected);
   }
 
-  get inverseSelectedCount(): number {
-    return this.items.filter(item => this.selected.has(item.key) && (item.acceptableAmount || 0) <= 0).length;
-  }
-
   load(): void {
     this.loading = true;
     this.errorMessage = '';
@@ -115,14 +113,26 @@ export class CarnetEcartListComponent implements OnInit, OnDestroy {
     }
   }
 
+  canAccept(item: CarnetEcartItem): boolean {
+    if (item.domain === 'TONTINE') {
+      return (item.acceptableAmount || 0) > 0 || (item.pendingInverseAmount || 0) > 0;
+    }
+    return (item.acceptableAmount || 0) > 0;
+  }
+
   askAccept(keys: string[]): void {
     if (!keys.length) {
       return;
     }
     this.pendingKeys = keys;
-    this.acceptPreviewAmount = this.items
-      .filter(item => keys.includes(item.key))
-      .reduce((sum, item) => sum + (item.acceptableAmount || 0), 0);
+    const selected = this.items.filter(item => keys.includes(item.key));
+    this.acceptPreviewAmount = selected.reduce((sum, item) => sum + (item.acceptableAmount || 0), 0);
+    this.selectedTontineInverse = selected
+      .filter(item => item.domain === 'TONTINE' && (item.pendingInverseAmount || 0) > 0)
+      .length;
+    this.selectedCreditInverse = selected
+      .filter(item => item.domain === 'CREDIT' && (item.acceptableAmount || 0) <= 0 && (item.pendingInverseAmount || 0) > 0)
+      .length;
     this.showAccept = true;
     this.showReject = false;
   }

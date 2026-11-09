@@ -4,6 +4,8 @@ import com.optimize.common.entities.exception.CustomValidationException;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Règles pures du traitement d'un écart de carnet.
@@ -66,5 +68,50 @@ public final class CarnetEcartRules {
      */
     public static double constitutionGap(double declared, double deposited, double openFieldControlRemaining) {
         return declared - deposited - Math.max(0d, openFieldControlRemaining);
+    }
+
+    /**
+     * Cotisation d'un mois, de la plus récente à la plus ancienne, à réduire d'un excédent.
+     * {@code keepAmount} est la part de cette cotisation qui reste conforme au carnet.
+     */
+    public record MonthCollection(long id, double amount) {
+    }
+
+    public record ReductionStep(long collectionId, double keepAmount) {
+    }
+
+    /**
+     * Annule les cotisations en trop d'un mois, en commençant par les plus récentes.
+     * Si la dernière dépasse l'excédent restant, elle est annulée puis recréée pour le montant à conserver.
+     */
+    public static List<ReductionStep> planMonthReduction(List<MonthCollection> newestFirst, double excess) {
+        if (!isPositive(excess)) {
+            return List.of();
+        }
+        List<ReductionStep> steps = new ArrayList<>();
+        double remaining = excess;
+        if (newestFirst != null) {
+            for (MonthCollection collection : newestFirst) {
+                if (remaining <= MONEY_EPSILON) {
+                    break;
+                }
+                double amount = collection == null ? 0d : collection.amount();
+                if (amount <= MONEY_EPSILON) {
+                    continue;
+                }
+                if (amount > remaining + MONEY_EPSILON) {
+                    steps.add(new ReductionStep(collection.id(), amount - remaining));
+                    remaining = 0d;
+                } else {
+                    steps.add(new ReductionStep(collection.id(), 0d));
+                    remaining -= amount;
+                }
+            }
+        }
+        if (remaining > MONEY_EPSILON) {
+            throw new CustomValidationException(
+                    "Les cotisations de ce mois ne couvrent pas l'excédent constaté sur le carnet.");
+        }
+        return steps;
     }
 }

@@ -30,7 +30,7 @@ Sur une ligne de retard, choisissez **Terrain**. Le formulaire rappelle la réf�
 
 Après enregistrement, la fiche crédit peut afficher la section **Contrôle terrain** avec les montants système et carnet, l’écart, le statut et l’auteur du contrôle.
 
-Le commercial traite ensuite la disparité dans **Écarts de carnet**. S’il accepte un carnet supérieur au système, la mise manquante et le manquant de caisse sont créés. S’il rejette le constat, un motif est enregistré et aucun mouvement n’est passé. Lorsque le système dépasse le carnet, la suite est une contestation : le commercial rejette le constat, sans annulation de mise.
+Le commercial traite ensuite la disparité dans **Écarts de carnet**. S’il accepte une tontine, le dossier est recalé sur le carnet : les mois manquants sont enregistrés avec leur manquant de caisse, et les mois en trop sont annulés. S’il rejette le constat, un motif est enregistré et aucun mouvement n’est passé. Pour une vente, lorsque le système dépasse le carnet, l’acceptation ne modifie pas la mise : le commercial rejette le constat.
 
 ## Vérifier un carnet de vente à crédit
 

@@ -235,6 +235,7 @@ public class CarnetEcartDecisionService {
         }
         assertCanDecide(currentUser(), commercial);
         List<TontineMemberFieldControlLine> positive = new ArrayList<>();
+        List<TontineMemberFieldControlLine> negative = new ArrayList<>();
         boolean already = false;
         for (TontineMemberFieldControlLine line : lines) {
             double difference = safe(line.getDifferenceAmount());
@@ -247,23 +248,39 @@ public class CarnetEcartDecisionService {
             }
             if (CarnetEcartRules.isPositive(difference)) {
                 positive.add(line);
+            } else if (CarnetEcartRules.isNegative(difference)) {
+                negative.add(line);
             }
         }
-        if (positive.isEmpty()) {
-            boolean inverseLeft = lines.stream().anyMatch(line ->
-                    CarnetEcartRules.isNegative(safe(line.getDifferenceAmount()))
-                            && decisionRepository.findByTontineLineId(line.getId()).isEmpty());
-            if (inverseLeft) {
-                return ignored(tontineKey(controlId, commercial),
-                        "IGNORÉ — le carnet n'est pas supérieur au système. Vous pouvez rejeter cet écart.");
-            }
+        if (positive.isEmpty() && negative.isEmpty()) {
             if (already) {
                 return success(tontineKey(controlId, commercial), "Déjà accepté", null);
             }
             throw new CustomValidationException("Aucune ligne à accepter pour ce commercial.");
         }
-        double cash = 0d;
         Long memberId = control.getTontineMember().getId();
+        for (TontineMemberFieldControlLine line : negative) {
+            double excess = -safe(line.getDifferenceAmount());
+            tontineService.reduceFieldControlExcess(
+                    memberId, commercial, line.getYear(), line.getMonth(), excess);
+            CarnetEcartDecision decision = baseDecision(
+                    CarnetEcartDomain.TONTINE,
+                    commercial,
+                    safe(line.getSystemAmount()),
+                    safe(line.getNotebookAmount()),
+                    safe(line.getDifferenceAmount()),
+                    CarnetEcartDirection.SYSTEM_ABOVE_NOTEBOOK,
+                    CarnetEcartStatus.ACCEPTED,
+                    null);
+            decision.setTontineFieldControlId(controlId);
+            decision.setTontineLineId(line.getId());
+            decision.setMiseReference("ANNULE-" + line.getId());
+            decision.setOperationDate(CarnetEcartRules.tontineOperationDate(
+                    line.getYear(), line.getMonth(), LocalDate.now()));
+            decisionRepository.save(decision);
+        }
+        double added = 0d;
+        List<FieldControlTontinePosting> toPublish = new ArrayList<>();
         for (TontineMemberFieldControlLine line : positive) {
             LocalDate operationDate = CarnetEcartRules.tontineOperationDate(
                     line.getYear(), line.getMonth(), LocalDate.now());
@@ -295,11 +312,22 @@ public class CarnetEcartDecisionService {
                         "Manquant carnet tontine " + line.getMonth() + "/" + line.getYear());
                 decision.setDebtDocumentId(debt.getId());
                 decisionRepository.save(decision);
-                tontineService.publishFieldControlCollection(posting);
+                toPublish.add(posting);
+                added += posting.amount();
             }
-            cash += posting.amount();
         }
-        return success(tontineKey(controlId, commercial), "Mises et manquants enregistrés", cash);
+        for (FieldControlTontinePosting posting : toPublish) {
+            tontineService.publishFieldControlCollection(posting);
+        }
+        String message;
+        if (!positive.isEmpty() && !negative.isEmpty()) {
+            message = "Carnet recalé : mois en trop annulés, mises manquantes enregistrées";
+        } else if (!positive.isEmpty()) {
+            message = "Mises et manquants enregistrés";
+        } else {
+            message = "Mois en trop annulés";
+        }
+        return success(tontineKey(controlId, commercial), message, added);
     }
 
     private CarnetEcartOutcomeDto rejectTontine(Long controlId, String commercial, String note) {

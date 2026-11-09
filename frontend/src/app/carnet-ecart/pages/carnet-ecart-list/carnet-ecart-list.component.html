@@ -29,7 +29,7 @@
           Actualiser
         </button>
       </div>
-      <p class="page-subtitle">Acceptez une disparité pour enregistrer la mise manquante et le manquant de caisse, ou rejetez-la avec un motif.</p>
+      <p class="page-subtitle">Acceptez une disparité pour recaler la tontine sur le carnet, ou rejetez-la avec un motif.</p>
     </div>
   </div>
 
@@ -153,7 +153,7 @@
                 <td><span class="status-pill" [class.status-ok]="item.direction === 'NOTEBOOK_ABOVE_SYSTEM'" [class.status-warn]="item.direction !== 'NOTEBOOK_ABOVE_SYSTEM'">{{ directionLabel(item) }}</span></td>
                 <td>{{ item.observedAt | date:'dd/MM/yyyy HH:mm' }}</td>
                 <td class="col-actions">
-                  <button type="button" class="btn-detail" *ngIf="item.acceptableAmount > 0" [disabled]="acting" (click)="askAccept([item.key])">Accepter</button>
+                  <button type="button" class="btn-detail" *ngIf="canAccept(item)" [disabled]="acting" (click)="askAccept([item.key])">Accepter</button>
                   <button type="button" class="btn-detail btn-danger" *ngIf="item.status === 'PENDING'" [disabled]="acting" (click)="askReject([item.key])">Rejeter</button>
                 </td>
               </tr>
@@ -179,15 +179,22 @@
         Une mise de <strong>{{ acceptPreviewAmount | number:'1.0-0' }} FCFA</strong> sera enregistrée,
         et un manquant de caisse du même montant sera ouvert pour le commercial.
       </p>
-      <p *ngIf="acceptPreviewAmount <= 0">
+      <p *ngIf="selectedTontineInverse > 0">
+        Les mois où le système dépasse le carnet sont annulés et retirés de la caisse de ces jours.
+        Ils ne restent pas en plus du carnet. Si cet argent a déjà été versé, ce jour pourra afficher un surplus.
+      </p>
+      <p *ngIf="acceptPreviewAmount <= 0 && selectedTontineInverse > 0">
+        Aucun manquant n’est ouvert.
+      </p>
+      <p *ngIf="acceptPreviewAmount <= 0 && selectedTontineInverse === 0">
         Aucune mise ne sera créée : le carnet n’est pas supérieur au système.
       </p>
-      <p *ngIf="inverseSelectedCount > 0">
-        {{ inverseSelectedCount }} ligne(s) où le système dépasse le carnet seront ignorées. Vous pouvez les rejeter avec un motif.
+      <p *ngIf="selectedCreditInverse > 0">
+        Les ventes où le système dépasse le carnet ne sont pas modifiées. Vous pouvez les rejeter avec un motif.
       </p>
       <div class="dialog-actions">
         <button type="button" class="btn-clear" (click)="cancelDialog()">Annuler</button>
-        <button type="button" class="btn-primary" [disabled]="acting || acceptPreviewAmount <= 0" (click)="confirmAccept()" data-testid="e2e-carnet-ecart-accept-confirm">Confirmer</button>
+        <button type="button" class="btn-primary" [disabled]="acting || (acceptPreviewAmount <= 0 && selectedTontineInverse === 0)" (click)="confirmAccept()" data-testid="e2e-carnet-ecart-accept-confirm">Confirmer</button>
       </div>
     </div>
   </div>
