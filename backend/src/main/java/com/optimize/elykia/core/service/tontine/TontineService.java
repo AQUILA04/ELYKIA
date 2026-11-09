@@ -31,6 +31,7 @@ import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
+import com.optimize.elykia.core.service.carnet.CarnetEcartRules;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicy;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicyResolver;
@@ -706,6 +707,87 @@ public class TontineService extends GenericService<TontineMember, Long> {
             metricsPublisher.tontineCollectionRecorded(saved.getCommercialUsername(), amount);
         }
         return toFieldControlPosting(saved, false);
+    }
+
+    /**
+     * Retire l'excédent d'un mois (système supérieur au carnet) pour un commercial.
+     * Les cotisations les plus récentes sont annulées en premier. Si la dernière dépasse
+     * le reste à annuler, elle est recréée au montant encore conforme au carnet.
+     *
+     * @return le montant réellement retiré
+     */
+    @Transactional
+    public double reduceFieldControlExcess(
+            Long memberId,
+            String commercialUsername,
+            int year,
+            int month,
+            double excess) {
+        if (!CarnetEcartRules.isPositive(excess)) {
+            return 0d;
+        }
+        if (!StringUtils.hasText(commercialUsername)) {
+            throw new CustomValidationException("Le commercial de la ligne de carnet est obligatoire.");
+        }
+        String commercial = commercialUsername.trim();
+        List<TontineCollection> newestFirst = tontineCollectionRepository
+                .findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(memberId, State.ENABLED)
+                .stream()
+                .filter(collection -> matchesCommercialMonth(collection, commercial, year, month))
+                .sorted(Comparator.comparing(TontineCollection::getCollectionDate).reversed()
+                        .thenComparing(TontineCollection::getId, Comparator.nullsLast(Comparator.reverseOrder())))
+                .toList();
+        List<CarnetEcartRules.MonthCollection> slices = newestFirst.stream()
+                .map(collection -> new CarnetEcartRules.MonthCollection(
+                        collection.getId(),
+                        collection.getAmount() != null ? collection.getAmount() : 0d))
+                .toList();
+        List<CarnetEcartRules.ReductionStep> steps = CarnetEcartRules.planMonthReduction(slices, excess);
+        Map<Long, TontineCollection> byId = new HashMap<>();
+        for (TontineCollection collection : newestFirst) {
+            byId.put(collection.getId(), collection);
+        }
+        double removed = 0d;
+        for (CarnetEcartRules.ReductionStep step : steps) {
+            TontineCollection collection = byId.get(step.collectionId());
+            if (collection == null || collection.getCollectionDate() == null) {
+                throw new CustomValidationException("Cotisation introuvable pour annuler l'excédent du carnet.");
+            }
+            double amount = collection.getAmount() != null ? collection.getAmount() : 0d;
+            LocalDate day = collection.getCollectionDate().toLocalDate();
+            cancelCollection(collection.getId());
+            double keep = step.keepAmount();
+            removed += amount - keep;
+            if (keep > CarnetEcartRules.MONEY_EPSILON) {
+                recordFieldControlCollection(
+                        memberId,
+                        keep,
+                        day,
+                        commercial,
+                        "FC-TONTINE-KEEP-" + collection.getId());
+                if (dailyTontineReportReconciler != null) {
+                    dailyTontineReportReconciler.reconcile(commercial, day);
+                    LocalDate today = LocalDate.now();
+                    if (day.isBefore(today)) {
+                        dailyTontineReportReconciler.reconcile(commercial, today);
+                    }
+                }
+            }
+        }
+        return removed;
+    }
+
+    private static boolean matchesCommercialMonth(
+            TontineCollection collection,
+            String commercial,
+            int year,
+            int month) {
+        if (collection.getCollectionDate() == null || collection.getCommercialUsername() == null) {
+            return false;
+        }
+        return collection.getCollectionDate().getYear() == year
+                && collection.getCollectionDate().getMonthValue() == month
+                && commercial.equalsIgnoreCase(collection.getCommercialUsername().trim());
     }
 
     public void publishFieldControlCollection(FieldControlTontinePosting posting) {

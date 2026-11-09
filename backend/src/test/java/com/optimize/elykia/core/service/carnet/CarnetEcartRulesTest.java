@@ -52,6 +52,28 @@ class CarnetEcartRulesTest {
     }
 
     @Test
+    void planMonthReduction_cancelsTheNewestCollectionsAndKeepsTheRemainder() {
+        java.util.List<CarnetEcartRules.ReductionStep> steps = CarnetEcartRules.planMonthReduction(
+                java.util.List.of(
+                        new CarnetEcartRules.MonthCollection(2L, 11_000d),
+                        new CarnetEcartRules.MonthCollection(1L, 20_000d)),
+                21_000d);
+
+        assertEquals(2, steps.size());
+        assertEquals(2L, steps.get(0).collectionId());
+        assertEquals(0d, steps.get(0).keepAmount());
+        assertEquals(1L, steps.get(1).collectionId());
+        assertEquals(10_000d, steps.get(1).keepAmount());
+    }
+
+    @Test
+    void planMonthReduction_refusesWhenCollectionsDoNotCoverTheExcess() {
+        assertThrows(CustomValidationException.class, () -> CarnetEcartRules.planMonthReduction(
+                java.util.List.of(new CarnetEcartRules.MonthCollection(8L, 31_000d)),
+                40_000d));
+    }
+
+    @Test
     void constitutionGap_removesOpenFieldControlShortageOnce() {
         assertEquals(100d, CarnetEcartRules.constitutionGap(130d, 0d, 30d));
         assertEquals(0d, CarnetEcartRules.constitutionGap(30d, 0d, 30d));

@@ -1787,19 +1787,21 @@
 </ol>
 <p>Chaque ligne indique le client, la référence, le montant du système, le montant du carnet, l’écart et la date du constat. Pour une tontine, les mois concernés sont rappelés sous la ligne.</p>
 <h2 id="accepter-une-disparite">Accepter une disparité</h2>
-<p>L’acceptation est possible lorsque le carnet est supérieur au système.</p>
 <ol>
 <li>Cochez une ou plusieurs lignes, puis cliquez sur <strong>Accepter la sélection</strong>. Vous pouvez aussi cliquer sur <strong>Accepter</strong> sur une seule ligne.</li>
-<li>La fenêtre indique le montant de la mise et du manquant de caisse.</li>
+<li>La fenêtre indique ce qui va être enregistré, et le manquant de caisse s’il y en a un.</li>
 <li>Cliquez sur <strong>Confirmer</strong>.</li>
 </ol>
 <p>Ce qui est enregistré :</p>
 <ul>
-<li><strong>Vente</strong> : une mise du jour, dans la limite du reste dû. Si le carnet dépasse ce reste, le surplus est ajouté au reliquat du client.</li>
-<li><strong>Tontine</strong> : une mise pour chaque mois où le carnet dépasse le système. Si le mois est déjà passé, la mise est datée du dernier jour de ce mois.</li>
-<li>Un <strong>manquant de caisse</strong> du même montant, visible dans <strong>Dettes</strong>. Un versement du même jour, sur la vente ou sur la tontine selon le dossier, règle ce manquant.</li>
+<li><strong>Vente</strong> : une mise du jour, dans la limite du reste dû, lorsque le carnet dépasse le système. Si le carnet dépasse ce reste, le surplus est ajouté au reliquat du client. Un manquant de caisse du même montant est ouvert.</li>
+<li><strong>Tontine</strong> : le dossier est recalé sur le carnet, mois par mois.</li>
+<li>Chaque mois où le carnet dépasse le système reçoit la mise manquante. Si le mois est déjà passé, la mise est datée du dernier jour de ce mois. Un manquant de caisse du même montant est ouvert.</li>
+<li>Chaque mois présent dans le système mais absent du carnet est annulé, et retiré de la caisse de ce jour. Un mois seulement en partie trop élevé est réduit au montant du carnet. Ce mois n’est pas conservé en plus du carnet.</li>
+<li>Si l’argent d’un mois annulé a déjà été versé, ce jour peut afficher un surplus.</li>
 </ul>
-<p>Le récapitulatif indique les lignes traitées. Les lignes où le système dépasse le carnet sont ignorées : aucune mise n’est créée pour elles.</p>
+<p>Le manquant, s’il y en a un, est visible dans <strong>Dettes</strong>. Un versement du même jour, sur la vente ou sur la tontine selon le dossier, le règle.</p>
+<p>Le récapitulatif indique les lignes traitées. Pour une vente, une ligne où le système dépasse le carnet n’est pas modifiée : vous pouvez la rejeter.</p>
 <h2 id="rejeter-une-disparite">Rejeter une disparité</h2>
 <ol>
 <li>Cliquez sur <strong>Rejeter</strong>, ou cochez plusieurs lignes puis <strong>Rejeter la sélection</strong>.</li>
@@ -1808,7 +1810,11 @@
 </ol>
 <p>Aucune mise et aucun manquant ne sont créés. Le dossier passe dans <strong>Rejetés</strong>. Un nouveau contrôle terrain peut le faire réapparaître dans <strong>En attente</strong>.</p>
 <h2 id="quand-le-systeme-depasse-le-carnet">Quand le système dépasse le carnet</h2>
-<p>Ouvrez <strong>Écart inverse</strong>. L’acceptation ne crée pas de mise. Vous pouvez <strong>Rejeter</strong> le constat avec un motif, ou le laisser dans la file.</p>
+<p>Ouvrez <strong>Écart inverse</strong>.</p>
+<ul>
+<li><strong>Tontine</strong> : <strong>Accepter</strong> annule les mois en trop pour coller au carnet et les retire de la caisse de ces jours. Si le carnet ne dépasse pas le système, aucun manquant n’est ouvert. Si l’argent de ce mois a déjà été versé, le jour concerné peut afficher un surplus.</li>
+<li><strong>Vente</strong> : l’acceptation ne modifie pas la mise. Vous pouvez <strong>Rejeter</strong> le constat avec un motif, ou le laisser dans la file.</li>
+</ul>
 
 
 

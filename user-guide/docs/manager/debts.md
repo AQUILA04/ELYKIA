@@ -51,6 +51,6 @@ Les deux bilans affichent aussi **Total carnets**, avec le montant des écarts d
 Lorsqu’un écart est accepté dans **Écarts de carnet**, un manquant de caisse est ouvert au nom du commercial, pour le jour de la mise. Il apparaît dans **Dettes**.
 
 1. Ouvrez **Écarts de carnet**. Le filtre **Commercial** limite la file à un identifiant.
-2. **Accepter** crée la mise et le manquant. **Rejeter** exige un motif et ne crée aucun mouvement.
+2. **Accepter** une vente crée la mise et le manquant. **Accepter** une tontine recale les mois sur le carnet : un manquant est ouvert pour chaque mois manquant, et un mois en trop est annulé. **Rejeter** exige un motif et ne crée aucun mouvement.
 3. Un versement du même jour, sur la vente ou sur la tontine selon le dossier, règle ce manquant.
 4. Constituer l’écart de caisse de ce jour ne compte pas une seconde fois le manquant encore ouvert.

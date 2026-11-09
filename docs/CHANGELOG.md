@@ -74,6 +74,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.44.2] — 2026-11-09
+
+### Changed
+
+- Écarts de carnet : accepter une tontine annule les mois en trop et enregistre les mois manquants. Le bouton Accepter est aussi disponible sur un écart inverse de tontine.
+
 ## Frontend — [2.44.1] — 2026-11-09
 
 ### Fixed
@@ -230,6 +236,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.47.1] — 2026-11-09
+
+### Fixed
+
+- Acceptation d’un écart de carnet tontine : les mois où le système dépasse le carnet sont annulés ou réduits, et retirés de la caisse de ces jours. Les mois manquants sont créés avec leur manquant de caisse. Un mois saisi en trop, comme un août absent du carnet, ne reste pas dans le dossier.
 
 ## Backend — [1.47.0] — 2026-11-09
 
