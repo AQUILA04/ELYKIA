@@ -9,6 +9,9 @@ import { OrderService } from '../../../../core/services/order.service';
 import { ClientService } from '../../../../core/services/client.service';
 import { Order } from '../../../../models/order.model';
 import { LoggerService } from '../../../../core/services/logger.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { buildPrintableOrder } from '../../../../core/services/printing.service';
+import { OrderReceiptModalComponent } from '../../../../shared/components/order-receipt-modal/order-receipt-modal.component';
 import { Client } from '../../../../models/client.model';
 import { Article } from '../../../../models/article.model';
 
@@ -35,7 +38,8 @@ export class EditOrderPage implements OnInit {
     private loadingController: LoadingController,
     private orderService: OrderService,
     private clientService: ClientService,
-    private log: LoggerService
+    private log: LoggerService,
+    private authService: AuthService
   ) {
     this.config = {
       type: 'ORDER',
@@ -178,18 +182,26 @@ export class EditOrderPage implements OnInit {
         client: data.client || this.selectedClient
       };
 
-      await firstValueFrom(this.orderService.updateOrder(orderData));
+      const updatedOrder = await firstValueFrom(this.orderService.updateOrder(orderData));
 
       await loading.dismiss();
       loading = null;
 
-      const toast = await this.toastController.create({
-        message: 'Commande modifiée avec succès',
-        duration: 3000,
-        color: 'success',
-        position: 'top'
-      });
-      await toast.present();
+      try {
+        const modal = await this.modalController.create({
+          component: OrderReceiptModalComponent,
+          componentProps: {
+            data: buildPrintableOrder(updatedOrder, {
+              client: this.selectedClient,
+              commercialName: this.authService.currentUser?.username
+            })
+          }
+        });
+        await modal.present();
+        await modal.onDidDismiss();
+      } catch (printError) {
+        console.error('Error opening order receipt:', printError);
+      }
 
       this.router.navigate(['/tabs/orders/detail', this.orderId]);
     } catch (error: any) {

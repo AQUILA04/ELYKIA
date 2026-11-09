@@ -1,0 +1,123 @@
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-title>
+        <span class="elyk-surtitle">Commande</span>
+        Aperçu du reçu
+      </ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="dismiss()" data-testid="e2e-order-receipt-close">Fermer</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </header>
+</ion-header>
+
+<ion-content class="elyk-content">
+  <div id="receipt-content" class="receipt-preview elyk-card" *ngIf="data">
+    <div class="header">
+      <div class="logo-mark">C</div>
+      <h2>REÇU DE COMMANDE</h2>
+      <p>AMENOUVEVE-YAVEH</p>
+    </div>
+
+    <div class="separator"></div>
+
+    <div class="receipt-number">
+      <span class="label">Référence</span>
+      <span class="value">{{ data.reference || 'N/A' }}</span>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <ion-icon name="calendar-outline"></ion-icon>
+        <span>Commande</span>
+      </div>
+      <div class="row">
+        <span class="label">Date</span>
+        <span class="value">{{ data.createdAt | date:'dd/MM/yyyy' }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Heure</span>
+        <span class="value">{{ data.createdAt | date:'HH:mm' }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Statut</span>
+        <span class="value">{{ statusLabel }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Commercial</span>
+        <span class="value">{{ data.commercial.name }}</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <ion-icon name="person-outline"></ion-icon>
+        <span>Cliente</span>
+      </div>
+      <div class="row" *ngIf="data.client.code">
+        <span class="label">Code</span>
+        <span class="value">{{ data.client.code }}</span>
+      </div>
+      <div class="row">
+        <span class="label">Nom</span>
+        <span class="value">{{ clientDisplayName }}</span>
+      </div>
+      <div class="row" *ngIf="data.client.phone">
+        <span class="label">Téléphone</span>
+        <span class="value">{{ data.client.phone }}</span>
+      </div>
+      <div class="row" *ngIf="data.client.address">
+        <span class="label">Adresse</span>
+        <span class="value">{{ data.client.address }}</span>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">
+        <ion-icon name="cube-outline"></ion-icon>
+        <span>Articles</span>
+      </div>
+      <p class="empty-articles" *ngIf="data.items.length === 0">Aucun article</p>
+      <div class="article-item" *ngFor="let item of data.items">
+        <div class="article-name">{{ item.articleName }}</div>
+        <div class="article-prices" *appIfUnitPrice>
+          <span>{{ item.quantity }} x {{ item.unitPrice | number:'1.0-0' }}</span>
+          <span class="total-price elyk-amount">{{ item.totalPrice | number:'1.0-0' }} FCFA</span>
+        </div>
+        <div class="article-prices" *appIfNoUnitPrice>
+          <span>Qté {{ item.quantity }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="total-highlight">
+      <div class="total-label">Montant total</div>
+      <div class="total-value elyk-amount">{{ data.totalAmount | number:'1.0-0' }} FCFA</div>
+    </div>
+
+    <div class="receipt-note">
+      Merci pour votre confiance !
+    </div>
+  </div>
+</ion-content>
+
+<ion-footer class="elyk-footer-bar">
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="6">
+          <ion-button expand="block" fill="outline" class="elyk-btn-outline" (click)="dismiss()">
+            Fermer
+          </ion-button>
+        </ion-col>
+        <ion-col size="6">
+          <ion-button expand="block" class="elyk-btn-navy" (click)="print()" data-testid="e2e-order-receipt-print">
+            <ion-icon slot="start" name="print-outline"></ion-icon>
+            Imprimer
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

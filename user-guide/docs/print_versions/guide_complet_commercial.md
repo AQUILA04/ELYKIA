@@ -1062,7 +1062,11 @@ Parfois, une cliente veut un congélateur ou une télévision que vous n'avez pa
 2. Touchez le bouton rond jaune (**+**) en bas à droite. Vous pouvez aussi ouvrir le formulaire tout de suite : **Nouvelle commande** dans **Plus**, ou la carte **Nouvelle Commande** dans l’onglet **Distributions**.
 3. Sélectionnez votre cliente, puis choisissez les articles dans le catalogue général avec les quantités.
 4. Touchez le bouton **Valider** en bas de l’écran pour enregistrer la commande.
-5. La commande est enregistrée avec le statut **En attente**. Dès que le magasinier prépare le produit et que la vente est conclue, un simple appui sur le bouton **Vendre** transformera la commande en contrat de vente sans rien avoir à retaper !
+5. L’aperçu du reçu s’ouvre. Il reprend la référence, la date, la cliente, les articles, les quantités et le montant total.
+6. Touchez **Imprimer** pour sortir le ticket sur l’imprimante de ceinture. Touchez **Fermer** pour revenir à la liste sans imprimer.
+7. La commande est enregistrée avec le statut **En attente**. Dès que le magasinier prépare le produit et que la vente est conclue, un simple appui sur le bouton **Vendre** transformera la commande en contrat de vente sans rien avoir à retaper !
+
+Pour imprimer à nouveau, ouvrez la commande dans la liste, puis touchez **Imprimer** en bas de l’écran. Après une modification d’une commande **En attente**, le même aperçu s’affiche quand vous touchez **Enregistrer**.
 
 ### C. Gérer vos échanges avec le magasinier (Demandes et Retours)
 Sur votre écran d'accueil, touchez la case **Stock** :

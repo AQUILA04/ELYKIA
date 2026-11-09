@@ -1,10 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { AlertController, LoadingController, ToastController } from '@ionic/angular';
+import { AlertController, LoadingController, ModalController, ToastController } from '@ionic/angular';
 import { firstValueFrom, Subject } from 'rxjs';
 
 import { OrderService } from '../../../../core/services/order.service';
 import { ClientService } from '../../../../core/services/client.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { buildPrintableOrder } from '../../../../core/services/printing.service';
+import { OrderReceiptModalComponent } from '../../../../shared/components/order-receipt-modal/order-receipt-modal.component';
 import { Order } from '../../../../models/order.model';
 import { OrderItem } from '../../../../models/order-item.model';
 import { Client } from '../../../../models/client.model';
@@ -37,6 +40,8 @@ export class OrderDetailPage implements OnInit, OnDestroy {
     private alertController: AlertController,
     private toastController: ToastController,
     private loadingController: LoadingController,
+    private modalController: ModalController,
+    private authService: AuthService,
     private store: Store,
     private log: LoggerService
   ) {}
@@ -129,6 +134,24 @@ export class OrderDetailPage implements OnInit, OnDestroy {
 
   goBack() {
     this.router.navigate(['/tabs/orders']);
+  }
+
+  async printOrder() {
+    if (!this.order) {
+      return;
+    }
+
+    const modal = await this.modalController.create({
+      component: OrderReceiptModalComponent,
+      componentProps: {
+        data: buildPrintableOrder(this.order, {
+          items: this.items,
+          client: this.client,
+          commercialName: this.authService.currentUser?.username
+        })
+      }
+    });
+    await modal.present();
   }
 
   editOrder() {

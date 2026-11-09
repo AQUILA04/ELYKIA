@@ -5,6 +5,7 @@ import { IonicModule } from '@ionic/angular';
 
 import { OrdersRoutingModule } from './orders-routing.module';
 import { SharedModule } from '../../shared/shared.module';
+import { OrderReceiptModalModule } from '../../shared/components/order-receipt-modal/order-receipt-modal.module';
 
 import { NewOrderPage } from './pages/new-order/new-order.page';
 import { EditOrderPage } from './pages/edit-order/edit-order.page';
@@ -19,7 +20,8 @@ import { OrderItemComponent } from './components/order-item/order-item.component
     ReactiveFormsModule,
     IonicModule,
     OrdersRoutingModule,
-    SharedModule
+    SharedModule,
+    OrderReceiptModalModule
   ],
   declarations: [
     NewOrderPage,

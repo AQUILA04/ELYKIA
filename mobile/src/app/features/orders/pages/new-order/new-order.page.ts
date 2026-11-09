@@ -13,8 +13,12 @@ import { OrderService } from '../../../../core/services/order.service';
 import { LoggerService } from '../../../../core/services/logger.service';
 import { HybridSyncUiService } from '../../../../core/services/hybrid-sync-ui.service';
 import { OnlineWriteError, WriteErrorKind } from '../../../../core/services/online-first-write.types';
+import { AuthService } from '../../../../core/services/auth.service';
+import { buildPrintableOrder } from '../../../../core/services/printing.service';
+import { OrderReceiptModalComponent } from '../../../../shared/components/order-receipt-modal/order-receipt-modal.component';
 import { Client } from '../../../../models/client.model';
 import { Article } from '../../../../models/article.model';
+import { Order } from '../../../../models/order.model';
 
 @Component({
   selector: 'app-new-order',
@@ -38,7 +42,8 @@ export class NewOrderPage implements OnInit, ViewWillEnter {
     private loadingController: LoadingController,
     private orderService: OrderService,
     private log: LoggerService,
-    private hybridSyncUiService: HybridSyncUiService
+    private hybridSyncUiService: HybridSyncUiService,
+    private authService: AuthService
   ) {
     // Configuration spécifique aux commandes
     this.config = {
@@ -137,14 +142,11 @@ export class NewOrderPage implements OnInit, ViewWillEnter {
       await loading.dismiss();
       loading = null;
 
-      const toast = await this.toastController.create({
-        message: `Commande ${createdOrder.reference} créée avec succès`,
-        duration: 3000,
-        color: 'success',
-        position: 'top'
-      });
-      await toast.present();
-
+      try {
+        await this.presentOrderReceipt(createdOrder, data.client || this.selectedClient);
+      } catch (printError) {
+        console.error('Error opening order receipt:', printError);
+      }
       this.router.navigate(['/tabs/orders']);
     } catch (error) {
       if (loading) {
@@ -171,6 +173,20 @@ export class NewOrderPage implements OnInit, ViewWillEnter {
       });
       await toast.present();
     }
+  }
+
+  private async presentOrderReceipt(order: Order, client: Client | null): Promise<void> {
+    const modal = await this.modalController.create({
+      component: OrderReceiptModalComponent,
+      componentProps: {
+        data: buildPrintableOrder(order, {
+          client,
+          commercialName: this.authService.currentUser?.username
+        })
+      }
+    });
+    await modal.present();
+    await modal.onDidDismiss();
   }
 
   ionViewDidLeave() {
