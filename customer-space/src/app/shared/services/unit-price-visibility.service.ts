@@ -1,4 +1,4 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { Injectable, OnDestroy, Optional } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, Subscription, interval, of } from 'rxjs';
 import { catchError, finalize, shareReplay, tap } from 'rxjs/operators';
@@ -19,14 +19,17 @@ export class UnitPriceVisibilityService implements OnDestroy {
   private restricted = true;
   private loadedAt = 0;
   private inFlight: Observable<boolean> | null = null;
-  private readonly refreshSub: Subscription;
+  private readonly refreshSub?: Subscription;
 
-  constructor(private http: HttpClient) {
+  constructor(@Optional() private http: HttpClient | null) {
+    if (!this.http) {
+      return;
+    }
     this.refreshSub = interval(UnitPriceVisibilityService.TTL_MS).subscribe(() => this.refresh(true).subscribe());
   }
 
   ngOnDestroy(): void {
-    this.refreshSub.unsubscribe();
+    this.refreshSub?.unsubscribe();
   }
 
   ensureLoaded(): Observable<boolean> {
@@ -35,6 +38,9 @@ export class UnitPriceVisibilityService implements OnDestroy {
 
   refresh(force: boolean): Observable<boolean> {
     if (!force && this.loadedAt && Date.now() - this.loadedAt < UnitPriceVisibilityService.TTL_MS) {
+      return of(this.showSubject.value);
+    }
+    if (!this.http) {
       return of(this.showSubject.value);
     }
     if (this.inFlight) {

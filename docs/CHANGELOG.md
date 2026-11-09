@@ -11,6 +11,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Docs & Infra — 2026-11-09
 
+### Changed
+
+- **Sonar —** les directives de visibilité du prix unitaire, recopiées dans chaque client, sont exclues du calcul de duplication. Les trois applications ne partagent pas de librairie.
+
 ### Fixed
 
 - **CI —** la promotion d'un APK (mobile et espace client) cherche le dernier build test réussi sur 60 lancements, au lieu de 30. Le build 2.36.1 était au-delà de l'ancienne fenêtre.
@@ -1378,6 +1382,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.17.3] — 2026-11-09
+
+### Fixed
+
+- Les tests de l’espace client démarrent sans `HttpClient` : le réglage des prix unitaires reste masqué tant que l’appel n’est pas disponible.
 
 ## Customer-space — [0.17.2] — 2026-11-09
 
