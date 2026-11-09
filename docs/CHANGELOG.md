@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-09
+
+### Fixed
+
+- **CI —** la promotion d'un APK (mobile et espace client) cherche le dernier build test réussi sur 60 lancements, au lieu de 30. Le build 2.36.1 était au-delà de l'ancienne fenêtre.
+
 ## Docs & Infra — 2026-11-06
 
 ### Changed
