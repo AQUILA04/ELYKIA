@@ -21,6 +21,17 @@ interface ResetKpis {
   latestLabel: string;
 }
 
+interface CommercialOption {
+  username: string;
+  firstname?: string;
+  lastname?: string;
+}
+
+interface CommercialsResponse {
+  data?: { content?: CommercialOption[] };
+  content?: CommercialOption[];
+}
+
 @Component({
   selector: 'app-tontine-collection-reset',
   templateUrl: './tontine-collection-reset.component.html',
@@ -39,7 +50,7 @@ export class TontineCollectionResetComponent implements OnInit, OnDestroy {
   loadingCommercials = false;
   previewing = false;
   voiding = false;
-  commercials: Array<{ username: string; firstname?: string; lastname?: string }> = [];
+  commercials: CommercialOption[] = [];
   commercialUsername = '';
   sessionYear = new Date().getFullYear();
   preview: TontineCommercialVoidPreview | null = null;
@@ -80,7 +91,7 @@ export class TontineCollectionResetComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadTree();
-    Promise.all([
+    void Promise.all([
       this.permissions.hasPermission('ROLE_RESET_TONTINE_COLLECTIONS'),
       this.permissions.hasPermission('ROLE_ADMIN')
     ]).then(([reset, admin]) => {
@@ -104,7 +115,7 @@ export class TontineCollectionResetComponent implements OnInit, OnDestroy {
     this.loadTree();
   }
 
-  commercialLabel(commercial: { username: string; firstname?: string; lastname?: string }): string {
+  commercialLabel(commercial: CommercialOption): string {
     const name = [commercial.firstname, commercial.lastname].filter(Boolean).join(' ');
     return name ? `${commercial.username} — ${name}` : commercial.username;
   }
@@ -153,7 +164,7 @@ export class TontineCollectionResetComponent implements OnInit, OnDestroy {
         : 'Les livraisons de marchandises ne sont pas annulées.',
       'Les versements déjà remis ne sont pas repris. Une archive est conservée pour le rapprochement.'
     ].join(' ');
-    this.alertService.showConfirmation(
+    void this.alertService.showConfirmation(
       'Annuler les collectes de ce commercial',
       text,
       'Annuler ces collectes',
@@ -407,10 +418,11 @@ export class TontineCollectionResetComponent implements OnInit, OnDestroy {
   private loadCommercials(): void {
     this.loadingCommercials = true;
     this.commercialService.getCommercials(0, 1000).subscribe({
-      next: (res: { data?: { content?: typeof this.commercials }; content?: typeof this.commercials }) => {
+      next: (res: CommercialsResponse | CommercialOption[]) => {
         this.loadingCommercials = false;
-        const payload = res?.data ?? res;
-        if (payload && 'content' in payload && Array.isArray(payload.content)) {
+        const page = Array.isArray(res) ? undefined : res;
+        const payload = page?.data ?? page ?? res;
+        if (payload && !Array.isArray(payload) && Array.isArray(payload.content)) {
           this.commercials = payload.content;
         } else if (Array.isArray(payload)) {
           this.commercials = payload;
