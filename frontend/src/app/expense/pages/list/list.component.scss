@@ -196,9 +196,10 @@ tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
 
 /* ── PAGINATION ──────────────────────────────────────────────── */
 .pagination {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px; border-top: 1px solid var(--border); background: var(--bg-white);
+  display: flex; justify-content: flex-end;
+  border-top: 1px solid var(--border); background: var(--bg-white);
 }
+.pagination mat-paginator { background: transparent; }
 .page-info { font-size: 12px; color: var(--text-muted); }
 .page-btns { display: flex; gap: 6px; }
 .page-btn {

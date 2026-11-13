@@ -1,5 +1,6 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
+import { PageEvent } from '@angular/material/paginator';
 import { ExpenseService } from '../../services/expense.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ExpenseType } from '../../models/expense.model';
@@ -76,25 +77,10 @@ export class ExpenseTypeListComponent implements OnInit, OnDestroy {
     this.loadTypes();
   }
 
-  changePage(delta: number): void {
-    this.pageIndex = Math.max(0, Math.min(this.totalPages - 1, this.pageIndex + delta));
+  onPage(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
     this.loadTypes();
-  }
-
-  goPage(index: number): void {
-    this.pageIndex = index;
-    this.loadTypes();
-  }
-
-  get pageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-  }
-
-  getPaginationInfo(): string {
-    if (this.totalElements === 0) return '0 résultat';
-    const start = this.pageIndex * this.pageSize + 1;
-    const end = Math.min((this.pageIndex + 1) * this.pageSize, this.totalElements);
-    return `${start}–${end} sur ${this.totalElements}`;
   }
 
   addType(): void {

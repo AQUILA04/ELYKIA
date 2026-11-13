@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
+import { PageEvent } from '@angular/material/paginator';
 import { NgxPermissionsService } from 'ngx-permissions';
 import { ExpenseService } from '../../services/expense.service';
 import { Expense, ExpenseType } from '../../models/expense.model';
@@ -21,7 +22,6 @@ export class ExpenseListComponent implements OnInit {
   pageIndex = 0;
   pageSize = 10;
   totalElements = 0;
-  totalPages = 0;
 
   selectedMonth: number | null = null;
   selectedTypeId: number | null = null;
@@ -74,7 +74,6 @@ export class ExpenseListComponent implements OnInit {
         this.expenses = data.content || [];
         this.selectedIds.clear();
         this.totalElements = data.page?.totalElements || 0;
-        this.totalPages = data.page?.totalPages || 1;
         this.lastUpdate = new Date();
         this.isLoading = false;
       },
@@ -194,24 +193,9 @@ export class ExpenseListComponent implements OnInit {
     return err?.error?.message || 'Impossible d\'annuler cette dépense.';
   }
 
-  changePage(delta: number): void {
-    this.pageIndex = Math.max(0, Math.min(this.totalPages - 1, this.pageIndex + delta));
+  onPage(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
     this.loadExpenses();
-  }
-
-  goPage(index: number): void {
-    this.pageIndex = index;
-    this.loadExpenses();
-  }
-
-  get pageNumbers(): number[] {
-    return Array.from({ length: this.totalPages }, (_, i) => i + 1);
-  }
-
-  getPaginationInfo(): string {
-    if (this.totalElements === 0) return '0 résultat';
-    const start = this.pageIndex * this.pageSize + 1;
-    const end = Math.min((this.pageIndex + 1) * this.pageSize, this.totalElements);
-    return `${start}–${end} sur ${this.totalElements}`;
   }
 }
