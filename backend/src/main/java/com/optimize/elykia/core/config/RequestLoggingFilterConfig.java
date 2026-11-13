@@ -9,8 +9,7 @@ public class RequestLoggingFilterConfig {
 
     @Bean
     public CommonsRequestLoggingFilter logFilter() {
-        CommonsRequestLoggingFilter filter
-                = new CommonsRequestLoggingFilter();
+        CommonsRequestLoggingFilter filter = new SanitizingRequestLoggingFilter();
         filter.setIncludeQueryString(true);
         filter.setIncludePayload(true);
         filter.setMaxPayloadLength(100500);
