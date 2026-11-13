@@ -19,6 +19,15 @@
             <p>{{ totalOutOfStockElement }} article(s) indisponible(s)</p>
           </div>
         </div>
+        <button
+          type="button"
+          class="panel-download"
+          (click)="downloadOutOfStock()"
+          [disabled]="loadingOutOfStock || downloadingOutOfStock || totalOutOfStockElement === 0"
+          aria-label="Télécharger la liste des articles en rupture de stock"
+          title="Télécharger la liste">
+          <mat-icon>download</mat-icon>
+        </button>
       </div>
 
       <div class="panel-loading" *ngIf="loadingOutOfStock">Chargement…</div>
@@ -38,7 +47,7 @@
           <tbody>
             <tr *ngFor="let article of outOfStockArticles; let i = index">
               <td class="col-index">{{ (currentPageOutOfStock * pageSizeOutOfStock) + (i + 1) }}</td>
-              <td class="col-name">{{ article.name }}</td>
+              <td class="col-name">{{ formatArticleName(article) }}</td>
               <td>{{ article.type }}</td>
             </tr>
           </tbody>
@@ -64,6 +73,15 @@
             <p>{{ totalImminentElement }} article(s) sous le seuil d'alerte</p>
           </div>
         </div>
+        <button
+          type="button"
+          class="panel-download"
+          (click)="downloadImminent()"
+          [disabled]="loadingImminent || downloadingImminent || totalImminentElement === 0"
+          aria-label="Télécharger la liste des articles en rupture imminente"
+          title="Télécharger la liste">
+          <mat-icon>download</mat-icon>
+        </button>
       </div>
 
       <div class="panel-loading" *ngIf="loadingImminent">Chargement…</div>
@@ -84,7 +102,7 @@
           <tbody>
             <tr *ngFor="let article of imminentOutOfStockArticles; let i = index">
               <td class="col-index">{{ (currentPageImminent * pageSizeImminent) + (i + 1) }}</td>
-              <td class="col-name">{{ article.name }}</td>
+              <td class="col-name">{{ formatArticleName(article) }}</td>
               <td>{{ article.type }}</td>
               <td>
                 <span class="qty-badge" [ngClass]="getBadgeClass(article.stockQuantity)">
