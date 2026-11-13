@@ -18,6 +18,7 @@ import com.optimize.elykia.core.dto.portfolio.FormerPortfolioSyncDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineCollectionDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDetailDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDto;
+import com.optimize.elykia.core.dto.portfolio.FormerTontineStakePeriodDto;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditCollectorHistory;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
@@ -241,7 +242,21 @@ public class FormerPortfolioService {
                 client == null ? null : client.getPhone(),
                 client == null ? null : client.getQuarter(),
                 total,
-                collections);
+                collections,
+                member.getAmount(),
+                stakePeriods(member));
+    }
+
+    private List<FormerTontineStakePeriodDto> stakePeriods(TontineMember member) {
+        if (member.getAmountHistory() == null) {
+            return List.of();
+        }
+        return member.getAmountHistory().stream()
+                .filter(entry -> entry.getState() == null || entry.getState() == State.ENABLED)
+                .filter(entry -> entry.getAmount() != null && entry.getStartDate() != null)
+                .map(entry -> new FormerTontineStakePeriodDto(
+                        entry.getAmount(), entry.getStartDate(), entry.getEndDate()))
+                .toList();
     }
 
     private List<FormerCreditListItemDto> enrichCredits(List<FormerCreditSeedDto> seeds, String commercial) {

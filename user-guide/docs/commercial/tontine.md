@@ -227,7 +227,7 @@ Toutes les archives générées sont rangées dans une arborescence par année :
 Quand un membre change de commercial, il quitte votre liste de la session en cours. Vous pouvez toujours relire ce que vous avez collecté pour lui.
 
 1. Ouvrez **Tontines**, puis **Ancien portefeuille**. Le bouton **Voir l'historique**, sous les filtres de la liste, ouvre le même écran.
-2. Restez sur l'onglet **Tontine**.
+2. Restez sur l'onglet **Tontine**. Le compteur **Dossiers affichés** indique le nombre de dossiers de cet onglet.
 3. Chaque ligne affiche le nom, le code, le téléphone, le quartier, l'année et le total des collectes enregistrées à votre nom.
-4. Cliquez sur **Voir** : le détail reprend uniquement vos collectes (date, référence, montant) et leur total.
+4. Cliquez sur **Voir**. Au-dessus de la liste, chaque mois de collecte affiche des pastilles numérotées. Une pastille correspond à un jour complet de mise, selon la mise en vigueur à la date de la collecte. Elles se rangent par lignes de 7 : 1 à 7, puis 8 à 14, et ainsi de suite. La liste en dessous reprend vos collectes (date, référence, montant) et leur total.
 5. Cet écran ne contient pas de bouton pour enregistrer une collecte. Les nouvelles collectes se saisissent depuis la liste des membres que vous suivez actuellement.

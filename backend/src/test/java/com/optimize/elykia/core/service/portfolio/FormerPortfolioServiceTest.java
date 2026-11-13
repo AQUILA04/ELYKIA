@@ -11,8 +11,10 @@ import com.optimize.elykia.client.repository.ClientCollectorHistoryRepository;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineCollectionDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDetailDto;
+import com.optimize.elykia.core.dto.portfolio.FormerTontineStakePeriodDto;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
+import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistory;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.core.enumaration.OperationType;
@@ -33,6 +35,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -102,9 +105,40 @@ class FormerPortfolioServiceTest {
 
         assertThat(detail.collections()).containsExactly(own);
         assertThat(detail.ownCollectionsTotal()).isEqualTo(1000.0);
+        assertThat(detail.dailyAmount()).isNull();
+        assertThat(detail.stakePeriods()).isEmpty();
         assertThat(detail.firstname()).isEqualTo("Awa");
         assertThat(detail.collections()).extracting(FormerTontineCollectionDto::reference)
                 .doesNotContain("COL-B");
+    }
+
+    @Test
+    void formerDetailKeepsEnabledStakePeriods() {
+        User former = promoter("com.a");
+        when(userService.getCurrentUser()).thenReturn(former);
+        TontineMember member = memberHeldBy("com.b");
+        member.setAmount(300.0);
+        TontineMemberAmountHistory current = new TontineMemberAmountHistory();
+        current.setAmount(500.0);
+        current.setStartDate(LocalDate.of(2026, 8, 1));
+        current.setEndDate(LocalDate.of(2026, 8, 31));
+        current.setState(State.ENABLED);
+        TontineMemberAmountHistory removed = new TontineMemberAmountHistory();
+        removed.setAmount(900.0);
+        removed.setStartDate(LocalDate.of(2026, 1, 1));
+        removed.setState(State.DELETED);
+        member.getAmountHistory().add(current);
+        member.getAmountHistory().add(removed);
+        when(tontineMemberRepository.findById(7L)).thenReturn(Optional.of(member));
+        when(tontineCollectionRepository.existsByTontineMember_IdAndStateAndCommercialUsernameIgnoreCase(
+                7L, State.ENABLED, "com.a")).thenReturn(true);
+        when(tontineCollectionRepository.findOwnCollections(7L, "com.a")).thenReturn(List.of());
+
+        FormerTontineMemberDetailDto detail = service.getFormerTontineMember(7L);
+
+        assertThat(detail.dailyAmount()).isEqualTo(300.0);
+        assertThat(detail.stakePeriods()).containsExactly(
+                new FormerTontineStakePeriodDto(500.0, LocalDate.of(2026, 8, 1), LocalDate.of(2026, 8, 31)));
     }
 
     @Test
