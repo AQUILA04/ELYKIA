@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, Output, 
 import { FormBuilder, FormGroup, FormArray, Validators, ControlValueAccessor, NG_VALUE_ACCESSOR, NG_VALIDATORS, Validator, AbstractControl, ValidationErrors } from '@angular/forms';
 import { forkJoin, of, Subject, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
-import { ItemService } from 'src/app/article/service/item.service';
+import { ArticleSalePack, ItemService } from 'src/app/article/service/item.service';
 import { halfPackageUnits, hasHalfPackage } from 'src/app/article/packaging';
 import { UnitPriceVisibilityService } from 'src/app/shared/service/unit-price-visibility.service';
 
@@ -16,6 +16,10 @@ export interface ArticleSelection {
   salePackMode?: 'UNIT' | 'WHOLESALE' | 'HALF_WHOLESALE' | 'CUSTOM';
   packCount?: number;
   unitsPerPack?: number;
+  unitSalePrice?: number | null;
+  wholesaleSalePrice?: number | null;
+  halfWholesaleSalePrice?: number | null;
+  salePacks?: ArticleSalePack[];
 }
 
 export type PriceType = 'credit' | 'tontine' | 'inventory';
@@ -603,7 +607,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   }
 
   private emitChanges(): void {
-    const value = this.articlesArray.controls.map((control, index) => {
+    const value: ArticleSelection[] = this.articlesArray.controls.map((control, index): ArticleSelection => {
       const raw = control.value;
       if (!this.capturePurchasePrice) {
         return this.saleSelection(raw, index);

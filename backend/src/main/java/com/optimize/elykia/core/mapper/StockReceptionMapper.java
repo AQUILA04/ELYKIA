@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.mapper;
 
 import com.optimize.common.entities.mapper.BaseMapper;
+import com.optimize.elykia.core.dto.ArticleSalePackDto;
 import com.optimize.elykia.core.dto.StockReceptionDto;
 import com.optimize.elykia.core.dto.StockReceptionItemDto;
 import com.optimize.elykia.core.dto.StockReceptionListDto;

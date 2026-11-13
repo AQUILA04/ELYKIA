@@ -78,6 +78,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.45.1] — 2026-11-13
+
+### Fixed
+
+- **Vente au pack —** la sélection d'articles compile avec les prix de vente du lot.
+
 ## Frontend — [2.45.0] — 2026-11-13
 
 ### Added
@@ -311,6 +317,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.48.1] — 2026-11-13
+
+### Fixed
+
+- **Vente au pack —** le mapping des réceptions importe le type des offres de vente, ce qui rétablit la compilation.
 
 ## Backend — [1.48.0] — 2026-11-13
 
