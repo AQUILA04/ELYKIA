@@ -21,7 +21,9 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -81,7 +83,18 @@ public class ExpenseService extends GenericService<Expense, Long> {
     }
 
     public Page<ExpenseDto> getAllDto(Pageable pageable) {
-        return getAll(pageable).map(this::toDtoWithAccountedStatus);
+        Page<Expense> page = getAll(pageable);
+        Set<Long> ids = page.getContent().stream()
+                .map(Expense::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Set<Long> receivedIds = ids.isEmpty()
+                ? Collections.emptySet()
+                : remittanceExpenseRepository.findReceivedExpenseIdsIn(ids);
+        Set<Long> linkedIds = ids.isEmpty()
+                ? Collections.emptySet()
+                : remittanceExpenseRepository.findLinkedExpenseIdsIn(ids);
+        return page.map(expense -> toDtoWithRemittanceFlags(expense, receivedIds, linkedIds));
     }
 
     public List<ExpenseDto> getExpensesByPeriod(LocalDate startDate, LocalDate endDate) {
@@ -126,13 +139,46 @@ public class ExpenseService extends GenericService<Expense, Long> {
     
     @Transactional
     public void deleteExpense(Long id) {
-        assertNotAccountedInReceivedRemittance(id);
-        super.deleteSoft(id);
+        cancelExpenses(List.of(id));
     }
 
-    private ExpenseDto toDtoWithAccountedStatus(Expense expense) {
+    /**
+     * Supprime les dépenses demandées. Tout le lot est refusé si l'une d'elles
+     * est déjà rattachée à une remise, en attente ou reçue.
+     */
+    @Transactional
+    public int cancelExpenses(List<Long> ids) {
+        List<Long> distinctIds = normalizeCancelIds(ids);
+        List<Expense> expenses = getRepository().findAllById(distinctIds);
+        if (expenses.size() != distinctIds.size()) {
+            throw new RuntimeException("Dépense introuvable.");
+        }
+        Set<Long> linked = remittanceExpenseRepository.findLinkedExpenseIdsIn(new HashSet<>(distinctIds));
+        if (!linked.isEmpty()) {
+            throw new RuntimeException("Cette dépense est déjà associée à une remise et ne peut pas être annulée.");
+        }
+        for (Long id : distinctIds) {
+            deleteSoft(id);
+        }
+        return distinctIds.size();
+    }
+
+    private List<Long> normalizeCancelIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            throw new RuntimeException("Aucune dépense à annuler.");
+        }
+        List<Long> distinctIds = ids.stream().filter(Objects::nonNull).distinct().toList();
+        if (distinctIds.isEmpty()) {
+            throw new RuntimeException("Aucune dépense à annuler.");
+        }
+        return distinctIds;
+    }
+
+    private ExpenseDto toDtoWithRemittanceFlags(Expense expense, Set<Long> receivedIds, Set<Long> linkedIds) {
         ExpenseDto dto = expenseMapper.toDto(expense);
-        dto.setAccounted(isAccountedInReceivedRemittance(expense.getId()));
+        Long id = expense.getId();
+        dto.setAccounted(id != null && receivedIds.contains(id));
+        dto.setLinkedToRemittance(id != null && linkedIds.contains(id));
         return dto;
     }
 

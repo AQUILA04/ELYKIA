@@ -15,5 +15,7 @@ public class ExpenseDto {
     private String description;
     private String reference;
     private Boolean accounted;
+    /** Vrai si la dépense est déjà rattachée à une remise, en attente ou reçue. */
+    private Boolean linkedToRemittance;
     private String remittanceReference;
 }

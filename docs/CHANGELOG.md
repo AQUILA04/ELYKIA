@@ -78,6 +78,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.44.5] — 2026-11-13
+
+### Added
+
+- **Dépenses —** le tableau de bord ouvre **Liste des dépenses**. Avec le droit d'annulation, la corbeille et les cases permettent de supprimer une ligne ou la sélection, sauf si la dépense est déjà dans une remise.
+
 ## Frontend — [2.44.4] — 2026-11-13
 
 ### Changed
@@ -264,6 +270,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.47.5] — 2026-11-13
+
+### Added
+
+- **Dépenses —** `ROLE_CANCEL_EXPENSE` est accordé aux profils ADMIN et SUPER_ADMIN. L'annulation d'une dépense ou d'un lot est refusée si elle est déjà rattachée à une remise, en attente ou reçue.
 
 ## Backend — [1.47.4] — 2026-11-13
 

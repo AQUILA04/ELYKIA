@@ -27,4 +27,10 @@ public interface CashPeriodRemittanceExpenseRepository extends JpaRepository<Cas
         AND cre.expense.id IN :expenseIds
     """)
     Set<Long> findReceivedExpenseIdsIn(Set<Long> expenseIds);
+
+    @Query("""
+        SELECT cre.expense.id FROM CashPeriodRemittanceExpense cre
+        WHERE cre.expense.id IN :expenseIds
+    """)
+    Set<Long> findLinkedExpenseIdsIn(Set<Long> expenseIds);
 }

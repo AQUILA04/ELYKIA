@@ -105,6 +105,9 @@
 .btn-action svg { width: 14px; height: 14px; }
 .btn-primary { background: var(--navy); color: white; border-color: var(--navy); }
 .btn-primary:hover { background: var(--navy-dark); }
+.btn-danger { background: var(--red); color: white; border-color: var(--red); }
+.btn-danger:hover:not(:disabled) { background: #991b1b; }
+.btn-danger:disabled { opacity: .45; cursor: not-allowed; }
 
 /* ── TOOLBAR ────────────────────────────────────────────────── */
 .toolbar {
@@ -133,7 +136,7 @@
 /* ── TABLE CARD ─────────────────────────────────────────────── */
 .table-card {
   background: var(--bg-white); border: 1px solid var(--border);
-  border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow-sm);
+  border-radius: var(--radius); overflow-x: auto; box-shadow: var(--shadow-sm);
 }
 table { width: 100%; border-collapse: collapse; }
 thead th {
@@ -160,6 +163,10 @@ tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
 .col-desc { font-size: 12px; color: var(--text-muted); }
 .col-ref { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); }
 
+.col-select { width: 44px; text-align: center; }
+.col-select input { width: 16px; height: 16px; cursor: pointer; }
+.col-select input:disabled { cursor: not-allowed; }
+.col-actions { min-width: 180px; white-space: nowrap; }
 .action-cell { display: flex; gap: 6px; align-items: center; }
 
 .btn-detail {

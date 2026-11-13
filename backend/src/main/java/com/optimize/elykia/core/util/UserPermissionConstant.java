@@ -90,6 +90,9 @@ public class UserPermissionConstant {
     /** Annulation d'un recouvrement crédit (ADMIN uniquement). */
     public static final String CANCEL_RECOVERY = "ROLE_CANCEL_RECOVERY";
 
+    /** Annulation (suppression) d'une dépense non rattachée à une remise. ADMIN et SUPER_ADMIN par défaut. */
+    public static final String CANCEL_EXPENSE = "ROLE_CANCEL_EXPENSE";
+
     public static final String CREATE_INVENTORY = "ROLE_CREATE_INVENTORY";
     public static final String RECONCILE_INVENTORY = "ROLE_RECONCILE_INVENTORY";
     public static final String FINALIZE_INVENTORY = "ROLE_FINALIZE_INVENTORY";
