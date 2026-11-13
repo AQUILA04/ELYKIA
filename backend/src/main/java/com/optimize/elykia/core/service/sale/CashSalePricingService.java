@@ -74,15 +74,16 @@ public class CashSalePricingService {
         if (tontine && available <= 0) {
             available = Integer.MAX_VALUE / 4;
         }
+        final int offerStock = available;
         List<SaleOfferDto> offers = new ArrayList<>();
-        addOffer(offers, article, stock, SalePackMode.UNIT, 1, "Unité", available);
+        addOffer(offers, article, stock, SalePackMode.UNIT, 1, "Unité", offerStock);
         Integer units = article.getUnitsPerPackage();
         if (ArticlePackagingRules.hasPackaging(article) && units != null) {
-            addOffer(offers, article, stock, SalePackMode.WHOLESALE, units, "Gros", available);
+            addOffer(offers, article, stock, SalePackMode.WHOLESALE, units, "Gros", offerStock);
         }
         Integer half = ArticlePackagingRules.halfUnits(article);
         if (half != null) {
-            addOffer(offers, article, stock, SalePackMode.HALF_WHOLESALE, half, "Demi-gros", available);
+            addOffer(offers, article, stock, SalePackMode.HALF_WHOLESALE, half, "Demi-gros", offerStock);
         }
         if (article.getSalePacks() != null) {
             article.getSalePacks().stream()
@@ -94,7 +95,7 @@ public class CashSalePricingService {
                             SalePackMode.CUSTOM,
                             pack.getQuantity(),
                             "Pack " + pack.getQuantity(),
-                            available));
+                            offerStock));
         }
         return offers;
     }

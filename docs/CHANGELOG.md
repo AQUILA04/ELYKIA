@@ -318,6 +318,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.48.2] — 2026-11-13
+
+### Fixed
+
+- **Vente au pack —** le calcul des offres de vente compile : le stock disponible n'est plus modifié dans la liste des packs.
+
 ## Backend — [1.48.1] — 2026-11-13
 
 ### Fixed
