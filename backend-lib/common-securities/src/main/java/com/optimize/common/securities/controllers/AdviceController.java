@@ -12,7 +12,6 @@ import com.optimize.common.securities.exception.InvalidLicenceException;
 import com.optimize.common.securities.exception.LicenceExpiredException;
 import jakarta.annotation.Priority;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.connector.ClientAbortException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.postgresql.util.PSQLException;
 import org.springframework.core.Ordered;
@@ -156,6 +155,10 @@ public class AdviceController extends CommonAdviceController {
     @ExceptionHandler(value
             =  Exception.class )
     public ResponseEntity<Response> handleException(Exception ex) {
+        if (ClientDisconnects.isClientDisconnect(ex)) {
+            log.warn("Connexion interrompue par le client : {}", ex.toString());
+            return null;
+        }
         String bodyOfResponse = this.messageSource.getMessage(ex.getMessage());
 
         if (ex instanceof PSQLException || ex instanceof ConstraintViolationException || ex instanceof DataIntegrityViolationException) {
@@ -192,11 +195,6 @@ public class AdviceController extends CommonAdviceController {
                     HttpStatus.UNAUTHORIZED);
         }
 
-        if (ex instanceof ClientAbortException caEx) {
-            bodyOfResponse = caEx.getMessage();
-            log.error("CLIENT ABORT EXCEPTION  ===> {}",caEx.toString());
-        }
-
         if (ex instanceof DataIntegrityViolationException dgiEx ) {
             bodyOfResponse = "Violation de contrainte d'intégrité : " + dgiEx.getLocalizedMessage();
         }
@@ -205,11 +203,6 @@ public class AdviceController extends CommonAdviceController {
             bodyOfResponse = "Violation de contrainte d'intégrité : " + cvEx.getLocalizedMessage();
         }
         logger(ex);
-        if (ex instanceof ClientAbortException) {
-            return new ResponseEntity<>(ResponseUtil
-                    .errorResponse(HttpStatus.INTERNAL_SERVER_ERROR, bodyOfResponse),
-                    HttpStatus.INTERNAL_SERVER_ERROR);
-        }
         return serverError(bodyOfResponse);
     }
 

@@ -277,6 +277,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.47.6] — 2026-11-13
+
+### Fixed
+
+- **Terrain —** la recherche des membres tontine (vide, absente ou avec un nom) ne renvoie plus d'erreur serveur. Un filtre vide n'est plus envoyé à PostgreSQL sans type, ce qui provoquait `text ~~ bytea`. La recherche des commandes est protégée de la même façon.
+- **Journal —** une déconnexion du client (téléchargement interrompu, connexion coupée) n'est plus enregistrée comme une erreur 500. `common-security-service` 1.2.2.
+
+### Security
+
+- Le journal des requêtes n'écrit plus le corps des appels d'authentification, et masque les mots de passe et les jetons dans les autres requêtes.
+
 ## Backend — [1.47.5] — 2026-11-13
 
 ### Added

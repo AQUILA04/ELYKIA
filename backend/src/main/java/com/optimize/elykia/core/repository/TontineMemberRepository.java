@@ -379,6 +379,27 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 @Param("collector") String collector,
                 @Param("state") State state);
 
+        /**
+         * {@code searchPattern} et {@code digitsPattern} sont des motifs LIKE déjà construits
+         * ({@code %terme%}), ou une chaîne vide pour ne pas filtrer. Un null est traité comme vide :
+         * un paramètre String null est lié en bytea et Postgres refuse {@code LIKE}.
+         */
+        default Page<RmFieldTontineRowDto> pageFieldRows(
+                Integer year,
+                State state,
+                String searchPattern,
+                String digitsPattern,
+                String progress,
+                Pageable pageable) {
+            return pageFieldRowsQuery(
+                    year,
+                    state,
+                    searchPattern == null ? "" : searchPattern,
+                    digitsPattern == null ? "" : digitsPattern,
+                    progress,
+                    pageable);
+        }
+
         @Query(value = """
                 SELECT new com.optimize.elykia.core.dto.sale.RmFieldTontineRowDto(
                     tm.id,
@@ -398,15 +419,15 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 WHERE s.year = :year
                   AND tm.state = :state
                   AND (
-                    :search IS NULL
+                    :searchPattern = ''
                     OR cast(function('translate', lower(concat(coalesce(c.firstname, ''), ' ', coalesce(c.lastname, ''))),
-                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE cast(:searchPattern as string)
                     OR cast(function('translate', lower(coalesce(c.quarter, '')),
-                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE cast(:searchPattern as string)
                     OR cast(function('translate', lower(coalesce(c.tontineCollector, '')),
-                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
-                    OR lower(coalesce(c.phone, '')) LIKE concat('%', :search, '%')
-                    OR (:digits IS NOT NULL AND lower(cast(function('replace', coalesce(c.phone, ''), ' ', '') as string)) LIKE concat('%', :digits, '%'))
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE cast(:searchPattern as string)
+                    OR lower(coalesce(c.phone, '')) LIKE cast(:searchPattern as string)
+                    OR (:digitsPattern <> '' AND lower(cast(function('replace', coalesce(c.phone, ''), ' ', '') as string)) LIKE cast(:digitsPattern as string))
                   )
                 """ + RmFieldListProgressSql.TONTINE_JPQL + """
                 ORDER BY c.lastname ASC, c.firstname ASC, tm.id ASC
@@ -419,22 +440,22 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 WHERE s.year = :year
                   AND tm.state = :state
                   AND (
-                    :search IS NULL
+                    :searchPattern = ''
                     OR cast(function('translate', lower(concat(coalesce(c.firstname, ''), ' ', coalesce(c.lastname, ''))),
-                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE cast(:searchPattern as string)
                     OR cast(function('translate', lower(coalesce(c.quarter, '')),
-                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE cast(:searchPattern as string)
                     OR cast(function('translate', lower(coalesce(c.tontineCollector, '')),
-                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE concat('%', :search, '%')
-                    OR lower(coalesce(c.phone, '')) LIKE concat('%', :search, '%')
-                    OR (:digits IS NOT NULL AND lower(cast(function('replace', coalesce(c.phone, ''), ' ', '') as string)) LIKE concat('%', :digits, '%'))
+                        'àâäéèêëïîôùûüç', 'aaaeeeeiioouuuc') as string) LIKE cast(:searchPattern as string)
+                    OR lower(coalesce(c.phone, '')) LIKE cast(:searchPattern as string)
+                    OR (:digitsPattern <> '' AND lower(cast(function('replace', coalesce(c.phone, ''), ' ', '') as string)) LIKE cast(:digitsPattern as string))
                   )
                 """ + RmFieldListProgressSql.TONTINE_JPQL)
-        Page<RmFieldTontineRowDto> pageFieldRows(
+        Page<RmFieldTontineRowDto> pageFieldRowsQuery(
                 @Param("year") Integer year,
                 @Param("state") State state,
-                @Param("search") String search,
-                @Param("digits") String digits,
+                @Param("searchPattern") String searchPattern,
+                @Param("digitsPattern") String digitsPattern,
                 @Param("progress") String progress,
                 Pageable pageable);
 

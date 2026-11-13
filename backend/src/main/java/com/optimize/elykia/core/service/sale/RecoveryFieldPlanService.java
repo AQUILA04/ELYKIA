@@ -399,12 +399,15 @@ public class RecoveryFieldPlanService {
             String search, int page, int size, RmFieldListProgress progress) {
         String folded = foldSearch(search);
         String digits = folded.replaceAll("\\D", "");
+        // Motif complet, jamais null : un paramètre null est lié en bytea et Postgres refuse LIKE.
+        String searchPattern = folded.isEmpty() ? "" : "%" + folded + "%";
+        String digitsPattern = digits.isEmpty() ? "" : "%" + digits + "%";
         RmFieldListProgress effective = progress != null ? progress : RmFieldListProgress.ALL;
         Page<RmFieldTontineRowDto> rows = tontineMemberRepository.pageFieldRows(
                 LocalDate.now().getYear(),
                 State.ENABLED,
-                folded.isEmpty() ? null : folded,
-                digits.isEmpty() ? null : digits,
+                searchPattern,
+                digitsPattern,
                 effective.name(),
                 PageRequest.of(Math.max(page, 0), Math.min(Math.max(size, 1), 40)));
         List<Long> memberIds = rows.getContent().stream()

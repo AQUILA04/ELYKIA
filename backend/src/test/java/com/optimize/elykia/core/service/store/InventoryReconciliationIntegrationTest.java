@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -37,6 +38,8 @@ import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @ActiveProfiles("test")
+// Le Postgres de test est partagé. Sans retour arrière, l'inventaire DRAFT bloque les autres tests.
+@Transactional
 class InventoryReconciliationIntegrationTest extends IntegrationTestSupport {
 
     @Autowired private InventoryReconciliationService reconciliationService;
