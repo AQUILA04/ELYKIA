@@ -36,7 +36,7 @@
           Types
         </button>
         <button class="btn-action btn-danger" *ngxPermissionsOnly="['ROLE_CANCEL_EXPENSE']"
-                type="button" (click)="cancelSelected()" [disabled]="selectedIds.size === 0">
+                type="button" (click)="cancel.deleteSelected(reload)" [disabled]="cancel.selectedIds.size === 0">
           Annuler la sélection
         </button>
         <button class="btn-action btn-navy" (click)="goToAdd()">
@@ -85,9 +85,8 @@
       <thead>
         <tr>
           <th *ngxPermissionsOnly="['ROLE_CANCEL_EXPENSE']" class="col-select">
-            <input type="checkbox" aria-label="Sélectionner les dépenses annulables de la page"
-                   [checked]="isAllSelectableSelected" [disabled]="selectableExpenses.length === 0"
-                   (change)="toggleAllSelection()">
+            <app-expense-cancel-box [selection]="cancel" [rows]="recentExpenses"
+                                    label="Sélectionner les dépenses annulables de la page"></app-expense-cancel-box>
           </th>
           <th>Date</th>
           <th>Type</th>
@@ -115,9 +114,8 @@
         </tr>
         <tr *ngFor="let e of recentExpenses">
           <td *ngxPermissionsOnly="['ROLE_CANCEL_EXPENSE']" class="col-select">
-            <input type="checkbox" [attr.aria-label]="'Sélectionner la dépense du ' + (e.expenseDate | date:'dd/MM/yyyy')"
-                   [checked]="isSelected(e.id)" [disabled]="isCancelBlocked(e)"
-                   (change)="toggleSelection(e)">
+            <app-expense-cancel-box [selection]="cancel" [expense]="e"
+                                    [label]="'Sélectionner la dépense du ' + (e.expenseDate | date:'dd/MM/yyyy')"></app-expense-cancel-box>
           </td>
           <td>
             <div class="col-date">{{ e.expenseDate | date:'dd/MM/yyyy' }}</div>
@@ -144,29 +142,20 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
               </button>
-              <button class="btn-delete" *ngxPermissionsOnly="['ROLE_CANCEL_EXPENSE']"
-                      type="button" (click)="deleteExpense(e)" [disabled]="isCancelBlocked(e)"
-                      [attr.aria-label]="cancelTooltip(e)" [matTooltip]="cancelTooltip(e)">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-              </button>
+              <app-expense-cancel-button *ngxPermissionsOnly="['ROLE_CANCEL_EXPENSE']"
+                                         [selection]="cancel" [expense]="e" (cancelled)="loadExpenses()"></app-expense-cancel-button>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <div class="pagination">
-      <mat-paginator
-        [length]="totalElements"
-        [pageSize]="pageSize"
-        [pageIndex]="pageIndex"
-        [pageSizeOptions]="[10, 25, 50]"
-        (page)="onPage($event)"
-        showFirstLastButtons>
-      </mat-paginator>
-    </div>
+    <app-expense-paginator
+      [length]="totalElements"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      (page)="onPage($event)">
+    </app-expense-paginator>
   </div>
 
   <!-- MODAL DÉTAIL DÉPENSE -->

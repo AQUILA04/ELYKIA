@@ -14,7 +14,7 @@ interface ExpenseTypeListState {
 @Component({
   selector: 'app-expense-type-list',
   templateUrl: './type-list.component.html',
-  styleUrls: ['./type-list.component.scss'],
+  styleUrls: ['./type-list.component.scss', '../expense-table.shared.scss'],
   encapsulation: ViewEncapsulation.None,
   standalone: false
 })

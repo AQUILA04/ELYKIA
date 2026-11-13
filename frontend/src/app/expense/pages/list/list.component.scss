@@ -105,9 +105,6 @@
 .btn-action svg { width: 14px; height: 14px; }
 .btn-primary { background: var(--navy); color: white; border-color: var(--navy); }
 .btn-primary:hover { background: var(--navy-dark); }
-.btn-danger { background: var(--red); color: white; border-color: var(--red); }
-.btn-danger:hover:not(:disabled) { background: #991b1b; }
-.btn-danger:disabled { opacity: .45; cursor: not-allowed; }
 
 /* ── TOOLBAR ────────────────────────────────────────────────── */
 .toolbar {
@@ -163,9 +160,6 @@ tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
 .col-desc { font-size: 12px; color: var(--text-muted); }
 .col-ref { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text-muted); }
 
-.col-select { width: 44px; text-align: center; }
-.col-select input { width: 16px; height: 16px; cursor: pointer; }
-.col-select input:disabled { cursor: not-allowed; }
 .col-actions { min-width: 180px; white-space: nowrap; }
 .action-cell { display: flex; gap: 6px; align-items: center; }
 
@@ -179,15 +173,6 @@ tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
 .btn-detail:hover { background: var(--navy); color: white; }
 .btn-detail svg { width: 12px; height: 12px; }
 
-.btn-delete {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 32px; height: 32px; border-radius: var(--radius-sm);
-  background: var(--red-pale); color: var(--red);
-  border: 1px solid var(--red-border); cursor: pointer; transition: all .18s;
-}
-.btn-delete:hover { background: var(--red); color: white; }
-.btn-delete svg { width: 13px; height: 13px; }
-
 /* ── EMPTY STATE ─────────────────────────────────────────────── */
 .empty-state { padding: 60px 20px; text-align: center; }
 .empty-icon  { font-size: 48px; margin-bottom: 12px; opacity: .3; }
@@ -195,11 +180,6 @@ tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
 .empty-sub   { font-size: 13px; color: var(--text-muted); }
 
 /* ── PAGINATION ──────────────────────────────────────────────── */
-.pagination {
-  display: flex; justify-content: flex-end;
-  border-top: 1px solid var(--border); background: var(--bg-white);
-}
-.pagination mat-paginator { background: transparent; }
 .page-info { font-size: 12px; color: var(--text-muted); }
 .page-btns { display: flex; gap: 6px; }
 .page-btn {
@@ -213,18 +193,6 @@ tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
 .page-btn.active { background: var(--navy); color: white; border-color: var(--navy); }
 .page-btn:disabled { opacity: .5; cursor: not-allowed; background: var(--navy-xpale); }
 .page-btn svg { width: 14px; height: 14px; }
-
-.accounted-badge {
-  display: inline-block;
-  margin-left: 0.5rem;
-  padding: 2px 8px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  border-radius: 4px;
-  background: #fef3c7;
-  color: #92400e;
-}
 
 button:disabled {
   opacity: 0.4;

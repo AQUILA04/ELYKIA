@@ -116,16 +116,12 @@
       </tbody>
     </table>
 
-    <div class="pagination">
-      <mat-paginator
-        [length]="totalElements"
-        [pageSize]="pageSize"
-        [pageIndex]="pageIndex"
-        [pageSizeOptions]="[10, 25, 50]"
-        (page)="onPage($event)"
-        showFirstLastButtons>
-      </mat-paginator>
-    </div>
+    <app-expense-paginator
+      [length]="totalElements"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      (page)="onPage($event)">
+    </app-expense-paginator>
   </div>
 
 </div>

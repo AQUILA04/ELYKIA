@@ -10,6 +10,7 @@ import { ExpenseListComponent } from './pages/list/list.component';
 import { ExpenseFormComponent } from './pages/form/form.component';
 import { ExpenseTypeListComponent } from './pages/type-list/type-list.component';
 import { ExpenseTypeFormComponent } from './pages/type-form/type-form.component';
+import { ExpenseCancelBoxComponent, ExpenseCancelButtonComponent, ExpensePaginatorComponent } from './pages/expense-cancel.ui';
 
 // Material
 import { MatCardModule } from '@angular/material/card';
@@ -32,7 +33,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
         ExpenseListComponent,
         ExpenseFormComponent,
         ExpenseTypeListComponent,
-        ExpenseTypeFormComponent
+        ExpenseTypeFormComponent,
+        ExpenseCancelBoxComponent,
+        ExpenseCancelButtonComponent,
+        ExpensePaginatorComponent
     ],
     imports: [
         CommonModule,
