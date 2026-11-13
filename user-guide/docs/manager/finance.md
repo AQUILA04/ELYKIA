@@ -25,15 +25,16 @@ Sous réserve de disposer des habilitations financières requises (si ce bandeau
 * Chaque carte précise l'intervalle calendaire exact (*du JJ/MM au JJ/MM/AAAA*) et le montant cumulé en Francs CFA.
 
 ### C. Tableau des dernières dépenses
-* Liste chronologique paginée des 10 dernières opérations enregistrées.
+* Liste chronologique des dépenses, affichée par pages.
+* Le lien **Voir tout**, à droite du titre, ouvre la liste complète avec les filtres par mois et par type.
 * Colonnes : Date, Type de dépense, Montant formaté en FCFA, et bouton d'action.
-* Un clic sur une ligne ouvre une fenêtre récapitulative présentant le détail complet de la pièce justificative.
+* Un clic sur l'œil ouvre une fenêtre récapitulative présentant le détail de la dépense.
 
 ---
 
 ## 2. Registre et gestion des dépenses
 
-Pour consulter le registre complet, ouvrez le menu latéral et cliquez sur **Finances > Liste des dépenses** (ou l'onglet **Dépenses**).
+Pour consulter le registre complet, ouvrez **Dépenses**, puis cliquez sur **Voir tout** à droite du titre **Dernières dépenses**.
 
 Cet écran centralise la totalité des décaissements de l'agence et permet leur filtrage multicritères.
 

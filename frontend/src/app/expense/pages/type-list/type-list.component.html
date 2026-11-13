@@ -116,18 +116,12 @@
       </tbody>
     </table>
 
-    <div class="pagination">
-      <span class="page-info">{{ getPaginationInfo() }}</span>
-      <div class="page-btns">
-        <button type="button" class="page-btn" (click)="changePage(-1)" [disabled]="pageIndex === 0">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <button type="button" *ngFor="let p of pageNumbers" class="page-btn" [class.active]="pageIndex === p - 1" (click)="goPage(p - 1)">{{ p }}</button>
-        <button type="button" class="page-btn" (click)="changePage(1)" [disabled]="pageIndex >= totalPages - 1">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-        </button>
-      </div>
-    </div>
+    <app-expense-paginator
+      [length]="totalElements"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      (page)="onPage($event)">
+    </app-expense-paginator>
   </div>
 
 </div>
