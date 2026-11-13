@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { readSpringPage } from '../former-portfolio/former-portfolio.util';
 import { ApiResponse } from './credit.service';
 
 export interface SpringPage<T> {
@@ -34,8 +35,16 @@ export interface FormerTontineCollection {
   reference: string;
 }
 
+export interface FormerTontineStakePeriod {
+  amount: number;
+  startDate: string;
+  endDate?: string | null;
+}
+
 export interface FormerTontineMemberDetail extends Omit<FormerTontineMember, 'ownCollectionsCount'> {
   collections: FormerTontineCollection[];
+  dailyAmount?: number | null;
+  stakePeriods?: FormerTontineStakePeriod[];
 }
 
 export interface FormerCreditItem {
@@ -97,12 +106,12 @@ export class FormerPortfolioService {
 
   constructor(private readonly http: HttpClient) {}
 
-  listTontine(page: number, size: number): Observable<SpringPage<FormerTontineMember>> {
-    return this.getPage<FormerTontineMember>('/tontine/members', page, size);
+  listTontine(page: number, size: number, commercial?: string | null): Observable<SpringPage<FormerTontineMember>> {
+    return this.getPage<FormerTontineMember>('/tontine/members', page, size, commercial);
   }
 
-  tontineMember(memberId: number): Observable<FormerTontineMemberDetail> {
-    return this.getOne<FormerTontineMemberDetail>(`/tontine/members/${memberId}`);
+  tontineMember(memberId: number, commercial?: string | null): Observable<FormerTontineMemberDetail> {
+    return this.getOne<FormerTontineMemberDetail>(`/tontine/members/${memberId}`, commercial);
   }
 
   listCredits(page: number, size: number): Observable<SpringPage<FormerCreditItem>> {
@@ -121,15 +130,22 @@ export class FormerPortfolioService {
     return this.getOne<FormerAgencyClient>(`/agency/${clientId}`);
   }
 
-  private getPage<T>(path: string, page: number, size: number): Observable<SpringPage<T>> {
-    const params = new HttpParams().set('page', page).set('size', size);
+  private getPage<T>(path: string, page: number, size: number, commercial?: string | null): Observable<SpringPage<T>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
     return this.http.get<ApiResponse<SpringPage<T>>>(`${this.apiUrl}${path}`, { params }).pipe(
-      map(response => response.data ?? { content: [], totalElements: 0, totalPages: 0, number: page, size })
+      map(response => readSpringPage(response.data, page, size))
     );
   }
 
-  private getOne<T>(path: string): Observable<T> {
-    return this.http.get<ApiResponse<T>>(`${this.apiUrl}${path}`).pipe(
+  private getOne<T>(path: string, commercial?: string | null): Observable<T> {
+    let params = new HttpParams();
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+    return this.http.get<ApiResponse<T>>(`${this.apiUrl}${path}`, { params }).pipe(
       map(response => {
         if (!response.data) {
           throw new Error(response.message || 'Dossier introuvable');

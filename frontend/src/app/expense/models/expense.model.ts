@@ -14,6 +14,7 @@ export interface Expense {
     description?: string;
     reference?: string;
     accounted?: boolean;
+    linkedToRemittance?: boolean;
     remittanceReference?: string;
 }
 

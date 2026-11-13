@@ -26,7 +26,8 @@
         Actualiser
       </button>
     </div>
-    <p class="page-subtitle">Consultation seule de vos anciens clients et des opérations que vous avez enregistrées.</p>
+    <p class="page-subtitle" *ngIf="viewedCommercial">Collectes enregistrées par {{ viewedCommercial }} pour des membres qui ne lui sont plus associés.</p>
+    <p class="page-subtitle" *ngIf="!viewedCommercial">Consultation seule de vos anciens clients et des opérations que vous avez enregistrées.</p>
   </div>
 
   <div class="kpi-strip a3" *ngIf="!kind">
@@ -75,7 +76,7 @@
               <td>{{ row.quarter }}</td>
               <td>{{ row.sessionYear }}</td>
               <td class="num">{{ row.ownCollectionsTotal | number:'1.0-0' }} FCFA</td>
-              <td><a class="btn-detail" [routerLink]="['/credit/ancien-portefeuille', 'tontine', row.memberId]" [queryParams]="{ tab: 'tontine' }">Voir</a></td>
+              <td><a class="btn-detail" [routerLink]="['/credit/ancien-portefeuille', 'tontine', row.memberId]" [queryParams]="tontineQueryParams">Voir</a></td>
             </tr>
           </tbody>
         </table>
@@ -153,10 +154,25 @@
     </div>
 
     <ng-container *ngIf="!loading && tontineDetail as detail">
-      <a class="btn-detail back-link" routerLink="/credit/ancien-portefeuille" [queryParams]="{ tab: 'tontine' }">Retour à la liste</a>
+      <a class="btn-detail back-link" routerLink="/credit/ancien-portefeuille" [queryParams]="tontineQueryParams">Retour à la liste</a>
       <h2 class="detail-title">{{ personName(detail.firstname, detail.lastname) }}</h2>
       <p class="detail-meta">{{ detail.clientCode }} · {{ detail.phone }} · {{ detail.quarter }} · Session {{ detail.sessionYear }}</p>
       <p class="detail-total">Total de vos collectes : {{ detail.ownCollectionsTotal | number:'1.0-0' }} FCFA</p>
+      <div class="month-pills" *ngIf="tontineMonths.length">
+        <section class="month-pill-block" *ngFor="let month of tontineMonths">
+          <div class="month-pill-head">
+            <h3>{{ month.label }}</h3>
+            <span *ngIf="month.stakeLabel">{{ month.stakeLabel }}</span>
+            <strong>{{ month.amount | number:'1.0-0' }} FCFA</strong>
+          </div>
+          <div class="month-pill-grid"
+               *ngIf="month.days.length"
+               [attr.aria-label]="month.days.length + ' jours de mise'">
+            <span class="month-pill" *ngFor="let day of month.days">{{ day }}</span>
+          </div>
+          <p class="month-pill-empty" *ngIf="!month.days.length">Aucun jour de mise complet</p>
+        </section>
+      </div>
       <div class="empty-state" *ngIf="!detail.collections?.length">
         <h2>Aucune collecte enregistrée</h2>
         <p>Ce membre a été suivi par vous, sans collecte à votre nom.</p>

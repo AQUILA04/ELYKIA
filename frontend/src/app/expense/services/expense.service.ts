@@ -40,6 +40,10 @@ export class ExpenseService {
         return this.http.delete<ApiResponse<boolean>>(`${this.apiUrl}/${id}`).pipe(map(res => res.data));
     }
 
+    cancelExpenses(ids: number[]): Observable<number> {
+        return this.http.post<ApiResponse<number>>(`${this.apiUrl}/cancel`, ids).pipe(map(res => res.data));
+    }
+
     getDashboardKpis(): Observable<ExpenseKpi[]> {
         return this.http.get<ApiResponse<ExpenseKpi[]>>(`${this.apiUrl}/dashboard-kpis`).pipe(map(res => res.data));
     }

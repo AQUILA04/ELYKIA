@@ -1,6 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { merge, Subscription } from 'rxjs';
 import {
   FormerAgencyClient,
   FormerCreditDetail,
@@ -10,6 +10,7 @@ import {
   FormerTontineMemberDetail,
   SpringPage
 } from '../service/former-portfolio.service';
+import { buildMonthPills, MonthPillGroup } from './former-portfolio.util';
 
 type Tab = 'tontine' | 'credit' | 'agence';
 
@@ -31,6 +32,7 @@ export class FormerPortfolioComponent implements OnInit, OnDestroy {
   creditPage: SpringPage<FormerCreditItem> | null = null;
   agencyPage: SpringPage<FormerAgencyClient> | null = null;
 
+  viewedCommercial: string | null = null;
   kind: string | null = null;
   detailId: number | null = null;
   tontineDetail: FormerTontineMemberDetail | null = null;
@@ -50,10 +52,12 @@ export class FormerPortfolioComponent implements OnInit, OnDestroy {
     this.clock = setInterval(() => {
       this.currentDate = new Date();
     }, 1000);
-    this.routeSub = this.route.paramMap.subscribe(params => {
+    this.routeSub = merge(this.route.paramMap, this.route.queryParamMap).subscribe(() => {
+      const params = this.route.snapshot.paramMap;
       this.kind = params.get('kind');
       const rawId = params.get('id');
       this.detailId = rawId ? Number(rawId) : null;
+      this.viewedCommercial = this.route.snapshot.queryParamMap.get('commercial');
       const requested = this.route.snapshot.queryParamMap.get('tab');
       if (requested === 'tontine' || requested === 'credit' || requested === 'agence') {
         this.tab = requested;
@@ -76,12 +80,9 @@ export class FormerPortfolioComponent implements OnInit, OnDestroy {
     this.tab = tab;
     this.pageIndex = 0;
     void this.router.navigate(['/credit/ancien-portefeuille'], {
-      queryParams: { tab },
+      queryParams: tab === 'tontine' ? this.tontineQueryParams : { tab },
       replaceUrl: !this.kind
     });
-    if (!this.kind) {
-      this.load();
-    }
   }
 
   refresh(): void {
@@ -125,8 +126,22 @@ export class FormerPortfolioComponent implements OnInit, OnDestroy {
     return this.agencyPage?.totalElements ?? 0;
   }
 
+  get tontineQueryParams(): { tab: string; commercial?: string } {
+    return this.viewedCommercial
+      ? { tab: 'tontine', commercial: this.viewedCommercial }
+      : { tab: 'tontine' };
+  }
+
   personName(firstname?: string | null, lastname?: string | null): string {
     return `${firstname ?? ''} ${lastname ?? ''}`.trim();
+  }
+
+  get tontineMonths(): MonthPillGroup[] {
+    const detail = this.tontineDetail;
+    if (!detail?.collections?.length) {
+      return [];
+    }
+    return buildMonthPills(detail.collections, detail.stakePeriods ?? [], detail.dailyAmount ?? 0);
   }
 
   private load(): void {
@@ -140,7 +155,7 @@ export class FormerPortfolioComponent implements OnInit, OnDestroy {
       return;
     }
     if (this.tab === 'tontine') {
-      this.portfolio.listTontine(this.pageIndex, this.pageSize).subscribe({
+      this.portfolio.listTontine(this.pageIndex, this.pageSize, this.viewedCommercial).subscribe({
         next: page => this.finishList(() => { this.tontinePage = page; }),
         error: () => this.fail()
       });
@@ -161,7 +176,7 @@ export class FormerPortfolioComponent implements OnInit, OnDestroy {
 
   private loadDetail(): void {
     if (this.kind === 'tontine' && this.detailId) {
-      this.portfolio.tontineMember(this.detailId).subscribe({
+      this.portfolio.tontineMember(this.detailId, this.viewedCommercial).subscribe({
         next: detail => this.finishList(() => { this.tontineDetail = detail; }),
         error: () => this.fail()
       });

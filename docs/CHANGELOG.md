@@ -78,6 +78,34 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.44.7] — 2026-11-13
+
+### Added
+
+- **Tontines —** sur l'historique d'un ancien portefeuille, chaque mois affiche des pastilles numérotées selon la mise en vigueur, à raison de 7 par ligne.
+
+### Fixed
+
+- **Tontines —** le compteur **Dossiers affichés** de l'ancien portefeuille reprend le nombre de dossiers de l'onglet.
+
+## Frontend — [2.44.6] — 2026-11-13
+
+### Fixed
+
+- **Dépenses —** la confirmation d'annulation gère le rejet de la promesse, pour le critère de fiabilité Sonar sur le nouveau code.
+
+## Frontend — [2.44.5] — 2026-11-13
+
+### Added
+
+- **Dépenses —** le tableau de bord ouvre **Liste des dépenses**. Avec le droit d'annulation, la corbeille et les cases permettent de supprimer une ligne ou la sélection, sauf si la dépense est déjà dans une remise.
+
+## Frontend — [2.44.4] — 2026-11-13
+
+### Changed
+
+- **Tontines —** lorsqu'un commercial est choisi, le montant collecté, la part société et les collectes à la livraison additionnent les collectes enregistrées à son nom, y compris pour des membres transférés. Le bouton **Voir l'historique** ouvre ces membres.
+
 ## Frontend — [2.44.3] — 2026-11-09
 
 ### Changed
@@ -259,11 +287,46 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
-## Backend — [1.47.3] — 2026-11-12
+## Backend — [1.47.8] — 2026-11-13
 
 ### Fixed
 
 - Collectes tontine : rétablissement possible des lignes d'un commercial à partir de l'archive d'annulation, sans modifier les collectes des autres commerciaux. Les trois collectes de test de COM003 saisies après l'annulation sont annulées dans la même opération.
+
+## Backend — [1.47.7] — 2026-11-13
+
+### Changed
+
+- **Tontines —** le détail d'un membre de l'ancien portefeuille transmet la mise journalière et les périodes de mise, pour les pastilles du mois.
+
+## Backend — [1.47.6] — 2026-11-13
+
+### Fixed
+
+- **Terrain —** la recherche des membres tontine (vide, absente ou avec un nom) ne renvoie plus d'erreur serveur. Un filtre vide n'est plus envoyé à PostgreSQL sans type, ce qui provoquait `text ~~ bytea`. La recherche des commandes est protégée de la même façon.
+- **Journal —** une déconnexion du client (téléchargement interrompu, connexion coupée) n'est plus enregistrée comme une erreur 500. `common-security-service` 1.2.2.
+
+### Security
+
+- Le journal des requêtes n'écrit plus le corps des appels d'authentification, et masque les mots de passe et les jetons dans les autres requêtes.
+
+## Backend — [1.47.5] — 2026-11-13
+
+### Added
+
+- **Dépenses —** `ROLE_CANCEL_EXPENSE` est accordé aux profils ADMIN et SUPER_ADMIN. L'annulation d'une dépense ou d'un lot est refusée si elle est déjà rattachée à une remise, en attente ou reçue.
+
+## Backend — [1.47.4] — 2026-11-13
+
+### Fixed
+
+- **Tontines —** les tests couvrent l'historique d'un commercial ouvert par un gestionnaire, pour rester au-dessus du seuil de couverture.
+
+## Backend — [1.47.3] — 2026-11-13
+
+### Changed
+
+- **Tontines —** les totaux d'un commercial sur le tableau de bord viennent des collectes enregistrées à son nom. L'historique tontine accepte le commercial choisi par un gestionnaire ; un commercial ne consulte que le sien.
 
 ## Backend — [1.47.2] — 2026-11-09
 

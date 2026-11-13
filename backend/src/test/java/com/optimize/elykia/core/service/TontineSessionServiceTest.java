@@ -105,16 +105,18 @@ class TontineSessionServiceTest {
                 .thenReturn(40_000.0);
         when(memberRepository.countBySessionForCommercialAndDeliveryStatus(
                 14L, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED, commercial)).thenReturn(1L);
-        when(collectionRepository.sumDeliveryCollectionsBySessionForCommercial(14L, State.ENABLED, commercial))
+        when(collectionRepository.sumAmountBySessionAndCommercialUsername(14L, State.ENABLED, commercial))
+                .thenReturn(120_000.0);
+        when(collectionRepository.sumDeliveryAmountBySessionAndCommercialUsername(14L, State.ENABLED, commercial))
                 .thenReturn(5_000.0);
-        when(memberRepository.sumSocietyShareBySessionForCommercial(14L, State.ENABLED, commercial))
+        when(collectionRepository.sumSocietyShareBySessionAndCommercialUsername(14L, State.ENABLED, commercial))
                 .thenReturn(8_000.0);
         when(memberRepository.findTopCommercials(14L, State.ENABLED, PageRequest.of(0, 5))).thenReturn(List.of());
 
         SessionStatsDto stats = tontineSessionService.getSessionStats(14L, commercial);
 
         assertEquals(2, stats.getTotalMembers());
-        assertEquals(40_000.0, stats.getTotalCollected());
+        assertEquals(120_000.0, stats.getTotalCollected());
         assertEquals(20_000.0, stats.getAverageContribution());
         assertEquals(1, stats.getDeliveredCount());
         assertEquals(1, stats.getPendingCount());
@@ -139,9 +141,11 @@ class TontineSessionServiceTest {
         when(memberRepository.countBySessionForCommercialAndDeliveryStatus(
                 eq(15L), eq(State.ENABLED), eq(TontineMemberDeliveryStatus.DELIVERED), eq("promoter.me")))
                 .thenReturn(0L);
-        when(collectionRepository.sumDeliveryCollectionsBySessionForCommercial(
+        when(collectionRepository.sumAmountBySessionAndCommercialUsername(
+                eq(15L), eq(State.ENABLED), eq("promoter.me"))).thenReturn(10_000.0);
+        when(collectionRepository.sumDeliveryAmountBySessionAndCommercialUsername(
                 eq(15L), eq(State.ENABLED), eq("promoter.me"))).thenReturn(0.0);
-        when(memberRepository.sumSocietyShareBySessionForCommercial(
+        when(collectionRepository.sumSocietyShareBySessionAndCommercialUsername(
                 eq(15L), eq(State.ENABLED), eq("promoter.me"))).thenReturn(2_000.0);
         when(memberRepository.findTopCommercials(15L, State.ENABLED, PageRequest.of(0, 5))).thenReturn(List.of());
 

@@ -64,22 +64,40 @@ public interface OrderRepository extends GenericRepository<Order, Long> {
             @Param("username") String username,
             Pageable pageable);
 
+    /**
+     * {@code search} et {@code collector} vides ne filtrent pas. Un null est remplacé par une chaîne vide :
+     * un paramètre String null est lié en bytea et Postgres refuse {@code LIKE} ou {@code upper}.
+     */
+    default Page<Order> searchOrders(
+            Collection<OrderStatus> statuses,
+            OrderSource source,
+            String collector,
+            String search,
+            Pageable pageable) {
+        return searchOrdersQuery(
+                statuses,
+                source,
+                collector == null ? "" : collector,
+                search == null ? "" : search,
+                pageable);
+    }
+
     @Query("""
             SELECT o FROM Order o
             WHERE o.state <> 'DELETED'
               AND o.status IN :statuses
               AND (:source IS NULL OR o.source = :source)
-              AND (:collector = '' OR UPPER(o.client.collector) = UPPER(:collector))
+              AND (:collector = '' OR UPPER(o.client.collector) = UPPER(CAST(:collector AS string)))
               AND (
                     :search = ''
-                    OR CAST(o.id AS string) LIKE CONCAT('%', :search, '%')
-                    OR LOWER(COALESCE(o.client.firstname, '')) LIKE LOWER(CONCAT('%', :search, '%'))
-                    OR LOWER(COALESCE(o.client.lastname, '')) LIKE LOWER(CONCAT('%', :search, '%'))
-                    OR LOWER(COALESCE(o.client.code, '')) LIKE LOWER(CONCAT('%', :search, '%'))
-                    OR LOWER(COALESCE(o.client.phone, '')) LIKE LOWER(CONCAT('%', :search, '%'))
+                    OR CAST(o.id AS string) LIKE CONCAT('%', CAST(:search AS string), '%')
+                    OR LOWER(COALESCE(o.client.firstname, '')) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+                    OR LOWER(COALESCE(o.client.lastname, '')) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+                    OR LOWER(COALESCE(o.client.code, '')) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
+                    OR LOWER(COALESCE(o.client.phone, '')) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))
               )
             """)
-    Page<Order> searchOrders(
+    Page<Order> searchOrdersQuery(
             @Param("statuses") Collection<OrderStatus> statuses,
             @Param("source") OrderSource source,
             @Param("collector") String collector,
