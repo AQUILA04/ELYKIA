@@ -586,13 +586,18 @@ public class SaleCancellationService {
         double unitSale = ca.getUnitPrice() != null && ca.getUnitPrice() > 0
                 ? ca.getUnitPrice()
                 : nz(stockItem.getWeightedAverageUnitPrice());
-        double lineSold = qty * unitSale;
+        double lineSold = ca.getSaleLine() != null && ca.getSaleLine().getLineAmount() != null
+                && ca.getSaleLine().getLineAmount() > 0
+                ? ca.getSaleLine().getLineAmount()
+                : qty * unitSale;
         stockItem.setTotalSoldValue(Math.max(0.0, nz(stockItem.getTotalSoldValue()) - lineSold));
 
         double purchasePmp = ca.getUnitPurchaseCost() != null && ca.getUnitPurchaseCost() > 0
                 ? ca.getUnitPurchaseCost()
                 : nz(stockItem.getWeightedAveragePurchasePrice());
-        double lineMargin = qty * (unitSale - purchasePmp);
+        double lineMargin = ca.getSaleLine() != null && ca.getSaleLine().getLineMargin() != null
+                ? ca.getSaleLine().getLineMargin()
+                : qty * (unitSale - purchasePmp);
         stockItem.setTotalMargeValue(Math.max(0.0, nz(stockItem.getTotalMargeValue()) - lineMargin));
 
         stockItem.updateRemaining();

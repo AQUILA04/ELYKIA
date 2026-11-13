@@ -58,6 +58,7 @@ class ArticlesServiceTest {
     @Mock private ArticlePriceHistoryRepository articlePriceHistoryRepository;
     @Mock private StockValuationFacade stockValuationFacade;
     @Mock private ArticlePackagingPricingService articlePackagingPricingService;
+    @Mock private com.optimize.elykia.core.repository.ArticleSalePackRepository articleSalePackRepository;
     @Mock private com.optimize.common.securities.service.ParameterService parameterService;
     @Mock private org.springframework.context.ApplicationEventPublisher eventPublisher;
 

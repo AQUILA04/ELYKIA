@@ -2,17 +2,22 @@ package com.optimize.elykia.core.service.stock;
 
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.core.dto.stock.FifoConsumptionResult;
+import com.optimize.elykia.core.dto.stock.FifoLotSlice;
+import com.optimize.elykia.core.entity.article.ArticleSalePack;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.ArticleStockLot;
 import com.optimize.elykia.core.entity.stock.ArticleStockLotConsumption;
+import com.optimize.elykia.core.entity.stock.ArticleStockLotSalePack;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.enumaration.ArticleStockLotStatus;
+import com.optimize.elykia.core.enumaration.StockEntryPackagingMode;
 import com.optimize.elykia.core.repository.ArticleStockLotConsumptionRepository;
 import com.optimize.elykia.core.repository.ArticleStockLotRepository;
 import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.StockReceptionItemRepository;
+import com.optimize.elykia.core.util.ArticlePackagingRules;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -59,7 +65,13 @@ public class FifoStockValuationService {
         lot.setStatus(ArticleStockLotStatus.OPEN);
         if (receptionItem != null) {
             lot.setStockReceptionItem(receptionItem);
+            if (receptionItem.getEntryPackagingMode() == StockEntryPackagingMode.WHOLESALE) {
+                lot.setWholesalePurchasePrice(receptionItem.getPackagePrice());
+            } else if (receptionItem.getEntryPackagingMode() == StockEntryPackagingMode.HALF_WHOLESALE) {
+                lot.setHalfWholesalePurchasePrice(receptionItem.getPackagePrice());
+            }
         }
+        stampSalePrices(lot, article, receptionItem);
 
         return lotRepository.save(lot);
     }
@@ -178,6 +190,7 @@ public class FifoStockValuationService {
 
         int remainingToConsume = quantity;
         double totalCost = 0.0;
+        List<FifoLotSlice> slices = new ArrayList<>();
 
         for (ArticleStockLot lot : openLots) {
             if (remainingToConsume <= 0) {
@@ -208,6 +221,20 @@ public class FifoStockValuationService {
             consumption.setSourceId(sourceId);
             consumptionRepository.save(consumption);
 
+            slices.add(FifoLotSlice.builder()
+                    .lotId(lot.getId())
+                    .quantity(consumedFromLot)
+                    .unitPurchasePrice(lot.getUnitPurchasePrice())
+                    .unitSalePrice(lot.getUnitSalePrice())
+                    .wholesalePurchasePrice(lot.getWholesalePurchasePrice())
+                    .wholesaleSalePrice(lot.getWholesaleSalePrice())
+                    .halfWholesalePurchasePrice(lot.getHalfWholesalePurchasePrice())
+                    .halfWholesaleSalePrice(lot.getHalfWholesaleSalePrice())
+                    .unitsPerPackage(lot.getUnitsPerPackage())
+                    .unitsPerHalfPackage(lot.getUnitsPerHalfPackage())
+                    .salePacks(copyLotPacks(lot))
+                    .build());
+
             remainingToConsume -= consumedFromLot;
         }
 
@@ -225,7 +252,57 @@ public class FifoStockValuationService {
                 .totalCost(totalCost)
                 .averageUnitCost(averageUnitCost)
                 .quantityConsumed(quantity)
+                .slices(slices)
                 .build();
+    }
+
+    private void stampSalePrices(ArticleStockLot lot, Articles article, StockReceptionItem receptionItem) {
+        boolean frozen = receptionItem != null && receptionItem.getUnitSalePrice() != null;
+        lot.setUnitSalePrice(frozen ? receptionItem.getUnitSalePrice() : article.getSellingPrice());
+        lot.setPackagingType(article.getPackagingType());
+        lot.setUnitsPerPackage(article.getUnitsPerPackage());
+        lot.setUnitsPerHalfPackage(ArticlePackagingRules.halfUnits(article));
+        lot.setWholesaleSalePrice(frozen ? receptionItem.getWholesaleSalePrice() : article.getWholesaleSalePrice());
+        lot.setHalfWholesaleSalePrice(frozen
+                ? receptionItem.getHalfWholesaleSalePrice()
+                : article.getHalfWholesaleSalePrice());
+        if (frozen && receptionItem.getSalePacks() != null && !receptionItem.getSalePacks().isEmpty()) {
+            for (var pack : receptionItem.getSalePacks()) {
+                if (pack.getQuantity() == null || pack.getSalePrice() == null) {
+                    continue;
+                }
+                ArticleStockLotSalePack copy = new ArticleStockLotSalePack();
+                copy.setLot(lot);
+                copy.setQuantity(pack.getQuantity());
+                copy.setSalePrice(pack.getSalePrice());
+                lot.getSalePacks().add(copy);
+            }
+            return;
+        }
+        if (article.getSalePacks() == null) {
+            return;
+        }
+        for (ArticleSalePack pack : article.getSalePacks()) {
+            if (pack.getQuantity() == null || pack.getSalePrice() == null) {
+                continue;
+            }
+            ArticleStockLotSalePack copy = new ArticleStockLotSalePack();
+            copy.setLot(lot);
+            copy.setQuantity(pack.getQuantity());
+            copy.setSalePrice(pack.getSalePrice());
+            lot.getSalePacks().add(copy);
+        }
+    }
+
+    private List<FifoLotSlice.PackPrice> copyLotPacks(ArticleStockLot lot) {
+        List<FifoLotSlice.PackPrice> packs = new ArrayList<>();
+        if (lot.getSalePacks() == null) {
+            return packs;
+        }
+        for (ArticleStockLotSalePack pack : lot.getSalePacks()) {
+            packs.add(new FifoLotSlice.PackPrice(pack.getQuantity(), pack.getSalePrice()));
+        }
+        return packs;
     }
 
     @Transactional(readOnly = true)

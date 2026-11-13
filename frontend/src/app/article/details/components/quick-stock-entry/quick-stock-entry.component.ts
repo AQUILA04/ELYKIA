@@ -5,6 +5,7 @@ import { NgxSpinnerService } from 'ngx-spinner';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { InventoryService } from 'src/app/inventory/service/inventory.service';
 import { Article } from 'src/app/article/service/item.service';
+import { hasHalfPackage, halfPackageUnits } from 'src/app/article/packaging';
 import { StockFifoFeatureService } from 'src/app/stock/services/stock-fifo-feature.service';
 
 export interface QuickStockEntryData {
@@ -38,7 +39,10 @@ export class QuickStockEntryComponent implements OnInit {
             quantity: [null, [Validators.required, Validators.min(1), Validators.pattern('^[0-9]+$')]],
             unitPrice: [data.article.purchasePrice ?? null],
             packageCount: [null],
-            packagePrice: [null]
+            packagePrice: [null],
+            unitSalePrice: [this.data.article.sellingPrice ?? null],
+            wholesaleSalePrice: [this.data.article.wholesaleSalePrice ?? null],
+            halfWholesaleSalePrice: [this.data.article.halfWholesaleSalePrice ?? null]
         });
     }
 
@@ -61,6 +65,10 @@ export class QuickStockEntryComponent implements OnInit {
         return !!this.article.packagingType
             && this.article.packagingType !== 'NONE'
             && (this.article.unitsPerPackage ?? 0) >= 2;
+    }
+
+    get hasHalf(): boolean {
+        return hasHalfPackage(this.article);
     }
 
     get packagingLabel(): string {
@@ -96,7 +104,7 @@ export class QuickStockEntryComponent implements OnInit {
         if (!units || !packageCount) {
             return 0;
         }
-        const unitsInMode = mode === 'WHOLESALE' ? units : units / 2;
+        const unitsInMode = mode === 'WHOLESALE' ? units : (halfPackageUnits(this.article) || 0);
         return packageCount * unitsInMode;
     }
 
@@ -110,7 +118,7 @@ export class QuickStockEntryComponent implements OnInit {
         if (!units || packagePrice <= 0) {
             return 0;
         }
-        const unitsInMode = mode === 'WHOLESALE' ? units : units / 2;
+        const unitsInMode = mode === 'WHOLESALE' ? units : (halfPackageUnits(this.article) || 0);
         return Math.round((packagePrice / unitsInMode) * 100) / 100;
     }
 
@@ -180,6 +188,12 @@ export class QuickStockEntryComponent implements OnInit {
                 entry['entryPackagingMode'] = 'UNIT';
                 entry['unitPrice'] = Number(this.unitPriceControl?.value);
             }
+        }
+        if (this.fifoEnabled) {
+            entry['unitSalePrice'] = this.form.get('unitSalePrice')?.value;
+            entry['wholesaleSalePrice'] = this.form.get('wholesaleSalePrice')?.value;
+            entry['halfWholesaleSalePrice'] = this.form.get('halfWholesaleSalePrice')?.value;
+            entry['salePacks'] = this.article.salePacks || [];
         }
 
         const payload = {

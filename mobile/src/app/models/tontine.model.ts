@@ -75,7 +75,11 @@ export interface TontineDeliveryItem {
     quantity: number;
     unitPrice: number;
     totalPrice: number;
-    articleName?: string; // Populated via JOIN with articles table
+    articleName?: string;
+    salePackMode?: string;
+    packCount?: number;
+    unitsPerPack?: number;
+    packLabel?: string;
 }
 
 export type TontineDeliveryStatus = 'PENDING' | 'VALIDATED' | 'DELIVERED' | 'CANCELLED';

@@ -38,6 +38,20 @@ export class CreditDetailsComponent extends ErrorHandlingMixin implements OnInit
   lateMetrics: any = null;
   fieldControlLatest: CreditFieldControlDto | null = null;
 
+  packCaption(item: any): string {
+    const count = item.packCount || 1;
+    const label = item.packLabel || 'Pack';
+    const amount = item.lineAmount || item.totalPrice;
+    return `${count} × ${label}${amount ? ' — ' + amount : ''}`;
+  }
+
+  linePriceLabel(item: any): string {
+    if (item.salePackMode && item.salePackMode !== 'UNIT') {
+      return this.packCaption(item);
+    }
+    return `${item.unitPrice ?? 0} FCFA`;
+  }
+
   showChangeCollectorModal = false;
   agents: any[] = [];
   selectedCommercial = '';

@@ -14,6 +14,7 @@ import { TontineWriteService } from 'src/app/core/services/tontine-write.service
 import { HybridSyncUiService } from 'src/app/core/services/hybrid-sync-ui.service';
 import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-first-write.types';
 import { DatabaseService } from 'src/app/core/services/database.service';
+import { ArticleService } from 'src/app/core/services/article.service';
 import { TontineCalculationService } from 'src/app/core/services/tontine-calculation.service';
 
 import { TontineMember, TontineSession, TontineDelivery, TontineDeliveryItem, TontineStock, TontineDeliveryCreationMode } from 'src/app/models/tontine.model';
@@ -66,6 +67,9 @@ interface CartLineDetails {
     maxQty: number;
     articleId: string;
     stockId?: string;
+    salePackMode?: string;
+    unitsPerPack?: number;
+    packLabel?: string;
 }
 
 @Component({
@@ -109,6 +113,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     /** Cart key = articleId (catalogue) or stockId (stock tontine). */
     private cart = new Map<string, number>();
     private cartDetails = new Map<string, CartLineDetails>();
+    offersByArticle = new Map<string, Array<{ mode: string; label: string; unitsPerPack: number; salePrice: number }>>();
     /** Évite de vider le panier si on recharge la même source (ex. patch e2e du statut). */
     private lastCatalogueMode: boolean | null = null;
 
@@ -128,6 +133,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         private tontineWriteService: TontineWriteService,
         private hybridSyncUiService: HybridSyncUiService,
         private dbService: DatabaseService,
+        private articleService: ArticleService,
         private tontineCalculationService: TontineCalculationService,
         private dailyConsentGuard: DailyConsentGuardService,
         private dailyConsentState: DailyConsentStateService
@@ -344,11 +350,16 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     }
 
     increaseCatalogueQuantity(article: Article) {
+        this.ensureOffers(String(article.id), this.catalogueUnitPrice(article));
+        const offer = this.selectedOffer(String(article.id), this.catalogueUnitPrice(article));
         this.bumpCartQuantity(article.id, {
-            price: this.catalogueUnitPrice(article),
+            price: offer.salePrice || this.catalogueUnitPrice(article),
             name: article.commercialName || article.name || 'Article',
             maxQty: Number.MAX_SAFE_INTEGER,
-            articleId: article.id
+            articleId: article.id,
+            salePackMode: offer.mode,
+            unitsPerPack: offer.unitsPerPack,
+            packLabel: offer.label
         });
     }
 
@@ -357,13 +368,62 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     }
 
     increaseQuantity(stock: TontineStock) {
+        this.ensureOffers(String(stock.articleId), stock.unitPrice);
+        const offer = this.selectedOffer(String(stock.articleId), stock.unitPrice);
+        const units = offer.unitsPerPack || 1;
         this.bumpCartQuantity(stock.id, {
-            price: stock.unitPrice,
+            price: offer.salePrice || stock.unitPrice,
             name: stock.articleName || 'Article',
-            maxQty: stock.availableQuantity,
+            maxQty: Math.floor(stock.availableQuantity / units),
             articleId: stock.articleId,
-            stockId: stock.id
-        }, stock.availableQuantity);
+            stockId: stock.id,
+            salePackMode: offer.mode,
+            unitsPerPack: units,
+            packLabel: offer.label
+        }, Math.floor(stock.availableQuantity / units));
+    }
+
+    offersFor(articleId: string, fallbackPrice: number) {
+        this.ensureOffers(articleId, fallbackPrice);
+        return this.offersByArticle.get(articleId) || [];
+    }
+
+    onOfferChange(articleId: string, cartKey: string, raw: string, fallbackPrice: number, name: string, maxQty: number, stockId?: string): void {
+        const [mode, unitsRaw] = String(raw).split(':');
+        const units = Number(unitsRaw) || 1;
+        const offer = (this.offersByArticle.get(articleId) || []).find(item => `${item.mode}:${item.unitsPerPack}` === raw);
+        this.cartDetails.set(cartKey, {
+            price: offer?.salePrice || fallbackPrice,
+            name,
+            maxQty: Math.floor(maxQty / units),
+            articleId,
+            stockId,
+            salePackMode: mode || 'UNIT',
+            unitsPerPack: units,
+            packLabel: offer?.label
+        });
+        const qty = this.getQuantity(cartKey);
+        if (qty > Math.floor(maxQty / units)) {
+            this.cart.set(cartKey, Math.max(0, Math.floor(maxQty / units)));
+        }
+        this.updateBudgetCalculations();
+    }
+
+    private selectedOffer(articleId: string, fallbackPrice: number) {
+        const offers = this.offersByArticle.get(articleId);
+        return offers?.[0] || { mode: 'UNIT', label: 'Unité', unitsPerPack: 1, salePrice: fallbackPrice };
+    }
+
+    private ensureOffers(articleId: string, fallbackPrice: number): void {
+        if (!articleId || this.offersByArticle.has(articleId)) {
+            return;
+        }
+        this.offersByArticle.set(articleId, [{ mode: 'UNIT', label: 'Unité', unitsPerPack: 1, salePrice: fallbackPrice }]);
+        this.articleService.getSaleOffers(articleId, 'TONTINE', this.commercialUsername || undefined).subscribe(offers => {
+            if (offers?.length) {
+                this.offersByArticle.set(articleId, offers);
+            }
+        });
     }
 
     decreaseQuantity(stock: TontineStock) {
@@ -555,18 +615,24 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             this.cart.forEach((qty, cartKey) => {
                 const details = this.cartDetails.get(cartKey);
                 if (details) {
+                    const units = details.unitsPerPack || 1;
+                    const unitQuantity = qty * units;
                     items.push({
                         id: this.generateUuid(),
                         tontineDeliveryId: deliveryId,
                         articleId: details.articleId,
-                        quantity: qty,
+                        quantity: unitQuantity,
                         unitPrice: details.price,
                         totalPrice: details.price * qty,
-                        articleName: details.name
+                        articleName: details.name,
+                        salePackMode: details.salePackMode || 'UNIT',
+                        packCount: qty,
+                        unitsPerPack: units,
+                        packLabel: details.packLabel
                     });
 
                     if (!isOrder && details.stockId) {
-                        stockUpdates.push({ stockId: details.stockId, quantity: qty });
+                        stockUpdates.push({ stockId: details.stockId, quantity: unitQuantity });
                     }
                 }
             });
@@ -620,8 +686,10 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                     totalAmount: savedDelivery.totalAmount
                 },
                 items: items.map(item => ({
-                    articleName: item.articleName || 'Article',
-                    quantity: item.quantity,
+                    articleName: item.salePackMode && item.salePackMode !== 'UNIT'
+                        ? `${item.articleName || 'Article'} — ${item.packCount} × ${item.packLabel || 'Pack'}`
+                        : (item.articleName || 'Article'),
+                    quantity: item.salePackMode && item.salePackMode !== 'UNIT' ? (item.packCount || item.quantity) : item.quantity,
                     unitPrice: item.unitPrice,
                     totalPrice: item.totalPrice
                 })),

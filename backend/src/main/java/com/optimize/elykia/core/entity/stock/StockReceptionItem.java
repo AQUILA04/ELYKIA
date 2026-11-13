@@ -9,6 +9,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -43,4 +46,14 @@ public class StockReceptionItem extends Auditable<String> {
     private ArticlePackagingType packagingTypeSnapshot;
 
     private Integer unitsPerPackageSnapshot;
+
+    private Double unitSalePrice;
+
+    private Double wholesaleSalePrice;
+
+    private Double halfWholesaleSalePrice;
+
+    @ElementCollection
+    @CollectionTable(name = "stock_reception_item_sale_pack", joinColumns = @JoinColumn(name = "reception_item_id"))
+    private List<ReceptionSalePack> salePacks = new ArrayList<>();
 }

@@ -103,7 +103,7 @@ export class DatabaseService {
     // 2. Migrations incrémentielles (natif uniquement).
     // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
     const currentVersion = await this.db.getVersion();
-    const targetVersion = 36; // former commercial portfolio, read-only tables
+    const targetVersion = 37; // sale pack snapshot on tontine delivery items
     const dbVersion = currentVersion.version ?? 2;
     const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -642,7 +642,11 @@ export class DatabaseService {
             articleId TEXT,
             quantity INTEGER,
             unitPrice REAL,
-            totalPrice REAL
+            totalPrice REAL,
+            salePackMode TEXT,
+            packCount INTEGER,
+            unitsPerPack INTEGER,
+            packLabel TEXT
             -- IMPORTANT:
             -- Pas de contrainte FOREIGN KEY(tontineDeliveryId) ici, pour les mêmes
             -- raisons que pour tontine_collections / tontine_deliveries : l'ID de la
@@ -2412,8 +2416,8 @@ export class DatabaseService {
 
     const queryItems = `
       INSERT OR REPLACE INTO tontine_delivery_items(
-            id, tontineDeliveryId, articleId, quantity, unitPrice, totalPrice
-          ) VALUES(?, ?, ?, ?, ?, ?)
+            id, tontineDeliveryId, articleId, quantity, unitPrice, totalPrice, salePackMode, packCount, unitsPerPack, packLabel
+          ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
     const set: capSQLiteSet[] = [];
@@ -2434,7 +2438,8 @@ export class DatabaseService {
           set.push({
             statement: queryItems,
             values: [
-              item.id, d.id, item.articleId, item.quantity, item.unitPrice, item.totalPrice
+              item.id, d.id, item.articleId, item.quantity, item.unitPrice, item.totalPrice,
+              item.salePackMode || null, item.packCount || null, item.unitsPerPack || null, item.packLabel || null
             ]
           });
         }

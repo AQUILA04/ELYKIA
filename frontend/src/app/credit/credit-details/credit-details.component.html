@@ -350,11 +350,13 @@
         </thead>
         <tbody>
           <tr *ngFor="let item of credit.articles">
-            <td><span class="article-name">{{ item.articles?.commercialName }}</span></td>
+            <td><span class="article-name">{{ item.articles?.commercialName }}</span>
+              <div *ngIf="item.salePackMode && item.salePackMode !== 'UNIT'">{{ packCaption(item) }}</div>
+            </td>
             <td><span class="article-type-badge">{{ item.articles?.type || 'N/A' }}</span></td>
             <td><span class="mono-cell">{{ item.quantity }}</span></td>
-            <td *appIfUnitPrice><span class="mono-cell">{{ item.unitPrice | number }} FCFA</span></td>
-            <td *appIfUnitPrice><span class="total-cell">{{ item.totalPrice || (item.quantity * item.unitPrice) | number }} FCFA</span>
+            <td *appIfUnitPrice><span class="mono-cell">{{ linePriceLabel(item) }}</span></td>
+            <td *appIfUnitPrice><span class="total-cell">{{ (item.lineAmount || item.totalPrice || (item.quantity * item.unitPrice)) | number }} FCFA</span>
             </td>
           </tr>
         </tbody>
@@ -371,11 +373,11 @@
         <div class="article-card-prices" *appIfUnitPrice>
           <div>
             <span class="article-card-label">Prix unitaire</span>
-            <span class="mono-cell">{{ item.unitPrice | number }} FCFA</span>
+            <span class="mono-cell">{{ linePriceLabel(item) }}</span>
           </div>
           <div class="article-card-total">
             <span class="article-card-label">Total</span>
-            <span class="total-cell">{{ item.totalPrice || (item.quantity * item.unitPrice) | number }} FCFA</span>
+            <span class="total-cell">{{ (item.lineAmount || item.totalPrice || (item.quantity * item.unitPrice)) | number }} FCFA</span>
           </div>
         </div>
       </div>

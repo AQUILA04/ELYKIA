@@ -2,6 +2,7 @@ package com.optimize.elykia.core.service.stock;
 
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
+import com.optimize.elykia.core.dto.ArticleSalePackDto;
 import com.optimize.elykia.core.dto.ExpenseDto;
 import com.optimize.elykia.core.dto.StockEntry;
 import com.optimize.elykia.core.dto.StockReceptionDto;
@@ -222,6 +223,9 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
             dto.setCatalogPurchasePrice(article.getPurchasePrice());
             dto.setCatalogWholesalePurchasePrice(article.getWholesalePurchasePrice());
             dto.setCatalogHalfWholesalePurchasePrice(article.getHalfWholesalePurchasePrice());
+            dto.setCatalogSellingPrice(article.getSellingPrice());
+            dto.setCatalogWholesaleSalePrice(article.getWholesaleSalePrice());
+            dto.setCatalogHalfWholesaleSalePrice(article.getHalfWholesaleSalePrice());
         }
         return dto;
     }
@@ -320,6 +324,7 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
             item.setPackagePrice(resolved.packagePrice());
             item.setPackagingTypeSnapshot(resolved.packagingTypeSnapshot());
             item.setUnitsPerPackageSnapshot(resolved.unitsPerPackageSnapshot());
+            applySaleSnapshot(item, line);
             totalAmount += resolved.totalPrice();
         }
         reception.setTotalAmount(totalAmount);
@@ -356,6 +361,30 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
         return entry;
     }
 
+    private void applySaleSnapshot(StockReceptionItem item, StockReceptionValidateRequest.Line line) {
+        if (line == null) {
+            return;
+        }
+        if (line.getUnitSalePrice() != null) {
+            item.setUnitSalePrice(line.getUnitSalePrice());
+        }
+        if (line.getWholesaleSalePrice() != null) {
+            item.setWholesaleSalePrice(line.getWholesaleSalePrice());
+        }
+        if (line.getHalfWholesaleSalePrice() != null) {
+            item.setHalfWholesaleSalePrice(line.getHalfWholesaleSalePrice());
+        }
+        if (line.getSalePacks() != null) {
+            item.getSalePacks().clear();
+            for (ArticleSalePackDto pack : line.getSalePacks()) {
+                if (pack != null && pack.getQuantity() != null && pack.getSalePrice() != null) {
+                    item.getSalePacks().add(new com.optimize.elykia.core.entity.stock.ReceptionSalePack(
+                            pack.getQuantity(), pack.getSalePrice()));
+                }
+            }
+        }
+    }
+
     private Double resolveCatalogPackagePrice(
             Articles article,
             StockEntryPackagingMode mode,
@@ -375,7 +404,11 @@ public class StockReceptionService extends GenericService<StockReception, Long> 
                 return article.getHalfWholesalePurchasePrice();
             }
             if (unitsPerPackage != null && unitsPerPackage >= 2 && article.getPurchasePrice() > 0) {
-                return article.getPurchasePrice() * (unitsPerPackage / 2.0);
+                Integer half = com.optimize.elykia.core.util.ArticlePackagingRules.halfUnits(article);
+                if (half == null) {
+                    return null;
+                }
+                return article.getPurchasePrice() * half;
             }
         }
         return null;

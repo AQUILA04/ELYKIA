@@ -61,6 +61,17 @@ public class ArticlesDto {
     @PositiveOrZero
     private Double halfWholesalePurchasePrice;
 
+    @PositiveOrZero
+    private Integer unitsPerHalfPackage;
+
+    @PositiveOrZero
+    private Double wholesaleSalePrice;
+
+    @PositiveOrZero
+    private Double halfWholesaleSalePrice;
+
+    private java.util.List<ArticleSalePackDto> salePacks;
+
     /** URL signée de la photo propre à l'article. Vide s'il n'en a pas. */
     private String photoUrl;
 

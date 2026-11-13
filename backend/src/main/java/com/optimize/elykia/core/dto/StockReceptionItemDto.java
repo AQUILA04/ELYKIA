@@ -5,6 +5,8 @@ import com.optimize.elykia.core.enumaration.ArticlePackagingType;
 import com.optimize.elykia.core.enumaration.StockEntryPackagingMode;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StockReceptionItemDto {
@@ -24,4 +26,13 @@ public class StockReceptionItemDto {
     private Double catalogPurchasePrice;
     private Double catalogWholesalePurchasePrice;
     private Double catalogHalfWholesalePurchasePrice;
+
+    private Double unitSalePrice;
+    private Double wholesaleSalePrice;
+    private Double halfWholesaleSalePrice;
+    private List<ArticleSalePackDto> salePacks;
+
+    private Double catalogSellingPrice;
+    private Double catalogWholesaleSalePrice;
+    private Double catalogHalfWholesaleSalePrice;
 }

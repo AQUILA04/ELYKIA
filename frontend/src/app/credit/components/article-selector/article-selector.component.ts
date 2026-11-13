@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, FormArray, Validators, ControlValueAccessor, NG
 import { forkJoin, of, Subject, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { ItemService } from 'src/app/article/service/item.service';
+import { halfPackageUnits, hasHalfPackage } from 'src/app/article/packaging';
 import { UnitPriceVisibilityService } from 'src/app/shared/service/unit-price-visibility.service';
 
 export interface ArticleSelection {
@@ -12,6 +13,9 @@ export interface ArticleSelection {
   entryPackagingMode?: 'UNIT' | 'WHOLESALE' | 'HALF_WHOLESALE';
   packageCount?: number;
   packagePrice?: number;
+  salePackMode?: 'UNIT' | 'WHOLESALE' | 'HALF_WHOLESALE' | 'CUSTOM';
+  packCount?: number;
+  unitsPerPack?: number;
 }
 
 export type PriceType = 'credit' | 'tontine' | 'inventory';
@@ -47,6 +51,9 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   @Input() capturePurchasePrice: boolean = false;
   @Output() articlesChange = new EventEmitter<ArticleSelection[]>();
   @Output() totalAmountChange = new EventEmitter<number>();
+
+  private offersByArticle = new Map<number, any[]>();
+  private offersLoading = new Set<number>();
 
   articleForm!: FormGroup;
   availableArticlesPerRow: any[][] = [];
@@ -180,7 +187,10 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
         quantity: ['', [Validators.required, Validators.min(1)]],
         unitPrice: [null, [Validators.required, Validators.min(0.01)]],
         packageCount: [null],
-        packagePrice: [null]
+        packagePrice: [null],
+        unitSalePrice: [null],
+        wholesaleSalePrice: [null],
+        halfWholesaleSalePrice: [null]
       });
       this.attachPurchasePriceSync(group);
       this.attachPackagingModeSync(group);
@@ -189,7 +199,8 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
 
     return this.fb.group({
       articleId: [null, Validators.required],
-      quantity: ['', [Validators.required, Validators.min(1)]]
+      quantity: ['', [Validators.required, Validators.min(1)]],
+      saleOffer: ['UNIT:1']
     });
   }
 
@@ -284,7 +295,10 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
           unitPrice: article.purchasePrice ?? 0,
           entryPackagingMode: 'UNIT',
           packageCount: null,
-          packagePrice: null
+          packagePrice: null,
+          unitSalePrice: article.sellingPrice ?? null,
+          wholesaleSalePrice: article.wholesaleSalePrice ?? null,
+          halfWholesaleSalePrice: article.halfWholesaleSalePrice ?? null
         }, { emitEvent: false });
         if (!hasPackaging) {
           group.get('entryPackagingMode')?.setValue('UNIT', { emitEvent: false });
@@ -358,7 +372,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     if (!units || !packageCount) {
       return 0;
     }
-    const unitsInMode = mode === 'WHOLESALE' ? units : units / 2;
+    const unitsInMode = mode === 'WHOLESALE' ? units : (halfPackageUnits(article) || 0);
     return packageCount * unitsInMode;
   }
 
@@ -374,7 +388,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     if (!units || packagePrice <= 0) {
       return 0;
     }
-    const unitsInMode = mode === 'WHOLESALE' ? units : units / 2;
+    const unitsInMode = mode === 'WHOLESALE' ? units : (halfPackageUnits(article) || 0);
     return Math.round((packagePrice / unitsInMode) * 100) / 100;
   }
 
@@ -551,9 +565,12 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
         .map(control => this.articleKey(control.get('articleId')?.value))
         .filter((id): id is number => id != null));
 
-      return this.articles.filter(
-        article => !selectedIdsInOtherRows.has(this.articleKey(article.id) as number)
-      );
+      return this.articles.filter(article => {
+        if (this.isCashSale()) {
+          return true;
+        }
+        return !selectedIdsInOtherRows.has(this.articleKey(article.id) as number);
+      });
     });
   }
 
@@ -566,13 +583,17 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
         return;
       }
       const articleId = control.get('articleId')?.value;
-      const quantity = control.get('quantity')?.value;
+      const quantity = this.unitQuantity(index);
 
       if (articleId && quantity > 0) {
-        const article = this.getArticle(articleId);
-        if (article) {
-          const price = this.getArticlePrice(articleId);
-          total += price * quantity;
+        const offer = this.selectedOffer(index);
+        if (offer && offer.mode !== 'UNIT') {
+          total += offer.salePrice * (Number(control.get('quantity')?.value) || 0);
+        } else {
+          const article = this.getArticle(articleId);
+          if (article) {
+            total += this.getArticlePrice(articleId) * quantity;
+          }
         }
       }
     });
@@ -585,16 +606,20 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     const value = this.articlesArray.controls.map((control, index) => {
       const raw = control.value;
       if (!this.capturePurchasePrice) {
-        return raw;
+        return this.saleSelection(raw, index);
       }
       const mode = (raw.entryPackagingMode || 'UNIT') as EntryPackagingMode;
       if (mode === 'UNIT') {
         return {
-          articleId: raw.articleId,
-          quantity: raw.quantity,
-          unitPrice: raw.unitPrice,
-          entryPackagingMode: 'UNIT'
-        };
+        articleId: raw.articleId,
+        quantity: raw.quantity,
+        unitPrice: raw.unitPrice,
+        entryPackagingMode: 'UNIT',
+        unitSalePrice: raw.unitSalePrice,
+        wholesaleSalePrice: raw.wholesaleSalePrice,
+        halfWholesaleSalePrice: raw.halfWholesaleSalePrice,
+        salePacks: this.getArticle(raw.articleId)?.salePacks || []
+      };
       }
       return {
         articleId: raw.articleId,
@@ -602,7 +627,11 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
         packageCount: raw.packageCount,
         packagePrice: raw.packagePrice,
         quantity: this.getComputedQuantity(index),
-        unitPrice: this.getComputedUnitPrice(index)
+        unitPrice: this.getComputedUnitPrice(index),
+        unitSalePrice: raw.unitSalePrice,
+        wholesaleSalePrice: raw.wholesaleSalePrice,
+        halfWholesaleSalePrice: raw.halfWholesaleSalePrice,
+        salePacks: this.getArticle(raw.articleId)?.salePacks || []
       };
     });
     this.onChange(value);
@@ -643,11 +672,104 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   getLineTotal(index: number): number {
     const control = this.articlesArray.at(index);
     const articleId = control.get('articleId')?.value;
+    const offer = this.selectedOffer(index);
+    if (offer && offer.mode !== 'UNIT') {
+      return offer.salePrice * (Number(control.get('quantity')?.value) || 0);
+    }
     const quantity = control.get('quantity')?.value || 0;
 
     if (!articleId || quantity <= 0) return 0;
 
     return this.getArticlePrice(articleId) * quantity;
+  }
+
+  isCashSale(): boolean {
+    return this.priceType === 'inventory' && !this.capturePurchasePrice;
+  }
+
+  articleHasHalf(articleId: number): boolean {
+    return hasHalfPackage(this.getArticle(articleId));
+  }
+
+  quantityLabel(index: number): string {
+    const offer = this.selectedOffer(index);
+    return offer && offer.mode !== 'UNIT' ? 'Nombre' : 'Quantité';
+  }
+
+  offersFor(articleId: number): any[] {
+    this.ensureOffers(articleId);
+    return this.offersByArticle.get(Number(articleId)) || [{
+      mode: 'UNIT',
+      label: 'Unité',
+      unitsPerPack: 1,
+      salePrice: this.getArticlePrice(articleId)
+    }];
+  }
+
+  offerKey(offer: { mode: string; unitsPerPack: number }): string {
+    return `${offer.mode}:${offer.unitsPerPack}`;
+  }
+
+  private selectedOffer(index: number): any | null {
+    if (!this.isCashSale()) {
+      return null;
+    }
+    const control = this.articlesArray.at(index);
+    const articleId = Number(control.get('articleId')?.value);
+    const key = control.get('saleOffer')?.value;
+    return this.offersFor(articleId).find(offer => this.offerKey(offer) === key) || null;
+  }
+
+  private unitQuantity(index: number): number {
+    const control = this.articlesArray.at(index);
+    const count = Number(control.get('quantity')?.value) || 0;
+    const offer = this.selectedOffer(index);
+    if (!offer || offer.mode === 'UNIT') {
+      return count;
+    }
+    return count * offer.unitsPerPack;
+  }
+
+  private saleSelection(raw: any, index: number): ArticleSelection {
+    const offer = this.selectedOffer(index);
+    const count = Number(raw.quantity) || 0;
+    if (!offer || offer.mode === 'UNIT') {
+      return {
+        articleId: raw.articleId,
+        quantity: count,
+        salePackMode: 'UNIT',
+        packCount: count,
+        unitsPerPack: 1
+      };
+    }
+    return {
+      articleId: raw.articleId,
+      quantity: count * offer.unitsPerPack,
+      salePackMode: offer.mode,
+      packCount: count,
+      unitsPerPack: offer.unitsPerPack
+    };
+  }
+
+  private ensureOffers(articleId: number): void {
+    const id = Number(articleId);
+    if (!this.isCashSale() || !id || this.offersByArticle.has(id) || this.offersLoading.has(id)) {
+      return;
+    }
+    this.offersLoading.add(id);
+    this.itemService.getSaleOffers(id, 'CASH').subscribe({
+      next: (response: any) => {
+        const offers = response?.data || [];
+        this.offersByArticle.set(id, offers.length ? offers : [{
+          mode: 'UNIT', label: 'Unité', unitsPerPack: 1, salePrice: this.getArticlePrice(id)
+        }]);
+        this.offersLoading.delete(id);
+        if (this.showPrices) {
+          this.calculateTotalAmount();
+        }
+      },
+      error: () => this.offersLoading.delete(id)
+    });
   }
 
   shouldShowPriceColumns(): boolean {
@@ -683,6 +805,11 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
           ];
           groupConfig['packageCount'] = [article.packageCount ?? null];
           groupConfig['packagePrice'] = [article.packagePrice ?? null];
+          groupConfig['unitSalePrice'] = [article.unitSalePrice ?? null];
+          groupConfig['wholesaleSalePrice'] = [article.wholesaleSalePrice ?? null];
+          groupConfig['halfWholesaleSalePrice'] = [article.halfWholesaleSalePrice ?? null];
+        } else {
+          groupConfig['saleOffer'] = ['UNIT:1'];
         }
         const group = this.fb.group(groupConfig);
         if (this.capturePurchasePrice) {
@@ -736,7 +863,7 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   isStockExceeded(index: number): boolean {
     const control = this.articlesArray.at(index);
     const articleId = control.get('articleId')?.value;
-    const quantity = control.get('quantity')?.value;
+    const quantity = this.unitQuantity(index);
 
     if (!articleId || !quantity) return false;
 

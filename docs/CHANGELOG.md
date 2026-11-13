@@ -78,6 +78,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.45.0] — 2026-11-13
+
+### Added
+
+- **Articles et ventes —** un colis peut avoir un nombre impair d'unités. Le demi-gros se précise alors sur la fiche, et n'est proposé à l'entrée que s'il est renseigné. La fiche porte le prix de vente du gros, du demi-gros et des offres libres. La vente comptant et la livraison tontine permettent de choisir l'offre. Le détail de vente affiche le montant de la ligne.
+
 ## Frontend — [2.44.9] — 2026-11-13
 
 ### Changed
@@ -231,6 +237,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.37.0] — 2026-11-13
+
+### Added
+
+- **Livraison tontine —** au moment de choisir les articles, une offre (unité, gros, demi-gros ou offre libre) peut être sélectionnée. Le bon de remise reprend le montant de la ligne.
+
 ## Mobile — [2.36.3] — 2026-11-09
 
 ### Added
@@ -299,6 +311,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.48.0] — 2026-11-13
+
+### Added
+
+- **Vente au pack —** un colis impair peut enregistrer un demi-gros optionnel. Les prix de vente (gros, demi-gros, offres libres) sont recopiés sur le lot à l'entrée. La vente comptant et la livraison tontine encaissent le prix de la fiche, ou le prix figé du lot si le paramètre `CASH_SALE_PRICE_SOURCE` vaut `FIFO_LOT`. La marge suit le coût d'achat du lot réellement sorti. Le crédit reste à l'unité.
 
 ## Backend — [1.47.8] — 2026-11-13
 

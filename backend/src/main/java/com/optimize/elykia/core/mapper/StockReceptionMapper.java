@@ -24,8 +24,16 @@ public interface StockReceptionMapper extends BaseMapper<StockReception, StockRe
 
     StockReceptionListDto toListDto(StockReception entity);
 
+    ArticleSalePackDto toSalePack(com.optimize.elykia.core.entity.stock.ReceptionSalePack pack);
+
     @Mapping(target = "articleId", source = "article.id")
     @Mapping(target = "articleName", source = ".", qualifiedByName = "articleFullName")
+    @Mapping(target = "catalogPurchasePrice", ignore = true)
+    @Mapping(target = "catalogWholesalePurchasePrice", ignore = true)
+    @Mapping(target = "catalogHalfWholesalePurchasePrice", ignore = true)
+    @Mapping(target = "catalogSellingPrice", ignore = true)
+    @Mapping(target = "catalogWholesaleSalePrice", ignore = true)
+    @Mapping(target = "catalogHalfWholesaleSalePrice", ignore = true)
     StockReceptionItemDto toItemDto(StockReceptionItem item);
 
     @Named("articleFullName")

@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class StockEntry {
     @NotNull(message = "L'identifiant de l'article est obligatoire !")
@@ -27,4 +29,10 @@ public class StockEntry {
 
     /** Prix du colis ou demi-colis saisi. */
     private Double packagePrice;
+
+    /** Prix de vente figés sur le lot. Absents : recopie de la fiche. */
+    private Double unitSalePrice;
+    private Double wholesaleSalePrice;
+    private Double halfWholesaleSalePrice;
+    private List<ArticleSalePackDto> salePacks;
 }

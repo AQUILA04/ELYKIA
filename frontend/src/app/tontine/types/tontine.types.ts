@@ -183,6 +183,9 @@ export interface DeliveryItemDto {
   readonly articleId: number;
   readonly quantity: number;
   readonly unitPrice: number;
+  readonly salePackMode?: 'UNIT' | 'WHOLESALE' | 'HALF_WHOLESALE' | 'CUSTOM';
+  readonly packCount?: number;
+  readonly unitsPerPack?: number;
 }
 
 // Interfaces pour les filtres

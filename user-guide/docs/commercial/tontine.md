@@ -173,6 +173,7 @@ flowchart LR
    - Tant que la session est ouverte, le bouton **Préparer la Livraison** est disponible sur la fiche du membre.
    - Une fenêtre s'ouvre avec le **Solde Disponible** mobilisable.
    - Choisissez les articles souhaités dans le **catalogue** de l'agence (pas besoin que le commercial ait déjà du stock tontine).
+   - Pour chaque article, la liste **Offre** propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.
    - Le système vérifie en direct que le montant total des articles ne dépasse pas le solde disponible du membre.
    - Si les articles choisis coûtent moins que l'épargne, la différence reste conservée comme **Solde non utilisé** au profit du client.
    - Le dossier passe au statut **En attente**.

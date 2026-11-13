@@ -6,6 +6,7 @@ import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.core.dto.StockEntryDto;
 import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.enumaration.SalePackMode;
 import com.optimize.elykia.core.util.CreditArticleUnitPricePolicy;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -39,6 +40,22 @@ public class CreditArticles extends Auditable<String> {
     private Long stockItemId;
 
     private Long tontineItemId;
+
+    @Embedded
+    @com.fasterxml.jackson.annotation.JsonUnwrapped
+    private SaleLinePricing saleLine = new SaleLinePricing();
+
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private SalePackMode requestedSalePackMode;
+
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Integer requestedPackCount;
+
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    private Integer requestedUnitsPerPack;
 
     @Transient
     private Double persistedUnitPrice;
@@ -83,6 +100,16 @@ public class CreditArticles extends Auditable<String> {
             return credit.getId();
         }
         return null;
+    }
+
+    public Double getTotalPrice() {
+        if (saleLine != null && saleLine.getLineAmount() != null && saleLine.getLineAmount() > 0) {
+            return saleLine.getLineAmount();
+        }
+        if (unitPrice == null || quantity == null) {
+            return 0d;
+        }
+        return unitPrice * quantity;
     }
 
     public void returnQuantity (Integer quantity) {

@@ -43,12 +43,12 @@
         <select [id]="'entryPackagingMode-' + i" formControlName="entryPackagingMode" class="field-input">
           <option value="UNIT">Unitaire</option>
           <option value="WHOLESALE">Gros ({{ getPackagingLabel(articleCtrl.get('articleId')?.value) }})</option>
-          <option value="HALF_WHOLESALE">Demi-gros (½ {{ getPackagingLabel(articleCtrl.get('articleId')?.value) }})</option>
+          <option *ngIf="articleHasHalf(articleCtrl.get('articleId')?.value)" value="HALF_WHOLESALE">Demi-gros</option>
         </select>
       </div>
 
       <div class="form-field quantity-field" *ngIf="!isPackageMode(i)">
-        <label [attr.for]="'quantity-' + i">Quantité</label>
+        <label [attr.for]="'quantity-' + i">{{ quantityLabel(i) }}</label>
         <div class="quantity-input-wrapper">
           <input [id]="'quantity-' + i" type="number" formControlName="quantity" [readonly]="readonly"
             [attr.data-testid]="'e2e-article-quantity-' + i"
@@ -104,6 +104,28 @@
         <span class="field-error" *ngIf="articleCtrl.get('packagePrice')?.invalid && articleCtrl.get('packagePrice')?.touched">
           Le prix colis est requis.
         </span>
+      </div>
+
+      <div class="form-field" *ngIf="shouldShowPurchasePriceColumn() && articleCtrl.get('articleId')?.value">
+        <label [attr.for]="'unitSalePrice-' + i">Prix de vente unitaire du lot</label>
+        <input [id]="'unitSalePrice-' + i" type="number" formControlName="unitSalePrice" class="field-input field-mono" min="0">
+      </div>
+      <div class="form-field" *ngIf="shouldShowPurchasePriceColumn() && hasArticlePackaging(articleCtrl.get('articleId')?.value)">
+        <label [attr.for]="'wholesaleSalePrice-' + i">Prix de vente gros du lot</label>
+        <input [id]="'wholesaleSalePrice-' + i" type="number" formControlName="wholesaleSalePrice" class="field-input field-mono" min="0">
+      </div>
+      <div class="form-field" *ngIf="shouldShowPurchasePriceColumn() && articleHasHalf(articleCtrl.get('articleId')?.value)">
+        <label [attr.for]="'halfWholesaleSalePrice-' + i">Prix de vente demi-gros du lot</label>
+        <input [id]="'halfWholesaleSalePrice-' + i" type="number" formControlName="halfWholesaleSalePrice" class="field-input field-mono" min="0">
+      </div>
+
+      <div class="form-field" *ngIf="isCashSale() && articleCtrl.get('articleId')?.value">
+        <label [attr.for]="'saleOffer-' + i">Offre</label>
+        <select [id]="'saleOffer-' + i" formControlName="saleOffer" class="field-input">
+          <option *ngFor="let offer of offersFor(articleCtrl.get('articleId')?.value)" [value]="offerKey(offer)">
+            {{ offer.label }} — {{ offer.salePrice | number:'1.0-0' }} FCFA
+          </option>
+        </select>
       </div>
 
       <div class="form-field price-field" *ngIf="shouldShowPriceColumns()">

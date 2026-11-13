@@ -91,6 +91,14 @@
         <div class="article-info">
           <div class="article-name">{{ article.commercialName || article.name || 'Article' }}</div>
           <div class="article-price elyk-amount" *appIfUnitPrice>{{ catalogueUnitPrice(article) | number }} FCFA</div>
+          <select *ngIf="offersFor(article.id, catalogueUnitPrice(article)).length > 1"
+            [value]="'UNIT:1'"
+            (change)="onOfferChange(article.id, article.id, $any($event.target).value, catalogueUnitPrice(article), article.commercialName || article.name || 'Article', 1000000)"
+            aria-label="Offre">
+            <option *ngFor="let offer of offersFor(article.id, catalogueUnitPrice(article))" [value]="offer.mode + ':' + offer.unitsPerPack">
+              {{ offer.label }} — {{ offer.salePrice | number }} FCFA
+            </option>
+          </select>
           <div class="quantity-control">
             <button type="button" class="qty-btn" (click)="decreaseCatalogueQuantity(article)" [disabled]="getQuantity(article.id) === 0">
               <ion-icon name="remove"></ion-icon>
@@ -118,6 +126,14 @@
           <div class="article-name">{{ stock.articleName || 'Article' }}</div>
           <div class="article-price elyk-amount" *appIfUnitPrice>{{ stock.unitPrice | number }} FCFA</div>
           <div class="article-stock">Disponible : {{ stock.availableQuantity }} unités</div>
+          <select *ngIf="offersFor(stock.articleId, stock.unitPrice).length > 1"
+            [value]="'UNIT:1'"
+            (change)="onOfferChange(stock.articleId, stock.id, $any($event.target).value, stock.unitPrice, stock.articleName || 'Article', stock.availableQuantity, stock.id)"
+            aria-label="Offre">
+            <option *ngFor="let offer of offersFor(stock.articleId, stock.unitPrice)" [value]="offer.mode + ':' + offer.unitsPerPack">
+              {{ offer.label }} — {{ offer.salePrice | number }} FCFA
+            </option>
+          </select>
           <div class="quantity-control">
             <button type="button" class="qty-btn" (click)="decreaseQuantity(stock)" [disabled]="getQuantity(stock.id) === 0">
               <ion-icon name="remove"></ion-icon>

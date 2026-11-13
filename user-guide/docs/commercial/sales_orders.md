@@ -96,7 +96,7 @@ Pour créer une vente, cliquez sur le bouton bleu **« + Nouvelle vente »** en 
 | **Commercial responsable** | **Obligatoire**. En tant que commercial, votre nom est automatiquement renseigné. En tant que gestionnaire, vous choisissez le commercial qui portera la vente. | Non requis. La vente est une opération directe en boutique. |
 | **Choix du client** | La liste propose les clients déjà rattachés au commercial sélectionné. | Recherche universelle parmi l'ensemble des clients de l'agence. |
 | **Articles et stock disponible** | Les articles sont déduits du **Stock Commercial** de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus. | Les articles sont recherchés directement dans le stock général du magasin. |
-| **Montant de la vente** | Le montant suit le tarif du crédit. | Le montant suit le tarif du comptant. |
+| **Montant de la vente** | Le montant suit le tarif du crédit, à l'unité. | Le montant suit le tarif du comptant. Sur chaque ligne, la liste **Offre** permet de vendre à l'unité, au gros, au demi-gros ou selon une offre libre (par exemple 3 pour 250). Le total de la ligne est le prix de l'offre multiplié par le nombre choisi. Le même article peut figurer deux fois si les offres diffèrent. |
 | **Paiement et échéances** | Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue. | Règlement intégral immédiat au comptoir. Aucun échéancier journalier. |
 | **Usage du crédit** | Sans le bloc **Adhésions**, un seul crédit personnel. Lorsque plusieurs adhésions sont actives, choix **Personnel**, **Professionnel** ou **Événement**. Un seul crédit ouvert par type. | Sans objet. |
 

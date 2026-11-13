@@ -13,8 +13,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 @Entity
@@ -91,6 +94,20 @@ public class Articles extends Auditable<String> {
 
     @PositiveOrZero
     private Double halfWholesalePurchasePrice;
+
+    @PositiveOrZero
+    private Integer unitsPerHalfPackage;
+
+    @PositiveOrZero
+    private Double wholesaleSalePrice;
+
+    @PositiveOrZero
+    private Double halfWholesaleSalePrice;
+
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<ArticleSalePack> salePacks = new ArrayList<>();
 
     public Articles(Long articleId) {
         this.id = articleId;

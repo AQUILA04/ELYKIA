@@ -411,6 +411,9 @@ export interface TontineDeliveryItemSyncRequest {
   articleId: number;
   quantity: number;
   unitPrice: number;
+  salePackMode?: string;
+  packCount?: number;
+  unitsPerPack?: number;
 }
 
 export interface TontineMemberSyncResponse {

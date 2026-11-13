@@ -24,7 +24,9 @@ import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.service.util.ClientAccountService;
+import com.optimize.elykia.core.service.sale.CashSalePricingService;
 import com.optimize.elykia.core.service.sale.CreditService;
+import org.springframework.beans.factory.annotation.Autowired;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -55,6 +57,9 @@ public class TontineDeliveryService {
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final ClientService clientService;
     private final TontineDeliveryReferenceService deliveryReferenceService;
+
+    @Autowired(required = false)
+    private CashSalePricingService cashSalePricingService;
     private BusinessMetricsPublisher metricsPublisher;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -102,13 +107,27 @@ public class TontineDeliveryService {
 
             TontineDeliveryItem item = new TontineDeliveryItem();
             item.setArticles(article);
-            item.setQuantity(itemDto.getQuantity());
-            item.setUnitPrice(itemDto.getUnitPrice());
             item.setArticleName(article.getCommercialName());
             item.setArticleId(article.getId());
             item.setArticleCode(article.getType() + "-" + article.getMarque());
-            double itemTotal = itemDto.getQuantity() * itemDto.getUnitPrice();
-            item.setTotalPrice(itemTotal);
+            double itemTotal;
+            String commercial = member.getClient() != null ? member.getClient().getCollector() : null;
+            if (cashSalePricingService != null && commercial != null) {
+                var quote = cashSalePricingService.quoteTontine(
+                        article,
+                        commercial,
+                        itemDto.getSalePackMode(),
+                        itemDto.getPackCount(),
+                        itemDto.getUnitsPerPack(),
+                        itemDto.getQuantity());
+                quote.apply(item);
+                itemTotal = quote.getLineAmount();
+            } else {
+                item.setQuantity(itemDto.getQuantity());
+                item.setUnitPrice(itemDto.getUnitPrice());
+                itemTotal = itemDto.getQuantity() * itemDto.getUnitPrice();
+                item.setTotalPrice(itemTotal);
+            }
             totalAmount += itemTotal;
             items.add(item);
         }
