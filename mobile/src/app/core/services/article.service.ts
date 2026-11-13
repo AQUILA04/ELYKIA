@@ -58,6 +58,17 @@ export class ArticleService {
     );
   }
 
+  getSaleOffers(articleId: string, channel: 'CASH' | 'TONTINE', commercial?: string): Observable<any[]> {
+    let url = `${environment.apiUrl}/api/v1/articles/${articleId}/sale-offers?channel=${channel}`;
+    if (commercial) {
+      url += `&commercial=${encodeURIComponent(commercial)}`;
+    }
+    return this.http.get<ApiResponse<any[]>>(url).pipe(
+      map(response => response?.data || []),
+      catchError(() => of([]))
+    );
+  }
+
   getArticles(): Observable<Article[]> {
     // Warning: This loads all articles.
     // Articles are usually reference data and might be needed in full for dropdowns.

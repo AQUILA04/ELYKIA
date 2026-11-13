@@ -88,4 +88,16 @@ public final class CommercialMonthlyStockCashSalePricing {
 
         return newTotalSold;
     }
+
+    public static double applyExplicitSoldValueAndMargin(
+            CommercialMonthlyStockItem stockItem,
+            double lineSoldValue,
+            double lineMargin) {
+        double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0 : stockItem.getTotalSoldValue();
+        double newTotalSold = currentTotalSold + lineSoldValue;
+        stockItem.setTotalSoldValue(newTotalSold);
+        double currentMarge = stockItem.getTotalMargeValue() == null ? 0.0 : stockItem.getTotalMargeValue();
+        stockItem.setTotalMargeValue(currentMarge + lineMargin);
+        return newTotalSold;
+    }
 }

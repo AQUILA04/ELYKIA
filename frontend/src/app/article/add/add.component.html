@@ -128,10 +128,16 @@
 
         <div class="form-field" *ngIf="hasPackaging">
           <label for="unitsPerPackage">Unités par colis <span class="required">*</span></label>
-          <input type="number" id="unitsPerPackage" formControlName="unitsPerPackage" class="field-input field-mono" min="2" step="2">
+          <input type="number" id="unitsPerPackage" formControlName="unitsPerPackage" class="field-input field-mono" min="2" step="1">
           <span class="field-error" *ngIf="articleForm.get('unitsPerPackage')?.invalid && articleForm.get('unitsPerPackage')?.touched">
             Nombre d'unités ≥ 2 requis
           </span>
+        </div>
+
+        <div class="form-field" *ngIf="unitsAreOdd">
+          <label for="unitsPerHalfPackage">Unités du demi-gros</label>
+          <input type="number" id="unitsPerHalfPackage" formControlName="unitsPerHalfPackage" class="field-input field-mono" min="1" step="1">
+          <span class="field-hint">Laissez vide s'il n'y a pas de demi-gros. Sinon, un entier entre 1 et le nombre d'unités du colis moins 1.</span>
         </div>
 
         <div class="form-field" *ngIf="hasPackaging">
@@ -139,17 +145,38 @@
           <input type="number" id="wholesalePurchasePrice" formControlName="wholesalePurchasePrice" class="field-input field-mono" min="0">
         </div>
 
-        <div class="form-field" *ngIf="hasPackaging">
-          <label for="halfWholesalePurchasePrice">Prix d'achat demi-gros (½ colis)</label>
+        <div class="form-field" *ngIf="hasHalf">
+          <label for="halfWholesalePurchasePrice">Prix d'achat demi-gros</label>
           <input type="number" id="halfWholesalePurchasePrice" formControlName="halfWholesalePurchasePrice" class="field-input field-mono" min="0">
+        </div>
+
+        <div class="form-field" *ngIf="hasPackaging">
+          <label for="wholesaleSalePrice">Prix de vente gros (1 colis)</label>
+          <input type="number" id="wholesaleSalePrice" formControlName="wholesaleSalePrice" class="field-input field-mono" min="0">
+        </div>
+
+        <div class="form-field" *ngIf="hasHalf">
+          <label for="halfWholesaleSalePrice">Prix de vente demi-gros</label>
+          <input type="number" id="halfWholesaleSalePrice" formControlName="halfWholesaleSalePrice" class="field-input field-mono" min="0">
+        </div>
+
+        <div class="form-field" formArrayName="salePacks">
+          <label>Offres personnalisées</label>
+          <div *ngFor="let pack of salePacks.controls; let i = index" [formGroupName]="i" class="pack-row">
+            <input type="number" formControlName="quantity" class="field-input field-mono" min="2" placeholder="Unités" aria-label="Unités du pack">
+            <input type="number" formControlName="salePrice" class="field-input field-mono" min="0.01" placeholder="Prix du pack" aria-label="Prix du pack">
+            <button type="button" class="btn-outline" (click)="removeSalePack(i)">Retirer</button>
+          </div>
+          <button type="button" class="btn-outline" (click)="addSalePack()">Ajouter une offre</button>
+          <span class="field-hint">Exemple : 3 unités pour 250. Le prix est celui du lot, pas le prix d'une unité.</span>
         </div>
       </div>
 
       <div class="form-hint" *ngIf="articleForm.errors?.['priceOrderInvalid']">
         Les prix doivent respecter l'ordre : Prix d'achat ≤ Prix de vente ≤ Prix de vente à crédit.
       </div>
-      <div class="form-hint" *ngIf="articleForm.errors?.['packagingUnitsOdd']">
-        Le nombre d'unités par colis doit être pair pour permettre le demi-gros.
+      <div class="form-hint" *ngIf="articleForm.errors?.['halfPackageInvalid']">
+        Le demi-gros doit être un entier entre 1 et le nombre d'unités du colis moins 1.
       </div>
       <div class="form-hint" *ngIf="articleForm.errors?.['packagingUnitsInvalid']">
         Indiquez un nombre d'unités par colis ≥ 2.

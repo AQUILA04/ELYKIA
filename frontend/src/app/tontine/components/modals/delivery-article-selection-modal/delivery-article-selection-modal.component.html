@@ -79,8 +79,13 @@
               <span class="name">{{ selected.article.name }}</span>
             </div>
           </td>
-          <td *appIfUnitPrice>{{ formatCurrency(selected.article.sellingPrice) }}</td>
+          <td *appIfUnitPrice>{{ formatCurrency(offerOf(selected)?.salePrice || selected.article.sellingPrice) }}</td>
           <td>
+            <select [value]="selected.offerKey" (change)="onOfferChange(selected, $any($event.target).value)" aria-label="Offre">
+              <option *ngFor="let offer of selected.offers" [value]="offerKey(offer)">
+                {{ offer.label }} — {{ formatCurrency(offer.salePrice) }}
+              </option>
+            </select>
             <div class="quantity-controls">
               <button mat-icon-button (click)="updateQuantity(selected, -1)" [disabled]="selected.quantity <= 1">
                 <mat-icon>remove</mat-icon>

@@ -36,7 +36,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
 import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
@@ -60,6 +62,13 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     private final TemplateEngine templateEngine;
     private final PdfHtmlRenderer pdfHtmlRenderer;
     private InventoryWarehouseGuard inventoryWarehouseGuard;
+    private com.optimize.elykia.core.service.tontine.TontineStockLayerService tontineStockLayerService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setTontineStockLayerService(
+            com.optimize.elykia.core.service.tontine.TontineStockLayerService tontineStockLayerService) {
+        this.tontineStockLayerService = tontineStockLayerService;
+    }
 
     @org.springframework.beans.factory.annotation.Autowired
     public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
@@ -231,6 +240,8 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             throw new CustomValidationException("Stock magasin insuffisant pour tous les articles.");
         }
 
+        Map<Long, List<com.optimize.elykia.core.dto.stock.FifoLotSlice>> slicesByArticle = new HashMap<>();
+
         // 2. Procéder aux mouvements de sortie magasin
         for (StockTontineRequestItem item : deliverableItems) {
             Articles article = articlesService.getById(item.getArticle().getId());
@@ -264,6 +275,9 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
                     article,
                     fifoEnabled,
                     consumption.getAverageUnitCost());
+            if (consumption.getSlices() != null && !consumption.getSlices().isEmpty()) {
+                slicesByArticle.put(article.getId(), consumption.getSlices());
+            }
         }
 
         deliveredItemDTOs.clear();
@@ -281,6 +295,12 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         request.setDeliveryDate(LocalDate.now());
         // 3. Mise à jour du stock Tontine du commercial
         tontineStockService.processStockDelivery(request);
+        if (tontineStockLayerService != null && request.getDeliveryDate() != null) {
+            tontineStockLayerService.attach(
+                    request.getCollector(),
+                    request.getDeliveryDate().getYear(),
+                    slicesByArticle);
+        }
 
         request.setStatus(StockRequestStatus.DELIVERED);
 

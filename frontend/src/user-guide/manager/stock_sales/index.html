@@ -2155,8 +2155,10 @@
 <li><strong>Identification produit</strong> : Nom de l'article, Marque, Modèle et Catégorie / Famille de produits.</li>
 <li><strong>Grille tarifaire à 3 niveaux</strong> :</li>
 <li><strong>Prix d'achat fournisseur</strong> : Coût d'acquisition servant de base au calcul de valorisation du stock et aux marges brutes.</li>
-<li><strong>Prix de vente comptant</strong> : Montant appliqué lors des règlements immédiats en espèces.</li>
+<li><strong>Prix de vente comptant</strong> : Montant appliqué lors des règlements immédiats en espèces, à l'unité.</li>
 <li><strong>Prix de vente à crédit</strong> : Montant contractuel pour les paiements échelonnés sur 30 jours (incluant la marge financière).</li>
+<li><strong>Colis</strong> : si l'article se reçoit en carton ou en sac, indiquez le nombre d'unités du colis. Ce nombre peut être impair. Le demi-gros est la moitié du colis lorsque le nombre est pair. Lorsqu'il est impair, le champ <strong>Unités du demi-gros</strong> apparaît : laissez-le vide s'il n'y a pas de demi-gros, ou indiquez combien d'unités il contient.</li>
+<li><strong>Prix de vente du colis</strong> : prix de vente du gros, et prix de vente du demi-gros seulement si le demi-gros existe. Vous pouvez aussi ajouter des offres libres, par exemple 3 unités pour 250 : le montant est celui des 3 unités, pas le prix d'une seule.</li>
 <li><strong>Paramètres de réapprovisionnement</strong> :</li>
 <li><strong>Point de commande (Seuil d'alerte)</strong> : Quantité minimale en deçà de laquelle l'article bascule en alerte orange <em>Rupture imminente</em>.</li>
 <li><strong>Niveau de stock optimal</strong> : Quantité cible recommandée en magasin.</li>
@@ -2174,7 +2176,7 @@
 <li><strong>Contrôle et Validation par le gestionnaire</strong> :</li>
 <li>Rendez-vous dans <strong>Stock Commercial &gt; Historique Entrée</strong>.</li>
 <li>Cliquez sur <strong>« Voir »</strong> pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran, ou directement sur <strong>« Valider »</strong>.</li>
-<li>Une fenêtre de confirmation liste les articles. Les prix d'achat (unitaire, ou prix du colis / demi-colis) sont préremplis avec le catalogue : vous pouvez les modifier ou les laisser tels quels.</li>
+<li>Une fenêtre de confirmation liste les articles. Les prix d'achat (unitaire, ou prix du colis / demi-colis) sont préremplis avec le catalogue : vous pouvez les modifier ou les laisser tels quels. Le demi-gros n'est proposé que s'il est défini sur la fiche. Les prix de vente du lot (unité, gros, demi-gros) sont aussi préremplis et modifiables pour cette entrée.</li>
 <li>Cliquez sur <strong>« Confirmer la validation »</strong> : le stock magasin est <strong>instantanément augmenté</strong> avec les prix confirmés. En cas d'erreur, le message s'affiche dans la fenêtre : corrigez puis renvoyez.</li>
 <li><strong>Refuser</strong> : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à <strong>Refusé</strong>.</li>
 <li><strong>Abandonner</strong> : Permet au créateur de la réception en attente de supprimer sa saisie avant validation si une erreur a été commise.</li>

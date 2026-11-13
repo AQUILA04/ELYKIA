@@ -255,7 +255,7 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
 3. **Choisissez les articles avec la cliente** :
    * **Pendant la session ouverte** : l'écran affiche le **catalogue** de l'agence. Vous n'avez pas besoin d'avoir déjà du stock tontine pour enregistrer la commande.
    * **Après la clôture** : l'écran affiche votre **stock tontine** (articles reçus du magasin) pour la remise en mains propres.
-   * Touchez **+** pour ajouter les articles. Au fur et à mesure, le compteur **Sélectionné** monte et le compteur **Restant** diminue.
+   * Touchez **+** pour ajouter les articles. Si l'article a plusieurs offres (unité, gros, demi-gros ou une offre libre), choisissez-la dans la liste avant d'augmenter la quantité. Au fur et à mesure, le compteur **Sélectionné** monte et le compteur **Restant** diminue.
 4. **Que faire si la cliente veut un article un peu plus cher que son épargne ?**
    * L'application est intelligente ! Si le total des articles dépasse son épargne, un bouton bleu apparaît en haut : **« Compléter le solde (X FCFA) »**.
    * Touchez ce bouton : l'application ouvre aussitôt l'écran de cotisation avec le montant manquant pré-rempli. Dès que la cliente vous donne la différence, vous revenez automatiquement sur son panier parfaitement équilibré !

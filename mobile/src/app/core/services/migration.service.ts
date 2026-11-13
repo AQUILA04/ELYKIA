@@ -157,6 +157,9 @@ export class MigrationService {
       case 36:
         await this.migrateToV36(db);
         break;
+      case 37:
+        await this.migrateToV37(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -999,6 +1002,13 @@ export class MigrationService {
       );
     `);
     await this.log.log('Migration to v36 successful.');
+  }
+
+  private async migrateToV37(db: SQLiteDBConnection): Promise<void> {
+    await this.migrateAddColumnIfMissing(db, 'v37', 'tontine_delivery_items', 'salePackMode', 'TEXT');
+    await this.addColumnIfNotExists(db, 'tontine_delivery_items', 'packCount', 'INTEGER');
+    await this.addColumnIfNotExists(db, 'tontine_delivery_items', 'unitsPerPack', 'INTEGER');
+    await this.addColumnIfNotExists(db, 'tontine_delivery_items', 'packLabel', 'TEXT');
   }
 
   /** Migration simple : une colonne optionnelle + logs awaités (fiabilité Sonar). */

@@ -29,6 +29,7 @@
               <th *ngIf="data.canShowPurchasePrice">Prix colis</th>
               <th *ngIf="data.canShowPurchasePrice">Prix unitaire</th>
               <th *ngIf="data.canShowPurchasePrice">Total ligne</th>
+              <th>Prix de vente du lot</th>
             </tr>
           </thead>
           <tbody>
@@ -75,6 +76,25 @@
               </td>
               <td *ngIf="data.canShowPurchasePrice">
                 <span class="line-total">{{ displayLineTotal(item) | number }} FCFA</span>
+              </td>
+              <td>
+                <input class="price-input" type="number" min="0" step="1"
+                  [ngModel]="editablePrices[item.id]?.unitSalePrice"
+                  (ngModelChange)="editablePrices[item.id].unitSalePrice = $event"
+                  [disabled]="submitting"
+                  [attr.aria-label]="'Prix de vente unitaire ' + (item.articleName || '')" />
+                <input *ngIf="item.wholesaleSalePrice != null || item.catalogWholesaleSalePrice != null"
+                  class="price-input" type="number" min="0" step="1"
+                  [ngModel]="editablePrices[item.id]?.wholesaleSalePrice"
+                  (ngModelChange)="editablePrices[item.id].wholesaleSalePrice = $event"
+                  [disabled]="submitting"
+                  aria-label="Prix de vente gros" />
+                <input *ngIf="item.halfWholesaleSalePrice != null || item.catalogHalfWholesaleSalePrice != null"
+                  class="price-input" type="number" min="0" step="1"
+                  [ngModel]="editablePrices[item.id]?.halfWholesaleSalePrice"
+                  (ngModelChange)="editablePrices[item.id].halfWholesaleSalePrice = $event"
+                  [disabled]="submitting"
+                  aria-label="Prix de vente demi-gros" />
               </td>
             </tr>
           </tbody>

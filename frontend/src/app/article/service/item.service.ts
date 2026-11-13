@@ -45,8 +45,12 @@ export interface Article {
   lastRestockDate?: string;
   packagingType?: 'NONE' | 'CARTON' | 'SAC';
   unitsPerPackage?: number | null;
+  unitsPerHalfPackage?: number | null;
   wholesalePurchasePrice?: number | null;
   halfWholesalePurchasePrice?: number | null;
+  wholesaleSalePrice?: number | null;
+  halfWholesaleSalePrice?: number | null;
+  salePacks?: ArticleSalePack[];
   state?: 'ENABLED' | 'DISABLED' | 'DELETED';
   /** @deprecated Utiliser 'state' — alias de compatibilité pour list.component */
   status?: 'ENABLED' | 'DISABLED' | 'DELETED';
@@ -57,6 +61,11 @@ export interface Article {
   articleCreatedDate?: string;
   articleLastModifiedBy?: string;
   articleLastModifiedDate?: string;
+}
+
+export interface ArticleSalePack {
+  quantity: number;
+  salePrice: number;
 }
 
 export interface NewArticleData {
@@ -73,8 +82,12 @@ export interface NewArticleData {
   isSeasonal?: boolean;
   packagingType?: 'NONE' | 'CARTON' | 'SAC';
   unitsPerPackage?: number | null;
+  unitsPerHalfPackage?: number | null;
   wholesalePurchasePrice?: number | null;
   halfWholesalePurchasePrice?: number | null;
+  wholesaleSalePrice?: number | null;
+  halfWholesaleSalePrice?: number | null;
+  salePacks?: ArticleSalePack[];
 }
 
 export interface ArticleHistoryItem {
@@ -268,7 +281,15 @@ export class ItemService {
       creditSalePrice: article.creditSalePrice,
       reorderPoint: article.reorderPoint,
       optimalStockLevel: article.optimalStockLevel,
-      isSeasonal: article.isSeasonal
+      isSeasonal: article.isSeasonal,
+      packagingType: article.packagingType,
+      unitsPerPackage: article.unitsPerPackage,
+      unitsPerHalfPackage: article.unitsPerHalfPackage,
+      wholesalePurchasePrice: article.wholesalePurchasePrice,
+      halfWholesalePurchasePrice: article.halfWholesalePurchasePrice,
+      wholesaleSalePrice: article.wholesaleSalePrice,
+      halfWholesaleSalePrice: article.halfWholesaleSalePrice,
+      salePacks: article.salePacks ?? []
     };
 
     return this.http.put<Article>(url, payload, { headers });
@@ -293,6 +314,15 @@ export class ItemService {
     const headers = this.getHeader();
     const url = `${this.apiUrl}/${id}`;
     return this.http.get<any>(url, { headers });
+  }
+
+  getSaleOffers(id: number, channel: 'CASH' | 'TONTINE', commercial?: string): Observable<any> {
+    const headers = this.getHeader();
+    let params = new HttpParams().set('channel', channel);
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+    return this.http.get<any>(`${this.apiUrl}/${id}/sale-offers`, { headers, params });
   }
 
   deleteArticle(id: number): Observable<any> {

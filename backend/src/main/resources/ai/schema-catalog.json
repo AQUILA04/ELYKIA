@@ -176,6 +176,41 @@
         {
           "name": "unit_price",
           "type": "double"
+        },
+        {
+          "name": "sale_pack_mode",
+          "type": "varchar",
+          "description": "UNIT, WHOLESALE, HALF_WHOLESALE ou CUSTOM"
+        },
+        {
+          "name": "pack_label",
+          "type": "varchar",
+          "description": "Libellé de l'offre vendue"
+        },
+        {
+          "name": "pack_count",
+          "type": "integer",
+          "description": "Nombre d'offres sur la ligne"
+        },
+        {
+          "name": "units_per_pack",
+          "type": "integer",
+          "description": "Unités contenues dans une offre"
+        },
+        {
+          "name": "line_amount",
+          "type": "double",
+          "description": "Montant encaissé de la ligne"
+        },
+        {
+          "name": "line_purchase_amount",
+          "type": "double",
+          "description": "Coût d'achat de la ligne"
+        },
+        {
+          "name": "line_margin",
+          "type": "double",
+          "description": "Marge de la ligne"
         }
       ]
     },
@@ -366,7 +401,75 @@
           "name": "photo_object_key",
           "type": "varchar",
           "description": "Clé de stockage de la photo réduite de l'article. Vide si l'article n'a pas sa propre photo."
+        },
+        {
+          "name": "units_per_package",
+          "type": "integer",
+          "description": "Nombre d'unités dans un colis"
+        },
+        {
+          "name": "units_per_half_package",
+          "type": "integer",
+          "description": "Unités du demi-gros lorsque le colis est impair"
+        },
+        {
+          "name": "wholesale_purchase_price",
+          "type": "double",
+          "description": "Prix d'achat d'un colis"
+        },
+        {
+          "name": "half_wholesale_purchase_price",
+          "type": "double",
+          "description": "Prix d'achat d'un demi-gros"
+        },
+        {
+          "name": "selling_price",
+          "type": "double",
+          "description": "Prix de vente unitaire comptant"
+        },
+        {
+          "name": "wholesale_sale_price",
+          "type": "double",
+          "description": "Prix de vente d'un colis"
+        },
+        {
+          "name": "half_wholesale_sale_price",
+          "type": "double",
+          "description": "Prix de vente d'un demi-gros"
         }
+      ]
+    },
+    {
+      "name": "article_sale_pack",
+      "description": "Offre de vente libre d'un article, par exemple 3 unités pour 250",
+      "synonyms": ["pack", "offre", "lot promotionnel"],
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "article_id", "type": "bigint", "description": "Article" },
+        { "name": "quantity", "type": "integer", "description": "Nombre d'unités de l'offre" },
+        { "name": "sale_price", "type": "double", "description": "Prix de l'offre, pas le prix d'une unité" }
+      ],
+      "relations": [
+        { "column": "article_id", "refTable": "articles", "refColumn": "id" }
+      ]
+    },
+    {
+      "name": "article_stock_lot",
+      "description": "Lot d'entrée FIFO. Le prix de vente figé est celui recopié à l'entrée.",
+      "synonyms": ["lot", "entrée FIFO"],
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "article_id", "type": "bigint", "description": "Article" },
+        { "name": "quantity_remaining", "type": "integer", "description": "Unités encore en stock dans le lot" },
+        { "name": "unit_purchase_price", "type": "double", "description": "Prix d'achat unitaire du lot" },
+        { "name": "unit_sale_price", "type": "double", "description": "Prix de vente unitaire figé à l'entrée" },
+        { "name": "wholesale_purchase_price", "type": "double", "description": "Prix d'achat du colis saisi à l'entrée" },
+        { "name": "wholesale_sale_price", "type": "double", "description": "Prix de vente du colis figé à l'entrée" },
+        { "name": "half_wholesale_purchase_price", "type": "double", "description": "Prix d'achat du demi-gros saisi à l'entrée" },
+        { "name": "half_wholesale_sale_price", "type": "double", "description": "Prix de vente du demi-gros figé à l'entrée" }
+      ],
+      "relations": [
+        { "column": "article_id", "refTable": "articles", "refColumn": "id" }
       ]
     },
     {

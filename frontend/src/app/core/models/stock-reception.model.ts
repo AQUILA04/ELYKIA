@@ -40,6 +40,12 @@ export interface StockReceptionItem {
   catalogPurchasePrice?: number | null;
   catalogWholesalePurchasePrice?: number | null;
   catalogHalfWholesalePurchasePrice?: number | null;
+  unitSalePrice?: number | null;
+  wholesaleSalePrice?: number | null;
+  halfWholesaleSalePrice?: number | null;
+  catalogSellingPrice?: number | null;
+  catalogWholesaleSalePrice?: number | null;
+  catalogHalfWholesaleSalePrice?: number | null;
 }
 
 /** Prix saisis / affichés avant validation FIFO (source de vérité envoyée au backend). */
@@ -47,6 +53,9 @@ export interface StockReceptionValidateLine {
   itemId: number;
   unitPrice?: number;
   packagePrice?: number;
+  unitSalePrice?: number;
+  wholesaleSalePrice?: number;
+  halfWholesaleSalePrice?: number;
 }
 
 export interface StockReceptionValidateRequest {

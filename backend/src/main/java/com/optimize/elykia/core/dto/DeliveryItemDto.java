@@ -17,4 +17,8 @@ public class DeliveryItemDto {
     @NotNull(message = "Le prix unitaire est requis")
     @Min(value = 0, message = "Le prix unitaire ne peut pas être négatif")
     private Double unitPrice;
+
+    private com.optimize.elykia.core.enumaration.SalePackMode salePackMode;
+    private Integer packCount;
+    private Integer unitsPerPack;
 }

@@ -21,8 +21,10 @@ Le catalogue centralise les articles commercialisables, leurs grilles tarifaires
 * **Identification produit** : Nom de l'article, Marque, Modèle et Catégorie / Famille de produits.
 * **Grille tarifaire à 3 niveaux** :
   * **Prix d'achat fournisseur** : Coût d'acquisition servant de base au calcul de valorisation du stock et aux marges brutes.
-  * **Prix de vente comptant** : Montant appliqué lors des règlements immédiats en espèces.
+  * **Prix de vente comptant** : Montant appliqué lors des règlements immédiats en espèces, à l'unité.
   * **Prix de vente à crédit** : Montant contractuel pour les paiements échelonnés sur 30 jours (incluant la marge financière).
+* **Colis** : si l'article se reçoit en carton ou en sac, indiquez le nombre d'unités du colis. Ce nombre peut être impair. Le demi-gros est la moitié du colis lorsque le nombre est pair. Lorsqu'il est impair, le champ **Unités du demi-gros** apparaît : laissez-le vide s'il n'y a pas de demi-gros, ou indiquez combien d'unités il contient.
+* **Prix de vente du colis** : prix de vente du gros, et prix de vente du demi-gros seulement si le demi-gros existe. Vous pouvez aussi ajouter des offres libres, par exemple 3 unités pour 250 : le montant est celui des 3 unités, pas le prix d'une seule.
 * **Paramètres de réapprovisionnement** :
   * **Point de commande (Seuil d'alerte)** : Quantité minimale en deçà de laquelle l'article bascule en alerte orange *Rupture imminente*.
   * **Niveau de stock optimal** : Quantité cible recommandée en magasin.
@@ -43,7 +45,7 @@ Pour accéder à la liste des réceptions, ouvrez le menu latéral **Stock Comme
 3. **Contrôle et Validation par le gestionnaire** :
    * Rendez-vous dans **Stock Commercial > Historique Entrée**.
    * Cliquez sur **« Voir »** pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran, ou directement sur **« Valider »**.
-   * Une fenêtre de confirmation liste les articles. Les prix d'achat (unitaire, ou prix du colis / demi-colis) sont préremplis avec le catalogue : vous pouvez les modifier ou les laisser tels quels.
+   * Une fenêtre de confirmation liste les articles. Les prix d'achat (unitaire, ou prix du colis / demi-colis) sont préremplis avec le catalogue : vous pouvez les modifier ou les laisser tels quels. Le demi-gros n'est proposé que s'il est défini sur la fiche. Les prix de vente du lot (unité, gros, demi-gros) sont aussi préremplis et modifiables pour cette entrée.
    * Cliquez sur **« Confirmer la validation »** : le stock magasin est **instantanément augmenté** avec les prix confirmés. En cas d'erreur, le message s'affiche dans la fenêtre : corrigez puis renvoyez.
    * **Refuser** : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à **Refusé**.
    * **Abandonner** : Permet au créateur de la réception en attente de supprimer sa saisie avant validation si une erreur a été commise.

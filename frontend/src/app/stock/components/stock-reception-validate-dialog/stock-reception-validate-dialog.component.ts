@@ -18,6 +18,9 @@ export interface StockReceptionValidateDialogData {
 interface EditablePriceState {
   unitPrice: number | null;
   packagePrice: number | null;
+  unitSalePrice: number | null;
+  wholesaleSalePrice: number | null;
+  halfWholesaleSalePrice: number | null;
 }
 
 @Component({
@@ -99,7 +102,10 @@ export class StockReceptionValidateDialogComponent implements OnInit {
       return `${item.packageCount} ${typeLabel}${item.packageCount > 1 ? 's' : ''} × ${item.unitsPerPackageSnapshot} u`;
     }
     if (mode === 'HALF_WHOLESALE') {
-      return `${item.packageCount} demi-${typeLabel}${item.packageCount > 1 ? 's' : ''} × ${item.unitsPerPackageSnapshot / 2} u`;
+      const halfUnits = item.packageCount && item.quantity
+        ? item.quantity / item.packageCount
+        : item.unitsPerPackageSnapshot / 2;
+      return `${item.packageCount} demi-${typeLabel}${item.packageCount > 1 ? 's' : ''} × ${halfUnits} u`;
     }
     return null;
   }
@@ -182,12 +188,18 @@ export class StockReceptionValidateDialogComponent implements OnInit {
     if (this.isPackagingMode(item)) {
       this.editablePrices[item.id] = {
         unitPrice: null,
-        packagePrice: this.resolveDefaultPackagePrice(item)
+        packagePrice: this.resolveDefaultPackagePrice(item),
+        unitSalePrice: item.unitSalePrice ?? item.catalogSellingPrice ?? null,
+        wholesaleSalePrice: item.wholesaleSalePrice ?? item.catalogWholesaleSalePrice ?? null,
+        halfWholesaleSalePrice: item.halfWholesaleSalePrice ?? item.catalogHalfWholesaleSalePrice ?? null
       };
     } else {
       this.editablePrices[item.id] = {
         unitPrice: this.resolveDefaultUnitPrice(item),
-        packagePrice: null
+        packagePrice: null,
+        unitSalePrice: item.unitSalePrice ?? item.catalogSellingPrice ?? null,
+        wholesaleSalePrice: item.wholesaleSalePrice ?? item.catalogWholesaleSalePrice ?? null,
+        halfWholesaleSalePrice: item.halfWholesaleSalePrice ?? item.catalogHalfWholesaleSalePrice ?? null
       };
     }
   }
@@ -215,8 +227,10 @@ export class StockReceptionValidateDialogComponent implements OnInit {
         && item.unitsPerPackageSnapshot
         && item.unitsPerPackageSnapshot > 0) {
       const unitsInMode = item.entryPackagingMode === 'HALF_WHOLESALE'
-        ? item.unitsPerPackageSnapshot / 2
-        : item.unitsPerPackageSnapshot;
+        ? (item.packageCount && item.quantity
+          ? item.quantity / item.packageCount
+          : (item.unitsPerPackageSnapshot ?? 0) / 2)
+        : (item.unitsPerPackageSnapshot ?? 0);
       return this.roundMoney(item.catalogPurchasePrice * unitsInMode);
     }
     return item.packagePrice != null && item.packagePrice > 0 ? item.packagePrice : 0;
@@ -225,7 +239,7 @@ export class StockReceptionValidateDialogComponent implements OnInit {
   private derivedUnitPrice(item: StockReceptionItem): number {
     const packagePrice = this.displayPackagePrice(item);
     const units = item.entryPackagingMode === 'HALF_WHOLESALE'
-      ? (item.unitsPerPackageSnapshot ?? 0) / 2
+      ? (item.packageCount && item.quantity ? item.quantity / item.packageCount : (item.unitsPerPackageSnapshot ?? 0) / 2)
       : (item.unitsPerPackageSnapshot ?? 0);
     if (!units || units <= 0) {
       return 0;
@@ -261,15 +275,22 @@ export class StockReceptionValidateDialogComponent implements OnInit {
       return undefined;
     }
     const items: StockReceptionValidateLine[] = this.items.map(item => {
+      const sale = {
+        unitSalePrice: this.editablePrices[item.id]?.unitSalePrice ?? undefined,
+        wholesaleSalePrice: this.editablePrices[item.id]?.wholesaleSalePrice ?? undefined,
+        halfWholesaleSalePrice: this.editablePrices[item.id]?.halfWholesaleSalePrice ?? undefined
+      };
       if (this.isPackagingMode(item)) {
         return {
           itemId: item.id,
-          packagePrice: this.editablePrices[item.id].packagePrice!
+          packagePrice: this.editablePrices[item.id].packagePrice!,
+          ...sale
         };
       }
       return {
         itemId: item.id,
-        unitPrice: this.editablePrices[item.id].unitPrice!
+        unitPrice: this.editablePrices[item.id].unitPrice!,
+        ...sale
       };
     });
     return { items };
@@ -277,7 +298,13 @@ export class StockReceptionValidateDialogComponent implements OnInit {
 
   private ensureEditable(itemId: number): EditablePriceState {
     if (!this.editablePrices[itemId]) {
-      this.editablePrices[itemId] = { unitPrice: null, packagePrice: null };
+      this.editablePrices[itemId] = {
+        unitPrice: null,
+        packagePrice: null,
+        unitSalePrice: null,
+        wholesaleSalePrice: null,
+        halfWholesaleSalePrice: null
+      };
     }
     return this.editablePrices[itemId];
   }

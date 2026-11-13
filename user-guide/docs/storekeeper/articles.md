@@ -27,6 +27,14 @@ Accessible depuis le menu latéral gauche **Articles** (si vous ne voyez pas ce 
 
 Si l'article n'a pas encore sa photo, l'aperçu reprend celle de son type lorsqu'elle existe. Le catalogue de l'espace client affiche la même image.
 
+## Colis et demi-gros
+
+1. Sur la fiche, choisissez **Carton** ou **Sac**, puis le nombre d'unités du colis. Ce nombre peut être impair.
+2. S'il est impair, le champ **Unités du demi-gros** apparaît. Laissez-le vide s'il n'y a pas de demi-gros. Sinon, indiquez combien d'unités il contient.
+3. Le prix d'achat du demi-gros et son prix de vente ne s'affichent que si le demi-gros est défini.
+4. Vous pouvez ajouter des offres de vente, par exemple 3 unités pour 250. Le montant est celui des 3 unités.
+5. À l'entrée de stock, le demi-gros n'est proposé que s'il est défini. Le gros reste possible même si le colis est impair. Les prix de vente du lot sont préremplis et modifiables pour cette entrée.
+
 ---
 
 ## 2. Seuils logistiques et alertes de stock

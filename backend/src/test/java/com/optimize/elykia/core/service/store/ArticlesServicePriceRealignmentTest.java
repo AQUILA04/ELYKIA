@@ -8,6 +8,7 @@ import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.event.ArticlePriceChangedEvent;
 import com.optimize.elykia.core.mapper.ArticlesMapper;
 import com.optimize.elykia.core.repository.ArticlePriceHistoryRepository;
+import com.optimize.elykia.core.repository.ArticleSalePackRepository;
 import com.optimize.elykia.core.repository.ArticleStateHistoryRepository;
 import com.optimize.elykia.core.repository.ArticlesRepository;
 import com.optimize.elykia.core.repository.ExpenseTypeRepository;
@@ -59,6 +60,8 @@ class ArticlesServicePriceRealignmentTest {
     @Mock
     private ArticlePackagingPricingService articlePackagingPricingService;
     @Mock
+    private ArticleSalePackRepository articleSalePackRepository;
+    @Mock
     private ParameterService parameterService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
@@ -81,6 +84,7 @@ class ArticlesServicePriceRealignmentTest {
                 articlePriceHistoryRepository,
                 stockValuationFacade,
                 articlePackagingPricingService,
+                articleSalePackRepository,
                 parameterService,
                 eventPublisher);
         lenient().doNothing().when(articlePackagingPricingService).validateArticlePackaging(any());

@@ -193,7 +193,10 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
             items: deliveryItems.map(item => ({
                 articleId: Number.parseInt(item.articleId, 10),
                 quantity: item.quantity,
-                unitPrice: item.unitPrice
+                unitPrice: item.unitPrice,
+                salePackMode: item.salePackMode,
+                packCount: item.packCount,
+                unitsPerPack: item.unitsPerPack
             })),
             operationConsentCode: delivery.operationConsentCode ?? null,
             syncConsentCode: this.syncConsentCode ?? null

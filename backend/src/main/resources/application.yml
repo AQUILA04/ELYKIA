@@ -497,6 +497,10 @@ app:
         key: RESTRICT_UNIT_PRICE_VISIBILITY
         value: true
         description: "Activé : le prix unitaire et le montant de ligne sont réservés au gestionnaire et aux profils admin. Désactivé : tous les profils voient les prix unitaires."
+      init-data[11]:
+        key: CASH_SALE_PRICE_SOURCE
+        value: CATALOG
+        description: "CATALOG : la vente comptant et la livraison tontine encaissent le prix de la fiche. FIFO_LOT : elles encaissent le prix figé sur le lot à l'entrée. La marge suit toujours le coût d'achat du lot FIFO."
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}

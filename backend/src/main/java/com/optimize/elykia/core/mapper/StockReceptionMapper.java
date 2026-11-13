@@ -1,6 +1,7 @@
 package com.optimize.elykia.core.mapper;
 
 import com.optimize.common.entities.mapper.BaseMapper;
+import com.optimize.elykia.core.dto.ArticleSalePackDto;
 import com.optimize.elykia.core.dto.StockReceptionDto;
 import com.optimize.elykia.core.dto.StockReceptionItemDto;
 import com.optimize.elykia.core.dto.StockReceptionListDto;
@@ -24,8 +25,16 @@ public interface StockReceptionMapper extends BaseMapper<StockReception, StockRe
 
     StockReceptionListDto toListDto(StockReception entity);
 
+    ArticleSalePackDto toSalePack(com.optimize.elykia.core.entity.stock.ReceptionSalePack pack);
+
     @Mapping(target = "articleId", source = "article.id")
     @Mapping(target = "articleName", source = ".", qualifiedByName = "articleFullName")
+    @Mapping(target = "catalogPurchasePrice", ignore = true)
+    @Mapping(target = "catalogWholesalePurchasePrice", ignore = true)
+    @Mapping(target = "catalogHalfWholesalePurchasePrice", ignore = true)
+    @Mapping(target = "catalogSellingPrice", ignore = true)
+    @Mapping(target = "catalogWholesaleSalePrice", ignore = true)
+    @Mapping(target = "catalogHalfWholesaleSalePrice", ignore = true)
     StockReceptionItemDto toItemDto(StockReceptionItem item);
 
     @Named("articleFullName")

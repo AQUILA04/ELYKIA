@@ -46,6 +46,7 @@ public class ArticlesController {
     private final CreditArticlesService creditArticlesService;
     private final ArticleStockTrajectoryService trajectoryService;
     private final ArticlePhotoService articlePhotoService;
+    private final com.optimize.elykia.core.service.sale.CashSalePricingService cashSalePricingService;
 
     @PostMapping
     public ResponseEntity<Response> createArticle(@RequestBody @Valid ArticlesDto dto) {
@@ -77,9 +78,19 @@ public class ArticlesController {
 
     @GetMapping(value = "{id}")
     public ResponseEntity<Response> getOne(@PathVariable Long id) {
-        Articles article = articlesService.getById(id);
+        Articles article = articlesService.getReadableArticle(id);
         articlePhotoService.attachArticleUrls(article);
         return new ResponseEntity<Response>(ResponseUtil.successResponse(article), HttpStatus.OK);
+    }
+
+    @GetMapping(value = "{id}/sale-offers")
+    public ResponseEntity<Response> saleOffers(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "CASH") String channel,
+            @RequestParam(required = false) String commercial) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(cashSalePricingService.offers(id, channel, commercial)),
+                HttpStatus.OK);
     }
 
     @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

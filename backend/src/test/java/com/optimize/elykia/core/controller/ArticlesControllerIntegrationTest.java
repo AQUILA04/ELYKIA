@@ -89,7 +89,7 @@ class ArticlesControllerIntegrationTest extends IntegrationTestSupport {
 
     @Test
     void getArticle_ShouldReturnOk() throws Exception {
-        when(articlesService.getById(1L)).thenReturn(article);
+        when(articlesService.getReadableArticle(1L)).thenReturn(article);
 
         mockMvc.perform(get("/api/v1/articles/{id}", 1L))
                 .andExpect(status().isOk())

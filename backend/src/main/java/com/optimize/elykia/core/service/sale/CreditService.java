@@ -83,6 +83,12 @@ public class CreditService extends GenericService<Credit, Long> {
 
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private CreditTimelineService creditTimelineService;
+    private com.optimize.elykia.core.service.sale.CashSalePricingService cashSalePricingService;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setCashSalePricingService(com.optimize.elykia.core.service.sale.CashSalePricingService cashSalePricingService) {
+        this.cashSalePricingService = cashSalePricingService;
+    }
 
     protected CreditService(CreditRepository repository,
             CreditMapper creditMapper,
@@ -180,8 +186,18 @@ public class CreditService extends GenericService<Credit, Long> {
 
         if (Objects.isNull(credit.getId())) {
             credit.getArticles().forEach(article -> {
-                article.setArticles(articlesService.getById(article.getArticlesId()));
-                article.setUnitPrice(CommercialMonthlyStockCashSalePricing.resolveSaleUnitPrice(article));
+                Articles loaded = articlesService.getById(article.getArticlesId());
+                article.setArticles(loaded);
+                if (cashSalePricingService != null) {
+                    cashSalePricingService.quoteWarehouse(
+                            loaded,
+                            article.getRequestedSalePackMode(),
+                            article.getRequestedPackCount(),
+                            article.getRequestedUnitsPerPack(),
+                            article.getQuantity()).apply(article);
+                } else {
+                    article.setUnitPrice(CommercialMonthlyStockCashSalePricing.resolveSaleUnitPrice(article));
+                }
             });
         }
 
@@ -374,8 +390,18 @@ public class CreditService extends GenericService<Credit, Long> {
         }
 
         credit.getArticles().forEach(article -> {
-            article.setArticles(articlesService.getById(article.getArticlesId()));
-            article.setUnitPrice(CommercialMonthlyStockCashSalePricing.resolveSaleUnitPrice(article));
+            Articles loaded = articlesService.getById(article.getArticlesId());
+            article.setArticles(loaded);
+            if (cashSalePricingService != null) {
+                cashSalePricingService.quoteWarehouse(
+                        loaded,
+                        article.getRequestedSalePackMode(),
+                        article.getRequestedPackCount(),
+                        article.getRequestedUnitsPerPack(),
+                        article.getQuantity()).apply(article);
+            } else {
+                article.setUnitPrice(CommercialMonthlyStockCashSalePricing.resolveSaleUnitPrice(article));
+            }
         });
 
         credit.setTotalAmount(credit.getTotalAmountByCalcul());
@@ -838,8 +864,18 @@ public class CreditService extends GenericService<Credit, Long> {
                         stockItem, saleUnitPrice, creditArticle.getArticles());
 
                 double currentTotalSold = stockItem.getTotalSoldValue() == null ? 0.0 : stockItem.getTotalSoldValue();
-                double newTotalSold = CommercialMonthlyStockCashSalePricing.applySoldValueAndMargin(
-                        stockItem, creditArticle.getQuantity(), saleUnitPrice);
+                boolean pricedLine = creditArticle.getSaleLine() != null
+                        && creditArticle.getSaleLine().getLineAmount() != null
+                        && creditArticle.getSaleLine().getLineAmount() > 0;
+                double lineSold = pricedLine
+                        ? creditArticle.getSaleLine().getLineAmount()
+                        : creditArticle.getQuantity() * saleUnitPrice;
+                double lineMargin = pricedLine && creditArticle.getSaleLine().getLineMargin() != null
+                        ? creditArticle.getSaleLine().getLineMargin()
+                        : creditArticle.getQuantity() * (saleUnitPrice - (stockItem.getWeightedAveragePurchasePrice() == null
+                                ? 0.0 : stockItem.getWeightedAveragePurchasePrice()));
+                double newTotalSold = CommercialMonthlyStockCashSalePricing.applyExplicitSoldValueAndMargin(
+                        stockItem, lineSold, lineMargin);
                 stockItem.updateRemaining();
 
                 double stockPmp = stockItem.getWeightedAverageUnitPrice() == null ? 0.0
@@ -871,7 +907,11 @@ public class CreditService extends GenericService<Credit, Long> {
                             stockItem.getArticle().getCommercialName(),
                             stockItem.getWeightedAveragePurchasePrice(),
                             saleUnitPrice,
-                            (saleUnitPrice - stockItem.getWeightedAveragePurchasePrice()) * creditArticle.getQuantity(),
+                            creditArticle.getSaleLine() != null && creditArticle.getSaleLine().getLineMargin() != null
+                                    ? creditArticle.getSaleLine().getLineMargin()
+                                    : (saleUnitPrice - (stockItem.getWeightedAveragePurchasePrice() == null
+                                            ? 0.0 : stockItem.getWeightedAveragePurchasePrice()))
+                                            * creditArticle.getQuantity(),
                             "CREDIT",
                             cashCredit.getId()
                     );

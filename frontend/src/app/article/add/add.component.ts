@@ -1,9 +1,10 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { ItemService, Article, NewArticleData } from '../service/item.service';
+import { halfPackageUnits } from '../packaging';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { NgxSpinnerService } from 'ngx-spinner';
@@ -110,8 +111,12 @@ export class AddComponent implements OnInit {
       isSeasonal: [false],
       packagingType: ['NONE'],
       unitsPerPackage: [null],
+      unitsPerHalfPackage: [null],
       wholesalePurchasePrice: [null],
-      halfWholesalePurchasePrice: [null]
+      halfWholesalePurchasePrice: [null],
+      wholesaleSalePrice: [null],
+      halfWholesaleSalePrice: [null],
+      salePacks: this.formBuilder.array([])
     }, { validators: [this.priceOrderValidator, this.packagingValidator] });
 
     this.articleForm.get('packagingType')?.valueChanges.subscribe(type => {
@@ -127,6 +132,35 @@ export class AddComponent implements OnInit {
     return type && type !== 'NONE';
   }
 
+  get unitsAreOdd(): boolean {
+    const units = Number(this.articleForm?.get('unitsPerPackage')?.value);
+    return this.hasPackaging && units >= 2 && units % 2 !== 0;
+  }
+
+  get hasHalf(): boolean {
+    return halfPackageUnits({
+      unitsPerPackage: this.articleForm?.get('unitsPerPackage')?.value,
+      unitsPerHalfPackage: this.unitsAreOdd
+        ? this.articleForm?.get('unitsPerHalfPackage')?.value
+        : null
+    }) != null || (this.hasPackaging && !this.unitsAreOdd && Number(this.articleForm?.get('unitsPerPackage')?.value) >= 2);
+  }
+
+  get salePacks(): FormArray {
+    return this.articleForm.get('salePacks') as FormArray;
+  }
+
+  addSalePack(): void {
+    this.salePacks.push(this.formBuilder.group({
+      quantity: [null, [Validators.required, Validators.min(2)]],
+      salePrice: [null, [Validators.required, Validators.min(0.01)]]
+    }));
+  }
+
+  removeSalePack(index: number): void {
+    this.salePacks.removeAt(index);
+  }
+
   onPackagingTypeChanged(type: string): void {
     const unitsCtrl = this.articleForm.get('unitsPerPackage');
     if (type && type !== 'NONE') {
@@ -135,8 +169,11 @@ export class AddComponent implements OnInit {
       unitsCtrl?.clearValidators();
       this.articleForm.patchValue({
         unitsPerPackage: null,
+        unitsPerHalfPackage: null,
         wholesalePurchasePrice: null,
-        halfWholesalePurchasePrice: null
+        halfWholesalePurchasePrice: null,
+        wholesaleSalePrice: null,
+        halfWholesaleSalePrice: null
       }, { emitEvent: false });
     }
     unitsCtrl?.updateValueAndValidity({ emitEvent: false });
@@ -151,8 +188,10 @@ export class AddComponent implements OnInit {
     if (!units || units < 2) {
       return { packagingUnitsInvalid: true };
     }
-    if (units % 2 !== 0) {
-      return { packagingUnitsOdd: true };
+    const half = Number(control.get('unitsPerHalfPackage')?.value);
+    if (units % 2 !== 0 && control.get('unitsPerHalfPackage')?.value !== null
+        && control.get('unitsPerHalfPackage')?.value !== '' && (!half || half < 1 || half >= units)) {
+      return { halfPackageInvalid: true };
     }
     return null;
   }
@@ -192,8 +231,18 @@ export class AddComponent implements OnInit {
       isSeasonal: article.isSeasonal,
       packagingType: article.packagingType || 'NONE',
       unitsPerPackage: article.unitsPerPackage ?? null,
+      unitsPerHalfPackage: article.unitsPerHalfPackage ?? null,
       wholesalePurchasePrice: article.wholesalePurchasePrice ?? null,
-      halfWholesalePurchasePrice: article.halfWholesalePurchasePrice ?? null
+      halfWholesalePurchasePrice: article.halfWholesalePurchasePrice ?? null,
+      wholesaleSalePrice: article.wholesaleSalePrice ?? null,
+      halfWholesaleSalePrice: article.halfWholesaleSalePrice ?? null
+    });
+    this.salePacks.clear();
+    (article.salePacks || []).forEach(pack => {
+      this.salePacks.push(this.formBuilder.group({
+        quantity: [pack.quantity, [Validators.required, Validators.min(2)]],
+        salePrice: [pack.salePrice, [Validators.required, Validators.min(0.01)]]
+      }));
     });
   }
 
@@ -202,6 +251,13 @@ export class AddComponent implements OnInit {
       this.isLoading = true;
       this.spinner.show();
       const packagingType = this.articleForm.value.packagingType || 'NONE';
+      const hasPack = packagingType !== 'NONE';
+      const units = Number(this.articleForm.value.unitsPerPackage);
+      const odd = hasPack && units % 2 !== 0;
+      const halfQty = odd && this.articleForm.value.unitsPerHalfPackage
+        ? Number(this.articleForm.value.unitsPerHalfPackage)
+        : null;
+      const halfDefined = hasPack && (units % 2 === 0 || halfQty != null);
       const formData: NewArticleData = {
         id: this.articleId!,
         name: this.articleForm.value.name,
@@ -215,9 +271,18 @@ export class AddComponent implements OnInit {
         optimalStockLevel: this.articleForm.value.optimalStockLevel,
         isSeasonal: this.articleForm.value.isSeasonal,
         packagingType,
-        unitsPerPackage: packagingType === 'NONE' ? null : this.articleForm.value.unitsPerPackage,
-        wholesalePurchasePrice: packagingType === 'NONE' ? null : this.articleForm.value.wholesalePurchasePrice,
-        halfWholesalePurchasePrice: packagingType === 'NONE' ? null : this.articleForm.value.halfWholesalePurchasePrice
+        unitsPerPackage: hasPack ? units : null,
+        unitsPerHalfPackage: halfQty,
+        wholesalePurchasePrice: hasPack ? this.articleForm.value.wholesalePurchasePrice : null,
+        halfWholesalePurchasePrice: halfDefined ? this.articleForm.value.halfWholesalePurchasePrice : null,
+        wholesaleSalePrice: hasPack ? this.articleForm.value.wholesaleSalePrice : null,
+        halfWholesaleSalePrice: halfDefined ? this.articleForm.value.halfWholesaleSalePrice : null,
+        salePacks: (this.salePacks.value || [])
+          .filter((pack: { quantity: number; salePrice: number }) => pack.quantity && pack.salePrice)
+          .map((pack: { quantity: number; salePrice: number }) => ({
+            quantity: Number(pack.quantity),
+            salePrice: Number(pack.salePrice)
+          }))
       };
 
       const save$ = this.articleId

@@ -20,6 +20,10 @@ public interface CreditMapper extends BaseMapper<Credit, CreditDto> {
     @Mapping(source = "articleId", target = "articles.id")
     @Mapping(source = "stockItemId", target = "stockItemId")
     @Mapping(source = "tontineItemId", target = "tontineItemId")
+    @Mapping(source = "salePackMode", target = "requestedSalePackMode")
+    @Mapping(source = "packCount", target = "requestedPackCount")
+    @Mapping(source = "unitsPerPack", target = "requestedUnitsPerPack")
+    @Mapping(target = "saleLine", ignore = true)
     CreditArticles toCreditArticles(CreditArticlesDto creditArticlesDto);
 
     @Override

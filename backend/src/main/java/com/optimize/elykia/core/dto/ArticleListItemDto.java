@@ -2,6 +2,8 @@ package com.optimize.elykia.core.dto;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.dto.ArticleSalePackDto;
+import com.optimize.elykia.core.enumaration.ArticlePackagingType;
 import com.optimize.elykia.core.service.store.ArticlePhotoView;
 import org.springframework.data.domain.Page;
 
@@ -27,7 +29,15 @@ public record ArticleListItemDto(
         State status,
         State state,
         String photoUrl,
-        String displayPhotoUrl) {
+        String displayPhotoUrl,
+        ArticlePackagingType packagingType,
+        Integer unitsPerPackage,
+        Integer unitsPerHalfPackage,
+        Double wholesalePurchasePrice,
+        Double halfWholesalePurchasePrice,
+        Double wholesaleSalePrice,
+        Double halfWholesaleSalePrice,
+        List<ArticleSalePackDto> salePacks) {
 
     public static ArticleListItemDto fromEntity(Articles article) {
         return fromEntity(article, null);
@@ -53,7 +63,24 @@ public record ArticleListItemDto(
                 articleState,
                 articleState,
                 photo != null ? photo.photoUrl() : null,
-                photo != null ? photo.displayPhotoUrl() : null);
+                photo != null ? photo.displayPhotoUrl() : null,
+                article.getPackagingType(),
+                article.getUnitsPerPackage(),
+                article.getUnitsPerHalfPackage(),
+                article.getWholesalePurchasePrice(),
+                article.getHalfWholesalePurchasePrice(),
+                article.getWholesaleSalePrice(),
+                article.getHalfWholesaleSalePrice(),
+                salePacksOf(article));
+    }
+
+    private static List<ArticleSalePackDto> salePacksOf(Articles article) {
+        if (article.getSalePacks() == null || article.getSalePacks().isEmpty()) {
+            return List.of();
+        }
+        return article.getSalePacks().stream()
+                .map(pack -> new ArticleSalePackDto(pack.getQuantity(), pack.getSalePrice()))
+                .toList();
     }
 
     public static List<ArticleListItemDto> fromList(List<Articles> articles) {

@@ -246,7 +246,9 @@ export class StockReceptionDetailComponent implements OnInit, OnDestroy {
       return `${item.packageCount} ${typeLabel}${item.packageCount > 1 ? 's' : ''} × ${item.unitsPerPackageSnapshot} u = ${item.quantity} u`;
     }
     if (mode === 'HALF_WHOLESALE') {
-      const halfUnits = item.unitsPerPackageSnapshot / 2;
+      const halfUnits = item.packageCount && item.quantity
+        ? item.quantity / item.packageCount
+        : item.unitsPerPackageSnapshot / 2;
       return `${item.packageCount} demi-${typeLabel}${item.packageCount > 1 ? 's' : ''} × ${halfUnits} u = ${item.quantity} u`;
     }
     return null;

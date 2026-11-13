@@ -15,5 +15,9 @@ public class StockReceptionValidateRequest {
         private Long itemId;
         private Double unitPrice;
         private Double packagePrice;
+        private Double unitSalePrice;
+        private Double wholesaleSalePrice;
+        private Double halfWholesaleSalePrice;
+        private List<ArticleSalePackDto> salePacks;
     }
 }

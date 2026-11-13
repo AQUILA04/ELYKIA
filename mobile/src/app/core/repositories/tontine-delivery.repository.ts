@@ -181,8 +181,8 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
 
         const queryItems = `
       INSERT OR REPLACE INTO tontine_delivery_items(
-            id, tontineDeliveryId, articleId, quantity, unitPrice, totalPrice
-          ) VALUES(?, ?, ?, ?, ?, ?)
+            id, tontineDeliveryId, articleId, quantity, unitPrice, totalPrice, salePackMode, packCount, unitsPerPack, packLabel
+          ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
 
         const set: capSQLiteSet[] = [];
@@ -204,7 +204,8 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
                     set.push({
                         statement: queryItems,
                         values: [
-                            item.id, delivery.id, item.articleId, item.quantity, item.unitPrice, item.totalPrice
+                            item.id, delivery.id, item.articleId, item.quantity, item.unitPrice, item.totalPrice,
+                            item.salePackMode || null, item.packCount || null, item.unitsPerPack || null, item.packLabel || null
                         ]
                     });
                 }

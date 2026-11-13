@@ -46,7 +46,7 @@
         <select id="entryPackagingMode" class="field-input" formControlName="entryPackagingMode">
             <option value="UNIT">Unitaire</option>
             <option value="WHOLESALE">Gros ({{ packagingLabel }})</option>
-            <option value="HALF_WHOLESALE">Demi-gros (½ {{ packagingLabel }})</option>
+            <option *ngIf="hasHalf" value="HALF_WHOLESALE">Demi-gros</option>
         </select>
     </div>
 
@@ -95,6 +95,19 @@
         <span class="field-error" *ngIf="form.get('packagePrice')?.touched && form.get('packagePrice')?.invalid">
             Le prix colis est requis.
         </span>
+    </div>
+
+    <div class="field-wrap" *ngIf="fifoEnabled">
+        <label class="field-label" for="unitSalePrice">Prix de vente unitaire du lot</label>
+        <input id="unitSalePrice" type="number" class="field-input" formControlName="unitSalePrice" min="0" />
+    </div>
+    <div class="field-wrap" *ngIf="fifoEnabled && hasPackaging">
+        <label class="field-label" for="wholesaleSalePrice">Prix de vente gros du lot</label>
+        <input id="wholesaleSalePrice" type="number" class="field-input" formControlName="wholesaleSalePrice" min="0" />
+    </div>
+    <div class="field-wrap" *ngIf="fifoEnabled && hasHalf">
+        <label class="field-label" for="halfWholesaleSalePrice">Prix de vente demi-gros du lot</label>
+        <input id="halfWholesaleSalePrice" type="number" class="field-input" formControlName="halfWholesaleSalePrice" min="0" />
     </div>
 
     <div class="qse-actions">

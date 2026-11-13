@@ -293,7 +293,7 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
         article.setModel("TONTINE-CHAIN");
         article.setStockQuantity(warehouseQuantity);
         article.setPurchasePrice(purchasePrice);
-        article.setSellingPrice(20_000.0);
+        article.setSellingPrice(creditSalePrice);
         article.setCreditSalePrice(creditSalePrice);
         return articlesRepository.saveAndFlush(article);
     }

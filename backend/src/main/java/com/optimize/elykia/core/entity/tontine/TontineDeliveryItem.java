@@ -2,6 +2,7 @@ package com.optimize.elykia.core.entity.tontine;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.entity.sale.SaleLinePricing;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -47,4 +48,7 @@ public class TontineDeliveryItem {
     
     @Column(name = "total_price", nullable = false, columnDefinition = "double precision default 0")
     private Double totalPrice;
+
+    @Embedded
+    private SaleLinePricing saleLine = new SaleLinePricing();
 }

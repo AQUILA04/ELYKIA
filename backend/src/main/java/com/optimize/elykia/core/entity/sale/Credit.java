@@ -196,8 +196,14 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
         if (Objects.nonNull(articles) && !articles.isEmpty()) {
             this.totalPurchase = this.calculTotalPurchase();
             return articles.stream()
-                    .mapToDouble(creditArticles ->
-                            resolveArticleLineUnitPrice(creditArticles) * creditArticles.getQuantity())
+                    .mapToDouble(creditArticles -> {
+                        if (creditArticles.getSaleLine() != null
+                                && creditArticles.getSaleLine().getLineAmount() != null
+                                && creditArticles.getSaleLine().getLineAmount() > 0) {
+                            return creditArticles.getSaleLine().getLineAmount();
+                        }
+                        return resolveArticleLineUnitPrice(creditArticles) * creditArticles.getQuantity();
+                    })
                     .sum();
 
 
@@ -237,6 +243,11 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
         if (Objects.nonNull(articles) && !articles.isEmpty()) {
             return this.totalPurchase = articles.stream()
                     .mapToDouble(creditArticles -> {
+                        if (creditArticles.getSaleLine() != null
+                                && creditArticles.getSaleLine().getLinePurchaseAmount() != null
+                                && creditArticles.getSaleLine().getLinePurchaseAmount() > 0) {
+                            return creditArticles.getSaleLine().getLinePurchaseAmount();
+                        }
                         if (creditArticles.getUnitPurchaseCost() != null
                                 && creditArticles.getUnitPurchaseCost() > 0) {
                             return creditArticles.getUnitPurchaseCost() * creditArticles.getQuantity();
@@ -556,7 +567,13 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
         credit.setTotalAmountRemaining(0.0);
         // 6. totalPurchase = Calculer la somme des purchasePrice des TontineDeliveryItem.
         double totalPurchase = delivery.getItems().stream()
-                .mapToDouble(item -> item.getQuantity() * item.getArticles().getPurchasePrice()) // Assuming unitPrice is purchase price
+                .mapToDouble(item -> {
+                    if (item.getSaleLine() != null && item.getSaleLine().getLinePurchaseAmount() != null
+                            && item.getSaleLine().getLinePurchaseAmount() > 0) {
+                        return item.getSaleLine().getLinePurchaseAmount();
+                    }
+                    return item.getQuantity() * item.getArticles().getPurchasePrice();
+                })
                 .sum();
         credit.setTotalPurchase(totalPurchase);
         // 7. dailyStake = delivery.getTotalAmount()
@@ -587,6 +604,20 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
                     ca.setArticles(tontineDeliveryItem.getArticles());
                     ca.setQuantity(tontineDeliveryItem.getQuantity());
                     ca.setUnitPrice(tontineDeliveryItem.getUnitPrice());
+                    if (tontineDeliveryItem.getSaleLine() != null) {
+                        com.optimize.elykia.core.entity.sale.SaleLinePricing source = tontineDeliveryItem.getSaleLine();
+                        com.optimize.elykia.core.entity.sale.SaleLinePricing copy =
+                                new com.optimize.elykia.core.entity.sale.SaleLinePricing();
+                        copy.setSalePackMode(source.getSalePackMode());
+                        copy.setPackLabel(source.getPackLabel());
+                        copy.setPackCount(source.getPackCount());
+                        copy.setUnitsPerPack(source.getUnitsPerPack());
+                        copy.setPackPrice(source.getPackPrice());
+                        copy.setLineAmount(source.getLineAmount());
+                        copy.setLinePurchaseAmount(source.getLinePurchaseAmount());
+                        copy.setLineMargin(source.getLineMargin());
+                        ca.setSaleLine(copy);
+                    }
                     ca.setCredit(finalCredit); // Link back to the credit
                     return ca;
                 })

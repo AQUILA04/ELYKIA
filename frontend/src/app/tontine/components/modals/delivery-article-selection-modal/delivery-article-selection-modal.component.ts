@@ -13,10 +13,19 @@ import {
   formatCurrency
 } from '../../../types/tontine.types';
 
+interface SaleOffer {
+  mode: 'UNIT' | 'WHOLESALE' | 'HALF_WHOLESALE' | 'CUSTOM';
+  label: string;
+  unitsPerPack: number;
+  salePrice: number;
+}
+
 interface SelectedArticle {
   article: CatalogArticle;
   quantity: number;
   totalPrice: number;
+  offers: SaleOffer[];
+  offerKey: string;
 }
 
 @Component({
@@ -149,18 +158,47 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
   }
 
   onArticleSelected(article: CatalogArticle): void {
-    const existing = this.selectedArticles.find(sa => sa.article.id === article.id);
-    if (existing) {
-      existing.quantity++;
-      existing.totalPrice = existing.article.sellingPrice * existing.quantity;
-    } else {
-      this.selectedArticles.push({
-        article,
-        quantity: 1,
-        totalPrice: article.sellingPrice
-      });
-    }
-    this.searchControl.setValue('');
+    const commercial = this.member.client?.tontineCollector;
+    this.itemService.getSaleOffers(article.id, 'TONTINE', commercial).subscribe({
+      next: (response: any) => {
+        const offers: SaleOffer[] = response?.data?.length
+          ? response.data
+          : [{ mode: 'UNIT', label: 'Unité', unitsPerPack: 1, salePrice: article.sellingPrice }];
+        const offerKey = `${offers[0].mode}:${offers[0].unitsPerPack}`;
+        const existing = this.selectedArticles.find(sa => sa.article.id === article.id && sa.offerKey === offerKey);
+        if (existing) {
+          existing.quantity++;
+          this.reprice(existing);
+        } else {
+          const selected: SelectedArticle = { article, quantity: 1, totalPrice: 0, offers, offerKey };
+          this.reprice(selected);
+          this.selectedArticles.push(selected);
+        }
+        this.searchControl.setValue('');
+      },
+      error: () => {
+        this.error = 'Impossible de charger les offres de cet article.';
+      }
+    });
+  }
+
+  onOfferChange(selected: SelectedArticle, offerKey: string): void {
+    selected.offerKey = offerKey;
+    selected.quantity = 1;
+    this.reprice(selected);
+  }
+
+  private reprice(selected: SelectedArticle): void {
+    const offer = this.offerOf(selected);
+    selected.totalPrice = (offer?.salePrice || selected.article.sellingPrice || 0) * selected.quantity;
+  }
+
+  offerOf(selected: SelectedArticle): SaleOffer | undefined {
+    return selected.offers.find(offer => `${offer.mode}:${offer.unitsPerPack}` === selected.offerKey) || selected.offers[0];
+  }
+
+  offerKey(offer: SaleOffer): string {
+    return `${offer.mode}:${offer.unitsPerPack}`;
   }
 
   displayArticle(article: CatalogArticle | null): string {
@@ -172,7 +210,7 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
     if (selectedArticle.quantity < 1) {
       selectedArticle.quantity = 1;
     }
-    selectedArticle.totalPrice = selectedArticle.article.sellingPrice * selectedArticle.quantity;
+    this.reprice(selectedArticle);
   }
 
   removeArticle(selectedArticle: SelectedArticle): void {
@@ -205,11 +243,18 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
   onValidate(): void {
     if (!this.isValid) return;
 
-    const items: DeliveryItemDto[] = this.selectedArticles.map(sa => ({
-      articleId: sa.article.id,
-      quantity: sa.quantity,
-      unitPrice: sa.article.sellingPrice
-    }));
+    const items: DeliveryItemDto[] = this.selectedArticles.map(sa => {
+      const offer = this.offerOf(sa);
+      const units = offer && offer.mode !== 'UNIT' ? offer.unitsPerPack : 1;
+      return {
+        articleId: sa.article.id,
+        quantity: sa.quantity * units,
+        unitPrice: offer?.salePrice || sa.article.sellingPrice,
+        salePackMode: offer?.mode || 'UNIT',
+        packCount: sa.quantity,
+        unitsPerPack: units
+      };
+    });
 
     const createDeliveryDto: CreateDeliveryDto = {
       tontineMemberId: this.member.id,

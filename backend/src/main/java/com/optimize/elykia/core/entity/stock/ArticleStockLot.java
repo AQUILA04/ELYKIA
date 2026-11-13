@@ -2,6 +2,7 @@ package com.optimize.elykia.core.entity.stock;
 
 import com.optimize.common.entities.entity.Auditable;
 import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.enumaration.ArticlePackagingType;
 import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
 import com.optimize.elykia.core.enumaration.ArticleStockLotStatus;
 import jakarta.persistence.*;
@@ -10,6 +11,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "article_stock_lot")
@@ -49,4 +52,32 @@ public class ArticleStockLot extends Auditable<String> {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ArticleStockLotStatus status = ArticleStockLotStatus.OPEN;
+
+    @Column(name = "unit_sale_price")
+    private Double unitSalePrice;
+
+    @Column(name = "wholesale_sale_price")
+    private Double wholesaleSalePrice;
+
+    @Column(name = "half_wholesale_sale_price")
+    private Double halfWholesaleSalePrice;
+
+    @Column(name = "wholesale_purchase_price")
+    private Double wholesalePurchasePrice;
+
+    @Column(name = "half_wholesale_purchase_price")
+    private Double halfWholesalePurchasePrice;
+
+    @Column(name = "units_per_package")
+    private Integer unitsPerPackage;
+
+    @Column(name = "units_per_half_package")
+    private Integer unitsPerHalfPackage;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "packaging_type")
+    private ArticlePackagingType packagingType;
+
+    @OneToMany(mappedBy = "lot", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ArticleStockLotSalePack> salePacks = new ArrayList<>();
 }

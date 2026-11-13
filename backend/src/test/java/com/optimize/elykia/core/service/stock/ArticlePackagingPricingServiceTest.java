@@ -97,12 +97,56 @@ class ArticlePackagingPricingServiceTest {
     }
 
     @Test
-    void validateArticlePackaging_OddUnits_Throws() {
+    void validateArticlePackaging_OddUnitsWithoutHalf_IsAllowed() {
+        article.setUnitsPerPackage(25);
+        article.setUnitsPerHalfPackage(null);
+
+        service.validateArticlePackaging(article);
+
+        assertThat(article.getHalfWholesalePurchasePrice()).isNull();
+    }
+
+    @Test
+    void validateArticlePackaging_OddUnitsWithHalf_KeepsHalfPrice() {
+        article.setUnitsPerPackage(25);
+        article.setUnitsPerHalfPackage(10);
+        article.setHalfWholesalePurchasePrice(1200.0);
+
+        service.validateArticlePackaging(article);
+
+        assertThat(article.getUnitsPerHalfPackage()).isEqualTo(10);
+        assertThat(article.getHalfWholesalePurchasePrice()).isEqualTo(1200.0);
+    }
+
+    @Test
+    void resolveFifoEntry_HalfWholesale_OddPackageUsesSpecifiedHalf() {
+        article.setUnitsPerPackage(25);
+        article.setUnitsPerHalfPackage(10);
+
+        StockEntry entry = new StockEntry();
+        entry.setEntryPackagingMode(StockEntryPackagingMode.HALF_WHOLESALE);
+        entry.setPackageCount(2);
+        entry.setPackagePrice(1000.0);
+
+        PackagingEntryResolution resolved = service.resolveFifoEntry(article, entry);
+
+        assertThat(resolved.quantity()).isEqualTo(20);
+        assertThat(resolved.unitPrice()).isEqualTo(100.0);
+    }
+
+    @Test
+    void resolveFifoEntry_Wholesale_OddPackageIsAllowed() {
         article.setUnitsPerPackage(25);
 
-        assertThatThrownBy(() -> service.validateArticlePackaging(article))
-                .isInstanceOf(CustomValidationException.class)
-                .hasMessageContaining("pair");
+        StockEntry entry = new StockEntry();
+        entry.setEntryPackagingMode(StockEntryPackagingMode.WHOLESALE);
+        entry.setPackageCount(1);
+        entry.setPackagePrice(2500.0);
+
+        PackagingEntryResolution resolved = service.resolveFifoEntry(article, entry);
+
+        assertThat(resolved.quantity()).isEqualTo(25);
+        assertThat(resolved.unitPrice()).isEqualTo(100.0);
     }
 
     @Test

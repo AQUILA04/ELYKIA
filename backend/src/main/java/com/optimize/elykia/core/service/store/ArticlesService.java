@@ -14,9 +14,14 @@ import com.optimize.elykia.core.dto.bi.StockMetricsDto;
 import com.optimize.elykia.core.entity.article.ArticleHistory;
 import com.optimize.elykia.core.entity.article.ArticlePriceHistory;
 import com.optimize.elykia.core.entity.article.ArticleStateHistory;
+import com.optimize.elykia.core.entity.article.ArticleSalePack;
 import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.core.dto.ArticleSalePackDto;
+import com.optimize.elykia.core.repository.ArticleSalePackRepository;
+import com.optimize.elykia.core.util.ArticlePackagingRules;
 import com.optimize.elykia.core.entity.expense.ExpenseType;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
+import com.optimize.elykia.core.entity.stock.ReceptionSalePack;
 import com.optimize.elykia.core.entity.stock.StockReception;
 import com.optimize.elykia.core.entity.stock.StockReceptionItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
@@ -49,8 +54,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Service
@@ -69,6 +76,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
     private final ArticlePriceHistoryRepository articlePriceHistoryRepository;
     private final StockValuationFacade stockValuationFacade;
     private final ArticlePackagingPricingService articlePackagingPricingService;
+    private final ArticleSalePackRepository articleSalePackRepository;
     private final ParameterService parameterService;
     private final ApplicationEventPublisher eventPublisher;
     private BusinessMetricsPublisher metricsPublisher;
@@ -101,6 +109,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
             ArticlePriceHistoryRepository articlePriceHistoryRepository,
             StockValuationFacade stockValuationFacade,
             ArticlePackagingPricingService articlePackagingPricingService,
+            ArticleSalePackRepository articleSalePackRepository,
             ParameterService parameterService,
             ApplicationEventPublisher eventPublisher) {
         super(repository);
@@ -114,6 +123,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
         this.articlePriceHistoryRepository = articlePriceHistoryRepository;
         this.stockValuationFacade = stockValuationFacade;
         this.articlePackagingPricingService = articlePackagingPricingService;
+        this.articleSalePackRepository = articleSalePackRepository;
         this.parameterService = parameterService;
         this.eventPublisher = eventPublisher;
     }
@@ -130,7 +140,9 @@ public class ArticlesService extends GenericService<Articles, Long> {
         normalizePackagingDefaults(articles);
         articlePackagingPricingService.validateArticlePackaging(articles);
         articles.setCode(ArticleCodeGenerator.generate(articles));
-        return create(articles);
+        Articles saved = create(articles);
+        syncSalePacks(saved, dto.getSalePacks());
+        return saved;
 
     }
 
@@ -206,7 +218,18 @@ public class ArticlesService extends GenericService<Articles, Long> {
                     articles.getPurchasePrice(), articles.getSellingPrice(), articles.getCreditSalePrice()));
             publishPriceRealignmentEventIfNeeded(oldOne, articles);
         }
-        return super.create(articles);
+        Articles saved = super.create(articles);
+        syncSalePacks(saved, dto.getSalePacks());
+        return saved;
+    }
+
+    @Transactional(readOnly = true)
+    public Articles getReadableArticle(Long id) {
+        Articles article = getById(id);
+        if (article.getSalePacks() != null) {
+            article.getSalePacks().size();
+        }
+        return article;
     }
 
     private void publishPriceRealignmentEventIfNeeded(Articles oldOne, Articles updated) {
@@ -233,13 +256,33 @@ public class ArticlesService extends GenericService<Articles, Long> {
     }
 
     private void normalizePackagingDefaults(Articles articles) {
-        if (articles.getPackagingType() == null) {
-            articles.setPackagingType(ArticlePackagingType.NONE);
+        ArticlePackagingRules.normalize(articles);
+    }
+
+    private void syncSalePacks(Articles saved, List<ArticleSalePackDto> packs) {
+        if (packs == null || saved.getId() == null) {
+            return;
         }
-        if (articles.getPackagingType() == ArticlePackagingType.NONE) {
-            articles.setUnitsPerPackage(null);
-            articles.setWholesalePurchasePrice(null);
-            articles.setHalfWholesalePurchasePrice(null);
+        Set<Integer> seen = new HashSet<>();
+        for (ArticleSalePackDto pack : packs) {
+            if (pack == null || pack.getQuantity() == null || pack.getQuantity() < 2
+                    || pack.getSalePrice() == null || pack.getSalePrice() <= 0) {
+                throw new CustomValidationException(
+                        "Chaque pack indique une quantité d'au moins 2 unités et un prix supérieur à 0.");
+            }
+            if (!seen.add(pack.getQuantity())) {
+                throw new CustomValidationException(
+                        "Un seul prix de pack pour la quantité " + pack.getQuantity() + ".");
+            }
+        }
+        articleSalePackRepository.deleteByArticleId(saved.getId());
+        Articles ref = new Articles(saved.getId());
+        for (ArticleSalePackDto pack : packs) {
+            ArticleSalePack entity = new ArticleSalePack();
+            entity.setArticle(ref);
+            entity.setQuantity(pack.getQuantity());
+            entity.setSalePrice(pack.getSalePrice());
+            articleSalePackRepository.save(entity);
         }
     }
 
@@ -402,6 +445,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
                 receptionItem.setPackagePrice(resolved.packagePrice());
                 receptionItem.setPackagingTypeSnapshot(resolved.packagingTypeSnapshot());
                 receptionItem.setUnitsPerPackageSnapshot(resolved.unitsPerPackageSnapshot());
+                copySaleSnapshot(receptionItem, articles, stockEntry);
                 totalCheck.updateAndGet(v -> v + resolved.totalPrice());
             } else {
                 // Legacy : ignore packaging fields ; quantity obligatoire
@@ -423,6 +467,33 @@ public class ArticlesService extends GenericService<Articles, Long> {
         stockReceptionRepository.save(stockReception);
 
         return "success:true";
+    }
+
+    private void copySaleSnapshot(StockReceptionItem item, Articles article, com.optimize.elykia.core.dto.StockEntry entry) {
+        item.setUnitSalePrice(entry.getUnitSalePrice() != null ? entry.getUnitSalePrice() : article.getSellingPrice());
+        item.setWholesaleSalePrice(entry.getWholesaleSalePrice() != null
+                ? entry.getWholesaleSalePrice()
+                : article.getWholesaleSalePrice());
+        item.setHalfWholesaleSalePrice(entry.getHalfWholesaleSalePrice() != null
+                ? entry.getHalfWholesaleSalePrice()
+                : article.getHalfWholesaleSalePrice());
+        item.getSalePacks().clear();
+        if (entry.getSalePacks() != null) {
+            for (ArticleSalePackDto pack : entry.getSalePacks()) {
+                if (pack.getQuantity() != null && pack.getSalePrice() != null) {
+                    item.getSalePacks().add(new ReceptionSalePack(pack.getQuantity(), pack.getSalePrice()));
+                }
+            }
+            return;
+        }
+        if (article.getSalePacks() == null) {
+            return;
+        }
+        for (ArticleSalePack pack : article.getSalePacks()) {
+            if (pack.getQuantity() != null && pack.getSalePrice() != null) {
+                item.getSalePacks().add(new ReceptionSalePack(pack.getQuantity(), pack.getSalePrice()));
+            }
+        }
     }
 
     @Transactional
