@@ -37,7 +37,7 @@ Pour consulter le registre complet, ouvrez le menu latéral et cliquez sur **Fin
 
 Cet écran centralise la totalité des décaissements de l'agence et permet leur filtrage multicritères.
 
-<!-- CAPTURE À INSÉRER : Liste complète des dépenses avec sélecteurs de mois et de type, badge Comptabilisée et actions Éditer/Supprimer. -->
+<!-- CAPTURE À INSÉRER : Liste complète des dépenses avec sélecteurs de mois et de type, badge Comptabilisée et action Éditer. -->
 
 ### A. Barre de filtres et recherche
 1. **Filtre par Mois** : Menu déroulant listant les mois civils de l'année en cours pour isoler rapidement les charges d'une période précise.
@@ -52,13 +52,13 @@ Cet écran centralise la totalité des décaissements de l'agence et permet leur
 | **Montant** | Montant décaissé en Francs CFA. |
 | **Description** | Motif explicatif et justification opérationnelle de la dépense. |
 | **Référence** | Numéro de pièce justificative (facture, reçu de caisse, bon de carburant). |
-| **Actions** | Boutons **Éditer** (icône crayon) et **Supprimer** (icône corbeille). |
+| **Actions** | Bouton **Éditer** (icône crayon). |
 
 ### C. La règle d'intégrité : Dépense Comptabilisée
-> **Verrou d'intégrité comptable.** Lorsqu'une dépense porte le badge vert **« Comptabilisée »**, elle a été intégrée dans une remise de trésorerie validée par le gestionnaire :
-> - Les boutons **Éditer** et **Supprimer** sont **strictement désactivés**.
-> - Une infobulle précise : *« Dépense comptabilisée — modification/suppression impossible »*.
-> - Ce verrou interdit toute altération rétroactive des comptes une fois la trésorerie actée.
+> **Verrou d'intégrité comptable.** Lorsqu'une dépense porte le badge **« Comptabilisée »**, elle a été intégrée dans une remise de trésorerie validée :
+> - Le bouton **Éditer** est désactivé.
+> - Une infobulle précise : *« Dépense comptabilisée — modification impossible »*.
+> - Ce verrou interdit toute modification rétroactive une fois la trésorerie actée.
 
 ---
 

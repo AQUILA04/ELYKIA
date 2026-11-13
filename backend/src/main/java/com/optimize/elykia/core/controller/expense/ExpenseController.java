@@ -16,6 +16,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/expenses")
@@ -38,10 +39,19 @@ public class ExpenseController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Delete an expense")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.CANCEL_EXPENSE + "')")
+    @Operation(summary = "Cancel (soft-delete) an expense that is not linked to a remittance")
     public ResponseEntity<Response> delete(@PathVariable Long id) {
         expenseService.deleteExpense(id);
         return new ResponseEntity<Response>(ResponseUtil.successResponse("Dépense supprimée."), HttpStatus.OK);
+    }
+
+    @PostMapping("/cancel")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.CANCEL_EXPENSE + "')")
+    @Operation(summary = "Cancel several expenses that are not linked to a remittance")
+    public ResponseEntity<Response> cancel(@RequestBody List<Long> ids) {
+        int cancelled = expenseService.cancelExpenses(ids);
+        return new ResponseEntity<Response>(ResponseUtil.successResponse(cancelled), HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
