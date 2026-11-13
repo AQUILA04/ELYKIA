@@ -78,6 +78,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.44.4] — 2026-11-13
+
+### Changed
+
+- **Tontines —** lorsqu'un commercial est choisi, le montant collecté, la part société et les collectes à la livraison additionnent les collectes enregistrées à son nom, y compris pour des membres transférés. Le bouton **Voir l'historique** ouvre ces membres.
+
 ## Frontend — [2.44.3] — 2026-11-09
 
 ### Changed
@@ -258,6 +264,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.47.4] — 2026-11-13
+
+### Fixed
+
+- **Tontines —** les tests couvrent l'historique d'un commercial ouvert par un gestionnaire, pour rester au-dessus du seuil de couverture.
+
+## Backend — [1.47.3] — 2026-11-13
+
+### Changed
+
+- **Tontines —** les totaux d'un commercial sur le tableau de bord viennent des collectes enregistrées à son nom. L'historique tontine accepte le commercial choisi par un gestionnaire ; un commercial ne consulte que le sien.
 
 ## Backend — [1.47.2] — 2026-11-09
 

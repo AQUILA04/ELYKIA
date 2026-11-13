@@ -91,11 +91,11 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
+    this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.restoreSavedFilters();
     this.setupObservables();
     this.loadCurrentSessionAndMembers();
-    this.isRecoveryManager = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER);
-    this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     void this.permissionsService.hasPermission(['ROLE_TONTINE_CARNET_VERIFY', 'ROLE_ADMIN']).then((has) => {
       this.canVerify = !!has;
     });
@@ -247,14 +247,14 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
         value: `${kpis.totalCollected.toLocaleString('fr-FR')} XOF`,
         icon: 'account_balance_wallet',
         color: 'success',
-        subtitle: 'Épargne totale'
+        subtitle: this.ownCollectionsView ? 'Collectes à son nom' : 'Épargne totale'
       },
       {
         title: 'Revenu Total',
         value: `${(kpis.totalRevenue ?? session?.totalRevenue ?? 0).toLocaleString('fr-FR')} XOF`,
         icon: 'monetization_on',
         color: 'accent',
-        subtitle: 'Part société'
+        subtitle: this.ownCollectionsView ? 'Part société de ces collectes' : 'Part société'
       },
       {
         title: 'En Attente de Livraison',
@@ -268,16 +268,29 @@ export class TontineDashboardComponent implements OnInit, OnDestroy {
         value: `${Math.round(kpis.averageContribution).toLocaleString('fr-FR')} XOF`,
         icon: 'trending_up',
         color: 'info',
-        subtitle: 'Par membre'
+        subtitle: this.ownCollectionsView ? 'Membres encore associés' : 'Par membre'
       },
       {
         title: 'Collectes à la livraison',
         value: `${(kpis.totalDeliveryCollections || 0).toLocaleString('fr-FR')} XOF`,
         icon: 'local_shipping',
         color: 'primary',
-        subtitle: 'Lors de la livraison'
+        subtitle: this.ownCollectionsView ? 'Ses collectes à la livraison' : 'Lors de la livraison'
       }
     ];
+  }
+
+  get showCollectionHistory(): boolean {
+    return this.isPromoter || !!this.memberQueryParams.commercial;
+  }
+
+  get ownCollectionsView(): boolean {
+    return this.showCollectionHistory;
+  }
+
+  get historyQueryParams(): { tab: string; commercial?: string } {
+    const commercial = this.memberQueryParams.commercial;
+    return commercial ? { tab: 'tontine', commercial } : { tab: 'tontine' };
   }
 
   onFilterChange(params: TontineFilterBarParams): void {

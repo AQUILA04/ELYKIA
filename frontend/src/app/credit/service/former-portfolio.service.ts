@@ -97,12 +97,12 @@ export class FormerPortfolioService {
 
   constructor(private readonly http: HttpClient) {}
 
-  listTontine(page: number, size: number): Observable<SpringPage<FormerTontineMember>> {
-    return this.getPage<FormerTontineMember>('/tontine/members', page, size);
+  listTontine(page: number, size: number, commercial?: string | null): Observable<SpringPage<FormerTontineMember>> {
+    return this.getPage<FormerTontineMember>('/tontine/members', page, size, commercial);
   }
 
-  tontineMember(memberId: number): Observable<FormerTontineMemberDetail> {
-    return this.getOne<FormerTontineMemberDetail>(`/tontine/members/${memberId}`);
+  tontineMember(memberId: number, commercial?: string | null): Observable<FormerTontineMemberDetail> {
+    return this.getOne<FormerTontineMemberDetail>(`/tontine/members/${memberId}`, commercial);
   }
 
   listCredits(page: number, size: number): Observable<SpringPage<FormerCreditItem>> {
@@ -121,15 +121,22 @@ export class FormerPortfolioService {
     return this.getOne<FormerAgencyClient>(`/agency/${clientId}`);
   }
 
-  private getPage<T>(path: string, page: number, size: number): Observable<SpringPage<T>> {
-    const params = new HttpParams().set('page', page).set('size', size);
+  private getPage<T>(path: string, page: number, size: number, commercial?: string | null): Observable<SpringPage<T>> {
+    let params = new HttpParams().set('page', page).set('size', size);
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
     return this.http.get<ApiResponse<SpringPage<T>>>(`${this.apiUrl}${path}`, { params }).pipe(
       map(response => response.data ?? { content: [], totalElements: 0, totalPages: 0, number: page, size })
     );
   }
 
-  private getOne<T>(path: string): Observable<T> {
-    return this.http.get<ApiResponse<T>>(`${this.apiUrl}${path}`).pipe(
+  private getOne<T>(path: string, commercial?: string | null): Observable<T> {
+    let params = new HttpParams();
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+    return this.http.get<ApiResponse<T>>(`${this.apiUrl}${path}`, { params }).pipe(
       map(response => {
         if (!response.data) {
           throw new Error(response.message || 'Dossier introuvable');

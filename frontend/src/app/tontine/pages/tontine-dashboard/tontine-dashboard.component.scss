@@ -247,6 +247,18 @@
   cursor: not-allowed;
 }
 
+.tontine-page .history-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+  color: #64748b;
+  font-size: 14px;
+}
+.tontine-page .history-row a {
+  text-decoration: none;
+}
+
 /* ── HISTORICAL BANNER ──────────────────────────────────────── */
 .tontine-page .historical-banner {
   display: flex;

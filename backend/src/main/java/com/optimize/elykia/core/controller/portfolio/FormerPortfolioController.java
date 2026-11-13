@@ -30,13 +30,16 @@ public class FormerPortfolioController {
     @GetMapping("/tontine/members")
     public ResponseEntity<Response> formerTontineMembers(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return ok(formerPortfolioService.listFormerTontineMembers(page(page, size)));
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false) String commercial) {
+        return ok(formerPortfolioService.listFormerTontineMembers(page(page, size), commercial));
     }
 
     @GetMapping("/tontine/members/{memberId}")
-    public ResponseEntity<Response> formerTontineMember(@PathVariable Long memberId) {
-        return ok(formerPortfolioService.getFormerTontineMember(memberId));
+    public ResponseEntity<Response> formerTontineMember(
+            @PathVariable Long memberId,
+            @RequestParam(required = false) String commercial) {
+        return ok(formerPortfolioService.getFormerTontineMember(memberId, commercial));
     }
 
     @GetMapping("/credits")

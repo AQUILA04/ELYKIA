@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service.portfolio;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.models.UserPermission;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientCollectorType;
@@ -21,20 +22,29 @@ import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -185,6 +195,127 @@ class FormerPortfolioServiceTest {
         assertThat(service.decideTontineMember(7L)).isEqualTo(FormerPortfolioAccess.Level.FORMER);
     }
 
+    @Test
+    void promoterHistoryIgnoresTheRequestedCommercial() {
+        User former = promoter("com.a");
+        when(userService.getCurrentUser()).thenReturn(former);
+        when(tontineMemberRepository.findFormerMembers(eq("com.a"), any(Pageable.class))).thenReturn(Page.empty());
+
+        assertThat(service.listFormerTontineMembers(PageRequest.of(0, 20)).getContent()).isEmpty();
+        assertThat(service.listFormerTontineMembers(PageRequest.of(0, 20), "COM015").getContent()).isEmpty();
+        verify(tontineMemberRepository, never()).findFormerMembers(eq("COM015"), any());
+    }
+
+    @Test
+    void staffCanOpenAnotherCommercialHistoryWhenAllowed() {
+        User manager = staff(UserPermissionConstant.KPI_FINANCIER_TONTINE);
+        when(userService.getCurrentUser()).thenReturn(manager);
+        when(tontineMemberRepository.findFormerMembers(eq("COM003"), any(Pageable.class))).thenReturn(Page.empty());
+
+        assertThat(service.listFormerTontineMembers(PageRequest.of(0, 20), "  COM003  ").getContent()).isEmpty();
+    }
+
+    @Test
+    void staffWithoutTontineAccessCannotOpenAnotherCommercial() {
+        User manager = staff("ROLE_OTHER");
+        when(userService.getCurrentUser()).thenReturn(manager);
+
+        assertThatThrownBy(() -> service.listFormerTontineMembers(PageRequest.of(0, 20), "COM003"))
+                .isInstanceOf(CustomValidationException.class);
+    }
+
+    @Test
+    void staffWithoutPermissionsCannotOpenAnotherCommercial() {
+        User manager = mock(User.class);
+        when(manager.getUsername()).thenReturn("manager");
+        when(manager.is(UserProfilConstant.PROMOTER)).thenReturn(false);
+        when(manager.getPermissions()).thenReturn(null);
+        when(userService.getCurrentUser()).thenReturn(manager);
+
+        assertThatThrownBy(() -> service.listFormerTontineMembers(PageRequest.of(0, 20), "COM003"))
+                .isInstanceOf(CustomValidationException.class);
+    }
+
+    @Test
+    void staffMustChooseACommercial() {
+        User manager = staff(UserPermissionConstant.CONSULT_TONTINE);
+        when(userService.getCurrentUser()).thenReturn(manager);
+
+        assertThatThrownBy(() -> service.listFormerTontineMembers(PageRequest.of(0, 20), "  "))
+                .isInstanceOf(CustomValidationException.class)
+                .hasMessage("Choisissez un commercial.");
+    }
+
+    @Test
+    void historyRequiresASignedInUser() {
+        when(userService.getCurrentUser()).thenReturn(null);
+        assertThatThrownBy(() -> service.listFormerTontineMembers(PageRequest.of(0, 20)))
+                .isInstanceOf(CustomValidationException.class);
+
+        User blank = mock(User.class);
+        when(blank.getUsername()).thenReturn(" ");
+        when(userService.getCurrentUser()).thenReturn(blank);
+        assertThatThrownBy(() -> service.listFormerTontineMembers(PageRequest.of(0, 20)))
+                .isInstanceOf(CustomValidationException.class);
+    }
+
+    @Test
+    void staffReadsOnlyTheChosenCommercialCollectionsOfAFormerMember() {
+        User manager = staff(UserPermissionConstant.EDIT_TONTINE);
+        when(userService.getCurrentUser()).thenReturn(manager);
+        TontineMember member = memberHeldBy("com.b");
+        when(tontineMemberRepository.findById(7L)).thenReturn(Optional.of(member));
+        when(tontineCollectionRepository.existsByTontineMember_IdAndStateAndCommercialUsernameIgnoreCase(
+                7L, State.ENABLED, "COM003")).thenReturn(true);
+        FormerTontineCollectionDto own = new FormerTontineCollectionDto(
+                7L, 3L, 500.0, LocalDateTime.of(2026, 4, 1, 8, 0), "COL-3");
+        when(tontineCollectionRepository.findOwnCollections(7L, "COM003")).thenReturn(List.of(own));
+
+        FormerTontineMemberDetailDto detail = service.getFormerTontineMember(7L, "COM003");
+
+        assertThat(detail.collections()).containsExactly(own);
+        assertThat(detail.ownCollectionsTotal()).isEqualTo(500.0);
+    }
+
+    @Test
+    void staffCannotOpenTheCurrentHolderAsFormer() {
+        User manager = staff(UserPermissionConstant.ADMIN);
+        when(userService.getCurrentUser()).thenReturn(manager);
+        when(tontineMemberRepository.findById(7L)).thenReturn(Optional.of(memberHeldBy("COM003")));
+
+        assertThatThrownBy(() -> service.getFormerTontineMember(7L, "COM003"))
+                .isInstanceOf(CustomValidationException.class);
+    }
+
+    @Test
+    void staffAcceptsAFormerLinkThatOnlyExistsInCollectorHistory() {
+        User manager = staff(UserPermissionConstant.CONSULT_TONTINE);
+        when(userService.getCurrentUser()).thenReturn(manager);
+        when(tontineMemberRepository.findById(7L)).thenReturn(Optional.of(memberHeldBy("com.b")));
+        when(tontineCollectionRepository.existsByTontineMember_IdAndStateAndCommercialUsernameIgnoreCase(
+                7L, State.ENABLED, "COM003")).thenReturn(false);
+        when(clientCollectorHistoryRepository.existsByClientIdAndCollectorTypeAndOldCollectorIgnoreCaseAndState(
+                4L, ClientCollectorType.TONTINE, "COM003", State.ENABLED)).thenReturn(true);
+        when(tontineCollectionRepository.findOwnCollections(7L, "COM003")).thenReturn(List.of());
+
+        assertThat(service.getFormerTontineMember(7L, "COM003").collections()).isEmpty();
+    }
+
+    @Test
+    void staffRejectsAMemberWithNoFormerLink() {
+        User manager = staff(UserPermissionConstant.ADMIN);
+        when(userService.getCurrentUser()).thenReturn(manager);
+        TontineMember member = new TontineMember();
+        member.setId(8L);
+        member.setState(State.ENABLED);
+        when(tontineMemberRepository.findById(8L)).thenReturn(Optional.of(member));
+        when(tontineCollectionRepository.existsByTontineMember_IdAndStateAndCommercialUsernameIgnoreCase(
+                8L, State.ENABLED, "COM003")).thenReturn(false);
+
+        assertThatThrownBy(() -> service.getFormerTontineMember(8L, "COM003"))
+                .isInstanceOf(CustomValidationException.class);
+    }
+
     private static User promoter(String username) {
         User user = mock(User.class);
         when(user.getUsername()).thenReturn(username);
@@ -192,6 +323,16 @@ class FormerPortfolioServiceTest {
         when(user.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
         when(user.is(UserProfilConstant.ADMIN)).thenReturn(false);
         when(user.is(UserProfilConstant.PROMOTER)).thenReturn(true);
+        return user;
+    }
+
+    private static User staff(String permissionName) {
+        User user = mock(User.class);
+        UserPermission permission = mock(UserPermission.class);
+        when(user.getUsername()).thenReturn("manager");
+        when(user.is(UserProfilConstant.PROMOTER)).thenReturn(false);
+        when(permission.getName()).thenReturn(permissionName);
+        when(user.getPermissions()).thenReturn(Set.of(permission));
         return user;
     }
 

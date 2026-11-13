@@ -578,13 +578,15 @@ Le menu **Tontines** propose quatre espaces de travail adaptés au déroulement 
 L'écran principal de la liste vous donne une vue synthétique sur la campagne en cours.
 
 ### Les indicateurs clés de la campagne
-En haut de l'écran, les cartes récapitulatives vous informent en temps réel sur la santé de la tontine. Lorsqu'un commercial est sélectionné dans la barre de filtres, ces indicateurs se mettent à jour pour ne compter que son portefeuille :
-- **Membres Actifs** : Nombre d'adhérents inscrits cette année (global ou pour le commercial choisi).
-- **Montant Total Collecté** : Somme des cotisations versées par les membres affichés (en FCFA).
-- **Revenu Total (Part Société)** : Rémunération statutaire acquise par ELYKIA pour la gestion de la tontine, alignée sur le même filtre.
-- **En Attente de Livraison** : Nombre de membres éligibles qui attendent encore leurs articles de fin d'année (avec le nombre de colis déjà livrés).
-- **Contribution Moyenne** : Montant moyen épargné par adhérent.
-- **Collectes à la livraison** : Montants perçus lors de la délivrance des articles.
+En haut de l'écran, les cartes récapitulatives vous informent en temps réel sur la santé de la tontine.
+- **Membres Actifs** : Nombre d'adhérents inscrits cette année. Lorsqu'un commercial est choisi, seuls les membres qui lui sont associés actuellement sont comptés.
+- **Montant Total Collecté** : Sans commercial choisi, somme des cotisations des membres de la session. Avec un commercial choisi, somme des collectes enregistrées à son nom, y compris pour des membres transférés ensuite.
+- **Revenu Total (Part Société)** : Part société de ces mêmes collectes.
+- **En Attente de Livraison** : Nombre de membres encore associés qui attendent leurs articles de fin d'année (avec le nombre de colis déjà livrés).
+- **Contribution Moyenne** : Montant moyen épargné par membre encore associé.
+- **Collectes à la livraison** : Montants perçus lors de la délivrance des articles. Avec un commercial choisi, seules ses collectes de livraison sont additionnées.
+
+Sous les filtres, le bouton **Voir l'historique** ouvre les membres transférés et les collectes enregistrées au nom du commercial choisi. La liste principale reste celle des membres encore associés.
 
 ### Session en cours vs Sessions antérieures
 - **Session en cours (Active)** : La campagne annuelle est ouverte. Toutes les opérations quotidiennes (inscriptions, cotisations, ajustements de mise, vérifications de carnet) sont accessibles.
@@ -616,7 +618,7 @@ Pour les utilisateurs habilités à viser les carnets physiques :
 La barre de recherche et de filtres vous permet de cibler des dossiers précis. Vos filtres restent en place si vous quittez la page puis y revenez, jusqu'à ce que vous cliquiez sur **Effacer**.
 
 - **Par texte** : Tapez le nom, prénom, numéro de téléphone ou code du client.
-- **Par commercial** : Pour un gestionnaire, sélectionnez un commercial dans la liste déroulante pour isoler son secteur ; la liste des membres et les indicateurs du haut de page se mettent à jour ensemble. Pour un commercial, votre secteur est pré-sélectionné.
+- **Par commercial** : Sélectionnez un commercial dans la liste déroulante. La liste montre les membres qui lui sont associés actuellement. Le montant collecté additionne les collectes enregistrées à son nom. Le bouton **Voir l'historique** ouvre les membres transférés. Pour un commercial, votre secteur est pré-sélectionné.
 - **Par statut de livraison** : Filtrez les membres en cours de session, ceux dont la livraison est en attente, validée ou déjà terminée.
 - **Par état du carnet** : Affichez uniquement les membres dont le carnet est vérifié ou ceux restant à contrôler.
 - **Par origine** : Choisissez **Espace client** pour ne voir que les membres qui se sont inscrits eux-mêmes depuis l'application Espace Client, ou **Personnel** pour ceux inscrits par l'agence. Dans la liste, ces auto-inscrits portent le badge violet **Espace client** sous leur nom.
