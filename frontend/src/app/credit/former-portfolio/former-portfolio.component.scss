@@ -193,3 +193,63 @@
 }
 .former-portfolio-page .detail-total { font-weight: 700; color: var(--navy); }
 .former-portfolio-page .back-link { margin-bottom: 8px; }
+.former-portfolio-page .month-pills {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: 16px 0 20px;
+}
+.former-portfolio-page .month-pill-block {
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+.former-portfolio-page .month-pill-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.former-portfolio-page .month-pill-head h3 {
+  margin: 0;
+  color: var(--navy);
+  font-size: 15px;
+}
+.former-portfolio-page .month-pill-head span {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+.former-portfolio-page .month-pill-head strong {
+  margin-left: auto;
+  font-family: 'DM Mono', monospace;
+  font-variant-numeric: tabular-nums;
+  color: var(--navy);
+}
+.former-portfolio-page .month-pill-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 28px);
+  gap: 6px;
+  width: max-content;
+  max-width: 100%;
+}
+.former-portfolio-page .month-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--navy);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  color: #fff;
+}
+.former-portfolio-page .month-pill-empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-light);
+  font-style: italic;
+}

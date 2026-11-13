@@ -268,7 +268,7 @@ Les commandes sont réparties selon leur avancement :
 
 Après un transfert, le contrat quitte votre liste des ventes en cours. Vous pouvez relire la situation au moment de la passation et les encaissements enregistrés à votre nom.
 
-1. Ouvrez **Ventes**, puis **Ancien portefeuille**.
+1. Ouvrez **Ventes**, puis **Ancien portefeuille**. Le compteur **Dossiers affichés** indique le nombre de dossiers de l'onglet ouvert.
 2. Onglet **Crédit** : chaque ligne affiche la référence, le client, la date de passation, le montant et le reste dû figés à ce moment-là, puis le total de vos recouvrements.
 3. Cliquez sur **Voir** pour le détail de vos recouvrements (date, référence, montant).
 4. Onglet **Agence** : les ventes comptant enregistrées à votre nom, regroupées par client, lorsque vous ne suivez plus ce client pour les opérations en agence.

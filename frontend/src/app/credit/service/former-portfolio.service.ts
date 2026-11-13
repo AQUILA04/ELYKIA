@@ -3,6 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { readSpringPage } from '../former-portfolio/former-portfolio.util';
 import { ApiResponse } from './credit.service';
 
 export interface SpringPage<T> {
@@ -34,8 +35,16 @@ export interface FormerTontineCollection {
   reference: string;
 }
 
+export interface FormerTontineStakePeriod {
+  amount: number;
+  startDate: string;
+  endDate?: string | null;
+}
+
 export interface FormerTontineMemberDetail extends Omit<FormerTontineMember, 'ownCollectionsCount'> {
   collections: FormerTontineCollection[];
+  dailyAmount?: number | null;
+  stakePeriods?: FormerTontineStakePeriod[];
 }
 
 export interface FormerCreditItem {
@@ -127,7 +136,7 @@ export class FormerPortfolioService {
       params = params.set('commercial', commercial);
     }
     return this.http.get<ApiResponse<SpringPage<T>>>(`${this.apiUrl}${path}`, { params }).pipe(
-      map(response => response.data ?? { content: [], totalElements: 0, totalPages: 0, number: page, size })
+      map(response => readSpringPage(response.data, page, size))
     );
   }
 

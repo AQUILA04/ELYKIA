@@ -78,6 +78,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.44.7] — 2026-11-13
+
+### Added
+
+- **Tontines —** sur l'historique d'un ancien portefeuille, chaque mois affiche des pastilles numérotées selon la mise en vigueur, à raison de 7 par ligne.
+
+### Fixed
+
+- **Tontines —** le compteur **Dossiers affichés** de l'ancien portefeuille reprend le nombre de dossiers de l'onglet.
+
 ## Frontend — [2.44.6] — 2026-11-13
 
 ### Fixed
@@ -276,6 +286,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.47.6] — 2026-11-13
+
+### Changed
+
+- **Tontines —** le détail d'un membre de l'ancien portefeuille transmet la mise journalière et les périodes de mise, pour les pastilles du mois.
 
 ## Backend — [1.47.5] — 2026-11-13
 

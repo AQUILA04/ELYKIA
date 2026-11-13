@@ -12,6 +12,8 @@ public record FormerTontineMemberDetailDto(
         String phone,
         String quarter,
         Double ownCollectionsTotal,
-        List<FormerTontineCollectionDto> collections
+        List<FormerTontineCollectionDto> collections,
+        Double dailyAmount,
+        List<FormerTontineStakePeriodDto> stakePeriods
 ) {
 }

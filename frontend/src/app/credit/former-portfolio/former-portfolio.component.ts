@@ -10,6 +10,7 @@ import {
   FormerTontineMemberDetail,
   SpringPage
 } from '../service/former-portfolio.service';
+import { buildMonthPills, MonthPillGroup } from './former-portfolio.util';
 
 type Tab = 'tontine' | 'credit' | 'agence';
 
@@ -133,6 +134,14 @@ export class FormerPortfolioComponent implements OnInit, OnDestroy {
 
   personName(firstname?: string | null, lastname?: string | null): string {
     return `${firstname ?? ''} ${lastname ?? ''}`.trim();
+  }
+
+  get tontineMonths(): MonthPillGroup[] {
+    const detail = this.tontineDetail;
+    if (!detail?.collections?.length) {
+      return [];
+    }
+    return buildMonthPills(detail.collections, detail.stakePeriods ?? [], detail.dailyAmount ?? 0);
   }
 
   private load(): void {
