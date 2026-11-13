@@ -1,15 +1,19 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CommonModule } from '@angular/common';
 import { ExpenseListComponent } from './list.component';
 import { ExpenseService } from '../../services/expense.service';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
-import { MatIconModule } from '@angular/material/icon'; // Import MatIconModule
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations'; // Import BrowserAnimationsModule
-import { of, throwError } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { of } from 'rxjs';
 import { PaginatedResponse, Expense } from '../../models/expense.model';
 import { RouterTestingModule } from '@angular/router/testing';
+import { NgxPermissionsModule } from 'ngx-permissions';
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 describe('ExpenseListComponent', () => {
     let component: ExpenseListComponent;
@@ -17,21 +21,26 @@ describe('ExpenseListComponent', () => {
     let expenseServiceSpy: jasmine.SpyObj<ExpenseService>;
 
     beforeEach(async () => {
-        const spy = jasmine.createSpyObj('ExpenseService', ['getExpenses', 'deleteExpense']);
+        const spy = jasmine.createSpyObj('ExpenseService', ['getExpenses', 'deleteExpense', 'getExpenseTypes', 'cancelExpenses']);
+        spy.getExpenseTypes.and.returnValue(of([]));
 
         await TestBed.configureTestingModule({
             declarations: [ExpenseListComponent],
             imports: [
+                CommonModule,
                 MatDialogModule,
                 MatSnackBarModule,
                 MatPaginatorModule,
                 MatTableModule,
-                MatIconModule, // Add MatIconModule
-                BrowserAnimationsModule, // Add BrowserAnimationsModule
-                RouterTestingModule
+                MatIconModule,
+                MatTooltipModule,
+                BrowserAnimationsModule,
+                RouterTestingModule,
+                NgxPermissionsModule.forRoot()
             ],
             providers: [
-                { provide: ExpenseService, useValue: spy }
+                { provide: ExpenseService, useValue: spy },
+                { provide: AlertService, useValue: jasmine.createSpyObj('AlertService', ['showDeleteConfirmation', 'showError']) }
             ]
         })
             .compileComponents();
@@ -77,7 +86,6 @@ describe('ExpenseListComponent', () => {
 
         component.loadExpenses();
 
-        expect(component.dataSource.data).toEqual(dummyExpenses);
-        // expect(component.totalElements).toBe(1); // totalElements property does not exist in component
+        expect(component.expenses).toEqual(dummyExpenses);
     });
 });

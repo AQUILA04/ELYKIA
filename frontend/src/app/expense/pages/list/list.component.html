@@ -32,6 +32,10 @@
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
           Nouvelle dépense
         </button>
+        <button class="btn-action btn-danger" *ngxPermissionsOnly="['ROLE_CANCEL_EXPENSE']"
+                (click)="cancelSelected()" [disabled]="selectedIds.size === 0">
+          Annuler la sélection
+        </button>
         <button class="btn-refresh" (click)="loadExpenses()">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
           Actualiser
@@ -67,17 +71,22 @@
     <table>
       <thead>
         <tr>
+          <th *ngxPermissionsOnly="['ROLE_CANCEL_EXPENSE']" class="col-select">
+            <input type="checkbox" aria-label="Sélectionner les dépenses annulables de la page"
+                   [checked]="isAllSelectableSelected" [disabled]="selectableExpenses.length === 0"
+                   (change)="toggleAllSelection()">
+          </th>
           <th>Date</th>
           <th>Type</th>
           <th>Montant</th>
           <th class="col-hide">Description</th>
           <th class="col-hide">Référence</th>
-          <th style="width:120px">Actions</th>
+          <th class="col-actions">Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngIf="isLoading">
-          <td colspan="6">
+          <td [attr.colspan]="columnCount">
             <div class="empty-state">
               <div class="empty-icon">⏳</div>
               <div class="empty-title">Chargement…</div>
@@ -85,7 +94,7 @@
           </td>
         </tr>
         <tr *ngIf="!isLoading && expenses.length === 0">
-          <td colspan="6">
+          <td [attr.colspan]="columnCount">
             <div class="empty-state">
               <div class="empty-icon">💸</div>
               <div class="empty-title">Aucune dépense trouvée</div>
@@ -94,6 +103,11 @@
           </td>
         </tr>
         <tr *ngFor="let e of expenses">
+          <td *ngxPermissionsOnly="['ROLE_CANCEL_EXPENSE']" class="col-select">
+            <input type="checkbox" [attr.aria-label]="'Sélectionner la dépense du ' + (e.expenseDate | date:'dd/MM/yyyy')"
+                   [checked]="isSelected(e.id)" [disabled]="isCancelBlocked(e)"
+                   (change)="toggleSelection(e)">
+          </td>
           <td>
             <div class="col-date">{{ e.expenseDate | date:'dd/MM/yyyy' }}</div>
           </td>
@@ -119,8 +133,9 @@
                 </svg>
                 Éditer
               </button>
-              <button class="btn-delete" (click)="deleteExpense(e)" [disabled]="e.accounted"
-                      [matTooltip]="e.accounted ? 'Dépense comptabilisée — suppression impossible' : ''">
+              <button class="btn-delete" *ngxPermissionsOnly="['ROLE_CANCEL_EXPENSE']"
+                      type="button" (click)="deleteExpense(e)" [disabled]="isCancelBlocked(e)"
+                      [attr.aria-label]="cancelTooltip(e)" [matTooltip]="cancelTooltip(e)">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>

@@ -24,6 +24,7 @@ Consultez les pages suivantes selon la tâche à accomplir :
 
 - [Journal espace client (Audit)](customer_activity_audit.md) pour consulter les actions, erreurs et parcours de l’espace client.
 - [Annulation de ventes](sale_cancellation.md) pour annuler une ou plusieurs ventes à crédit d’un commercial (menu **Ventes > Annulation Ventes**).
+- [Annulation d'une dépense](expense_cancellation.md) pour retirer une ou plusieurs dépenses qui ne sont pas encore dans une remise.
 - [Annulation d'un versement](cash_deposit_cancellation.md) pour annuler un versement espèce du rapport journalier.
 - [Date d'adhésion d'un membre de tontine](tontine_adhesion_date.md) pour rattacher un membre à son vrai jour de début et saisir les cotisations depuis cette date.
 - [Annuler les collectes d'un commercial](tontine_annulation_commercial.md) pour retirer les collectes d'un seul commercial sur la session annuelle, en conservant celles des autres.

@@ -21,8 +21,10 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -126,5 +128,41 @@ class ExpenseServiceTest {
         assertThat(kpis).hasSize(2); // Week + Month
         assertThat(kpis.get(0).getPeriodLabel()).isEqualTo("Cette Semaine");
         assertThat(kpis.get(1).getPeriodLabel()).isEqualTo("Ce Mois");
+    }
+
+    @Test
+    void cancelExpenses_ShouldSoftDeleteWhenNotLinked() {
+        when(expenseRepository.findAllById(any())).thenReturn(List.of(expense));
+        when(remittanceExpenseRepository.findLinkedExpenseIdsIn(any())).thenReturn(Collections.emptySet());
+        when(expenseRepository.findById(1L)).thenReturn(Optional.of(expense));
+        when(expenseRepository.saveAndFlush(any(Expense.class))).thenReturn(expense);
+
+        int cancelled = expenseService.cancelExpenses(List.of(1L));
+
+        assertThat(cancelled).isEqualTo(1);
+        verify(expenseRepository).saveAndFlush(expense);
+    }
+
+    @Test
+    void cancelExpenses_ShouldRejectWhenAnyExpenseIsLinkedToARemittance() {
+        Expense linked = new Expense();
+        linked.setId(2L);
+        when(expenseRepository.findAllById(any())).thenReturn(List.of(expense, linked));
+        when(remittanceExpenseRepository.findLinkedExpenseIdsIn(any())).thenReturn(Set.of(2L));
+
+        assertThatThrownBy(() -> expenseService.cancelExpenses(List.of(1L, 2L)))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("remise");
+        verify(expenseRepository, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void cancelExpenses_ShouldRejectWhenExpenseIsMissing() {
+        when(expenseRepository.findAllById(any())).thenReturn(List.of());
+
+        assertThatThrownBy(() -> expenseService.cancelExpenses(List.of(9L)))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("introuvable");
+        verify(remittanceExpenseRepository, never()).findLinkedExpenseIdsIn(any());
     }
 }
