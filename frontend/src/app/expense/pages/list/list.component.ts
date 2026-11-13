@@ -150,7 +150,7 @@ export class ExpenseListComponent implements OnInit {
     if (this.isCancelBlocked(expense) || expense.id == null) {
       return;
     }
-    this.alertService.showDeleteConfirmation('Supprimer cette dépense ?').then((confirmed) => {
+    void this.alertService.showDeleteConfirmation('Supprimer cette dépense ?').then((confirmed) => {
       if (!confirmed) {
         return;
       }
@@ -161,7 +161,7 @@ export class ExpenseListComponent implements OnInit {
         },
         error: (err) => this.alertService.showError(this.expenseErrorMessage(err))
       });
-    });
+    }).catch(() => undefined);
   }
 
   cancelSelected(): void {
@@ -172,7 +172,7 @@ export class ExpenseListComponent implements OnInit {
     const text = ids.length === 1
       ? 'Supprimer la dépense sélectionnée ?'
       : `Supprimer les ${ids.length} dépenses sélectionnées ?`;
-    this.alertService.showDeleteConfirmation(text).then((confirmed) => {
+    void this.alertService.showDeleteConfirmation(text).then((confirmed) => {
       if (!confirmed) {
         return;
       }
@@ -187,7 +187,7 @@ export class ExpenseListComponent implements OnInit {
         },
         error: (err) => this.alertService.showError(this.expenseErrorMessage(err))
       });
-    });
+    }).catch(() => undefined);
   }
 
   private expenseErrorMessage(err: { error?: { message?: string } }): string {

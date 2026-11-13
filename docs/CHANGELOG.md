@@ -78,6 +78,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.44.6] — 2026-11-13
+
+### Fixed
+
+- **Dépenses —** la confirmation d'annulation gère le rejet de la promesse, pour le critère de fiabilité Sonar sur le nouveau code.
+
 ## Frontend — [2.44.5] — 2026-11-13
 
 ### Added
