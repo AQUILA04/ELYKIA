@@ -79,6 +79,13 @@
     (downloadCarnetPdf)="onExportCarnetPdf($event)">
   </app-tontine-filter-bar>
 
+  <div class="history-row a4" *ngIf="showCollectionHistory">
+    <a class="btn-outline btn-sm" routerLink="/credit/ancien-portefeuille" [queryParams]="historyQueryParams">
+      Voir l'historique
+    </a>
+    <span>La liste ci-dessous reprend les membres encore associés. L'historique montre les collectes des membres transférés.</span>
+  </div>
+
   <div class="bulk-carnet-bar a4" *ngIf="(canVerify || canAssignCollector) && selectedMemberIds.size > 0">
     <span>{{ selectedMemberIds.size }} membre(s) sélectionné(s)</span>
     <button *ngIf="canVerify" class="btn-primary" type="button"

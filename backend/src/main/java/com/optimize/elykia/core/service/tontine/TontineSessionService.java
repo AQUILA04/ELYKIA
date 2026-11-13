@@ -98,21 +98,27 @@ public class TontineSessionService {
                 final long deliveredCount;
                 final Double totalDeliveryCollectionsRaw;
                 final Double totalRevenue;
+                final Double averageFromPortfolio;
 
                 if (commercialFilter != null) {
                         totalMembers = memberRepository.countBySessionForCommercial(
                                         sessionId, State.ENABLED, commercialFilter);
-                        totalCollectedRaw = memberRepository.sumTotalContributionBySessionForCommercial(
+                        Double portfolioCollected = memberRepository.sumTotalContributionBySessionForCommercial(
                                         sessionId, State.ENABLED, commercialFilter);
                         deliveredCount = memberRepository.countBySessionForCommercialAndDeliveryStatus(
                                         sessionId, State.ENABLED, TontineMemberDeliveryStatus.DELIVERED,
                                         commercialFilter);
+                        totalCollectedRaw = collectionRepository.sumAmountBySessionAndCommercialUsername(
+                                        sessionId, State.ENABLED, commercialFilter);
                         totalDeliveryCollectionsRaw = collectionRepository
-                                        .sumDeliveryCollectionsBySessionForCommercial(
+                                        .sumDeliveryAmountBySessionAndCommercialUsername(
                                                         sessionId, State.ENABLED, commercialFilter);
-                        Double societyShare = memberRepository.sumSocietyShareBySessionForCommercial(
+                        Double societyShare = collectionRepository.sumSocietyShareBySessionAndCommercialUsername(
                                         sessionId, State.ENABLED, commercialFilter);
                         totalRevenue = societyShare != null ? societyShare : 0.0;
+                        averageFromPortfolio = totalMembers > 0
+                                        ? (portfolioCollected != null ? portfolioCollected : 0.0) / totalMembers
+                                        : 0.0;
                 } else {
                         totalMembers = memberRepository.countByTontineSessionIdAndState(sessionId, State.ENABLED);
                         totalCollectedRaw = memberRepository.sumTotalContributionByTontineSessionId(
@@ -122,6 +128,7 @@ public class TontineSessionService {
                         totalDeliveryCollectionsRaw = collectionRepository.sumDeliveryCollectionsBySession(
                                         sessionId, State.ENABLED);
                         totalRevenue = session.getTotalRevenue() != null ? session.getTotalRevenue() : 0.0;
+                        averageFromPortfolio = null;
                 }
 
                 Double totalCollected = totalCollectedRaw != null ? totalCollectedRaw : 0.0;
@@ -131,9 +138,9 @@ public class TontineSessionService {
 
                 int pendingCount = (int) totalMembers - (int) deliveredCount;
 
-                Double averageContribution = totalMembers > 0
-                                ? totalCollected / totalMembers
-                                : 0.0;
+                Double averageContribution = averageFromPortfolio != null
+                                ? averageFromPortfolio
+                                : (totalMembers > 0 ? totalCollected / totalMembers : 0.0);
 
                 Double deliveryRate = totalMembers > 0
                                 ? (deliveredCount * 100.0) / totalMembers

@@ -26,7 +26,8 @@
         Actualiser
       </button>
     </div>
-    <p class="page-subtitle">Consultation seule de vos anciens clients et des opérations que vous avez enregistrées.</p>
+    <p class="page-subtitle" *ngIf="viewedCommercial">Collectes enregistrées par {{ viewedCommercial }} pour des membres qui ne lui sont plus associés.</p>
+    <p class="page-subtitle" *ngIf="!viewedCommercial">Consultation seule de vos anciens clients et des opérations que vous avez enregistrées.</p>
   </div>
 
   <div class="kpi-strip a3" *ngIf="!kind">
@@ -75,7 +76,7 @@
               <td>{{ row.quarter }}</td>
               <td>{{ row.sessionYear }}</td>
               <td class="num">{{ row.ownCollectionsTotal | number:'1.0-0' }} FCFA</td>
-              <td><a class="btn-detail" [routerLink]="['/credit/ancien-portefeuille', 'tontine', row.memberId]" [queryParams]="{ tab: 'tontine' }">Voir</a></td>
+              <td><a class="btn-detail" [routerLink]="['/credit/ancien-portefeuille', 'tontine', row.memberId]" [queryParams]="tontineQueryParams">Voir</a></td>
             </tr>
           </tbody>
         </table>
@@ -153,7 +154,7 @@
     </div>
 
     <ng-container *ngIf="!loading && tontineDetail as detail">
-      <a class="btn-detail back-link" routerLink="/credit/ancien-portefeuille" [queryParams]="{ tab: 'tontine' }">Retour à la liste</a>
+      <a class="btn-detail back-link" routerLink="/credit/ancien-portefeuille" [queryParams]="tontineQueryParams">Retour à la liste</a>
       <h2 class="detail-title">{{ personName(detail.firstname, detail.lastname) }}</h2>
       <p class="detail-meta">{{ detail.clientCode }} · {{ detail.phone }} · {{ detail.quarter }} · Session {{ detail.sessionYear }}</p>
       <p class="detail-total">Total de vos collectes : {{ detail.ownCollectionsTotal | number:'1.0-0' }} FCFA</p>

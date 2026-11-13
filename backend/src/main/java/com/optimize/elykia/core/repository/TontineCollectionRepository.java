@@ -436,4 +436,44 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
     java.util.List<com.optimize.elykia.core.dto.portfolio.FormerTontineCollectionDto> findFormerOwnCollections(
             @Param("commercial") String commercial,
             Pageable pageable);
+
+    @Query("""
+            SELECT COALESCE(SUM(tc.amount), 0)
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            WHERE tm.tontineSession.id = :sessionId
+              AND tc.state = :state
+              AND LOWER(tc.commercialUsername) = LOWER(:commercial)
+            """)
+    Double sumAmountBySessionAndCommercialUsername(
+            @Param("sessionId") Long sessionId,
+            @Param("state") State state,
+            @Param("commercial") String commercial);
+
+    @Query("""
+            SELECT COALESCE(SUM(tc.societyShareAmount), 0)
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            WHERE tm.tontineSession.id = :sessionId
+              AND tc.state = :state
+              AND LOWER(tc.commercialUsername) = LOWER(:commercial)
+            """)
+    Double sumSocietyShareBySessionAndCommercialUsername(
+            @Param("sessionId") Long sessionId,
+            @Param("state") State state,
+            @Param("commercial") String commercial);
+
+    @Query("""
+            SELECT COALESCE(SUM(tc.amount), 0)
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            WHERE tm.tontineSession.id = :sessionId
+              AND tc.isDeliveryCollection = true
+              AND tc.state = :state
+              AND LOWER(tc.commercialUsername) = LOWER(:commercial)
+            """)
+    Double sumDeliveryAmountBySessionAndCommercialUsername(
+            @Param("sessionId") Long sessionId,
+            @Param("state") State state,
+            @Param("commercial") String commercial);
 }

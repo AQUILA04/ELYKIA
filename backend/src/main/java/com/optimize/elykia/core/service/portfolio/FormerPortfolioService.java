@@ -29,6 +29,7 @@ import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -65,17 +66,29 @@ public class FormerPortfolioService {
     private final CreditCollectorHistoryRepository creditCollectorHistoryRepository;
 
     public Page<FormerTontineMemberDto> listFormerTontineMembers(Pageable pageable) {
-        User user = requirePromoter();
-        return tontineMemberRepository.findFormerMembers(user.getUsername(), pageable);
+        return listFormerTontineMembers(pageable, null);
+    }
+
+    public Page<FormerTontineMemberDto> listFormerTontineMembers(Pageable pageable, String requestedCommercial) {
+        return tontineMemberRepository.findFormerMembers(resolveHistoryCommercial(requestedCommercial), pageable);
     }
 
     public FormerTontineMemberDetailDto getFormerTontineMember(Long memberId) {
-        User user = requirePromoter();
+        return getFormerTontineMember(memberId, null);
+    }
+
+    public FormerTontineMemberDetailDto getFormerTontineMember(Long memberId, String requestedCommercial) {
+        String commercial = resolveHistoryCommercial(requestedCommercial);
         TontineMember member = loadMember(memberId);
-        if (decideTontine(user, member) != FormerPortfolioAccess.Level.FORMER) {
+        User user = userService.getCurrentUser();
+        if (AppNotificationService.isPromoterOnly(user)) {
+            if (decideTontine(user, member) != FormerPortfolioAccess.Level.FORMER) {
+                throw new CustomValidationException(NOT_FORMER);
+            }
+        } else if (!isFormerFor(member, commercial)) {
             throw new CustomValidationException(NOT_FORMER);
         }
-        return toTontineDetail(member, user.getUsername());
+        return toTontineDetail(member, commercial);
     }
 
     public List<FormerTontineCollectionDto> ownTontineCollections(Long memberId) {
@@ -371,6 +384,56 @@ public class FormerPortfolioService {
                 .filter(credit -> credit.getState() == State.ENABLED
                         || credit.getStatus() == CreditStatus.CANCELLED)
                 .orElseThrow(() -> new CustomValidationException("Vente introuvable."));
+    }
+
+    private String resolveHistoryCommercial(String requestedCommercial) {
+        User user = userService.getCurrentUser();
+        if (user == null || !StringUtils.hasText(user.getUsername())) {
+            throw new CustomValidationException(PROMOTER_ONLY);
+        }
+        if (AppNotificationService.isPromoterOnly(user)) {
+            return user.getUsername();
+        }
+        if (!canConsultAnotherCommercial(user)) {
+            throw new CustomValidationException(PROMOTER_ONLY);
+        }
+        if (!StringUtils.hasText(requestedCommercial)) {
+            throw new CustomValidationException("Choisissez un commercial.");
+        }
+        return requestedCommercial.trim();
+    }
+
+    private boolean canConsultAnotherCommercial(User user) {
+        var permissions = user.getPermissions();
+        if (permissions == null) {
+            return false;
+        }
+        return permissions.stream().anyMatch(permission -> {
+            String name = permission.getName();
+            return UserPermissionConstant.ADMIN.equals(name)
+                    || UserPermissionConstant.CONSULT_TONTINE.equals(name)
+                    || UserPermissionConstant.EDIT_TONTINE.equals(name)
+                    || UserPermissionConstant.KPI_FINANCIER_TONTINE.equals(name);
+        });
+    }
+
+    private boolean isFormerFor(TontineMember member, String commercial) {
+        String collector = member.getClient() == null ? null : member.getClient().getTontineCollector();
+        if (same(collector, commercial)) {
+            return false;
+        }
+        boolean collected = tontineCollectionRepository
+                .existsByTontineMember_IdAndStateAndCommercialUsernameIgnoreCase(
+                        member.getId(), State.ENABLED, commercial);
+        if (collected) {
+            return true;
+        }
+        if (member.getClient() == null) {
+            return false;
+        }
+        return clientCollectorHistoryRepository
+                .existsByClientIdAndCollectorTypeAndOldCollectorIgnoreCaseAndState(
+                        member.getClient().getId(), ClientCollectorType.TONTINE, commercial, State.ENABLED);
     }
 
     private User requirePromoter() {
