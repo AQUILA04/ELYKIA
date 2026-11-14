@@ -6,7 +6,7 @@ Le menu **Stock Commercial** regroupe les sorties, le stock et les retours. Sur 
 
 1. Ouvrez **Stock Commercial**, puis **Demandes Sortie**, **Stock** ou **Retours**.
 2. Cliquez sur **Crédit** pour les ventes, ou sur **Tontine** pour les livraisons de fin de cycle.
-3. Les filtres, le tableau et les boutons (**Voir**, **Livrer**, **Réceptionner**, **Télécharger**) s'appliquent au choix affiché.
+3. Les filtres, le tableau et les boutons (**Voir**, **Livrer**, **Annuler**, **Réceptionner**, **Télécharger**) s'appliquent au choix affiché.
 
 ---
 
@@ -24,18 +24,20 @@ Toutes les demandes de sortie validées par la gestion arrivent dans le menu **S
    * La référence s'affiche en haut de la fenêtre.
    * Vérifiez la liste exacte des articles et les quantités commandées.
    * Assurez-vous que le statut est bien **Validée**.
+   * Si la sortie ne doit pas être remise, cliquez sur **« Annuler »** en bas de la fenêtre, puis confirmez. La demande passe au statut **Annulée**. La marchandise reste au magasin.
    * Cliquez sur **« Télécharger »** pour enregistrer la fiche de sortie de cette demande.
 3. Prélevez les articles en rayon et regroupez-les dans la zone de délivrance.
 
 ### B. Remise physique et validation du départ (`Livrer`)
-1. Procédez au comptage contradictoire avec le commercial présent au comptoir.
-2. Cliquez sur le bouton bleu **« Livrer »**.
-3. **Conséquences automatiques** :
+1. Sur la liste, une demande **Validée** propose **Livrer** et **Annuler**. Choisissez **Annuler** puis confirmez si la sortie ne part pas. La demande passe au statut **Annulée** et le stock du magasin ne change pas.
+2. Procédez au comptage contradictoire avec le commercial présent au comptoir.
+3. Cliquez sur le bouton bleu **« Livrer »**.
+4. **Conséquences automatiques** :
    * Le statut de la demande passe définitivement à **Livrée**.
    * Le stock physique du magasin est automatiquement débité.
    * Le stock commercial du destinataire est automatiquement crédité.
    * La date et l'heure précises de livraison sont horodatées.
-4. Cliquez sur l'icône de téléchargement pour imprimer la **Fiche de sortie PDF** signée par les deux parties.
+5. Cliquez sur l'icône de téléchargement pour imprimer la **Fiche de sortie PDF** signée par les deux parties.
 
 > **Consigne absolue.** Ne remettez jamais de marchandise à un commercial sur une demande au statut **Créée / En attente**. Le bouton « Livrer » n'apparaît que sur les demandes expressément validées par la gestion (**Validée**).
 
@@ -72,7 +74,8 @@ Lorsqu'un commercial restitue des articles au dépôt central (invendus de tourn
 3. Repérez la demande au statut **Validée**.
 4. Cliquez sur **« Voir »** pour examiner les articles et les quantités. La référence s'affiche en haut. **« Télécharger »** enregistre la fiche de cette demande.
 5. Rassemblez les colis et vérifiez les références avec le commercial au guichet.
-6. Cliquez sur **« Livrer »**.
+6. Si la dotation ne doit pas partir, cliquez sur **« Annuler »** puis confirmez. La demande passe au statut **Annulée** et le stock tontine ne change pas.
+7. Cliquez sur **« Livrer »**.
    * Le stock dépôt tontine est débité.
    * Le commercial est crédité de sa dotation tontine.
    * La demande passe au statut **Livrée**.

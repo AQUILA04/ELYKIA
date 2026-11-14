@@ -186,6 +186,11 @@
                         [disabled]="processingId === req.id">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
                 </button>
+                <button *ngIf="canCancelValidatedStockRequest && req.status === 'VALIDATED'"
+                        class="btn-detail btn-danger" (click)="cancel(req)" title="Annuler"
+                        data-testid="e2e-stock-request-cancel-validated">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
                 <button *ngIf="(isManager || (currentUser?.username === req.collector)) && req.status === 'CREATED'"
                         class="btn-detail btn-danger" (click)="cancel(req)" title="Annuler">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -290,6 +295,11 @@
                 (click)="refuse(selectedRequest!)" data-testid="e2e-stock-request-detail-refuse">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
           Refuser
+        </button>
+        <button *ngIf="canCancelValidatedStockRequest && selectedRequest?.status === 'VALIDATED'" type="button" class="btn-danger"
+                (click)="cancel(selectedRequest!)" data-testid="e2e-stock-request-detail-cancel">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          Annuler
         </button>
       </div>
       <div class="modal-footer-group modal-footer-end">

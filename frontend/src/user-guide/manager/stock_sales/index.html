@@ -2241,7 +2241,8 @@
 <li><strong>Étape 2 : Validation gestionnaire (Statut « Validée »)</strong> :</li>
 <li>Le gestionnaire contrôle la disponibilité physique en magasin et les encours du commercial, puis clique sur le bouton vert <strong>« Valider »</strong>.</li>
 <li>La demande passe à l'état <strong>Validée</strong>. La marchandise est alors réservée au magasin.</li>
-<li>Si la demande est liée à des <strong>commandes</strong> (mention « Commandes liées » dans la liste), les commandes encore en attente passent automatiquement à <strong>Validée</strong>.</li>
+<li>Tant que la demande n'est pas livrée, <strong>Annuler</strong> reste disponible dans la liste et en bas de la fenêtre <strong>Voir</strong>. Après confirmation, la demande passe au statut <strong>Annulée</strong>. Le stock du magasin ne change pas.</li>
+<li>Si la demande est liée à des <strong>commandes</strong> (mention « Commandes liées » dans la liste), les commandes encore en attente passent automatiquement à <strong>Validée</strong>. Elles restent <strong>Validée</strong> si la demande de sortie est ensuite annulée.</li>
 <li><strong>Étape 3 : Livraison magasinier (Statut « Livrée »)</strong> :</li>
 <li>Le magasinier physique remet les articles au commercial et clique sur le bouton bleu <strong>« Livrer »</strong>.</li>
 <li><strong>Conséquence instantanée</strong> : Le stock magasin est débité et le stock personnel du commercial est crédité. La date de livraison est horodatée.</li>
@@ -2251,7 +2252,7 @@
 <li>Cliquez sur <strong>« Voir »</strong>.</li>
 <li>La référence de la demande s'affiche en haut de la fenêtre.</li>
 <li>Contrôlez le commercial, les dates, le statut et la liste des articles.</li>
-<li>Pour une demande au statut <strong>Créée</strong>, <strong>« Valider »</strong> et <strong>« Refuser »</strong> sont en bas de la fenêtre. La confirmation est la même que depuis la liste.</li>
+<li>Pour une demande au statut <strong>Créée</strong>, <strong>« Valider »</strong> et <strong>« Refuser »</strong> sont en bas de la fenêtre. Pour une demande au statut <strong>Validée</strong>, <strong>« Annuler »</strong> est en bas de la fenêtre. La confirmation est la même que depuis la liste.</li>
 <li>Cliquez sur <strong>« Télécharger »</strong> pour enregistrer la fiche de sortie de cette demande.</li>
 </ol>
 <h3 id="c-telechargements-et-exports-pdf">C. Téléchargements et exports PDF</h3>
@@ -2273,7 +2274,7 @@
 <p>Ce stock prépare les paniers de fin d'exercice des membres ayant cotisé.</p>
 </li>
 <li>Le cycle d'approbation (<strong>Créée → Validée → Livrée</strong>) et le retour (<strong>En attente → Réceptionné</strong>) suivent les mêmes boutons que le stock crédit.</li>
-<li>Sur <strong>Demandes Sortie</strong>, <strong>« Voir »</strong> ouvre le détail : la référence est en haut. Pour une demande <strong>Créée</strong>, <strong>« Valider »</strong> et <strong>« Refuser »</strong> sont en bas de la fenêtre. <strong>« Télécharger »</strong> enregistre la fiche de cette demande.</li>
+<li>Sur <strong>Demandes Sortie</strong>, <strong>« Voir »</strong> ouvre le détail : la référence est en haut. Pour une demande <strong>Créée</strong>, <strong>« Valider »</strong> et <strong>« Refuser »</strong> sont en bas de la fenêtre. Pour une demande <strong>Validée</strong>, <strong>« Annuler »</strong> est en bas de la fenêtre, tant qu'elle n'est pas livrée. <strong>« Télécharger »</strong> enregistre la fiche de cette demande.</li>
 <li><strong>Stock</strong> affiche le suivi par année. <strong>Retours</strong> permet de <strong>Réceptionner</strong> un retour au statut <strong>En attente</strong>.</li>
 </ol>
 <hr />

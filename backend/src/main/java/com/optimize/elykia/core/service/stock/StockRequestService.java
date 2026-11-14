@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service.stock;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.models.UserPermission;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.ArticleHistoryContext;
 import com.optimize.elykia.core.entity.article.Articles;
@@ -23,6 +24,7 @@ import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.store.InventoryWarehouseGuard;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -504,21 +506,36 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
 
     public void cancelRequest(Long requestId) {
         StockRequest request = getById(requestId);
-        User currentUser = userService.getCurrentUser();
-
-        if (request.getStatus() != StockRequestStatus.CREATED) {
-            throw new CustomValidationException("Seules les demandes au statut CREATED peuvent être annulées.");
+        StockRequestStatus status = request.getStatus();
+        if (status == StockRequestStatus.DELIVERED) {
+            throw new CustomValidationException("Une demande déjà livrée ne peut pas être annulée.");
+        }
+        if (status != StockRequestStatus.CREATED && status != StockRequestStatus.VALIDATED) {
+            throw new CustomValidationException("Cette demande ne peut pas être annulée.");
         }
 
-        boolean isCreator = request.getCollector().equals(currentUser.getUsername());
-        boolean isManager = currentUser.is(UserProfilConstant.GESTIONNAIRE) || currentUser.is(UserProfilConstant.ADMIN);
-
-        if (!isCreator && !isManager) {
-             throw new CustomValidationException("Vous n'avez pas le droit d'annuler cette demande.");
+        User currentUser = userService.getCurrentUser();
+        if (status == StockRequestStatus.VALIDATED) {
+            if (!hasPermission(currentUser, UserPermissionConstant.CANCEL_VALIDATED_STOCK_REQUEST)) {
+                throw new CustomValidationException("Vous n'avez pas le droit d'annuler cette demande.");
+            }
+        } else {
+            boolean isCreator = request.getCollector().equals(currentUser.getUsername());
+            boolean isManager = currentUser.is(UserProfilConstant.GESTIONNAIRE) || currentUser.is(UserProfilConstant.ADMIN);
+            if (!isCreator && !isManager) {
+                throw new CustomValidationException("Vous n'avez pas le droit d'annuler cette demande.");
+            }
         }
 
         request.setStatus(StockRequestStatus.CANCELLED);
         repository.save(request);
+    }
+
+    private static boolean hasPermission(User user, String permission) {
+        if (user == null || user.getPermissions() == null) {
+            return false;
+        }
+        return user.getPermissions().stream().map(UserPermission::getName).anyMatch(permission::equals);
     }
 
     public void refuseRequest(Long requestId) {
