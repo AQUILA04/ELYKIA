@@ -59,7 +59,7 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
 
   constructor(
     public dialogRef: MatDialogRef<DeliveryArticleSelectionModalComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: { member: TontineMember },
+    @Inject(MAT_DIALOG_DATA) public data: { member: TontineMember; replaceDeliveryId?: number },
     private cdr: ChangeDetectorRef,
     private tontineDeliveryService: TontineDeliveryService,
     private itemService: ItemService
@@ -224,12 +224,26 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
     return this.selectedArticles.reduce((sum, sa) => sum + sa.totalPrice, 0);
   }
 
+  get availableBalance(): number {
+    return this.member.availableContribution ?? 0;
+  }
+
+  get orderCeiling(): number {
+    return this.member.projectedBalance ?? this.availableBalance;
+  }
+
   get remainingBalance(): number {
-    return this.member.totalContribution - this.totalAmount;
+    return this.orderCeiling - this.totalAmount;
   }
 
   get isValid(): boolean {
-    return this.selectedArticles.length > 0 && this.remainingBalance >= 0;
+    if (this.selectedArticles.length === 0 || this.remainingBalance < -0.001) {
+      return false;
+    }
+    if (this.data.replaceDeliveryId != null) {
+      return this.totalAmount <= this.availableBalance + 0.001;
+    }
+    return true;
   }
 
   formatCurrency(amount: number): string {
@@ -262,7 +276,10 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
     };
 
     this.loading = true;
-    this.tontineDeliveryService.createDelivery(createDeliveryDto).subscribe({
+    const request = this.data.replaceDeliveryId != null
+      ? this.tontineDeliveryService.updateItems(this.data.replaceDeliveryId, items)
+      : this.tontineDeliveryService.createDelivery(createDeliveryDto);
+    request.subscribe({
       next: () => {
         this.loading = false;
         this.dialogRef.close(true);

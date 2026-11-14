@@ -55,7 +55,7 @@ public class V1TontineAllocationPolicy implements TontineAllocationPolicy {
         member.setCurrentMonthDays(0);
         member.setAvailableContribution(0.0);
 
-        for (TontineCollection collection : collections) {
+        for (TontineCollection collection : TontineBalanceTopUp.regular(collections)) {
             LocalDate allocationDate = collection.getCollectionDate().toLocalDate();
             double societyShareAmount = processCollectionAllocation(
                     member,
@@ -68,6 +68,7 @@ public class V1TontineAllocationPolicy implements TontineAllocationPolicy {
                 collection.setContributionMonth(allocationDate.withDayOfMonth(1));
             }
         }
+        TontineBalanceTopUp.apply(member, collections);
     }
 
     @Override

@@ -171,11 +171,10 @@ flowchart LR
 
 1. **Préparer la Livraison** :
    - Tant que la session est ouverte, le bouton **Préparer la Livraison** est disponible sur la fiche du membre.
-   - Une fenêtre s'ouvre avec le **Solde Disponible** mobilisable.
+   - La fenêtre affiche le **Solde disponible** (déjà encaissé) et le **Solde prévisionnel** (estimation de fin d'année si chaque mois est cotisé en entier). Le panier peut aller jusqu'à ce prévisionnel, même si l'épargne déjà encaissée est plus basse. Il ne peut pas aller au-delà : le **Reste au plafond** passe en dessous de zéro et l'enregistrement est refusé.
    - Choisissez les articles souhaités dans le **catalogue** de l'agence (pas besoin que le commercial ait déjà du stock tontine).
    - Pour chaque article, la liste **Offre** propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.
-   - Le système vérifie en direct que le montant total des articles ne dépasse pas le solde disponible du membre.
-   - Si les articles choisis coûtent moins que l'épargne, la différence reste conservée comme **Solde non utilisé** au profit du client.
+   - Si les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme **Solde non utilisé** au profit du client.
    - Le dossier passe au statut **En attente**.
 
 2. **Valider la Livraison** :
@@ -183,8 +182,10 @@ flowchart LR
 
 3. **Marquer comme Livré** :
    - Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur **Marquer comme Livré**.
+   - La remise part seulement si le **solde disponible** couvre le montant de la commande. S'il est en dessous, la fenêtre **Solde insuffisant** propose **Réduire la commande** : retirez ou diminuez des articles jusqu'à ce que le total tienne dans le solde disponible, puis enregistrez. Le complément de cotisation au moment de la remise se fait sur l'application mobile.
    - Cette action déduit définitivement les articles du **stock tontine** du commercial et clôture le dossier du membre. Le commercial doit donc avoir reçu les articles via une demande de stock tontine avant la remise.
    - La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.
+   - Après la clôture, une livraison directe suit le même plafond : le panier peut aller jusqu'au solde prévisionnel de l'année, et la remise attend que le solde disponible couvre ce panier.
 
 ### Consulter l'ensemble des livraisons (Menu Tontines > Livraison)
 Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. Cet espace centralise toutes les opérations de distribution de l'agence :

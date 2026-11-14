@@ -23,6 +23,7 @@ import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryReferenceService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
+import com.optimize.elykia.core.service.tontine.allocation.TontineProjectedBalanceCalculator;
 import com.optimize.elykia.core.service.util.ClientAccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -68,6 +70,8 @@ class TontineDeliveryServiceTest {
     private ClientService clientService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private TontineProjectedBalanceCalculator projectedBalanceCalculator;
 
     @InjectMocks
     private TontineDeliveryService tontineDeliveryService;
@@ -114,6 +118,7 @@ class TontineDeliveryServiceTest {
         createDeliveryDto.setTontineMemberId(1L);
         createDeliveryDto.setRequestDate(LocalDateTime.now());
         createDeliveryDto.setItems(Collections.singletonList(itemDto));
+        lenient().when(projectedBalanceCalculator.project(any())).thenReturn(1_000_000d);
     }
 
     private void givenRegularUser() {
@@ -156,13 +161,35 @@ class TontineDeliveryServiceTest {
     }
 
     @Test
-    void createDelivery_rejectsAmountGreaterThanAvailableContribution() {
+    void createDelivery_acceptsAmountAboveAvailableWithinProjectedBalance() {
         mockMember.setAvailableContribution(20_000.0);
+        when(projectedBalanceCalculator.project(any())).thenReturn(30_000d);
+        createDeliveryDto.getItems().get(0).setQuantity(1);
+        createDeliveryDto.getItems().get(0).setUnitPrice(25_000.0);
+        givenRegularUser();
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        when(deliveryReferenceService.resolveReference(any(), any())).thenReturn("TNT-002");
+        when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TontineDeliveryDto result = tontineDeliveryService.createDelivery(createDeliveryDto);
+
+        assertEquals(25_000.0, result.getTotalAmount());
+        assertEquals(30_000d, result.getProjectedBalance());
+        assertEquals(0.0, result.getRemainingBalance());
+        assertEquals(TontineMemberDeliveryStatus.PENDING, result.getDeliveryStatus());
+    }
+
+    @Test
+    void createDelivery_rejectsAmountGreaterThanProjectedBalance() {
+        mockMember.setAvailableContribution(20_000.0);
+        when(projectedBalanceCalculator.project(any())).thenReturn(30_000d);
         when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
         when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
 
-        assertThrows(CustomValidationException.class,
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
                 () -> tontineDeliveryService.createDelivery(createDeliveryDto));
+        assertTrue(ex.getMessage().contains("solde prévisionnel"));
         verify(deliveryRepository, never()).save(any());
         verifyNoInteractions(deliveryReferenceService, userService);
     }
@@ -300,5 +327,55 @@ class TontineDeliveryServiceTest {
         verify(creditService, times(1)).createTontineCredit(any(TontineDelivery.class));
         verify(memberRepository, times(2)).save(any(TontineMember.class));
         assertEquals(TontineMemberDeliveryStatus.DELIVERED, mockMember.getDeliveryStatus());
+    }
+
+    @Test
+    void deliverDelivery_rejectsWhenRealBalanceDoesNotCoverTheOrder() {
+        mockSession.setStatus(TontineSessionStatus.CLOSED);
+        TontineDelivery delivery = new TontineDelivery();
+        delivery.setId(10L);
+        delivery.setTontineMember(mockMember);
+        delivery.setTotalAmount(30_000.0);
+        delivery.setItems(new ArrayList<>());
+        mockMember.setAvailableContribution(20_000.0);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+        when(deliveryRepository.findById(10L)).thenReturn(Optional.of(delivery));
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> tontineDeliveryService.deliverDelivery(10L));
+        assertTrue(ex.getMessage().contains("Complétez le solde"));
+        verify(creditService, never()).createTontineCredit(any());
+    }
+
+    @Test
+    void replaceItems_onClosedSession_requiresTheRealBalance() {
+        mockSession.setStatus(TontineSessionStatus.CLOSED);
+        mockMember.setAvailableContribution(20_000.0);
+        when(projectedBalanceCalculator.project(any())).thenReturn(30_000d);
+        TontineDelivery delivery = new TontineDelivery();
+        delivery.setId(10L);
+        delivery.setTontineMember(mockMember);
+        delivery.setTotalAmount(30_000.0);
+        delivery.setItems(new ArrayList<>());
+        mockMember.setDelivery(delivery);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+        when(deliveryRepository.findById(10L)).thenReturn(Optional.of(delivery));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+
+        DeliveryItemDto tooMuch = new DeliveryItemDto();
+        tooMuch.setArticleId(1L);
+        tooMuch.setQuantity(1);
+        tooMuch.setUnitPrice(25_000.0);
+        assertThrows(CustomValidationException.class,
+                () -> tontineDeliveryService.replaceItems(10L, List.of(tooMuch)));
+
+        DeliveryItemDto fits = new DeliveryItemDto();
+        fits.setArticleId(1L);
+        fits.setQuantity(1);
+        fits.setUnitPrice(15_000.0);
+        when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TontineDeliveryDto updated = tontineDeliveryService.replaceItems(10L, List.of(fits));
+        assertEquals(15_000.0, updated.getTotalAmount());
     }
 }

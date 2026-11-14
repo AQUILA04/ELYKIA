@@ -19,6 +19,8 @@ public class TontineDeliveryDto {
     private LocalDateTime requestDate;
     private Double totalAmount;
     private Double remainingBalance;
+    private Double projectedBalance;
+    private Double availableAtOrder;
     private String commercialUsername;
     private TontineMemberDeliveryStatus deliveryStatus;
     private List<TontineDeliveryItemDto> items;

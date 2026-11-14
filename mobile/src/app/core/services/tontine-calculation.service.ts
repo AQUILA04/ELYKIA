@@ -64,14 +64,85 @@ export class TontineCalculationService {
     const useRegistrationDate = await this.parameterService.isEnabled('USE_MEMBER_REGISTRATION_DATE_FOR_SHARE');
     const history = await this.historyRepo.getByMemberId(member.id);
     const ordered = this.sortCollections(collections);
-    const isOfflineEstimate = ordered.some(collection => collection.isLocal && !collection.isSync);
+    const sessionClosed = session.status === 'CLOSED';
+    const topUps = sessionClosed ? ordered.filter(collection => collection.isDeliveryCollection) : [];
+    const regular = sessionClosed ? ordered.filter(collection => !collection.isDeliveryCollection) : ordered;
+    const isOfflineEstimate = regular.some(collection => collection.isLocal && !collection.isSync);
     const isExact = version === 'V1'
       || ordered.every(collection => !!collection.contributionMonth);
 
-    if (version === 'V2') {
-      return this.calculateV2(member, ordered, history, isOfflineEstimate, isExact);
+    const status = version === 'V2'
+      ? this.calculateV2(member, regular, history, isOfflineEstimate, isExact)
+      : this.calculateV1(member, session, regular, history, useRegistrationDate, isOfflineEstimate, isExact);
+    const topUpAmount = topUps.reduce((sum, collection) => sum + (collection.amount || 0), 0);
+    if (topUpAmount > 0) {
+      status.totalCollected += topUpAmount;
+      status.availableBudget += topUpAmount;
+      status.collections = [...status.collections, ...topUps];
     }
-    return this.calculateV1(member, session, ordered, history, useRegistrationDate, isOfflineEstimate, isExact);
+    return status;
+  }
+
+  async projectBalance(member: TontineMember, session: TontineSession): Promise<number> {
+    const useRegistrationDate = await this.parameterService.isEnabled('USE_MEMBER_REGISTRATION_DATE_FOR_SHARE');
+    const history = await this.historyRepo.getByMemberId(member.id);
+    return this.computeProjectedBalance(member, session, history, useRegistrationDate);
+  }
+
+  private computeProjectedBalance(
+    member: TontineMember,
+    session: TontineSession,
+    history: TontineMemberAmountHistory[],
+    useRegistrationDate: boolean
+  ): number {
+    if (!session?.startDate || !session?.endDate) {
+      return 0;
+    }
+    const start = this.getEffectiveMemberStartDate(member, session, useRegistrationDate);
+    const end = this.toLocalDate(session.endDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || start.getTime() > end.getTime()) {
+      return 0;
+    }
+    const historyOnly = session.status === 'CLOSED' || session.status === 'ENDED'
+      || this.toLocalDate(new Date().toISOString()).getTime() > end.getTime();
+    let cursor = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}`;
+    const last = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2, '0')}`;
+    let total = 0;
+    let counted = 0;
+    while (cursor <= last && counted < 10) {
+      const stake = this.stakeForMonth(member, history, cursor, historyOnly);
+      total += 30 * stake;
+      cursor = this.plusMonths(cursor, 1);
+      counted++;
+    }
+    return total;
+  }
+
+  private stakeForMonth(
+    member: TontineMember,
+    history: TontineMemberAmountHistory[],
+    yearMonth: string,
+    historyOnly: boolean
+  ): number {
+    const [year, month] = yearMonth.split('-').map(Number);
+    const lastDay = new Date(year, month, 0);
+    if (historyOnly && history.length > 0 && !this.historyCovers(history, lastDay)) {
+      return 0;
+    }
+    const amount = this.getApplicableAmountForDate(history, lastDay, lastDay, member.amount || 0);
+    return amount > 0 ? amount : 0;
+  }
+
+  private historyCovers(history: TontineMemberAmountHistory[], day: Date): boolean {
+    if (!history || history.length === 0) {
+      return false;
+    }
+    return history.some(entry => {
+      const start = this.toLocalDate(entry.startDate).getTime();
+      const end = entry.endDate ? this.toLocalDate(entry.endDate).getTime() : Number.POSITIVE_INFINITY;
+      const lookup = day.getTime();
+      return start <= lookup && end >= lookup;
+    });
   }
 
   private sortCollections(collections: TontineCollection[]): TontineCollection[] {

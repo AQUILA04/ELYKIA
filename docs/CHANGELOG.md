@@ -78,6 +78,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.48.0] — 2026-11-14
+
+### Added
+
+- **Livraison tontine —** la préparation affiche le solde disponible et le solde prévisionnel. Le panier peut aller jusqu'au prévisionnel. À la remise, si le solde disponible ne couvre pas la commande, **Réduire la commande** permet de retirer des articles avant de confirmer.
+
 ## Frontend — [2.47.1] — 2026-11-14
 
 ### Fixed
@@ -280,6 +286,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.39.1] — 2026-11-14
+
+### Fixed
+
+- **Livraison tontine —** sans historique de mise, le solde prévisionnel reprend la mise en cours. Le contrôle de la remise attend l'affichage du solde disponible.
+
+## Mobile — [2.39.0] — 2026-11-14
+
+### Added
+
+- **Livraison tontine —** le bandeau affiche le solde disponible, le solde prévisionnel et le reste au plafond. La commande, session ouverte ou déjà clôturée, peut aller jusqu'à ce prévisionnel. La remise attend que le solde disponible couvre le panier : **Compléter le solde** ou **Modifier la commande**.
+
 ## Mobile — [2.38.0] — 2026-11-14
 
 ### Added
@@ -360,6 +378,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.51.1] — 2026-11-14
+
+### Fixed
+
+- **Livraison tontine —** une session clôturée sans historique de mise estime le prévisionnel avec la mise en cours. Un historique partiel ne complète toujours pas les mois absents.
+
+## Backend — [1.51.0] — 2026-11-14
+
+### Added
+
+- **Livraison tontine —** le plafond de la commande est le solde prévisionnel de l'année (mises historiques, mise en cours pour les mois qui restent tant que la session est ouverte). La remise est refusée tant que le solde disponible ne couvre pas le panier. Après la clôture, une cotisation de complément à la remise est acceptée, dans la limite de ce prévisionnel, et une commande non livrée peut être réduite.
 
 ## Backend — [1.50.1] — 2026-11-14
 

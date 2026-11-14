@@ -341,4 +341,28 @@ export class TontineWriteService {
 
     return persisted;
   }
+
+  /**
+   * Réduit une commande déjà synchronisée. Le serveur refuse si le total dépasse
+   * le prévisionnel, ou le solde réel lorsque la session est clôturée.
+   */
+  async replaceDeliveryItems(delivery: TontineDelivery, items: TontineDeliveryItem[]): Promise<number> {
+    const serverId = /^\d+$/.test(delivery.id)
+      ? delivery.id
+      : await this.deliveryRepository.getServerId(delivery.id, 'tontine-delivery');
+    if (!serverId) {
+      throw new Error('Synchronisez la commande avant de la modifier.');
+    }
+    const kept = items.filter(item => item.quantity > 0);
+    if (kept.length === 0) {
+      throw new Error('La commande doit contenir au moins un article.');
+    }
+    const response = await this.deliverySyncService.postReplaceItems(serverId, kept);
+    const total = response.totalAmount ?? kept.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+    await this.deliveryRepository.replaceItems(delivery.id, kept.map(item => ({
+      ...item,
+      tontineDeliveryId: delivery.id
+    })), total);
+    return total;
+  }
 }

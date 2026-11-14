@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BaseRepository } from './base.repository';
 import { DatabaseService } from '../services/database.service';
-import { TontineDelivery, TontineDeliveryStatus } from '../../models/tontine.model';
+import { TontineDelivery, TontineDeliveryItem, TontineDeliveryStatus } from '../../models/tontine.model';
 import { capSQLiteSet } from '@capacitor-community/sqlite';
 import { DateFilter } from '../models/date-filter.model';
 
@@ -240,6 +240,34 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         }
 
         return deliveries;
+    }
+
+    async replaceItems(deliveryId: string, items: TontineDeliveryItem[], totalAmount: number): Promise<void> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        await this.databaseService.execute('DELETE FROM tontine_delivery_items WHERE tontineDeliveryId = ?', [deliveryId]);
+        for (const item of items) {
+            await this.databaseService.execute(
+                `INSERT INTO tontine_delivery_items
+                    (id, tontineDeliveryId, articleId, quantity, unitPrice, totalPrice, salePackMode, packCount, unitsPerPack, packLabel)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                [
+                    item.id,
+                    deliveryId,
+                    item.articleId,
+                    item.quantity,
+                    item.unitPrice,
+                    item.totalPrice,
+                    item.salePackMode ?? null,
+                    item.packCount ?? null,
+                    item.unitsPerPack ?? null,
+                    item.packLabel ?? null
+                ]
+            );
+        }
+        await this.databaseService.execute(
+            'UPDATE tontine_deliveries SET totalAmount = ? WHERE id = ?',
+            [totalAmount, deliveryId]
+        );
     }
 
     async getItems(deliveryId: string): Promise<any[]> {

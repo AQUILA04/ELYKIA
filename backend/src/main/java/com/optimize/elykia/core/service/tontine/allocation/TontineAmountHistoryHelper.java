@@ -35,9 +35,34 @@ public class TontineAmountHistoryHelper {
             Double currentAmount,
             List<TontineMemberAmountHistory> history,
             YearMonth month) {
+        return stakeForMonth(currentAmount, history, month, false);
+    }
+
+    /**
+     * Mise du mois. En lecture historique, un mois sans tranche vaut 0
+     * lorsqu'un historique existe. Sans aucune tranche, la mise courante couvre la période.
+     */
+    public double stakeForMonth(
+            Double currentAmount,
+            List<TontineMemberAmountHistory> history,
+            YearMonth month,
+            boolean historyOnly) {
         LocalDate lastDay = month.atEndOfMonth();
+        if (historyOnly && history != null && !history.isEmpty() && !covers(history, lastDay)) {
+            return 0.0;
+        }
         Double amount = applicableAmount(currentAmount, history, lastDay, lastDay);
         return amount != null && amount > 0 ? amount : 0.0;
+    }
+
+    private boolean covers(List<TontineMemberAmountHistory> history, LocalDate day) {
+        if (history == null || history.isEmpty() || day == null) {
+            return false;
+        }
+        return history.stream().anyMatch(entry ->
+                entry.getStartDate() != null
+                        && !entry.getStartDate().isAfter(day)
+                        && (entry.getEndDate() == null || !entry.getEndDate().isBefore(day)));
     }
 
     private Double applicableAmount(

@@ -9,11 +9,15 @@
   <!-- Montants -->
   <div class="amounts-section">
     <div class="amount-card available">
-      <div class="label">Montant disponible</div>
-      <div class="value">{{ formatCurrency(member.totalContribution) }}</div>
+      <div class="label">Solde disponible</div>
+      <div class="value">{{ formatCurrency(availableBalance) }}</div>
+    </div>
+    <div class="amount-card">
+      <div class="label">Solde prévisionnel</div>
+      <div class="value">{{ formatCurrency(orderCeiling) }}</div>
     </div>
     <div class="amount-card remaining" [class.negative]="remainingBalance < 0">
-      <div class="label">Solde restant</div>
+      <div class="label">Reste au plafond</div>
       <div class="value">{{ formatCurrency(remainingBalance) }}</div>
     </div>
   </div>
@@ -116,7 +120,11 @@
   <!-- Message d'erreur -->
   <div *ngIf="remainingBalance < 0" class="error-message">
     <mat-icon>error</mat-icon>
-    <span>Le montant total dépasse le montant disponible. Veuillez retirer ou modifier des articles.</span>
+    <span>Le montant dépasse le solde prévisionnel. Retirez ou diminuez des articles.</span>
+  </div>
+  <div *ngIf="data.replaceDeliveryId && remainingBalance >= 0 && totalAmount > availableBalance" class="error-message">
+    <mat-icon>error</mat-icon>
+    <span>Le solde réel ne couvre pas la commande. Réduisez les articles jusqu'au solde disponible.</span>
   </div>
 </mat-dialog-content>
 

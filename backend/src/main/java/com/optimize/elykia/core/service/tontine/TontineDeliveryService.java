@@ -26,6 +26,7 @@ import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.service.util.ClientAccountService;
 import com.optimize.elykia.core.service.sale.CashSalePricingService;
 import com.optimize.elykia.core.service.sale.CreditService;
+import com.optimize.elykia.core.service.tontine.allocation.TontineProjectedBalanceCalculator;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,7 @@ public class TontineDeliveryService {
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private final ClientService clientService;
     private final TontineDeliveryReferenceService deliveryReferenceService;
+    private final TontineProjectedBalanceCalculator projectedBalanceCalculator;
 
     @Autowired(required = false)
     private CashSalePricingService cashSalePricingService;
@@ -98,50 +100,9 @@ public class TontineDeliveryService {
         }
 
         List<TontineDeliveryItem> items = new ArrayList<>();
-        double totalAmount = 0;
-
-        for (DeliveryItemDto itemDto : dto.getItems()) {
-            Articles article = articlesRepository.findById(itemDto.getArticleId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Article non trouvé avec l'ID: " + itemDto.getArticleId()));
-
-            TontineDeliveryItem item = new TontineDeliveryItem();
-            item.setArticles(article);
-            item.setArticleName(article.getCommercialName());
-            item.setArticleId(article.getId());
-            item.setArticleCode(article.getType() + "-" + article.getMarque());
-            double itemTotal;
-            String commercial = member.getClient() != null ? member.getClient().getCollector() : null;
-            if (cashSalePricingService != null && commercial != null) {
-                var quote = cashSalePricingService.quoteTontine(
-                        article,
-                        commercial,
-                        itemDto.getSalePackMode(),
-                        itemDto.getPackCount(),
-                        itemDto.getUnitsPerPack(),
-                        itemDto.getQuantity());
-                quote.apply(item);
-                itemTotal = quote.getLineAmount();
-            } else {
-                item.setQuantity(itemDto.getQuantity());
-                item.setUnitPrice(itemDto.getUnitPrice());
-                itemTotal = itemDto.getQuantity() * itemDto.getUnitPrice();
-                item.setTotalPrice(itemTotal);
-            }
-            totalAmount += itemTotal;
-            items.add(item);
-        }
-
-        if (totalAmount > member.getAvailableContribution()) {
-            if (metricsPublisher != null) {
-                metricsPublisher.tontineDeliveryAmountExceeded(member.getClient().getCollector());
-            }
-            throw new CustomValidationException(
-                    String.format("Le montant total (%.2f) dépasse le montant disponible (%.2f)",
-                            totalAmount, member.getAvailableContribution()));
-        }
-
-        double remainingBalance = member.getAvailableContribution() - totalAmount;
+        double totalAmount = buildItems(member, dto.getItems(), items);
+        double projected = requireWithinProjectedBalance(member, totalAmount);
+        double available = availableOf(member);
 
         LocalDateTime requestDate = dto.getRequestDate() != null ? dto.getRequestDate() : LocalDateTime.now();
 
@@ -150,7 +111,9 @@ public class TontineDeliveryService {
         // Placeholder until effective delivery (column is NOT NULL); overwritten on deliver/distribute.
         delivery.setDeliveryDate(requestDate);
         delivery.setTotalAmount(totalAmount);
-        delivery.setRemainingBalance(remainingBalance);
+        delivery.setRemainingBalance(Math.max(0.0, available - totalAmount));
+        delivery.setProjectedBalance(projected);
+        delivery.setAvailableAtOrder(available);
         delivery.setCommercialUsername(member.getClient().getCollector());
         delivery.setRequestDate(requestDate);
         delivery.setReference(deliveryReferenceService.resolveReference(dto.getReference(), requestDate));
@@ -228,6 +191,15 @@ public class TontineDeliveryService {
         requireSessionStatus(member, TontineSessionStatus.CLOSED,
                 "La remise n'est possible qu'une fois la session clôturée.");
 
+        double available = availableOf(member);
+        double total = delivery.getTotalAmount() != null ? delivery.getTotalAmount() : 0.0;
+        if (TontineProjectedBalanceCalculator.exceeds(total, available)) {
+            throw new CustomValidationException(String.format(
+                    "Le solde réel (%.2f) ne couvre pas la commande (%.2f). Complétez le solde ou réduisez la commande.",
+                    available, total));
+        }
+        delivery.setRemainingBalance(available - total);
+
         creditService.createTontineCredit(delivery);
         delivery.setDeliveryDate(LocalDateTime.now());
         deliveryRepository.save(delivery);
@@ -284,6 +256,92 @@ public class TontineDeliveryService {
         return mapToDto(delivery);
     }
 
+    @Transactional
+    public TontineDeliveryDto replaceItems(Long deliveryId, List<DeliveryItemDto> itemDtos) {
+        TontineDelivery delivery = deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Livraison non trouvée"));
+        TontineMember member = delivery.getTontineMember();
+        if (member.getDeliveryStatus() == TontineMemberDeliveryStatus.DELIVERED) {
+            throw new CustomValidationException("Une commande déjà livrée ne peut plus être modifiée.");
+        }
+        TontineSession session = member.getTontineSession();
+        if (session == null || session.getStatus() == TontineSessionStatus.ENDED) {
+            throw new CustomValidationException("La session est terminée. La commande ne peut plus être modifiée.");
+        }
+        if (itemDtos == null || itemDtos.isEmpty()) {
+            throw new CustomValidationException("La commande doit contenir au moins un article.");
+        }
+
+        List<TontineDeliveryItem> items = new ArrayList<>();
+        double totalAmount = buildItems(member, itemDtos, items);
+        requireWithinProjectedBalance(member, totalAmount);
+        if (session.getStatus() == TontineSessionStatus.CLOSED
+                && TontineProjectedBalanceCalculator.exceeds(totalAmount, availableOf(member))) {
+            throw new CustomValidationException(String.format(
+                    "Réduisez la commande jusqu'au solde réel (%.2f).",
+                    availableOf(member)));
+        }
+
+        new ArrayList<>(delivery.getItems()).forEach(delivery::removeItem);
+        items.forEach(delivery::addItem);
+        delivery.setTotalAmount(totalAmount);
+        delivery.setRemainingBalance(Math.max(0.0, availableOf(member) - totalAmount));
+        return mapToDto(deliveryRepository.save(delivery));
+    }
+
+    private double buildItems(TontineMember member, List<DeliveryItemDto> itemDtos, List<TontineDeliveryItem> items) {
+        double totalAmount = 0;
+        for (DeliveryItemDto itemDto : itemDtos) {
+            Articles article = articlesRepository.findById(itemDto.getArticleId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Article non trouvé avec l'ID: " + itemDto.getArticleId()));
+
+            TontineDeliveryItem item = new TontineDeliveryItem();
+            item.setArticles(article);
+            item.setArticleName(article.getCommercialName());
+            item.setArticleId(article.getId());
+            item.setArticleCode(article.getType() + "-" + article.getMarque());
+            double itemTotal;
+            String commercial = member.getClient() != null ? member.getClient().getCollector() : null;
+            if (cashSalePricingService != null && commercial != null) {
+                var quote = cashSalePricingService.quoteTontine(
+                        article,
+                        commercial,
+                        itemDto.getSalePackMode(),
+                        itemDto.getPackCount(),
+                        itemDto.getUnitsPerPack(),
+                        itemDto.getQuantity());
+                quote.apply(item);
+                itemTotal = quote.getLineAmount();
+            } else {
+                item.setQuantity(itemDto.getQuantity());
+                item.setUnitPrice(itemDto.getUnitPrice());
+                itemTotal = itemDto.getQuantity() * itemDto.getUnitPrice();
+                item.setTotalPrice(itemTotal);
+            }
+            totalAmount += itemTotal;
+            items.add(item);
+        }
+        return totalAmount;
+    }
+
+    private double requireWithinProjectedBalance(TontineMember member, double totalAmount) {
+        double projected = projectedBalanceCalculator.project(member);
+        if (TontineProjectedBalanceCalculator.exceeds(totalAmount, projected)) {
+            if (metricsPublisher != null && member.getClient() != null) {
+                metricsPublisher.tontineDeliveryAmountExceeded(member.getClient().getCollector());
+            }
+            throw new CustomValidationException(String.format(
+                    "Le montant total (%.2f) dépasse le solde prévisionnel (%.2f)",
+                    totalAmount, projected));
+        }
+        return projected;
+    }
+
+    private double availableOf(TontineMember member) {
+        return member.getAvailableContribution() != null ? member.getAvailableContribution() : 0.0;
+    }
+
     public TontineDeliveryDto getDeliveryByMemberId(Long tontineMemberId) {
         log.info("Fetching delivery for tontine member ID: {}", tontineMemberId);
         TontineDelivery delivery = deliveryRepository.findByTontineMemberId(tontineMemberId)
@@ -320,6 +378,8 @@ public class TontineDeliveryService {
                 .deliveryDate(delivery.getDeliveryDate())
                 .totalAmount(delivery.getTotalAmount())
                 .remainingBalance(delivery.getRemainingBalance())
+                .projectedBalance(delivery.getProjectedBalance())
+                .availableAtOrder(delivery.getAvailableAtOrder())
                 .commercialUsername(delivery.getCommercialUsername())
                 .deliveryStatus(delivery.getTontineMember().getDeliveryStatus())
                 .items(itemDtos)

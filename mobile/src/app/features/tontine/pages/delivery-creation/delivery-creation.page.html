@@ -38,23 +38,26 @@
 
     <section class="elyk-kpi-strip budget-kpi" data-testid="e2e-delivery-budget">
       <article class="elyk-kpi elyk-kpi--green">
-        <span>Total épargné</span>
-        <strong>{{ vm.totalBudget | number }}</strong>
+        <span>Solde disponible</span>
+        <strong>{{ vm.availableBudget | number }}</strong>
       </article>
       <article class="elyk-kpi elyk-kpi--navy">
-        <span>Sélectionné</span>
-        <strong>{{ vm.usedBudget | number }}</strong>
+        <span>Solde prévisionnel</span>
+        <strong>{{ vm.projectedBudget | number }}</strong>
       </article>
       <article class="elyk-kpi" [class.elyk-kpi--orange]="vm.remainingBudget < 0" [class.elyk-kpi--cyan]="vm.remainingBudget >= 0">
-        <span>Restant</span>
+        <span>Reste au plafond</span>
         <strong [class.negative]="vm.remainingBudget < 0">{{ vm.remainingBudget | number }}</strong>
       </article>
     </section>
 
-    <div class="complete-balance-section" *ngIf="vm.remainingBudget < 0">
+    <div class="complete-balance-section" *ngIf="cashGap < 0">
       <ion-button fill="outline" expand="block" class="elyk-btn-outline" (click)="navigateToCollection()">
         <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-        Compléter le solde ({{ vm.remainingBudget * -1 | number }} F)
+        Compléter le solde ({{ cashGap * -1 | number }} F)
+      </ion-button>
+      <ion-button fill="clear" expand="block" (click)="explainOrderReduction()">
+        Modifier la commande
       </ion-button>
     </div>
   </div>
@@ -67,7 +70,7 @@
 
   <div class="warning-message elyk-card">
     <ion-icon name="warning-outline"></ion-icon>
-    <span>Le montant total ne doit pas dépasser le budget épargné.</span>
+    <span>Le montant total ne doit pas dépasser le solde prévisionnel de l'année. La remise exige que le solde réel couvre le panier.</span>
   </div>
 
   <div class="elyk-search-overlap search-section">
@@ -167,13 +170,13 @@
         <strong class="elyk-amount">{{ vm.usedBudget | number }} F</strong>
       </div>
       <div class="summary-item">
-        <span>Restant</span>
+        <span>Plafond</span>
         <strong [class.exceeded]="vm.remainingBudget < 0">{{ vm.remainingBudget | number }} F</strong>
       </div>
     </div>
     <div class="footer-actions">
       <ion-button fill="outline" class="elyk-btn-outline" (click)="cancel()">Annuler</ion-button>
-      <ion-button class="elyk-btn-navy" [disabled]="vm.selectedCount === 0 || vm.remainingBudget < 0" (click)="validateDelivery()" data-testid="e2e-tontine-delivery-validate">
+      <ion-button class="elyk-btn-navy" [disabled]="vm.selectedCount === 0 || exceedsProjected()" (click)="validateDelivery()" data-testid="e2e-tontine-delivery-validate">
         <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
         Valider
       </ion-button>

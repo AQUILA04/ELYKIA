@@ -193,6 +193,28 @@ ion-card-title {
   font-size: 13px;
 }
 
+.qty-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stepper-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  border: 1px solid var(--elyk-border);
+  background: var(--elyk-surface, #fff);
+  color: var(--elyk-navy);
+  font-size: 20px;
+}
+
+.revision-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
 .total-row {
   display: flex;
   justify-content: space-between;

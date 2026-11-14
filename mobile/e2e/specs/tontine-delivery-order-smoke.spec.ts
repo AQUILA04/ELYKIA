@@ -164,7 +164,7 @@ async function selectFirstArticle(page: Page, options?: { catalogue?: boolean })
   await expect
     .poll(async () => {
       const text = await page.getByTestId('e2e-delivery-budget').innerText();
-      return /Total épargné[\s\S]*?[1-9]/.test(text);
+      return /Solde disponible[\s\S]*?[1-9]/.test(text);
     }, { timeout: 45_000 })
     .toBe(true);
   await article.locator('.qty-btn').filter({ has: page.locator('ion-icon[name="add"]') }).click();
