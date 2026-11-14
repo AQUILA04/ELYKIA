@@ -93,6 +93,9 @@ public class UserPermissionConstant {
     /** Annulation (suppression) d'une dépense non rattachée à une remise. ADMIN et SUPER_ADMIN par défaut. */
     public static final String CANCEL_EXPENSE = "ROLE_CANCEL_EXPENSE";
 
+    /** Annulation d'une demande de sortie déjà validée, tant qu'elle n'est pas livrée. GESTIONNAIRE et STOREKEEPER par défaut. */
+    public static final String CANCEL_VALIDATED_STOCK_REQUEST = "ROLE_CANCEL_VALIDATED_STOCK_REQUEST";
+
     public static final String CREATE_INVENTORY = "ROLE_CREATE_INVENTORY";
     public static final String RECONCILE_INVENTORY = "ROLE_RECONCILE_INVENTORY";
     public static final String FINALIZE_INVENTORY = "ROLE_FINALIZE_INVENTORY";

@@ -64,6 +64,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
   isSecretary = false;
   canSelectCommercial = false;
   canEditStockRequest = false;
+  canCancelValidatedStockRequest = false;
 
   currentUser: any;
   selectedRequest: StockRequest | null = null;
@@ -111,6 +112,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     this.isPromoter = this.userService.hasProfile(UserProfile.PROMOTER);
     this.isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
     const hasEditRole = this.authService.hasRole('ROLE_EDIT_STOCK_REQUEST');
+    this.canCancelValidatedStockRequest = this.authService.hasRole('ROLE_CANCEL_VALIDATED_STOCK_REQUEST');
     this.featureFlagService.flags$.subscribe(flags => {
       this.canEditStockRequest = hasEditRole && !!flags[FeatureFlags.EditStockRequest];
     });
@@ -407,6 +409,7 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
           next: () => {
             this.toastr.success('Demande annulée');
             this.refresh();
+            this.reloadOpenDetail(request.id);
           },
           error: (err) => {
             this.alertService.showError(err.error?.message ?? 'Une erreur s\'est produite lors de l\'annulation', 'Erreur d\'annulation');

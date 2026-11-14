@@ -78,6 +78,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.46.1] — 2026-11-14
+
+### Added
+
+- **Demandes de sortie —** sur une demande au statut Validée, le bouton Annuler apparaît dans la liste et en bas de la fenêtre Voir pour les comptes autorisés (crédit et tontine). Une demande déjà livrée ne propose pas cette action.
+
 ## Frontend — [2.46.0] — 2026-11-14
 
 ### Added
@@ -341,6 +347,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.49.1] — 2026-11-14
+
+### Added
+
+- **Demandes de sortie —** une demande validée (crédit ou tontine) peut être annulée tant qu'elle n'est pas livrée. Le droit `ROLE_CANCEL_VALIDATED_STOCK_REQUEST` est accordé par défaut au gestionnaire et au magasinier. Une demande livrée reste non annulable. Les commandes liées déjà validées ne changent pas de statut.
 
 ## Backend — [1.49.0] — 2026-11-14
 

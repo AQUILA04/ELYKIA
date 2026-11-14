@@ -1,7 +1,10 @@
 package com.optimize.elykia.core.service.stock;
 
 import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.models.UserPermission;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
 import com.optimize.elykia.core.entity.article.Articles;
 import com.optimize.elykia.core.entity.stock.StockRequest;
 import com.optimize.elykia.core.entity.stock.StockRequestItem;
@@ -24,6 +27,7 @@ import org.thymeleaf.TemplateEngine;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -44,6 +48,8 @@ class StockRequestServiceTest {
     private CommercialMonthlyStockItemRepository monthlyStockItemRepository;
     @Mock
     private UserService userService;
+    @Mock
+    private User currentUser;
     @Mock
     private AccountingDayService accountingDayService;
     @Mock
@@ -157,6 +163,52 @@ class StockRequestServiceTest {
         // Then
         assertTrue(exception.getMessage().contains("validée"));
         assertEquals(StockRequestStatus.CREATED, request.getStatus());
+    }
+
+    @Test
+    void cancelRequest_deliveredRequestIsRejectedWithoutChangingItsStatus() {
+        StockRequest request = new StockRequest();
+        request.setId(21L);
+        request.setStatus(StockRequestStatus.DELIVERED);
+        when(repository.findByIdWithItems(21L)).thenReturn(Optional.of(request));
+
+        CustomValidationException exception = assertThrows(CustomValidationException.class,
+                () -> service.cancelRequest(21L));
+
+        assertTrue(exception.getMessage().contains("livrée"));
+        assertEquals(StockRequestStatus.DELIVERED, request.getStatus());
+    }
+
+    @Test
+    void cancelRequest_validatedRequestWithoutPermissionIsRejected() {
+        StockRequest request = new StockRequest();
+        request.setId(22L);
+        request.setStatus(StockRequestStatus.VALIDATED);
+        when(repository.findByIdWithItems(22L)).thenReturn(Optional.of(request));
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.getPermissions()).thenReturn(Set.of());
+
+        CustomValidationException exception = assertThrows(CustomValidationException.class,
+                () -> service.cancelRequest(22L));
+
+        assertTrue(exception.getMessage().contains("droit"));
+        assertEquals(StockRequestStatus.VALIDATED, request.getStatus());
+    }
+
+    @Test
+    void cancelRequest_validatedRequestWithPermissionIsCancelled() {
+        StockRequest request = new StockRequest();
+        request.setId(23L);
+        request.setStatus(StockRequestStatus.VALIDATED);
+        when(repository.findByIdWithItems(23L)).thenReturn(Optional.of(request));
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.getPermissions()).thenReturn(Set.of(
+                new UserPermission(UserPermissionConstant.CANCEL_VALIDATED_STOCK_REQUEST)));
+
+        service.cancelRequest(23L);
+
+        assertEquals(StockRequestStatus.CANCELLED, request.getStatus());
+        verify(repository).save(request);
     }
 
     private StockRequest requestWithArticle(Long articleId, int quantity) {

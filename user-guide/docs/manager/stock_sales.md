@@ -83,7 +83,8 @@ Le réapprovisionnement suit un flux rigoureux en 3 étapes : **Création $\righ
 2. **Étape 2 : Validation gestionnaire (Statut « Validée »)** :
    * Le gestionnaire contrôle la disponibilité physique en magasin et les encours du commercial, puis clique sur le bouton vert **« Valider »**.
    * La demande passe à l'état **Validée**. La marchandise est alors réservée au magasin.
-   * Si la demande est liée à des **commandes** (mention « Commandes liées » dans la liste), les commandes encore en attente passent automatiquement à **Validée**.
+   * Tant que la demande n'est pas livrée, **Annuler** reste disponible dans la liste et en bas de la fenêtre **Voir**. Après confirmation, la demande passe au statut **Annulée**. Le stock du magasin ne change pas.
+   * Si la demande est liée à des **commandes** (mention « Commandes liées » dans la liste), les commandes encore en attente passent automatiquement à **Validée**. Elles restent **Validée** si la demande de sortie est ensuite annulée.
 3. **Étape 3 : Livraison magasinier (Statut « Livrée »)** :
    * Le magasinier physique remet les articles au commercial et clique sur le bouton bleu **« Livrer »**.
    * **Conséquence instantanée** : Le stock magasin est débité et le stock personnel du commercial est crédité. La date de livraison est horodatée.
@@ -92,7 +93,7 @@ Le réapprovisionnement suit un flux rigoureux en 3 étapes : **Création $\righ
 1. Cliquez sur **« Voir »**.
 2. La référence de la demande s'affiche en haut de la fenêtre.
 3. Contrôlez le commercial, les dates, le statut et la liste des articles.
-4. Pour une demande au statut **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. La confirmation est la même que depuis la liste.
+4. Pour une demande au statut **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. Pour une demande au statut **Validée**, **« Annuler »** est en bas de la fenêtre. La confirmation est la même que depuis la liste.
 5. Cliquez sur **« Télécharger »** pour enregistrer la fiche de sortie de cette demande.
 
 ### C. Téléchargements et exports PDF
@@ -112,7 +113,7 @@ Dans **Stock Commercial**, les écrans **Demandes Sortie**, **Stock** et **Retou
 
 * Ce stock prépare les paniers de fin d'exercice des membres ayant cotisé.
 * Le cycle d'approbation (**Créée → Validée → Livrée**) et le retour (**En attente → Réceptionné**) suivent les mêmes boutons que le stock crédit.
-* Sur **Demandes Sortie**, **« Voir »** ouvre le détail : la référence est en haut. Pour une demande **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. **« Télécharger »** enregistre la fiche de cette demande.
+* Sur **Demandes Sortie**, **« Voir »** ouvre le détail : la référence est en haut. Pour une demande **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. Pour une demande **Validée**, **« Annuler »** est en bas de la fenêtre, tant qu'elle n'est pas livrée. **« Télécharger »** enregistre la fiche de cette demande.
 * **Stock** affiche le suivi par année. **Retours** permet de **Réceptionner** un retour au statut **En attente**.
 
 ---
