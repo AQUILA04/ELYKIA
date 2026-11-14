@@ -36,6 +36,7 @@ import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicy;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicyResolver;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
+import com.optimize.elykia.core.service.tontine.allocation.TontineProjectedBalanceCalculator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -73,6 +74,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
     private TontineAllocationPolicyResolver allocationPolicyResolver;
     private TontineAllocationMigrationService allocationMigrationService;
     private TontineAmountHistoryHelper amountHistoryHelper;
+    private TontineProjectedBalanceCalculator projectedBalanceCalculator;
     private com.optimize.elykia.core.service.report.DailyTontineReportReconciler dailyTontineReportReconciler;
 
     public TontineService(TontineMemberRepository repository,
@@ -124,6 +126,11 @@ public class TontineService extends GenericService<TontineMember, Long> {
     @Autowired
     public void setAmountHistoryHelper(TontineAmountHistoryHelper amountHistoryHelper) {
         this.amountHistoryHelper = amountHistoryHelper;
+    }
+
+    @Autowired
+    public void setProjectedBalanceCalculator(TontineProjectedBalanceCalculator projectedBalanceCalculator) {
+        this.projectedBalanceCalculator = projectedBalanceCalculator;
     }
 
     @Autowired
@@ -568,7 +575,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
     public TontineCollectionRespDto recordCollection(TontineCollectionDto dto) {
         assertTontineWritesAllowed();
         TontineSession currentSession = getActiveSession();
-        if (!TontineSessionStatus.ACTIVE.equals(currentSession.getStatus())) {
+        boolean deliveryTopUp = Boolean.TRUE.equals(dto.getIsDeliveryCollection())
+                && TontineSessionStatus.CLOSED.equals(currentSession.getStatus());
+        if (!TontineSessionStatus.ACTIVE.equals(currentSession.getStatus()) && !deliveryTopUp) {
             throw new CustomValidationException(
                     "La session de cette année est déjà clôturer, Vous ne pouvez plus enregistrer de collecte !");
         }
@@ -581,6 +590,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
         }
 
         TontineMember member = this.getById(dto.getMemberId());
+        if (deliveryTopUp) {
+            assertDeliveryTopUp(member, dto.getAmount());
+        }
         Client client = member.getClient();
         AppNotificationService.assertPromoterOwnsTontineCollector(
                 userService.getCurrentUser(),
@@ -612,6 +624,7 @@ public class TontineService extends GenericService<TontineMember, Long> {
         collection.setAmount(dto.getAmount());
         collection.setIsDeliveryCollection(
                 Objects.nonNull(dto.getIsDeliveryCollection()) ? dto.getIsDeliveryCollection() : Boolean.FALSE);
+        collection.setBalanceTopUp(deliveryTopUp);
         collection.setCollectionDate(collectionDateTime);
         collection.setCommercialUsername(commercialUsername);
 
@@ -1219,9 +1232,34 @@ public class TontineService extends GenericService<TontineMember, Long> {
         return enrichFieldControlled(memberRespDtos);
     }
 
+    private void assertDeliveryTopUp(TontineMember member, Double amount) {
+        if (member.getDeliveryStatus() == TontineMemberDeliveryStatus.DELIVERED) {
+            throw new CustomValidationException("Ce membre est déjà livré.");
+        }
+        TontineSession session = member.getTontineSession();
+        if (session == null || session.getStatus() != TontineSessionStatus.CLOSED) {
+            throw new CustomValidationException(
+                    "Le complément de solde n'est possible que pour une remise de la session clôturée.");
+        }
+        if (projectedBalanceCalculator == null) {
+            throw new CustomValidationException("Le solde prévisionnel n'est pas disponible.");
+        }
+        double projected = projectedBalanceCalculator.project(member);
+        double available = member.getAvailableContribution() != null ? member.getAvailableContribution() : 0.0;
+        double payment = amount != null ? amount : 0.0;
+        if (TontineProjectedBalanceCalculator.exceeds(available + payment, projected)) {
+            throw new CustomValidationException(String.format(
+                    "Le complément (%.2f) ferait dépasser le solde prévisionnel (%.2f).",
+                    payment, projected));
+        }
+    }
+
     public TontineMemberRespDto getMemberResponse(Long id) {
         TontineMember member = getById(id);
         TontineMemberRespDto dto = TontineMemberRespDto.fromTontineMember(member);
+        if (dto != null && projectedBalanceCalculator != null) {
+            dto = dto.withProjectedBalance(projectedBalanceCalculator.project(member));
+        }
         if (dto == null || tontineMemberFieldControlRepository == null || member.getId() == null) {
             return dto;
         }

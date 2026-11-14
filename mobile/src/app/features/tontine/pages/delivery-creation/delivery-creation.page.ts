@@ -52,6 +52,7 @@ interface DeliveryViewModel {
     totalBudget: number;
     societyShare: number;
     availableBudget: number;
+    projectedBudget: number;
     usedBudget: number;
     remainingBudget: number;
     selectedCount: number;
@@ -89,6 +90,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         totalBudget: 0,
         societyShare: 0,
         availableBudget: 0,
+        projectedBudget: 0,
         usedBudget: 0,
         remainingBudget: 0,
         selectedCount: 0,
@@ -256,6 +258,10 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                     );
                     this.vm.societyShare = status.societyShare;
                     this.vm.availableBudget = status.availableBudget;
+                    this.vm.projectedBudget = await this.tontineCalculationService.projectBalance(
+                        this.vm.member,
+                        this.vm.session
+                    );
                     this.vm.allocationVersion = status.version;
                     this.vm.isOfflineEstimate = status.isOfflineEstimate;
                     this.vm.isExactBudget = status.isExact && !status.isOfflineEstimate;
@@ -468,16 +474,24 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         });
 
         this.vm.usedBudget = used;
-        this.vm.remainingBudget = this.vm.availableBudget - used;
+        this.vm.remainingBudget = this.vm.projectedBudget - used;
         this.vm.selectedCount = count;
+    }
+
+    get cashGap(): number {
+        return this.vm.availableBudget - this.vm.usedBudget;
+    }
+
+    exceedsProjected(): boolean {
+        return this.vm.usedBudget > this.vm.projectedBudget + 0.001;
     }
 
     async validateDelivery() {
         if (this.vm.selectedCount === 0) {
             return;
         }
-        if (this.vm.remainingBudget < 0) {
-            this.showError('Budget dépassé');
+        if (this.exceedsProjected()) {
+            this.showError('Le montant dépasse le solde prévisionnel de l\'année.');
             return;
         }
 
@@ -603,6 +617,14 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         }
         if (!isOrder && !canPhysicallyDeliverTontine(this.vm.session?.status)) {
             await this.showSessionGateMessage('DIRECT');
+            return;
+        }
+        if (this.exceedsProjected()) {
+            await this.showError('Le montant dépasse le solde prévisionnel de l\'année.');
+            return;
+        }
+        if (!isOrder && this.cashGap < -0.001) {
+            await this.showError('Le solde réel ne couvre pas le panier. Complétez le solde ou réduisez les articles.');
             return;
         }
 
@@ -771,9 +793,18 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         await alert.present();
     }
 
+    async explainOrderReduction(): Promise<void> {
+        const alert = await this.alertCtrl.create({
+            header: 'Modifier la commande',
+            message: `Diminuez les quantités ou retirez des articles jusqu'à ce que le total tienne dans le solde réel (${this.vm.availableBudget.toLocaleString('fr-FR')} FCFA).`,
+            buttons: ['OK']
+        });
+        await alert.present();
+    }
+
     navigateToCollection(): void {
         if (this.memberId) {
-            const surplusAmount = this.vm.remainingBudget < 0 ? Math.abs(this.vm.remainingBudget) : null;
+            const surplusAmount = this.cashGap < 0 ? Math.abs(this.cashGap) : null;
 
             this.navCtrl.navigateForward(['/tontine/collection-recording'], {
                 queryParams: {

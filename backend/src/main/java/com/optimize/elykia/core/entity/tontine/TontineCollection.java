@@ -31,6 +31,12 @@ public class TontineCollection extends BaseEntity<String> {
     private String commercialUsername;
     private Boolean isDeliveryCollection = Boolean.FALSE;
 
+    /**
+     * Complément encaissé à la remise : crédite le solde disponible en entier.
+     */
+    @Column(name = "balance_top_up", nullable = false)
+    private Boolean balanceTopUp = Boolean.FALSE;
+
     @Column(unique = true)
     private String reference;
 

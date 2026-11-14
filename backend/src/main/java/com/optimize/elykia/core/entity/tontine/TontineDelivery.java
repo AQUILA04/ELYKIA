@@ -39,6 +39,12 @@ public class TontineDelivery extends BaseEntity<String> {
     
     @Column(name = "remaining_balance", nullable = false, columnDefinition = "double precision default 0")
     private Double remainingBalance;
+
+    @Column(name = "projected_balance")
+    private Double projectedBalance;
+
+    @Column(name = "available_at_order")
+    private Double availableAtOrder;
     
     @Column(name = "commercial_username", nullable = false)
     private String commercialUsername;

@@ -3,6 +3,7 @@ package com.optimize.elykia.core.controller.tontine;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.CreateDeliveryDto;
+import com.optimize.elykia.core.dto.UpdateDeliveryItemsDto;
 import com.optimize.elykia.core.dto.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
@@ -89,6 +90,17 @@ public class TontineDeliveryController {
             ResponseUtil.successResponse(deliveries),
             HttpStatus.OK
         );
+    }
+
+    @PutMapping("/{deliveryId}/items")
+    @Operation(summary = "Modifier les articles d'une commande pas encore livrée")
+    public ResponseEntity<Response> replaceItems(
+            @PathVariable Long deliveryId,
+            @RequestBody @Valid UpdateDeliveryItemsDto dto) {
+        TontineDeliveryDto delivery = deliveryService.replaceItems(deliveryId, dto.getItems());
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(delivery, "Commande mise à jour"),
+                HttpStatus.OK);
     }
 
     @PatchMapping("/{deliveryId}/deliver")

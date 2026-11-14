@@ -31,6 +31,8 @@ export interface TontineMember {
   readonly notes?: string;
   readonly societyShare?: number;
   readonly availableContribution?: number;
+  /** Solde net estimé en fin de session. Plafond de la commande. */
+  readonly projectedBalance?: number;
   readonly validatedMonths?: number;
   readonly currentMonthDays?: number;
   readonly totalDeliveryCollections?: number;

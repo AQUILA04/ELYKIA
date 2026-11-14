@@ -39,10 +39,11 @@ public class V2TontineAllocationPolicy implements TontineAllocationPolicy {
     @Override
     public void recalculateMemberFromCollections(TontineMember member, List<TontineCollection> collections) {
         V2AllocationState state = new V2AllocationState(member, amountHelper);
-        for (TontineCollection collection : collections) {
+        for (TontineCollection collection : TontineBalanceTopUp.regular(collections)) {
             state.applyCollection(collection);
         }
         state.applyToMember(member);
+        TontineBalanceTopUp.apply(member, collections);
     }
 
     @Override

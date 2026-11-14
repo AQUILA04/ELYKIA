@@ -2529,11 +2529,10 @@
 <ol>
 <li><strong>Préparer la Livraison</strong> :</li>
 <li>Tant que la session est ouverte, le bouton <strong>Préparer la Livraison</strong> est disponible sur la fiche du membre.</li>
-<li>Une fenêtre s'ouvre avec le <strong>Solde Disponible</strong> mobilisable.</li>
+<li>La fenêtre affiche le <strong>Solde disponible</strong> (déjà encaissé) et le <strong>Solde prévisionnel</strong> (estimation de fin d'année si chaque mois est cotisé en entier). Le panier peut aller jusqu'à ce prévisionnel, même si l'épargne déjà encaissée est plus basse. Il ne peut pas aller au-delà : le <strong>Reste au plafond</strong> passe en dessous de zéro et l'enregistrement est refusé.</li>
 <li>Choisissez les articles souhaités dans le <strong>catalogue</strong> de l'agence (pas besoin que le commercial ait déjà du stock tontine).</li>
 <li>Pour chaque article, la liste <strong>Offre</strong> propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.</li>
-<li>Le système vérifie en direct que le montant total des articles ne dépasse pas le solde disponible du membre.</li>
-<li>Si les articles choisis coûtent moins que l'épargne, la différence reste conservée comme <strong>Solde non utilisé</strong> au profit du client.</li>
+<li>Si les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme <strong>Solde non utilisé</strong> au profit du client.</li>
 <li>
 <p>Le dossier passe au statut <strong>En attente</strong>.</p>
 </li>
@@ -2547,8 +2546,10 @@
 <p><strong>Marquer comme Livré</strong> :</p>
 </li>
 <li>Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur <strong>Marquer comme Livré</strong>.</li>
+<li>La remise part seulement si le <strong>solde disponible</strong> couvre le montant de la commande. S'il est en dessous, la fenêtre <strong>Solde insuffisant</strong> propose <strong>Réduire la commande</strong> : retirez ou diminuez des articles jusqu'à ce que le total tienne dans le solde disponible, puis enregistrez. Le complément de cotisation au moment de la remise se fait sur l'application mobile.</li>
 <li>Cette action déduit définitivement les articles du <strong>stock tontine</strong> du commercial et clôture le dossier du membre. Le commercial doit donc avoir reçu les articles via une demande de stock tontine avant la remise.</li>
 <li>La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.</li>
+<li>Après la clôture, une livraison directe suit le même plafond : le panier peut aller jusqu'au solde prévisionnel de l'année, et la remise attend que le solde disponible couvre ce panier.</li>
 </ol>
 <h3 id="consulter-lensemble-des-livraisons-menu-tontines-livraison">Consulter l'ensemble des livraisons (Menu Tontines &gt; Livraison)</h3>
 <p>Dans le menu latéral gauche, cliquez sur <strong>Tontines</strong> puis sur <strong>Livraison</strong>. Cet espace centralise toutes les opérations de distribution de l'agence :

@@ -120,6 +120,38 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
         return this.normalizeSyncResponse(response.data);
     }
 
+    /**
+     * Remplace les articles d'une commande déjà créée, tant qu'elle n'est pas livrée.
+     */
+    async postReplaceItems(
+        serverDeliveryId: string,
+        items: TontineDeliveryItem[]
+    ): Promise<TontineDeliverySyncResponse> {
+        const headers = this.getAuthHeaders();
+        const response = await firstValueFrom(
+            this.http.put<ApiResponse<TontineDeliverySyncResponse>>(
+                `${this.baseUrl}/api/v1/tontines/deliveries/${serverDeliveryId}/items`,
+                {
+                    items: items.map(item => ({
+                        articleId: Number.parseInt(item.articleId, 10),
+                        quantity: item.quantity,
+                        unitPrice: item.unitPrice,
+                        salePackMode: item.salePackMode,
+                        packCount: item.packCount,
+                        unitsPerPack: item.unitsPerPack
+                    }))
+                },
+                { headers }
+            )
+        );
+
+        if (!response?.data) {
+            throw new Error(response?.message || 'La commande n\'a pas pu être modifiée');
+        }
+
+        return this.normalizeSyncResponse(response.data);
+    }
+
     protected override async fetchUnsynced(limit: number, dateFilter?: DateFilter): Promise<TontineDelivery[]> {
         const commercialUsername = this.authService.currentUser?.username || '';
         if (!commercialUsername) return [];

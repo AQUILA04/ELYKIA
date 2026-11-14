@@ -55,6 +55,12 @@ export class TontineDeliveryService {
       .pipe(catchError(this.handleError));
   }
 
+  updateItems(deliveryId: number, items: CreateDeliveryDto['items']): Observable<ApiResponse<TontineDelivery>> {
+    const headers = this.getHeaders();
+    return this.http.put<ApiResponse<TontineDelivery>>(`${this.apiUrl}/${deliveryId}/items`, { items }, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
   markDeliveryAsDelivered(deliveryId: number): Observable<ApiResponse<TontineDelivery>> {
     const headers = this.getHeaders();
     return this.http.patch<ApiResponse<TontineDelivery>>(`${this.apiUrl}/${deliveryId}/deliver`, {}, { headers })

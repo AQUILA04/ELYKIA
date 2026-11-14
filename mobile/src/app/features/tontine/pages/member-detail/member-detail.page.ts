@@ -225,6 +225,40 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             return;
         }
 
+        const available = this.vm.member.availableContribution ?? 0;
+        const total = this.vm.delivery.totalAmount ?? 0;
+        if (total > available + 0.001) {
+            const gap = total - available;
+            const short = await this.alertCtrl.create({
+                header: 'Solde insuffisant',
+                message: `Le solde réel ne couvre pas la commande. Il manque ${gap.toLocaleString('fr-FR')} FCFA. Complétez le solde ou réduisez les articles.`,
+                cssClass: 'elyk-alert',
+                buttons: [
+                    { text: 'Annuler', role: 'cancel' },
+                    {
+                        text: 'Compléter le solde',
+                        handler: () => {
+                            this.navCtrl.navigateForward(['/tontine/collection-recording'], {
+                                queryParams: {
+                                    memberId: this.memberId,
+                                    amount: gap,
+                                    returnToDelivery: true
+                                }
+                            });
+                        }
+                    },
+                    {
+                        text: 'Modifier la commande',
+                        handler: () => {
+                            this.revisingOrder = true;
+                        }
+                    }
+                ]
+            });
+            await short.present();
+            return;
+        }
+
         const alert = await this.alertCtrl.create({
             header: 'Marquer comme livré',
             message: 'Confirmez-vous que les articles de cette commande ont été remis au membre ?',
@@ -240,6 +274,78 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             ]
         });
         await alert.present();
+    }
+
+    revisingOrder = false;
+
+    changeItemQuantity(item: DeliveryItemWithArticle, delta: number): void {
+        const usesPack = !!item.salePackMode && item.salePackMode !== 'UNIT' && (item.packCount || 0) > 0;
+        const stepBase = usesPack ? (item.packCount || 1) : item.quantity;
+        const next = stepBase + delta;
+        if (next < 1) {
+            if (this.vm.deliveryItems.length <= 1) {
+                return;
+            }
+            this.vm.deliveryItems = this.vm.deliveryItems.filter(current => current !== item);
+            return;
+        }
+        if (usesPack) {
+            const perPack = (item.packCount || 1) > 0 ? (item.totalPrice || 0) / (item.packCount || 1) : (item.unitPrice || 0);
+            item.packCount = next;
+            item.quantity = next * (item.unitsPerPack || 1);
+            item.totalPrice = perPack * next;
+            return;
+        }
+        const perUnit = item.quantity > 0 ? (item.totalPrice || 0) / item.quantity : (item.unitPrice || 0);
+        item.quantity = next;
+        item.totalPrice = perUnit * next;
+    }
+
+    revisedTotal(): number {
+        return this.vm.deliveryItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
+    }
+
+    cancelOrderRevision(): void {
+        this.revisingOrder = false;
+        void this.loadMemberData();
+    }
+
+    async saveRevisedOrder(): Promise<void> {
+        if (!this.vm.delivery) {
+            return;
+        }
+        const available = this.vm.member?.availableContribution ?? 0;
+        if (this.revisedTotal() > available + 0.001) {
+            const toast = await this.toastCtrl.create({
+                message: 'Le total dépasse encore le solde réel. Diminuez encore les articles.',
+                duration: 2500,
+                color: 'warning'
+            });
+            await toast.present();
+            return;
+        }
+        const loading = await this.loadingCtrl.create({ message: 'Enregistrement…' });
+        await loading.present();
+        try {
+            const total = await this.tontineWriteService.replaceDeliveryItems(this.vm.delivery, this.vm.deliveryItems);
+            this.vm.delivery.totalAmount = total;
+            this.revisingOrder = false;
+            const toast = await this.toastCtrl.create({
+                message: 'Commande mise à jour',
+                duration: 2000,
+                color: 'success'
+            });
+            await toast.present();
+        } catch (error: any) {
+            const toast = await this.toastCtrl.create({
+                message: error?.message || 'La commande n\'a pas pu être modifiée',
+                duration: 3000,
+                color: 'danger'
+            });
+            await toast.present();
+        } finally {
+            await loading.dismiss();
+        }
     }
 
     private async performMarkAsDelivered(forceOffline = false): Promise<void> {

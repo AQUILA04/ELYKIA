@@ -812,6 +812,21 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const available = this.member.availableContribution ?? 0;
+    const total = this.member.delivery.totalAmount ?? 0;
+    if (total > available + 0.001) {
+      const reduce = await this.alertService.showConfirmation(
+        'Solde insuffisant',
+        'Le solde réel ne couvre pas la commande. Réduisez les articles, ou faites compléter le solde lors de la remise.',
+        'Réduire la commande',
+        'Annuler'
+      );
+      if (reduce) {
+        this.openDeliveryEditor(this.member.delivery.id);
+      }
+      return;
+    }
+
     const isConfirmed = await this.alertService.showConfirmation(
       'Confirmation',
       'Êtes-vous sûr de vouloir marquer cette livraison comme livrée ?',
@@ -841,15 +856,20 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.openDeliveryEditor();
+  }
+
+  private openDeliveryEditor(replaceDeliveryId?: number): void {
+    if (!this.member) return;
     const dialogRef = this.dialog.open(DeliveryArticleSelectionModalComponent, {
       width: '900px',
       maxHeight: '90vh',
-      data: { member: this.member }
+      data: { member: this.member, replaceDeliveryId }
     });
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === true && this.member) {
-        this.showSuccess('Livraison créée avec succès');
+        this.showSuccess(replaceDeliveryId != null ? 'Commande mise à jour' : 'Livraison créée avec succès');
         this.loadMemberDetails(this.member!.id);
       }
     });

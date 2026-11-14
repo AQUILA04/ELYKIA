@@ -131,13 +131,22 @@
           <div class="item-row" *ngFor="let item of vm.deliveryItems">
             <div class="item-info">
               <span class="item-name">{{ item.articleName }}</span>
-              <span class="item-qty">×{{ item.quantity }}</span>
+              <span class="item-qty" *ngIf="!revisingOrder">×{{ item.quantity }}</span>
+            </div>
+            <div class="qty-stepper" *ngIf="revisingOrder">
+              <button type="button" class="stepper-btn" (click)="changeItemQuantity(item, -1)" aria-label="Diminuer la quantité">−</button>
+              <span>{{ item.salePackMode && item.salePackMode !== 'UNIT' ? item.packCount : item.quantity }}</span>
+              <button type="button" class="stepper-btn" (click)="changeItemQuantity(item, 1)" aria-label="Augmenter la quantité">+</button>
             </div>
             <span class="item-price elyk-amount" *appIfUnitPrice>{{ formatCurrency(item.totalPrice) }}</span>
           </div>
           <div class="total-row">
             <span>Total</span>
-            <span class="elyk-amount">{{ formatCurrency(vm.delivery.totalAmount) }}</span>
+            <span class="elyk-amount">{{ formatCurrency(revisingOrder ? revisedTotal() : vm.delivery.totalAmount) }}</span>
+          </div>
+          <div class="revision-actions" *ngIf="revisingOrder">
+            <ion-button fill="outline" class="elyk-btn-outline" (click)="cancelOrderRevision()">Annuler</ion-button>
+            <ion-button class="elyk-btn-navy" (click)="saveRevisedOrder()">Enregistrer la commande</ion-button>
           </div>
         </div>
         <ion-button

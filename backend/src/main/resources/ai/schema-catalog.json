@@ -573,6 +573,11 @@
           "type": "double"
         },
         {
+          "name": "balance_top_up",
+          "type": "boolean",
+          "description": "Complément encaissé à la remise pour couvrir la commande"
+        },
+        {
           "name": "collector",
           "type": "varchar"
         },
