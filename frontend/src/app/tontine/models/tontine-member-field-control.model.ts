@@ -10,6 +10,7 @@ export interface TontineMemberFieldControlLineDto {
   notebookAmount: number;
   systemAmount: number;
   differenceAmount: number;
+  declaredDailyAmount?: number | null;
 }
 
 export interface TontineMemberFieldControlCollectorDto {
@@ -44,6 +45,7 @@ export interface CreateTontineMemberFieldControlMonthPayload {
   month: number;
   commercialUsername: string;
   notebookAmount: number;
+  declaredDailyAmount?: number;
 }
 
 export interface CreateTontineMemberFieldControlPayload {
@@ -64,5 +66,6 @@ export interface TontineFieldControlCollectorOption {
     jsMonth: number;
     monthName: string;
     totalAmount: number;
+    dailyAmount?: number;
   }>;
 }

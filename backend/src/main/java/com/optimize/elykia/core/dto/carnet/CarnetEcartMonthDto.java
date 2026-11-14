@@ -14,4 +14,6 @@ public class CarnetEcartMonthDto {
     double notebookAmount;
     double differenceAmount;
     CarnetEcartStatus status;
+    /** Mise du mois qui sera enregistrée à l'acceptation, si elle diffère de la mise en vigueur. */
+    Double declaredDailyAmount;
 }

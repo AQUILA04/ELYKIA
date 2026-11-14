@@ -19,6 +19,8 @@ public class RmOfflinePackDto {
     private Instant generatedAt;
     private RmOfflinePackStatsDto stats;
     private List<RmCommercialRefDto> commercials;
+    /** Tous les commerciaux actifs, pour attribuer un mois de carnet encore vide. */
+    private List<RmCommercialRefDto> promoters;
     private List<CreditLateDTO> lateCredits;
     /** Crédits au statut en cours du périmètre du plan (à jour ou en retard). */
     private List<CreditLateDTO> inProgressCredits;

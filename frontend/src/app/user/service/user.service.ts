@@ -104,6 +104,12 @@ export class UserService {
     return this.http.get<any>(url);
   }
 
+  getAllPromoters(): Observable<Array<{ username: string; firstname?: string; lastname?: string }>> {
+    return this.http.get<any>(`${this.promotersUrl}/all`).pipe(
+      map(response => (response?.data || []) as Array<{ username: string; firstname?: string; lastname?: string }>)
+    );
+  }
+
   // Get list of profiles
   getProfiles(): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}/profil/all`);

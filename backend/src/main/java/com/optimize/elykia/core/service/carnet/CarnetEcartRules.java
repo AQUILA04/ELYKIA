@@ -50,6 +50,36 @@ public final class CarnetEcartRules {
     }
 
     /**
+     * 1er jour du mois positif le plus ancien dont le rattrapage serait refusé
+     * parce qu'il précède le début de participation. Null si aucun recul n'est nécessaire.
+     * Ne précède pas le début de session.
+     */
+    public static LocalDate fieldControlAdhesionMove(
+            LocalDate participationStart,
+            List<YearMonth> pendingPositiveMonths,
+            LocalDate today,
+            LocalDate sessionStart) {
+        if (participationStart == null || pendingPositiveMonths == null || pendingPositiveMonths.isEmpty() || today == null) {
+            return null;
+        }
+        LocalDate earliest = null;
+        for (YearMonth month : pendingPositiveMonths) {
+            LocalDate operation = tontineOperationDate(month.getYear(), month.getMonthValue(), today);
+            if (!operation.isBefore(participationStart)) {
+                continue;
+            }
+            LocalDate first = month.atDay(1);
+            if (sessionStart != null && first.isBefore(sessionStart)) {
+                first = sessionStart;
+            }
+            if (earliest == null || first.isBefore(earliest)) {
+                earliest = first;
+            }
+        }
+        return earliest;
+    }
+
+    /**
      * La part imputée au crédit est plafonnée au reste dû. Le surplus devient un reliquat.
      * Les espèces du manquant restent l'écart entier.
      */

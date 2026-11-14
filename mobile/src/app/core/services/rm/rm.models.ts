@@ -166,6 +166,8 @@ export interface RmOfflinePack {
   generatedAt: string;
   stats: RmOfflinePackStats;
   commercials: RmCommercialRef[];
+  /** Commerciaux actifs, pour attribuer un mois de carnet encore vide. Absent des packs anciens. */
+  promoters?: RmCommercialRef[];
   lateCredits: RmCreditLate[];
   /** Crédits en cours du plan. Absent des packs téléchargés avant cette liste. */
   inProgressCredits?: RmCreditLate[];

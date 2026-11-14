@@ -78,6 +78,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.46.0] — 2026-11-14
+
+### Added
+
+- **Contrôle carnet tontine —** sur un mois encore à zéro, le chef de recouvrement choisit le commercial qui a rempli le carnet et peut saisir la mise de ce mois. Un mois déjà cotisé reste au commercial qui l’a encaissé. L’écran Écarts de carnet prévient lorsque l’acceptation recule l’adhésion ou enregistre une mise de mois. Le contrôle et la vérification du carnet restent possibles après la clôture de la session.
+
 ## Frontend — [2.45.3] — 2026-11-14
 
 ### Fixed
@@ -255,6 +261,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.38.0] — 2026-11-14
+
+### Added
+
+- **Contrôle carnet tontine —** sur un mois encore à zéro, le chef de recouvrement choisit le commercial et la mise lus sur le carnet. Le total des jours cochés suit cette mise. La liste des commerciaux est reprise dans le pack terrain. Le contrôle reste possible après la clôture de la session.
+
 ## Mobile — [2.37.0] — 2026-11-13
 
 ### Added
@@ -329,6 +341,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.49.0] — 2026-11-14
+
+### Added
+
+- **Contrôle carnet tontine —** un mois sans cotisation ne peut être attribué qu’à un commercial connu. La mise saisie n’est conservée que si elle diffère de la mise déjà en vigueur. À l’acceptation, y compris session clôturée, l’adhésion recule au 1er du mois le plus ancien si besoin, la mise du mois est enregistrée, puis la cotisation de rattrapage et le manquant sont créés pour le commercial de la ligne. Le commercial actuel du client ne change pas. Les collectes du jour restent fermées après la clôture.
 
 ## Backend — [1.48.4] — 2026-11-13
 

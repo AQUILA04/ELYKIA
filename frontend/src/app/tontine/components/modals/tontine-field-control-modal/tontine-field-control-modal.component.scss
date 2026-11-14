@@ -204,6 +204,24 @@
   }
 }
 
+.tontine-field-control-modal .month-extra {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(140px, 1fr);
+  gap: 12px;
+}
+
+.tontine-field-control-modal .month-extra select {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #ddd;
+  border-radius: var(--radius);
+  padding: 8px 10px;
+  font-size: 14px;
+  color: #333;
+  background: #fff;
+}
+
 .tontine-field-control-modal .month-input {
   label {
     display: block;

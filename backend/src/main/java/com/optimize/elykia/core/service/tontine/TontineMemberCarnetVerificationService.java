@@ -42,20 +42,20 @@ public class TontineMemberCarnetVerificationService {
                 "Au moins un membre doit être sélectionné.",
                 "Maximum " + CarnetVerificationSupport.MAX_BULK + " membres par opération.");
         CarnetVerificationSupport.requireBulkMarkOnly(verified);
-        TontineSession active = requireActiveSession();
+        TontineSession session = requireCurrentYearSession();
         List<TontineMember> members = tontineMemberRepository.findAllById(memberIds);
         CarnetVerificationSupport.assertAllFound(members, memberIds, "tontine.member.not.found");
         return CarnetVerificationSupport.bulkApply(
                 members,
                 memberIds,
                 verified,
-                member -> assertBelongsToSession(member, active),
+                member -> assertBelongsToSession(member, session),
                 tontineMemberRepository::saveAll);
     }
 
     private void assertWritable(TontineMember member) {
-        TontineSession active = requireActiveSession();
-        assertBelongsToSession(member, active);
+        TontineSession session = requireCurrentYearSession();
+        assertBelongsToSession(member, session);
     }
 
     private void assertBelongsToSession(TontineMember member, TontineSession active) {
@@ -65,14 +65,15 @@ public class TontineMemberCarnetVerificationService {
         }
     }
 
-    private TontineSession requireActiveSession() {
+    private TontineSession requireCurrentYearSession() {
         int currentYear = LocalDate.now().getYear();
         TontineSession session = tontineSessionRepository.findByYear(currentYear)
                 .orElseThrow(() -> new ResourceNotFoundException(
-                        "Aucune session de tontine active trouvée pour l'année en cours."));
-        if (session.getStatus() != TontineSessionStatus.ACTIVE) {
+                        "Aucune session de tontine trouvée pour l'année en cours."));
+        if (session.getStatus() != TontineSessionStatus.ACTIVE
+                && session.getStatus() != TontineSessionStatus.CLOSED) {
             throw new CustomValidationException(
-                    "La vérification de carnet n'est possible que sur une session tontine active.");
+                    "La vérification de carnet n'est possible que sur la session tontine de l'année en cours.");
         }
         return session;
     }

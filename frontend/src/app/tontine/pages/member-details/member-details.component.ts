@@ -79,6 +79,11 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   loading: boolean = false;
   currentSessionStatus: TontineSessionStatus | null = null;
   isSessionActive: boolean = false;
+
+  get canVerifyCarnet(): boolean {
+    return this.currentSessionStatus === TontineSessionStatus.ACTIVE
+      || this.currentSessionStatus === TontineSessionStatus.CLOSED;
+  }
   isAdmin = false;
   isRecoveryManager = false;
   fieldControlLatest: TontineMemberFieldControlDto | null = null;
@@ -297,7 +302,9 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       data: {
         memberId: this.member.id,
         memberName: this.getClientName(),
-        collectors: this.fieldControlCollectorOptions
+        collectors: this.fieldControlCollectorOptions,
+        amountHistory: this.amountHistory,
+        memberAmount: this.member.amount || 0
       },
       disableClose: true,
       panelClass: 'tontine-field-control-dialog-panel',
@@ -386,7 +393,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   }
 
   onToggleCarnetVerification(): void {
-    if (!this.member || this.isCarnetBusy || !this.isSessionActive) {
+    if (!this.member || this.isCarnetBusy || !this.canVerifyCarnet) {
       return;
     }
     const nextVerified = !this.member.carnetVerified;

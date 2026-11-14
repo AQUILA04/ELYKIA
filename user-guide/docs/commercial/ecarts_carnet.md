@@ -14,14 +14,16 @@ Chaque ligne indique le client, la référence, le montant du système, le monta
 ## Accepter une disparité
 
 1. Cochez une ou plusieurs lignes, puis cliquez sur **Accepter la sélection**. Vous pouvez aussi cliquer sur **Accepter** sur une seule ligne.
-2. La fenêtre indique ce qui va être enregistré, et le manquant de caisse s’il y en a un.
-3. Cliquez sur **Confirmer**.
+2. La fenêtre indique ce qui va être enregistré, et le manquant de caisse s’il y en a un. Pour une tontine, elle précise aussi si l’adhésion du membre sera reculée, et si une mise de mois sera enregistrée.
+3. Cliquez sur **Confirmer**. L’acceptation reste possible après la clôture de la session.
 
 Ce qui est enregistré :
 
 - **Vente** : une mise du jour, dans la limite du reste dû, lorsque le carnet dépasse le système. Si le carnet dépasse ce reste, le surplus est ajouté au reliquat du client. Un manquant de caisse du même montant est ouvert.
 - **Tontine** : le dossier est recalé sur le carnet, mois par mois.
-  - Chaque mois où le carnet dépasse le système reçoit la mise manquante. Si le mois est déjà passé, la mise est datée du dernier jour de ce mois. Un manquant de caisse du même montant est ouvert.
+  - Chaque mois où le carnet dépasse le système reçoit la mise manquante, au nom du commercial indiqué sur ce mois. Si le mois est déjà passé, la mise est datée du dernier jour de ce mois. Un manquant de caisse du même montant est ouvert pour ce commercial.
+  - Si ces mois commencent avant l’adhésion du membre, l’adhésion est reculée au 1er jour du mois le plus ancien. La mise déjà connue s’applique depuis cette date. Lorsqu’une mise différente a été saisie pour un mois, elle est enregistrée pour ce mois seulement, et l’ancienne mise reprend au mois suivant.
+  - Le commercial actuel du client ne change pas. Les collectes déjà enregistrées restent à leur commercial.
   - Chaque mois présent dans le système mais absent du carnet est annulé, et retiré de la caisse de ce jour. Un mois seulement en partie trop élevé est réduit au montant du carnet. Ce mois n’est pas conservé en plus du carnet.
   - Si l’argent d’un mois annulé a déjà été versé, ce jour peut afficher un surplus.
 

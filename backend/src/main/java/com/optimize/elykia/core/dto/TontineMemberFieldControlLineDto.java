@@ -14,4 +14,6 @@ public class TontineMemberFieldControlLineDto {
     private Double notebookAmount;
     private Double systemAmount;
     private Double differenceAmount;
+    /** Mise du mois retenue uniquement lorsqu'elle diffère de la mise déjà en vigueur. */
+    private Double declaredDailyAmount;
 }

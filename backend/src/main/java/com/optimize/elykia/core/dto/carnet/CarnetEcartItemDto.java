@@ -6,6 +6,7 @@ import com.optimize.elykia.core.enumaration.CarnetEcartStatus;
 import lombok.Builder;
 import lombok.Value;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -28,4 +29,9 @@ public class CarnetEcartItemDto {
     double pendingInverseAmount;
     boolean commercialKnown;
     List<CarnetEcartMonthDto> months;
+    /**
+     * Date d'adhésion qui sera appliquée à l'acceptation lorsque des mois positifs
+     * sont antérieurs au début de participation. Null si aucun recul n'est nécessaire.
+     */
+    LocalDate adhesionWillMoveTo;
 }

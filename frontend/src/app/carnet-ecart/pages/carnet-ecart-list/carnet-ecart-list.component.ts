@@ -36,6 +36,8 @@ export class CarnetEcartListComponent implements OnInit, OnDestroy {
   acceptPreviewAmount = 0;
   selectedTontineInverse = 0;
   selectedCreditInverse = 0;
+  adhesionWarnings: string[] = [];
+  stakeWarnings: string[] = [];
 
   private clock?: ReturnType<typeof setInterval>;
 
@@ -133,6 +135,14 @@ export class CarnetEcartListComponent implements OnInit, OnDestroy {
     this.selectedCreditInverse = selected
       .filter(item => item.domain === 'CREDIT' && (item.acceptableAmount || 0) <= 0 && (item.pendingInverseAmount || 0) > 0)
       .length;
+    this.adhesionWarnings = selected
+      .filter(item => !!item.adhesionWillMoveTo)
+      .map(item => `${item.clientName || item.subjectReference || 'Ce membre'} : adhésion reculée au ${this.formatIsoDate(item.adhesionWillMoveTo)}`);
+    this.stakeWarnings = selected.flatMap(item =>
+      (item.months || [])
+        .filter(month => month.status === 'PENDING' && month.declaredDailyAmount != null && month.declaredDailyAmount > 0)
+        .map(month => `${this.monthLabel(month.month, month.year)} : mise ${Math.round(month.declaredDailyAmount || 0)} FCFA pour ${item.commercialUsername || 'le commercial'}`)
+    );
     this.showAccept = true;
     this.showReject = false;
   }
@@ -166,6 +176,17 @@ export class CarnetEcartListComponent implements OnInit, OnDestroy {
     this.showAccept = false;
     this.showReject = false;
     this.pendingKeys = [];
+  }
+
+  private formatIsoDate(value: string | null | undefined): string {
+    if (!value) {
+      return '';
+    }
+    const [year, month, day] = value.split('-');
+    if (!year || !month || !day) {
+      return value;
+    }
+    return `${day}/${month}/${year}`;
   }
 
   domainLabel(item: CarnetEcartItem): string {

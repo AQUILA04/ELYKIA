@@ -1,8 +1,9 @@
 import { AfterViewInit, Component, ElementRef, Input, NgZone, OnDestroy, OnInit } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { LoggerService } from '../../../core/services/logger.service';
-import { RmPackTontineCollector, RmPackTontineFieldControlToday, RmPackTontineMember } from '../../../core/services/rm/rm.models';
+import { RmCommercialRef, RmPackTontineCollector, RmPackTontineFieldControlToday, RmPackTontineMember } from '../../../core/services/rm/rm.models';
 import { RmTontineFieldControlWriteService } from '../../../core/services/rm/rm-tontine-field-control-write.service';
+import { RmCollectorAssignApiService } from '../../../core/services/rm/rm-collector-assign-api.service';
 import { OnlineWriteError } from '../../../core/services/online-first-write.types';
 import { TontineControlDebug } from './rm-tontine-control-debug';
 import { fitNotebookDays, maxDaysAfterSelection, MISE_DAY_STEP } from '../../../shared/components/mise-day-pills/mise-day-pills.logic';
@@ -12,8 +13,10 @@ interface MonthRow {
   year: number;
   month: number;
   monthName: string;
+  blockCommercial: string;
   commercialUsername: string;
   systemAmount: number;
+  applicableMise: number;
   dailyMise: number;
   selected: boolean;
   notebookAmount: number | null;
@@ -44,9 +47,11 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
   @Input() member!: RmPackTontineMember;
   @Input() modifying = false;
   @Input() latestControl: RmPackTontineFieldControlToday | null = null;
+  @Input() promoters: RmCommercialRef[] = [];
   private readonly debug: TontineControlDebug;
 
   blocks: CollectorBlock[] = [];
+  promoterOptions: RmCommercialRef[] = [];
   /** Pack ancien sans collectors : formulaire unique non découpé. */
   legacyMode = false;
   note = '';
@@ -55,6 +60,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
   constructor(
     private readonly modalCtrl: ModalController,
     private readonly fieldControlWrite: RmTontineFieldControlWriteService,
+    private readonly promotersApi: RmCollectorAssignApiService,
     private readonly toastCtrl: ToastController,
     private readonly host: ElementRef<HTMLElement>,
     log: LoggerService,
@@ -67,6 +73,15 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     const months = (this.member?.months || []).length;
     const collectors = (this.member?.collectors || []).length;
     this.debug.start(`member=${this.member?.id ?? '-'} months=${months} collectors=${collectors}`);
+    this.promoterOptions = (this.promoters || []).filter(promoter => !!promoter?.username);
+    void this.promotersApi.listPromoters().then(live => {
+      if (live.length) {
+        this.promoterOptions = live.map(promoter => ({
+          username: promoter.username,
+          displayName: promoter.displayName || promoter.username
+        }));
+      }
+    }).catch(() => undefined);
     const collectorList = this.member?.collectors;
     if (Array.isArray(collectorList) && collectorList.length > 0) {
       this.legacyMode = false;
@@ -152,18 +167,50 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     return Math.abs(this.blockDifference(block)) < 0.0001 ? 'CONFORME' : 'ECART';
   }
 
+  canEditAttribution(row: MonthRow): boolean {
+    return row.systemAmount <= 0 && !this.monthCollectedElsewhere(row);
+  }
+
+  promotersFor(row: MonthRow): RmCommercialRef[] {
+    const options = [...this.promoterOptions];
+    if (row.commercialUsername && !options.some(option =>
+      option.username.toLowerCase() === row.commercialUsername.toLowerCase())) {
+      options.unshift({ username: row.commercialUsername, displayName: row.commercialUsername });
+    }
+    return options;
+  }
+
   toggleRow(row: MonthRow): void {
     this.debug.event(`toggle ${row.monthName} ${row.year} selected=${!row.selected} submitting=${this.submitting}`);
-    if (this.submitting) {
+    if (this.submitting || (this.monthCollectedElsewhere(row) && !row.selected)) {
       return;
     }
     row.selected = !row.selected;
     if (!row.selected) {
       this.resetRowAmount(row);
+      row.commercialUsername = row.blockCommercial;
+      row.dailyMise = row.applicableMise;
       return;
     }
     if (row.useManual && row.notebookAmount === null) {
       row.notebookAmount = row.systemAmount;
+    }
+    this.releaseEmptyMonth(row);
+  }
+
+  onCommercialChange(row: MonthRow, username: string): void {
+    row.commercialUsername = username || row.blockCommercial;
+    this.releaseEmptyMonth(row);
+  }
+
+  onMiseChange(row: MonthRow, value: string | number | null): void {
+    const next = Number(value);
+    if (!Number.isFinite(next) || next < 0) {
+      return;
+    }
+    row.dailyMise = next;
+    if (!row.useManual && row.selectedUpTo != null) {
+      row.notebookAmount = row.selectedUpTo * next;
     }
   }
 
@@ -198,7 +245,8 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
           month: r.month,
           commercialUsername: r.commercialUsername,
           notebookAmount: Number(r.notebookAmount),
-          systemAmount: r.systemAmount
+          systemAmount: r.systemAmount,
+          declaredDailyAmount: this.stakeToSend(r)
         })),
         note: this.note
       });
@@ -263,10 +311,51 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     if (!row.commercialUsername || row.notebookAmount === null || Number(row.notebookAmount) < 0) {
       return false;
     }
+    if (this.canEditAttribution(row) && !(row.dailyMise > 0)) {
+      return false;
+    }
     if (row.useManual) {
       return true;
     }
     return row.selectedUpTo !== null;
+  }
+
+  private stakeToSend(row: MonthRow): number | undefined {
+    if (!this.canEditAttribution(row)) {
+      return undefined;
+    }
+    if (Math.abs(row.dailyMise - row.applicableMise) < 0.0001) {
+      return undefined;
+    }
+    return row.dailyMise > 0 ? row.dailyMise : undefined;
+  }
+
+  monthCollectedElsewhere(row: MonthRow): boolean {
+    if (row.systemAmount > 0) {
+      return false;
+    }
+    return this.allRows.some(candidate =>
+      candidate !== row
+      && candidate.year === row.year
+      && candidate.month === row.month
+      && candidate.systemAmount > 0);
+  }
+
+  private releaseEmptyMonth(row: MonthRow): void {
+    if (row.systemAmount > 0) {
+      return;
+    }
+    for (const candidate of this.allRows) {
+      if (candidate === row || !candidate.selected || candidate.systemAmount > 0) {
+        continue;
+      }
+      if (candidate.year === row.year && candidate.month === row.month) {
+        candidate.selected = false;
+        this.resetRowAmount(candidate);
+        candidate.commercialUsername = candidate.blockCommercial;
+        candidate.dailyMise = candidate.applicableMise;
+      }
+    }
   }
 
   private resetRowAmount(row: MonthRow): void {
@@ -305,6 +394,8 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       commercialUsername,
       systemAmount,
       dailyMise,
+      applicableMise: dailyMise,
+      blockCommercial: commercialUsername,
       selected: false,
       notebookAmount: null,
       selectedUpTo: null,

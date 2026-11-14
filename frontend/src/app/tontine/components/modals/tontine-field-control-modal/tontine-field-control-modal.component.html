@@ -13,7 +13,7 @@
     <div class="member-info">
       <p><strong>Membre :</strong> {{ data.memberName }}</p>
       <p class="hint">
-        Contrôlez chaque commercial séparément : sélectionnez les mois et saisissez le montant marqué dans son carnet.
+        Sélectionnez les mois et saisissez le montant du carnet. Pour un mois encore à zéro, indiquez le commercial qui a collecté et la mise du mois si elle diffère.
       </p>
     </div>
 
@@ -39,7 +39,7 @@
             <input
               type="checkbox"
               [checked]="row.selected"
-              [disabled]="isSubmitting"
+              [disabled]="isSubmitting || (!row.selected && monthCollectedElsewhere(row))"
               (change)="toggleRow(row)"
             />
             <span class="month-name">{{ row.monthName }} {{ row.year }}</span>
@@ -59,6 +59,33 @@
                 placeholder="0"
               />
               <span class="input-suffix">FCFA</span>
+            </div>
+          </div>
+          <div class="month-extra" *ngIf="row.selected && canEditAttribution(row)">
+            <div class="month-input">
+              <label [attr.for]="'commercial-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername">Collecté par</label>
+              <select
+                [id]="'commercial-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername"
+                [ngModel]="row.commercialUsername"
+                (ngModelChange)="onCommercialChange(row, $event)"
+                [disabled]="isSubmitting">
+                <option *ngFor="let promoter of promotersFor(row)" [value]="promoter.username">
+                  {{ promoter.label }} ({{ promoter.username }})
+                </option>
+              </select>
+            </div>
+            <div class="month-input">
+              <label [attr.for]="'mise-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername">Mise du mois</label>
+              <div class="input-wrap">
+                <input
+                  [id]="'mise-' + row.year + '-' + row.calendarMonth + '-' + block.commercialUsername"
+                  type="number"
+                  min="1"
+                  [(ngModel)]="row.declaredDailyAmount"
+                  [disabled]="isSubmitting"
+                />
+                <span class="input-suffix">FCFA</span>
+              </div>
             </div>
           </div>
         </div>

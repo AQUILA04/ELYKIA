@@ -126,11 +126,54 @@ class CarnetEcartDecisionServiceTest {
         verify(debtService).createFieldControlShortage(
                 eq("com"), any(LocalDate.class), eq(186_000d), eq("TONTINE"), eq(100L), anyString());
         verify(tontineService).publishFieldControlCollection(any());
+        verify(tontineService, never()).alignAdhesionForFieldControl(anyLong(), any());
         ArgumentCaptor<CarnetEcartDecision> captor = ArgumentCaptor.forClass(CarnetEcartDecision.class);
         verify(decisionRepository, org.mockito.Mockito.atLeastOnce()).save(captor.capture());
         assertTrue(captor.getAllValues().stream()
                 .anyMatch(decision -> decision.getDirection() == CarnetEcartDirection.SYSTEM_ABOVE_NOTEBOOK
                         && decision.getStatus() == CarnetEcartStatus.ACCEPTED));
+    }
+
+    @Test
+    void accept_tontineBackdatesAdhesionAndAppliesDeclaredStake() {
+        TontineMember member = new TontineMember();
+        member.setId(9L);
+        com.optimize.elykia.core.entity.tontine.TontineSession session =
+                new com.optimize.elykia.core.entity.tontine.TontineSession();
+        session.setStartDate(LocalDate.of(2026, 2, 1));
+        session.setStatus(com.optimize.elykia.core.enumaration.TontineSessionStatus.CLOSED);
+        member.setTontineSession(session);
+        member.setRegistrationDate(LocalDate.of(2026, 10, 1).atStartOfDay());
+        TontineMemberFieldControlLine february = line(1L, 2026, 2, 0d, 9_300d);
+        february.setDeclaredDailyAmount(300d);
+        TontineMemberFieldControl control = controlWith(february);
+        control.setTontineMember(member);
+        when(tontineFieldControlRepository.findById(4L)).thenReturn(Optional.of(control));
+        when(tontineFieldControlRepository.findFirstByTontineMember_idAndStateOrderByObservedAtDesc(9L, State.ENABLED))
+                .thenReturn(Optional.of(control));
+        when(decisionRepository.findByTontineLineId(anyLong())).thenReturn(Optional.empty());
+        when(tontineService.participationStart(member)).thenReturn(LocalDate.of(2026, 10, 1));
+        when(tontineService.recordFieldControlCollection(
+                eq(9L), eq(9_300d), any(LocalDate.class), eq("com"), eq("FC-TONTINE-1")))
+                .thenReturn(new FieldControlTontinePosting(
+                        41L, "FC-TONTINE-1", "com", "Awa", LocalDate.of(2026, 2, 28), 9_300d, false));
+        when(decisionRepository.save(any())).thenAnswer(invocation -> {
+            CarnetEcartDecision decision = invocation.getArgument(0);
+            decision.setId(101L);
+            return decision;
+        });
+        DebtDocument debt = new DebtDocument();
+        debt.setId(51L);
+        when(debtService.createFieldControlShortage(
+                eq("com"), any(LocalDate.class), eq(9_300d), eq("TONTINE"), eq(101L), anyString()))
+                .thenReturn(debt);
+
+        CarnetEcartBulkResultDto result = service.accept(List.of("TONTINE|4|com"));
+
+        assertEquals(1, result.getSucceeded().size());
+        assertTrue(result.getSucceeded().get(0).getMessage().contains("01/02/2026"));
+        verify(tontineService).alignAdhesionForFieldControl(9L, LocalDate.of(2026, 2, 1));
+        verify(tontineService).applyFieldControlMonthStake(9L, LocalDate.of(2026, 2, 1), 300d);
     }
 
     @Test

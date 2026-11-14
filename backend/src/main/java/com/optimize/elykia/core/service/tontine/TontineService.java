@@ -342,6 +342,38 @@ public class TontineService extends GenericService<TontineMember, Long> {
      * depuis le nouveau jour, par exemple d'octobre vers avril.
      */
     public TontineMemberRespDto updateAdhesionDate(Long id, LocalDate registrationDate) {
+        return updateAdhesionDate(id, registrationDate, false);
+    }
+
+    /**
+     * Recul d'adhésion déclenché par l'acceptation d'un écart de carnet.
+     * Autorisé sur la session du membre, active ou déjà clôturée.
+     */
+    public TontineMemberRespDto alignAdhesionForFieldControl(Long id, LocalDate registrationDate) {
+        return updateAdhesionDate(id, registrationDate, true);
+    }
+
+    /**
+     * Début de participation du membre, ou null si la session n'est pas chargée.
+     */
+    public LocalDate participationStart(TontineMember member) {
+        if (member == null || member.getTontineSession() == null) {
+            return null;
+        }
+        return getEffectiveMemberStartDate(member);
+    }
+
+    /**
+     * Enregistre une mise propre à un mois encore sans cotisation.
+     * Ne fait rien si elle égale la mise déjà en vigueur.
+     */
+    public void applyFieldControlMonthStake(Long memberId, LocalDate monthDate, Double dailyStake) {
+        TontineMember member = getById(memberId);
+        applyCatchupDailyStakeIfNeeded(member, monthDate, dailyStake);
+        update(member);
+    }
+
+    private TontineMemberRespDto updateAdhesionDate(Long id, LocalDate registrationDate, boolean allowClosed) {
         assertTontineWritesAllowed();
         if (registrationDate == null) {
             throw new CustomValidationException("La date d'adhésion est obligatoire.");
@@ -349,7 +381,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
 
         TontineMember member = getById(id);
         TontineSession session = member.getTontineSession();
-        if (session == null || session.getStatus() != TontineSessionStatus.ACTIVE) {
+        boolean open = session != null && session.getStatus() == TontineSessionStatus.ACTIVE;
+        boolean closed = session != null && session.getStatus() == TontineSessionStatus.CLOSED;
+        if (session == null || !(open || (allowClosed && closed))) {
             throw new CustomValidationException(
                     "La date d'adhésion ne peut être modifiée que pendant la session en cours.");
         }
@@ -665,12 +699,14 @@ public class TontineService extends GenericService<TontineMember, Long> {
         if (amount <= 0.5d) {
             throw new CustomValidationException("Le montant de la mise de carnet est nul.");
         }
-        TontineSession currentSession = getActiveSession();
-        if (!TontineSessionStatus.ACTIVE.equals(currentSession.getStatus())) {
-            throw new CustomValidationException(
-                    "La session de cette année est déjà clôturée. Vous ne pouvez plus enregistrer de collecte.");
-        }
         TontineMember member = getById(memberId);
+        TontineSession currentSession = member.getTontineSession();
+        if (currentSession == null
+                || (currentSession.getStatus() != TontineSessionStatus.ACTIVE
+                && currentSession.getStatus() != TontineSessionStatus.CLOSED)) {
+            throw new CustomValidationException(
+                    "La session de ce membre ne permet plus d'enregistrer une collecte de contrôle carnet.");
+        }
         LocalDate today = LocalDate.now();
         LocalDate allocationDate = today;
         LocalDateTime collectionDateTime = LocalDateTime.now();

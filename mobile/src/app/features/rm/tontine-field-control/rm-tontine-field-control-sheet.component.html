@@ -32,7 +32,7 @@
   </section>
 
   <p class="hint" *ngIf="!legacyMode">
-    Contrôlez chaque commercial séparément : cochez les mois, puis touchez le dernier jour coché sur le carnet.
+    Cochez les mois, puis touchez le dernier jour coché. Pour un mois encore à zéro, choisissez le commercial et corrigez la mise si le carnet en indique une autre.
   </p>
   <p class="hint legacy" *ngIf="legacyMode">
     Ce pack ne découpe pas encore les montants par commercial. Retéléchargez le pack du jour pour contrôler COM par COM.
@@ -63,11 +63,12 @@
         *ngFor="let row of block.rows"
         [class.selected]="row.selected"
         (click)="toggleRow(row)"
+        [class.locked]="monthCollectedElsewhere(row) && !row.selected"
         data-testid="e2e-rm-tontine-month">
         <div class="month-head">
           <ion-checkbox
             [checked]="row.selected"
-            [disabled]="submitting"
+            [disabled]="submitting || (!row.selected && monthCollectedElsewhere(row))"
             class="month-check">
           </ion-checkbox>
           <div>
@@ -76,8 +77,32 @@
           </div>
         </div>
         <div class="month-input" *ngIf="row.selected" (click)="$event.stopPropagation()">
+          <div class="attribution" *ngIf="canEditAttribution(row)">
+            <label [attr.for]="'commercial-' + row.year + '-' + row.month">Collecté par</label>
+            <ion-select
+              [id]="'commercial-' + row.year + '-' + row.month"
+              interface="popover"
+              [value]="row.commercialUsername"
+              (ionChange)="onCommercialChange(row, $any($event.detail.value))"
+              [disabled]="submitting"
+              class="commercial-select">
+              <ion-select-option *ngFor="let promoter of promotersFor(row)" [value]="promoter.username">
+                {{ promoter.displayName || promoter.username }}
+              </ion-select-option>
+            </ion-select>
+            <label [attr.for]="'mise-' + row.year + '-' + row.month">Mise du mois</label>
+            <ion-input
+              [id]="'mise-' + row.year + '-' + row.month"
+              type="number"
+              inputmode="decimal"
+              [ngModel]="row.dailyMise"
+              (ngModelChange)="onMiseChange(row, $event)"
+              [disabled]="submitting"
+              class="amount-input">
+            </ion-input>
+          </div>
           <ng-container *ngIf="!row.useManual">
-            <p class="mise-readonly">Mise : {{ formatAmount(row.dailyMise) }} FCFA</p>
+            <p class="mise-readonly" *ngIf="!canEditAttribution(row)">Mise : {{ formatAmount(row.dailyMise) }} FCFA</p>
             <app-mise-day-pills
               [dailyMise]="row.dailyMise"
               [maxDays]="row.maxDays"

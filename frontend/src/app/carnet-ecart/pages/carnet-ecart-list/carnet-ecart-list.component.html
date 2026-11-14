@@ -189,6 +189,13 @@
       <p *ngIf="acceptPreviewAmount <= 0 && selectedTontineInverse === 0">
         Aucune mise ne sera créée : le carnet n’est pas supérieur au système.
       </p>
+      <p *ngIf="adhesionWarnings.length">
+        <span *ngFor="let warning of adhesionWarnings">{{ warning }}. </span>
+        La mise déjà connue s'applique depuis cette date, sauf si une mise de mois est indiquée ci-dessous.
+      </p>
+      <p *ngIf="stakeWarnings.length">
+        <span *ngFor="let warning of stakeWarnings">{{ warning }}. </span>
+      </p>
       <p *ngIf="selectedCreditInverse > 0">
         Les ventes où le système dépasse le carnet ne sont pas modifiées. Vous pouvez les rejeter avec un motif.
       </p>
