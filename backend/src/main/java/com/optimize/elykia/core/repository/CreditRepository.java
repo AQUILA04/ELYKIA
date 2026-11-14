@@ -292,7 +292,8 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             c.totalAmountRemaining, c.advance, c.dailyStake, c.status, c.remainingDaysCount, c.collector, c.type, c.dailyPaid, c.clientType,
             c.parent.id, c.updatable, c.reference, c.accountingDate, c.releaseDate, c.releasePrinted, c.oldReference, NULL, NULL,
             c.operationConsentCode, c.confirmedAmount, c.syncConsentCode,
-            c.carnetVerified, c.carnetVerifiedAt, c.carnetVerifiedBy)
+            c.carnetVerified, c.carnetVerifiedAt, c.carnetVerifiedBy,
+            c.pendingWarehouseDelivery)
             FROM Credit c
             WHERE c.status = :creditStatus AND c.collector = :collector AND c.clientType = :clientType
     """)
@@ -675,7 +676,8 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                null,
                new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.businessCreditInProgress, cl.businessCreditAuthorized, cl.businessCreditAuthorizedBy, cl.businessCreditAuthorizedAt, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate, cl.profilPhotoThumbUrl, cl.cardPhotoThumbUrl, cl.registrationSource),
                c.operationConsentCode, c.confirmedAmount, c.syncConsentCode,
-               c.carnetVerified, c.carnetVerifiedAt, c.carnetVerifiedBy)
+               c.carnetVerified, c.carnetVerifiedAt, c.carnetVerifiedBy,
+               c.pendingWarehouseDelivery)
            FROM Credit c
            LEFT JOIN c.client cl
            WHERE c.state = :state
@@ -700,7 +702,8 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
                null,
                new com.optimize.elykia.client.dto.ClientRespDto(cl.id, cl.firstname, cl.lastname, cl.address, cl.phone, cl.cardID, cl.cardType, cl.dateOfBirth, null, null, null, cl.collector, cl.quarter, cl.creditInProgress, cl.businessCreditInProgress, cl.businessCreditAuthorized, cl.businessCreditAuthorizedBy, cl.businessCreditAuthorizedAt, cl.occupation, cl.clientType, null, null, null, null, cl.code, cl.profilPhotoUrl, cl.cardPhotoUrl, cl.tontineCollector, cl.createdDate, cl.profilPhotoThumbUrl, cl.cardPhotoThumbUrl, cl.registrationSource),
                c.operationConsentCode, c.confirmedAmount, c.syncConsentCode,
-               c.carnetVerified, c.carnetVerifiedAt, c.carnetVerifiedBy)
+               c.carnetVerified, c.carnetVerifiedAt, c.carnetVerifiedBy,
+               c.pendingWarehouseDelivery)
            FROM Credit c
            LEFT JOIN c.client cl
            WHERE c.state = :state

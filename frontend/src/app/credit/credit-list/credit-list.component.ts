@@ -461,7 +461,7 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
   }
 
   cancelCashSale(id: number): void {
-    this.alertService.showConfirmation(
+    void this.alertService.showConfirmation(
       'Annuler la vente',
       'La marchandise reste au magasin et l\'argent encaissé est retiré de la caisse. Remboursez le client.',
       'Annuler la vente',

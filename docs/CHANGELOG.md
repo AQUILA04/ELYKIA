@@ -78,6 +78,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.47.1] — 2026-11-14
+
+### Fixed
+
+- **Vente au comptant —** les confirmations d'annulation et de livraison attendent explicitement la réponse de la fenêtre, comme les autres actions de la liste.
+
 ## Frontend — [2.47.0] — 2026-11-14
 
 ### Changed
@@ -354,6 +360,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.50.1] — 2026-11-14
+
+### Fixed
+
+- **Vente au comptant —** les listes de ventes incluent l'indicateur de livraison en attente. Le démarrage de l'application échouait tant que cette information manquait dans la requête.
 
 ## Backend — [1.50.0] — 2026-11-14
 
