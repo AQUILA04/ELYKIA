@@ -1726,6 +1726,14 @@
 <li>Enregistrez. La photo est réduite automatiquement.</li>
 </ol>
 <p>Si l'article n'a pas encore sa photo, l'aperçu reprend celle de son type lorsqu'elle existe. Le catalogue de l'espace client affiche la même image.</p>
+<h2 id="colis-et-demi-gros">Colis et demi-gros</h2>
+<ol>
+<li>Sur la fiche, choisissez <strong>Carton</strong> ou <strong>Sac</strong>, puis le nombre d'unités du colis. Ce nombre peut être impair.</li>
+<li>S'il est impair, le champ <strong>Unités du demi-gros</strong> apparaît. Laissez-le vide s'il n'y a pas de demi-gros. Sinon, indiquez combien d'unités il contient.</li>
+<li>Le prix d'achat du demi-gros et son prix de vente ne s'affichent que si le demi-gros est défini.</li>
+<li>Vous pouvez ajouter des offres de vente, par exemple 3 unités pour 250. Le montant est celui des 3 unités.</li>
+<li>À l'entrée de stock, le demi-gros n'est proposé que s'il est défini. Le gros reste possible même si le colis est impair. Les prix de vente du lot sont préremplis et modifiables pour cette entrée.</li>
+</ol>
 <hr />
 <h2 id="2-seuils-logistiques-et-alertes-de-stock">2. Seuils logistiques et alertes de stock</h2>
 <p>Pour éviter toute rupture de distribution sur le terrain, chaque article dispose de paramètres de réapprovisionnement surveillés par le système :</p>
@@ -1755,6 +1763,12 @@
 </tr>
 </tbody>
 </table>
+<p>Sur l'accueil, dans <strong>Alertes stock magasin</strong>, chaque ligne affiche le nom commercial suivi du nom de l'article.</p>
+<ol>
+<li>Ouvrez <strong>Accueil</strong>.</li>
+<li>À droite du titre <strong>Rupture de stock</strong>, cliquez sur l'icône de téléchargement : le fichier reprend le nom commercial, le nom, le type et la quantité de chaque article indisponible.</li>
+<li>À droite du titre <strong>Rupture imminente</strong>, cliquez sur l'icône de téléchargement : le fichier reprend les mêmes informations pour les articles sous le seuil d'alerte.</li>
+</ol>
 <hr />
 <h2 id="3-regle-de-suppression-et-archivage">3. Règle de suppression et archivage</h2>
 <ul>
@@ -1831,38 +1845,34 @@
 </ol>
 <p>\newpage</p>
 <hr />
-<h1 id="gestion-physique-du-stock-tontine">Gestion physique du stock tontine</h1>
-<p>Les sorties et retours tontine se traitent dans <strong>Stock Commercial</strong>, avec le sélecteur <strong>Tontine</strong>.</p>
-<hr />
-<h2 id="1-servir-une-sortie-de-stock-tontine">1. Servir une sortie de stock tontine</h2>
-<p>À l'approche des fêtes de fin d'année et de la clôture des cycles de cotisation, les commerciaux reçoivent des dotations d'articles destinés aux membres tontine.</p>
-<!-- CAPTURE À INSÉRER : Demandes de sortie avec le sélecteur Tontine actif et le bouton Livrer. -->
-
-<h3 id="a-controle-et-delivrance-physique">A. Contrôle et délivrance physique</h3>
+<h1 id="vos-dettes-dinventaire">Vos dettes d’inventaire</h1>
+<p>Le menu <strong>Dettes</strong> vous permet de consulter les montants liés aux écarts d’inventaire enregistrés à votre nom, et de suivre leur règlement.</p>
+<h2 id="acceder-a-vos-dettes">Accéder à vos dettes</h2>
 <ol>
-<li>Ouvrez <strong>Stock Commercial &gt; Demandes Sortie</strong>, puis cliquez sur <strong>Tontine</strong>.</li>
-<li>Repérez la demande au statut <strong>Validée</strong>.</li>
-<li>Cliquez sur <strong>« Voir »</strong> pour examiner les articles et les quantités. La référence de la demande s'affiche en haut. <strong>« Télécharger »</strong> enregistre la fiche de cette demande.</li>
-<li>Rassemblez les colis correspondants et vérifiez les références avec le commercial au guichet.</li>
-<li>Cliquez sur le bouton <strong>« Livrer »</strong>.</li>
-<li>Le stock dépôt tontine est débité.</li>
-<li>Le commercial est crédité de sa dotation tontine.</li>
-<li>La demande passe au statut <strong>Livrée</strong>.</li>
+<li>Dans le menu latéral, cliquez sur <strong>Dettes</strong>.</li>
+<li>La liste affiche vos positions d’inventaire avec la date, le montant et le reste à régler.</li>
+<li>Cliquez sur <strong>Voir</strong> pour consulter les articles concernés et l’historique des règlements.</li>
 </ol>
-<p>La remise au membre se fait ensuite dans le menu <strong>Tontines</strong>, sur la fiche du membre.</p>
-<hr />
-<h2 id="2-retours-darticles-tontine">2. Retours d'articles tontine</h2>
+<h2 id="lien-avec-linventaire">Lien avec l’inventaire</h2>
+<p>Lorsqu’un inventaire constate un manquant et qu’il est enregistré comme dette à votre nom :</p>
 <ol>
-<li>Ouvrez <strong>Stock Commercial &gt; Retours</strong> et cliquez sur <strong>Tontine</strong>.</li>
-<li>Examinez la ligne au statut <strong>En attente</strong>.</li>
-<li>Après inspection des emballages, cliquez sur <strong>« Réceptionner »</strong> pour réintégrer les articles au stock tontine.</li>
+<li>Le stock magasin est aligné sur le comptage physique.</li>
+<li>Une position apparaît dans <strong>Dettes</strong> avec les articles et les quantités.</li>
+<li>Vous suivez le montant restant jusqu’au règlement complet.</li>
 </ol>
 <p>\newpage</p>
 <hr />
-<h1 id="gestion-physique-du-stock-commercial-sorties-retours">Gestion physique du stock commercial (Sorties &amp; Retours)</h1>
+<h1 id="gestion-physique-du-stock-sorties-retours">Gestion physique du stock (Sorties &amp; Retours)</h1>
 <p>Le magasinier est l'acteur clé de la délivrance physique des articles aux commerciaux. Aucune marchandise ne doit quitter le magasin sans bon de sortie validé, et aucun retour ne doit être réintégré sans contrôle contradictoire de son état physique.</p>
+<p>Le menu <strong>Stock Commercial</strong> regroupe les sorties, le stock et les retours. Sur chaque écran, le sélecteur <strong>Crédit</strong> / <strong>Tontine</strong> (sous le titre) recharge la liste pour le stock choisi.</p>
+<ol>
+<li>Ouvrez <strong>Stock Commercial</strong>, puis <strong>Demandes Sortie</strong>, <strong>Stock</strong> ou <strong>Retours</strong>.</li>
+<li>Cliquez sur <strong>Crédit</strong> pour les ventes, ou sur <strong>Tontine</strong> pour les livraisons de fin de cycle.</li>
+<li>Les filtres, le tableau et les boutons (<strong>Voir</strong>, <strong>Livrer</strong>, <strong>Réceptionner</strong>, <strong>Télécharger</strong>) s'appliquent au choix affiché.</li>
+</ol>
 <hr />
 <h2 id="1-servir-et-livrer-une-demande-de-sortie-menu-stock-commercial-demandes-sortie">1. Servir et livrer une demande de sortie (Menu Stock Commercial &gt; Demandes Sortie)</h2>
+<p>Choisissez <strong>Crédit</strong> sur le sélecteur avant de préparer une sortie de vente.</p>
 <p>Toutes les demandes de sortie validées par la gestion arrivent dans le menu <strong>Stock Commercial &gt; Demandes Sortie</strong> (accessible si vous disposez des habilitations requises).</p>
 <!-- CAPTURE À INSÉRER : Demande de sortie au statut Validée avec le bouton Livrer visible pour le magasinier. -->
 
@@ -1892,7 +1902,7 @@
 </blockquote>
 <hr />
 <h2 id="2-traitement-physique-des-retours-darticles-menu-stock-commercial-retours">2. Traitement physique des retours d'articles (Menu Stock Commercial &gt; Retours)</h2>
-<p>Lorsqu'un commercial restitue des articles au dépôt central (invendus de tournée, emballages détériorés, réajustement de dotation), l'opération est traitée dans <strong>Stock Commercial &gt; Retours</strong>.</p>
+<p>Lorsqu'un commercial restitue des articles au dépôt central (invendus de tournée, emballages détériorés, réajustement de dotation), l'opération est traitée dans <strong>Stock Commercial &gt; Retours</strong>, sélecteur <strong>Crédit</strong>.</p>
 <h3 id="a-receptionner-un-retour-conforme">A. Réceptionner un retour conforme</h3>
 <ol>
 <li>Le commercial présente les articles au magasin avec son numéro de déclaration de retour.</li>
@@ -1908,6 +1918,31 @@
 <li>Si un article est détérioré par la faute du commercial ou incomplet, le magasinier ou le gestionnaire clique sur <strong>« Refuser »</strong>.</li>
 <li>Le retour passe au statut <strong>Refusé</strong> : le stock central n'est pas incrémenté et l'article reste sous la responsabilité comptable du commercial jusqu'à règlement du litige.</li>
 </ul>
+<hr />
+<h2 id="3-sorties-et-retours-tontine-selecteur-tontine">3. Sorties et retours tontine (sélecteur Tontine)</h2>
+<p>À l'approche des fêtes de fin d'année et de la clôture des cycles de cotisation, les commerciaux reçoivent des dotations d'articles destinés aux membres tontine. Ces mouvements se traitent dans le même menu, avec le sélecteur <strong>Tontine</strong>.</p>
+<!-- CAPTURE À INSÉRER : Demandes de sortie avec le sélecteur Tontine actif et le bouton Livrer. -->
+
+<h3 id="a-delivrance">A. Délivrance</h3>
+<ol>
+<li>Ouvrez <strong>Stock Commercial &gt; Demandes Sortie</strong>.</li>
+<li>Cliquez sur <strong>Tontine</strong>.</li>
+<li>Repérez la demande au statut <strong>Validée</strong>.</li>
+<li>Cliquez sur <strong>« Voir »</strong> pour examiner les articles et les quantités. La référence s'affiche en haut. <strong>« Télécharger »</strong> enregistre la fiche de cette demande.</li>
+<li>Rassemblez les colis et vérifiez les références avec le commercial au guichet.</li>
+<li>Cliquez sur <strong>« Livrer »</strong>.</li>
+<li>Le stock dépôt tontine est débité.</li>
+<li>Le commercial est crédité de sa dotation tontine.</li>
+<li>La demande passe au statut <strong>Livrée</strong>.</li>
+</ol>
+<p>La remise au membre se fait ensuite dans le menu <strong>Tontines</strong>, sur la fiche du membre.</p>
+<h3 id="b-retour">B. Retour</h3>
+<ol>
+<li>Ouvrez <strong>Stock Commercial &gt; Retours</strong> et cliquez sur <strong>Tontine</strong>.</li>
+<li>Examinez la ligne au statut <strong>En attente</strong>.</li>
+<li>Après inspection des emballages, cliquez sur <strong>« Réceptionner »</strong> pour réintégrer les articles au stock tontine.</li>
+</ol>
+<p>Le suivi des quantités annuelles se fait dans <strong>Stock Commercial &gt; Stock</strong>, sélecteur <strong>Tontine</strong>.</p>
 <p>\newpage</p>
 <hr />
 
