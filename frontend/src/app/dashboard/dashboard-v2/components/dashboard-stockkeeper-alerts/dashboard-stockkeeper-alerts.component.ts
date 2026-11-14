@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { PageEvent } from '@angular/material/paginator';
-import { forkJoin, Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs';
 import { ItemService } from 'src/app/article/service/item.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
 
@@ -24,8 +23,6 @@ export class DashboardStockkeeperAlertsComponent implements OnInit {
   downloadingOutOfStock = false;
   downloadingImminent = false;
 
-  private readonly exportPageSize = 200;
-
   constructor(
     private itemsService: ItemService,
     private alertService: AlertService
@@ -40,8 +37,9 @@ export class DashboardStockkeeperAlertsComponent implements OnInit {
     this.loadingOutOfStock = true;
     this.itemsService.outOfStock(page, pageSize).subscribe({
       next: (data) => {
-        this.outOfStockArticles = data.data.content;
-        this.totalOutOfStockElement = data.data.totalElements;
+        const pageData = this.readArticlePage(data);
+        this.outOfStockArticles = pageData.content;
+        this.totalOutOfStockElement = pageData.totalElements;
         this.loadingOutOfStock = false;
       },
       error: () => { this.loadingOutOfStock = false; }
@@ -52,8 +50,9 @@ export class DashboardStockkeeperAlertsComponent implements OnInit {
     this.loadingImminent = true;
     this.itemsService.nextOutOfStock(page, pageSize).subscribe({
       next: (data) => {
-        this.imminentOutOfStockArticles = data.data.content;
-        this.totalImminentElement = data.data.totalElements;
+        const pageData = this.readArticlePage(data);
+        this.imminentOutOfStockArticles = pageData.content;
+        this.totalImminentElement = pageData.totalElements;
         this.loadingImminent = false;
       },
       error: () => { this.loadingImminent = false; }
@@ -89,7 +88,7 @@ export class DashboardStockkeeperAlertsComponent implements OnInit {
 
   downloadOutOfStock(): void {
     this.exportList(
-      (page, size) => this.itemsService.outOfStock(page, size),
+      () => this.itemsService.outOfStockAll(),
       this.totalOutOfStockElement,
       'articles-rupture-de-stock',
       (loading) => { this.downloadingOutOfStock = loading; }
@@ -98,7 +97,7 @@ export class DashboardStockkeeperAlertsComponent implements OnInit {
 
   downloadImminent(): void {
     this.exportList(
-      (page, size) => this.itemsService.nextOutOfStock(page, size),
+      () => this.itemsService.nextOutOfStockAll(),
       this.totalImminentElement,
       'articles-rupture-imminente',
       (loading) => { this.downloadingImminent = loading; }
@@ -106,7 +105,7 @@ export class DashboardStockkeeperAlertsComponent implements OnInit {
   }
 
   private exportList(
-    fetchPage: (page: number, size: number) => Observable<any>,
+    fetchAll: () => Observable<any>,
     total: number,
     filenamePrefix: string,
     setLoading: (loading: boolean) => void
@@ -115,15 +114,9 @@ export class DashboardStockkeeperAlertsComponent implements OnInit {
       return;
     }
     setLoading(true);
-    const pageCount = Math.ceil(total / this.exportPageSize);
-    const requests = Array.from({ length: pageCount }, (_, page) =>
-      fetchPage(page, this.exportPageSize).pipe(
-        map((response) => (response?.data?.content ?? []) as any[])
-      )
-    );
-    forkJoin(requests).subscribe({
-      next: (pages) => {
-        this.saveCsv(pages.flat(), filenamePrefix);
+    fetchAll().subscribe({
+      next: (response) => {
+        this.saveCsv(this.readArticleList(response), filenamePrefix);
         setLoading(false);
       },
       error: () => {
@@ -153,6 +146,24 @@ export class DashboardStockkeeperAlertsComponent implements OnInit {
     anchor.click();
     document.body.removeChild(anchor);
     setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+
+  private readArticleList(response: any): any[] {
+    const data = response?.data;
+    if (Array.isArray(data)) {
+      return data;
+    }
+    return Array.isArray(data?.content) ? data.content : [];
+  }
+
+  private readArticlePage(response: any): { content: any[]; totalElements: number } {
+    const data = response?.data ?? {};
+    const content = Array.isArray(data.content) ? data.content : [];
+    const total = Number(data.page?.totalElements ?? data.totalElements ?? 0);
+    return {
+      content,
+      totalElements: Number.isFinite(total) ? total : 0
+    };
   }
 
   private csvCell(value: unknown): string {

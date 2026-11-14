@@ -82,8 +82,8 @@ Pour éviter toute rupture de distribution sur le terrain, chaque article dispos
 Sur l'accueil, dans **Alertes stock magasin**, chaque ligne affiche le nom commercial suivi du nom de l'article.
 
 1. Ouvrez **Accueil**.
-2. À droite du titre **Rupture de stock**, cliquez sur l'icône de téléchargement : le fichier reprend le nom commercial, le nom, le type et la quantité de chaque article indisponible.
-3. À droite du titre **Rupture imminente**, cliquez sur l'icône de téléchargement : le fichier reprend les mêmes informations pour les articles sous le seuil d'alerte.
+2. À droite du titre **Rupture de stock**, cliquez sur l'icône de téléchargement : le fichier reprend le nom commercial, le nom, le type et la quantité de tous les articles indisponibles, y compris ceux des autres pages.
+3. À droite du titre **Rupture imminente**, cliquez sur l'icône de téléchargement : le fichier reprend les mêmes informations pour tous les articles sous le seuil d'alerte.
 
 ---
 

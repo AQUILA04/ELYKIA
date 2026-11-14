@@ -564,8 +564,16 @@ public class ArticlesService extends GenericService<Articles, Long> {
         return getRepository().findByStockQuantityEquals(0, pageable);
     }
 
+    public List<Articles> getAllOutOfStock() {
+        return getRepository().findAllByStockQuantity(0);
+    }
+
     public Page<Articles> getNextOutOfStock(Pageable pageable) {
         return getRepository().findByStockQuantityLessThanEqualAndStockQuantityGreaterThan(6, 0, pageable);
+    }
+
+    public List<Articles> getAllNextOutOfStock() {
+        return getRepository().findAllByStockQuantityLessThanEqualAndStockQuantityGreaterThan(6, 0);
     }
 
     @Transactional(readOnly = true)
