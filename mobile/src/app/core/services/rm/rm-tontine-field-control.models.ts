@@ -8,6 +8,7 @@ export interface RmTontineFieldControlMonthInput {
   commercialUsername: string;
   notebookAmount: number;
   systemAmount?: number;
+  declaredDailyAmount?: number;
 }
 
 export interface RmTontineFieldControlOp {

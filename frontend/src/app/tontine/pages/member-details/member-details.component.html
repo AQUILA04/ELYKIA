@@ -72,7 +72,7 @@
       </button>
       <ng-container *ngxPermissionsOnly="['ROLE_TONTINE_CARNET_VERIFY', 'ROLE_ADMIN']">
         <button class="btn-carnet-verify" type="button" (click)="onToggleCarnetVerification()"
-                [disabled]="isCarnetBusy || !isSessionActive"
+                [disabled]="isCarnetBusy || !canVerifyCarnet"
                 data-testid="e2e-tontine-carnet-verify-btn">
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>
           {{ isCarnetBusy ? 'Enregistrement…' : (member.carnetVerified ? 'Annuler la vérification' : 'Vérifier') }}

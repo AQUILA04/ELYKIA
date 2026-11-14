@@ -16,6 +16,29 @@
   background: var(--rm-bg);
 }
 
+.attribution {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.attribution label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rm-navy);
+}
+
+.commercial-select {
+  min-height: 44px;
+  width: 100%;
+  --min-height: 44px;
+}
+
+.month-row.locked {
+  opacity: 0.55;
+}
+
 .already-controlled {
   margin: 12px 0;
   padding: 10px 12px;

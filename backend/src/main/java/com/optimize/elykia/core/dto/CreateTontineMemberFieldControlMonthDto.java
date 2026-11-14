@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -28,4 +29,8 @@ public class CreateTontineMemberFieldControlMonthDto {
     @NotNull(message = "Le montant carnet est obligatoire")
     @PositiveOrZero(message = "Le montant carnet doit être positif ou nul")
     private Double notebookAmount;
+
+    /** Mise du mois lue sur le carnet. Ignorée si elle égale la mise déjà en vigueur. */
+    @Positive(message = "La mise du mois doit être supérieure à zéro")
+    private Double declaredDailyAmount;
 }

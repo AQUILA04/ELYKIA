@@ -38,6 +38,9 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -51,6 +54,8 @@ import java.util.Objects;
 public class CarnetEcartDecisionService {
 
     public static final int BULK_LIMIT = 200;
+
+    private static final DateTimeFormatter FR_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy", Locale.FRANCE);
 
     private final CarnetEcartDecisionRepository decisionRepository;
     private final CreditFieldControlRepository creditFieldControlRepository;
@@ -259,6 +264,7 @@ public class CarnetEcartDecisionService {
             throw new CustomValidationException("Aucune ligne à accepter pour ce commercial.");
         }
         Long memberId = control.getTontineMember().getId();
+        String acceptanceNote = prepareFieldControlAdjustments(control.getTontineMember(), memberId, positive);
         for (TontineMemberFieldControlLine line : negative) {
             double excess = -safe(line.getDifferenceAmount());
             tontineService.reduceFieldControlExcess(
@@ -327,7 +333,55 @@ public class CarnetEcartDecisionService {
         } else {
             message = "Mois en trop annulés";
         }
+        if (StringUtils.hasText(acceptanceNote)) {
+            message = message + acceptanceNote;
+        }
         return success(tontineKey(controlId, commercial), message, added);
+    }
+
+    /**
+     * Recule l'adhésion si un mois positif est antérieur à la participation, puis
+     * pose les mises déclarées du plus ancien au plus récent. Même transaction que l'acceptation.
+     */
+    private String prepareFieldControlAdjustments(
+            TontineMember member,
+            Long memberId,
+            List<TontineMemberFieldControlLine> positive) {
+        if (positive.isEmpty()) {
+            return "";
+        }
+        List<TontineMemberFieldControlLine> ordered = positive.stream()
+                .sorted(Comparator.comparing(TontineMemberFieldControlLine::getYear)
+                        .thenComparing(TontineMemberFieldControlLine::getMonth))
+                .toList();
+        LocalDate today = LocalDate.now();
+        List<YearMonth> months = ordered.stream()
+                .map(line -> YearMonth.of(line.getYear(), line.getMonth()))
+                .toList();
+        LocalDate sessionStart = member != null && member.getTontineSession() != null
+                ? member.getTontineSession().getStartDate()
+                : null;
+        LocalDate moveTo = CarnetEcartRules.fieldControlAdhesionMove(
+                tontineService.participationStart(member), months, today, sessionStart);
+        StringBuilder note = new StringBuilder();
+        if (moveTo != null) {
+            tontineService.alignAdhesionForFieldControl(memberId, moveTo);
+            note.append(" Adhésion reculée au ").append(FR_DATE.format(moveTo)).append('.');
+        }
+        List<String> stakes = new ArrayList<>();
+        for (TontineMemberFieldControlLine line : ordered) {
+            Double declared = line.getDeclaredDailyAmount();
+            if (declared == null || declared <= 0d) {
+                continue;
+            }
+            tontineService.applyFieldControlMonthStake(
+                    memberId, LocalDate.of(line.getYear(), line.getMonth(), 1), declared);
+            stakes.add(line.getMonth() + "/" + line.getYear());
+        }
+        if (!stakes.isEmpty()) {
+            note.append(" Mise enregistrée pour ").append(String.join(", ", stakes)).append('.');
+        }
+        return note.toString();
     }
 
     private CarnetEcartOutcomeDto rejectTontine(Long controlId, String commercial, String note) {
@@ -491,8 +545,10 @@ public class CarnetEcartDecisionService {
                     .notebookAmount(safe(line.getNotebookAmount()))
                     .differenceAmount(difference)
                     .status(lineStatus)
+                    .declaredDailyAmount(line.getDeclaredDailyAmount())
                     .build());
         }
+        LocalDate adhesionWillMoveTo = previewAdhesionMove(control.getTontineMember(), lines, decisions);
         CarnetEcartStatus status;
         CarnetEcartDirection direction;
         if (acceptable > 0d && inverse > 0d) {
@@ -532,7 +588,37 @@ public class CarnetEcartDecisionService {
                 .pendingInverseAmount(inverse)
                 .commercialKnown(StringUtils.hasText(commercial))
                 .months(months)
+                .adhesionWillMoveTo(adhesionWillMoveTo)
                 .build();
+    }
+
+    private LocalDate previewAdhesionMove(
+            TontineMember member,
+            List<TontineMemberFieldControlLine> lines,
+            Map<Long, CarnetEcartDecision> decisions) {
+        List<YearMonth> pending = new ArrayList<>();
+        for (TontineMemberFieldControlLine line : lines) {
+            CarnetEcartDecision decision = decisions.get(line.getId());
+            if (decision != null || !CarnetEcartRules.isPositive(safe(line.getDifferenceAmount()))) {
+                continue;
+            }
+            if (line.getYear() == null || line.getMonth() == null) {
+                continue;
+            }
+            pending.add(YearMonth.of(line.getYear(), line.getMonth()));
+        }
+        if (pending.isEmpty() || member == null) {
+            return null;
+        }
+        LocalDate sessionStart = member.getTontineSession() != null
+                ? member.getTontineSession().getStartDate()
+                : null;
+        try {
+            return CarnetEcartRules.fieldControlAdhesionMove(
+                    tontineService.participationStart(member), pending, LocalDate.now(), sessionStart);
+        } catch (CustomValidationException ex) {
+            return null;
+        }
     }
 
     private CreditFieldControl loadLatestCredit(Long controlId) {

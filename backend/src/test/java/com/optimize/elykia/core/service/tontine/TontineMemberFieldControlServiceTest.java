@@ -2,6 +2,8 @@ package com.optimize.elykia.core.service.tontine;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlDto;
 import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlMonthDto;
@@ -18,7 +20,10 @@ import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
+import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
+import com.optimize.elykia.core.util.UserProfilConstant;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,6 +35,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -38,8 +44,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,8 +70,21 @@ class TontineMemberFieldControlServiceTest {
     private ParameterService parameterService;
     @Mock
     private ApplicationEventPublisher eventPublisher;
+    @Mock
+    private UserService userService;
+    @Mock
+    private TontineAmountHistoryHelper amountHistoryHelper;
     @InjectMocks
     private TontineMemberFieldControlService service;
+
+    @BeforeEach
+    void stubPromoters() {
+        User com003 = mock(User.class);
+        User com015 = mock(User.class);
+        lenient().when(com003.getUsername()).thenReturn("COM003");
+        lenient().when(com015.getUsername()).thenReturn("COM015");
+        lenient().when(userService.getByUserProfil(UserProfilConstant.PROMOTER)).thenReturn(List.of(com003, com015));
+    }
 
     @AfterEach
     void clearSecurityContext() {
@@ -342,7 +366,73 @@ class TontineMemberFieldControlServiceTest {
     }
 
     @Test
-    void create_recordsControlOnlyWhenSessionIsNotActive() {
+    void create_rejectsUnknownCommercial() {
+        CreateTontineMemberFieldControlDto request = request("CTRL-UNK", month(2026, 2, "COM999", 10_000.0));
+        when(repository.existsByReference("CTRL-UNK")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member(10L, "COM015")));
+
+        CustomValidationException exception = assertThrows(CustomValidationException.class,
+                () -> service.create(10L, request));
+        assertTrue(exception.getMessage().contains("inconnu"));
+    }
+
+    @Test
+    void create_rejectsTwoCommercialsOnAnEmptyMonth() {
+        CreateTontineMemberFieldControlDto request = request("CTRL-EMPTY",
+                month(2026, 2, "COM003", 10_000.0),
+                month(2026, 2, "COM015", 12_000.0));
+        when(repository.existsByReference("CTRL-EMPTY")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member(10L, "COM015")));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of());
+
+        CustomValidationException exception = assertThrows(CustomValidationException.class,
+                () -> service.create(10L, request));
+        assertTrue(exception.getMessage().contains("un seul commercial"));
+    }
+
+    @Test
+    void create_rejectsGhostCommercialOnACollectedMonth() {
+        CreateTontineMemberFieldControlDto request = request("CTRL-GHOST", month(2026, 2, "COM003", 10_000.0));
+        when(repository.existsByReference("CTRL-GHOST")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member(10L, "COM015")));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of(collection(40_000.0, LocalDateTime.of(2026, 2, 4, 9, 0), "COM015")));
+
+        CustomValidationException exception = assertThrows(CustomValidationException.class,
+                () -> service.create(10L, request));
+        assertTrue(exception.getMessage().contains("déjà des cotisations"));
+    }
+
+    @Test
+    void create_storesDeclaredStakeOnlyWhenItDiffers() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("field.agent", "n/a"));
+        CreateTontineMemberFieldControlMonthDto february = month(2026, 2, "COM003", 9_300.0);
+        february.setDeclaredDailyAmount(300.0);
+        CreateTontineMemberFieldControlMonthDto march = month(2026, 3, "COM003", 15_500.0);
+        march.setDeclaredDailyAmount(500.0);
+        CreateTontineMemberFieldControlDto request = request("CTRL-MISE", february, march);
+        when(repository.existsByReference("CTRL-MISE")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member(10L, "COM003")));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of());
+        when(amountHistoryHelper.getDailyAmountForMonth(any(), anyList(), eq(YearMonth.of(2026, 2)))).thenReturn(500.0);
+        when(amountHistoryHelper.getDailyAmountForMonth(any(), anyList(), eq(YearMonth.of(2026, 3)))).thenReturn(500.0);
+        when(repository.save(any(TontineMemberFieldControl.class))).thenAnswer(invocation -> {
+            TontineMemberFieldControl control = invocation.getArgument(0);
+            control.setId(94L);
+            return control;
+        });
+
+        TontineMemberFieldControlDto result = service.create(10L, request);
+
+        assertEquals(300.0, result.getLines().get(0).getDeclaredDailyAmount());
+        assertNull(result.getLines().get(1).getDeclaredDailyAmount());
+    }
+
+    @Test
+    void create_verifiesCarnetWhenSessionIsClosed() {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken("field.agent", "n/a"));
         when(parameterService.isEnabled(TontineMemberFieldControlService.AUTO_VERIFY_PARAMETER_KEY)).thenReturn(true);
@@ -356,6 +446,32 @@ class TontineMemberFieldControlServiceTest {
         when(repository.save(any(TontineMemberFieldControl.class))).thenAnswer(invocation -> {
             TontineMemberFieldControl control = invocation.getArgument(0);
             control.setId(93L);
+            return control;
+        });
+        when(tontineMemberRepository.save(any(TontineMember.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TontineMemberFieldControlDto result = service.create(10L, request);
+
+        assertTrue(result.getCarnetVerified());
+        verify(tontineMemberRepository).save(member);
+    }
+
+    @Test
+    void create_skipsAutoVerifyWhenSessionYearIsNotCurrent() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("field.agent", "n/a"));
+        when(parameterService.isEnabled(TontineMemberFieldControlService.AUTO_VERIFY_PARAMETER_KEY)).thenReturn(true);
+        TontineMember member = activeSessionMember();
+        member.getTontineSession().setYear(LocalDate.now().getYear() - 1);
+        member.getTontineSession().setStatus(TontineSessionStatus.CLOSED);
+        CreateTontineMemberFieldControlDto request = request("CTRL-OLD", month(2026, 2, "COM003", 100_000.0));
+        when(repository.existsByReference("CTRL-OLD")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of(collection(100_000.0, LocalDateTime.of(2026, 2, 4, 9, 0), "COM003")));
+        when(repository.save(any(TontineMemberFieldControl.class))).thenAnswer(invocation -> {
+            TontineMemberFieldControl control = invocation.getArgument(0);
+            control.setId(95L);
             return control;
         });
 

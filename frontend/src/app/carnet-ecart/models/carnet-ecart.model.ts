@@ -11,6 +11,7 @@ export interface CarnetEcartMonth {
   notebookAmount: number;
   differenceAmount: number;
   status: CarnetEcartStatus;
+  declaredDailyAmount?: number | null;
 }
 
 export interface CarnetEcartItem {
@@ -30,6 +31,7 @@ export interface CarnetEcartItem {
   pendingInverseAmount: number;
   commercialKnown: boolean;
   months: CarnetEcartMonth[];
+  adhesionWillMoveTo?: string | null;
 }
 
 export interface CarnetEcartOutcome {

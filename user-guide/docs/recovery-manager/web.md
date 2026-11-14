@@ -52,7 +52,11 @@ Avant de choisir **Confirmer l’opération**, contrôlez le résumé financier.
 
 ## Contrôler la tontine depuis le web
 
-La fiche membre tontine donne accès au bouton **Contrôle terrain** pour le Chef de recouvrement. Lorsque plusieurs commerciaux ont collecté pour le même membre, le formulaire présente **un bloc par commercial**. Dans chaque bloc, sélectionnez les mois concernés et saisissez le montant marqué dans le carnet de ce commercial. L’écart s’affiche pour chaque commercial, puis au total. Un commercial laissé sans mois sélectionné reste **non contrôlé** pour cette visite. La fiche conserve ensuite le total système, le total carnet, l’écart, le statut **Conforme** ou **Disparité**, le détail par commercial, la date et l’auteur. Le commercial concerné retrouve ses mois en disparité dans **Écarts de carnet** pour les accepter ou les rejeter.
+La fiche membre tontine donne accès au bouton **Contrôle terrain** pour le Chef de recouvrement, y compris après la clôture de la session. Lorsque plusieurs commerciaux ont collecté pour le même membre, le formulaire présente **un bloc par commercial**. Dans chaque bloc, sélectionnez les mois concernés et saisissez le montant marqué dans le carnet de ce commercial. L’écart s’affiche pour chaque commercial, puis au total. Un commercial laissé sans mois sélectionné reste **non contrôlé** pour cette visite.
+
+Pour un mois encore à zéro dans le système, choisissez **Collecté par** parmi tous les commerciaux, puis indiquez la **Mise du mois** lue sur le carnet. Si cette mise est la même que celle déjà en vigueur, rien de plus n’est enregistré. Si elle diffère, elle sera retenue pour ce mois au moment de l’acceptation. Un mois qui a déjà des cotisations reste rattaché au commercial qui les a encaissées. Un même mois vide ne peut être attribué qu’à un seul commercial.
+
+La fiche conserve ensuite le total système, le total carnet, l’écart, le statut **Conforme** ou **Disparité**, le détail par commercial, la date et l’auteur. Le commercial choisi retrouve ses mois en disparité dans **Écarts de carnet** pour les accepter ou les rejeter. Le bouton **Vérifier** reste disponible après la clôture de la session.
 
 La liste des membres et la fiche affichent le badge **Déjà contrôlé** lorsqu’un contrôle de carnet terrain a déjà été enregistré.
 

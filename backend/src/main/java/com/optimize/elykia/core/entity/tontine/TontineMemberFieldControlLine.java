@@ -45,4 +45,11 @@ public class TontineMemberFieldControlLine extends BaseEntity<String> {
 
     @Column(name = "difference_amount", nullable = false)
     private Double differenceAmount;
+
+    /**
+     * Mise journalière du carnet pour un mois encore sans cotisation, lorsqu'elle
+     * diffère de la mise déjà en vigueur. Null sinon.
+     */
+    @Column(name = "declared_daily_amount")
+    private Double declaredDailyAmount;
 }

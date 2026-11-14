@@ -41,7 +41,8 @@ export class RmTontineFieldControlWriteService {
             year: m.year,
             month: m.month,
             commercialUsername: m.commercialUsername,
-            notebookAmount: m.notebookAmount
+            notebookAmount: m.notebookAmount,
+            declaredDailyAmount: m.declaredDailyAmount
           })),
           note: op.note,
           observedAt: op.observedAt
@@ -101,7 +102,8 @@ export class RmTontineFieldControlWriteService {
       month: m.month,
       commercialUsername: (m.commercialUsername || '').trim(),
       notebookAmount: m.notebookAmount || 0,
-      systemAmount: m.systemAmount || 0
+      systemAmount: m.systemAmount || 0,
+      declaredDailyAmount: m.declaredDailyAmount
     }));
     const notebookTotal = months.reduce((sum, m) => sum + (m.notebookAmount || 0), 0);
     const systemTotal = months.reduce((sum, m) => sum + (m.systemAmount || 0), 0);

@@ -123,13 +123,17 @@ class TontineMemberCarnetVerificationServiceTest {
     }
 
     @Test
-    void bulkSetRejectsWhenSessionClosed() {
+    void bulkSetAllowsClosedCurrentYearSession() {
         activeSession.setStatus(TontineSessionStatus.CLOSED);
+        TontineMember member = member(1L, false);
         when(tontineSessionRepository.findByYear(LocalDate.now().getYear())).thenReturn(Optional.of(activeSession));
+        when(tontineMemberRepository.findAllById(List.of(1L))).thenReturn(List.of(member));
+        when(tontineMemberRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThatThrownBy(() -> service.bulkSet(List.of(1L), true))
-                .isInstanceOf(CustomValidationException.class)
-                .hasMessageContaining("active");
+        BulkCarnetVerificationResultDto result = service.bulkSet(List.of(1L), true);
+
+        assertThat(result.updated()).isEqualTo(1);
+        assertThat(member.getCarnetVerified()).isTrue();
     }
 
     @Test

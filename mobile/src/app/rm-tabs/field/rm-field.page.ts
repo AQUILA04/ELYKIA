@@ -602,7 +602,12 @@ export class RmFieldPage implements OnInit, OnDestroy, ViewWillEnter, ViewWillLe
 
     const modal = await this.modalCtrl.create({
       component: RmTontineFieldControlSheetComponent,
-      componentProps: { member: detailed, modifying, latestControl },
+      componentProps: {
+        member: detailed,
+        modifying,
+        latestControl,
+        promoters: this.scope.getPack()?.promoters || []
+      },
       cssClass: 'rm-tontine-control-modal',
       backdropDismiss: false,
       keyboardClose: true

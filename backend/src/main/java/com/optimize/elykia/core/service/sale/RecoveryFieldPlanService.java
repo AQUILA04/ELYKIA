@@ -33,7 +33,9 @@ import com.optimize.elykia.core.repository.TontineMemberAmountHistoryRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.CreditLateService;
+import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.service.ParameterService;
+import com.optimize.elykia.core.service.user.UserManagement;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
 import com.optimize.elykia.core.service.tontine.TontineMemberFieldControlService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
@@ -79,6 +81,7 @@ public class RecoveryFieldPlanService {
     private final ParameterService parameterService;
     private final TontineMemberAmountHistoryRepository amountHistoryRepository;
     private final TontineAmountHistoryHelper amountHistoryHelper;
+    private final UserManagement userManagement;
 
     public FieldDayPlanDto createOrReplacePlan(FieldDayPlanRequestDto request, String recoveryManagerUsername) {
         validateRequest(request);
@@ -351,6 +354,7 @@ public class RecoveryFieldPlanService {
                         .estimatedBytes(estimatedBytes)
                         .build())
                 .commercials(commercialRefs)
+                .promoters(promoterRefs())
                 .lateCredits(lateCredits)
                 .inProgressCredits(inProgressCredits)
                 .clients(new ArrayList<>(clientsById.values()))
@@ -360,6 +364,30 @@ public class RecoveryFieldPlanService {
                 .tontineAutoVerifyOnFieldControl(parameterService != null && parameterService.isEnabled(
                         TontineMemberFieldControlService.AUTO_VERIFY_PARAMETER_KEY))
                 .build();
+    }
+
+    private List<RmCommercialRefDto> promoterRefs() {
+        if (userManagement == null) {
+            return List.of();
+        }
+        List<User> promoters = userManagement.getPromoters();
+        if (promoters == null || promoters.isEmpty()) {
+            return List.of();
+        }
+        List<RmCommercialRefDto> refs = new ArrayList<>();
+        for (User promoter : promoters) {
+            if (promoter == null || !StringUtils.hasText(promoter.getUsername())) {
+                continue;
+            }
+            String username = promoter.getUsername().trim();
+            String display = ((promoter.getFirstname() == null ? "" : promoter.getFirstname().trim()) + " "
+                    + (promoter.getLastname() == null ? "" : promoter.getLastname().trim())).trim();
+            refs.add(RmCommercialRefDto.builder()
+                    .username(username)
+                    .displayName(StringUtils.hasText(display) ? display : username)
+                    .build());
+        }
+        return refs;
     }
 
     private List<CreditLateDTO> loadPlanCredits(

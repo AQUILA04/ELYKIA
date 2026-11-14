@@ -60,7 +60,8 @@ export class RmTontineFieldControlSyncService {
         year: m.year,
         month: m.month,
         commercialUsername: m.commercialUsername,
-        notebookAmount: m.notebookAmount
+        notebookAmount: m.notebookAmount,
+        declaredDailyAmount: m.declaredDailyAmount
       })),
       note: op.note,
       observedAt: op.observedAt

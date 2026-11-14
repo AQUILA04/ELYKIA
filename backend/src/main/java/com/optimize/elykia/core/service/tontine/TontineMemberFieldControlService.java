@@ -3,6 +3,8 @@ package com.optimize.elykia.core.service.tontine;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
+import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.security.services.UserService;
 import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlDto;
 import com.optimize.elykia.core.dto.CreateTontineMemberFieldControlMonthDto;
@@ -24,6 +26,8 @@ import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy;
 import com.optimize.elykia.core.event.CarnetEcartDetectedEvent;
 import com.optimize.elykia.core.service.carnet.CarnetVerificationSupport;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
+import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
+import com.optimize.elykia.core.util.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -34,6 +38,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -63,6 +68,8 @@ public class TontineMemberFieldControlService {
     private final CarnetEcartRecontrolPolicy recontrolPolicy;
     private final ParameterService parameterService;
     private final ApplicationEventPublisher eventPublisher;
+    private final UserService userService;
+    private final TontineAmountHistoryHelper amountHistoryHelper;
 
     @Transactional
     public TontineMemberFieldControlDto create(Long memberId, CreateTontineMemberFieldControlDto dto) {
@@ -96,10 +103,12 @@ public class TontineMemberFieldControlService {
                                 + " est saisi en double pour " + commercial + ".");
             }
         }
+        assertKnownPromoters(dto.getMonths());
 
         List<TontineCollection> collections = tontineCollectionRepository
                 .findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(memberId, State.ENABLED);
-        List<TontineMemberFieldControlLine> desiredLines = buildLines(dto.getMonths(), collections);
+        assertMonthAttribution(dto.getMonths(), collections);
+        List<TontineMemberFieldControlLine> desiredLines = buildLines(dto.getMonths(), collections, member);
         LocalDateTime observedAt = dto.getObservedAt() != null ? dto.getObservedAt() : LocalDateTime.now();
         String observedBy = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -129,7 +138,7 @@ public class TontineMemberFieldControlService {
 
     /**
      * Lorsque le paramètre est activé, le contrôle terrain certifie aussi le carnet
-     * de la session active. Désactivé, seul le contrôle est conservé.
+     * de la session de l'année, active ou déjà clôturée. Désactivé, seul le contrôle est conservé.
      */
     private void maybeAutoVerify(TontineMember member, String observedBy) {
         if (member == null || Boolean.TRUE.equals(member.getCarnetVerified()) || parameterService == null) {
@@ -140,9 +149,10 @@ public class TontineMemberFieldControlService {
         }
         TontineSession session = member.getTontineSession();
         if (session == null
-                || session.getStatus() != TontineSessionStatus.ACTIVE
                 || session.getYear() == null
-                || session.getYear() != LocalDate.now().getYear()) {
+                || session.getYear() != LocalDate.now().getYear()
+                || (session.getStatus() != TontineSessionStatus.ACTIVE
+                && session.getStatus() != TontineSessionStatus.CLOSED)) {
             log.info("Contrôle enregistré sans vérification automatique du carnet pour le membre {}", member.getId());
             return;
         }
@@ -158,7 +168,8 @@ public class TontineMemberFieldControlService {
 
     private List<TontineMemberFieldControlLine> buildLines(
             List<CreateTontineMemberFieldControlMonthDto> months,
-            List<TontineCollection> collections) {
+            List<TontineCollection> collections,
+            TontineMember member) {
         List<TontineMemberFieldControlLine> lines = new ArrayList<>();
         for (CreateTontineMemberFieldControlMonthDto monthDto : months) {
             String commercial = monthDto.getCommercialUsername();
@@ -172,6 +183,7 @@ public class TontineMemberFieldControlService {
             line.setNotebookAmount(notebookAmount);
             line.setSystemAmount(systemAmount);
             line.setDifferenceAmount(notebookAmount - systemAmount);
+            line.setDeclaredDailyAmount(resolveDeclaredDaily(member, monthDto, systemAmount));
             lines.add(line);
         }
         return lines;
@@ -227,6 +239,7 @@ public class TontineMemberFieldControlService {
                     existing.setSystemAmount(desired.getSystemAmount());
                     existing.setDifferenceAmount(desired.getDifferenceAmount());
                     existing.setCommercialUsername(desired.getCommercialUsername());
+                    existing.setDeclaredDailyAmount(desired.getDeclaredDailyAmount());
                 } else {
                     entity.addLine(desired);
                 }
@@ -306,6 +319,9 @@ public class TontineMemberFieldControlService {
                 .toList();
     }
 
+    /**
+     * Somme des cotisations du mois. {@code commercialUsername} null additionne tous les commerciaux.
+     */
     private double sumCollectionsForMonth(
             List<TontineCollection> collections,
             int year,
@@ -315,9 +331,9 @@ public class TontineMemberFieldControlService {
                 .filter(c -> c.getCollectionDate() != null
                         && c.getCollectionDate().getYear() == year
                         && c.getCollectionDate().getMonthValue() == month
-                        && commercialUsername != null
-                        && commercialUsername.equalsIgnoreCase(
-                                c.getCommercialUsername() != null ? c.getCommercialUsername() : ""))
+                        && (commercialUsername == null
+                        || commercialUsername.equalsIgnoreCase(
+                                c.getCommercialUsername() != null ? c.getCommercialUsername() : "")))
                 .mapToDouble(c -> c.getAmount() != null ? c.getAmount() : 0d)
                 .sum();
     }
@@ -334,6 +350,7 @@ public class TontineMemberFieldControlService {
                         .notebookAmount(line.getNotebookAmount())
                         .systemAmount(line.getSystemAmount())
                         .differenceAmount(line.getDifferenceAmount())
+                        .declaredDailyAmount(line.getDeclaredDailyAmount())
                         .build())
                 .toList();
 
@@ -442,6 +459,82 @@ public class TontineMemberFieldControlService {
         }
         uncontrolled.sort(String.CASE_INSENSITIVE_ORDER);
         return uncontrolled;
+    }
+
+    private void assertKnownPromoters(List<CreateTontineMemberFieldControlMonthDto> months) {
+        Set<String> known = new HashSet<>();
+        if (userService != null) {
+            List<User> promoters = userService.getByUserProfil(UserProfilConstant.PROMOTER);
+            if (promoters != null) {
+                for (User promoter : promoters) {
+                    if (promoter != null && StringUtils.hasText(promoter.getUsername())) {
+                        known.add(promoter.getUsername().trim().toLowerCase(Locale.ROOT));
+                    }
+                }
+            }
+        }
+        for (CreateTontineMemberFieldControlMonthDto month : months) {
+            String commercial = month.getCommercialUsername();
+            if (!known.contains(commercial.toLowerCase(Locale.ROOT))) {
+                throw new CustomValidationException("Le commercial " + commercial + " est inconnu.");
+            }
+        }
+    }
+
+    /**
+     * Un mois sans cotisation n'a qu'un commercial. Un mois déjà cotisé ne peut pas
+     * être attribué à un commercial qui n'a rien encaissé ce mois-là.
+     */
+    private void assertMonthAttribution(
+            List<CreateTontineMemberFieldControlMonthDto> months,
+            List<TontineCollection> collections) {
+        Map<String, List<CreateTontineMemberFieldControlMonthDto>> byMonth = new LinkedHashMap<>();
+        for (CreateTontineMemberFieldControlMonthDto month : months) {
+            byMonth.computeIfAbsent(month.getYear() + "-" + month.getMonth(), key -> new ArrayList<>()).add(month);
+        }
+        for (List<CreateTontineMemberFieldControlMonthDto> group : byMonth.values()) {
+            CreateTontineMemberFieldControlMonthDto first = group.get(0);
+            double memberTotal = sumCollectionsForMonth(collections, first.getYear(), first.getMonth(), null);
+            if (memberTotal <= EPSILON) {
+                if (group.size() > 1) {
+                    throw new CustomValidationException(
+                            "Le mois " + first.getMonth() + "/" + first.getYear()
+                                    + " ne peut être attribué qu'à un seul commercial tant qu'aucune cotisation n'est enregistrée.");
+                }
+                continue;
+            }
+            for (CreateTontineMemberFieldControlMonthDto month : group) {
+                double system = sumCollectionsForMonth(
+                        collections, month.getYear(), month.getMonth(), month.getCommercialUsername());
+                if (system <= EPSILON) {
+                    throw new CustomValidationException(
+                            "Le mois " + month.getMonth() + "/" + month.getYear()
+                                    + " a déjà des cotisations. Il ne peut pas être attribué à "
+                                    + month.getCommercialUsername() + ".");
+                }
+            }
+        }
+    }
+
+    private Double resolveDeclaredDaily(
+            TontineMember member,
+            CreateTontineMemberFieldControlMonthDto monthDto,
+            double systemAmount) {
+        if (systemAmount > EPSILON || monthDto.getDeclaredDailyAmount() == null) {
+            return null;
+        }
+        double requested = monthDto.getDeclaredDailyAmount();
+        if (requested <= 0d || amountHistoryHelper == null) {
+            return null;
+        }
+        double applicable = amountHistoryHelper.getDailyAmountForMonth(
+                member.getAmount(),
+                member.getAmountHistory(),
+                YearMonth.of(monthDto.getYear(), monthDto.getMonth()));
+        if (Math.abs(applicable - requested) < EPSILON) {
+            return null;
+        }
+        return requested;
     }
 
     private static String normalizeCommercial(String value) {
