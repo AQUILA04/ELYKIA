@@ -78,6 +78,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.45.3] — 2026-11-14
+
+### Fixed
+
+- **Session expirée —** un jeton refusé ferme la session et ramène à la connexion, avec un seul avis « Session expirée ». La fenêtre « Authentification Requise » ne s'empile plus à chaque appel de la page.
+
 ## Frontend — [2.45.2] — 2026-11-14
 
 ### Changed

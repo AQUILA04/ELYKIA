@@ -1,13 +1,17 @@
 import { Injectable } from '@angular/core';
 import Swal from 'sweetalert2';
 import {ToastrService} from "ngx-toastr";
+import { SessionExpiryState } from './session-expiry.state';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AlertService {
 
-  constructor(private readonly toast: ToastrService) { }
+  constructor(
+    private readonly toast: ToastrService,
+    private readonly sessionExpiry: SessionExpiryState
+  ) { }
   showSuccess(message: string, title: string = 'Succès'): void {
     Swal.fire({
       icon: 'success',
@@ -36,7 +40,19 @@ export class AlertService {
   }
 
   toastError(message: string, title: string = 'Erreur'): void {
+    if (this.sessionExpiry.isActive()) {
+      return;
+    }
     this.toast.error(message, title);
+  }
+
+  /**
+   * Ferme une alerte déjà ouverte et prévient une seule fois que la session est finie.
+   * Appelé après {@link SessionExpiryState.begin}, donc hors du garde de {@link toastError}.
+   */
+  notifySessionExpired(): void {
+    Swal.close();
+    this.toast.error('Votre session a expiré. Veuillez vous reconnecter.', 'Session expirée');
   }
 
   toastNotif(message: string, title: string = 'Erreur', type?: string): void {
@@ -51,6 +67,9 @@ export class AlertService {
   }
 
   showError(message: string, title: string = 'Erreur'): void {
+    if (this.sessionExpiry.isActive()) {
+      return;
+    }
     Swal.fire({
       icon: 'error',
       title: '<span style="font-size: 22px; font-weight: 600; color: #333;">' + title + '</span>',
