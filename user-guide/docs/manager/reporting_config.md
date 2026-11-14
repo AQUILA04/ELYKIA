@@ -264,6 +264,7 @@ Dans le coin supérieur droit de l'écran, le menu utilisateur assure la sécuri
 * **Informations de profil** : Affiche votre nom, prénom, profil opérationnel et l'agence à laquelle vous êtes rattaché.
 * **Changer de mot de passe** : Permet de renouveler régulièrement votre code d'accès confidentiel.
 * **Déconnexion** : En fin de poste ou avant de quitter votre bureau, cliquez impérativement sur **« Déconnexion »** pour fermer votre session et empêcher tout accès non autorisé à vos données.
+* **Session expirée** : Si la session n'est plus reconnue pendant le travail, l'application revient d'elle-même à l'écran de connexion et affiche **Session expirée**. Saisissez à nouveau votre identifiant et votre mot de passe.
 
 ---
 

@@ -6,6 +6,7 @@ import { environment } from 'src/environments/environment';
 import { NgxPermissionsService } from 'ngx-permissions';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { SessionExpiryState } from 'src/app/shared/service/session-expiry.state';
 import { Router } from '@angular/router';
 
 @Injectable({
@@ -21,6 +22,7 @@ export class AuthService {
     private http: HttpClient,
     private permissionsService: NgxPermissionsService,
     private alertService: AlertService,
+    private sessionExpiry: SessionExpiryState,
     private router: Router
   ) {
     this.initializeSessionManagement();
@@ -87,6 +89,7 @@ export class AuthService {
 
   /** Hydrate session after mobile SSO (token already saved). */
   hydrateSession(user: any): void {
+    this.sessionExpiry.end();
     this.currentUserSubject.next(user);
     this.setPermissions(user?.roles);
   }
@@ -106,6 +109,7 @@ export class AuthService {
   }
 
   login(username: string, password: string): Observable<any> {
+    this.sessionExpiry.end();
     return this.http.post<any>(this.apiUrlLogin, { username, password }).pipe(
       tap(response => {
         // TokenStorageService s'occupe de localStorage, ce qui déclenchera l'événement storage dans les autres onglets
@@ -121,6 +125,8 @@ export class AuthService {
   logout(): void {
     // Nettoyer toutes les données via le service
     this.tokenStorageService.signOut();
+    // clear() ne prévient pas les autres onglets (clé null). Cet événement les ramène à la connexion.
+    localStorage.setItem('logout-event', Date.now().toString());
     this.currentUserSubject.next(null);
     this.permissionsService.flushPermissions();
 
