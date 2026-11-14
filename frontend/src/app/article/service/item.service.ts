@@ -267,6 +267,16 @@ export class ItemService {
     return this.http.get(`${this.apiUrl}/next-out-of-stock`, { params, headers });
   }
 
+  outOfStockAll(): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.get(`${this.apiUrl}/out-of-stock/all`, { headers });
+  }
+
+  nextOutOfStockAll(): Observable<any> {
+    const headers = this.getHeader();
+    return this.http.get(`${this.apiUrl}/next-out-of-stock/all`, { headers });
+  }
+
   updateArticle(article: NewArticleData): Observable<Article> {
     const headers = this.getHeader();
     const url = `${this.apiUrl}/${article.id}`;

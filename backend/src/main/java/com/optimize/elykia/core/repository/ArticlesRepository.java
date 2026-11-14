@@ -21,8 +21,13 @@ public interface ArticlesRepository extends GenericRepository<Articles, Long> {
 
     Page<Articles> findByStockQuantityEquals(Integer stockQuantity, Pageable pageable);
 
+    List<Articles> findAllByStockQuantity(Integer stockQuantity);
+
     Page<Articles> findByStockQuantityLessThanEqualAndStockQuantityGreaterThan(Integer stockQuantity, Integer zeroValue,
             Pageable pageable);
+
+    List<Articles> findAllByStockQuantityLessThanEqualAndStockQuantityGreaterThan(Integer stockQuantity,
+            Integer zeroValue);
 
     Optional<Articles> findByName(String name);
 

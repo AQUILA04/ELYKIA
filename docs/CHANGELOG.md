@@ -78,6 +78,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.48.1] — 2026-11-14
+
+### Fixed
+
+- **Accueil magasinier —** les listes de rupture lisent le total renvoyé par Spring (`page.totalElements`). Le téléchargement récupère tous les articles de la liste, sans se limiter à la page affichée.
+
 ## Frontend — [2.48.0] — 2026-11-14
 
 ### Added
@@ -378,6 +384,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.51.2] — 2026-11-14
+
+### Added
+
+- **Articles —** les listes complètes de rupture de stock et de rupture imminente sont disponibles sans pagination, pour le téléchargement depuis l'accueil.
 
 ## Backend — [1.51.1] — 2026-11-14
 

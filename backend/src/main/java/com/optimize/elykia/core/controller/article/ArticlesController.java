@@ -194,10 +194,24 @@ public class ArticlesController {
                 HttpStatus.OK);
     }
 
+    @GetMapping(value = "out-of-stock/all")
+    public ResponseEntity<Response> exportOutOfTheStock() {
+        return new ResponseEntity<Response>(
+                ResponseUtil.successResponse(withPhotos(articlesService.getAllOutOfStock())),
+                HttpStatus.OK);
+    }
+
     @GetMapping(value = "next-out-of-stock")
     public ResponseEntity<Response> getNextOutOfTheStock(Pageable pageable) {
         return new ResponseEntity<Response>(
                 ResponseUtil.successResponse(withPhotos(articlesService.getNextOutOfStock(pageable))),
+                HttpStatus.OK);
+    }
+
+    @GetMapping(value = "next-out-of-stock/all")
+    public ResponseEntity<Response> exportNextOutOfTheStock() {
+        return new ResponseEntity<Response>(
+                ResponseUtil.successResponse(withPhotos(articlesService.getAllNextOutOfStock())),
                 HttpStatus.OK);
     }
 
