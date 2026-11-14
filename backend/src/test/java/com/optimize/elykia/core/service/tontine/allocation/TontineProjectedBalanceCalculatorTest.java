@@ -49,6 +49,13 @@ class TontineProjectedBalanceCalculatorTest {
     }
 
     @Test
+    void closedSessionWithoutHistoryUsesTheCurrentStake() {
+        TontineMember member = member(100d, TontineSessionStatus.CLOSED, LocalDate.of(2026, 2, 1));
+
+        assertEquals(30_000d, calculator.project(member, LocalDate.of(2026, 12, 1)));
+    }
+
+    @Test
     void closedSessionDoesNotInventAStakeForMonthsWithoutHistory() {
         TontineMember member = member(200d, TontineSessionStatus.CLOSED, LocalDate.of(2026, 2, 1));
         member.getAmountHistory().add(history(100d, LocalDate.of(2026, 2, 1), LocalDate.of(2026, 6, 30)));

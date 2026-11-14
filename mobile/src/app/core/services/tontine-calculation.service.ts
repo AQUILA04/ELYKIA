@@ -126,7 +126,7 @@ export class TontineCalculationService {
   ): number {
     const [year, month] = yearMonth.split('-').map(Number);
     const lastDay = new Date(year, month, 0);
-    if (historyOnly && !this.historyCovers(history, lastDay)) {
+    if (historyOnly && history.length > 0 && !this.historyCovers(history, lastDay)) {
       return 0;
     }
     const amount = this.getApplicableAmountForDate(history, lastDay, lastDay, member.amount || 0);

@@ -286,6 +286,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.39.1] — 2026-11-14
+
+### Fixed
+
+- **Livraison tontine —** sans historique de mise, le solde prévisionnel reprend la mise en cours. Le contrôle de la remise attend l'affichage du solde disponible.
+
 ## Mobile — [2.39.0] — 2026-11-14
 
 ### Added
@@ -372,6 +378,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.51.1] — 2026-11-14
+
+### Fixed
+
+- **Livraison tontine —** une session clôturée sans historique de mise estime le prévisionnel avec la mise en cours. Un historique partiel ne complète toujours pas les mois absents.
 
 ## Backend — [1.51.0] — 2026-11-14
 

@@ -491,7 +491,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return;
         }
         if (this.exceedsProjected()) {
-            this.showError('Le montant dépasse le solde prévisionnel de l\'année.');
+            await this.showError('Le montant dépasse le solde prévisionnel de l\'année.');
             return;
         }
 

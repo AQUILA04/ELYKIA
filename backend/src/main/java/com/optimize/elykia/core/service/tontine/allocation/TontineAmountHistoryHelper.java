@@ -40,7 +40,7 @@ public class TontineAmountHistoryHelper {
 
     /**
      * Mise du mois. En lecture historique, un mois sans tranche vaut 0
-     * au lieu de retomber sur la mise courante.
+     * lorsqu'un historique existe. Sans aucune tranche, la mise courante couvre la période.
      */
     public double stakeForMonth(
             Double currentAmount,
@@ -48,7 +48,7 @@ public class TontineAmountHistoryHelper {
             YearMonth month,
             boolean historyOnly) {
         LocalDate lastDay = month.atEndOfMonth();
-        if (historyOnly && !covers(history, lastDay)) {
+        if (historyOnly && history != null && !history.isEmpty() && !covers(history, lastDay)) {
             return 0.0;
         }
         Double amount = applicableAmount(currentAmount, history, lastDay, lastDay);
