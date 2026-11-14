@@ -24,6 +24,7 @@ export interface StockRequestListItem {
   deliveryDate?: string;
   status?: StockRequestStatus;
   linkedOrderReferences?: string[];
+  cashSaleReference?: string;
 }
 
 export interface StockRequest {
@@ -44,6 +45,7 @@ export interface StockRequest {
   year?: number;
   note?: string;
   linkedOrderReferences?: string[];
+  cashSaleReference?: string;
 }
 
 export interface StockRequestCreateDto {

@@ -206,6 +206,10 @@ export class CreditService extends BaseHttpService {
     return this.delete(`${this.apiUrl}/${id}`);
   }
 
+  cancelCashSale(id: number): Observable<any> {
+    return this.patch(`${this.apiUrl}/${id}/cancel-cash`, null);
+  }
+
   addCredit(creditData: CreditFormData): Observable<any> {
     return this.post(this.apiUrl, creditData, { observe: 'response' }).pipe(
       map(response => response)

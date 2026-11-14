@@ -62,6 +62,11 @@ public class Articles extends Auditable<String> {
     @PositiveOrZero
     private Integer stockQuantity = 0;
 
+    /** Quantité encore en rayon, déjà promise à une vente comptant non livrée. */
+    @PositiveOrZero
+    @Column(name = "reserved_quantity", nullable = false, columnDefinition = "integer default 0")
+    private Integer reservedQuantity = 0;
+
     // ===== NOUVEAUX CHAMPS POUR BI DASHBOARD =====
     @PositiveOrZero
     private Integer reorderPoint; // Seuil de réapprovisionnement
@@ -119,6 +124,22 @@ public class Articles extends Auditable<String> {
 
     public void makeRelease(Integer newQuantity) {
         this.stockQuantity -= newQuantity;
+    }
+
+    public int availableQuantity() {
+        int stock = stockQuantity == null ? 0 : stockQuantity;
+        int reserved = reservedQuantity == null ? 0 : reservedQuantity;
+        return Math.max(0, stock - reserved);
+    }
+
+    public void addReservation(int quantity) {
+        int current = reservedQuantity == null ? 0 : reservedQuantity;
+        this.reservedQuantity = current + Math.max(quantity, 0);
+    }
+
+    public void releaseReservation(int quantity) {
+        int current = reservedQuantity == null ? 0 : reservedQuantity;
+        this.reservedQuantity = Math.max(0, current - Math.max(quantity, 0));
     }
 
     @Override

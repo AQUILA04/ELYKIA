@@ -513,6 +513,10 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         if (credit == null) {
             throw new CustomValidationException("Crédit associé au recouvrement introuvable.");
         }
+        if (credit.awaitingWarehouseDelivery()) {
+            throw new CustomValidationException(
+                    "Annulez la vente comptant : l'encaissement est extourné avec la demande de sortie.");
+        }
 
         double amount = timeline.getAmount() != null ? timeline.getAmount() : 0.0;
         double generated = timeline.getReliquatGeneratedAmount() != null ? timeline.getReliquatGeneratedAmount() : 0.0;
@@ -562,6 +566,53 @@ public class CreditTimelineService extends GenericService<CreditTimeline, Long> 
         log.info("Recouvrement annulé timelineId={} reference={} creditId={} amount={}",
                 timelineId, timeline.getReference(), credit.getId(), amount);
         return CreditTimelineRespDto.fromEntity(timeline);
+    }
+
+    /**
+     * Extourne les encaissements d'une vente comptant annulée avant la remise,
+     * sans rouvrir la vente comme un crédit en cours.
+     */
+    public void reverseCollectionsForCancelledCashSale(Credit credit) {
+        List<CreditTimeline> timelines = getRepository().findByCreditIdAndState(credit.getId(), State.ENABLED);
+        for (CreditTimeline timeline : timelines) {
+            double amount = timeline.getAmount() != null ? timeline.getAmount() : 0.0;
+            double generated = timeline.getReliquatGeneratedAmount() != null ? timeline.getReliquatGeneratedAmount() : 0.0;
+            double used = timeline.getReliquatUsedAmount() != null ? timeline.getReliquatUsedAmount() : 0.0;
+
+            timeline.setState(State.DELETED);
+            getRepository().save(timeline);
+            reverseCreditAmounts(credit, amount);
+            if (CreditStatus.INPROGRESS.equals(credit.getStatus())) {
+                credit.setStatus(CreditStatus.VALIDATED);
+                credit.setEffectiveEndDate(null);
+            }
+
+            if (generated > 0 && credit.getClientId() != null) {
+                clientReliquatService.consumeReliquat(credit.getClientId(), generated, timeline.getReference(), null);
+            }
+            if (used > 0 && credit.getClientId() != null) {
+                clientReliquatService.addReliquat(credit.getClientId(), used, timeline.getReference(), null);
+            }
+
+            if (eventPublisher != null) {
+                String ref = credit.getReference() + " | Client : "
+                        + (credit.getClient() != null ? credit.getClient().getFullName() : "N/A");
+                java.time.LocalDate operationDate = timeline.getCreatedDate() != null
+                        ? timeline.getCreatedDate().toLocalDate()
+                        : java.time.LocalDate.now();
+                eventPublisher.publishEvent(new CreditCollectionCancelledEvent(
+                        this,
+                        amount,
+                        timeline.getCollector(),
+                        ref,
+                        timeline.getReference(),
+                        generated,
+                        used,
+                        operationDate));
+            }
+        }
+        credit.setTotalAmountRemaining(0.0);
+        credit.setRemainingDaysCount(0);
     }
 
     private boolean reverseCreditAmounts(Credit credit, double amount) {

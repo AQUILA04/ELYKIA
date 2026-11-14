@@ -39,7 +39,17 @@ Toutes les demandes de sortie validées par la gestion arrivent dans le menu **S
    * La date et l'heure précises de livraison sont horodatées.
 5. Cliquez sur l'icône de téléchargement pour imprimer la **Fiche de sortie PDF** signée par les deux parties.
 
-> **Consigne absolue.** Ne remettez jamais de marchandise à un commercial sur une demande au statut **Créée / En attente**. Le bouton « Livrer » n'apparaît que sur les demandes expressément validées par la gestion (**Validée**).
+### C. Vente au comptant
+
+Une vente payée au comptoir apparaît dans la même liste, déjà au statut **Validée**.
+
+1. Repérez la ligne marquée **Vente comptant** et la référence de la vente.
+2. Cliquez sur **Voir** et préparez toutes les quantités. La remise se fait en une seule fois, au client.
+3. Cliquez sur **Livrer** et confirmez.
+4. La vente passe à **Clôturé**. Le stock du magasin diminue.
+5. Si le client ne prend pas la marchandise, cliquez sur **Annuler** et confirmez. L'argent encaissé est retiré de la caisse : le comptoir rembourse le client. La marchandise reste au magasin.
+
+> **Consigne absolue.** Ne remettez jamais de marchandise à un commercial sur une demande au statut **Créée / En attente**. Le bouton « Livrer » n'apparaît que sur les demandes expressément validées par la gestion (**Validée**). Une vente au comptant est déjà **Validée** : vous pouvez la livrer sans attendre une autre validation.
 
 ---
 

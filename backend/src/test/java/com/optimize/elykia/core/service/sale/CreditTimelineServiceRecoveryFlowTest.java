@@ -392,6 +392,48 @@ class CreditTimelineServiceRecoveryFlowTest {
         assertEquals(CreditStatus.SETTLED, cashSale.getStatus());
     }
 
+    @Test
+    void recordInitialSaleRecovery_keepsCashSaleValidatedWhileWarehouseDeliveryIsPending() {
+        Credit cashSale = new Credit();
+        cashSale.setId(43L);
+        cashSale.setCollector("COM001");
+        cashSale.setDailyStake(5000.0);
+        cashSale.setTotalAmount(5000.0);
+        cashSale.setTotalAmountPaid(5000.0);
+        cashSale.setTotalAmountRemaining(0.0);
+        cashSale.setRemainingDaysCount(0);
+        cashSale.setStatus(CreditStatus.VALIDATED);
+        cashSale.setType(OperationType.CASH);
+        cashSale.setPendingWarehouseDelivery(true);
+        cashSale.setReference("CSH-43");
+        cashSale.setBeginDate(LocalDate.of(2026, 7, 18));
+        cashSale.setExpectedEndDate(LocalDate.of(2026, 7, 18));
+        Client client = new Client();
+        client.setFirstname("Client");
+        client.setLastname("E2E");
+        cashSale.setClient(client);
+
+        CreditTimelineDto dto = new CreditTimelineDto();
+        dto.setCreditId(43L);
+        dto.setCollector("COM001");
+        dto.setAmount(5000.0);
+        dto.setNormalStake(false);
+
+        CreditTimeline mapped = new CreditTimeline();
+        mapped.setAmount(5000.0);
+        mapped.setNormalStake(false);
+        when(creditMapper.toCreditTimeline(dto)).thenReturn(mapped);
+        when(dailyAccountancyService.getByCollectorOrCreateNew("COM001")).thenReturn(new DailyAccountancy());
+        when(creditService.update(any(Credit.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(repository.save(any(CreditTimeline.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        service.recordInitialSaleRecovery(cashSale, dto);
+
+        assertEquals(CreditStatus.VALIDATED, cashSale.getStatus());
+        assertEquals(null, cashSale.getEffectiveEndDate());
+        assertTrue(cashSale.isPendingWarehouseDelivery());
+    }
+
     private static CreditTimelineDto stakeDto(Long creditId, Double amount, String reference) {
         CreditTimelineDto dto = new CreditTimelineDto();
         dto.setCreditId(creditId);

@@ -173,8 +173,8 @@
             <td class="col-amount">{{ credit.totalAmount | number:'1.0-0' }} FCFA</td>
             <td>{{ credit.dailyStake | number:'1.0-0' }}</td>
             <td>
-              <span class="status-badge {{ (credit.status | statusBadge).badgeClass }}">
-                {{ (credit.status | statusBadge).label }}
+              <span class="status-badge" [ngClass]="isPendingCashSale(credit) ? 'badge-warning' : (credit.status | statusBadge).badgeClass">
+                {{ isPendingCashSale(credit) ? 'En attente de livraison' : (credit.status | statusBadge).label }}
               </span>
             </td>
             <td>
@@ -217,8 +217,8 @@
               </mat-checkbox>
             </ng-container>
             <span class="mobile-card-ref">#{{ (currentPage * pageSize) + (i + 1) }}</span>
-            <span class="status-badge {{ (credit.status | statusBadge).badgeClass }}">
-              {{ (credit.status | statusBadge).label }}
+            <span class="status-badge" [ngClass]="isPendingCashSale(credit) ? 'badge-warning' : (credit.status | statusBadge).badgeClass">
+              {{ isPendingCashSale(credit) ? 'En attente de livraison' : (credit.status | statusBadge).label }}
             </span>
             <ng-container *ngTemplateOutlet="creditCarnetBadge; context: { $implicit: credit }"></ng-container>
           </div>
@@ -250,13 +250,13 @@
 
     <ng-template #creditActions let-credit>
       <span *ngxPermissionsOnly="['ROLE_STOREKEEPER']">
-        <button *ngIf="credit.status === 'VALIDATED'" type="button" class="btn-detail" title="Démarrer" (click)="startCredit(credit.id)">Démarrer</button>
+        <button *ngIf="credit.status === 'VALIDATED' && credit.type !== 'CASH'" type="button" class="btn-detail" title="Démarrer" (click)="startCredit(credit.id)">Démarrer</button>
       </span>
       <span *ngxPermissionsOnly="['ROLE_VALIDATE_CREDIT']">
         <button *ngIf="credit.status === 'CREATED'" type="button" class="btn-detail btn-detail-success" title="Valider" (click)="validateCredit(credit.id)">Valider</button>
       </span>
       <button type="button" class="btn-detail" title="Détails" (click)="viewDetails(credit.id)">Détails</button>
-      <button *ngIf="['CREATED', 'VALIDATED', 'INPROGRESS'].includes(credit.status) && !isRecoveryManager" type="button" class="btn-detail" title="Changer la mise" (click)="changeDailyStake(credit.id)">Mise</button>
+      <button *ngIf="['CREATED', 'VALIDATED', 'INPROGRESS'].includes(credit.status) && credit.type !== 'CASH' && !isRecoveryManager" type="button" class="btn-detail" title="Changer la mise" (click)="changeDailyStake(credit.id)">Mise</button>
       <button
         *ngIf="credit.status === 'INPROGRESS' && credit.type === 'CREDIT' && credit.clientType === 'CLIENT' && !isRecoveryManager"
         type="button"
@@ -266,9 +266,12 @@
         (click)="openDailyStakeModal(credit)">
         Encaisser
       </button>
-      <span *ngIf="['CREATED', 'VALIDATED'].includes(credit.status)">
+      <span *ngIf="['CREATED', 'VALIDATED'].includes(credit.status) && credit.type !== 'CASH'">
         <button *ngxPermissionsOnly="['ROLE_EDIT_CREDIT']" type="button" class="btn-detail" title="Modifier" (click)="editCredit(credit.id)">Modifier</button>
         <button *ngxPermissionsOnly="['ROLE_DEL_CREDIT']" type="button" class="btn-detail btn-detail-danger" title="Supprimer" (click)="deleteCredit(credit.id)">Supprimer</button>
+      </span>
+      <span *ngxPermissionsOnly="['ROLE_DEL_CREDIT']">
+        <button *ngIf="credit.type === 'CASH' && credit.status === 'VALIDATED'" type="button" class="btn-detail btn-detail-danger" title="Annuler" (click)="cancelCashSale(credit.id)">Annuler</button>
       </span>
     </ng-template>
 

@@ -151,6 +151,12 @@ public class CreditController {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditService.deleteSoft(id)), HttpStatus.OK);
     }
 
+    @PatchMapping(value = "{id}/cancel-cash")
+    public ResponseEntity<Response> cancelCashSale(@PathVariable Long id) {
+        creditService.cancelPendingCashSale(id);
+        return new ResponseEntity<>(ResponseUtil.successResponse(Boolean.TRUE), HttpStatus.OK);
+    }
+
     @PostMapping(value = "daily-stake")
     public ResponseEntity<Response> dailyStake(@RequestBody @Valid CreditTimelineDto dto) {
         return new ResponseEntity<>(ResponseUtil.successResponse(creditTimelineService.makeDailyStake(dto)),

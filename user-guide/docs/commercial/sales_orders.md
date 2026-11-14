@@ -95,10 +95,19 @@ Pour créer une vente, cliquez sur le bouton bleu **« + Nouvelle vente »** en 
 |---|---|---|
 | **Commercial responsable** | **Obligatoire**. En tant que commercial, votre nom est automatiquement renseigné. En tant que gestionnaire, vous choisissez le commercial qui portera la vente. | Non requis. La vente est une opération directe en boutique. |
 | **Choix du client** | La liste propose les clients déjà rattachés au commercial sélectionné. | Recherche universelle parmi l'ensemble des clients de l'agence. |
-| **Articles et stock disponible** | Les articles sont déduits du **Stock Commercial** de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus. | Les articles sont recherchés directement dans le stock général du magasin. |
+| **Articles et stock disponible** | Les articles sont déduits du **Stock Commercial** de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus. | Les articles sont pris dans le stock du magasin. Une fois la vente enregistrée, ces quantités ne peuvent plus être vendues une seconde fois. Le magasin remet ensuite la marchandise. |
 | **Montant de la vente** | Le montant suit le tarif du crédit, à l'unité. | Le montant suit le tarif du comptant. Sur chaque ligne, la liste **Offre** permet de vendre à l'unité, au gros, au demi-gros ou selon une offre libre (par exemple 3 pour 250). Le total de la ligne est le prix de l'offre multiplié par le nombre choisi. Le même article peut figurer deux fois si les offres diffèrent. |
-| **Paiement et échéances** | Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue. | Règlement intégral immédiat au comptoir. Aucun échéancier journalier. |
+| **Paiement et échéances** | Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue. | Le client paie tout de suite au comptoir. La vente reste **En attente de livraison** jusqu'à la remise des articles, puis passe à **Clôturé**. |
 | **Usage du crédit** | Sans le bloc **Adhésions**, un seul crédit personnel. Lorsque plusieurs adhésions sont actives, choix **Personnel**, **Professionnel** ou **Événement**. Un seul crédit ouvert par type. | Sans objet. |
+
+### Remise d'une vente au comptant
+
+Le client doit déjà être rattaché à un commercial.
+
+1. Enregistrez la vente. Le client paie au comptoir. Si l'impression du reçu est activée, le ticket s'affiche tout de suite et indique que la marchandise se retire au magasin.
+2. Dans la liste des ventes, la ligne affiche **En attente de livraison**. Vous pouvez ouvrir **Détails**, ou **Annuler** tant que le magasin n'a pas remis les articles.
+3. Lorsque le magasin a remis les articles, la vente passe à **Clôturé**.
+4. **Annuler** avant cette remise retire l'argent de la caisse : remboursez le client. La marchandise reste au magasin. Après la remise, la vente ne s'annule plus.
 
 ### Reçu de caisse et impression immédiate
 Si l'impression immédiate est activée dans votre agence :

@@ -1,6 +1,8 @@
 package com.optimize.elykia.core.entity.stock;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.common.entities.entity.Auditable;
+import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -51,6 +53,16 @@ public class StockRequest extends Auditable<String> {
 
     @OneToMany(mappedBy = "stockRequest", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<StockRequestItem> items = new HashSet<>();
+
+    /** Vente comptant servie par cette sortie. Vide pour une dotation de sac commercial. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "credit_id", unique = true)
+    @JsonIgnore
+    private Credit credit;
+
+    /** Référence CSH affichée sur la liste, remplie en service. */
+    @Transient
+    private String cashSaleReference;
 
     /** Références CMD-x des commandes liées, remplies en service. */
     @Transient

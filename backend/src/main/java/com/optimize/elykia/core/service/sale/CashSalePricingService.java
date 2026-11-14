@@ -68,8 +68,8 @@ public class CashSalePricingService {
                 ? tontineSlices(article, commercial)
                 : warehouseSlices(article);
         int available = stock.stream().mapToInt(slice -> slice.quantity).sum();
-        if (!tontine && article.getStockQuantity() != null) {
-            available = Math.max(available, article.getStockQuantity());
+        if (!tontine) {
+            available = Math.min(available, article.availableQuantity());
         }
         if (tontine && available <= 0) {
             available = Integer.MAX_VALUE / 4;
@@ -112,7 +112,7 @@ public class CashSalePricingService {
                 ? requireCount(unitQuantity, "La quantité")
                 : requireCount(packCount, "Le nombre de packs");
         int unitQty = resolved == SalePackMode.UNIT ? count : count * perPack;
-        if (article.getStockQuantity() == null || article.getStockQuantity() < unitQty) {
+        if (article.availableQuantity() < unitQty) {
             throw new CustomValidationException(
                     "Stock magasin insuffisant pour " + article.getCommercialName() + ".");
         }
@@ -321,7 +321,7 @@ public class CashSalePricingService {
 
     private List<Slice> warehouseSlices(Articles article) {
         if (!stockValuationFacade.isFifoEnabled()) {
-            int qty = article.getStockQuantity() != null ? article.getStockQuantity() : 0;
+            int qty = article.availableQuantity();
             return qty > 0 ? List.of(catalogSlice(article, qty)) : List.of();
         }
         List<ArticleStockLot> lots = lotRepository.findOpenLotsForArticleOrderByFifo(
@@ -336,7 +336,28 @@ public class CashSalePricingService {
         if (stock > lotted) {
             slices.add(catalogSlice(article, stock - lotted));
         }
-        return slices;
+        return skipReserved(slices, article.getReservedQuantity() == null ? 0 : article.getReservedQuantity());
+    }
+
+    private List<Slice> skipReserved(List<Slice> slices, int reserved) {
+        if (reserved <= 0 || slices.isEmpty()) {
+            return slices;
+        }
+        List<Slice> remaining = new ArrayList<>();
+        int toSkip = reserved;
+        for (Slice slice : slices) {
+            if (toSkip >= slice.quantity) {
+                toSkip -= slice.quantity;
+                continue;
+            }
+            if (toSkip > 0) {
+                remaining.add(slice.withQuantity(slice.quantity - toSkip));
+                toSkip = 0;
+                continue;
+            }
+            remaining.add(slice);
+        }
+        return remaining;
     }
 
     private List<Slice> tontineSlices(Articles article, String commercial) {

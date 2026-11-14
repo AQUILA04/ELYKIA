@@ -4,7 +4,7 @@ Dans l'application ELYKIA, la marchandise suit un circuit d'approvisionnement et
 
 L'organisation repose sur **trois niveaux étanches de stock** :
 1. **Stock Central Magasin** : Stock physique détenu au dépôt principal, administré par le magasinier et audité par les inventaires.
-2. **Stock Commercial** (accessible via le menu latéral **Stock Commercial**) : Stock opérationnel attribué aux commerciaux pour les ventes directes au comptant et à crédit.
+2. **Stock Commercial** (accessible via le menu latéral **Stock Commercial**) : Stock opérationnel attribué aux commerciaux pour les ventes à crédit.
 3. **Stock Tontine** : même menu **Stock Commercial**, sélecteur **Tontine**. Stock réservé aux livraisons de fin d'exercice des membres de la tontine.
 
 ---
@@ -88,6 +88,8 @@ Le réapprovisionnement suit un flux rigoureux en 3 étapes : **Création $\righ
 3. **Étape 3 : Livraison magasinier (Statut « Livrée »)** :
    * Le magasinier physique remet les articles au commercial et clique sur le bouton bleu **« Livrer »**.
    * **Conséquence instantanée** : Le stock magasin est débité et le stock personnel du commercial est crédité. La date de livraison est horodatée.
+
+Une vente payée au comptoir apparaît dans cette liste déjà **Validée**, avec la mention **Vente comptant** et la référence de la vente. Le magasinier clique sur **Livrer** pour remettre les articles au client. La vente passe alors à **Clôturé**. **Annuler** avant cette remise retire l'encaissement de la caisse.
 
 ### B. Détail d'une demande
 1. Cliquez sur **« Voir »**.

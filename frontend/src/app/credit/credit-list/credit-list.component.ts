@@ -456,6 +456,32 @@ export class CreditListComponent extends ErrorHandlingMixin implements OnInit, O
       });
   }
 
+  isPendingCashSale(credit: { type?: string; status?: string }): boolean {
+    return credit?.type === 'CASH' && credit?.status === 'VALIDATED';
+  }
+
+  cancelCashSale(id: number): void {
+    void this.alertService.showConfirmation(
+      'Annuler la vente',
+      'La marchandise reste au magasin et l\'argent encaissé est retiré de la caisse. Remboursez le client.',
+      'Annuler la vente',
+      'Retour'
+    ).then(result => {
+      if (!result) {
+        return;
+      }
+      this.creditService.cancelCashSale(id).subscribe({
+        next: () => {
+          this.alertService.showSuccess('La vente comptant a été annulée.', 'Opération réussie');
+          this.reloadAfterMutation();
+        },
+        error: (error) => {
+          this.handleError(error);
+        }
+      });
+    });
+  }
+
   getBadgeClass(remainingDaysCount: number): string {
     if (remainingDaysCount === 0) {
       return 'days-badge days-danger';

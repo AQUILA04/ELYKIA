@@ -81,6 +81,11 @@ public interface StockRequestRepository extends GenericRepository<StockRequest, 
     @Query("SELECT s FROM StockRequest s WHERE s.id = :id")
     java.util.Optional<StockRequest> findByIdForUpdate(@Param("id") Long id);
 
+    java.util.Optional<StockRequest> findByCredit_Id(Long creditId);
+
+    @Query("SELECT s.id, c.reference FROM StockRequest s JOIN s.credit c WHERE s.id IN :ids")
+    List<Object[]> findCashSaleReferences(@Param("ids") List<Long> ids);
+
     @Query("SELECT s FROM StockRequest s WHERE " +
             "(:#{#collector == null} = true OR s.collector = :collector) " +
             "AND s.status IN :statuses " +

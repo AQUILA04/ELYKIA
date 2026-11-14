@@ -374,7 +374,10 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
     if (!request.id || this.processingId === request.id) {
       return;
     }
-    this.alertService.showConfirmation('Confirmation', 'Confirmer la livraison de cette demande ?').then((confirmed) => {
+    const message = request.cashSaleReference
+      ? `Confirmer la remise de la vente comptant ${request.cashSaleReference} ?`
+      : 'Confirmer la livraison de cette demande ?';
+    void this.alertService.showConfirmation('Confirmation', message).then((confirmed) => {
       if (confirmed) {
         this.processingId = request.id!;
         this.requestApi().deliver(request.id!).pipe(
@@ -403,7 +406,10 @@ export class StockRequestListComponent implements OnInit, OnDestroy {
   }
 
   cancel(request: StockRequestListItem): void {
-    this.alertService.showConfirmation('Confirmation', 'Annuler cette demande ?').then((confirmed) => {
+    const message = request.cashSaleReference
+      ? `Annuler la vente comptant ${request.cashSaleReference} ? L'argent encaissé est retiré de la caisse et le client doit être remboursé. La marchandise reste au magasin.`
+      : 'Annuler cette demande ?';
+    void this.alertService.showConfirmation('Confirmation', message).then((confirmed) => {
       if (confirmed) {
         this.requestApi().cancel(request.id!).subscribe({
           next: () => {

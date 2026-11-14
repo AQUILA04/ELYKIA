@@ -56,6 +56,11 @@
           "description": "CREDIT, CASH, etc."
         },
         {
+          "name": "pending_warehouse_delivery",
+          "type": "boolean",
+          "description": "Vente comptant encaissée, en attente de remise au magasin"
+        },
+        {
           "name": "client_type",
           "type": "varchar",
           "description": "CLIENT ou PROMOTER"
@@ -395,7 +400,13 @@
         },
         {
           "name": "stock_quantity",
-          "type": "integer"
+          "type": "integer",
+          "description": "Quantité physique en rayon"
+        },
+        {
+          "name": "reserved_quantity",
+          "type": "integer",
+          "description": "Quantité physique encore en rayon, promise à une vente comptant non livrée"
         },
         {
           "name": "photo_object_key",
@@ -891,6 +902,18 @@
           "name": "status",
           "type": "varchar",
           "description": "CREATED, VALIDATED, DELIVERED, CANCELLED, REFUSED"
+        },
+        {
+          "name": "credit_id",
+          "type": "bigint",
+          "description": "Vente comptant liée. Vide pour une sortie vers le sac du commercial."
+        }
+      ],
+      "relations": [
+        {
+          "column": "credit_id",
+          "refTable": "credit",
+          "refColumn": "id"
         }
       ]
     },

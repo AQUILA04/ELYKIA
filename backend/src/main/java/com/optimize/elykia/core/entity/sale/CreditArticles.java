@@ -117,13 +117,13 @@ public class CreditArticles extends Auditable<String> {
     }
 
     public void validateStock() {
-        if (articles.getStockQuantity() < quantity) {
-            throw new ApplicationException("Stock manquant pour démarrer le crédit: Article Manquant: " + articles.getCommercialName() + ",Quantité Restante: " + articles.getStockQuantity());
+        if (articles.availableQuantity() < quantity) {
+            throw new ApplicationException("Stock manquant pour démarrer le crédit: Article Manquant: " + articles.getCommercialName() + ",Quantité Restante: " + articles.availableQuantity());
         }
     }
 
     public boolean hasStockAvailable() {
-        return articles.getStockQuantity() >= quantity;
+        return articles != null && articles.availableQuantity() >= quantity;
     }
 
     public static Set<CreditArticles> from (StockEntryDto entry) {

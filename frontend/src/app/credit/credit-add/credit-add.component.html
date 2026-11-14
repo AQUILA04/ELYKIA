@@ -213,6 +213,7 @@
           <hr class="receipt-divider">
 
           <div class="receipt-footer">
+            <p *ngIf="receiptData.saleType === 'CASH'">Marchandise à retirer au magasin</p>
             <p>Merci pour votre confiance!</p>
             <p *ngIf="receiptData.saleType === 'CREDIT'">Payez régulièrement vos mises</p>
             <strong>!!!AMENOUVEVE-YAHVE!!!</strong>
