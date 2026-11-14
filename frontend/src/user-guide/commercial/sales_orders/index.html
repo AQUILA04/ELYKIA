@@ -1306,6 +1306,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#remise-dune-vente-au-comptant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remise d'une vente au comptant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#recu-de-caisse-et-impression-immediate" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2177,6 +2188,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#remise-dune-vente-au-comptant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Remise d'une vente au comptant
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#recu-de-caisse-et-impression-immediate" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2629,7 +2651,7 @@
 <tr>
 <td><strong>Articles et stock disponible</strong></td>
 <td>Les articles sont déduits du <strong>Stock Commercial</strong> de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus.</td>
-<td>Les articles sont recherchés directement dans le stock général du magasin.</td>
+<td>Les articles sont pris dans le stock du magasin. Une fois la vente enregistrée, ces quantités ne peuvent plus être vendues une seconde fois. Le magasin remet ensuite la marchandise.</td>
 </tr>
 <tr>
 <td><strong>Montant de la vente</strong></td>
@@ -2639,7 +2661,7 @@
 <tr>
 <td><strong>Paiement et échéances</strong></td>
 <td>Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue.</td>
-<td>Règlement intégral immédiat au comptoir. Aucun échéancier journalier.</td>
+<td>Le client paie tout de suite au comptoir. La vente reste <strong>En attente de livraison</strong> jusqu'à la remise des articles, puis passe à <strong>Clôturé</strong>.</td>
 </tr>
 <tr>
 <td><strong>Usage du crédit</strong></td>
@@ -2648,6 +2670,14 @@
 </tr>
 </tbody>
 </table>
+<h3 id="remise-dune-vente-au-comptant">Remise d'une vente au comptant</h3>
+<p>Le client doit déjà être rattaché à un commercial.</p>
+<ol>
+<li>Enregistrez la vente. Le client paie au comptoir. Si l'impression du reçu est activée, le ticket s'affiche tout de suite et indique que la marchandise se retire au magasin.</li>
+<li>Dans la liste des ventes, la ligne affiche <strong>En attente de livraison</strong>. Vous pouvez ouvrir <strong>Détails</strong>, ou <strong>Annuler</strong> tant que le magasin n'a pas remis les articles.</li>
+<li>Lorsque le magasin a remis les articles, la vente passe à <strong>Clôturé</strong>.</li>
+<li><strong>Annuler</strong> avant cette remise retire l'argent de la caisse : remboursez le client. La marchandise reste au magasin. Après la remise, la vente ne s'annule plus.</li>
+</ol>
 <h3 id="recu-de-caisse-et-impression-immediate">Reçu de caisse et impression immédiate</h3>
 <p>Si l'impression immédiate est activée dans votre agence :
 1. Dès que vous enregistrez la vente, une fenêtre affiche l'aperçu du ticket de caisse thermique (format 80 mm).

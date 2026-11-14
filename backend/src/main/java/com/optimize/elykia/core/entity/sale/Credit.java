@@ -117,6 +117,10 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
     @Column(name = "mobile_financial_terms_locked", columnDefinition = "boolean default false")
     private boolean mobileFinancialTermsLocked = false;
 
+    /** Vente comptant encaissée, en attente de la remise magasin. */
+    @Column(name = "pending_warehouse_delivery", nullable = false, columnDefinition = "boolean default false")
+    private boolean pendingWarehouseDelivery = false;
+
     // ===== NOUVEAUX CHAMPS POUR BI DASHBOARD =====
     @Column(name = "profit_margin")
     private Double profitMargin; // Marge bénéficiaire = totalAmount - totalPurchase
@@ -277,6 +281,12 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
         }
 
         if (totalAmountRemaining == 0) {
+            if (awaitingWarehouseDelivery()) {
+                this.remainingDaysCount = 0;
+                creditTimeline.dailyStakeOperation(this);
+                this.dailyPaid = Boolean.TRUE;
+                return creditTimeline;
+            }
             this.remainingDaysCount = 0;
             this.client.setCreditInProgress(false);
             effectiveEndDate = LocalDate.now();
@@ -361,6 +371,27 @@ public class Credit extends BaseEntity<String> implements CarnetVerifiable {
             throw new ApplicationException("Le statut du credit est invalide pour le validé !!!");
         }
         this.status= CreditStatus.VALIDATED;
+    }
+
+    public boolean awaitingWarehouseDelivery() {
+        return OperationType.CASH.equals(this.type) && pendingWarehouseDelivery;
+    }
+
+    public void settleAfterWarehouseDelivery() {
+        this.pendingWarehouseDelivery = false;
+        this.remainingDaysCount = 0;
+        LocalDate end = LocalDate.now();
+        this.effectiveEndDate = end;
+        this.status = CreditStatus.SETTLED;
+        if (expectedEndDate != null && end.isBefore(expectedEndDate)) {
+            solvencyNote = SolvencyStatus.EARLY;
+        } else if (expectedEndDate != null && end.isAfter(expectedEndDate)) {
+            solvencyNote = SolvencyStatus.LATE;
+            lateDaysCount = Math.abs((int) ChronoUnit.DAYS.between(end, expectedEndDate));
+        } else {
+            solvencyNote = SolvencyStatus.TIME;
+        }
+        this.dailyPaid = Boolean.TRUE;
     }
 
     public void start() {

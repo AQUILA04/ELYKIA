@@ -19,6 +19,7 @@ public class StockRequestListDto {
     private LocalDate deliveryDate;
     private StockRequestStatus status;
     private List<String> linkedOrderReferences = new ArrayList<>();
+    private String cashSaleReference;
 
     public StockRequestListDto(
             Long id,

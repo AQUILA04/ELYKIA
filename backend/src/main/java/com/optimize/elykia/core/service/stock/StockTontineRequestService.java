@@ -211,11 +211,11 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         // 1. Classification
         for (StockTontineRequestItem item : new ArrayList<>(request.getItems())) {
             Articles article = articlesService.getById(item.getArticle().getId());
-            if (article.getStockQuantity() >= item.getQuantity()) {
+            if (article.availableQuantity() >= item.getQuantity()) {
                 deliverableItems.add(item);
                 deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(item.getItemName(), item.getQuantity(), item.getUnitPrice()));
-            } else if (article.getStockQuantity() > 0) {
-                int availableQty = article.getStockQuantity();
+            } else if (article.availableQuantity() > 0) {
+                int availableQty = article.availableQuantity();
                 int missingQty = item.getQuantity() - availableQty;
 
                 item.setQuantity(availableQty);

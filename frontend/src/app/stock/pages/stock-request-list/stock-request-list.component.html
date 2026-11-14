@@ -155,6 +155,9 @@
               <td><span class="col-ref">{{ (page * size) + (i + 1) }}</span></td>
               <td>
                 <span class="col-ref-main">{{ req.reference || '—' }}</span>
+                <span class="linked-orders" *ngIf="req.cashSaleReference">
+                  Vente comptant {{ req.cashSaleReference }}
+                </span>
                 <span class="linked-orders" *ngIf="req.linkedOrderReferences?.length">
                   Commandes liées : {{ req.linkedOrderReferences!.join(', ') }}
                 </span>
@@ -173,7 +176,7 @@
                 <button class="btn-detail" (click)="onExportSingleRequestPdf(req)" title="Télécharger la demande" [disabled]="exportSelectionLoading">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                 </button>
-                <button *ngIf="channel === 'credit' && (req.status === 'CREATED' || req.status === 'VALIDATED') && canEditStockRequest"
+                <button *ngIf="channel === 'credit' && (req.status === 'CREATED' || req.status === 'VALIDATED') && canEditStockRequest && !req.cashSaleReference"
                         class="btn-detail" (click)="edit(req)" title="Modifier" data-testid="e2e-stock-request-edit">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                 </button>
@@ -244,6 +247,9 @@
           <p><strong>Date demande :</strong> {{ selectedRequest.requestDate | date:'dd/MM/yyyy' }}</p>
           <p><strong>Date validation :</strong> {{ (selectedRequest.validationDate | date:'dd/MM/yyyy') || '—' }}</p>
           <p><strong>Date livraison :</strong> {{ (selectedRequest.deliveryDate | date:'dd/MM/yyyy') || '—' }}</p>
+          <p *ngIf="selectedRequest.cashSaleReference">
+            <strong>Vente comptant :</strong> {{ selectedRequest.cashSaleReference }}
+          </p>
           <p *ngIf="selectedRequest.linkedOrderReferences?.length">
             <strong>Commandes liées :</strong> {{ selectedRequest.linkedOrderReferences!.join(', ') }}
           </p>

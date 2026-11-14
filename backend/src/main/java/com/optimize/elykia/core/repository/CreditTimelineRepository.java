@@ -69,6 +69,11 @@ public interface CreditTimelineRepository extends GenericRepository<CreditTimeli
 
     Page<CreditTimeline> findByCredit_idAndState(Long creditId, com.optimize.common.entities.enums.State state, Pageable pageable);
 
+    @Query("SELECT ct FROM CreditTimeline ct WHERE ct.credit.id = :creditId AND ct.state = :state")
+    List<CreditTimeline> findByCreditIdAndState(
+            @Param("creditId") Long creditId,
+            @Param("state") com.optimize.common.entities.enums.State state);
+
     @Query("SELECT ct FROM CreditTimeline ct JOIN FETCH ct.credit c LEFT JOIN FETCH c.client WHERE ct.id = :id")
     Optional<CreditTimeline> findByIdWithCreditAndClient(@Param("id") Long id);
 

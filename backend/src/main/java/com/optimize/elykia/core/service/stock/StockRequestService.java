@@ -81,6 +81,13 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
     private BusinessMetricsPublisher metricsPublisher;
     private StockRequestOrderLinkService stockRequestOrderLinkService;
     private InventoryWarehouseGuard inventoryWarehouseGuard;
+    private com.optimize.elykia.core.service.sale.CreditService creditService;
+
+    @Autowired
+    public void setCreditService(
+            @org.springframework.context.annotation.Lazy com.optimize.elykia.core.service.sale.CreditService creditService) {
+        this.creditService = creditService;
+    }
 
     @Autowired
     public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
@@ -149,17 +156,10 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             request.setYear(LocalDate.now().getYear());
         }
 
-        // Générer référence
         Long maxId = ((StockRequestRepository) repository).findMaxId();
         long nextId = (maxId != null ? maxId : 0) + 1;
 
-        LocalDate nowRef = LocalDate.now();
-        String year = String.format("%04d", nowRef.getYear());
-        String month = String.format("%02d", nowRef.getMonthValue());
-        String hexId = String.format("%08X", nextId);
-
-        String reference = "REQ-" + year + "-" + month + "-" + hexId;
-        request.setReference(reference);
+        request.setReference(nextReference(nextId));
 
         double totalCreditSalePrice = 0.0;
         double totalPurchasePrice = 0.0;
@@ -213,8 +213,77 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         return createRequest(request, false);
     }
 
+    /**
+     * Sortie déjà validée pour une vente comptant. Les prix sont ceux de la vente, pas le tarif crédit.
+     */
+    public StockRequest createValidatedCashSaleRequest(com.optimize.elykia.core.entity.sale.Credit credit) {
+        StockRequest request = new StockRequest();
+        request.setCollector(credit.getCollector());
+        request.setNote("Vente comptant " + credit.getReference());
+        request.setCredit(credit);
+        request.setCashSaleReference(credit.getReference());
+        request.setStatus(StockRequestStatus.VALIDATED);
+        request.setRequestDate(LocalDate.now());
+        request.setValidationDate(LocalDate.now());
+        request.setMonth(LocalDate.now().getMonthValue());
+        request.setYear(LocalDate.now().getYear());
+        Long maxId = ((StockRequestRepository) repository).findMaxId();
+        long nextId = (maxId != null ? maxId : 0) + 1;
+        request.setReference(nextReference(nextId));
+
+        double totalSale = 0.0;
+        double totalPurchase = 0.0;
+        if (credit.getArticles() != null) {
+            for (com.optimize.elykia.core.entity.sale.CreditArticles line : credit.getArticles()) {
+                Articles article = line.getArticles() != null
+                        ? line.getArticles()
+                        : articlesService.getById(line.getArticlesId());
+                StockRequestItem item = new StockRequestItem();
+                int quantity = line.getQuantity() == null ? 0 : line.getQuantity();
+                double unitPrice = line.getUnitPrice() == null ? 0.0 : line.getUnitPrice();
+                item.setArticle(article);
+                item.setQuantity(quantity);
+                item.setItemName(article.getCommercialName() + " " + article.getName());
+                item.setUnitPrice(unitPrice);
+                item.setPurchasePrice(article.getPurchasePrice());
+                request.addItem(item);
+                totalSale += unitPrice * quantity;
+                totalPurchase += article.getPurchasePrice() * quantity;
+            }
+        }
+        request.setTotalCreditSalePrice(totalSale);
+        request.setTotalPurchasePrice(totalPurchase);
+        return repository.save(request);
+    }
+
+    public void cancelLinkedCashSaleRequest(Long creditId) {
+        StockRequest request = ((StockRequestRepository) repository).findByCredit_Id(creditId).orElse(null);
+        if (request == null) {
+            return;
+        }
+        if (request.getStatus() == StockRequestStatus.DELIVERED) {
+            throw new CustomValidationException("Cette vente comptant est déjà livrée.");
+        }
+        if (request.getStatus() == StockRequestStatus.CANCELLED) {
+            return;
+        }
+        request.setStatus(StockRequestStatus.CANCELLED);
+        repository.save(request);
+    }
+
+    private String nextReference(long nextId) {
+        LocalDate nowRef = LocalDate.now();
+        return "REQ-" + String.format("%04d", nowRef.getYear())
+                + "-" + String.format("%02d", nowRef.getMonthValue())
+                + "-" + String.format("%08X", nextId);
+    }
+
     public StockRequest updateRequest(Long requestId, StockRequest updateDto) {
         StockRequest request = getById(requestId);
+        if (request.getCredit() != null) {
+            throw new CustomValidationException(
+                    "Cette demande est liée à une vente comptant. Annulez la vente pour la défaire.");
+        }
         
         if (request.getStatus() != StockRequestStatus.CREATED && request.getStatus() != StockRequestStatus.VALIDATED) {
             throw new CustomValidationException("Seules les demandes en statut CREATED ou VALIDATED peuvent être modifiées.");
@@ -324,6 +393,9 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         }
 
         User currentUser = userService.getCurrentUser();
+        if (request.getCredit() != null) {
+            return deliverCashSaleRequest(request, currentUser);
+        }
         
         List<StockRequestItem> deliverableItems = new ArrayList<>();
         List<StockRequestItem> pendingRequestItems = new ArrayList<>();
@@ -333,12 +405,12 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         // 1. Classification
         for (StockRequestItem item : new ArrayList<>(request.getItems())) {
             Articles article = articlesService.getById(item.getArticle().getId());
-            if (article.getStockQuantity() >= item.getQuantity()) {
+            if (article.availableQuantity() >= item.getQuantity()) {
                 deliverableItems.add(item);
                 deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(item.getItemName(), item.getQuantity(), item.getUnitPrice()));
-            } else if (article.getStockQuantity() > 0) {
+            } else if (article.availableQuantity() > 0) {
                 // partial quantity available
-                int availableQty = article.getStockQuantity();
+                int availableQty = article.availableQuantity();
                 int missingQty = item.getQuantity() - availableQty;
                 
                 // modify item for available quantity
@@ -504,6 +576,77 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         return response;
     }
 
+    private PartialDeliveryResponseDTO deliverCashSaleRequest(StockRequest request, User currentUser) {
+        String saleRef = request.getCredit() != null ? request.getCredit().getReference() : request.getReference();
+        request.setCashSaleReference(saleRef);
+        if (request.getItems() == null || request.getItems().isEmpty()) {
+            throw new CustomValidationException("Cette vente comptant n'a aucun article à livrer.");
+        }
+        java.util.Map<Long, Articles> locked = new java.util.LinkedHashMap<>();
+        for (StockRequestItem item : request.getItems()) {
+            Articles article = articlesService.lockById(item.getArticle().getId());
+            locked.put(article.getId(), article);
+            int quantity = item.getQuantity() == null ? 0 : item.getQuantity();
+            int physical = article.getStockQuantity() == null ? 0 : article.getStockQuantity();
+            if (physical < quantity) {
+                throw new CustomValidationException(
+                        "Le stock magasin ne couvre pas toute la vente comptant. Aucune marchandise n'a été sortie.");
+            }
+        }
+
+        List<PartialDeliveryResponseDTO.DeliveredItemDTO> deliveredItemDTOs = new ArrayList<>();
+        for (StockRequestItem item : request.getItems()) {
+            Articles article = locked.get(item.getArticle().getId());
+            int quantity = item.getQuantity() == null ? 0 : item.getQuantity();
+            FifoConsumptionResult consumption = stockValuationFacade.consume(
+                    article,
+                    quantity,
+                    ArticleStockLotMovementType.WAREHOUSE_RELEASE,
+                    "STOCK_REQUEST",
+                    request.getId());
+            stockMovementService.recordMovement(
+                    article,
+                    MovementType.RELEASE,
+                    quantity,
+                    "Livraison vente comptant " + request.getCashSaleReference(),
+                    currentUser.getUsername(),
+                    request.getCredit(),
+                    consumption.getAverageUnitCost(),
+                    ArticleHistoryContext.withReference(
+                            request.getCollector(),
+                            StockHistoryReferenceType.STOCK_REQUEST,
+                            request.getId(),
+                            request.getReference()));
+            article.makeRelease(quantity);
+            article.releaseReservation(quantity);
+            articlesService.update(article);
+            deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(
+                    item.getItemName(), quantity, item.getUnitPrice()));
+        }
+
+        LocalDate deliveryDate = LocalDate.now();
+        request.setDeliveryDate(deliveryDate);
+        request.setMonth(deliveryDate.getMonthValue());
+        request.setYear(deliveryDate.getYear());
+        request.setAccountingDate(deliveryDate);
+        request.setStatus(StockRequestStatus.DELIVERED);
+        StockRequest savedRequest = repository.save(request);
+
+        creditService.settleCashSaleOnDelivery(request.getCredit().getId());
+
+        if (metricsPublisher != null) {
+            metricsPublisher.stockRequestDelivered(request.getCollector(), false);
+        }
+
+        PartialDeliveryResponseDTO response = new PartialDeliveryResponseDTO();
+        response.setDeliveryType(PartialDeliveryResponseDTO.DeliveryType.FULL);
+        response.setDeliveredRequestId(savedRequest.getId());
+        response.setDeliveredRequestReference(savedRequest.getReference());
+        response.setDeliveredItems(deliveredItemDTOs);
+        response.setPendingItems(new ArrayList<>());
+        return response;
+    }
+
     public void cancelRequest(Long requestId) {
         StockRequest request = getById(requestId);
         StockRequestStatus status = request.getStatus();
@@ -525,6 +668,11 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
             if (!isCreator && !isManager) {
                 throw new CustomValidationException("Vous n'avez pas le droit d'annuler cette demande.");
             }
+        }
+
+        if (request.getCredit() != null) {
+            creditService.cancelPendingCashSale(request.getCredit().getId());
+            return;
         }
 
         request.setStatus(StockRequestStatus.CANCELLED);
@@ -669,6 +817,9 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         if (stockRequestOrderLinkService != null) {
             request.setLinkedOrderReferences(stockRequestOrderLinkService.resolveLinkedOrderReferences(id));
         }
+        if (request.getCredit() != null) {
+            request.setCashSaleReference(request.getCredit().getReference());
+        }
         return request;
     }
 
@@ -690,6 +841,9 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
         List<StockRequestStatus> statuses = resolveVisibleStatuses();
 
         Page<StockRequestListDto> page = repo.findFilteredList(effectiveCollector, startDate, endDate, statuses, pageable);
+        if (!page.isEmpty()) {
+            attachCashSaleReferences(page.getContent());
+        }
         if (stockRequestOrderLinkService != null && !page.isEmpty()) {
             List<Long> ids = page.getContent().stream().map(StockRequestListDto::getId).toList();
             Map<Long, List<String>> refs = stockRequestOrderLinkService.resolveLinkedOrderReferences(ids);
@@ -697,6 +851,16 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                     dto.setLinkedOrderReferences(refs.getOrDefault(dto.getId(), List.of())));
         }
         return page;
+    }
+
+    private void attachCashSaleReferences(List<StockRequestListDto> rows) {
+        List<Long> ids = rows.stream().map(StockRequestListDto::getId).toList();
+        List<Object[]> pairs = ((StockRequestRepository) repository).findCashSaleReferences(ids);
+        java.util.Map<Long, String> byId = new java.util.HashMap<>();
+        for (Object[] pair : pairs) {
+            byId.put((Long) pair[0], (String) pair[1]);
+        }
+        rows.forEach(dto -> dto.setCashSaleReference(byId.get(dto.getId())));
     }
 
     public com.optimize.elykia.core.dto.stock.StockRequestKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {

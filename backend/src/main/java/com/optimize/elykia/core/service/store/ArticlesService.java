@@ -181,6 +181,10 @@ public class ArticlesService extends GenericService<Articles, Long> {
     public Articles resetStockForArticle(Long id) {
         assertWarehouseStockMutable();
         Articles article = getRepository().findByIdForUpdate(id).orElseGet(() -> getById(id));
+        if (article.getReservedQuantity() != null && article.getReservedQuantity() > 0) {
+            throw new CustomValidationException(
+                    "Des quantités sont encore promises à des ventes comptant non livrées.");
+        }
         articleHistoryService
                 .create(ArticleHistory.buildResetHistory(article, userService.getCurrentUser().getUsername()));
         article.setStockQuantity(0);
@@ -200,6 +204,7 @@ public class ArticlesService extends GenericService<Articles, Long> {
         Articles articles = articlesMapper.toEntity(dto);
         Articles oldOne = getById(id);
         articles.setStockQuantity(oldOne.getStockQuantity());
+        articles.setReservedQuantity(oldOne.getReservedQuantity());
         articles.setCreatedBy(oldOne.getCreatedBy());
         articles.setState(oldOne.getState());
         articles.setCreatedDate(oldOne.getCreatedDate());
@@ -503,6 +508,10 @@ public class ArticlesService extends GenericService<Articles, Long> {
         Articles articles = getRepository().findByIdForUpdate(creditArticles.getArticlesId())
                 .orElseGet(() -> getById(creditArticles.getArticlesId()));
         int quantity = creditArticles.getQuantity() != null ? creditArticles.getQuantity() : 0;
+        if (articles.availableQuantity() < quantity) {
+            throw new CustomValidationException(
+                    "Stock magasin insuffisant pour " + articles.getCommercialName() + ".");
+        }
         if (quantity > 0) {
             Long sourceId = creditArticles.getCredit() != null
                     ? creditArticles.getCredit().getId()
@@ -521,6 +530,34 @@ public class ArticlesService extends GenericService<Articles, Long> {
         articles.makeRelease(creditArticles.getQuantity());
         update(articles);
         return "success:true";
+    }
+
+    public Articles lockById(Long id) {
+        return getRepository().findByIdForUpdate(id)
+                .orElseThrow(() -> new com.optimize.common.entities.exception.ResourceNotFoundException("resource.not.found"));
+    }
+
+    public void reserveWarehouseQuantity(Long articleId, int quantity) {
+        if (quantity <= 0) {
+            return;
+        }
+        assertWarehouseStockMutable();
+        Articles article = lockById(articleId);
+        if (article.availableQuantity() < quantity) {
+            throw new CustomValidationException(
+                    "Stock magasin insuffisant pour " + article.getCommercialName() + ".");
+        }
+        article.addReservation(quantity);
+        update(article);
+    }
+
+    public void releaseWarehouseReservation(Long articleId, int quantity) {
+        if (quantity <= 0) {
+            return;
+        }
+        Articles article = lockById(articleId);
+        article.releaseReservation(quantity);
+        update(article);
     }
 
     public Page<Articles> getOutOfStock(Pageable pageable) {

@@ -49,7 +49,8 @@ public record CreditRespDto(Long id,
                             String syncConsentCode,
                             Boolean carnetVerified,
                             LocalDateTime carnetVerifiedAt,
-                            String carnetVerifiedBy
+                            String carnetVerifiedBy,
+                            boolean pendingWarehouseDelivery
 ) {
 
     public ClientRespDto getClient() {
@@ -72,7 +73,7 @@ public record CreditRespDto(Long id,
                 null, null, null, null, null, null,
                 null, null, null, null, null, null, null, null,
                 null, null, null, null, null, null, null, null, null, null, null,
-                null, null, null);
+                null, null, null, false);
     }
 
     public static CreditRespDto fromCredit(Credit credit) {
@@ -83,7 +84,8 @@ public record CreditRespDto(Long id,
                 credit.getAdvance(), credit.getDailyStake(), credit.getStatus(), credit.getRemainingDaysCount(), credit.getCollector(), credit.getType(), credit.getDailyPaid(), credit.getClientType(), parentId,
                 credit.getUpdatable(), credit.getReference(), credit.getAccountingDate(), credit.getReleaseDate(), credit.getReleasePrinted(), credit.getOldReference(), null, client,
                 credit.getOperationConsentCode(), credit.getConfirmedAmount(), credit.getSyncConsentCode(),
-                Boolean.TRUE.equals(credit.getCarnetVerified()), credit.getCarnetVerifiedAt(), credit.getCarnetVerifiedBy());
+                Boolean.TRUE.equals(credit.getCarnetVerified()), credit.getCarnetVerifiedAt(), credit.getCarnetVerifiedBy(),
+                credit.isPendingWarehouseDelivery());
     }
 
     public static Page<CreditRespDto> fromCreditPage(Page<Credit> creditPage) {
@@ -109,6 +111,6 @@ public record CreditRespDto(Long id,
                 this.advance, this.dailyStake, this.status, this.remainingDaysCount, this.collector, this.type, this.dailyPaid, this.clientType, this.parentId,
                 this.updatable, this.reference, this.accountingDate, this.releaseDate, this.releasePrinted, this.oldReference, creditArticles, this.client,
                 this.operationConsentCode, this.confirmedAmount, this.syncConsentCode,
-                this.carnetVerified, this.carnetVerifiedAt, this.carnetVerifiedBy);
+                this.carnetVerified, this.carnetVerifiedAt, this.carnetVerifiedBy, this.pendingWarehouseDelivery);
     }
 }

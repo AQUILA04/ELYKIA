@@ -84,6 +84,13 @@ public class CreditService extends GenericService<Credit, Long> {
     private final org.springframework.context.ApplicationEventPublisher eventPublisher;
     private CreditTimelineService creditTimelineService;
     private com.optimize.elykia.core.service.sale.CashSalePricingService cashSalePricingService;
+    private com.optimize.elykia.core.service.stock.StockRequestService stockRequestService;
+
+    @Autowired
+    public void setStockRequestService(
+            @Lazy com.optimize.elykia.core.service.stock.StockRequestService stockRequestService) {
+        this.stockRequestService = stockRequestService;
+    }
 
     @org.springframework.beans.factory.annotation.Autowired
     public void setCashSalePricingService(com.optimize.elykia.core.service.sale.CashSalePricingService cashSalePricingService) {
@@ -209,8 +216,14 @@ public class CreditService extends GenericService<Credit, Long> {
         credit.setRemainingDaysCount(0);
         credit.setBeginDate(LocalDate.now());
         credit.setExpectedEndDate(LocalDate.now());
-        credit.setEffectiveEndDate(LocalDate.now());
+        credit.setEffectiveEndDate(null);
         credit.setStatus(CreditStatus.VALIDATED);
+        credit.setPendingWarehouseDelivery(true);
+
+        if (!StringUtils.hasText(credit.getCollector())) {
+            throw new CustomValidationException(
+                    "Cette vente comptant exige un commercial rattaché au client.");
+        }
 
         credit = super.create(credit);
         // FORCE DB WRITE
@@ -218,7 +231,8 @@ public class CreditService extends GenericService<Credit, Long> {
         
         credit.setCreditToCreditArticles();
         credit.getArticles().forEach(creditArticlesService::create);
-        updateStockForCashSale(credit);
+        reserveWarehouseForCashSale(credit);
+        stockRequestService.createValidatedCashSaleRequest(credit);
         filledRecovery(credit);
         return CreditRespDto.fromCredit(credit);
     }
@@ -369,66 +383,8 @@ public class CreditService extends GenericService<Credit, Long> {
 
     @Transactional
     public CreditRespDto updateCashSale(CreditDto creditDto, Long id) {
-        creditDto.setId(id);
-        Credit credit = creditMapper.toEntity(creditDto);
-        final Credit oldOne = getById(id);
-
-        if (!CreditStatus.VALIDATED.equals(oldOne.getStatus())) {
-            throw new CustomValidationException("Cette vente au comptant ne peut plus être modifiée !");
-        }
-
-        if (!OperationType.CASH.equals(oldOne.getType())) {
-            throw new CustomValidationException("Cette méthode ne permet de modifier que les ventes au comptant !");
-        }
-
-        Client client;
-        client = clientService.getById(credit.getClientId());
-        setClient(credit, client);
-
-        if (!StringUtils.hasText(credit.getReference())) {
-            credit.setReference(oldOne.getReference());
-        }
-
-        credit.getArticles().forEach(article -> {
-            Articles loaded = articlesService.getById(article.getArticlesId());
-            article.setArticles(loaded);
-            if (cashSalePricingService != null) {
-                cashSalePricingService.quoteWarehouse(
-                        loaded,
-                        article.getRequestedSalePackMode(),
-                        article.getRequestedPackCount(),
-                        article.getRequestedUnitsPerPack(),
-                        article.getQuantity()).apply(article);
-            } else {
-                article.setUnitPrice(CommercialMonthlyStockCashSalePricing.resolveSaleUnitPrice(article));
-            }
-        });
-
-        credit.setTotalAmount(credit.getTotalAmountByCalcul());
-        credit.setTotalAmountPaid(credit.getTotalAmount());
-        credit.setTotalAmountRemaining(0.0);
-        credit.setAdvance(0.0);
-        credit.setDailyStake(0.0);
-        credit.setRemainingDaysCount(0);
-
-        if (credit.getBeginDate() == null) {
-            credit.setBeginDate(oldOne.getBeginDate());
-        }
-        credit.setExpectedEndDate(credit.getBeginDate());
-        credit.setEffectiveEndDate(credit.getBeginDate());
-
-        credit.setStatus(CreditStatus.VALIDATED);
-
-        oldOne.getArticles().forEach(creditArticlesService::delete);
-
-        credit = super.update(credit);
-        // FORCE DB WRITE
-        repository.saveAndFlush(credit);
-
-        credit.setCreditToCreditArticles();
-        credit.getArticles().forEach(creditArticlesService::create);
-
-        return CreditRespDto.fromCredit(credit);
+        throw new CustomValidationException(
+                "Une vente comptant ne peut plus être modifiée. Annulez-la et enregistrez-la de nouveau.");
     }
 
     private void setClient(Credit credit, Client client) {
@@ -585,6 +541,9 @@ public class CreditService extends GenericService<Credit, Long> {
 
     public boolean changeDailyStake(ChangeDailyStakeDto dto) {
         Credit credit = getById(dto.creditId());
+        if (OperationType.CASH.equals(credit.getType())) {
+            throw new CustomValidationException("Une vente comptant n'a pas de mise journalière.");
+        }
 
         CreditDailyStakeHistory history = new CreditDailyStakeHistory();
         history.setCredit(credit);
@@ -801,9 +760,63 @@ public class CreditService extends GenericService<Credit, Long> {
         this.handleStockCommercialForCashSale(credit);
     }
 
+    public void settleCashSaleOnDelivery(Long creditId) {
+        Credit credit = getById(creditId);
+        if (!credit.awaitingWarehouseDelivery()) {
+            throw new CustomValidationException("Cette vente comptant n'est pas en attente de livraison.");
+        }
+        handleStockCommercialForCashSale(credit);
+        credit.settleAfterWarehouseDelivery();
+        update(credit);
+        if (metricsPublisher != null) {
+            metricsPublisher.creditSettled(credit.getCollector());
+        }
+    }
+
+    public void cancelPendingCashSale(Long creditId) {
+        Credit credit = getById(creditId);
+        if (!OperationType.CASH.equals(credit.getType()) || !credit.awaitingWarehouseDelivery()
+                || !CreditStatus.VALIDATED.equals(credit.getStatus())) {
+            throw new CustomValidationException("Cette vente comptant ne peut plus être annulée.");
+        }
+        releaseWarehouseReservation(credit);
+        stockRequestService.cancelLinkedCashSaleRequest(credit.getId());
+        creditTimelineService.reverseCollectionsForCancelledCashSale(credit);
+        credit.setStatus(CreditStatus.CANCELLED);
+        credit.setPendingWarehouseDelivery(false);
+        credit.setTotalAmountRemaining(0.0);
+        credit.setRemainingDaysCount(0);
+        credit.setEffectiveEndDate(null);
+        update(credit);
+    }
+
+    private void reserveWarehouseForCashSale(Credit credit) {
+        if (credit.getArticles() == null) {
+            return;
+        }
+        credit.getArticles().forEach(line -> {
+            int quantity = line.getQuantity() == null ? 0 : line.getQuantity();
+            articlesService.reserveWarehouseQuantity(line.getArticlesId(), quantity);
+        });
+    }
+
+    private void releaseWarehouseReservation(Credit credit) {
+        if (credit.getArticles() == null) {
+            return;
+        }
+        credit.getArticles().forEach(line -> {
+            int quantity = line.getQuantity() == null ? 0 : line.getQuantity();
+            articlesService.releaseWarehouseReservation(line.getArticlesId(), quantity);
+        });
+    }
+
     @Transactional
     public Boolean startCredit(Long creditId, Boolean distribution) {
         Credit credit = getById(creditId);
+        if (OperationType.CASH.equals(credit.getType())) {
+            throw new CustomValidationException(
+                    "Une vente comptant se livre depuis la demande de sortie. Elle ne se démarre pas.");
+        }
         if (Boolean.FALSE.equals(distribution) && !OperationType.TONTINE.equals(credit.getType())) {
             updateStockForCashSale(credit);
         }
@@ -1159,6 +1172,10 @@ public class CreditService extends GenericService<Credit, Long> {
     @Override
     public boolean deleteSoft(Long id) throws ApplicationException {
         Credit credit = getById(id);
+        if (OperationType.CASH.equals(credit.getType())) {
+            throw new CustomValidationException(
+                    "Une vente comptant s'annule tant qu'elle n'est pas livrée. Elle ne se supprime pas.");
+        }
         boolean result = super.deleteSoft(id);
         if (result) {
             syncClientCreditFlagsAfterClose(credit);
