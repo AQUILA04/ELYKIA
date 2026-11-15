@@ -78,6 +78,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.50.1] — 2026-11-15
+
+### Fixed
+
+- **Commerciaux —** les champs de recherche, la date de fin et la photo sont associés à un libellé. Les confirmations de retrait gèrent leur promesse. L'en-tête des pages n'est plus recopié.
+
+## Frontend — [2.50.0] — 2026-11-15
+
+### Added
+
+- **Commerciaux —** menu distinct de la gestion des utilisateurs. **Comptes** montre qui utilise chaque compte et l'historique des périodes. **Personnel** tient l'annuaire (nom obligatoire, pièce et photo facultatives).
+
 ## Frontend — [2.49.1] — 2026-11-15
 
 ### Fixed
@@ -397,6 +409,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.53.0] — 2026-11-15
+
+### Added
+
+- **Commerciaux —** annuaire des personnes et historique d'affectation des comptes. Deux périodes ne peuvent pas se chevaucher sur un compte, ni pour une même personne. Permission `ROLE_MANAGE_COMMERCIAL_STAFF`, accordée par défaut au gestionnaire, à la secrétaire, à l'administrateur et au super administrateur.
 
 ## Backend — [1.52.0] — 2026-11-15
 

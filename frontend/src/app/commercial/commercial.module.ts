@@ -11,19 +11,31 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { SharedComponentsModule } from '../shared/components/shared-components.module';
+import { NgxPermissionsModule } from 'ngx-permissions';
 import { CommercialRoutingModule } from './commercial-routing.module';
 import { CommercialListComponent } from './commercial-list/commercial-list.component';
 import { CommercialViewComponent } from './commercial-view/commercial-view.component';
+import { CommercialAccountsComponent } from './commercial-accounts/commercial-accounts.component';
+import { CommercialAccountHistoryComponent } from './commercial-account-history/commercial-account-history.component';
+import { CommercialStaffListComponent } from './commercial-staff-list/commercial-staff-list.component';
+import { CommercialStaffFormComponent } from './commercial-staff-form/commercial-staff-form.component';
+import { CommercialPageHeadComponent } from './commercial-page-head/commercial-page-head.component';
 
 @NgModule({
   declarations: [
     CommercialListComponent,
     CommercialViewComponent,
+    CommercialAccountsComponent,
+    CommercialAccountHistoryComponent,
+    CommercialStaffListComponent,
+    CommercialStaffFormComponent,
+    CommercialPageHeadComponent,
   ],
   imports: [
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
+    NgxPermissionsModule,
     CommercialRoutingModule,
     NgxSpinnerModule,
     SharedComponentsModule,

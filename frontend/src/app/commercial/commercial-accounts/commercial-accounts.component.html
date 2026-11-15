@@ -1,0 +1,81 @@
+<div class="main-container commercial-page a1">
+  <app-commercial-page-head [currentDate]="currentDate">
+    <div class="header-card-top">
+      <span class="header-surtitle">Commerciaux</span>
+      <span class="date-display">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <div class="title-group">
+        <h1 class="page-title">Comptes commerciaux</h1>
+      </div>
+      <button type="button" class="btn-refresh" (click)="load()">Actualiser</button>
+    </div>
+    <p class="page-subtitle">Qui utilise chaque compte, aujourd'hui</p>
+  </app-commercial-page-head>
+
+  <div class="page-scroll-body">
+    <div class="kpi-strip a3">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Comptes</div>
+        <div class="kpi-value">{{ accounts.length }}</div>
+        <div class="kpi-sub">Comptes commerciaux existants</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Affectés</div>
+        <div class="kpi-value">{{ assignedCount }}</div>
+        <div class="kpi-sub">Une personne en cours</div>
+      </div>
+      <div class="kpi-card kpi-delai">
+        <div class="kpi-label">Sans titulaire</div>
+        <div class="kpi-value">{{ accounts.length - assignedCount }}</div>
+        <div class="kpi-sub">Aucune affectation en cours</div>
+      </div>
+    </div>
+
+    <div class="toolbar a4">
+      <div>
+        <label class="toolbar-label" for="commercial-account-search">Recherche</label>
+        <input id="commercial-account-search" class="search-input" type="text" [(ngModel)]="search" placeholder="Compte ou personne">
+      </div>
+      <span class="result-count">{{ filtered.length }} compte(s)</span>
+    </div>
+
+    <div class="table-card a5">
+      <div class="empty-state" *ngIf="loading">
+        <div class="empty-title">Chargement</div>
+        <div class="empty-sub">Lecture des comptes commerciaux</div>
+      </div>
+      <div class="empty-state" *ngIf="!loading && filtered.length === 0">
+        <div class="empty-title">Aucun compte</div>
+        <div class="empty-sub">Aucun compte commercial ne correspond à la recherche.</div>
+      </div>
+      <table class="data-table" *ngIf="!loading && filtered.length > 0">
+        <thead>
+          <tr>
+            <th>Compte</th>
+            <th>Titulaire en cours</th>
+            <th>Depuis</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let account of filtered">
+            <td><span class="username">{{ account.username }}</span></td>
+            <td>
+              <div class="person-cell" *ngIf="account.holderName; else noHolder">
+                <img *ngIf="account.holderPhotoUrl" class="avatar" [src]="account.holderPhotoUrl" [alt]="account.holderName">
+                <span *ngIf="!account.holderPhotoUrl" class="avatar-fallback">{{ account.holderInitials }}</span>
+                <span>{{ account.holderName }}</span>
+              </div>
+              <ng-template #noHolder><span class="muted">Aucune affectation</span></ng-template>
+            </td>
+            <td>{{ account.holderSince ? (account.holderSince | date:'dd/MM/yyyy') : '—' }}</td>
+            <td class="row-actions">
+              <a class="btn-detail" [routerLink]="['/commercial/accounts', account.userId]">Historique</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

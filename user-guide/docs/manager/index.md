@@ -6,7 +6,7 @@ Ce guide accompagne les gestionnaires et secrétaires dans les tâches de pilota
 
 ## Votre espace de pilotage
 
-Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Articles**, au **Stock Commercial** (sélecteur **Crédit** / **Tontine**), aux **Ventes**, aux **Tontines**, aux **Dépenses**, à la **Configuration**, au **Rapport Journalier** et aux **Inventaires**. Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.
+Le menu peut notamment donner accès au **Dashboard**, aux **Clients**, aux **Commerciaux**, aux **Articles**, au **Stock Commercial** (sélecteur **Crédit** / **Tontine**), aux **Ventes**, aux **Tontines**, aux **Dépenses**, à la **Configuration**, au **Rapport Journalier** et aux **Inventaires**. Certains éléments, comme les rapports mensuels, le recrutement ou ELYKIA IA, ne s’affichent que si la permission et le paramétrage nécessaires sont actifs.
 
 | Priorité | Où intervenir | Finalité |
 |---|---|---|
@@ -25,6 +25,7 @@ Consultez les pages suivantes selon la tâche à accomplir :
 
 - [Tableaux de bord](dashboard.md) pour lire les KPI sans confondre les périodes.
 - [Opérations quotidiennes](operations.md) pour les caisses, clients, comptes et versements.
+- [Commerciaux](commerciaux.md) pour savoir qui utilise chaque compte commercial, et sur quelle période.
 - [Inscriptions](client_registrations.md) (**Services en ligne**) pour valider les demandes de l’espace client.
 - [Stocks, ventes et commandes](stock_sales.md) pour les flux de marchandises et de crédits.
 - [Finances et tontines](finance.md) pour les dépenses, remises et contrôles tontine.

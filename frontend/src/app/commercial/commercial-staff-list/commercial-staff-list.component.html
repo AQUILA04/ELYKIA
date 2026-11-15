@@ -1,0 +1,80 @@
+<div class="main-container commercial-page a1">
+  <app-commercial-page-head [currentDate]="currentDate">
+    <div class="header-card-top">
+      <span class="header-surtitle">Commerciaux</span>
+      <span class="date-display">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    </div>
+    <div class="header-card-main">
+      <h1 class="page-title">Personnel</h1>
+      <div class="title-group">
+        <a class="btn-primary" routerLink="/commercial/staff/new">Nouvelle personne</a>
+        <button type="button" class="btn-refresh" (click)="load()">Actualiser</button>
+      </div>
+    </div>
+    <p class="page-subtitle">Les personnes qui peuvent être affectées à un compte commercial</p>
+  </app-commercial-page-head>
+
+  <div class="page-scroll-body">
+    <div class="kpi-strip a3">
+      <div class="kpi-card kpi-total">
+        <div class="kpi-label">Personnes</div>
+        <div class="kpi-value">{{ people.length }}</div>
+        <div class="kpi-sub">Annuaire</div>
+      </div>
+      <div class="kpi-card kpi-green">
+        <div class="kpi-label">Avec photo</div>
+        <div class="kpi-value">{{ withPhoto }}</div>
+        <div class="kpi-sub">Photo de profil déposée</div>
+      </div>
+      <div class="kpi-card kpi-amount">
+        <div class="kpi-label">Sans photo</div>
+        <div class="kpi-value">{{ people.length - withPhoto }}</div>
+        <div class="kpi-sub">Initiales affichées</div>
+      </div>
+    </div>
+
+    <div class="toolbar a4">
+      <div>
+        <label class="toolbar-label" for="commercial-staff-search">Recherche</label>
+        <input id="commercial-staff-search" class="search-input" type="search" [(ngModel)]="search" placeholder="Nom, téléphone, pièce">
+      </div>
+      <span class="result-count">{{ filtered.length }} personne(s)</span>
+    </div>
+
+    <div class="table-card a5">
+      <div class="empty-state" *ngIf="loading">
+        <div class="empty-title">Chargement</div>
+      </div>
+      <div class="empty-state" *ngIf="!loading && filtered.length === 0">
+        <div class="empty-title">Aucune personne</div>
+        <div class="empty-sub">Ajoutez la première fiche du personnel.</div>
+      </div>
+      <table class="data-table" *ngIf="!loading && filtered.length > 0">
+        <thead>
+          <tr>
+            <th>Personne</th>
+            <th>Téléphone</th>
+            <th>Pièce</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let person of filtered">
+            <td>
+              <div class="person-cell">
+                <img *ngIf="person.photoUrl" class="avatar" [src]="person.photoUrl" [alt]="person.name">
+                <span *ngIf="!person.photoUrl" class="avatar-fallback">{{ person.initials }}</span>
+                <span>{{ person.name }}</span>
+              </div>
+            </td>
+            <td>{{ person.phoneNumber || '—' }}</td>
+            <td>{{ person.serialNumber || '—' }}</td>
+            <td class="row-actions">
+              <a class="btn-detail" [routerLink]="['/commercial/staff', person.id]">Ouvrir</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

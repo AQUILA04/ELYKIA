@@ -28,6 +28,7 @@ export class SidebarComponent implements OnInit {
   isConfigurationOpen: boolean = false;
   isServicesEnLigneOpen: boolean = false;
   isAdministrationOpen: boolean = false;
+  isCommercialStaffOpen: boolean = false;
   activeRoute: string = '';
   showMonthlyReports = false;
   showElykiaAi = false;
@@ -83,6 +84,10 @@ export class SidebarComponent implements OnInit {
 
     if (route === '/recruitment') {
       return this.activeRoute.startsWith('/recruitment');
+    }
+
+    if (route === '/commercial') {
+      return this.activeRoute.startsWith('/commercial');
     }
 
     if (route === '/client/list') {
@@ -159,6 +164,15 @@ export class SidebarComponent implements OnInit {
   }
 
   // Gestionnaire de clic pour le menu Stock Commercial
+  onCommercialStaffClick() {
+    if (this.activeRoute.startsWith('/commercial')) {
+      this.isCommercialStaffOpen = !this.isCommercialStaffOpen;
+    } else {
+      this.router.navigate(['/commercial/accounts']);
+      this.isCommercialStaffOpen = true;
+    }
+  }
+
   onStockClick() {
     if (this.activeRoute.startsWith('/stock') && !this.activeRoute.startsWith('/stock-tontine')) {
       this.isStockOpen = !this.isStockOpen;
@@ -286,6 +300,8 @@ export class SidebarComponent implements OnInit {
         this.isServicesEnLigneOpen = false;
       }
 
+      this.isCommercialStaffOpen = this.activeRoute.startsWith('/commercial');
+
       this.isAdministrationOpen = this.isAdministrationRoute();
 
       // Gestion de l'état ouvert/fermé pour Configuration
@@ -312,6 +328,7 @@ export class SidebarComponent implements OnInit {
 
     // Initialiser activeRoute avec la route actuelle au démarrage
     this.activeRoute = this.router.url;
+    this.isCommercialStaffOpen = this.activeRoute.startsWith('/commercial');
     if (this.activeRoute.startsWith('/client-registrations')
         || this.activeRoute.startsWith('/customer-payments')
         || this.activeRoute.startsWith('/orders/online')) {
