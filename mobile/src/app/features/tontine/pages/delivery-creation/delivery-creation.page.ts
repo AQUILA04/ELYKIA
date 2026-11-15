@@ -38,7 +38,9 @@ import { TontineDeliveryReceiptModalComponent } from 'src/app/shared/components/
 import { PrintableTontineDelivery } from 'src/app/core/services/printing.service';
 import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-consent-guard.service';
 import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-consent-state.service';
-import { generateTontineDeliveryReference } from 'src/app/core/utils/tontine-delivery-reference.util';
+import { generateTontineAuthenticityCode, generateTontineDeliveryReference } from 'src/app/core/utils/tontine-delivery-reference.util';
+import { TontineOrderReceiptModalComponent } from 'src/app/shared/components/tontine-order-receipt-modal/tontine-order-receipt-modal.component';
+import { PrintableTontineOrder } from 'src/app/core/services/printing.service';
 import {
     canCreateTontineOrder,
     canPhysicallyDeliverTontine
@@ -665,6 +667,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             const delivery: TontineDelivery = {
                 id: deliveryId,
                 reference: generateTontineDeliveryReference(),
+                authenticityCode: generateTontineAuthenticityCode(),
                 tontineMemberId: this.memberId!,
                 commercialUsername: this.commercialUsername!,
                 requestDate: nowIso,
@@ -688,15 +691,12 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             await loading.dismiss();
 
             if (isOrder) {
-                const success = await this.alertCtrl.create({
-                    header: 'Commande enregistrée',
-                    message: 'La commande est en attente de livraison. Vous pourrez la marquer comme livrée depuis la fiche membre après clôture, une fois votre stock tontine alimenté.',
-                    buttons: [{
-                        text: 'OK',
-                        handler: () => this.navigateToTontineDashboard()
-                    }]
-                });
-                await success.present();
+                try {
+                    await this.presentOrderReceipt(savedDelivery, items);
+                } catch (printError) {
+                    console.error('Error opening tontine order receipt:', printError);
+                }
+                this.navigateToTontineDashboard();
                 return;
             }
 
@@ -756,6 +756,36 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
             this.showError(error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement');
         }
+    }
+
+    private async presentOrderReceipt(delivery: TontineDelivery, items: TontineDeliveryItem[]): Promise<void> {
+        const clientName = this.vm.client?.fullName
+            || `${this.vm.client?.firstname || ''} ${this.vm.client?.lastname || ''}`.trim()
+            || 'Client';
+        const data: PrintableTontineOrder = {
+            reference: delivery.reference,
+            authenticityCode: delivery.authenticityCode,
+            requestDate: delivery.requestDate,
+            status: delivery.status,
+            totalAmount: delivery.totalAmount,
+            clientName,
+            clientPhone: this.vm.client?.phone,
+            commercialName: this.commercialUsername || 'Commercial',
+            items: items.map(item => ({
+                articleName: item.salePackMode && item.salePackMode !== 'UNIT'
+                    ? `${item.articleName || 'Article'} — ${item.packLabel || 'Pack'}`
+                    : (item.articleName || 'Article'),
+                quantity: item.salePackMode && item.salePackMode !== 'UNIT' ? (item.packCount || item.quantity) : item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice
+            }))
+        };
+        const modal = await this.modalCtrl.create({
+            component: TontineOrderReceiptModalComponent,
+            componentProps: { data }
+        });
+        await modal.present();
+        await modal.onDidDismiss();
     }
 
     cancel() {

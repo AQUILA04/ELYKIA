@@ -7,11 +7,14 @@ import org.springframework.util.StringUtils;
 
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 @Service
 public class TontineDeliveryReferenceService {
 
     private static final SecureRandom RANDOM = new SecureRandom();
+    private static final Pattern AUTHENTICITY_CODE = Pattern.compile("ELY-[0-9A-F]{4}-[0-9A-F]{4}");
 
     private final TontineDeliveryRepository deliveryRepository;
 
@@ -38,6 +41,39 @@ public class TontineDeliveryReferenceService {
     public String generate(LocalDateTime requestDate) {
         LocalDateTime dateTime = requestDate != null ? requestDate : LocalDateTime.now();
         return String.format("LIV-%d-%02d-%s", dateTime.getYear(), dateTime.getMonthValue(), randomHex8());
+    }
+
+    /**
+     * Conserve le code envoyé par le téléphone, ou en tire un nouveau.
+     * Le code identifie le reçu : il ne change pas quand les articles sont modifiés.
+     */
+    public String resolveAuthenticityCode(String provided) {
+        if (StringUtils.hasText(provided)) {
+            String code = provided.trim().toUpperCase(Locale.ROOT).replace(" ", "");
+            if (!AUTHENTICITY_CODE.matcher(code).matches()) {
+                throw new CustomValidationException("Code d'authenticité invalide.");
+            }
+            if (deliveryRepository.existsByAuthenticityCode(code)) {
+                throw new CustomValidationException("Code d'authenticité déjà utilisé.");
+            }
+            return code;
+        }
+
+        String code;
+        do {
+            code = generateAuthenticityCode();
+        } while (deliveryRepository.existsByAuthenticityCode(code));
+        return code;
+    }
+
+    public static String generateAuthenticityCode() {
+        byte[] bytes = new byte[4];
+        RANDOM.nextBytes(bytes);
+        StringBuilder hex = new StringBuilder(8);
+        for (byte value : bytes) {
+            hex.append(String.format("%02X", value & 0xFF));
+        }
+        return "ELY-" + hex.substring(0, 4) + "-" + hex.substring(4);
     }
 
     private String randomHex8() {

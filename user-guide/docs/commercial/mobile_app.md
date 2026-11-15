@@ -266,8 +266,12 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
      2. **Modifier la commande** : diminuez les quantités ou retirez des articles jusqu'à ce que le total tienne dans le solde disponible, puis enregistrez.
 5. **Pendant la session ouverte — enregistrez une Commande** :
    * Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
+   * L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités, le montant total et le **code d'authenticité**.
+   * Touchez **Imprimer** pour sortir le ticket sur l'imprimante de ceinture. Touchez **Fermer** pour revenir au tableau de bord.
+   * Le code est reconnu dans Elykia une fois la commande transmise à l'agence.
    * L'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
    * Ensuite, préparez vos cartons au dépôt (demande de stock tontine) pour être prêt le jour de la remise.
+   * Pour imprimer à nouveau, ouvrez la fiche de la membre et touchez **Imprimer le reçu**. Après **Enregistrer la commande**, le même aperçu s'affiche.
 6. **Après la clôture de la session — remettez les articles** :
    * Le panier, en livraison directe comme pour une commande déjà posée, peut aller jusqu'au **solde prévisionnel** de l'année.
    * **Livraison directe** : si vous avez les articles dans votre stock tontine et que le solde disponible couvre le panier, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise.

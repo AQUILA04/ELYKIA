@@ -176,6 +176,8 @@ flowchart LR
    - Pour chaque article, la liste **Offre** propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.
    - Si les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme **Solde non utilisé** au profit du client.
    - Le dossier passe au statut **En attente**.
+   - Une confirmation propose de **télécharger le reçu**. Le document reprend la référence, la membre, les articles, les quantités, le montant total et le **code d'authenticité**.
+   - Sur la fiche, **Télécharger le reçu** ressort le même document. Après une réduction du panier, la même proposition s'affiche.
 
 2. **Valider la Livraison** :
    - Un responsable examine la sélection et clique sur **Valider la Livraison**. Le statut passe à **Validé**.
@@ -192,6 +194,8 @@ Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. C
 - Indicateurs globaux : nombre de colis livrés, montant total distribué, livraisons restant à honorer, soldes non utilisés.
 - Filtres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.
 - Recherche instantanée par nom ou référence de client.
+- **Reçu** sur une ligne télécharge le reçu de la commande.
+- **Vérifier un reçu** : saisissez le code imprimé sur le document. Elykia affiche la référence, la membre, la date, le statut, le commercial, le montant et les articles. Si le code est inconnu, le message indique que ce reçu ne provient pas d'Elykia. Un reçu recopié avec un autre montant ne correspond pas à cet affichage.
 
 1. Cochez les lignes **En attente** de la page, puis cliquez sur **Valider la sélection**. Le statut passe à **Validée**.
 2. **Tout valider** valide toutes les livraisons **En attente** de la période, de la recherche et du commercial choisi. Une confirmation indique le nombre.

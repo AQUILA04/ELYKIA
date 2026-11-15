@@ -132,6 +132,8 @@ class TontineDeliveryServiceTest {
         when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
         when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
         when(deliveryReferenceService.resolveReference(any(), any())).thenReturn("TNT-001");
+        when(deliveryReferenceService.resolveAuthenticityCode(org.mockito.ArgumentMatchers.nullable(String.class)))
+                .thenReturn("ELY-A1B2-C3D4");
         when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         TontineDeliveryDto result = tontineDeliveryService.createDelivery(createDeliveryDto);
@@ -141,6 +143,7 @@ class TontineDeliveryServiceTest {
         assertEquals(50000.0, result.getTotalAmount());
         assertEquals(50000.0, result.getRemainingBalance());
         assertEquals(createDeliveryDto.getRequestDate(), result.getRequestDate());
+        assertEquals("ELY-A1B2-C3D4", result.getAuthenticityCode());
 
         // Stock commercial is applied only via tontine credit — must not run on order create.
         verify(creditService, never()).createTontineCredit(any());

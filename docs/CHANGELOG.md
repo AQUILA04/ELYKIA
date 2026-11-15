@@ -14,6 +14,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - **Docs —** memory bank Cursor (`memory-bank/`) : brief produit, métier, architecture, stack, contexte actif, avancement et décisions, tenus à jour par la règle `.cursor/rules/memory-bank.mdc`. Un pointeur est ajouté dans `AGENTS.md`.
+- **Reçus et factures —** tout document futur doit porter un code d’authenticité vérifiable, sur le modèle du reçu de commande tontine. Règle `.cursor/rules/receipt-authenticity.mdc`.
 
 ### Changed
 
@@ -87,6 +88,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.50.2] — 2026-11-15
+
+### Added
+
+- **Livraisons tontine —** **Reçu** télécharge le reçu PDF de la commande. **Vérifier un reçu** contrôle le code imprimé : Elykia affiche la commande officielle, ou indique que le document ne provient pas d'Elykia. Après l'enregistrement ou la modification du panier, le téléchargement est proposé. **Télécharger le reçu** est aussi sur la fiche du membre.
 
 ## Frontend — [2.50.1] — 2026-11-15
 
@@ -327,6 +334,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.39.2] — 2026-11-15
+
+### Added
+
+- **Commande tontine —** après l'enregistrement, après une modification du panier, et depuis la fiche du membre, un aperçu permet d'imprimer le reçu sur l'imprimante de ceinture. Le ticket porte un code d'authenticité. Le prix unitaire suit le même réglage que les autres reçus. Le montant total reste affiché.
+
 ## Mobile — [2.39.1] — 2026-11-14
 
 ### Fixed
@@ -419,6 +432,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.53.1] — 2026-11-15
+
+### Added
+
+- **Commande tontine —** chaque commande reçoit un code d'authenticité `ELY-XXXX-XXXX`, conservé quand le panier change. Le reçu PDF reprend ce code. La vérification renvoie la commande officielle, ou indique que le document ne provient pas d'Elykia.
 
 ## Backend — [1.53.0] — 2026-11-15
 

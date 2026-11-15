@@ -232,6 +232,8 @@ export class TontineWriteService {
         needsDeliverSync: false,
         syncDate: new Date().toISOString(),
         deliveryDate: response.deliveryDate || persistedDelivery.deliveryDate,
+        reference: response.reference || persistedDelivery.reference,
+        authenticityCode: response.authenticityCode || persistedDelivery.authenticityCode,
         items: items.map((item) => ({
           ...item,
           tontineDeliveryId: serverId,
@@ -309,6 +311,8 @@ export class TontineWriteService {
           isLocal: false,
           syncDate: new Date().toISOString(),
           deliveryDate: response.deliveryDate || deliveryDate,
+          reference: response.reference || persisted.reference,
+          authenticityCode: response.authenticityCode || persisted.authenticityCode,
           items: (delivery.items || []).map((item) => ({
             ...item,
             tontineDeliveryId: serverId,

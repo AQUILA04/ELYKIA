@@ -66,6 +66,10 @@ Référence : [`client-list-export.html`](backend/src/main/resources/templates/c
 
 `PdfHtmlRenderer` tamponne chaque page : bande navy, libellé à gauche, **`1/30`** à droite. Ne pas dessiner un footer HTML en bas de document à la place.
 
+## Reçu ou facture
+
+Si le PDF est un **reçu** ou une **facture** remis à une personne, appliquer aussi la règle `receipt-authenticity` : code `ELY-XXXX-XXXX` persisté, imprimé, et vérifiable. Le thème navy ne remplace pas cette authenticité. Référence : `tontine-order-receipt.html`.
+
 ## Checklist
 
 - [ ] `PdfDocumentIdentity.applyTo` + `footerLabel`
@@ -73,3 +77,4 @@ Référence : [`client-list-export.html`](backend/src/main/resources/templates/c
 - [ ] Classes `.pdf-meta` / `.pdf-kpi` / `.data-table` (pas de couleurs hors palette navy)
 - [ ] `PdfHtmlRenderer.htmlToPdf` (pagination n/N)
 - [ ] Test : HTML multi-pages → texte `1/N` et `N/N` extraits du PDF
+- [ ] Si reçu ou facture : code d’authenticité persisté, imprimé, et écran de vérification

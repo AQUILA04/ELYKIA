@@ -280,9 +280,9 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
       ? this.tontineDeliveryService.updateItems(this.data.replaceDeliveryId, items)
       : this.tontineDeliveryService.createDelivery(createDeliveryDto);
     request.subscribe({
-      next: () => {
+      next: (response) => {
         this.loading = false;
-        this.dialogRef.close(true);
+        this.dialogRef.close(response?.data ?? true);
       },
       error: (error) => {
         console.error('Error creating delivery', error);

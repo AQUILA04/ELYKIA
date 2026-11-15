@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { UnitPriceVisibilityService } from './unit-price-visibility.service';
+import { getTontineDeliveryStatusLabel } from '../utils/tontine-delivery-status.util';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
 import { Distribution } from '../../models/distribution.model';
 import { Client } from '../../models/client.model';
@@ -166,6 +167,18 @@ export interface PrintableOrder {
   commercial: {
     name: string;
   };
+}
+
+export interface PrintableTontineOrder {
+  reference?: string | null;
+  authenticityCode?: string | null;
+  requestDate?: string | null;
+  status?: string | null;
+  totalAmount: number;
+  clientName?: string | null;
+  clientPhone?: string | null;
+  commercialName?: string | null;
+  items: PrintableOrderItem[];
 }
 
 export function formatOrderStatusLabel(status: string | null | undefined): string {
@@ -935,6 +948,94 @@ export class PrintingService {
           <p>Merci pour votre confiance!</p>
           !!!AMENOUVEVE-YAHVE!!!<br>
           <p>${uniqueId}</p>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  async printTontineOrderReceipt(order: PrintableTontineOrder): Promise<void> {
+    const htmlContent = this.generateTontineOrderReceiptHTML(order);
+    const reference = order.reference || 'commande-tontine';
+    await Printer.print({
+      content: htmlContent,
+      name: `recu_commande_tontine_${reference}`
+    });
+  }
+
+  private generateTontineOrderReceiptHTML(order: PrintableTontineOrder): string {
+    const createdAt = order.requestDate ? new Date(order.requestDate) : new Date('');
+    const hasDate = !Number.isNaN(createdAt.getTime());
+    const dateLabel = hasDate ? createdAt.toLocaleDateString('fr-FR') : (order.requestDate || 'N/A');
+    const timeLabel = hasDate
+      ? createdAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      : '';
+    const showUnitPrice = this.unitPriceVisibility.snapshot;
+    const itemsHTML = (order.items || []).map(item => `
+      <div class="article-item">
+        <div class="article-name">${escapeReceiptText(item.articleName || 'Article')}</div>
+        <div class="row article-details">
+          ${showUnitPrice
+            ? `<span>${item.quantity} x ${formatReceiptAmount(item.unitPrice)}</span><span class="article-total">${formatReceiptAmount(item.totalPrice)} FCFA</span>`
+            : `<span>Qté ${item.quantity}</span>`}
+        </div>
+      </div>
+    `).join('');
+    const code = order.authenticityCode || '';
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>Recu de commande tontine</title>
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          @media print { @page { margin: 1mm; } }
+          body { font-family: 'Arial', sans-serif; font-size: 6px; line-height: 1.4; width: 56mm; }
+          .header, .separator, .footer { text-align: center; }
+          .header { font-size: 7px; margin-bottom: 12px; }
+          .separator { border-top: 1px dashed #000; margin: 8px 0; }
+          .footer { margin-top: 12px; font-size: 8px; }
+          .content-wrapper { margin: 0 2mm; }
+          .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+          .article-item { margin-bottom: 6px; }
+          .auth { text-align: center; margin-top: 8px; }
+          .auth-label { font-size: 6px; letter-spacing: 1px; }
+          .auth-code { font-size: 11px; font-weight: bold; letter-spacing: 1px; margin-top: 2px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          AMENOUVEVE-YAVEH<br>
+          RECU DE COMMANDE TONTINE
+        </div>
+        <div class="separator"></div>
+        <div class="content-wrapper">
+          <div class="row"><span>Reference:</span><span>${escapeReceiptText(order.reference || 'N/A')}</span></div>
+          <div class="row"><span>Date:</span><span>${escapeReceiptText(dateLabel)}</span></div>
+          <div class="row"><span>Heure:</span><span>${escapeReceiptText(timeLabel)}</span></div>
+          <div class="row"><span>Statut:</span><span>${escapeReceiptText(getTontineDeliveryStatusLabel(order.status))}</span></div>
+          <div class="row"><span>Membre:</span><span>${escapeReceiptText(order.clientName || 'Client')}</span></div>
+          <div class="row"><span>Telephone:</span><span>${escapeReceiptText(order.clientPhone || '')}</span></div>
+          <div class="row"><span>Commercial:</span><span>${escapeReceiptText(order.commercialName || 'N/A')}</span></div>
+        </div>
+        <div class="separator"></div>
+        <div class="content-wrapper">
+          <div style="margin-bottom: 6px;">ARTICLES:</div>
+          ${itemsHTML || '<div>Aucun article</div>'}
+        </div>
+        <div class="separator"></div>
+        <div class="content-wrapper">
+          <div class="row"><span>TOTAL:</span><span>${formatReceiptAmount(order.totalAmount)} FCFA</span></div>
+        </div>
+        <div class="separator"></div>
+        <div class="auth">
+          <div class="auth-label">CODE D'AUTHENTICITE</div>
+          <div class="auth-code">${escapeReceiptText(code || '—')}</div>
+        </div>
+        <div class="footer">
+          <p>Verifiez ce code dans Elykia</p>
         </div>
       </body>
       </html>

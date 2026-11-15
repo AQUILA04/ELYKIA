@@ -1,0 +1,43 @@
+<h2 mat-dialog-title>Vérifier un reçu</h2>
+
+<mat-dialog-content>
+  <p class="hint">Saisissez le code imprimé sur le reçu de commande tontine.</p>
+  <label class="code-label" for="receipt-code">Code d'authenticité</label>
+  <input
+    id="receipt-code"
+    class="code-input"
+    type="text"
+    name="receiptCode"
+    [(ngModel)]="code"
+    (keydown.enter)="verify()"
+    placeholder="ELY-XXXX-XXXX"
+    autocomplete="off">
+
+  <p class="error" *ngIf="error">{{ error }}</p>
+
+  <div class="result unknown" *ngIf="result && !result.found">
+    {{ result.message || 'Ce reçu ne provient pas d\'Elykia.' }}
+  </div>
+
+  <div class="result official" *ngIf="result && result.found">
+    <p class="result-title">Reçu reconnu</p>
+    <p><span>Code</span> {{ result.authenticityCode }}</p>
+    <p><span>Référence</span> {{ result.reference }}</p>
+    <p><span>Membre</span> {{ result.clientName }}</p>
+    <p *ngIf="result.clientPhone && result.clientPhone !== '—'"><span>Téléphone</span> {{ result.clientPhone }}</p>
+    <p><span>Date</span> {{ result.requestDate }}</p>
+    <p><span>Statut</span> {{ result.statusLabel }}</p>
+    <p><span>Commercial</span> {{ result.commercialUsername }}</p>
+    <p><span>Montant</span> {{ result.totalAmount }}</p>
+    <ul *ngIf="result.lines?.length">
+      <li *ngFor="let line of result.lines">{{ line.designation }} · qté {{ line.quantity }}</li>
+    </ul>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button type="button" class="btn-clear" (click)="close()">Fermer</button>
+  <button type="button" class="btn-primary" (click)="verify()" [disabled]="loading || !code.trim()">
+    {{ loading ? 'Vérification…' : 'Vérifier' }}
+  </button>
+</mat-dialog-actions>

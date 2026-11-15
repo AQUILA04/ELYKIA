@@ -20,6 +20,7 @@ public class TontineDeliveryListDto {
     private String clientLastname;
     private String clientPhone;
     private String reference;
+    private String authenticityCode;
     private LocalDateTime deliveryDate;
     private LocalDateTime requestDate;
     private Double totalAmount;

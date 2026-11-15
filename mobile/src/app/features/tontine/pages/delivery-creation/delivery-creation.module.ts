@@ -6,6 +6,7 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { DeliveryCreationPage } from './delivery-creation.page';
 import { TontineDeliveryReceiptModalModule } from 'src/app/shared/components/tontine-delivery-receipt-modal/tontine-delivery-receipt-modal.module';
+import { TontineOrderReceiptModalModule } from 'src/app/shared/components/tontine-order-receipt-modal/tontine-order-receipt-modal.module';
 import { IfUnitPriceDirective } from 'src/app/shared/directives/if-unit-price.directive';
 
 const routes: Routes = [
@@ -22,6 +23,7 @@ const routes: Routes = [
         IonicModule,
         RouterModule.forChild(routes),
         TontineDeliveryReceiptModalModule,
+        TontineOrderReceiptModalModule,
         IfUnitPriceDirective
     ],
     declarations: [DeliveryCreationPage]

@@ -64,6 +64,29 @@ class TontineDeliveryReferenceServiceTest {
     }
 
     @Test
+    void resolveAuthenticityCode_keepsAValidCodeSentByThePhone() {
+        when(deliveryRepository.existsByAuthenticityCode("ELY-AB12-CD34")).thenReturn(false);
+
+        String result = service.resolveAuthenticityCode(" ely-ab12-cd34 ");
+
+        assertEquals("ELY-AB12-CD34", result);
+    }
+
+    @Test
+    void resolveAuthenticityCode_rejectsAnUnknownShape() {
+        assertThrows(CustomValidationException.class, () -> service.resolveAuthenticityCode("FAUX-123"));
+    }
+
+    @Test
+    void resolveAuthenticityCode_generatesElyCodeWhenNoneIsProvided() {
+        when(deliveryRepository.existsByAuthenticityCode(anyString())).thenReturn(false);
+
+        String result = service.resolveAuthenticityCode(null);
+
+        assertTrue(result.matches("ELY-[0-9A-F]{4}-[0-9A-F]{4}"));
+    }
+
+    @Test
     void generate_usesCurrentDateWhenRequestDateIsAbsent() {
         // Given
         int currentYear = LocalDateTime.now().getYear();

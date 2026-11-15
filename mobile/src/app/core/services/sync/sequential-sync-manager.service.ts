@@ -199,6 +199,8 @@ export class SequentialSyncManager implements ISequentialSyncManager {
                     if (m.delivery) {
                       deliveries.push({
                         id: m.delivery.id,
+                        reference: m.delivery.reference ?? null,
+                        authenticityCode: m.delivery.authenticityCode ?? null,
                         tontineMemberId: m.id,
                         commercialUsername: options.commercialUsername,
                         requestDate: m.delivery.requestDate,

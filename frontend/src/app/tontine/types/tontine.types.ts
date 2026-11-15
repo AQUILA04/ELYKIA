@@ -106,6 +106,7 @@ export interface TontineClient {
 
 export interface TontineDelivery {
   readonly id: number;
+  readonly reference?: string;
   readonly tontineMemberId?: number;
   readonly deliveryStatus: TontineMemberDeliveryStatus;
   readonly clientName?: string;
