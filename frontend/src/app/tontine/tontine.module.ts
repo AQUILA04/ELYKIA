@@ -68,6 +68,7 @@ import { TontineCollecteTableComponent } from './collecte/components/tontine-col
 import { TontineDeliveryListComponent } from './pages/delivery-list/tontine-delivery-list.component';
 import { TontineCollectionResetComponent } from './pages/tontine-collection-reset/tontine-collection-reset.component';
 import { TontineAllocationMigrationBannerComponent } from './components/tontine-allocation-migration-banner/tontine-allocation-migration-banner.component';
+import { TontineDeliveryStockRequestModalComponent } from './components/modals/tontine-delivery-stock-request-modal/tontine-delivery-stock-request-modal.component';
 
 // Services
 import { TontineService } from './services/tontine.service';
@@ -95,6 +96,7 @@ import { TontineSessionService } from './services/tontine-session.service';
     RecordCatchupCollectionModalComponent,
     SessionSettingsModalComponent,
     DeliveryArticleSelectionModalComponent,
+    TontineDeliveryStockRequestModalComponent,
     TontineFieldControlModalComponent,
     EditAdhesionDateModalComponent,
 

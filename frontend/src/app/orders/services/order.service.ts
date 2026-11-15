@@ -380,6 +380,26 @@ export class OrderService {
       );
   }
 
+  acceptPendingOrders(filters: {
+    commercial?: string | null;
+    search?: string | null;
+    source?: OrderSource | null;
+  }): Observable<ApiResponse<{ count: number }>> {
+    const headers = this.getHeaders();
+    const body: { commercial?: string; search?: string; source?: OrderSource } = {};
+    if (filters.commercial) {
+      body.commercial = filters.commercial;
+    }
+    if (filters.search) {
+      body.search = filters.search;
+    }
+    if (filters.source) {
+      body.source = filters.source;
+    }
+    return this.http.post<ApiResponse<{ count: number }>>(`${this.apiUrl}/accept-pending`, body, { headers })
+      .pipe(catchError(this.handleApiError.bind(this)));
+  }
+
   /**
    * Transforme une commande acceptée en vente (crédit)
    */

@@ -164,6 +164,61 @@ public class TontineDeliveryService {
         return mapToDto(delivery);
     }
 
+    /**
+     * Valide les livraisons demandées. Toutes doivent être en attente : sinon le lot est refusé.
+     */
+    public int validateSelected(List<Long> deliveryIds) {
+        List<Long> distinctIds = distinctIds(deliveryIds);
+        for (Long deliveryId : distinctIds) {
+            TontineDelivery delivery = requireDelivery(deliveryId);
+            if (delivery.getTontineMember().getDeliveryStatus() != TontineMemberDeliveryStatus.PENDING) {
+                throw new CustomValidationException(
+                        "Seules les livraisons en attente peuvent être validées ("
+                                + displayReference(delivery) + ").");
+            }
+        }
+        return markPendingValidated(distinctIds);
+    }
+
+    /**
+     * Passe en validée les livraisons encore en attente. Les autres statuts sont ignorés.
+     */
+    public int validateStillPending(List<Long> deliveryIds) {
+        return markPendingValidated(distinctIds(deliveryIds));
+    }
+
+    private int markPendingValidated(List<Long> deliveryIds) {
+        int validated = 0;
+        for (Long deliveryId : deliveryIds) {
+            TontineDelivery delivery = requireDelivery(deliveryId);
+            TontineMember member = delivery.getTontineMember();
+            if (member.getDeliveryStatus() != TontineMemberDeliveryStatus.PENDING) {
+                continue;
+            }
+            member.setDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED);
+            memberRepository.save(member);
+            validated++;
+            log.info("Delivery {} validated.", delivery.getId());
+        }
+        return validated;
+    }
+
+    private TontineDelivery requireDelivery(Long deliveryId) {
+        return deliveryRepository.findById(deliveryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Livraison non trouvée"));
+    }
+
+    private List<Long> distinctIds(List<Long> deliveryIds) {
+        if (deliveryIds == null || deliveryIds.isEmpty()) {
+            throw new CustomValidationException("Au moins une livraison est requise.");
+        }
+        return deliveryIds.stream().distinct().toList();
+    }
+
+    private String displayReference(TontineDelivery delivery) {
+        return delivery.getReference() != null ? delivery.getReference() : "livraison " + delivery.getId();
+    }
+
     public Page<TontineDeliveryDto> getValidatedDeliveries(Pageable pageable) {
         Page<TontineMember> membersPage = memberRepository.findByDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED,
                 pageable);

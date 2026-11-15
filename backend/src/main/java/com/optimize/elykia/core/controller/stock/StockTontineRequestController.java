@@ -3,16 +3,24 @@ package com.optimize.elykia.core.controller.stock;
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
 import java.util.List;
+import com.optimize.elykia.core.dto.CreateStockRequestFromDeliveriesDto;
 import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
+import com.optimize.elykia.core.dto.PendingOrderStockPreviewDto;
 import com.optimize.elykia.core.service.stock.StockExportService;
 import com.optimize.elykia.core.service.stock.StockTontineRequestService;
+import com.optimize.elykia.core.service.tontine.TontineDeliveryStockRequestService;
+import com.optimize.elykia.core.util.UserPermissionConstant;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
@@ -23,10 +31,47 @@ public class StockTontineRequestController {
 
     private final StockTontineRequestService service;
     private final StockExportService stockExportService;
+    private final TontineDeliveryStockRequestService deliveryStockRequestService;
 
     @PostMapping("/create")
     public ResponseEntity<StockTontineRequest> createRequest(@RequestBody StockTontineRequest request) {
         return ResponseEntity.ok(service.save(request));
+    }
+
+    @PostMapping("/from-deliveries/preview")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.ORDER_STOCK_REQUEST + "')")
+    public ResponseEntity<PendingOrderStockPreviewDto> previewFromDeliveries(
+            @RequestBody @Valid CreateStockRequestFromDeliveriesDto dto) {
+        return ResponseEntity.ok(deliveryStockRequestService.preview(dto.getDeliveryIds()));
+    }
+
+    @PostMapping("/from-deliveries")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.ORDER_STOCK_REQUEST + "')")
+    public ResponseEntity<List<StockTontineRequest>> createFromDeliveries(
+            @RequestBody @Valid CreateStockRequestFromDeliveriesDto dto) {
+        return ResponseEntity.ok(deliveryStockRequestService.create(dto.getDeliveryIds()));
+    }
+
+    @PostMapping("/from-pending-deliveries/preview")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.ORDER_STOCK_REQUEST + "')")
+    public ResponseEntity<PendingOrderStockPreviewDto> previewPendingDeliveries(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) String commercial,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(deliveryStockRequestService.previewPending(
+                startOf(dateFrom), endOf(dateTo), commercial, search));
+    }
+
+    @PostMapping("/from-pending-deliveries")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.ORDER_STOCK_REQUEST + "')")
+    public ResponseEntity<List<StockTontineRequest>> createFromPendingDeliveries(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) String commercial,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(deliveryStockRequestService.createFromPending(
+                startOf(dateFrom), endOf(dateTo), commercial, search));
     }
 
     @PutMapping("/{id}/validate")
@@ -99,5 +144,13 @@ public class StockTontineRequestController {
         headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 
         return new ResponseEntity<>(pdfContent, headers, org.springframework.http.HttpStatus.OK);
+    }
+
+    private LocalDateTime startOf(LocalDate date) {
+        return date != null ? date.atStartOfDay() : null;
+    }
+
+    private LocalDateTime endOf(LocalDate date) {
+        return date != null ? date.atTime(LocalTime.MAX) : null;
     }
 }

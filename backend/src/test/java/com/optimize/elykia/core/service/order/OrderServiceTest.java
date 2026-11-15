@@ -33,6 +33,8 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
+import static org.mockito.ArgumentMatchers.isNull;
+
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -150,6 +152,40 @@ class OrderServiceTest {
         assertEquals(OrderStatus.ACCEPTED, updated.get(0).getStatus());
         verify(historyService).createHistory(order, OrderStatus.PENDING, OrderStatus.ACCEPTED, "gestionnaire.a");
         verify(appNotificationService).resolveByTypeAndEntityId(AppNotificationType.CUSTOMER_ORDER, 31L);
+    }
+
+    @Test
+    void acceptPendingOrders_acceptsOnlyTheFilteredPendingPage() {
+        OrderService service = service();
+        Order order = pendingOrder(31L, "commercial.a");
+        User staff = staffUser("gestionnaire.a");
+        when(userService.getCurrentUser()).thenReturn(staff);
+        when(orderRepository.searchOrders(
+                eq(List.of(OrderStatus.PENDING)), isNull(), eq("commercial.a"), eq("Dupont"), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(order)));
+        when(orderRepository.findById(31L)).thenReturn(Optional.of(order));
+        when(orderRepository.saveAndFlush(any(Order.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        int accepted = service.acceptPendingOrders(null, "commercial.a", "Dupont");
+
+        assertEquals(1, accepted);
+        assertEquals(OrderStatus.ACCEPTED, order.getStatus());
+    }
+
+    @Test
+    void acceptPendingOrders_promoterIsLimitedToOwnPortfolio() {
+        OrderService service = service();
+        User promoter = promoterUser("commercial.a");
+        when(userService.getCurrentUser()).thenReturn(promoter);
+        when(orderRepository.searchOrders(
+                eq(List.of(OrderStatus.PENDING)), isNull(), eq("commercial.a"), eq(""), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        int accepted = service.acceptPendingOrders(null, "commercial.other", "  ");
+
+        assertEquals(0, accepted);
+        verify(orderRepository).searchOrders(
+                eq(List.of(OrderStatus.PENDING)), isNull(), eq("commercial.a"), eq(""), any(Pageable.class));
     }
 
     @Test

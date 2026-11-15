@@ -17,6 +17,7 @@ import jakarta.persistence.criteria.Predicate;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,6 +26,15 @@ public interface TontineDeliveryRepository extends JpaRepository<TontineDelivery
 
     @Query("SELECT d FROM TontineDelivery d LEFT JOIN FETCH d.items WHERE d.tontineMember.id = :memberId")
     Optional<TontineDelivery> findByTontineMemberId(@Param("memberId") Long memberId);
+
+    @Query("""
+            SELECT DISTINCT d FROM TontineDelivery d
+            LEFT JOIN FETCH d.items item
+            LEFT JOIN FETCH item.articles
+            JOIN FETCH d.tontineMember
+            WHERE d.id IN :ids
+            """)
+    List<TontineDelivery> findAllWithItemsByIdIn(@Param("ids") Collection<Long> ids);
 
     boolean existsByTontineMemberId(Long memberId);
 

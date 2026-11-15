@@ -1,6 +1,22 @@
 import { Injectable } from '@angular/core';
 import { BaseHttpService } from '../../shared/service/base-http.service';
 import { HttpClient, HttpParams } from '@angular/common/http';
+
+export interface TontineDeliveryStockFilter {
+  dateFrom?: string;
+  dateTo?: string;
+  commercial?: string | null;
+  search?: string | null;
+}
+
+export interface TontineDeliveryStockPreview {
+  orderCount: number;
+  groups: {
+    collector: string;
+    orderIds: number[];
+    articles: { name: string; quantity: number }[];
+  }[];
+}
 import { Observable } from 'rxjs';
 import { StockTontineRequest, StockTontineRequestItem, StockTontineRequestListItem } from '../models/stock-tontine-request.model';
 import { PartialDeliveryResponseDTO } from '../../stock/models/stock-request.model';
@@ -25,6 +41,47 @@ export class StockTontineRequestService extends BaseHttpService {
 
   create(request: any): Observable<StockTontineRequest> {
     return this.post<StockTontineRequest>(`${this.baseUrl}/create`, request);
+  }
+
+  previewFromDeliveries(deliveryIds: number[]): Observable<TontineDeliveryStockPreview> {
+    return this.post<TontineDeliveryStockPreview>(`${this.baseUrl}/from-deliveries/preview`, { deliveryIds });
+  }
+
+  createFromDeliveries(deliveryIds: number[]): Observable<StockTontineRequest[]> {
+    return this.post<StockTontineRequest[]>(`${this.baseUrl}/from-deliveries`, { deliveryIds });
+  }
+
+  previewPendingDeliveries(filter: TontineDeliveryStockFilter): Observable<TontineDeliveryStockPreview> {
+    return this.post<TontineDeliveryStockPreview>(
+      `${this.baseUrl}/from-pending-deliveries/preview`,
+      {},
+      { params: this.deliveryFilterParams(filter) }
+    );
+  }
+
+  createFromPendingDeliveries(filter: TontineDeliveryStockFilter): Observable<StockTontineRequest[]> {
+    return this.post<StockTontineRequest[]>(
+      `${this.baseUrl}/from-pending-deliveries`,
+      {},
+      { params: this.deliveryFilterParams(filter) }
+    );
+  }
+
+  private deliveryFilterParams(filter: TontineDeliveryStockFilter): HttpParams {
+    let params = new HttpParams();
+    if (filter.dateFrom) {
+      params = params.set('dateFrom', filter.dateFrom);
+    }
+    if (filter.dateTo) {
+      params = params.set('dateTo', filter.dateTo);
+    }
+    if (filter.commercial) {
+      params = params.set('commercial', filter.commercial);
+    }
+    if (filter.search) {
+      params = params.set('search', filter.search);
+    }
+    return params;
   }
 
   validate(id: number): Observable<StockTontineRequest> {

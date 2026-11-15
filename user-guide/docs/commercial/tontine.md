@@ -193,6 +193,12 @@ Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. C
 - Filtres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.
 - Recherche instantanée par nom ou référence de client.
 
+1. Cochez les lignes **En attente** de la page, puis cliquez sur **Valider la sélection**. Le statut passe à **Validée**.
+2. **Tout valider** valide toutes les livraisons **En attente** de la période, de la recherche et du commercial choisi. Une confirmation indique le nombre.
+3. **Faire une demande de stock** regroupe les commandes cochées d'un même commercial en une seule demande de sortie tontine. Les quantités d'un même article s'additionnent. Le magasinier livre ensuite ce commercial en une seule opération.
+4. **Demande de stock (en attente)** prépare la même demande pour toutes les livraisons **En attente** du filtre, qui ne sont pas déjà dans une demande de stock. La fenêtre rappelle les articles et les quantités, par commercial.
+5. Quand la demande de stock est validée, les commandes liées encore **En attente** passent à **Validée**. La remise au membre reste **Marquer comme Livré**.
+
 ---
 
 ## 6. Journal des collectes (Menu Tontines > Collectes)

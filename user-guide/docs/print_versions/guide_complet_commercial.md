@@ -18,9 +18,10 @@ Ce guide présente les parcours de terrain disponibles sur le web et, dans sa de
 | Obtenir les articles | Stock Commercial | Créer une demande de sortie et suivre sa livraison. |
 | Distribuer et suivre | Ventes | Créer une vente, suivre son statut et encaisser les mises. |
 | Collecter l’épargne | Tontines | Inscrire, collecter, suivre la progression et préparer la livraison. |
+| Relire un ancien dossier | Ancien portefeuille | Consulter les membres, crédits et ventes comptant que vous avez suivis, sans nouvelle saisie. |
 | Rendre compte | Caisse, Rapport Journalier | Contrôler les versements et les opérations de la période. |
 | Suivre vos dettes | Dettes | Consulter vos positions marchandise et caisse, et leur règlement. |
-| Traiter une disparité | Écarts de carnet | Accepter la mise manquante ou rejeter le constat. |
+| Traiter une disparité | Écarts de carnet | Accepter pour recaler la tontine sur le carnet, ou rejeter le constat. |
 
 Suivez les pages [Clients et comptes](clients_accounts.md), [Stock](stock.md), [Dettes](debts.md), [Écarts de carnet](ecarts_carnet.md), [Ventes et commandes](sales_orders.md), [Tontines](tontine.md) et [Application mobile](mobile_app.md).
 
@@ -300,6 +301,7 @@ Le menu latéral gauche vous donne accès aux espaces de vente selon vos attribu
 | Menu / Écran | Ce que vous y trouvez | Utilisation au quotidien |
 |---|---|---|
 | **Ventes > Liste** | Le tableau de bord principal des ventes, la recherche multicritères, le suivi des statuts, la fusion de crédits et les réaffectations. | Suivre les contrats en cours, valider les dossiers, enregistrer les encaissements ou réassigner des portefeuilles. |
+| **Ventes > Ancien portefeuille** | Les crédits et les ventes comptant en agence que vous avez suivis. | Relire une passation et vos encaissements, sans enregistrer de nouveau recouvrement. |
 | **Ventes > Retards** | La liste des crédits présentant des impayés (délais dépassés ou échéances dues). | Prioriser les visites de relance, consigner les contrôles terrain et clôturer les dossiers compromis. |
 | **Ventes > Échéances** | Le calendrier des montants attendus aujourd'hui, cette semaine ou sur une date précise. | Anticiper les rentrées de fonds et préparer les tournées quotidiennes. |
 | **Ventes > Recouvrements** | Le journal chronologique de tous les encaissements perçus. | Contrôler la traçabilité des règlements et rectifier d'éventuelles erreurs de saisie. |
@@ -377,10 +379,19 @@ Pour créer une vente, cliquez sur le bouton bleu **« + Nouvelle vente »** en 
 |---|---|---|
 | **Commercial responsable** | **Obligatoire**. En tant que commercial, votre nom est automatiquement renseigné. En tant que gestionnaire, vous choisissez le commercial qui portera la vente. | Non requis. La vente est une opération directe en boutique. |
 | **Choix du client** | La liste propose les clients déjà rattachés au commercial sélectionné. | Recherche universelle parmi l'ensemble des clients de l'agence. |
-| **Articles et stock disponible** | Les articles sont déduits du **Stock Commercial** de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus. | Les articles sont recherchés directement dans le stock général du magasin. |
-| **Montant de la vente** | Le montant suit le tarif du crédit. | Le montant suit le tarif du comptant. |
-| **Paiement et échéances** | Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue. | Règlement intégral immédiat au comptoir. Aucun échéancier journalier. |
+| **Articles et stock disponible** | Les articles sont déduits du **Stock Commercial** de l'agent. Seuls les articles que le commercial a effectivement en sa possession peuvent être vendus. | Les articles sont pris dans le stock du magasin. Une fois la vente enregistrée, ces quantités ne peuvent plus être vendues une seconde fois. Le magasin remet ensuite la marchandise. |
+| **Montant de la vente** | Le montant suit le tarif du crédit, à l'unité. | Le montant suit le tarif du comptant. Sur chaque ligne, la liste **Offre** permet de vendre à l'unité, au gros, au demi-gros ou selon une offre libre (par exemple 3 pour 250). Le total de la ligne est le prix de l'offre multiplié par le nombre choisi. Le même article peut figurer deux fois si les offres diffèrent. |
+| **Paiement et échéances** | Saisie d'une avance initiale facultative, calcul automatique du solde restant dû, de la mise journalière et de la date de fin prévue. | Le client paie tout de suite au comptoir. La vente reste **En attente de livraison** jusqu'à la remise des articles, puis passe à **Clôturé**. |
 | **Usage du crédit** | Sans le bloc **Adhésions**, un seul crédit personnel. Lorsque plusieurs adhésions sont actives, choix **Personnel**, **Professionnel** ou **Événement**. Un seul crédit ouvert par type. | Sans objet. |
+
+### Remise d'une vente au comptant
+
+Le client doit déjà être rattaché à un commercial.
+
+1. Enregistrez la vente. Le client paie au comptoir. Si l'impression du reçu est activée, le ticket s'affiche tout de suite et indique que la marchandise se retire au magasin.
+2. Dans la liste des ventes, la ligne affiche **En attente de livraison**. Vous pouvez ouvrir **Détails**, ou **Annuler** tant que le magasin n'a pas remis les articles.
+3. Lorsque le magasin a remis les articles, la vente passe à **Clôturé**.
+4. **Annuler** avant cette remise retire l'argent de la caisse : remboursez le client. La marchandise reste au magasin. Après la remise, la vente ne s'annule plus.
 
 ### Reçu de caisse et impression immédiate
 Si l'impression immédiate est activée dans votre agence :
@@ -536,9 +547,25 @@ Les commandes sont réparties selon leur avancement :
 
 ### Traitement d'une commande
 1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités.
-2. **Accepter** : sur une commande en attente, cliquez sur **Accepter**. Pour plusieurs commandes, cochez-les puis cliquez sur **Accepter la sélection**.
+2. **Accepter** : sur une commande en attente, cliquez sur **Accepter**. Pour plusieurs commandes de la page, cochez-les puis cliquez sur **Accepter la sélection**. Pour toutes les commandes en attente de la liste, cliquez sur **Tout accepter**. Une confirmation indique le nombre.
 3. **Annuler** : le bouton **Annuler** apparaît sur une commande que vous avez créée, ou qui a été créée pour vous. La commande passe dans l’onglet **Autres**.
 4. **Vendre** : sur une commande validée, transformez-la en vente. La vente est créée automatiquement et la commande passe à **Livrée**.
+5. **Fiche** : sur chaque ligne, cliquez sur **Fiche** pour télécharger la fiche de la commande. Le bouton est présent pour une commande en attente, validée, livrée, refusée ou annulée.
+6. Ouvrez la commande, puis cliquez sur **Télécharger la fiche**. Le document reprend l’entreprise, le nom et le prénom du client, son téléphone, son quartier, son adresse, le commercial associé, la date, le statut, les articles, les quantités et le montant total.
+7. **Demande de stock (en attente)** prépare une demande de stock pour toutes les commandes en attente qui ne sont pas déjà dans une demande. La fenêtre rappelle les articles et les quantités. Cochez **Pour le mois prochain** si la sortie doit porter sur le mois suivant, puis confirmez.
+8. Sur **Services en ligne** > **Commandes**, **Fiche** et **Télécharger la fiche** fonctionnent de la même façon. **Demande de stock (en attente)** ne reprend alors que les commandes en ligne en attente.
+
+---
+
+## 12. Ancien portefeuille (Menu Ventes > Ancien portefeuille)
+
+Après un transfert, le contrat quitte votre liste des ventes en cours. Vous pouvez relire la situation au moment de la passation et les encaissements enregistrés à votre nom.
+
+1. Ouvrez **Ventes**, puis **Ancien portefeuille**. Le compteur **Dossiers affichés** indique le nombre de dossiers de l'onglet ouvert.
+2. Onglet **Crédit** : chaque ligne affiche la référence, le client, la date de passation, le montant et le reste dû figés à ce moment-là, puis le total de vos recouvrements.
+3. Cliquez sur **Voir** pour le détail de vos recouvrements (date, référence, montant).
+4. Onglet **Agence** : les ventes comptant enregistrées à votre nom, regroupées par client, lorsque vous ne suivez plus ce client pour les opérations en agence.
+5. Cet écran ne propose pas d'encaissement. Les nouveaux recouvrements se saisissent sur les ventes que vous suivez actuellement.
 
 
 
@@ -567,6 +594,7 @@ Le menu **Tontines** propose quatre espaces de travail adaptés au déroulement 
 | Menu / Écran | Ce que vous y trouvez | Utilisation au quotidien |
 |---|---|---|
 | **Tontines > Liste** | Le tableau de bord de la session active, les indicateurs d'épargne, la liste des membres et les outils de vérification. | Inscrire de nouveaux membres, suivre les adhésions, vérifier les carnets et consulter la progression. |
+| **Tontines > Ancien portefeuille** | Les membres que vous avez suivis et les collectes enregistrées à votre nom. | Relire un dossier après un changement de commercial, sans enregistrer de nouvelle collecte. |
 | **Tontines > Collectes** | Le journal chronologique de l'ensemble des cotisations enregistrées. | Contrôler les versements perçus, rechercher un paiement par période ou par commercial. |
 | **Tontines > Livraison** | Le suivi des commandes de marchandises de fin d'année. | Suivre les colis à préparer, valider les livraisons et confirmer la remise aux membres. |
 | **Tontines > Archives collectes** | L'historique des campagnes annuelles clôturées. | Consulter et télécharger les récapitulatifs PDF par commercial et par quartier des années antérieures. |
@@ -720,10 +748,10 @@ flowchart LR
 
 1. **Préparer la Livraison** :
    - Tant que la session est ouverte, le bouton **Préparer la Livraison** est disponible sur la fiche du membre.
-   - Une fenêtre s'ouvre avec le **Solde Disponible** mobilisable.
+   - La fenêtre affiche le **Solde disponible** (déjà encaissé) et le **Solde prévisionnel** (estimation de fin d'année si chaque mois est cotisé en entier). Le panier peut aller jusqu'à ce prévisionnel, même si l'épargne déjà encaissée est plus basse. Il ne peut pas aller au-delà : le **Reste au plafond** passe en dessous de zéro et l'enregistrement est refusé.
    - Choisissez les articles souhaités dans le **catalogue** de l'agence (pas besoin que le commercial ait déjà du stock tontine).
-   - Le système vérifie en direct que le montant total des articles ne dépasse pas le solde disponible du membre.
-   - Si les articles choisis coûtent moins que l'épargne, la différence reste conservée comme **Solde non utilisé** au profit du client.
+   - Pour chaque article, la liste **Offre** propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.
+   - Si les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme **Solde non utilisé** au profit du client.
    - Le dossier passe au statut **En attente**.
 
 2. **Valider la Livraison** :
@@ -731,14 +759,22 @@ flowchart LR
 
 3. **Marquer comme Livré** :
    - Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur **Marquer comme Livré**.
+   - La remise part seulement si le **solde disponible** couvre le montant de la commande. S'il est en dessous, la fenêtre **Solde insuffisant** propose **Réduire la commande** : retirez ou diminuez des articles jusqu'à ce que le total tienne dans le solde disponible, puis enregistrez. Le complément de cotisation au moment de la remise se fait sur l'application mobile.
    - Cette action déduit définitivement les articles du **stock tontine** du commercial et clôture le dossier du membre. Le commercial doit donc avoir reçu les articles via une demande de stock tontine avant la remise.
    - La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.
+   - Après la clôture, une livraison directe suit le même plafond : le panier peut aller jusqu'au solde prévisionnel de l'année, et la remise attend que le solde disponible couvre ce panier.
 
 ### Consulter l'ensemble des livraisons (Menu Tontines > Livraison)
 Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. Cet espace centralise toutes les opérations de distribution de l'agence :
 - Indicateurs globaux : nombre de colis livrés, montant total distribué, livraisons restant à honorer, soldes non utilisés.
 - Filtres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.
 - Recherche instantanée par nom ou référence de client.
+
+1. Cochez les lignes **En attente** de la page, puis cliquez sur **Valider la sélection**. Le statut passe à **Validée**.
+2. **Tout valider** valide toutes les livraisons **En attente** de la période, de la recherche et du commercial choisi. Une confirmation indique le nombre.
+3. **Faire une demande de stock** regroupe les commandes cochées d'un même commercial en une seule demande de sortie tontine. Les quantités d'un même article s'additionnent. Le magasinier livre ensuite ce commercial en une seule opération.
+4. **Demande de stock (en attente)** prépare la même demande pour toutes les livraisons **En attente** du filtre, qui ne sont pas déjà dans une demande de stock. La fenêtre rappelle les articles et les quantités, par commercial.
+5. Quand la demande de stock est validée, les commandes liées encore **En attente** passent à **Validée**. La remise au membre reste **Marquer comme Livré**.
 
 ---
 
@@ -768,6 +804,18 @@ Toutes les archives générées sont rangées dans une arborescence par année :
    - L'application sauvegarde d'abord l'intégralité des collectes en PDF.
    - Puis elle remet à zéro les compteurs d'épargne de la session active pour ouvrir la nouvelle année.
    - **Tous les membres, leurs coordonnées et leurs affectations commerciales restent précieusement conservés** : les clients n'ont pas besoin d'être réenrôlés pour la nouvelle campagne.
+
+---
+
+## 8. Ancien portefeuille (Menu Tontines > Ancien portefeuille)
+
+Quand un membre change de commercial, il quitte votre liste de la session en cours. Vous pouvez toujours relire ce que vous avez collecté pour lui.
+
+1. Ouvrez **Tontines**, puis **Ancien portefeuille**. Le bouton **Voir l'historique**, sous les filtres de la liste, ouvre le même écran.
+2. Restez sur l'onglet **Tontine**. Le compteur **Dossiers affichés** indique le nombre de dossiers de cet onglet.
+3. Chaque ligne affiche le nom, le code, le téléphone, le quartier, l'année et le total des collectes enregistrées à votre nom.
+4. Cliquez sur **Voir**. Au-dessus de la liste, chaque mois de collecte affiche des pastilles numérotées. Une pastille correspond à un jour complet de mise, selon la mise en vigueur à la date de la collecte. Elles se rangent par lignes de 7 : 1 à 7, puis 8 à 14, et ainsi de suite. La liste en dessous reprend vos collectes (date, référence, montant) et leur total.
+5. Cet écran ne contient pas de bouton pour enregistrer une collecte. Les nouvelles collectes se saisissent depuis la liste des membres que vous suivez actuellement.
 
 
 \newpage
@@ -1028,23 +1076,29 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
 
 1. **Ouvrez la livraison** :
    * Sur la fiche de la membre, touchez les trois petits points (**⋮**) en haut à droite et choisissez **Livraison Fin d'Année**.
-2. **Regardez le bandeau de budget en haut** :
-   * Il vous indique le budget net disponible de la membre (le total épargné moins les frais de gestion statutaires de la tontine).
+2. **Regardez le bandeau en haut** :
+   * **Solde disponible** : ce qui est déjà encaissé pour la membre.
+   * **Solde prévisionnel** : l'estimation de fin d'année si chaque mois de la session est cotisé en entier. C'est le plafond du panier, que la session soit encore ouverte ou déjà clôturée.
+   * **Reste au plafond** : ce qu'il reste avant d'atteindre ce plafond.
 3. **Choisissez les articles avec la cliente** :
    * **Pendant la session ouverte** : l'écran affiche le **catalogue** de l'agence. Vous n'avez pas besoin d'avoir déjà du stock tontine pour enregistrer la commande.
    * **Après la clôture** : l'écran affiche votre **stock tontine** (articles reçus du magasin) pour la remise en mains propres.
-   * Touchez **+** pour ajouter les articles. Au fur et à mesure, le compteur **Sélectionné** monte et le compteur **Restant** diminue.
-4. **Que faire si la cliente veut un article un peu plus cher que son épargne ?**
-   * L'application est intelligente ! Si le total des articles dépasse son épargne, un bouton bleu apparaît en haut : **« Compléter le solde (X FCFA) »**.
-   * Touchez ce bouton : l'application ouvre aussitôt l'écran de cotisation avec le montant manquant pré-rempli. Dès que la cliente vous donne la différence, vous revenez automatiquement sur son panier parfaitement équilibré !
+   * Touchez **+** pour ajouter les articles. Si l'article a plusieurs offres (unité, gros, demi-gros ou une offre libre), choisissez-la dans la liste avant d'augmenter la quantité.
+   * Le panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le **solde prévisionnel**. Dans ce cas, **Valider** reste indisponible : retirez ou diminuez des articles.
+4. **Si le solde déjà encaissé ne couvre pas le panier** :
+   * Pendant la session ouverte, vous pouvez quand même enregistrer la **Commande**. **Compléter le solde** est proposé, sans être obligatoire.
+   * Au moment de la remise, deux possibilités :
+     1. **Compléter le solde** : l'écran de cotisation s'ouvre avec le montant manquant. Cette cotisation est acceptée après la clôture, uniquement pour couvrir la commande. Revenez ensuite sur le panier.
+     2. **Modifier la commande** : diminuez les quantités ou retirez des articles jusqu'à ce que le total tienne dans le solde disponible, puis enregistrez.
 5. **Pendant la session ouverte — enregistrez une Commande** :
    * Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
    * L'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
    * Ensuite, préparez vos cartons au dépôt (demande de stock tontine) pour être prêt le jour de la remise.
 6. **Après la clôture de la session — remettez les articles** :
-   * **Livraison directe** : si vous avez les articles dans votre stock tontine et que vous les donnez immédiatement, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise.
-   * **Marquer comme livré** : si une commande était déjà enregistrée, retournez sur la fiche membre et touchez **Marquer comme livré**. Le stock tontine est décompté et le dossier est terminé. Si un article manque dans votre stock, l'application vous le signale pour que vous fassiez d'abord une demande au magasin.
-   * Une fois la session clôturée, vous ne créez plus de nouvelle commande : seule la remise reste disponible.
+   * Le panier, en livraison directe comme pour une commande déjà posée, peut aller jusqu'au **solde prévisionnel** de l'année.
+   * **Livraison directe** : si vous avez les articles dans votre stock tontine et que le solde disponible couvre le panier, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise.
+   * **Marquer comme livré** : si une commande était déjà enregistrée, retournez sur la fiche membre et touchez **Marquer comme livré**. Si le solde disponible ne couvre pas la commande, choisissez **Compléter le solde** ou **Modifier la commande** (diminuez les quantités, puis **Enregistrer la commande**). Le stock tontine est décompté seulement quand la remise est confirmée. Si un article manque dans votre stock, l'application vous le signale pour que vous fassiez d'abord une demande au magasin.
+   * Lorsque la campagne est terminée pour tout le monde, il n'y a plus de commande, plus de complément et plus de remise.
 
 ---
 
@@ -1156,6 +1210,17 @@ Ce montant correspond très exactement aux espèces physiques que le caissier va
 * **Chaque matin au démarrage** : l'application vous demande de valider votre **Code de consentement journalier**. C'est une signature numérique qui sécurise toutes les opérations que vous ferez au cours de la journée.
 * **Batterie et imprimante Bluetooth** : pensez à recharger votre smartphone et votre imprimante thermique chaque soir. Si l'imprimante n'a plus de batterie pendant la tournée, pas de panique : les reçus restent enregistrés dans le téléphone et vous pourrez les réimprimer plus tard dès que l'imprimante sera branchée.
 * **Mot de passe personnel** : ne donnez jamais votre mot de passe à un tiers. Toutes les opérations effectuées avec votre compte sur le téléphone engagent votre responsabilité financière personnelle.
+
+---
+
+## 10. Ancien portefeuille
+
+1. Ouvrez **Plus**, section **Tontine**, puis **Ancien portefeuille**.
+2. Touchez **Actualiser** lorsque vous avez du réseau : le téléphone enregistre une copie consultable ensuite, même hors ligne.
+3. L'onglet **Tontine** liste vos anciens membres. Touchez un nom pour voir les collectes enregistrées à votre nom.
+4. L'onglet **Crédit** liste les contrats transférés et vos recouvrements.
+5. L'onglet **Agence** liste vos ventes comptant pour les clients que vous ne suivez plus en agence.
+6. Ces écrans n'ont pas de bouton d'enregistrement. Une nouvelle collecte ou un nouveau recouvrement se fait depuis le portefeuille actuel.
 
 
 \newpage

@@ -31,6 +31,7 @@ import {
   OrderStockRequestModalResult
 } from '../../components/modals/order-stock-request-modal/order-stock-request-modal.component';
 import {ToastrService} from "ngx-toastr";
+import { AlertService } from 'src/app/shared/service/alert.service';
 
 @Component({
   selector: 'app-order-dashboard',
@@ -69,6 +70,7 @@ export class OrderDashboardComponent implements OnInit, AfterViewInit, OnDestroy
   canDelete = false;
   canDeny = false;
   canRequestStock = false;
+  acceptAllBusy = false;
   pendingStockBusy = false;
   private tabCounts: Partial<Record<OrderStatus | 'ALL', number>> = {};
   private suppressTabChange = true;
@@ -82,7 +84,8 @@ export class OrderDashboardComponent implements OnInit, AfterViewInit, OnDestroy
     private toastr: ToastrService,
     private authService: AuthService,
     private userService: UserService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private alertService: AlertService
   ) {
     this.state$ = this.orderService.state$;
     this.setupObservables();
@@ -427,6 +430,57 @@ export class OrderDashboardComponent implements OnInit, AfterViewInit, OnDestroy
     ).subscribe({
       next: (data) => this.savePdf(data, `fiche-commande-${order.id}.pdf`),
       error: (err) => this.showError(err?.error?.message || 'Erreur lors du téléchargement de la fiche')
+    });
+  }
+
+  get showAcceptAll(): boolean {
+    return this.currentTab === OrderStatus.PENDING;
+  }
+
+  acceptAllPending(): void {
+    if (!this.showAcceptAll || this.acceptAllBusy || this.totalElements === 0) {
+      return;
+    }
+    const verb = this.onlineMode ? 'Valider' : 'Accepter';
+    const commercial = this.selectedCommercial ? ` de ${this.selectedCommercial}` : '';
+    const search = this.searchTerm?.trim();
+    const searchPart = search ? ` correspondant à « ${search} »` : '';
+    void this.alertService.showConfirmation(
+      verb,
+      `${verb} ${this.totalElements} commande(s) en attente${commercial}${searchPart} ?`,
+      verb,
+      'Annuler'
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.acceptAllBusy = true;
+      this.cdr.markForCheck();
+      this.orderService.acceptPendingOrders({
+        commercial: this.canSelectCommercial ? this.selectedCommercial : null,
+        search: search || null,
+        source: this.onlineMode ? OrderSource.CUSTOMER_SPACE : null
+      }).pipe(
+        takeUntil(this.destroy$),
+        finalize(() => {
+          this.acceptAllBusy = false;
+          this.cdr.markForCheck();
+        })
+      ).subscribe({
+        next: (response) => {
+          const count = response?.data?.count ?? 0;
+          if (count === 0) {
+            this.showError('Aucune commande en attente à accepter.');
+            return;
+          }
+          this.showSuccess(count === 1
+            ? `1 commande ${this.onlineMode ? 'validée' : 'acceptée'}`
+            : `${count} commandes ${this.onlineMode ? 'validées' : 'acceptées'}`);
+          this.loadOrders();
+          this.onClearSelection();
+        },
+        error: (err) => this.showError(err?.error?.message || err?.message || 'Erreur lors de l\'acceptation')
+      });
     });
   }
 

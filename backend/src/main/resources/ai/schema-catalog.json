@@ -1111,6 +1111,39 @@
       ]
     },
     {
+      "name": "stock_tontine_request_delivery",
+      "description": "Lien entre une demande de sortie de stock tontine et une ou plusieurs commandes de livraison",
+      "synonyms": [
+        "commande tontine liée demande stock"
+      ],
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "stock_tontine_request_id",
+          "type": "bigint"
+        },
+        {
+          "name": "tontine_delivery_id",
+          "type": "bigint"
+        }
+      ],
+      "relations": [
+        {
+          "column": "stock_tontine_request_id",
+          "refTable": "stock_tontine_request",
+          "refColumn": "id"
+        },
+        {
+          "column": "tontine_delivery_id",
+          "refTable": "tontine_delivery",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
       "name": "stock_return",
       "description": "Retour de stock du commercial vers le magasin",
       "synonyms": [

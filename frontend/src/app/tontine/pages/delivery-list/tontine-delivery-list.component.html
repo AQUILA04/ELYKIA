@@ -115,6 +115,19 @@
       <span class="result-count">
         <strong>{{ totalElement }}</strong> livraison(s)
       </span>
+
+      <div class="toolbar-actions" *ngIf="canValidate || canRequestStock">
+        <button type="button" class="btn-primary" *ngIf="canValidate"
+                [disabled]="actionBusy || pendingCount === 0"
+                (click)="validateAllPending()">
+          Tout valider
+        </button>
+        <button type="button" class="btn-primary" *ngIf="canRequestStock"
+                [disabled]="actionBusy || pendingCount === 0"
+                (click)="requestStockForAllPending()">
+          Demande de stock (en attente)
+        </button>
+      </div>
     </div>
 
     <div class="table-card a5">
@@ -137,6 +150,13 @@
         <table class="data-table mobile-responsive" *ngIf="!isLoading && deliveries.length > 0">
           <thead>
             <tr>
+              <th class="col-check">
+                <input type="checkbox"
+                       [checked]="allPageSelected"
+                       [disabled]="selectableOnPage.length === 0"
+                       (change)="togglePage($any($event.target).checked)"
+                       aria-label="Sélectionner les livraisons de la page">
+              </th>
               <th>#</th>
               <th>Référence</th>
               <th>Client</th>
@@ -149,6 +169,13 @@
           </thead>
           <tbody>
             <tr *ngFor="let delivery of deliveries; let i = index" class="table-row">
+              <td class="col-check" data-label="Sélection">
+                <input type="checkbox"
+                       [checked]="isSelected(delivery)"
+                       [disabled]="!isSelectable(delivery)"
+                       (change)="toggleDelivery(delivery, $any($event.target).checked)"
+                       [attr.aria-label]="'Sélectionner ' + (delivery.reference || delivery.id)">
+              </td>
               <td data-label="#"><span class="col-ref">{{ (currentPage * pageSize) + (i + 1) }}</span></td>
               <td data-label="Référence"><span class="col-ref">{{ delivery.reference || '—' }}</span></td>
               <td data-label="Client">
@@ -192,5 +219,20 @@
         </mat-paginator>
       </div>
     </div>
+  </div>
+
+  <div class="delivery-action-bar" *ngIf="selectedIds.size > 0">
+    <span>{{ selectedIds.size }} sélectionnée(s)</span>
+    <button type="button" class="btn-primary" *ngIf="canValidateSelection"
+            [disabled]="actionBusy" (click)="validateSelection()">
+      Valider la sélection
+    </button>
+    <button type="button" class="btn-primary" *ngIf="canRequestStock"
+            [disabled]="actionBusy" (click)="requestStockForSelection()">
+      Faire une demande de stock
+    </button>
+    <button type="button" class="btn-clear" [disabled]="actionBusy" (click)="clearSelection()">
+      Annuler
+    </button>
   </div>
 </div>
