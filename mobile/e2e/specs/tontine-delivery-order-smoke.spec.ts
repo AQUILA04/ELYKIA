@@ -259,10 +259,10 @@ test.describe('Tontine delivery order vs direct @smoke', () => {
     await expect.poll(() => orderPosts.length, { timeout: 45_000 }).toBeGreaterThan(0);
     expect(distributePosts.length, 'order create must not POST /distribute').toBe(0);
 
-    await expect(page.locator('ion-alert').filter({ hasText: /Commande enregistrée/i })).toBeVisible({
-      timeout: 30_000,
-    });
-    await page.locator('ion-alert').filter({ hasText: /Commande enregistrée/i }).getByRole('button', { name: 'OK' }).click();
+    const receipt = page.locator('ion-modal').filter({ hasText: /REÇU DE COMMANDE|Aperçu du reçu/i });
+    await expect(receipt).toBeVisible({ timeout: 30_000 });
+    await receipt.getByRole('button', { name: 'Fermer' }).first().click();
+    await expect(receipt).toBeHidden({ timeout: 15_000 });
 
     await openMemberByName(page, /VITOR NOUHNA/i);
     await expect(page.getByTestId('e2e-tontine-member-delivery-status')).toContainText(/Commande/i, {

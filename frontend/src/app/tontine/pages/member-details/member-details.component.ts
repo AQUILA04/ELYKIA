@@ -903,7 +903,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       if (!deliveryId) {
         return;
       }
-      this.alertService.showConfirmation(
+      void this.alertService.showConfirmation(
         'Reçu de commande',
         'Voulez-vous télécharger le reçu ?',
         'Télécharger',

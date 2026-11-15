@@ -95,6 +95,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Livraisons tontine —** **Reçu** télécharge le reçu PDF de la commande. **Vérifier un reçu** contrôle le code imprimé : Elykia affiche la commande officielle, ou indique que le document ne provient pas d'Elykia. Après l'enregistrement ou la modification du panier, le téléchargement est proposé. **Télécharger le reçu** est aussi sur la fiche du membre.
 
+### Fixed
+
+- **Fiche membre tontine —** la proposition de téléchargement du reçu gère sa promesse. La note de fiabilité Sonar sur le code nouveau reste au niveau A.
+
 ## Frontend — [2.50.1] — 2026-11-15
 
 ### Fixed
@@ -339,6 +343,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - **Commande tontine —** après l'enregistrement, après une modification du panier, et depuis la fiche du membre, un aperçu permet d'imprimer le reçu sur l'imprimante de ceinture. Le ticket porte un code d'authenticité. Le prix unitaire suit le même réglage que les autres reçus. Le montant total reste affiché.
+
+### Fixed
+
+- **Commande tontine —** le contrôle automatique ferme l'aperçu du reçu au lieu d'attendre l'ancienne alerte « Commande enregistrée ».
 
 ## Mobile — [2.39.1] — 2026-11-14
 
