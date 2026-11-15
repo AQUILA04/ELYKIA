@@ -1,0 +1,101 @@
+<div class="main-container commercial-page a1">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/commercial/accounts" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd"/></svg>
+        Comptes commerciaux
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+    <div class="page-header-card a2">
+      <div class="header-card-top">
+        <span class="header-surtitle">Commerciaux</span>
+      </div>
+      <div class="header-card-main">
+        <div class="title-group">
+          <h1 class="page-title">{{ account?.username || 'Compte' }}</h1>
+        </div>
+        <button type="button" class="btn-refresh" (click)="load()">Actualiser</button>
+      </div>
+      <p class="page-subtitle">
+        <ng-container *ngIf="account?.holderName; else freeAccount">
+          Titulaire en cours : {{ account?.holderName }}, depuis le {{ account?.holderSince | date:'dd/MM/yyyy' }}
+        </ng-container>
+        <ng-template #freeAccount>Aucune affectation en cours</ng-template>
+      </p>
+    </div>
+  </div>
+
+  <div class="page-scroll-body">
+    <div class="notice a3" *ngIf="openAssignment">
+      <strong>{{ openAssignment.promoterName }}</strong> utilise ce compte depuis le {{ openAssignment.startDate | date:'dd/MM/yyyy' }}.
+      Clôturez cette période avant d'en ouvrir une qui la chevauche. La date de fin est incluse : la suivante commence le lendemain.
+      <div class="notice-row">
+        <input class="field-input" type="date" [(ngModel)]="closeDate" [min]="openAssignment.startDate">
+        <button type="button" class="btn-primary" [disabled]="saving" (click)="closeCurrent()">Clôturer</button>
+      </div>
+    </div>
+
+    <form class="panel a4" (ngSubmit)="save()">
+      <h2>{{ editingId ? 'Corriger une période' : 'Affecter une personne' }}</h2>
+      <div class="form-grid">
+        <label>
+          <span class="toolbar-label">Personne</span>
+          <select class="field-select" [(ngModel)]="promoterId" name="promoterId" required>
+            <option [ngValue]="null">Choisir</option>
+            <option *ngFor="let person of people" [ngValue]="person.id">{{ person.name }}</option>
+          </select>
+        </label>
+        <label>
+          <span class="toolbar-label">Début</span>
+          <input class="field-input" type="date" [(ngModel)]="startDate" name="startDate" required>
+        </label>
+        <label>
+          <span class="toolbar-label">Fin (vide = en cours)</span>
+          <input class="field-input" type="date" [(ngModel)]="endDate" name="endDate">
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" [disabled]="saving">{{ editingId ? 'Enregistrer' : 'Affecter' }}</button>
+        <button type="button" class="btn-ghost" *ngIf="editingId" (click)="cancelEdit()">Annuler</button>
+      </div>
+    </form>
+
+    <div class="table-card a5">
+      <div class="empty-state" *ngIf="loading">
+        <div class="empty-title">Chargement</div>
+      </div>
+      <div class="empty-state" *ngIf="!loading && history.length === 0">
+        <div class="empty-title">Aucune période</div>
+        <div class="empty-sub">Ce compte n'a pas encore été affecté.</div>
+      </div>
+      <table class="data-table" *ngIf="!loading && history.length > 0">
+        <thead>
+          <tr>
+            <th>Personne</th>
+            <th>Début</th>
+            <th>Fin</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of history">
+            <td>
+              <div class="person-cell">
+                <img *ngIf="item.photoUrl" class="avatar" [src]="item.photoUrl" [alt]="item.promoterName">
+                <span *ngIf="!item.photoUrl" class="avatar-fallback">{{ item.initials }}</span>
+                <span>{{ item.promoterName }}</span>
+              </div>
+            </td>
+            <td>{{ item.startDate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ item.endDate ? (item.endDate | date:'dd/MM/yyyy') : 'En cours' }}</td>
+            <td class="row-actions">
+              <button type="button" class="btn-detail" (click)="edit(item)">Corriger</button>
+              <button type="button" class="btn-detail btn-danger" (click)="remove(item)">Retirer</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

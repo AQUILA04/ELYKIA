@@ -135,4 +135,7 @@ public class UserPermissionConstant {
     /** Gestion des dettes commerciaux / magasinier (création, annulation, règlement). */
     public static final String DEBT_MANAGEMENT = "ROLE_DEBT_MANAGEMENT";
 
+    /** Annuaire du personnel commercial et historique d'affectation des comptes COM. */
+    public static final String MANAGE_COMMERCIAL_STAFF = "ROLE_MANAGE_COMMERCIAL_STAFF";
+
 }

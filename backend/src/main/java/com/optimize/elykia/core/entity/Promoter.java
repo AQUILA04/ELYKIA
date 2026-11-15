@@ -21,5 +21,7 @@ public class Promoter extends BaseEntity<String> {
     private String serialNumber;
     private LocalDate dateOfBirth;
     private String phoneNumber;
+    /** Clé MinIO de la miniature. Vide si aucune photo n'a été déposée. */
+    private String photoObjectKey;
 
 }

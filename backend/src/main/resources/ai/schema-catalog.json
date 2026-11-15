@@ -1961,6 +1961,35 @@
         { "name": "fee_amount", "type": "bigint", "description": "Frais de retrait de la tranche, en FCFA" },
         { "name": "visibility", "type": "varchar", "description": "ENABLED, DISABLED, DELETED" }
       ]
+    },
+    {
+      "name": "promoter",
+      "description": "Personne physique pouvant utiliser un compte commercial. Distincte du compte de connexion.",
+      "synonyms": ["personnel commercial", "titulaire", "personne"],
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "name", "type": "varchar", "description": "Nom de la personne" },
+        { "name": "phone_number", "type": "varchar", "description": "Téléphone, facultatif" },
+        { "name": "serial_number", "type": "varchar", "description": "Pièce d'identité, facultative" },
+        { "name": "date_of_birth", "type": "date", "description": "Date de naissance, facultative" },
+        { "name": "visibility", "type": "varchar", "description": "ENABLED, DISABLED, DELETED" }
+      ]
+    },
+    {
+      "name": "commercial_account_assignment",
+      "description": "Période pendant laquelle une personne utilise un compte commercial. Les périodes ne se chevauchent pas. end_date vide = affectation en cours.",
+      "synonyms": ["affectation commercial", "titulaire du compte", "qui utilisait le compte"],
+      "columns": [
+        { "name": "id", "type": "bigint", "description": "Identifiant" },
+        { "name": "user_id", "type": "bigint", "description": "Identifiant du compte commercial. Le username COM des ventes n'est pas stocké ici." },
+        { "name": "promoter_id", "type": "bigint", "description": "Personne (promoter.id)" },
+        { "name": "start_date", "type": "date", "description": "Début inclus" },
+        { "name": "end_date", "type": "date", "description": "Fin incluse, vide si l'affectation est en cours" },
+        { "name": "visibility", "type": "varchar", "description": "ENABLED, DISABLED, DELETED" }
+      ],
+      "relations": [
+        { "column": "promoter_id", "refTable": "promoter", "refColumn": "id" }
+      ]
     }
   ],
   "views": [
@@ -1983,6 +2012,7 @@
     "Stock magasin central = articles.stock_quantity ; historique = article_history (ENTREE/SORTIE/RETURN)",
     "Versements caisse = cash_deposit lié à daily_commercial_report via daily_report_id",
     "Pour filtrer stock commercial d'un user PROMOTER : utiliser collector ou commercial_username selon la table",
+    "Qui utilisait un compte commercial à une date : commercial_account_assignment joint à promoter. user_id identifie le compte ; le username COM des ventes reste collector ou commercial_username.",
     "Toujours filtrer visibility = 'ENABLED' si la colonne existe",
     "Toute requête SQL générée qui doit afficher le nom d'un article doit le formater sous l'alias commercialName en concaténant ses attributs (ex: CONCAT(a.type, ': ', a.marque, ' ', a.model, ' ', a.name) AS commercialName)."
   ]

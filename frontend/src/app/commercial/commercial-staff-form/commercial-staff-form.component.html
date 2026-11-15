@@ -1,0 +1,83 @@
+<div class="main-container commercial-page a1">
+  <div class="page-fixed-head">
+    <div class="breadcrumb-bar">
+      <a routerLink="/commercial/staff" class="breadcrumb-link">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd"/></svg>
+        Personnel
+      </a>
+      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+    <div class="page-header-card a2">
+      <div class="header-card-top"><span class="header-surtitle">Commerciaux</span></div>
+      <div class="header-card-main">
+        <h1 class="page-title">{{ id ? name || 'Fiche' : 'Nouvelle personne' }}</h1>
+      </div>
+      <p class="page-subtitle">Le nom est obligatoire. La pièce d'identité et la photo restent facultatives.</p>
+    </div>
+  </div>
+
+  <div class="page-scroll-body">
+    <form class="panel a3" (ngSubmit)="save()">
+      <div class="photo-row">
+        <img *ngIf="shownPhoto" class="avatar avatar-lg" [src]="shownPhoto" alt="Photo de profil">
+        <span *ngIf="!shownPhoto" class="avatar-fallback avatar-lg">{{ initials }}</span>
+        <div>
+          <span class="toolbar-label">Photo de profil</span>
+          <input class="photo-input" type="file" accept="image/jpeg,image/png,image/webp" (change)="onPhotoSelected($event)">
+          <div class="form-actions" *ngIf="shownPhoto">
+            <button type="button" class="btn-ghost" (click)="clearPhoto()">Retirer la photo</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-grid">
+        <label>
+          <span class="toolbar-label">Nom</span>
+          <input class="field-input" type="text" name="name" [(ngModel)]="name" required>
+        </label>
+        <label>
+          <span class="toolbar-label">Téléphone</span>
+          <input class="field-input" type="tel" name="phone" [(ngModel)]="phoneNumber">
+        </label>
+        <label>
+          <span class="toolbar-label">Pièce d'identité</span>
+          <input class="field-input" type="text" name="serial" [(ngModel)]="serialNumber">
+        </label>
+        <label>
+          <span class="toolbar-label">Date de naissance</span>
+          <input class="field-input" type="date" name="birth" [(ngModel)]="dateOfBirth">
+        </label>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" [disabled]="saving || loading">Enregistrer</button>
+        <button type="button" class="btn-detail btn-danger" *ngIf="id" (click)="remove()">Retirer</button>
+      </div>
+    </form>
+
+    <div class="table-card a4" *ngIf="id">
+      <div class="empty-state" *ngIf="!loading && assignments.length === 0">
+        <div class="empty-title">Aucun compte</div>
+        <div class="empty-sub">Cette personne n'a pas encore été affectée.</div>
+      </div>
+      <table class="data-table" *ngIf="assignments.length > 0">
+        <thead>
+          <tr>
+            <th>Compte</th>
+            <th>Début</th>
+            <th>Fin</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let item of assignments">
+            <td><span class="username">{{ item.username }}</span></td>
+            <td>{{ item.startDate | date:'dd/MM/yyyy' }}</td>
+            <td>{{ item.endDate ? (item.endDate | date:'dd/MM/yyyy') : 'En cours' }}</td>
+            <td class="row-actions">
+              <a class="btn-detail" [routerLink]="['/commercial/accounts', item.userId]">Voir le compte</a>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

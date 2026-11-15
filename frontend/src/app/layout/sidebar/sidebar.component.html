@@ -83,6 +83,32 @@
             <span class="hide-menu">Clients</span>
           </a>
         </li>
+        <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_MANAGE_COMMERCIAL_STAFF']">
+          <a class="sidebar-link has-arrow" (click)="onCommercialStaffClick()" aria-expanded="false"
+             data-testid="e2e-sidebar-commercial-staff"
+             [ngClass]="{ 'active': isRouteActive('/commercial') }">
+            <span>
+              <mat-icon>badge</mat-icon>
+            </span>
+            <span class="hide-menu">Commerciaux</span>
+          </a>
+          <ul aria-expanded="false" class="collapse first-level" [ngClass]="{ 'show': isCommercialStaffOpen }">
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/commercial/accounts"
+                 [ngClass]="{ 'active': isSubRouteActive('/commercial/accounts') }">
+                <span class="material-icons">account_circle</span>
+                <span class="hide-menu">Comptes</span>
+              </a>
+            </li>
+            <li class="sidebar-item submenu-item">
+              <a class="sidebar-link" routerLink="/commercial/staff"
+                 [ngClass]="{ 'active': isSubRouteActive('/commercial/staff') }">
+                <span class="material-icons">groups</span>
+                <span class="hide-menu">Personnel</span>
+              </a>
+            </li>
+          </ul>
+        </li>
         <li class="sidebar-item" *ngxPermissionsOnly="['ROLE_ACCOUNT', 'ROLE_EDIT_ACCOUNT']">
           <a class="sidebar-link" routerLink="/account/list" aria-expanded="false"
              data-testid="e2e-sidebar-accounts"
