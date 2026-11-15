@@ -7,3 +7,12 @@ export function generateTontineDeliveryReference(date: Date = new Date()): strin
     .toUpperCase();
   return `LIV-${year}-${month}-${hex}`;
 }
+
+/** Code ELY-XXXX-XXXX imprimé sur le reçu. Le serveur le conserve tel quel. */
+export function generateTontineAuthenticityCode(): string {
+  const hex = Array.from(crypto.getRandomValues(new Uint8Array(4)))
+    .map(byte => byte.toString(16).padStart(2, '0'))
+    .join('')
+    .toUpperCase();
+  return `ELY-${hex.slice(0, 4)}-${hex.slice(4)}`;
+}

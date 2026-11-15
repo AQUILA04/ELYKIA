@@ -175,8 +175,8 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
 
         const queryDelivery = `
       INSERT OR REPLACE INTO tontine_deliveries(
-          id, reference, tontineMemberId, commercialUsername, requestDate, deliveryDate, totalAmount, status, isLocal, isSync, syncDate, syncHash, operationConsentCode, needsDeliverSync
-        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          id, reference, tontineMemberId, commercialUsername, requestDate, deliveryDate, totalAmount, status, isLocal, isSync, syncDate, syncHash, operationConsentCode, needsDeliverSync, authenticityCode
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
 
         const queryItems = `
@@ -195,7 +195,8 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
                     delivery.id, delivery.reference || null, delivery.tontineMemberId, delivery.commercialUsername, delivery.requestDate, delivery.deliveryDate, delivery.totalAmount, delivery.status,
                     delivery.isLocal ? 1 : 0, delivery.isSync ? 1 : 0, delivery.syncDate || new Date().toISOString(), delivery.syncHash,
                     delivery.operationConsentCode || null,
-                    delivery.needsDeliverSync ? 1 : 0
+                    delivery.needsDeliverSync ? 1 : 0,
+                    delivery.authenticityCode || null
                 ]
             });
 
@@ -240,6 +241,14 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         }
 
         return deliveries;
+    }
+
+    async setAuthenticityCode(deliveryId: string, code: string): Promise<void> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        await this.databaseService.execute(
+            'UPDATE tontine_deliveries SET authenticityCode = ? WHERE id = ?',
+            [code, deliveryId]
+        );
     }
 
     async replaceItems(deliveryId: string, items: TontineDeliveryItem[], totalAmount: number): Promise<void> {

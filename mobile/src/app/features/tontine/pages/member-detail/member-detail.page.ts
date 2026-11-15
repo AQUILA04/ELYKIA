@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { NavController, AlertController, ActionSheetController, ToastController, LoadingController } from '@ionic/angular';
+import { NavController, AlertController, ActionSheetController, ToastController, LoadingController, ModalController } from '@ionic/angular';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
@@ -26,6 +26,9 @@ import {
     canPhysicallyDeliverTontine,
     getTontineDeliveryStatusLabel
 } from 'src/app/core/utils/tontine-delivery-status.util';
+import { TontineOrderReceiptModalComponent } from 'src/app/shared/components/tontine-order-receipt-modal/tontine-order-receipt-modal.component';
+import { PrintableTontineOrder } from 'src/app/core/services/printing.service';
+import { generateTontineAuthenticityCode } from 'src/app/core/utils/tontine-delivery-reference.util';
 import { firstValueFrom } from 'rxjs';
 import { take } from 'rxjs/operators';
 
@@ -81,7 +84,8 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         private stockRepo: TontineStockRepository,
         private tontineWriteService: TontineWriteService,
         private hybridSyncUiService: HybridSyncUiService,
-        private dailyConsentGuard: DailyConsentGuardService
+        private dailyConsentGuard: DailyConsentGuardService,
+        private modalCtrl: ModalController
     ) { }
 
     async ngOnInit() {
@@ -336,6 +340,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                 color: 'success'
             });
             await toast.present();
+            await this.printOrderReceipt();
         } catch (error: any) {
             const toast = await this.toastCtrl.create({
                 message: error?.message || 'La commande n\'a pas pu être modifiée',
@@ -450,6 +455,55 @@ export class MemberDetailPage implements OnInit, OnDestroy {
     formatCurrency(amount?: number): string {
         if (amount === undefined || amount === null) return '0 FCFA';
         return `${amount.toLocaleString('fr-FR')} FCFA`;
+    }
+
+    async printOrderReceipt(): Promise<void> {
+        if (!this.vm.delivery) {
+            return;
+        }
+        const code = await this.ensureAuthenticityCode(this.vm.delivery);
+        const clientName = this.vm.client?.fullName
+            || `${this.vm.client?.firstname || ''} ${this.vm.client?.lastname || ''}`.trim()
+            || 'Client';
+        const data: PrintableTontineOrder = {
+            reference: this.vm.delivery.reference,
+            authenticityCode: code,
+            requestDate: this.vm.delivery.requestDate,
+            status: this.vm.delivery.status,
+            totalAmount: this.revisingOrder ? this.revisedTotal() : this.vm.delivery.totalAmount,
+            clientName,
+            clientPhone: this.vm.client?.phone,
+            commercialName: this.commercialUsername || this.vm.delivery.commercialUsername,
+            items: this.vm.deliveryItems.map(item => ({
+                articleName: item.salePackMode && item.salePackMode !== 'UNIT' && item.packLabel
+                    ? `${item.articleName || 'Article'} — ${item.packLabel}`
+                    : (item.articleName || 'Article'),
+                quantity: item.salePackMode && item.salePackMode !== 'UNIT'
+                    ? (item.packCount || item.quantity)
+                    : item.quantity,
+                unitPrice: item.unitPrice,
+                totalPrice: item.totalPrice
+            }))
+        };
+        const modal = await this.modalCtrl.create({
+            component: TontineOrderReceiptModalComponent,
+            componentProps: { data }
+        });
+        await modal.present();
+        await modal.onDidDismiss();
+    }
+
+    private async ensureAuthenticityCode(delivery: TontineDelivery): Promise<string> {
+        if (delivery.authenticityCode) {
+            return delivery.authenticityCode;
+        }
+        if (delivery.isSync) {
+            return '';
+        }
+        const code = generateTontineAuthenticityCode();
+        await this.deliveryRepo.setAuthenticityCode(delivery.id, code);
+        delivery.authenticityCode = code;
+        return code;
     }
 
     async showActions() {

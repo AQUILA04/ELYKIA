@@ -1787,6 +1787,7 @@ export class SynchronizationService {
     return {
       tontineMemberId: parseInt(serverMemberId, 10),
       reference: delivery.reference ?? null,
+      authenticityCode: delivery.authenticityCode ?? null,
       requestDate: delivery.requestDate,
       items: items.map(item => ({
         articleId: parseInt(item.articleId, 10),

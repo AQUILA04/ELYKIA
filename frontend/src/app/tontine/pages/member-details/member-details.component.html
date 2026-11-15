@@ -552,6 +552,9 @@
         Livraison de Fin d'Année
       </h2>
       <span class="status-badge status-delivered" *ngIf="member.deliveryStatus === 'DELIVERED'">LIVRÉ</span>
+      <button type="button" class="btn-outline" (click)="downloadOrderReceipt()" [disabled]="receiptBusy">
+        {{ receiptBusy ? 'Téléchargement…' : 'Télécharger le reçu' }}
+      </button>
     </div>
 
     <div class="delivery-info">

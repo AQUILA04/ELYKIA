@@ -69,6 +69,7 @@ import { TontineDeliveryListComponent } from './pages/delivery-list/tontine-deli
 import { TontineCollectionResetComponent } from './pages/tontine-collection-reset/tontine-collection-reset.component';
 import { TontineAllocationMigrationBannerComponent } from './components/tontine-allocation-migration-banner/tontine-allocation-migration-banner.component';
 import { TontineDeliveryStockRequestModalComponent } from './components/modals/tontine-delivery-stock-request-modal/tontine-delivery-stock-request-modal.component';
+import { TontineReceiptVerifyDialogComponent } from './components/modals/tontine-receipt-verify-dialog/tontine-receipt-verify-dialog.component';
 
 // Services
 import { TontineService } from './services/tontine.service';
@@ -97,6 +98,7 @@ import { TontineSessionService } from './services/tontine-session.service';
     SessionSettingsModalComponent,
     DeliveryArticleSelectionModalComponent,
     TontineDeliveryStockRequestModalComponent,
+    TontineReceiptVerifyDialogComponent,
     TontineFieldControlModalComponent,
     EditAdhesionDateModalComponent,
 

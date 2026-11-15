@@ -150,6 +150,14 @@
           </div>
         </div>
         <ion-button
+          expand="block"
+          fill="outline"
+          class="elyk-btn-outline ion-margin-top"
+          (click)="printOrderReceipt()">
+          <ion-icon slot="start" name="print-outline"></ion-icon>
+          Imprimer le reçu
+        </ion-button>
+        <ion-button
           *ngIf="hasPendingDeliveryToMark()"
           expand="block"
           class="elyk-btn-navy ion-margin-top"

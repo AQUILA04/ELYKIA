@@ -252,6 +252,8 @@ export class OnlineListRefreshService {
         }
         deliveries.push({
           id: String(m.delivery.id),
+          reference: m.delivery.reference ?? null,
+          authenticityCode: m.delivery.authenticityCode ?? null,
           tontineMemberId: String(m.id),
           commercialUsername,
           requestDate: m.delivery.requestDate,
@@ -355,6 +357,7 @@ export class OnlineListRefreshService {
       const mappedDeliveries = deliveries.map((d: any) => ({
         id: String(d.id),
         reference: d.reference ?? null,
+        authenticityCode: d.authenticityCode ?? null,
         tontineMemberId: String(d.tontineMemberId || d.tontineMember?.id || d.memberId),
         commercialUsername: d.commercialUsername || d.commercial || commercialUsername,
         requestDate: d.requestDate,

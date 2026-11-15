@@ -15,13 +15,14 @@ public record TontineDeliveryRespDto(Long id,
                                      String reference,
                                      List<TontineDeliveryItemRespDto> items,
                                      String operationConsentCode,
-                                     String syncConsentCode) {
+                                     String syncConsentCode,
+                                     String authenticityCode) {
 
     public static TontineDeliveryRespDto fromId(Long id) {
         if (id == null) {
             return null;
         }
-        return new TontineDeliveryRespDto(id, null, null, null, null, null, null, null, null, null, null);
+        return new TontineDeliveryRespDto(id, null, null, null, null, null, null, null, null, null, null, null);
     }
 
     public static TontineDeliveryRespDto fromTontineDelivery(TontineDelivery delivery) {
@@ -38,6 +39,7 @@ public record TontineDeliveryRespDto(Long id,
                 delivery.getReference(),
                 TontineDeliveryItemRespDto.fromDeliveryItems(delivery.getItems()),
                 delivery.getOperationConsentCode(),
-                delivery.getSyncConsentCode());
+                delivery.getSyncConsentCode(),
+                delivery.getAuthenticityCode());
     }
 }

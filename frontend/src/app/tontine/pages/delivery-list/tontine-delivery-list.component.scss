@@ -1,6 +1,12 @@
 @import '../../../client/client-list/client-list.component.scss';
 
 .delivery-page {
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
   .filter-group-period {
     flex: 1 1 100%;
     max-width: none;

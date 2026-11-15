@@ -157,6 +157,7 @@ public class TontineDeliveryWebService {
                 .clientLastname(delivery.getTontineMember().getClient().getLastname())
                 .clientPhone(delivery.getTontineMember().getClient().getPhone())
                 .reference(delivery.getReference())
+                .authenticityCode(delivery.getAuthenticityCode())
                 .deliveryDate(delivery.getDeliveryDate())
                 .requestDate(delivery.getRequestDate())
                 .totalAmount(delivery.getTotalAmount())

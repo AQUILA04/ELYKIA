@@ -58,5 +58,6 @@ Le catalogue narratif (incomplet face au schéma réel) est `docs/data-models-ba
 - Correctif VPS (Contabo) : le même diff dans Git avant de considérer le travail livré. Le CD écrase `/opt/elykia`.
 - Fuseau : GMT (UTC+0, Lomé). Citer les timestamps en GMT, sans conversion vers l’heure Maurice.
 - PDF : thème navy décrit par le skill `elykia-pdf-style`.
+- Reçu ou facture (ticket ou PDF) : code d’authenticité `ELY-XXXX-XXXX`, persisté, vérifiable. Règle `receipt-authenticity`. Référence : reçu de commande tontine.
 - UI admin liste : skill `frontend-ui-style`. UI mobile stock : skill `elykia-stock-components-build`.
 - Plans `.cursor/plans/` inclus dans les commits.

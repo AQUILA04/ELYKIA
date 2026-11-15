@@ -51,6 +51,10 @@ public class TontineDelivery extends BaseEntity<String> {
 
     @Column(unique = true)
     private String reference;
+
+    /** Code imprimé sur le reçu. Permet de vérifier que le document vient d'Elykia. */
+    @Column(name = "authenticity_code", unique = true, nullable = false, length = 20)
+    private String authenticityCode;
     
     @Column(name = "operation_consent_code")
     private String operationConsentCode;

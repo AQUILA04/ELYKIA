@@ -90,6 +90,7 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
   isFieldControlBusy = false;
   isCarnetBusy = false;
   exportingPdf = false;
+  receiptBusy = false;
 
   monthsList = [
     'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -442,6 +443,30 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       return `Mois ${month}`;
     }
     return this.monthsList[index];
+  }
+
+  downloadOrderReceipt(deliveryId?: number, reference?: string): void {
+    const id = deliveryId ?? this.member?.delivery?.id;
+    if (!id || this.receiptBusy) {
+      return;
+    }
+    this.receiptBusy = true;
+    this.deliveryService.downloadReceipt(id).pipe(
+      finalize(() => this.receiptBusy = false)
+    ).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        const safeRef = String(reference || this.member?.delivery?.reference || id).replace(/[^a-zA-Z0-9_-]/g, '_');
+        anchor.download = `recu-commande-tontine-${safeRef}.pdf`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.showError('Le reçu n\'a pas pu être téléchargé.');
+      }
+    });
   }
 
   onDownloadPdf(): void {
@@ -868,10 +893,26 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
     });
 
     dialogRef.afterClosed().subscribe(result => {
-      if (result === true && this.member) {
-        this.showSuccess(replaceDeliveryId != null ? 'Commande mise à jour' : 'Livraison créée avec succès');
-        this.loadMemberDetails(this.member!.id);
+      if (!result || !this.member) {
+        return;
       }
+      const saved = typeof result === 'object' ? result as { id?: number; reference?: string } : null;
+      this.showSuccess(replaceDeliveryId != null ? 'Commande mise à jour' : 'Commande enregistrée');
+      this.loadMemberDetails(this.member.id);
+      const deliveryId = saved?.id ?? replaceDeliveryId;
+      if (!deliveryId) {
+        return;
+      }
+      void this.alertService.showConfirmation(
+        'Reçu de commande',
+        'Voulez-vous télécharger le reçu ?',
+        'Télécharger',
+        'Plus tard'
+      ).then((confirmed) => {
+        if (confirmed) {
+          this.downloadOrderReceipt(deliveryId, saved?.reference);
+        }
+      });
     });
   }
 

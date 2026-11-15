@@ -10,6 +10,7 @@ import com.optimize.elykia.core.dto.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryWebService;
+import com.optimize.elykia.core.service.tontine.TontineOrderReceiptPdfService;
 import com.optimize.elykia.core.util.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -19,7 +20,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +42,7 @@ public class TontineDeliveryController {
 
     private final TontineDeliveryService deliveryService;
     private final TontineDeliveryWebService deliveryWebService;
+    private final TontineOrderReceiptPdfService orderReceiptPdfService;
 
     @PostMapping
     //@PreAuthorize("hasAnyRole('ROLE_EDIT_TONTINE', 'ROLE_ADMIN', 'ROLE_GESTIONNAIRE')")
@@ -152,6 +156,24 @@ public class TontineDeliveryController {
             ResponseUtil.successResponse(delivery, "Livraison marquée comme servie"),
             HttpStatus.OK
         );
+    }
+
+    @GetMapping("/verify")
+    @Operation(summary = "Vérifier qu'un reçu de commande tontine provient d'Elykia")
+    public ResponseEntity<Response> verifyReceipt(@RequestParam String code) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(orderReceiptPdfService.verify(code)),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/{id}/receipt")
+    @Operation(summary = "Télécharger le reçu PDF d'une commande tontine")
+    public ResponseEntity<byte[]> downloadReceipt(@PathVariable Long id) {
+        byte[] pdf = orderReceiptPdfService.generate(id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=recu-commande-tontine-" + id + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 
     @GetMapping("/list")

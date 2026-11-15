@@ -40,6 +40,18 @@ public interface TontineDeliveryRepository extends JpaRepository<TontineDelivery
 
     boolean existsByReference(String reference);
 
+    boolean existsByAuthenticityCode(String authenticityCode);
+
+    @Query("""
+            SELECT DISTINCT d FROM TontineDelivery d
+            LEFT JOIN FETCH d.items item
+            LEFT JOIN FETCH item.articles
+            JOIN FETCH d.tontineMember member
+            JOIN FETCH member.client
+            WHERE d.authenticityCode = :code
+            """)
+    Optional<TontineDelivery> findByAuthenticityCode(@Param("code") String code);
+
     default Page<TontineDelivery> findWithFilters(String commercial, LocalDateTime dateFrom, LocalDateTime dateTo,
             String search, Pageable pageable) {
         return findAll(getFilterCriteria(commercial, dateFrom, dateTo, search), pageable);

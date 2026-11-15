@@ -103,7 +103,7 @@ export class DatabaseService {
     // 2. Migrations incrémentielles (natif uniquement).
     // Sur le web, createTables() porte le schéma complet ; on aligne user_version sans rejouer les ALTER.
     const currentVersion = await this.db.getVersion();
-    const targetVersion = 37; // sale pack snapshot on tontine delivery items
+    const targetVersion = 38; // authenticity code on tontine deliveries
     const dbVersion = currentVersion.version ?? 2;
     const isWeb = Capacitor.getPlatform() === 'web';
 
@@ -630,6 +630,7 @@ export class DatabaseService {
             syncHash TEXT,
             operationConsentCode TEXT,
             needsDeliverSync BOOLEAN DEFAULT 0,
+            authenticityCode TEXT,
             FOREIGN KEY(tontineMemberId) REFERENCES tontine_members(id)
             -- IMPORTANT:
             -- Pas de contrainte FOREIGN KEY(tontineMemberId) ici non plus, même raison que ci-dessus.
@@ -2410,8 +2411,8 @@ export class DatabaseService {
 
     const queryDelivery = `
       INSERT OR REPLACE INTO tontine_deliveries(
-          id, reference, tontineMemberId, commercialUsername, requestDate, deliveryDate, totalAmount, status, isLocal, isSync, syncDate, syncHash, operationConsentCode, needsDeliverSync
-        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          id, reference, tontineMemberId, commercialUsername, requestDate, deliveryDate, totalAmount, status, isLocal, isSync, syncDate, syncHash, operationConsentCode, needsDeliverSync, authenticityCode
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
 
     const queryItems = `
@@ -2429,7 +2430,8 @@ export class DatabaseService {
           d.id, d.reference || null, d.tontineMemberId, d.commercialUsername, d.requestDate, d.deliveryDate, d.totalAmount, d.status,
           d.isLocal ? 1 : 0, d.isSync ? 1 : 0, d.syncDate || new Date().toISOString(), d.syncHash,
           d.operationConsentCode || null,
-          d.needsDeliverSync ? 1 : 0
+          d.needsDeliverSync ? 1 : 0,
+          d.authenticityCode || null
         ]
       });
 

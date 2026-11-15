@@ -117,6 +117,7 @@ public class TontineDeliveryService {
         delivery.setCommercialUsername(member.getClient().getCollector());
         delivery.setRequestDate(requestDate);
         delivery.setReference(deliveryReferenceService.resolveReference(dto.getReference(), requestDate));
+        delivery.setAuthenticityCode(deliveryReferenceService.resolveAuthenticityCode(dto.getAuthenticityCode()));
         delivery.setOperationConsentCode(dto.getOperationConsentCode());
         delivery.setSyncConsentCode(dto.getSyncConsentCode());
 
@@ -428,6 +429,7 @@ public class TontineDeliveryService {
                 .id(delivery.getId())
                 .tontineMemberId(delivery.getTontineMember().getId())
                 .reference(delivery.getReference())
+                .authenticityCode(delivery.getAuthenticityCode())
                 .clientName(delivery.getTontineMember().getClient().getFullName())
                 .requestDate(delivery.getRequestDate())
                 .deliveryDate(delivery.getDeliveryDate())

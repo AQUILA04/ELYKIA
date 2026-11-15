@@ -26,7 +26,9 @@ Production et métier : GMT (UTC+0), Lomé. Citer les heures en GMT. Ne pas conv
 
 ## Travail en cours dans l’arbre
 
-Aucun chantier produit ouvert identifié sur `main` au moment de cette note. Feuille de route au-delà du changelog : **à compléter**.
+Branche `feat/tontine-order-receipt` (pas encore sur `main`) : reçu de commande tontine (ticket mobile, PDF web, code `ELY-XXXX-XXXX`). Décision durable : tout reçu ou facture futur suit cette authenticité (règle `receipt-authenticity`).
+
+Feuille de route au-delà du changelog : **à compléter**.
 
 ## Quand on touche au code
 

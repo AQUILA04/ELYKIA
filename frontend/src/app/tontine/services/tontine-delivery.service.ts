@@ -12,6 +12,27 @@ import {
 } from '../types/tontine.types';
 import { TontineDeliveryListItem } from '../models/tontine-delivery-list.model';
 
+export interface TontineReceiptLine {
+  designation: string;
+  quantity: string;
+  unitPrice?: string;
+  lineAmount?: string;
+}
+
+export interface TontineReceiptVerification {
+  found: boolean;
+  message?: string;
+  authenticityCode?: string;
+  reference?: string;
+  clientName?: string;
+  clientPhone?: string;
+  commercialUsername?: string;
+  requestDate?: string;
+  statusLabel?: string;
+  totalAmount?: string;
+  lines?: TontineReceiptLine[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -58,6 +79,20 @@ export class TontineDeliveryService {
   updateItems(deliveryId: number, items: CreateDeliveryDto['items']): Observable<ApiResponse<TontineDelivery>> {
     const headers = this.getHeaders();
     return this.http.put<ApiResponse<TontineDelivery>>(`${this.apiUrl}/${deliveryId}/items`, { items }, { headers })
+      .pipe(catchError(this.handleError));
+  }
+
+  downloadReceipt(deliveryId: number): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${deliveryId}/receipt`, {
+      headers: this.getHeaders(),
+      responseType: 'blob'
+    });
+  }
+
+  verifyReceipt(code: string): Observable<ApiResponse<TontineReceiptVerification>> {
+    const headers = this.getHeaders();
+    const params = new HttpParams().set('code', code.trim());
+    return this.http.get<ApiResponse<TontineReceiptVerification>>(`${this.apiUrl}/verify`, { headers, params })
       .pipe(catchError(this.handleError));
   }
 

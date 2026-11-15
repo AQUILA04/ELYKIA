@@ -90,6 +90,7 @@ export type TontineDeliveryCreationMode = 'ORDER' | 'DIRECT';
 export interface TontineDelivery {
     id: string;
     reference?: string;
+    authenticityCode?: string;
     tontineMemberId: string;
     commercialUsername: string;
     requestDate: string;

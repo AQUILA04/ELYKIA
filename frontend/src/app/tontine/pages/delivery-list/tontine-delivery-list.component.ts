@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { TontineDeliveryService } from '../../services/tontine-delivery.service';
 import { StockTontineRequestService, TontineDeliveryStockPreview } from 'src/app/stock-tontine/services/stock-tontine-request.service';
 import { TontineDeliveryStockRequestModalComponent } from '../../components/modals/tontine-delivery-stock-request-modal/tontine-delivery-stock-request-modal.component';
+import { TontineReceiptVerifyDialogComponent } from '../../components/modals/tontine-receipt-verify-dialog/tontine-receipt-verify-dialog.component';
 import { TontineDeliveryKpi, TontineDeliveryListItem } from '../../models/tontine-delivery-list.model';
 import {
   TONTINE_DELIVERY_STATUS_LABELS,
@@ -46,6 +47,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
   selectedIds = new Set<number>();
   pendingCount = 0;
   actionBusy = false;
+  receiptBusyId: number | null = null;
   canValidate = false;
   canRequestStock = false;
 
@@ -252,6 +254,35 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
   viewMember(memberId: number): void {
     this.saveState();
     this.router.navigate(['/tontine/member', memberId]);
+  }
+
+  openVerifyReceipt(): void {
+    this.dialog.open(TontineReceiptVerifyDialogComponent, {
+      width: '480px'
+    });
+  }
+
+  downloadReceipt(delivery: TontineDeliveryListItem): void {
+    if (this.receiptBusyId != null) {
+      return;
+    }
+    this.receiptBusyId = delivery.id;
+    this.deliveryService.downloadReceipt(delivery.id).subscribe({
+      next: (blob) => {
+        this.receiptBusyId = null;
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        const safeRef = String(delivery.reference || delivery.id).replace(/[^a-zA-Z0-9_-]/g, '_');
+        anchor.download = `recu-commande-tontine-${safeRef}.pdf`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.receiptBusyId = null;
+        this.alertService.toastError('Le reçu n\'a pas pu être téléchargé.', 'Erreur');
+      }
+    });
   }
 
   getStatusLabel(status: TontineMemberDeliveryStatus): string {
