@@ -373,7 +373,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
       return;
     }
     const ids = this.selectedDeliveries.map(delivery => delivery.id);
-    this.alertService.showConfirmation(
+    void this.alertService.showConfirmation(
       'Valider la sélection',
       `Valider ${ids.length} livraison(s) en attente ?`,
       'Valider',
@@ -395,7 +395,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
       return;
     }
     const commercial = this.selectedCommercial ? ` de ${this.selectedCommercial}` : '';
-    this.alertService.showConfirmation(
+    void this.alertService.showConfirmation(
       'Tout valider',
       `Valider ${this.pendingCount} livraison(s) en attente${commercial} ?`,
       'Valider',

@@ -445,7 +445,7 @@ export class OrderDashboardComponent implements OnInit, AfterViewInit, OnDestroy
     const commercial = this.selectedCommercial ? ` de ${this.selectedCommercial}` : '';
     const search = this.searchTerm?.trim();
     const searchPart = search ? ` correspondant à « ${search} »` : '';
-    this.alertService.showConfirmation(
+    void this.alertService.showConfirmation(
       verb,
       `${verb} ${this.totalElements} commande(s) en attente${commercial}${searchPart} ?`,
       verb,
