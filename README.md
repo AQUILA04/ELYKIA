@@ -188,6 +188,7 @@ Voir [`README-DEPLOY.md`](README-DEPLOY.md) pour le déploiement serveur.
 | [`README-DOCKER-INSTALL.md`](README-DOCKER-INSTALL.md) | Installation Docker |
 | [`backend/docs/`](backend/docs/) | API tontine, BI, migrations |
 | [`user-guide/`](user-guide/) | Guides par profil |
+| [`memory-bank/`](memory-bank/README.md) | Mémoire courte pour les agents Cursor (ne remplace pas ce README) |
 
 ## Licence
 

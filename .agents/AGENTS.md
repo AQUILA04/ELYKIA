@@ -18,6 +18,7 @@ These rules apply to all agent interactions across the project to ensure consist
 - **AI Schema Catalog (`update-ai-schema-catalog-on-ddl-change`)**: If the database schema changes (Flyway DDL, JPA Entities exposed to AI), you MUST update `backend/src/main/resources/ai/schema-catalog.json` and optionally `sql-examples.json`. The Elykia IA Text-to-SQL relies on this snapshot.
 
 ## Documentation & Changelog
+- **Memory Bank (`memory-bank`)**: At the start of a task, read `memory-bank/` (`projectbrief.md`, `activeContext.md`, `systemPatterns.md`, `techContext.md`) before exploring code. After a significant change, update the relevant files in the same PR. Protocol: `memory-bank/README.md` and `.cursor/rules/memory-bank.mdc`.
 - **Keep Changelog (`keep-changelog`)**: Update `docs/CHANGELOG.md` after any task that modifies code, config, or docs. Increment the corresponding component's version (Frontend, Backend, Mobile, Customer-space) in its source file and document under the new version.
 - **User Guide Updates (`update-user-guide-on-ui-or-business-change`)**: If a change impacts the UI of any client or a business rule, the User Guide (`user-guide/docs/**/*.md`) MUST be updated before delivery.
 - **RAG Index Sync (`user-guide-rag-index-sync`)**: Whenever the User Guide is updated, the AI RAG index must be regenerated (`python user-guide/generate_rag_index.py`) and committed (`backend/src/main/resources/ai/user-guide-index.json`).

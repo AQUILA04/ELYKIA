@@ -1,0 +1,29 @@
+---
+description: Lire et tenir à jour memory-bank/ à chaque tâche
+alwaysApply: true
+---
+
+# Memory Bank
+
+`memory-bank/` est la mémoire courte du dépôt (français, faits vérifiés). Elle ne remplace pas `docs/`, `user-guide/` ni `docs/CHANGELOG.md` : elle y renvoie.
+
+## Début de tâche
+
+Avant d’explorer le code, lire au moins :
+
+- `memory-bank/projectbrief.md`
+- `memory-bank/activeContext.md`
+- `memory-bank/systemPatterns.md`
+- `memory-bank/techContext.md`
+
+Lire `productContext.md`, `progress.md` ou `decisions.md` dès que le sujet touche le métier, un problème connu ou une décision d’architecture. Le protocole complet est dans `memory-bank/README.md`.
+
+## Après un changement notable
+
+Fonctionnalité, architecture, dépendance, parcours, décision, ou correctif d’un problème suivi : mettre à jour les fichiers concernés **dans la même PR**. En pratique, rafraîchir `activeContext.md` et, si le constat change, `progress.md` ou `decisions.md`.
+
+Garder les fichiers courts et factuels. Ne pas inventer : marquer **« à compléter »**. Ne pas recopier un guide ou une spec ; lier le fichier existant.
+
+## « update memory bank »
+
+Quand l’utilisateur dit « update memory bank » (ou l’équivalent anglais), relire **tous** les fichiers de `memory-bank/`, les confronter au code, au changelog et aux commits récents, puis corriger ce qui est faux ou périmé.

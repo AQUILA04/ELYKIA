@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-15
+
+### Added
+
+- **Docs —** memory bank Cursor (`memory-bank/`) : brief produit, métier, architecture, stack, contexte actif, avancement et décisions, tenus à jour par la règle `.cursor/rules/memory-bank.mdc`. Un pointeur est ajouté dans `AGENTS.md`.
+
 ## Docs & Infra — 2026-11-09
 
 ### Changed
