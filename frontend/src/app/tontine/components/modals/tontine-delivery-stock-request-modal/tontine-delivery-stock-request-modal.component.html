@@ -1,0 +1,36 @@
+<div class="stock-request-modal">
+  <h2 mat-dialog-title>
+    <mat-icon>inventory_2</mat-icon>
+    Faire une demande de stock
+  </h2>
+
+  <mat-dialog-content>
+    <p class="intro">
+      Une demande de sortie tontine sera créée pour
+      <strong>{{ data.orderCount }}</strong> commande(s),
+      regroupée(s) par commercial. Le magasinier livrera chaque commercial en une seule opération.
+    </p>
+
+    <div class="group" *ngFor="let group of data.groups">
+      <h3>
+        <mat-icon>person</mat-icon>
+        {{ group.collector }}
+        <span class="cmd-refs">({{ group.orderIds.length }} commande(s))</span>
+      </h3>
+      <ul>
+        <li *ngFor="let article of group.articles">
+          <span>{{ article.name }}</span>
+          <strong>× {{ article.quantity }}</strong>
+        </li>
+      </ul>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button type="button" (click)="onCancel()">Annuler</button>
+    <button mat-raised-button color="primary" type="button" (click)="onConfirm()"
+            [disabled]="!data.groups?.length">
+      Créer la demande
+    </button>
+  </mat-dialog-actions>
+</div>

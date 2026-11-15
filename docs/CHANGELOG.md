@@ -78,6 +78,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.49.0] — 2026-11-15
+
+### Added
+
+- **Commandes —** **Tout accepter** (ou **Tout valider** pour les commandes en ligne) accepte toutes les commandes en attente du filtre en cours, y compris le commercial choisi.
+- **Livraisons tontine —** sélection et **Tout valider** pour les commandes en attente. **Faire une demande de stock** et **Demande de stock (en attente)** regroupent les commandes d'un commercial en une seule demande de sortie tontine.
+
 ## Frontend — [2.48.1] — 2026-11-14
 
 ### Fixed
@@ -384,6 +391,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.52.0] — 2026-11-15
+
+### Added
+
+- **Commandes —** acceptation de toutes les commandes en attente correspondant au commercial, à la recherche et à la source.
+- **Livraisons tontine —** validation groupée des commandes en attente, et création d'une demande de stock tontine par commercial à partir d'une sélection ou de tout le filtre. La validation de la demande passe les commandes liées encore en attente à validée.
 
 ## Backend — [1.51.2] — 2026-11-14
 

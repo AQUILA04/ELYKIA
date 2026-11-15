@@ -228,6 +228,41 @@ public class OrderService extends GenericService<Order, Long> {
         return updatedOrders;
     }
 
+    /**
+     * Accepte toutes les commandes en attente qui correspondent aux filtres de la liste.
+     * Un promoteur est limité à son portefeuille, comme sur la liste.
+     */
+    public int acceptPendingOrders(OrderSource source, String commercial, String search) {
+        String collector = resolveListCollector(commercial);
+        String searchTerm = StringUtils.hasText(search) ? search.trim() : "";
+        List<Long> orderIds = getRepository().searchOrders(
+                        List.of(OrderStatus.PENDING),
+                        source,
+                        collector,
+                        searchTerm,
+                        Pageable.unpaged())
+                .getContent()
+                .stream()
+                .map(Order::getId)
+                .distinct()
+                .toList();
+        if (orderIds.isEmpty()) {
+            return 0;
+        }
+        UpdateOrderStatusDto dto = new UpdateOrderStatusDto();
+        dto.setOrderIds(orderIds);
+        dto.setNewStatus(OrderStatus.ACCEPTED);
+        return updateOrderStatus(dto).size();
+    }
+
+    private String resolveListCollector(String commercial) {
+        User currentUser = userService.getCurrentUser();
+        if (AppNotificationService.isPromoterOnly(currentUser)) {
+            return currentUser.getUsername() == null ? "" : currentUser.getUsername().trim();
+        }
+        return StringUtils.hasText(commercial) ? commercial.trim() : "";
+    }
+
     void validateStatusTransition(OrderStatus oldStatus, OrderStatus newStatus) {
         switch (oldStatus) {
             case PENDING:
@@ -286,14 +321,8 @@ public class OrderService extends GenericService<Order, Long> {
             String search,
             Pageable pageable) {
         List<OrderStatus> effectiveStatuses = resolveStatuses(status, statuses);
-        User currentUser = userService.getCurrentUser();
         // Chaîne vide, pas null : un paramètre String null est lié en bytea et Postgres refuse upper().
-        String collector = "";
-        if (AppNotificationService.isPromoterOnly(currentUser)) {
-            collector = currentUser.getUsername();
-        } else if (StringUtils.hasText(commercial)) {
-            collector = commercial.trim();
-        }
+        String collector = resolveListCollector(commercial);
         String searchTerm = StringUtils.hasText(search) ? search.trim() : "";
 
         Page<Order> ordersPage = getRepository().searchOrders(

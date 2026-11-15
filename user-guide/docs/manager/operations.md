@@ -157,7 +157,7 @@ Les commandes passées par les clients depuis l’Espace Client apparaissent dan
 3. Dans **Commercial**, choisissez une personne pour n’afficher que ses commandes. **Réinitialiser** efface la recherche et le commercial.
 4. La recherche, le commercial et l’onglet restent en place lorsque vous quittez la page et y revenez.
 5. Parcourez les onglets **En attente**, **Validées**, **Livrées** et **Autres**.
-6. Sur une commande en attente, cliquez sur **Valider**. Pour en traiter plusieurs, cochez-les puis cliquez sur **Valider la sélection**.
+6. Sur une commande en attente, cliquez sur **Valider**. Pour en traiter plusieurs sur la page, cochez-les puis cliquez sur **Valider la sélection**. Pour toutes les commandes en attente du filtre en cours (recherche et commercial), cliquez sur **Tout valider**. Une confirmation indique le nombre.
 7. Pour écarter une commande en attente, cliquez sur **Refuser**. La même action existe pour une sélection : **Refuser la sélection**. La commande passe dans l’onglet **Autres**.
 8. Une fois la commande validée et la marchandise chez le commercial, cliquez sur **Marquer comme livrée** : la vente est créée automatiquement et la commande passe à **Livrée**.
 9. Sur chaque ligne, cliquez sur **Fiche** pour télécharger la fiche. Le bouton est présent pour une commande en attente, validée, livrée, refusée ou annulée. Dans le détail, le bouton s’appelle **Télécharger la fiche**. Le document reprend l’entreprise, le nom et le prénom du client, son téléphone, son quartier, son adresse, le commercial associé, la date, le statut et les articles avec le montant.
@@ -166,8 +166,9 @@ Les commandes passées par les clients depuis l’Espace Client apparaissent dan
 ### Menu Commandes
 
 1. Ouvrez **Commandes**.
-2. **Fiche** sur la liste, et **Télécharger la fiche** dans le détail, sont disponibles pour chaque commande, quel que soit son statut.
-3. **Demande de stock (en attente)** prépare une demande par commercial. Chaque demande regroupe les commandes en attente de ce commercial qui ne sont pas déjà dans une demande de stock.
+2. Sur l'onglet **En attente**, **Tout accepter** accepte toutes les commandes en attente du filtre en cours. Si un commercial est choisi, seules ses commandes sont acceptées. Une confirmation indique le nombre.
+3. **Fiche** sur la liste, et **Télécharger la fiche** dans le détail, sont disponibles pour chaque commande, quel que soit son statut.
+4. **Demande de stock (en attente)** prépare une demande par commercial. Chaque demande regroupe les commandes en attente de ce commercial qui ne sont pas déjà dans une demande de stock.
 
 ---
 

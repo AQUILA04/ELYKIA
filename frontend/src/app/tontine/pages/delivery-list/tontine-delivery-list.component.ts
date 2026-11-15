@@ -1,7 +1,11 @@
 import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Observable } from 'rxjs';
 import { PageEvent } from '@angular/material/paginator';
+import { MatDialog } from '@angular/material/dialog';
 import { Router } from '@angular/router';
 import { TontineDeliveryService } from '../../services/tontine-delivery.service';
+import { StockTontineRequestService, TontineDeliveryStockPreview } from 'src/app/stock-tontine/services/stock-tontine-request.service';
+import { TontineDeliveryStockRequestModalComponent } from '../../components/modals/tontine-delivery-stock-request-modal/tontine-delivery-stock-request-modal.component';
 import { TontineDeliveryKpi, TontineDeliveryListItem } from '../../models/tontine-delivery-list.model';
 import {
   TONTINE_DELIVERY_STATUS_LABELS,
@@ -39,6 +43,11 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
 
   deliveries: TontineDeliveryListItem[] = [];
   deliveryKpis: TontineDeliveryKpi | null = null;
+  selectedIds = new Set<number>();
+  pendingCount = 0;
+  actionBusy = false;
+  canValidate = false;
+  canRequestStock = false;
 
   currentPage = 0;
   pageSize = 10;
@@ -63,12 +72,16 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
     private tokenStorage: TokenStorageService,
     private alertService: AlertService,
     private authService: AuthService,
-    private userService: UserService
+    private userService: UserService,
+    private dialog: MatDialog,
+    private stockRequestService: StockTontineRequestService
   ) {
     this.tokenStorage.checkConnectedUser();
   }
 
   ngOnInit(): void {
+    this.canValidate = this.authService.hasRole('ROLE_REPORT') || this.authService.hasRole('ROLE_ADMIN');
+    this.canRequestStock = this.authService.hasRole('ROLE_ORDER_STOCK_REQUEST');
     this.checkIfCommercial();
     this.restoreState();
     if (!this.dateFrom || !this.dateTo) {
@@ -97,6 +110,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
 
   loadData(): void {
     this.loadKpis();
+    this.loadPendingCount();
     this.loadDeliveries();
   }
 
@@ -163,12 +177,14 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
+    this.clearSelection();
     this.currentPage = 0;
     this.saveState();
     this.loadData();
   }
 
   clearSearch(): void {
+    this.clearSelection();
     this.searchTerm = '';
     this.currentPage = 0;
     this.saveState();
@@ -180,6 +196,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
   }
 
   resetFilters(): void {
+    this.clearSelection();
     this.searchTerm = '';
     if (!this.isCommercialLogged) {
       this.selectedCommercial = null;
@@ -189,6 +206,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
   }
 
   onPageChange(event: PageEvent): void {
+    this.clearSelection();
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
     this.saveState();
@@ -199,6 +217,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
     if (this.isCommercialLogged) {
       return;
     }
+    this.clearSelection();
     this.selectedCommercial = commercial;
     this.currentPage = 0;
     this.saveState();
@@ -209,6 +228,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
     this.activePeriod = period;
     if (period !== 'custom') {
       const dates = this.calculateDatesForPeriod(period);
+      this.clearSelection();
       this.dateFrom = dates.from;
       this.dateTo = dates.to;
       this.currentPage = 0;
@@ -220,6 +240,7 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
   applyCustomDateRange(): void {
     if (this.customDateRange.start && this.customDateRange.end) {
       this.activePeriod = 'custom';
+      this.clearSelection();
       this.dateFrom = this.customDateRange.start;
       this.dateTo = this.customDateRange.end;
       this.currentPage = 0;
@@ -292,6 +313,200 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
         return { from: formatDate(firstDayOfMonth), to: formatDate(today) };
       }
     }
+  }
+
+  isSelectable(delivery: TontineDeliveryListItem): boolean {
+    return delivery.deliveryStatus === TontineMemberDeliveryStatus.PENDING
+      || delivery.deliveryStatus === TontineMemberDeliveryStatus.VALIDATED;
+  }
+
+  isSelected(delivery: TontineDeliveryListItem): boolean {
+    return this.selectedIds.has(delivery.id);
+  }
+
+  get selectableOnPage(): TontineDeliveryListItem[] {
+    return this.deliveries.filter(delivery => this.isSelectable(delivery));
+  }
+
+  get allPageSelected(): boolean {
+    const rows = this.selectableOnPage;
+    return rows.length > 0 && rows.every(delivery => this.selectedIds.has(delivery.id));
+  }
+
+  get selectedDeliveries(): TontineDeliveryListItem[] {
+    return this.deliveries.filter(delivery => this.selectedIds.has(delivery.id));
+  }
+
+  get canValidateSelection(): boolean {
+    return this.canValidate
+      && this.selectedDeliveries.length > 0
+      && this.selectedDeliveries.every(delivery => delivery.deliveryStatus === TontineMemberDeliveryStatus.PENDING);
+  }
+
+  toggleDelivery(delivery: TontineDeliveryListItem, checked: boolean): void {
+    if (!this.isSelectable(delivery)) {
+      return;
+    }
+    if (checked) {
+      this.selectedIds.add(delivery.id);
+    } else {
+      this.selectedIds.delete(delivery.id);
+    }
+    this.selectedIds = new Set(this.selectedIds);
+  }
+
+  togglePage(checked: boolean): void {
+    if (checked) {
+      this.selectableOnPage.forEach(delivery => this.selectedIds.add(delivery.id));
+    } else {
+      this.selectableOnPage.forEach(delivery => this.selectedIds.delete(delivery.id));
+    }
+    this.selectedIds = new Set(this.selectedIds);
+  }
+
+  clearSelection(): void {
+    this.selectedIds = new Set<number>();
+  }
+
+  validateSelection(): void {
+    if (!this.canValidateSelection || this.actionBusy) {
+      return;
+    }
+    const ids = this.selectedDeliveries.map(delivery => delivery.id);
+    this.alertService.showConfirmation(
+      'Valider la sélection',
+      `Valider ${ids.length} livraison(s) en attente ?`,
+      'Valider',
+      'Annuler'
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.actionBusy = true;
+      this.deliveryService.validateSelection(ids).subscribe({
+        next: (response) => this.afterBulk(response?.data?.count ?? ids.length, 'validée'),
+        error: (err) => this.failBulk(err)
+      });
+    });
+  }
+
+  validateAllPending(): void {
+    if (!this.canValidate || this.actionBusy || this.pendingCount === 0) {
+      return;
+    }
+    const commercial = this.selectedCommercial ? ` de ${this.selectedCommercial}` : '';
+    this.alertService.showConfirmation(
+      'Tout valider',
+      `Valider ${this.pendingCount} livraison(s) en attente${commercial} ?`,
+      'Valider',
+      'Annuler'
+    ).then((confirmed) => {
+      if (!confirmed) {
+        return;
+      }
+      this.actionBusy = true;
+      const filters = this.currentFilters();
+      this.deliveryService.validatePending(filters.dateFrom, filters.dateTo, filters.commercial, filters.search)
+        .subscribe({
+          next: (response) => this.afterBulk(response?.data?.count ?? 0, 'validée'),
+          error: (err) => this.failBulk(err)
+        });
+    });
+  }
+
+  requestStockForSelection(): void {
+    const ids = [...this.selectedIds];
+    if (!this.canRequestStock || this.actionBusy || ids.length === 0) {
+      return;
+    }
+    this.actionBusy = true;
+    this.stockRequestService.previewFromDeliveries(ids).subscribe({
+      next: (preview) => this.openStockPreview(preview, () => this.stockRequestService.createFromDeliveries(ids)),
+      error: (err) => this.failBulk(err)
+    });
+  }
+
+  requestStockForAllPending(): void {
+    if (!this.canRequestStock || this.actionBusy || this.pendingCount === 0) {
+      return;
+    }
+    this.actionBusy = true;
+    const filters = this.currentFilters();
+    this.stockRequestService.previewPendingDeliveries(filters).subscribe({
+      next: (preview) => this.openStockPreview(
+        preview,
+        () => this.stockRequestService.createFromPendingDeliveries(filters)
+      ),
+      error: (err) => this.failBulk(err)
+    });
+  }
+
+  private openStockPreview(preview: TontineDeliveryStockPreview, create: () => Observable<unknown>): void {
+    this.actionBusy = false;
+    if (!preview?.groups?.length) {
+      this.alertService.showWarning('Aucune livraison en attente éligible pour une demande de stock.');
+      return;
+    }
+    this.dialog.open(TontineDeliveryStockRequestModalComponent, {
+      width: '560px',
+      data: preview
+    }).afterClosed().subscribe((confirmed: boolean) => {
+      if (!confirmed) {
+        return;
+      }
+      this.actionBusy = true;
+      create().subscribe({
+        next: () => {
+          const count = preview.groups.length;
+          this.actionBusy = false;
+          this.clearSelection();
+          this.alertService.showSuccess(
+            count > 1 ? `${count} demandes de stock créées` : 'Demande de stock créée'
+          );
+          this.loadData();
+        },
+        error: (err) => this.failBulk(err)
+      });
+    });
+  }
+
+  private afterBulk(count: number, verb: string): void {
+    this.actionBusy = false;
+    this.clearSelection();
+    if (count === 0) {
+      this.alertService.showWarning('Aucune livraison en attente à valider.');
+      this.loadData();
+      return;
+    }
+    this.alertService.showSuccess(count === 1 ? `1 livraison ${verb}` : `${count} livraisons ${verb}s`);
+    this.loadData();
+  }
+
+  private failBulk(err: any): void {
+    this.actionBusy = false;
+    this.alertService.showError(err?.error?.message || err?.message || 'Une erreur est survenue');
+  }
+
+  private loadPendingCount(): void {
+    const filters = this.currentFilters();
+    this.deliveryService.countPending(filters.dateFrom, filters.dateTo, filters.commercial, filters.search)
+      .subscribe({
+        next: (response) => {
+          this.pendingCount = response?.data?.count ?? 0;
+        },
+        error: () => {
+          this.pendingCount = 0;
+        }
+      });
+  }
+
+  private currentFilters(): { dateFrom: string; dateTo: string; commercial?: string | null; search?: string } {
+    return {
+      dateFrom: this.dateFrom,
+      dateTo: this.dateTo,
+      commercial: this.getEffectiveCommercial(),
+      search: this.searchTerm.trim() || undefined
+    };
   }
 
   private saveState(): void {

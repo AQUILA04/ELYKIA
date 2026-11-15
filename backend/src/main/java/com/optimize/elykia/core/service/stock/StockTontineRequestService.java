@@ -17,6 +17,10 @@ import com.optimize.elykia.core.dto.stock.FifoConsumptionResult;
 import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.event.StockTontineRequestDeliveredEvent;
+import com.optimize.elykia.core.event.TontineStockRequestValidatedEvent;
+import com.optimize.elykia.core.repository.StockTontineRequestDeliveryLinkRepository;
+import com.optimize.elykia.core.entity.stock.StockTontineRequestDeliveryLink;
+import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.repository.StockTontineRequestRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.store.InventoryWarehouseGuard;
@@ -64,6 +68,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     private final TemplateEngine templateEngine;
     private final PdfHtmlRenderer pdfHtmlRenderer;
     private InventoryWarehouseGuard inventoryWarehouseGuard;
+    private StockTontineRequestDeliveryLinkRepository deliveryLinkRepository;
     private com.optimize.elykia.core.service.tontine.TontineStockLayerService tontineStockLayerService;
 
     @org.springframework.beans.factory.annotation.Autowired(required = false)
@@ -75,6 +80,11 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     @org.springframework.beans.factory.annotation.Autowired
     public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
         this.inventoryWarehouseGuard = inventoryWarehouseGuard;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setDeliveryLinkRepository(StockTontineRequestDeliveryLinkRepository deliveryLinkRepository) {
+        this.deliveryLinkRepository = deliveryLinkRepository;
     }
 
     private void assertWarehouseStockMutable() {
@@ -165,7 +175,12 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
         }
         request.setStatus(StockRequestStatus.VALIDATED);
         request.setValidationDate(LocalDate.now());
-        return update(request);
+        StockTontineRequest saved = update(request);
+        StockTontineRequest result = saved != null ? saved : request;
+        if (eventPublisher != null && result.getId() != null) {
+            eventPublisher.publishEvent(new TontineStockRequestValidatedEvent(this, result.getId()));
+        }
+        return result;
     }
 
     /**
@@ -438,7 +453,30 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
     public Page<StockTontineRequestListDto> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
         StockTontineRequestRepository repo = (StockTontineRequestRepository) getRepository();
         String effectiveCollector = resolveCollector(collector);
-        return repo.findFilteredList(effectiveCollector, startDate, endDate, resolveVisibleStatuses(), pageable);
+        Page<StockTontineRequestListDto> page = repo.findFilteredList(
+                effectiveCollector, startDate, endDate, resolveVisibleStatuses(), pageable);
+        attachLinkedDeliveries(page.getContent());
+        return page;
+    }
+
+    private void attachLinkedDeliveries(List<StockTontineRequestListDto> rows) {
+        if (deliveryLinkRepository == null || rows == null || rows.isEmpty()) {
+            return;
+        }
+        List<Long> ids = rows.stream().map(StockTontineRequestListDto::getId).toList();
+        Map<Long, List<String>> refs = new java.util.HashMap<>();
+        for (StockTontineRequestDeliveryLink link : deliveryLinkRepository.findByStockRequestIds(ids)) {
+            if (link.getDelivery() == null || link.getStockTontineRequest() == null) {
+                continue;
+            }
+            TontineDelivery delivery = link.getDelivery();
+            String label = delivery.getReference() != null && !delivery.getReference().isBlank()
+                    ? delivery.getReference()
+                    : "LIV-" + delivery.getId();
+            refs.computeIfAbsent(link.getStockTontineRequest().getId(), id -> new ArrayList<>()).add(label);
+        }
+        refs.values().forEach(list -> list.sort(String::compareTo));
+        rows.forEach(dto -> dto.setLinkedOrderReferences(refs.getOrDefault(dto.getId(), List.of())));
     }
 
     public com.optimize.elykia.core.dto.stock.StockRequestKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {

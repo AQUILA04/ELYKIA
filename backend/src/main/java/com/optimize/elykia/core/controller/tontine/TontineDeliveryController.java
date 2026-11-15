@@ -2,7 +2,9 @@ package com.optimize.elykia.core.controller.tontine;
 
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
+import com.optimize.elykia.core.dto.BulkCountResult;
 import com.optimize.elykia.core.dto.CreateDeliveryDto;
+import com.optimize.elykia.core.dto.ValidateTontineDeliveriesDto;
 import com.optimize.elykia.core.dto.UpdateDeliveryItemsDto;
 import com.optimize.elykia.core.dto.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -68,6 +71,43 @@ public class TontineDeliveryController {
             ResponseUtil.successResponse(delivery), 
             HttpStatus.OK
         );
+    }
+
+    @GetMapping("/pending-count")
+    @Operation(summary = "Compter les livraisons en attente du filtre courant")
+    public ResponseEntity<Response> countPending(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) String commercial,
+            @RequestParam(required = false) String search) {
+        long count = deliveryWebService.countPending(startOf(dateFrom), endOf(dateTo), commercial, search);
+        return new ResponseEntity<>(ResponseUtil.successResponse(new BulkCountResult((int) count)), HttpStatus.OK);
+    }
+
+    @PostMapping("/validate-selection")
+    @Operation(summary = "Valider les livraisons en attente sélectionnées")
+    public ResponseEntity<Response> validateSelection(@RequestBody @Valid ValidateTontineDeliveriesDto dto) {
+        int validated = deliveryService.validateSelected(dto.getDeliveryIds());
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(new BulkCountResult(validated), "Livraisons validées"),
+                HttpStatus.OK);
+    }
+
+    @PostMapping("/validate-pending")
+    @Operation(summary = "Valider toutes les livraisons en attente du filtre courant")
+    public ResponseEntity<Response> validatePending(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) String commercial,
+            @RequestParam(required = false) String search) {
+        List<Long> ids = deliveryWebService.findPending(startOf(dateFrom), endOf(dateTo), commercial, search)
+                .stream()
+                .map(delivery -> delivery.getId())
+                .toList();
+        int validated = ids.isEmpty() ? 0 : deliveryService.validateStillPending(ids);
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(new BulkCountResult(validated), "Livraisons validées"),
+                HttpStatus.OK);
     }
 
     @PatchMapping("/{deliveryId}/validate")
@@ -163,5 +203,13 @@ public class TontineDeliveryController {
                 ResponseUtil.successResponse(deliveryWebService.elasticsearch(
                         wrapper.getKeyword(), startDateTime, endDateTime, commercial, pageable)),
                 HttpStatus.OK);
+    }
+
+    private LocalDateTime startOf(LocalDate date) {
+        return date != null ? date.atStartOfDay() : null;
+    }
+
+    private LocalDateTime endOf(LocalDate date) {
+        return date != null ? date.atTime(LocalTime.MAX) : null;
     }
 }

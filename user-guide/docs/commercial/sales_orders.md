@@ -263,7 +263,7 @@ Les commandes sont réparties selon leur avancement :
 
 ### Traitement d'une commande
 1. **Créer une commande** : Cliquez sur **Créer une commande**, sélectionnez le client et ajoutez les articles souhaités avec leurs quantités.
-2. **Accepter** : sur une commande en attente, cliquez sur **Accepter**. Pour plusieurs commandes, cochez-les puis cliquez sur **Accepter la sélection**.
+2. **Accepter** : sur une commande en attente, cliquez sur **Accepter**. Pour plusieurs commandes de la page, cochez-les puis cliquez sur **Accepter la sélection**. Pour toutes les commandes en attente de la liste, cliquez sur **Tout accepter**. Une confirmation indique le nombre.
 3. **Annuler** : le bouton **Annuler** apparaît sur une commande que vous avez créée, ou qui a été créée pour vous. La commande passe dans l’onglet **Autres**.
 4. **Vendre** : sur une commande validée, transformez-la en vente. La vente est créée automatiquement et la commande passe à **Livrée**.
 5. **Fiche** : sur chaque ligne, cliquez sur **Fiche** pour télécharger la fiche de la commande. Le bouton est présent pour une commande en attente, validée, livrée, refusée ou annulée.

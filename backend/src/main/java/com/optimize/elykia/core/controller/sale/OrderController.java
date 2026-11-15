@@ -20,6 +20,8 @@ import com.optimize.elykia.core.util.UserPermissionConstant;
 
 import java.util.List;
 
+import com.optimize.elykia.core.dto.AcceptPendingOrdersDto;
+import com.optimize.elykia.core.dto.BulkCountResult;
 import com.optimize.elykia.core.dto.UpdateOrderStatusDto;
 
 import com.lowagie.text.DocumentException;
@@ -81,6 +83,15 @@ public class OrderController {
     @PatchMapping("/status")
     public ResponseEntity<Response> updateOrderStatus(@RequestBody @Valid UpdateOrderStatusDto dto) {
         return new ResponseEntity<>(ResponseUtil.successResponse(orderService.updateOrderStatus(dto)), HttpStatus.OK);
+    }
+
+    @PostMapping("/accept-pending")
+    public ResponseEntity<Response> acceptPendingOrders(@RequestBody(required = false) AcceptPendingOrdersDto dto) {
+        AcceptPendingOrdersDto request = dto == null ? new AcceptPendingOrdersDto() : dto;
+        int accepted = orderService.acceptPendingOrders(request.getSource(), request.getCommercial(), request.getSearch());
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(new BulkCountResult(accepted), "Commandes acceptées"),
+                HttpStatus.OK);
     }
 
     @GetMapping("/{id}/pdf")

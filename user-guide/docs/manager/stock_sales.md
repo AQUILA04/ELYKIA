@@ -116,6 +116,7 @@ Dans **Stock Commercial**, les écrans **Demandes Sortie**, **Stock** et **Retou
 * Ce stock prépare les paniers de fin d'exercice des membres ayant cotisé.
 * Le cycle d'approbation (**Créée → Validée → Livrée**) et le retour (**En attente → Réceptionné**) suivent les mêmes boutons que le stock crédit.
 * Sur **Demandes Sortie**, **« Voir »** ouvre le détail : la référence est en haut. Pour une demande **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. Pour une demande **Validée**, **« Annuler »** est en bas de la fenêtre, tant qu'elle n'est pas livrée. **« Télécharger »** enregistre la fiche de cette demande.
+* Une demande créée depuis **Tontines > Livraison** affiche **Commandes liées**. À la validation, ces commandes encore en attente passent à **Validée**. Le magasinier livre le commercial en une seule opération, pour toutes les commandes regroupées.
 * **Stock** affiche le suivi par année. **Retours** permet de **Réceptionner** un retour au statut **En attente**.
 
 ---

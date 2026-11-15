@@ -145,7 +145,54 @@ export class TontineDeliveryService {
     ).pipe(catchError(this.handleError));
   }
 
+  countPending(
+    dateFrom: string,
+    dateTo: string,
+    commercial?: string | null,
+    search?: string
+  ): Observable<ApiResponse<{ count: number }>> {
+    return this.http.get<ApiResponse<{ count: number }>>(
+      `${this.apiUrl}/pending-count`,
+      { headers: this.getHeaders(), params: this.filterParams(dateFrom, dateTo, commercial, search) }
+    ).pipe(catchError(this.handleError));
+  }
 
+  validateSelection(deliveryIds: number[]): Observable<ApiResponse<{ count: number }>> {
+    return this.http.post<ApiResponse<{ count: number }>>(
+      `${this.apiUrl}/validate-selection`,
+      { deliveryIds },
+      { headers: this.getHeaders() }
+    ).pipe(catchError(this.handleError));
+  }
+
+  validatePending(
+    dateFrom: string,
+    dateTo: string,
+    commercial?: string | null,
+    search?: string
+  ): Observable<ApiResponse<{ count: number }>> {
+    return this.http.post<ApiResponse<{ count: number }>>(
+      `${this.apiUrl}/validate-pending`,
+      {},
+      { headers: this.getHeaders(), params: this.filterParams(dateFrom, dateTo, commercial, search) }
+    ).pipe(catchError(this.handleError));
+  }
+
+  private filterParams(
+    dateFrom: string,
+    dateTo: string,
+    commercial?: string | null,
+    search?: string
+  ): HttpParams {
+    let params = new HttpParams().set('dateFrom', dateFrom).set('dateTo', dateTo);
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+    if (search) {
+      params = params.set('search', search);
+    }
+    return params;
+  }
 
   private handleError(error: HttpErrorResponse): Observable<never> {
     let errorMessage = 'Une erreur inattendue s\'est produite.';

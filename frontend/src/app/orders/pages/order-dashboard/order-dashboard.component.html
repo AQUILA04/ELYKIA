@@ -81,6 +81,14 @@
         <button
           type="button"
           class="btn-primary"
+          *ngIf="showAcceptAll"
+          [disabled]="acceptAllBusy || totalElements === 0"
+          (click)="acceptAllPending()">
+          {{ onlineMode ? 'Tout valider' : 'Tout accepter' }}
+        </button>
+        <button
+          type="button"
+          class="btn-primary"
           *ngIf="canRequestStock"
           [disabled]="pendingStockBusy"
           (click)="requestStockForAllPending()">

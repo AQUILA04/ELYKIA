@@ -96,3 +96,34 @@
     color: var(--text-muted);
   }
 }
+
+.delivery-page .toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.delivery-page .col-check {
+  width: 44px;
+  text-align: center;
+}
+
+.delivery-page .col-check input {
+  width: 18px;
+  height: 18px;
+}
+
+.delivery-action-bar {
+  position: sticky;
+  bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 0;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}

@@ -328,9 +328,18 @@ Les commandes passées par les clients depuis l’Espace Client apparaissent dan
 3. Dans **Commercial**, choisissez une personne pour n’afficher que ses commandes. **Réinitialiser** efface la recherche et le commercial.
 4. La recherche, le commercial et l’onglet restent en place lorsque vous quittez la page et y revenez.
 5. Parcourez les onglets **En attente**, **Validées**, **Livrées** et **Autres**.
-6. Sur une commande en attente, cliquez sur **Valider**. Pour en traiter plusieurs, cochez-les puis cliquez sur **Valider la sélection**.
+6. Sur une commande en attente, cliquez sur **Valider**. Pour en traiter plusieurs sur la page, cochez-les puis cliquez sur **Valider la sélection**. Pour toutes les commandes en attente du filtre en cours (recherche et commercial), cliquez sur **Tout valider**. Une confirmation indique le nombre.
 7. Pour écarter une commande en attente, cliquez sur **Refuser**. La même action existe pour une sélection : **Refuser la sélection**. La commande passe dans l’onglet **Autres**.
 8. Une fois la commande validée et la marchandise chez le commercial, cliquez sur **Marquer comme livrée** : la vente est créée automatiquement et la commande passe à **Livrée**.
+9. Sur chaque ligne, cliquez sur **Fiche** pour télécharger la fiche. Le bouton est présent pour une commande en attente, validée, livrée, refusée ou annulée. Dans le détail, le bouton s’appelle **Télécharger la fiche**. Le document reprend l’entreprise, le nom et le prénom du client, son téléphone, son quartier, son adresse, le commercial associé, la date, le statut et les articles avec le montant.
+10. Cliquez sur **Demande de stock (en attente)** pour préparer une demande par commercial. Chaque demande regroupe les commandes en ligne en attente de ce commercial qui ne sont pas déjà dans une demande de stock. La fenêtre rappelle les articles et les quantités. Cochez **Pour le mois prochain** si la sortie doit porter sur le mois suivant, puis confirmez.
+
+### Menu Commandes
+
+1. Ouvrez **Commandes**.
+2. Sur l'onglet **En attente**, **Tout accepter** accepte toutes les commandes en attente du filtre en cours. Si un commercial est choisi, seules ses commandes sont acceptées. Une confirmation indique le nombre.
+3. **Fiche** sur la liste, et **Télécharger la fiche** dans le détail, sont disponibles pour chaque commande, quel que soit son statut.
+4. **Demande de stock (en attente)** prépare une demande par commercial. Chaque demande regroupe les commandes en attente de ce commercial qui ne sont pas déjà dans une demande de stock.
 
 ---
 
@@ -447,7 +456,7 @@ Dans l'application ELYKIA, la marchandise suit un circuit d'approvisionnement et
 
 L'organisation repose sur **trois niveaux étanches de stock** :
 1. **Stock Central Magasin** : Stock physique détenu au dépôt principal, administré par le magasinier et audité par les inventaires.
-2. **Stock Commercial** (accessible via le menu latéral **Stock Commercial**) : Stock opérationnel attribué aux commerciaux pour les ventes directes au comptant et à crédit.
+2. **Stock Commercial** (accessible via le menu latéral **Stock Commercial**) : Stock opérationnel attribué aux commerciaux pour les ventes à crédit.
 3. **Stock Tontine** : même menu **Stock Commercial**, sélecteur **Tontine**. Stock réservé aux livraisons de fin d'exercice des membres de la tontine.
 
 ---
@@ -464,8 +473,10 @@ Le catalogue centralise les articles commercialisables, leurs grilles tarifaires
 * **Identification produit** : Nom de l'article, Marque, Modèle et Catégorie / Famille de produits.
 * **Grille tarifaire à 3 niveaux** :
   * **Prix d'achat fournisseur** : Coût d'acquisition servant de base au calcul de valorisation du stock et aux marges brutes.
-  * **Prix de vente comptant** : Montant appliqué lors des règlements immédiats en espèces.
+  * **Prix de vente comptant** : Montant appliqué lors des règlements immédiats en espèces, à l'unité.
   * **Prix de vente à crédit** : Montant contractuel pour les paiements échelonnés sur 30 jours (incluant la marge financière).
+* **Colis** : si l'article se reçoit en carton ou en sac, indiquez le nombre d'unités du colis. Ce nombre peut être impair. Le demi-gros est la moitié du colis lorsque le nombre est pair. Lorsqu'il est impair, le champ **Unités du demi-gros** apparaît : laissez-le vide s'il n'y a pas de demi-gros, ou indiquez combien d'unités il contient.
+* **Prix de vente du colis** : prix de vente du gros, et prix de vente du demi-gros seulement si le demi-gros existe. Vous pouvez aussi ajouter des offres libres, par exemple 3 unités pour 250 : le montant est celui des 3 unités, pas le prix d'une seule.
 * **Paramètres de réapprovisionnement** :
   * **Point de commande (Seuil d'alerte)** : Quantité minimale en deçà de laquelle l'article bascule en alerte orange *Rupture imminente*.
   * **Niveau de stock optimal** : Quantité cible recommandée en magasin.
@@ -486,7 +497,7 @@ Pour accéder à la liste des réceptions, ouvrez le menu latéral **Stock Comme
 3. **Contrôle et Validation par le gestionnaire** :
    * Rendez-vous dans **Stock Commercial > Historique Entrée**.
    * Cliquez sur **« Voir »** pour contrôler la concordance entre le bon de livraison fournisseur physique et les quantités saisies à l'écran, ou directement sur **« Valider »**.
-   * Une fenêtre de confirmation liste les articles. Les prix d'achat (unitaire, ou prix du colis / demi-colis) sont préremplis avec le catalogue : vous pouvez les modifier ou les laisser tels quels.
+   * Une fenêtre de confirmation liste les articles. Les prix d'achat (unitaire, ou prix du colis / demi-colis) sont préremplis avec le catalogue : vous pouvez les modifier ou les laisser tels quels. Le demi-gros n'est proposé que s'il est défini sur la fiche. Les prix de vente du lot (unité, gros, demi-gros) sont aussi préremplis et modifiables pour cette entrée.
    * Cliquez sur **« Confirmer la validation »** : le stock magasin est **instantanément augmenté** avec les prix confirmés. En cas d'erreur, le message s'affiche dans la fenêtre : corrigez puis renvoyez.
    * **Refuser** : Rejette la réception en cas de non-conformité majeure (marchandise abîmée, erreur de produit). Le statut passe à **Refusé**.
    * **Abandonner** : Permet au créateur de la réception en attente de supprimer sa saisie avant validation si une erreur a été commise.
@@ -524,16 +535,19 @@ Le réapprovisionnement suit un flux rigoureux en 3 étapes : **Création $\righ
 2. **Étape 2 : Validation gestionnaire (Statut « Validée »)** :
    * Le gestionnaire contrôle la disponibilité physique en magasin et les encours du commercial, puis clique sur le bouton vert **« Valider »**.
    * La demande passe à l'état **Validée**. La marchandise est alors réservée au magasin.
-   * Si la demande est liée à des **commandes** (mention « Commandes liées » dans la liste), les commandes encore en attente passent automatiquement à **Validée**.
+   * Tant que la demande n'est pas livrée, **Annuler** reste disponible dans la liste et en bas de la fenêtre **Voir**. Après confirmation, la demande passe au statut **Annulée**. Le stock du magasin ne change pas.
+   * Si la demande est liée à des **commandes** (mention « Commandes liées » dans la liste), les commandes encore en attente passent automatiquement à **Validée**. Elles restent **Validée** si la demande de sortie est ensuite annulée.
 3. **Étape 3 : Livraison magasinier (Statut « Livrée »)** :
    * Le magasinier physique remet les articles au commercial et clique sur le bouton bleu **« Livrer »**.
    * **Conséquence instantanée** : Le stock magasin est débité et le stock personnel du commercial est crédité. La date de livraison est horodatée.
+
+Une vente payée au comptoir apparaît dans cette liste déjà **Validée**, avec la mention **Vente comptant** et la référence de la vente. Le magasinier clique sur **Livrer** pour remettre les articles au client. La vente passe alors à **Clôturé**. **Annuler** avant cette remise retire l'encaissement de la caisse.
 
 ### B. Détail d'une demande
 1. Cliquez sur **« Voir »**.
 2. La référence de la demande s'affiche en haut de la fenêtre.
 3. Contrôlez le commercial, les dates, le statut et la liste des articles.
-4. Pour une demande au statut **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. La confirmation est la même que depuis la liste.
+4. Pour une demande au statut **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. Pour une demande au statut **Validée**, **« Annuler »** est en bas de la fenêtre. La confirmation est la même que depuis la liste.
 5. Cliquez sur **« Télécharger »** pour enregistrer la fiche de sortie de cette demande.
 
 ### C. Téléchargements et exports PDF
@@ -553,7 +567,8 @@ Dans **Stock Commercial**, les écrans **Demandes Sortie**, **Stock** et **Retou
 
 * Ce stock prépare les paniers de fin d'exercice des membres ayant cotisé.
 * Le cycle d'approbation (**Créée → Validée → Livrée**) et le retour (**En attente → Réceptionné**) suivent les mêmes boutons que le stock crédit.
-* Sur **Demandes Sortie**, **« Voir »** ouvre le détail : la référence est en haut. Pour une demande **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. **« Télécharger »** enregistre la fiche de cette demande.
+* Sur **Demandes Sortie**, **« Voir »** ouvre le détail : la référence est en haut. Pour une demande **Créée**, **« Valider »** et **« Refuser »** sont en bas de la fenêtre. Pour une demande **Validée**, **« Annuler »** est en bas de la fenêtre, tant qu'elle n'est pas livrée. **« Télécharger »** enregistre la fiche de cette demande.
+* Une demande créée depuis **Tontines > Livraison** affiche **Commandes liées**. À la validation, ces commandes encore en attente passent à **Validée**. Le magasinier livre le commercial en une seule opération, pour toutes les commandes regroupées.
 * **Stock** affiche le suivi par année. **Retours** permet de **Réceptionner** un retour au statut **En attente**.
 
 ---
@@ -1048,6 +1063,24 @@ Dans le coin supérieur droit de l'écran, le menu utilisateur assure la sécuri
 * **Changer de mot de passe** : Permet de renouveler régulièrement votre code d'accès confidentiel.
 * **Déconnexion** : En fin de poste ou avant de quitter votre bureau, cliquez impérativement sur **« Déconnexion »** pour fermer votre session et empêcher tout accès non autorisé à vos données.
 * **Session expirée** : Si la session n'est plus reconnue pendant le travail, l'application revient d'elle-même à l'écran de connexion et affiche **Session expirée**. Saisissez à nouveau votre identifiant et votre mot de passe.
+
+---
+
+## 6. Archives des collectes tontine
+
+Ces archives servent à rapprocher une annulation de collectes avec l'argent déjà remis.
+
+1. Dans le menu latéral, cliquez sur **Tontines**, puis sur **Archives collectes**.
+2. Ouvrez l'année, puis l'opération marquée **Annulation** suivie du nom du commercial.
+3. Trois volets sont disponibles :
+   - **Lignes** : chaque collecte retirée, avec le client, la date, la référence et le montant. **Exporter CSV** reprend la même liste.
+   - **Membres** : pour chaque client concerné, le montant **Retiré**, le montant **Conservé** (collectes des autres commerciaux) et les totaux avant et après.
+   - **Jours à rapprocher** : pour chaque jour, la tontine et le montant **À verser** avant et après, plus le montant **Déjà versé**.
+4. **Télécharger** ouvre le PDF du quartier correspondant.
+
+Pour le rapprochement, comparez **Déjà versé** et **À verser après** sur le jour concerné. Le montant déjà remis en caisse ne change pas. L'écart entre les deux est le montant à expliquer avec la caisse. Le rapport journalier du commercial, sur la même date, affiche les montants après annulation.
+
+<!-- CAPTURE À INSÉRER : détail d'une annulation avec les volets Lignes, Membres et Jours à rapprocher -->
 
 
 \newpage
