@@ -4,6 +4,7 @@ Journal court. Date = jour où la décision est visible dans le changelog, une r
 
 | Date | Décision | Pourquoi (source) |
 |------|----------|-------------------|
+| 2026-11-15 | Toute l’activité de production et le métier sont en GMT (UTC+0, Lomé). Les timestamps se citent en GMT / UTC+0. On ne les convertit pas en heure Maurice : le propriétaire convertit lui-même. | Décision du propriétaire. `docs/diagnostic-fifo-entrees-sans-lot.md` demandait d’ajouter 4 h ; cette consigne est retirée. |
 | 2026-11-15 | Un compte commercial a un historique d’affectation. Deux périodes ne se chevauchent ni sur un compte ni pour une personne. L’annuaire du personnel est distinct des utilisateurs de connexion. | Changelog backend 1.53.0, PR #228 |
 | 2026-11-14 | La vente au comptant encaisse tout de suite et ne sort le stock qu’à la remise magasin. Une livraison incomplète est refusée. | Changelog backend 1.50.0 |
 | 2026-11-14 | Le plafond d’une commande tontine est le solde prévisionnel ; la remise exige le solde disponible. | Changelog backend 1.51.0 |

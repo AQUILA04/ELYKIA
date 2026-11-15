@@ -20,6 +20,10 @@ Arrêt au **2026-11-15**, `main` = `d37c9bbd` (merge PR #228). Prochaine lecture
 
 Mobile 2.39.x aligne livraison tontine (solde prévisionnel) et contrôle de carnet. Pas de bump mobile le 2026-11-15 : le menu Commerciaux est web + API.
 
+## Fuseau
+
+Production et métier : GMT (UTC+0), Lomé. Citer les heures en GMT. Ne pas convertir en heure Maurice. Voir `decisions.md`.
+
 ## Travail en cours dans l’arbre
 
 Aucun chantier produit ouvert identifié sur `main` au moment de cette note. Feuille de route au-delà du changelog : **à compléter**.

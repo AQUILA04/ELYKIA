@@ -79,6 +79,8 @@ Hébergement actuel : VPS **Contabo**, stacks Docker `/opt/elykia/{test,prod}`, 
 
 Paygate test documenté dans le changelog (2026-10-17) : `https://paygate-test-api.optimizesolux.com`. Aucun secret dans ce fichier.
 
+Horloge serveur et métier : **GMT (UTC+0)**, Lomé. Citer les timestamps en GMT. Ne pas les convertir en heure Maurice.
+
 ## Versions et changelog
 
 SemVer **par composant**, pas de version unique de monorepo. Toute tâche qui modifie code, config ou docs : entrée dans `docs/CHANGELOG.md` (Keep a Changelog, français). PATCH par défaut ; MINEUR pour une fonctionnalité visible substantielle. Section `Docs & Infra` sans numéro, pour CI, deploy, skills, docs racine. Skill : `.cursor/skills/keep-changelog/SKILL.md`.

@@ -16,7 +16,7 @@ docker exec -it elykia-prod-db psql -U elykia_prod -d elykia_prod_db
 
 Si le nom a changé : `docker ps --format '{{.Names}}' | grep -E 'db|postgres'`.
 
-Les colonnes `date_reg`, `validated_at`, `occurred_at`, `performed_at` sont des `timestamp without time zone` écrits par l’horloge du serveur (UTC sur Contabo). Pour les lire en heure Maurice, **ajouter 4 heures**. Les exemples ci-dessous ne convertissent pas ces colonnes.
+Les colonnes `date_reg`, `validated_at`, `occurred_at`, `performed_at` sont des `timestamp without time zone` écrits par l’horloge du serveur (UTC sur Contabo). L’activité de production et le métier sont à Lomé, en **GMT (UTC+0)**. Citer ces heures telles quelles, en GMT / UTC+0. Ne pas ajouter 4 heures et ne pas les convertir en heure Maurice : le propriétaire fait cette conversion lui-même s’il en a besoin.
 
 Dans `psql` : `\pset pager off` puis coller les requêtes dans l’ordre. Remplacer rien : la première requête pose `article_id` dans une variable psql.
 
@@ -293,7 +293,7 @@ Si `stock_after - stock_before` explique les +19, l’utilisateur a fait une **r
 
 Poser T0 = `date_reg` du lot `MIGRATION` (section 3). Comparer chaque hausse de la section 4 à T0 et aux lots.
 
-1. **Entrée validée après T0, `lot_id` vide (section 5).** L’utilisateur a validé une entrée alors que le FIFO était actif. Le magasin a augmenté, le lot de cette entrée n’existe pas. Colonnes à remonter : référence, `validated_by`, `validated_at` (UTC+4), quantité, prix unitaire.
+1. **Entrée validée après T0, `lot_id` vide (section 5).** L’utilisateur a validé une entrée alors que le FIFO était actif. Le magasin a augmenté, le lot de cette entrée n’existe pas. Colonnes à remonter : référence, `validated_by`, `validated_at` (GMT / UTC+0), quantité, prix unitaire.
 2. **Entrées validées avant T0, et `quantity_initial` du lot MIGRATION égal à la dernière `final_quantity` d’historique avant T0.** Les 19 unités ne sont pas des entrées d’après activation. Le lot d’ouverture a repris le stock de ce moment-là (3). Les hausses sont après T0 : revenir au point 1, ou au point 3 s’il n’y a aucune réception validée sans lot.
 3. **Dernière `final_quantity` avant T0 déjà supérieure à `quantity_initial` du lot MIGRATION** (par exemple historique déjà à 22, lot d’ouverture à 3). L’activation a figé une quantité qui n’était plus celle du magasin. Les entrées, elles, avaient déjà été validées avant. Remonter la dernière ligne d’historique avant T0 et le lot MIGRATION côte à côte.
 4. **Hausse `INVENTORY_ADJUSTMENT` sans lot `INVENTORY_ADJUSTMENT`.** Régularisation d’inventaire. Remonter inventaire, action, `performed_by`, `stock_before`, `stock_after`.
@@ -306,8 +306,8 @@ Une fois les requêtes passées, le compte-rendu tient en quelques lignes :
 
 - id article, nom affiché, `stock_quantity`, somme des lots ouverts, écart ;
 - `parval` du paramètre FIFO ;
-- T0 (UTC et UTC+4) et `quantity_initial` du lot `MIGRATION` ;
-- chaque hausse qui compose l’écart : heure Maurice, utilisateur, type (`ENTREE`, `RETURN`, `INVENTORY_ADJUSTMENT`), référence, quantité, et « lot créé : oui/non » ;
+- T0 (GMT / UTC+0) et `quantity_initial` du lot `MIGRATION` ;
+- chaque hausse qui compose l’écart : heure GMT (UTC+0), utilisateur, type (`ENTREE`, `RETURN`, `INVENTORY_ADJUSTMENT`), référence, quantité, et « lot créé : oui/non » ;
 - la liste des autres articles en écart (section 2), même vide.
 
 Ne pas corriger les données à la main dans `article_stock_lot` au fil de cette lecture.

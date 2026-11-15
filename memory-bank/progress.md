@@ -19,7 +19,7 @@
 - Préfixes REST `/api` et `/api/v1` coexistent.
 - Parents Spring Boot de `backend-lib/` (3.1.3, 3.4.1, 3.3.0) ne sont pas alignés sur l’API (3.3.0).
 - Client OTP maison dans `notificationhub/` : ne pas l’étendre (règle starter).
-- Procédure FIFO `docs/diagnostic-fifo-entrees-sans-lot.md` (article « CUBE: ONGA quart », livraison refusée). Issue encore ouverte ou non : **à compléter**. Le texte demande d’ajouter 4 h aux timestamps UTC « pour l’heure Maurice », alors que l’activité décrite par le site est à Lomé (UTC+0) : **à clarifier**.
+- Procédure FIFO `docs/diagnostic-fifo-entrees-sans-lot.md` (article « CUBE: ONGA quart », livraison refusée). Issue encore ouverte ou non : **à compléter**. Les heures du compte-rendu sont en GMT (UTC+0), sans conversion.
 - Seuils JaCoCo du backend volontairement bas (lignes globales 0,46, branches 0,12) : filet anti-régression, pas un objectif de couverture.
 - `package.json` à la racine ne déclare que `@ngrx/entity`. Ce n’est pas le point d’entrée d’une app. Rôle exact : **à compléter**.
 

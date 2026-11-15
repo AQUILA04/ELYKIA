@@ -15,6 +15,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Docs —** memory bank Cursor (`memory-bank/`) : brief produit, métier, architecture, stack, contexte actif, avancement et décisions, tenus à jour par la règle `.cursor/rules/memory-bank.mdc`. Un pointeur est ajouté dans `AGENTS.md`.
 
+### Changed
+
+- **Docs —** les heures de production et du métier se citent en GMT (UTC+0, Lomé). La procédure FIFO ne demande plus d’ajouter 4 h pour l’heure Maurice.
+
 ## Docs & Infra — 2026-11-09
 
 ### Changed
