@@ -19,6 +19,7 @@ import { CommercialAccountsComponent } from './commercial-accounts/commercial-ac
 import { CommercialAccountHistoryComponent } from './commercial-account-history/commercial-account-history.component';
 import { CommercialStaffListComponent } from './commercial-staff-list/commercial-staff-list.component';
 import { CommercialStaffFormComponent } from './commercial-staff-form/commercial-staff-form.component';
+import { CommercialPageHeadComponent } from './commercial-page-head/commercial-page-head.component';
 
 @NgModule({
   declarations: [
@@ -28,6 +29,7 @@ import { CommercialStaffFormComponent } from './commercial-staff-form/commercial
     CommercialAccountHistoryComponent,
     CommercialStaffListComponent,
     CommercialStaffFormComponent,
+    CommercialPageHeadComponent,
   ],
   imports: [
     CommonModule,

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { switchMap, of } from 'rxjs';
 import {
@@ -8,6 +8,7 @@ import {
   apiErrorMessage
 } from '../service/commercial-directory.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { CommercialPageBase } from '../commercial-page.base';
 
 @Component({
   selector: 'app-commercial-staff-form',
@@ -15,7 +16,7 @@ import { AlertService } from 'src/app/shared/service/alert.service';
   styleUrls: ['../commercial-page.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CommercialStaffFormComponent implements OnInit, OnDestroy {
+export class CommercialStaffFormComponent extends CommercialPageBase {
   id: number | null = null;
   name = '';
   phoneNumber = '';
@@ -29,28 +30,21 @@ export class CommercialStaffFormComponent implements OnInit, OnDestroy {
   removePhoto = false;
   loading = false;
   saving = false;
-  currentDate = new Date();
-  private timer?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly directory: CommercialDirectoryService,
     private readonly alertService: AlertService
-  ) {}
+  ) {
+    super();
+  }
 
-  ngOnInit(): void {
-    this.timer = setInterval(() => this.currentDate = new Date(), 1000);
+  protected start(): void {
     const raw = this.route.snapshot.paramMap.get('id');
     this.id = raw ? Number(raw) : null;
     if (this.id) {
       this.load();
-    }
-  }
-
-  ngOnDestroy(): void {
-    if (this.timer) {
-      clearInterval(this.timer);
     }
   }
 
@@ -141,7 +135,7 @@ export class CommercialStaffFormComponent implements OnInit, OnDestroy {
     if (!this.id) {
       return;
     }
-    this.alertService.showConfirmation(
+    void this.alertService.showConfirmation(
       'Retirer cette personne',
       'La fiche sera retirée de l\'annuaire. Ce n\'est possible que si elle n\'a jamais été affectée.',
       'Retirer',

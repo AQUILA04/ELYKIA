@@ -1,6 +1,7 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { CommercialDirectoryService, CommercialStaff, apiErrorMessage } from '../service/commercial-directory.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { CommercialPageBase } from '../commercial-page.base';
 
 @Component({
   selector: 'app-commercial-staff-list',
@@ -8,28 +9,20 @@ import { AlertService } from 'src/app/shared/service/alert.service';
   styleUrls: ['../commercial-page.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CommercialStaffListComponent implements OnInit, OnDestroy {
+export class CommercialStaffListComponent extends CommercialPageBase {
   people: CommercialStaff[] = [];
   search = '';
   loading = true;
-  currentDate = new Date();
-  lastUpdate = new Date();
-  private timer?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly directory: CommercialDirectoryService,
     private readonly alertService: AlertService
-  ) {}
-
-  ngOnInit(): void {
-    this.timer = setInterval(() => this.currentDate = new Date(), 1000);
-    this.load();
+  ) {
+    super();
   }
 
-  ngOnDestroy(): void {
-    if (this.timer) {
-      clearInterval(this.timer);
-    }
+  protected start(): void {
+    this.load();
   }
 
   get filtered(): CommercialStaff[] {
@@ -51,7 +44,7 @@ export class CommercialStaffListComponent implements OnInit, OnDestroy {
       next: people => {
         this.people = people;
         this.loading = false;
-        this.lastUpdate = new Date();
+        this.markUpdated();
       },
       error: error => {
         this.loading = false;

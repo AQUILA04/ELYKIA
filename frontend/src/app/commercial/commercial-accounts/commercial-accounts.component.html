@@ -1,27 +1,17 @@
 <div class="main-container commercial-page a1">
-  <div class="page-fixed-head">
-    <div class="breadcrumb-bar">
-      <a routerLink="/home" class="breadcrumb-link">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd"/></svg>
-        Tableau de bord
-      </a>
-      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  <app-commercial-page-head [currentDate]="currentDate">
+    <div class="header-card-top">
+      <span class="header-surtitle">Commerciaux</span>
+      <span class="date-display">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
     </div>
-    <div class="page-header-card a2">
-      <div class="header-card-top">
-        <span class="header-surtitle">Commerciaux</span>
-        <span class="date-display">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    <div class="header-card-main">
+      <div class="title-group">
+        <h1 class="page-title">Comptes commerciaux</h1>
       </div>
-      <div class="header-card-main">
-        <div class="title-group">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="page-icon"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-          <h1 class="page-title">Comptes commerciaux</h1>
-        </div>
-        <button type="button" class="btn-refresh" (click)="load()">Actualiser</button>
-      </div>
-      <p class="page-subtitle">Qui utilise chaque compte, aujourd'hui</p>
+      <button type="button" class="btn-refresh" (click)="load()">Actualiser</button>
     </div>
-  </div>
+    <p class="page-subtitle">Qui utilise chaque compte, aujourd'hui</p>
+  </app-commercial-page-head>
 
   <div class="page-scroll-body">
     <div class="kpi-strip a3">
@@ -44,8 +34,8 @@
 
     <div class="toolbar a4">
       <div>
-        <span class="toolbar-label">Recherche</span>
-        <input class="search-input" type="text" [(ngModel)]="search" placeholder="Compte ou personne">
+        <label class="toolbar-label" for="commercial-account-search">Recherche</label>
+        <input id="commercial-account-search" class="search-input" type="text" [(ngModel)]="search" placeholder="Compte ou personne">
       </div>
       <span class="result-count">{{ filtered.length }} compte(s)</span>
     </div>

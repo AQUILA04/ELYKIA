@@ -1,29 +1,18 @@
 <div class="main-container commercial-page a1">
-  <div class="page-fixed-head">
-    <div class="breadcrumb-bar">
-      <a routerLink="/home" class="breadcrumb-link">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd"/></svg>
-        Tableau de bord
-      </a>
-      <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+  <app-commercial-page-head [currentDate]="currentDate">
+    <div class="header-card-top">
+      <span class="header-surtitle">Commerciaux</span>
+      <span class="date-display">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
     </div>
-    <div class="page-header-card a2">
-      <div class="header-card-top">
-        <span class="header-surtitle">Commerciaux</span>
-        <span class="date-display">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+    <div class="header-card-main">
+      <h1 class="page-title">Personnel</h1>
+      <div class="title-group">
+        <a class="btn-primary" routerLink="/commercial/staff/new">Nouvelle personne</a>
+        <button type="button" class="btn-refresh" (click)="load()">Actualiser</button>
       </div>
-      <div class="header-card-main">
-        <div class="title-group">
-          <h1 class="page-title">Personnel</h1>
-        </div>
-        <div class="title-group">
-          <a class="btn-primary" routerLink="/commercial/staff/new">Nouvelle personne</a>
-          <button type="button" class="btn-refresh" (click)="load()">Actualiser</button>
-        </div>
-      </div>
-      <p class="page-subtitle">Les personnes qui peuvent être affectées à un compte commercial</p>
     </div>
-  </div>
+    <p class="page-subtitle">Les personnes qui peuvent être affectées à un compte commercial</p>
+  </app-commercial-page-head>
 
   <div class="page-scroll-body">
     <div class="kpi-strip a3">
@@ -46,8 +35,8 @@
 
     <div class="toolbar a4">
       <div>
-        <span class="toolbar-label">Recherche</span>
-        <input class="search-input" type="text" [(ngModel)]="search" placeholder="Nom, téléphone, pièce">
+        <label class="toolbar-label" for="commercial-staff-search">Recherche</label>
+        <input id="commercial-staff-search" class="search-input" type="search" [(ngModel)]="search" placeholder="Nom, téléphone, pièce">
       </div>
       <span class="result-count">{{ filtered.length }} personne(s)</span>
     </div>

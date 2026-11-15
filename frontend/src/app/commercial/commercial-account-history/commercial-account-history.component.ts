@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewEncapsulation } from '@angular/core';
+import { Component, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import {
   AssignmentWrite,
@@ -9,6 +9,7 @@ import {
   apiErrorMessage
 } from '../service/commercial-directory.service';
 import { AlertService } from 'src/app/shared/service/alert.service';
+import { CommercialPageBase } from '../commercial-page.base';
 
 @Component({
   selector: 'app-commercial-account-history',
@@ -16,29 +17,28 @@ import { AlertService } from 'src/app/shared/service/alert.service';
   styleUrls: ['../commercial-page.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class CommercialAccountHistoryComponent implements OnInit, OnDestroy {
+export class CommercialAccountHistoryComponent extends CommercialPageBase {
   userId = 0;
   account?: CommercialAccount;
   history: CommercialAssignment[] = [];
   people: CommercialStaff[] = [];
   loading = true;
   saving = false;
-  currentDate = new Date();
   editingId: number | null = null;
   promoterId: number | null = null;
   startDate = '';
   endDate = '';
   closeDate = '';
-  private timer?: ReturnType<typeof setInterval>;
 
   constructor(
     private readonly route: ActivatedRoute,
     private readonly directory: CommercialDirectoryService,
     private readonly alertService: AlertService
-  ) {}
+  ) {
+    super();
+  }
 
-  ngOnInit(): void {
-    this.timer = setInterval(() => this.currentDate = new Date(), 1000);
+  protected start(): void {
     this.userId = Number(this.route.snapshot.paramMap.get('userId'));
     this.directory.listStaff().subscribe({
       next: people => this.people = people,
@@ -48,12 +48,6 @@ export class CommercialAccountHistoryComponent implements OnInit, OnDestroy {
       }
     });
     this.load();
-  }
-
-  ngOnDestroy(): void {
-    if (this.timer) {
-      clearInterval(this.timer);
-    }
   }
 
   get openAssignment(): CommercialAssignment | undefined {
@@ -148,7 +142,7 @@ export class CommercialAccountHistoryComponent implements OnInit, OnDestroy {
   }
 
   remove(item: CommercialAssignment): void {
-    this.alertService.showConfirmation(
+    void this.alertService.showConfirmation(
       'Retirer cette période',
       `Retirer ${item.promoterName} du compte ${item.username} pour cette période ?`,
       'Retirer',
