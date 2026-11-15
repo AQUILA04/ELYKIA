@@ -1,0 +1,62 @@
+# Patterns système
+
+Monorepo. Le backend PostgreSQL est la source de vérité. Le web admin et l’espace client parlent REST/JSON. Le mobile terrain est **local-first** (SQLite) et ne pousse le serveur qu’à la synchronisation.
+
+Schémas d’intégration (partiellement périmés sur les versions Angular) : `docs/integration-architecture.md`, `docs/architecture-backend.md`, `docs/architecture-mobile.md`. S’y fier pour les flux, pas pour les numéros de version (voir `techContext.md`).
+
+## Pièces
+
+| Dossier | Rôle |
+|---------|------|
+| `backend/` | API Spring Boot `optimize-elykia-core` |
+| `backend-lib/` | `common-entities`, `common-securities` (`common-security-service`), `elykia-client` |
+| `frontend/` | Admin web Angular |
+| `mobile/` | App terrain Ionic / Capacitor (commercial + chef de recouvrement) |
+| `customer-space/` | Espace client Ionic / Capacitor (`com.optimize.elykia.customer`) |
+| `website/` | Site vitrine `www.amenouveve-yaveh.com` |
+| `landing-page/` | Page statique `elykia.optimizesolux.com` |
+| `deploy/` | Compose, scripts VPS, monitoring |
+| `user-guide/` | Guide MkDocs |
+| `docs/` | Docs techniques et changelog |
+
+## Backend
+
+Couches sous `com.optimize.elykia.core` : `controller`, `service`, `repository`, `entity`, `dto`, `mapper` (MapStruct), `config`, `scheduler`. ~126 entités JPA. Domaines de services : `sale`, `stock`, `store`, `tontine`, `debt`, `expense`, `accounting`, `report`, `bi`, `order`, `client`, `customer`, `commercial`, `carnet`, `inventory`, `ai`, `notification`, `paygate`, `ocr`.
+
+- Sécurité JWT (librairie `common-security-service`), permissions `ROLE_*`, profils nommés. Pas de session serveur pour l’UI.
+- Flyway : `backend/src/main/resources/db/migration/V0xx__*.sql`, `out-of-order: false`, `baseline-on-migrate`, baseline 0. Dernière migration au 2026-11-15 : `V040__commercial_account_assignment.sql`.
+- Fichiers : MinIO (photos clients, articles, rapports, APK, recrutement). Clés uniquement par variables d’environnement.
+- Elykia IA (`ai/`) : `AiOrchestratorService` + `IntentClassifier`. Schéma SQL = snapshot `backend/src/main/resources/ai/schema-catalog.json`, pas le Postgres live. Aide = index RAG `user-guide-index.json`. Fournisseur LLM par `elykia.ai.provider` ; défaut sans modèle cloud (stub).
+- OTP espace client : client HTTP local `notificationhub/` (contournement historique). Nouvelle intégration : starter `sb-notification-hub-starter`, pas d’extension de ce client. Voir la règle `notification-hub-starter-first`.
+- Préfixes HTTP **mélangés** : `/api/...` et `/api/v1/...` selon les contrôleurs. Traefik expose le backend sous le préfixe public `/api` et en retire un segment.
+
+## Frontend admin
+
+Modules métier sous `frontend/src/app/` (crédit, stock, tontine, caisse, commandes, BI, IA, commerciaux, dettes, dépenses, inventaire, etc.). Routes récentes en `loadChildren` ; des écrans restent eager (localités, gestion, dépôts). Toute modification d’un domaine encore eager doit le passer en lazy-loading dans la même tâche (règle `frontend-lazy-loading-migration`).
+
+État : services Angular + RxJS, pas de store global. Gardes : `AuthGuard`, `NgxPermissionsGuard`, `FeatureFlagGuard`, `AiChatGuard`. Confirmations : `AlertService` uniquement (pas de `confirm()` / SweetAlert direct).
+
+## Mobile
+
+Deux coques : `tabs/` (commercial) et `rm-tabs/` (chef de recouvrement, `RmProfilGuard`). Features : sync, stock, clients, commandes, tontine, recovery, écarts / contrôles carnet, ancien portefeuille, consentement de synchro et consentement journalier.
+
+Règles : écritures métier sur SQLite ; l’API sert au chargement initial et à la synchro explicite ; toute lecture est filtrée par l’utilisateur (`commercialUsername` ou colonne équivalente). NgRx (store, effects, entity). Capacitor : caméra, géoloc, SQLite, imprimante ceinture, Crashlytics, Remote Config.
+
+## Espace client
+
+`customer-space/src/app/features/` : auth, dashboard, purchases, catalog, cart, payment, tontines, notifications, account-deletion, privacy. Variantes `desktop/` à côté des écrans téléphone. Firebase sert au Remote Config. Les SMS OTP passent par le backend (Notification Hub), plus par Firebase Phone Auth.
+
+## Données — repères
+
+Le catalogue narratif (incomplet face au schéma réel) est `docs/data-models-backend.md`. Pour l’IA et les requêtes, la whitelist est `schema-catalog.json`. Entités citées par cette doc : `Tontine`, `TontineSession`, `TontineMember`, `TontineCollection`, commandes, crédits, articles, mouvements de stock, `Agency`, `Promoter`, `Locality`, dépenses, versements, journée comptable. Affectation des comptes commerciaux : personnes et périodes non chevauchantes (`V040`).
+
+## Conventions agent
+
+- Changelog versionné par composant : skill `keep-changelog`. Mobile : trois fichiers de version alignés.
+- UI ou règle métier : mettre à jour `user-guide/docs/`, régénérer l’index RAG et `frontend/src/user-guide/`.
+- DDL queryable : mettre à jour `schema-catalog.json` (et `sql-examples.json` si un exemple casse).
+- Correctif VPS (Contabo) : le même diff dans Git avant de considérer le travail livré. Le CD écrase `/opt/elykia`.
+- Fuseau : GMT (UTC+0, Lomé). Citer les timestamps en GMT, sans conversion vers l’heure Maurice.
+- PDF : thème navy décrit par le skill `elykia-pdf-style`.
+- UI admin liste : skill `frontend-ui-style`. UI mobile stock : skill `elykia-stock-components-build`.
+- Plans `.cursor/plans/` inclus dans les commits.

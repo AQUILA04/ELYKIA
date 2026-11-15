@@ -9,6 +9,16 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-15
+
+### Added
+
+- **Docs —** memory bank Cursor (`memory-bank/`) : brief produit, métier, architecture, stack, contexte actif, avancement et décisions, tenus à jour par la règle `.cursor/rules/memory-bank.mdc`. Un pointeur est ajouté dans `AGENTS.md`.
+
+### Changed
+
+- **Docs —** les heures de production et du métier se citent en GMT (UTC+0, Lomé). La procédure FIFO ne demande plus d’ajouter 4 h pour l’heure Maurice.
+
 ## Docs & Infra — 2026-11-09
 
 ### Changed
