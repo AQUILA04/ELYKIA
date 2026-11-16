@@ -324,7 +324,11 @@ public class DailyReportEventListener {
                                                 + (event.getClientName() != null ? event.getClientName() : "N/A"));
         }
 
-        @EventListener
+        // Après le commit : la transaction métier tient souvent le rapport
+        // (clé étrangère de la dette, réconciliation). Un second transaction
+        // ouverte avant le commit attend ce verrou, et le thread métier attend
+        // cette mise à jour. Les deux restent bloquées et vident le pool.
+        @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
         @Transactional(propagation = Propagation.REQUIRES_NEW)
         public void handleTontineCollection(TontineCollectionEvent event) {
                 log.info("Processing TontineCollectionEvent for collector: {} operationDate={} captureDate={}",

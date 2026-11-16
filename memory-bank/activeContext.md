@@ -4,7 +4,9 @@ Arrêt au **2026-11-16** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de
 
 ## Versions en tête
 
-- Frontend **2.50.1** — Backend **1.53.2** — Mobile **2.40.0** — Espace client **0.17.3** (dernier incrément espace client : 2026-11-09).
+- Frontend **2.50.2** — Backend **1.53.2** — Mobile **2.40.0** — Espace client **0.17.3** (dernier incrément espace client : 2026-11-09).
+
+Prod, 16 nov. 2026, vers 18:07 GMT : le pool JDBC (10) était saturé. Une acceptation de carnet tontine tenait le rapport journalier et mettait à jour ce même rapport dans une seconde transaction, sans jamais committer. Correctif : événement après le commit, pool prod à 20, migration photo au démarrage coupée dans le compose.
 
 ## Focus récent (changelog et PR mergées)
 
