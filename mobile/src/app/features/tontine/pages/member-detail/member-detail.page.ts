@@ -98,7 +98,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         this.memberId = this.route.snapshot.paramMap.get('id');
 
         if (!this.memberId) {
-            this.showError('ID du membre non trouvé');
+            await this.showError('ID du membre non trouvé');
             this.goBack();
             return;
         }
@@ -172,7 +172,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             if (token === this.memberLoadToken) {
                 this.vm.loading = false;
             }
-            this.showError('ID du membre non trouvé');
+            await this.showError('ID du membre non trouvé');
             this.goBack();
             return;
         }
@@ -185,7 +185,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             this.vm.member = members.find(m => String(m.id) === String(memberId)) || null;
 
             if (!this.vm.member) {
-                this.showError('Membre non trouvé');
+                await this.showError('Membre non trouvé');
                 this.goBack();
                 return;
             }
@@ -205,7 +205,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             this.deliveryLookupFailed = true;
             this.vm.delivery = null;
             this.vm.deliveryItems = [];
-            this.showError('Erreur lors du chargement des données');
+            await this.showError('Erreur lors du chargement des données');
         } finally {
             if (token === this.memberLoadToken) {
                 this.vm.loading = false;
