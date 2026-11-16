@@ -344,6 +344,10 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Contrôle carnet tontine —** sur un mois déjà cotisé (`Système` > 0), le bouton **+** ajoute une ligne carnet pour un autre commercial (mise figée, système 0). Jusqu’à deux ajouts par mois calendaire ; corbeille pour retirer avant enregistrement. Les mois vraiment vides gardent **Collecté par** + **Mise du mois**.
 
+### Fixed
+
+- **Contrôle carnet tontine —** compilation TypeScript : `restoreExtraCarnetFromLine` renvoie `undefined` (plus `null`) pour rester assignable au résultat de `find` lors du préremplissage en modification.
+
 ## Mobile — [2.39.4] — 2026-11-16
 
 ### Fixed

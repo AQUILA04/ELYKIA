@@ -399,9 +399,9 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       year: number,
       month: number,
       commercial: string,
-      systemAmount: number): MonthRow | null {
+      systemAmount: number): MonthRow | undefined {
     if (systemAmount > 0) {
-      return null;
+      return undefined;
     }
     for (const block of this.blocks) {
       const sourceIndex = block.rows.findIndex(row =>
@@ -414,7 +414,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       }
       const source = block.rows[sourceIndex];
       if (!canAddExtraCarnetRow(source, this.allRows)) {
-        return null;
+        return undefined;
       }
       const duplicate = this.toRow(source.blockCommercial, year, month, 0, source.dailyMise);
       duplicate.dailyMise = source.dailyMise;
@@ -426,7 +426,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       block.rows.splice(sourceIndex + 1, 0, duplicate);
       return duplicate;
     }
-    return null;
+    return undefined;
   }
 
   private rowReady(row: MonthRow): boolean {
