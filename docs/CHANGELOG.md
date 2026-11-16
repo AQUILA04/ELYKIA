@@ -338,6 +338,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.39.3] — 2026-11-16
+
+### Fixed
+
+- **Fiche membre tontine —** le menu **⋮** affiche **Commande de tontine** pendant la session ouverte, et **Livraison Fin d'Année** après la clôture, lorsqu'aucune commande n'est en cours. L'entrée ne reste plus masquée par la livraison d'une autre membre. Une commande déjà en cours n'affiche pas cette entrée. Le statut affiché reprend celui de la membre lorsque la livraison synchronisée n'en porte pas.
+
 ## Mobile — [2.39.2] — 2026-11-15
 
 ### Added

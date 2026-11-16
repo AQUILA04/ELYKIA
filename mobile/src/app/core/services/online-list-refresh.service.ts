@@ -42,6 +42,7 @@ import { DatabaseService } from './database.service';
 import { Page } from '../repositories/repository.interface';
 import { LoggerService } from './logger.service';
 import { mapApiCollectionToLocal, mapApiMemberToLocal, shouldSkipPulledCollection } from './tontine-allocation.mapper';
+import { resolvePulledTontineDeliveryStatus } from '../utils/tontine-delivery-status.util';
 
 @Injectable({
   providedIn: 'root'
@@ -259,7 +260,7 @@ export class OnlineListRefreshService {
           requestDate: m.delivery.requestDate,
           deliveryDate: m.delivery.deliveryDate,
           totalAmount: m.delivery.totalAmount,
-          status: m.delivery.status,
+          status: resolvePulledTontineDeliveryStatus(m.delivery, m.deliveryStatus),
           isLocal: false,
           isSync: true,
           items: (m.delivery.items || []).map((i: any) => {
@@ -363,7 +364,7 @@ export class OnlineListRefreshService {
         requestDate: d.requestDate,
         deliveryDate: d.deliveryDate,
         totalAmount: d.totalAmount,
-        status: d.status,
+        status: resolvePulledTontineDeliveryStatus(d),
         isLocal: false,
         isSync: true,
         items: (d.items || []).map((i: any) => {

@@ -8,6 +8,7 @@ import { environment } from 'src/environments/environment';
 import { DatabaseService } from '../database.service';
 import { LoggerService } from '../logger.service';
 import { mapApiCollectionToLocal, mapApiMemberToLocal, shouldSkipPulledCollection } from '../tontine-allocation.mapper';
+import { resolvePulledTontineDeliveryStatus } from '../../utils/tontine-delivery-status.util';
 import {
   ISequentialSyncManager,
   SyncOptions,
@@ -206,7 +207,7 @@ export class SequentialSyncManager implements ISequentialSyncManager {
                         requestDate: m.delivery.requestDate,
                         deliveryDate: m.delivery.deliveryDate,
                         totalAmount: m.delivery.totalAmount,
-                        status: m.delivery.status,
+                        status: resolvePulledTontineDeliveryStatus(m.delivery, m.deliveryStatus),
                         isLocal: false,
                         isSync: true,
                         items: m.delivery.items ? m.delivery.items.map((i: any) => {

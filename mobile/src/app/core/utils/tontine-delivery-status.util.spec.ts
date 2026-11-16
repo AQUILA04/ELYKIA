@@ -4,7 +4,10 @@ import {
   canPhysicallyDeliverTontine,
   getTontineDeliveryStatusLabel,
   isTontineDeliveryOrder,
-  resolveMemberDeliveryStatus
+  pickMemberTontineDelivery,
+  resolveMemberDeliveryStatus,
+  resolvePulledTontineDeliveryStatus,
+  tontineDeliveryCreationMenuLabel
 } from './tontine-delivery-status.util';
 
 describe('tontine-delivery-status.util', () => {
@@ -25,14 +28,72 @@ describe('tontine-delivery-status.util', () => {
 
   it('allows order only while session is ACTIVE', () => {
     expect(canCreateTontineOrder('ACTIVE')).toBeTrue();
+    expect(canCreateTontineOrder(' active ')).toBeTrue();
     expect(canCreateTontineOrder('CLOSED')).toBeFalse();
     expect(canCreateTontineOrder('ENDED')).toBeFalse();
+    expect(canCreateTontineOrder(null)).toBeFalse();
+    expect(canCreateTontineOrder('')).toBeFalse();
   });
 
   it('allows physical delivery only while session is CLOSED', () => {
     expect(canPhysicallyDeliverTontine('CLOSED')).toBeTrue();
+    expect(canPhysicallyDeliverTontine('closed')).toBeTrue();
     expect(canPhysicallyDeliverTontine('ACTIVE')).toBeFalse();
     expect(canPhysicallyDeliverTontine('ENDED')).toBeFalse();
+    expect(canPhysicallyDeliverTontine(null)).toBeFalse();
+  });
+
+  it('labels the member menu according to the session', () => {
+    expect(tontineDeliveryCreationMenuLabel('ACTIVE')).toBe('Commande de tontine');
+    expect(tontineDeliveryCreationMenuLabel('active')).toBe('Commande de tontine');
+    expect(tontineDeliveryCreationMenuLabel('CLOSED')).toBe('Livraison Fin d\'Année');
+    expect(tontineDeliveryCreationMenuLabel('ENDED')).toBeNull();
+    expect(tontineDeliveryCreationMenuLabel(null)).toBeNull();
+  });
+
+  it('keeps the latest non-cancelled delivery and ignores the others', () => {
+    const picked = pickMemberTontineDelivery([
+      { id: 'old', status: 'CANCELLED', requestDate: '2026-01-01' },
+      { id: 'cancelled-us', status: 'canceled', requestDate: '2026-03-01' },
+      { id: 'order', status: 'pending', requestDate: '2026-02-01' },
+      { id: 'newer', status: 'VALIDATED', requestDate: '2026-04-01' }
+    ], 'SESSION_INPROGRESS');
+    expect(picked?.id).toBe('newer');
+    expect(picked?.status).toBe('VALIDATED');
+  });
+
+  it('does not treat a cancelled delivery as blocking when the member status is stale', () => {
+    expect(pickMemberTontineDelivery(
+      [{ id: 'gone', status: 'CANCELLED', requestDate: '2026-01-01' }],
+      'PENDING'
+    )).toBeNull();
+  });
+
+  it('backfills a status-less synced delivery from the member status', () => {
+    const picked = pickMemberTontineDelivery(
+      [{ id: 'd1', status: null, requestDate: '2026-05-01' }],
+      'PENDING'
+    );
+    expect(picked?.id).toBe('d1');
+    expect((picked as { status?: string | null } | null)?.status).toBe('PENDING');
+  });
+
+  it('ignores a status-less row when the member has no order', () => {
+    expect(pickMemberTontineDelivery(
+      [{ id: 'ghost', status: undefined, requestDate: '2026-05-01' }],
+      'SESSION_INPROGRESS'
+    )).toBeNull();
+    expect(pickMemberTontineDelivery([], 'SESSION_INPROGRESS')).toBeNull();
+    expect(pickMemberTontineDelivery(null, 'DELIVERED')).toBeNull();
+  });
+
+  it('reads the delivery status missing from TontineDeliveryRespDto', () => {
+    expect(resolvePulledTontineDeliveryStatus({ status: undefined, deliveryStatus: 'VALIDATED' }, 'SESSION_INPROGRESS'))
+      .toBe('VALIDATED');
+    expect(resolvePulledTontineDeliveryStatus({ status: null }, 'pending')).toBe('PENDING');
+    expect(resolvePulledTontineDeliveryStatus({ status: 'DELIVERED' }, 'PENDING')).toBe('DELIVERED');
+    expect(resolvePulledTontineDeliveryStatus({ status: null }, 'SESSION_INPROGRESS')).toBeNull();
+    expect(resolvePulledTontineDeliveryStatus(null, null)).toBeNull();
   });
 
   it('maps delivery status onto member deliveryStatus', () => {

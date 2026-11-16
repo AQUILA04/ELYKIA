@@ -323,6 +323,41 @@ describe('SequentialSyncManager', () => {
       expect(savedDeliveries[0].id).toBe('d1');
       expect(savedDeliveries[0].items.length).toBe(1);
     }));
+
+    it('stores the member delivery status when the delivery payload has none', fakeAsync(() => {
+      const sessionId = 'session-123';
+      const mockResponse = {
+        data: {
+          content: [{
+            id: 1,
+            client: { id: 'c1' },
+            totalContribution: 1000,
+            deliveryStatus: 'PENDING',
+            delivery: {
+              id: 'd-no-status',
+              requestDate: '2024-01-01',
+              deliveryDate: '2024-01-02',
+              totalAmount: 500,
+              items: []
+            }
+          }],
+          page: { number: 0, totalPages: 1, totalElements: 1 }
+        }
+      };
+
+      dbService.saveTontineMembers.and.returnValue(Promise.resolve());
+      dbService.saveTontineDeliveries.and.returnValue(Promise.resolve());
+
+      service.syncMembers(sessionId, defaultOptions).subscribe({ error: fail });
+      flushMicrotasks();
+
+      const req = httpMock.expectOne(`${apiUrl}/tontines/members?page=0&size=100`);
+      req.flush(mockResponse);
+      flushMicrotasks();
+
+      const savedDeliveries = dbService.saveTontineDeliveries.calls.mostRecent().args[0];
+      expect(savedDeliveries[0].status).toBe('PENDING');
+    }));
   });
 
   describe('syncCollections', () => {
