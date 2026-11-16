@@ -1,6 +1,12 @@
 import {
+  canAddExtraCarnetRow,
   canEditMonthAttribution,
+  commercialsUsedOnMonth,
+  countCalendarMonthRows,
+  isExtraCarnetAttribution,
   isMonthCollectedElsewhere,
+  MAX_EXTRA_CARNET_ROWS,
+  MAX_MONTH_CONTROL_ROWS,
   omitClaimedEmptyMonthRows
 } from './rm-tontine-month-attribution';
 
@@ -9,10 +15,18 @@ interface TestRow {
   month: number;
   systemAmount: number;
   label?: string;
+  commercialUsername?: string;
+  duplicatedFromSystemMonth?: boolean;
 }
 
 function row(month: number, systemAmount: number, label?: string): TestRow {
-  return { year: 2026, month, systemAmount, label };
+  return {
+    year: 2026,
+    month,
+    systemAmount,
+    label,
+    commercialUsername: label
+  };
 }
 
 describe('isMonthCollectedElsewhere', () => {
@@ -27,6 +41,16 @@ describe('isMonthCollectedElsewhere', () => {
     const collectedOnOther = row(3, 6200, 'COM001');
     const all = [emptyOnCom003, collectedOnOther, row(6, 5000, 'COM003')];
     expect(isMonthCollectedElsewhere(emptyOnCom003, all)).toBeTrue();
+  });
+
+  it('does not lock an explicit extra-carnet duplicate of a funded month', () => {
+    const funded = row(3, 6200, 'COM015');
+    const extra = {
+      ...row(3, 0, ''),
+      duplicatedFromSystemMonth: true,
+      commercialUsername: ''
+    };
+    expect(isMonthCollectedElsewhere(extra, [funded, extra])).toBeFalse();
   });
 
   it('keeps truly empty months selectable even between collected months', () => {
@@ -75,6 +99,55 @@ describe('canEditMonthAttribution', () => {
     const claimed = row(3, 2000, 'COM015');
     expect(canEditMonthAttribution(emptyStub, [emptyStub, claimed])).toBeFalse();
   });
+
+  it('refuses mise edit on an extra-carnet duplicate (mise locked to source)', () => {
+    const funded = row(3, 6200, 'COM015');
+    const extra = { ...row(3, 0, 'COM003'), duplicatedFromSystemMonth: true };
+    expect(canEditMonthAttribution(extra, [funded, extra])).toBeFalse();
+    expect(isExtraCarnetAttribution(extra)).toBeTrue();
+  });
+});
+
+describe('canAddExtraCarnetRow / countCalendarMonthRows', () => {
+  it('shows + only when the source month has systemAmount > 0', () => {
+    const empty = row(2, 0, 'COM003');
+    const funded = row(3, 6200, 'COM015');
+    expect(canAddExtraCarnetRow(empty, [empty, funded])).toBeFalse();
+    expect(canAddExtraCarnetRow(funded, [empty, funded])).toBeTrue();
+  });
+
+  it('allows at most 2 duplicates (3 rows total for the calendar month)', () => {
+    expect(MAX_EXTRA_CARNET_ROWS).toBe(2);
+    expect(MAX_MONTH_CONTROL_ROWS).toBe(3);
+
+    const funded = row(3, 6200, 'COM015');
+    const firstExtra = { ...row(3, 0, 'COM003'), duplicatedFromSystemMonth: true };
+    const secondExtra = { ...row(3, 0, 'COM001'), duplicatedFromSystemMonth: true };
+    const all = [funded, firstExtra, secondExtra];
+
+    expect(countCalendarMonthRows(2026, 3, [funded])).toBe(1);
+    expect(canAddExtraCarnetRow(funded, [funded])).toBeTrue();
+    expect(canAddExtraCarnetRow(funded, [funded, firstExtra])).toBeTrue();
+    expect(canAddExtraCarnetRow(funded, all)).toBeFalse();
+    expect(countCalendarMonthRows(2026, 3, all)).toBe(3);
+  });
+
+  it('does not offer + on an already duplicated extra row', () => {
+    const funded = row(3, 6200, 'COM015');
+    const extra = { ...row(3, 0, 'COM003'), duplicatedFromSystemMonth: true };
+    expect(canAddExtraCarnetRow(extra, [funded, extra])).toBeFalse();
+  });
+});
+
+describe('commercialsUsedOnMonth', () => {
+  it('lists commercials already assigned on the same year-month excluding current row', () => {
+    const funded = row(3, 6200, 'COM015');
+    const extra = { ...row(3, 0, 'COM003'), duplicatedFromSystemMonth: true };
+    const picking = { ...row(3, 0, ''), duplicatedFromSystemMonth: true, commercialUsername: '' };
+
+    expect(commercialsUsedOnMonth(picking, [funded, extra, picking])).toEqual(['COM015', 'COM003']);
+    expect(commercialsUsedOnMonth(extra, [funded, extra])).toEqual(['COM015']);
+  });
 });
 
 describe('omitClaimedEmptyMonthRows', () => {
@@ -106,5 +179,17 @@ describe('omitClaimedEmptyMonthRows', () => {
     };
     omitClaimedEmptyMonthRows([only]);
     expect(only.rows.map(r => r.month)).toEqual([2, 3, 6, 7, 8]);
+  });
+
+  it('keeps explicit extra-carnet duplicates even when system is 0', () => {
+    const block = {
+      rows: [
+        row(3, 6200, 'COM015'),
+        { ...row(3, 0, 'COM003'), duplicatedFromSystemMonth: true }
+      ]
+    };
+    omitClaimedEmptyMonthRows([block]);
+    expect(block.rows.length).toBe(2);
+    expect(block.rows[1].duplicatedFromSystemMonth).toBeTrue();
   });
 });

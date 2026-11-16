@@ -59,6 +59,11 @@ public class TontineMemberFieldControlService {
     public static final String AUTO_VERIFY_PARAMETER_KEY = "TONTINE_AUTO_VERIFY_ON_FIELD_CONTROL";
 
     private static final double EPSILON = 0.0001d;
+    /**
+     * Lignes « carnet seul » (commercial sans cotisation système sur le mois) autorisées
+     * en plus des commerciaux qui ont déjà encaissé, lorsque le total membre du mois &gt; 0.
+     */
+    static final int MAX_EXTRA_CARNET_LINES_PER_MONTH = 2;
     /** Mois calendaires de la session tontine : février (2) → novembre (11). */
     private static final Set<Integer> TONTINE_CALENDAR_MONTHS = Set.of(2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
 
@@ -482,8 +487,10 @@ public class TontineMemberFieldControlService {
     }
 
     /**
-     * Un mois sans cotisation n'a qu'un commercial. Un mois déjà cotisé ne peut pas
-     * être attribué à un commercial qui n'a rien encaissé ce mois-là.
+     * Un mois sans cotisation n'a qu'un commercial.
+     * Un mois déjà cotisé peut recevoir jusqu'à {@link #MAX_EXTRA_CARNET_LINES_PER_MONTH}
+     * lignes carnet pour des commerciaux sans encaissement système (carnet physique rempli
+     * par un autre agent), en plus des lignes des commerciaux qui ont déjà collecté.
      */
     private void assertMonthAttribution(
             List<CreateTontineMemberFieldControlMonthDto> months,
@@ -503,15 +510,19 @@ public class TontineMemberFieldControlService {
                 }
                 continue;
             }
+            int zeroSystemCount = 0;
             for (CreateTontineMemberFieldControlMonthDto month : group) {
                 double system = sumCollectionsForMonth(
                         collections, month.getYear(), month.getMonth(), month.getCommercialUsername());
                 if (system <= EPSILON) {
-                    throw new CustomValidationException(
-                            "Le mois " + month.getMonth() + "/" + month.getYear()
-                                    + " a déjà des cotisations. Il ne peut pas être attribué à "
-                                    + month.getCommercialUsername() + ".");
+                    zeroSystemCount++;
                 }
+            }
+            if (zeroSystemCount > MAX_EXTRA_CARNET_LINES_PER_MONTH) {
+                throw new CustomValidationException(
+                        "Le mois " + first.getMonth() + "/" + first.getYear()
+                                + " ne peut pas recevoir plus de " + MAX_EXTRA_CARNET_LINES_PER_MONTH
+                                + " lignes carnet pour des commerciaux sans cotisation système.");
             }
         }
     }

@@ -8,13 +8,17 @@ import { OnlineWriteError } from '../../../core/services/online-first-write.type
 import { TontineControlDebug } from './rm-tontine-control-debug';
 import { fitNotebookDays, maxDaysAfterSelection, MISE_DAY_STEP } from '../../../shared/components/mise-day-pills/mise-day-pills.logic';
 import {
+  canAddExtraCarnetRow,
   canEditMonthAttribution,
+  commercialsUsedOnMonth,
+  isExtraCarnetAttribution,
   isMonthCollectedElsewhere,
   omitClaimedEmptyMonthRows
 } from './rm-tontine-month-attribution';
 import { resolveMonthMise } from './rm-tontine-month-mise';
 
 interface MonthRow {
+  uid: string;
   year: number;
   month: number;
   monthName: string;
@@ -28,6 +32,8 @@ interface MonthRow {
   selectedUpTo: number | null;
   maxDays: number;
   useManual: boolean;
+  /** Doublon carnet d'un mois déjà cotisé : commercial à choisir, mise figée. */
+  duplicatedFromSystemMonth?: boolean;
 }
 
 interface CollectorBlock {
@@ -41,6 +47,13 @@ const MONTH_NAMES = [
   '', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
 ];
+
+let nextRowUid = 1;
+
+function newRowUid(): string {
+  nextRowUid += 1;
+  return `mrow-${nextRowUid}`;
+}
 
 @Component({
   selector: 'app-rm-tontine-field-control-sheet',
@@ -178,8 +191,22 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     return canEditMonthAttribution(row, this.allRows);
   }
 
+  isExtraCarnet(row: MonthRow): boolean {
+    return isExtraCarnetAttribution(row);
+  }
+
+  canDuplicate(row: MonthRow): boolean {
+    return !this.submitting && canAddExtraCarnetRow(row, this.allRows);
+  }
+
   promotersFor(row: MonthRow): RmCommercialRef[] {
-    const options = [...this.promoterOptions];
+    const used = new Set(
+      commercialsUsedOnMonth(row, this.allRows).map(username => username.toLowerCase())
+    );
+    const options = this.promoterOptions.filter(option =>
+      !used.has(option.username.toLowerCase())
+      || option.username.toLowerCase() === (row.commercialUsername || '').toLowerCase()
+    );
     if (row.commercialUsername && !options.some(option =>
       option.username.toLowerCase() === row.commercialUsername.toLowerCase())) {
       options.unshift({ username: row.commercialUsername, displayName: row.commercialUsername });
@@ -190,6 +217,10 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
   toggleRow(row: MonthRow): void {
     this.debug.event(`toggle ${row.monthName} ${row.year} selected=${!row.selected} submitting=${this.submitting}`);
     if (this.submitting || (this.monthCollectedElsewhere(row) && !row.selected)) {
+      return;
+    }
+    if (row.duplicatedFromSystemMonth) {
+      // Les doublons carnet restent sélectionnés tant qu'ils existent ; retrait via −.
       return;
     }
     row.selected = !row.selected;
@@ -205,12 +236,54 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     this.releaseEmptyMonth(row);
   }
 
+  addExtraCarnetRow(block: CollectorBlock, source: MonthRow, event: Event): void {
+    event.stopPropagation();
+    if (!this.canDuplicate(source)) {
+      return;
+    }
+    const duplicate = this.toRow(
+      source.blockCommercial,
+      source.year,
+      source.month,
+      0,
+      source.dailyMise
+    );
+    duplicate.dailyMise = source.dailyMise;
+    duplicate.applicableMise = source.applicableMise;
+    duplicate.useManual = source.dailyMise <= 0;
+    duplicate.commercialUsername = '';
+    duplicate.selected = true;
+    duplicate.duplicatedFromSystemMonth = true;
+    const index = block.rows.indexOf(source);
+    block.rows.splice(index >= 0 ? index + 1 : block.rows.length, 0, duplicate);
+    this.debug.event(`duplicate ${source.monthName} ${source.year} uid=${duplicate.uid}`);
+  }
+
+  removeExtraCarnetRow(block: CollectorBlock, row: MonthRow, event: Event): void {
+    event.stopPropagation();
+    if (this.submitting || !row.duplicatedFromSystemMonth) {
+      return;
+    }
+    const index = block.rows.indexOf(row);
+    if (index >= 0) {
+      block.rows.splice(index, 1);
+      this.debug.event(`remove duplicate ${row.monthName} ${row.year} uid=${row.uid}`);
+    }
+  }
+
   onCommercialChange(row: MonthRow, username: string): void {
+    if (row.duplicatedFromSystemMonth) {
+      row.commercialUsername = (username || '').trim();
+      return;
+    }
     row.commercialUsername = username || row.blockCommercial;
     this.releaseEmptyMonth(row);
   }
 
   onMiseChange(row: MonthRow, value: string | number | null): void {
+    if (row.duplicatedFromSystemMonth) {
+      return;
+    }
     const next = Number(value);
     if (!Number.isFinite(next) || next < 0) {
       return;
@@ -302,16 +375,58 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     }
     this.note = this.latestControl.note || '';
     for (const line of this.latestControl.lines) {
-      const row = this.allRows.find(candidate =>
+      const commercial = (line.commercialUsername || '').trim();
+      let row = this.allRows.find(candidate =>
         candidate.year === line.year
         && candidate.month === line.month
-        && candidate.commercialUsername.toLowerCase() === (line.commercialUsername || '').trim().toLowerCase());
+        && candidate.commercialUsername.toLowerCase() === commercial.toLowerCase());
+      if (!row && commercial) {
+        row = this.restoreExtraCarnetFromLine(line.year, line.month, commercial, line.systemAmount || 0);
+      }
       if (!row) {
         continue;
       }
       row.selected = true;
       this.applyNotebook(row, line.notebookAmount);
     }
+  }
+
+  /**
+   * En modification, recrée une ligne carnet additionnelle absente du pack
+   * (système 0 omis des stubs) à partir de la ligne du contrôle précédent.
+   */
+  private restoreExtraCarnetFromLine(
+      year: number,
+      month: number,
+      commercial: string,
+      systemAmount: number): MonthRow | null {
+    if (systemAmount > 0) {
+      return null;
+    }
+    for (const block of this.blocks) {
+      const sourceIndex = block.rows.findIndex(row =>
+        row.year === year
+        && row.month === month
+        && row.systemAmount > 0
+        && !row.duplicatedFromSystemMonth);
+      if (sourceIndex < 0) {
+        continue;
+      }
+      const source = block.rows[sourceIndex];
+      if (!canAddExtraCarnetRow(source, this.allRows)) {
+        return null;
+      }
+      const duplicate = this.toRow(source.blockCommercial, year, month, 0, source.dailyMise);
+      duplicate.dailyMise = source.dailyMise;
+      duplicate.applicableMise = source.applicableMise;
+      duplicate.useManual = source.dailyMise <= 0;
+      duplicate.commercialUsername = commercial;
+      duplicate.selected = true;
+      duplicate.duplicatedFromSystemMonth = true;
+      block.rows.splice(sourceIndex + 1, 0, duplicate);
+      return duplicate;
+    }
+    return null;
   }
 
   private rowReady(row: MonthRow): boolean {
@@ -321,6 +436,9 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     if (this.canEditAttribution(row) && !(row.dailyMise > 0)) {
       return false;
     }
+    if (row.duplicatedFromSystemMonth && !(row.dailyMise > 0) && !row.useManual) {
+      return false;
+    }
     if (row.useManual) {
       return true;
     }
@@ -328,7 +446,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
   }
 
   private stakeToSend(row: MonthRow): number | undefined {
-    if (!this.canEditAttribution(row)) {
+    if (!this.canEditAttribution(row) || row.duplicatedFromSystemMonth) {
       return undefined;
     }
     if (Math.abs(row.dailyMise - row.applicableMise) < 0.0001) {
@@ -342,11 +460,14 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
   }
 
   private releaseEmptyMonth(row: MonthRow): void {
-    if (row.systemAmount > 0) {
+    if (row.systemAmount > 0 || row.duplicatedFromSystemMonth) {
       return;
     }
     for (const candidate of this.allRows) {
-      if (candidate === row || !candidate.selected || candidate.systemAmount > 0) {
+      if (candidate === row
+          || !candidate.selected
+          || candidate.systemAmount > 0
+          || candidate.duplicatedFromSystemMonth) {
         continue;
       }
       if (candidate.year === row.year && candidate.month === row.month) {
@@ -388,6 +509,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       dailyAmount?: number | null): MonthRow {
     const dailyMise = resolveMonthMise(dailyAmount, this.member?.amount);
     return {
+      uid: newRowUid(),
       year,
       month,
       monthName: MONTH_NAMES[month] || `Mois ${month}`,

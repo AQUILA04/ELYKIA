@@ -338,6 +338,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.40.0] — 2026-11-16
+
+### Added
+
+- **Contrôle carnet tontine —** sur un mois déjà cotisé (`Système` > 0), le bouton **+** ajoute une ligne carnet pour un autre commercial (mise figée, système 0). Jusqu’à deux ajouts par mois calendaire ; corbeille pour retirer avant enregistrement. Les mois vraiment vides gardent **Collecté par** + **Mise du mois**.
+
 ## Mobile — [2.39.4] — 2026-11-16
 
 ### Fixed
@@ -452,6 +458,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.53.2] — 2026-11-16
+
+### Changed
+
+- **Contrôle carnet tontine —** un mois déjà cotisé peut recevoir jusqu’à deux lignes carnet pour des commerciaux sans encaissement système (carnet physique multi-agents). Un mois totalement vide reste limité à un seul commercial. Le doublon même commercial|mois reste refusé.
 
 ## Backend — [1.53.1] — 2026-11-15
 

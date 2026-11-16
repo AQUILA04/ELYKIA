@@ -243,6 +243,11 @@ h2 {
   gap: 10px;
 }
 
+.month-title {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .month-head strong {
   display: block;
   color: var(--rm-navy);
@@ -254,6 +259,40 @@ h2 {
   color: var(--rm-muted);
   font-size: 12px;
   margin-top: 2px;
+}
+
+.extra-label {
+  color: #1e40af !important;
+  font-weight: 600;
+}
+
+.month-row.extra-carnet {
+  border-style: dashed;
+  border-color: #9eb6d4;
+  background: #f8fbff;
+}
+
+.month-action-btn {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 12px;
+  background: #e8eef6;
+  color: var(--rm-navy);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.month-action-btn ion-icon {
+  font-size: 22px;
+  pointer-events: none;
+}
+
+.month-action-btn.danger {
+  background: #fee2e2;
+  color: #dc2626;
 }
 
 .month-input {
