@@ -32,7 +32,7 @@
   </section>
 
   <p class="hint" *ngIf="!legacyMode">
-    Cochez les mois, puis touchez le dernier jour coché. Pour un mois encore à zéro, choisissez le commercial et corrigez la mise si le carnet en indique une autre.
+    Cochez les mois, puis touchez le dernier jour coché. Pour un mois encore à zéro, choisissez le commercial et corrigez la mise si le carnet en indique une autre. Sur un mois déjà cotisé, le bouton + ajoute une ligne carnet pour un autre commercial (mise inchangée, jusqu'à deux ajouts).
   </p>
   <p class="hint legacy" *ngIf="legacyMode">
     Ce pack ne découpe pas encore les montants par commercial. Retéléchargez le pack du jour pour contrôler COM par COM.
@@ -62,25 +62,45 @@
         class="month-row"
         *ngFor="let row of block.rows"
         [class.selected]="row.selected"
+        [class.extra-carnet]="isExtraCarnet(row)"
         (click)="toggleRow(row)"
         [class.locked]="monthCollectedElsewhere(row) && !row.selected"
         data-testid="e2e-rm-tontine-month">
         <div class="month-head">
           <ion-checkbox
             [checked]="row.selected"
-            [disabled]="submitting || (!row.selected && monthCollectedElsewhere(row))"
+            [disabled]="submitting || isExtraCarnet(row) || (!row.selected && monthCollectedElsewhere(row))"
             class="month-check">
           </ion-checkbox>
-          <div>
+          <div class="month-title">
             <strong>{{ row.monthName }} {{ row.year }}</strong>
             <span>Système : {{ formatAmount(row.systemAmount) }} FCFA</span>
+            <span class="extra-label" *ngIf="isExtraCarnet(row)">Ligne carnet additionnelle</span>
           </div>
+          <button
+            *ngIf="canDuplicate(row)"
+            type="button"
+            class="month-action-btn"
+            (click)="addExtraCarnetRow(block, row, $event)"
+            aria-label="Ajouter une ligne carnet pour un autre commercial"
+            data-testid="e2e-rm-tontine-month-duplicate">
+            <ion-icon name="add-outline"></ion-icon>
+          </button>
+          <button
+            *ngIf="isExtraCarnet(row)"
+            type="button"
+            class="month-action-btn danger"
+            (click)="removeExtraCarnetRow(block, row, $event)"
+            aria-label="Retirer la ligne carnet additionnelle"
+            data-testid="e2e-rm-tontine-month-remove-duplicate">
+            <ion-icon name="trash-outline"></ion-icon>
+          </button>
         </div>
         <div class="month-input" *ngIf="row.selected" (click)="$event.stopPropagation()">
           <div class="attribution" *ngIf="canEditAttribution(row)">
-            <label [attr.for]="'commercial-' + row.year + '-' + row.month">Collecté par</label>
+            <label [attr.for]="'commercial-' + row.uid">Collecté par</label>
             <ion-select
-              [id]="'commercial-' + row.year + '-' + row.month"
+              [id]="'commercial-' + row.uid"
               interface="popover"
               [value]="row.commercialUsername"
               (ionChange)="onCommercialChange(row, $any($event.detail.value))"
@@ -90,9 +110,9 @@
                 {{ promoter.displayName || promoter.username }}
               </ion-select-option>
             </ion-select>
-            <label [attr.for]="'mise-' + row.year + '-' + row.month">Mise du mois</label>
+            <label [attr.for]="'mise-' + row.uid">Mise du mois</label>
             <ion-input
-              [id]="'mise-' + row.year + '-' + row.month"
+              [id]="'mise-' + row.uid"
               type="number"
               inputmode="decimal"
               [ngModel]="row.dailyMise"
@@ -101,8 +121,27 @@
               class="amount-input">
             </ion-input>
           </div>
+          <div class="attribution" *ngIf="isExtraCarnet(row)">
+            <label [attr.for]="'commercial-extra-' + row.uid">Collecté par</label>
+            <ion-select
+              [id]="'commercial-extra-' + row.uid"
+              interface="popover"
+              placeholder="Choisir un commercial"
+              [value]="row.commercialUsername || undefined"
+              (ionChange)="onCommercialChange(row, $any($event.detail.value))"
+              [disabled]="submitting"
+              class="commercial-select"
+              data-testid="e2e-rm-tontine-extra-commercial">
+              <ion-select-option *ngFor="let promoter of promotersFor(row)" [value]="promoter.username">
+                {{ promoter.displayName || promoter.username }}
+              </ion-select-option>
+            </ion-select>
+            <p class="mise-readonly">Mise : {{ formatAmount(row.dailyMise) }} FCFA</p>
+          </div>
           <ng-container *ngIf="!row.useManual">
-            <p class="mise-readonly" *ngIf="!canEditAttribution(row)">Mise : {{ formatAmount(row.dailyMise) }} FCFA</p>
+            <p class="mise-readonly" *ngIf="!canEditAttribution(row) && !isExtraCarnet(row)">
+              Mise : {{ formatAmount(row.dailyMise) }} FCFA
+            </p>
             <app-mise-day-pills
               [dailyMise]="row.dailyMise"
               [maxDays]="row.maxDays"

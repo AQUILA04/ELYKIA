@@ -79,11 +79,16 @@ class TontineMemberFieldControlServiceTest {
 
     @BeforeEach
     void stubPromoters() {
+        User com001 = mock(User.class);
         User com003 = mock(User.class);
         User com015 = mock(User.class);
+        User com020 = mock(User.class);
+        lenient().when(com001.getUsername()).thenReturn("COM001");
         lenient().when(com003.getUsername()).thenReturn("COM003");
         lenient().when(com015.getUsername()).thenReturn("COM015");
-        lenient().when(userService.getByUserProfil(UserProfilConstant.PROMOTER)).thenReturn(List.of(com003, com015));
+        lenient().when(com020.getUsername()).thenReturn("COM020");
+        lenient().when(userService.getByUserProfil(UserProfilConstant.PROMOTER))
+                .thenReturn(List.of(com001, com003, com015, com020));
     }
 
     @AfterEach
@@ -392,16 +397,77 @@ class TontineMemberFieldControlServiceTest {
     }
 
     @Test
-    void create_rejectsGhostCommercialOnACollectedMonth() {
-        CreateTontineMemberFieldControlDto request = request("CTRL-GHOST", month(2026, 2, "COM003", 10_000.0));
-        when(repository.existsByReference("CTRL-GHOST")).thenReturn(false);
+    void create_allowsExtraCarnetCommercialOnACollectedMonth() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("field.agent", "n/a"));
+        // COM015 a déjà cotisé février ; COM003 n'a que le carnet physique → système 0, écart positif.
+        CreateTontineMemberFieldControlDto request = request("CTRL-EXTRA",
+                month(2026, 2, "COM015", 40_000.0),
+                month(2026, 2, "COM003", 10_000.0));
+        when(repository.existsByReference("CTRL-EXTRA")).thenReturn(false);
         when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member(10L, "COM015")));
         when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
                 .thenReturn(List.of(collection(40_000.0, LocalDateTime.of(2026, 2, 4, 9, 0), "COM015")));
+        when(repository.save(any(TontineMemberFieldControl.class))).thenAnswer(invocation -> {
+            TontineMemberFieldControl control = invocation.getArgument(0);
+            control.setId(96L);
+            return control;
+        });
+
+        TontineMemberFieldControlDto result = service.create(10L, request);
+
+        assertEquals(2, result.getLines().size());
+        assertEquals("COM015", result.getLines().get(0).getCommercialUsername());
+        assertEquals(40_000.0, result.getLines().get(0).getSystemAmount());
+        assertEquals("COM003", result.getLines().get(1).getCommercialUsername());
+        assertEquals(0.0, result.getLines().get(1).getSystemAmount());
+        assertEquals(10_000.0, result.getLines().get(1).getNotebookAmount());
+        assertEquals(10_000.0, result.getLines().get(1).getDifferenceAmount());
+        assertEquals(FieldControlStatus.ECART, result.getStatus());
+    }
+
+    @Test
+    void create_allowsUpToTwoExtraCarnetLinesOnACollectedMonth() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("field.agent", "n/a"));
+        CreateTontineMemberFieldControlDto request = request("CTRL-2EXTRA",
+                month(2026, 3, "COM015", 6_200.0),
+                month(2026, 3, "COM003", 5_000.0),
+                month(2026, 3, "COM001", 4_000.0));
+        when(repository.existsByReference("CTRL-2EXTRA")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member(10L, "COM015")));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of(collection(6_200.0, LocalDateTime.of(2026, 3, 10, 9, 0), "COM015")));
+        when(repository.save(any(TontineMemberFieldControl.class))).thenAnswer(invocation -> {
+            TontineMemberFieldControl control = invocation.getArgument(0);
+            control.setId(97L);
+            return control;
+        });
+
+        TontineMemberFieldControlDto result = service.create(10L, request);
+
+        assertEquals(3, result.getLines().size());
+        assertEquals(FieldControlStatus.ECART, result.getStatus());
+    }
+
+    @Test
+    void create_rejectsMoreThanTwoExtraCarnetLinesOnACollectedMonth() {
+        CreateTontineMemberFieldControlDto request = request("CTRL-3EXTRA",
+                month(2026, 3, "COM015", 6_200.0),
+                month(2026, 3, "COM003", 5_000.0),
+                month(2026, 3, "COM001", 4_000.0),
+                month(2026, 3, "COM020", 3_000.0));
+        when(repository.existsByReference("CTRL-3EXTRA")).thenReturn(false);
+        when(tontineMemberRepository.findById(10L)).thenReturn(Optional.of(member(10L, "COM015")));
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(10L, State.ENABLED))
+                .thenReturn(List.of(collection(6_200.0, LocalDateTime.of(2026, 3, 10, 9, 0), "COM015")));
 
         CustomValidationException exception = assertThrows(CustomValidationException.class,
                 () -> service.create(10L, request));
-        assertTrue(exception.getMessage().contains("déjà des cotisations"));
+        assertTrue(exception.getMessage().contains("lignes carnet"));
+        assertTrue(exception.getMessage().contains(
+                String.valueOf(TontineMemberFieldControlService.MAX_EXTRA_CARNET_LINES_PER_MONTH)));
+        verify(repository, never()).save(any());
     }
 
     @Test
