@@ -7,6 +7,11 @@ import { RmCollectorAssignApiService } from '../../../core/services/rm/rm-collec
 import { OnlineWriteError } from '../../../core/services/online-first-write.types';
 import { TontineControlDebug } from './rm-tontine-control-debug';
 import { fitNotebookDays, maxDaysAfterSelection, MISE_DAY_STEP } from '../../../shared/components/mise-day-pills/mise-day-pills.logic';
+import {
+  canEditMonthAttribution,
+  isMonthCollectedElsewhere,
+  omitClaimedEmptyMonthRows
+} from './rm-tontine-month-attribution';
 import { resolveMonthMise } from './rm-tontine-month-mise';
 
 interface MonthRow {
@@ -86,6 +91,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
     if (Array.isArray(collectorList) && collectorList.length > 0) {
       this.legacyMode = false;
       this.blocks = collectorList.map(c => this.toBlock(c));
+      omitClaimedEmptyMonthRows(this.blocks);
       this.debug.event(`blocks=${this.blocks.length} rows=${this.allRows.length} legacy=false`);
       this.prefillPreviousControl();
       return;
@@ -100,6 +106,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
       rows: (this.member?.months || []).map(m =>
         this.toRow(commercial, m.year, m.month, m.systemAmount || 0, m.dailyAmount))
     }];
+    omitClaimedEmptyMonthRows(this.blocks);
     this.debug.event(`blocks=${this.blocks.length} rows=${this.allRows.length} legacy=true`);
     this.prefillPreviousControl();
   }
@@ -168,7 +175,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
   }
 
   canEditAttribution(row: MonthRow): boolean {
-    return row.systemAmount <= 0 && !this.monthCollectedElsewhere(row);
+    return canEditMonthAttribution(row, this.allRows);
   }
 
   promotersFor(row: MonthRow): RmCommercialRef[] {
@@ -331,14 +338,7 @@ export class RmTontineFieldControlSheetComponent implements OnInit, AfterViewIni
   }
 
   monthCollectedElsewhere(row: MonthRow): boolean {
-    if (row.systemAmount > 0) {
-      return false;
-    }
-    return this.allRows.some(candidate =>
-      candidate !== row
-      && candidate.year === row.year
-      && candidate.month === row.month
-      && candidate.systemAmount > 0);
+    return isMonthCollectedElsewhere(row, this.allRows);
   }
 
   private releaseEmptyMonth(row: MonthRow): void {

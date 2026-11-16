@@ -338,6 +338,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.39.4] — 2026-11-16
+
+### Fixed
+
+- **Contrôle carnet tontine —** un mois déjà cotisé par un autre commercial n’apparaît plus comme « Système : 0 » grisé dans les autres blocs. Les mois vraiment vides restent cochables et proposent chacun **Collecté par** et **Mise du mois**. Un mois déjà cotisé garde sa mise en lecture seule, sans réattribution.
+
 ## Mobile — [2.39.3] — 2026-11-16
 
 ### Fixed

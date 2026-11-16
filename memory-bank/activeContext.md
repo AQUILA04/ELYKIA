@@ -4,23 +4,17 @@ Arrêt au **2026-11-16** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de
 
 ## Versions en tête
 
-- Frontend **2.50.1** — Backend **1.53.0** — Mobile **2.39.3** — Espace client **0.17.3** (dernier incrément espace client : 2026-11-09).
+- Frontend **2.50.1** — Backend **1.53.0** — Mobile **2.39.4** — Espace client **0.17.3** (dernier incrément espace client : 2026-11-09).
 
 ## Focus récent (changelog et PR mergées)
 
-1. **Fiche membre tontine, mobile 2.39.3** (2026-11-16). Menu **⋮** : **Commande de tontine** si la session locale est ouverte et qu’aucune commande n’est en cours ; **Livraison Fin d’Année** après clôture. La livraison d’une autre membre ne reste plus affichée. Le statut synchronisé reprend celui de la membre quand le serveur ne l’envoie pas sur la livraison.
-2. **Commerciaux** (PR #228, 2026-11-15). Menu distinct des utilisateurs. Annuaire du personnel (nom obligatoire, pièce et photo facultatives) et historique d’affectation des comptes, périodes sans chevauchement. Permission `ROLE_MANAGE_COMMERCIAL_STAFF`.
-3. **Reçu de commande tontine** (PR #230, 2026-11-15). Ticket mobile, PDF web, code `ELY-XXXX-XXXX`.
-4. **Commandes et livraisons tontine** (PR #227). Acceptation groupée des commandes en attente du filtre. Validation groupée des livraisons. Une demande de stock tontine par commercial.
-5. **Vente au comptant puis remise magasin** (2026-11-14). Encaissement immédiat, stock réservé, clôture à la livraison.
-6. **Solde prévisionnel tontine** (2026-11-14). Plafond de commande et garde-fou à la remise, y compris session clôturée.
-7. **Carnet tontine** (2026-11-14). Mois encore à zéro : le chef de recouvrement désigne le commercial et la mise lus sur le carnet. Le contrôle reste possible après clôture de session.
-8. **Annulation d’une demande de sortie validée** non livrée (`ROLE_CANCEL_VALIDATED_STOCK_REQUEST`).
-9. **Packs** (2026-11-13). Colis impair, gros, demi-gros, offres libres, prix de ligne.
-10. **Visibilité du prix unitaire** (2026-11-09) sur les trois clients, paramètre d’agence.
-11. **Espace client** (jusqu’au 2026-11-09). Prix unitaires, adhésions conditionnelles, paiement Mobile Money, OTP, suppression de compte.
+1. **Contrôle carnet tontine, mobile 2.39.4** (2026-11-16). Les mois déjà cotisés par un autre commercial ne s’affichent plus en stub « Système : 0 » grisé dans les autres blocs. Les mois vraiment vides restent cochables avec commercial + mise par mois.
+2. **Fiche membre tontine, mobile 2.39.3** (2026-11-16). Menu **⋮** : **Commande de tontine** / **Livraison Fin d’Année** selon la session.
+3. **Commerciaux** (PR #228, 2026-11-15). Annuaire du personnel et historiques d’affectation.
+4. **Reçu de commande tontine** (PR #230). Ticket mobile, PDF web, code `ELY-XXXX-XXXX`.
+5. **Carnet tontine** (PR #222). Mois à zéro : commercial et mise au contrôle.
 
-Mobile 2.39.3 : menu de commande sur la fiche membre. 2.39.2 : reçu de commande tontine (code `ELY-XXXX-XXXX`). Pas de bump mobile le 2026-11-15 pour le menu Commerciaux (web + API).
+Mobile 2.39.4 : correctif affichage des mois au contrôle carnet RM.
 
 ## Fuseau
 
