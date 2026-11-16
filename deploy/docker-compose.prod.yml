@@ -47,6 +47,7 @@ services:
       SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://elykia-db:5432/${POSTGRES_DB:-elykia_prod_db}}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-elykia_prod}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: ${SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE:-20}
       JWT_SECRET: ${JWT_SECRET:?JWT_SECRET required}
       LOGGING_FILE_PATH: /home/app/.optimize-elykia-core/logs
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
@@ -68,7 +69,8 @@ services:
       CUSTOMER_SPACE_RELEASE_CHANNEL: ${CUSTOMER_SPACE_RELEASE_CHANNEL:-prod}
       MINIO_PUBLIC_URL: ${MINIO_PUBLIC_URL:-https://s3.optimizesolux.com}
       PHOTO_FALLBACK_PATH: /opt/elykia/photos/pending
-      OPTIMIZE_CLIENT_MIGRATE_PHOTO_ENABLED: ${OPTIMIZE_CLIENT_MIGRATE_PHOTO_ENABLED:-false}
+      # Toujours coupé : ce job tourne avant Tomcat et bloque l'API tant qu'il n'a pas fini.
+      OPTIMIZE_CLIENT_MIGRATE_PHOTO_ENABLED: "false"
       OPTIMIZE_CLIENT_S3_PHOTO_MIGRATION_ENABLED: ${OPTIMIZE_CLIENT_S3_PHOTO_MIGRATION_ENABLED:-false}
       # Observability (OCI)
       OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-elykia-api}

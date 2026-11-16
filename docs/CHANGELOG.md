@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-16
+
+### Changed
+
+- **Deploy —** le backend de production ouvre jusqu'à 20 connexions Postgres. La migration des photos au démarrage est coupée dans le compose : elle empêchait l'API d'écouter tant qu'elle n'était pas terminée.
+
 ## Docs & Infra — 2026-11-15
 
 ### Added
@@ -452,6 +458,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.53.2] — 2026-11-16
+
+### Fixed
+
+- **Collecte tontine —** le rapport journalier est mis à jour après l'enregistrement de la mise. Avant, la mise à jour attendait un verrou tenu par la même opération et gardait les connexions base de données jusqu'à bloquer l'API.
 
 ## Backend — [1.53.1] — 2026-11-15
 
