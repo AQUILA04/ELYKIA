@@ -43,7 +43,8 @@ import { TontineOrderReceiptModalComponent } from 'src/app/shared/components/ton
 import { PrintableTontineOrder } from 'src/app/core/services/printing.service';
 import {
     canCreateTontineOrder,
-    canPhysicallyDeliverTontine
+    canPhysicallyDeliverTontine,
+    pickMemberTontineDelivery
 } from 'src/app/core/utils/tontine-delivery-status.util';
 
 interface DeliveryViewModel {
@@ -164,6 +165,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return;
         }
 
+        // Même source locale que la fiche membre : sans ça, le mode commande reste fermé.
+        this.store.dispatch(TontineActions.loadTontineSession());
+
         this.store.select(selectTontineSession)
             .pipe(takeUntil(this.destroy$))
             .subscribe(session => {
@@ -244,7 +248,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
     async loadMemberData() {
         try {
             const members = await this.memberRepo.findAll();
-            this.vm.member = members.find(m => m.id === this.memberId) || null;
+            this.vm.member = members.find(m => String(m.id) === String(this.memberId)) || null;
 
             if (this.vm.member) {
                 this.vm.client = await this.clientRepo.findById(this.vm.member.clientId);
@@ -864,7 +868,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 this.memberId,
                 this.commercialUsername
             );
-            return existingDeliveries && existingDeliveries.length > 0;
+            return pickMemberTontineDelivery(existingDeliveries, this.vm.member?.deliveryStatus) != null;
         } catch (error) {
             console.error('Erreur lors de la vérification des livraisons existantes:', error);
             return false;

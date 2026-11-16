@@ -145,7 +145,13 @@ async function openDeliveryCreation(page: Page): Promise<void> {
     .click();
   const actionsSheet = page.locator('ion-action-sheet').filter({ hasText: 'Actions' });
   await expect(actionsSheet).toBeVisible({ timeout: 10_000 });
-  await actionsSheet.getByText("Livraison Fin d'Année").click();
+  const orderEntry = actionsSheet.getByText('Commande de tontine');
+  const closedEntry = actionsSheet.getByText("Livraison Fin d'Année");
+  if (await orderEntry.count()) {
+    await orderEntry.click();
+  } else {
+    await closedEntry.click();
+  }
   await expect(page).toHaveURL(/delivery-creation/, { timeout: 20_000 });
   await expect(page.getByTestId('e2e-delivery-budget')).toBeVisible({ timeout: 30_000 });
 }

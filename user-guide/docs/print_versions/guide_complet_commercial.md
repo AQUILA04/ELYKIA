@@ -1054,7 +1054,7 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 * **Le menu d'options (trois petits points ⋮ en haut à droite)** :
   * **Cotiser** : pour enregistrer un versement.
   * **Voir le client** : pour voir la fiche générale de la cliente.
-  * **Livraison Fin d'Année** : pour lui commander ou lui remettre ses articles.
+  * **Commande de tontine** : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle **Livraison Fin d'Année** et sert à la remise en mains propres.
 
 ### D. Enregistrer une cotisation de tontine pas à pas
 1. **Ouvrez la saisie** :
@@ -1074,8 +1074,10 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 ### E. Remettre les articles de fin d'année (Livraison tontine)
 Pendant la campagne, la membre peut déjà choisir ses articles. La remise en mains propres se fait après la clôture de la session.
 
-1. **Ouvrez la livraison** :
-   * Sur la fiche de la membre, touchez les trois petits points (**⋮**) en haut à droite et choisissez **Livraison Fin d'Année**.
+1. **Ouvrez la commande ou la livraison** :
+   * Sur la fiche de la membre, touchez les trois petits points (**⋮**) en haut à droite.
+   * Pendant la session ouverte, choisissez **Commande de tontine**.
+   * Après la clôture, choisissez **Livraison Fin d'Année**.
 2. **Regardez le bandeau en haut** :
    * **Solde disponible** : ce qui est déjà encaissé pour la membre.
    * **Solde prévisionnel** : l'estimation de fin d'année si chaque mois de la session est cotisé en entier. C'est le plafond du panier, que la session soit encore ouverte ou déjà clôturée.

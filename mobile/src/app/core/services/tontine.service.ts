@@ -16,6 +16,7 @@ import { TontineStockRepositoryExtensions } from '../repositories/tontine-stock.
 import { TontineMemberRepository } from '../repositories/tontine-member.repository';
 import { TontineMemberAmountHistoryRepository } from '../repositories/tontine-member-amount-history.repository';
 import { mapApiCollectionToLocal, mapApiMemberToLocal, shouldSkipPulledCollection } from './tontine-allocation.mapper';
+import { resolvePulledTontineDeliveryStatus } from '../utils/tontine-delivery-status.util';
 import { SyncOrchestratorService } from './sync/sync-orchestrator.service';
 import { DataCleanerService } from './sync/data-cleaner.service';
 import { ConnectivityService } from './connectivity.service';
@@ -272,7 +273,7 @@ export class TontineService {
                                     requestDate: m.delivery.requestDate,
                                     deliveryDate: m.delivery.deliveryDate,
                                     totalAmount: m.delivery.totalAmount,
-                                    status: m.delivery.status,
+                                    status: resolvePulledTontineDeliveryStatus(m.delivery, m.deliveryStatus),
                                     isLocal: false,
                                     isSync: true,
                                     items: m.delivery.items ? m.delivery.items.map((i: any) => {

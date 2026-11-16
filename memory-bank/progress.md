@@ -1,11 +1,11 @@
 # Avancement
 
-État au 2026-11-15. « Ça marche » signifie : le parcours est dans le produit et le changelog, pas qu’un essai runtime a été refait pour cette note.
+État au 2026-11-16 (GMT). « Ça marche » signifie : le parcours est dans le produit et le changelog, pas qu’un essai runtime a été refait pour cette note.
 
 ## En place
 
 - Cycle agence : référentiels, stock commercial et tontine, crédits, comptant avec remise magasin, caisse, rapport journalier, BI, commandes.
-- Tontine : adhésion, collectes, session, livraison plafonnée, écarts de carnet, annulation des collectes d’un commercial (admin), ancien portefeuille.
+- Tontine : adhésion, collectes, session, livraison plafonnée, écarts de carnet, annulation des collectes d’un commercial (admin), ancien portefeuille. Sur la fiche membre mobile, **Commande de tontine** (session ouverte) et **Livraison Fin d’Année** (session clôturée) ne s’appuient que sur la livraison en cours de cette membre.
 - Mobile terrain local-first (commercial et chef de recouvrement), synchro, sauvegarde locale, contrôle de version APK au login.
 - Espace client Android et web : achats, catalogue, panier, tontine, Mobile Money, OTP, pages confidentialité et suppression de compte.
 - Elykia IA branchée (`/ai-chat`, API `api/v1/ai`), catalogue de schéma et index du guide. Fournisseur cloud optionnel.

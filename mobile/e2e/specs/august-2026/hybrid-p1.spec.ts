@@ -323,7 +323,13 @@ test.describe('Hybrid writes P1 @p1 @mobile @august-2026 @regression', () => {
     await expect(page).toHaveURL(/member-detail/, { timeout: 20_000 });
 
     await page.locator('ion-button').filter({ has: page.locator('ion-icon[name="ellipsis-vertical"]') }).click();
-    await page.getByText("Livraison Fin d'Année").click();
+    const orderEntry = page.getByText('Commande de tontine');
+    const closedEntry = page.getByText("Livraison Fin d'Année");
+    if (await orderEntry.count()) {
+      await orderEntry.click();
+    } else {
+      await closedEntry.click();
+    }
     await expect(page).toHaveURL(/delivery-creation/, { timeout: 20_000 });
     await expect(page.getByTestId('e2e-delivery-budget')).toBeVisible({ timeout: 30_000 });
     const version = page.getByTestId('e2e-delivery-allocation-version');

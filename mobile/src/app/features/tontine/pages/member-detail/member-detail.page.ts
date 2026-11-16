@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, AlertController, ActionSheetController, ToastController, LoadingController, ModalController } from '@ionic/angular';
-import { Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { Subject, firstValueFrom } from 'rxjs';
+import { distinctUntilChanged, map, take, takeUntil } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 
 import { TontineMemberRepository } from 'src/app/core/repositories/tontine-member.repository';
@@ -12,6 +12,7 @@ import { TontineDeliveryRepository } from 'src/app/core/repositories/tontine-del
 import { ArticleRepository } from 'src/app/core/repositories/article.repository';
 import { TontineStockRepository } from 'src/app/core/repositories/tontine-stock.repository';
 import { TontineWriteService } from 'src/app/core/services/tontine-write.service';
+import { TontineService } from 'src/app/core/services/tontine.service';
 import { HybridSyncUiService } from 'src/app/core/services/hybrid-sync-ui.service';
 import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-first-write.types';
 import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-consent-guard.service';
@@ -19,18 +20,18 @@ import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-c
 import { TontineMember, TontineCollection, TontineDelivery, TontineDeliveryItem } from 'src/app/models/tontine.model';
 import { Client } from 'src/app/models/client.model';
 import { selectAuthUser } from 'src/app/store/auth/auth.selectors';
+import { loadTontineSession } from 'src/app/store/tontine/tontine.actions';
 import { selectTontineSession } from 'src/app/store/tontine/tontine.selectors';
 import {
-    canCreateTontineOrder,
     canMarkTontineDeliveryAsDelivered,
     canPhysicallyDeliverTontine,
-    getTontineDeliveryStatusLabel
+    getTontineDeliveryStatusLabel,
+    pickMemberTontineDelivery,
+    tontineDeliveryCreationMenuLabel
 } from 'src/app/core/utils/tontine-delivery-status.util';
 import { TontineOrderReceiptModalComponent } from 'src/app/shared/components/tontine-order-receipt-modal/tontine-order-receipt-modal.component';
 import { PrintableTontineOrder } from 'src/app/core/services/printing.service';
 import { generateTontineAuthenticityCode } from 'src/app/core/utils/tontine-delivery-reference.util';
-import { firstValueFrom } from 'rxjs';
-import { take } from 'rxjs/operators';
 
 interface DeliveryItemWithArticle extends TontineDeliveryItem {
     articleName?: string;
@@ -56,6 +57,10 @@ export class MemberDetailPage implements OnInit, OnDestroy {
     private destroy$ = new Subject<void>();
     private memberId: string | null = null;
     private commercialUsername: string | null = null;
+    private deliveryLoadToken = 0;
+    private memberLoadToken = 0;
+    /** Vrai seulement si la lecture des livraisons a échoué : on ne propose pas une nouvelle commande à l'aveugle. */
+    private deliveryLookupFailed = false;
     sessionStatus: string | null = null;
 
     vm: MemberDetailViewModel = {
@@ -76,6 +81,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         private toastCtrl: ToastController,
         private loadingCtrl: LoadingController,
         private store: Store,
+        private tontineService: TontineService,
         private memberRepo: TontineMemberRepository,
         private collectionRepo: TontineCollectionRepository,
         private clientRepo: ClientRepository,
@@ -97,29 +103,55 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             return;
         }
 
-        // Get current user to fetch deliveries
-        this.store.select(selectAuthUser)
+        this.route.paramMap
             .pipe(takeUntil(this.destroy$))
-            .subscribe(user => {
-                if (user) {
-                    this.commercialUsername = user.username;
+            .subscribe(params => {
+                const id = params.get('id');
+                if (!id || id === this.memberId) {
+                    return;
+                }
+                this.memberId = id;
+                void this.loadMemberData();
+            });
+
+        // Le nom d'utilisateur peut arriver après le premier affichage (store pas encore prêt).
+        this.store.select(selectAuthUser)
+            .pipe(
+                takeUntil(this.destroy$),
+                map(user => user?.username ?? null),
+                distinctUntilChanged()
+            )
+            .subscribe(username => {
+                const previous = this.commercialUsername;
+                this.commercialUsername = username;
+                if (username && username !== previous && this.memberId) {
+                    void this.loadMemberData();
                 }
             });
 
+        // Ne pas effacer un statut déjà lu en local si le store émet encore null.
         this.store.select(selectTontineSession)
             .pipe(takeUntil(this.destroy$))
             .subscribe(session => {
-                this.sessionStatus = session?.status ?? null;
+                if (session?.status) {
+                    this.sessionStatus = session.status;
+                }
             });
 
+        await this.ensureSessionStatus();
         await this.loadMemberData();
     }
 
     async ionViewWillEnter() {
-        // Reload data when returning to this page
-        if (this.memberId) {
-            await this.loadMemberData();
+        const id = this.route.snapshot.paramMap.get('id');
+        if (id) {
+            this.memberId = id;
         }
+        if (!this.memberId) {
+            return;
+        }
+        await this.ensureSessionStatus();
+        await this.loadMemberData();
     }
 
     ngOnDestroy() {
@@ -128,12 +160,29 @@ export class MemberDetailPage implements OnInit, OnDestroy {
     }
 
     async loadMemberData() {
+        const token = ++this.memberLoadToken;
+        const memberId = this.route.snapshot.paramMap.get('id') || this.memberId;
+        this.memberId = memberId;
         this.vm.loading = true;
+        // Toujours oublier la livraison précédente : une autre membre ne doit pas masquer le menu.
+        this.vm.delivery = null;
+        this.vm.deliveryItems = [];
+
+        if (!memberId) {
+            if (token === this.memberLoadToken) {
+                this.vm.loading = false;
+            }
+            this.showError('ID du membre non trouvé');
+            this.goBack();
+            return;
+        }
 
         try {
-            // Load member details
             const members = await this.memberRepo.findAll();
-            this.vm.member = members.find(m => m.id === this.memberId) || null;
+            if (token !== this.memberLoadToken) {
+                return;
+            }
+            this.vm.member = members.find(m => String(m.id) === String(memberId)) || null;
 
             if (!this.vm.member) {
                 this.showError('Membre non trouvé');
@@ -141,35 +190,97 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                 return;
             }
 
-            // Load client details
             this.vm.client = await this.clientRepo.findById(this.vm.member.clientId);
-
-            // Load collections history
-            this.vm.collections = await this.collectionRepo.getByMemberId(this.memberId!);
-
-            // Calculate total collected
+            this.vm.collections = await this.collectionRepo.getByMemberId(memberId);
             this.vm.totalCollected = this.vm.collections.reduce((sum, c) => sum + (c.amount || 0), 0);
-
-            // Load delivery info
-            if (this.commercialUsername) {
-                const deliveries = await this.deliveryRepo.getByMemberAndCommercial(this.memberId!, this.commercialUsername);
-                // Assuming one delivery per member for now, or taking the latest/relevant one.
-                // Based on model, a member has a deliveryStatus.
-                if (deliveries && deliveries.length > 0) {
-                    this.vm.delivery = deliveries[0]; // Take the first one found
-
-                    if (this.vm.delivery.items) {
-                        // Article names are already populated by the repository via JOIN
-                        this.vm.deliveryItems = this.vm.delivery.items;
-                    }
-                }
+            if (token !== this.memberLoadToken) {
+                return;
             }
-
+            await this.reloadActiveDelivery();
         } catch (error) {
+            if (token !== this.memberLoadToken) {
+                return;
+            }
             console.error('Error loading member data:', error);
+            this.deliveryLookupFailed = true;
+            this.vm.delivery = null;
+            this.vm.deliveryItems = [];
             this.showError('Erreur lors du chargement des données');
         } finally {
-            this.vm.loading = false;
+            if (token === this.memberLoadToken) {
+                this.vm.loading = false;
+            }
+        }
+    }
+
+    /**
+     * Relit la session locale (SQLite). Hors ligne, c'est la même source que le tableau de bord.
+     * On ne va pas chercher le serveur ici : la synchro reste le moment où le statut de session est rafraîchi.
+     */
+    private async ensureSessionStatus(): Promise<void> {
+        this.store.dispatch(loadTontineSession());
+        try {
+            const session = await firstValueFrom(this.tontineService.getSession());
+            if (session?.status) {
+                this.sessionStatus = session.status;
+                return;
+            }
+        } catch (error) {
+            console.error('Session tontine locale indisponible', error);
+        }
+        try {
+            const current = await firstValueFrom(this.store.select(selectTontineSession).pipe(take(1)));
+            if (current?.status) {
+                this.sessionStatus = current.status;
+            }
+        } catch {
+            // Le store n'est pas encore prêt : le menu reste masqué tant qu'aucun statut n'est connu.
+        }
+    }
+
+    private async resolveCommercialUsername(): Promise<string | null> {
+        if (this.commercialUsername) {
+            return this.commercialUsername;
+        }
+        try {
+            const user = await firstValueFrom(this.store.select(selectAuthUser).pipe(take(1)));
+            this.commercialUsername = user?.username ?? null;
+        } catch {
+            this.commercialUsername = null;
+        }
+        return this.commercialUsername;
+    }
+
+    private async reloadActiveDelivery(): Promise<void> {
+        const token = ++this.deliveryLoadToken;
+        const memberId = this.memberId;
+        const username = await this.resolveCommercialUsername();
+        if (token !== this.deliveryLoadToken) {
+            return;
+        }
+        if (!memberId || !username) {
+            this.vm.delivery = null;
+            this.vm.deliveryItems = [];
+            this.deliveryLookupFailed = !username;
+            return;
+        }
+        try {
+            const deliveries = await this.deliveryRepo.getByMemberAndCommercial(memberId, username);
+            if (token !== this.deliveryLoadToken) {
+                return;
+            }
+            const active = pickMemberTontineDelivery(deliveries, this.vm.member?.deliveryStatus);
+            this.vm.delivery = active;
+            this.vm.deliveryItems = active?.items ? [...active.items] : [];
+            this.deliveryLookupFailed = false;
+        } catch (error) {
+            if (token !== this.deliveryLoadToken) {
+                return;
+            }
+            console.error('Error loading member delivery:', error);
+            this.vm.delivery = null;
+            this.vm.deliveryItems = [];
+            this.deliveryLookupFailed = true;
         }
     }
 
@@ -208,9 +319,15 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         return this.hasPendingDeliveryToMark() && canPhysicallyDeliverTontine(this.sessionStatus);
     }
 
+    /** Libellé exact du menu, ou null si la session n'ouvre ni la commande ni la remise. */
+    deliveryCreationMenuLabel(): string | null {
+        return tontineDeliveryCreationMenuLabel(this.sessionStatus);
+    }
+
     canOpenDeliveryCreation(): boolean {
-        return !this.vm.delivery
-            && (canCreateTontineOrder(this.sessionStatus) || canPhysicallyDeliverTontine(this.sessionStatus));
+        return !this.deliveryLookupFailed
+            && !this.vm.delivery
+            && this.deliveryCreationMenuLabel() !== null;
     }
 
     async markAsDelivered(): Promise<void> {
@@ -507,6 +624,13 @@ export class MemberDetailPage implements OnInit, OnDestroy {
     }
 
     async showActions() {
+        await this.ensureSessionStatus();
+        if (!this.vm.member) {
+            await this.loadMemberData();
+        } else {
+            await this.reloadActiveDelivery();
+        }
+        const deliveryLabel = this.deliveryCreationMenuLabel();
         const actionSheet = await this.actionSheetCtrl.create({
             header: 'Actions',
             buttons: [
@@ -524,8 +648,8 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                         this.viewClient();
                     }
                 },
-                ...(this.canOpenDeliveryCreation() ? [{
-                    text: 'Livraison Fin d\'Année',
+                ...(this.canOpenDeliveryCreation() && deliveryLabel ? [{
+                    text: deliveryLabel,
                     icon: 'cube-outline',
                     handler: () => {
                         this.createDelivery();
