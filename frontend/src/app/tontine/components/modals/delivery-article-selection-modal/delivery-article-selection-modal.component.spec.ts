@@ -16,18 +16,17 @@ describe('DeliveryArticleSelectionModalComponent article labels', () => {
       ...partial,
     }) as CatalogArticle;
 
-  it('prefers commercialName as primary label', () => {
-    expect(component.formatArticleLabel(article({}))).toBe('HUILE AICHA 5L');
+  it('concatenates commercialName and name with two spaces', () => {
+    expect(component.formatArticleLabel(article({}))).toBe('HUILE AICHA 5L  REF-INT');
   });
 
-  it('falls back to name when commercialName is empty', () => {
+  it('falls back to the remaining field when one is empty', () => {
     expect(component.formatArticleLabel(article({ commercialName: '' }))).toBe('REF-INT');
     expect(component.formatArticleLabel(article({ commercialName: undefined }))).toBe('REF-INT');
+    expect(component.formatArticleLabel(article({ name: '' }))).toBe('HUILE AICHA 5L');
   });
 
-  it('shows name as subtitle when distinct from commercialName', () => {
-    expect(component.formatArticleSubtitle(article({}))).toBe('REF-INT');
-    expect(component.formatArticleSubtitle(article({ name: 'HUILE AICHA 5L' }))).toBeNull();
-    expect(component.formatArticleSubtitle(article({ commercialName: '' }))).toBeNull();
+  it('falls back to article id when both names are empty', () => {
+    expect(component.formatArticleLabel(article({ commercialName: '', name: '' }))).toBe('Article #1');
   });
 });

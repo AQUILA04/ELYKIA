@@ -157,23 +157,14 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
     return article.code?.trim() || String(article.id);
   }
 
-  /** Libellé principal : nom commercial, sinon name. */
+  /** Libellé : commercialName + name (espaces doubles), avec repli si un champ manque. */
   formatArticleLabel(article: CatalogArticle): string {
-    const commercial = article.commercialName?.trim();
-    if (commercial) {
-      return commercial;
+    const commercial = article.commercialName?.trim() || '';
+    const name = article.name?.trim() || '';
+    if (commercial && name) {
+      return `${commercial}  ${name}`;
     }
-    return article.name?.trim() || `Article #${article.id}`;
-  }
-
-  /** Sous-titre : name technique si distinct du libellé commercial. */
-  formatArticleSubtitle(article: CatalogArticle): string | null {
-    const commercial = article.commercialName?.trim();
-    const name = article.name?.trim();
-    if (commercial && name && commercial !== name) {
-      return name;
-    }
-    return null;
+    return commercial || name || `Article #${article.id}`;
   }
 
   onArticleSelected(article: CatalogArticle): void {

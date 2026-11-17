@@ -99,7 +99,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Fixed
 
-- **Commande / livraison tontine —** dans la modale de sélection d’articles, le libellé principal affiche le nom commercial (`commercialName`), avec le nom technique en sous-titre lorsqu’il diffère. Le `name` seul ne suffisait pas à reconnaître l’article.
+- **Commande / livraison tontine —** dans la modale de sélection d’articles, le libellé affiche `commercialName` et `name` concaténés (`commercialName  name`). Le `name` seul ne suffisait pas à reconnaître l’article.
 
 ## Frontend — [2.50.2] — 2026-11-15
 

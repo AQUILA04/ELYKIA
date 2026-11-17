@@ -8,7 +8,7 @@ Arrêt au **2026-11-17** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de
 
 ## Focus récent (changelog et PR)
 
-1. **RM sync-errors + libellé article tontine** (2026-11-17). Mobile 2.40.1 : le chef de recouvrement peut ouvrir `/sync-errors` (AuthGuard autorise les routes partagées). Frontend 2.50.3 : modale commande/livraison tontine affiche `commercialName`.
+1. **RM sync-errors + libellé article tontine** (2026-11-17). Mobile 2.40.1 : le chef de recouvrement peut ouvrir `/sync-errors` (AuthGuard autorise les routes partagées). Frontend 2.50.3 : modale commande/livraison tontine affiche `commercialName  name`.
 2. **Contrôle carnet tontine multi-commerciaux, mobile 2.40.0 / backend 1.53.2** (2026-11-16). Sur un mois déjà cotisé, **+** ajoute jusqu’à 2 lignes carnet.
 3. **Pool JDBC prod / rapport tontine** (2026-11-16). Événement après commit, pool à 20, migration photo coupée au démarrage compose.
 

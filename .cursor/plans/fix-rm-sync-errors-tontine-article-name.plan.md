@@ -8,7 +8,7 @@
 ## Correctifs
 
 1. `isRmSharedRoute` + whitelist `/sync-errors` dans `AuthGuard`.
-2. Affichage `commercialName` (label) + `name` (sous-titre si distinct) dans `DeliveryArticleSelectionModalComponent` ; champ typé sur `ItemService.Article`.
+2. Affichage `commercialName + '  ' + name` dans `DeliveryArticleSelectionModalComponent` ; champ typé sur `ItemService.Article`.
 
 ## Hors scope
 

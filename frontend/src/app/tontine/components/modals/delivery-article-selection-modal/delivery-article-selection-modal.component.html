@@ -48,7 +48,6 @@
             <div class="article-info">
               <span class="article-code">#{{ getArticleCode(article) }}</span>
               <span class="article-name">{{ formatArticleLabel(article) }}</span>
-              <span class="article-subtitle" *ngIf="formatArticleSubtitle(article) as subtitle">{{ subtitle }}</span>
             </div>
             <span class="article-price">{{ formatCurrency(article.sellingPrice) }}</span>
           </div>
@@ -82,7 +81,6 @@
             <div class="article-cell">
               <span class="code">#{{ getArticleCode(selected.article) }}</span>
               <span class="name">{{ formatArticleLabel(selected.article) }}</span>
-              <span class="subtitle" *ngIf="formatArticleSubtitle(selected.article) as subtitle">{{ subtitle }}</span>
             </div>
           </td>
           <td *appIfUnitPrice>{{ formatCurrency(offerOf(selected)?.salePrice || selected.article.sellingPrice) }}</td>
