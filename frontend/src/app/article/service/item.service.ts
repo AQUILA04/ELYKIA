@@ -27,7 +27,10 @@ export interface ArticleStockKpis {
 
 export interface Article {
   id: number;
+  code?: string;
   name: string;
+  /** Libellé commercial (souvent plus reconnaissable que name). */
+  commercialName?: string;
   marque: string;
   model?: string;
   type: string;

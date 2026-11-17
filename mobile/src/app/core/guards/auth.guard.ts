@@ -6,7 +6,7 @@ import { map, switchMap, take } from 'rxjs/operators';
 import { selectIsLoggedIn, selectAuthUser } from '../../store/auth/auth.selectors';
 import { Storage } from '@ionic/storage-angular';
 import { DatabaseService } from '../services/database.service';
-import { canAccessRecoveryManagerMobile } from '../utils/rm-user.util';
+import { canAccessRecoveryManagerMobile, isRmSharedRoute } from '../utils/rm-user.util';
 
 @Injectable({
   providedIn: 'root'
@@ -41,7 +41,7 @@ export class AuthGuard implements CanActivate {
           const isRm = canAccessRecoveryManagerMobile(user);
 
           if (isRm) {
-            if (state.url.startsWith('/rm')) {
+            if (state.url.startsWith('/rm') || isRmSharedRoute(state.url)) {
               return of(true);
             }
             return of(this.router.createUrlTree(['/rm/plan']));
