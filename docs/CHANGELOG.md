@@ -95,6 +95,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.50.3] — 2026-11-17
+
+### Fixed
+
+- **Commande / livraison tontine —** dans la modale de sélection d’articles, le libellé principal affiche le nom commercial (`commercialName`), avec le nom technique en sous-titre lorsqu’il diffère. Le `name` seul ne suffisait pas à reconnaître l’article.
+
 ## Frontend — [2.50.2] — 2026-11-15
 
 ### Added
@@ -343,6 +349,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
+
+## Mobile — [2.40.1] — 2026-11-17
+
+### Fixed
+
+- **Chef de recouvrement —** **Plus → Erreurs de synchronisation** (et le détail depuis Terrain / Clients / Accueil) ouvre bien la liste. `AuthGuard` n’autorise plus uniquement `/rm/*` : les routes partagées `/sync-errors` restent accessibles au profil RM au lieu de renvoyer vers le plan / l’accueil des retards.
 
 ## Mobile — [2.40.0] — 2026-11-16
 

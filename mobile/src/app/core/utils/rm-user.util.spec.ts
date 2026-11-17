@@ -1,4 +1,8 @@
-import { hasRecoveryManagerProfil, canAccessRecoveryManagerMobile } from './rm-user.util';
+import {
+  hasRecoveryManagerProfil,
+  canAccessRecoveryManagerMobile,
+  isRmSharedRoute,
+} from './rm-user.util';
 import { User } from '../../models/auth.model';
 
 describe('rm-user.util', () => {
@@ -26,5 +30,14 @@ describe('rm-user.util', () => {
   it('canAccessRecoveryManagerMobile follows profil/role regardless of remote config', () => {
     expect(canAccessRecoveryManagerMobile({ ...rmUser, profil: 'RECOVERY_MANAGER' })).toBe(true);
     expect(canAccessRecoveryManagerMobile({ ...rmUser, profil: 'PROMOTER', roles: ['ROLE_PROMOTER'] })).toBe(false);
+  });
+
+  it('allows sync-errors shared routes for RM shell', () => {
+    expect(isRmSharedRoute('/sync-errors')).toBe(true);
+    expect(isRmSharedRoute('/sync-errors/abc-123')).toBe(true);
+    expect(isRmSharedRoute('/sync-errors?focus=1')).toBe(true);
+    expect(isRmSharedRoute('/rm/more')).toBe(false);
+    expect(isRmSharedRoute('/tabs/dashboard')).toBe(false);
+    expect(isRmSharedRoute('/sync/manual')).toBe(false);
   });
 });

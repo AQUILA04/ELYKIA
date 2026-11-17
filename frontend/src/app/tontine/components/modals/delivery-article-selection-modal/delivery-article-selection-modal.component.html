@@ -30,7 +30,7 @@
         matInput 
         [formControl]="searchControl" 
         [matAutocomplete]="articleAuto"
-        placeholder="Code ou nom de l'article"
+        placeholder="Code, nom commercial ou nom de l'article"
         data-testid="e2e-tontine-delivery-article-search">
       <mat-icon matPrefix>search</mat-icon>
       
@@ -47,7 +47,8 @@
           <div class="article-option">
             <div class="article-info">
               <span class="article-code">#{{ getArticleCode(article) }}</span>
-              <span class="article-name">{{ article.name }}</span>
+              <span class="article-name">{{ formatArticleLabel(article) }}</span>
+              <span class="article-subtitle" *ngIf="formatArticleSubtitle(article) as subtitle">{{ subtitle }}</span>
             </div>
             <span class="article-price">{{ formatCurrency(article.sellingPrice) }}</span>
           </div>
@@ -80,7 +81,8 @@
           <td>
             <div class="article-cell">
               <span class="code">#{{ getArticleCode(selected.article) }}</span>
-              <span class="name">{{ selected.article.name }}</span>
+              <span class="name">{{ formatArticleLabel(selected.article) }}</span>
+              <span class="subtitle" *ngIf="formatArticleSubtitle(selected.article) as subtitle">{{ subtitle }}</span>
             </div>
           </td>
           <td *appIfUnitPrice>{{ formatCurrency(offerOf(selected)?.salePrice || selected.article.sellingPrice) }}</td>

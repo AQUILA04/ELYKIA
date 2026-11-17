@@ -16,3 +16,15 @@ export function hasRecoveryManagerProfil(user: User | null | undefined): boolean
 export function canAccessRecoveryManagerMobile(user: User | null | undefined): boolean {
   return hasRecoveryManagerProfil(user);
 }
+
+/**
+ * Shared routes outside `/rm/*` that a recovery manager may open
+ * (e.g. sync error list linked from Plus / Terrain).
+ */
+export function isRmSharedRoute(url: string | null | undefined): boolean {
+  if (!url) {
+    return false;
+  }
+  const path = url.split('?')[0];
+  return path === '/sync-errors' || path.startsWith('/sync-errors/');
+}

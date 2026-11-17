@@ -154,7 +154,26 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
   }
 
   getArticleCode(article: CatalogArticle): string {
-    return String(article.id);
+    return article.code?.trim() || String(article.id);
+  }
+
+  /** Libellé principal : nom commercial, sinon name. */
+  formatArticleLabel(article: CatalogArticle): string {
+    const commercial = article.commercialName?.trim();
+    if (commercial) {
+      return commercial;
+    }
+    return article.name?.trim() || `Article #${article.id}`;
+  }
+
+  /** Sous-titre : name technique si distinct du libellé commercial. */
+  formatArticleSubtitle(article: CatalogArticle): string | null {
+    const commercial = article.commercialName?.trim();
+    const name = article.name?.trim();
+    if (commercial && name && commercial !== name) {
+      return name;
+    }
+    return null;
   }
 
   onArticleSelected(article: CatalogArticle): void {
