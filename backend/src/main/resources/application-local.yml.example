@@ -22,3 +22,15 @@ security:
   config:
     auto-initialize:
       enabled: ${SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED:false}
+
+# Hub local (profil Spring local du hub) : pas de JWT, header X-Tenant-Id.
+optimize:
+  notification:
+    hub:
+      enabled: true
+      base-url: http://localhost:8088
+      tenant-id: elykia
+      app-id: elykia-customer-space
+      environment: test
+      oauth2:
+        enabled: false

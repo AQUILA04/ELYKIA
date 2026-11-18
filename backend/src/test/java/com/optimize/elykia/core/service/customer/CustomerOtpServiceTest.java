@@ -65,6 +65,23 @@ class CustomerOtpServiceTest {
     }
 
     @Test
+    void sendOtp_normalizesTogoNumberFromLoginScreen() {
+        when(otpClient.sendOtp(any(), anyString())).thenReturn(
+                new OtpSendResponse(UUID.randomUUID(), Instant.now().plusSeconds(300), null, "SMS", "twilio-verify", "VE1", null));
+
+        service.sendOtp("90331234");
+
+        ArgumentCaptor<com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendRequest> captor =
+                ArgumentCaptor.forClass(
+                        com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendRequest.class);
+        ArgumentCaptor<String> idempotency = ArgumentCaptor.forClass(String.class);
+        verify(otpClient).sendOtp(captor.capture(), idempotency.capture());
+        assertEquals("+22890331234", captor.getValue().to());
+        assertEquals("SMS", captor.getValue().channel());
+        UUID.fromString(idempotency.getValue());
+    }
+
+    @Test
     void verifyOtp_issuesProofTokenOnSuccess() {
         when(otpClient.verifyOtp(any(OtpVerifyRequest.class)))
                 .thenReturn(new OtpVerifyResponse(true, "VALID"));
@@ -119,7 +136,20 @@ class CustomerOtpServiceTest {
     @Test
     void sendOtp_failsWhenHubDisabled() {
         properties.setEnabled(false);
-        assertThrows(CustomValidationException.class, () -> service.sendOtp("90123456"));
+        CustomValidationException ex = assertThrows(
+                CustomValidationException.class, () -> service.sendOtp("90331234"));
+        assertEquals(
+                "L'envoi SMS OTP n'est pas activé sur ce serveur (Notification Hub).",
+                ex.getMessage());
+        org.mockito.Mockito.verifyNoInteractions(otpClient);
+    }
+
+    @Test
+    void sendOtp_failsWhenClientBeanMissing() {
+        org.mockito.Mockito.when(otpClientProvider.getIfAvailable()).thenReturn(null);
+        CustomValidationException ex = assertThrows(
+                CustomValidationException.class, () -> service.sendOtp("90331234"));
+        assertTrue(ex.getMessage().contains("optimize.notification.hub.enabled"));
     }
 
     @Test

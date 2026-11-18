@@ -4,13 +4,12 @@ Arrêt au **2026-11-18** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de
 
 ## Versions en tête
 
-- Frontend **2.50.3** — Backend **1.53.4** — Mobile **2.40.3** — Espace client **0.17.3** (dernier incrément espace client : 2026-11-09).
+- Frontend **2.50.3** — Backend **1.53.5** — Mobile **2.40.3** — Espace client **0.17.3** (dernier incrément espace client : 2026-11-09).
 
 ## Focus récent (changelog et PR)
 
-1. **Complément livraison sans plafond + édition commande** (2026-11-18). Mobile 2.40.3 / Backend 1.53.4 : complément à la livraison libre ; alerte remise → Compléter / Modifier ; **Modifier la commande** tant que non livré.
-2. **CI mobile Gradle 429 retry** (2026-11-18). `assembleDebug` retente 3 fois.
-3. **Collecte à la livraison en session CLOSED** (2026-11-18). Mobile 2.40.2 / Backend 1.53.3.
+1. **OTP espace client** (2026-11-18). Backend 1.53.5 : `NOTIFICATION_HUB_ENABLED` est `true` par défaut. Le message « envoi SMS OTP n'est pas activé » venait de ce défaut `false`. Prod : OAuth2, secret Keycloak `elykia` obligatoire au démarrage, `environment` vide → SMS réel. Checklist : `backend/docs/NOTIFICATION_HUB_LOCAL.md`.
+2. **Complément livraison sans plafond + édition commande** (2026-11-18). Mobile 2.40.3 / Backend 1.53.4.
 
 ## Fuseau
 

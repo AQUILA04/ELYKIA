@@ -114,4 +114,13 @@ security:
       # false hors CI. Les tests E2E passent SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true.
       enabled: ${SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED:false}
 
+# OTP espace client. OAuth2 obligatoire en prod : sans NOTIFICATION_HUB_CLIENT_SECRET le contexte ne démarre pas.
+# environment vide = SMS réel (profil prod). La recette force NOTIFICATION_HUB_ENVIRONMENT=test.
+optimize:
+  notification:
+    hub:
+      enabled: ${NOTIFICATION_HUB_ENABLED:true}
+      oauth2:
+        enabled: ${NOTIFICATION_HUB_OAUTH2_ENABLED:true}
+
 

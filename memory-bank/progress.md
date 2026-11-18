@@ -1,6 +1,6 @@
 # Avancement
 
-État au 2026-11-16 (GMT). « Ça marche » signifie : le parcours est dans le produit et le changelog, pas qu’un essai runtime a été refait pour cette note.
+État au 2026-11-18 (GMT). « Ça marche » signifie : le parcours est dans le produit et le changelog, pas qu’un essai runtime a été refait pour cette note.
 
 ## En place
 
@@ -18,7 +18,7 @@
 - `backend/README.md` est encore un TODO.
 - Préfixes REST `/api` et `/api/v1` coexistent.
 - Parents Spring Boot de `backend-lib/` (3.1.3, 3.4.1, 3.3.0) ne sont pas alignés sur l’API (3.3.0).
-- Client OTP maison dans `notificationhub/` : ne pas l’étendre (règle starter).
+- Client OTP maison dans `notificationhub/` : ne pas l’étendre (starter Java 21 / Boot 3.5, backend Java 17 / Boot 3.3). L’envoi est activé par défaut ; la prod a besoin du secret Keycloak du client `elykia` (`backend/docs/NOTIFICATION_HUB_LOCAL.md`).
 - Procédure FIFO `docs/diagnostic-fifo-entrees-sans-lot.md` (article « CUBE: ONGA quart », livraison refusée). Issue encore ouverte ou non : **à compléter**. Les heures du compte-rendu sont en GMT (UTC+0), sans conversion.
 - Seuils JaCoCo du backend volontairement bas (lignes globales 0,46, branches 0,12) : filet anti-régression, pas un objectif de couverture.
 - `package.json` à la racine ne déclare que `@ngrx/entity`. Ce n’est pas le point d’entrée d’une app. Rôle exact : **à compléter**.

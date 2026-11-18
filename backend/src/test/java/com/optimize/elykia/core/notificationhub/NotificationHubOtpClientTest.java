@@ -1,9 +1,11 @@
 package com.optimize.elykia.core.notificationhub;
 
+import com.optimize.elykia.core.config.NotificationHubProperties;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.env.MockEnvironment;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class NotificationHubOtpClientTest {
 
@@ -27,5 +29,14 @@ class NotificationHubOtpClientTest {
         MockEnvironment env = new MockEnvironment();
         env.setActiveProfiles("prod");
         assertEquals("test", NotificationHubOtpClient.resolveEnvironment(env, "test"));
+    }
+
+    @Test
+    void propertyDefaultsMatchStarter() {
+        NotificationHubProperties properties = new NotificationHubProperties();
+        assertTrue(properties.isEnabled());
+        assertTrue(properties.getOauth2().isEnabled());
+        assertEquals("elykia", properties.getTenantId());
+        assertEquals("elykia-customer-space", properties.getAppId());
     }
 }

@@ -113,6 +113,19 @@ MINIO_REPORTS_BUCKET=${MINIO_REPORTS_BUCKET:-elykia-reports}
 MINIO_PUBLIC_URL=${MINIO_PUBLIC_URL:-https://minio-test-api.amenouveve-yaveh.com}
 PHOTO_FALLBACK_PATH_HOST=${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/test/photos/pending}
 
+# OTP SMS espace client — secret Keycloak du client « elykia » (ne jamais committer)
+# Sans NOTIFICATION_HUB_CLIENT_SECRET le backend ne démarre pas.
+NOTIFICATION_HUB_ENABLED=true
+NOTIFICATION_HUB_BASE_URL=http://notification-hub-prod-api-1:8088
+NOTIFICATION_HUB_TENANT_ID=elykia
+NOTIFICATION_HUB_APP_ID=elykia-customer-space
+NOTIFICATION_HUB_ENVIRONMENT=test
+NOTIFICATION_HUB_OAUTH2_ENABLED=true
+NOTIFICATION_HUB_TOKEN_URI=https://auth.optimizesolux.com/realms/notification-hub/protocol/openid-connect/token
+NOTIFICATION_HUB_CLIENT_ID=elykia
+NOTIFICATION_HUB_CLIENT_SECRET=
+NOTIFICATION_HUB_PROOF_SECRET=
+
 # Populated automatically by deploy.sh — do not edit manually
 FRONTEND_IMAGE=
 BACKEND_IMAGE=
@@ -151,6 +164,19 @@ MINIO_BUCKET=${MINIO_BUCKET:-elykia-clients}
 MINIO_REPORTS_BUCKET=${MINIO_REPORTS_BUCKET:-elykia-reports}
 MINIO_PUBLIC_URL=${MINIO_PUBLIC_URL:-https://minio-api.amenouveve-yaveh.com}
 PHOTO_FALLBACK_PATH_HOST=${PHOTO_FALLBACK_PATH_HOST:-/opt/elykia/prod/photos/pending}
+
+# OTP SMS espace client — secret Keycloak du client « elykia » (ne jamais committer)
+# ENVIRONMENT vide = SMS réel. Sans NOTIFICATION_HUB_CLIENT_SECRET le backend ne démarre pas.
+NOTIFICATION_HUB_ENABLED=true
+NOTIFICATION_HUB_BASE_URL=http://notification-hub-prod-api-1:8088
+NOTIFICATION_HUB_TENANT_ID=elykia
+NOTIFICATION_HUB_APP_ID=elykia-customer-space
+NOTIFICATION_HUB_ENVIRONMENT=
+NOTIFICATION_HUB_OAUTH2_ENABLED=true
+NOTIFICATION_HUB_TOKEN_URI=https://auth.optimizesolux.com/realms/notification-hub/protocol/openid-connect/token
+NOTIFICATION_HUB_CLIENT_ID=elykia
+NOTIFICATION_HUB_CLIENT_SECRET=
+NOTIFICATION_HUB_PROOF_SECRET=
 
 # Populated automatically by deploy.sh — do not edit manually
 FRONTEND_IMAGE=
