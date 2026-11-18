@@ -25,6 +25,7 @@ import { selectTontineSession } from 'src/app/store/tontine/tontine.selectors';
 import {
     canMarkTontineDeliveryAsDelivered,
     canPhysicallyDeliverTontine,
+    canRecordNormalTontineCollection,
     getTontineDeliveryStatusLabel,
     pickMemberTontineDelivery,
     tontineDeliveryCreationMenuLabel
@@ -322,6 +323,11 @@ export class MemberDetailPage implements OnInit, OnDestroy {
     /** Libellé exact du menu, ou null si la session n'ouvre ni la commande ni la remise. */
     deliveryCreationMenuLabel(): string | null {
         return tontineDeliveryCreationMenuLabel(this.sessionStatus);
+    }
+
+    /** Cotisation habituelle (Cotiser) : seulement pendant la session ouverte. */
+    canRecordNormalCollection(): boolean {
+        return canRecordNormalTontineCollection(this.sessionStatus);
     }
 
     canOpenDeliveryCreation(): boolean {
@@ -634,13 +640,13 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         const actionSheet = await this.actionSheetCtrl.create({
             header: 'Actions',
             buttons: [
-                {
+                ...(this.canRecordNormalCollection() ? [{
                     text: 'Enregistrer une cotisation',
                     icon: 'cash-outline',
                     handler: () => {
                         this.recordCollection();
                     }
-                },
+                }] : []),
                 {
                     text: 'Voir le client',
                     icon: 'person-outline',

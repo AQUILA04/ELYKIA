@@ -226,13 +226,13 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 * **L'historique des cotisations** : la liste numérotée de tous ses versements passés.
 * **Droit à l'erreur** : si vous venez d'enregistrer une cotisation par erreur avec le badge **Local**, touchez la petite corbeille rouge sur la ligne pour l'annuler aussitôt. Le total est recalculé sans aucune fausse note.
 * **Le menu d'options (trois petits points ⋮ en haut à droite)** :
-  * **Cotiser** : pour enregistrer un versement.
+  * **Cotiser** / **Enregistrer une cotisation** : pour enregistrer un versement pendant la session ouverte. Après la clôture, cette action n'apparaît plus sur la fiche.
   * **Voir le client** : pour voir la fiche générale de la cliente.
   * **Commande de tontine** : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle **Livraison Fin d'Année** et sert à la remise en mains propres.
 
 ### D. Enregistrer une cotisation de tontine pas à pas
 1. **Ouvrez la saisie** :
-   * Sur la fiche de la membre, touchez le bouton vert **Cotiser** (ou utilisez le menu d'actions rapides).
+   * Sur la fiche de la membre, touchez le bouton **Cotiser** (ou **Enregistrer une cotisation** dans le menu ⋮). Ces boutons sont disponibles tant que la session est ouverte.
 2. **Le montant habituel est déjà renseigné** :
    * Si la membre donne son montant habituel, vous n'avez rien à modifier.
    * Si elle donne le double ou une avance, vous pouvez changer le montant au clavier.
@@ -242,6 +242,8 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 4. **Imprimez le reçu de cotisation** :
    * Le reçu officiel s'affiche avec le nom de la membre, la somme du jour et le **Total cotisé à ce jour**.
    * Touchez le bouton bleu **Imprimer** pour donner son ticket papier à la membre.
+
+> **Après la clôture** : la cotisation habituelle n'est plus proposée sur la fiche. Pour un montant manquant au moment de la remise, utilisez **Compléter le solde** depuis la commande ou la livraison. Quand la campagne est terminée pour tout le monde, plus aucun complément n'est possible.
 
 > **Portefeuille tontine** : vous ne pouvez collecter que pour les membres qui vous sont affectées en commercial tontine. Si une membre a été réaffectée à un autre commercial, l’enregistrement de la cotisation est refusé avec un message clair. Actualisez vos données (synchronisation) pour ne garder que votre carnet à jour.
 
@@ -264,7 +266,7 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
 4. **Si le solde déjà encaissé ne couvre pas le panier** :
    * Pendant la session ouverte, vous pouvez quand même enregistrer la **Commande**. **Compléter le solde** est proposé, sans être obligatoire.
    * Au moment de la remise, deux possibilités :
-     1. **Compléter le solde** : l'écran de cotisation s'ouvre avec le montant manquant. Cette cotisation est acceptée après la clôture, uniquement pour couvrir la commande. Revenez ensuite sur le panier.
+     1. **Compléter le solde** : l'écran de cotisation s'ouvre avec le montant manquant. Cette cotisation reste possible après la clôture de la session, uniquement pour couvrir la commande ou la remise. Revenez ensuite sur le panier.
      2. **Modifier la commande** : diminuez les quantités ou retirez des articles jusqu'à ce que le total tienne dans le solde disponible, puis enregistrez.
 5. **Pendant la session ouverte — enregistrez une Commande** :
    * Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.

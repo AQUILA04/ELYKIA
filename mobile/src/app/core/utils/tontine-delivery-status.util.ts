@@ -43,6 +43,23 @@ export function canPhysicallyDeliverTontine(sessionStatus?: string | null): bool
 }
 
 /**
+ * Cotisation normale (fiche membre / Cotiser) : uniquement session ouverte.
+ * Dès la clôture (CLOSED) ou la fin (ENDED), l'entrée est refusée.
+ */
+export function canRecordNormalTontineCollection(sessionStatus?: string | null): boolean {
+  return normalizeTontineStatus(sessionStatus) === 'ACTIVE';
+}
+
+/**
+ * Complément de solde / collecte à la livraison : autorisé en session ouverte ou clôturée.
+ * Refusé seulement quand la campagne est terminée (ENDED) ou le statut est inconnu.
+ */
+export function canRecordDeliveryTontineCollection(sessionStatus?: string | null): boolean {
+  const status = normalizeTontineStatus(sessionStatus);
+  return status === 'ACTIVE' || status === 'CLOSED';
+}
+
+/**
  * Libellé du menu ⋮ de la fiche membre.
  * Session ouverte : commande. Session clôturée : remise. Les autres statuts n'ouvrent pas le flux.
  */

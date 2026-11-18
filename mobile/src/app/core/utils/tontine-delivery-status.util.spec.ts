@@ -2,6 +2,8 @@ import {
   canCreateTontineOrder,
   canMarkTontineDeliveryAsDelivered,
   canPhysicallyDeliverTontine,
+  canRecordDeliveryTontineCollection,
+  canRecordNormalTontineCollection,
   getTontineDeliveryStatusLabel,
   isTontineDeliveryOrder,
   pickMemberTontineDelivery,
@@ -41,6 +43,22 @@ describe('tontine-delivery-status.util', () => {
     expect(canPhysicallyDeliverTontine('ACTIVE')).toBeFalse();
     expect(canPhysicallyDeliverTontine('ENDED')).toBeFalse();
     expect(canPhysicallyDeliverTontine(null)).toBeFalse();
+  });
+
+  it('allows normal collection only while the session is ACTIVE', () => {
+    expect(canRecordNormalTontineCollection('ACTIVE')).toBeTrue();
+    expect(canRecordNormalTontineCollection(' active ')).toBeTrue();
+    expect(canRecordNormalTontineCollection('CLOSED')).toBeFalse();
+    expect(canRecordNormalTontineCollection('ENDED')).toBeFalse();
+    expect(canRecordNormalTontineCollection(null)).toBeFalse();
+  });
+
+  it('allows delivery top-up while ACTIVE or CLOSED, never ENDED', () => {
+    expect(canRecordDeliveryTontineCollection('ACTIVE')).toBeTrue();
+    expect(canRecordDeliveryTontineCollection('CLOSED')).toBeTrue();
+    expect(canRecordDeliveryTontineCollection('closed')).toBeTrue();
+    expect(canRecordDeliveryTontineCollection('ENDED')).toBeFalse();
+    expect(canRecordDeliveryTontineCollection(null)).toBeFalse();
   });
 
   it('labels the member menu according to the session', () => {

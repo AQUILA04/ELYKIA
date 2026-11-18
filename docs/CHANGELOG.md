@@ -350,6 +350,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.40.2] — 2026-11-18
+
+### Fixed
+
+- **Collecte à la livraison —** **Compléter le solde** reste possible après la clôture de la session (`CLOSED`). Seule une campagne terminée (`ENDED`) bloque ce complément. La cotisation habituelle (**Cotiser** / **Enregistrer une cotisation**) disparaît dès la clôture.
+
 ## Mobile — [2.40.1] — 2026-11-17
 
 ### Fixed
@@ -480,6 +486,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.53.3] — 2026-11-18
+
+### Fixed
+
+- **Collecte tontine —** tests de non-régression : cotisation normale refusée en session `CLOSED` ; complément `isDeliveryCollection` accepté en `CLOSED` et refusé en `ENDED`.
 
 ## Backend — [1.53.2] — 2026-11-16
 

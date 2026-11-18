@@ -23,6 +23,10 @@ import { TontineReceiptModalComponent } from 'src/app/shared/components/tontine-
 import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-consent-guard.service';
 import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-consent-state.service';
 import { AmountConfirmationService } from 'src/app/features/amount-confirmation/amount-confirmation.service';
+import {
+    canRecordDeliveryTontineCollection,
+    canRecordNormalTontineCollection
+} from 'src/app/core/utils/tontine-delivery-status.util';
 
 interface MemberWithClient extends TontineMember {
     client?: Client | null;
@@ -78,9 +82,13 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
                 if (session) {
                     this.session = session;
 
-                    // Check session status
-                    if (session.status === 'CLOSED') {
-                        await this.showSessionClosedAlert();
+                    const returnToDelivery = this.isDeliveryCollectionFlow();
+                    const collectionAllowed = returnToDelivery
+                        ? canRecordDeliveryTontineCollection(session.status)
+                        : canRecordNormalTontineCollection(session.status);
+
+                    if (!collectionAllowed) {
+                        await this.showSessionBlockedAlert(returnToDelivery);
                         return;
                     }
 
@@ -218,7 +226,16 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
 
             await loading.present();
 
-            const returnToDelivery = this.route.snapshot.queryParamMap.get('returnToDelivery') === 'true';
+            const returnToDelivery = this.isDeliveryCollectionFlow();
+            if (this.session) {
+                const collectionAllowed = returnToDelivery
+                    ? canRecordDeliveryTontineCollection(this.session.status)
+                    : canRecordNormalTontineCollection(this.session.status);
+                if (!collectionAllowed) {
+                    await this.showSessionBlockedAlert(returnToDelivery);
+                    return;
+                }
+            }
 
             newCollection = {
                 id: this.generateUuid(),
@@ -347,10 +364,23 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         this.navCtrl.back();
     }
 
-    private async showSessionClosedAlert() {
+    private isDeliveryCollectionFlow(): boolean {
+        return this.route.snapshot.queryParamMap.get('returnToDelivery') === 'true';
+    }
+
+    private async showSessionBlockedAlert(deliveryCollection: boolean) {
+        const ended = String(this.session?.status || '').trim().toUpperCase() === 'ENDED';
+        let header = 'Session clôturée';
+        let message = 'Cette session de tontine est clôturée. Les cotisations habituelles ne sont plus possibles. Un complément reste possible seulement lors de la remise des articles.';
+        if (deliveryCollection || ended) {
+            header = 'Campagne terminée';
+            message = deliveryCollection
+                ? 'La campagne de tontine est terminée. Aucun complément de solde n\'est possible.'
+                : 'La campagne de tontine est terminée. Aucune nouvelle cotisation n\'est possible.';
+        }
         const alert = await this.alertCtrl.create({
-            header: 'Session Clôturée',
-            message: 'Cette session de tontine est clôturée ou terminée. Aucune nouvelle collecte n\'est possible.',
+            header,
+            message,
             buttons: [{
                 text: 'OK',
                 handler: () => {
