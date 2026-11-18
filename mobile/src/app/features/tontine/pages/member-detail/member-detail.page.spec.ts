@@ -76,6 +76,7 @@ describe('MemberDetailPage delivery menu', () => {
     page.sessionStatus = 'closed';
     expect(page.deliveryCreationMenuLabel()).toBe('Livraison Fin d\'Année');
     expect(page.canOpenDeliveryCreation()).toBeTrue();
+    expect(page.canRecordNormalCollection()).toBeFalse();
   });
 
   it('hides the entry when the session status is unknown or ended', async () => {
@@ -83,9 +84,18 @@ describe('MemberDetailPage delivery menu', () => {
     await page.loadMemberData();
     page.sessionStatus = null;
     expect(page.canOpenDeliveryCreation()).toBeFalse();
+    expect(page.canRecordNormalCollection()).toBeFalse();
     page.sessionStatus = 'ENDED';
     expect(page.deliveryCreationMenuLabel()).toBeNull();
     expect(page.canOpenDeliveryCreation()).toBeFalse();
+    expect(page.canRecordNormalCollection()).toBeFalse();
+  });
+
+  it('offers Cotiser only while the session is ACTIVE', async () => {
+    const { page } = create();
+    await page.loadMemberData();
+    page.sessionStatus = 'ACTIVE';
+    expect(page.canRecordNormalCollection()).toBeTrue();
   });
 
   it('hides the entry when a non-cancelled delivery exists', async () => {

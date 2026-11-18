@@ -21,6 +21,7 @@ import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.service.report.DailyTontineReportReconciler;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicy;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAllocationPolicyResolver;
+import com.optimize.elykia.core.service.tontine.allocation.TontineProjectedBalanceCalculator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -85,6 +86,8 @@ class TontineServiceTest {
     private DailyTontineReportReconciler dailyTontineReportReconciler;
     @Mock
     private TontineMemberAmountHistoryArchiveRepository tontineMemberAmountHistoryArchiveRepository;
+    @Mock
+    private TontineProjectedBalanceCalculator projectedBalanceCalculator;
 
     private TontineService service;
 
@@ -101,6 +104,7 @@ class TontineServiceTest {
         service.setAllocationPolicyResolver(allocationPolicyResolver);
         service.setDailyTontineReportReconciler(dailyTontineReportReconciler);
         service.setTontineMemberAmountHistoryArchiveRepository(tontineMemberAmountHistoryArchiveRepository);
+        service.setProjectedBalanceCalculator(projectedBalanceCalculator);
     }
 
     @Test
@@ -315,6 +319,83 @@ class TontineServiceTest {
         ArgumentCaptor<TontineCollection> saved = ArgumentCaptor.forClass(TontineCollection.class);
         verify(tontineCollectionRepository).save(saved.capture());
         assertEquals("COM003", saved.getValue().getCommercialUsername());
+    }
+
+    @Test
+    void recordCollection_rejectsNormalCollectionWhenSessionClosed() {
+        int year = LocalDate.now().getYear();
+        TontineSession closedSession = session(10L, year, TontineSessionStatus.CLOSED);
+        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(closedSession));
+
+        TontineCollectionDto dto = new TontineCollectionDto();
+        dto.setMemberId(50L);
+        dto.setAmount(500.0);
+        dto.setIsDeliveryCollection(Boolean.FALSE);
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> service.recordCollection(dto));
+        assertTrue(ex.getMessage().contains("clôturer"));
+        verify(tontineCollectionRepository, never()).save(any());
+    }
+
+    @Test
+    void recordCollection_allowsDeliveryTopUpWhenSessionClosed() {
+        int year = LocalDate.now().getYear();
+        TontineSession closedSession = session(10L, year, TontineSessionStatus.CLOSED);
+        closedSession.setStartDate(LocalDate.of(year, 2, 1));
+        closedSession.setEndDate(LocalDate.of(year, 11, 30));
+        Client client = new Client();
+        client.setTontineCollector("COM015");
+        client.setFirstname("Client");
+        client.setLastname("A1");
+        TontineMember member = member(TontineMemberDeliveryStatus.PENDING);
+        member.setId(50L);
+        member.setClient(client);
+        member.setTontineSession(closedSession);
+        member.setAmount(1000.0);
+        member.setAvailableContribution(40_000.0);
+
+        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(closedSession));
+        when(tontineMemberRepository.findById(50L)).thenReturn(Optional.of(member));
+        when(projectedBalanceCalculator.project(member)).thenReturn(50_000.0);
+        when(allocationPolicyResolver.resolve()).thenReturn(allocationPolicy);
+        when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(
+                50L, State.ENABLED)).thenReturn(List.of());
+        when(tontineCollectionRepository.save(any(TontineCollection.class))).thenAnswer(inv -> {
+            TontineCollection c = inv.getArgument(0);
+            c.setId(120L);
+            c.setCreatedDate(LocalDateTime.now());
+            return c;
+        });
+
+        TontineCollectionDto dto = new TontineCollectionDto();
+        dto.setMemberId(50L);
+        dto.setAmount(5_000.0);
+        dto.setIsDeliveryCollection(Boolean.TRUE);
+
+        service.recordCollection(dto);
+
+        ArgumentCaptor<TontineCollection> saved = ArgumentCaptor.forClass(TontineCollection.class);
+        verify(tontineCollectionRepository).save(saved.capture());
+        assertEquals(Boolean.TRUE, saved.getValue().getIsDeliveryCollection());
+        assertEquals(Boolean.TRUE, saved.getValue().getBalanceTopUp());
+    }
+
+    @Test
+    void recordCollection_rejectsDeliveryTopUpWhenSessionEnded() {
+        int year = LocalDate.now().getYear();
+        TontineSession endedSession = session(10L, year, TontineSessionStatus.ENDED);
+        when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(endedSession));
+
+        TontineCollectionDto dto = new TontineCollectionDto();
+        dto.setMemberId(50L);
+        dto.setAmount(5_000.0);
+        dto.setIsDeliveryCollection(Boolean.TRUE);
+
+        CustomValidationException ex = assertThrows(CustomValidationException.class,
+                () -> service.recordCollection(dto));
+        assertTrue(ex.getMessage().contains("clôturer"));
+        verify(tontineCollectionRepository, never()).save(any());
     }
 
     @Test

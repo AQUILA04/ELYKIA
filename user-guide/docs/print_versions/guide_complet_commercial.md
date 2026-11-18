@@ -753,6 +753,8 @@ flowchart LR
    - Pour chaque article, la liste **Offre** propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.
    - Si les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme **Solde non utilisé** au profit du client.
    - Le dossier passe au statut **En attente**.
+   - Une confirmation propose de **télécharger le reçu**. Le document reprend la référence, la membre, les articles, les quantités, le montant total et le **code d'authenticité**.
+   - Sur la fiche, **Télécharger le reçu** ressort le même document. Après une réduction du panier, la même proposition s'affiche.
 
 2. **Valider la Livraison** :
    - Un responsable examine la sélection et clique sur **Valider la Livraison**. Le statut passe à **Validé**.
@@ -769,6 +771,8 @@ Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. C
 - Indicateurs globaux : nombre de colis livrés, montant total distribué, livraisons restant à honorer, soldes non utilisés.
 - Filtres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.
 - Recherche instantanée par nom ou référence de client.
+- **Reçu** sur une ligne télécharge le reçu de la commande.
+- **Vérifier un reçu** : saisissez le code imprimé sur le document. Elykia affiche la référence, la membre, la date, le statut, le commercial, le montant et les articles. Si le code est inconnu, le message indique que ce reçu ne provient pas d'Elykia. Un reçu recopié avec un autre montant ne correspond pas à cet affichage.
 
 1. Cochez les lignes **En attente** de la page, puis cliquez sur **Valider la sélection**. Le statut passe à **Validée**.
 2. **Tout valider** valide toutes les livraisons **En attente** de la période, de la recherche et du commercial choisi. Une confirmation indique le nombre.
@@ -1052,13 +1056,13 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 * **L'historique des cotisations** : la liste numérotée de tous ses versements passés.
 * **Droit à l'erreur** : si vous venez d'enregistrer une cotisation par erreur avec le badge **Local**, touchez la petite corbeille rouge sur la ligne pour l'annuler aussitôt. Le total est recalculé sans aucune fausse note.
 * **Le menu d'options (trois petits points ⋮ en haut à droite)** :
-  * **Cotiser** : pour enregistrer un versement.
+  * **Cotiser** / **Enregistrer une cotisation** : pour enregistrer un versement pendant la session ouverte. Après la clôture, cette action n'apparaît plus sur la fiche.
   * **Voir le client** : pour voir la fiche générale de la cliente.
   * **Commande de tontine** : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle **Livraison Fin d'Année** et sert à la remise en mains propres.
 
 ### D. Enregistrer une cotisation de tontine pas à pas
 1. **Ouvrez la saisie** :
-   * Sur la fiche de la membre, touchez le bouton vert **Cotiser** (ou utilisez le menu d'actions rapides).
+   * Sur la fiche de la membre, touchez le bouton **Cotiser** (ou **Enregistrer une cotisation** dans le menu ⋮). Ces boutons sont disponibles tant que la session est ouverte.
 2. **Le montant habituel est déjà renseigné** :
    * Si la membre donne son montant habituel, vous n'avez rien à modifier.
    * Si elle donne le double ou une avance, vous pouvez changer le montant au clavier.
@@ -1068,6 +1072,8 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 4. **Imprimez le reçu de cotisation** :
    * Le reçu officiel s'affiche avec le nom de la membre, la somme du jour et le **Total cotisé à ce jour**.
    * Touchez le bouton bleu **Imprimer** pour donner son ticket papier à la membre.
+
+> **Après la clôture** : la cotisation habituelle n'est plus proposée sur la fiche. Pour un montant manquant au moment de la remise, utilisez **Compléter le solde** depuis la commande ou la livraison. Quand la campagne est terminée pour tout le monde, plus aucun complément n'est possible.
 
 > **Portefeuille tontine** : vous ne pouvez collecter que pour les membres qui vous sont affectées en commercial tontine. Si une membre a été réaffectée à un autre commercial, l’enregistrement de la cotisation est refusé avec un message clair. Actualisez vos données (synchronisation) pour ne garder que votre carnet à jour.
 
@@ -1090,12 +1096,16 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
 4. **Si le solde déjà encaissé ne couvre pas le panier** :
    * Pendant la session ouverte, vous pouvez quand même enregistrer la **Commande**. **Compléter le solde** est proposé, sans être obligatoire.
    * Au moment de la remise, deux possibilités :
-     1. **Compléter le solde** : l'écran de cotisation s'ouvre avec le montant manquant. Cette cotisation est acceptée après la clôture, uniquement pour couvrir la commande. Revenez ensuite sur le panier.
+     1. **Compléter le solde** : l'écran de cotisation s'ouvre avec le montant manquant. Cette cotisation reste possible après la clôture de la session, uniquement pour couvrir la commande ou la remise. Revenez ensuite sur le panier.
      2. **Modifier la commande** : diminuez les quantités ou retirez des articles jusqu'à ce que le total tienne dans le solde disponible, puis enregistrez.
 5. **Pendant la session ouverte — enregistrez une Commande** :
    * Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
+   * L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités, le montant total et le **code d'authenticité**.
+   * Touchez **Imprimer** pour sortir le ticket sur l'imprimante de ceinture. Touchez **Fermer** pour revenir au tableau de bord.
+   * Le code est reconnu dans Elykia une fois la commande transmise à l'agence.
    * L'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
    * Ensuite, préparez vos cartons au dépôt (demande de stock tontine) pour être prêt le jour de la remise.
+   * Pour imprimer à nouveau, ouvrez la fiche de la membre et touchez **Imprimer le reçu**. Après **Enregistrer la commande**, le même aperçu s'affiche.
 6. **Après la clôture de la session — remettez les articles** :
    * Le panier, en livraison directe comme pour une commande déjà posée, peut aller jusqu'au **solde prévisionnel** de l'année.
    * **Livraison directe** : si vous avez les articles dans votre stock tontine et que le solde disponible couvre le panier, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise.

@@ -178,7 +178,8 @@
             Historique des cotisations
             <span class="count-badge">{{ vm.collections.length }}</span>
           </span>
-          <ion-button size="small" fill="outline" class="elyk-btn-outline" (click)="recordCollection()"
+          <ion-button *ngIf="canRecordNormalCollection()" size="small" fill="outline" class="elyk-btn-outline"
+            (click)="recordCollection()"
             data-testid="e2e-member-record-collection">
             <ion-icon slot="start" name="add-circle-outline"></ion-icon>
             Cotiser
@@ -189,7 +190,8 @@
         <div *ngIf="vm.collections.length === 0" class="elyk-empty empty-compact">
           <ion-icon name="calendar-clear-outline"></ion-icon>
           <p>Aucune cotisation enregistrée</p>
-          <ion-button size="small" fill="outline" class="elyk-btn-outline" (click)="recordCollection()">
+          <ion-button *ngIf="canRecordNormalCollection()" size="small" fill="outline" class="elyk-btn-outline"
+            (click)="recordCollection()">
             <ion-icon slot="start" name="add-circle-outline"></ion-icon>
             Enregistrer une cotisation
           </ion-button>
