@@ -107,6 +107,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.50.5] — 2026-11-18
+
+### Fixed
+
+- **Annulation de ventes —** champs de la barre de filtres associés à des libellés (`label` / `id`) pour l’accessibilité (quality gate Sonar).
+
 ## Frontend — [2.50.4] — 2026-11-18
 
 ### Added
@@ -371,6 +377,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
+
+## Mobile — [2.40.4] — 2026-11-18
+
+### Changed
+
+- **Reçu de commande —** lignes d’articles et total extraits dans un composant partagé (`receipt-order-lines`) pour supprimer la duplication Sonar entre aperçus commande et tontine.
 
 ## Mobile — [2.40.3] — 2026-11-18
 

@@ -48,32 +48,10 @@
       </div>
     </section>
 
-    <section class="body-section">
-      <div class="section-title">
-        <h3>Détail de la commande</h3>
-      </div>
-
-      <p class="empty-articles" *ngIf="!data.items || data.items.length === 0">Aucun article</p>
-      <div class="lines" *ngIf="data.items?.length">
-        <div class="line" *ngFor="let item of data.items; let i = index">
-          <span class="idx">{{ i + 1 }}</span>
-          <div class="art">
-            <span class="art-name">{{ item.articleName }}</span>
-            <span class="art-meta" *appIfUnitPrice>{{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }}</span>
-            <span class="art-meta" *appIfNoUnitPrice>Qté {{ item.quantity }}</span>
-          </div>
-          <span class="qty">{{ item.quantity }}</span>
-          <span class="line-total elyk-amount" *appIfUnitPrice>{{ item.totalPrice | number:'1.0-0' }}</span>
-        </div>
-      </div>
-
-      <div class="totals">
-        <div class="grand">
-          <span>Total à payer</span>
-          <b class="elyk-amount">{{ data.totalAmount | number:'1.0-0' }} FCFA</b>
-        </div>
-      </div>
-    </section>
+    <app-receipt-order-lines
+      [items]="data.items"
+      [totalAmount]="data.totalAmount">
+    </app-receipt-order-lines>
 
     <footer class="receipt-foot">
       <span class="thanks">Merci pour votre confiance !</span>
