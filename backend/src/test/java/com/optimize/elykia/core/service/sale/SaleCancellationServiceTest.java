@@ -35,6 +35,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -84,6 +89,45 @@ class SaleCancellationServiceTest {
                 pdfService,
                 storageService,
                 new ObjectMapper());
+    }
+
+    @Test
+    void getRunsWithoutFiltersUsesFindAll() {
+        Pageable pageable = PageRequest.of(0, 10);
+        when(runRepository.findAllByOrderByCreatedDateDesc(pageable))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        Page<?> page = service.getRuns(null, null, null, null, pageable);
+
+        assertEquals(0, page.getTotalElements());
+        verify(runRepository).findAllByOrderByCreatedDateDesc(pageable);
+        verify(runRepository, never()).searchRuns(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void getRunsWithFiltersUsesSearchRuns() {
+        Pageable pageable = PageRequest.of(0, 10);
+        LocalDate start = LocalDate.of(2026, 11, 1);
+        LocalDate end = LocalDate.of(2026, 11, 18);
+        when(runRepository.searchRuns(eq("com.a"), eq(start), eq(end), eq("motif"), eq(pageable)))
+                .thenReturn(new PageImpl<>(List.of()));
+
+        Page<?> page = service.getRuns("com.a", start, end, "motif", pageable);
+
+        assertEquals(0, page.getTotalElements());
+        verify(runRepository).searchRuns("com.a", start, end, "motif", pageable);
+        verify(runRepository, never()).findAllByOrderByCreatedDateDesc(any());
+    }
+
+    @Test
+    void getRunsRejectsInvertedPeriod() {
+        LocalDate start = LocalDate.of(2026, 11, 18);
+        LocalDate end = LocalDate.of(2026, 11, 1);
+
+        assertThrows(CustomValidationException.class,
+                () -> service.getRuns(null, start, end, null, PageRequest.of(0, 10)));
+        verify(runRepository, never()).searchRuns(any(), any(), any(), any(), any());
+        verify(runRepository, never()).findAllByOrderByCreatedDateDesc(any());
     }
 
     @Test

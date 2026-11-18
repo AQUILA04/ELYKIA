@@ -12,7 +12,7 @@ Tout **nouveau** reçu ou facture remis à une personne (ticket thermique, PDF, 
 1. **Code** `ELY-XXXX-XXXX` (8 caractères hexadécimaux). Unique en base, sur la pièce métier (commande, vente, cotisation, livraison, etc.).
 2. **Création** : le serveur le génère s'il est absent. Le téléphone le crée à l'enregistrement local (hors ligne) et l'envoie à la synchro. Le serveur conserve le code reçu s'il est valide et libre.
 3. **Stabilité** : le code ne change pas quand les lignes ou les montants changent. Le document réimprimé montre le contenu officiel actuel.
-4. **Impression** : le code est visible sur le ticket et sur le PDF, avec une phrase du type « ce code permet de vérifier que le document vient d'Elykia ».
+4. **Impression** : le code est visible sur le ticket et sur le PDF, **de façon discrète** (coin du pied de page, texte muted, sans bandeau ni pastille pleine largeur). Une courte mention du type « vérif. reçu Elykia » suffit pour qui doit vérifier ; ne pas brandir le code. Voir skill `elykia-document-design` §8.
 5. **Vérification authentifiée** : saisie du code. S'il existe et que l'utilisateur peut voir la pièce, afficher le contenu officiel (référence, personne, date, statut, montant, lignes). Sinon : **ce reçu ne provient pas d'Elykia**. Un code inconnu, ou celui d'une pièce hors périmètre, donne la même réponse. Un papier recopié avec un autre montant ne correspond pas à cet affichage.
 6. **Hors ligne** : le ticket peut déjà porter le code. La vérification web ne le trouve qu'une fois la pièce transmise au serveur.
 

@@ -753,7 +753,7 @@ flowchart LR
    - Pour chaque article, la liste **Offre** propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.
    - Si les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme **Solde non utilisé** au profit du client.
    - Le dossier passe au statut **En attente**.
-   - Une confirmation propose de **télécharger le reçu**. Le document reprend la référence, la membre, les articles, les quantités, le montant total et le **code d'authenticité**.
+   - Une confirmation propose de **télécharger le reçu**. Le document reprend la référence, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
    - Sur la fiche, **Télécharger le reçu** ressort le même document. Après une réduction du panier, la même proposition s'affiche.
 
 2. **Valider la Livraison** :
@@ -1101,7 +1101,7 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
      2. **Modifier la commande** / **Modifier le panier** : diminuez les quantités ou retirez des articles, puis enregistrez.
 5. **Pendant la session ouverte — enregistrez une Commande** :
    * Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
-   * L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités, le montant total et le **code d'authenticité**.
+   * L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
    * Touchez **Imprimer** pour sortir le ticket sur l'imprimante de ceinture. Touchez **Fermer** pour revenir au tableau de bord.
    * Le code est reconnu dans Elykia une fois la commande transmise à l'agence.
    * L'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.

@@ -49,6 +49,77 @@
     <p class="page-subtitle">Historique des opérations d'annulation et pièces d'audit archivées</p>
   </div>
 
+  <div class="toolbar a4" data-testid="e2e-sale-cancellation-filters">
+    <div class="filter-group filter-group-search">
+      <label class="toolbar-label" for="sale-cancellation-history-search">Recherche</label>
+      <div class="search-row">
+        <input
+          id="sale-cancellation-history-search"
+          type="text"
+          class="search-input"
+          data-testid="e2e-sale-cancellation-search"
+          [(ngModel)]="historySearch"
+          (keydown.enter)="onHistorySearch()"
+          placeholder="N°, commercial, motif, initié par…">
+        <button type="button"
+                class="btn-search-icon"
+                (click)="onHistorySearch()"
+                title="Rechercher"
+                aria-label="Rechercher">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-group filter-group-commercial">
+      <span class="toolbar-label" id="sale-cancellation-history-commercial-label">Commercial</span>
+      <app-commercial-selector
+        [initialValue]="historyCommercial"
+        (commercialSelected)="onHistoryCommercialSelected($event)"
+        aria-labelledby="sale-cancellation-history-commercial-label">
+      </app-commercial-selector>
+    </div>
+
+    <div class="filter-group filter-group-dates">
+      <span class="toolbar-label" id="sale-cancellation-history-period-label">Période ciblée</span>
+      <div class="date-inputs" role="group" aria-labelledby="sale-cancellation-history-period-label">
+        <label class="sr-only" for="sale-cancellation-history-start">Date début</label>
+        <input id="sale-cancellation-history-start"
+               type="date"
+               lang="fr-FR"
+               class="search-input"
+               data-testid="e2e-sale-cancellation-history-start"
+               [(ngModel)]="historyStartDate">
+        <span class="date-sep">à</span>
+        <label class="sr-only" for="sale-cancellation-history-end">Date fin</label>
+        <input id="sale-cancellation-history-end"
+               type="date"
+               lang="fr-FR"
+               class="search-input"
+               data-testid="e2e-sale-cancellation-history-end"
+               [(ngModel)]="historyEndDate">
+        <button type="button" class="btn-clear" (click)="applyHistoryPeriod()">Appliquer</button>
+      </div>
+    </div>
+
+    <button type="button"
+            class="btn-clear"
+            *ngIf="hasActiveHistoryFilters"
+            (click)="resetHistoryFilters()"
+            data-testid="e2e-sale-cancellation-reset-filters">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 6 6 18"/><path d="m6 6 12 12"/>
+      </svg>
+      Réinitialiser
+    </button>
+
+    <span class="result-count">
+      <strong>{{ totalRuns }}</strong> opération(s)
+    </span>
+  </div>
+
   <div class="table-card a5">
     <div class="table-wrapper" *ngIf="!loadingHistory && runs.length > 0">
       <table class="data-table">
@@ -119,8 +190,10 @@
         <path d="M22 12h-6l-2 3h-4l-2-3H2"/>
         <path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>
       </svg>
-      <div class="empty-title">Aucune opération d'annulation enregistrée</div>
-      <div class="empty-sub">L'historique des opérations et les rapports d'audit apparaîtront ici.</div>
+      <div class="empty-title" *ngIf="!hasActiveHistoryFilters">Aucune opération d'annulation enregistrée</div>
+      <div class="empty-sub" *ngIf="!hasActiveHistoryFilters">L'historique des opérations et les rapports d'audit apparaîtront ici.</div>
+      <div class="empty-title" *ngIf="hasActiveHistoryFilters">Aucun résultat pour ces filtres</div>
+      <div class="empty-sub" *ngIf="hasActiveHistoryFilters">Modifiez la recherche, le commercial ou la période, ou réinitialisez les filtres.</div>
     </div>
 
     <div class="empty-state" *ngIf="loadingHistory">

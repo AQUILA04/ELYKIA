@@ -10,7 +10,14 @@ Cette page explique comment annuler une ou plusieurs ventes à crédit d’un co
 2. L’écran **Rapports & Archives d'Annulations de Ventes** s’ouvre sur l’historique des annulations déjà effectuées.
 3. Cliquez sur **Actualiser** pour recharger la liste.
 
-<!-- CAPTURE À INSÉRER : écran Rapports & Archives d'Annulations de Ventes avec l'historique -->
+Au-dessus du tableau, utilisez la barre de filtres pour retrouver une opération :
+
+1. Saisissez un texte dans **Recherche** (numéro d’opération, commercial, motif, personne qui a initié), puis validez avec la loupe ou la touche Entrée.
+2. Choisissez un **Commercial**.
+3. Indiquez la **Période ciblée** (date début et date fin des ventes concernées par l’annulation), puis cliquez sur **Appliquer**.
+4. Cliquez sur **Réinitialiser** pour effacer tous les filtres.
+
+<!-- CAPTURE À INSÉRER : écran Rapports & Archives d'Annulations de Ventes avec la barre de filtres et l'historique -->
 
 ---
 
@@ -74,7 +81,7 @@ Si une seule vente du lot ne peut pas être traitée (par exemple, rapport du jo
 
 ## 6. Consulter l’historique et les pièces d’audit
 
-1. Dans l’historique, chaque ligne indique l’opération, le commercial, la période, le statut, le nombre de ventes annulées, le montant reversé, les ventes rejetées et la personne qui a lancé l’annulation.
+1. Filtrez si besoin (recherche, commercial, période ciblée), puis parcourez le tableau : chaque ligne indique l’opération, le commercial, la période, le statut, le nombre de ventes annulées, le montant reversé, les ventes rejetées et la personne qui a lancé l’annulation.
 2. Cliquez sur **Voir** pour ouvrir le détail : motif déclaré, chiffres de l’opération et **Pièces justificatives et rapports d'audit**.
 3. Cliquez sur **Télécharger** pour récupérer :
    - le **bordereau d’annulation** de chaque vente (articles remis en stock, motif, signatures) ;

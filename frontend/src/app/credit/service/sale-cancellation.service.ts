@@ -25,10 +25,35 @@ export class SaleCancellationService {
     return this.http.post<SaleCancellationRun>(`${this.baseUrl}/execute`, request);
   }
 
-  getRuns(page = 0, size = 20): Observable<any> {
-    const params = new HttpParams()
+  getRuns(
+    page = 0,
+    size = 20,
+    filters?: {
+      commercialUsername?: string | null;
+      startDate?: string | null;
+      endDate?: string | null;
+      search?: string | null;
+    }
+  ): Observable<any> {
+    let params = new HttpParams()
       .set('page', String(page))
       .set('size', String(size));
+    const commercial = filters?.commercialUsername?.trim();
+    const startDate = filters?.startDate?.trim();
+    const endDate = filters?.endDate?.trim();
+    const search = filters?.search?.trim();
+    if (commercial) {
+      params = params.set('commercialUsername', commercial);
+    }
+    if (startDate) {
+      params = params.set('startDate', startDate);
+    }
+    if (endDate) {
+      params = params.set('endDate', endDate);
+    }
+    if (search) {
+      params = params.set('search', search);
+    }
     return this.http.get<any>(`${this.baseUrl}/runs`, { params });
   }
 

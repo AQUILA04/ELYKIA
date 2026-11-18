@@ -272,7 +272,7 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
      2. **Modifier la commande** / **Modifier le panier** : diminuez les quantités ou retirez des articles, puis enregistrez.
 5. **Pendant la session ouverte — enregistrez une Commande** :
    * Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
-   * L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités, le montant total et le **code d'authenticité**.
+   * L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
    * Touchez **Imprimer** pour sortir le ticket sur l'imprimante de ceinture. Touchez **Fermer** pour revenir au tableau de bord.
    * Le code est reconnu dans Elykia une fois la commande transmise à l'agence.
    * L'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
