@@ -100,4 +100,13 @@ security:
     auto-initialize:
       enabled: ${SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED:false}
 
+# OTP espace client. Formation : environment=test (copie e-mail, pas de SMS réel) sauf surcharge.
+optimize:
+  notification:
+    hub:
+      enabled: ${NOTIFICATION_HUB_ENABLED:true}
+      environment: ${NOTIFICATION_HUB_ENVIRONMENT:test}
+      oauth2:
+        enabled: ${NOTIFICATION_HUB_OAUTH2_ENABLED:true}
+
 

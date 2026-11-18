@@ -13,8 +13,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Setter
 public class NotificationHubProperties {
 
-    /** Active les appels OTP vers le hub. */
-    private boolean enabled = false;
+    /**
+     * Active les appels OTP vers le hub.
+     * Défaut aligné sur le starter ({@code enabled=true}, {@code matchIfMissing}).
+     * Le YAML de base et les profils déployés peuvent surcharger via {@code NOTIFICATION_HUB_ENABLED}.
+     */
+    private boolean enabled = true;
 
     private String baseUrl = "http://localhost:8088";
 
@@ -47,8 +51,8 @@ public class NotificationHubProperties {
     @Getter
     @Setter
     public static class OAuth2 {
-        /** Client credentials Keycloak (prod). Désactiver en local. */
-        private boolean enabled = false;
+        /** Client credentials Keycloak (prod). Désactiver en local. Défaut starter : true. */
+        private boolean enabled = true;
         private String tokenUri;
         private String clientId;
         private String clientSecret;

@@ -59,7 +59,14 @@ security:
     prod:
       active: 0
       society: Elykia Test
-
   config:
     auto-initialize:
       enabled: false
+
+# Les tests ne joignent pas le hub. Le défaut produit est enabled=true.
+optimize:
+  notification:
+    hub:
+      enabled: false
+      oauth2:
+        enabled: false

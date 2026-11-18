@@ -36,6 +36,6 @@ public class NotificationHubConfig {
                     properties.getTenantId(),
                     "optimize.notification.hub.tenant-id requis lorsque oauth2 est désactivé");
         }
-        return new NotificationHubOtpClient(properties, tokenProvider, environment);
+        return new NotificationHubOtpClient(properties, tokenProvider, environment, objectMapper);
     }
 }

@@ -18,6 +18,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Changed
 
+- **Deploy —** OTP SMS activé par défaut dans les compose Contabo et DigitalOcean, les modèles `.env` et `setup-server.sh`. La prod laisse `NOTIFICATION_HUB_ENVIRONMENT` vide (SMS réel) ; le test le force à `test`. Le secret Keycloak reste hors git. Checklist hub : `backend/docs/NOTIFICATION_HUB_LOCAL.md`.
 - **Cursor —** skill `elykia-pdf-style` aligné sur ce design system : chemin Angular/HTML complet, chemin backend iText (tables, `PdfHtmlRenderer`, pagination `n/N`), palette cible `#0a2472` pour les nouveaux documents. Les fragments Thymeleaf historiques ne sont pas migrés d’office.
 - **Documents / authenticité —** le code `ELY-XXXX-XXXX` est une information discrète (coin du pied de page), jamais brandie ; skills `elykia-document-design` / `elykia-pdf-style` et règle `receipt-authenticity` mis à jour ; maquette `recu-commande.html` inclut l’exemple.
 - **CI mobile / espace client —** `assembleDebug` retente jusqu’à 3 fois avec backoff quand Maven Central répond 429 (Too Many Requests).
@@ -539,6 +540,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.53.5] — 2026-11-18
+
+### Fixed
+
+- OTP espace client : l'envoi SMS n'est plus coupé par défaut. `NOTIFICATION_HUB_ENABLED` vaut `true` (profils prod, uat, formation, compose Contabo). Le profil prod active OAuth2 ; sans `NOTIFICATION_HUB_CLIENT_SECRET` le backend ne démarre pas.
+- Le client OTP lit la réponse du hub (`expiresAt`, champ inconnu ignoré). Un HTTP 202 ne se termine plus en erreur de décodage.
 
 ## Backend — [1.53.4] — 2026-11-18
 

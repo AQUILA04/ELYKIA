@@ -424,7 +424,9 @@ optimize:
           accountBalance: 100000.00
   notification:
     hub:
-      enabled: ${NOTIFICATION_HUB_ENABLED:false}
+      # true par défaut : l'espace client ne peut pas envoyer de SMS si ce drapeau est false.
+      # Couper explicitement avec NOTIFICATION_HUB_ENABLED=false (local sans hub).
+      enabled: ${NOTIFICATION_HUB_ENABLED:true}
       base-url: ${NOTIFICATION_HUB_BASE_URL:http://localhost:8088}
       tenant-id: ${NOTIFICATION_HUB_TENANT_ID:elykia}
       app-id: ${NOTIFICATION_HUB_APP_ID:elykia-customer-space}
