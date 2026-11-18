@@ -361,6 +361,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.40.3] — 2026-11-18
+
+### Fixed
+
+- **Complément à la livraison —** plus de plafond au solde prévisionnel : le commercial peut encaisser le montant convenu (y compris un montant élevé). Si la remise échoue faute de solde, l'alerte propose **Compléter le solde** ou **Modifier le panier** (plus seulement hors ligne / corriger).
+- **Commande tontine —** sur la fiche membre, **Modifier la commande** reste proposé tant que le dossier n'est pas livré (bouton + menu ⋮). L'édition n'est plus limitée au solde déjà encaissé.
+
 ## Mobile — [2.40.2] — 2026-11-18
 
 ### Fixed
@@ -497,6 +504,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.53.4] — 2026-11-18
+
+### Fixed
+
+- **Complément à la livraison —** le montant n'est plus plafonné au solde prévisionnel (`assertDeliveryTopUp`).
+- **Édition de commande tontine —** `replaceItems` accepte un total au-dessus du solde réel tant qu'il reste sous le prévisionnel ; le solde réel n'est contrôlé qu'à la remise.
 
 ## Backend — [1.53.3] — 2026-11-18
 
