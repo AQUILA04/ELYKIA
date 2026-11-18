@@ -2,6 +2,8 @@
   data-sidebar-position="fixed" data-header-position="fixed"
   [class.show-sidebar]="showHeaderAndSidebar && (layoutService.isSidebarOpen$ | async)">
 
+  <app-environment-ribbon></app-environment-ribbon>
+
   <!-- Mobile sidebar backdrop -->
   <div
     class="sidebar-backdrop"

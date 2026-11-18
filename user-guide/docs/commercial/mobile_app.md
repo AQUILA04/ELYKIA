@@ -9,6 +9,7 @@ L’application mobile ELYKIA est l'outil indispensable du commercial sur le ter
 Dès que vous vous connectez avec votre identifiant et votre mot de passe, vous arrivez sur le **Tableau de Bord**. C'est votre écran d'accueil, votre tour de contrôle pour suivre toute votre journée.
 
 ### A. Ce que vous voyez en haut de l'écran
+* **Bandeau d’environnement** : sur un téléphone relié à l’environnement de test, un bandeau rouge en haut de l’écran affiche **TEST**. Sur l’écran de connexion, le même libellé apparaît aussi sous le titre. Vérifiez-le avant toute saisie pour éviter une opération sur le mauvais environnement.
 * **Votre nom** : votre nom et prénom s'affichent en haut à gauche.
 * **Le témoin de connexion** :
   * Une pastille **Verte (En ligne)** : votre téléphone est bien connecté au serveur central.

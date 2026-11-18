@@ -14,12 +14,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - **Cursor —** skill `elykia-document-design` : design system des documents imprimables (reçus, factures, bons, rapports) en mode clair navy `#0a2472`, avec maquette `assets/recu-commande.html`, `DESIGN.md` et captures `assets/screenshots/`.
+- **Deploy —** variable `APP_ENV` (test|prod) pour le frontend admin : injectée dans `env.js` au démarrage du conteneur (ruban d’environnement).
 
 ### Changed
 
 - **Cursor —** skill `elykia-pdf-style` aligné sur ce design system : chemin Angular/HTML complet, chemin backend iText (tables, `PdfHtmlRenderer`, pagination `n/N`), palette cible `#0a2472` pour les nouveaux documents. Les fragments Thymeleaf historiques ne sont pas migrés d’office.
 - **Documents / authenticité —** le code `ELY-XXXX-XXXX` est une information discrète (coin du pied de page), jamais brandie ; skills `elykia-document-design` / `elykia-pdf-style` et règle `receipt-authenticity` mis à jour ; maquette `recu-commande.html` inclut l’exemple.
 - **CI mobile / espace client —** `assembleDebug` retente jusqu’à 3 fois avec backoff quand Maven Central répond 429 (Too Many Requests).
+- **Guide utilisateur —** mention du ruban / bandeau d’environnement (admin, commercial, chef de recouvrement).
 
 ## Docs & Infra — 2026-11-16
 
@@ -109,19 +111,23 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ## Frontend — [2.50.5] — 2026-11-18
 
+### Added
+
+- **Annulation de ventes —** barre de filtres sur l’historique : recherche, commercial et période ciblée (date début / date fin), avec réinitialisation.
+
 ### Fixed
 
 - **Annulation de ventes —** champs de la barre de filtres associés à des libellés (`label` / `id`) pour l’accessibilité (quality gate Sonar).
+
+### Changed
+
+- **Guide utilisateur —** pages annulation de ventes et reçu de commande tontine alignées (filtres ; code de vérification discret en bas du reçu).
 
 ## Frontend — [2.50.4] — 2026-11-18
 
 ### Added
 
-- **Annulation de ventes —** barre de filtres sur l’historique : recherche, commercial et période ciblée (date début / date fin), avec réinitialisation.
-
-### Changed
-
-- **Guide utilisateur —** pages annulation de ventes et reçu de commande tontine alignées (filtres ; code de vérification discret en bas du reçu).
+- **Environnement —** ruban oblique rouge (texte blanc) en haut à gauche hors production (`TEST`, `DEV`, …). Aucun ruban en prod. Source : `APP_ENV` runtime (+ fallback hôte / API).
 
 ## Frontend — [2.50.3] — 2026-11-17
 
@@ -378,11 +384,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
-## Mobile — [2.40.4] — 2026-11-18
+## Mobile — [2.40.5] — 2026-11-18
 
 ### Changed
 
 - **Reçu de commande —** aperçu aligné sur le design system documents (bande navy fine, cartes d’infos, total en bandeau). Sur le reçu tontine, le code de vérification est discret en bas à droite (plus de pastille navy proéminente) ; même principe sur le ticket thermique. Lignes d’articles et total extraits dans un composant partagé (`receipt-order-lines`).
+
+## Mobile — [2.40.4] — 2026-11-18
+
+### Added
+
+- **Environnement —** bandeau rouge fixe en haut de l’app hors production, plus visible à la connexion (chip **Environnement TEST/DEV**). Barre de statut Android rouge hors prod. `envName` injecté au build APK selon la cible test|prod.
 
 ## Mobile — [2.40.3] — 2026-11-18
 

@@ -26,6 +26,7 @@ import { StatusBadgePipe } from '../pipes/status-badge.pipe';
 import { BreadcrumbComponent } from '../../bread/breadcrumb/breadcrumb.component';
 import { IfUnitPriceDirective } from '../directives/if-unit-price.directive';
 import { IfNoUnitPriceDirective } from '../directives/if-no-unit-price.directive';
+import { EnvironmentRibbonComponent } from './environment-ribbon/environment-ribbon.component';
 
 @NgModule({
     declarations: [
@@ -42,6 +43,7 @@ import { IfNoUnitPriceDirective } from '../directives/if-no-unit-price.directive
         BreadcrumbComponent,
         IfUnitPriceDirective,
         IfNoUnitPriceDirective,
+        EnvironmentRibbonComponent,
     ],
     imports: [
         CommonModule,
@@ -73,6 +75,7 @@ import { IfNoUnitPriceDirective } from '../directives/if-no-unit-price.directive
         BreadcrumbComponent,
         IfUnitPriceDirective,
         IfNoUnitPriceDirective,
+        EnvironmentRibbonComponent,
         NgxSpinnerModule
     ]
 })

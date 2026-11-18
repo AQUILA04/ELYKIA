@@ -4,6 +4,8 @@
 
 export const environment = {
   production: false,
+  /** Libellé d'environnement (ruban). Masqué si prod / production. */
+  envName: 'Dev',
   /** Set to false to skip Firebase Remote Config fetch (local defaults only). */
   remoteConfigEnabled: true,
   /** Active le module Elykia IA côté frontend (dev). En prod, préférer le feature flag `elykiaAi`. */

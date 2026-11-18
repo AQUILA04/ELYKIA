@@ -2,6 +2,7 @@ export const environment = {
   production: true,
   apiUrl: 'http://192.168.1.72:8081',
   appName: 'Elykia',
-  version: '2.40.4'
+  /** Injecté au build APK (test|prod). prod = pas de bandeau. */
+  envName: 'prod',
+  version: '2.40.5'
 };
-

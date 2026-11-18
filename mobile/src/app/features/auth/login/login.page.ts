@@ -18,6 +18,7 @@ import { FilesystemPermissionService } from 'src/app/core/services/filesystem-pe
 import { Browser } from '@capacitor/browser';
 import { getWebBaseUrl } from 'src/app/core/utils/web-base-url.util';
 import { AuthService } from 'src/app/core/services/auth.service';
+import { resolveEnvironmentLabel } from 'src/app/core/utils/environment-label.util';
 
 @Component({
   selector: 'app-login',
@@ -32,6 +33,10 @@ export class LoginPage implements OnInit, OnDestroy, ViewWillEnter {
   passwordVisible: boolean = false;
   appVersion: string = environment.version; // Expose version to template
   environment = environment; // Exposer environment pour le template
+  readonly envLabel: string | null = resolveEnvironmentLabel({
+    envName: (environment as { envName?: string }).envName,
+    apiUrl: environment.apiUrl
+  });
 
   isOnline$: Observable<boolean>;
   error$: Observable<any>;

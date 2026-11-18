@@ -1,3 +1,6 @@
-<ion-app>
+<ion-app
+  [class.has-env-banner]="!!envLabel"
+  [class.has-env-banner-prominent]="!!envLabel && envBannerProminent">
+  <app-environment-banner [prominent]="envBannerProminent"></app-environment-banner>
   <ion-router-outlet></ion-router-outlet>
 </ion-app>
