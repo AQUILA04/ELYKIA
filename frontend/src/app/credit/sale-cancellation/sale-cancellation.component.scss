@@ -40,6 +40,7 @@
 }
 .sale-cancellation-page.a1 { animation: saleCancelFadeUp .3s .00s ease both; }
 .sale-cancellation-page .a2 { animation: saleCancelFadeUp .3s .05s ease both; }
+.sale-cancellation-page .a4 { animation: saleCancelFadeUp .3s .15s ease both; }
 .sale-cancellation-page .a5 { animation: saleCancelFadeUp .3s .20s ease both; }
 
 @keyframes saleCancelSpin {
@@ -160,6 +161,147 @@
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+/* ── Toolbar filtres historique ─────────────────────────────── */
+.sale-cancellation-page .toolbar {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  overflow: visible;
+  position: relative;
+  z-index: 50;
+}
+
+.sale-cancellation-page .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.sale-cancellation-page .filter-group-search {
+  flex: 1 1 240px;
+  min-width: 200px;
+  max-width: 360px;
+}
+
+.sale-cancellation-page .filter-group-commercial {
+  flex: 0 1 240px;
+  min-width: 180px;
+  max-width: 280px;
+  position: relative;
+  z-index: 200;
+}
+
+.sale-cancellation-page .filter-group-dates {
+  flex: 1 1 320px;
+  min-width: 260px;
+}
+
+.sale-cancellation-page .toolbar-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-light);
+}
+
+.sale-cancellation-page .search-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.sale-cancellation-page .search-input {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--navy);
+  background: var(--bg-white);
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sale-cancellation-page .search-row .search-input {
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  border-right: none;
+}
+
+.sale-cancellation-page .search-input:focus {
+  outline: none;
+  border-color: var(--navy);
+  box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.08);
+}
+
+.sale-cancellation-page .btn-search-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--navy-xpale);
+  color: var(--navy);
+  cursor: pointer;
+}
+
+.sale-cancellation-page .btn-search-icon:hover {
+  background: var(--navy-pale);
+}
+
+.sale-cancellation-page .btn-search-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sale-cancellation-page .date-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sale-cancellation-page .date-inputs .search-input {
+  width: auto;
+  min-width: 140px;
+  flex: 0 1 150px;
+}
+
+.sale-cancellation-page .date-sep {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sale-cancellation-page .result-count {
+  margin-left: auto;
+  font-size: 13px;
+  color: var(--text-muted);
+  padding-bottom: 10px;
+  white-space: nowrap;
+}
+
+.sale-cancellation-page .result-count strong {
+  color: var(--navy);
+}
+
+.sale-cancellation-page app-commercial-selector {
+  position: relative;
+  z-index: 100;
+  display: block;
 }
 
 /* ── Buttons ────────────────────────────────────────────────── */

@@ -4,13 +4,13 @@ Arrêt au **2026-11-18** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de
 
 ## Versions en tête
 
-- Frontend **2.50.3** — Backend **1.53.3** — Mobile **2.40.2** — Espace client **0.17.3** (dernier incrément espace client : 2026-11-09).
+- Frontend **2.50.4** — Backend **1.53.4** — Mobile **2.40.3** — Espace client **0.17.3** (dernier incrément espace client : 2026-11-09).
 
 ## Focus récent (changelog et PR)
 
-1. **Collecte à la livraison en session CLOSED** (2026-11-18). Mobile 2.40.2 : **Compléter le solde** reste possible après clôture ; cotisation normale masquée dès `CLOSED` ; refus seulement en `ENDED`. Backend 1.53.3 : tests de non-régression du même contrat.
-2. **Design system documents / PDF** (2026-11-18). Skills `elykia-document-design` + `elykia-pdf-style` : présentation claire navy `#0a2472`, maquette `recu-commande.html`. Pas de migration forcée des fragments Thymeleaf historiques.
-3. **RM sync-errors + libellé article tontine** (2026-11-17). Mobile 2.40.1 / Frontend 2.50.3.
+1. **Annulation de ventes + reçu de commande** (2026-11-18). Frontend 2.50.4 / Backend 1.53.4 : filtres historique (recherche, commercial, période). Mobile 2.40.3 + PDF tontine : design system documents ; code d’authenticité discret en pied de page.
+2. **Collecte à la livraison en session CLOSED** (2026-11-18). Mobile 2.40.2 / Backend 1.53.3.
+3. **Design system documents / PDF** (2026-11-18). Skills `elykia-document-design` + `elykia-pdf-style`.
 
 ## Fuseau
 
@@ -18,7 +18,7 @@ Production et métier : GMT (UTC+0), Lomé. Citer les heures en GMT. Ne pas conv
 
 ## Travail en cours dans l’arbre
 
-Branche `cursor/fix-tontine-delivery-collection-closed-2d0b` : correctif collecte à la livraison en session clôturée.
+Branche `cursor/sale-cancel-filters-receipt-design-261e` : filtres annulation + redesign reçu.
 
 ## Quand on touche au code
 

@@ -138,7 +138,7 @@ CSS inline via le fragment `styles` (pas de fichier CSS externe ni Google Fonts 
 
 ## Reçu ou facture
 
-Si le PDF est un **reçu** ou une **facture** remis à une personne, appliquer aussi la règle `receipt-authenticity` : code `ELY-XXXX-XXXX` persisté, imprimé, et vérifiable. Le thème navy ne remplace pas cette authenticité. Référence : `tontine-order-receipt.html`.
+Si le PDF est un **reçu** ou une **facture** remis à une personne, appliquer aussi la règle `receipt-authenticity` : code `ELY-XXXX-XXXX` persisté, imprimé, et vérifiable. Le thème navy ne remplace pas cette authenticité. Le code est **discret** (coin du pied de page, muted) — jamais brandi en bandeau. Référence : `tontine-order-receipt.html` et `elykia-document-design/assets/recu-commande.html`.
 
 ## Checklist
 

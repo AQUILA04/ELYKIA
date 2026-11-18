@@ -13,70 +13,75 @@
 </ion-header>
 
 <ion-content class="elyk-content">
-  <div class="receipt-preview elyk-card" *ngIf="data">
-    <div class="header">
-      <div class="logo-mark">T</div>
-      <h2>REÇU DE COMMANDE</h2>
-      <p>AMENOUVEVE-YAVEH</p>
-    </div>
+  <div class="receipt-sheet" *ngIf="data">
+    <div class="brand-bar" aria-hidden="true"></div>
 
-    <div class="authenticity" *ngIf="data.authenticityCode">
-      <span class="label">Code d'authenticité</span>
-      <span class="code">{{ data.authenticityCode }}</span>
-    </div>
+    <header class="receipt-head">
+      <div class="brand">
+        <div class="logo-mark">E</div>
+        <div>
+          <h1>AMENOUVEVE-YAVEH</h1>
+          <p>Gestion Elykia</p>
+        </div>
+      </div>
+      <div class="doc-title">
+        <small>Document</small>
+        <h2>Reçu de commande</h2>
+        <span class="no">N° {{ data.reference || '—' }}</span>
+      </div>
+    </header>
 
-    <div class="separator"></div>
+    <section class="info-cards">
+      <div class="info-card">
+        <div class="lbl">Membre</div>
+        <strong>{{ data.clientName || 'Client' }}</strong>
+        <span *ngIf="data.clientPhone">{{ data.clientPhone }}</span>
+      </div>
+      <div class="info-card">
+        <div class="lbl">Commercial</div>
+        <strong>{{ data.commercialName || 'N/A' }}</strong>
+      </div>
+      <div class="info-card">
+        <div class="lbl">Dates</div>
+        <strong>{{ data.requestDate | date:'dd/MM/yyyy' }}</strong>
+        <span>{{ data.requestDate | date:'HH:mm' }} · {{ statusLabel }}</span>
+      </div>
+    </section>
 
-    <div class="receipt-number">
-      <span class="label">Référence</span>
-      <span class="value">{{ data.reference || 'N/A' }}</span>
-    </div>
-
-    <div class="section">
-      <div class="row">
-        <span class="label">Date</span>
-        <span class="value">{{ data.requestDate | date:'dd/MM/yyyy HH:mm' }}</span>
-      </div>
-      <div class="row">
-        <span class="label">Statut</span>
-        <span class="value">{{ statusLabel }}</span>
-      </div>
-      <div class="row">
-        <span class="label">Membre</span>
-        <span class="value">{{ data.clientName || 'Client' }}</span>
-      </div>
-      <div class="row" *ngIf="data.clientPhone">
-        <span class="label">Téléphone</span>
-        <span class="value">{{ data.clientPhone }}</span>
-      </div>
-      <div class="row">
-        <span class="label">Commercial</span>
-        <span class="value">{{ data.commercialName || 'N/A' }}</span>
-      </div>
-    </div>
-
-    <div class="section">
+    <section class="body-section">
       <div class="section-title">
-        <ion-icon name="cube-outline"></ion-icon>
-        <span>Articles</span>
+        <h3>Détail de la commande</h3>
       </div>
-      <p class="empty-articles" *ngIf="!data.items || data.items.length === 0">Aucun article</p>
-      <div class="article-item" *ngFor="let item of data.items">
-        <div class="article-name">{{ item.articleName }}</div>
-        <div class="article-prices" *appIfUnitPrice>
-          <span>{{ item.quantity }} x {{ item.unitPrice | number:'1.0-0' }}</span>
-          <span class="total-price elyk-amount">{{ item.totalPrice | number:'1.0-0' }} FCFA</span>
-        </div>
-        <div class="article-prices" *appIfNoUnitPrice>
-          <span>Qté {{ item.quantity }}</span>
-        </div>
-      </div>
-    </div>
 
-    <div class="total-highlight">
-      <div class="total-label">Montant total</div>
-      <div class="total-value elyk-amount">{{ data.totalAmount | number:'1.0-0' }} FCFA</div>
-    </div>
+      <p class="empty-articles" *ngIf="!data.items || data.items.length === 0">Aucun article</p>
+      <div class="lines" *ngIf="data.items?.length">
+        <div class="line" *ngFor="let item of data.items; let i = index">
+          <span class="idx">{{ i + 1 }}</span>
+          <div class="art">
+            <span class="art-name">{{ item.articleName }}</span>
+            <span class="art-meta" *appIfUnitPrice>{{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }}</span>
+            <span class="art-meta" *appIfNoUnitPrice>Qté {{ item.quantity }}</span>
+          </div>
+          <span class="qty">{{ item.quantity }}</span>
+          <span class="line-total elyk-amount" *appIfUnitPrice>{{ item.totalPrice | number:'1.0-0' }}</span>
+        </div>
+      </div>
+
+      <div class="totals">
+        <div class="grand">
+          <span>Total à payer</span>
+          <b class="elyk-amount">{{ data.totalAmount | number:'1.0-0' }} FCFA</b>
+        </div>
+      </div>
+    </section>
+
+    <footer class="receipt-foot">
+      <span class="thanks">Merci pour votre confiance !</span>
+      <div class="auth-corner" *ngIf="data.authenticityCode" title="Permet de vérifier que le document vient d'Elykia">
+        <span class="code">{{ data.authenticityCode }}</span>
+        vérif. reçu Elykia
+      </div>
+    </footer>
   </div>
 </ion-content>
 

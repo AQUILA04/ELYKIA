@@ -18,6 +18,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - **Cursor —** skill `elykia-pdf-style` aligné sur ce design system : chemin Angular/HTML complet, chemin backend iText (tables, `PdfHtmlRenderer`, pagination `n/N`), palette cible `#0a2472` pour les nouveaux documents. Les fragments Thymeleaf historiques ne sont pas migrés d’office.
+- **Documents / authenticité —** le code `ELY-XXXX-XXXX` est une information discrète (coin du pied de page), jamais brandie ; skills `elykia-document-design` / `elykia-pdf-style` et règle `receipt-authenticity` mis à jour ; maquette `recu-commande.html` inclut l’exemple.
 - **CI mobile / espace client —** `assembleDebug` retente jusqu’à 3 fois avec backoff quand Maven Central répond 429 (Too Many Requests).
 
 ## Docs & Infra — 2026-11-16
@@ -105,6 +106,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.50.4] — 2026-11-18
+
+### Added
+
+- **Annulation de ventes —** barre de filtres sur l’historique : recherche, commercial et période ciblée (date début / date fin), avec réinitialisation.
+
+### Changed
+
+- **Guide utilisateur —** pages annulation de ventes et reçu de commande tontine alignées (filtres ; code de vérification discret en bas du reçu).
 
 ## Frontend — [2.50.3] — 2026-11-17
 
@@ -361,6 +372,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.40.3] — 2026-11-18
+
+### Changed
+
+- **Reçu de commande —** aperçu aligné sur le design system documents (bande navy fine, cartes d’infos, total en bandeau). Sur le reçu tontine, le code de vérification est discret en bas à droite (plus de pastille navy proéminente) ; même principe sur le ticket thermique.
+
 ## Mobile — [2.40.2] — 2026-11-18
 
 ### Fixed
@@ -497,6 +514,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.53.4] — 2026-11-18
+
+### Added
+
+- **Annulation de ventes —** `GET /api/v1/sales/cancellation/runs` accepte les filtres optionnels `commercialUsername`, `startDate`, `endDate` et `search`.
+
+### Changed
+
+- **Reçu de commande tontine (PDF) —** rendu aligné sur le design system navy `#0a2472` (bande fine, cartes, totaux). Le code d’authenticité est placé discrètement en coin du pied de page.
 
 ## Backend — [1.53.3] — 2026-11-18
 

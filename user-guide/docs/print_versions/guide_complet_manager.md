@@ -633,10 +633,11 @@ Les ventes et les crédits pris sur le stock du commercial restent possibles. Un
 Cet écran présente les annulations de ventes déjà effectuées et leurs pièces d'audit.
 
 1. Dans le menu latéral, cliquez sur **Ventes**, puis sur **Annulation Ventes**. L'écran **Rapports & Archives d'Annulations de Ventes** s'ouvre.
-2. Chaque ligne indique l'opération et sa date, le commercial, la période ciblée, le statut, le nombre de ventes annulées, le montant reversé, les ventes rejetées et la personne qui a lancé l'opération.
-3. Cliquez sur **Actualiser** pour recharger la liste.
-4. Cliquez sur **Voir** pour ouvrir le détail : motif déclaré, ventes annulées, ventes rejetées et **Pièces justificatives et rapports d'audit**.
-5. Cliquez sur **Télécharger** pour récupérer le bordereau d'annulation d'une vente ou le rapport de synthèse de l'opération.
+2. Au besoin, filtrez avec **Recherche**, **Commercial** et la **Période ciblée** (date début / date fin), puis **Appliquer**. **Réinitialiser** efface les filtres.
+3. Chaque ligne indique l'opération et sa date, le commercial, la période ciblée, le statut, le nombre de ventes annulées, le montant reversé, les ventes rejetées et la personne qui a lancé l'opération.
+4. Cliquez sur **Actualiser** pour recharger la liste.
+5. Cliquez sur **Voir** pour ouvrir le détail : motif déclaré, ventes annulées, ventes rejetées et **Pièces justificatives et rapports d'audit**.
+6. Cliquez sur **Télécharger** pour récupérer le bordereau d'annulation d'une vente ou le rapport de synthèse de l'opération.
 
 <!-- CAPTURE À INSÉRER : historique des annulations de ventes et fenêtre de détail avec les pièces d'audit -->
 

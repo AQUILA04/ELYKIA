@@ -176,7 +176,7 @@ flowchart LR
    - Pour chaque article, la liste **Offre** propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.
    - Si les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme **Solde non utilisé** au profit du client.
    - Le dossier passe au statut **En attente**.
-   - Une confirmation propose de **télécharger le reçu**. Le document reprend la référence, la membre, les articles, les quantités, le montant total et le **code d'authenticité**.
+   - Une confirmation propose de **télécharger le reçu**. Le document reprend la référence, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
    - Sur la fiche, **Télécharger le reçu** ressort le même document. Après une réduction du panier, la même proposition s'affiche.
 
 2. **Valider la Livraison** :

@@ -95,6 +95,11 @@ tr,.card,.totals{ break-inside:avoid }
 
 Si le document est un **reçu** ou une **facture** remis à une personne, appliquer aussi la règle `receipt-authenticity` : code `ELY-XXXX-XXXX` persisté, imprimé, et vérifiable. Le design ne remplace pas cette authenticité.
 
+**Placement du code d'authenticité (obligatoire)** : information **discrète**, jamais brandie.
+- Coin bas (souvent bas-droite du pied de page), texte muted 8–10 px, sans bandeau navy, sans pastille pleine largeur, sans titre « CODE D'AUTHENTICITÉ » en majuscules proéminent.
+- Le code reste lisible pour qui doit vérifier une facture ; une courte mention du type « vérif. reçu Elykia » suffit à indiquer l'usage.
+- Référence visuelle : pied de page de `assets/recu-commande.html`.
+
 ## 9. Checklist avant de rendre un document
 
 - [ ] Bande navy fine en haut, rien qui dépasse
@@ -103,5 +108,5 @@ Si le document est un **reçu** ou une **facture** remis à une personne, appliq
 - [ ] Le montant clé (total / reste à payer) est le plus visible
 - [ ] Rendu correct à l'impression A4 (pas de coupure au milieu d'une ligne ou d'une carte)
 - [ ] Textes en français, montants formatés, devise présente
-- [ ] Si reçu / facture : code d'authenticité `ELY-XXXX-XXXX`
+- [ ] Si reçu / facture : code d'authenticité `ELY-XXXX-XXXX` **discret** (coin, pas brandi)
 - [ ] Comparaison visuelle avec `assets/recu-commande.html`
