@@ -1,0 +1,31 @@
+.env-ribbon {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 140px;
+  height: 140px;
+  overflow: hidden;
+  z-index: 10050;
+  pointer-events: none;
+}
+
+.env-ribbon__band {
+  position: absolute;
+  top: 28px;
+  left: -42px;
+  display: block;
+  width: 190px;
+  padding: 8px 0;
+  background: #dc2626;
+  color: #ffffff;
+  font-family: 'Roboto', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  line-height: 1.2;
+  text-align: center;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+  transform: rotate(-45deg);
+  transform-origin: center;
+}

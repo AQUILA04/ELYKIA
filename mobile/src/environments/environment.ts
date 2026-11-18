@@ -6,7 +6,9 @@ export const environment = {
   production: false,
   apiUrl: 'http://192.168.1.72:8081',//ip local
   appName: 'Elykia',
-  version: '2.40.3'
+  /** Libellé bandeau (DEV/TEST/…). Masqué si prod. */
+  envName: 'Dev',
+  version: '2.40.4'
 };
 
 /*
