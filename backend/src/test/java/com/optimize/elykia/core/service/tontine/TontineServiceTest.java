@@ -353,11 +353,10 @@ class TontineServiceTest {
         member.setClient(client);
         member.setTontineSession(closedSession);
         member.setAmount(1000.0);
-        member.setAvailableContribution(40_000.0);
+        member.setAvailableContribution(1_000.0);
 
         when(tontineSessionRepository.findByYear(year)).thenReturn(Optional.of(closedSession));
         when(tontineMemberRepository.findById(50L)).thenReturn(Optional.of(member));
-        when(projectedBalanceCalculator.project(member)).thenReturn(50_000.0);
         when(allocationPolicyResolver.resolve()).thenReturn(allocationPolicy);
         when(tontineCollectionRepository.findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(
                 50L, State.ENABLED)).thenReturn(List.of());
@@ -370,7 +369,8 @@ class TontineServiceTest {
 
         TontineCollectionDto dto = new TontineCollectionDto();
         dto.setMemberId(50L);
-        dto.setAmount(5_000.0);
+        // Au-delà du prévisionnel éventuel : le complément à la livraison n'est pas plafonné.
+        dto.setAmount(1_000_000.0);
         dto.setIsDeliveryCollection(Boolean.TRUE);
 
         service.recordCollection(dto);
@@ -379,6 +379,8 @@ class TontineServiceTest {
         verify(tontineCollectionRepository).save(saved.capture());
         assertEquals(Boolean.TRUE, saved.getValue().getIsDeliveryCollection());
         assertEquals(Boolean.TRUE, saved.getValue().getBalanceTopUp());
+        assertEquals(1_000_000.0, saved.getValue().getAmount());
+        verify(projectedBalanceCalculator, never()).project(any());
     }
 
     @Test

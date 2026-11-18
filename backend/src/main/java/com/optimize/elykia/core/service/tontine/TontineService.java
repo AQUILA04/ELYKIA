@@ -1241,17 +1241,10 @@ public class TontineService extends GenericService<TontineMember, Long> {
             throw new CustomValidationException(
                     "Le complément de solde n'est possible que pour une remise de la session clôturée.");
         }
-        if (projectedBalanceCalculator == null) {
-            throw new CustomValidationException("Le solde prévisionnel n'est pas disponible.");
+        if (amount == null || amount <= 0.0d) {
+            throw new CustomValidationException("Le montant du complément de solde doit être positif.");
         }
-        double projected = projectedBalanceCalculator.project(member);
-        double available = member.getAvailableContribution() != null ? member.getAvailableContribution() : 0.0;
-        double payment = amount != null ? amount : 0.0;
-        if (TontineProjectedBalanceCalculator.exceeds(available + payment, projected)) {
-            throw new CustomValidationException(String.format(
-                    "Le complément (%.2f) ferait dépasser le solde prévisionnel (%.2f).",
-                    payment, projected));
-        }
+        // Pas de plafond au solde prévisionnel : le client peut compléter librement au moment de la remise.
     }
 
     public TontineMemberRespDto getMemberResponse(Long id) {

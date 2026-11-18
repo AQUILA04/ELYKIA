@@ -330,13 +330,9 @@ public class TontineDeliveryService {
 
         List<TontineDeliveryItem> items = new ArrayList<>();
         double totalAmount = buildItems(member, itemDtos, items);
+        // Édition autorisée jusqu'au prévisionnel tant que non livré ; le solde réel est
+        // vérifié uniquement à la remise (deliver / Compléter le solde).
         requireWithinProjectedBalance(member, totalAmount);
-        if (session.getStatus() == TontineSessionStatus.CLOSED
-                && TontineProjectedBalanceCalculator.exceeds(totalAmount, availableOf(member))) {
-            throw new CustomValidationException(String.format(
-                    "Réduisez la commande jusqu'au solde réel (%.2f).",
-                    availableOf(member)));
-        }
 
         new ArrayList<>(delivery.getItems()).forEach(delivery::removeItem);
         items.forEach(delivery::addItem);

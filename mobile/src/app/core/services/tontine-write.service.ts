@@ -347,8 +347,9 @@ export class TontineWriteService {
   }
 
   /**
-   * Réduit une commande déjà synchronisée. Le serveur refuse si le total dépasse
-   * le prévisionnel, ou le solde réel lorsque la session est clôturée.
+   * Met à jour les articles d'une commande déjà synchronisée.
+   * Le serveur refuse si le total dépasse le prévisionnel ; le solde réel
+   * n'est contrôlé qu'à la remise.
    */
   async replaceDeliveryItems(delivery: TontineDelivery, items: TontineDeliveryItem[]): Promise<number> {
     const serverId = /^\d+$/.test(delivery.id)

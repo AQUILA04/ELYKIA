@@ -150,6 +150,16 @@
           </div>
         </div>
         <ion-button
+          *ngIf="canEditPendingOrder()"
+          expand="block"
+          fill="outline"
+          class="elyk-btn-outline ion-margin-top"
+          (click)="startOrderRevision()"
+          data-testid="e2e-tontine-edit-order">
+          <ion-icon slot="start" name="create-outline"></ion-icon>
+          Modifier la commande
+        </ion-button>
+        <ion-button
           expand="block"
           fill="outline"
           class="elyk-btn-outline ion-margin-top"
