@@ -112,6 +112,7 @@ services:
     restart: unless-stopped
     environment:
       API_URL: ${API_URL:-https://elykia.amenouveve-yaveh.com/api}
+      APP_ENV: ${APP_ENV:-prod}
       GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
       FIREBASE_API_KEY: ${FIREBASE_API_KEY:-}
     networks:

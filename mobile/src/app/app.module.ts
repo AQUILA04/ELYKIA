@@ -8,6 +8,7 @@ import { IonicStorageModule } from '@ionic/storage-angular';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
+import { EnvironmentBannerModule } from './shared/components/environment-banner/environment-banner.module';
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools';
@@ -84,6 +85,7 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
       ]
     }),
     AppRoutingModule,
+    EnvironmentBannerModule,
     StoreModule.forRoot({ auth: authReducer, client: clientReducer, article: articleReducer, commercial: commercialReducer, stockOutput: stockOutputReducer, distribution: distributionReducer, account: accountReducer, healthCheck: healthCheckReducer, recovery: recoveryReducer, transaction: transactionReducer, sync: syncReducer, tontine: tontineReducer, commercialStock: commercialStockReducer, kpi: kpiReducer, order: orderReducer, preferences: preferencesReducer }, { metaReducers }),
     EffectsModule.forRoot([AuthEffects, ClientEffects, ArticleEffects, CommercialEffects, StockOutputEffects, DistributionEffects, AccountEffects, HealthCheckEffects, RecoveryEffects, TransactionEffects, SyncEffects, TontineEffects, CommercialStockEffects, KpiEffects, OrderEffects, PreferencesEffects]),
     StoreDevtoolsModule.instrument({

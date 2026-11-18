@@ -14,11 +14,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - **Cursor —** skill `elykia-document-design` : design system des documents imprimables (reçus, factures, bons, rapports) en mode clair navy `#0a2472`, avec maquette `assets/recu-commande.html`, `DESIGN.md` et captures `assets/screenshots/`.
+- **Deploy —** variable `APP_ENV` (test|prod) pour le frontend admin : injectée dans `env.js` au démarrage du conteneur (ruban d’environnement).
 
 ### Changed
 
 - **Cursor —** skill `elykia-pdf-style` aligné sur ce design system : chemin Angular/HTML complet, chemin backend iText (tables, `PdfHtmlRenderer`, pagination `n/N`), palette cible `#0a2472` pour les nouveaux documents. Les fragments Thymeleaf historiques ne sont pas migrés d’office.
 - **CI mobile / espace client —** `assembleDebug` retente jusqu’à 3 fois avec backoff quand Maven Central répond 429 (Too Many Requests).
+- **Guide utilisateur —** mention du ruban / bandeau d’environnement (admin, commercial, chef de recouvrement).
 
 ## Docs & Infra — 2026-11-16
 
@@ -105,6 +107,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.50.4] — 2026-11-18
+
+### Added
+
+- **Environnement —** ruban oblique rouge (texte blanc) en haut à gauche hors production (`TEST`, `DEV`, …). Aucun ruban en prod. Source : `APP_ENV` runtime (+ fallback hôte / API).
 
 ## Frontend — [2.50.3] — 2026-11-17
 
@@ -360,6 +368,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
+
+## Mobile — [2.40.4] — 2026-11-18
+
+### Added
+
+- **Environnement —** bandeau rouge fixe en haut de l’app hors production, plus visible à la connexion (chip **Environnement TEST/DEV**). Barre de statut Android rouge hors prod. `envName` injecté au build APK selon la cible test|prod.
 
 ## Mobile — [2.40.3] — 2026-11-18
 

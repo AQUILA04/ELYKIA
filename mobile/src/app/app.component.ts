@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { AlertController, Platform, NavController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
 import {  selectAuthUser } from './store/auth/auth.selectors';
 import { DataInitializationService } from './core/services/data-initialization.service';
-import { filter, take } from 'rxjs/operators';
+import { filter, take, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import { Storage } from '@ionic/storage-angular';
 import { ActivityService } from './core/services/activity.service';
 import * as AuthActions from './store/auth/auth.actions';
@@ -12,13 +13,15 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 import { MemoryAlertService } from './core/services/memory-alert.service';
 import { Filesystem, Directory } from '@capacitor/filesystem';
 import { SynchronizationService } from "./core/services/synchronization.service";
-import { Router } from "@angular/router";
+import { NavigationEnd, Router } from "@angular/router";
 import { App } from "@capacitor/app";
 import { Capacitor } from '@capacitor/core';
 import {FirebaseCrashlytics} from "@capacitor-firebase/crashlytics";
 import { FeatureFlagService, FeatureFlags } from './core/services/feature-flag.service';
 import { DeviceIdentityService } from './core/services/device-identity.service';
 import { AutoSyncSchedulerService } from './core/services/auto-sync-scheduler.service';
+import { environment } from '../environments/environment';
+import { resolveEnvironmentLabel } from './core/utils/environment-label.util';
 
 @Component({
   selector: 'app-root',
@@ -26,8 +29,15 @@ import { AutoSyncSchedulerService } from './core/services/auto-sync-scheduler.se
   styleUrls: ['app.component.scss'],
   standalone: false,
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
   private dataInitialized = false;
+  private readonly destroy$ = new Subject<void>();
+
+  readonly envLabel: string | null = resolveEnvironmentLabel({
+    envName: (environment as { envName?: string }).envName,
+    apiUrl: environment.apiUrl
+  });
+  envBannerProminent = true;
 
   constructor(
     private readonly platform: Platform,
@@ -55,6 +65,16 @@ export class AppComponent implements OnInit {
       this.memoryAlertService.startMemoryMonitoring();
     });
 
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      takeUntil(this.destroy$)
+    ).subscribe((event) => {
+      const url = event.urlAfterRedirects || event.url;
+      this.envBannerProminent = url.includes('/login') || url === '/' || url.startsWith('/login');
+    });
+    this.envBannerProminent =
+      this.router.url.includes('/login') || this.router.url === '/' || this.router.url.startsWith('/login');
+
     this.store.select(selectAuthUser).pipe(
       filter(user => !!user),
       take(1)
@@ -64,6 +84,11 @@ export class AppComponent implements OnInit {
     this.activityService.startWatching().subscribe(() => {
       this.handleLogoutRequest();
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   private setupBackButtonHandler() {
@@ -151,6 +176,8 @@ export class AppComponent implements OnInit {
 
   /** Aligné sur --ion-color-primary (barre de statut + en-têtes dashboard). */
   private static readonly STATUS_BAR_COLOR = '#1976D2';
+  /** Hors prod : rouge pour renforcer le bandeau environnement. */
+  private static readonly STATUS_BAR_NON_PROD_COLOR = '#DC2626';
 
   private async configureStatusBar(): Promise<void> {
     if (!Capacitor.isNativePlatform()) {
@@ -161,7 +188,10 @@ export class AppComponent implements OnInit {
 
     if (Capacitor.getPlatform() === 'android') {
       // Style.Dark = icônes claires pour fond sombre/coloré (cf. @capacitor/status-bar Style enum).
-      await StatusBar.setBackgroundColor({ color: AppComponent.STATUS_BAR_COLOR });
+      const color = this.envLabel
+        ? AppComponent.STATUS_BAR_NON_PROD_COLOR
+        : AppComponent.STATUS_BAR_COLOR;
+      await StatusBar.setBackgroundColor({ color });
       await StatusBar.setStyle({ style: Style.Dark });
     } else {
       await StatusBar.setStyle({ style: Style.Default });

@@ -2,6 +2,8 @@
 
 L’application mobile fournit un espace terrain dédié au Chef de recouvrement. Après la connexion, le profil accède au **Plan du jour**, puis au shell composé de quatre onglets : **Retards**, **Terrain**, **Clients** et **Plus**. L’identité de l’utilisateur et l’état **En ligne / Hors ligne** sont affichés dans le parcours afin d’indiquer si les opérations seront envoyées immédiatement ou placées en attente de synchronisation.
 
+Sur un téléphone relié à l’environnement de test, un **bandeau rouge** en haut de l’écran affiche **TEST** (également visible sur l’écran de connexion). Vérifiez-le avant toute opération pour rester sur le bon environnement.
+
 Si la session n’est plus reconnue pendant le travail en ligne, l’application revient d’elle-même à l’écran de connexion et affiche **Session expirée**. Saisissez à nouveau l’identifiant et le mot de passe pour reprendre le plan du jour.
 
 ## Préparer le plan du jour

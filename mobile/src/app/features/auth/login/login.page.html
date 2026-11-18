@@ -6,6 +6,13 @@
       <p class="elyk-surtitle">AMENOUVEVE-YAVEH</p>
       <h1>ELYKIA</h1>
       <p class="login-kicker">L’outil du commercial, au rythme du terrain</p>
+      <div
+        class="login-env-chip"
+        *ngIf="envLabel"
+        data-testid="e2e-login-environment-chip"
+        role="status">
+        Environnement {{ envLabel }}
+      </div>
     </header>
 
     <div class="login-form-container">

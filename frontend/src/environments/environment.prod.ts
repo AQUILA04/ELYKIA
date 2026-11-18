@@ -1,5 +1,7 @@
 export const environment = {
   production: true,
+  /** Injecté au runtime via assets/js/env.js (APP_ENV). Vide / prod → pas de ruban. */
+  envName: (globalThis as any).__env?.envName || '',
   remoteConfigEnabled: (globalThis as any).__env?.remoteConfigEnabled ?? true,
   aiChatEnabled: (globalThis as any).__env?.aiChatEnabled ?? false,
   gaMeasurementId: (globalThis  as any).__env?.gaMeasurementId || 'G-Q6614CGTFQ',

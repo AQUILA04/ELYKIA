@@ -101,6 +101,7 @@ SERVER_PORT=8080
 LOG_PATH=/opt/elykia/test/logs
 
 API_URL=https://elykia-test.amenouveve-yaveh.com/api
+APP_ENV=test
 GA_MEASUREMENT_ID=
 # Clé web Firebase du frontend admin. Ne pas commiter la valeur.
 FIREBASE_API_KEY=
@@ -140,6 +141,7 @@ SERVER_PORT=8080
 LOG_PATH=/opt/elykia/prod/logs
 
 API_URL=https://elykia.amenouveve-yaveh.com/api
+APP_ENV=prod
 GA_MEASUREMENT_ID=
 # Clé web Firebase du frontend admin. Ne pas commiter la valeur.
 FIREBASE_API_KEY=
