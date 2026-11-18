@@ -225,7 +225,19 @@ jobs:
         fi
         echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> gradle.properties
         echo "org.gradle.daemon=false" >> gradle.properties
-        ./gradlew assembleDebug --stacktrace
+        # Maven Central peut répondre 429 (Too Many Requests) : 3 tentatives avec backoff.
+        attempt=1
+        max_attempts=3
+        until ./gradlew assembleDebug --stacktrace; do
+          if [ "$attempt" -ge "$max_attempts" ]; then
+            echo "assembleDebug a échoué après ${max_attempts} tentatives"
+            exit 1
+          fi
+          sleep_seconds=$((30 * attempt))
+          echo "assembleDebug a échoué (tentative ${attempt}/${max_attempts}). Nouvelle tentative dans ${sleep_seconds}s…"
+          attempt=$((attempt + 1))
+          sleep "$sleep_seconds"
+        done
 
     - name: Extract App Version and Rename APK
       run: |
