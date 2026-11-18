@@ -57,7 +57,7 @@ Le catalogue narratif (incomplet face au schéma réel) est `docs/data-models-ba
 - DDL queryable : mettre à jour `schema-catalog.json` (et `sql-examples.json` si un exemple casse).
 - Correctif VPS (Contabo) : le même diff dans Git avant de considérer le travail livré. Le CD écrase `/opt/elykia`.
 - Fuseau : GMT (UTC+0, Lomé). Citer les timestamps en GMT, sans conversion vers l’heure Maurice.
-- PDF : thème navy décrit par le skill `elykia-pdf-style`.
+- Documents / PDF : design system clair navy (`#0a2472`) dans le skill `elykia-document-design` (référence `assets/recu-commande.html`). Pipeline backend iText + pagination `n/N` : skill `elykia-pdf-style` (s’appuie sur le design system ; pas de flex/grid côté iText).
 - Reçu ou facture (ticket ou PDF) : code d’authenticité `ELY-XXXX-XXXX`, persisté, vérifiable. Règle `receipt-authenticity`. Référence : reçu de commande tontine.
 - UI admin liste : skill `frontend-ui-style`. UI mobile stock : skill `elykia-stock-components-build`.
 - Plans `.cursor/plans/` inclus dans les commits.
