@@ -5,8 +5,8 @@ Versions lues le 2026-11-18. En cas d’écart, les fichiers sources gagnent.
 | Composant | Version | Fichier | Stack constatée |
 |-----------|---------|---------|-----------------|
 | Backend | 1.53.5 | `backend/pom.xml` (`optimize-elykia-core`) | Java 17, Spring Boot **3.3.0**, Spring AI 1.0.0, JPA, Flyway, MapStruct 1.6.0.Beta1, Lombok, springdoc, Testcontainers 1.21.4, JaCoCo (seuil lignes global 0,46) |
-| Frontend | 2.50.3 | `frontend/package.json` | Angular **18.2**, Material, ng-select, ngx-permissions, Playwright 1.60, Karma/Jasmine. `npm install --legacy-peer-deps` |
-| Mobile | 2.40.3 | `mobile/package.json` (+ `environment.ts` et `environment.prod.ts`) | Angular **20**, Ionic **8**, Capacitor **7.4**, SQLite, NgRx 20 |
+| Frontend | 2.50.5 | `frontend/package.json` | Angular **18.2**, Material, ng-select, ngx-permissions, Playwright 1.60, Karma/Jasmine. `npm install --legacy-peer-deps` |
+| Mobile | 2.40.5 | `mobile/package.json` (+ `environment.ts` et `environment.prod.ts`) | Angular **20**, Ionic **8**, Capacitor **7.4**, SQLite, NgRx 20 |
 | Espace client | 0.17.3 | `customer-space/package.json` | Angular **20.3**, Ionic **8**, Capacitor **8.4** |
 
 `docs/project-overview.md` et `docs/architecture-frontend.md` indiquent encore Angular 14 : c’est périmé.

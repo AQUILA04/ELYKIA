@@ -41,7 +41,7 @@ Ces valeurs correspondent aux variables `--ad-*` de `styles.scss` de l'applicati
 4. **Section principale** : titre de section à gauche, badge de statut à droite, puis le tableau.
 5. **Bas de page en 2 colonnes** : à gauche le bloc paiement (bordure en tirets, QR), à droite le bloc totaux (280 px).
 6. **Signatures** : deux zones avec trait fin et libellé en majuscules muted.
-7. **Pied de page** : fond `--navy-pale`, message de remerciement en navy 700, contacts avec icônes.
+7. **Pied de page** : fond `--navy-pale`, message de remerciement en navy 700, contacts avec icônes. Si reçu / facture : code `ELY-XXXX-XXXX` **discret** en coin (muted, 8–10 px), jamais en bandeau ni pastille pleine largeur.
 
 ## 5. Composants
 - **Tableau** : `border-collapse: separate`, en-tête `--navy-pale` avec coins arrondis (8 px) aux extrémités, texte navy 10.5 px MAJUSCULES ; lignes séparées par `1px solid --border`, pas de bordures verticales, pas de zèbre. Colonne `#` centrée en muted ; désignation à gauche avec sous-ligne (référence · catégorie) en 11 px muted ; quantité dans une pastille `--navy-light`/navy ; dernière colonne (total) en 700.

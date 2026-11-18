@@ -1,0 +1,11 @@
+ion-app.has-env-banner {
+  --env-banner-offset: 28px;
+}
+
+ion-app.has-env-banner-prominent {
+  --env-banner-offset: 56px;
+}
+
+ion-app.has-env-banner ion-router-outlet {
+  top: calc(var(--env-banner-offset) + env(safe-area-inset-top, 0px));
+}

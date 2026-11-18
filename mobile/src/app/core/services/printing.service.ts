@@ -1000,15 +1000,14 @@ export class PrintingService {
           .content-wrapper { margin: 0 2mm; }
           .row { display: flex; justify-content: space-between; margin-bottom: 4px; }
           .article-item { margin-bottom: 6px; }
-          .auth { text-align: center; margin-top: 8px; }
-          .auth-label { font-size: 6px; letter-spacing: 1px; }
-          .auth-code { font-size: 11px; font-weight: bold; letter-spacing: 1px; margin-top: 2px; }
+          .auth-corner { text-align: right; margin-top: 10px; font-size: 5px; color: #555; line-height: 1.3; }
+          .auth-code { font-size: 6px; font-weight: bold; letter-spacing: 0.5px; }
         </style>
       </head>
       <body>
         <div class="header">
           AMENOUVEVE-YAVEH<br>
-          RECU DE COMMANDE TONTINE
+          RECU DE COMMANDE
         </div>
         <div class="separator"></div>
         <div class="content-wrapper">
@@ -1030,13 +1029,10 @@ export class PrintingService {
           <div class="row"><span>TOTAL:</span><span>${formatReceiptAmount(order.totalAmount)} FCFA</span></div>
         </div>
         <div class="separator"></div>
-        <div class="auth">
-          <div class="auth-label">CODE D'AUTHENTICITE</div>
-          <div class="auth-code">${escapeReceiptText(code || '—')}</div>
-        </div>
         <div class="footer">
-          <p>Verifiez ce code dans Elykia</p>
+          <p>Merci pour votre confiance</p>
         </div>
+        ${code ? `<div class="auth-corner"><div class="auth-code">${escapeReceiptText(code)}</div>verif. recu Elykia</div>` : ''}
       </body>
       </html>
     `;

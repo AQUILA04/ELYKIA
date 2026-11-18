@@ -387,7 +387,27 @@ public class SaleCancellationService {
 
     @Transactional(readOnly = true)
     public Page<SaleCancellationRunDto> getRuns(Pageable pageable) {
-        return runRepository.findAllByOrderByCreatedDateDesc(pageable)
+        return getRuns(null, null, null, null, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SaleCancellationRunDto> getRuns(
+            String commercialUsername,
+            LocalDate startDate,
+            LocalDate endDate,
+            String search,
+            Pageable pageable) {
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new CustomValidationException("La date de début ne peut pas être postérieure à la date de fin.");
+        }
+        String commercial = StringUtils.hasText(commercialUsername) ? commercialUsername.trim() : null;
+        String q = StringUtils.hasText(search) ? search.trim() : null;
+        boolean noFilter = commercial == null && startDate == null && endDate == null && q == null;
+        if (noFilter) {
+            return runRepository.findAllByOrderByCreatedDateDesc(pageable)
+                    .map(SaleCancellationRunDto::fromEntity);
+        }
+        return runRepository.searchRuns(commercial, startDate, endDate, q, pageable)
                 .map(SaleCancellationRunDto::fromEntity);
     }
 

@@ -1,0 +1,14 @@
+<div
+  *ngIf="label"
+  class="env-banner"
+  [class.env-banner--prominent]="prominent"
+  role="status"
+  [attr.aria-label]="'Environnement ' + label"
+  data-testid="e2e-environment-banner">
+  <div class="env-banner__inner">
+    <span class="env-banner__label">{{ label }}</span>
+    <span class="env-banner__hint" *ngIf="prominent">
+      Attention — vous n’êtes pas en production
+    </span>
+  </div>
+</div>

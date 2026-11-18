@@ -27,6 +27,12 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
   pageSize = 10;
   loadingHistory = false;
 
+  /** Filtres de l'historique (archives). */
+  historySearch = '';
+  historyCommercial: string | null = null;
+  historyStartDate = '';
+  historyEndDate = '';
+
   selectedRun: SaleCancellationRun | null = null;
   loadingDetails = false;
 
@@ -125,7 +131,12 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
 
   loadHistory(): void {
     this.loadingHistory = true;
-    this.cancellationService.getRuns(this.currentPage, this.pageSize).subscribe({
+    this.cancellationService.getRuns(this.currentPage, this.pageSize, {
+      commercialUsername: this.historyCommercial,
+      startDate: this.historyStartDate || null,
+      endDate: this.historyEndDate || null,
+      search: this.historySearch
+    }).subscribe({
       next: (res: any) => {
         this.loadingHistory = false;
         if (res && res.content) {
@@ -137,12 +148,11 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
         }
         this.lastUpdate = new Date();
       },
-      error: () => {
+      error: (err) => {
         this.loadingHistory = false;
-        this.alertService.showError(
-          'Impossible de charger l\'historique des annulations.',
-          'Erreur'
-        );
+        const msg = err?.error?.message
+          || 'Impossible de charger l\'historique des annulations.';
+        this.alertService.showError(msg, 'Erreur');
       }
     });
   }
@@ -151,6 +161,48 @@ export class SaleCancellationComponent implements OnInit, OnDestroy {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadHistory();
+  }
+
+  onHistoryCommercialSelected(username: string | null): void {
+    this.historyCommercial = username;
+    this.currentPage = 0;
+    this.loadHistory();
+  }
+
+  onHistorySearch(): void {
+    this.currentPage = 0;
+    this.loadHistory();
+  }
+
+  applyHistoryPeriod(): void {
+    if (this.historyStartDate && this.historyEndDate
+        && this.historyStartDate > this.historyEndDate) {
+      this.alertService.showWarning(
+        'La date de début ne peut pas être postérieure à la date de fin.',
+        'Période invalide'
+      );
+      return;
+    }
+    this.currentPage = 0;
+    this.loadHistory();
+  }
+
+  resetHistoryFilters(): void {
+    this.historySearch = '';
+    this.historyCommercial = null;
+    this.historyStartDate = '';
+    this.historyEndDate = '';
+    this.currentPage = 0;
+    this.loadHistory();
+  }
+
+  get hasActiveHistoryFilters(): boolean {
+    return !!(
+      this.historySearch?.trim()
+      || this.historyCommercial
+      || this.historyStartDate
+      || this.historyEndDate
+    );
   }
 
   openRunDetails(run: SaleCancellationRun): void {
