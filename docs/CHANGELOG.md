@@ -9,6 +9,16 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-18
+
+### Added
+
+- **Cursor —** skill `elykia-document-design` : design system des documents imprimables (reçus, factures, bons, rapports) en mode clair navy `#0a2472`, avec maquette `assets/recu-commande.html`, `DESIGN.md` et captures `assets/screenshots/`.
+
+### Changed
+
+- **Cursor —** skill `elykia-pdf-style` aligné sur ce design system : chemin Angular/HTML complet, chemin backend iText (tables, `PdfHtmlRenderer`, pagination `n/N`), palette cible `#0a2472` pour les nouveaux documents. Les fragments Thymeleaf historiques ne sont pas migrés d’office.
+
 ## Docs & Infra — 2026-11-16
 
 ### Changed

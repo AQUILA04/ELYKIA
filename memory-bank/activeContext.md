@@ -9,8 +9,8 @@ Arrêt au **2026-11-18** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de
 ## Focus récent (changelog et PR)
 
 1. **Collecte à la livraison en session CLOSED** (2026-11-18). Mobile 2.40.2 : **Compléter le solde** reste possible après clôture ; cotisation normale masquée dès `CLOSED` ; refus seulement en `ENDED`. Backend 1.53.3 : tests de non-régression du même contrat.
-2. **RM sync-errors + libellé article tontine** (2026-11-17). Mobile 2.40.1 / Frontend 2.50.3.
-3. **Contrôle carnet tontine multi-commerciaux** (2026-11-16). Mobile 2.40.0 / backend 1.53.2.
+2. **Design system documents / PDF** (2026-11-18). Skills `elykia-document-design` + `elykia-pdf-style` : présentation claire navy `#0a2472`, maquette `recu-commande.html`. Pas de migration forcée des fragments Thymeleaf historiques.
+3. **RM sync-errors + libellé article tontine** (2026-11-17). Mobile 2.40.1 / Frontend 2.50.3.
 
 ## Fuseau
 
