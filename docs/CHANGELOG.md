@@ -18,6 +18,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - **Cursor —** skill `elykia-pdf-style` aligné sur ce design system : chemin Angular/HTML complet, chemin backend iText (tables, `PdfHtmlRenderer`, pagination `n/N`), palette cible `#0a2472` pour les nouveaux documents. Les fragments Thymeleaf historiques ne sont pas migrés d’office.
+- **CI mobile / espace client —** `assembleDebug` retente jusqu’à 3 fois avec backoff quand Maven Central répond 429 (Too Many Requests).
 
 ## Docs & Infra — 2026-11-16
 
