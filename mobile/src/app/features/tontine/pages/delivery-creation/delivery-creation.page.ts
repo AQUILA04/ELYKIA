@@ -630,7 +630,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return;
         }
         if (!isOrder && this.cashGap < -0.001) {
-            await this.showError('Le solde réel ne couvre pas le panier. Complétez le solde ou réduisez les articles.');
+            await this.promptBalanceShortfall();
             return;
         }
 
@@ -751,6 +751,10 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             }
 
             if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS && !forceOffline) {
+                if (this.isRealBalanceShortfallMessage(error.message)) {
+                    await this.promptBalanceShortfall(error.message);
+                    return;
+                }
                 const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
                 if (saveOffline) {
                     await this.processDelivery(mode, true);
@@ -760,6 +764,32 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
             this.showError(error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement');
         }
+    }
+
+    private isRealBalanceShortfallMessage(message?: string | null): boolean {
+        const text = String(message || '').toLowerCase();
+        return text.includes('solde réel') && (text.includes('ne couvre pas') || text.includes('complétez'));
+    }
+
+    /** Remise impossible faute de solde : proposer Compléter le solde ou rester pour modifier le panier. */
+    private async promptBalanceShortfall(serverMessage?: string): Promise<void> {
+        const gap = Math.max(0, Math.abs(this.cashGap));
+        const alert = await this.alertCtrl.create({
+            header: 'Solde insuffisant',
+            message: serverMessage
+                || `Le solde réel ne couvre pas le panier. Il manque ${gap.toLocaleString('fr-FR')} FCFA. Complétez le solde ou réduisez les articles.`,
+            cssClass: 'elyk-alert',
+            buttons: [
+                { text: 'Modifier le panier', role: 'cancel' },
+                {
+                    text: 'Compléter le solde',
+                    handler: () => {
+                        this.navigateToCollection();
+                    }
+                }
+            ]
+        });
+        await alert.present();
     }
 
     private async presentOrderReceipt(delivery: TontineDelivery, items: TontineDeliveryItem[]): Promise<void> {

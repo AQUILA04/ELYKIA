@@ -8,17 +8,17 @@ Arrêt au **2026-11-18** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de
 
 ## Focus récent (changelog et PR)
 
-1. **Annulation de ventes + reçu de commande** (2026-11-18). Frontend 2.50.4 / Backend 1.53.4 : filtres historique (recherche, commercial, période). Mobile 2.40.3 + PDF tontine : design system documents ; code d’authenticité discret en pied de page.
-2. **Collecte à la livraison en session CLOSED** (2026-11-18). Mobile 2.40.2 / Backend 1.53.3.
-3. **Design system documents / PDF** (2026-11-18). Skills `elykia-document-design` + `elykia-pdf-style`.
+1. **Annulation de ventes + reçu de commande** (2026-11-18). Frontend 2.50.5 / Backend 1.53.4 / Mobile 2.40.4 : filtres historique ; design system documents ; authenticité discrète (`receipt-order-lines`).
+2. **Complément livraison sans plafond + édition commande** (2026-11-18). Mobile 2.40.3 / Backend 1.53.4 : complément libre ; **Modifier la commande** tant que non livré.
+3. **Collecte à la livraison en session CLOSED** (2026-11-18). Mobile 2.40.2 / Backend 1.53.3.
 
 ## Fuseau
 
-Production et métier : GMT (UTC+0), Lomé. Citer les heures en GMT. Ne pas convertir en heure Maurice. Voir `decisions.md`.
+Production et métier : GMT (UTC+0, Lomé). Citer les heures en GMT. Ne pas convertir en heure Maurice. Voir `decisions.md`.
 
 ## Travail en cours dans l’arbre
 
-Branche `cursor/sale-cancel-filters-receipt-design-261e` : filtres annulation + redesign reçu.
+Branche `cursor/sale-cancel-filters-receipt-design-261e` : merge `main` (résolution conflits changelog / versions).
 
 ## Quand on touche au code
 

@@ -437,14 +437,25 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         void this.loadMemberData();
     }
 
+    /** Commande encore modifiable tant qu'elle n'est pas livrée. */
+    canEditPendingOrder(): boolean {
+        return this.hasPendingDeliveryToMark() && !this.revisingOrder;
+    }
+
+    startOrderRevision(): void {
+        if (!this.canEditPendingOrder()) {
+            return;
+        }
+        this.revisingOrder = true;
+    }
+
     async saveRevisedOrder(): Promise<void> {
         if (!this.vm.delivery) {
             return;
         }
-        const available = this.vm.member?.availableContribution ?? 0;
-        if (this.revisedTotal() > available + 0.001) {
+        if (this.vm.deliveryItems.length === 0) {
             const toast = await this.toastCtrl.create({
-                message: 'Le total dépasse encore le solde réel. Diminuez encore les articles.',
+                message: 'La commande doit contenir au moins un article.',
                 duration: 2500,
                 color: 'warning'
             });
@@ -672,9 +683,16 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                         return this.canMarkAsDelivered();
                     }
                 }] : []),
-                {
-                    text: 'Modifier',
+                ...(this.canEditPendingOrder() ? [{
+                    text: 'Modifier la commande',
                     icon: 'create-outline',
+                    handler: () => {
+                        this.startOrderRevision();
+                    }
+                }] : []),
+                {
+                    text: 'Modifier la membre',
+                    icon: 'person-circle-outline',
                     handler: () => {
                         this.editMember();
                     }

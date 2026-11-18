@@ -98,6 +98,18 @@ describe('MemberDetailPage delivery menu', () => {
     expect(page.canRecordNormalCollection()).toBeTrue();
   });
 
+  it('offers Modifier la commande while a pending order exists', async () => {
+    const { page } = create({
+      deliveries: [{ id: 'order', status: 'PENDING', requestDate: '2026-04-01', items: [] }]
+    });
+    await page.loadMemberData();
+    page.sessionStatus = 'CLOSED';
+    expect(page.hasPendingDeliveryToMark()).toBeTrue();
+    expect(page.canEditPendingOrder()).toBeTrue();
+    page.revisingOrder = true;
+    expect(page.canEditPendingOrder()).toBeFalse();
+  });
+
   it('hides the entry when a non-cancelled delivery exists', async () => {
     const { page } = create({
       deliveries: [{ id: 'order', status: 'PENDING', requestDate: '2026-04-01', items: [] }]

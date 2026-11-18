@@ -351,7 +351,7 @@ class TontineDeliveryServiceTest {
     }
 
     @Test
-    void replaceItems_onClosedSession_requiresTheRealBalance() {
+    void replaceItems_onClosedSession_allowsAboveRealBalanceWithinProjected() {
         mockSession.setStatus(TontineSessionStatus.CLOSED);
         mockMember.setAvailableContribution(20_000.0);
         when(projectedBalanceCalculator.project(any())).thenReturn(30_000d);
@@ -364,21 +364,20 @@ class TontineDeliveryServiceTest {
         mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
         when(deliveryRepository.findById(10L)).thenReturn(Optional.of(delivery));
         when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
-
-        DeliveryItemDto tooMuch = new DeliveryItemDto();
-        tooMuch.setArticleId(1L);
-        tooMuch.setQuantity(1);
-        tooMuch.setUnitPrice(25_000.0);
-        assertThrows(CustomValidationException.class,
-                () -> tontineDeliveryService.replaceItems(10L, List.of(tooMuch)));
-
-        DeliveryItemDto fits = new DeliveryItemDto();
-        fits.setArticleId(1L);
-        fits.setQuantity(1);
-        fits.setUnitPrice(15_000.0);
         when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        TontineDeliveryDto updated = tontineDeliveryService.replaceItems(10L, List.of(fits));
-        assertEquals(15_000.0, updated.getTotalAmount());
+        DeliveryItemDto aboveAvailable = new DeliveryItemDto();
+        aboveAvailable.setArticleId(1L);
+        aboveAvailable.setQuantity(1);
+        aboveAvailable.setUnitPrice(25_000.0);
+        TontineDeliveryDto updated = tontineDeliveryService.replaceItems(10L, List.of(aboveAvailable));
+        assertEquals(25_000.0, updated.getTotalAmount());
+
+        DeliveryItemDto aboveProjected = new DeliveryItemDto();
+        aboveProjected.setArticleId(1L);
+        aboveProjected.setQuantity(1);
+        aboveProjected.setUnitPrice(35_000.0);
+        assertThrows(CustomValidationException.class,
+                () -> tontineDeliveryService.replaceItems(10L, List.of(aboveProjected)));
     }
 }

@@ -229,6 +229,7 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
   * **Cotiser** / **Enregistrer une cotisation** : pour enregistrer un versement pendant la session ouverte. Après la clôture, cette action n'apparaît plus sur la fiche.
   * **Voir le client** : pour voir la fiche générale de la cliente.
   * **Commande de tontine** : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle **Livraison Fin d'Année** et sert à la remise en mains propres.
+  * **Modifier la commande** : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles.
 
 ### D. Enregistrer une cotisation de tontine pas à pas
 1. **Ouvrez la saisie** :
@@ -266,8 +267,8 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
 4. **Si le solde déjà encaissé ne couvre pas le panier** :
    * Pendant la session ouverte, vous pouvez quand même enregistrer la **Commande**. **Compléter le solde** est proposé, sans être obligatoire.
    * Au moment de la remise, deux possibilités :
-     1. **Compléter le solde** : l'écran de cotisation s'ouvre avec le montant manquant. Cette cotisation reste possible après la clôture de la session, uniquement pour couvrir la commande ou la remise. Revenez ensuite sur le panier.
-     2. **Modifier la commande** : diminuez les quantités ou retirez des articles jusqu'à ce que le total tienne dans le solde disponible, puis enregistrez.
+     1. **Compléter le solde** : l'écran de cotisation s'ouvre avec le montant manquant (ou le montant que la cliente souhaite verser). Ce complément n'est pas limité par le solde prévisionnel : vous pouvez encaisser le montant convenu, même s'il est élevé. Revenez ensuite sur le panier.
+     2. **Modifier la commande** / **Modifier le panier** : diminuez les quantités ou retirez des articles, puis enregistrez.
 5. **Pendant la session ouverte — enregistrez une Commande** :
    * Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
    * L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
@@ -279,7 +280,8 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
 6. **Après la clôture de la session — remettez les articles** :
    * Le panier, en livraison directe comme pour une commande déjà posée, peut aller jusqu'au **solde prévisionnel** de l'année.
    * **Livraison directe** : si vous avez les articles dans votre stock tontine et que le solde disponible couvre le panier, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise.
-   * **Marquer comme livré** : si une commande était déjà enregistrée, retournez sur la fiche membre et touchez **Marquer comme livré**. Si le solde disponible ne couvre pas la commande, choisissez **Compléter le solde** ou **Modifier la commande** (diminuez les quantités, puis **Enregistrer la commande**). Le stock tontine est décompté seulement quand la remise est confirmée. Si un article manque dans votre stock, l'application vous le signale pour que vous fassiez d'abord une demande au magasin.
+   * **Modifier la commande** : tant que la commande n'est pas livrée, la fiche membre propose **Modifier la commande** (et le menu ⋮ aussi). Vous ajustez les quantités puis **Enregistrer la commande**. Le total peut rester au-dessus du solde déjà encaissé : le contrôle du solde réel se fait à la remise.
+   * **Marquer comme livré** : si une commande était déjà enregistrée, retournez sur la fiche membre et touchez **Marquer comme livré**. Si le solde disponible ne couvre pas la commande, choisissez **Compléter le solde** (sans plafond) ou **Modifier la commande**. Le stock tontine est décompté seulement quand la remise est confirmée. Si un article manque dans votre stock, l'application vous le signale pour que vous fassiez d'abord une demande au magasin.
    * Lorsque la campagne est terminée pour tout le monde, il n'y a plus de commande, plus de complément et plus de remise.
 
 ---

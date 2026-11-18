@@ -382,13 +382,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Changed
 
-- **Reçu de commande —** lignes d’articles et total extraits dans un composant partagé (`receipt-order-lines`) pour supprimer la duplication Sonar entre aperçus commande et tontine.
+- **Reçu de commande —** aperçu aligné sur le design system documents (bande navy fine, cartes d’infos, total en bandeau). Sur le reçu tontine, le code de vérification est discret en bas à droite (plus de pastille navy proéminente) ; même principe sur le ticket thermique. Lignes d’articles et total extraits dans un composant partagé (`receipt-order-lines`).
 
 ## Mobile — [2.40.3] — 2026-11-18
 
-### Changed
+### Fixed
 
-- **Reçu de commande —** aperçu aligné sur le design system documents (bande navy fine, cartes d’infos, total en bandeau). Sur le reçu tontine, le code de vérification est discret en bas à droite (plus de pastille navy proéminente) ; même principe sur le ticket thermique.
+- **Complément à la livraison —** plus de plafond au solde prévisionnel : le commercial peut encaisser le montant convenu (y compris un montant élevé). Si la remise échoue faute de solde, l'alerte propose **Compléter le solde** ou **Modifier le panier** (plus seulement hors ligne / corriger).
+- **Commande tontine —** sur la fiche membre, **Modifier la commande** reste proposé tant que le dossier n'est pas livré (bouton + menu ⋮). L'édition n'est plus limitée au solde déjà encaissé.
 
 ## Mobile — [2.40.2] — 2026-11-18
 
@@ -536,6 +537,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - **Reçu de commande tontine (PDF) —** rendu aligné sur le design system navy `#0a2472` (bande fine, cartes, totaux). Le code d’authenticité est placé discrètement en coin du pied de page.
+
+### Fixed
+
+- **Complément à la livraison —** le montant n'est plus plafonné au solde prévisionnel (`assertDeliveryTopUp`).
+- **Édition de commande tontine —** `replaceItems` accepte un total au-dessus du solde réel tant qu'il reste sous le prévisionnel ; le solde réel n'est contrôlé qu'à la remise.
 
 ## Backend — [1.53.3] — 2026-11-18
 
