@@ -1,0 +1,30 @@
+<div class="filter-bar" data-tour="filters" data-testid="e2e-report-filter-bar">
+    <div class="filter-group" role="group" aria-label="Période">
+        <div class="segmented">
+            <button *ngFor="let preset of presets" type="button" class="seg-btn"
+                [class.seg-btn--on]="filters.preset === preset.id"
+                [attr.aria-pressed]="filters.preset === preset.id"
+                [attr.data-testid]="'e2e-report-period-' + preset.id"
+                (click)="selectPreset(preset.id)">{{ preset.label }}</button>
+            <button type="button" class="seg-btn" [class.seg-btn--on]="filters.preset === 'custom' || customOpen"
+                [attr.aria-pressed]="filters.preset === 'custom'" data-testid="e2e-report-period-custom"
+                (click)="openCustom()">Dates</button>
+        </div>
+        <div class="custom-range" *ngIf="customOpen">
+            <label>Du <input type="date" [(ngModel)]="customStart" data-testid="e2e-report-period-start"></label>
+            <label>au <input type="date" [(ngModel)]="customEnd" data-testid="e2e-report-period-end"></label>
+            <button type="button" class="apply-btn" [disabled]="customInvalid" (click)="applyCustom()"
+                data-testid="e2e-report-period-apply">Appliquer</button>
+        </div>
+    </div>
+
+    <div class="filter-group commercial" *ngIf="showCommercial">
+        <span class="filter-label" id="report-commercial-label">Commercial</span>
+        <ng-select class="commercial-select" [items]="agents" bindLabel="username" bindValue="username"
+            [ngModel]="filters.commercial" (ngModelChange)="onCommercialChange($event)"
+            [searchFn]="searchAgent" placeholder="Toute l'équipe" [clearable]="true"
+            data-testid="e2e-report-commercial-select" labelForId="report-commercial-input"
+            [inputAttrs]="{ 'aria-labelledby': 'report-commercial-label' }">
+        </ng-select>
+    </div>
+</div>

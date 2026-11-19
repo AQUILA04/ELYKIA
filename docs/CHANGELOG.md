@@ -116,6 +116,22 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.52.0] — 2026-11-20
+
+### Added
+
+- **Rapport commerciaux — cockpit équipe —** le menu « Rapport Journalier » ouvre un nouvel écran (`/report/daily`) : les 4 chiffres à lire en premier (dû à la caisse, versé, reste à verser, taux de versement, comparés à la période précédente), les points d'attention triés par montant, un tableau avec une ligne par commercial (crédit, tontine, rattrapages, dû, versé, écart, statut), la caisse et l'origine du dû. Le portefeuille crédit annuel de l'équipe se charge seulement quand on fait défiler jusqu'à lui. Un seul appel serveur par changement de filtre.
+- **Fiche commercial —** `/report/daily/commercials/:username` : rapprochement de la période en une ligne (crédit + tontine + solde Nx + rattrapages = dû ; dû − versé = reste), activité groupée Crédit / Tontine / Clients, 7 derniers jours, bilans crédit et tontine de l'année (chargés à la demande), navigation ‹ › entre commerciaux, « Nouveau versement » et « Équilibrer le surplus ». Un commercial arrive directement sur sa fiche.
+- **Visite guidée —** à la première ouverture du cockpit et de la fiche, un tutoriel pas à pas explique les nouveautés et comment retrouver les anciennes tuiles. Bouton « Visite guidée » pour la relancer. Vue une fois par utilisateur ; jamais lancée seule sous Playwright (`?tour=1` la force).
+- **Ancienne présentation —** toujours disponible sur `/report/daily/classic`, avec les mêmes filtres, par le lien « Ancienne présentation ». Un bandeau y propose de revenir à la nouvelle. Le lien « Recouvrement terrain » ouvre directement l'onglet Recouvrement.
+- **Nouveau versement —** KPI « Reste rattrapages » et champ « Rattrapage » séparé de la tontine du jour. Le champ est pré-rempli et modifiable ; une saisie manuelle est réservée en premier et conservée quand le billetage change. Le montant est envoyé au serveur (`catchupAmount`) ; un rattrapage trop élevé est bloqué avant l'envoi.
+- **Ancienne présentation —** carte « Dû à la caisse » (dû de la période + rattrapages saisis) dans le panneau de chaque commercial, au-dessus du total encaissé.
+
+### Changed
+
+- Les montants du nouveau rapport ont un format unique : « 100 300 F ».
+- Les tests E2E de l'ancien écran passent par `/report/daily/classic` ; nouveau `report-cockpit.spec.ts`.
+
 ## Frontend — [2.51.0] — 2026-11-19
 
 ### Added

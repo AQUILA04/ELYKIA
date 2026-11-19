@@ -341,6 +341,10 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await loginAsGestionnaire(page);
 
     await page.getByTestId('e2e-sidebar-daily-report').click();
+
+    // Le menu ouvre le nouveau cockpit ; ces étapes vérifient l'ancienne présentation.
+
+    await page.getByTestId('e2e-report-cockpit-classic-link').click();
     await expect(page.getByTestId('e2e-daily-report')).toBeVisible();
 
     await page.getByTestId('e2e-daily-report-filter-today').click();
@@ -476,6 +480,8 @@ test.describe.serial('Golden path — prérequis métier', () => {
   test('étape 16 — totaux rapport journalier après vente comptant (commercial agence)', async ({ page }) => {
     await loginAsGestionnaire(page);
     await page.getByTestId('e2e-sidebar-daily-report').click();
+    // Le menu ouvre le nouveau cockpit ; ces étapes vérifient l'ancienne présentation.
+    await page.getByTestId('e2e-report-cockpit-classic-link').click();
     await page.getByTestId('e2e-daily-report-filter-today').click();
     await selectNgSelectOption(page, 'e2e-daily-report-agent-select', TEST_AGENCY_COMMERCIAL_USERNAME);
     await page.locator('mat-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
@@ -664,6 +670,10 @@ test.describe.serial('Golden path — prérequis métier', () => {
     });
 
     await page.getByTestId('e2e-sidebar-daily-report').click();
+
+    // Le menu ouvre le nouveau cockpit ; ces étapes vérifient l'ancienne présentation.
+
+    await page.getByTestId('e2e-report-cockpit-classic-link').click();
     await page.getByTestId('e2e-daily-report-filter-today').click();
     await selectNgSelectOption(page, 'e2e-daily-report-agent-select', TEST_COMMERCIAL_USERNAME);
     await page.locator('mat-spinner').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});

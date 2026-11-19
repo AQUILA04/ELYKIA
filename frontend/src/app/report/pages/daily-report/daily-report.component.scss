@@ -667,3 +667,29 @@ mat-expansion-panel {
     font-size: 12px;
     font-weight: 500;
 }
+
+.daily-report-page .classic-switch-banner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px 16px;
+  margin: 0 0 16px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: #e8eef6;
+  border: 1px solid #c5cfe0;
+  color: #1a2133;
+  font-size: 13px;
+
+  a {
+    color: #003366;
+    font-weight: 700;
+    text-decoration: none;
+    min-height: 32px;
+    display: inline-flex;
+    align-items: center;
+
+    &:hover { text-decoration: underline; }
+  }
+}

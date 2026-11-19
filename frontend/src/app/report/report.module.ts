@@ -31,6 +31,13 @@ import { RecoveryManagerReportTabComponent } from './components/recovery-manager
 import { CashPeriodRemittanceTabComponent } from './components/cash-period-remittance-tab/cash-period-remittance-tab.component';
 import { RemainingAtClientsDialogComponent } from './components/remaining-at-clients-dialog/remaining-at-clients-dialog.component';
 import { SurplusReallocationDialogComponent } from './components/surplus-reallocation-dialog/surplus-reallocation-dialog.component';
+import { ReportCockpitComponent } from './pages/report-cockpit/report-cockpit.component';
+import { CommercialSheetComponent } from './pages/commercial-sheet/commercial-sheet.component';
+import { ReportFilterBarComponent } from './components/report-filter-bar/report-filter-bar.component';
+import { GuidedTourComponent } from './components/guided-tour/guided-tour.component';
+import { TeamPortfolioComponent } from './components/team-portfolio/team-portfolio.component';
+import { CommercialYearlyComponent } from './components/commercial-yearly/commercial-yearly.component';
+import { FcfaPipe } from './shared/fcfa.pipe';
 
 @NgModule({
   declarations: [
@@ -42,6 +49,13 @@ import { SurplusReallocationDialogComponent } from './components/surplus-realloc
     CashPeriodRemittanceTabComponent,
     RemainingAtClientsDialogComponent,
     SurplusReallocationDialogComponent,
+    ReportCockpitComponent,
+    CommercialSheetComponent,
+    ReportFilterBarComponent,
+    GuidedTourComponent,
+    TeamPortfolioComponent,
+    CommercialYearlyComponent,
+    FcfaPipe,
   ],
   imports: [
     CommonModule,
