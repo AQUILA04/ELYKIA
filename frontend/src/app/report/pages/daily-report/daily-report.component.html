@@ -335,6 +335,13 @@
                                         <span class="kpi-hint" *ngIf="cashSynthesisBreakdown.deferred > 0">
                                             Versé après la période : {{ cashSynthesisBreakdown.deferred | currency:'XOF':'symbol':'1.0-0' }}
                                         </span>
+                                        <span class="kpi-hint" *ngIf="selectedAgent"
+                                            data-testid="e2e-daily-report-period-deposited-agent">
+                                            dont {{ selectedAgent | uppercase }} :
+                                            {{ selectedAgentCashBreakdown?.total | currency:'XOF':'symbol':'1.0-0' }}
+                                            (Opérations {{ selectedAgentCashBreakdown?.operations | currency:'XOF':'symbol':'1.0-0' }}
+                                            · Rattrapages {{ selectedAgentCashBreakdown?.catchups | currency:'XOF':'symbol':'1.0-0' }})
+                                        </span>
                                     </div>
                                     <div class="kpi-card" data-testid="e2e-daily-report-cash-balance">
                                         <span class="kpi-label">Solde de caisse</span>

@@ -495,10 +495,29 @@ export class DailyReportComponent implements OnInit {
 
     /** Total encaissé d'un commercial sur la période, avec le détail des rattrapages. */
     getCashBreakdown(report: DailyCommercialReport): CashEncaisseBreakdown {
+        return this.cashBreakdownFor(report.commercialUsername, report.totalAmountDeposited || 0);
+    }
+
+    /**
+     * Part du commercial sélectionné dans le total de la synthèse caisse.
+     * Null si aucun commercial n'est sélectionné. Un commercial qui n'a que des rattrapages
+     * sur la période n'a pas de rapport : ses opérations valent alors zéro.
+     */
+    get selectedAgentCashBreakdown(): CashEncaisseBreakdown | null {
+        if (!this.selectedAgent) {
+            return null;
+        }
+        const own = this.allPeriodReports
+            .filter(report => report.commercialUsername === this.selectedAgent)
+            .reduce((sum, report) => sum + (report.totalAmountDeposited || 0), 0);
+        return this.cashBreakdownFor(this.selectedAgent, own);
+    }
+
+    private cashBreakdownFor(commercialUsername: string, reportTotal: number): CashEncaisseBreakdown {
         const line = this.catchupCashAdjustment.byCommercial
-            .find(item => item.commercialUsername === report.commercialUsername);
+            .find(item => item.commercialUsername === commercialUsername);
         return cashEncaisseBreakdown(
-            report.totalAmountDeposited || 0,
+            reportTotal,
             line?.catchupReceivedAmount || 0,
             line?.deferredAmount || 0);
     }

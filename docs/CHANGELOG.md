@@ -114,7 +114,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 ### Added
 
-- **Rapport journalier —** nouvelle carte **Total encaissé** sur la fiche de chaque commercial, avec le détail **Opérations** (rattachées à la période) et **Rattrapages** (remis pour des jours précédents). La **Synthèse caisse** affiche le même détail sous **Total versé (période)**, avec **Versé après la période** si des cotisations de la période ont été remises à une autre date. Les montants des cartes **A Verser**, **Versé** et **Reste** ne changent pas.
+- **Rapport journalier —** nouvelle carte **Total encaissé** sur la fiche de chaque commercial, avec le détail **Opérations** (rattachées à la période) et **Rattrapages** (remis pour des jours précédents). La **Synthèse caisse** affiche le même détail sous **Total versé (période)**, avec **Versé après la période** si des cotisations de la période ont été remises à une autre date. Lorsqu'un commercial est sélectionné, la ligne **dont COM… : …** de la synthèse donne sa part du total (opérations et rattrapages). Les montants des cartes **A Verser**, **Versé** et **Reste** ne changent pas.
 
 ## Frontend — [2.50.5] — 2026-11-18
 
