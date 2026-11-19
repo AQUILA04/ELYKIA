@@ -3,6 +3,8 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { CashDepositService } from '../../service/cash-deposit.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
+export type AllocationField = 'credit' | 'tontine' | 'newBalance' | 'catchup';
+
 @Component({
     selector: 'app-cash-deposit-modal',
     templateUrl: './cash-deposit-modal.component.html',
@@ -24,12 +26,16 @@ export class CashDepositModalComponent implements OnInit {
     tontineAmount: number = 0;
     newBalanceAmount: number = 0;
     surplusAmount: number = 0;
+    /** Rattrapage réservé aux cotisations de jours passés (envoyé au serveur). */
+    catchupAmount: number = 0;
     billetageData: any = {};
     catchupCaps: { collectionDate: string, cap?: number, capturedAmount?: number, openRemaining?: number }[] = [];
     catchupLines: { collectionDate: string, amount: number }[] = [];
 
     isSubmitting = false;
     private requestReference = '';
+    /** Champs saisis à la main : ils priment sur la répartition automatique. */
+    private readonly manualFields = new Set<AllocationField>();
 
     constructor(
         public dialogRef: MatDialogRef<CashDepositModalComponent>,
@@ -69,8 +75,12 @@ export class CashDepositModalComponent implements OnInit {
     }
 
     dayRemaining(): number {
-        return this.remainingCredit + this.remainingTontine + this.remainingNewBalance
-            + this.catchupCaps.reduce((sum, slice) => sum + this.sliceLimit(slice), 0);
+        return this.remainingCredit + this.remainingTontine + this.remainingNewBalance + this.catchupTotal;
+    }
+
+    /** Reste rattrapages : somme des plafonds par date (rattrapage saisi, sans dépasser le reste dû). */
+    get catchupTotal(): number {
+        return this.catchupCaps.reduce((sum, slice) => sum + this.sliceLimit(slice), 0);
     }
 
     onBilletageChange(event: { totalAmount: number, ticketingData: any }) {
@@ -79,30 +89,46 @@ export class CashDepositModalComponent implements OnInit {
         this.autoAllocate();
     }
 
+    /**
+     * Répartit le billetage. Sans saisie manuelle : crédit, tontine du jour, solde Nx, puis rattrapages,
+     * le reste en surplus. Un rattrapage saisi à la main est réservé en premier ; les autres champs
+     * saisis à la main sont conservés (plafonnés au billetage restant).
+     */
     autoAllocate(): void {
         let remaining = this.depositAmount;
-        this.creditAmount = Math.min(remaining, this.remainingCredit);
-        remaining -= this.creditAmount;
-        const todayTontine = Math.min(remaining, this.remainingTontine);
-        remaining -= todayTontine;
-        this.newBalanceAmount = Math.min(remaining, this.remainingNewBalance);
-        remaining -= this.newBalanceAmount;
-        this.catchupLines = [];
-        let catchupTotal = 0;
-        for (const slice of this.catchupCaps) {
-            const take = Math.min(remaining, this.sliceLimit(slice));
-            this.catchupLines.push({ collectionDate: slice.collectionDate, amount: take });
-            catchupTotal += take;
-            remaining -= take;
+        const catchupManual = this.manualFields.has('catchup');
+        if (catchupManual) {
+            this.catchupAmount = Math.max(0, Math.min(Number(this.catchupAmount) || 0, this.catchupTotal, remaining));
+            remaining -= this.catchupAmount;
         }
-        this.tontineAmount = todayTontine + catchupTotal;
+        this.creditAmount = this.take('credit', this.creditAmount, this.remainingCredit, remaining);
+        remaining -= this.creditAmount;
+        this.tontineAmount = this.take('tontine', this.tontineAmount, this.remainingTontine, remaining);
+        remaining -= this.tontineAmount;
+        this.newBalanceAmount = this.take('newBalance', this.newBalanceAmount, this.remainingNewBalance, remaining);
+        remaining -= this.newBalanceAmount;
+        if (!catchupManual) {
+            this.catchupAmount = Math.max(0, Math.min(remaining, this.catchupTotal));
+            remaining -= this.catchupAmount;
+        }
         this.surplusAmount = Math.max(0, remaining);
+        this.catchupLines = this.distributeCatchup(this.catchupAmount);
     }
 
-    onCategoryChange(): void {
-        const categoriesTotal = this.creditAmount + this.tontineAmount + this.newBalanceAmount;
+    /** Valeur d'un champ : la saisie manuelle (plafonnée au disponible) ou le reste dû. */
+    private take(field: AllocationField, current: number, due: number, available: number): number {
+        const value = this.manualFields.has(field) ? (Number(current) || 0) : due;
+        return Math.max(0, Math.min(value, available));
+    }
+
+    onCategoryChange(field?: AllocationField): void {
+        if (field) {
+            this.manualFields.add(field);
+        }
+        const categoriesTotal = (Number(this.creditAmount) || 0) + (Number(this.tontineAmount) || 0)
+            + (Number(this.newBalanceAmount) || 0) + (Number(this.catchupAmount) || 0);
         this.surplusAmount = Math.max(0, this.depositAmount - categoriesTotal);
-        this.catchupLines = this.distributeTontine(this.tontineAmount);
+        this.catchupLines = this.distributeCatchup(this.catchupAmount);
     }
 
     /** Rattrapage saisi ce jour, sans dépasser le reste encore dû de la date. */
@@ -113,9 +139,9 @@ export class CashDepositModalComponent implements OnInit {
         return slice.cap || 0;
     }
 
-    private distributeTontine(tontine: number): { collectionDate: string, amount: number }[] {
-        let left = Math.max(0, tontine);
-        left -= Math.min(left, this.remainingTontine);
+    /** Répartit le rattrapage par date de cotisation, la plus ancienne d'abord (comme le serveur). */
+    private distributeCatchup(catchup: number): { collectionDate: string, amount: number }[] {
+        let left = Math.max(0, Number(catchup) || 0);
         return this.catchupCaps.map(slice => {
             const take = Math.min(left, this.sliceLimit(slice));
             left -= take;
@@ -123,9 +149,15 @@ export class CashDepositModalComponent implements OnInit {
         });
     }
 
+    /** Le serveur refuse un rattrapage supérieur à ce qui est dû. */
+    get catchupExceeded(): boolean {
+        return (Number(this.catchupAmount) || 0) > this.catchupTotal + 0.01;
+    }
+
     get allocationMismatch(): boolean {
         return Math.abs(
-            (this.creditAmount + this.tontineAmount + this.newBalanceAmount + this.surplusAmount) - this.depositAmount
+            ((Number(this.creditAmount) || 0) + (Number(this.tontineAmount) || 0) + (Number(this.newBalanceAmount) || 0)
+                + (Number(this.catchupAmount) || 0) + (Number(this.surplusAmount) || 0)) - this.depositAmount
         ) > 0.01;
     }
 
@@ -152,6 +184,11 @@ export class CashDepositModalComponent implements OnInit {
             return;
         }
 
+        if (this.catchupExceeded) {
+            this.snackBar.open('Le rattrapage dépasse les rattrapages à encaisser.', 'Fermer', { duration: 3000 });
+            return;
+        }
+
         if (this.allocationMismatch) {
             this.snackBar.open('La répartition doit correspondre au total saisi.', 'Fermer', { duration: 3000 });
             return;
@@ -165,6 +202,7 @@ export class CashDepositModalComponent implements OnInit {
             tontineAmount: this.tontineAmount,
             newBalanceAmount: this.newBalanceAmount,
             surplusAmount: this.surplusAmount,
+            catchupAmount: Number(this.catchupAmount) || 0,
             billetage: JSON.stringify(this.billetageData),
             date: this.date,
             reference: this.requestReference
@@ -177,7 +215,8 @@ export class CashDepositModalComponent implements OnInit {
             },
             error: (err) => {
                 console.error(err);
-                this.snackBar.open('Erreur lors du versement.', 'Fermer', { duration: 3000 });
+                const message = err?.error?.message || 'Erreur lors du versement.';
+                this.snackBar.open(message, 'Fermer', { duration: 4000 });
                 this.isSubmitting = false;
             }
         });

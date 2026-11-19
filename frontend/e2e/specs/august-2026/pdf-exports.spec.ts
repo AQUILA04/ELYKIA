@@ -20,7 +20,7 @@ function expectHealthyPdf(status: number, body: Buffer, contentType: string, lab
 
 async function openRemainingClientsDialog(page: Page): Promise<void> {
   await loginAsGestionnaire(page);
-  await page.goto('/report/daily');
+  await page.goto('/report/daily/classic');
   await expect(page.getByTestId('e2e-daily-report')).toBeVisible();
   await page.getByTestId('e2e-daily-report-tab-overview').click();
   await selectNgSelectOption(page, 'e2e-daily-report-agent-select', TEST_COMMERCIAL_USERNAME);

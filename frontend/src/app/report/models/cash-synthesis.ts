@@ -32,6 +32,8 @@ export interface CatchupCashAdjustmentLine {
     catchupReceivedAmount: number;
     /** Cotisations de la période remises après (ou avant) la période. */
     deferredAmount: number;
+    /** Rattrapages saisis pendant la période pour une cotisation hors période. */
+    catchupEnteredAmount: number;
 }
 
 export interface CatchupCashAdjustment {
@@ -39,6 +41,8 @@ export interface CatchupCashAdjustment {
     amount: number;
     catchupReceivedAmount: number;
     deferredAmount: number;
+    /** Rattrapages saisis pendant la période pour une cotisation hors période (dus à la caisse). */
+    catchupEnteredAmount: number;
     byCommercial: CatchupCashAdjustmentLine[];
 }
 
@@ -46,12 +50,18 @@ export const EMPTY_CATCHUP_CASH_ADJUSTMENT: CatchupCashAdjustment = {
     amount: 0,
     catchupReceivedAmount: 0,
     deferredAmount: 0,
+    catchupEnteredAmount: 0,
     byCommercial: []
 };
 
 /** Normalise la réponse serveur (champs absents, chaînes numériques). */
+/** Réponse serveur tolérée : anciens serveurs sans {@code catchupEnteredAmount}. */
+export type CatchupCashAdjustmentBody = Partial<Omit<CatchupCashAdjustment, 'byCommercial'>> & {
+    byCommercial?: Partial<CatchupCashAdjustmentLine>[];
+};
+
 export function normalizeCatchupCashAdjustment(
-    body?: Partial<CatchupCashAdjustment> | null
+    body?: CatchupCashAdjustmentBody | null
 ): CatchupCashAdjustment {
     if (!body) {
         return { ...EMPTY_CATCHUP_CASH_ADJUSTMENT, byCommercial: [] };
@@ -64,10 +74,12 @@ export function normalizeCatchupCashAdjustment(
             : received - deferred,
         catchupReceivedAmount: received,
         deferredAmount: deferred,
+        catchupEnteredAmount: Number(body.catchupEnteredAmount) || 0,
         byCommercial: (body.byCommercial || []).map(line => ({
-            commercialUsername: line.commercialUsername,
+            commercialUsername: line.commercialUsername || '',
             catchupReceivedAmount: Number(line.catchupReceivedAmount) || 0,
-            deferredAmount: Number(line.deferredAmount) || 0
+            deferredAmount: Number(line.deferredAmount) || 0,
+            catchupEnteredAmount: Number(line.catchupEnteredAmount) || 0
         }))
     };
 }
@@ -97,4 +109,23 @@ export function cashEncaisseBreakdown(
     const late = Number(deferred) || 0;
     const operations = reported - late;
     return { total: operations + catchups, operations, catchups, deferred: late };
+}
+
+export interface CashDueBreakdown {
+    /** Dû à la caisse : dû de la période + rattrapages saisis hors période. */
+    total: number;
+    /** Dû de la période (« A Verser »). */
+    operations: number;
+    /** Rattrapages saisis pendant la période pour des jours passés. */
+    catchups: number;
+}
+
+/**
+ * Dû à la caisse = A Verser de la période + rattrapages saisis hors période.
+ * Les cotisations de la période saisies plus tard sont déjà dans « A Verser » : pas de double compte.
+ */
+export function cashDueBreakdown(totalAmountToDeposit: number, catchupEntered: number): CashDueBreakdown {
+    const operations = Number(totalAmountToDeposit) || 0;
+    const catchups = Number(catchupEntered) || 0;
+    return { total: operations + catchups, operations, catchups };
 }

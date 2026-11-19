@@ -20,7 +20,7 @@ test.describe('Remise dépenses net @p0 @web @august-2026 @regression', () => {
     ).toBe(false);
 
     await loginAsSecretaire(page);
-    await page.goto('/report/daily');
+    await page.goto('/report/daily/classic');
     await page.getByTestId('e2e-daily-report-tab-remittance').click();
     await expect(page.getByTestId('e2e-cash-period-remittance-tab')).toBeVisible();
     await expect(page.getByTestId('e2e-remittance-start-date')).toBeVisible();

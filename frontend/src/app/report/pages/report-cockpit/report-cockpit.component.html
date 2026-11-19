@@ -1,0 +1,243 @@
+<div class="main-container report-v2 report-cockpit-page a1" data-testid="e2e-report-cockpit">
+    <div class="breadcrumb-bar">
+        <a routerLink="/dashboard" class="breadcrumb-link">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+            </svg>
+            Tableau de bord
+        </a>
+        <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+
+    <div class="page-header-card a2">
+        <div class="header-card-top">
+            <span class="header-surtitle">Rapports · Activité commerciale</span>
+            <span class="last-update" *ngIf="lastUpdate">Actualisation : {{ lastUpdate | date:'HH:mm:ss' }}</span>
+        </div>
+        <div class="header-card-main">
+            <div class="title-group">
+                <svg class="page-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 3v18h18" /><path d="m7 15 4-4 3 3 5-6" />
+                </svg>
+                <h1 class="page-title">Pilotage des commerciaux</h1>
+            </div>
+            <div class="header-actions">
+                <a class="btn-link" data-tour="classic" data-testid="e2e-report-cockpit-classic-link"
+                    [routerLink]="['/report/daily/classic']" [queryParams]="classicQueryParams">
+                    Ancienne présentation
+                </a>
+                <a class="btn-ghost" *ngIf="canSeeRecovery" [routerLink]="['/report/daily/classic']"
+                    [queryParams]="{ tab: 'recovery' }">Recouvrement terrain</a>
+                <button type="button" class="btn-ghost" data-tour="help" data-testid="e2e-report-cockpit-tour"
+                    (click)="startTour()">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg>
+                    Visite guidée
+                </button>
+                <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="loading"
+                    data-testid="e2e-report-cockpit-refresh">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
+                    Actualiser
+                </button>
+            </div>
+        </div>
+        <p class="page-subtitle" *ngIf="filters">Ce qui doit rentrer en caisse, ce qui est versé et qui est en écart · période {{ filters.start | date:'dd/MM/yyyy' }}<ng-container *ngIf="filters.end !== filters.start"> → {{ filters.end | date:'dd/MM/yyyy' }}</ng-container></p>
+    </div>
+
+    <div class="a3 cockpit-filters">
+        <app-report-filter-bar *ngIf="filters" [filters]="filters" [agents]="agents"
+            (filtersChange)="onFiltersChange($event)"></app-report-filter-bar>
+    </div>
+
+    <div class="panel-card empty-state" *ngIf="error && !loading" role="alert">
+        <div class="empty-icon">⚠️</div>
+        <div class="empty-title">Le rapport n'a pas pu être chargé.</div>
+        <div class="empty-sub">Vérifiez la connexion puis cliquez sur « Actualiser », ou ouvrez l'ancienne présentation.</div>
+    </div>
+
+    <ng-container *ngIf="cockpit as c">
+        <!-- Les 4 chiffres : dû → versé → reste → taux -->
+        <div class="kpi-strip a3" data-tour="kpis" data-testid="e2e-report-cockpit-kpis" [class.is-loading]="loading">
+            <div class="kpi-card kpi-total">
+                <span class="kpi-label">Dû à la caisse</span>
+                <span class="kpi-value" data-testid="e2e-report-cockpit-cash-due">{{ c.totals.cashDue | fcfa }}</span>
+                <span class="kpi-sub">
+                    Opérations {{ c.totals.amountToDeposit | fcfa }} · Rattrapages {{ c.totals.catchupEntered | fcfa }}
+                </span>
+                <span class="kpi-sub" *ngIf="variation(c.totals.cashDue, c.previousTotals?.cashDue) as v">
+                    <span [class.trend-up]="v >= 0" [class.trend-down]="v < 0">{{ v >= 0 ? '▲' : '▼' }} {{ (v >= 0 ? v : -v) | number:'1.0-0' }} %</span>
+                    {{ compareLabel }}
+                </span>
+            </div>
+            <div class="kpi-card kpi-amount">
+                <span class="kpi-label">Versé au secrétariat</span>
+                <span class="kpi-value" data-testid="e2e-report-cockpit-deposited">{{ c.totals.deposited | fcfa }}</span>
+                <span class="kpi-sub" *ngIf="c.totals.surplus > 0.01">dont {{ c.totals.surplus | fcfa }} de surplus</span>
+                <span class="kpi-sub">{{ c.totals.operationsCount }} opération(s) · {{ c.totals.commercialsCount }} commercial(aux)</span>
+            </div>
+            <div class="kpi-card" [class.kpi-delai]="c.totals.remaining > 0.01" [class.kpi-green]="c.totals.remaining <= 0.01">
+                <span class="kpi-label">Reste à verser</span>
+                <span class="kpi-value" data-testid="e2e-report-cockpit-remaining">{{ c.totals.remaining | fcfa }}</span>
+                <span class="kpi-sub" *ngIf="statusCounts.LATE > 0">{{ statusCounts.LATE }} commercial(aux) concerné(s)</span>
+                <span class="kpi-sub" *ngIf="statusCounts.LATE === 0">Tout l'argent dû est rentré</span>
+            </div>
+            <div class="kpi-card kpi-total">
+                <span class="kpi-label">Taux de versement</span>
+                <span class="kpi-value">{{ depositRatePercent | number:'1.0-1' }} %</span>
+                <div class="rate-bar" role="img" [attr.aria-label]="'Taux de versement ' + depositRatePercent + ' %'">
+                    <span [style.width.%]="depositRatePercent"></span>
+                </div>
+                <span class="kpi-sub" *ngIf="c.totals.historicalRemaining > 0.01">
+                    + {{ c.totals.historicalRemaining | fcfa }} de manquants antérieurs
+                </span>
+            </div>
+        </div>
+
+        <!-- Points d'attention -->
+        <section class="panel-card a4 alerts-card" data-tour="alerts" data-testid="e2e-report-cockpit-alerts"
+            aria-labelledby="alerts-title">
+            <div class="panel-head">
+                <h2 id="alerts-title">{{ c.alerts.length }} point(s) d'attention</h2>
+                <span class="panel-hint">Du plus gros montant au plus petit</span>
+            </div>
+            <p class="all-good" *ngIf="c.alerts.length === 0">Aucun écart sur la période : tout est versé.</p>
+            <ul class="alert-grid" *ngIf="c.alerts.length > 0">
+                <li *ngFor="let alert of c.alerts | slice:0:6; trackBy: trackByAlert">
+                    <a class="alert-item" [ngClass]="alertClass(alert)"
+                        [routerLink]="['/report/daily/commercials', alert.commercialUsername]" [queryParams]="carryParams"
+                        [attr.data-testid]="'e2e-report-cockpit-alert-' + alert.commercialUsername">
+                        <span class="alert-bar" aria-hidden="true"></span>
+                        <span class="alert-text">
+                            <strong>{{ alert.commercialUsername }} · {{ alert.amount | fcfa }} {{ alertLabels[alert.type] }}</strong>
+                            <span>{{ alertDetail(alert) }}</span>
+                        </span>
+                    </a>
+                </li>
+            </ul>
+            <p class="panel-hint more-alerts" *ngIf="c.alerts.length > 6">
+                + {{ c.alerts.length - 6 }} autre(s) : voir le tableau ci-dessous.
+            </p>
+        </section>
+
+        <div class="cockpit-body a5">
+            <!-- Tableau équipe -->
+            <section class="table-card team-card" data-tour="team" aria-labelledby="team-title">
+                <div class="panel-head team-head">
+                    <h2 id="team-title">Équipe · situation de la période</h2>
+                    <div class="status-pills">
+                        <span class="pill pill-late" *ngIf="statusCounts.LATE">{{ statusCounts.LATE }} en retard</span>
+                        <span class="pill pill-surplus" *ngIf="statusCounts.SURPLUS">{{ statusCounts.SURPLUS }} surplus</span>
+                        <span class="pill pill-ok" *ngIf="statusCounts.UP_TO_DATE">{{ statusCounts.UP_TO_DATE }} à jour</span>
+                        <span class="pill pill-idle" *ngIf="statusCounts.INACTIVE">{{ statusCounts.INACTIVE }} inactif(s)</span>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" data-testid="e2e-report-cockpit-team">
+                        <thead>
+                            <tr>
+                                <th scope="col">Commercial</th>
+                                <th scope="col" class="r">Crédit</th>
+                                <th scope="col" class="r">Tontine</th>
+                                <th scope="col" class="r" data-tour="catchups">Rattrapages</th>
+                                <th scope="col" class="r">Dû caisse</th>
+                                <th scope="col" class="r">Versé</th>
+                                <th scope="col" class="r">Écart</th>
+                                <th scope="col">Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let line of c.lines; trackBy: trackByCommercial"
+                                [attr.data-testid]="'e2e-report-cockpit-row-' + line.commercialUsername">
+                                <td>
+                                    <a class="row-link" [routerLink]="['/report/daily/commercials', line.commercialUsername]"
+                                        [queryParams]="carryParams">{{ line.commercialUsername }}</a>
+                                    <span class="cell-sub">{{ line.operationsCount }} opération(s)</span>
+                                </td>
+                                <td class="r num">{{ line.creditToDeposit | fcfa:'bare' }}</td>
+                                <td class="r num">{{ line.tontineToDeposit | fcfa:'bare' }}</td>
+                                <td class="r num">{{ line.catchupEntered | fcfa:'bare' }}</td>
+                                <td class="r num"><strong>{{ line.cashDue | fcfa:'bare' }}</strong></td>
+                                <td class="r num">{{ line.deposited | fcfa:'bare' }}</td>
+                                <td class="r num" [class.gap-neg]="gap(line) < 0" [class.gap-pos]="gap(line) > 0"
+                                    [class.gap-zero]="gap(line) === 0">{{ gap(line) | fcfa:'signed' }}</td>
+                                <td><span class="pill" [ngClass]="pillClass(line.status)">{{ statusLabels[line.status] }}</span></td>
+                            </tr>
+                            <tr *ngIf="c.lines.length === 0">
+                                <td colspan="8">
+                                    <div class="empty-state">
+                                        <div class="empty-icon">📭</div>
+                                        <div class="empty-title">Aucune activité sur la période</div>
+                                        <div class="empty-sub">Choisissez une autre période ou un autre commercial.</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot *ngIf="c.lines.length > 1">
+                            <tr>
+                                <td>Total équipe</td>
+                                <td class="r num">{{ c.totals.creditCollected | fcfa:'bare' }}</td>
+                                <td class="r num">{{ c.totals.tontineCollected | fcfa:'bare' }}</td>
+                                <td class="r num">{{ c.totals.catchupEntered | fcfa:'bare' }}</td>
+                                <td class="r num">{{ c.totals.cashDue | fcfa:'bare' }}</td>
+                                <td class="r num">{{ c.totals.deposited | fcfa:'bare' }}</td>
+                                <td class="r num" [class.gap-neg]="c.totals.remaining > 0.01">
+                                    {{ (c.totals.remaining > 0.01 ? -c.totals.remaining : c.totals.surplus) | fcfa:'signed' }}
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
+
+            <aside class="cockpit-side">
+                <section class="panel-card" data-tour="cash" *ngIf="c.cash as cash" aria-labelledby="cash-title"
+                    data-testid="e2e-report-cockpit-cash">
+                    <div class="panel-head"><h2 id="cash-title">Caisse</h2><span class="panel-hint">Toutes caisses</span></div>
+                    <dl class="kv">
+                        <div><dt>Total encaissé</dt><dd class="num">{{ cash.received | fcfa }}</dd></div>
+                        <div><dt>Dépenses hors approvisionnement</dt><dd class="num">− {{ cash.expensesWithoutSupply | fcfa }}</dd></div>
+                        <div><dt>Dépenses avec approvisionnement</dt><dd class="num">{{ cash.expensesWithSupply | fcfa }}</dd></div>
+                        <div class="kv-total"><dt>Solde de caisse</dt><dd class="num" [class.gap-neg]="cash.balance < 0">{{ cash.balance | fcfa }}</dd></div>
+                    </dl>
+                </section>
+
+                <section class="panel-card" aria-labelledby="origin-title">
+                    <div class="panel-head"><h2 id="origin-title">Origine du dû</h2></div>
+                    <div class="share-bar" role="img"
+                        [attr.aria-label]="'Crédit ' + (shares.credit | number:'1.0-0') + ' %, tontine ' + (shares.tontine | number:'1.0-0') + ' %, rattrapages ' + (shares.catchup | number:'1.0-0') + ' %'">
+                        <span class="share-credit" [style.width.%]="shares.credit"></span>
+                        <span class="share-tontine" [style.width.%]="shares.tontine"></span>
+                        <span class="share-catchup" [style.width.%]="shares.catchup"></span>
+                        <span class="share-new" [style.width.%]="shares.newBalance"></span>
+                    </div>
+                    <dl class="kv legend">
+                        <div><dt><i class="dot share-credit"></i>Crédit</dt><dd class="num">{{ c.totals.creditCollected | fcfa }}</dd></div>
+                        <div><dt><i class="dot share-tontine"></i>Tontine de la période</dt><dd class="num">{{ c.totals.tontineCollected | fcfa }}</dd></div>
+                        <div><dt><i class="dot share-catchup"></i>Rattrapages saisis</dt><dd class="num">{{ c.totals.catchupEntered | fcfa }}</dd></div>
+                        <div><dt><i class="dot share-new"></i>Solde nouveaux comptes</dt><dd class="num">{{ c.totals.newBalance | fcfa }}</dd></div>
+                    </dl>
+                </section>
+            </aside>
+        </div>
+
+        <div class="portfolio-slot" data-tour="portfolio">
+            @defer (on viewport) {
+                <app-team-portfolio [year]="year"></app-team-portfolio>
+            } @placeholder {
+                <section class="panel-card">
+                    <div class="panel-head"><h2>Portefeuille crédit {{ year }} · équipe</h2></div>
+                    <div class="skeleton portfolio-skeleton"></div>
+                </section>
+            }
+        </div>
+    </ng-container>
+
+    <div class="panel-card" *ngIf="loading && !cockpit">
+        <div class="kpi-strip">
+            <div class="skeleton kpi-skeleton" *ngFor="let i of [1, 2, 3, 4]"></div>
+        </div>
+        <div class="skeleton table-skeleton"></div>
+    </div>
+
+    <app-guided-tour></app-guided-tour>
+</div>
