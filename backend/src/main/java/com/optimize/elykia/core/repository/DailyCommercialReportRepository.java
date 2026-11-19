@@ -113,6 +113,14 @@ public interface DailyCommercialReportRepository extends BaseRepository<DailyCom
                         @Param("endDate") LocalDate endDate);
 
         @Query("""
+                        SELECT DISTINCT d.commercialUsername FROM DailyCommercialReport d
+                        WHERE d.date BETWEEN :startDate AND :endDate
+                          AND d.commercialUsername IS NOT NULL
+                        """)
+        List<String> findDistinctCommercialsBetween(@Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate);
+
+        @Query("""
                         SELECT COALESCE(SUM(d.totalTontineAmountDeposited), 0)
                         FROM DailyCommercialReport d
                         WHERE UPPER(d.commercialUsername) = UPPER(:commercialUsername)

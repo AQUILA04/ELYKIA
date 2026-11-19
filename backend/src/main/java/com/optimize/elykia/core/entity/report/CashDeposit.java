@@ -75,6 +75,14 @@ public class CashDeposit extends Auditable<String> {
     @Transient
     private List<CashDepositSliceDto> catchupAllocations;
 
+    /**
+     * Rattrapage saisi à la création (non persisté). Renseigné : réparti sur les dates de rattrapage,
+     * du plus ancien au plus récent, et compris dans {@code amount}. Absent : ancien comportement
+     * (le reliquat de tontine sert les rattrapages).
+     */
+    @Transient
+    private Double catchupAmount;
+
     /** Total physique du groupe, renseigné à l'affichage de la ligne parente. */
     @Transient
     private Double physicalAmount;

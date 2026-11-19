@@ -69,6 +69,38 @@ public final class CashDepositCatchupAllocator {
     }
 
     /**
+     * Répartition avec un rattrapage saisi explicitement : la tontine reste sur le jour de saisie,
+     * le rattrapage est réparti sur les dates du plus ancien au plus récent, chaque date plafonnée.
+     *
+     * @throws IllegalArgumentException si le rattrapage dépasse le total à encaisser
+     */
+    public static Allocation allocateExplicit(double credit, double tontine, double newBalance, double surplus,
+            double catchup, List<CatchupCap> capsOldestFirst) {
+        double left = Math.max(0.0, catchup);
+        double available = capsOldestFirst == null ? 0.0
+                : capsOldestFirst.stream().mapToDouble(CashDepositCatchupAllocator::targetAmount).sum();
+        if (left > available + EPSILON) {
+            throw new IllegalArgumentException(String.format(
+                    "Le rattrapage saisi (%.0f) dépasse les rattrapages à encaisser (%.0f).", left, available));
+        }
+        List<Slice> slices = new ArrayList<>();
+        if (capsOldestFirst != null) {
+            for (CatchupCap cap : capsOldestFirst) {
+                if (left <= EPSILON) {
+                    break;
+                }
+                double take = Math.min(left, targetAmount(cap));
+                if (take > EPSILON) {
+                    slices.add(new Slice(cap.collectionDate(), take));
+                    left -= take;
+                }
+            }
+        }
+        return new Allocation(Math.max(0.0, credit), Math.max(0.0, tontine), Math.max(0.0, newBalance),
+                Math.max(0.0, surplus), slices);
+    }
+
+    /**
      * Cible par défaut : le rattrapage créé ce jour. Le reste de la date ne fait que
      * empêcher de verser plus que ce qui est encore dû.
      */

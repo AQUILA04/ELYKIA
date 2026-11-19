@@ -4,6 +4,7 @@ import com.optimize.elykia.core.dto.report.CatchupAllocationPreviewDto;
 import com.optimize.elykia.core.dto.report.CatchupCashAdjustmentDto;
 import com.optimize.elykia.core.dto.report.SurplusReallocationDto;
 import com.optimize.elykia.core.dto.report.SurplusReallocationRequest;
+import com.optimize.elykia.core.dto.report.cockpit.CashDepositTotalsDto;
 import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.service.accounting.CashDepositCatchupService;
 import com.optimize.elykia.core.service.accounting.CashDepositService;
@@ -98,9 +99,8 @@ public class CashDepositController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String commercialUsername,
+            @RequestParam(defaultValue = "false") boolean surplusOnly,
             @PageableDefault(size = 20, sort = "date", direction = Sort.Direction.DESC) Pageable pageable) {
-
-        User currentUser = userService.getCurrentUser();
 
         // Handle single date param for backward compatibility
         LocalDate start = startDate != null ? startDate : date;
@@ -112,14 +112,28 @@ public class CashDepositController {
         if (end == null)
             end = LocalDate.now();
 
-        if (currentUser.is(UserProfilConstant.PROMOTER)) {
-            return ResponseEntity.ok(cashDepositService.getDeposits(start, end, currentUser.getUsername(), pageable));
-        } else {
-            if (commercialUsername != null && !commercialUsername.isEmpty()) {
-                return ResponseEntity.ok(cashDepositService.getDeposits(start, end, commercialUsername, pageable));
-            } else {
-                return ResponseEntity.ok(cashDepositService.getDeposits(start, end, null, pageable));
-            }
+        return ResponseEntity.ok(cashDepositService.getDeposits(start, end, scopedCommercial(commercialUsername),
+                surplusOnly, pageable));
+    }
+
+    @GetMapping("/totals")
+    public ResponseEntity<CashDepositTotalsDto> getTotals(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String commercialUsername) {
+        if (endDate.isBefore(startDate)) {
+            return ResponseEntity.badRequest().build();
         }
+        return ResponseEntity.ok(cashDepositService.getTotals(startDate, endDate,
+                scopedCommercial(commercialUsername)));
+    }
+
+    /** Un commercial ne voit que ses versements ; sinon le filtre demandé, ou toute l'équipe. */
+    private String scopedCommercial(String commercialUsername) {
+        User currentUser = userService.getCurrentUser();
+        if (currentUser.is(UserProfilConstant.PROMOTER)) {
+            return currentUser.getUsername();
+        }
+        return commercialUsername != null && !commercialUsername.isEmpty() ? commercialUsername : null;
     }
 }

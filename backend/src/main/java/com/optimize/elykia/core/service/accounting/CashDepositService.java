@@ -6,6 +6,7 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.report.CashDepositSliceDto;
 import com.optimize.elykia.core.dto.report.CatchupCashAdjustmentDto;
 import com.optimize.elykia.core.dto.report.CatchupCashAdjustmentLineDto;
+import com.optimize.elykia.core.dto.report.cockpit.CashDepositTotalsDto;
 import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.enumaration.OperationType;
@@ -84,21 +85,42 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         }
 
         CashDepositCategoryCalculator.normalizeLegacyAmounts(deposit);
-        CashDepositCategoryCalculator.validateCategorySplit(
-                deposit.getAmount(),
-                deposit.getCreditAmount(),
-                deposit.getTontineAmount(),
-                deposit.getNewBalanceAmount(),
-                deposit.getSurplusAmount());
+        boolean explicitCatchup = deposit.getCatchupAmount() != null;
+        if (explicitCatchup) {
+            CashDepositCategoryCalculator.validateCategorySplit(
+                    deposit.getAmount(),
+                    deposit.getCreditAmount(),
+                    deposit.getTontineAmount(),
+                    deposit.getNewBalanceAmount(),
+                    deposit.getSurplusAmount(),
+                    deposit.getCatchupAmount());
+        } else {
+            CashDepositCategoryCalculator.validateCategorySplit(
+                    deposit.getAmount(),
+                    deposit.getCreditAmount(),
+                    deposit.getTontineAmount(),
+                    deposit.getNewBalanceAmount(),
+                    deposit.getSurplusAmount());
+        }
 
         DailyCommercialReport report = getOrCreateReport(deposit.getDate(), deposit.getCommercialUsername());
-        Allocation allocation = CashDepositCatchupAllocator.allocate(
-                safe(deposit.getCreditAmount()),
-                safe(deposit.getTontineAmount()),
-                safe(deposit.getNewBalanceAmount()),
-                safe(deposit.getSurplusAmount()),
-                catchupService.openTontine(report),
-                catchupService.caps(deposit.getCommercialUsername(), deposit.getDate()));
+        List<CashDepositCatchupAllocator.CatchupCap> caps =
+                catchupService.caps(deposit.getCommercialUsername(), deposit.getDate());
+        Allocation allocation = explicitCatchup
+                ? CashDepositCatchupAllocator.allocateExplicit(
+                        safe(deposit.getCreditAmount()),
+                        safe(deposit.getTontineAmount()),
+                        safe(deposit.getNewBalanceAmount()),
+                        safe(deposit.getSurplusAmount()),
+                        deposit.getCatchupAmount(),
+                        caps)
+                : CashDepositCatchupAllocator.allocate(
+                        safe(deposit.getCreditAmount()),
+                        safe(deposit.getTontineAmount()),
+                        safe(deposit.getNewBalanceAmount()),
+                        safe(deposit.getSurplusAmount()),
+                        catchupService.openTontine(report),
+                        caps);
 
         deposit.setCaptureDate(deposit.getDate());
         if (!allocation.slices().isEmpty()) {
@@ -195,6 +217,52 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         return saved;
     }
 
+    /**
+     * Versements d'une période. {@code surplusOnly} : seulement les lignes portant un surplus non catégorisé.
+     */
+    public Page<CashDeposit> getDeposits(LocalDate startDate, LocalDate endDate, String commercialUsername,
+            boolean surplusOnly, Pageable pageable) {
+        if (!surplusOnly) {
+            return getDeposits(startDate, endDate, commercialUsername, pageable);
+        }
+        if (startDate == null || endDate == null) {
+            return Page.empty();
+        }
+        Page<CashDeposit> page = commercialUsername != null
+                ? cashDepositRepository().findByDateBetweenAndCommercialUsernameAndSurplusAmountGreaterThan(
+                        startDate, endDate, commercialUsername, 0.0, pageable)
+                : cashDepositRepository().findByDateBetweenAndSurplusAmountGreaterThan(
+                        startDate, endDate, 0.0, pageable);
+        attachGroupDisplay(page.getContent());
+        return page;
+    }
+
+    /** Totaux des versements d'une période, une seule requête. */
+    @Transactional(readOnly = true)
+    public CashDepositTotalsDto getTotals(LocalDate startDate, LocalDate endDate, String commercialUsername) {
+        if (startDate == null || endDate == null || endDate.isBefore(startDate)) {
+            return CashDepositTotalsDto.empty();
+        }
+        List<Object[]> rows = commercialUsername != null
+                ? cashDepositRepository().sumTotalsForCommercial(startDate, endDate, commercialUsername)
+                : cashDepositRepository().sumTotals(startDate, endDate);
+        if (rows == null || rows.isEmpty() || rows.get(0) == null || rows.get(0).length < 6) {
+            return CashDepositTotalsDto.empty();
+        }
+        Object[] row = rows.get(0);
+        return new CashDepositTotalsDto(
+                number(row[0]).longValue(),
+                number(row[1]).doubleValue(),
+                number(row[2]).doubleValue(),
+                number(row[3]).doubleValue(),
+                number(row[4]).doubleValue(),
+                number(row[5]).doubleValue());
+    }
+
+    private static Number number(Object value) {
+        return value instanceof Number n ? n : 0;
+    }
+
     public Page<CashDeposit> getDeposits(LocalDate startDate, LocalDate endDate, String commercialUsername,
             Pageable pageable) {
         Page<CashDeposit> page = Page.empty();
@@ -221,13 +289,19 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
             return CatchupCashAdjustmentDto.empty();
         }
         List<CashDeposit> lines = cashDepositRepository().findCatchupLinesCrossingPeriod(start, end);
-        if (lines == null || lines.isEmpty()) {
-            return CatchupCashAdjustmentDto.empty();
+        if (lines == null) {
+            lines = List.of();
         }
-        // [0] = rattrapages remis dans la période, [1] = cotisations de la période remises hors période.
+        // [0] = rattrapages remis dans la période, [1] = cotisations de la période remises hors période,
+        // [2] = rattrapages saisis dans la période pour une cotisation hors période.
         Map<String, double[]> byCommercial = new LinkedHashMap<>();
         double received = 0.0;
         double deferred = 0.0;
+        double entered = 0.0;
+        for (Map.Entry<String, Double> row : catchupService.catchupEnteredByCommercial(start, end).entrySet()) {
+            byCommercial.computeIfAbsent(row.getKey(), key -> new double[3])[2] += row.getValue();
+            entered += row.getValue();
+        }
         for (CashDeposit line : lines) {
             if (line.getCaptureDate() == null || line.getDate() == null) {
                 continue;
@@ -240,7 +314,7 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
             // Une annulation (montant négatif) se compense dans la même catégorie que la ligne d'origine.
             double amount = safe(line.getAmount());
             String commercial = line.getCommercialUsername() != null ? line.getCommercialUsername() : "";
-            double[] bucket = byCommercial.computeIfAbsent(commercial, key -> new double[2]);
+            double[] bucket = byCommercial.computeIfAbsent(commercial, key -> new double[3]);
             if (capturedInPeriod) {
                 bucket[0] += amount;
                 received += amount;
@@ -251,9 +325,10 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
         }
         List<CatchupCashAdjustmentLineDto> details = byCommercial.entrySet().stream()
                 .map(entry -> new CatchupCashAdjustmentLineDto(
-                        entry.getKey(), entry.getValue()[0], entry.getValue()[1]))
+                        entry.getKey(), entry.getValue()[0], entry.getValue()[1], entry.getValue()[2]))
                 .toList();
-        return new CatchupCashAdjustmentDto(received - deferred, received, deferred, new ArrayList<>(details));
+        return new CatchupCashAdjustmentDto(received - deferred, received, deferred, entered,
+                new ArrayList<>(details));
     }
 
     /**

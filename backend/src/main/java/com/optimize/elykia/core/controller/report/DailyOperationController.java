@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.controller.report;
 
+import com.optimize.elykia.core.dto.report.cockpit.OperationTypeTotalDto;
 import com.optimize.elykia.core.entity.report.DailyOperationLog;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.service.report.DailyOperationService;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/daily-operations")
@@ -51,6 +53,21 @@ public class DailyOperationController {
                 return ResponseEntity.ok(dailyOperationService.getOperations(start, end, null, type, pageable));
             }
         }
+    }
+
+    @GetMapping("/totals")
+    public ResponseEntity<List<OperationTypeTotalDto>> getTotals(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String commercialUsername) {
+        if (endDate.isBefore(startDate)) {
+            return ResponseEntity.badRequest().build();
+        }
+        User currentUser = userService.getCurrentUser();
+        String commercial = currentUser.is(UserProfilConstant.PROMOTER)
+                ? currentUser.getUsername()
+                : (commercialUsername != null && !commercialUsername.isBlank() ? commercialUsername : null);
+        return ResponseEntity.ok(dailyOperationService.getTotalsByType(startDate, endDate, commercial));
     }
 
     @GetMapping("/export/pdf")

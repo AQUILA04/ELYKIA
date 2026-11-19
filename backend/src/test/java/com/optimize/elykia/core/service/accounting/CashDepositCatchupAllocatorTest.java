@@ -77,4 +77,41 @@ class CashDepositCatchupAllocatorTest {
         assertEquals(150.0, allocation.tontineOnCaptureDay());
         assertEquals(40.0, allocation.surplus());
     }
+
+    @Test
+    void allocateExplicit_keepsTontineOnCaptureDayAndSpreadsCatchupOldestFirst() {
+        Allocation allocation = CashDepositCatchupAllocator.allocateExplicit(
+                100.0, 300.0, 0.0, 0.0, 500.0,
+                List.of(
+                        new CatchupCap(OLDER, 400.0, 400.0, 400.0),
+                        new CatchupCap(NEWER, 250.0, 250.0, 250.0)));
+
+        assertEquals(300.0, allocation.tontineOnCaptureDay());
+        assertEquals(2, allocation.slices().size());
+        assertEquals(OLDER, allocation.slices().get(0).date());
+        assertEquals(400.0, allocation.slices().get(0).amount());
+        assertEquals(NEWER, allocation.slices().get(1).date());
+        assertEquals(100.0, allocation.slices().get(1).amount());
+        assertEquals(900.0, allocation.physicalAmount());
+    }
+
+    @Test
+    void allocateExplicit_withZeroCatchupProducesNoSlice() {
+        Allocation allocation = CashDepositCatchupAllocator.allocateExplicit(
+                0.0, 500.0, 0.0, 0.0, 0.0, List.of(new CatchupCap(OLDER, 400.0, 400.0, 400.0)));
+
+        assertTrue(allocation.slices().isEmpty());
+        assertEquals(500.0, allocation.tontineOnCaptureDay());
+    }
+
+    @Test
+    void allocateExplicit_rejectsCatchupAboveTheCaps() {
+        IllegalArgumentException error = org.junit.jupiter.api.Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> CashDepositCatchupAllocator.allocateExplicit(
+                        0.0, 0.0, 0.0, 0.0, 700.0,
+                        List.of(new CatchupCap(OLDER, 400.0, 300.0, 300.0))));
+
+        assertTrue(error.getMessage().contains("300"));
+    }
 }

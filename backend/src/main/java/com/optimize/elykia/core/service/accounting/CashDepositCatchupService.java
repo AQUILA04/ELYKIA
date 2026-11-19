@@ -95,6 +95,33 @@ public class CashDepositCatchupService {
         return caps;
     }
 
+    /**
+     * Rattrapages saisis pendant la période pour une cotisation hors période, par commercial.
+     * Les cotisations de la période saisies plus tard sont déjà dans « A Verser » : elles ne comptent pas ici.
+     * Clé : nom du commercial tel qu'enregistré.
+     */
+    public Map<String, Double> catchupEnteredByCommercial(LocalDate start, LocalDate end) {
+        Map<String, Double> totals = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        if (start == null || end == null || end.isBefore(start)) {
+            return totals;
+        }
+        List<Object[]> rows = tontineCollectionRepository.sumCatchupEnteredByCommercial(
+                State.ENABLED, start.atStartOfDay(), end.plusDays(1).atStartOfDay());
+        if (rows == null) {
+            return totals;
+        }
+        for (Object[] row : rows) {
+            if (row == null || row.length < 2 || row[0] == null || row[1] == null) {
+                continue;
+            }
+            double amount = ((Number) row[1]).doubleValue();
+            if (amount > EPSILON) {
+                totals.merge(row[0].toString(), amount, Double::sum);
+            }
+        }
+        return totals;
+    }
+
     public double openCredit(DailyCommercialReport report) {
         if (report == null) {
             return 0.0;

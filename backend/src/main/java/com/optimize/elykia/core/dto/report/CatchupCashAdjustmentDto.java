@@ -13,7 +13,9 @@ import java.util.List;
  * <ul>
  * <li>{@code catchupReceivedAmount} : remis pendant la période pour des cotisations hors période ;</li>
  * <li>{@code deferredAmount} : cotisations de la période remises hors période ;</li>
- * <li>{@code amount} : écart net ({@code catchupReceivedAmount - deferredAmount}).</li>
+ * <li>{@code amount} : écart net ({@code catchupReceivedAmount - deferredAmount}) ;</li>
+ * <li>{@code catchupEnteredAmount} : rattrapages saisis pendant la période pour une cotisation hors période
+ * (dus à la caisse en plus de « A Verser »).</li>
  * </ul>
  */
 @Getter
@@ -24,9 +26,10 @@ public class CatchupCashAdjustmentDto {
     private double amount;
     private double catchupReceivedAmount;
     private double deferredAmount;
+    private double catchupEnteredAmount;
     private List<CatchupCashAdjustmentLineDto> byCommercial = new ArrayList<>();
 
     public static CatchupCashAdjustmentDto empty() {
-        return new CatchupCashAdjustmentDto(0.0, 0.0, 0.0, new ArrayList<>());
+        return new CatchupCashAdjustmentDto(0.0, 0.0, 0.0, 0.0, new ArrayList<>());
     }
 }

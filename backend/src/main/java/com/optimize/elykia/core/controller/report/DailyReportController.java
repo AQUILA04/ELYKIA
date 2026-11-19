@@ -3,9 +3,13 @@ package com.optimize.elykia.core.controller.report;
 import com.optimize.elykia.core.dto.report.CommercialYearlySummaryDto;
 import com.optimize.elykia.core.dto.report.CommercialTontineYearlySummaryDto;
 import com.optimize.elykia.core.dto.report.RemainingAtClientsPageDto;
+import com.optimize.elykia.core.dto.report.cockpit.CommercialCockpitDto;
+import com.optimize.elykia.core.dto.report.cockpit.CommercialReportSummaryDto;
+import com.optimize.elykia.core.dto.report.cockpit.TeamYearlySummaryDto;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.service.accounting.CashSurplusReallocationService;
+import com.optimize.elykia.core.service.report.CommercialCockpitService;
 import com.optimize.elykia.core.service.report.CommercialReportMonthlyService;
 import com.optimize.elykia.core.service.report.CommercialTontineYearlySummaryService;
 import com.optimize.elykia.core.service.report.DailyReportPdfService;
@@ -26,6 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -48,6 +53,7 @@ public class DailyReportController {
     private final RemainingAtClientsPdfService remainingAtClientsPdfService;
     private final CommercialTontineYearlySummaryService commercialTontineYearlySummaryService;
     private final CashSurplusReallocationService cashSurplusReallocationService;
+    private final CommercialCockpitService commercialCockpitService;
 
     @GetMapping
     @Operation(summary = "Get daily report for a specific commercial and date")
@@ -81,6 +87,47 @@ public class DailyReportController {
         }
         cashSurplusReallocationService.attachHistoricalRemaining(reports, startDate);
         return ResponseEntity.ok(reports);
+    }
+
+    @GetMapping("/cockpit")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
+    @Operation(summary = "Team cockpit: reconciliation per commercial, totals, cash desk and alerts in one call")
+    public ResponseEntity<CommercialCockpitDto> getCockpit(
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(value = "collector", required = false) String collector,
+            @RequestParam(value = "compare", defaultValue = "true") boolean compare) {
+        if (endDate.isBefore(startDate)) {
+            return ResponseEntity.badRequest().build();
+        }
+        User currentUser = userService.getCurrentUser();
+        boolean promoter = currentUser.is(UserProfilConstant.PROMOTER);
+        String commercial = promoter ? currentUser.getUsername() : collector;
+        return ResponseEntity.ok(commercialCockpitService.cockpit(startDate, endDate, commercial, compare, !promoter));
+    }
+
+    @GetMapping("/commercials/{username}/summary")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
+    @Operation(summary = "Commercial sheet: period reconciliation, grouped activity and last 7 days")
+    public ResponseEntity<CommercialReportSummaryDto> getCommercialSummary(
+            @PathVariable("username") String username,
+            @RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        if (endDate.isBefore(startDate)) {
+            return ResponseEntity.badRequest().build();
+        }
+        String commercial = resolveCommercialUsername(username);
+        return ResponseEntity.ok(commercialCockpitService.summary(commercial, startDate, endDate));
+    }
+
+    @GetMapping("/yearly-summary/team")
+    @PreAuthorize("hasAuthority('" + UserPermissionConstant.KPI_FINANCIER_RAPPORT_JOURNALIER + "')")
+    @Operation(summary = "Yearly credit portfolio of the whole team (cached a few minutes)")
+    public ResponseEntity<TeamYearlySummaryDto> getTeamYearlySummary(@RequestParam("year") int year) {
+        if (userService.getCurrentUser().is(UserProfilConstant.PROMOTER)) {
+            return ResponseEntity.status(org.springframework.http.HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.ok(commercialCockpitService.teamYearlySummary(year));
     }
 
     @GetMapping("/yearly-summary")

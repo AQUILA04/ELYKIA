@@ -4,6 +4,8 @@ import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.report.CashDeposit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -133,4 +135,41 @@ public interface CashDepositRepository extends GenericRepository<CashDeposit, Lo
     List<CashDeposit> findCatchupLinesCrossingPeriod(
             @org.springframework.data.repository.query.Param("start") LocalDate start,
             @org.springframework.data.repository.query.Param("end") LocalDate end);
+
+    Page<CashDeposit> findByDateBetweenAndSurplusAmountGreaterThan(LocalDate startDate, LocalDate endDate,
+            Double surplusAmount, Pageable pageable);
+
+    Page<CashDeposit> findByDateBetweenAndCommercialUsernameAndSurplusAmountGreaterThan(LocalDate startDate,
+            LocalDate endDate, String commercialUsername, Double surplusAmount, Pageable pageable);
+
+    /**
+     * Totaux des versements d'une période (lignes datées dans la période, annulations comprises).
+     * Ligne : versements (hors lignes de rattrapage), montant, crédit, tontine, solde Nx, surplus.
+     */
+    @Query("""
+            SELECT COALESCE(SUM(CASE WHEN d.parentDeposit IS NULL AND d.amount > 0 THEN 1 ELSE 0 END), 0),
+                   COALESCE(SUM(d.amount), 0),
+                   COALESCE(SUM(d.creditAmount), 0),
+                   COALESCE(SUM(d.tontineAmount), 0),
+                   COALESCE(SUM(d.newBalanceAmount), 0),
+                   COALESCE(SUM(d.surplusAmount), 0)
+            FROM CashDeposit d
+            WHERE d.date BETWEEN :startDate AND :endDate
+            """)
+    List<Object[]> sumTotals(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("""
+            SELECT COALESCE(SUM(CASE WHEN d.parentDeposit IS NULL AND d.amount > 0 THEN 1 ELSE 0 END), 0),
+                   COALESCE(SUM(d.amount), 0),
+                   COALESCE(SUM(d.creditAmount), 0),
+                   COALESCE(SUM(d.tontineAmount), 0),
+                   COALESCE(SUM(d.newBalanceAmount), 0),
+                   COALESCE(SUM(d.surplusAmount), 0)
+            FROM CashDeposit d
+            WHERE d.date BETWEEN :startDate AND :endDate
+              AND d.commercialUsername = :commercialUsername
+            """)
+    List<Object[]> sumTotalsForCommercial(@Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("commercialUsername") String commercialUsername);
 }
