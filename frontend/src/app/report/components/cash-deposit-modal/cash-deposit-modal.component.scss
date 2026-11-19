@@ -142,7 +142,7 @@
 
 .cash-deposit-modal .kpi-strip {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
   margin-bottom: 16px;
 }
@@ -167,6 +167,7 @@
   &.kpi-credit::before { background: var(--kpi-cyan); }
   &.kpi-tontine::before { background: var(--green); }
   &.kpi-balance::before { background: var(--orange); }
+  &.kpi-catchup::before { background: #7c3aed; }
 }
 
 .cash-deposit-modal .kpi-label {

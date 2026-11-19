@@ -1,0 +1,158 @@
+import { TourDefinition } from './guided-tour.service';
+
+/** Visite du cockpit équipe (première ouverture de /report/daily). */
+export const COCKPIT_TOUR: TourDefinition = {
+    id: 'report-cockpit',
+    version: 1,
+    steps: [
+        {
+            title: 'Bienvenue dans le nouveau rapport',
+            body: 'Le rapport journalier change de présentation. Un seul écran montre maintenant toute l\'équipe : '
+                + 'ce qui a été encaissé, ce qui a été versé, et qui doit encore de l\'argent.\n'
+                + 'Cette visite dure une minute. Vous pouvez la relancer avec le bouton « Visite guidée ».'
+        },
+        {
+            target: 'filters',
+            title: 'Période et commercial',
+            body: 'Choisissez Aujourd\'hui, Semaine, Mois ou des dates précises, et éventuellement un commercial. '
+                + 'Ces filtres suivent l\'utilisateur sur tous les écrans du rapport (fiche, versements, journal).'
+        },
+        {
+            target: 'kpis',
+            title: 'Les 4 chiffres à lire en premier',
+            body: 'Dû à la caisse → Versé → Reste à verser → Taux de versement.\n'
+                + 'Le « Dû à la caisse » additionne l\'« A Verser » de la période et les rattrapages saisis '
+                + 'pour des jours passés. Si le Reste à verser est à 0, tout l\'argent est rentré.'
+        },
+        {
+            target: 'alerts',
+            title: 'Les points d\'attention',
+            body: 'Les écarts sont listés du plus gros montant au plus petit : argent non versé, rattrapages '
+                + 'non versés, surplus à équilibrer, manquants antérieurs. Un clic ouvre directement le bon écran.'
+        },
+        {
+            target: 'team',
+            title: 'Une ligne par commercial',
+            body: 'Le tableau remplace les grandes grilles de tuiles par commercial. Les commerciaux en retard '
+                + 'sont en haut. La colonne Écart indique ce qui manque (−) ou ce qui a été versé en trop (+).\n'
+                + 'Cliquez sur une ligne pour ouvrir la fiche du commercial.'
+        },
+        {
+            target: 'catchups',
+            title: 'Rattrapages et tontine : deux colonnes',
+            body: 'La colonne Tontine ne compte que les cotisations de la période. La colonne Rattrapages compte '
+                + 'les cotisations de jours passés saisies pendant la période. Elles ne sont jamais comptées deux fois.'
+        },
+        {
+            target: 'cash',
+            title: 'La caisse',
+            body: 'Total encaissé de toutes les caisses, dépenses hors approvisionnement et solde de caisse, '
+                + 'comme dans l\'ancienne « Synthèse caisse ».'
+        },
+        {
+            target: 'portfolio',
+            title: 'Le portefeuille de l\'année',
+            body: 'Le bilan crédit de l\'année pour toute l\'équipe : portefeuille confié, versé, reste chez les clients. '
+                + 'Il ne dépend pas de la période choisie.'
+        },
+        {
+            target: 'nav',
+            title: 'Versements et journal',
+            body: '« Versements » liste chaque dépôt ventilé par compte, avec les surplus à équilibrer. '
+                + '« Journal » liste toutes les opérations de la période, avec un total par type.'
+        },
+        {
+            target: 'classic',
+            title: 'Où sont passées mes tuiles ?',
+            body: 'Tout est toujours là : les tuiles « A Verser (Crédit / Tontine / Solde Nx) » deviennent les colonnes '
+                + 'du tableau et la fiche commercial ; « Versé » et « Reste » sont les colonnes Versé et Écart.\n'
+                + 'Si vous préférez, « Ancienne présentation » ouvre l\'écran que vous connaissez, avec les mêmes filtres.'
+        },
+        {
+            target: 'help',
+            title: 'Revoir la visite',
+            body: 'Ce bouton relance la visite à tout moment. Bon pilotage !'
+        }
+    ]
+};
+
+/** Visite de la fiche commercial. */
+export const SHEET_TOUR: TourDefinition = {
+    id: 'report-commercial-sheet',
+    version: 1,
+    steps: [
+        {
+            target: 'equation',
+            title: 'Le rapprochement en une ligne',
+            body: 'Crédit + Tontine + Solde Nx + Rattrapages saisis = Dû à la caisse. '
+                + 'On retire ce qui a été versé : il reste l\'argent encore chez le commercial.'
+        },
+        {
+            target: 'activity',
+            title: 'L\'activité par domaine',
+            body: 'Crédit, Tontine et Clients regroupent les compteurs de l\'ancien écran '
+                + '(ventes, recouvrements, collectes, rattrapages, livraisons, nouveaux clients).'
+        },
+        {
+            target: 'trend',
+            title: '7 derniers jours',
+            body: 'Chaque jour, la barre claire montre ce qui était à verser, la barre foncée ce qui a été versé. '
+                + 'Une barre foncée plus courte signale un retard.'
+        },
+        {
+            target: 'yearly',
+            title: 'Les bilans de l\'année',
+            body: 'Bilan crédit et bilan tontine de l\'année, chargés quand vous arrivez sur cette section. '
+                + '« Reste chez les clients » ouvre le détail par crédit.'
+        },
+        {
+            target: 'sheet-nav',
+            title: 'Passer d\'un commercial à l\'autre',
+            body: 'Les flèches ‹ › ouvrent le commercial précédent ou suivant du cockpit, sans revenir en arrière.'
+        }
+    ]
+};
+
+/** Visite de l'écran Versements. */
+export const DEPOSITS_TOUR: TourDefinition = {
+    id: 'report-deposits',
+    version: 1,
+    steps: [
+        {
+            target: 'deposits-totals',
+            title: 'Les totaux par compte',
+            body: 'Total versé sur la période, réparti en crédit, tontine (rattrapages compris) et solde des nouveaux comptes. '
+                + 'Le surplus non catégorisé est l\'argent versé en plus de ce qui était dû.'
+        },
+        {
+            target: 'deposits-table',
+            title: 'Un dépôt par ligne',
+            body: 'Les lignes en surplus sont surlignées. « Équilibrer » affecte le surplus aux manquants du commercial. '
+                + 'Les rattrapages répartis sur des jours passés sont détaillés sous le dépôt.'
+        },
+        {
+            target: 'deposits-view',
+            title: 'La remise au gérant',
+            body: 'Le bouton « Remise secrétaire → gérant » ouvre la remise de la caisse, comme l\'ancien onglet « Remise ».'
+        }
+    ]
+};
+
+/** Visite du journal des opérations. */
+export const JOURNAL_TOUR: TourDefinition = {
+    id: 'report-journal',
+    version: 1,
+    steps: [
+        {
+            target: 'journal-types',
+            title: 'Un total par type',
+            body: 'Chaque carte donne le nombre et le montant d\'un type d\'opération. Cliquez dessus pour ne garder '
+                + 'que ce type ; cliquez à nouveau pour tout revoir.'
+        },
+        {
+            target: 'journal-export',
+            title: 'Exporter',
+            body: 'Le PDF reprend la période, le commercial et le type choisis.'
+        }
+    ]
+};

@@ -153,6 +153,8 @@ test.describe.serial('Tontine catch-up + notifications @p1 @web @august-2026 @re
     test.setTimeout(120_000);
     await loginAsGestionnaire(page);
     await page.getByTestId('e2e-sidebar-daily-report').click();
+    // Le menu ouvre le nouveau cockpit ; ces étapes vérifient l'ancienne présentation.
+    await page.getByTestId('e2e-report-cockpit-classic-link').click();
     await expect(page.getByTestId('e2e-daily-report')).toBeVisible({ timeout: 20_000 });
     await page.getByTestId('e2e-daily-report-filter-today').click();
     await selectNgSelectOption(page, 'e2e-daily-report-agent-select', TEST_COMMERCIAL_USERNAME);

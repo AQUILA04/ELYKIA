@@ -22,7 +22,7 @@ function monthEnd(year: number, month: number): string {
 }
 
 async function openRemittanceTab(page: Page): Promise<void> {
-  await page.goto('/report/daily');
+  await page.goto('/report/daily/classic');
   await page.getByTestId('e2e-daily-report-tab-remittance').click();
   await expect(page.getByTestId('e2e-cash-period-remittance-tab')).toBeVisible();
 }

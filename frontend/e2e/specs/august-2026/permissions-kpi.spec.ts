@@ -53,7 +53,7 @@ test.describe('Permissions KPI financiers @p0 @web @august-2026 @regression', ()
 
   test('W-P0-03 recov001 : rapport journalier — seul onglet Recouvrement', async ({ page }) => {
     await loginAsRecoveryManager(page);
-    await page.goto('/report/daily');
+    await page.goto('/report/daily/classic');
     await expect(page.getByTestId('e2e-daily-report')).toBeVisible();
     await expect(page.getByTestId('e2e-daily-report-tab-recovery')).toBeVisible();
     await expect(page.getByTestId('e2e-daily-report-tab-overview')).toHaveCount(0);

@@ -1,5 +1,6 @@
 import {
     cashDeskBalance,
+    cashDueBreakdown,
     cashEncaisseBreakdown,
     depositedForCashDesk,
     EMPTY_CATCHUP_CASH_ADJUSTMENT,
@@ -71,5 +72,23 @@ describe('cash-synthesis', () => {
         expect(depositedForCashDesk(8000, 7000)).toBe(15000);
         expect(depositedForCashDesk(15000, 0)).toBe(15000);
         expect(depositedForCashDesk(7000, -7000)).toBe(0);
+    });
+
+    it('reads catch-ups entered in the period, global and per commercial', () => {
+        const body = normalizeCatchupCashAdjustment({
+            catchupReceivedAmount: 1000,
+            catchupEnteredAmount: 3500,
+            byCommercial: [{ commercialUsername: 'COM005', catchupReceivedAmount: 1000, catchupEnteredAmount: 3000 }]
+        });
+        expect(body.catchupEnteredAmount).toBe(3500);
+        expect(body.byCommercial[0].catchupEnteredAmount).toBe(3000);
+        expect(body.byCommercial[0].deferredAmount).toBe(0);
+        expect(normalizeCatchupCashAdjustment({ amount: 10 }).catchupEnteredAmount).toBe(0);
+    });
+
+    it('adds catch-ups entered to the amount due for the period', () => {
+        expect(cashDueBreakdown(100300, 13300)).toEqual({ total: 113600, operations: 100300, catchups: 13300 });
+        expect(cashDueBreakdown(0, 0).total).toBe(0);
+        expect(cashDueBreakdown(NaN, 500).total).toBe(500);
     });
 });

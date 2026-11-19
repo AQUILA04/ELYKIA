@@ -1,0 +1,23 @@
+<section class="panel-card team-portfolio" aria-labelledby="portfolio-title" data-testid="e2e-report-team-portfolio">
+    <div class="panel-head">
+        <h2 id="portfolio-title">Portefeuille crédit {{ year }} · équipe</h2>
+        <span class="panel-hint">Cumul de l'année, indépendant de la période</span>
+    </div>
+    <div class="skeleton portfolio-skeleton" *ngIf="loading"></div>
+    <p class="panel-hint" *ngIf="failed">Le portefeuille de l'équipe n'a pas pu être chargé.</p>
+    <ng-container *ngIf="summary as s">
+        <div class="portfolio-bar" role="img"
+            [attr.aria-label]="'Versé ' + (depositedShare | number:'1.0-0') + ' % du portefeuille confié'">
+            <span class="portfolio-paid" [style.width.%]="depositedShare">Versé {{ depositedShare | number:'1.0-0' }} %</span>
+            <span class="portfolio-rest" [style.width.%]="100 - depositedShare"></span>
+        </div>
+        <div class="portfolio-grid">
+            <div><span class="kpi-label">Portefeuille confié</span><span class="num">{{ s.entrustedPortfolioAmount | fcfa }}</span></div>
+            <div><span class="kpi-label">Versé</span><span class="num">{{ s.creditDepositedAmount | fcfa }}</span></div>
+            <div><span class="kpi-label">Reste chez les commerciaux</span><span class="num">{{ s.remainingAtCommercialAmount | fcfa }}</span></div>
+            <div><span class="kpi-label">Reste chez les clients</span><span class="num gap-neg">{{ s.remainingAtClientAmount | fcfa }}</span></div>
+            <div><span class="kpi-label">Dette marchandise · réglée</span><span class="num">{{ s.merchandiseDebtGlobalAmount | fcfa }} · {{ s.merchandiseDebtSettledAmount | fcfa }}</span></div>
+        </div>
+        <p class="panel-hint">{{ s.commercialsCount }} commercial(aux) avec une activité en {{ year }}.</p>
+    </ng-container>
+</section>

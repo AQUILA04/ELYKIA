@@ -1,0 +1,141 @@
+:host {
+  --tour-navy: #003366;
+  --tour-navy-dark: #002244;
+  --tour-text: #1a2133;
+  --tour-muted: #5b6478;
+  --tour-border: #dde3ec;
+}
+
+.tour-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.tour-backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+
+.tour-backdrop--dim {
+  background: rgba(10, 20, 40, 0.55);
+}
+
+// Le projecteur : une ombre géante assombrit tout sauf la zone ciblée.
+.tour-spot {
+  position: fixed;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(10, 20, 40, 0.55);
+  outline: 2px solid #ffffff;
+  pointer-events: none;
+  transition: top .2s ease, left .2s ease, width .2s ease, height .2s ease;
+}
+
+.tour-popover {
+  position: fixed;
+  width: min(360px, calc(100vw - 32px));
+  background: #ffffff;
+  border: 1px solid var(--tour-border);
+  border-radius: 12px;
+  box-shadow: 0 12px 40px rgba(0, 34, 68, 0.25);
+  padding: 18px 20px 16px;
+  color: var(--tour-text);
+}
+
+.tour-popover--centered {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(440px, calc(100vw - 32px));
+}
+
+.tour-progress {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--tour-muted);
+}
+
+.tour-skip {
+  border: none;
+  background: transparent;
+  color: var(--tour-muted);
+  font: 600 12px 'Inter', sans-serif;
+  min-height: 32px;
+  padding: 0 6px;
+  cursor: pointer;
+
+  &:hover { color: var(--tour-navy); }
+}
+
+.tour-title {
+  margin: 8px 0 6px !important;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--tour-navy);
+  line-height: 1.3;
+}
+
+.tour-body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--tour-text);
+  white-space: pre-line;
+}
+
+.tour-dots {
+  display: flex;
+  gap: 5px;
+  margin: 14px 0 12px;
+}
+
+.tour-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--tour-border);
+  transition: width .2s;
+}
+
+.tour-dot--on {
+  width: 18px;
+  background: var(--tour-navy);
+}
+
+.tour-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.tour-btn {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+  font: 600 13px 'Inter', sans-serif;
+  cursor: pointer;
+}
+
+.tour-btn--ghost {
+  border: 1px solid var(--tour-border);
+  background: #ffffff;
+  color: var(--tour-text);
+
+  &:disabled { opacity: .45; cursor: default; }
+}
+
+.tour-btn--primary {
+  border: none;
+  background: var(--tour-navy);
+  color: #ffffff;
+
+  &:hover { background: var(--tour-navy-dark); }
+  &:focus-visible { outline: 3px solid #8fb3e0; outline-offset: 2px; }
+}

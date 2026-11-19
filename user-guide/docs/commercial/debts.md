@@ -22,6 +22,6 @@ Le menu **Dettes** vous permet de consulter vos positions ouvertes ou réglées 
 
 ## Bilan annuel
 
-Sur le **Rapport journalier**, le bilan annuel crédit affiche aussi la **Dette globale** et la **Dette réglée** de l’année pour votre portefeuille.
+Sur le **Rapport journalier** (votre fiche commercial), le bilan annuel crédit affiche aussi la **Dette globale** et la **Dette réglée** de l’année pour votre portefeuille.
 
 Les bilans crédit et tontine affichent **Total carnets** : la somme des carnets déjà contrôlés. Lorsqu’il reste des disparités à traiter, le sous-texte indique le montant des écarts encore ouverts.

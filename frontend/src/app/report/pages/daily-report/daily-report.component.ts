@@ -26,6 +26,8 @@ import { ExpenseService } from 'src/app/expense/services/expense.service';
 import { Expense } from 'src/app/expense/models/expense.model';
 import {
     cashDeskBalance,
+    CashDueBreakdown,
+    cashDueBreakdown,
     CashEncaisseBreakdown,
     cashEncaisseBreakdown,
     CatchupCashAdjustment,
@@ -162,6 +164,10 @@ export class DailyReportComponent implements OnInit {
         }
 
         const qp = this.route.snapshot.queryParamMap;
+        // Lien « Recouvrement terrain » du nouveau cockpit.
+        if (qp.get('tab') === 'recovery' && (this.isRecoveryManager || this.isManager)) {
+            this.activeTab = 'recovery';
+        }
         const collector = qp.get('collector');
         const startDate = qp.get('startDate');
         const endDate = qp.get('endDate');
@@ -496,6 +502,13 @@ export class DailyReportComponent implements OnInit {
     /** Total encaissé d'un commercial sur la période, avec le détail des rattrapages. */
     getCashBreakdown(report: DailyCommercialReport): CashEncaisseBreakdown {
         return this.cashBreakdownFor(report.commercialUsername, report.totalAmountDeposited || 0);
+    }
+
+    /** Dû à la caisse d'un commercial : A Verser de la période + rattrapages saisis hors période. */
+    getCashDueBreakdown(report: DailyCommercialReport): CashDueBreakdown {
+        const line = this.catchupCashAdjustment.byCommercial
+            .find(item => item.commercialUsername === report.commercialUsername);
+        return cashDueBreakdown(report.totalAmountToDeposit || 0, line?.catchupEnteredAmount || 0);
     }
 
     /**

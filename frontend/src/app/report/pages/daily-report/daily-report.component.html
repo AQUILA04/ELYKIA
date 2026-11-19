@@ -4,6 +4,11 @@
         <p class="page-subtitle">Filtres période et commercial appliqués à tous les onglets · Vue d’ensemble, journal, recouvrement terrain</p>
     </div>
 
+    <div class="classic-switch-banner" role="note" data-testid="e2e-daily-report-new-ui-banner">
+        <span>Vous consultez l'ancienne présentation du rapport.</span>
+        <a [routerLink]="['/report/daily']" data-testid="e2e-daily-report-new-ui-link">Découvrir la nouvelle présentation →</a>
+    </div>
+
     <!-- Filters Toolbar -->
     <div class="toolbar daily-report-filters">
         <div class="filter-fields">
@@ -625,7 +630,14 @@
                                     </div>
                                     <div class="kpi-card"
                                         [attr.data-testid]="'e2e-daily-report-cash-received-' + report.commercialUsername">
-                                        <span class="kpi-label">Total encaissé</span>
+                                        <span class="kpi-label">Dû à la caisse</span>
+                                        <span class="kpi-value"
+                                            [attr.data-testid]="'e2e-daily-report-cash-due-' + report.commercialUsername">{{ getCashDueBreakdown(report).total | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-hint">
+                                            Dû de la période : {{ getCashDueBreakdown(report).operations | currency:'XOF':'symbol':'1.0-0' }}
+                                            · Rattrapages saisis : {{ getCashDueBreakdown(report).catchups | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
+                                        <span class="kpi-label mt-2">Total encaissé</span>
                                         <span class="kpi-value">{{ getCashBreakdown(report).total | currency:'XOF':'symbol':'1.0-0' }}</span>
                                         <span class="kpi-hint">
                                             Opérations : {{ getCashBreakdown(report).operations | currency:'XOF':'symbol':'1.0-0' }}

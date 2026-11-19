@@ -6,10 +6,19 @@ import { FeatureFlags } from '../shared/service/feature-flag.service';
 import { ReportComponent } from './report/report.component';
 import { DailyReportComponent } from './pages/daily-report/daily-report.component';
 import { MonthlyReportsComponent } from './pages/monthly-reports/monthly-reports.component';
+import { ReportCockpitComponent } from './pages/report-cockpit/report-cockpit.component';
+import { CommercialSheetComponent } from './pages/commercial-sheet/commercial-sheet.component';
+import { ReportDepositsComponent } from './pages/report-deposits/report-deposits.component';
+import { ReportJournalComponent } from './pages/report-journal/report-journal.component';
 
 const routes: Routes = [
   { path: '', component: ReportComponent },
-  { path: 'daily', component: DailyReportComponent },
+  // Nouveau rapport commerciaux (ouvert par le menu). L'ancienne présentation reste sur /classic.
+  { path: 'daily', component: ReportCockpitComponent },
+  { path: 'daily/classic', component: DailyReportComponent },
+  { path: 'daily/commercials/:username', component: CommercialSheetComponent },
+  { path: 'daily/deposits', component: ReportDepositsComponent },
+  { path: 'daily/journal', component: ReportJournalComponent },
   {
     path: 'monthly',
     component: MonthlyReportsComponent,
