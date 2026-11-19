@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-19
+
+### Fixed
+
+- **CI —** le workflow E2E Web démarre le backend avec le profil `prod`, qui exige depuis le 18/11 le secret OAuth2 du Notification Hub (`client-secret requis`). Le workflow coupe maintenant le hub avec `NOTIFICATION_HUB_ENABLED=false`. Un test (`NotificationHubConfigDefaultsTest`) garde ce réglage. Les stacks test et prod du VPS ne sont pas touchées : le secret y est présent.
+
 ## Docs & Infra — 2026-11-18
 
 ### Added

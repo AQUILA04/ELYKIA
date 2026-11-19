@@ -173,6 +173,9 @@ jobs:
           MINIO_SECRET_KEY: elykia_e2e
           SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED: "true"
           LOCAL_SEED_PASSWORD: elykia_e2e_seed
+          # Le profil prod active Notification Hub + OAuth2 (secret Keycloak obligatoire).
+          # La CI ne joint pas le hub : on le coupe explicitement.
+          NOTIFICATION_HUB_ENABLED: "false"
         run: |
           # JwtUtils décode en Base64 — généré ici pour ne pas versionner de secret (gitleaks).
           export JWT_SECRET="$(openssl rand -base64 48 | tr -d '\n')"

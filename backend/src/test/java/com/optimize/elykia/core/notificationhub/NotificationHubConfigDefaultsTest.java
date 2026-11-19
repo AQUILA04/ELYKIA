@@ -38,6 +38,18 @@ class NotificationHubConfigDefaultsTest {
         assertFalse(envProd.lines().anyMatch(line -> line.equals("NOTIFICATION_HUB_ENABLED=false")));
     }
 
+    /**
+     * Le workflow E2E démarre le backend avec le profil prod, qui exige le secret OAuth2 du hub.
+     * La CI ne joint pas le hub : il doit être coupé explicitement.
+     */
+    @Test
+    void e2eWorkflowDisablesTheHubBecauseProdProfileRequiresOAuth2Secret() throws Exception {
+        String e2e = read("../.github/workflows/e2e.yml");
+
+        assertTrue(e2e.contains("--spring.profiles.active=prod"));
+        assertTrue(e2e.lines().anyMatch(line -> line.trim().equals("NOTIFICATION_HUB_ENABLED: \"false\"")));
+    }
+
     private static String read(String relativeToBackend) throws Exception {
         return Files.readString(Path.of(relativeToBackend));
     }
