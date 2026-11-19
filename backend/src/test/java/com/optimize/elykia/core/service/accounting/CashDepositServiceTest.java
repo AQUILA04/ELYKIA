@@ -438,6 +438,113 @@ class CashDepositServiceTest {
         verify(dailyOperationService, never()).logOperation(any(), any(), any(), any(), any());
     }
 
+    @Test
+    void createDeposit_withExplicitCatchup_reservesItForCatchupDatesAndKeepsTontineOnCaptureDay() {
+        CashDepositService service = service();
+        LocalDate captureDate = LocalDate.of(2026, 11, 19);
+        LocalDate older = LocalDate.of(2026, 11, 17);
+        LocalDate newer = LocalDate.of(2026, 11, 18);
+        // Billetage 1 000 : 300 crédit, 200 tontine du jour, 500 rattrapage.
+        CashDeposit deposit = deposit(captureDate, "commercial.a", 1_000.0, 300.0, 200.0, 0.0, 0.0);
+        deposit.setCatchupAmount(500.0);
+        DailyCommercialReport today = new DailyCommercialReport();
+        DailyCommercialReport report17 = new DailyCommercialReport();
+        DailyCommercialReport report18 = new DailyCommercialReport();
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.getUsername()).thenReturn("gestionnaire.a");
+        when(cashDepositRepository.existsByReference("DEP-001")).thenReturn(false);
+        when(dailyReportRepository.findByDateAndCommercialUsername(captureDate, "commercial.a"))
+                .thenReturn(Optional.of(today));
+        when(dailyReportRepository.findByDateAndCommercialUsername(older, "commercial.a"))
+                .thenReturn(Optional.of(report17));
+        when(dailyReportRepository.findByDateAndCommercialUsername(newer, "commercial.a"))
+                .thenReturn(Optional.of(report18));
+        when(catchupService.caps("commercial.a", captureDate)).thenReturn(List.of(
+                new CatchupCap(older, 300.0, 300.0, 300.0),
+                new CatchupCap(newer, 400.0, 400.0, 400.0)));
+        when(reportPersistence.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+        when(cashDepositRepository.save(any(CashDeposit.class))).thenAnswer(invocation -> {
+            CashDeposit saved = invocation.getArgument(0);
+            if (saved.getId() == null) {
+                saved.setId(saved.getParentDeposit() == null ? 90L : 91L);
+            }
+            return saved;
+        });
+
+        CashDeposit saved = service.createDeposit(deposit);
+
+        assertEquals(500.0, saved.getAmount());
+        assertEquals(300.0, saved.getCreditAmount());
+        assertEquals(200.0, saved.getTontineAmount());
+        assertEquals(200.0, today.getTotalTontineAmountDeposited());
+        assertEquals(300.0, report17.getTotalTontineAmountDeposited());
+        assertEquals(200.0, report18.getTotalTontineAmountDeposited());
+        verify(catchupService, never()).openTontine(any());
+        verify(dailyOperationService).logOperation(
+                eq("commercial.a"), eq(OperationType.CASH_DEPOSIT), eq(1_000.0), eq("Versement 90"),
+                contains("Rattrapages tontine"));
+    }
+
+    @Test
+    void createDeposit_rejectsExplicitCatchupAboveWhatIsOwed() {
+        CashDepositService service = service();
+        LocalDate captureDate = LocalDate.of(2026, 11, 19);
+        CashDeposit deposit = deposit(captureDate, "commercial.a", 1_000.0, 0.0, 0.0, 0.0, 0.0);
+        deposit.setCatchupAmount(1_000.0);
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.getUsername()).thenReturn("gestionnaire.a");
+        when(cashDepositRepository.existsByReference("DEP-001")).thenReturn(false);
+        when(dailyReportRepository.findByDateAndCommercialUsername(captureDate, "commercial.a"))
+                .thenReturn(Optional.of(new DailyCommercialReport()));
+        when(catchupService.caps("commercial.a", captureDate)).thenReturn(List.of(
+                new CatchupCap(LocalDate.of(2026, 11, 18), 400.0, 400.0, 400.0)));
+
+        IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
+                () -> service.createDeposit(deposit));
+
+        assertTrue(error.getMessage().contains("dépasse"));
+        verify(reportPersistence, never()).save(any());
+    }
+
+    @Test
+    void createDeposit_rejectsExplicitCatchupWhenTheSplitDoesNotMatchTheTotal() {
+        CashDepositService service = service();
+        CashDeposit deposit = deposit(LocalDate.of(2026, 11, 19), "commercial.a", 1_000.0, 300.0, 200.0, 0.0, 0.0);
+        deposit.setCatchupAmount(400.0);
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.getUsername()).thenReturn("gestionnaire.a");
+        when(cashDepositRepository.existsByReference("DEP-001")).thenReturn(false);
+
+        assertThrows(IllegalArgumentException.class, () -> service.createDeposit(deposit));
+        verify(reportPersistence, never()).save(any());
+    }
+
+    @Test
+    void catchupCashAdjustment_addsCatchupsEnteredInPeriodPerCommercial() {
+        CashDepositService service = service();
+        LocalDate today = LocalDate.of(2026, 11, 19);
+        when(cashDepositRepository.findCatchupLinesCrossingPeriod(today, today))
+                .thenReturn(List.of(catchupLine("COM005", LocalDate.of(2026, 11, 17), today, 1_000.0)));
+        java.util.Map<String, Double> entered = new java.util.TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+        entered.put("COM005", 3_000.0);
+        entered.put("COM009", 500.0);
+        when(catchupService.catchupEnteredByCommercial(today, today)).thenReturn(entered);
+
+        var adjustment = service.catchupCashAdjustment(today, today);
+
+        assertEquals(3_500.0, adjustment.getCatchupEnteredAmount());
+        assertEquals(1_000.0, adjustment.getCatchupReceivedAmount());
+        assertEquals(2, adjustment.getByCommercial().size());
+        var com005 = adjustment.getByCommercial().stream()
+                .filter(line -> line.getCommercialUsername().equals("COM005")).findFirst().orElseThrow();
+        assertEquals(3_000.0, com005.getCatchupEnteredAmount());
+        assertEquals(1_000.0, com005.getCatchupReceivedAmount());
+        var com009 = adjustment.getByCommercial().stream()
+                .filter(line -> line.getCommercialUsername().equals("COM009")).findFirst().orElseThrow();
+        assertEquals(500.0, com009.getCatchupEnteredAmount());
+        assertEquals(0.0, com009.getCatchupReceivedAmount());
+    }
+
     private CashDepositService service() {
         return new CashDepositService(cashDepositRepository, dailyReportRepository, reportPersistence,
                 dailyOperationService, userService, catchupService);

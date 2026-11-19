@@ -79,6 +79,34 @@ public final class CashDepositCategoryCalculator {
         }
     }
 
+    /** Règle avec rattrapage explicite : crédit + tontine + solde Nx + rattrapage + surplus = montant. */
+    public static void validateCategorySplit(Double amount, Double creditAmount, Double tontineAmount,
+            Double newBalanceAmount, Double surplusAmount, Double catchupAmount) {
+        double catchup = safe(catchupAmount);
+        if (catchup < 0) {
+            throw new IllegalArgumentException("Le rattrapage ne peut pas être négatif.");
+        }
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("Le montant total du versement doit être supérieur à 0.");
+        }
+        checkSplitWithCatchup(amount - catchup, creditAmount, tontineAmount, newBalanceAmount, surplusAmount);
+    }
+
+    private static void checkSplitWithCatchup(double rest, Double creditAmount, Double tontineAmount,
+            Double newBalanceAmount, Double surplusAmount) {
+        double credit = safe(creditAmount);
+        double tontine = safe(tontineAmount);
+        double newBalance = safe(newBalanceAmount);
+        double surplus = safe(surplusAmount);
+        if (credit < 0 || tontine < 0 || newBalance < 0 || surplus < 0) {
+            throw new IllegalArgumentException("Les montants par catégorie ne peuvent pas être négatifs.");
+        }
+        if (Math.abs(credit + tontine + newBalance + surplus - rest) > 0.01) {
+            throw new IllegalArgumentException(
+                    "La somme des catégories, du rattrapage et du surplus doit être égale au montant total du versement.");
+        }
+    }
+
     public static void validateCategorySplit(Double amount, Double creditAmount, Double tontineAmount,
             Double newBalanceAmount) {
         validateCategorySplit(amount, creditAmount, tontineAmount, newBalanceAmount, 0.0);

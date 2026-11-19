@@ -14,4 +14,6 @@ public class CatchupCashAdjustmentLineDto {
     private String commercialUsername;
     private double catchupReceivedAmount;
     private double deferredAmount;
+    /** Rattrapages saisis pendant la période pour une cotisation hors période. */
+    private double catchupEnteredAmount;
 }

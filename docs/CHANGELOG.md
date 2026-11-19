@@ -553,6 +553,19 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.55.0] — 2026-11-19
+
+### Added
+
+- **Rapport commerciaux (cockpit) —** `GET /api/daily-commercial-reports/cockpit` renvoie en un appel tout le cockpit équipe : une ligne de rapprochement par commercial (A Verser, rattrapages saisis, dû à la caisse, versé, reste, surplus, statut), les totaux de la période et de la période précédente (`compare`), la synthèse caisse et les points d'attention. Un commercial ne voit que sa ligne, sans la caisse.
+- **Rapport commerciaux (fiche) —** `GET /api/daily-commercial-reports/commercials/{username}/summary` : rapprochement, activité agrégée et série des 7 derniers jours.
+- **Portefeuille équipe —** `GET /api/daily-commercial-reports/yearly-summary/team?year=` additionne les bilans crédit de chaque commercial. Résultat en cache 5 minutes ; refusé à un commercial.
+- **Journal —** `GET /api/daily-operations/totals` : nombre et montant par type d'opération sur une période (une requête groupée).
+- **Versements —** `GET /api/cash-deposits/totals` (totaux par compte sur une période) et filtre `surplusOnly` sur la liste des versements.
+- **Rattrapage dans le versement —** `catchupAmount` (non persisté) sur `POST /api/cash-deposits`. Renseigné, il est réservé aux rattrapages et réparti du plus ancien au plus récent ; la tontine reste sur le jour de saisie. Un rattrapage supérieur au dû est refusé. Sans ce champ, le comportement précédent est conservé.
+- **Rattrapages saisis —** `catchup-cash-adjustment` renvoie `catchupEnteredAmount` (global et par commercial) : rattrapages saisis pendant la période pour une cotisation hors période. Ils s'ajoutent à « A Verser » pour former le dû à la caisse.
+- **Base —** migration `V042` : index sur `daily_operation_log (date, commercial_username, type)`, `cash_deposit (date, commercial_username)`, `daily_commercial_report (date)` et `tontine_collection (date_reg)` (lignes actives).
+
 ## Backend — [1.54.0] — 2026-11-19
 
 ### Added

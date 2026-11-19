@@ -5,6 +5,8 @@ import com.optimize.elykia.core.entity.report.DailyOperationLog;
 import com.optimize.elykia.core.enumaration.OperationType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -40,4 +42,25 @@ public interface DailyOperationLogRepository extends GenericRepository<DailyOper
 
         List<DailyOperationLog> findByDateBetweenAndCommercialUsernameAndType(LocalDate startDate, LocalDate endDate,
                         String commercialUsername, OperationType type);
+
+        /** Nombre et montant par type sur une période, toute l'équipe. Ligne : type, nombre, montant. */
+        @Query("""
+                        SELECT o.type, COUNT(o), COALESCE(SUM(o.amount), 0)
+                        FROM DailyOperationLog o
+                        WHERE o.date BETWEEN :startDate AND :endDate
+                        GROUP BY o.type
+                        """)
+        List<Object[]> sumByType(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+        /** Nombre et montant par type sur une période pour un commercial. */
+        @Query("""
+                        SELECT o.type, COUNT(o), COALESCE(SUM(o.amount), 0)
+                        FROM DailyOperationLog o
+                        WHERE o.date BETWEEN :startDate AND :endDate
+                          AND o.commercialUsername = :commercialUsername
+                        GROUP BY o.type
+                        """)
+        List<Object[]> sumByTypeForCommercial(@Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate,
+                        @Param("commercialUsername") String commercialUsername);
 }

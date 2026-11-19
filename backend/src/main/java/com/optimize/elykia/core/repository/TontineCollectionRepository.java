@@ -388,6 +388,24 @@ public interface TontineCollectionRepository extends GenericRepository<TontineCo
             @Param("dayStart") java.time.LocalDateTime dayStart,
             @Param("dayEnd") java.time.LocalDateTime dayEnd);
 
+    /**
+     * Rattrapages saisis pendant la période pour une cotisation hors période, par commercial.
+     * Ligne : [0] commercial, [1] montant.
+     */
+    @Query("""
+            SELECT tc.commercialUsername, COALESCE(SUM(tc.amount), 0)
+            FROM TontineCollection tc
+            WHERE tc.state = :state
+              AND tc.createdDate >= :periodStart
+              AND tc.createdDate < :periodEnd
+              AND (tc.collectionDate < :periodStart OR tc.collectionDate >= :periodEnd)
+            GROUP BY tc.commercialUsername
+            """)
+    java.util.List<Object[]> sumCatchupEnteredByCommercial(
+            @Param("state") State state,
+            @Param("periodStart") java.time.LocalDateTime periodStart,
+            @Param("periodEnd") java.time.LocalDateTime periodEnd);
+
     @Query("""
             SELECT new com.optimize.elykia.core.dto.TontineMemberContributionByCommercialDto(
                 tc.commercialUsername,

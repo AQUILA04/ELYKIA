@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.report;
 
+import com.optimize.elykia.core.dto.report.cockpit.OperationTypeTotalDto;
 import com.optimize.elykia.core.entity.report.DailyOperationLog;
 import com.optimize.elykia.core.dto.DailyOperationExportPdfDto;
 import com.optimize.elykia.core.enumaration.OperationType;
@@ -69,6 +70,23 @@ public class DailyOperationService {
         log.setReliquatGeneratedAmount(reliquatGeneratedAmount != null ? reliquatGeneratedAmount : 0.0);
         log.setReliquatUsedAmount(reliquatUsedAmount != null ? reliquatUsedAmount : 0.0);
         repository.save(log);
+    }
+
+    /** Totaux par type (une requête groupée), le plus gros montant d'abord. */
+    @Transactional(readOnly = true)
+    public List<OperationTypeTotalDto> getTotalsByType(LocalDate startDate, LocalDate endDate,
+            String commercialUsername) {
+        List<Object[]> rows = commercialUsername == null
+                ? repository.sumByType(startDate, endDate)
+                : repository.sumByTypeForCommercial(startDate, endDate, commercialUsername);
+        return rows.stream()
+                .filter(row -> row != null && row.length >= 3 && row[0] != null)
+                .map(row -> new OperationTypeTotalDto(
+                        (OperationType) row[0],
+                        row[1] != null ? ((Number) row[1]).longValue() : 0L,
+                        row[2] != null ? ((Number) row[2]).doubleValue() : 0.0))
+                .sorted(java.util.Comparator.comparingDouble(OperationTypeTotalDto::amount).reversed())
+                .toList();
     }
 
     public Page<DailyOperationLog> getOperations(LocalDate startDate, LocalDate endDate, String commercialUsername,

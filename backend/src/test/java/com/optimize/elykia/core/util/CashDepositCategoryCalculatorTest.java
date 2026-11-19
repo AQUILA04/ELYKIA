@@ -48,4 +48,17 @@ class CashDepositCategoryCalculatorTest {
         assertEquals(400.0, CashDepositCategoryCalculator.remainingTontine(report));
         assertEquals(150.0, CashDepositCategoryCalculator.remainingNewBalance(report));
     }
+
+    @Test
+    void validateCategorySplit_withCatchup_acceptsWhenCatchupCompletesTheTotal() {
+        CashDepositCategoryCalculator.validateCategorySplit(1_000.0, 300.0, 200.0, 0.0, 0.0, 500.0);
+    }
+
+    @Test
+    void validateCategorySplit_withCatchup_rejectsMismatchAndNegativeCatchup() {
+        assertThrows(IllegalArgumentException.class,
+                () -> CashDepositCategoryCalculator.validateCategorySplit(1_000.0, 300.0, 200.0, 0.0, 0.0, 400.0));
+        assertThrows(IllegalArgumentException.class,
+                () -> CashDepositCategoryCalculator.validateCategorySplit(1_000.0, 800.0, 400.0, 0.0, 0.0, -200.0));
+    }
 }

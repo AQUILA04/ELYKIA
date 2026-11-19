@@ -21,6 +21,7 @@ public class CacheConfig {
                 CacheNames.ARTICLES_ALL_LIST,
                 CacheNames.ARTICLES_PAGE,
                 CacheNames.ARTICLES_ENABLED_PAGE,
+                CacheNames.TEAM_YEARLY_SUMMARY,
                 com.optimize.elykia.client.config.ClientCacheNames.CLIENTS_BY_COMMERCIAL_PAGE,
                 com.optimize.elykia.client.config.ClientCacheNames.CLIENTS_PAGE
         );
