@@ -8,7 +8,65 @@ Ce guide détaille l'ensemble des modules d'analyse, d'archivage mensuel, d'inte
 
 Pour y accéder, rendez-vous dans le menu latéral et cliquez sur **Rapport Journalier**.
 
-Le **Rapport Journalier** est l'outil central de pilotage opérationnel d'ELYKIA. Il synthétise l'ensemble des flux d'exploitation sur la période sélectionnée et propose 5 onglets thématiques spécialisés.
+Le menu ouvre la **nouvelle présentation** du rapport : un cockpit qui montre en un écran ce que l'équipe doit remettre en caisse, ce qui a été versé et qui est en écart. L'**ancienne présentation**, organisée en onglets, reste disponible (voir plus bas).
+
+### Nouvelle présentation : pilotage des commerciaux
+
+<!-- CAPTURE À INSÉRER : Cockpit équipe avec les 4 chiffres, les points d'attention et le tableau équipe. -->
+
+#### Visite guidée
+À la première ouverture de chaque écran (cockpit, fiche commercial, versements, journal), une **visite guidée** présente les zones une par une : cliquez sur **Suivant**, **Précédent** ou **Passer** (la touche **Échap** ferme la visite, les flèches du clavier font avancer ou reculer). Elle n'est proposée qu'une fois ; le bouton **Visite guidée** en haut de l'écran la relance à tout moment.
+
+#### Filtres
+* **Période** : **Aujourd'hui**, **Semaine** (depuis lundi), **Mois**, ou **Dates** pour choisir une plage puis **Appliquer**.
+* **Commercial** : laisser vide pour toute l'équipe, ou choisir un commercial.
+* Les filtres suivent l'utilisateur d'un écran à l'autre (fiche, versements, journal) et restent dans l'adresse de la page : un lien copié rouvre le rapport sur la même période.
+
+#### Cockpit équipe
+1. **Les 4 chiffres à lire en premier** :
+   * **Dû à la caisse** : ce que les commerciaux doivent remettre pour la période. C'est l'« A Verser » des opérations de la période **plus les rattrapages saisis** pendant la période pour des jours passés. La sous-ligne détaille **Opérations · Rattrapages** et la variation par rapport à la période précédente de même durée (**vs hier** pour Aujourd'hui).
+   * **Versé au secrétariat** : total des versements portés sur la période, avec le surplus éventuel.
+   * **Reste à verser** : ce qui n'est pas encore rentré. À zéro, tout l'argent dû est en caisse.
+   * **Taux de versement** : part du dû déjà versée. Les **manquants antérieurs** (jours avant la période) sont rappelés dessous.
+2. **Points d'attention** : les écarts, du plus gros montant au plus petit — argent non versé, rattrapages non versés, surplus à équilibrer, manquants antérieurs. Un clic ouvre la fiche du commercial, ou l'écran Versements pour un surplus.
+3. **Tableau équipe** : une ligne par commercial, les commerciaux en retard en haut. Colonnes **Crédit**, **Tontine** (cotisations de la période), **Rattrapages** (cotisations de jours passés saisies pendant la période), **Dû caisse**, **Versé**, **Écart** (− manquant, + versé en trop) et **Statut** (*En retard*, *Surplus*, *À jour*, *Inactif*). Un rattrapage n'est jamais compté à la fois dans Tontine et dans Rattrapages. Un clic sur le nom ouvre la fiche.
+4. **Caisse** : total encaissé de toutes les caisses, dépenses hors approvisionnement, dépenses avec approvisionnement et **solde de caisse** (même calcul que l'ancienne « Synthèse caisse »).
+5. **Origine du dû** : répartition crédit, tontine, rattrapages et solde des nouveaux comptes.
+6. **Portefeuille crédit de l'année** (équipe) : portefeuille confié, versé, reste chez les commerciaux, reste chez les clients, dette marchandise. Il ne dépend pas de la période et se charge quand on fait défiler jusqu'à lui.
+7. Les boutons **Versements & rapprochement** et **Journal des opérations** ouvrent les deux écrans détaillés.
+
+#### Fiche commercial
+Ouverte depuis le tableau, une alerte ou le filtre Commercial. Un commercial connecté arrive directement sur sa propre fiche.
+* **Rapprochement de la période** : Crédit + Tontine + Solde Nx + Rattrapages = **Dû à la caisse** ; Dû − **Versé** = **Reste**. Les manquants antérieurs sont rappelés dessous.
+* **Activité** en trois blocs : **Crédit** (sortie stock, ventes, recouvrements, commandes, avances, reliquats), **Tontine** (collectes, rattrapages saisis et déjà versés, adhésions, livraisons), **Clients** (nouveaux clients, solde des nouveaux comptes, opérations).
+* **7 derniers jours** : pour chaque jour, ce qui était à verser (barre claire) et ce qui a été versé (barre foncée, orange en cas de retard).
+* **Bilans de l'année** crédit et tontine, avec **Reste chez les clients · détail**. Si les versements tontine dépassent les collectes, une mention **À vérifier** l'indique.
+* **Nouveau versement** (un seul jour affiché, montant restant dû) et **Équilibrer le surplus** sont disponibles ici. Les flèches **‹ ›** passent au commercial précédent ou suivant ; **Télécharger le PDF** reprend le rapport du commercial.
+
+#### Versements & rapprochement
+* Totaux de la période : **Total versé**, **Crédit**, **Tontine** (rattrapages compris), **Solde nouveaux comptes**, **Surplus non catégorisé**.
+* Un dépôt par ligne (heure, référence, commercial, reçu par, ventilation, total). Les lignes en surplus sont surlignées et proposent **Équilibrer**. Les rattrapages répartis sur des jours passés sont détaillés sous le dépôt. Le filtre **Avec surplus** ne garde que les dépôts concernés. Le gestionnaire peut **Annuler** un versement dans les 3 jours (l'administrateur sans délai).
+* **Remise secrétaire → gérant** ouvre la remise de caisse (ancien onglet « Remise »).
+
+#### Journal des opérations
+* Une carte par type d'opération avec son nombre et son montant ; un clic ne garde que ce type, un second clic l'enlève.
+* La liste est horodatée et paginée ; **Exporter en PDF** reprend la période, le commercial et le type choisis.
+
+#### Revenir à l'ancienne présentation
+Le lien **Ancienne présentation**, en haut du cockpit et de la fiche, ouvre l'écran en onglets décrit ci-dessous, sur la même période et le même commercial. Un bandeau en haut de l'ancienne présentation permet de revenir à la nouvelle. **Recouvrement terrain** ouvre directement l'onglet Recouvrement. Un chef de recouvrement sans indicateurs financiers arrive directement sur cet onglet.
+
+| Ancienne tuile | Où la trouver |
+|---|---|
+| A Verser (Crédit / Tontine / Solde Nx) | Colonnes Crédit, Tontine et Dû caisse du tableau ; rapprochement de la fiche |
+| Versé, Reste | Colonnes Versé et Écart ; rapprochement de la fiche |
+| Tontine Rattrapages | Colonne Rattrapages ; bloc Tontine de la fiche |
+| Synthèse caisse | Bloc Caisse du cockpit |
+| Bilan crédit / tontine | Bas de la fiche commercial ; portefeuille équipe en bas du cockpit |
+| Onglets Journal, Versements, Remise | Écrans Journal et Versements |
+
+### Ancienne présentation (onglets)
+
+L'ancienne présentation propose 5 onglets thématiques. Elle reste accessible pendant la transition.
 
 <!-- CAPTURE À INSÉRER : Écran du Rapport Journalier avec sélecteur de période, sélecteur de commercial, bouton Voir marges et onglets de navigation. -->
 
@@ -64,6 +122,7 @@ Sur la fiche d’un commercial (après sélection dans le filtre) :
 * **A Verser (Crédit / Tontine / Solde Nx)** : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.
 * **Versé** : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention **dont surplus non catégorisé** s’affiche sous le montant.
 * **Reste** : ce qui manque encore en crédit, tontine ou solde. Un montant déjà couvert par un surplus porte la mention **dont couvert par surplus** : il diminue le reste, sans changer le montant versé de ce jour.
+* **Dû à la caisse** : l'« A Verser » de la période plus les **rattrapages saisis** pendant la période pour des jours passés. La ligne **Dû de la période : … · Rattrapages saisis : …** détaille les deux parts. Une cotisation de la période saisie plus tard est déjà dans « A Verser » : elle n'est pas comptée deux fois.
 * **Total encaissé** : argent réellement remis par le commercial pendant la période. La ligne **Opérations : … · Rattrapages : …** sépare la part des opérations de la période de la part remise pour des jours précédents. Exemple : si le commercial remet 200 000, dont 150 000 pour les opérations d’aujourd’hui et 50 000 pour des journées passées, la carte affiche 200 000 avec **Opérations : 150 000 · Rattrapages : 50 000**. Les cartes **A Verser**, **Versé** et **Reste** restent celles des opérations de la période.
 
 #### Versement du jour
@@ -72,8 +131,10 @@ Lorsque la période affichée est un seul jour et qu’il reste un montant à re
 
 1. Cliquez sur **Faire un versement**.
 2. Comptez les espèces dans le billetage.
-3. Si des cotisations tontine de jours précédents ont été saisies ce jour-là, la fenêtre liste ces dates sous **Rattrapages du jour**. Le **Reste à verser** ajoute le total de ces rattrapages au crédit, à la tontine et au solde des nouveaux comptes du jour. Chaque date reçoit le montant saisi ce jour pour elle. Un montant plus ancien encore dû sur cette date n’est pas encaissé par ce versement : il reste à remettre sur sa propre date. Le jour en cours est servi d’abord, puis les dates de rattrapage les plus anciennes.
-4. Cliquez sur **Valider le versement**. Chaque date de cotisation reçoit sa part tontine. Ce qui dépasse les montants dus reste un surplus du jour d’encaissement.
+3. Si des cotisations tontine de jours précédents ont été saisies ce jour-là, la fenêtre affiche le KPI **Reste rattrapages** et un champ **Rattrapage**, séparé de la **Tontine du jour**. Le **Reste à verser** ajoute ces rattrapages au crédit, à la tontine et au solde des nouveaux comptes du jour. Chaque date reçoit au plus le montant saisi ce jour pour elle ; un montant plus ancien encore dû sur cette date reste à remettre sur sa propre date.
+4. Le champ **Rattrapage** est rempli automatiquement : le billetage sert d'abord le crédit, la tontine du jour et le solde des nouveaux comptes, puis les rattrapages, des dates les plus anciennes aux plus récentes. Vous pouvez le corriger à la main : le rattrapage saisi est alors réservé en premier et le reste du billetage est réparti sur les autres catégories. Une valeur saisie à la main est conservée si le billetage change. Un rattrapage supérieur au **Reste rattrapages** est signalé et refusé.
+5. La liste **Rattrapages du jour** montre la part de chaque date.
+6. Cliquez sur **Valider le versement**. Ce qui dépasse les montants dus reste un surplus du jour d’encaissement.
 
 <!-- CAPTURE À INSÉRER : Fenêtre Nouveau versement avec le bloc Rattrapages du jour. -->
 

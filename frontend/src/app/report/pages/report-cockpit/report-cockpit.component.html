@@ -103,7 +103,7 @@
             <ul class="alert-grid" *ngIf="c.alerts.length > 0">
                 <li *ngFor="let alert of c.alerts | slice:0:6; trackBy: trackByAlert">
                     <a class="alert-item" [ngClass]="alertClass(alert)"
-                        [routerLink]="['/report/daily/commercials', alert.commercialUsername]" [queryParams]="carryParams"
+                        [routerLink]="alertLink(alert)" [queryParams]="alertParams(alert)"
                         [attr.data-testid]="'e2e-report-cockpit-alert-' + alert.commercialUsername">
                         <span class="alert-bar" aria-hidden="true"></span>
                         <span class="alert-text">
@@ -217,6 +217,12 @@
                         <div><dt><i class="dot share-new"></i>Solde nouveaux comptes</dt><dd class="num">{{ c.totals.newBalance | fcfa }}</dd></div>
                     </dl>
                 </section>
+                <nav class="side-links" data-tour="nav" aria-label="Autres écrans du rapport">
+                    <a class="btn-ghost" [routerLink]="['/report/daily/deposits']" [queryParams]="filtersParams"
+                        data-testid="e2e-report-cockpit-deposits-link">Versements &amp; rapprochement →</a>
+                    <a class="btn-ghost" [routerLink]="['/report/daily/journal']" [queryParams]="filtersParams"
+                        data-testid="e2e-report-cockpit-journal-link">Journal des opérations →</a>
+                </nav>
             </aside>
         </div>
 

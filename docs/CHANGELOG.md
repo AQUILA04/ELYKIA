@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-20
+
+### Changed
+
+- **Guide utilisateur (gestionnaire) —** « Rapports & Configuration » décrit la nouvelle présentation du rapport journalier (cockpit, fiche commercial, versements, journal, visite guidée, dû à la caisse), le retour à l'ancienne présentation avec la correspondance des anciennes tuiles, et le champ « Rattrapage » du versement. Pages Finances (remise), Chef de recouvrement (accès à l'onglet Recouvrement) et Dettes commercial ajustées. Index RAG et guide HTML régénérés.
+
 ## Docs & Infra — 2026-11-19
 
 ### Fixed
@@ -115,6 +121,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.53.0] — 2026-11-20
+
+### Added
+
+- **Rapport commerciaux — Versements & rapprochement —** `/report/daily/deposits` : totaux de la période par compte (crédit, tontine rattrapages compris, solde Nx, surplus), un dépôt par ligne avec le détail des rattrapages, filtre « Avec surplus », bouton « Équilibrer » sur les lignes en surplus, annulation (gestionnaire 3 jours, administrateur sans délai) et vue « Remise secrétaire → gérant ».
+- **Rapport commerciaux — Journal des opérations —** `/report/daily/journal` : une carte par type d'opération (nombre et montant) qui sert de filtre, liste horodatée paginée, libellés en français, export PDF.
+- **Cockpit —** liens vers ces deux écrans ; une alerte de surplus ouvre Versements filtré sur le commercial. Visites guidées pour Versements et Journal.
 
 ## Frontend — [2.52.0] — 2026-11-20
 

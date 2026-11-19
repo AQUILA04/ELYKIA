@@ -1,0 +1,52 @@
+@import '../../styles/report-v2';
+
+.report-deposits-page {
+  .deposits-filters { margin-bottom: 16px; }
+
+  .deposits-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+  .ref { font-size: 13px; color: var(--text-muted); }
+
+  .row-surplus { background: var(--amber-pale); }
+  .row-cancel td { color: var(--text-muted); text-decoration: line-through; }
+
+  .row-detail td {
+    font-size: 12px;
+    color: var(--text-muted);
+    background: var(--navy-xpale);
+    border-top: none;
+    padding-top: 4px;
+  }
+
+  .actions { white-space: nowrap; text-align: right; }
+
+  .btn-row {
+    min-height: 34px;
+    padding: 0 12px;
+    margin-left: 4px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg-white);
+    color: var(--text);
+    font: 600 12px 'Inter', sans-serif;
+    cursor: pointer;
+
+    &:hover { border-color: var(--orange); color: var(--orange); }
+  }
+
+  .btn-row--surplus {
+    border: none;
+    background: var(--amber);
+    color: #ffffff;
+
+    &:hover { background: #6e4800; color: #ffffff; }
+  }
+
+  @media (max-width: 1100px) {
+    .deposits-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 600px) {
+    .deposits-kpis { grid-template-columns: minmax(0, 1fr); }
+  }
+}

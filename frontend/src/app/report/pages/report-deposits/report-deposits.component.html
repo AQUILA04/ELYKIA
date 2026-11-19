@@ -1,0 +1,153 @@
+<div class="main-container report-v2 report-deposits-page a1" data-testid="e2e-report-deposits">
+    <div class="breadcrumb-bar">
+        <a class="breadcrumb-link" [routerLink]="['/report/daily']" [queryParams]="carryParams" data-testid="e2e-report-deposits-back">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+            </svg>
+            Cockpit équipe
+        </a>
+    </div>
+
+    <div class="page-header-card a2">
+        <div class="header-card-main">
+            <div class="title-group">
+                <svg class="page-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2" y="6" width="20" height="12" rx="2" /><circle cx="12" cy="12" r="2.5" />
+                </svg>
+                <h1 class="page-title">Versements &amp; rapprochement</h1>
+            </div>
+            <div class="header-actions">
+                <div class="segmented" role="group" aria-label="Vue" *ngIf="canRemit" data-tour="deposits-view">
+                    <button type="button" class="seg-btn" [class.seg-btn--on]="view === 'deposits'"
+                        [attr.aria-pressed]="view === 'deposits'" (click)="setView('deposits')">Dépôts commerciaux</button>
+                    <button type="button" class="seg-btn" [class.seg-btn--on]="view === 'remittance'"
+                        [attr.aria-pressed]="view === 'remittance'" (click)="setView('remittance')"
+                        data-testid="e2e-report-deposits-remittance">Remise secrétaire → gérant</button>
+                </div>
+                <button type="button" class="btn-ghost" (click)="startTour()">Visite guidée</button>
+                <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="loading">Actualiser</button>
+            </div>
+        </div>
+        <p class="page-subtitle">Chaque dépôt ventilé par compte ; les surplus non catégorisés sont à équilibrer sur la ligne.</p>
+    </div>
+
+    <ng-container *ngIf="view === 'deposits'; else remittance">
+        <div class="a3 deposits-filters">
+            <app-report-filter-bar *ngIf="filters" [filters]="filters" [agents]="agents" [showCommercial]="!isPromoter"
+                (filtersChange)="onFiltersChange($event)"></app-report-filter-bar>
+        </div>
+
+        <div class="kpi-strip deposits-kpis a3" data-tour="deposits-totals" *ngIf="totals as t" data-testid="e2e-report-deposits-totals">
+            <div class="kpi-card kpi-total">
+                <span class="kpi-label">Total versé</span>
+                <span class="kpi-value">{{ t.amount | fcfa }}</span>
+                <span class="kpi-sub">{{ t.depositsCount }} dépôt(s)</span>
+            </div>
+            <div class="kpi-card kpi-amount">
+                <span class="kpi-label">Crédit</span>
+                <span class="kpi-value">{{ t.creditAmount | fcfa }}</span>
+            </div>
+            <div class="kpi-card kpi-green">
+                <span class="kpi-label">Tontine</span>
+                <span class="kpi-value">{{ t.tontineAmount | fcfa }}</span>
+                <span class="kpi-sub">Rattrapages compris</span>
+            </div>
+            <div class="kpi-card kpi-total">
+                <span class="kpi-label">Solde nouveaux comptes</span>
+                <span class="kpi-value">{{ t.newBalanceAmount | fcfa }}</span>
+            </div>
+            <div class="kpi-card" [class.kpi-delai]="t.surplusAmount > 0.01" [class.kpi-green]="t.surplusAmount <= 0.01">
+                <span class="kpi-label">Surplus non catégorisé</span>
+                <span class="kpi-value">{{ t.surplusAmount | fcfa }}</span>
+            </div>
+        </div>
+
+        <div class="panel-card empty-state" *ngIf="error && !loading" role="alert">
+            <div class="empty-icon">⚠️</div>
+            <div class="empty-title">Les versements n'ont pas pu être chargés.</div>
+        </div>
+
+        <section class="table-card a4" aria-labelledby="deposits-title">
+            <div class="panel-head table-head">
+                <h2 id="deposits-title">Dépôts de la période</h2>
+                <div class="chips" role="group" aria-label="Filtre">
+                    <button type="button" class="chip" [class.chip--on]="!surplusOnly" [attr.aria-pressed]="!surplusOnly"
+                        (click)="setSurplusOnly(false)">Tous</button>
+                    <button type="button" class="chip" [class.chip--on]="surplusOnly" [attr.aria-pressed]="surplusOnly"
+                        (click)="setSurplusOnly(true)" data-testid="e2e-report-deposits-surplus-only">Avec surplus</button>
+                </div>
+            </div>
+            <div class="table-wrapper" data-tour="deposits-table">
+                <table class="data-table" data-testid="e2e-report-deposits-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">Heure</th>
+                            <th scope="col">Référence</th>
+                            <th scope="col">Commercial</th>
+                            <th scope="col">Reçu par</th>
+                            <th scope="col" class="r">Crédit</th>
+                            <th scope="col" class="r">Tontine</th>
+                            <th scope="col" class="r">Solde Nx</th>
+                            <th scope="col" class="r">Surplus</th>
+                            <th scope="col" class="r">Total</th>
+                            <th scope="col"><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <ng-container *ngFor="let dep of pageRows; trackBy: trackById">
+                            <tr [class.row-surplus]="(dep.surplusAmount || 0) > 0.01" [class.row-cancel]="depositTotal(dep) < 0">
+                                <td class="num">{{ dep.date | date:'dd/MM' }} {{ dep.createdAt | date:'HH:mm' }}</td>
+                                <td class="num ref">
+                                    {{ dep.reference }}
+                                    <span class="cell-sub" *ngIf="showCaptureHint(dep)">Encaissé le {{ dep.captureDate | date:'dd/MM/yyyy' }}</span>
+                                </td>
+                                <td><a class="row-link" [routerLink]="['/report/daily/commercials', dep.commercialUsername]" [queryParams]="sheetParams">{{ dep.commercialUsername }}</a></td>
+                                <td>{{ dep.receivedBy }}</td>
+                                <td class="r num">{{ (dep.creditAmount ?? dep.amount) | fcfa:'bare' }}</td>
+                                <td class="r num">{{ depositTontine(dep) | fcfa:'bare' }}</td>
+                                <td class="r num">{{ (dep.newBalanceAmount || 0) | fcfa:'bare' }}</td>
+                                <td class="r num" [class.gap-pos]="(dep.surplusAmount || 0) > 0.01">{{ (dep.surplusAmount || 0) | fcfa:'bare' }}</td>
+                                <td class="r num"><strong>{{ depositTotal(dep) | fcfa:'bare' }}</strong></td>
+                                <td class="actions">
+                                    <button type="button" class="btn-row btn-row--surplus" *ngIf="canRebalance && (dep.surplusAmount || 0) > 0.01"
+                                        (click)="rebalance(dep)" data-testid="e2e-report-deposits-rebalance">Équilibrer</button>
+                                    <button type="button" class="btn-row" *ngIf="canCancel(dep)" (click)="cancel(dep)"
+                                        [attr.aria-label]="'Annuler le versement ' + dep.reference">Annuler</button>
+                                </td>
+                            </tr>
+                            <tr class="row-detail" *ngIf="dep.catchupAllocations?.length">
+                                <td colspan="10">
+                                    Rattrapages {{ depositCatchup(dep) | fcfa }} :
+                                    <span *ngFor="let slice of dep.catchupAllocations; let last = last">{{ slice.date | date:'dd/MM/yyyy' }} {{ slice.amount | fcfa }}<span *ngIf="!last"> · </span></span>
+                                </td>
+                            </tr>
+                        </ng-container>
+                        <tr *ngIf="!loading && pageRows.length === 0">
+                            <td colspan="10">
+                                <div class="empty-state">
+                                    <div class="empty-icon">💳</div>
+                                    <div class="empty-title">{{ surplusOnly ? 'Aucun versement avec surplus' : 'Aucun versement sur la période' }}</div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pager" *ngIf="totalElements > pageSize">
+                <span class="panel-hint">Page {{ page + 1 }} / {{ pageCount }} · {{ totalElements }} ligne(s)</span>
+                <div class="pager-btns">
+                    <button type="button" class="btn-ghost" [disabled]="page === 0" (click)="goToPage(page - 1)" aria-label="Page précédente">‹</button>
+                    <button type="button" class="btn-ghost" [disabled]="page + 1 >= pageCount" (click)="goToPage(page + 1)" aria-label="Page suivante">›</button>
+                </div>
+            </div>
+        </section>
+    </ng-container>
+
+    <ng-template #remittance>
+        <section class="panel-card a3" data-testid="e2e-report-deposits-remittance-panel">
+            <app-cash-period-remittance-tab></app-cash-period-remittance-tab>
+        </section>
+    </ng-template>
+
+    <app-guided-tour></app-guided-tour>
+</div>

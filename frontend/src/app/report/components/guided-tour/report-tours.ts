@@ -56,6 +56,12 @@ export const COCKPIT_TOUR: TourDefinition = {
                 + 'Il ne dépend pas de la période choisie.'
         },
         {
+            target: 'nav',
+            title: 'Versements et journal',
+            body: '« Versements » liste chaque dépôt ventilé par compte, avec les surplus à équilibrer. '
+                + '« Journal » liste toutes les opérations de la période, avec un total par type.'
+        },
+        {
             target: 'classic',
             title: 'Où sont passées mes tuiles ?',
             body: 'Tout est toujours là : les tuiles « A Verser (Crédit / Tontine / Solde Nx) » deviennent les colonnes '
@@ -103,6 +109,50 @@ export const SHEET_TOUR: TourDefinition = {
             target: 'sheet-nav',
             title: 'Passer d\'un commercial à l\'autre',
             body: 'Les flèches ‹ › ouvrent le commercial précédent ou suivant du cockpit, sans revenir en arrière.'
+        }
+    ]
+};
+
+/** Visite de l'écran Versements. */
+export const DEPOSITS_TOUR: TourDefinition = {
+    id: 'report-deposits',
+    version: 1,
+    steps: [
+        {
+            target: 'deposits-totals',
+            title: 'Les totaux par compte',
+            body: 'Total versé sur la période, réparti en crédit, tontine (rattrapages compris) et solde des nouveaux comptes. '
+                + 'Le surplus non catégorisé est l\'argent versé en plus de ce qui était dû.'
+        },
+        {
+            target: 'deposits-table',
+            title: 'Un dépôt par ligne',
+            body: 'Les lignes en surplus sont surlignées. « Équilibrer » affecte le surplus aux manquants du commercial. '
+                + 'Les rattrapages répartis sur des jours passés sont détaillés sous le dépôt.'
+        },
+        {
+            target: 'deposits-view',
+            title: 'La remise au gérant',
+            body: 'Le bouton « Remise secrétaire → gérant » ouvre la remise de la caisse, comme l\'ancien onglet « Remise ».'
+        }
+    ]
+};
+
+/** Visite du journal des opérations. */
+export const JOURNAL_TOUR: TourDefinition = {
+    id: 'report-journal',
+    version: 1,
+    steps: [
+        {
+            target: 'journal-types',
+            title: 'Un total par type',
+            body: 'Chaque carte donne le nombre et le montant d\'un type d\'opération. Cliquez dessus pour ne garder '
+                + 'que ce type ; cliquez à nouveau pour tout revoir.'
+        },
+        {
+            target: 'journal-export',
+            title: 'Exporter',
+            body: 'Le PDF reprend la période, le commercial et le type choisis.'
         }
     ]
 };

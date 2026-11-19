@@ -78,7 +78,7 @@ Pour saisir une nouvelle dépense, cliquez sur le bouton bleu **« + Nouvelle d�
 
 ## 4. Remise de trésorerie au gestionnaire
 
-Pour y accéder, rendez-vous dans le menu latéral **Rapport Journalier**, puis cliquez sur l'onglet **Remise**.
+Pour y accéder, ouvrez **Rapport Journalier**, puis **Versements & rapprochement** et le bouton **Remise secrétaire → gérant**. Dans l'ancienne présentation, c'est l'onglet **Remise**.
 
 La **Remise** est le processus formel par lequel le caissier ou la secrétaire verse au gestionnaire de l'agence les espèces collectées sur une période, en déduisant les dépenses d'exploitation autorisées.
 

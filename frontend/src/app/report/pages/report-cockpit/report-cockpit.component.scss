@@ -137,6 +137,14 @@
     display: inline-block;
   }
 
+  .side-links {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    a { justify-content: space-between; min-height: 44px; }
+  }
+
   .portfolio-slot { margin-bottom: 16px; }
   .portfolio-skeleton { height: 90px; }
   .kpi-skeleton { height: 96px; }
