@@ -186,6 +186,24 @@ export class ReportCockpitComponent implements OnInit, OnDestroy {
         return filtersToParams({ ...this.filters, commercial: null });
     }
 
+    /** Paramètres de période et de commercial, pour Versements et Journal. */
+    get filtersParams(): Record<string, string | null> {
+        return filtersToParams(this.filters);
+    }
+
+    /** Un surplus se traite dans Versements ; les autres écarts dans la fiche du commercial. */
+    alertLink(alert: CockpitAlert): string[] {
+        return alert.type === 'SURPLUS'
+            ? ['/report/daily/deposits']
+            : ['/report/daily/commercials', alert.commercialUsername];
+    }
+
+    alertParams(alert: CockpitAlert): Record<string, string | null> {
+        return alert.type === 'SURPLUS'
+            ? { ...filtersToParams({ ...this.filters, commercial: alert.commercialUsername }), surplus: '1' }
+            : this.carryParams;
+    }
+
     variation(current: number, previous: number | undefined | null): number | null {
         return variationPercent(current, previous);
     }

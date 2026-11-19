@@ -64,7 +64,7 @@ La vérification administrative du carnet est une action distincte du contrôle 
 
 ## Suivre le rapport de recouvrement
 
-Ouvrez **Rapport Journalier**, appliquez la période et, lorsque l’interface le demande, choisissez le commercial. Le segment **Recouvrement** est disponible au Chef de recouvrement ou au gestionnaire. Un gestionnaire peut également filtrer le rapport par identifiant de Chef de recouvrement.
+Ouvrez **Rapport Journalier** : un Chef de recouvrement arrive directement sur l’onglet **Recouvrement** de la présentation en onglets ; un gestionnaire y accède par le lien **Recouvrement terrain** du cockpit. Appliquez la période et, lorsque l’interface le demande, choisissez le commercial. Le segment **Recouvrement** est disponible au Chef de recouvrement ou au gestionnaire. Un gestionnaire peut également filtrer le rapport par identifiant de Chef de recouvrement.
 
 <!-- CAPTURE À INSÉRER : Segment web Recouvrement du Rapport Journalier avec les KPI et le tableau À remettre par commercial. -->
 

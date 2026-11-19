@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 import { DailyOperationLog } from '../models/daily-operation-log.model';
+import { OperationTypeTotal } from '../models/operation-types';
 
 @Injectable({
     providedIn: 'root'
@@ -35,6 +36,15 @@ export class DailyOperationService {
         }
 
         return this.http.get<any>(this.operationsUrl, { params });
+    }
+
+    /** Nombre et montant par type d'opération sur la période (une requête groupée). */
+    getTotals(startDate: string, endDate: string, commercialUsername?: string | null): Observable<OperationTypeTotal[]> {
+        let params = new HttpParams().set('startDate', startDate).set('endDate', endDate);
+        if (commercialUsername) {
+            params = params.set('commercialUsername', commercialUsername);
+        }
+        return this.http.get<OperationTypeTotal[]>(`${this.operationsUrl}/totals`, { params });
     }
 
     exportPdf(

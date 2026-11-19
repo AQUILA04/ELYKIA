@@ -38,6 +38,8 @@ import { GuidedTourComponent } from './components/guided-tour/guided-tour.compon
 import { TeamPortfolioComponent } from './components/team-portfolio/team-portfolio.component';
 import { CommercialYearlyComponent } from './components/commercial-yearly/commercial-yearly.component';
 import { FcfaPipe } from './shared/fcfa.pipe';
+import { ReportDepositsComponent } from './pages/report-deposits/report-deposits.component';
+import { ReportJournalComponent } from './pages/report-journal/report-journal.component';
 
 @NgModule({
   declarations: [
@@ -56,6 +58,8 @@ import { FcfaPipe } from './shared/fcfa.pipe';
     TeamPortfolioComponent,
     CommercialYearlyComponent,
     FcfaPipe,
+    ReportDepositsComponent,
+    ReportJournalComponent,
   ],
   imports: [
     CommonModule,

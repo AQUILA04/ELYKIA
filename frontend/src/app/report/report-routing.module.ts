@@ -8,6 +8,8 @@ import { DailyReportComponent } from './pages/daily-report/daily-report.componen
 import { MonthlyReportsComponent } from './pages/monthly-reports/monthly-reports.component';
 import { ReportCockpitComponent } from './pages/report-cockpit/report-cockpit.component';
 import { CommercialSheetComponent } from './pages/commercial-sheet/commercial-sheet.component';
+import { ReportDepositsComponent } from './pages/report-deposits/report-deposits.component';
+import { ReportJournalComponent } from './pages/report-journal/report-journal.component';
 
 const routes: Routes = [
   { path: '', component: ReportComponent },
@@ -15,6 +17,8 @@ const routes: Routes = [
   { path: 'daily', component: ReportCockpitComponent },
   { path: 'daily/classic', component: DailyReportComponent },
   { path: 'daily/commercials/:username', component: CommercialSheetComponent },
+  { path: 'daily/deposits', component: ReportDepositsComponent },
+  { path: 'daily/journal', component: ReportJournalComponent },
   {
     path: 'monthly',
     component: MonthlyReportsComponent,

@@ -66,6 +66,35 @@ test.describe('Rapport commerciaux — cockpit', () => {
     await expect(page.getByTestId('e2e-guided-tour')).toHaveCount(0);
   });
 
+  test('Versements : totaux par compte, filtre surplus et retour au cockpit', async ({ page }) => {
+    await loginAsGestionnaire(page);
+    await page.goto('/report/daily?period=month');
+    await page.getByTestId('e2e-report-cockpit-deposits-link').click();
+    await expect(page).toHaveURL(/\/report\/daily\/deposits\?.*period=month/);
+    await expect(page.getByTestId('e2e-report-deposits-totals')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('e2e-report-deposits-table')).toBeVisible();
+    await page.getByTestId('e2e-report-deposits-surplus-only').click();
+    await expect(page).toHaveURL(/surplus=1/);
+    await page.getByTestId('e2e-report-deposits-remittance').click();
+    await expect(page.getByTestId('e2e-report-deposits-remittance-panel')).toBeVisible();
+    await page.getByTestId('e2e-report-deposits-back').click();
+    await expect(page.getByTestId('e2e-report-cockpit')).toBeVisible();
+  });
+
+  test('Journal : liste des opérations et filtre par type', async ({ page }) => {
+    await loginAsGestionnaire(page);
+    await page.goto('/report/daily?period=month');
+    await page.getByTestId('e2e-report-cockpit-journal-link').click();
+    await expect(page.getByTestId('e2e-report-journal')).toBeVisible();
+    await expect(page.getByTestId('e2e-report-journal-table')).toBeVisible({ timeout: 20_000 });
+    const firstType = page.getByTestId('e2e-report-journal-types').locator('button').first();
+    if (await firstType.count()) {
+      await firstType.click();
+      await expect(page).toHaveURL(/type=/);
+      await expect(firstType).toHaveAttribute('aria-pressed', 'true');
+    }
+  });
+
   test('un chef de recouvrement sans KPI financiers arrive sur l\'onglet Recouvrement', async ({ page }) => {
     await loginAsRecoveryManager(page);
     await page.goto('/report/daily');

@@ -5,6 +5,7 @@ import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { CatchupCashAdjustment, normalizeCatchupCashAdjustment } from '../models/cash-synthesis';
 import { SurplusReallocation, SurplusReallocationOptions } from '../models/surplus-reallocation.model';
+import { CashDepositTotals } from '../models/deposit-display';
 
 @Injectable({
     providedIn: 'root'
@@ -79,7 +80,8 @@ export class CashDepositService {
         return this.http.get<SurplusReallocation[]>(`${this.apiUrl}/surplus-reallocations`, { params });
     }
 
-    getDeposits(startDate: string, endDate: string, commercialUsername?: string, page: number = 0, size: number = 20): Observable<any> {
+    getDeposits(startDate: string, endDate: string, commercialUsername?: string, page: number = 0, size: number = 20,
+        surplusOnly = false): Observable<any> {
         let params = new HttpParams()
             .set('startDate', startDate)
             .set('endDate', endDate)
@@ -90,8 +92,20 @@ export class CashDepositService {
         if (commercialUsername) {
             params = params.set('commercialUsername', commercialUsername);
         }
+        if (surplusOnly) {
+            params = params.set('surplusOnly', 'true');
+        }
 
         return this.http.get<any>(this.apiUrl, { params });
+    }
+
+    /** Totaux des versements d'une période, par compte (une requête). */
+    getTotals(startDate: string, endDate: string, commercialUsername?: string | null): Observable<CashDepositTotals> {
+        let params = new HttpParams().set('startDate', startDate).set('endDate', endDate);
+        if (commercialUsername) {
+            params = params.set('commercialUsername', commercialUsername);
+        }
+        return this.http.get<CashDepositTotals>(`${this.apiUrl}/totals`, { params });
     }
 
     getOperations(date: string, commercialUsername?: string): Observable<any> {
