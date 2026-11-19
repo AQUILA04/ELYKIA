@@ -54,7 +54,7 @@ Sur la Vue d'ensemble, le bloc **Synthèse caisse** reprend l'ensemble des caiss
 
 1. **Dépenses (avec approvisionnement)** : total de toutes les dépenses de la période, approvisionnements compris.
 2. **Dépenses (sans approvisionnement)** : total des dépenses de la période, hors approvisionnements.
-3. **Total versé (période)** : argent remis en caisse pendant la période, pour l'ensemble des commerciaux. Les rattrapages de jours précédents remis pendant cette période sont inclus. Un rattrapage remis un autre jour n'entre pas dans ce total.
+3. **Total versé (période)** : argent remis en caisse pendant la période, pour l'ensemble des commerciaux. Les rattrapages de jours précédents remis pendant cette période sont inclus. Un rattrapage remis un autre jour n'entre pas dans ce total. Sous le montant, la ligne **Opérations : … · Rattrapages : …** détaille ce qui appartient aux opérations de la période et ce qui a été remis pour des jours précédents. Si des cotisations de la période ont été remises à une autre date, la mention **Versé après la période** indique leur montant.
 4. **Solde de caisse** : total versé moins les dépenses sans approvisionnement. C'est l'argent resté en caisse à la fin de la journée, ou de la période sélectionnée.
 
 <!-- CAPTURE À INSÉRER : Bloc Synthèse caisse de la Vue d'ensemble avec les quatre montants. -->
@@ -64,6 +64,7 @@ Sur la fiche d’un commercial (après sélection dans le filtre) :
 * **A Verser (Crédit / Tontine / Solde Nx)** : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.
 * **Versé** : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention **dont surplus non catégorisé** s’affiche sous le montant.
 * **Reste** : ce qui manque encore en crédit, tontine ou solde. Un montant déjà couvert par un surplus porte la mention **dont couvert par surplus** : il diminue le reste, sans changer le montant versé de ce jour.
+* **Total encaissé** : argent réellement remis par le commercial pendant la période. La ligne **Opérations : … · Rattrapages : …** sépare la part des opérations de la période de la part remise pour des jours précédents. Exemple : si le commercial remet 200 000, dont 150 000 pour les opérations d’aujourd’hui et 50 000 pour des journées passées, la carte affiche 200 000 avec **Opérations : 150 000 · Rattrapages : 50 000**. Les cartes **A Verser**, **Versé** et **Reste** restent celles des opérations de la période.
 
 #### Versement du jour
 

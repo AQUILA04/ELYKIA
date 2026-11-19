@@ -5,6 +5,7 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.report.CashDepositSliceDto;
 import com.optimize.elykia.core.dto.report.CatchupCashAdjustmentDto;
+import com.optimize.elykia.core.dto.report.CatchupCashAdjustmentLineDto;
 import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.enumaration.OperationType;
@@ -217,17 +218,42 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
      */
     public CatchupCashAdjustmentDto catchupCashAdjustment(LocalDate start, LocalDate end) {
         if (start == null || end == null || end.isBefore(start)) {
-            return new CatchupCashAdjustmentDto(0.0);
+            return CatchupCashAdjustmentDto.empty();
         }
         List<CashDeposit> lines = cashDepositRepository().findCatchupLinesCrossingPeriod(start, end);
         if (lines == null || lines.isEmpty()) {
-            return new CatchupCashAdjustmentDto(0.0);
+            return CatchupCashAdjustmentDto.empty();
         }
-        double amount = lines.stream()
-                .mapToDouble(line -> catchupLineAdjustment(
-                        start, end, line.getCaptureDate(), line.getDate(), safe(line.getAmount())))
-                .sum();
-        return new CatchupCashAdjustmentDto(amount);
+        // [0] = rattrapages remis dans la période, [1] = cotisations de la période remises hors période.
+        Map<String, double[]> byCommercial = new LinkedHashMap<>();
+        double received = 0.0;
+        double deferred = 0.0;
+        for (CashDeposit line : lines) {
+            if (line.getCaptureDate() == null || line.getDate() == null) {
+                continue;
+            }
+            boolean capturedInPeriod = isWithin(line.getCaptureDate(), start, end);
+            boolean collectedInPeriod = isWithin(line.getDate(), start, end);
+            if (capturedInPeriod == collectedInPeriod) {
+                continue;
+            }
+            // Une annulation (montant négatif) se compense dans la même catégorie que la ligne d'origine.
+            double amount = safe(line.getAmount());
+            String commercial = line.getCommercialUsername() != null ? line.getCommercialUsername() : "";
+            double[] bucket = byCommercial.computeIfAbsent(commercial, key -> new double[2]);
+            if (capturedInPeriod) {
+                bucket[0] += amount;
+                received += amount;
+            } else {
+                bucket[1] += amount;
+                deferred += amount;
+            }
+        }
+        List<CatchupCashAdjustmentLineDto> details = byCommercial.entrySet().stream()
+                .map(entry -> new CatchupCashAdjustmentLineDto(
+                        entry.getKey(), entry.getValue()[0], entry.getValue()[1]))
+                .toList();
+        return new CatchupCashAdjustmentDto(received - deferred, received, deferred, new ArrayList<>(details));
     }
 
     /**
@@ -235,6 +261,10 @@ public class CashDepositService extends GenericService<CashDeposit, Long> {
      * Cotisation dans la période encaissée hors période : montant retiré.
      * Une annulation porte un montant négatif et se compense avec la ligne d'origine.
      */
+    private static boolean isWithin(LocalDate date, LocalDate start, LocalDate end) {
+        return date != null && !date.isBefore(start) && !date.isAfter(end);
+    }
+
     static double catchupLineAdjustment(LocalDate start, LocalDate end, LocalDate captureDate,
             LocalDate collectionDate, double amount) {
         if (start == null || end == null || captureDate == null || collectionDate == null) {

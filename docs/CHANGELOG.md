@@ -110,6 +110,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.51.0] — 2026-11-19
+
+### Added
+
+- **Rapport journalier —** nouvelle carte **Total encaissé** sur la fiche de chaque commercial, avec le détail **Opérations** (rattachées à la période) et **Rattrapages** (remis pour des jours précédents). La **Synthèse caisse** affiche le même détail sous **Total versé (période)**, avec **Versé après la période** si des cotisations de la période ont été remises à une autre date. Les montants des cartes **A Verser**, **Versé** et **Reste** ne changent pas.
+
 ## Frontend — [2.50.5] — 2026-11-18
 
 ### Added
@@ -540,6 +546,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.54.0] — 2026-11-19
+
+### Added
+
+- Ajustement de caisse des rattrapages : `GET api/cash-deposits/catchup-cash-adjustment` renvoie, en plus du net (`amount`), les rattrapages remis dans la période (`catchupReceivedAmount`), les cotisations de la période remises hors période (`deferredAmount`) et le détail par commercial (`byCommercial`). Les annulations se compensent dans la catégorie de la ligne d'origine.
 
 ## Backend — [1.53.5] — 2026-11-18
 

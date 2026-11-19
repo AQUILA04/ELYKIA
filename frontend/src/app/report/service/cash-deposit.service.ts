@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { CatchupCashAdjustment, normalizeCatchupCashAdjustment } from '../models/cash-synthesis';
 import { SurplusReallocation, SurplusReallocationOptions } from '../models/surplus-reallocation.model';
 
 @Injectable({
@@ -14,12 +15,12 @@ export class CashDepositService {
 
     constructor(private http: HttpClient) { }
 
-    getCatchupCashAdjustment(startDate: string, endDate: string): Observable<number> {
+    getCatchupCashAdjustment(startDate: string, endDate: string): Observable<CatchupCashAdjustment> {
         const params = new HttpParams()
             .set('startDate', startDate)
             .set('endDate', endDate);
-        return this.http.get<{ amount: number }>(`${this.apiUrl}/catchup-cash-adjustment`, { params }).pipe(
-            map(body => Number(body?.amount) || 0)
+        return this.http.get<Partial<CatchupCashAdjustment>>(`${this.apiUrl}/catchup-cash-adjustment`, { params }).pipe(
+            map(body => normalizeCatchupCashAdjustment(body))
         );
     }
 
