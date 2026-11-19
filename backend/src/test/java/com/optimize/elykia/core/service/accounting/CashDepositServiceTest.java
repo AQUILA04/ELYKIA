@@ -365,6 +365,60 @@ class CashDepositServiceTest {
     }
 
     @Test
+    void catchupCashAdjustment_splitsCatchupsAndDeferredAmountsPerCommercial() {
+        CashDepositService service = service();
+        LocalDate today = LocalDate.of(2026, 11, 18);
+        when(cashDepositRepository.findCatchupLinesCrossingPeriod(today, today))
+                .thenReturn(List.of(
+                        catchupLine("COM005", LocalDate.of(2026, 10, 31), today, 6_100.0),
+                        catchupLine("COM005", LocalDate.of(2026, 9, 30), today, 5_100.0),
+                        catchupLine("COM006", LocalDate.of(2026, 11, 20), today, 900.0),
+                        catchupLine("COM006", today, LocalDate.of(2026, 11, 20), 400.0)));
+
+        var adjustment = service.catchupCashAdjustment(today, today);
+
+        assertEquals(12_100.0, adjustment.getCatchupReceivedAmount());
+        assertEquals(400.0, adjustment.getDeferredAmount());
+        assertEquals(11_700.0, adjustment.getAmount());
+        assertEquals(2, adjustment.getByCommercial().size());
+        var com005 = adjustment.getByCommercial().get(0);
+        assertEquals("COM005", com005.getCommercialUsername());
+        assertEquals(11_200.0, com005.getCatchupReceivedAmount());
+        assertEquals(0.0, com005.getDeferredAmount());
+        var com006 = adjustment.getByCommercial().get(1);
+        assertEquals("COM006", com006.getCommercialUsername());
+        assertEquals(900.0, com006.getCatchupReceivedAmount());
+        assertEquals(400.0, com006.getDeferredAmount());
+    }
+
+    @Test
+    void catchupCashAdjustment_cancellationLeavesNoCatchupOrDeferredAmount() {
+        CashDepositService service = service();
+        LocalDate today = LocalDate.of(2026, 11, 7);
+        LocalDate collectionDate = LocalDate.of(2026, 11, 5);
+        when(cashDepositRepository.findCatchupLinesCrossingPeriod(today, today))
+                .thenReturn(List.of(
+                        catchupLine("COM005", collectionDate, today, 7_000.0),
+                        catchupLine("COM005", collectionDate, today, -7_000.0)));
+
+        var adjustment = service.catchupCashAdjustment(today, today);
+
+        assertEquals(0.0, adjustment.getCatchupReceivedAmount());
+        assertEquals(0.0, adjustment.getDeferredAmount());
+        assertEquals(0.0, adjustment.getAmount());
+    }
+
+    @Test
+    void catchupCashAdjustment_isEmptyWhenThePeriodIsInvalid() {
+        CashDepositService service = service();
+
+        var adjustment = service.catchupCashAdjustment(LocalDate.of(2026, 11, 8), LocalDate.of(2026, 11, 7));
+
+        assertEquals(0.0, adjustment.getAmount());
+        assertTrue(adjustment.getByCommercial().isEmpty());
+    }
+
+    @Test
     void cancelDeposit_rejectsUserWithoutManagerProfileBeforeAnyAccountingMutation() {
         // Given
         CashDepositService service = service();
@@ -387,6 +441,13 @@ class CashDepositServiceTest {
     private CashDepositService service() {
         return new CashDepositService(cashDepositRepository, dailyReportRepository, reportPersistence,
                 dailyOperationService, userService, catchupService);
+    }
+
+    private CashDeposit catchupLine(String commercial, LocalDate collectionDate, LocalDate captureDate,
+            double amount) {
+        CashDeposit line = catchupLine(collectionDate, captureDate, amount);
+        line.setCommercialUsername(commercial);
+        return line;
     }
 
     private CashDeposit catchupLine(LocalDate collectionDate, LocalDate captureDate, double amount) {

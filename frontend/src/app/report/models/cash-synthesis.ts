@@ -24,3 +24,77 @@ export function depositedForCashDesk(reportTotal: number, catchupAdjustment: num
 export function cashDeskBalance(totalDeposited: number, expensesWithoutSupply: number): number {
     return (Number(totalDeposited) || 0) - (Number(expensesWithoutSupply) || 0);
 }
+
+/** Ajustement rattrapages d'un commercial sur la période. */
+export interface CatchupCashAdjustmentLine {
+    commercialUsername: string;
+    /** Remis pendant la période pour des cotisations de jours hors période. */
+    catchupReceivedAmount: number;
+    /** Cotisations de la période remises après (ou avant) la période. */
+    deferredAmount: number;
+}
+
+export interface CatchupCashAdjustment {
+    /** Écart net : rattrapages reçus moins montants différés. */
+    amount: number;
+    catchupReceivedAmount: number;
+    deferredAmount: number;
+    byCommercial: CatchupCashAdjustmentLine[];
+}
+
+export const EMPTY_CATCHUP_CASH_ADJUSTMENT: CatchupCashAdjustment = {
+    amount: 0,
+    catchupReceivedAmount: 0,
+    deferredAmount: 0,
+    byCommercial: []
+};
+
+/** Normalise la réponse serveur (champs absents, chaînes numériques). */
+export function normalizeCatchupCashAdjustment(
+    body?: Partial<CatchupCashAdjustment> | null
+): CatchupCashAdjustment {
+    if (!body) {
+        return { ...EMPTY_CATCHUP_CASH_ADJUSTMENT, byCommercial: [] };
+    }
+    const received = Number(body.catchupReceivedAmount) || 0;
+    const deferred = Number(body.deferredAmount) || 0;
+    return {
+        amount: Number.isFinite(Number(body.amount)) && body.amount !== undefined
+            ? Number(body.amount)
+            : received - deferred,
+        catchupReceivedAmount: received,
+        deferredAmount: deferred,
+        byCommercial: (body.byCommercial || []).map(line => ({
+            commercialUsername: line.commercialUsername,
+            catchupReceivedAmount: Number(line.catchupReceivedAmount) || 0,
+            deferredAmount: Number(line.deferredAmount) || 0
+        }))
+    };
+}
+
+export interface CashEncaisseBreakdown {
+    /** Argent réellement encaissé pendant la période. */
+    total: number;
+    /** Part qui appartient aux opérations de la période. */
+    operations: number;
+    /** Part remise pour des cotisations de jours passés (rattrapages). */
+    catchups: number;
+    /** Cotisations de la période remises hors période (déduites des opérations). */
+    deferred: number;
+}
+
+/**
+ * Ventile le total encaissé : opérations de la période et rattrapages.
+ * Exemple : 150 000 rattachés au jour + 50 000 de rattrapages = 200 000 encaissés.
+ */
+export function cashEncaisseBreakdown(
+    reportTotal: number,
+    catchupReceived: number,
+    deferred: number
+): CashEncaisseBreakdown {
+    const reported = Number(reportTotal) || 0;
+    const catchups = Number(catchupReceived) || 0;
+    const late = Number(deferred) || 0;
+    const operations = reported - late;
+    return { total: operations + catchups, operations, catchups, deferred: late };
+}

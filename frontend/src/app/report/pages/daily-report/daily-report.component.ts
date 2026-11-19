@@ -24,7 +24,14 @@ import { KpiFinancierPermissions } from 'src/app/shared/constants/kpi-financier-
 import { DebtService } from 'src/app/debt/services/debt.service';
 import { ExpenseService } from 'src/app/expense/services/expense.service';
 import { Expense } from 'src/app/expense/models/expense.model';
-import { cashDeskBalance, depositedForCashDesk, sumExpenseAmounts } from '../../models/cash-synthesis';
+import {
+    cashDeskBalance,
+    CashEncaisseBreakdown,
+    cashEncaisseBreakdown,
+    CatchupCashAdjustment,
+    EMPTY_CATCHUP_CASH_ADJUSTMENT,
+    sumExpenseAmounts
+} from '../../models/cash-synthesis';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -104,7 +111,7 @@ export class DailyReportComponent implements OnInit {
     aggregatedReportData: any = null;
     periodExpenses: Expense[] = [];
     allPeriodReports: DailyCommercialReport[] = [];
-    catchupCashAdjustment = 0;
+    catchupCashAdjustment: CatchupCashAdjustment = { ...EMPTY_CATCHUP_CASH_ADJUSTMENT, byCommercial: [] };
     cashSynthesisLoading = false;
     private cashSynthesisRequest = 0;
     surplusReallocations: SurplusReallocation[] = [];
@@ -414,7 +421,7 @@ export class DailyReportComponent implements OnInit {
         if (this.isPromoter || !startStr || !endStr) {
             this.periodExpenses = [];
             this.allPeriodReports = [];
-            this.catchupCashAdjustment = 0;
+            this.catchupCashAdjustment = { ...EMPTY_CATCHUP_CASH_ADJUSTMENT, byCommercial: [] };
             this.cashSynthesisLoading = false;
             return;
         }
@@ -437,7 +444,7 @@ export class DailyReportComponent implements OnInit {
         const catchupAdjustment$ = this.cashDepositService.getCatchupCashAdjustment(startStr, endStr).pipe(
             catchError((err) => {
                 console.error('Error loading catchup cash adjustment', err);
-                return of(0);
+                return of({ ...EMPTY_CATCHUP_CASH_ADJUSTMENT, byCommercial: [] } as CatchupCashAdjustment);
             })
         );
 
@@ -448,7 +455,8 @@ export class DailyReportComponent implements OnInit {
                 }
                 this.periodExpenses = expenses || [];
                 this.allPeriodReports = reports || [];
-                this.catchupCashAdjustment = catchupAdjustment || 0;
+                this.catchupCashAdjustment = catchupAdjustment
+                    || { ...EMPTY_CATCHUP_CASH_ADJUSTMENT, byCommercial: [] };
                 this.cashSynthesisLoading = false;
             },
             error: () => {
@@ -457,7 +465,7 @@ export class DailyReportComponent implements OnInit {
                 }
                 this.periodExpenses = [];
                 this.allPeriodReports = [];
-                this.catchupCashAdjustment = 0;
+                this.catchupCashAdjustment = { ...EMPTY_CATCHUP_CASH_ADJUSTMENT, byCommercial: [] };
                 this.cashSynthesisLoading = false;
             }
         });
@@ -471,10 +479,47 @@ export class DailyReportComponent implements OnInit {
         return sumExpenseAmounts(this.periodExpenses, { excludeSupply: true });
     }
 
-    get periodTotalDepositedAll(): number {
+    /** Total encaissé (toutes caisses) ventilé : opérations de la période / rattrapages. */
+    get cashSynthesisBreakdown(): CashEncaisseBreakdown {
         const source = this.selectedAgent ? this.allPeriodReports : this.reports;
         const reportTotal = source.reduce((sum, report) => sum + (report.totalAmountDeposited || 0), 0);
-        return depositedForCashDesk(reportTotal, this.catchupCashAdjustment);
+        return cashEncaisseBreakdown(
+            reportTotal,
+            this.catchupCashAdjustment.catchupReceivedAmount,
+            this.catchupCashAdjustment.deferredAmount);
+    }
+
+    get periodTotalDepositedAll(): number {
+        return this.cashSynthesisBreakdown.total;
+    }
+
+    /** Total encaissé d'un commercial sur la période, avec le détail des rattrapages. */
+    getCashBreakdown(report: DailyCommercialReport): CashEncaisseBreakdown {
+        return this.cashBreakdownFor(report.commercialUsername, report.totalAmountDeposited || 0);
+    }
+
+    /**
+     * Part du commercial sélectionné dans le total de la synthèse caisse.
+     * Null si aucun commercial n'est sélectionné. Un commercial qui n'a que des rattrapages
+     * sur la période n'a pas de rapport : ses opérations valent alors zéro.
+     */
+    get selectedAgentCashBreakdown(): CashEncaisseBreakdown | null {
+        if (!this.selectedAgent) {
+            return null;
+        }
+        const own = this.allPeriodReports
+            .filter(report => report.commercialUsername === this.selectedAgent)
+            .reduce((sum, report) => sum + (report.totalAmountDeposited || 0), 0);
+        return this.cashBreakdownFor(this.selectedAgent, own);
+    }
+
+    private cashBreakdownFor(commercialUsername: string, reportTotal: number): CashEncaisseBreakdown {
+        const line = this.catchupCashAdjustment.byCommercial
+            .find(item => item.commercialUsername === commercialUsername);
+        return cashEncaisseBreakdown(
+            reportTotal,
+            line?.catchupReceivedAmount || 0,
+            line?.deferredAmount || 0);
     }
 
     get cashBalance(): number {

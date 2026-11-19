@@ -328,6 +328,20 @@
                                         <span class="kpi-label">Total versé (période)</span>
                                         <span class="kpi-value">{{ periodTotalDepositedAll |
                                             currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-hint" data-testid="e2e-daily-report-period-deposited-detail">
+                                            Opérations : {{ cashSynthesisBreakdown.operations | currency:'XOF':'symbol':'1.0-0' }}
+                                            · Rattrapages : {{ cashSynthesisBreakdown.catchups | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
+                                        <span class="kpi-hint" *ngIf="cashSynthesisBreakdown.deferred > 0">
+                                            Versé après la période : {{ cashSynthesisBreakdown.deferred | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
+                                        <span class="kpi-hint" *ngIf="selectedAgent"
+                                            data-testid="e2e-daily-report-period-deposited-agent">
+                                            dont {{ selectedAgent | uppercase }} :
+                                            {{ selectedAgentCashBreakdown?.total | currency:'XOF':'symbol':'1.0-0' }}
+                                            (Opérations {{ selectedAgentCashBreakdown?.operations | currency:'XOF':'symbol':'1.0-0' }}
+                                            · Rattrapages {{ selectedAgentCashBreakdown?.catchups | currency:'XOF':'symbol':'1.0-0' }})
+                                        </span>
                                     </div>
                                     <div class="kpi-card" data-testid="e2e-daily-report-cash-balance">
                                         <span class="kpi-label">Solde de caisse</span>
@@ -607,6 +621,18 @@
                                         <span class="kpi-value"
                                             [ngClass]="{'text-danger': getTotalRemaining(report) > 0, 'text-success': getTotalRemaining(report) <= 0}">
                                             {{ getTotalRemaining(report) | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
+                                    </div>
+                                    <div class="kpi-card"
+                                        [attr.data-testid]="'e2e-daily-report-cash-received-' + report.commercialUsername">
+                                        <span class="kpi-label">Total encaissé</span>
+                                        <span class="kpi-value">{{ getCashBreakdown(report).total | currency:'XOF':'symbol':'1.0-0' }}</span>
+                                        <span class="kpi-hint">
+                                            Opérations : {{ getCashBreakdown(report).operations | currency:'XOF':'symbol':'1.0-0' }}
+                                            · Rattrapages : {{ getCashBreakdown(report).catchups | currency:'XOF':'symbol':'1.0-0' }}
+                                        </span>
+                                        <span class="kpi-hint" *ngIf="getCashBreakdown(report).deferred > 0">
+                                            Versé après la période : {{ getCashBreakdown(report).deferred | currency:'XOF':'symbol':'1.0-0' }}
                                         </span>
                                     </div>
                                     <div class="kpi-card">
