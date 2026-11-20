@@ -144,6 +144,10 @@ class TontineDeliveryServiceTest {
         assertEquals(50000.0, result.getRemainingBalance());
         assertEquals(createDeliveryDto.getRequestDate(), result.getRequestDate());
         assertEquals("ELY-A1B2-C3D4", result.getAuthenticityCode());
+        // Solde net 100 000, commande 50 000 : reliquat 50 000, rien à payer.
+        assertEquals(100000.0, result.getNetContribution());
+        assertEquals(0.0, result.getAmountDue());
+        assertEquals(50000.0, result.getRefundableBalance());
 
         // Stock commercial is applied only via tontine credit — must not run on order create.
         verify(creditService, never()).createTontineCredit(any());
@@ -179,6 +183,9 @@ class TontineDeliveryServiceTest {
 
         assertEquals(25_000.0, result.getTotalAmount());
         assertEquals(30_000d, result.getProjectedBalance());
+        // Solde net 20 000, commande 25 000 : 5 000 restent à payer.
+        assertEquals(5_000.0, result.getAmountDue());
+        assertEquals(0.0, result.getRefundableBalance());
         assertEquals(0.0, result.getRemainingBalance());
         assertEquals(TontineMemberDeliveryStatus.PENDING, result.getDeliveryStatus());
     }

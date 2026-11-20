@@ -1,1 +1,56 @@
 /* Styles communs : inclus via styleUrls → order-receipt-modal.component.scss */
+
+.balance-block {
+  margin: 0 0 12px;
+  border: 1px solid var(--border, #dde3ec);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.balance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: var(--text-muted, #6b7a99);
+
+  & + & {
+    border-top: 1px solid var(--border, #dde3ec);
+  }
+
+  b {
+    color: var(--navy, #003366);
+    font-weight: 700;
+  }
+}
+
+.balance-row--due,
+.balance-row--refund {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+
+  b {
+    font-size: 16px;
+  }
+}
+
+.balance-row--due {
+  background: #fdecea;
+  color: #c75000;
+
+  b {
+    color: #c75000;
+  }
+}
+
+.balance-row--refund {
+  background: #e7f5ec;
+  color: #1d8a3c;
+
+  b {
+    color: #1d8a3c;
+  }
+}

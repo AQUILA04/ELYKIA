@@ -35,6 +35,11 @@ import {
 import { TontineOrderReceiptModalComponent } from 'src/app/shared/components/tontine-order-receipt-modal/tontine-order-receipt-modal.component';
 import { PrintableTontineOrder } from 'src/app/core/services/printing.service';
 import { generateTontineAuthenticityCode } from 'src/app/core/utils/tontine-delivery-reference.util';
+import {
+    TontineOrderBalance,
+    computeTontineOrderBalance,
+    tontineOrderBalanceLabels
+} from 'src/app/core/utils/tontine-order-balance.util';
 
 interface DeliveryItemWithArticle extends TontineDeliveryItem {
     articleName?: string;
@@ -440,6 +445,19 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         item.totalPrice = perUnit * next;
     }
 
+    /** Solde net cotisé, reste à payer ou reliquat de la commande affichée (total révisé pendant la modification). */
+    orderBalance(): TontineOrderBalance | null {
+        if (!this.vm.delivery || !this.vm.member) {
+            return null;
+        }
+        const total = this.revisingOrder ? this.revisedTotal() : this.vm.delivery.totalAmount;
+        return computeTontineOrderBalance(this.vm.member.availableContribution, total);
+    }
+
+    orderBalanceLabels() {
+        return tontineOrderBalanceLabels(normalizeTontineStatus(this.vm.delivery?.status) === 'DELIVERED');
+    }
+
     revisedTotal(): number {
         return this.vm.deliveryItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
     }
@@ -644,6 +662,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             clientName,
             clientPhone: this.vm.client?.phone,
             commercialName: this.commercialUsername || this.vm.delivery.commercialUsername,
+            netContribution: this.vm.member?.availableContribution ?? null,
             items: this.vm.deliveryItems.map(item => ({
                 articleName: item.salePackMode && item.salePackMode !== 'UNIT' && item.packLabel
                     ? `${item.articleName || 'Article'} — ${item.packLabel}`

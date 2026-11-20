@@ -2,6 +2,11 @@ import { Component, Input } from '@angular/core';
 import { ModalController, ToastController } from '@ionic/angular';
 import { PrintableTontineOrder, PrintingService } from '../../../core/services/printing.service';
 import { getTontineDeliveryStatusLabel } from '../../../core/utils/tontine-delivery-status.util';
+import {
+  TontineOrderBalance,
+  computeTontineOrderBalance,
+  tontineOrderBalanceLabels
+} from '../../../core/utils/tontine-order-balance.util';
 
 @Component({
   selector: 'app-tontine-order-receipt-modal',
@@ -23,6 +28,18 @@ export class TontineOrderReceiptModalComponent {
 
   get statusLabel(): string {
     return getTontineDeliveryStatusLabel(this.data?.status);
+  }
+
+  /** Solde net, reste à payer ou reliquat ; absent si le solde du membre n'est pas connu. */
+  get balance(): TontineOrderBalance | null {
+    if (!this.data || this.data.netContribution === null || this.data.netContribution === undefined) {
+      return null;
+    }
+    return computeTontineOrderBalance(this.data.netContribution, this.data.totalAmount);
+  }
+
+  get labels() {
+    return tontineOrderBalanceLabels(this.data?.status === 'DELIVERED');
   }
 
   dismiss() {

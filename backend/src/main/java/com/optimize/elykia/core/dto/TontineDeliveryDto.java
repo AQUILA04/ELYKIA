@@ -27,4 +27,10 @@ public class TontineDeliveryDto {
     private List<TontineDeliveryItemDto> items;
     private String operationConsentCode;
     private String syncConsentCode;
+    /** Solde net cotisé par le membre (à la remise pour une commande livrée). */
+    private Double netContribution;
+    /** Reste à payer quand la commande dépasse le solde net, sinon 0. */
+    private Double amountDue;
+    /** Reliquat à restituer quand la commande est inférieure au solde net, sinon 0. */
+    private Double refundableBalance;
 }

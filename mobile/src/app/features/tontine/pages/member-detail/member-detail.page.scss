@@ -302,3 +302,19 @@ ion-card-title {
 .collection-amount {
   font-size: 14px;
 }
+
+.order-balance {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--ion-color-light-shade, #dde3ec);
+
+  .balance-due .detail-value {
+    color: #c75000;
+    font-weight: 700;
+  }
+
+  .balance-refund .detail-value {
+    color: #1d8a3c;
+    font-weight: 700;
+  }
+}

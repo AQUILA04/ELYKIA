@@ -1,4 +1,4 @@
-import { computeRecoveryReceiptBalances, formatClientDisplayName } from './printing.service';
+import { PrintableTontineOrder, PrintingService, computeRecoveryReceiptBalances, formatClientDisplayName } from './printing.service';
 import { Distribution } from '../../models/distribution.model';
 
 describe('formatClientDisplayName', () => {
@@ -45,5 +45,43 @@ describe('computeRecoveryReceiptBalances', () => {  const baseDistribution = {
 
     expect(balances.previousRemainingAmount).toBe(14000);
     expect(balances.newRemainingAmount).toBe(12000);
+  });
+});
+
+describe('PrintingService tontine order ticket', () => {
+  const service = new PrintingService({ cashSnapshot: false } as any);
+  const order = (overrides: Partial<PrintableTontineOrder> = {}): PrintableTontineOrder => ({
+    reference: 'LIV-1',
+    status: 'PENDING',
+    totalAmount: 55000,
+    items: [],
+    ...overrides
+  });
+  const html = (o: PrintableTontineOrder): string => (service as any).generateTontineOrderReceiptHTML(o);
+
+  it('prints the net balance and the amount still to pay', () => {
+    const ticket = html(order({ netContribution: 40000 }));
+    expect(ticket).toContain('Solde net cotise:');
+    expect(ticket).toContain('RESTE A PAYER:');
+    expect(ticket).not.toContain('RELIQUAT');
+  });
+
+  it('prints the balance to refund when the order is below the balance', () => {
+    const ticket = html(order({ netContribution: 60000, totalAmount: 45500 }));
+    expect(ticket).toContain('RELIQUAT A RESTITUER:');
+    expect(ticket).not.toContain('RESTE A PAYER');
+  });
+
+  it('prints contributed, used and remaining totals once delivered', () => {
+    const ticket = html(order({ status: 'DELIVERED', netContribution: 58000, totalAmount: 50000 }));
+    expect(ticket).toContain('Total cotise (net):');
+    expect(ticket).toContain('Total utilise:');
+    expect(ticket).toContain('TOTAL RESTANT:');
+  });
+
+  it('keeps the plain total when the member balance is unknown', () => {
+    const ticket = html(order());
+    expect(ticket).toContain('TOTAL:');
+    expect(ticket).not.toContain('Solde net');
   });
 });

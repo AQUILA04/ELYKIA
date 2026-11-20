@@ -144,6 +144,20 @@
             <span>Total</span>
             <span class="elyk-amount">{{ formatCurrency(revisingOrder ? revisedTotal() : vm.delivery.totalAmount) }}</span>
           </div>
+          <div class="order-balance" *ngIf="orderBalance() as balance" data-testid="e2e-tontine-order-balance">
+            <div class="detail-row">
+              <span class="detail-label">{{ orderBalanceLabels().net }}</span>
+              <span class="detail-value elyk-amount">{{ formatCurrency(balance.netContribution) }}</span>
+            </div>
+            <div class="detail-row balance-due" *ngIf="balance.amountDue > 0">
+              <span class="detail-label">{{ orderBalanceLabels().due }}</span>
+              <span class="detail-value elyk-amount">{{ formatCurrency(balance.amountDue) }}</span>
+            </div>
+            <div class="detail-row balance-refund" *ngIf="balance.amountDue <= 0">
+              <span class="detail-label">{{ orderBalanceLabels().refundable }}</span>
+              <span class="detail-value elyk-amount">{{ formatCurrency(balance.refundableBalance) }}</span>
+            </div>
+          </div>
           <div class="revision-actions" *ngIf="revisingOrder">
             <ion-button fill="outline" class="elyk-btn-outline" (click)="cancelOrderRevision()">Annuler</ion-button>
             <ion-button class="elyk-btn-navy" (click)="saveRevisedOrder()">Enregistrer la commande</ion-button>

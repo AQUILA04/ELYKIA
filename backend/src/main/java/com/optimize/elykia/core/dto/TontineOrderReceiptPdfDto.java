@@ -20,6 +20,15 @@ public class TontineOrderReceiptPdfDto {
     private String clientAddress;
     private String commercialLabel;
     private String totalAmount;
+    /** Vrai pour une commande remise : libellés « total cotisé / utilisé / restant ». */
+    private boolean delivered;
+    /** Solde net cotisé (ou total cotisé à la remise). */
+    private String netContribution;
+    /** Reste à payer, affiché seulement si la commande dépasse le solde. */
+    private String amountDue;
+    private boolean hasAmountDue;
+    /** Reliquat à restituer (ou total restant après remise). */
+    private String refundableBalance;
     private List<Line> lines;
 
     @Data

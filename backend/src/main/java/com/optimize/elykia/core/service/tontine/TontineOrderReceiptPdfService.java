@@ -101,6 +101,7 @@ public class TontineOrderReceiptPdfService {
         }
 
         TontineSession session = member != null ? member.getTontineSession() : null;
+        TontineOrderBalance balance = TontineOrderBalance.of(delivery);
         return TontineOrderReceiptPdfDto.builder()
                 .reference(text(delivery.getReference()))
                 .authenticityCode(text(delivery.getAuthenticityCode()))
@@ -114,6 +115,11 @@ public class TontineOrderReceiptPdfService {
                 .clientAddress(text(client != null ? client.getAddress() : null))
                 .commercialLabel(commercialLabel(delivery.getCommercialUsername()))
                 .totalAmount(formatMoney(money, delivery.getTotalAmount() == null ? 0d : delivery.getTotalAmount()))
+                .delivered(balance.delivered())
+                .netContribution(formatMoney(money, balance.netContribution()))
+                .amountDue(formatMoney(money, balance.amountDue()))
+                .hasAmountDue(balance.amountDue() > 0)
+                .refundableBalance(formatMoney(money, balance.refundableBalance()))
                 .lines(lines)
                 .build();
     }

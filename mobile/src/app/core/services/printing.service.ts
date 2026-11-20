@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { UnitPriceVisibilityService } from './unit-price-visibility.service';
 import { getTontineDeliveryStatusLabel } from '../utils/tontine-delivery-status.util';
+import { computeTontineOrderBalance, tontineOrderBalanceLabels } from '../utils/tontine-order-balance.util';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
 import { Distribution } from '../../models/distribution.model';
 import { Client } from '../../models/client.model';
@@ -179,6 +180,8 @@ export interface PrintableTontineOrder {
   clientPhone?: string | null;
   commercialName?: string | null;
   items: PrintableOrderItem[];
+  /** Solde net cotisé du membre : reste à payer ou reliquat imprimés sous le total. */
+  netContribution?: number | null;
 }
 
 export function formatOrderStatusLabel(status: string | null | undefined): string {
@@ -787,15 +790,15 @@ export class PrintingService {
         <div class="content-wrapper">
           <div style="background: #f5f5f5; padding: 6px; margin-bottom: 8px;">
             <div class="budget-row">
-              <span>Total Epargne:</span>
+              <span>Total cotise (net):</span>
               <span>${totalBudget.toLocaleString('fr-FR')} FCFA</span>
             </div>
             <div class="budget-row">
-              <span>Total Livraison:</span>
+              <span>Total utilise:</span>
               <span>${delivery.totalAmount.toLocaleString('fr-FR')} FCFA</span>
             </div>
             <div class="budget-row highlight">
-              <span>Restant:</span>
+              <span>Total restant:</span>
               <span>${remainingBudget.toLocaleString('fr-FR')} FCFA</span>
             </div>
           </div>
@@ -963,6 +966,25 @@ export class PrintingService {
     });
   }
 
+  /** Soldes du ticket : solde net, montant, reste à payer ou reliquat (total seul si le solde est inconnu). */
+  private tontineOrderBalanceRowsHTML(order: PrintableTontineOrder): string {
+    if (order.netContribution === null || order.netContribution === undefined) {
+      return `<div class="row"><span>TOTAL:</span><span>${formatReceiptAmount(order.totalAmount)} FCFA</span></div>`;
+    }
+    const balance = computeTontineOrderBalance(order.netContribution, order.totalAmount);
+    // Le ticket thermique s'imprime sans accents, comme ses autres libellés.
+    const ascii = (text: string) => text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const raw = tontineOrderBalanceLabels(order.status === 'DELIVERED');
+    const labels = { net: ascii(raw.net), total: ascii(raw.total), due: ascii(raw.due), refundable: ascii(raw.refundable) };
+    const last = balance.amountDue > 0
+      ? `<div class="row"><b>${escapeReceiptText(labels.due).toUpperCase()}:</b><b>${formatReceiptAmount(balance.amountDue)} FCFA</b></div>`
+      : `<div class="row"><b>${escapeReceiptText(labels.refundable).toUpperCase()}:</b><b>${formatReceiptAmount(balance.refundableBalance)} FCFA</b></div>`;
+    return `
+          <div class="row"><span>${escapeReceiptText(labels.net)}:</span><span>${formatReceiptAmount(balance.netContribution)} FCFA</span></div>
+          <div class="row"><span>${escapeReceiptText(labels.total)}:</span><span>${formatReceiptAmount(balance.orderTotal)} FCFA</span></div>
+          ${last}`;
+  }
+
   private generateTontineOrderReceiptHTML(order: PrintableTontineOrder): string {
     const createdAt = order.requestDate ? new Date(order.requestDate) : new Date('');
     const hasDate = !Number.isNaN(createdAt.getTime());
@@ -1027,7 +1049,7 @@ export class PrintingService {
         </div>
         <div class="separator"></div>
         <div class="content-wrapper">
-          <div class="row"><span>TOTAL:</span><span>${formatReceiptAmount(order.totalAmount)} FCFA</span></div>
+          ${this.tontineOrderBalanceRowsHTML(order)}
         </div>
         <div class="separator"></div>
         <div class="footer">
