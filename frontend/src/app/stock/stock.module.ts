@@ -7,6 +7,8 @@ import { StockRequestCreateComponent } from './pages/stock-request-create/stock-
 import { MyStockDashboardComponent } from './pages/my-stock-dashboard/my-stock-dashboard.component';
 import { StockTeamComponent } from './pages/stock-team/stock-team.component';
 import { StockSheetComponent } from './pages/stock-sheet/stock-sheet.component';
+import { StockRegularisationComponent } from './pages/stock-regularisation/stock-regularisation.component';
+import { StockTontineTeamComponent } from './components/stock-tontine-team/stock-tontine-team.component';
 import { StockArticlePanelComponent } from './components/stock-article-panel/stock-article-panel.component';
 import { StockLinkedSalesPanelComponent } from './components/stock-linked-sales-panel/stock-linked-sales-panel.component';
 import { ReportUiModule } from '../shared/report-ui/report-ui.module';
@@ -49,6 +51,8 @@ import { TontineDeliveryDetailsDialogComponent } from '../stock-tontine/componen
     MyStockDashboardComponent,
     StockTeamComponent,
     StockSheetComponent,
+    StockRegularisationComponent,
+    StockTontineTeamComponent,
     StockArticlePanelComponent,
     StockLinkedSalesPanelComponent,
     StockReturnListComponent,

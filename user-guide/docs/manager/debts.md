@@ -10,13 +10,15 @@ Le menu **Dettes** regroupe les montants dus par les commerciaux (marchandise re
 
 ## Dette marchandise (stock commercial)
 
-Quand un mois est déjà terminé et qu’il reste des quantités chez un commercial :
+Quand un mois est terminé et qu'il reste des quantités chez un commercial :
 
-1. Ouvrez **Stock Commercial** → **Stock mensuel**, puis activez **Historique** pour voir les mois passés.
-2. Sur le panneau du mois, à côté de **Télécharger rapport**, cliquez sur **Créer la dette**. Le bouton est présent lorsqu’il reste au moins une quantité.
-3. Confirmez le montant proposé : les quantités passent de **Restant** à **Dette**.
-4. La carte **Valeur dette** apparaît alors (y compris après paiement). Le **Total dû** = vendu + dette + restant.
-5. Depuis le détail de la dette, ou via **Voir la dette**, vous suivez le statut et les règlements.
+1. Ouvrez **Stock Commercial** → **Stock**. Les mois à traiter apparaissent dans le bandeau orange **Mois clôturés à régulariser** ; sinon, ouvrez la fiche du commercial sur le mois voulu (flèches ‹ ›) et cliquez sur **Régularisation**.
+2. L'écran liste le **reste à régulariser**, valorisé au prix moyen de vente arrondi au franc supérieur.
+3. Cliquez sur **Constituer la dette**, puis confirmez : les quantités passent de **Restant** à **Dette**. Le **Total dû** = vendu + dette + restant.
+4. Le règlement s'enregistre sur le même écran (**Espèces**, **Avoir (surplus)** ou **Abandon** avec motif), ou depuis la liste Dettes (voir **Marquer comme payé**).
+5. **Annuler la dette** reste possible tant qu'aucun règlement n'est enregistré. **Ouvrir dans le module Dettes** affiche le détail complet.
+
+Si le reste doit plutôt revenir au magasin, utilisez **Enregistrer un retour en magasin** sur l'écran de régularisation, avant de constituer la dette.
 
 ## Écart de caisse
 

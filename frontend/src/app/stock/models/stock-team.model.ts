@@ -49,3 +49,15 @@ export interface StockTeamOverview {
   totals: StockTeamTotals;
   lines: StockTeamLine[];
 }
+
+/** Mois clôturé dont un reste n'est ni retourné ni en dette (GET /api/commercial-stocks/to-settle). */
+export interface StockToSettle {
+  stockId: number;
+  collector: string;
+  year: number;
+  month: number;
+  itemsWithRemaining: number;
+  quantityRemaining: number;
+  /** Valeur au PMP de vente arrondi : montant d'une dette éventuelle. */
+  remainingValue: number;
+}

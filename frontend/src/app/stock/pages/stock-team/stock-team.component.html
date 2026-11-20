@@ -53,13 +53,32 @@
     </div>
   </div>
 
-  <app-my-tontine-stock-dashboard *ngIf="channel === 'tontine'" [embedded]="true"></app-my-tontine-stock-dashboard>
+  <app-stock-tontine-team *ngIf="channel === 'tontine'"></app-stock-tontine-team>
 
   <ng-container *ngIf="channel === 'credit'">
     <div class="panel-card empty-state" *ngIf="error && !loading" role="alert">
       <div class="empty-title">Le stock de l'équipe n'a pas pu être chargé.</div>
       <div class="empty-sub">Cliquez sur « Actualiser » ou ouvrez l'ancienne présentation.</div>
     </div>
+
+    <section class="panel-card to-settle a3" *ngIf="visibleToSettle.length" data-tour="to-settle" aria-labelledby="to-settle-title"
+      data-testid="e2e-stock-team-to-settle">
+      <div class="panel-head">
+        <h2 id="to-settle-title">Mois clôturés à régulariser · {{ visibleToSettle.length }}</h2>
+        <span class="panel-hint">Reste non vendu ni retourné, sans dette constituée · {{ toSettleTotal | fcfa }}</span>
+      </div>
+      <div class="to-settle-grid">
+        <a *ngFor="let row of visibleToSettle | slice:0:toSettleShown" class="to-settle-item"
+          [routerLink]="['/stock/my-stock', row.collector, row.year, row.month, 'regularisation']"
+          [attr.data-testid]="'e2e-stock-team-to-settle-' + row.collector + '-' + row.year + '-' + row.month">
+          <span><strong>{{ row.collector }}</strong> · {{ monthOf(row) }}<span class="cell-sub">{{ row.quantityRemaining }} article(s) restant(s)</span></span>
+          <span class="num to-settle-amount">{{ row.remainingValue | fcfa }} <span aria-hidden="true">›</span></span>
+        </a>
+      </div>
+      <p class="panel-hint" *ngIf="visibleToSettle.length > toSettleShown">
+        Et {{ visibleToSettle.length - toSettleShown }} autre(s) mois : choisissez un commercial pour les voir.
+      </p>
+    </section>
 
     <div class="flows-grid a3" data-tour="flows" *ngIf="overview as o" [class.is-loading]="loading">
       <section class="panel-card flow-card" aria-labelledby="flow-goods" data-testid="e2e-stock-team-goods">

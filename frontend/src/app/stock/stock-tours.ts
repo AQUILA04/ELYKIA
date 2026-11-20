@@ -3,7 +3,7 @@ import { TourDefinition } from '../shared/report-ui/guided-tour/guided-tour.serv
 /** Visite de la vue équipe du stock commercial (première ouverture de /stock/my-stock). */
 export const STOCK_TEAM_TOUR: TourDefinition = {
   id: 'stock-team',
-  version: 1,
+  version: 2,
   steps: [
     {
       title: 'Le stock commercial change de présentation',
@@ -21,7 +21,13 @@ export const STOCK_TEAM_TOUR: TourDefinition = {
       target: 'filters',
       title: 'Crédit ou tontine, et filtres',
       body: 'Basculez entre le stock crédit et le stock tontine. Les filtres isolent les commerciaux avec un stock restant, '
-        + 'avec une dette, ou avec un recouvrement inférieur à 50 %.'
+        + 'avec une dette, ou avec un recouvrement inférieur à 50 %. L\'onglet Tontine montre le stock tontine de l\'année.'
+    },
+    {
+      target: 'to-settle',
+      title: 'Les mois à régulariser',
+      body: 'Quand un mois clôturé garde un reste ni vendu ni retourné, il apparaît dans ce bandeau orange. '
+        + 'Un clic ouvre la régularisation : retour en magasin, dette marchandise, puis règlement de la dette.'
     },
     {
       target: 'flows',

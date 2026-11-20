@@ -4,11 +4,9 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, combineLatest, of } from 'rxjs';
 import { catchError, map, startWith, switchMap, takeUntil } from 'rxjs/operators';
 import { AuthService } from 'src/app/auth/service/auth.service';
-import { DebtService } from 'src/app/debt/services/debt.service';
 import { UserProfile } from 'src/app/shared/models/user-profile.enum';
 import { AlertService } from 'src/app/shared/service/alert.service';
 import { GuidedTourService } from 'src/app/shared/report-ui/guided-tour/guided-tour.service';
-import { formatFcfa } from 'src/app/shared/report-ui/fcfa.pipe';
 import { UserService } from 'src/app/user/service/user.service';
 import { CommercialMonthlyStock, CommercialMonthlyStockItem } from '../../models/commercial-stock.model';
 import { CommercialStockService } from '../../services/commercial-stock.service';
@@ -47,7 +45,6 @@ export class StockSheetComponent implements OnInit, OnDestroy {
   previousCollector: string | null = null;
   nextCollector: string | null = null;
   exporting = false;
-  creatingDebt = false;
 
   readonly articleLabel = articleLabel;
   readonly remainingValue = remainingValue;
@@ -62,7 +59,6 @@ export class StockSheetComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private stockService: CommercialStockService,
-    private debtService: DebtService,
     private authService: AuthService,
     private userService: UserService,
     private alertService: AlertService,
@@ -157,15 +153,17 @@ export class StockSheetComponent implements OnInit, OnDestroy {
     return { channel: 'credit', collector: this.collector };
   }
 
-  get canCreateDebt(): boolean {
+  /** Mois passé avec un reste ou une dette : la régularisation est proposée. */
+  get canRegularise(): boolean {
     const stock = this.stock;
-    if (!stock?.id || this.isCurrentMonth || compareMonths(this.month, currentMonth()) > 0) {
+    if (!stock?.id || compareMonths(this.month, currentMonth()) >= 0) {
       return false;
     }
-    if (stock.recoverySummary?.merchandiseDebtId || !(stock.items ?? []).some(i => (i.quantityRemaining || 0) > 0)) {
-      return false;
-    }
-    return this.authService.hasRole('ROLE_DEBT_MANAGEMENT') || this.authService.hasRole('ROLE_ADMIN');
+    return !!stock.recoverySummary?.merchandiseDebtId || (stock.items ?? []).some(i => (i.quantityRemaining || 0) > 0);
+  }
+
+  get regularisationLink(): (string | number)[] {
+    return ['/stock/my-stock', this.collector, this.month.year, this.month.month, 'regularisation'];
   }
 
   soldPercent(item: CommercialMonthlyStockItem): number {
@@ -235,36 +233,10 @@ export class StockSheetComponent implements OnInit, OnDestroy {
     });
   }
 
-  createDebt(): void {
-    const stock = this.stock;
-    if (!stock?.id || !this.canCreateDebt || !this.totals) {
-      return;
-    }
-    const stockId = stock.id;
-    const message = `Créer une dette de ${formatFcfa(this.totals.remainingValue)} pour ${this.collector} (${this.monthTitle}) ?`;
-    void this.alertService.showConfirmation('Confirmation', message, 'Oui', 'Annuler').then(confirmed => {
-      if (!confirmed) {
-        return;
-      }
-      this.creatingDebt = true;
-      this.debtService.createMerchandise(stockId).subscribe({
-        next: debt => {
-          this.creatingDebt = false;
-          this.alertService.showSuccess(`Dette ${debt.reference} créée.`);
-          this.refresh();
-        },
-        error: err => {
-          this.creatingDebt = false;
-          this.alertService.showError(err?.error?.message || 'Création de dette impossible.');
-        }
-      });
-    });
-  }
-
   openDebt(): void {
     const debtId = this.stock?.recoverySummary?.merchandiseDebtId;
     if (debtId) {
-      this.router.navigate(['/debts', debtId]);
+      void this.router.navigate(['/debts', debtId]);
     }
   }
 

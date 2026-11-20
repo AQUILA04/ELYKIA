@@ -8,7 +8,7 @@ import { FeatureFlagService, FeatureFlags } from 'src/app/shared/service/feature
 import { AuthService } from 'src/app/auth/service/auth.service';
 import { UserService } from 'src/app/user/service/user.service';
 import { GuidedTourService } from 'src/app/shared/report-ui/guided-tour/guided-tour.service';
-import { StockTeamLine, StockTeamOverview } from '../../models/stock-team.model';
+import { StockTeamLine, StockTeamOverview, StockToSettle } from '../../models/stock-team.model';
 import { StockChannel } from '../../models/stock-channel';
 import { CommercialStockService } from '../../services/commercial-stock.service';
 import { StockChannelService } from '../../services/stock-channel.service';
@@ -38,6 +38,7 @@ export class StockTeamComponent implements OnInit, OnDestroy {
   selectedCollector: string | null = null;
 
   overview: StockTeamOverview | null = null;
+  toSettle: StockToSettle[] = [];
   lines: StockTeamLine[] = [];
   counts: Record<TeamFilter, number> = { all: 0, remaining: 0, debt: 0, low: 0 };
   agents: { username: string; firstname?: string; lastname?: string }[] = [];
@@ -53,6 +54,8 @@ export class StockTeamComponent implements OnInit, OnDestroy {
     low: `Recouvrement < ${LOW_RECOVERY_RATE} %`
   };
   readonly lowRate = LOW_RECOVERY_RATE;
+  /** Au-delà, le bandeau résume les mois restants. */
+  readonly toSettleShown = 8;
 
   private readonly destroy$ = new Subject<void>();
   private readonly reload$ = new Subject<void>();
@@ -86,6 +89,13 @@ export class StockTeamComponent implements OnInit, OnDestroy {
     ).subscribe();
 
     this.reload$.pipe(switchMap(() => this.load()), takeUntil(this.destroy$)).subscribe();
+    this.loadToSettle();
+  }
+
+  /** Mois passés dont un reste n'est ni retourné ni en dette (bandeau « à régulariser »). */
+  private loadToSettle(): void {
+    this.stockService.getToSettle().pipe(catchError(() => of([] as StockToSettle[])), takeUntil(this.destroy$))
+      .subscribe(rows => this.toSettle = rows ?? []);
   }
 
   ngOnDestroy(): void {
@@ -159,6 +169,19 @@ export class StockTeamComponent implements OnInit, OnDestroy {
 
   refresh(): void {
     this.reload$.next();
+    this.loadToSettle();
+  }
+
+  get visibleToSettle(): StockToSettle[] {
+    return this.selectedCollector ? this.toSettle.filter(row => row.collector === this.selectedCollector) : this.toSettle;
+  }
+
+  get toSettleTotal(): number {
+    return this.visibleToSettle.reduce((sum, row) => sum + (row.remainingValue || 0), 0);
+  }
+
+  monthOf(row: StockToSettle): string {
+    return monthLabel({ year: row.year, month: row.month });
   }
 
   startTour(): void {

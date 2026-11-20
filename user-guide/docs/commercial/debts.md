@@ -16,9 +16,10 @@ Le menu **Dettes** vous permet de consulter vos positions ouvertes ou réglées 
 
 ## Lien avec le stock mensuel
 
-1. Ouvrez **Stock Commercial** → **Stock mensuel**, puis **Historique** pour un mois passé.
-2. Les cartes affichent la **Valeur dette** (y compris après règlement) et le **Total dû** = vendu + dette + restant.
-3. Le tableau liste les colonnes **Dette** et **Valeur dette** pour chaque article.
+1. Ouvrez **Stock Commercial** → **Stock** : votre fiche du mois s'affiche. Les flèches ‹ › passent à un mois passé.
+2. Le flux **Argent** affiche la **Dette** et le **Total dû** = vendu + dette + restant. Le recouvré inclut la dette déjà réglée.
+3. Le tableau des articles donne les colonnes **Dette** et **Valeur dette** pour chaque article.
+4. **Régularisation** montre le reste du mois, la dette constituée et ses règlements.
 
 ## Bilan annuel
 

@@ -1,0 +1,155 @@
+<div class="main-container report-v2 stock-v2 stock-regul-page a1" data-testid="e2e-stock-regularisation">
+  <div class="breadcrumb-bar">
+    <a class="breadcrumb-link" [routerLink]="sheetLink" data-testid="e2e-stock-regul-back">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+        <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+      </svg>
+      Fiche {{ collector }} · {{ monthTitle }}
+    </a>
+    <a *ngIf="!isPromoter" class="btn-link" [routerLink]="['/stock/my-stock']" [queryParams]="teamQueryParams">Stock de l'équipe</a>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-main">
+      <div>
+        <h1 class="page-title">{{ collector }} · stock crédit · {{ monthTitle }}</h1>
+        <p class="page-subtitle" *ngIf="stock">
+          {{ closed ? 'Mois clôturé' : 'Mois en cours' }} · {{ lines.length }} article(s) non vendu(s) et non retourné(s)
+        </p>
+      </div>
+      <span class="pill headline-pill" *ngIf="stock" [ngClass]="'pill-' + headline.tone" data-testid="e2e-stock-regul-status">{{ headline.label }}</span>
+    </div>
+  </div>
+
+  <div class="panel-card empty-state" *ngIf="!loading && (notFound || error)" role="alert">
+    <div class="empty-title">{{ notFound ? 'Aucun stock pour ' + collector + ' en ' + monthTitle + '.' : 'La régularisation n\'a pas pu être chargée.' }}</div>
+  </div>
+  <div class="panel-card" *ngIf="loading && !stock"><div class="skeleton"></div></div>
+
+  <ng-container *ngIf="stock">
+    <section class="panel-card a3 lifecycle-card" aria-labelledby="life-title">
+      <h2 id="life-title" class="section-title">Cycle du mois</h2>
+      <ol class="lifecycle">
+        <li *ngFor="let step of steps; let i = index" class="life-step" [ngClass]="'life-step--' + step.state">
+          <span class="life-dot" aria-hidden="true">{{ step.state === 'done' ? '✓' : i + 1 }}</span>
+          <strong>{{ step.title }}</strong>
+          <span class="panel-hint">{{ step.detail }}</span>
+          <span class="sr-only">{{ step.state === 'done' ? 'terminé' : step.state === 'current' ? 'en cours' : 'à venir' }}</span>
+        </li>
+      </ol>
+    </section>
+
+    <div class="regul-grid a4">
+      <section class="table-card regul-rest" aria-labelledby="rest-title">
+        <div class="panel-head table-head">
+          <h2 id="rest-title">Reste à régulariser</h2>
+          <span class="panel-hint">Valorisé au prix moyen de vente (PMP), arrondi au franc supérieur</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th scope="col">Article</th>
+                <th scope="col" class="c">Restant</th>
+                <th scope="col" class="r" *appIfUnitPrice>PMP vente</th>
+                <th scope="col" class="r">Montant</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let line of lines" data-testid="e2e-stock-regul-line">
+                <td><strong>{{ articleLabel(line.item) }}</strong><span class="cell-sub" *ngIf="line.item.article?.marque">{{ line.item.article.marque }}</span></td>
+                <td class="c num">{{ line.quantity }}</td>
+                <td class="r num" *appIfUnitPrice>{{ line.unitPrice | fcfa:'bare' }}</td>
+                <td class="r num strong">{{ line.amount | fcfa:'bare' }}</td>
+              </tr>
+              <tr *ngIf="!lines.length">
+                <td [attr.colspan]="4">
+                  <div class="empty-state">
+                    <div class="empty-title">Rien à régulariser.</div>
+                    <div class="empty-sub">Tout a été vendu, retourné ou transformé en dette.</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+            <tfoot *ngIf="lines.length">
+              <tr>
+                <td>Total</td>
+                <td class="c num">{{ total.quantity }}</td>
+                <td *appIfUnitPrice></td>
+                <td class="r num" data-testid="e2e-stock-regul-total">{{ total.amount | fcfa:'bare' }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div class="regul-actions" *ngIf="lines.length">
+          <p class="panel-hint" *ngIf="!closed">Le mois n'est pas encore clôturé : le reste se régularise après la fin du mois.</p>
+          <ng-container *ngIf="closed">
+            <button type="button" class="btn-ghost" *ngIf="returnAllowed" (click)="openReturn()"
+              data-testid="e2e-stock-regul-return">Enregistrer un retour en magasin</button>
+            <button type="button" class="btn-primary" *ngIf="canCreateDebt" [disabled]="busy" (click)="createDebt()"
+              data-testid="e2e-stock-regul-create-debt">Constituer la dette · {{ total.amount | fcfa }}</button>
+            <span class="panel-hint" *ngIf="!canManageDebts">La dette est constituée par un profil « gestion des dettes ».</span>
+            <span class="panel-hint" *ngIf="canManageDebts">Une dette s'annule tant qu'aucun règlement n'est enregistré.</span>
+          </ng-container>
+        </div>
+      </section>
+
+      <section class="panel-card regul-debt" aria-labelledby="debt-title" data-testid="e2e-stock-regul-debt">
+        <h2 id="debt-title" class="section-title">Dette marchandise</h2>
+
+        <div class="debt-empty" *ngIf="!activeDebt">
+          Aucune dette pour ce mois. Le reste reste à la charge du commercial tant qu'il n'est ni retourné ni transformé en dette.
+        </div>
+
+        <ng-container *ngIf="activeDebt as d">
+          <div class="debt-head">
+            <button type="button" class="btn-link num debt-ref" (click)="openDebt()">{{ d.reference }}</button>
+            <span class="pill" [ngClass]="d.status === 'SETTLED' ? 'pill-ok' : d.status === 'PARTIALLY_SETTLED' ? 'pill-surplus' : 'pill-late'">
+              {{ d.status === 'SETTLED' ? 'Réglée' : d.status === 'PARTIALLY_SETTLED' ? 'Partiellement réglée' : 'Ouverte' }}
+            </span>
+          </div>
+          <dl class="debt-figures">
+            <div><dt>Montant</dt><dd class="num">{{ d.grossAmount | fcfa }}</dd></div>
+            <div><dt>Réglé</dt><dd class="num ok">{{ (d.paidAmount + d.offsetAmount) | fcfa }}</dd></div>
+            <div class="debt-left"><dt>Reste à payer</dt><dd class="num" data-testid="e2e-stock-regul-debt-left">{{ d.remainingAmount | fcfa }}</dd></div>
+          </dl>
+          <div class="rate-bar" aria-hidden="true"><span class="rate-ok" [style.width.%]="debtShare"></span></div>
+
+          <form class="settle-form" *ngIf="canSettle" (ngSubmit)="settle()">
+            <span class="kpi-label">Enregistrer un règlement</span>
+            <div class="chips" role="group" aria-label="Mode de règlement">
+              <button type="button" *ngFor="let mode of modes" class="chip" [class.chip--on]="settleMode === mode"
+                [attr.aria-pressed]="settleMode === mode" (click)="setMode(mode)"
+                [attr.data-testid]="'e2e-stock-regul-mode-' + mode">{{ modeLabels[mode] }}</button>
+            </div>
+            <p class="panel-hint" *ngIf="settleMode === 'SURPLUS_OFFSET'">Avoir disponible : {{ surplusAvailable | fcfa }}</p>
+            <label class="field">Montant
+              <input type="number" name="amount" min="1" [max]="d.remainingAmount" [(ngModel)]="settleAmount"
+                data-testid="e2e-stock-regul-amount">
+            </label>
+            <label class="field">{{ settleMode === 'WRITE_OFF' ? 'Motif (obligatoire)' : 'Note (facultatif)' }}
+              <textarea name="note" rows="2" [(ngModel)]="settleNote" data-testid="e2e-stock-regul-note"></textarea>
+            </label>
+            <p class="field-error" *ngIf="settleError as e" role="status">{{ e }}</p>
+            <button type="submit" class="btn-primary" [disabled]="busy || !!settleError"
+              data-testid="e2e-stock-regul-settle">Valider le règlement</button>
+          </form>
+
+          <div class="debt-links">
+            <button type="button" class="btn-ghost" *ngIf="canCancel" [disabled]="busy" (click)="cancelDebt()"
+              data-testid="e2e-stock-regul-cancel-debt">Annuler la dette</button>
+            <button type="button" class="btn-link" (click)="openDebt()">Ouvrir dans le module Dettes ›</button>
+          </div>
+
+          <ul class="settlements" *ngIf="d.settlements?.length">
+            <li *ngFor="let s of d.settlements">
+              <span class="num">{{ s.performedAt | date:'dd/MM/yyyy' }}</span>
+              <span>{{ modeLabels[s.settlementMode] || s.settlementMode }}</span>
+              <strong class="num">{{ s.amount | fcfa }}</strong>
+            </li>
+          </ul>
+        </ng-container>
+      </section>
+    </div>
+  </ng-container>
+</div>

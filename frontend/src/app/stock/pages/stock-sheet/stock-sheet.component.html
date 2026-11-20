@@ -41,10 +41,8 @@
         <button type="button" class="btn-ghost" *ngIf="stock?.id" (click)="openSales()" data-testid="e2e-stock-sheet-sales">
           Ventes liées
         </button>
-        <ng-container *ngxPermissionsOnly="['ROLE_DEBT_MANAGEMENT', 'ROLE_ADMIN']">
-          <button type="button" class="btn-ghost" *ngIf="canCreateDebt" [disabled]="creatingDebt" (click)="createDebt()"
-            data-testid="e2e-stock-sheet-create-debt">{{ creatingDebt ? 'Création…' : 'Créer la dette' }}</button>
-        </ng-container>
+        <a class="btn-ghost regul-link" *ngIf="canRegularise" [routerLink]="regularisationLink"
+          data-testid="e2e-stock-sheet-regularise">Régularisation</a>
         <button type="button" class="btn-ghost" *ngIf="stock?.recoverySummary?.merchandiseDebtId" (click)="openDebt()"
           data-testid="e2e-stock-sheet-open-debt">Voir la dette</button>
         <button type="button" class="btn-ghost" (click)="startTour()" data-testid="e2e-stock-sheet-tour">Visite guidée</button>

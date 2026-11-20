@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgxSpinnerService } from 'ngx-spinner';
 import { ToastrService } from 'ngx-toastr';
 import { Subscription } from 'rxjs';
@@ -49,10 +49,14 @@ export class StockReturnHistoriqueComponent implements OnInit, OnDestroy {
   currentUser: any;
 
   private subscriptions: Subscription[] = [];
+  /** Stock à présélectionner (lien « Enregistrer un retour en magasin » de la régularisation). */
+  private pendingStockId: number | null = null;
+  private fromRegularisation = false;
 
   constructor(
     private readonly fb: FormBuilder,
     private readonly router: Router,
+    private readonly route: ActivatedRoute,
     private readonly spinner: NgxSpinnerService,
     private readonly toastr: ToastrService,
     private readonly authService: AuthService,
@@ -75,8 +79,19 @@ export class StockReturnHistoriqueComponent implements OnInit, OnDestroy {
       || this.userService.hasProfile(UserProfile.SUPER_ADMIN)
       || this.userService.hasProfile(UserProfile.SECRETARY);
 
+    const params = this.route.snapshot.queryParamMap;
+    const stockId = Number(params.get('stockId'));
+    this.pendingStockId = Number.isInteger(stockId) && stockId > 0 ? stockId : null;
+    this.fromRegularisation = this.pendingStockId !== null;
+
     this.buildForm();
     this.loadCommercials();
+
+    const collector = params.get('collector');
+    if (!this.isPromoter && collector) {
+      this.returnForm.patchValue({ commercial: collector });
+      this.onCommercialChange();
+    }
   }
 
   private buildForm(): void {
@@ -134,6 +149,11 @@ export class StockReturnHistoriqueComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (stocks) => {
           this.historicalStocks = stocks;
+          const pending = this.pendingStockId ? stocks.find(stock => stock.id === this.pendingStockId) : undefined;
+          this.pendingStockId = null;
+          if (pending) {
+            this.onStockSelect(pending);
+          }
         },
         error: () => this.toastr.error('Erreur lors du chargement des stocks antérieurs')
       });
@@ -308,7 +328,7 @@ export class StockReturnHistoriqueComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.toastr.success('Retour en stock historique enregistré avec succès');
-          this.router.navigate(['/stock/my-stock']);
+          this.leave();
         },
         error: (err) => {
           this.toastr.error(
@@ -322,6 +342,16 @@ export class StockReturnHistoriqueComponent implements OnInit, OnDestroy {
   }
 
   onCancel(): void {
+    this.leave();
+  }
+
+  /** Revient à la régularisation du mois quand le retour a été ouvert depuis celle-ci. */
+  private leave(): void {
+    const stock = this.selectedStock;
+    if (this.fromRegularisation && stock) {
+      this.router.navigate(['/stock/my-stock', stock.collector, stock.year, stock.month, 'regularisation']);
+      return;
+    }
     this.router.navigate(['/stock/my-stock']);
   }
 

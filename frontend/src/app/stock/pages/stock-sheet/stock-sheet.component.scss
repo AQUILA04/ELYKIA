@@ -41,17 +41,6 @@
     .mini-track { width: 70px; }
   }
 
-  .qty-pill {
-    display: inline-block;
-    min-width: 28px;
-    padding: 2px 9px;
-    border-radius: 999px;
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-
-  .qty-pill--warn { background: var(--orange-pale); color: var(--orange); }
-
   .show-more {
     width: 100%;
     min-height: 44px;
