@@ -16,7 +16,8 @@ import org.thymeleaf.context.Context;
  * <p>
  * Une vente comptant ({@link OperationType#CASH}) suit son propre paramètre,
  * {@code RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY}, avec la même règle de profil. Les commandes et
- * livraisons tontine suivent ce même paramètre (appeler {@code apply(context, OperationType.CASH)}).
+ * livraisons tontine, ainsi que les demandes de sortie et retours de stock tontine, suivent ce même
+ * paramètre (appeler {@code apply(context, OperationType.CASH)}).
  * L'espace client suit {@code RESTRICT_CUSTOMER_SPACE_UNIT_PRICE_VISIBILITY}, lu côté client.
  */
 @Service

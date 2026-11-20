@@ -645,6 +645,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.57.5] — 2026-11-20
+
+### Changed
+
+- **Prix unitaire (stock tontine) —** les PDF « Fiche de demande(s) de sortie stock tontine », « Fiche de retour(s) stock tontine » (`StockExportService`) et « Rapport des Sorties de Stock Tontine » (`StockTontineRequestService.generatePdfExport`) suivent `RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY`, comme les commandes et livraisons tontine. Le stock commercial garde le paramètre général. Tests : `StockExportServiceTest`. Guide gestionnaire : tableau des paramètres mis à jour.
+
 ## Backend — [1.57.4] — 2026-11-20
 
 ### Fixed
