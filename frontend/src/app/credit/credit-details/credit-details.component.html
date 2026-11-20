@@ -344,8 +344,8 @@
             <th>Nom de l'article</th>
             <th>Type</th>
             <th>Quantité</th>
-            <th *appIfUnitPrice>Prix unitaire</th>
-            <th *appIfUnitPrice>Total</th>
+            <th *appIfUnitPrice="credit.type">Prix unitaire</th>
+            <th *appIfUnitPrice="credit.type">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -355,8 +355,8 @@
             </td>
             <td><span class="article-type-badge">{{ item.articles?.type || 'N/A' }}</span></td>
             <td><span class="mono-cell">{{ item.quantity }}</span></td>
-            <td *appIfUnitPrice><span class="mono-cell">{{ linePriceLabel(item) }}</span></td>
-            <td *appIfUnitPrice><span class="total-cell">{{ (item.lineAmount || item.totalPrice || (item.quantity * item.unitPrice)) | number }} FCFA</span>
+            <td *appIfUnitPrice="credit.type"><span class="mono-cell">{{ linePriceLabel(item) }}</span></td>
+            <td *appIfUnitPrice="credit.type"><span class="total-cell">{{ (item.lineAmount || item.totalPrice || (item.quantity * item.unitPrice)) | number }} FCFA</span>
             </td>
           </tr>
         </tbody>
@@ -370,7 +370,7 @@
           <span class="article-type-badge">{{ item.articles?.type || 'N/A' }}</span>
           <span class="article-card-qty">Qté {{ item.quantity }}</span>
         </div>
-        <div class="article-card-prices" *appIfUnitPrice>
+        <div class="article-card-prices" *appIfUnitPrice="credit.type">
           <div>
             <span class="article-card-label">Prix unitaire</span>
             <span class="mono-cell">{{ linePriceLabel(item) }}</span>

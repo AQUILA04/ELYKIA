@@ -3,6 +3,7 @@ package com.optimize.elykia.core.service.report;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.common.securities.service.ParameterService;
+import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
@@ -65,6 +66,44 @@ class UnitPriceVisibilityTest {
         UnitPriceVisibility visibility = new UnitPriceVisibility(parameterService, userService);
 
         assertTrue(visibility.showUnitPrice());
+    }
+
+    @Test
+    void cashSaleFollowsItsOwnParameter() {
+        when(parameterService.isEnabled(UnitPriceVisibility.CASH_SALE_PARAMETER_KEY)).thenReturn(false);
+        UnitPriceVisibility visibility = new UnitPriceVisibility(parameterService, userService);
+
+        assertTrue(visibility.showUnitPrice(OperationType.CASH));
+        verify(parameterService, never()).isEnabled(UnitPriceVisibility.PARAMETER_KEY);
+        verify(userService, never()).getCurrentUser();
+    }
+
+    @Test
+    void cashSaleHidesPricesWhenItsParameterIsOnEvenIfGeneralIsOff() {
+        when(parameterService.isEnabled(UnitPriceVisibility.CASH_SALE_PARAMETER_KEY)).thenReturn(true);
+        when(userService.getCurrentUser()).thenReturn(user);
+        when(user.is(UserProfilConstant.GESTIONNAIRE)).thenReturn(false);
+        when(user.is(UserProfilConstant.ADMIN)).thenReturn(false);
+        when(user.is(UserProfilConstant.SU)).thenReturn(false);
+        UnitPriceVisibility visibility = new UnitPriceVisibility(parameterService, userService);
+        visibility.register();
+
+        Context context = new Context();
+        UnitPriceVisibility.apply(context, OperationType.CASH);
+
+        assertEquals(Boolean.FALSE, context.getVariable(UnitPriceVisibility.CONTEXT_VARIABLE));
+        verify(parameterService, never()).isEnabled(UnitPriceVisibility.PARAMETER_KEY);
+    }
+
+    @Test
+    void creditAndTontineKeepTheGeneralParameter() {
+        when(parameterService.isEnabled(UnitPriceVisibility.PARAMETER_KEY)).thenReturn(false);
+        UnitPriceVisibility visibility = new UnitPriceVisibility(parameterService, userService);
+
+        assertTrue(visibility.showUnitPrice(OperationType.CREDIT));
+        assertTrue(visibility.showUnitPrice(OperationType.TONTINE));
+        assertTrue(visibility.showUnitPrice(null));
+        verify(parameterService, never()).isEnabled(UnitPriceVisibility.CASH_SALE_PARAMETER_KEY);
     }
 
     @Test

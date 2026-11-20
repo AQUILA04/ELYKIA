@@ -2811,13 +2811,37 @@
 <li>Laissez <strong>NON</strong> pour n’enregistrer que le contrôle. Le badge <strong>Déjà contrôlé</strong> s’affiche quand même, et le carnet reste à vérifier jusqu’à une action <strong>Vérifier</strong>.</li>
 </ol>
 <h3 id="prix-unitaires-sur-les-documents">Prix unitaires sur les documents</h3>
+<p>Trois paramètres règlent l’affichage du prix unitaire et du montant de chaque ligne. Le montant total du document reste toujours affiché, y compris sur les PDF.</p>
+<table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Ce qu’il couvre</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY</strong></td>
+<td>Les ventes comptant : saisie, reçu, fiche de la vente, achats d’un client, PDF d’annulation.</td>
+</tr>
+<tr>
+<td><strong>RESTRICT_CUSTOMER_SPACE_UNIT_PRICE_VISIBILITY</strong></td>
+<td>L’Espace Client : catalogue, panier, détail d’un achat.</td>
+</tr>
+<tr>
+<td><strong>RESTRICT_UNIT_PRICE_VISIBILITY</strong></td>
+<td>Tout le reste : ventes à crédit, livraisons tontine, commandes, sorties de stock, dettes, rapports et autres PDF.</td>
+</tr>
+</tbody>
+</table>
 <ol>
 <li>Ouvrez <strong>Configuration</strong> → <strong>Paramètres généraux</strong>.</li>
-<li>Repérez <strong>RESTRICT_UNIT_PRICE_VISIBILITY</strong>.</li>
+<li>Repérez le paramètre voulu.</li>
 <li>Cliquez sur <strong>Modifier</strong>.</li>
-<li>Laissez <strong>true</strong> pour réserver le prix unitaire et le montant de chaque ligne au gestionnaire et aux administrateurs. Le montant total du document reste affiché pour tout le monde, y compris sur les PDF.</li>
-<li>Passez la valeur à <strong>false</strong>, puis enregistrez, pour que chaque profil retrouve le prix unitaire et le montant de ligne sur les écrans et les PDF.</li>
+<li>Laissez <strong>true</strong> pour masquer le prix unitaire et le montant de ligne. Sur les écrans de gestion, le gestionnaire et les administrateurs les voient toujours. Dans l’Espace Client, aucun client ne les voit.</li>
+<li>Passez la valeur à <strong>false</strong>, puis enregistrez, pour que tout le monde les voie dans le périmètre de ce paramètre.</li>
 </ol>
+<p>Les écrans relisent ces réglages à l’accueil, dans <strong>Paramètres</strong>, et au plus toutes les 6 heures.</p>
 <h3 id="grilles-de-frais-de-retrait">Grilles de frais de retrait</h3>
 <ol>
 <li>Ouvrez <strong>Configuration</strong> → <strong>Frais de retrait</strong>.</li>

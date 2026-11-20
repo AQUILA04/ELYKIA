@@ -503,6 +503,14 @@ app:
         key: CASH_SALE_PRICE_SOURCE
         value: CATALOG
         description: "CATALOG : la vente comptant et la livraison tontine encaissent le prix de la fiche. FIFO_LOT : elles encaissent le prix figé sur le lot à l'entrée. La marge suit toujours le coût d'achat du lot FIFO."
+      init-data[12]:
+        key: RESTRICT_CUSTOMER_SPACE_UNIT_PRICE_VISIBILITY
+        value: true
+        description: "Espace client. Activé : le client ne voit ni le prix unitaire ni le montant de ligne. Désactivé : il les voit. Le total reste affiché."
+      init-data[13]:
+        key: RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY
+        value: true
+        description: "Ventes comptant. Activé : le prix unitaire et le montant de ligne sont réservés au gestionnaire et aux profils admin. Désactivé : tous les profils les voient. Le total reste affiché."
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}

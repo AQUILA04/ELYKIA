@@ -6,11 +6,12 @@ import { environment } from '../../../environments/environment';
 
 /**
  * Clients are never a privileged profile: unit prices show only when the
- * application parameter is off. The value is read at startup and kept for 6 hours.
+ * customer-space parameter is off. It is separate from the back-office parameter
+ * RESTRICT_UNIT_PRICE_VISIBILITY. The value is read at startup and kept for 6 hours.
  */
 @Injectable({ providedIn: 'root' })
 export class UnitPriceVisibilityService implements OnDestroy {
-  static readonly KEY = 'RESTRICT_UNIT_PRICE_VISIBILITY';
+  static readonly KEY = 'RESTRICT_CUSTOMER_SPACE_UNIT_PRICE_VISIBILITY';
   private static readonly TTL_MS = 6 * 60 * 60 * 1000;
 
   private readonly showSubject = new BehaviorSubject<boolean>(false);

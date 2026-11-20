@@ -45,7 +45,7 @@ Autres enchaînements livrés récemment (voir `docs/CHANGELOG.md`, ne pas les f
 
 ## Paramètres métier qui changent l’écran
 
-- `RESTRICT_UNIT_PRICE_VISIBILITY` : masque le prix unitaire et le montant de ligne selon le profil ; le total du document reste. Réglage relu à l’accueil, dans Paramètres, et au plus toutes les 6 heures (clients web, mobile, espace client).
+- Prix unitaire et montant de ligne (le total du document reste) : `RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY` pour les ventes comptant (web, PDF d’annulation), `RESTRICT_CUSTOMER_SPACE_UNIT_PRICE_VISIBILITY` pour l’espace client, `RESTRICT_UNIT_PRICE_VISIBILITY` pour tout le reste (web, mobile, PDF). Gestionnaire et admins voient toujours les prix hors espace client. Réglages relus à l’accueil, dans Paramètres, et au plus toutes les 6 heures.
 - Remote config espace client `dualCreditAuthorization` : affiche ou non les adhésions multiples et le choix du type de crédit au panier.
 - FIFO : valorisation de stock par lots (`ENABLED_FIFO_STOCK_VALUATION`). Une livraison peut être refusée si les lots ouverts ne couvrent pas la quantité, même si le stock affiché est plus haut. Procédure de contrôle : `docs/diagnostic-fifo-entrees-sans-lot.md`.
 

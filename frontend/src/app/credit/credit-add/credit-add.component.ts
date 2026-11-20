@@ -706,7 +706,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
               <div class="article-item">
                 <div class="article-name">${item.name}</div>
                 <div class="row article-details">
-                  ${this.unitPriceVisibility.snapshot
+                  ${this.unitPriceVisibility.snapshotFor(this.receiptData.saleType)
                     ? `<span>${item.quantity} x ${item.unitPrice.toLocaleString('fr-FR')}</span><span>${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>`
                     : `<span>Qté ${item.quantity}</span>`}
                 </div>
@@ -884,7 +884,7 @@ export class CreditAddComponent implements OnInit, OnDestroy {
               <div class="article-item">
                 <div class="article-name">${item.name}</div>
                 <div class="row article-details">
-                  ${this.unitPriceVisibility.snapshot
+                  ${this.unitPriceVisibility.snapshotFor(this.receiptData.saleType)
                     ? `<span>${item.quantity} x ${item.unitPrice.toLocaleString('fr-FR')}</span><span>${item.totalPrice.toLocaleString('fr-FR')} FCFA</span>`
                     : `<span>Qté ${item.quantity}</span>`}
                 </div>

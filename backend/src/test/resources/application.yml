@@ -42,6 +42,21 @@ app:
   folder: /tmp/elykia-test/operations/
   credit:
     dividend: 6
+  security:
+    parameter:
+      init-enabled: true
+      init-data[0]:
+        key: RESTRICT_UNIT_PRICE_VISIBILITY
+        value: true
+        description: "Activé : le prix unitaire et le montant de ligne sont réservés au gestionnaire et aux profils admin. Désactivé : tous les profils voient les prix unitaires."
+      init-data[1]:
+        key: RESTRICT_CUSTOMER_SPACE_UNIT_PRICE_VISIBILITY
+        value: true
+        description: "Espace client. Activé : le client ne voit ni le prix unitaire ni le montant de ligne. Désactivé : il les voit. Le total reste affiché."
+      init-data[2]:
+        key: RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY
+        value: true
+        description: "Ventes comptant. Activé : le prix unitaire et le montant de ligne sont réservés au gestionnaire et aux profils admin. Désactivé : tous les profils les voient. Le total reste affiché."
 
 minio:
   endpoint: http://localhost:9000
