@@ -4,5 +4,5 @@ export const environment = {
   appName: 'Elykia',
   /** Injecté au build APK (test|prod). prod = pas de bandeau. */
   envName: 'prod',
-  version: '2.41.5'
+  version: '2.41.6'
 };

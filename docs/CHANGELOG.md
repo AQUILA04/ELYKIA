@@ -485,6 +485,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.41.6] — 2026-11-20
+
+### Fixed
+
+- **Tontine — fiche membre →** l'ouverture de la création de livraison ou de commande depuis le menu **Actions** attend maintenant la fermeture du menu avant de changer d'écran. Avant, l'écran de création (qui contient la fenêtre **Panier**) pouvait rester masqué aux lecteurs d'écran : Ionic ne réaffichait pas la page. Cela bloquait aussi le test e2e smoke « S2 order then mark delivered » (bouton **Valider** introuvable).
+
 ## Mobile — [2.41.5] — 2026-11-20
 
 ### Changed

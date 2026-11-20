@@ -698,7 +698,9 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                     text: deliveryLabel,
                     icon: 'cube-outline',
                     handler: () => {
-                        this.createDelivery();
+                        // Naviguer une fois la feuille fermée : la page de création porte une fenêtre inline (panier),
+                        // et si elle apparaît pendant la fermeture, Ionic laisse l'écran masqué aux lecteurs d'écran.
+                        void actionSheet.onDidDismiss().then(() => this.createDelivery());
                     }
                 }] : []),
                 ...(this.hasPendingDeliveryToMark() ? [{
