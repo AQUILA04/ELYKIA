@@ -603,6 +603,25 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.57.0] — 2026-11-20
+
+### Added
+
+- **Stock commercial — vue équipe —** `GET /api/commercial-stocks/team-overview?year&month` : une ligne par commercial (quantités et valeurs prises, vendues, retournées, restantes, dette, total dû, recouvré, reste à recouvrer, taux, part écoulée, dette marchandise et statut, « à régulariser ») et les totaux de l'équipe. Les stocks du mois et leurs dettes sont chargés en deux requêtes ; le recouvrement reprend le calcul existant de l'écran stock.
+- **Stock commercial — à régulariser —** `GET /api/commercial-stocks/to-settle` : mois clôturés dont le reste n'est ni retourné ni transformé en dette, valorisés comme la future dette marchandise (PMP de vente arrondi).
+- **Ventes liées d'un stock —** montant payé et reste dû par crédit, totaux, et contrôle de concordance « stock vendu = ventes imputées » (`consistent`, `gapAmount`).
+
+### Changed
+
+- **PDF « Stock commercial mensuel » —** design system documents (flux marchandise et argent, articles, signatures, pied de page « Page n/N » clair). Les valeurs restent masquées pour les profils sans accès aux prix.
+- Règle de recouvrement d'un stock (ventes recouvrées + dette réglée) factorisée en une seule méthode, utilisée par l'écran stock et la vue équipe.
+
+### Fixed
+
+- **Accès —** un commercial n'accède qu'à son propre stock mensuel sur tous les endpoints `api/commercial-stocks` (stock d'un mois, articles disponibles, ventes liées, vue équipe, à régulariser).
+- **Clôture de fin de mois —** le traitement du 1er du mois clôturait les stocks du mois qui commence (`LocalDate.now()`) au lieu du mois rapporté.
+- **PDF stock —** le « restant » d'un article ne retirait pas la quantité mise en dette (pris − vendu − retourné) : un reste déjà transformé en dette apparaissait encore comme restant.
+
 ## Backend — [1.56.0] — 2026-11-20
 
 ### Added

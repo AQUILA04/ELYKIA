@@ -8,6 +8,7 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
 import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
+import com.optimize.elykia.core.dto.stock.StockRecoverySummaryDto;
 import com.optimize.elykia.core.service.report.PdfHtmlRenderer;
 import com.optimize.elykia.core.dto.CommercialStockDashboardExportDTO;
 import com.optimize.elykia.core.dto.StockDashboardExportPdfContextDto;
@@ -45,7 +46,7 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class StockExportService {
 
-    private static final String DASHBOARD_DOCUMENT_TITLE = "Rapport de Stock Commercial";
+    private static final String DASHBOARD_DOCUMENT_TITLE = "Stock commercial mensuel";
 
     private final StockRequestRepository stockRequestRepository;
     private final StockReturnRepository stockReturnRepository;
@@ -106,6 +107,10 @@ public class StockExportService {
         long totalRemaining = finalData.stream().mapToLong(CommercialStockDashboardExportDTO::getQuantityRemaining).sum();
         double totalSoldValue = finalData.stream().mapToDouble(CommercialStockDashboardExportDTO::getSoldValue).sum();
         double totalRemainingValue = finalData.stream().mapToDouble(CommercialStockDashboardExportDTO::getRemainingValue).sum();
+        long totalDebtQuantity = finalData.stream().mapToLong(CommercialStockDashboardExportDTO::getQuantityDebt).sum();
+        double totalDebtValue = finalData.stream().mapToDouble(CommercialStockDashboardExportDTO::getDebtValue).sum();
+        int itemsWithRemaining = (int) finalData.stream().filter(dto -> dto.getQuantityRemaining() > 0).count();
+        StockRecoverySummaryDto recovery = stock.getRecoverySummary();
 
         StockDashboardExportPdfContextDto contextDto = StockDashboardExportPdfContextDto.builder()
                 .title(DASHBOARD_DOCUMENT_TITLE)
@@ -120,9 +125,29 @@ public class StockExportService {
                 .totalRemaining(totalRemaining)
                 .totalSoldValue(totalSoldValue)
                 .totalRemainingValue(totalRemainingValue)
+                .periodLabel(monthLabel(month) + " " + year)
+                .periodRange(startDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " → "
+                        + endDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+                .totalDebtQuantity(totalDebtQuantity)
+                .totalDebtValue(totalDebtValue)
+                .dueValue(recovery != null ? recovery.getTotalDueAmount() : totalSoldValue + totalDebtValue + totalRemainingValue)
+                .recoveredValue(recovery != null ? recovery.getTotalRecoveredAmount() : 0.0)
+                .leftToRecover(recovery != null ? recovery.getTotalRemainingAmount() : 0.0)
+                .recoveryRate(recovery != null ? recovery.getRecoveryRatePercent() : 0.0)
+                .soldRate(totalTaken > 0 ? Math.min(100.0, totalSold * 100.0 / totalTaken) : 0.0)
+                .debtSettled(recovery != null ? recovery.getDebtSettledAmount() : 0.0)
+                .debtRemaining(recovery != null ? recovery.getDebtRemainingAmount() : 0.0)
+                .itemsWithRemaining(itemsWithRemaining)
                 .build();
 
-        return renderPdf("commercial-stock-dashboard-export", "context", contextDto);
+        return renderPdf("commercial-stock-dashboard-export", "context", contextDto, PdfHtmlRenderer.FooterStyle.MODERN);
+    }
+
+    private static final String[] MONTHS = {"Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet",
+            "Août", "Septembre", "Octobre", "Novembre", "Décembre"};
+
+    static String monthLabel(int month) {
+        return month >= 1 && month <= 12 ? MONTHS[month - 1] : String.valueOf(month);
     }
 
     private CommercialStockDashboardExportDTO toDashboardExportDto(CommercialMonthlyStockItem item) {
@@ -135,7 +160,7 @@ public class StockExportService {
         long sold = item.getQuantitySold() != null ? item.getQuantitySold().longValue() : 0L;
         long returned = item.getQuantityReturned() != null ? item.getQuantityReturned().longValue() : 0L;
         double soldValue = item.getTotalSoldValue() != null ? item.getTotalSoldValue() : 0.0;
-        return new CommercialStockDashboardExportDTO(
+        CommercialStockDashboardExportDTO dto = new CommercialStockDashboardExportDTO(
                 articleName,
                 unitPrice,
                 taken,
@@ -146,6 +171,9 @@ public class StockExportService {
                 article != null ? article.getMarque() : null,
                 article != null ? article.getModel() : null,
                 name);
+        dto.setQuantityDebt(item.getQuantityDebt() != null ? item.getQuantityDebt().longValue() : 0L);
+        dto.setDebtValue(item.debtValue());
+        return dto;
     }
 
     public byte[] generateStockRequestSortiePdfExport(LocalDate startDate, LocalDate endDate, String collector, List<Long> requestIds) {
@@ -410,13 +438,18 @@ public class StockExportService {
     }
 
     private byte[] renderPdf(String template, String variableName, Object contextDto) {
+        return renderPdf(template, variableName, contextDto, PdfHtmlRenderer.FooterStyle.CLASSIC);
+    }
+
+    private byte[] renderPdf(String template, String variableName, Object contextDto,
+            PdfHtmlRenderer.FooterStyle footerStyle) {
         String title = extractTitle(contextDto);
         Context context = new Context();
         UnitPriceVisibility.apply(context);
         PdfDocumentIdentity.applyTo(context, title);
         context.setVariable(variableName, contextDto);
         String html = templateEngine.process(template, context);
-        return pdfHtmlRenderer.htmlToPdf(html, PdfDocumentIdentity.footerLabel(title));
+        return pdfHtmlRenderer.htmlToPdf(html, PdfDocumentIdentity.footerLabel(title), footerStyle);
     }
 
     private String extractTitle(Object contextDto) {

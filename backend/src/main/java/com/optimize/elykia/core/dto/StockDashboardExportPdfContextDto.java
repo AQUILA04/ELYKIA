@@ -24,4 +24,19 @@ public class StockDashboardExportPdfContextDto {
     private Long totalRemaining;
     private Double totalSoldValue;
     private Double totalRemainingValue;
+
+    // Nouveau design : période, flux marchandise et argent (mêmes chiffres que l'écran).
+    private String periodLabel;
+    /** Période lisible : « 01/10/2026 → 31/10/2026 ». */
+    private String periodRange;
+    private Long totalDebtQuantity;
+    private Double totalDebtValue;
+    private Double dueValue;
+    private Double recoveredValue;
+    private Double leftToRecover;
+    private Double recoveryRate;
+    private Double soldRate;
+    private Double debtSettled;
+    private Double debtRemaining;
+    private Integer itemsWithRemaining;
 }

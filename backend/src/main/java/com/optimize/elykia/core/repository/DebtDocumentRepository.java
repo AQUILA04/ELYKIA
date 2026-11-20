@@ -47,6 +47,10 @@ public interface DebtDocumentRepository extends JpaRepository<DebtDocument, Long
     Optional<DebtDocument> findByMonthlyStockIdAndDebtTypeAndStatusNot(
             Long monthlyStockId, DebtType debtType, DebtStatus status);
 
+    /** Dettes d'une liste de stocks mensuels (vue équipe, une requête). */
+    List<DebtDocument> findByMonthlyStockIdInAndDebtTypeAndStatusNot(
+            Collection<Long> monthlyStockIds, DebtType debtType, DebtStatus status);
+
     Optional<DebtDocument> findByInventoryIdAndDebtTypeAndStatusNot(
             Long inventoryId, DebtType debtType, DebtStatus status);
 

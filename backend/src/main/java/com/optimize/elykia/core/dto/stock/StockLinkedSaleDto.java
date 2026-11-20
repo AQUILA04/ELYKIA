@@ -14,6 +14,10 @@ public class StockLinkedSaleDto {
     Double totalAmount;
     LocalDate beginDate;
     Double soldValueOnStock;
+    /** Montant déjà payé par le client sur ce crédit. */
+    Double paidAmount;
+    /** Reste dû par le client sur ce crédit. */
+    Double remainingAmount;
     String type;
     String status;
 }
