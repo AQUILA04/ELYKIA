@@ -76,8 +76,9 @@ public class TontineDeliveryService {
         TontineMember member = memberRepository.findById(dto.getTontineMemberId())
                 .orElseThrow(() -> new ResourceNotFoundException("Membre de tontine non trouvé"));
 
-        requireSessionStatus(member, TontineSessionStatus.ACTIVE,
-                "La commande tontine n'est possible que tant que la session est ouverte.");
+        requireSessionStatus(member,
+                "La commande tontine n'est possible que tant que la session est ouverte ou clôturée.",
+                TontineSessionStatus.ACTIVE, TontineSessionStatus.CLOSED);
 
         return persistNewDelivery(member, dto);
     }
@@ -141,8 +142,12 @@ public class TontineDeliveryService {
     }
 
     private void requireSessionStatus(TontineMember member, TontineSessionStatus expected, String message) {
+        requireSessionStatus(member, message, expected);
+    }
+
+    private void requireSessionStatus(TontineMember member, String message, TontineSessionStatus... allowed) {
         TontineSession session = member.getTontineSession();
-        if (session == null || session.getStatus() != expected) {
+        if (session == null || !java.util.Arrays.asList(allowed).contains(session.getStatus())) {
             throw new CustomValidationException(message);
         }
     }

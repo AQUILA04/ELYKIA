@@ -4,9 +4,12 @@ Arrêt au **2026-11-20** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de
 
 ## Versions en tête
 
-- Frontend **2.55.0** — Backend **1.57.0** — Mobile **2.40.5** — Espace client **0.17.4** (dernier incrément espace client : 2026-11-20).
+- Frontend **2.55.0** — Backend **1.57.1** — Mobile **2.40.6** — Espace client **0.17.4** (dernier incrément espace client : 2026-11-20).
 
 ## Focus récent (changelog et PR)
+
+- **Commande tontine après clôture** (2026-11-20, PR #255). Backend 1.57.1 / Mobile 2.40.6 : `createDelivery` accepte une session `ACTIVE` ou `CLOSED` (refus si `ENDED`) ; livraison directe et remise restent `CLOSED`. Mobile : sélecteur Stock tontine / Catalogue après clôture.
+- **Noms d'article > 255 caractères** (2026-11-20). Backend 1.56.1 : le nom composé `type: marque modèle nom` atteint ~300 caractères ; `item_name` / `article_name` des demandes de stock, livraisons, stocks et mouvements tontine passent en `TEXT` (migration `V043`, appliquée aussi à la main sur la base de test).
 
 - **Refonte stock commercial** (2026-11-20, 3 PR successives vers `main`). PR 1 Backend 1.57.0 : `team-overview`, `to-settle`, ventes liées payé/reste + concordance, accès commercial restreint, clôture du mois rapporté, PDF stock au design system (`report-fragments.html`). PR 2 Frontend 2.55.0 : vue équipe `/stock/my-stock`, fiche `/stock/my-stock/:commercial/:année/:mois`, panneaux Article (3 onglets) et Ventes liées, ancienne présentation sur `/stock/my-stock/classic`, briques partagées `shared/report-ui` (visite guidée, pipe `fcfa`, styles `report-v2`). PR 3 : régularisation (retour, dette, règlement), onglet tontine, guide. Maquettes : artifact « Stock commercial mensuel — proposition ».
 - **Prix unitaire scindé** (2026-11-20, branche `feat/unit-price-visibility-split`). Backend 1.56.0 / Frontend 2.54.0 / Espace client 0.17.4 : paramètres dédiés ventes comptant et espace client, déclarés dans `init-data` à `true`. Directives `*appIfUnitPrice="credit.type"`. Mobile inchangé (pas de vente comptant).

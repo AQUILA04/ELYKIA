@@ -68,6 +68,19 @@
     <span *ngIf="!isCatalogueMode">Remise — stock tontine disponible</span>
   </div>
 
+  <ion-segment *ngIf="canChooseArticleSource"
+    [value]="catalogueWhenClosed ? 'CATALOGUE' : 'STOCK'"
+    (ionChange)="onArticleSourceChange($event)"
+    aria-label="Source des articles"
+    data-testid="e2e-delivery-article-source-toggle">
+    <ion-segment-button value="STOCK">
+      <ion-label>Stock tontine (remise)</ion-label>
+    </ion-segment-button>
+    <ion-segment-button value="CATALOGUE">
+      <ion-label>Catalogue (commande)</ion-label>
+    </ion-segment-button>
+  </ion-segment>
+
   <div class="warning-message elyk-card">
     <ion-icon name="warning-outline"></ion-icon>
     <span>Le panier peut aller jusqu'au solde prévisionnel. Pour la remise, le solde réel doit couvrir le panier : utilisez Compléter le solde (sans plafond) ou réduisez les articles.</span>

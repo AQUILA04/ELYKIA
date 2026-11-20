@@ -32,9 +32,10 @@ export function normalizeTontineStatus(status?: string | null): string | null {
   return normalized.length ? normalized : null;
 }
 
-/** Commande (PENDING) : uniquement pendant une session ouverte. */
+/** Commande (PENDING) : session ouverte ou clôturée. Refusée seulement une fois la campagne terminée (ENDED). */
 export function canCreateTontineOrder(sessionStatus?: string | null): boolean {
-  return normalizeTontineStatus(sessionStatus) === 'ACTIVE';
+  const status = normalizeTontineStatus(sessionStatus);
+  return status === 'ACTIVE' || status === 'CLOSED';
 }
 
 /** Remise physique (livraison directe / marquer comme livré) : uniquement session clôturée. */
@@ -64,11 +65,11 @@ export function canRecordDeliveryTontineCollection(sessionStatus?: string | null
  * Session ouverte : commande. Session clôturée : remise. Les autres statuts n'ouvrent pas le flux.
  */
 export function tontineDeliveryCreationMenuLabel(sessionStatus?: string | null): string | null {
-  if (canCreateTontineOrder(sessionStatus)) {
-    return 'Commande de tontine';
-  }
   if (canPhysicallyDeliverTontine(sessionStatus)) {
     return 'Livraison Fin d\'Année';
+  }
+  if (canCreateTontineOrder(sessionStatus)) {
+    return 'Commande de tontine';
   }
   return null;
 }

@@ -44,6 +44,7 @@ import { PrintableTontineOrder } from 'src/app/core/services/printing.service';
 import {
     canCreateTontineOrder,
     canPhysicallyDeliverTontine,
+    normalizeTontineStatus,
     pickMemberTontineDelivery
 } from 'src/app/core/utils/tontine-delivery-status.util';
 
@@ -151,9 +152,29 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         this.catalogueHasMore$ = this.store.select(selectCatalogueHasMore);
     }
 
-    /** Session ACTIVE → catalogue ; CLOSED → stock tontine commercial. */
+    /** Session clôturée : le commercial choisit entre le catalogue (commande) et le stock tontine (remise). */
+    catalogueWhenClosed = false;
+
+    /** Session ACTIVE → catalogue ; CLOSED → stock tontine par défaut, catalogue au choix (commande). */
     get isCatalogueMode(): boolean {
-        return canCreateTontineOrder(this.vm.session?.status);
+        const status = normalizeTontineStatus(this.vm.session?.status);
+        if (status === 'ACTIVE') {
+            return true;
+        }
+        return status === 'CLOSED' && this.catalogueWhenClosed;
+    }
+
+    get canChooseArticleSource(): boolean {
+        return normalizeTontineStatus(this.vm.session?.status) === 'CLOSED';
+    }
+
+    onArticleSourceChange(event: any): void {
+        const wantsCatalogue = String(event?.detail?.value ?? '') === 'CATALOGUE';
+        if (wantsCatalogue === this.catalogueWhenClosed) {
+            return;
+        }
+        this.catalogueWhenClosed = wantsCatalogue;
+        this.refreshArticleSource();
     }
 
     async ngOnInit() {
@@ -523,7 +544,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
         const sessionStatus = this.vm.session?.status;
         const orderAllowed = canCreateTontineOrder(sessionStatus);
-        const directAllowed = canPhysicallyDeliverTontine(sessionStatus);
+        const directAllowed = this.isDirectDeliveryAllowed();
 
         const sheet = await this.actionSheetCtrl.create({
             header: 'Type d\'opération',
@@ -531,7 +552,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             cssClass: 'elyk-action-sheet',
             buttons: [
                 {
-                    text: orderAllowed ? 'Commande' : 'Commande (session ouverte uniquement)',
+                    text: orderAllowed ? 'Commande' : 'Commande (session terminée)',
                     icon: 'document-text-outline',
                     cssClass: orderAllowed
                         ? 'e2e-tontine-delivery-mode-order'
@@ -548,7 +569,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 {
                     text: directAllowed
                         ? 'Livraison directe'
-                        : 'Livraison directe (après clôture)',
+                        : (canPhysicallyDeliverTontine(sessionStatus)
+                            ? 'Livraison directe (choisir le stock tontine)'
+                            : 'Livraison directe (après clôture)'),
                     icon: 'cube-outline',
                     cssClass: directAllowed
                         ? 'e2e-tontine-delivery-mode-direct'
@@ -572,10 +595,20 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         await sheet.present();
     }
 
+    /** Remise directe : session clôturée et articles pris dans le stock tontine (jamais le catalogue). */
+    private isDirectDeliveryAllowed(): boolean {
+        return canPhysicallyDeliverTontine(this.vm.session?.status) && !this.isCatalogueMode;
+    }
+
     private async showSessionGateMessage(mode: TontineDeliveryCreationMode): Promise<void> {
-        const message = mode === 'ORDER'
-            ? 'La commande n\'est possible que tant que la session de tontine est ouverte.'
-            : 'La livraison directe n\'est possible qu\'une fois la session de tontine clôturée.';
+        let message: string;
+        if (mode === 'ORDER') {
+            message = 'La commande n\'est plus possible : la session de tontine est terminée.';
+        } else if (canPhysicallyDeliverTontine(this.vm.session?.status)) {
+            message = 'Pour une livraison directe, choisissez « Stock tontine » comme source des articles.';
+        } else {
+            message = 'La livraison directe n\'est possible qu\'une fois la session de tontine clôturée.';
+        }
         const alert = await this.alertCtrl.create({
             header: 'Action indisponible',
             message,
@@ -590,7 +623,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             await this.showSessionGateMessage('ORDER');
             return;
         }
-        if (!isOrder && !canPhysicallyDeliverTontine(this.vm.session?.status)) {
+        if (!isOrder && !this.isDirectDeliveryAllowed()) {
             await this.showSessionGateMessage('DIRECT');
             return;
         }
@@ -621,7 +654,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             await this.showSessionGateMessage('ORDER');
             return;
         }
-        if (!isOrder && !canPhysicallyDeliverTontine(this.vm.session?.status)) {
+        if (!isOrder && !this.isDirectDeliveryAllowed()) {
             await this.showSessionGateMessage('DIRECT');
             return;
         }
