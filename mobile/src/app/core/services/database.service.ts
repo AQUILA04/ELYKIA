@@ -21,6 +21,7 @@ import { RestoreValidator } from './restore-validator.service';
 import { FinancialWriteGuardService } from '../daily-consent/financial-write-guard.service';
 import { notifyRmDataRestored } from './rm/rm-data-restored';
 import { rmSqliteDdl, withRmBackupTables } from './rm/rm-sqlite.tables';
+import { hasPersistableTontineDeliveryId } from '../utils/tontine-delivery-status.util';
 
 interface DbRowWithHash {
   id: any;
@@ -2407,6 +2408,7 @@ export class DatabaseService {
 
   async saveTontineDeliveries(deliveries: any[]): Promise<void> {
     if (!this.db) throw new Error('Database not initialized.');
+    deliveries = deliveries.filter(d => hasPersistableTontineDeliveryId(d?.id));
     if (!deliveries.length) return;
 
     const queryDelivery = `

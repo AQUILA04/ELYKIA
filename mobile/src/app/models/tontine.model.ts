@@ -39,6 +39,8 @@ export interface TontineMemberView extends TontineMember {
     clientPhone: string;
     clientQuarter?: string;
     hasPaidToday?: boolean;
+    /** Une commande ou une remise est enregistrée sur ce téléphone pour le membre. */
+    hasOrder?: boolean;
 }
 
 export interface TontineCollection {

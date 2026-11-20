@@ -1053,13 +1053,17 @@ Le module **Tontine** permet aux clientes de mettre de l'argent de côté chaque
 ### C. Consulter la fiche complète d'une membre tontine
 Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 * Vous voyez le montant de sa mise, le total déjà cotisé en vert et son quartier.
+* **Le badge sous son nom** (aussi visible dans la liste de tontine) :
+  * **Commande** ou **Validée** : une commande est enregistrée pour elle. La carte **Livraison** de la fiche liste ses articles et le total.
+  * **Livré** : ses articles lui ont été remis.
+  * **À livrer** : la session est clôturée et elle attend sa remise de fin d'année, sans commande enregistrée pour l'instant. Utilisez **Livraison Fin d'Année** dans le menu ⋮.
 * **L'historique des cotisations** : la liste numérotée de tous ses versements passés.
 * **Droit à l'erreur** : si vous venez d'enregistrer une cotisation par erreur avec le badge **Local**, touchez la petite corbeille rouge sur la ligne pour l'annuler aussitôt. Le total est recalculé sans aucune fausse note.
 * **Le menu d'options (trois petits points ⋮ en haut à droite)** :
   * **Cotiser** / **Enregistrer une cotisation** : pour enregistrer un versement pendant la session ouverte. Après la clôture, cette action n'apparaît plus sur la fiche.
   * **Voir le client** : pour voir la fiche générale de la cliente.
   * **Commande de tontine** : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle **Livraison Fin d'Année** et sert à la remise en mains propres.
-  * **Modifier la commande** : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles.
+  * **Modifier la commande** : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles. Si la carte **Livraison** indique que les articles ne sont pas encore sur le téléphone, lancez d'abord une synchronisation : le bouton apparaît dès que les articles sont affichés.
 
 ### D. Enregistrer une cotisation de tontine pas à pas
 1. **Ouvrez la saisie** :

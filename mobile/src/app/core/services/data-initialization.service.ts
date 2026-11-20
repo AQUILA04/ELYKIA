@@ -267,6 +267,7 @@ export class DataInitializationService {
   initializeTontine(): Observable<boolean> {
     return from(this.tontineCollectionRepository.purgeSyncedOrphans()).pipe(
       switchMap(() => from(this.tontineDeliveryRepository.purgeSyncedOrphans())),
+      switchMap(() => from(this.tontineDeliveryRepository.purgePhantomDeliveries())),
       switchMap(() => this.store.select(selectAuthUser)),
       take(1),
       filter((user): user is User => !!user),

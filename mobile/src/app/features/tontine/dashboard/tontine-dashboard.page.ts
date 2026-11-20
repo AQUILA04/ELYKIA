@@ -257,7 +257,15 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
         console.log('Synchronize');
     }
 
-    getStatusLabel(status: string): string {
+    /**
+     * À la clôture, le serveur passe tous les membres en PENDING.
+     * « Commande » / « Validée » seulement si une livraison est enregistrée, sinon « À livrer ».
+     */
+    getStatusLabel(member: Pick<TontineMemberView, 'deliveryStatus' | 'hasOrder'>): string {
+        const status = member.deliveryStatus;
+        if ((status === 'PENDING' || status === 'VALIDATED') && !member.hasOrder) {
+            return 'À livrer';
+        }
         const labels: { [key: string]: string } = {
             'ACTIVE': 'ACTIF',
             'PENDING': 'Commande',
@@ -267,7 +275,11 @@ export class TontineDashboardPage implements OnInit, OnDestroy {
         return labels[status] || status;
     }
 
-    getStatusClass(status: string): string {
+    getStatusClass(member: Pick<TontineMemberView, 'deliveryStatus' | 'hasOrder'>): string {
+        const status = member.deliveryStatus;
+        if ((status === 'PENDING' || status === 'VALIDATED') && !member.hasOrder) {
+            return '';
+        }
         const classes: { [key: string]: string } = {
             'ACTIVE': 'status-active',
             'PENDING': 'status-pending',

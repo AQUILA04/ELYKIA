@@ -5,6 +5,7 @@ import {
   canRecordDeliveryTontineCollection,
   canRecordNormalTontineCollection,
   getTontineDeliveryStatusLabel,
+  hasPersistableTontineDeliveryId,
   isTontineDeliveryOrder,
   pickMemberTontineDelivery,
   resolveMemberDeliveryStatus,
@@ -104,6 +105,28 @@ describe('tontine-delivery-status.util', () => {
     )).toBeNull();
     expect(pickMemberTontineDelivery([], 'SESSION_INPROGRESS')).toBeNull();
     expect(pickMemberTontineDelivery(null, 'DELIVERED')).toBeNull();
+  });
+
+  it('ignores delivery rows without an id once the closed session marks every member PENDING', () => {
+    expect(pickMemberTontineDelivery(
+      [
+        { id: null, status: 'PENDING', requestDate: null },
+        { id: 'null', status: 'PENDING', requestDate: null },
+        { id: undefined, status: null, requestDate: null }
+      ],
+      'PENDING'
+    )).toBeNull();
+  });
+
+  it('accepts only real delivery ids', () => {
+    expect(hasPersistableTontineDeliveryId('4')).toBeTrue();
+    expect(hasPersistableTontineDeliveryId(4)).toBeTrue();
+    expect(hasPersistableTontineDeliveryId('a1b2c3d4-0000-4000-8000-000000000000')).toBeTrue();
+    expect(hasPersistableTontineDeliveryId(null)).toBeFalse();
+    expect(hasPersistableTontineDeliveryId(undefined)).toBeFalse();
+    expect(hasPersistableTontineDeliveryId('null')).toBeFalse();
+    expect(hasPersistableTontineDeliveryId('undefined')).toBeFalse();
+    expect(hasPersistableTontineDeliveryId('  ')).toBeFalse();
   });
 
   it('reads the delivery status missing from TontineDeliveryRespDto', () => {

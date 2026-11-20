@@ -459,6 +459,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.41.2] — 2026-11-20
+
+### Fixed
+
+- **Tontine — commandes vides sur tous les membres après la clôture —** la liste `/tontines/members` renvoyait `delivery: { id: null }` pour chaque membre sans commande ; le téléphone l'enregistrait comme une livraison. Tant que la session était ouverte (membres `SESSION_INPROGRESS`) ces lignes restaient ignorées ; à la clôture, tous les membres passent `PENDING` et chaque fiche affichait une « Commande » sans article, avec un « Modifier la commande » sans effet. Les livraisons sans identifiant ne sont plus enregistrées (`hasPersistableTontineDeliveryId`, `saveTontineDeliveries`), celles déjà présentes sont supprimées au démarrage de la tontine et avant chaque synchro des livraisons (`purgePhantomDeliveries`), et `pickMemberTontineDelivery` les ignore.
+- **Fiche membre —** badge de l'en-tête : statut de la commande enregistrée, sinon « À livrer » pour un membre en attente de remise. « Modifier la commande » n'apparaît que si la commande a des articles ; sinon un message invite à synchroniser.
+- **Tableau de bord tontine —** badge « Commande » / « Validée » seulement si le membre a une commande sur le téléphone (`hasOrder`), sinon « À livrer ».
+
 ## Mobile — [2.41.1] — 2026-11-20
 
 ### Changed
@@ -636,6 +644,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.57.4] — 2026-11-20
+
+### Fixed
+
+- **Tontine — liste des membres —** `findMembersDto` / `findMembersDtoWithSearch` (`LEFT JOIN tm.delivery d` + `new TontineDeliveryRespDto(d.id, …)`) construisaient une livraison vide (`id: null`) pour chaque membre sans commande. `TontineService.getMembers` renvoie désormais `delivery = null` dans ce cas (`TontineMemberRespDto.withoutPhantomDelivery`). Test : `getMembers_dropsTheDeliveryBuiltForMembersWithoutOrder`.
 
 ## Backend — [1.57.3] — 2026-11-20
 

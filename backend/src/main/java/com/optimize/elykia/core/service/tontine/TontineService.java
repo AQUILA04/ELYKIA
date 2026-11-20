@@ -1229,6 +1229,9 @@ public class TontineService extends GenericService<TontineMember, Long> {
             memberRespDtos = getRepository().findMembersDtoWithSearch(currentYear, commercialFilter, searchFilter,
                     statusFilter, carnetVerified, registrationSourceFilter, pageable);
         }
+        if (memberRespDtos != null) {
+            memberRespDtos = memberRespDtos.map(TontineMemberRespDto::withoutPhantomDelivery);
+        }
         return enrichFieldControlled(memberRespDtos);
     }
 

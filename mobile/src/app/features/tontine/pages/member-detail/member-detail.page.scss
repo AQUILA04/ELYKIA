@@ -166,6 +166,13 @@ ion-card-title {
   color: var(--elyk-navy);
 }
 
+.items-missing {
+  margin: 12px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--elyk-muted);
+}
+
 .items-title {
   margin: 8px 0;
   font-size: 12px;
