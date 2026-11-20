@@ -122,6 +122,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.53.1] — 2026-11-20
+
+### Fixed
+
+- **Visite guidée du rapport commerciaux —** le projecteur et la bulle étaient décalés, parfois hors de l'écran, au point de bloquer la visite. L'animation d'entrée des pages laissait un `transform` sur le conteneur, qui servait alors de repère aux éléments `position: fixed`. La visite est maintenant rattachée à `<body>`, l'animation se termine sans `transform`, et la bulle est placée d'après sa hauteur réelle (sous la zone, sinon au-dessus, sinon en bas de l'écran). Test en navigateur : projecteur exactement sur la cible malgré un parent transformé.
+- **Journal —** libellé « Vente annulée » pour le type `CREDIT_SALE_CANCEL`.
+
 ## Frontend — [2.53.0] — 2026-11-20
 
 ### Added
@@ -582,6 +589,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.55.1] — 2026-11-20
+
+### Changed
+
+- **PDF du rapport commerciaux —** le rapport commercial (fiche), le journal des opérations et « Reste chez les clients » suivent le design system documents (navy `#0a2472`, bande de marque, cartes, tableaux, pied de page « Page n/N » clair). Mise en page par tableaux, compatible iText (l'ancienne mise en page en flex était ignorée).
+- **Rapport commercial (PDF) —** affiche le rapprochement de l'écran (crédit + tontine + solde Nx + rattrapages = dû, moins versé, reste à verser), calculé par le même service que la fiche ; activité en trois blocs, détail des opérations par type, signatures commercial et gestionnaire.
+- **Journal (PDF) —** totaux par type et libellés en français (au lieu des codes `CASH_DEPOSIT`…), ordre chronologique, total en pied de tableau.
+- `PdfHtmlRenderer` accepte un style de pied de page `MODERN` ; les autres PDF gardent le pied de page navy.
 
 ## Backend — [1.55.0] — 2026-11-19
 
