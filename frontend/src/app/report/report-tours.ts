@@ -1,4 +1,4 @@
-import { TourDefinition } from './guided-tour.service';
+import { TourDefinition } from '../shared/report-ui/guided-tour/guided-tour.service';
 
 /** Visite du cockpit équipe (première ouverture de /report/daily). */
 export const COCKPIT_TOUR: TourDefinition = {

@@ -106,7 +106,7 @@ La vérification administrative du carnet est une action distincte du contrôle 
 
 ## Suivre le rapport de recouvrement
 
-Ouvrez **Rapport Journalier**, appliquez la période et, lorsque l’interface le demande, choisissez le commercial. Le segment **Recouvrement** est disponible au Chef de recouvrement ou au gestionnaire. Un gestionnaire peut également filtrer le rapport par identifiant de Chef de recouvrement.
+Ouvrez **Rapport Journalier** : un Chef de recouvrement arrive directement sur l’onglet **Recouvrement** de la présentation en onglets ; un gestionnaire y accède par le lien **Recouvrement terrain** du cockpit. Appliquez la période et, lorsque l’interface le demande, choisissez le commercial. Le segment **Recouvrement** est disponible au Chef de recouvrement ou au gestionnaire. Un gestionnaire peut également filtrer le rapport par identifiant de Chef de recouvrement.
 
 <!-- CAPTURE À INSÉRER : Segment web Recouvrement du Rapport Journalier avec les KPI et le tableau À remettre par commercial. -->
 
@@ -131,6 +131,8 @@ Utilisez l’export uniquement après contrôle de la période et des filtres. U
 # Chef de recouvrement — application mobile
 
 L’application mobile fournit un espace terrain dédié au Chef de recouvrement. Après la connexion, le profil accède au **Plan du jour**, puis au shell composé de quatre onglets : **Retards**, **Terrain**, **Clients** et **Plus**. L’identité de l’utilisateur et l’état **En ligne / Hors ligne** sont affichés dans le parcours afin d’indiquer si les opérations seront envoyées immédiatement ou placées en attente de synchronisation.
+
+Sur un téléphone relié à l’environnement de test, un **bandeau rouge** en haut de l’écran affiche **TEST** (également visible sur l’écran de connexion). Vérifiez-le avant toute opération pour rester sur le bon environnement.
 
 Si la session n’est plus reconnue pendant le travail en ligne, l’application revient d’elle-même à l’écran de connexion et affiche **Session expirée**. Saisissez à nouveau l’identifiant et le mot de passe pour reprendre le plan du jour.
 

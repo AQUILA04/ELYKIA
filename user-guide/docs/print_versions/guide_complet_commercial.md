@@ -211,42 +211,48 @@ Sous le titre de **Demandes Sortie**, **Stock** et **Retours**, le sélecteur **
 
 ---
 
-## 2. Tableau de bord « Mon Stock » mensuel (Menu Stock Commercial > Stock)
+## 2. Stock commercial mensuel (Menu Stock Commercial > Stock)
 
-Accessible via le menu latéral gauche **Stock Commercial > Stock**, ce tableau de bord offre une analyse comptable exhaustive de la tournée du commercial, mois par mois.
+Le menu **Stock Commercial > Stock** ouvre le stock du mois. Un gestionnaire voit toute l'équipe ; un commercial arrive directement sur **sa fiche**.
 
-<!-- CAPTURE À INSÉRER : Tableau de bord Mon Stock montrant l'accordéon mensuel, les 6 cartes de KPI et le tableau des mouvements d'articles. -->
+La première fois, une **visite guidée** présente l'écran. Le bouton **Visite guidée** la relance. Le lien **Ancienne présentation**, en haut de l'écran, ouvre l'ancien tableau de bord par panneaux mensuels ; un lien **Nouvelle présentation** permet d'y revenir.
 
-### A. Navigation temporelle et sélection
-* **Accordéon par mois** : Chaque mois d'activité fait l'objet d'un volet déroulant intitulé `[Nom Commercial] - [Mois] [Année]`.
-* **Bouton « Historique »** : Permet d'afficher ou de masquer les mois civils antérieurs clôturés.
-* **Retour sur l'écran** : Si vous quittez le tableau de bord puis y revenez pendant votre session, vous retrouvez le commercial sélectionné, l'état du bouton **« Historique »** et la page de la liste tels que vous les aviez laissés.
-* **Télécharger rapport** : En tête de chaque panneau mensuel, un bouton d'export génère la fiche de stock mensuelle officielle au format PDF.
+<!-- CAPTURE À INSÉRER : vue équipe du stock commercial avec les deux flux et le tableau par commercial. -->
 
-### B. Les 6 Indicateurs Financiers KPIs du Stock Mensuel
-Chaque panneau mensuel calcule automatiquement 6 métriques financières de contrôle :
+### A. Vue équipe
+* **Mois** : les flèches ‹ › passent au mois précédent ou suivant. Le mois en cours indique dans combien de jours il est clôturé. Les mois passés remplacent l'ancien bouton **Historique**.
+* **Crédit / Tontine** : bascule entre le stock crédit (mensuel) et le stock tontine (annuel, voir plus bas).
+* **Commercial** et **filtres** : **Avec stock restant**, **Avec dette**, **Recouvrement < 50 %**.
+* **Mois clôturés à régulariser** : un bandeau orange liste les mois passés dont un reste n'est ni vendu, ni retourné, ni transformé en dette. Un clic ouvre la régularisation (section C).
+* **Deux flux** :
+  * **Marchandise** : pris = vendu + retourné + en dette + restant (en valeur de vente).
+  * **Argent** : total dû (vendu + dette + restant) − recouvré = **reste à recouvrer**. Le recouvré compte les encaissements des ventes et la dette marchandise déjà réglée.
+* **Une ligne par commercial**, triée par reste à recouvrer. Cliquez sur une ligne pour ouvrir la fiche.
 
-| KPI Financier | Couleur / Icône | Signification Opérationnelle | Interaction & Règle |
-|---|---|---|---|
-| **Valeur Stock Restant** | Bleu Cyan (`inventory_2`) | Valeur marchande des articles encore physiquement en possession du commercial. | Calculée sur la base du prix unitaire pondéré des articles non vendus. |
-| **Valeur Stock Vendu** | Vert (`monetization_on`) | Montant total des ventes (crédit et comptant) conclues sur le stock du mois. | **Carte Cliquable** : Un clic ouvre instantanément la liste détaillée de l'ensemble des crédits et ventes associés. |
-| **Valeur Dette** | Orange | Valorisation des quantités passées en dette pour ce mois (y compris après règlement). | La carte n’apparaît que lorsque ce montant est supérieur à 0. Elle indique aussi la part déjà réglée. |
-| **Valeur Total Dû** | Orange (`account_balance_wallet`) | Valeur globale : stock vendu + dette + stock restant. | Engagement financier du mois. |
-| **Montant Recouvré** | Vert Émeraude (`payments`) | Cumul réel des versements et encaissements perçus auprès des clients sur les ventes de ce stock. | Mesure le cash effectif rentré en caisse. |
-| **Reste à Recouvrer** | Ambre (`hourglass_empty`) | Montant global restant à percevoir (Valeur du stock physique restant + créances clients non encore soldées). | Reste à recouvrer = Total Dû $-$ Montant Recouvré. |
-| **Taux de Recouvrement** | Bleu Marine (`trending_up`) | Pourcentage d'efficacité de remboursement réalisé sur la valeur totale confiée. | Taux (%) = (Montant Recouvré / Valeur Total Dû) $\times$ 100. |
+### B. Fiche d'un commercial
+* **En-tête** : commercial et mois, taux de recouvrement, boutons commercial précédent / suivant, **Ventes liées**, **Régularisation** (mois passé avec un reste ou une dette), **Voir la dette**, **Télécharger le rapport** (PDF).
+* **Flux Marchandise** (en quantités) et **Argent** (en valeur) du commercial.
+* **Articles** : par défaut, seuls les articles **À suivre** (avec un reste ou une dette) sont affichés ; **Tous** montre aussi les articles entièrement vendus. Le champ de recherche filtre par nom.
+* **Détail ›** ouvre le panneau de l'article :
+  * **Mouvements** : entrées, ventes et retours, avec les quantités avant / après ;
+  * **Ventes** : date, crédit, client, quantité, prix moyen (PMP) et montant de chaque vente ;
+  * **Valorisation** : total vendu du stock, somme des ventes valorisées, et un contrôle **Concordant** ou **Écart à expliquer**.
+* **Ventes liées** ouvre le panneau des crédits qui ont débité ce stock (rattrapages compris) : montant, montant imputé au stock, **payé**, **reste client**, statut. Les filtres **En cours** / **Soldées** et la recherche (client ou référence) aident à retrouver une vente. L'encart vert **Concordant** confirme que le stock vendu correspond aux ventes imputées ; en cas d'écart, il passe en orange avec le montant.
 
-### C. Tableau d'analyse des mouvements par article
-Au sein de chaque panneau mensuel, le tableau détaille pour chaque référence produit :
-* **Article** : Nom commercial et désignation complète.
-* **Pris (Magasin)** : Quantité totale livrée par le magasin central. *(Cellule cliquable pour inspecter le détail des bons de sortie).*
-* **Vendu (Clients)** : Quantité totale écoulée auprès de la clientèle. *(Cellule cliquable pour ouvrir la liste des ventes clientes correspondantes).*
-* **Retourné** : Quantité réintégrée au magasin central.
-* **Restant** : Quantité encore chez vous.
-* **Dette** / **Valeur Dette** : quantités et montant des articles déjà transformés en dette pour ce mois.
-* **Valeur Restante (FCFA)** : valorisation financière du reliquat au prix du stock.
+Le lien « stock source » du détail d'un crédit ouvre directement la fiche, panneau **Ventes liées** ouvert.
 
-### D. Consulter vos dettes
+### C. Régulariser un mois clôturé
+Après la fin du mois, ce qui reste chez le commercial doit être **retourné au magasin** ou **transformé en dette**. Ouvrez **Régularisation** depuis la fiche, ou un mois du bandeau orange de la vue équipe.
+
+1. **Cycle du mois** : cinq étapes (sorties magasin, ventes et retours, clôture, régularisation du reste, dette soldée). L'étape en cours est en orange.
+2. **Reste à régulariser** : chaque article restant, valorisé au prix moyen de vente arrondi au franc supérieur. C'est le montant de la future dette.
+3. Choisissez :
+   * **Enregistrer un retour en magasin** : ouvre le retour sur mois antérieur, commercial et mois déjà choisis. Le retour n'est plus possible une fois la dette constituée.
+   * **Constituer la dette** (profil « gestion des dettes ») : les quantités restantes passent en **Dette**. Une seule dette par mois et par commercial.
+4. **Dette marchandise** : montant, réglé, reste à payer. Pour enregistrer un règlement, choisissez **Espèces**, **Avoir (surplus)** (le montant disponible est affiché) ou **Abandon** (motif obligatoire), indiquez le montant (paiement partiel possible), puis **Valider le règlement**.
+5. **Annuler la dette** n'est proposé que tant qu'aucun règlement n'est enregistré.
+
+### D. Les dettes
 Voir la page dédiée [Vos dettes](debts.md).
 
 ---
@@ -839,6 +845,7 @@ L’application mobile ELYKIA est l'outil indispensable du commercial sur le ter
 Dès que vous vous connectez avec votre identifiant et votre mot de passe, vous arrivez sur le **Tableau de Bord**. C'est votre écran d'accueil, votre tour de contrôle pour suivre toute votre journée.
 
 ### A. Ce que vous voyez en haut de l'écran
+* **Bandeau d’environnement** : sur un téléphone relié à l’environnement de test, un bandeau rouge en haut de l’écran affiche **TEST**. Sur l’écran de connexion, le même libellé apparaît aussi sous le titre. Vérifiez-le avant toute saisie pour éviter une opération sur le mauvais environnement.
 * **Votre nom** : votre nom et prénom s'affichent en haut à gauche.
 * **Le témoin de connexion** :
   * Une pastille **Verte (En ligne)** : votre téléphone est bien connecté au serveur central.
@@ -1058,7 +1065,7 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 * **Le menu d'options (trois petits points ⋮ en haut à droite)** :
   * **Cotiser** / **Enregistrer une cotisation** : pour enregistrer un versement pendant la session ouverte. Après la clôture, cette action n'apparaît plus sur la fiche.
   * **Voir le client** : pour voir la fiche générale de la cliente.
-  * **Commande de tontine** : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle **Livraison Fin d'Année** et sert à la remise en mains propres.
+  * **Commande de tontine** : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle **Livraison Fin d'Année** : vous pouvez y enregistrer une **Commande** (catalogue) ou faire la remise en mains propres (**Livraison directe**, stock tontine).
   * **Modifier la commande** : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles.
 
 ### D. Enregistrer une cotisation de tontine pas à pas
@@ -1091,7 +1098,7 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
    * **Reste au plafond** : ce qu'il reste avant d'atteindre ce plafond.
 3. **Choisissez les articles avec la cliente** :
    * **Pendant la session ouverte** : l'écran affiche le **catalogue** de l'agence. Vous n'avez pas besoin d'avoir déjà du stock tontine pour enregistrer la commande.
-   * **Après la clôture** : l'écran affiche votre **stock tontine** (articles reçus du magasin) pour la remise en mains propres.
+   * **Après la clôture** : l'écran affiche par défaut votre **stock tontine** (articles reçus du magasin) pour la remise en mains propres. Pour enregistrer une **Commande**, touchez **Catalogue (commande)** en haut de la liste ; pour une **Livraison directe**, restez sur **Stock tontine (remise)**.
    * Touchez **+** pour ajouter les articles. Si l'article a plusieurs offres (unité, gros, demi-gros ou une offre libre), choisissez-la dans la liste avant d'augmenter la quantité.
    * Le panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le **solde prévisionnel**. Dans ce cas, **Valider** reste indisponible : retirez ou diminuez des articles.
 4. **Si le solde déjà encaissé ne couvre pas le panier** :
@@ -1099,12 +1106,12 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
    * Au moment de la remise, deux possibilités :
      1. **Compléter le solde** : l'écran de cotisation s'ouvre avec le montant manquant (ou le montant que la cliente souhaite verser). Ce complément n'est pas limité par le solde prévisionnel : vous pouvez encaisser le montant convenu, même s'il est élevé. Revenez ensuite sur le panier.
      2. **Modifier la commande** / **Modifier le panier** : diminuez les quantités ou retirez des articles, puis enregistrez.
-5. **Pendant la session ouverte — enregistrez une Commande** :
+5. **Session ouverte ou clôturée — enregistrez une Commande** :
    * Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
    * L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
    * Touchez **Imprimer** pour sortir le ticket sur l'imprimante de ceinture. Touchez **Fermer** pour revenir au tableau de bord.
    * Le code est reconnu dans Elykia une fois la commande transmise à l'agence.
-   * L'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
+   * Pendant la session ouverte, l'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
    * Ensuite, préparez vos cartons au dépôt (demande de stock tontine) pour être prêt le jour de la remise.
    * Pour imprimer à nouveau, ouvrez la fiche de la membre et touchez **Imprimer le reçu**. Après **Enregistrer la commande**, le même aperçu s'affiche.
 6. **Après la clôture de la session — remettez les articles** :

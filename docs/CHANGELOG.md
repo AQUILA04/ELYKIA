@@ -128,6 +128,35 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.56.0] — 2026-11-20
+
+### Added
+
+- **Stock commercial — régularisation d'un mois clôturé —** `/stock/my-stock/:commercial/:année/:mois/regularisation` : cycle du mois en cinq étapes, reste à régulariser valorisé au PMP de vente arrondi (montant de la future dette), **Enregistrer un retour en magasin** (retour sur mois antérieur, commercial et mois présélectionnés, retour à la régularisation après validation), **Constituer la dette**, règlement **Espèces / Avoir (surplus) / Abandon** avec contrôle du montant, de l'avoir disponible et du motif, annulation tant qu'aucun règlement n'est enregistré. Règles inchangées côté serveur.
+- **Vue équipe —** bandeau **Mois clôturés à régulariser** (`to-settle`), filtré par le commercial choisi.
+- **Onglet Tontine de la vue équipe —** stock annuel de l'équipe : flux pris = livré + retourné + restant (quantités et valeurs), une ligne par commercial triée par valeur restante, articles dépliables avec **Mouvements** et **Livraisons**, PDF par commercial, sélecteur d'année.
+
+### Changed
+
+- **Fiche stock —** le bouton **Créer la dette** est remplacé par **Régularisation**, présent sur un mois passé avec un reste ou une dette.
+- Visite guidée de la vue équipe (version 2) : étape « Mois à régulariser », mention de l'onglet Tontine.
+- **Guide utilisateur —** stock commercial (vue équipe, fiche, panneaux, régularisation), dettes marchandise (commercial et gestionnaire), stock tontine ; versions imprimables et index RAG régénérés.
+
+## Frontend — [2.55.0] — 2026-11-20
+
+### Added
+
+- **Stock commercial — vue équipe —** `/stock/my-stock`, ouvert par le menu : navigation par mois (remplace « Historique »), onglets Crédit / Tontine, flux Marchandise (pris = vendu + retourné + en dette + restant) et Argent (dû − recouvré = reste à recouvrer), une ligne par commercial triée par reste à recouvrer, filtres « Avec stock restant », « Avec dette », « Recouvrement < 50 % ». Un seul appel (`team-overview`). Un commercial arrive directement sur sa fiche.
+- **Stock commercial — fiche —** `/stock/my-stock/:commercial/:année/:mois` : les deux flux, les articles « À suivre » par défaut (reste ou dette) avec recherche et « Tous », commercial précédent / suivant, mois précédent / suivant, création et ouverture de la dette marchandise, téléchargement du rapport PDF.
+- **Panneau Article —** mouvements, ventes (date, crédit, client, quantité, PMP, montant) et valorisation avec contrôle de concordance. Remplace les fenêtres « Historique des mouvements » et « Détails des ventes » dans la nouvelle présentation.
+- **Panneau Ventes liées —** payé et reste par crédit, totaux, recherche, filtres En cours / Soldées, encart de concordance calculé par le serveur.
+- Visites guidées de la vue équipe et de la fiche (première ouverture, relançables).
+
+### Changed
+
+- L'ancienne présentation du stock reste disponible sur `/stock/my-stock/classic`, avec un lien dans chaque sens. Le lien « stock source » du détail d'un crédit ouvre la fiche avec le panneau Ventes liées.
+- Visite guidée, format FCFA et styles du rapport commerciaux déplacés dans un module partagé (`shared/report-ui`), utilisé par le rapport et le stock.
+
 ## Frontend — [2.54.0] — 2026-11-20
 
 ### Changed

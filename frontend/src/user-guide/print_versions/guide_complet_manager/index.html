@@ -2335,7 +2335,8 @@
 <li>Le cycle d'approbation (<strong>Créée → Validée → Livrée</strong>) et le retour (<strong>En attente → Réceptionné</strong>) suivent les mêmes boutons que le stock crédit.</li>
 <li>Sur <strong>Demandes Sortie</strong>, <strong>« Voir »</strong> ouvre le détail : la référence est en haut. Pour une demande <strong>Créée</strong>, <strong>« Valider »</strong> et <strong>« Refuser »</strong> sont en bas de la fenêtre. Pour une demande <strong>Validée</strong>, <strong>« Annuler »</strong> est en bas de la fenêtre, tant qu'elle n'est pas livrée. <strong>« Télécharger »</strong> enregistre la fiche de cette demande.</li>
 <li>Une demande créée depuis <strong>Tontines &gt; Livraison</strong> affiche <strong>Commandes liées</strong>. À la validation, ces commandes encore en attente passent à <strong>Validée</strong>. Le magasinier livre le commercial en une seule opération, pour toutes les commandes regroupées.</li>
-<li><strong>Stock</strong> affiche le suivi par année. <strong>Retours</strong> permet de <strong>Réceptionner</strong> un retour au statut <strong>En attente</strong>.</li>
+<li><strong>Stock</strong>, onglet <strong>Tontine</strong> : le stock de l'année pour toute l'équipe. Le flux <strong>Pris = Livré + Retourné + Restant</strong> est donné en quantités et en valeur. Le tableau a une ligne par commercial, triée par valeur restante. Dépliez une ligne pour voir ses articles, avec <strong>Mouvements</strong> et <strong>Livraisons</strong>. <strong>PDF</strong> télécharge le rapport tontine du commercial. Le sélecteur <strong>Année</strong> affiche les années précédentes. Ce stock n'a ni dette ni recouvrement.</li>
+<li><strong>Retours</strong> permet de <strong>Réceptionner</strong> un retour au statut <strong>En attente</strong>.</li>
 </ol>
 <hr />
 <h2 id="5-inventaires-physiques-et-reconciliation-des-ecarts">5. Inventaires physiques et réconciliation des écarts</h2>
@@ -2491,7 +2492,7 @@
 </ol>
 <hr />
 <h2 id="4-remise-de-tresorerie-au-gestionnaire">4. Remise de trésorerie au gestionnaire</h2>
-<p>Pour y accéder, rendez-vous dans le menu latéral <strong>Rapport Journalier</strong>, puis cliquez sur l'onglet <strong>Remise</strong>.</p>
+<p>Pour y accéder, ouvrez <strong>Rapport Journalier</strong>, puis <strong>Versements &amp; rapprochement</strong> et le bouton <strong>Remise secrétaire → gérant</strong>. Dans l'ancienne présentation, c'est l'onglet <strong>Remise</strong>.</p>
 <p>La <strong>Remise</strong> est le processus formel par lequel le caissier ou la secrétaire verse au gestionnaire de l'agence les espèces collectées sur une période, en déduisant les dépenses d'exploitation autorisées.</p>
 <!-- CAPTURE À INSÉRER : Écran de Remise au gestionnaire avec bandeau des 6 KPIs, liste à cocher des dépenses à déduire et boutons Soumettre/Accuser réception. -->
 
@@ -2586,7 +2587,88 @@
 <hr />
 <h2 id="1-rapport-journalier-dactivite">1. Rapport Journalier d'activité</h2>
 <p>Pour y accéder, rendez-vous dans le menu latéral et cliquez sur <strong>Rapport Journalier</strong>.</p>
-<p>Le <strong>Rapport Journalier</strong> est l'outil central de pilotage opérationnel d'ELYKIA. Il synthétise l'ensemble des flux d'exploitation sur la période sélectionnée et propose 5 onglets thématiques spécialisés.</p>
+<p>Le menu ouvre la <strong>nouvelle présentation</strong> du rapport : un cockpit qui montre en un écran ce que l'équipe doit remettre en caisse, ce qui a été versé et qui est en écart. L'<strong>ancienne présentation</strong>, organisée en onglets, reste disponible (voir plus bas).</p>
+<h3 id="nouvelle-presentation-pilotage-des-commerciaux">Nouvelle présentation : pilotage des commerciaux</h3>
+<!-- CAPTURE À INSÉRER : Cockpit équipe avec les 4 chiffres, les points d'attention et le tableau équipe. -->
+
+<h4 id="visite-guidee">Visite guidée</h4>
+<p>À la première ouverture de chaque écran (cockpit, fiche commercial, versements, journal), une <strong>visite guidée</strong> présente les zones une par une : cliquez sur <strong>Suivant</strong>, <strong>Précédent</strong> ou <strong>Passer</strong> (la touche <strong>Échap</strong> ferme la visite, les flèches du clavier font avancer ou reculer). Elle n'est proposée qu'une fois ; le bouton <strong>Visite guidée</strong> en haut de l'écran la relance à tout moment.</p>
+<h4 id="filtres">Filtres</h4>
+<ul>
+<li><strong>Période</strong> : <strong>Aujourd'hui</strong>, <strong>Semaine</strong> (depuis lundi), <strong>Mois</strong>, ou <strong>Dates</strong> pour choisir une plage puis <strong>Appliquer</strong>.</li>
+<li><strong>Commercial</strong> : laisser vide pour toute l'équipe, ou choisir un commercial.</li>
+<li>Les filtres suivent l'utilisateur d'un écran à l'autre (fiche, versements, journal) et restent dans l'adresse de la page : un lien copié rouvre le rapport sur la même période.</li>
+</ul>
+<h4 id="cockpit-equipe">Cockpit équipe</h4>
+<ol>
+<li><strong>Les 4 chiffres à lire en premier</strong> :</li>
+<li><strong>Dû à la caisse</strong> : ce que les commerciaux doivent remettre pour la période. C'est l'« A Verser » des opérations de la période <strong>plus les rattrapages saisis</strong> pendant la période pour des jours passés. La sous-ligne détaille <strong>Opérations · Rattrapages</strong> et la variation par rapport à la période précédente de même durée (<strong>vs hier</strong> pour Aujourd'hui).</li>
+<li><strong>Versé au secrétariat</strong> : total des versements portés sur la période, avec le surplus éventuel.</li>
+<li><strong>Reste à verser</strong> : ce qui n'est pas encore rentré. À zéro, tout l'argent dû est en caisse.</li>
+<li><strong>Taux de versement</strong> : part du dû déjà versée. Les <strong>manquants antérieurs</strong> (jours avant la période) sont rappelés dessous.</li>
+<li><strong>Points d'attention</strong> : les écarts, du plus gros montant au plus petit — argent non versé, rattrapages non versés, surplus à équilibrer, manquants antérieurs. Un clic ouvre la fiche du commercial, ou l'écran Versements pour un surplus.</li>
+<li><strong>Tableau équipe</strong> : une ligne par commercial, les commerciaux en retard en haut. Colonnes <strong>Crédit</strong>, <strong>Tontine</strong> (cotisations de la période), <strong>Rattrapages</strong> (cotisations de jours passés saisies pendant la période), <strong>Dû caisse</strong>, <strong>Versé</strong>, <strong>Écart</strong> (− manquant, + versé en trop) et <strong>Statut</strong> (<em>En retard</em>, <em>Surplus</em>, <em>À jour</em>, <em>Inactif</em>). Un rattrapage n'est jamais compté à la fois dans Tontine et dans Rattrapages. Un clic sur le nom ouvre la fiche.</li>
+<li><strong>Caisse</strong> : total encaissé de toutes les caisses, dépenses hors approvisionnement, dépenses avec approvisionnement et <strong>solde de caisse</strong> (même calcul que l'ancienne « Synthèse caisse »).</li>
+<li><strong>Origine du dû</strong> : répartition crédit, tontine, rattrapages et solde des nouveaux comptes.</li>
+<li><strong>Portefeuille crédit de l'année</strong> (équipe) : portefeuille confié, versé, reste chez les commerciaux, reste chez les clients, dette marchandise. Il ne dépend pas de la période et se charge quand on fait défiler jusqu'à lui.</li>
+<li>Les boutons <strong>Versements &amp; rapprochement</strong> et <strong>Journal des opérations</strong> ouvrent les deux écrans détaillés.</li>
+</ol>
+<h4 id="fiche-commercial">Fiche commercial</h4>
+<p>Ouverte depuis le tableau, une alerte ou le filtre Commercial. Un commercial connecté arrive directement sur sa propre fiche.
+* <strong>Rapprochement de la période</strong> : Crédit + Tontine + Solde Nx + Rattrapages = <strong>Dû à la caisse</strong> ; Dû − <strong>Versé</strong> = <strong>Reste</strong>. Les manquants antérieurs sont rappelés dessous.
+* <strong>Activité</strong> en trois blocs : <strong>Crédit</strong> (sortie stock, ventes, recouvrements, commandes, avances, reliquats), <strong>Tontine</strong> (collectes, rattrapages saisis et déjà versés, adhésions, livraisons), <strong>Clients</strong> (nouveaux clients, solde des nouveaux comptes, opérations).
+* <strong>7 derniers jours</strong> : pour chaque jour, ce qui était à verser (barre claire) et ce qui a été versé (barre foncée, orange en cas de retard).
+* <strong>Bilans de l'année</strong> crédit et tontine, avec <strong>Reste chez les clients · détail</strong>. Si les versements tontine dépassent les collectes, une mention <strong>À vérifier</strong> l'indique.
+* <strong>Nouveau versement</strong> (un seul jour affiché, montant restant dû) et <strong>Équilibrer le surplus</strong> sont disponibles ici. Les flèches <strong>‹ ›</strong> passent au commercial précédent ou suivant ; <strong>Télécharger le PDF</strong> reprend le rapport du commercial.</p>
+<h4 id="versements-rapprochement">Versements &amp; rapprochement</h4>
+<ul>
+<li>Totaux de la période : <strong>Total versé</strong>, <strong>Crédit</strong>, <strong>Tontine</strong> (rattrapages compris), <strong>Solde nouveaux comptes</strong>, <strong>Surplus non catégorisé</strong>.</li>
+<li>Un dépôt par ligne (heure, référence, commercial, reçu par, ventilation, total). Les lignes en surplus sont surlignées et proposent <strong>Équilibrer</strong>. Les rattrapages répartis sur des jours passés sont détaillés sous le dépôt. Le filtre <strong>Avec surplus</strong> ne garde que les dépôts concernés. Le gestionnaire peut <strong>Annuler</strong> un versement dans les 3 jours (l'administrateur sans délai).</li>
+<li><strong>Remise secrétaire → gérant</strong> ouvre la remise de caisse (ancien onglet « Remise »).</li>
+</ul>
+<h4 id="journal-des-operations">Journal des opérations</h4>
+<ul>
+<li>Une carte par type d'opération avec son nombre et son montant ; un clic ne garde que ce type, un second clic l'enlève.</li>
+<li>La liste est horodatée et paginée ; <strong>Exporter en PDF</strong> reprend la période, le commercial et le type choisis.</li>
+</ul>
+<h4 id="revenir-a-lancienne-presentation">Revenir à l'ancienne présentation</h4>
+<p>Le lien <strong>Ancienne présentation</strong>, en haut du cockpit et de la fiche, ouvre l'écran en onglets décrit ci-dessous, sur la même période et le même commercial. Un bandeau en haut de l'ancienne présentation permet de revenir à la nouvelle. <strong>Recouvrement terrain</strong> ouvre directement l'onglet Recouvrement. Un chef de recouvrement sans indicateurs financiers arrive directement sur cet onglet.</p>
+<table>
+<thead>
+<tr>
+<th>Ancienne tuile</th>
+<th>Où la trouver</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A Verser (Crédit / Tontine / Solde Nx)</td>
+<td>Colonnes Crédit, Tontine et Dû caisse du tableau ; rapprochement de la fiche</td>
+</tr>
+<tr>
+<td>Versé, Reste</td>
+<td>Colonnes Versé et Écart ; rapprochement de la fiche</td>
+</tr>
+<tr>
+<td>Tontine Rattrapages</td>
+<td>Colonne Rattrapages ; bloc Tontine de la fiche</td>
+</tr>
+<tr>
+<td>Synthèse caisse</td>
+<td>Bloc Caisse du cockpit</td>
+</tr>
+<tr>
+<td>Bilan crédit / tontine</td>
+<td>Bas de la fiche commercial ; portefeuille équipe en bas du cockpit</td>
+</tr>
+<tr>
+<td>Onglets Journal, Versements, Remise</td>
+<td>Écrans Journal et Versements</td>
+</tr>
+</tbody>
+</table>
+<h3 id="ancienne-presentation-onglets">Ancienne présentation (onglets)</h3>
+<p>L'ancienne présentation propose 5 onglets thématiques. Elle reste accessible pendant la transition.</p>
 <!-- CAPTURE À INSÉRER : Écran du Rapport Journalier avec sélecteur de période, sélecteur de commercial, bouton Voir marges et onglets de navigation. -->
 
 <h3 id="a-barre-de-filtres-globale">A. Barre de filtres globale</h3>
@@ -2638,14 +2720,17 @@
 * <strong>A Verser (Crédit / Tontine / Solde Nx)</strong> : ce qui doit être remis en caisse pour chaque catégorie, avec le déjà versé et le reste.
 * <strong>Versé</strong> : total des versements de la période. S’il reste un surplus non affecté à une catégorie, la mention <strong>dont surplus non catégorisé</strong> s’affiche sous le montant.
 * <strong>Reste</strong> : ce qui manque encore en crédit, tontine ou solde. Un montant déjà couvert par un surplus porte la mention <strong>dont couvert par surplus</strong> : il diminue le reste, sans changer le montant versé de ce jour.
+* <strong>Dû à la caisse</strong> : l'« A Verser » de la période plus les <strong>rattrapages saisis</strong> pendant la période pour des jours passés. La ligne <strong>Dû de la période : … · Rattrapages saisis : …</strong> détaille les deux parts. Une cotisation de la période saisie plus tard est déjà dans « A Verser » : elle n'est pas comptée deux fois.
 * <strong>Total encaissé</strong> : argent réellement remis par le commercial pendant la période. La ligne <strong>Opérations : … · Rattrapages : …</strong> sépare la part des opérations de la période de la part remise pour des jours précédents. Exemple : si le commercial remet 200 000, dont 150 000 pour les opérations d’aujourd’hui et 50 000 pour des journées passées, la carte affiche 200 000 avec <strong>Opérations : 150 000 · Rattrapages : 50 000</strong>. Les cartes <strong>A Verser</strong>, <strong>Versé</strong> et <strong>Reste</strong> restent celles des opérations de la période.</p>
 <h4 id="versement-du-jour">Versement du jour</h4>
 <p>Lorsque la période affichée est un seul jour et qu’il reste un montant à remettre :</p>
 <ol>
 <li>Cliquez sur <strong>Faire un versement</strong>.</li>
 <li>Comptez les espèces dans le billetage.</li>
-<li>Si des cotisations tontine de jours précédents ont été saisies ce jour-là, la fenêtre liste ces dates sous <strong>Rattrapages du jour</strong>. Le <strong>Reste à verser</strong> ajoute le total de ces rattrapages au crédit, à la tontine et au solde des nouveaux comptes du jour. Chaque date reçoit le montant saisi ce jour pour elle. Un montant plus ancien encore dû sur cette date n’est pas encaissé par ce versement : il reste à remettre sur sa propre date. Le jour en cours est servi d’abord, puis les dates de rattrapage les plus anciennes.</li>
-<li>Cliquez sur <strong>Valider le versement</strong>. Chaque date de cotisation reçoit sa part tontine. Ce qui dépasse les montants dus reste un surplus du jour d’encaissement.</li>
+<li>Si des cotisations tontine de jours précédents ont été saisies ce jour-là, la fenêtre affiche le KPI <strong>Reste rattrapages</strong> et un champ <strong>Rattrapage</strong>, séparé de la <strong>Tontine du jour</strong>. Le <strong>Reste à verser</strong> ajoute ces rattrapages au crédit, à la tontine et au solde des nouveaux comptes du jour. Chaque date reçoit au plus le montant saisi ce jour pour elle ; un montant plus ancien encore dû sur cette date reste à remettre sur sa propre date.</li>
+<li>Le champ <strong>Rattrapage</strong> est rempli automatiquement : le billetage sert d'abord le crédit, la tontine du jour et le solde des nouveaux comptes, puis les rattrapages, des dates les plus anciennes aux plus récentes. Vous pouvez le corriger à la main : le rattrapage saisi est alors réservé en premier et le reste du billetage est réparti sur les autres catégories. Une valeur saisie à la main est conservée si le billetage change. Un rattrapage supérieur au <strong>Reste rattrapages</strong> est signalé et refusé.</li>
+<li>La liste <strong>Rattrapages du jour</strong> montre la part de chaque date.</li>
+<li>Cliquez sur <strong>Valider le versement</strong>. Ce qui dépasse les montants dus reste un surplus du jour d’encaissement.</li>
 </ol>
 <!-- CAPTURE À INSÉRER : Fenêtre Nouveau versement avec le bloc Rattrapages du jour. -->
 
@@ -2861,7 +2946,8 @@
 * <strong>Informations de profil</strong> : Affiche votre nom, prénom, profil opérationnel et l'agence à laquelle vous êtes rattaché.
 * <strong>Changer de mot de passe</strong> : Permet de renouveler régulièrement votre code d'accès confidentiel.
 * <strong>Déconnexion</strong> : En fin de poste ou avant de quitter votre bureau, cliquez impérativement sur <strong>« Déconnexion »</strong> pour fermer votre session et empêcher tout accès non autorisé à vos données.
-* <strong>Session expirée</strong> : Si la session n'est plus reconnue pendant le travail, l'application revient d'elle-même à l'écran de connexion et affiche <strong>Session expirée</strong>. Saisissez à nouveau votre identifiant et votre mot de passe.</p>
+* <strong>Session expirée</strong> : Si la session n'est plus reconnue pendant le travail, l'application revient d'elle-même à l'écran de connexion et affiche <strong>Session expirée</strong>. Saisissez à nouveau votre identifiant et votre mot de passe.
+* <strong>Ruban d’environnement</strong> : sur un environnement de test, un ruban rouge oblique en haut à gauche affiche <strong>TEST</strong> (ou le nom de l’environnement). Vérifiez toujours ce ruban avant de saisir ou de valider une opération.</p>
 <hr />
 <h2 id="6-archives-des-collectes-tontine">6. Archives des collectes tontine</h2>
 <p>Ces archives servent à rapprocher une annulation de collectes avec l'argent déjà remis.</p>

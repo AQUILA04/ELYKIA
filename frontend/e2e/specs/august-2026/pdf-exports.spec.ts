@@ -128,7 +128,7 @@ test.describe('Exports PDF août @p1 @web @august-2026 @regression', () => {
     }
 
     await loginAsGestionnaire(page);
-    await page.goto('/stock/my-stock');
+    await page.goto('/stock/my-stock/classic');
     await expect(page.getByTestId('e2e-my-stock-dashboard')).toBeVisible();
 
     const stocksWait = waitForStockList(page, false);

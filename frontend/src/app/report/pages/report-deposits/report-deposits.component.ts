@@ -19,8 +19,8 @@ import {
 } from '../../models/deposit-display';
 import { ReportFilters, filtersFromParams, filtersToParams } from '../../models/report-period';
 import { CashDepositService } from '../../service/cash-deposit.service';
-import { GuidedTourService } from '../../components/guided-tour/guided-tour.service';
-import { DEPOSITS_TOUR } from '../../components/guided-tour/report-tours';
+import { GuidedTourService } from '../../../shared/report-ui/guided-tour/guided-tour.service';
+import { DEPOSITS_TOUR } from '../../report-tours';
 import { AgentOption } from '../../components/report-filter-bar/report-filter-bar.component';
 import { SurplusReallocationDialogComponent } from '../../components/surplus-reallocation-dialog/surplus-reallocation-dialog.component';
 

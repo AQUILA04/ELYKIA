@@ -1,0 +1,215 @@
+<div class="main-container report-v2 stock-v2 a1" data-testid="e2e-stock-team">
+  <div class="breadcrumb-bar">
+    <span class="date-display">Stock · commerciaux</span>
+    <a class="btn-link" data-tour="classic" data-testid="e2e-stock-team-classic-link"
+      [routerLink]="['/stock/my-stock/classic']" [queryParams]="classicQueryParams">Ancienne présentation</a>
+  </div>
+
+  <div class="page-header-card a2">
+    <div class="header-card-main">
+      <div class="title-group month-group" data-tour="month">
+        <h1 class="page-title">Stock commercial mensuel</h1>
+        <ng-container *ngIf="channel === 'credit'">
+          <button type="button" class="btn-ghost icon-btn" aria-label="Mois précédent" (click)="previousMonth()"
+            data-testid="e2e-stock-team-prev-month">‹</button>
+          <span class="month-label" data-testid="e2e-stock-team-month">{{ monthTitle }}</span>
+          <button type="button" class="btn-ghost icon-btn" aria-label="Mois suivant" (click)="nextMonth()"
+            [disabled]="isCurrentMonth" data-testid="e2e-stock-team-next-month">›</button>
+          <span class="pill pill-idle" *ngIf="isCurrentMonth">Mois en cours · clôture dans {{ closeInDays }} jour{{ closeInDays > 1 ? 's' : '' }}</span>
+          <span class="pill pill-idle" *ngIf="!isCurrentMonth">Mois clôturé</span>
+        </ng-container>
+      </div>
+      <div class="header-actions">
+        <ng-container *ngIf="showStockReturnHistory">
+          <a class="btn-ghost" [routerLink]="['/stock/return/historique']"
+            *ngxPermissionsOnly="['ROLE_PROMOTER', 'ROLE_GESTIONNAIRE', 'ROLE_ADMIN']">Retour stock antérieur</a>
+        </ng-container>
+        <button type="button" class="btn-ghost" data-tour="help" (click)="startTour()"
+          data-testid="e2e-stock-team-tour">Visite guidée</button>
+        <button type="button" class="btn-refresh" *ngIf="channel === 'credit'" (click)="refresh()"
+          [disabled]="loading">Actualiser</button>
+      </div>
+    </div>
+
+    <div class="team-toolbar" data-tour="filters">
+      <app-stock-channel-segment [channel]="channel" (channelChange)="onChannelChange($event)"></app-stock-channel-segment>
+      <ng-container *ngIf="channel === 'credit'">
+        <div class="agent-select" *ngIf="agents.length">
+          <ng-select [items]="agents" bindLabel="username" bindValue="username" placeholder="Toute l'équipe"
+            [searchFn]="searchAgent" [ngModel]="selectedCollector" (ngModelChange)="onCollectorChange($event)"
+            aria-label="Commercial" data-testid="e2e-stock-team-agent-select">
+            <ng-template ng-option-tmp let-item="item">
+              {{ item.username }} <small class="text-muted">({{ item.firstname }} {{ item.lastname }})</small>
+            </ng-template>
+          </ng-select>
+        </div>
+        <div class="chips" role="group" aria-label="Filtrer les commerciaux">
+          <button type="button" *ngFor="let f of filters" class="chip" [class.chip--on]="filter === f"
+            [attr.aria-pressed]="filter === f" (click)="setFilter(f)" [attr.data-testid]="'e2e-stock-team-filter-' + f">
+            {{ filterLabels[f] }}<ng-container *ngIf="f !== 'all'"> ({{ counts[f] }})</ng-container>
+          </button>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+
+  <app-stock-tontine-team *ngIf="channel === 'tontine'"></app-stock-tontine-team>
+
+  <ng-container *ngIf="channel === 'credit'">
+    <div class="panel-card empty-state" *ngIf="error && !loading" role="alert">
+      <div class="empty-title">Le stock de l'équipe n'a pas pu être chargé.</div>
+      <div class="empty-sub">Cliquez sur « Actualiser » ou ouvrez l'ancienne présentation.</div>
+    </div>
+
+    <section class="panel-card to-settle a3" *ngIf="visibleToSettle.length" data-tour="to-settle" aria-labelledby="to-settle-title"
+      data-testid="e2e-stock-team-to-settle">
+      <div class="panel-head">
+        <h2 id="to-settle-title">Mois clôturés à régulariser · {{ visibleToSettle.length }}</h2>
+        <span class="panel-hint">Reste non vendu ni retourné, sans dette constituée · {{ toSettleTotal | fcfa }}</span>
+      </div>
+      <div class="to-settle-grid">
+        <a *ngFor="let row of visibleToSettle | slice:0:toSettleShown" class="to-settle-item"
+          [routerLink]="['/stock/my-stock', row.collector, row.year, row.month, 'regularisation']"
+          [attr.data-testid]="'e2e-stock-team-to-settle-' + row.collector + '-' + row.year + '-' + row.month">
+          <span><strong>{{ row.collector }}</strong> · {{ monthOf(row) }}<span class="cell-sub">{{ row.quantityRemaining }} article(s) restant(s)</span></span>
+          <span class="num to-settle-amount">{{ row.remainingValue | fcfa }} <span aria-hidden="true">›</span></span>
+        </a>
+      </div>
+      <p class="panel-hint" *ngIf="visibleToSettle.length > toSettleShown">
+        Et {{ visibleToSettle.length - toSettleShown }} autre(s) mois : choisissez un commercial pour les voir.
+      </p>
+    </section>
+
+    <div class="flows-grid a3" data-tour="flows" *ngIf="overview as o" [class.is-loading]="loading">
+      <section class="panel-card flow-card" aria-labelledby="flow-goods" data-testid="e2e-stock-team-goods">
+        <div class="panel-head">
+          <h2 id="flow-goods">Marchandise · équipe</h2>
+          <span class="panel-hint">{{ o.totals.quantityTaken }} article(s) pris · en valeur de vente</span>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box"><span class="kpi-label">Pris</span><span class="flow-val num">{{ o.totals.takenValue | fcfa }}</span></div>
+          <span class="flow-op" aria-hidden="true">=</span>
+          <div class="flow-box"><span class="kpi-label">Vendu</span><span class="flow-val num">{{ o.totals.soldValue | fcfa }}</span></div>
+          <span class="flow-op" aria-hidden="true">+</span>
+          <div class="flow-box"><span class="kpi-label">Retourné</span><span class="flow-val num">{{ o.totals.returnedValue | fcfa }}</span></div>
+          <span class="flow-op" aria-hidden="true">+</span>
+          <div class="flow-box"><span class="kpi-label">En dette</span><span class="flow-val num">{{ o.totals.debtValue | fcfa }}</span></div>
+          <span class="flow-op" aria-hidden="true">+</span>
+          <div class="flow-box" [class.flow-box--warn]="o.totals.remainingValue > 0.5">
+            <span class="kpi-label">Restant</span><span class="flow-val num" data-testid="e2e-stock-team-remaining">{{ o.totals.remainingValue | fcfa }}</span>
+          </div>
+        </div>
+        <ng-container *ngIf="splitOf(o) as split">
+          <div class="split-bar" aria-hidden="true">
+            <span class="seg-sold" [style.width.%]="split.sold"></span>
+            <span class="seg-returned" [style.width.%]="split.returned"></span>
+            <span class="seg-debt" [style.width.%]="split.debt"></span>
+            <span class="seg-remaining" [style.width.%]="split.remaining"></span>
+          </div>
+          <span class="panel-hint">{{ split.sold }} % écoulé · {{ split.returned }} % retourné<ng-container *ngIf="split.debt"> · {{ split.debt }} % en dette</ng-container> · {{ split.remaining }} % encore chez les commerciaux</span>
+        </ng-container>
+      </section>
+
+      <section class="panel-card flow-card" aria-labelledby="flow-money" data-testid="e2e-stock-team-money">
+        <div class="panel-head">
+          <h2 id="flow-money">Argent · équipe</h2>
+          <span class="panel-hint">Dû = vendu + dette + restant</span>
+        </div>
+        <div class="flow-row">
+          <div class="flow-box flow-box--navy"><span class="kpi-label">Total dû</span><span class="flow-val num">{{ o.totals.dueValue | fcfa }}</span></div>
+          <span class="flow-op" aria-hidden="true">−</span>
+          <div class="flow-box flow-box--ok"><span class="kpi-label">Recouvré</span><span class="flow-val num">{{ o.totals.recoveredValue | fcfa }}</span></div>
+          <span class="flow-op" aria-hidden="true">=</span>
+          <div class="flow-box" [class.flow-box--warn]="o.totals.leftToRecover > 0.5">
+            <span class="kpi-label">Reste à recouvrer</span><span class="flow-val num" data-testid="e2e-stock-team-left">{{ o.totals.leftToRecover | fcfa }}</span>
+          </div>
+        </div>
+        <div class="rate-bar" aria-hidden="true"><span [style.width.%]="o.totals.recoveryRate" [ngClass]="rateClass(o.totals.recoveryRate, o.totals.dueValue)"></span></div>
+        <span class="panel-hint">Taux de recouvrement de l'équipe : <strong>{{ o.totals.recoveryRate | number:'1.0-0' }} %</strong>
+          · {{ o.totals.commercialsCount }} commercia{{ o.totals.commercialsCount > 1 ? 'ux' : 'l' }} avec un stock ce mois</span>
+      </section>
+    </div>
+
+    <section class="table-card team-card a4" data-tour="team" aria-labelledby="team-title">
+      <div class="panel-head table-head">
+        <h2 id="team-title">Une ligne par commercial</h2>
+        <span class="panel-hint">Trié par reste à recouvrer · cliquez une ligne pour ouvrir la fiche</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table team-table">
+          <thead>
+            <tr>
+              <th scope="col">Commercial</th>
+              <th scope="col" class="r">Pris</th>
+              <th scope="col">Écoulement</th>
+              <th scope="col" class="r">Restant</th>
+              <th scope="col" class="r">Dette</th>
+              <th scope="col" class="r">Total dû</th>
+              <th scope="col" class="r">Recouvré</th>
+              <th scope="col" class="r">Reste à recouvrer</th>
+              <th scope="col">Recouvrement</th>
+              <th scope="col"><span class="sr-only">Ouvrir</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngIf="loading && !lines.length">
+              <tr *ngFor="let i of [1, 2, 3]"><td colspan="10"><div class="skeleton"></div></td></tr>
+            </ng-container>
+            <tr *ngFor="let line of visibleLines; trackBy: trackLine" class="team-row" (click)="openSheet(line)"
+              [attr.data-testid]="'e2e-stock-team-row-' + line.collector">
+              <td>
+                <a class="row-link" [routerLink]="['/stock/my-stock', line.collector, month.year, month.month]"
+                  (click)="$event.stopPropagation()">{{ line.collector }}</a>
+                <span class="cell-sub">{{ line.itemsCount }} article(s)<ng-container *ngIf="line.itemsWithRemaining"> · {{ line.itemsWithRemaining }} avec reste</ng-container></span>
+              </td>
+              <td class="r num">{{ line.takenValue | fcfa:'bare' }}</td>
+              <td>
+                <div class="mini-bar"><span class="mini-track"><span [style.width.%]="line.soldRate"></span></span>
+                  <span class="num">{{ line.soldRate | number:'1.0-0' }} %</span></div>
+              </td>
+              <td class="r num" [class.gap-neg]="line.remainingValue > 0.5" [class.gap-zero]="line.remainingValue <= 0.5">{{ line.remainingValue | fcfa:'bare' }}</td>
+              <td class="r num">
+                {{ line.debtValue | fcfa:'bare' }}
+                <span class="cell-sub" *ngIf="line.debtRemaining > 0.5">reste {{ line.debtRemaining | fcfa:'bare' }}</span>
+              </td>
+              <td class="r num">{{ line.dueValue | fcfa:'bare' }}</td>
+              <td class="r num">{{ line.recoveredValue | fcfa:'bare' }}</td>
+              <td class="r num strong">{{ line.leftToRecover | fcfa:'bare' }}</td>
+              <td>
+                <div class="mini-bar" [ngClass]="rateClass(line.recoveryRate, line.dueValue)">
+                  <span class="mini-track"><span [style.width.%]="line.recoveryRate"></span></span>
+                  <span class="num">{{ line.recoveryRate | number:'1.0-0' }} %</span>
+                </div>
+              </td>
+              <td class="chevron"><span aria-hidden="true">›</span></td>
+            </tr>
+            <tr *ngIf="!loading && !visibleLines.length">
+              <td colspan="10">
+                <div class="empty-state">
+                  <div class="empty-title">{{ lines.length ? 'Aucun commercial pour ce filtre.' : 'Aucun stock commercial ce mois.' }}</div>
+                  <div class="empty-sub" *ngIf="lines.length">Choisissez « Tous » pour revoir toute l'équipe.</div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+          <tfoot *ngIf="overview && visibleLines.length && !selectedCollector && filter === 'all'">
+            <tr>
+              <td>Équipe</td>
+              <td class="r num">{{ overview.totals.takenValue | fcfa:'bare' }}</td>
+              <td class="num">{{ overview.totals.soldRate | number:'1.0-0' }} %</td>
+              <td class="r num">{{ overview.totals.remainingValue | fcfa:'bare' }}</td>
+              <td class="r num">{{ overview.totals.debtValue | fcfa:'bare' }}</td>
+              <td class="r num">{{ overview.totals.dueValue | fcfa:'bare' }}</td>
+              <td class="r num">{{ overview.totals.recoveredValue | fcfa:'bare' }}</td>
+              <td class="r num">{{ overview.totals.leftToRecover | fcfa:'bare' }}</td>
+              <td class="num">{{ overview.totals.recoveryRate | number:'1.0-0' }} %</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  </ng-container>
+
+  <app-guided-tour></app-guided-tour>
+</div>

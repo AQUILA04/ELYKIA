@@ -34,10 +34,9 @@ import { SurplusReallocationDialogComponent } from './components/surplus-realloc
 import { ReportCockpitComponent } from './pages/report-cockpit/report-cockpit.component';
 import { CommercialSheetComponent } from './pages/commercial-sheet/commercial-sheet.component';
 import { ReportFilterBarComponent } from './components/report-filter-bar/report-filter-bar.component';
-import { GuidedTourComponent } from './components/guided-tour/guided-tour.component';
 import { TeamPortfolioComponent } from './components/team-portfolio/team-portfolio.component';
 import { CommercialYearlyComponent } from './components/commercial-yearly/commercial-yearly.component';
-import { FcfaPipe } from './shared/fcfa.pipe';
+import { ReportUiModule } from '../shared/report-ui/report-ui.module';
 import { ReportDepositsComponent } from './pages/report-deposits/report-deposits.component';
 import { ReportJournalComponent } from './pages/report-journal/report-journal.component';
 
@@ -54,10 +53,8 @@ import { ReportJournalComponent } from './pages/report-journal/report-journal.co
     ReportCockpitComponent,
     CommercialSheetComponent,
     ReportFilterBarComponent,
-    GuidedTourComponent,
     TeamPortfolioComponent,
     CommercialYearlyComponent,
-    FcfaPipe,
     ReportDepositsComponent,
     ReportJournalComponent,
   ],
@@ -67,6 +64,7 @@ import { ReportJournalComponent } from './pages/report-journal/report-journal.co
     ReactiveFormsModule,
     ReportRoutingModule,
     SharedComponentsModule,
+    ReportUiModule,
     BilletageModule,
     NgSelectModule,
     NgxPermissionsModule,

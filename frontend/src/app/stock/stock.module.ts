@@ -5,6 +5,13 @@ import { StockRoutingModule } from './stock-routing.module';
 import { StockRequestListComponent } from './pages/stock-request-list/stock-request-list.component';
 import { StockRequestCreateComponent } from './pages/stock-request-create/stock-request-create.component';
 import { MyStockDashboardComponent } from './pages/my-stock-dashboard/my-stock-dashboard.component';
+import { StockTeamComponent } from './pages/stock-team/stock-team.component';
+import { StockSheetComponent } from './pages/stock-sheet/stock-sheet.component';
+import { StockRegularisationComponent } from './pages/stock-regularisation/stock-regularisation.component';
+import { StockTontineTeamComponent } from './components/stock-tontine-team/stock-tontine-team.component';
+import { StockArticlePanelComponent } from './components/stock-article-panel/stock-article-panel.component';
+import { StockLinkedSalesPanelComponent } from './components/stock-linked-sales-panel/stock-linked-sales-panel.component';
+import { ReportUiModule } from '../shared/report-ui/report-ui.module';
 import { StockReturnListComponent } from './pages/stock-return-list/stock-return-list.component';
 import { StockReturnCreateComponent } from './pages/stock-return-create/stock-return-create.component';
 import { SharedModule } from '../shared/shared.module';
@@ -42,6 +49,12 @@ import { TontineDeliveryDetailsDialogComponent } from '../stock-tontine/componen
     StockRequestListComponent,
     StockRequestCreateComponent,
     MyStockDashboardComponent,
+    StockTeamComponent,
+    StockSheetComponent,
+    StockRegularisationComponent,
+    StockTontineTeamComponent,
+    StockArticlePanelComponent,
+    StockLinkedSalesPanelComponent,
     StockReturnListComponent,
     StockReturnCreateComponent,
     SalesDetailsDialogComponent,
@@ -66,6 +79,7 @@ import { TontineDeliveryDetailsDialogComponent } from '../stock-tontine/componen
     FormsModule,
     ReactiveFormsModule,
     SharedComponentsModule,
+    ReportUiModule,
     MatIconModule,
     MatButtonModule,
     MatTooltipModule,

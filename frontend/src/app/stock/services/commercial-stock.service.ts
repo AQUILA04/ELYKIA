@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { CommercialMonthlyStock } from '../models/commercial-stock.model';
 import { SoldValueHistoryEntry } from '../models/sold-value-history.model';
 import { StockLinkedSalesResponse } from '../models/stock-linked-sales.model';
+import { StockTeamOverview, StockToSettle } from '../models/stock-team.model';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { ErrorHandlerService } from 'src/app/shared/service/error-handler.service';
 
@@ -30,6 +31,24 @@ export class CommercialStockService extends BaseHttpService {
 
   getStockByDate(collector: string, year: number, month: number): Observable<CommercialMonthlyStock> {
     return this.http.get<CommercialMonthlyStock>(`${this.baseUrl}/${collector}/${year}/${month}`);
+  }
+
+  /** Vue équipe d'un mois : une ligne par commercial et les totaux (un commercial ne reçoit que sa ligne). */
+  getTeamOverview(year: number, month: number, collector?: string | null): Observable<StockTeamOverview> {
+    let params = new HttpParams().set('year', year.toString()).set('month', month.toString());
+    if (collector) {
+      params = params.set('collector', collector);
+    }
+    return this.http.get<StockTeamOverview>(`${this.baseUrl}/team-overview`, { params });
+  }
+
+  /** Mois clôturés à régulariser, du plus ancien au plus récent. */
+  getToSettle(collector?: string | null): Observable<StockToSettle[]> {
+    let params = new HttpParams();
+    if (collector) {
+      params = params.set('collector', collector);
+    }
+    return this.http.get<StockToSettle[]>(`${this.baseUrl}/to-settle`, { params });
   }
 
   getAvailableItems(collector: string): Observable<any[]> {

@@ -1,0 +1,119 @@
+<div class="tontine-team" data-testid="e2e-stock-tontine-team">
+  <div class="tontine-bar">
+    <label class="year-field">Année
+      <select [ngModel]="year" (ngModelChange)="onYearChange($event)" data-testid="e2e-stock-tontine-year">
+        <option *ngFor="let y of years" [ngValue]="y">{{ y }}{{ y === currentYear ? ' (en cours)' : '' }}</option>
+      </select>
+    </label>
+    <span class="panel-hint">Stock tontine annuel : livré aux adhérents, sans dette ni recouvrement.</span>
+  </div>
+
+  <div class="panel-card empty-state" *ngIf="error" role="alert">
+    <div class="empty-title">Le stock tontine n'a pas pu être chargé.</div>
+    <div class="empty-sub">Réessayez ou ouvrez l'ancienne présentation.</div>
+  </div>
+  <div class="panel-card" *ngIf="loading"><div class="skeleton"></div></div>
+
+  <ng-container *ngIf="!loading && !error && totals as t">
+    <section class="panel-card flow-card tontine-flow" aria-labelledby="tontine-flow-title" data-testid="e2e-stock-tontine-flow">
+      <div class="panel-head">
+        <h2 id="tontine-flow-title">Marchandise tontine · équipe · {{ year }}</h2>
+        <span class="panel-hint">{{ t.commercialsCount }} commercia{{ t.commercialsCount > 1 ? 'ux' : 'l' }} · valeur au prix moyen</span>
+      </div>
+      <div class="flow-row">
+        <div class="flow-box"><span class="kpi-label">Pris</span><span class="flow-val num">{{ t.taken }}</span><span class="flow-sub num">{{ t.takenValue | fcfa }}</span></div>
+        <span class="flow-op" aria-hidden="true">=</span>
+        <div class="flow-box flow-box--ok"><span class="kpi-label">Livré</span><span class="flow-val num">{{ t.delivered }}</span><span class="flow-sub num">{{ t.deliveredValue | fcfa }}</span></div>
+        <span class="flow-op" aria-hidden="true">+</span>
+        <div class="flow-box"><span class="kpi-label">Retourné</span><span class="flow-val num">{{ t.returned }}</span></div>
+        <span class="flow-op" aria-hidden="true">+</span>
+        <div class="flow-box" [class.flow-box--warn]="t.remaining > 0">
+          <span class="kpi-label">Restant</span><span class="flow-val num" data-testid="e2e-stock-tontine-remaining">{{ t.remaining }}</span>
+          <span class="flow-sub num">{{ t.remainingValue | fcfa }}</span>
+        </div>
+      </div>
+      <div class="split-bar" aria-hidden="true">
+        <span class="seg-sold" [style.width.%]="split.delivered"></span>
+        <span class="seg-returned" [style.width.%]="split.returned"></span>
+        <span class="seg-remaining" [style.width.%]="split.remaining"></span>
+      </div>
+      <span class="panel-hint">{{ t.deliveredRate }} % livré · {{ split.returned }} % retourné · {{ split.remaining }} % encore chez les commerciaux</span>
+    </section>
+
+    <section class="table-card" aria-labelledby="tontine-team-title">
+      <div class="panel-head table-head">
+        <h2 id="tontine-team-title">Une ligne par commercial</h2>
+        <span class="panel-hint">Trié par valeur restante · dépliez une ligne pour voir les articles</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="data-table tontine-table">
+          <thead>
+            <tr>
+              <th scope="col">Commercial</th>
+              <th scope="col" class="c">Pris</th>
+              <th scope="col">Livré</th>
+              <th scope="col" class="c">Retourné</th>
+              <th scope="col" class="c">Restant</th>
+              <th scope="col" class="r">Valeur restante</th>
+              <th scope="col"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let line of lines; trackBy: trackLine">
+              <tr [attr.data-testid]="'e2e-stock-tontine-row-' + line.commercial">
+                <td>
+                  <button type="button" class="btn-link expand-btn" (click)="toggle(line)" [attr.aria-expanded]="isExpanded(line)">
+                    <span aria-hidden="true">{{ isExpanded(line) ? '▾' : '▸' }}</span> {{ line.commercial }}
+                  </button>
+                  <span class="cell-sub">{{ line.articles.length }} article(s)</span>
+                </td>
+                <td class="c num">{{ line.taken }}</td>
+                <td>
+                  <div class="mini-bar rate-ok"><span class="num qty">{{ line.delivered }}</span>
+                    <span class="mini-track"><span [style.width.%]="line.deliveredRate"></span></span>
+                    <span class="num">{{ line.deliveredRate }} %</span></div>
+                </td>
+                <td class="c num">{{ line.returned }}</td>
+                <td class="c"><span class="qty-pill num" [class.qty-pill--warn]="line.remaining > 0">{{ line.remaining }}</span></td>
+                <td class="r num" [class.gap-neg]="line.remainingValue > 0.5">{{ line.remainingValue | fcfa:'bare' }}</td>
+                <td class="r">
+                  <button type="button" class="btn-link" (click)="exportPdf(line)" [disabled]="exporting === line.commercial">
+                    {{ exporting === line.commercial ? 'Export…' : 'PDF' }}
+                  </button>
+                </td>
+              </tr>
+              <ng-container *ngIf="isExpanded(line)">
+                <tr *ngFor="let stock of line.articles" class="article-row" data-testid="e2e-stock-tontine-article-row">
+                  <td class="article-name">{{ stock.articleName }}</td>
+                  <td class="c num">{{ stock.totalQuantity }}</td>
+                  <td class="num">{{ stock.distributedQuantity }}</td>
+                  <td class="c num">{{ stock.quantityReturned || 0 }}</td>
+                  <td class="c"><span class="qty-pill num" [class.qty-pill--warn]="stock.availableQuantity > 0">{{ stock.availableQuantity }}</span></td>
+                  <td class="r num">{{ remainingValue(stock) | fcfa:'bare' }}</td>
+                  <td class="r article-actions">
+                    <button type="button" class="btn-link" (click)="openMovements(stock)">Mouvements</button>
+                    <button type="button" class="btn-link" (click)="openDeliveries(stock)" [disabled]="!stock.distributedQuantity">Livraisons</button>
+                  </td>
+                </tr>
+              </ng-container>
+            </ng-container>
+            <tr *ngIf="!lines.length">
+              <td colspan="7"><div class="empty-state"><div class="empty-title">Aucun stock tontine en {{ year }}.</div></div></td>
+            </tr>
+          </tbody>
+          <tfoot *ngIf="lines.length">
+            <tr>
+              <td>Équipe</td>
+              <td class="c num">{{ t.taken }}</td>
+              <td class="num">{{ t.delivered }}</td>
+              <td class="c num">{{ t.returned }}</td>
+              <td class="c num">{{ t.remaining }}</td>
+              <td class="r num">{{ t.remainingValue | fcfa:'bare' }}</td>
+              <td></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </section>
+  </ng-container>
+</div>

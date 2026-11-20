@@ -10,8 +10,8 @@ import { DailyOperationLog } from '../../models/daily-operation-log.model';
 import { OperationTypeTotal, operationLabel, operationTone } from '../../models/operation-types';
 import { ReportFilters, filtersFromParams, filtersToParams } from '../../models/report-period';
 import { DailyOperationService } from '../../service/daily-operation.service';
-import { GuidedTourService } from '../../components/guided-tour/guided-tour.service';
-import { JOURNAL_TOUR } from '../../components/guided-tour/report-tours';
+import { GuidedTourService } from '../../../shared/report-ui/guided-tour/guided-tour.service';
+import { JOURNAL_TOUR } from '../../report-tours';
 import { AgentOption } from '../../components/report-filter-bar/report-filter-bar.component';
 
 const PAGE_SIZE = 25;
