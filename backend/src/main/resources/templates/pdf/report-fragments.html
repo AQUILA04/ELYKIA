@@ -4,8 +4,10 @@
   Compatibles iText html2pdf : pas de flexbox ni de grid, mise en page par tableaux.
   Le pied de page n/N est tamponné par PdfHtmlRenderer (style MODERN).
 -->
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8"/>
+    <title>Fragments PDF du rapport commerciaux</title>
     <th:block th:fragment="styles">
         <style>
             /* Première page : la bande de marque touche le haut ; pages suivantes : marge haute. */
@@ -116,7 +118,7 @@
 <body>
 <!-- En-tête : th:replace="~{pdf/report-fragments :: header(${titre}, ${pastille})}" -->
 <div th:fragment="header(title, pill)">
-    <table class="brand-band">
+    <table role="presentation" class="brand-band">
         <tr>
             <td class="band-navy" style="width: 14mm"></td>
             <td class="band-soft" style="width: 24mm"></td>
@@ -126,7 +128,7 @@
         </tr>
     </table>
     <div class="page">
-        <table class="doc-head">
+        <table role="presentation" class="doc-head">
             <tr>
                 <td style="width: 48px"><div class="logo">A</div></td>
                 <td>

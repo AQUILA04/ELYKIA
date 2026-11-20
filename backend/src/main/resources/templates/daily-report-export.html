@@ -10,7 +10,7 @@
 
 <div class="page">
     <!-- Cartes d'information -->
-    <table class="cards">
+    <table role="presentation" class="cards">
         <tr>
             <td>
                 <div class="lbl">Commercial</div>
@@ -31,8 +31,8 @@
     </table>
 
     <!-- Rapprochement -->
-    <table class="sec"><tr><td class="sec-title">Rapprochement de la période</td><td class="sec-hint">Ce qui a été encaissé doit être versé</td></tr></table>
-    <table class="eq avoid">
+    <table role="presentation" class="sec"><tr><td class="sec-title">Rapprochement de la période</td><td class="sec-hint">Ce qui a été encaissé doit être versé</td></tr></table>
+    <table role="presentation" class="eq avoid">
         <tr>
             <td class="term"><div class="lbl">Crédit</div><div class="eq-val" th:text="${#numbers.formatDecimal(report.creditToDeposit, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
             <td class="op">+</td>
@@ -47,7 +47,7 @@
             <td class="term"><div class="lbl">Versé</div><div class="eq-val" th:text="${#numbers.formatDecimal(report.deposited, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
         </tr>
     </table>
-    <table class="total avoid">
+    <table role="presentation" class="total avoid">
         <tr th:class="${report.remaining > 0.01} ? 'total-amber' : 'total-green'">
             <td class="total-label" th:text="${report.remaining > 0.01} ? 'Reste à verser' : 'Tout est versé'">Reste à verser</td>
             <td class="total-value" th:text="${#numbers.formatDecimal(report.remaining, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'">0 FCFA</td>
@@ -59,12 +59,12 @@
     </div>
 
     <!-- Activité -->
-    <table class="sec"><tr><td class="sec-title">Activité de la période</td><td class="sec-hint">Nombre · montant</td></tr></table>
-    <table class="blocks avoid">
+    <table role="presentation" class="sec"><tr><td class="sec-title">Activité de la période</td><td class="sec-hint">Nombre · montant</td></tr></table>
+    <table role="presentation" class="blocks avoid">
         <tr>
             <td>
                 <div class="block-title">Crédit</div>
-                <table class="kv">
+                <table role="presentation" class="kv">
                     <tr><td class="k">Ventes à crédit</td><td class="v" th:text="${report.distributionCount} + ' · ' + ${#numbers.formatDecimal(report.distributionAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
                     <tr><td class="k">Recouvrements</td><td class="v" th:text="${report.recoveryCount} + ' · ' + ${#numbers.formatDecimal(report.recoveryAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
                     <tr><td class="k">Avances</td><td class="v" th:text="${#numbers.formatDecimal(report.totalAdvancesAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
@@ -73,7 +73,7 @@
             </td>
             <td>
                 <div class="block-title">Tontine</div>
-                <table class="kv">
+                <table role="presentation" class="kv">
                     <tr><td class="k">Collectes</td><td class="v" th:text="${report.tontineCollectionCount} + ' · ' + ${#numbers.formatDecimal(report.tontineCollectionAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
                     <tr><td class="k">Rattrapages saisis</td><td class="v" th:text="${#numbers.formatDecimal(report.catchupEntered, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
                     <tr><td class="k">Adhésions</td><td class="v" th:text="${report.tontineMemberCount}">0</td></tr>
@@ -82,7 +82,7 @@
             </td>
             <td>
                 <div class="block-title">Clients</div>
-                <table class="kv">
+                <table role="presentation" class="kv">
                     <tr><td class="k">Nouveaux clients</td><td class="v" th:text="${report.newClientCount}">0</td></tr>
                     <tr><td class="k">Solde nouveaux comptes</td><td class="v" th:text="${#numbers.formatDecimal(report.newClientBalance, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
                     <tr><td class="k">Opérations terrain</td><td class="v" th:text="${report.operationsCount}">0</td></tr>
@@ -93,7 +93,7 @@
 
     <!-- Détail des opérations -->
     <th:block th:each="section : ${report.sections}">
-        <table class="sec">
+        <table role="presentation" class="sec">
             <tr>
                 <td class="sec-title" th:text="${section.title}">Ventes à crédit</td>
                 <td class="sec-hint" th:text="${section.rows.size()} + ' opération(s) · ' + ${section.total}">0</td>
@@ -131,7 +131,7 @@
     <div class="empty" style="margin-top: 14px" th:if="${#lists.isEmpty(report.sections)}">Aucune opération enregistrée sur la période.</div>
 
     <!-- Signatures -->
-    <table class="signs avoid">
+    <table role="presentation" class="signs avoid">
         <tr>
             <td><div class="lbl">Signature du commercial</div><div class="sign-line"></div></td>
             <td><div class="lbl">Signature du gestionnaire</div><div class="sign-line"></div></td>

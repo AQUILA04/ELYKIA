@@ -9,7 +9,7 @@
 <div th:replace="~{pdf/report-fragments :: header(${pdfDocumentTitle}, ${doc.commercialLabel} + ' · ' + ${doc.year})}"></div>
 
 <div class="page">
-    <table class="cards">
+    <table role="presentation" class="cards">
         <tr>
             <td>
                 <div class="lbl">Commercial</div>
@@ -26,7 +26,7 @@
         </tr>
     </table>
 
-    <table class="total avoid" style="margin-bottom: 4px">
+    <table role="presentation" class="total avoid" style="margin-bottom: 4px">
         <tr class="total-amber">
             <td class="total-label">
                 Somme restant due · <span th:text="${doc.salesCount}">0</span> crédit(s)
@@ -35,7 +35,7 @@
         </tr>
     </table>
 
-    <table class="sec"><tr><td class="sec-title">Crédits encore dus</td><td class="sec-hint">Portefeuille actuel du commercial</td></tr></table>
+    <table role="presentation" class="sec"><tr><td class="sec-title">Crédits encore dus</td><td class="sec-hint">Portefeuille actuel du commercial</td></tr></table>
     <div class="empty" th:if="${#lists.isEmpty(doc.rows)}">
         Aucun crédit encore dû dans le portefeuille actuel de ce commercial.
     </div>

@@ -9,7 +9,7 @@
 <div th:replace="~{pdf/report-fragments :: header(${pdfDocumentTitle}, ${context.periodLabel})}"></div>
 
 <div class="page">
-    <table class="cards">
+    <table role="presentation" class="cards">
         <tr>
             <td>
                 <div class="lbl">Commercial</div>
@@ -30,7 +30,7 @@
     </table>
 
     <th:block th:if="${not #lists.isEmpty(context.totals)}">
-        <table class="sec"><tr><td class="sec-title">Totaux par type</td><td class="sec-hint">Nombre · montant</td></tr></table>
+        <table role="presentation" class="sec"><tr><td class="sec-title">Totaux par type</td><td class="sec-hint">Nombre · montant</td></tr></table>
         <table class="data avoid">
             <colgroup><col style="width: 60%"/><col style="width: 15%"/><col style="width: 25%"/></colgroup>
             <thead>
@@ -46,7 +46,7 @@
         </table>
     </th:block>
 
-    <table class="sec"><tr><td class="sec-title">Opérations</td><td class="sec-hint">Ordre chronologique</td></tr></table>
+    <table role="presentation" class="sec"><tr><td class="sec-title">Opérations</td><td class="sec-hint">Ordre chronologique</td></tr></table>
     <div class="empty" th:if="${#lists.isEmpty(context.rows)}">Aucune opération trouvée pour cette période.</div>
     <table class="data" th:if="${not #lists.isEmpty(context.rows)}">
         <thead>
