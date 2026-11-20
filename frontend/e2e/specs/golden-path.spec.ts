@@ -563,7 +563,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await page.getByTestId('e2e-sidebar-stock-commercial').click();
     await page.getByTestId('e2e-sidebar-stock-request').click();
     await page.getByTestId('e2e-stock-channel-tontine').click();
-    await page.getByTestId('e2e-stock-team-classic-link').click();
+    await expect(page).toHaveURL(/\/stock\/request\?.*channel=tontine/);
     await page.getByTestId('e2e-stock-request-new-btn').click();
 
     await expect(page.getByTestId('e2e-stock-request-form')).toBeVisible();
