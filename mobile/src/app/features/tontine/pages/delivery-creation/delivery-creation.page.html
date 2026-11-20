@@ -106,7 +106,7 @@
         <div class="article-icon"><ion-icon name="cube-outline"></ion-icon></div>
         <div class="article-info">
           <div class="article-name">{{ article.commercialName || article.name || 'Article' }}</div>
-          <div class="article-price elyk-amount" *appIfUnitPrice>{{ catalogueUnitPrice(article) | number }} FCFA</div>
+          <div class="article-price elyk-amount" *appIfUnitPrice="'CASH'">{{ catalogueUnitPrice(article) | number }} FCFA</div>
           <select *ngIf="offersFor(article.id, catalogueUnitPrice(article)).length > 1"
             [value]="'UNIT:1'"
             (change)="onOfferChange(article.id, article.id, $any($event.target).value, catalogueUnitPrice(article), article.commercialName || article.name || 'Article', 1000000)"
@@ -140,7 +140,7 @@
         <div class="article-icon"><ion-icon name="cube-outline"></ion-icon></div>
         <div class="article-info">
           <div class="article-name">{{ stock.articleName || 'Article' }}</div>
-          <div class="article-price elyk-amount" *appIfUnitPrice>{{ stock.unitPrice | number }} FCFA</div>
+          <div class="article-price elyk-amount" *appIfUnitPrice="'CASH'">{{ stock.unitPrice | number }} FCFA</div>
           <div class="article-stock">Disponible : {{ stock.availableQuantity }} unités</div>
           <select *ngIf="offersFor(stock.articleId, stock.unitPrice).length > 1"
             [value]="'UNIT:1'"
@@ -223,7 +223,7 @@
         <div class="cart-line-info">
           <div class="article-name">{{ line.name }}</div>
           <div class="article-stock" *ngIf="line.offer">{{ line.offer }}</div>
-          <div class="article-price elyk-amount" *appIfUnitPrice>{{ line.quantity }} × {{ line.unitPrice | number }} = {{ line.total | number }} F</div>
+          <div class="article-price elyk-amount" *appIfUnitPrice="'CASH'">{{ line.quantity }} × {{ line.unitPrice | number }} = {{ line.total | number }} F</div>
         </div>
         <div class="quantity-control">
           <button type="button" class="qty-btn" (click)="decreaseCartLine(line.key)" aria-label="Retirer une unité">

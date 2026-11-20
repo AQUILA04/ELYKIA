@@ -128,6 +128,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.54.2] — 2026-11-20
+
+### Changed
+
+- **Prix unitaire (tontine) —** la modale d'articles de livraison et la fiche du membre (articles livrés) suivent `RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY`, comme les ventes comptant (`*appIfUnitPrice="'CASH'"`).
+
 ## Frontend — [2.54.1] — 2026-11-20
 
 ### Fixed
@@ -453,6 +459,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.41.1] — 2026-11-20
+
+### Changed
+
+- **Prix unitaire (tontine) —** écran de livraison/commande, panier, fiche du membre, reçu de commande (écran et ticket) et reçu de livraison suivent `RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY` au lieu du paramètre général. `UnitPriceVisibilityService` charge les deux paramètres ; les directives `appIfUnitPrice` / `appIfNoUnitPrice` acceptent `'CASH'`.
+
 ## Mobile — [2.41.0] — 2026-11-20
 
 ### Added
@@ -624,6 +636,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.57.3] — 2026-11-20
+
+### Changed
+
+- **Prix unitaire (tontine) —** le PDF « Reçu de commande tontine » suit `RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY` (`UnitPriceVisibility.apply(context, OperationType.CASH)`) au lieu du paramètre général. Guide gestionnaire : tableau des paramètres mis à jour.
 
 ## Backend — [1.57.2] — 2026-11-20
 

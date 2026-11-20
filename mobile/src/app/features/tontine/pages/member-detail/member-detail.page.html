@@ -138,7 +138,7 @@
               <span>{{ item.salePackMode && item.salePackMode !== 'UNIT' ? item.packCount : item.quantity }}</span>
               <button type="button" class="stepper-btn" (click)="changeItemQuantity(item, 1)" aria-label="Augmenter la quantité">+</button>
             </div>
-            <span class="item-price elyk-amount" *appIfUnitPrice>{{ formatCurrency(item.totalPrice) }}</span>
+            <span class="item-price elyk-amount" *appIfUnitPrice="'CASH'">{{ formatCurrency(item.totalPrice) }}</span>
           </div>
           <div class="total-row">
             <span>Total</span>

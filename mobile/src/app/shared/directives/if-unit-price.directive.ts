@@ -1,7 +1,11 @@
-import { Directive, OnDestroy, OnInit, TemplateRef, ViewContainerRef } from '@angular/core';
+import { Directive, Input, OnDestroy, OnInit, TemplateRef, ViewContainerRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { UnitPriceVisibilityService } from '../../core/services/unit-price-visibility.service';
 
+/**
+ * `*appIfUnitPrice` suit la règle générale. `*appIfUnitPrice="'CASH'"` suit la règle des ventes
+ * comptant, aussi utilisée pour les commandes et livraisons tontine.
+ */
 @Directive({
   selector: '[appIfUnitPrice]',
   standalone: true
@@ -9,6 +13,20 @@ import { UnitPriceVisibilityService } from '../../core/services/unit-price-visib
 export class IfUnitPriceDirective implements OnInit, OnDestroy {
   private sub?: Subscription;
   private shown = false;
+  private saleType: string | null = null;
+  private initialized = false;
+
+  @Input()
+  set appIfUnitPrice(saleType: string | null | undefined | '') {
+    const next = saleType || null;
+    if (next === this.saleType) {
+      return;
+    }
+    this.saleType = next;
+    if (this.initialized) {
+      this.subscribe();
+    }
+  }
 
   constructor(
     private templateRef: TemplateRef<unknown>,
@@ -17,11 +35,17 @@ export class IfUnitPriceDirective implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.sub = this.visibility.showUnitPrice$.subscribe(show => this.render(show));
+    this.initialized = true;
+    this.subscribe();
   }
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
+  }
+
+  private subscribe(): void {
+    this.sub?.unsubscribe();
+    this.sub = this.visibility.showUnitPriceFor$(this.saleType).subscribe(show => this.render(show));
   }
 
   private render(show: boolean): void {

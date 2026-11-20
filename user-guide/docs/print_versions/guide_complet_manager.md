@@ -1042,9 +1042,9 @@ Trois paramètres règlent l’affichage du prix unitaire et du montant de chaqu
 
 | Paramètre | Ce qu’il couvre |
 |-----------|-----------------|
-| **RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY** | Les ventes comptant : saisie, reçu, fiche de la vente, achats d’un client, PDF d’annulation. |
+| **RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY** | Les ventes comptant (saisie, reçu, fiche de la vente, achats d’un client, PDF d’annulation) ainsi que les commandes et livraisons tontine (choix des articles, fiche du membre, reçu de commande). |
 | **RESTRICT_CUSTOMER_SPACE_UNIT_PRICE_VISIBILITY** | L’Espace Client : catalogue, panier, détail d’un achat. |
-| **RESTRICT_UNIT_PRICE_VISIBILITY** | Tout le reste : ventes à crédit, livraisons tontine, commandes, sorties de stock, dettes, rapports et autres PDF. |
+| **RESTRICT_UNIT_PRICE_VISIBILITY** | Tout le reste : ventes à crédit, commandes clients, sorties de stock, dettes, rapports et autres PDF. |
 
 1. Ouvrez **Configuration** → **Paramètres généraux**.
 2. Repérez le paramètre voulu.
