@@ -5,7 +5,7 @@
             [style.top.px]="spot.top" [style.left.px]="spot.left"
             [style.width.px]="spot.width" [style.height.px]="spot.height"></div>
 
-        <div class="tour-popover" role="dialog" aria-modal="true"
+        <div #popover class="tour-popover" role="dialog" aria-modal="true"
             aria-labelledby="tour-title" aria-describedby="tour-body"
             [class.tour-popover--centered]="centered"
             [style.top.px]="centered ? null : popoverTop"

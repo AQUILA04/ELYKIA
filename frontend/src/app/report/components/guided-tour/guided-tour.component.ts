@@ -21,6 +21,31 @@ interface Box {
 const SPOT_PADDING = 8;
 const POPOVER_WIDTH = 360;
 const POPOVER_GAP = 14;
+const MARGIN = 16;
+
+/**
+ * Place la bulle sous la zone, sinon au-dessus, sinon en bas de l'écran ;
+ * toujours entièrement visible (coordonnées de l'écran, position: fixed).
+ */
+export function placePopover(
+    target: { top: number; left: number; bottom: number },
+    size: { width: number; height: number },
+    viewport: { width: number; height: number }
+): { top: number; left: number } {
+    const below = target.bottom + SPOT_PADDING + POPOVER_GAP;
+    const above = target.top - SPOT_PADDING - POPOVER_GAP - size.height;
+    let top: number;
+    if (below + size.height <= viewport.height - MARGIN) {
+        top = below;
+    } else if (above >= MARGIN) {
+        top = above;
+    } else {
+        top = viewport.height - size.height - MARGIN;
+    }
+    top = Math.max(MARGIN, top);
+    const left = Math.min(Math.max(MARGIN, target.left), viewport.width - size.width - MARGIN);
+    return { top, left: Math.max(MARGIN, left) };
+}
 
 /**
  * Bulle et projecteur de la visite guidée. À placer une fois par page :
@@ -35,6 +60,7 @@ const POPOVER_GAP = 14;
 })
 export class GuidedTourComponent implements OnDestroy {
     @ViewChild('primaryButton') primaryButton?: ElementRef<HTMLButtonElement>;
+    @ViewChild('popover') popover?: ElementRef<HTMLElement>;
 
     spot: Box | null = null;
     popoverTop = 0;
@@ -45,7 +71,16 @@ export class GuidedTourComponent implements OnDestroy {
 
     private measureTimer: ReturnType<typeof setTimeout> | null = null;
 
-    constructor(public tour: GuidedTourService, private cdr: ChangeDetectorRef) {
+    constructor(
+        public tour: GuidedTourService,
+        private cdr: ChangeDetectorRef,
+        private host: ElementRef<HTMLElement>
+    ) {
+        // Rattaché à <body> : un ancêtre avec transform, filter ou contain servirait sinon de repère
+        // aux éléments position: fixed, et projecteur et bulle seraient décalés hors de l'écran.
+        if (typeof document !== 'undefined') {
+            document.body.appendChild(this.host.nativeElement);
+        }
         effect(() => {
             const step = this.tour.step();
             this.tour.index();
@@ -65,6 +100,7 @@ export class GuidedTourComponent implements OnDestroy {
         if (this.tour.active()) {
             this.tour.finish();
         }
+        this.host.nativeElement.remove();
     }
 
     @HostListener('window:resize')
@@ -102,13 +138,18 @@ export class GuidedTourComponent implements OnDestroy {
             return;
         }
         if (scroll) {
-            element.scrollIntoView({ block: 'center', behavior: 'auto' });
+            // Une zone plus haute que l'écran est alignée en haut, sinon centrée.
+            const tall = element.getBoundingClientRect().height > window.innerHeight * 0.6;
+            element.scrollIntoView({ block: tall ? 'start' : 'center', behavior: 'auto' });
         }
         if (this.measureTimer) {
             clearTimeout(this.measureTimer);
         }
         // Une frame pour laisser le défilement se terminer avant de mesurer.
         this.measureTimer = setTimeout(() => {
+            this.measure(element);
+            this.cdr.detectChanges();
+            // Seconde passe : la bulle est rendue, sa hauteur réelle est connue.
             this.measure(element);
             this.cdr.markForCheck();
             if (scroll) {
@@ -119,8 +160,7 @@ export class GuidedTourComponent implements OnDestroy {
 
     private measure(element: HTMLElement): void {
         const rect = element.getBoundingClientRect();
-        const viewportWidth = window.innerWidth;
-        const viewportHeight = window.innerHeight;
+        const viewport = { width: window.innerWidth, height: window.innerHeight };
         this.spot = {
             top: rect.top - SPOT_PADDING,
             left: rect.left - SPOT_PADDING,
@@ -128,13 +168,14 @@ export class GuidedTourComponent implements OnDestroy {
             height: rect.height + SPOT_PADDING * 2
         };
         this.centered = false;
-        const width = Math.min(POPOVER_WIDTH, viewportWidth - 32);
-        const below = rect.bottom + SPOT_PADDING + POPOVER_GAP;
-        const roomBelow = viewportHeight - below;
-        this.popoverTop = roomBelow > 220 || rect.top < 240
-            ? Math.min(below, viewportHeight - 230)
-            : Math.max(16, rect.top - SPOT_PADDING - POPOVER_GAP - 210);
-        this.popoverLeft = Math.min(Math.max(16, rect.left), viewportWidth - width - 16);
+        const popover = this.popover?.nativeElement;
+        const position = placePopover(
+            { top: rect.top, left: rect.left, bottom: rect.bottom },
+            { width: Math.min(POPOVER_WIDTH, viewport.width - 32), height: popover?.offsetHeight || 260 },
+            viewport
+        );
+        this.popoverTop = position.top;
+        this.popoverLeft = position.left;
     }
 
     private focusLater(): void {

@@ -1,11 +1,10 @@
 package com.optimize.elykia.core.service.report;
 
-import com.itextpdf.html2pdf.HtmlConverter;
 import com.optimize.elykia.core.dto.DailyReportExportPdfDto;
+import com.optimize.elykia.core.dto.report.cockpit.CommercialReconciliationLineDto;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.entity.report.DailyOperationLog;
 import com.optimize.elykia.core.enumaration.OperationType;
-import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.repository.DailyOperationLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,153 +12,198 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
-import java.io.ByteArrayOutputStream;
 import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * PDF « Rapport commercial » : rapprochement de la période (mêmes chiffres que la fiche à l'écran),
+ * activité et détail des opérations. Design system documents Elykia, pagination n/N.
+ */
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class DailyReportPdfService {
 
+    static final String DOCUMENT_TITLE = "Rapport commercial";
+    private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm");
+
     private final DailyOperationLogRepository operationLogRepository;
-    private final DailyCommercialReportRepository reportRepository;
+    private final CommercialCockpitService cockpitService;
     private final TemplateEngine templateEngine;
+    private final PdfHtmlRenderer pdfHtmlRenderer;
 
     public byte[] generatePdfExport(LocalDate startDate, LocalDate endDate, String commercialUsername) {
-        List<DailyCommercialReport> reports = reportRepository.findAggregatedByDateBetweenAndCommercialUsername(
-                commercialUsername, startDate, endDate);
-
-        DailyCommercialReport kpi = reports.isEmpty() ? new DailyCommercialReport() : reports.get(0);
+        var summary = cockpitService.summary(commercialUsername, startDate, endDate);
+        DailyCommercialReport kpi = summary.activity() != null ? summary.activity() : new DailyCommercialReport();
 
         List<DailyOperationLog> operations = operationLogRepository.findByDateBetweenAndCommercialUsername(
                 startDate, endDate, commercialUsername);
-
         Map<OperationType, List<DailyOperationLog>> grouped = operations.stream()
+                .sorted(Comparator.comparing(DailyOperationLog::getTimestamp,
+                        Comparator.nullsLast(Comparator.naturalOrder())))
                 .collect(Collectors.groupingBy(DailyOperationLog::getType));
 
-        DailyReportExportPdfDto dto = buildDto(startDate, endDate, commercialUsername, kpi, grouped);
+        DailyReportExportPdfDto dto = buildDto(startDate, endDate, commercialUsername, kpi, summary.line(), grouped);
 
         Context context = new Context();
         UnitPriceVisibility.apply(context);
+        PdfDocumentIdentity.applyTo(context, DOCUMENT_TITLE);
         context.setVariable("report", dto);
-
         String html = templateEngine.process("daily-report-export", context);
-
-        ByteArrayOutputStream target = new ByteArrayOutputStream();
-        HtmlConverter.convertToPdf(html, target);
-        return target.toByteArray();
+        return pdfHtmlRenderer.htmlToPdf(html,
+                PdfDocumentIdentity.footerLabel(DOCUMENT_TITLE + " · " + commercialUsername),
+                PdfHtmlRenderer.FooterStyle.MODERN);
     }
 
-    private DailyReportExportPdfDto buildDto(LocalDate startDate, LocalDate endDate,
-                                             String commercialUsername, DailyCommercialReport kpi,
-                                             Map<OperationType, List<DailyOperationLog>> grouped) {
+    DailyReportExportPdfDto buildDto(LocalDate startDate, LocalDate endDate, String commercialUsername,
+            DailyCommercialReport kpi, CommercialReconciliationLineDto line,
+            Map<OperationType, List<DailyOperationLog>> grouped) {
         NumberFormat fmt = NumberFormat.getInstance(Locale.FRANCE);
-        DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
 
-        DailyReportExportPdfDto.DailyReportExportPdfDtoBuilder builder = DailyReportExportPdfDto.builder()
-                .title("Rapport Journalier")
-                .companyName("AMENOUVEVE - YAVEH")
-                .startDate(startDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
-                .endDate(endDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")))
+        List<DailyReportExportPdfDto.Section> sections = new ArrayList<>();
+        addSection(sections, "Ventes à crédit", grouped.get(OperationType.CREDIT_SALES), fmt, true);
+        addSection(sections, "Recouvrements", grouped.get(OperationType.CREDIT_COLLECTION), fmt, false);
+        addSection(sections, "Collectes tontine", grouped.get(OperationType.TONTINE_COLLECTION), fmt, false);
+        addSection(sections, "Livraisons tontine", grouped.get(OperationType.TONTINE_DELIVERY), fmt, false);
+        addSection(sections, "Adhésions tontine", grouped.get(OperationType.TONTINE_MEMBER_ENROLLMENT), fmt, false);
+        addSection(sections, "Nouveaux clients", grouped.get(OperationType.NEW_CLIENT), fmt, false);
+
+        return DailyReportExportPdfDto.builder()
+                .title(DOCUMENT_TITLE)
+                .companyName(PdfDocumentIdentity.COMPANY_NAME)
+                .startDate(startDate.format(DAY))
+                .endDate(endDate.format(DAY))
+                .periodLabel(periodLabel(startDate, endDate))
                 .commercialUsername(commercialUsername)
                 .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
-                .distributionCount(kpi.getCreditSalesCount() != null ? kpi.getCreditSalesCount() : 0)
-                .distributionAmount(kpi.getCreditSalesAmount() != null ? kpi.getCreditSalesAmount() : 0.0)
-                .recoveryCount(kpi.getCollectionsCount() != null ? kpi.getCollectionsCount() : 0)
-                .recoveryAmount(kpi.getCollectionsAmount() != null ? kpi.getCollectionsAmount() : 0.0)
-                .newClientCount(kpi.getNewClientsCount() != null ? kpi.getNewClientsCount() : 0)
-                .newClientBalance(kpi.getNewAccountsBalance() != null ? kpi.getNewAccountsBalance() : 0.0)
-                .tontineMemberCount(kpi.getTontineMembersCount() != null ? kpi.getTontineMembersCount() : 0)
-                .tontineCollectionCount(kpi.getTontineCollectionsCount() != null ? kpi.getTontineCollectionsCount() : 0)
-                .tontineCollectionAmount(kpi.getTontineCollectionsAmount() != null ? kpi.getTontineCollectionsAmount() : 0.0)
-                .tontineDeliveryCount(kpi.getTontineDeliveriesCount() != null ? kpi.getTontineDeliveriesCount() : 0)
-                .tontineDeliveryAmount(kpi.getTontineDeliveriesAmount() != null ? kpi.getTontineDeliveriesAmount() : 0.0)
-                .totalAdvancesAmount(kpi.getTotalAdvancesAmount() != null ? kpi.getTotalAdvancesAmount() : 0.0)
-                .totalReliquatGeneratedAmount(kpi.getTotalReliquatGeneratedAmount() != null ? kpi.getTotalReliquatGeneratedAmount() : 0.0)
-                .totalReliquatUsedAmount(kpi.getTotalReliquatUsedAmount() != null ? kpi.getTotalReliquatUsedAmount() : 0.0)
-                .tontineCatchupCount(kpi.getTontineCatchupCount() != null ? kpi.getTontineCatchupCount() : 0)
-                .tontineCatchupAmount(kpi.getTontineCatchupAmount() != null ? kpi.getTontineCatchupAmount() : 0.0)
-                .totalToPay(kpi.getTotalAmountToDeposit() != null ? kpi.getTotalAmountToDeposit() : 0.0);
-
-        List<DailyOperationLog> creditSales = grouped.getOrDefault(OperationType.CREDIT_SALES, Collections.emptyList());
-        List<DailyOperationLog> collections = grouped.getOrDefault(OperationType.CREDIT_COLLECTION, Collections.emptyList());
-        List<DailyOperationLog> newClients = grouped.getOrDefault(OperationType.NEW_CLIENT, Collections.emptyList());
-        List<DailyOperationLog> tontineMembers = grouped.getOrDefault(OperationType.TONTINE_MEMBER_ENROLLMENT, Collections.emptyList());
-        List<DailyOperationLog> tontineCollections = grouped.getOrDefault(OperationType.TONTINE_COLLECTION, Collections.emptyList());
-        List<DailyOperationLog> tontineDeliveries = grouped.getOrDefault(OperationType.TONTINE_DELIVERY, Collections.emptyList());
-
-        builder.distributions(mapItems(creditSales, fmt, timeFmt, true));
-        builder.recoveries(mapItems(collections, fmt, timeFmt, false));
-        builder.newClients(mapNewClientItems(newClients, fmt, timeFmt));
-        builder.tontineMembers(mapItems(tontineMembers, fmt, timeFmt, false));
-        builder.tontineCollections(mapItems(tontineCollections, fmt, timeFmt, false));
-        builder.tontineDeliveries(mapItems(tontineDeliveries, fmt, timeFmt, false));
-
-        return builder.build();
+                .statusLabel(statusLabel(line))
+                .statusClass(statusClass(line))
+                .creditToDeposit(line.creditToDeposit())
+                .tontineToDeposit(line.tontineToDeposit())
+                .newBalanceToDeposit(line.newBalanceToDeposit())
+                .catchupEntered(line.catchupEntered())
+                .cashDue(line.cashDue())
+                .deposited(line.deposited())
+                .surplus(line.surplus())
+                .remaining(line.remaining())
+                .historicalRemaining(line.historicalRemaining())
+                .operationsCount(line.operationsCount())
+                .distributionCount(count(kpi.getCreditSalesCount()))
+                .distributionAmount(amount(kpi.getCreditSalesAmount()))
+                .recoveryCount(count(kpi.getCollectionsCount()))
+                .recoveryAmount(amount(kpi.getCollectionsAmount()))
+                .newClientCount(count(kpi.getNewClientsCount()))
+                .newClientBalance(amount(kpi.getNewAccountsBalance()))
+                .tontineMemberCount(count(kpi.getTontineMembersCount()))
+                .tontineCollectionCount(count(kpi.getTontineCollectionsCount()))
+                .tontineCollectionAmount(amount(kpi.getTontineCollectionsAmount()))
+                .tontineDeliveryCount(count(kpi.getTontineDeliveriesCount()))
+                .tontineDeliveryAmount(amount(kpi.getTontineDeliveriesAmount()))
+                .totalAdvancesAmount(amount(kpi.getTotalAdvancesAmount()))
+                .totalReliquatGeneratedAmount(amount(kpi.getTotalReliquatGeneratedAmount()))
+                .totalReliquatUsedAmount(amount(kpi.getTotalReliquatUsedAmount()))
+                .tontineCatchupCount(count(kpi.getTontineCatchupCount()))
+                .tontineCatchupAmount(amount(kpi.getTontineCatchupAmount()))
+                .totalToPay(amount(kpi.getTotalAmountToDeposit()))
+                .sections(sections)
+                .build();
     }
 
-    private List<DailyReportExportPdfDto.ItemRow> mapItems(List<DailyOperationLog> ops, NumberFormat fmt,
-                                                           DateTimeFormatter timeFmt, boolean isDistribution) {
-        List<DailyReportExportPdfDto.ItemRow> items = new ArrayList<>();
+    static String periodLabel(LocalDate start, LocalDate end) {
+        if (start.equals(end)) {
+            return "Journée du " + start.format(DAY);
+        }
+        return "Du " + start.format(DAY) + " au " + end.format(DAY);
+    }
+
+    static String statusLabel(CommercialReconciliationLineDto line) {
+        return switch (line.status()) {
+            case LATE -> "Reste à verser";
+            case SURPLUS -> "Surplus versé";
+            case UP_TO_DATE -> "À jour";
+            case INACTIVE -> "Aucune activité";
+        };
+    }
+
+    static String statusClass(CommercialReconciliationLineDto line) {
+        return switch (line.status()) {
+            case LATE -> "pill-amber";
+            case SURPLUS -> "pill-navy";
+            case UP_TO_DATE -> "pill-green";
+            case INACTIVE -> "pill-grey";
+        };
+    }
+
+    private void addSection(List<DailyReportExportPdfDto.Section> sections, String title,
+            List<DailyOperationLog> ops, NumberFormat fmt, boolean distribution) {
+        if (ops == null || ops.isEmpty()) {
+            return;
+        }
+        List<DailyReportExportPdfDto.ItemRow> rows = new ArrayList<>();
         int index = 1;
+        double total = 0.0;
         for (DailyOperationLog op : ops) {
-            String advanceInfo = "";
-            if (isDistribution && op.getDescription() != null && op.getDescription().contains("Avance:")) {
-                int idx = op.getDescription().indexOf("Avance:");
-                advanceInfo = op.getDescription().substring(idx);
+            double value = op.getAmount() != null ? op.getAmount() : 0.0;
+            total += value;
+            rows.add(DailyReportExportPdfDto.ItemRow.builder()
+                    .index(index++)
+                    .time(op.getTimestamp() != null ? op.getTimestamp().format(TIME) : "")
+                    .clientName(extractClientName(op.getDescription()))
+                    .details(op.getReference() != null ? op.getReference() : "")
+                    .amount(fmt.format(value))
+                    .extra(distribution ? advanceInfo(op.getDescription()) : "")
+                    .status("Sync")
+                    .build());
+        }
+        sections.add(DailyReportExportPdfDto.Section.builder()
+                .title(title)
+                .total(fmt.format(total) + " FCFA")
+                .showExtra(distribution)
+                .rows(rows)
+                .build());
+    }
+
+    private static String advanceInfo(String description) {
+        if (description == null || !description.contains("Avance:")) {
+            return "";
+        }
+        return description.substring(description.indexOf("Avance:") + "Avance:".length()).trim();
+    }
+
+    static String extractClientName(String description) {
+        if (description == null) {
+            return "";
+        }
+        for (String marker : List.of("Client:", "client")) {
+            if (description.contains(marker)) {
+                int start = description.indexOf(marker) + marker.length();
+                int end = description.indexOf(",", start);
+                if (end == -1) {
+                    end = description.indexOf(")", start);
+                }
+                if (end == -1) {
+                    end = description.length();
+                }
+                return description.substring(start, end).trim();
             }
-            items.add(DailyReportExportPdfDto.ItemRow.builder()
-                    .index(index++)
-                    .time(op.getTimestamp() != null ? op.getTimestamp().format(timeFmt) : "")
-                    .clientName(extractClientName(op.getDescription()))
-                    .details(op.getReference() != null ? op.getReference() : "")
-                    .amount(fmt.format(op.getAmount() != null ? op.getAmount() : 0.0) + " FCFA")
-                    .extra(advanceInfo)
-                    .status("Sync")
-                    .build());
-        }
-        return items;
-    }
-
-    private List<DailyReportExportPdfDto.ItemRow> mapNewClientItems(List<DailyOperationLog> ops, NumberFormat fmt,
-                                                                    DateTimeFormatter timeFmt) {
-        List<DailyReportExportPdfDto.ItemRow> items = new ArrayList<>();
-        int index = 1;
-        for (DailyOperationLog op : ops) {
-            items.add(DailyReportExportPdfDto.ItemRow.builder()
-                    .index(index++)
-                    .time(op.getTimestamp() != null ? op.getTimestamp().format(timeFmt) : "")
-                    .clientName(extractClientName(op.getDescription()))
-                    .details(op.getReference() != null ? op.getReference() : "")
-                    .amount("0 FCFA")
-                    .extra("")
-                    .status("Sync")
-                    .build());
-        }
-        return items;
-    }
-
-    private String extractClientName(String description) {
-        if (description == null) return "";
-        if (description.contains("Client:")) {
-            int start = description.indexOf("Client:") + 7;
-            int end = description.indexOf(",", start);
-            if (end == -1) end = description.indexOf(")", start);
-            if (end == -1) end = description.length();
-            return description.substring(start, end).trim();
-        }
-        if (description.contains("client")) {
-            int start = description.indexOf("client") + 6;
-            int end = description.indexOf(",", start);
-            if (end == -1) end = description.indexOf(")", start);
-            if (end == -1) end = description.length();
-            return description.substring(start, end).trim();
         }
         return description.length() > 40 ? description.substring(0, 40) + "..." : description;
+    }
+
+    private static int count(Integer value) {
+        return value != null ? value : 0;
+    }
+
+    private static double amount(Double value) {
+        return value != null ? value : 0.0;
     }
 }

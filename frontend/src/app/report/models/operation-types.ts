@@ -17,6 +17,7 @@ const TYPES: Record<string, OperationTypeInfo> = {
     CREDIT_COLLECTION: { label: 'Recouvrement', tone: 'credit' },
     CREDIT_COLLECTION_CANCEL: { label: 'Recouvrement annulé', tone: 'cancel' },
     CREDIT_SALES: { label: 'Vente à crédit', tone: 'credit' },
+    CREDIT_SALE_CANCEL: { label: 'Vente annulée', tone: 'cancel' },
     CREDIT: { label: 'Crédit', tone: 'credit' },
     ORDER: { label: 'Commande', tone: 'credit' },
     TONTINE_COLLECTION: { label: 'Collecte tontine', tone: 'tontine' },

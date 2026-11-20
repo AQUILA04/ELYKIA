@@ -23,6 +23,7 @@ public class DailyOperationService {
 
     private final DailyOperationLogRepository repository;
     private final org.thymeleaf.TemplateEngine templateEngine;
+    private final PdfHtmlRenderer pdfHtmlRenderer;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logOperation(String commercialUsername, OperationType type, Double amount, String reference,
@@ -143,27 +144,72 @@ public class DailyOperationService {
             operations = repository.findByDateBetween(startDate, endDate);
         }
 
-        Double totalAmount = operations.stream().mapToDouble(DailyOperationLog::getAmount).sum();
-
-        DailyOperationExportPdfDto contextDto = DailyOperationExportPdfDto.builder()
-                .title("Journal des Opérations")
-                .startDate(startDate != null ? startDate.toString() : "Début")
-                .endDate(endDate != null ? endDate.toString() : "Fin")
-                .collector(commercialUsername != null ? commercialUsername : "Tous")
-                .generationDate(
-                        LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
-                .operations(operations)
-                .totalAmount(totalAmount)
-                .build();
+        operations = operations.stream()
+                .sorted(java.util.Comparator.comparing(DailyOperationLog::getTimestamp,
+                        java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())))
+                .toList();
+        DailyOperationExportPdfDto contextDto = buildExportDto(startDate, endDate, commercialUsername, type, operations);
 
         org.thymeleaf.context.Context context = new org.thymeleaf.context.Context();
         UnitPriceVisibility.apply(context);
+        PdfDocumentIdentity.applyTo(context, JOURNAL_TITLE);
         context.setVariable("context", contextDto);
 
         String html = templateEngine.process("daily-operation-export", context);
+        return pdfHtmlRenderer.htmlToPdf(html, PdfDocumentIdentity.footerLabel(JOURNAL_TITLE),
+                PdfHtmlRenderer.FooterStyle.MODERN);
+    }
 
-        java.io.ByteArrayOutputStream target = new java.io.ByteArrayOutputStream();
-        com.itextpdf.html2pdf.HtmlConverter.convertToPdf(html, target);
-        return target.toByteArray();
+    static final String JOURNAL_TITLE = "Journal des opérations";
+
+    DailyOperationExportPdfDto buildExportDto(LocalDate startDate, LocalDate endDate, String commercialUsername,
+            OperationType type, List<DailyOperationLog> operations) {
+        java.time.format.DateTimeFormatter day = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        java.time.format.DateTimeFormatter time = java.time.format.DateTimeFormatter.ofPattern("dd/MM HH:mm");
+        java.util.Map<OperationType, double[]> byType = new java.util.EnumMap<>(OperationType.class);
+        List<DailyOperationExportPdfDto.Row> rows = new java.util.ArrayList<>();
+        double total = 0.0;
+        for (DailyOperationLog op : operations) {
+            double amount = op.getAmount() != null ? op.getAmount() : 0.0;
+            total += amount;
+            if (op.getType() != null) {
+                double[] bucket = byType.computeIfAbsent(op.getType(), key -> new double[2]);
+                bucket[0] += 1;
+                bucket[1] += amount;
+            }
+            rows.add(DailyOperationExportPdfDto.Row.builder()
+                    .time(op.getTimestamp() != null ? op.getTimestamp().format(time) : "")
+                    .commercial(op.getCommercialUsername())
+                    .typeLabel(com.optimize.elykia.core.util.OperationTypeLabels.label(op.getType()))
+                    .pill(com.optimize.elykia.core.util.OperationTypeLabels.pill(op.getType()))
+                    .reference(op.getReference())
+                    .description(op.getDescription())
+                    .amount(amount)
+                    .build());
+        }
+        List<DailyOperationExportPdfDto.TypeTotal> totals = byType.entrySet().stream()
+                .map(entry -> DailyOperationExportPdfDto.TypeTotal.builder()
+                        .label(com.optimize.elykia.core.util.OperationTypeLabels.label(entry.getKey()))
+                        .pill(com.optimize.elykia.core.util.OperationTypeLabels.pill(entry.getKey()))
+                        .count((long) entry.getValue()[0])
+                        .amount(entry.getValue()[1])
+                        .build())
+                .sorted(java.util.Comparator.comparingDouble(DailyOperationExportPdfDto.TypeTotal::getAmount).reversed())
+                .toList();
+        String start = startDate != null ? startDate.format(day) : "";
+        String end = endDate != null ? endDate.format(day) : "";
+        return DailyOperationExportPdfDto.builder()
+                .title(JOURNAL_TITLE)
+                .startDate(start)
+                .endDate(end)
+                .periodLabel(start.equals(end) ? "Journée du " + start : "Du " + start + " au " + end)
+                .collector(commercialUsername != null && !commercialUsername.isBlank() ? commercialUsername : "Toute l'équipe")
+                .typeLabel(type != null ? com.optimize.elykia.core.util.OperationTypeLabels.label(type) : "Tous les types")
+                .generationDate(LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
+                .operationsCount(rows.size())
+                .totalAmount(total)
+                .totals(totals)
+                .rows(rows)
+                .build();
     }
 }

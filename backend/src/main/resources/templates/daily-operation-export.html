@@ -1,124 +1,83 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <style>
-        body {
-            font-family: sans-serif;
-            font-size: 12px;
-        }
-
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-        .header {
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .header p {
-            margin: 5px 0;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-        }
-
-        .text-right {
-            text-align: right;
-        }
-
-        .text-center {
-            text-align: center;
-        }
-
-        .status-deposit {
-            color: green;
-        }
-
-        .status-withdrawal {
-            color: red;
-        }
-
-        .footer {
-            margin-top: 30px;
-            text-align: right;
-            font-size: 1.1em;
-            font-weight: bold;
-            border-top: 2px solid #eee;
-            padding-top: 10px;
-        }
-
-        .no-data {
-            text-align: center;
-            padding: 20px;
-            font-style: italic;
-            color: #777;
-        }
-    </style>
+    <meta charset="UTF-8"/>
+    <title th:text="${pdfDocumentTitle}">Journal des opérations</title>
+    <th:block th:replace="~{pdf/report-fragments :: styles}"></th:block>
 </head>
-
 <body>
+<div th:replace="~{pdf/report-fragments :: header(${pdfDocumentTitle}, ${context.periodLabel})}"></div>
 
-    <h1 th:text="${context.title}">Journal des Opérations</h1>
-
-    <div class="header">
-        <p><strong>Période :</strong> <span th:text="${context.startDate}"></span> au <span
-                th:text="${context.endDate}"></span></p>
-        <p><strong>Commercial :</strong> <span th:text="${context.collector}"></span></p>
-        <p><strong>Date de génération :</strong> <span th:text="${context.generationDate}"></span></p>
-    </div>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Heure</th>
-                <th>Commercial</th>
-                <th>Type</th>
-                <th>Référence / Sujet</th>
-                <th>Description</th>
-                <th class="text-right">Montant</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:if="${#lists.isEmpty(context.operations)}">
-                <td colspan="6" class="no-data">Aucune opération trouvée pour cette période.</td>
-            </tr>
-            <tr th:each="op : ${context.operations}">
-                <td th:text="${#temporals.format(op.timestamp, 'dd/MM/yyyy HH:mm')}"></td>
-                <td th:text="${op.commercialUsername}"></td>
-                <td th:text="${op.type}"></td>
-                <td th:text="${op.reference}"></td>
-                <td th:text="${op.description}"></td>
-                <td class="text-right"
-                    th:text="${#numbers.formatDecimal(op.amount, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}"></td>
-            </tr>
-        </tbody>
+<div class="page">
+    <table class="cards">
+        <tr>
+            <td>
+                <div class="lbl">Commercial</div>
+                <div class="val" th:text="${context.collector}">Toute l'équipe</div>
+                <div class="sub" th:text="${context.typeLabel}">Tous les types</div>
+            </td>
+            <td>
+                <div class="lbl">Période</div>
+                <div class="val" th:text="${context.startDate} + ' → ' + ${context.endDate}">01/11 → 20/11</div>
+                <div class="sub">Généré le <span th:text="${context.generationDate}">20/11/2026</span></div>
+            </td>
+            <td>
+                <div class="lbl">Opérations</div>
+                <div class="val" th:text="${context.operationsCount}">0</div>
+                <div class="sub" th:text="${#numbers.formatDecimal(context.totalAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA au total'">0 FCFA</div>
+            </td>
+        </tr>
     </table>
 
-    <div class="footer" th:if="${!#lists.isEmpty(context.operations)}">
-        <p>Total Montant : <span
-                th:text="${#numbers.formatDecimal(context.totalAmount, 1, 'WHITESPACE', 0, 'COMMA') + ' F'}"></span></p>
-    </div>
+    <th:block th:if="${not #lists.isEmpty(context.totals)}">
+        <table class="sec"><tr><td class="sec-title">Totaux par type</td><td class="sec-hint">Nombre · montant</td></tr></table>
+        <table class="data avoid">
+            <colgroup><col style="width: 60%"/><col style="width: 15%"/><col style="width: 25%"/></colgroup>
+            <thead>
+            <tr><th class="first">Type</th><th class="r">Opérations</th><th class="r last">Montant</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${context.totals}">
+                <td><span class="pill" th:classappend="${t.pill}" th:text="${t.label}">Recouvrement</span></td>
+                <td class="r" th:text="${t.count}">0</td>
+                <td class="r strong" th:text="${#numbers.formatDecimal(t.amount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
+            </tr>
+            </tbody>
+        </table>
+    </th:block>
 
+    <table class="sec"><tr><td class="sec-title">Opérations</td><td class="sec-hint">Ordre chronologique</td></tr></table>
+    <div class="empty" th:if="${#lists.isEmpty(context.rows)}">Aucune opération trouvée pour cette période.</div>
+    <table class="data" th:if="${not #lists.isEmpty(context.rows)}">
+        <thead>
+        <tr>
+            <th class="first" style="width: 56px">Heure</th>
+            <th style="width: 52px">Commercial</th>
+            <th style="width: 92px">Type</th>
+            <th>Référence · description</th>
+            <th class="r last" style="width: 70px">Montant</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="op : ${context.rows}">
+            <td th:text="${op.time}">20/11 08:00</td>
+            <td class="strong" th:text="${op.commercial}">COM005</td>
+            <td><span class="pill" th:classappend="${op.pill}" th:text="${op.typeLabel}">Versement</span></td>
+            <td>
+                <div class="strong" th:text="${op.reference}">REF</div>
+                <div class="small" th:text="${op.description}">Description</div>
+            </td>
+            <td class="r strong" th:classappend="${op.amount < 0} ? 'neg' : ''"
+                th:text="${#numbers.formatDecimal(op.amount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td colspan="4">Total · <span th:text="${context.operationsCount}">0</span> opération(s)</td>
+            <td class="r" th:text="${#numbers.formatDecimal(context.totalAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
+        </tr>
+        </tfoot>
+    </table>
+</div>
 </body>
-
 </html>
