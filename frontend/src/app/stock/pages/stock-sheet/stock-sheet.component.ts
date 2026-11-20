@@ -242,7 +242,7 @@ export class StockSheetComponent implements OnInit, OnDestroy {
     }
     const stockId = stock.id;
     const message = `Créer une dette de ${formatFcfa(this.totals.remainingValue)} pour ${this.collector} (${this.monthTitle}) ?`;
-    this.alertService.showConfirmation('Confirmation', message, 'Oui', 'Annuler').then(confirmed => {
+    void this.alertService.showConfirmation('Confirmation', message, 'Oui', 'Annuler').then(confirmed => {
       if (!confirmed) {
         return;
       }
