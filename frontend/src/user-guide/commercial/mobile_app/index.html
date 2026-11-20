@@ -738,6 +738,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../manager/tontine_doublons/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Doublons tontine
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../manager/reporting_config/" class="md-nav__link">
         
   
@@ -2931,6 +2959,11 @@ L'objectif est d'avoir une courbe verte qui suit toujours de très près la cour
 <li><strong>Modifier la commande</strong> : tant que la commande n'est pas livrée, la fiche membre propose <strong>Modifier la commande</strong> (et le menu ⋮ aussi). Vous ajustez les quantités puis <strong>Enregistrer la commande</strong>. Le total peut rester au-dessus du solde déjà encaissé : le contrôle du solde réel se fait à la remise.</li>
 <li><strong>Marquer comme livré</strong> : si une commande était déjà enregistrée, retournez sur la fiche membre et touchez <strong>Marquer comme livré</strong>. Si le solde disponible ne couvre pas la commande, choisissez <strong>Compléter le solde</strong> (sans plafond) ou <strong>Modifier la commande</strong>. Le stock tontine est décompté seulement quand la remise est confirmée. Si un article manque dans votre stock, l'application vous le signale pour que vous fassiez d'abord une demande au magasin.</li>
 <li>Lorsque la campagne est terminée pour tout le monde, il n'y a plus de commande, plus de complément et plus de remise.</li>
+<li><strong>Plusieurs téléphones sur le même compte</strong> : le serveur contrôle chaque commande et chaque remise.</li>
+<li><strong>Commande complétée</strong> : si une commande était déjà enregistrée pour ce membre sur un autre téléphone, et que le solde prévisionnel couvre les deux, vos articles y sont ajoutés. Le message donne la référence et le nouveau total, puis le reçu de la commande complète s'affiche.</li>
+<li><strong>Déjà enregistré sur un autre appareil</strong> : la commande ou la livraison est refusée quand le membre est déjà livré, quand une commande existe déjà et que le solde ne couvre pas les deux, ou quand vous tentez une <strong>Livraison directe</strong> alors qu'une commande attend sa remise. Le message donne la référence déjà enregistrée. Il n'y a pas d'enregistrement hors ligne possible pour cette saisie : synchronisez, puis ouvrez la fiche du membre.</li>
+<li><strong>Déjà livré sur un autre appareil</strong> : en touchant <strong>Marquer comme livré</strong>, vous apprenez que la commande a déjà été remise. La fiche se recharge.</li>
+<li>Une saisie faite hors ligne et refusée à la synchronisation apparaît dans les erreurs de synchronisation avec le même message. Signalez-la à votre gestionnaire.</li>
 </ol>
 <hr />
 <h2 id="6-articles-commandes-clients-et-stock-de-la-sacoche">6. Articles, commandes clients et stock de la sacoche</h2>

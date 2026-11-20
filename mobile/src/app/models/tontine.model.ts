@@ -108,6 +108,8 @@ export interface TontineDelivery {
     operationConsentCode?: string;
     /** True when create was already synced as PENDING and local mark-as-delivered still needs PATCH /deliver. */
     needsDeliverSync?: boolean;
+    /** Non persisté : la saisie a été ajoutée par le serveur à une commande déjà enregistrée. */
+    mergedIntoExisting?: boolean;
 }
 
 export interface TontineDeliveryView extends TontineDelivery {

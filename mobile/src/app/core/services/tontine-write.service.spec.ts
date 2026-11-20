@@ -65,7 +65,8 @@ describe('TontineWriteService', () => {
         { provide: TontineCollectionSyncService, useValue: collectionSyncService },
         { provide: TontineDeliverySyncService, useValue: {
           postCreateDelivery: jasmine.createSpy('postCreateDelivery'),
-          postMarkDelivered: jasmine.createSpy('postMarkDelivered')
+          postMarkDelivered: jasmine.createSpy('postMarkDelivered'),
+          applyMergedOrder: jasmine.createSpy('applyMergedOrder')
         } },
         { provide: OnlineFirstWriteCoordinator, useValue: coordinator },
         { provide: TontineCalculationService, useValue: {
@@ -194,6 +195,36 @@ describe('TontineWriteService', () => {
 
     expect(stockRepo.updateQuantities).toHaveBeenCalledWith('s1', 2);
     expect(memberRepo.saveAll).toHaveBeenCalledWith([jasmine.objectContaining({ deliveryStatus: 'DELIVERED' })]);
+  });
+
+  it('keeps the server order when an online order was merged into one saved on another phone', async () => {
+    const deliveryRepo = TestBed.inject(TontineDeliveryRepository) as any;
+    const memberRepo = TestBed.inject(TontineMemberRepository) as any;
+    const syncService = TestBed.inject(TontineDeliverySyncService) as any;
+    coordinator.executeWrite.and.callFake(async (options) => ({
+      data: await options.saveOnline(),
+      mode: 'online' as const
+    }));
+    syncService.postCreateDelivery.and.resolveTo({ id: 7001, reference: 'LIV-A', totalAmount: 35000, mergedIntoExisting: true });
+    syncService.applyMergedOrder.and.callFake(async (local: any) => ({
+      ...local, id: '7001', reference: 'LIV-A', totalAmount: 35000, status: 'PENDING', mergedIntoExisting: true
+    }));
+
+    const saved = await service.createDelivery({
+      delivery: {
+        id: 'local-b', tontineMemberId: 'm1', commercialUsername: 'COM005',
+        requestDate: '2026-11-20T10:00:00.000Z', status: 'PENDING', totalAmount: 5000, isLocal: true, isSync: false
+      } as any,
+      items: [],
+      stockUpdates: [],
+      member: { id: 'm1', deliveryStatus: 'VALIDATED' } as any
+    });
+
+    expect(saved.mergedIntoExisting).toBeTrue();
+    expect(saved.id).toBe('7001');
+    expect(saved.totalAmount).toBe(35000);
+    expect(deliveryRepo.saveAll).not.toHaveBeenCalled();
+    expect(memberRepo.saveAll).toHaveBeenCalledWith([jasmine.objectContaining({ deliveryStatus: 'PENDING' })]);
   });
 
   it('removes the local PENDING row when an unsynced order is delivered online', async () => {

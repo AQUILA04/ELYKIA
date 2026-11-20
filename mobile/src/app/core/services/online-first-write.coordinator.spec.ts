@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import { HttpErrorResponse } from '@angular/common/http';
 import { OnlineFirstWriteCoordinator } from './online-first-write.coordinator';
 import { ConnectivityService } from './connectivity.service';
 import { HybridSyncPreferenceService } from './hybrid-sync-preference.service';
@@ -73,5 +74,35 @@ describe('OnlineFirstWriteCoordinator', () => {
       },
       saveOffline: async () => ({ id: 'local' })
     })).toBeRejectedWithError('Code client déjà utilisé');
+  });
+
+  it('keeps the HTTP status so a 409 duplicate is not saved offline', async () => {
+    hybridSyncPreferenceService.isHybridSyncEnabled.and.resolveTo(true);
+    connectivityService.checkBackendReachable.and.resolveTo(true);
+    const saveOffline = jasmine.createSpy('saveOffline');
+
+    let caught: unknown;
+    try {
+      await coordinator.executeWrite({
+        entityLabel: 'tontine-delivery',
+        saveOnline: async () => {
+          throw new HttpErrorResponse({ status: 409, error: { message: 'Ce membre a déjà été livré' } });
+        },
+        saveOffline
+      });
+    } catch (error) {
+      caught = error;
+    }
+
+    expect(caught instanceof OnlineWriteError).toBeTrue();
+    expect((caught as OnlineWriteError).status).toBe(409);
+    expect((caught as OnlineWriteError).isServerConflict).toBeTrue();
+    expect((caught as OnlineWriteError).message).toBe('Ce membre a déjà été livré');
+    expect(saveOffline).not.toHaveBeenCalled();
+  });
+
+  it('does not flag an ordinary 400 as a server conflict', () => {
+    expect(new OnlineWriteError(WriteErrorKind.BUSINESS, 'x', 400).isServerConflict).toBeFalse();
+    expect(new OnlineWriteError(WriteErrorKind.BUSINESS, 'x').isServerConflict).toBeFalse();
   });
 });

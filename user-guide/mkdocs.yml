@@ -27,6 +27,7 @@ nav:
     - Stocks & Ventes: manager/stock_sales.md
     - Dettes: manager/debts.md
     - Finances & Tontines: manager/finance.md
+    - Doublons tontine: manager/tontine_doublons.md
     - Rapports & Configuration: manager/reporting_config.md
   - Guide Magasinier:
     - Vue d'ensemble: storekeeper/index.md

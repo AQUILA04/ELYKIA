@@ -21,6 +21,7 @@
 
   <div class="result official" *ngIf="result && result.found">
     <p class="result-title">Reçu reconnu</p>
+    <p class="result-note" *ngIf="result.message">{{ result.message }}</p>
     <p><span>Code</span> {{ result.authenticityCode }}</p>
     <p><span>Référence</span> {{ result.reference }}</p>
     <p><span>Membre</span> {{ result.clientName }}</p>

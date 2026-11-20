@@ -590,6 +590,18 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             if (await this.loadingCtrl.getTop()) {
                 await loading.dismiss();
             }
+            if (error instanceof OnlineWriteError && error.isServerConflict) {
+                // Un autre téléphone sur le même compte a déjà remis cette commande.
+                const refused = await this.alertCtrl.create({
+                    header: 'Déjà livré sur un autre appareil',
+                    message: error.message,
+                    cssClass: 'elyk-alert',
+                    buttons: ['OK']
+                });
+                await refused.present();
+                await this.loadMemberData();
+                return;
+            }
             if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS && !forceOffline) {
                 const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
                 if (saveOffline) {
