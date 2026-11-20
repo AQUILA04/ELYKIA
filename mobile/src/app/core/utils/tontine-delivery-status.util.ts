@@ -116,6 +116,10 @@ export function resolvePulledTontineDeliveryStatus(
   return null;
 }
 
+function deliveredFirst(a: string, b: string): number {
+  return Number(b === 'DELIVERED') - Number(a === 'DELIVERED');
+}
+
 function blockingStatusForMemberDelivery(
   deliveryStatus?: string | null,
   memberDeliveryStatus?: string | null
@@ -150,7 +154,9 @@ export function pickMemberTontineDelivery<T extends { id?: unknown; status?: str
       status: blockingStatusForMemberDelivery(delivery.status, memberDeliveryStatus)
     }))
     .filter((entry): entry is { delivery: T; status: string } => !!entry.status)
-    .sort((a, b) => String(b.delivery.requestDate || '').localeCompare(String(a.delivery.requestDate || '')));
+    // Une livraison effectuée l'emporte : une ligne PENDING restée à côté ne doit pas rouvrir la remise.
+    .sort((a, b) => deliveredFirst(a.status, b.status)
+      || String(b.delivery.requestDate || '').localeCompare(String(a.delivery.requestDate || '')));
 
   if (!ranked.length) {
     return null;
