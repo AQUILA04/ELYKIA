@@ -28,10 +28,11 @@ describe('tontine-delivery-status.util', () => {
     expect(isTontineDeliveryOrder('DELIVERED')).toBeFalse();
   });
 
-  it('allows order only while session is ACTIVE', () => {
+  it('allows order while session is ACTIVE or CLOSED, never ENDED', () => {
     expect(canCreateTontineOrder('ACTIVE')).toBeTrue();
     expect(canCreateTontineOrder(' active ')).toBeTrue();
-    expect(canCreateTontineOrder('CLOSED')).toBeFalse();
+    expect(canCreateTontineOrder('CLOSED')).toBeTrue();
+    expect(canCreateTontineOrder('closed')).toBeTrue();
     expect(canCreateTontineOrder('ENDED')).toBeFalse();
     expect(canCreateTontineOrder(null)).toBeFalse();
     expect(canCreateTontineOrder('')).toBeFalse();
