@@ -816,6 +816,33 @@ class TontineServiceTest {
     }
 
     @Test
+    void getMembers_dropsTheDeliveryBuiltForMembersWithoutOrder() {
+        int year = LocalDate.now().getYear();
+        User user = mock(User.class);
+        when(user.is(any())).thenReturn(false);
+        com.optimize.elykia.core.dto.TontineDeliveryRespDto phantom = new com.optimize.elykia.core.dto.TontineDeliveryRespDto(
+                null, null, null, null, null, null, null, null, null, null, null, null);
+        com.optimize.elykia.core.dto.TontineDeliveryRespDto real = new com.optimize.elykia.core.dto.TontineDeliveryRespDto(
+                7L, null, null, null, 21000.0, null, "COM005", "LIV-1", null, null, null, null);
+        when(tontineMemberRepository.findMembersDto(eq(year), eq(null), eq(null), eq(null), eq(null), any()))
+                .thenReturn(new PageImpl<>(List.of(memberRespWithDelivery(1L, phantom), memberRespWithDelivery(2L, real))));
+
+        List<TontineMemberRespDto> content =
+                service.getMembers(user, null, null, null, null, null, PageRequest.of(0, 20)).getContent();
+
+        org.junit.jupiter.api.Assertions.assertNull(content.get(0).delivery());
+        assertNotNull(content.get(1).delivery());
+        assertEquals(7L, content.get(1).delivery().id());
+    }
+
+    private TontineMemberRespDto memberRespWithDelivery(
+            Long id, com.optimize.elykia.core.dto.TontineDeliveryRespDto delivery) {
+        return new TontineMemberRespDto(id, null, null, null,
+                TontineMemberDeliveryStatus.PENDING, null, delivery, null, null, null, null, null, null, null, null,
+                null, null, null, null, null, null, null, null, null);
+    }
+
+    @Test
     void getMemberAmountHistoryArchives_returnsMappedList() {
         TontineMember member = member(TontineMemberDeliveryStatus.SESSION_INPROGRESS);
         member.setId(100L);

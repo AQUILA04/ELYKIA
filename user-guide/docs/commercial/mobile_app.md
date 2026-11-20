@@ -224,13 +224,17 @@ Le module **Tontine** permet aux clientes de mettre de l'argent de côté chaque
 ### C. Consulter la fiche complète d'une membre tontine
 Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 * Vous voyez le montant de sa mise, le total déjà cotisé en vert et son quartier.
+* **Le badge sous son nom** (aussi visible dans la liste de tontine) :
+  * **Commande** ou **Validée** : une commande est enregistrée pour elle. La carte **Livraison** de la fiche liste ses articles et le total.
+  * **Livré** : ses articles lui ont été remis.
+  * **À livrer** : la session est clôturée et elle attend sa remise de fin d'année, sans commande enregistrée pour l'instant. Utilisez **Livraison Fin d'Année** dans le menu ⋮.
 * **L'historique des cotisations** : la liste numérotée de tous ses versements passés.
 * **Droit à l'erreur** : si vous venez d'enregistrer une cotisation par erreur avec le badge **Local**, touchez la petite corbeille rouge sur la ligne pour l'annuler aussitôt. Le total est recalculé sans aucune fausse note.
 * **Le menu d'options (trois petits points ⋮ en haut à droite)** :
   * **Cotiser** / **Enregistrer une cotisation** : pour enregistrer un versement pendant la session ouverte. Après la clôture, cette action n'apparaît plus sur la fiche.
   * **Voir le client** : pour voir la fiche générale de la cliente.
   * **Commande de tontine** : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle **Livraison Fin d'Année** : vous pouvez y enregistrer une **Commande** (catalogue) ou faire la remise en mains propres (**Livraison directe**, stock tontine).
-  * **Modifier la commande** : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles.
+  * **Modifier la commande** : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles. Si la carte **Livraison** indique que les articles ne sont pas encore sur le téléphone, lancez d'abord une synchronisation : le bouton apparaît dès que les articles sont affichés.
 
 ### D. Enregistrer une cotisation de tontine pas à pas
 1. **Ouvrez la saisie** :
@@ -264,7 +268,8 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
    * **Pendant la session ouverte** : l'écran affiche le **catalogue** de l'agence. Vous n'avez pas besoin d'avoir déjà du stock tontine pour enregistrer la commande.
    * **Après la clôture** : l'écran affiche par défaut votre **stock tontine** (articles reçus du magasin) pour la remise en mains propres. Pour enregistrer une **Commande**, touchez **Catalogue (commande)** en haut de la liste ; pour une **Livraison directe**, restez sur **Stock tontine (remise)**.
    * Touchez **+** pour ajouter les articles. Si l'article a plusieurs offres (unité, gros, demi-gros ou une offre libre), choisissez-la dans la liste avant d'augmenter la quantité.
-   * Le panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le **solde prévisionnel**. Dans ce cas, **Valider** reste indisponible : retirez ou diminuez des articles.
+   * Pour revoir ce que vous avez choisi, touchez **Panier** en bas de l'écran : la liste affiche chaque article avec sa quantité et le total. Vous pouvez y ajouter ou retirer une unité, ou supprimer une ligne.
+   * Le panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le **plafond** : le **solde prévisionnel**, ou le **solde disponible** s'il est plus élevé (par exemple une membre qui a déjà cotisé 40 000 alors que l'estimation est de 39 000 peut commander jusqu'à 40 000). Au-delà, **Valider** reste indisponible : retirez ou diminuez des articles.
 4. **Si le solde déjà encaissé ne couvre pas le panier** :
    * Pendant la session ouverte, vous pouvez quand même enregistrer la **Commande**. **Compléter le solde** est proposé, sans être obligatoire.
    * Au moment de la remise, deux possibilités :

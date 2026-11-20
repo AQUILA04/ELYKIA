@@ -27,6 +27,7 @@ import {
     canPhysicallyDeliverTontine,
     canRecordNormalTontineCollection,
     getTontineDeliveryStatusLabel,
+    isTontineDeliveryOrder,
     pickMemberTontineDelivery,
     tontineDeliveryCreationMenuLabel
 } from 'src/app/core/utils/tontine-delivery-status.util';
@@ -215,10 +216,11 @@ export class MemberDetailPage implements OnInit, OnDestroy {
     }
 
     /**
-     * Relit la session locale (SQLite). Hors ligne, c'est la même source que le tableau de bord.
-     * On ne va pas chercher le serveur ici : la synchro reste le moment où le statut de session est rafraîchi.
+     * Mode hybride : relit la session sur le serveur quand il répond, puis lit la session locale (SQLite).
+     * Hors ligne, c'est la session locale qui sert de référence.
      */
     private async ensureSessionStatus(): Promise<void> {
+        await this.tontineService.refreshSessionFromServerIfOnline();
         this.store.dispatch(loadTontineSession());
         try {
             const session = await firstValueFrom(this.tontineService.getSession());
@@ -341,6 +343,9 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             return;
         }
 
+        // Mode hybride : la session est relue avant de décider si la remise est possible.
+        await this.ensureSessionStatus();
+
         if (!canPhysicallyDeliverTontine(this.sessionStatus)) {
             const blocked = await this.alertCtrl.create({
                 header: 'Action indisponible',
@@ -437,9 +442,33 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         void this.loadMemberData();
     }
 
-    /** Commande encore modifiable tant qu'elle n'est pas livrée. */
+    /** Commande encore modifiable tant qu'elle n'est pas livrée ; l'éditeur travaille sur ses articles. */
     canEditPendingOrder(): boolean {
-        return this.hasPendingDeliveryToMark() && !this.revisingOrder;
+        return this.hasPendingDeliveryToMark() && !this.revisingOrder && this.vm.deliveryItems.length > 0;
+    }
+
+    /**
+     * Badge de l'en-tête. À la clôture, le serveur passe tous les membres en PENDING :
+     * sans commande enregistrée, le membre est seulement « À livrer ».
+     */
+    memberStatusLabel(): string {
+        if (this.vm.delivery) {
+            return this.getStatusLabel(this.vm.delivery.status);
+        }
+        if (isTontineDeliveryOrder(this.vm.member?.deliveryStatus)) {
+            return 'À livrer';
+        }
+        return this.getStatusLabel(this.vm.member?.deliveryStatus);
+    }
+
+    memberStatusColor(): string {
+        if (this.vm.delivery) {
+            return this.getStatusColor(this.vm.delivery.status);
+        }
+        if (isTontineDeliveryOrder(this.vm.member?.deliveryStatus)) {
+            return 'medium';
+        }
+        return this.getStatusColor(this.vm.member?.deliveryStatus);
     }
 
     startOrderRevision(): void {
@@ -669,7 +698,9 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                     text: deliveryLabel,
                     icon: 'cube-outline',
                     handler: () => {
-                        this.createDelivery();
+                        // Naviguer une fois la feuille fermée : la page de création porte une fenêtre inline (panier),
+                        // et si elle apparaît pendant la fermeture, Ionic laisse l'écran masqué aux lecteurs d'écran.
+                        void actionSheet.onDidDismiss().then(() => this.createDelivery());
                     }
                 }] : []),
                 ...(this.hasPendingDeliveryToMark() ? [{

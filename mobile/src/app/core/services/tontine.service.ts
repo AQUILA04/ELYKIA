@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, from, of, forkJoin } from 'rxjs';
+import { Observable, from, of, forkJoin, firstValueFrom } from 'rxjs';
 import { catchError, map, switchMap, tap, take } from 'rxjs/operators';
 import { DatabaseService } from './database.service';
 import { environment } from 'src/environments/environment';
@@ -16,10 +16,11 @@ import { TontineStockRepositoryExtensions } from '../repositories/tontine-stock.
 import { TontineMemberRepository } from '../repositories/tontine-member.repository';
 import { TontineMemberAmountHistoryRepository } from '../repositories/tontine-member-amount-history.repository';
 import { mapApiCollectionToLocal, mapApiMemberToLocal, shouldSkipPulledCollection } from './tontine-allocation.mapper';
-import { resolvePulledTontineDeliveryStatus } from '../utils/tontine-delivery-status.util';
+import { hasPersistableTontineDeliveryId, resolvePulledTontineDeliveryStatus } from '../utils/tontine-delivery-status.util';
 import { SyncOrchestratorService } from './sync/sync-orchestrator.service';
 import { DataCleanerService } from './sync/data-cleaner.service';
 import { ConnectivityService } from './connectivity.service';
+import { HybridSyncPreferenceService } from './hybrid-sync-preference.service';
 import { SyncOptions } from '../models/tontine-sync.models';
 
 /**
@@ -62,7 +63,8 @@ export class TontineService {
         private readonly historyRepo: TontineMemberAmountHistoryRepository,
         private readonly syncOrchestrator: SyncOrchestratorService,
         private readonly dataCleaner: DataCleanerService,
-        private readonly connectivityService: ConnectivityService
+        private readonly connectivityService: ConnectivityService,
+        private readonly hybridSyncPreference: HybridSyncPreferenceService
     ) {
         this.store.select(selectAuthUser).subscribe(user => {
             this.commercialUsername = user?.username;
@@ -192,6 +194,31 @@ export class TontineService {
     }
 
     /**
+     * Mode hybride : quand le mode hybride est actif et que le backend répond, relit la session
+     * sur le serveur et la réécrit en local. Hors ligne ou mode hybride désactivé, la session
+     * locale reste la référence. N'échoue pas : en cas d'erreur, la session locale est conservée.
+     *
+     * @returns true si la session locale vient d'être rafraîchie depuis le serveur.
+     */
+    async refreshSessionFromServerIfOnline(): Promise<boolean> {
+        try {
+            const hybridEnabled = await this.hybridSyncPreference.isHybridSyncEnabled();
+            if (!hybridEnabled) {
+                return false;
+            }
+            const reachable = await this.connectivityService.checkBackendReachable();
+            if (!reachable) {
+                return false;
+            }
+            const session = await firstValueFrom(this.fetchAndSaveSession());
+            return !!session;
+        } catch (error) {
+            void this.log.log('TontineService: session non rafraîchie depuis le serveur, session locale conservée: ' + String(error));
+            return false;
+        }
+    }
+
+    /**
      * Fetch active session from API and save to DB
      */
     fetchAndSaveSession(): Observable<any> {
@@ -263,7 +290,7 @@ export class TontineService {
 
                         const deliveries: any[] = [];
                         members.forEach((m: any) => {
-                            if (m.delivery) {
+                            if (hasPersistableTontineDeliveryId(m.delivery?.id)) {
                                 deliveries.push({
                                     id: m.delivery.id,
                                     reference: m.delivery.reference ?? null,

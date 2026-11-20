@@ -9,11 +9,11 @@
       <span class="idx">{{ i + 1 }}</span>
       <div class="art">
         <span class="art-name">{{ item.articleName }}</span>
-        <span class="art-meta" *appIfUnitPrice>{{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }}</span>
-        <span class="art-meta" *appIfNoUnitPrice>Qté {{ item.quantity }}</span>
+        <span class="art-meta" *appIfUnitPrice="saleType">{{ item.quantity }} × {{ item.unitPrice | number:'1.0-0' }}</span>
+        <span class="art-meta" *appIfNoUnitPrice="saleType">Qté {{ item.quantity }}</span>
       </div>
       <span class="qty">{{ item.quantity }}</span>
-      <span class="line-total elyk-amount" *appIfUnitPrice>{{ item.totalPrice | number:'1.0-0' }}</span>
+      <span class="line-total elyk-amount" *appIfUnitPrice="saleType">{{ item.totalPrice | number:'1.0-0' }}</span>
     </div>
   </div>
 

@@ -970,7 +970,8 @@ export class PrintingService {
     const timeLabel = hasDate
       ? createdAt.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
       : '';
-    const showUnitPrice = this.unitPriceVisibility.snapshot;
+    // Commande tontine : même règle que les ventes comptant.
+    const showUnitPrice = this.unitPriceVisibility.cashSnapshot;
     const itemsHTML = (order.items || []).map(item => `
       <div class="article-item">
         <div class="article-name">${escapeReceiptText(item.articleName || 'Article')}</div>

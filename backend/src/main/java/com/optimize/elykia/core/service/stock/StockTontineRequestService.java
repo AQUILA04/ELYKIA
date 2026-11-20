@@ -13,6 +13,7 @@ import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
 import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
 import com.optimize.elykia.core.enumaration.MovementType;
+import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.dto.stock.FifoConsumptionResult;
 import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
@@ -563,7 +564,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
                 .build();
 
         Context context = new Context();
-        UnitPriceVisibility.apply(context);
+        UnitPriceVisibility.apply(context, OperationType.CASH);
         context.setVariable("context", contextDto);
 
         String html = templateEngine.process("stock-export", context);

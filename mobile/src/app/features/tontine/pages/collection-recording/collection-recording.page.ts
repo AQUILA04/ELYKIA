@@ -3,12 +3,13 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, AlertController, LoadingController, ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { Subject, BehaviorSubject } from 'rxjs';
+import { Subject, BehaviorSubject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { TontineMemberRepository } from 'src/app/core/repositories/tontine-member.repository';
 import { TontineCollectionRepository } from 'src/app/core/repositories/tontine-collection.repository';
 import { TontineWriteService } from 'src/app/core/services/tontine-write.service';
+import { TontineService } from 'src/app/core/services/tontine.service';
 import { HybridSyncUiService } from 'src/app/core/services/hybrid-sync-ui.service';
 import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-first-write.types';
 import { ClientRepository } from 'src/app/core/repositories/client.repository';
@@ -25,7 +26,8 @@ import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-conse
 import { AmountConfirmationService } from 'src/app/features/amount-confirmation/amount-confirmation.service';
 import {
     canRecordDeliveryTontineCollection,
-    canRecordNormalTontineCollection
+    canRecordNormalTontineCollection,
+    normalizeTontineStatus
 } from 'src/app/core/utils/tontine-delivery-status.util';
 
 interface MemberWithClient extends TontineMember {
@@ -66,6 +68,7 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         private collectionRepo: TontineCollectionRepository,
         private clientRepo: ClientRepository,
         private tontineWriteService: TontineWriteService,
+        private tontineService: TontineService,
         private hybridSyncUiService: HybridSyncUiService,
         private dailyConsentGuard: DailyConsentGuardService,
         private dailyConsentState: DailyConsentStateService,
@@ -74,7 +77,36 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         this.initializeForm();
     }
 
+    /**
+     * Mode hybride : relit la session sur le serveur quand il répond, puis la lit en local.
+     * Hors ligne, la session locale reste la référence.
+     * À l'entrée sur la page (`notifyStore`), la session est aussi posée dans le store.
+     * Rien n'est modifié si le statut n'a pas changé sur le serveur.
+     */
+    private async refreshSessionForGate(notifyStore = false): Promise<void> {
+        const before = await firstValueFrom(this.tontineService.getSession());
+        const refreshed = await this.tontineService.refreshSessionFromServerIfOnline();
+        if (!refreshed) {
+            return;
+        }
+        const fresh = await firstValueFrom(this.tontineService.getSession());
+        if (!fresh) {
+            return;
+        }
+        if (before && normalizeTontineStatus(before.status) === normalizeTontineStatus(fresh.status)) {
+            return;
+        }
+        this.session = fresh;
+        if (notifyStore) {
+            this.store.dispatch(TontineActions.loadTontineSessionSuccess({ session: fresh }));
+        }
+    }
+
     async ngOnInit() {
+        // Session locale d'abord ; en mode hybride, relecture serveur en arrière-plan (sans bloquer l'écran).
+        this.store.dispatch(TontineActions.loadTontineSession());
+        void this.refreshSessionForGate(true);
+
         // Get current session
         this.store.select(selectTontineSession)
             .pipe(takeUntil(this.destroy$))
@@ -226,6 +258,7 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
 
             await loading.present();
 
+            await this.refreshSessionForGate();
             const returnToDelivery = this.isDeliveryCollectionFlow();
             if (this.session) {
                 const collectionAllowed = returnToDelivery

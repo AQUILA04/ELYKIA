@@ -106,7 +106,7 @@
         <div class="article-icon"><ion-icon name="cube-outline"></ion-icon></div>
         <div class="article-info">
           <div class="article-name">{{ article.commercialName || article.name || 'Article' }}</div>
-          <div class="article-price elyk-amount" *appIfUnitPrice>{{ catalogueUnitPrice(article) | number }} FCFA</div>
+          <div class="article-price elyk-amount" *appIfUnitPrice="'CASH'">{{ catalogueUnitPrice(article) | number }} FCFA</div>
           <select *ngIf="offersFor(article.id, catalogueUnitPrice(article)).length > 1"
             [value]="'UNIT:1'"
             (change)="onOfferChange(article.id, article.id, $any($event.target).value, catalogueUnitPrice(article), article.commercialName || article.name || 'Article', 1000000)"
@@ -140,7 +140,7 @@
         <div class="article-icon"><ion-icon name="cube-outline"></ion-icon></div>
         <div class="article-info">
           <div class="article-name">{{ stock.articleName || 'Article' }}</div>
-          <div class="article-price elyk-amount" *appIfUnitPrice>{{ stock.unitPrice | number }} FCFA</div>
+          <div class="article-price elyk-amount" *appIfUnitPrice="'CASH'">{{ stock.unitPrice | number }} FCFA</div>
           <div class="article-stock">Disponible : {{ stock.availableQuantity }} unités</div>
           <select *ngIf="offersFor(stock.articleId, stock.unitPrice).length > 1"
             [value]="'UNIT:1'"
@@ -189,6 +189,11 @@
     </div>
     <div class="footer-actions">
       <ion-button fill="outline" class="elyk-btn-outline" (click)="cancel()">Annuler</ion-button>
+      <ion-button fill="outline" class="elyk-btn-outline" [disabled]="vm.selectedCount === 0" (click)="openCart()"
+        aria-label="Voir le panier" data-testid="e2e-tontine-delivery-cart-open">
+        <ion-icon slot="start" name="cart-outline"></ion-icon>
+        Panier ({{ vm.selectedCount }})
+      </ion-button>
       <ion-button class="elyk-btn-navy" [disabled]="vm.selectedCount === 0 || exceedsProjected()" (click)="validateDelivery()" data-testid="e2e-tontine-delivery-validate">
         <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
         Valider
@@ -196,3 +201,49 @@
     </div>
   </ion-toolbar>
 </ion-footer>
+
+<ion-modal [isOpen]="cartOpen" (didDismiss)="closeCart()" [initialBreakpoint]="0.75" [breakpoints]="[0, 0.75, 1]">
+  <ng-template>
+    <ion-header class="ion-no-border">
+      <ion-toolbar>
+        <ion-title>Panier</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="closeCart()" aria-label="Fermer le panier">Fermer</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content class="ion-padding" data-testid="e2e-tontine-delivery-cart">
+      <div class="elyk-empty" *ngIf="cartLines.length === 0">
+        <ion-icon name="cart-outline"></ion-icon>
+        <h3>Panier vide</h3>
+        <p>Ajoutez des articles pour les voir ici.</p>
+      </div>
+
+      <div class="cart-line elyk-card" *ngFor="let line of cartLines" data-testid="e2e-tontine-delivery-cart-line">
+        <div class="cart-line-info">
+          <div class="article-name">{{ line.name }}</div>
+          <div class="article-stock" *ngIf="line.offer">{{ line.offer }}</div>
+          <div class="article-price elyk-amount" *appIfUnitPrice="'CASH'">{{ line.quantity }} × {{ line.unitPrice | number }} = {{ line.total | number }} F</div>
+        </div>
+        <div class="quantity-control">
+          <button type="button" class="qty-btn" (click)="decreaseCartLine(line.key)" aria-label="Retirer une unité">
+            <ion-icon name="remove"></ion-icon>
+          </button>
+          <div class="quantity-display">{{ line.quantity }}</div>
+          <button type="button" class="qty-btn" (click)="increaseCartLine(line.key)" [disabled]="!line.canIncrease" aria-label="Ajouter une unité">
+            <ion-icon name="add"></ion-icon>
+          </button>
+          <button type="button" class="qty-btn cart-remove" (click)="removeCartLine(line.key)" aria-label="Supprimer l'article du panier">
+            <ion-icon name="trash-outline" color="danger"></ion-icon>
+          </button>
+        </div>
+      </div>
+
+      <div class="cart-total" *ngIf="cartLines.length > 0">
+        <span>Total</span>
+        <strong class="elyk-amount" [class.exceeded]="exceedsProjected()">{{ vm.usedBudget | number }} F</strong>
+      </div>
+      <p class="cart-exceeded" *ngIf="exceedsProjected()">Le total dépasse le plafond : diminuez les quantités.</p>
+    </ion-content>
+  </ng-template>
+</ion-modal>

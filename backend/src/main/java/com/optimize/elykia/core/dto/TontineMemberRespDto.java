@@ -82,6 +82,22 @@ public record TontineMemberRespDto(Long id, TontineSession tontineSession, Clien
                 fieldControlled, balance);
     }
 
+    /**
+     * Les requêtes JPQL {@code LEFT JOIN tm.delivery d} + {@code new TontineDeliveryRespDto(d.id, …)}
+     * construisent l'objet même sans livraison : on renvoie alors {@code delivery = null}.
+     */
+    public TontineMemberRespDto withoutPhantomDelivery() {
+        if (delivery == null || delivery.id() != null) {
+            return this;
+        }
+        return new TontineMemberRespDto(
+                id, tontineSession, client, totalContribution, deliveryStatus, registrationDate, null,
+                frequency, amount, notes, societyShare, availableContribution, validatedMonths, currentMonthDays,
+                operationConsentCode, syncConsentCode, totalDeliveryCollections,
+                carnetVerified, carnetVerifiedAt, carnetVerifiedBy, registrationSource, selfRegistered,
+                fieldControlled, projectedBalance);
+    }
+
     public static Page<TontineMemberRespDto> fromTontineMembers(Page<TontineMember> members) {
         if (Objects.isNull(members)) {
             return null;

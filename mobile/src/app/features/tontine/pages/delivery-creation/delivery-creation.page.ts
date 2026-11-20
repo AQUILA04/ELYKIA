@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, AlertController, LoadingController, IonInfiniteScroll, ModalController, ActionSheetController } from '@ionic/angular';
 import { MemoizedSelector, Store } from '@ngrx/store';
-import { Subject, Observable } from 'rxjs';
+import { Subject, Observable, firstValueFrom } from 'rxjs';
 import { takeUntil, take } from 'rxjs/operators';
 
 import { TontineMemberRepository } from 'src/app/core/repositories/tontine-member.repository';
@@ -11,6 +11,7 @@ import { ClientRepository } from 'src/app/core/repositories/client.repository';
 import { TontineStockRepository } from 'src/app/core/repositories/tontine-stock.repository';
 import { TontineDeliveryRepository } from 'src/app/core/repositories/tontine-delivery.repository';
 import { TontineWriteService } from 'src/app/core/services/tontine-write.service';
+import { TontineService } from 'src/app/core/services/tontine.service';
 import { HybridSyncUiService } from 'src/app/core/services/hybrid-sync-ui.service';
 import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-first-write.types';
 import { DatabaseService } from 'src/app/core/services/database.service';
@@ -137,6 +138,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         private stockRepo: TontineStockRepository,
         private deliveryRepo: TontineDeliveryRepository,
         private tontineWriteService: TontineWriteService,
+        private tontineService: TontineService,
         private hybridSyncUiService: HybridSyncUiService,
         private dbService: DatabaseService,
         private articleService: ArticleService,
@@ -186,8 +188,10 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return;
         }
 
-        // Même source locale que la fiche membre : sans ça, le mode commande reste fermé.
+        // Même source locale que la fiche membre ; puis, en mode hybride, relecture serveur en arrière-plan
+        // (sans bloquer l'écran, et sans effet si le statut n'a pas changé).
         this.store.dispatch(TontineActions.loadTontineSession());
+        void this.refreshSessionForGate(true);
 
         this.store.select(selectTontineSession)
             .pipe(takeUntil(this.destroy$))
@@ -285,10 +289,12 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                     );
                     this.vm.societyShare = status.societyShare;
                     this.vm.availableBudget = status.availableBudget;
-                    this.vm.projectedBudget = await this.tontineCalculationService.projectBalance(
+                    const estimated = await this.tontineCalculationService.projectBalance(
                         this.vm.member,
                         this.vm.session
                     );
+                    // Plafond du panier : jamais sous le solde déjà disponible (cotisations au-delà de l'estimation).
+                    this.vm.projectedBudget = Math.max(estimated, status.availableBudget);
                     this.vm.allocationVersion = status.version;
                     this.vm.isOfflineEstimate = status.isOfflineEstimate;
                     this.vm.isExactBudget = status.isExact && !status.isOfflineEstimate;
@@ -473,6 +479,61 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         this.updateBudgetCalculations();
     }
 
+    /** Panier : fenêtre qui liste tous les articles choisis avec leur quantité. */
+    cartOpen = false;
+
+    get cartLines(): Array<{ key: string; name: string; offer: string; quantity: number; unitPrice: number; total: number; canIncrease: boolean }> {
+        const lines: Array<{ key: string; name: string; offer: string; quantity: number; unitPrice: number; total: number; canIncrease: boolean }> = [];
+        this.cart.forEach((quantity, key) => {
+            const details = this.cartDetails.get(key);
+            if (!details || quantity <= 0) {
+                return;
+            }
+            const isPack = !!details.salePackMode && details.salePackMode !== 'UNIT';
+            lines.push({
+                key,
+                name: details.name,
+                offer: isPack ? (details.packLabel || 'Pack') : '',
+                quantity,
+                unitPrice: details.price,
+                total: details.price * quantity,
+                canIncrease: quantity < details.maxQty
+            });
+        });
+        return lines;
+    }
+
+    openCart(): void {
+        this.cartOpen = true;
+    }
+
+    closeCart(): void {
+        this.cartOpen = false;
+    }
+
+    increaseCartLine(key: string): void {
+        const details = this.cartDetails.get(key);
+        if (details) {
+            this.bumpCartQuantity(key, details, details.maxQty);
+        }
+    }
+
+    decreaseCartLine(key: string): void {
+        this.decreaseCartQuantity(key);
+        if (this.cart.size === 0) {
+            this.cartOpen = false;
+        }
+    }
+
+    removeCartLine(key: string): void {
+        this.cart.delete(key);
+        this.cartDetails.delete(key);
+        this.updateBudgetCalculations();
+        if (this.cart.size === 0) {
+            this.cartOpen = false;
+        }
+    }
+
     private decreaseCartQuantity(cartKey: string): void {
         const currentQty = this.getQuantity(cartKey);
         if (currentQty <= 0) {
@@ -646,9 +707,38 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         await alert.present();
     }
 
+    /**
+     * Mode hybride : contrôle la session sur le serveur quand il répond, avant les règles de session.
+     * Hors ligne, la session locale reste la référence. `notifyStore` n'est utilisé qu'à l'entrée sur la page,
+     * pour ne pas relancer la source des articles pendant un enregistrement.
+     * L'écran n'est touché que si le statut a réellement changé sur le serveur : sinon la source des articles
+     * et le panier en cours restent tels quels.
+     */
+    private async refreshSessionForGate(notifyStore = false): Promise<void> {
+        const before = await firstValueFrom(this.tontineService.getSession());
+        const refreshed = await this.tontineService.refreshSessionFromServerIfOnline();
+        if (!refreshed) {
+            return;
+        }
+        const fresh = await firstValueFrom(this.tontineService.getSession());
+        if (!fresh) {
+            return;
+        }
+        if (before && normalizeTontineStatus(before.status) === normalizeTontineStatus(fresh.status)) {
+            return;
+        }
+        this.vm.session = fresh;
+        if (notifyStore) {
+            this.store.dispatch(TontineActions.loadTontineSessionSuccess({ session: fresh }));
+        }
+    }
+
     async processDelivery(mode: TontineDeliveryCreationMode = 'DIRECT', forceOffline = false) {
         const loading = await this.loadingCtrl.create({ message: 'Enregistrement...' });
         const isOrder = mode === 'ORDER';
+        if (!forceOffline) {
+            await this.refreshSessionForGate();
+        }
 
         if (isOrder && !canCreateTontineOrder(this.vm.session?.status)) {
             await this.showSessionGateMessage('ORDER');

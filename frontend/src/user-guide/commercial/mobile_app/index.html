@@ -2864,13 +2864,17 @@ L'objectif est d'avoir une courbe verte qui suit toujours de très près la cour
 <h3 id="c-consulter-la-fiche-complete-dune-membre-tontine">C. Consulter la fiche complète d'une membre tontine</h3>
 <p>Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 * Vous voyez le montant de sa mise, le total déjà cotisé en vert et son quartier.
+* <strong>Le badge sous son nom</strong> (aussi visible dans la liste de tontine) :
+  * <strong>Commande</strong> ou <strong>Validée</strong> : une commande est enregistrée pour elle. La carte <strong>Livraison</strong> de la fiche liste ses articles et le total.
+  * <strong>Livré</strong> : ses articles lui ont été remis.
+  * <strong>À livrer</strong> : la session est clôturée et elle attend sa remise de fin d'année, sans commande enregistrée pour l'instant. Utilisez <strong>Livraison Fin d'Année</strong> dans le menu ⋮.
 * <strong>L'historique des cotisations</strong> : la liste numérotée de tous ses versements passés.
 * <strong>Droit à l'erreur</strong> : si vous venez d'enregistrer une cotisation par erreur avec le badge <strong>Local</strong>, touchez la petite corbeille rouge sur la ligne pour l'annuler aussitôt. Le total est recalculé sans aucune fausse note.
 * <strong>Le menu d'options (trois petits points ⋮ en haut à droite)</strong> :
   * <strong>Cotiser</strong> / <strong>Enregistrer une cotisation</strong> : pour enregistrer un versement pendant la session ouverte. Après la clôture, cette action n'apparaît plus sur la fiche.
   * <strong>Voir le client</strong> : pour voir la fiche générale de la cliente.
   * <strong>Commande de tontine</strong> : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle <strong>Livraison Fin d'Année</strong> : vous pouvez y enregistrer une <strong>Commande</strong> (catalogue) ou faire la remise en mains propres (<strong>Livraison directe</strong>, stock tontine).
-  * <strong>Modifier la commande</strong> : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles.</p>
+  * <strong>Modifier la commande</strong> : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles. Si la carte <strong>Livraison</strong> indique que les articles ne sont pas encore sur le téléphone, lancez d'abord une synchronisation : le bouton apparaît dès que les articles sont affichés.</p>
 <h3 id="d-enregistrer-une-cotisation-de-tontine-pas-a-pas">D. Enregistrer une cotisation de tontine pas à pas</h3>
 <ol>
 <li><strong>Ouvrez la saisie</strong> :</li>
@@ -2904,7 +2908,8 @@ L'objectif est d'avoir une courbe verte qui suit toujours de très près la cour
 <li><strong>Pendant la session ouverte</strong> : l'écran affiche le <strong>catalogue</strong> de l'agence. Vous n'avez pas besoin d'avoir déjà du stock tontine pour enregistrer la commande.</li>
 <li><strong>Après la clôture</strong> : l'écran affiche par défaut votre <strong>stock tontine</strong> (articles reçus du magasin) pour la remise en mains propres. Pour enregistrer une <strong>Commande</strong>, touchez <strong>Catalogue (commande)</strong> en haut de la liste ; pour une <strong>Livraison directe</strong>, restez sur <strong>Stock tontine (remise)</strong>.</li>
 <li>Touchez <strong>+</strong> pour ajouter les articles. Si l'article a plusieurs offres (unité, gros, demi-gros ou une offre libre), choisissez-la dans la liste avant d'augmenter la quantité.</li>
-<li>Le panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le <strong>solde prévisionnel</strong>. Dans ce cas, <strong>Valider</strong> reste indisponible : retirez ou diminuez des articles.</li>
+<li>Pour revoir ce que vous avez choisi, touchez <strong>Panier</strong> en bas de l'écran : la liste affiche chaque article avec sa quantité et le total. Vous pouvez y ajouter ou retirer une unité, ou supprimer une ligne.</li>
+<li>Le panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le <strong>plafond</strong> : le <strong>solde prévisionnel</strong>, ou le <strong>solde disponible</strong> s'il est plus élevé (par exemple une membre qui a déjà cotisé 40 000 alors que l'estimation est de 39 000 peut commander jusqu'à 40 000). Au-delà, <strong>Valider</strong> reste indisponible : retirez ou diminuez des articles.</li>
 <li><strong>Si le solde déjà encaissé ne couvre pas le panier</strong> :</li>
 <li>Pendant la session ouverte, vous pouvez quand même enregistrer la <strong>Commande</strong>. <strong>Compléter le solde</strong> est proposé, sans être obligatoire.</li>
 <li>Au moment de la remise, deux possibilités :<ol>

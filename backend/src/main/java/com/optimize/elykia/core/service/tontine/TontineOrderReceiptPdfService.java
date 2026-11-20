@@ -14,6 +14,7 @@ import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.entity.tontine.TontineDeliveryItem;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
+import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.SalePackMode;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.repository.TontineDeliveryRepository;
@@ -57,7 +58,8 @@ public class TontineOrderReceiptPdfService {
         assertCanRead(delivery);
 
         Context context = new Context();
-        UnitPriceVisibility.apply(context);
+        // Commandes et livraisons tontine : même règle que les ventes comptant.
+        UnitPriceVisibility.apply(context, OperationType.CASH);
         PdfDocumentIdentity.applyTo(context, DOCUMENT_TITLE);
         context.setVariable("doc", toDto(delivery));
         String html = templateEngine.process("tontine-order-receipt", context);

@@ -79,6 +79,18 @@ export function isCancelledTontineDelivery(status?: string | null): boolean {
   return normalized === 'CANCELLED' || normalized === 'CANCELED';
 }
 
+/**
+ * Une livraison réelle a toujours un identifiant (UUID local ou id serveur).
+ * Les anciennes réponses `/tontines/members` renvoyaient `delivery: { id: null }` pour chaque membre sans commande.
+ */
+export function hasPersistableTontineDeliveryId(id: unknown): boolean {
+  if (id === null || id === undefined) {
+    return false;
+  }
+  const value = String(id).trim();
+  return value.length > 0 && value !== 'null' && value !== 'undefined';
+}
+
 /** Une commande ou une remise déjà enregistrée occupe l'unique livraison du membre. */
 export function isBlockingTontineDeliveryStatus(status?: string | null): boolean {
   const normalized = normalizeTontineStatus(status);
@@ -124,7 +136,7 @@ function blockingStatusForMemberDelivery(
  * Retient la livraison qui empêche une nouvelle commande.
  * Une livraison annulée, ou une ligne sans statut alors que le membre n'a pas de commande, est ignorée.
  */
-export function pickMemberTontineDelivery<T extends { status?: string | null; requestDate?: string | null }>(
+export function pickMemberTontineDelivery<T extends { id?: unknown; status?: string | null; requestDate?: string | null }>(
   deliveries: T[] | null | undefined,
   memberDeliveryStatus?: string | null
 ): T | null {
@@ -132,6 +144,7 @@ export function pickMemberTontineDelivery<T extends { status?: string | null; re
     return null;
   }
   const ranked = deliveries
+    .filter(delivery => hasPersistableTontineDeliveryId(delivery.id))
     .map(delivery => ({
       delivery,
       status: blockingStatusForMemberDelivery(delivery.status, memberDeliveryStatus)

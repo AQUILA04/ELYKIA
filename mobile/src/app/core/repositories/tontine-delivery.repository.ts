@@ -128,6 +128,33 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         return orphanIds.length;
     }
 
+    /**
+     * Supprime les livraisons sans identifiant enregistrées à partir de `delivery: { id: null }`
+     * (réponse `/tontines/members` pour un membre sans commande). Après clôture, tous les membres
+     * passent en PENDING et ces lignes s'affichaient comme des commandes vides.
+     */
+    async purgePhantomDeliveries(): Promise<number> {
+        if (!this.databaseService['db']) {
+            return 0;
+        }
+        const isPhantomId = (column: string) => `(${column} IS NULL OR TRIM(${column}) IN ('', 'null', 'undefined'))`;
+        const result = await this.databaseService.query(
+            `SELECT COUNT(*) AS total FROM tontine_deliveries WHERE ${isPhantomId('id')}`
+        );
+        const total = Number(result.values?.[0]?.total || 0);
+        if (total === 0) {
+            return 0;
+        }
+        await this.databaseService.execute(
+            `DELETE FROM tontine_delivery_items WHERE ${isPhantomId('tontineDeliveryId')}`
+        );
+        await this.databaseService.execute(
+            `DELETE FROM tontine_deliveries WHERE ${isPhantomId('id')}`
+        );
+        console.log(`[TontineDeliveryRepository] Purged ${total} phantom delivery(ies) without id.`);
+        return total;
+    }
+
     async markDeliverSynced(deliveryId: string): Promise<void> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
         await this.databaseService.execute(

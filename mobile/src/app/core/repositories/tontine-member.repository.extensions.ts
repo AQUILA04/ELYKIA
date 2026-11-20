@@ -43,9 +43,6 @@ export class TontineMemberRepositoryExtensions {
             throw new Error('commercialUsername is required for security - cannot query tontine members without commercial filter');
         }
 
-        const offset = page * size;
-        const today = new Date().toISOString().split('T')[0];
-
         // Build WHERE clause with MANDATORY commercial filter
         const commercialCondition = buildCommercialFilterCondition('tontineMember', 'tm');
         let whereConditions = ['tm.tontineSessionId = ?', commercialCondition];
@@ -56,57 +53,10 @@ export class TontineMemberRepositoryExtensions {
 
         const whereClause = whereConditions.join(' AND ');
 
-        // Count total items with JOIN (needed for quarter filter)
-        const countSql = `
-            SELECT COUNT(*) as total
-            FROM tontine_members tm
-            JOIN clients c ON tm.clientId = c.id
-            WHERE ${whereClause}
-        `;
-        const countResult = await this.tontineMemberRepository['getDatabaseService']().query(countSql, params);
-        const totalElements = countResult.values?.[0]?.total || 0;
-        const totalPages = Math.ceil(totalElements / size);
-
-        // Get paginated data with client details
-        const dataSql = `
-            SELECT
-                tm.*,
-                c.fullName as clientName,
-                c.phone as clientPhone,
-                c.quarter as clientQuarter,
-                CASE
-                    WHEN tc.id IS NOT NULL THEN 1
-                    ELSE 0
-                END as hasPaidToday
-            FROM tontine_members tm
-            LEFT JOIN clients c ON tm.clientId = c.id
-            LEFT JOIN tontine_collections tc ON tm.id = tc.tontineMemberId AND substr(tc.collectionDate, 1, 10) = ?
-            WHERE ${whereClause}
-            ORDER BY c.fullName ASC
-            LIMIT ${size} OFFSET ${offset}
-        `;
-
-        const dataResult = await this.tontineMemberRepository['getDatabaseService']().query(dataSql, [today, ...params]);
-        const rows = (dataResult.values || []) as any[];
-
-        // Map rows to TontineMemberView
-        const content: TontineMemberView[] = rows.map((row: any) => {
-            return {
-                ...row,
-                hasPaidToday: !!row.hasPaidToday,
-                isLocal: !!row.isLocal,
-                isSync: !!row.isSync,
-                locked: !!row.locked,
-            };
+        return this.queryMemberViewsPage({
+            sessionJoin: '',
+            whereClause, params, page, size
         });
-
-        return {
-            content,
-            totalElements,
-            totalPages,
-            page,
-            size
-        };
     }
 
     /**
@@ -132,9 +82,6 @@ export class TontineMemberRepositoryExtensions {
             throw new Error('commercialUsername is required for security - cannot query tontine member views without commercial filter');
         }
 
-        const offset = page * size;
-        const today = new Date().toISOString().split('T')[0];
-
         // Build WHERE clause with MANDATORY commercial filter
         const commercialCondition = buildCommercialFilterCondition('tontineMember', 'tm');
         let whereConditions = [commercialCondition, 'ts.year = ?'];
@@ -145,59 +92,10 @@ export class TontineMemberRepositoryExtensions {
 
         const whereClause = whereConditions.join(' AND ');
 
-        // Count total items with JOIN
-        const countSql = `
-            SELECT COUNT(*) as total
-            FROM tontine_members tm
-            JOIN tontine_sessions ts ON tm.tontineSessionId = ts.id
-            JOIN clients c ON tm.clientId = c.id
-            WHERE ${whereClause}
-        `;
-        const countResult = await this.tontineMemberRepository['getDatabaseService']().query(countSql, params);
-        const totalElements = countResult.values?.[0]?.total || 0;
-        const totalPages = Math.ceil(totalElements / size);
-
-        // Get paginated data with client details
-        const dataSql = `
-            SELECT
-                tm.*,
-                c.fullName as clientName,
-                c.phone as clientPhone,
-                c.quarter as clientQuarter,
-                CASE
-                    WHEN tc.id IS NOT NULL THEN 1
-                    ELSE 0
-                END as hasPaidToday
-            FROM tontine_members tm
-            JOIN tontine_sessions ts ON tm.tontineSessionId = ts.id
-            LEFT JOIN clients c ON tm.clientId = c.id
-            LEFT JOIN tontine_collections tc ON tm.id = tc.tontineMemberId AND substr(tc.collectionDate, 1, 10) = ?
-            WHERE ${whereClause}
-            ORDER BY c.fullName ASC
-            LIMIT ${size} OFFSET ${offset}
-        `;
-
-        const dataResult = await this.tontineMemberRepository['getDatabaseService']().query(dataSql, [today, ...params]);
-        const rows = (dataResult.values || []) as any[];
-
-        // Map rows to TontineMemberView
-        const content: TontineMemberView[] = rows.map((row: any) => {
-            return {
-                ...row,
-                hasPaidToday: !!row.hasPaidToday,
-                isLocal: !!row.isLocal,
-                isSync: !!row.isSync,
-                locked: !!row.locked,
-            };
+        return this.queryMemberViewsPage({
+            sessionJoin: 'JOIN tontine_sessions ts ON tm.tontineSessionId = ts.id',
+            whereClause, params, page, size
         });
-
-        return {
-            content,
-            totalElements,
-            totalPages,
-            page,
-            size
-        };
     }
 
     /**
@@ -418,6 +316,73 @@ export class TontineMemberRepositoryExtensions {
             page,
             size
         };
+    }
+
+    /**
+     * Page de vues membre (nom/téléphone/quartier du client, cotisation du jour, présence d'une commande).
+     * `sessionJoin` ajoute la jointure sur la session quand le filtre porte sur l'année.
+     */
+    private async queryMemberViewsPage(opts: {
+        sessionJoin: string;
+        whereClause: string;
+        params: any[];
+        page: number;
+        size: number;
+    }): Promise<Page<TontineMemberView>> {
+        const { sessionJoin, whereClause, params, page, size } = opts;
+        const offset = page * size;
+        const today = new Date().toISOString().split('T')[0];
+        const db = this.tontineMemberRepository['getDatabaseService']();
+
+        const countSql = `
+            SELECT COUNT(*) as total
+            FROM tontine_members tm
+            ${sessionJoin}
+            JOIN clients c ON tm.clientId = c.id
+            WHERE ${whereClause}
+        `;
+        const countResult = await db.query(countSql, params);
+        const totalElements = countResult.values?.[0]?.total || 0;
+        const totalPages = Math.ceil(totalElements / size);
+
+        const dataSql = `
+            SELECT
+                tm.*,
+                c.fullName as clientName,
+                c.phone as clientPhone,
+                c.quarter as clientQuarter,
+                CASE
+                    WHEN tc.id IS NOT NULL THEN 1
+                    ELSE 0
+                END as hasPaidToday,
+                EXISTS (
+                    SELECT 1 FROM tontine_deliveries td
+                    WHERE td.tontineMemberId = tm.id
+                      AND td.id IS NOT NULL
+                      AND TRIM(td.id) NOT IN ('', 'null', 'undefined')
+                      AND UPPER(COALESCE(td.status, '')) NOT IN ('CANCELLED', 'CANCELED')
+                ) as hasOrder
+            FROM tontine_members tm
+            ${sessionJoin}
+            LEFT JOIN clients c ON tm.clientId = c.id
+            LEFT JOIN tontine_collections tc ON tm.id = tc.tontineMemberId AND substr(tc.collectionDate, 1, 10) = ?
+            WHERE ${whereClause}
+            ORDER BY c.fullName ASC
+            LIMIT ${size} OFFSET ${offset}
+        `;
+        const dataResult = await db.query(dataSql, [today, ...params]);
+        const rows = (dataResult.values || []) as any[];
+
+        const content: TontineMemberView[] = rows.map((row: any) => ({
+            ...row,
+            hasPaidToday: !!row.hasPaidToday,
+            hasOrder: !!row.hasOrder,
+            isLocal: !!row.isLocal,
+            isSync: !!row.isSync,
+            locked: !!row.locked,
+        }));
+
+        return { content, totalElements, totalPages, page, size };
     }
 
     private applyFilters(whereConditions: string[], params: any[], filters?: any) {

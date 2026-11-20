@@ -100,7 +100,7 @@ describe('MemberDetailPage delivery menu', () => {
 
   it('offers Modifier la commande while a pending order exists', async () => {
     const { page } = create({
-      deliveries: [{ id: 'order', status: 'PENDING', requestDate: '2026-04-01', items: [] }]
+      deliveries: [{ id: 'order', status: 'PENDING', requestDate: '2026-04-01', items: [{ id: 'i1', quantity: 1 }] }]
     });
     await page.loadMemberData();
     page.sessionStatus = 'CLOSED';
@@ -108,6 +108,42 @@ describe('MemberDetailPage delivery menu', () => {
     expect(page.canEditPendingOrder()).toBeTrue();
     page.revisingOrder = true;
     expect(page.canEditPendingOrder()).toBeFalse();
+  });
+
+  it('does not offer Modifier la commande when the order has no items to edit', async () => {
+    const { page } = create({
+      deliveries: [{ id: 'order', status: 'PENDING', requestDate: '2026-04-01', items: [] }]
+    });
+    await page.loadMemberData();
+    page.sessionStatus = 'CLOSED';
+    expect(page.hasPendingDeliveryToMark()).toBeTrue();
+    expect(page.canEditPendingOrder()).toBeFalse();
+  });
+
+  it('ignores delivery rows without id after closure and shows À livrer', async () => {
+    const { page } = create({
+      members: [{ id: 'm2', clientId: 'c1', deliveryStatus: 'PENDING' }],
+      deliveries: [
+        { id: null, status: 'PENDING', requestDate: null, items: [] },
+        { id: 'null', status: 'PENDING', requestDate: null, items: [] }
+      ]
+    });
+    await page.loadMemberData();
+    page.sessionStatus = 'CLOSED';
+    expect(page.vm.delivery).toBeNull();
+    expect(page.canEditPendingOrder()).toBeFalse();
+    expect(page.memberStatusLabel()).toBe('À livrer');
+    expect(page.deliveryCreationMenuLabel()).toBe('Livraison Fin d\'Année');
+    expect(page.canOpenDeliveryCreation()).toBeTrue();
+  });
+
+  it('shows the order status in the header when the member has a real order', async () => {
+    const { page } = create({
+      members: [{ id: 'm2', clientId: 'c1', deliveryStatus: 'PENDING' }],
+      deliveries: [{ id: '4', status: 'PENDING', requestDate: '2026-11-20', items: [{ id: 'i1', quantity: 2 }] }]
+    });
+    await page.loadMemberData();
+    expect(page.memberStatusLabel()).toBe('Commande');
   });
 
   it('hides the entry when a non-cancelled delivery exists', async () => {
