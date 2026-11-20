@@ -216,10 +216,11 @@ export class MemberDetailPage implements OnInit, OnDestroy {
     }
 
     /**
-     * Relit la session locale (SQLite). Hors ligne, c'est la même source que le tableau de bord.
-     * On ne va pas chercher le serveur ici : la synchro reste le moment où le statut de session est rafraîchi.
+     * Mode hybride : relit la session sur le serveur quand il répond, puis lit la session locale (SQLite).
+     * Hors ligne, c'est la session locale qui sert de référence.
      */
     private async ensureSessionStatus(): Promise<void> {
+        await this.tontineService.refreshSessionFromServerIfOnline();
         this.store.dispatch(loadTontineSession());
         try {
             const session = await firstValueFrom(this.tontineService.getSession());
@@ -341,6 +342,9 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         if (!this.vm.delivery || !this.vm.member || !this.hasPendingDeliveryToMark()) {
             return;
         }
+
+        // Mode hybride : la session est relue avant de décider si la remise est possible.
+        await this.ensureSessionStatus();
 
         if (!canPhysicallyDeliverTontine(this.sessionStatus)) {
             const blocked = await this.alertCtrl.create({

@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, AlertController, LoadingController, IonInfiniteScroll, ModalController, ActionSheetController } from '@ionic/angular';
 import { MemoizedSelector, Store } from '@ngrx/store';
-import { Subject, Observable } from 'rxjs';
+import { Subject, Observable, firstValueFrom } from 'rxjs';
 import { takeUntil, take } from 'rxjs/operators';
 
 import { TontineMemberRepository } from 'src/app/core/repositories/tontine-member.repository';
@@ -11,6 +11,7 @@ import { ClientRepository } from 'src/app/core/repositories/client.repository';
 import { TontineStockRepository } from 'src/app/core/repositories/tontine-stock.repository';
 import { TontineDeliveryRepository } from 'src/app/core/repositories/tontine-delivery.repository';
 import { TontineWriteService } from 'src/app/core/services/tontine-write.service';
+import { TontineService } from 'src/app/core/services/tontine.service';
 import { HybridSyncUiService } from 'src/app/core/services/hybrid-sync-ui.service';
 import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-first-write.types';
 import { DatabaseService } from 'src/app/core/services/database.service';
@@ -137,6 +138,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         private stockRepo: TontineStockRepository,
         private deliveryRepo: TontineDeliveryRepository,
         private tontineWriteService: TontineWriteService,
+        private tontineService: TontineService,
         private hybridSyncUiService: HybridSyncUiService,
         private dbService: DatabaseService,
         private articleService: ArticleService,
@@ -186,7 +188,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return;
         }
 
-        // Même source locale que la fiche membre : sans ça, le mode commande reste fermé.
+        // Mode hybride : session relue sur le serveur quand il répond, puis même source locale que la fiche membre.
+        await this.refreshSessionForGate(true);
         this.store.dispatch(TontineActions.loadTontineSession());
 
         this.store.select(selectTontineSession)
@@ -703,9 +706,31 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         await alert.present();
     }
 
+    /**
+     * Mode hybride : contrôle la session sur le serveur quand il répond, avant les règles de session.
+     * Hors ligne, la session locale reste la référence. `notifyStore` n'est utilisé qu'à l'entrée sur la page,
+     * pour ne pas relancer la source des articles pendant un enregistrement.
+     */
+    private async refreshSessionForGate(notifyStore = false): Promise<void> {
+        const refreshed = await this.tontineService.refreshSessionFromServerIfOnline();
+        if (!refreshed) {
+            return;
+        }
+        const fresh = await firstValueFrom(this.tontineService.getSession());
+        if (fresh) {
+            this.vm.session = fresh;
+            if (notifyStore) {
+                this.store.dispatch(TontineActions.loadTontineSessionSuccess({ session: fresh }));
+            }
+        }
+    }
+
     async processDelivery(mode: TontineDeliveryCreationMode = 'DIRECT', forceOffline = false) {
         const loading = await this.loadingCtrl.create({ message: 'Enregistrement...' });
         const isOrder = mode === 'ORDER';
+        if (!forceOffline) {
+            await this.refreshSessionForGate();
+        }
 
         if (isOrder && !canCreateTontineOrder(this.vm.session?.status)) {
             await this.showSessionGateMessage('ORDER');

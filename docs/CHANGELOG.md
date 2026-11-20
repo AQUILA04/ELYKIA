@@ -485,6 +485,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.41.3] — 2026-11-20
+
+### Fixed
+
+- **Tontine — session relue sur le serveur en mode hybride —** la fiche membre, la création de livraison et la cotisation lisaient le statut de session uniquement dans la base locale, mise à jour seulement au chargement initial. Une clôture faite pendant que le téléphone était connecté laissait « Marquer comme livré » grisé et bloquait la remise. Quand le mode hybride est actif et le backend joignable, la session est désormais relue sur `/api/v1/tontines/sessions/current` à l'ouverture de ces écrans et avant chaque enregistrement (remise, commande, cotisation). Hors ligne, la session locale reste la référence. En cas d'échec, la session locale est conservée (`TontineService.refreshSessionFromServerIfOnline`).
+
 ## Mobile — [2.41.2] — 2026-11-20
 
 ### Fixed

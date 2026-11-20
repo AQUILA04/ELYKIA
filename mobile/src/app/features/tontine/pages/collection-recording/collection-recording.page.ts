@@ -3,12 +3,13 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, AlertController, LoadingController, ModalController } from '@ionic/angular';
 import { Store } from '@ngrx/store';
-import { Subject, BehaviorSubject } from 'rxjs';
+import { Subject, BehaviorSubject, firstValueFrom } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { TontineMemberRepository } from 'src/app/core/repositories/tontine-member.repository';
 import { TontineCollectionRepository } from 'src/app/core/repositories/tontine-collection.repository';
 import { TontineWriteService } from 'src/app/core/services/tontine-write.service';
+import { TontineService } from 'src/app/core/services/tontine.service';
 import { HybridSyncUiService } from 'src/app/core/services/hybrid-sync-ui.service';
 import { OnlineWriteError, WriteErrorKind } from 'src/app/core/services/online-first-write.types';
 import { ClientRepository } from 'src/app/core/repositories/client.repository';
@@ -66,6 +67,7 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         private collectionRepo: TontineCollectionRepository,
         private clientRepo: ClientRepository,
         private tontineWriteService: TontineWriteService,
+        private tontineService: TontineService,
         private hybridSyncUiService: HybridSyncUiService,
         private dailyConsentGuard: DailyConsentGuardService,
         private dailyConsentState: DailyConsentStateService,
@@ -74,7 +76,30 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
         this.initializeForm();
     }
 
+    /**
+     * Mode hybride : relit la session sur le serveur quand il répond, puis la lit en local.
+     * Hors ligne, la session locale reste la référence.
+     * À l'entrée sur la page (`notifyStore`), la session est aussi posée dans le store avant l'abonnement.
+     */
+    private async refreshSessionForGate(notifyStore = false): Promise<void> {
+        const refreshed = await this.tontineService.refreshSessionFromServerIfOnline();
+        if (!refreshed) {
+            return;
+        }
+        const fresh = await firstValueFrom(this.tontineService.getSession());
+        if (fresh) {
+            this.session = fresh;
+            if (notifyStore) {
+                this.store.dispatch(TontineActions.loadTontineSessionSuccess({ session: fresh }));
+            }
+        }
+    }
+
     async ngOnInit() {
+        // Mode hybride : session relue sur le serveur avant d'appliquer la règle de cotisation.
+        await this.refreshSessionForGate(true);
+        this.store.dispatch(TontineActions.loadTontineSession());
+
         // Get current session
         this.store.select(selectTontineSession)
             .pipe(takeUntil(this.destroy$))
@@ -226,6 +251,7 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
 
             await loading.present();
 
+            await this.refreshSessionForGate();
             const returnToDelivery = this.isDeliveryCollectionFlow();
             if (this.session) {
                 const collectionAllowed = returnToDelivery
