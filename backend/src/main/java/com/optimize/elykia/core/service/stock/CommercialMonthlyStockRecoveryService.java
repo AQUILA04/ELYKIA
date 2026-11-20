@@ -31,6 +31,9 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class CommercialMonthlyStockRecoveryService {
 
+    /** Écart toléré (arrondis au franc) entre stock vendu et ventes imputées. */
+    static final double CONSISTENCY_TOLERANCE = 1D;
+
     private final CommercialMonthlyStockItemSoldValueHistoryRepository soldValueHistoryRepository;
     private final CreditArticlesRepository creditArticlesRepository;
     private final CreditRepository creditRepository;
@@ -155,6 +158,8 @@ public class CommercialMonthlyStockRecoveryService {
         List<StockLinkedSaleDto> sales = new ArrayList<>();
         double sumCreditTotalAmount = 0D;
         double sumSoldValueOnStock = 0D;
+        double sumPaid = 0D;
+        double sumRemaining = 0D;
 
         for (Long creditId : creditIds) {
             Credit credit = creditsById.get(creditId);
@@ -186,12 +191,16 @@ public class CommercialMonthlyStockRecoveryService {
                     .totalAmount(creditTotalAmount)
                     .beginDate(credit.getBeginDate())
                     .soldValueOnStock(soldOnThisStock)
+                    .paidAmount(safeAmount(credit.getTotalAmountPaid()))
+                    .remainingAmount(safeAmount(credit.getTotalAmountRemaining()))
                     .type(credit.getType() != null ? credit.getType().name() : null)
                     .status(credit.getStatus() != null ? credit.getStatus().name() : null)
                     .build());
 
             sumCreditTotalAmount += creditTotalAmount;
             sumSoldValueOnStock += soldOnThisStock;
+            sumPaid += safeAmount(credit.getTotalAmountPaid());
+            sumRemaining += safeAmount(credit.getTotalAmountRemaining());
         }
 
         sales.sort(Comparator
@@ -206,6 +215,11 @@ public class CommercialMonthlyStockRecoveryService {
                 .stockSoldValue(stockSoldValue)
                 .sumCreditTotalAmount(sumCreditTotalAmount)
                 .sumSoldValueOnStock(sumSoldValueOnStock)
+                .sumPaidAmount(sumPaid)
+                .sumRemainingAmount(sumRemaining)
+                .consistent(Math.abs(stockSoldValue - sumSoldValueOnStock) <= CONSISTENCY_TOLERANCE)
+                .gapAmount(Math.abs(stockSoldValue - sumSoldValueOnStock) <= CONSISTENCY_TOLERANCE
+                        ? 0D : stockSoldValue - sumSoldValueOnStock)
                 .salesCount(sales.size())
                 .sales(sales)
                 .build();
@@ -220,6 +234,10 @@ public class CommercialMonthlyStockRecoveryService {
                 .stockSoldValue(stockSoldValue)
                 .sumCreditTotalAmount(0D)
                 .sumSoldValueOnStock(0D)
+                .sumPaidAmount(0D)
+                .sumRemainingAmount(0D)
+                .consistent(Math.abs(stockSoldValue) <= CONSISTENCY_TOLERANCE)
+                .gapAmount(Math.abs(stockSoldValue) <= CONSISTENCY_TOLERANCE ? 0D : stockSoldValue)
                 .salesCount(0)
                 .sales(List.of())
                 .build();

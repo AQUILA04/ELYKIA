@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -196,6 +197,13 @@ class CommercialMonthlyStockRecoveryServiceTest {
         assertEquals(3, response.getSalesCount());
         assertEquals(115_650D, response.getSumCreditTotalAmount());
         assertEquals(115_650D, response.getSumSoldValueOnStock());
+        assertEquals(60_000D, response.getSumPaidAmount());
+        assertEquals(55_650D, response.getSumRemainingAmount());
+        assertEquals(20_000D, response.getSales().get(0).getPaidAmount());
+        assertEquals(40_000D, response.getSales().get(0).getRemainingAmount());
+        // Le rattrapage imputé dépasse le stock vendu : écart signalé.
+        assertFalse(response.isConsistent());
+        assertEquals(-15_650D, response.getGapAmount());
         assertEquals("DIST-007-AAAA", response.getSales().get(0).getReference());
         assertEquals("Ada Lovelace", response.getSales().get(0).getClientFullName());
         assertEquals("RAT-EQ9AKOYN", response.getSales().get(2).getReference());
@@ -221,6 +229,8 @@ class CommercialMonthlyStockRecoveryServiceTest {
         assertEquals(0, response.getSalesCount());
         assertEquals(100_000D, response.getStockSoldValue());
         assertEquals(0D, response.getSumSoldValueOnStock());
+        assertFalse(response.isConsistent());
+        assertEquals(100_000D, response.getGapAmount());
     }
 
     private static CommercialMonthlyStock buildCreditRecoveryStock() {

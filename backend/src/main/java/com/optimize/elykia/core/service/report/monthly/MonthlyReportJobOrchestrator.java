@@ -29,7 +29,7 @@ public class MonthlyReportJobOrchestrator {
 
     public MonthlyReportRun runMonthlyReport(int year, int month) {
         MonthlyReportRunLifecycleService.PreparedRun prepared = lifecycleService.prepare(year, month);
-        stockCloseExecutor.closeAllCurrentMonthStocksSafely();
+        stockCloseExecutor.closeMonthStocksSafely(year, month);
         Long runId = prepared.runId();
 
         String generalKey = objectKeyBuilder.buildGeneralKey(year, month);

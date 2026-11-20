@@ -62,13 +62,16 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
     @Transactional
     public void closeCurrentMonthStock(String collector) {
         LocalDate now = LocalDate.now();
-        int month = now.getMonthValue();
-        int year = now.getYear();
+        closeMonthStock(collector, now.getYear(), now.getMonthValue());
+    }
 
+    /** Clôture le stock d'un mois donné (traitement de fin de mois : le mois rapporté, pas le mois courant). */
+    @Transactional
+    public void closeMonthStock(String collector, int year, int month) {
         CommercialMonthlyStock currentStock = ((CommercialMonthlyStockRepository) repository)
                 .findByCollectorAndMonthAndYear(collector, month, year)
                 .orElseThrow(() -> new CustomValidationException(
-                        "Stock courant introuvable pour le commercial " + collector));
+                        "Stock introuvable pour le commercial " + collector + " — " + month + "/" + year));
 
         if (currentStock.getStatus() == StockStatus.CLOSED) {
             throw new CustomValidationException(
@@ -126,26 +129,16 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
         double creditDeposited = cashDepositRepository.sumCreditDepositsForPeriod(
                 stock.getCollector(), start, end);
 
-        double debtSettled = 0D;
-        double debtRemaining = summary.getDebtValueAmount();
-        Long merchandiseDebtId = null;
         Optional<DebtDocument> merchandiseDebt = debtDocumentRepository
                 .findByMonthlyStockIdAndDebtTypeAndStatusNot(
                         stock.getId(), DebtType.MERCHANDISE, DebtStatus.CANCELLED);
-        if (merchandiseDebt.isPresent()) {
-            DebtDocument debt = merchandiseDebt.get();
-            merchandiseDebtId = debt.getId();
-            debtSettled = Math.ceil(
-                    (debt.getPaidAmount() != null ? debt.getPaidAmount() : 0D)
-                            + (debt.getOffsetAmount() != null ? debt.getOffsetAmount() : 0D));
-            debtRemaining = debt.getRemainingAmount() != null ? debt.getRemainingAmount() : 0D;
-        }
-
-        double totalRecovered = summary.getRecoveredFromSales() + debtSettled;
-        double totalRemaining = Math.max(0D, summary.getTotalDueAmount() - totalRecovered);
-        double recoveryRate = summary.getTotalDueAmount() > 0D
-                ? Math.min(100D, (totalRecovered / summary.getTotalDueAmount()) * 100D)
-                : 0D;
+        RecoveryTotals totals = recoveryTotals(summary, merchandiseDebt.orElse(null));
+        double debtSettled = totals.debtSettled();
+        double debtRemaining = totals.debtRemaining();
+        Long merchandiseDebtId = merchandiseDebt.map(DebtDocument::getId).orElse(null);
+        double totalRecovered = totals.recovered();
+        double totalRemaining = totals.remaining();
+        double recoveryRate = totals.ratePercent();
 
         stock.setRecoverySummary(StockRecoverySummaryDto.builder()
                 .totalDueAmount(summary.getTotalDueAmount())
@@ -162,6 +155,32 @@ public class CommercialMonthlyStockService extends GenericService<CommercialMont
                 .merchandiseDebtId(merchandiseDebtId)
                 .build());
         return stock;
+    }
+
+    /** Recouvrement d'un stock : ventes recouvrées + dette marchandise réglée. */
+    public record RecoveryTotals(double debtSettled, double debtRemaining, double recovered, double remaining,
+            double ratePercent) {
+    }
+
+    /**
+     * Règle unique du recouvrement d'un stock (écran stock, vue équipe) :
+     * recouvré = ventes recouvrées + dette réglée (payée ou compensée) ; reste = dû − recouvré.
+     */
+    public static RecoveryTotals recoveryTotals(StockRecoverySummaryDto summary, DebtDocument merchandiseDebt) {
+        double debtSettled = 0D;
+        double debtRemaining = summary.getDebtValueAmount();
+        if (merchandiseDebt != null) {
+            debtSettled = Math.ceil(
+                    (merchandiseDebt.getPaidAmount() != null ? merchandiseDebt.getPaidAmount() : 0D)
+                            + (merchandiseDebt.getOffsetAmount() != null ? merchandiseDebt.getOffsetAmount() : 0D));
+            debtRemaining = merchandiseDebt.getRemainingAmount() != null ? merchandiseDebt.getRemainingAmount() : 0D;
+        }
+        double recovered = summary.getRecoveredFromSales() + debtSettled;
+        double remaining = Math.max(0D, summary.getTotalDueAmount() - recovered);
+        double rate = summary.getTotalDueAmount() > 0D
+                ? Math.min(100D, (recovered / summary.getTotalDueAmount()) * 100D)
+                : 0D;
+        return new RecoveryTotals(debtSettled, debtRemaining, recovered, remaining, rate);
     }
 
     public StockLinkedSalesResponseDto getLinkedSales(Long stockId) {

@@ -12,6 +12,10 @@ public class CommercialStockDashboardExportDTO {
     private Long quantitySold = 0L;
     private Long quantityReturned = 0L;
     private Double soldValue = 0.0;
+    /** Quantité transformée en dette marchandise (0 si aucune). */
+    private Long quantityDebt = 0L;
+    /** Valeur de la dette marchandise de l'article. */
+    private Double debtValue = 0.0;
     private String type;
     private String marque;
     private String model;
@@ -40,8 +44,9 @@ public class CommercialStockDashboardExportDTO {
         this.name = name;
     }
 
+    /** Même règle que le stock : pris − vendu − retourné − mis en dette. */
     public Long getQuantityRemaining() {
-        return quantityTaken - quantitySold - quantityReturned;
+        return quantityTaken - quantitySold - quantityReturned - (quantityDebt != null ? quantityDebt : 0L);
     }
 
     public Double getRemainingValue() {

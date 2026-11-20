@@ -66,6 +66,33 @@ public interface CommercialMonthlyStockRepository extends GenericRepository<Comm
             """)
     Optional<CommercialMonthlyStock> findByIdWithItems(@Param("id") Long id);
 
+    /** Stocks d'un mois avec leurs articles, en une requête (vue équipe). */
+    @Query("""
+            SELECT DISTINCT s FROM CommercialMonthlyStock s
+            LEFT JOIN FETCH s.items
+            WHERE s.month = :month AND s.year = :year
+            """)
+    List<CommercialMonthlyStock> findWithItemsByMonthAndYear(@Param("month") Integer month,
+            @Param("year") Integer year);
+
+    /**
+     * Mois clôturés avec un reste physique et sans dette marchandise active : à régulariser.
+     * Clôturé = mois antérieur au mois courant.
+     */
+    @Query("""
+            SELECT DISTINCT s FROM CommercialMonthlyStock s
+            LEFT JOIN FETCH s.items
+            WHERE (s.year < :year OR (s.year = :year AND s.month < :month))
+              AND EXISTS (SELECT 1 FROM CommercialMonthlyStockItem i
+                          WHERE i.monthlyStock = s AND i.quantityRemaining > 0)
+              AND NOT EXISTS (SELECT 1 FROM com.optimize.elykia.core.entity.debt.DebtDocument d
+                              WHERE d.monthlyStock = s
+                                AND d.debtType = com.optimize.elykia.core.enumaration.DebtType.MERCHANDISE
+                                AND d.status <> com.optimize.elykia.core.enumaration.DebtStatus.CANCELLED)
+            """)
+    List<CommercialMonthlyStock> findClosedWithRemainingAndNoDebt(@Param("month") Integer month,
+            @Param("year") Integer year);
+
     default CommercialMonthlyStock getCommercialMonthStock(String commercialUsername) {
         LocalDate currentDate = LocalDate.now();
         return findByCollectorAndMonthAndYear(commercialUsername, currentDate.getMonthValue(), currentDate.getYear())
