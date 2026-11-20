@@ -1211,6 +1211,10 @@
   font-family: 'DM Mono', monospace;
   font-size: 15px;
 }
+.member-details-page .info-row .value.value-due {
+  color: var(--orange);
+  font-family: 'DM Mono', monospace;
+}
 
 /* ── TABLES ───────────────────────────────────────────────────── */
 .member-details-page .table-card {

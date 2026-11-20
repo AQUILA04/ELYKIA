@@ -119,6 +119,40 @@ def split_sections(md: str) -> list[tuple[str | None, str]]:
     return sections if sections else [(None, md)]
 
 
+def split_plain(label: str | None, block: str) -> list[tuple[str | None, str]]:
+    """A block still too long after the ### / #### split is cut on paragraphs, not truncated.
+
+    Without this, the end of a long procedure (for example the tontine delivery steps)
+    never reached the index.
+    """
+    plain = strip_markdown(block)
+    if len(plain) <= MAX_CHUNK_CHARS:
+        return [(label, plain)]
+    parts: list[str] = []
+    current = ""
+    for paragraph in re.split(r"\n+", plain):
+        paragraph = paragraph.strip()
+        if not paragraph:
+            continue
+        candidate = f"{current}\n{paragraph}" if current else paragraph
+        if len(candidate) <= MAX_CHUNK_CHARS:
+            current = candidate
+            continue
+        if current:
+            parts.append(current)
+        current = paragraph if len(paragraph) <= MAX_CHUNK_CHARS else compress(paragraph)
+    if current:
+        parts.append(current)
+    out: list[tuple[str | None, str]] = []
+    for index, part in enumerate(parts):
+        if index == 0:
+            out.append((label, part))
+        else:
+            suffix = f"(suite {index})"
+            out.append((f"{label} {suffix}" if label else suffix, part))
+    return out
+
+
 def compress(text: str, limit: int = MAX_CHUNK_CHARS) -> str:
     text = strip_markdown(text)
     if len(text) <= limit:
@@ -174,8 +208,8 @@ def build_index() -> list[dict]:
             continue
 
         for heading, block in sections:
-            for label, emit_block in expand_long_block(page_title, heading, block):
-                content = compress(emit_block)
+            for base_label, emit_block in expand_long_block(page_title, heading, block):
+              for label, content in split_plain(base_label, emit_block):
                 if len(content) < MIN_SECTION_CHARS and label is not None:
                     continue
                 title = f"{page_title} — {label}" if label else page_title

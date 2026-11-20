@@ -587,7 +587,11 @@ public class TontineDeliveryService {
                         .build())
                 .collect(Collectors.toList());
 
+        TontineOrderBalance balance = TontineOrderBalance.of(delivery);
         return TontineDeliveryDto.builder()
+                .netContribution(balance.netContribution())
+                .amountDue(balance.amountDue())
+                .refundableBalance(balance.refundableBalance())
                 .id(delivery.getId())
                 .tontineMemberId(delivery.getTontineMember().getId())
                 .reference(delivery.getReference())

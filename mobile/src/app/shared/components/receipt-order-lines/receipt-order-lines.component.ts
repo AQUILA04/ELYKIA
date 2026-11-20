@@ -10,6 +10,8 @@ import { PrintableOrderItem } from '../../../core/services/printing.service';
 export class ReceiptOrderLinesComponent {
   @Input() items: PrintableOrderItem[] | null | undefined = [];
   @Input() totalAmount = 0;
+  /** Libellé de la ligne de total (commande tontine : montant de la commande, le reste à payer suit). */
+  @Input() totalLabel = 'Total à payer';
   /** `CASH` : règle des ventes comptant (aussi utilisée pour les commandes tontine). Vide : règle générale. */
   @Input() saleType: string | null = null;
 

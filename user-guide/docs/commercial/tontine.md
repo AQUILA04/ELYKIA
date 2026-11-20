@@ -186,8 +186,11 @@ flowchart LR
    - Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur **Marquer comme Livré**.
    - La remise part seulement si le **solde disponible** couvre le montant de la commande. S'il est en dessous, la fenêtre **Solde insuffisant** propose **Réduire la commande** : retirez ou diminuez des articles jusqu'à ce que le total tienne dans le solde disponible, puis enregistrez. Le complément de cotisation au moment de la remise se fait sur l'application mobile.
    - Cette action déduit définitivement les articles du **stock tontine** du commercial et clôture le dossier du membre. Le commercial doit donc avoir reçu les articles via une demande de stock tontine avant la remise.
-   - La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.
+   - La fiche conserve la preuve complète : date, commercial ayant servi le client et détail des articles livrés.
    - Après la clôture, une livraison directe suit le même plafond : le panier peut aller jusqu'au solde prévisionnel de l'année, et la remise attend que le solde disponible couvre ce panier.
+4. **Soldes de la commande** (bloc **Livraison de Fin d'Année** de la fiche et reçu PDF **Télécharger le reçu**) :
+   - Avant la remise : **Solde net cotisé** (cotisations moins la part société, compléments inclus), **Montant de la commande**, puis **Reste à payer** si la commande dépasse le solde, ou **Reliquat à restituer** si elle lui est inférieure.
+   - Après la remise : **Total cotisé (net)**, **Total utilisé** et **Total restant** (0 si tout le solde a servi).
 
 ### Consulter l'ensemble des livraisons (Menu Tontines > Livraison)
 Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. Cet espace centralise toutes les opérations de distribution de l'agence :

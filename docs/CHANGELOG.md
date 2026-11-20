@@ -9,6 +9,15 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-20 (soldes des commandes tontine)
+
+### Changed
+
+- **Guide utilisateur —** fiche membre web et reçu PDF de commande tontine : solde net cotisé, montant, reste à payer ou reliquat ; après remise, total cotisé, utilisé et restant. Guide mobile : mêmes montants sur le reçu de commande, la fiche membre et le bon de remise. Index RAG et guide HTML régénérés.
+
+### Fixed
+
+- **Index RAG du guide —** `generate_rag_index.py` tronquait à 2 200 caractères une section encore trop longue après le découpage `###` / `####` : la fin des procédures longues (étapes de livraison tontine web et mobile) n'atteignait jamais l'assistant. Ces sections sont maintenant découpées par paragraphes en morceaux « (suite n) » (333 morceaux au lieu de 327). Guide mobile : section « Remettre les articles de fin d'année » scindée en deux sous-parties.
 ## Docs & Infra — 2026-11-20 (doublons tontine)
 
 ### Changed
@@ -134,6 +143,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.58.0] — 2026-11-20
+
+### Changed
+
+- **Tontine — fiche membre →** le bloc **Livraison de Fin d'Année** affiche le **Solde net cotisé**, le **Montant de la commande**, puis le **Reste à payer** (en orange) ou le **Reliquat à restituer**. Après la remise : **Total cotisé (net)**, **Total utilisé**, **Total restant**. Remplace la seule ligne « Solde non utilisé ».
 ## Frontend — [2.57.0] — 2026-11-20
 
 ### Added
@@ -498,6 +512,18 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.43.0] — 2026-11-20
+
+### Changed
+
+- **Tontine — reçu de commande (aperçu et ticket) →** sous le montant, le **Solde net cotisé** de la membre puis le **Reste à payer** ou le **Reliquat à restituer** (`computeTontineOrderBalance`). Une commande livrée affiche **Total cotisé (net)**, **Total utilisé**, **Total restant**. Le bloc d'articles partagé accepte un libellé de total (`totalLabel`) : « Montant de la commande » pour la tontine, « Total à payer » inchangé ailleurs.
+- **Tontine — fiche membre →** mêmes montants sous le total de la commande, recalculés pendant **Modifier la commande**.
+- **Tontine — bon de remise (livraison directe) →** libellés **Total cotisé (net)**, **Total utilisé**, **Total restant**.
+
+### Fixed
+
+- **Tontine — bon de remise →** « Restant » affichait le restant du **solde prévisionnel** ; il affiche maintenant le solde net moins la livraison.
+
 ## Mobile — [2.42.0] — 2026-11-20
 
 ### Added
@@ -723,6 +749,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.59.0] — 2026-11-20
+
+### Added
+
+- **Tontine — soldes de commande →** `TontineOrderBalance` calcule le solde net cotisé, le reste à payer (commande au-dessus du solde) et le reliquat à restituer (commande en dessous). Une commande livrée garde les montants de la remise (commande + reliquat versé). `TontineDeliveryDto` expose `netContribution`, `amountDue`, `refundableBalance`.
+- **Reçu PDF de commande tontine →** le bloc des totaux affiche ces soldes (« Solde net cotisé », « Montant de la commande », « Reste à payer » ou « Reliquat à restituer » ; après remise « Total cotisé (net) », « Total utilisé », « Total restant ») au lieu d'un « Total à payer » égal au montant. Test de rendu réel `TontineOrderReceiptRenderingTest`.
 ## Backend — [1.58.0] — 2026-11-20
 
 ### Fixed

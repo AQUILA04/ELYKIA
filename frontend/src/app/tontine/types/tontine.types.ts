@@ -114,6 +114,12 @@ export interface TontineDelivery {
   readonly deliveryDate: string;
   readonly totalAmount: number;
   readonly remainingBalance: number;
+  /** Solde net cotisé (à la remise pour une commande livrée). */
+  readonly netContribution?: number;
+  /** Reste à payer quand la commande dépasse le solde net. */
+  readonly amountDue?: number;
+  /** Reliquat à restituer quand la commande est inférieure au solde net. */
+  readonly refundableBalance?: number;
   readonly commercialUsername: string;
   readonly items: readonly TontineDeliveryItem[];
   readonly createdBy?: string;

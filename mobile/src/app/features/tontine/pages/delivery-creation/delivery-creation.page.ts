@@ -865,7 +865,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                     name: this.commercialUsername || 'Commercial'
                 },
                 totalBudget: this.vm.availableBudget,
-                remainingBudget: this.vm.remainingBudget
+                // Remise : solde net moins la livraison (le restant prévisionnel ne vaut que pour une commande).
+                remainingBudget: Math.max(0, this.vm.availableBudget - savedDelivery.totalAmount)
             };
 
             const modal = await this.modalCtrl.create({
@@ -946,6 +947,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             clientName,
             clientPhone: this.vm.client?.phone,
             commercialName: this.commercialUsername || 'Commercial',
+            netContribution: this.vm.availableBudget,
             items: items.map(item => ({
                 articleName: item.salePackMode && item.salePackMode !== 'UNIT'
                     ? `${item.articleName || 'Article'} — ${item.packLabel || 'Pack'}`

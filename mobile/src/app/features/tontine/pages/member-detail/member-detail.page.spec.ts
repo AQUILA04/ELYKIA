@@ -126,6 +126,32 @@ describe('MemberDetailPage delivery menu', () => {
     expect(page.canEditPendingOrder()).toBeFalse();
   });
 
+  it('shows the net balance and the amount still to pay under the order', async () => {
+    const { page } = create({
+      members: [{ id: 'm2', clientId: 'c1', deliveryStatus: 'PENDING', availableContribution: 40000 }],
+      deliveries: [{ id: 'order', status: 'PENDING', requestDate: '2026-04-01', totalAmount: 55000, items: [{ id: 'i1', quantity: 1, totalPrice: 55000 }] }]
+    });
+    await page.loadMemberData();
+
+    const balance = page.orderBalance();
+    expect(balance?.netContribution).toBe(40000);
+    expect(balance?.amountDue).toBe(15000);
+    expect(balance?.refundableBalance).toBe(0);
+    expect(page.orderBalanceLabels().net).toBe('Solde net cotisé');
+  });
+
+  it('follows the revised total while the order is being edited', async () => {
+    const { page } = create({
+      members: [{ id: 'm2', clientId: 'c1', deliveryStatus: 'PENDING', availableContribution: 40000 }],
+      deliveries: [{ id: 'order', status: 'PENDING', requestDate: '2026-04-01', totalAmount: 55000, items: [{ id: 'i1', quantity: 1, totalPrice: 30000 }] }]
+    });
+    await page.loadMemberData();
+    page.revisingOrder = true;
+
+    expect(page.orderBalance()?.refundableBalance).toBe(10000);
+    expect(page.orderBalance()?.amountDue).toBe(0);
+  });
+
   it('does not offer Modifier la commande when the order has no items to edit', async () => {
     const { page } = create({
       deliveries: [{ id: 'order', status: 'PENDING', requestDate: '2026-04-01', items: [] }]

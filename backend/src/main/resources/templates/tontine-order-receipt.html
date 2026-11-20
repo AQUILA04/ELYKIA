@@ -384,12 +384,20 @@
 
     <table class="totals" role="presentation">
         <tr>
-            <td class="totals-body line-label">Montant total</td>
-            <td class="totals-body line-value" th:text="${doc.totalAmount}">0 FCFA</td>
+            <td class="totals-body line-label" th:text="${doc.delivered} ? 'Total cotisé (net)' : 'Solde net cotisé'">Solde net cotisé</td>
+            <td class="totals-body line-value" th:text="${doc.netContribution}">0 FCFA</td>
         </tr>
         <tr>
-            <td class="grand-label">Total à payer</td>
-            <td class="grand-value" th:text="${doc.totalAmount}">0 FCFA</td>
+            <td class="totals-body line-label" th:text="${doc.delivered} ? 'Total utilisé' : 'Montant de la commande'">Montant de la commande</td>
+            <td class="totals-body line-value" th:text="${doc.totalAmount}">0 FCFA</td>
+        </tr>
+        <tr th:if="${doc.hasAmountDue}">
+            <td class="grand-label">Reste à payer</td>
+            <td class="grand-value" th:text="${doc.amountDue}">0 FCFA</td>
+        </tr>
+        <tr th:unless="${doc.hasAmountDue}">
+            <td class="grand-label" th:text="${doc.delivered} ? 'Total restant' : 'Reliquat à restituer'">Reliquat à restituer</td>
+            <td class="grand-value" th:text="${doc.refundableBalance}">0 FCFA</td>
         </tr>
     </table>
 

@@ -566,13 +566,21 @@
         <span class="label">Commercial</span>
         <span class="value">{{ member.delivery?.commercialUsername || '—' }}</span>
       </div>
+      <div class="info-row" data-testid="e2e-tontine-order-net-contribution">
+        <span class="label">{{ member.deliveryStatus === 'DELIVERED' ? 'Total cotisé (net)' : 'Solde net cotisé' }}</span>
+        <span class="value">{{ formatCurrency(member.delivery?.netContribution ?? 0) }}</span>
+      </div>
       <div class="info-row">
-        <span class="label">Montant total</span>
+        <span class="label">{{ member.deliveryStatus === 'DELIVERED' ? 'Total utilisé' : 'Montant de la commande' }}</span>
         <span class="value highlight">{{ formatCurrency(member.delivery?.totalAmount ?? 0) }}</span>
       </div>
-      <div class="info-row" *ngIf="(member?.delivery?.remainingBalance ?? 0) > 0">
-        <span class="label">Solde non utilisé</span>
-        <span class="value">{{ formatCurrency(member.delivery?.remainingBalance ?? 0) }}</span>
+      <div class="info-row" *ngIf="(member.delivery?.amountDue ?? 0) > 0" data-testid="e2e-tontine-order-amount-due">
+        <span class="label">Reste à payer</span>
+        <span class="value value-due">{{ formatCurrency(member.delivery?.amountDue ?? 0) }}</span>
+      </div>
+      <div class="info-row" *ngIf="(member.delivery?.amountDue ?? 0) <= 0" data-testid="e2e-tontine-order-refundable">
+        <span class="label">{{ member.deliveryStatus === 'DELIVERED' ? 'Total restant' : 'Reliquat à restituer' }}</span>
+        <span class="value">{{ formatCurrency(member.delivery?.refundableBalance ?? 0) }}</span>
       </div>
     </div>
 

@@ -51,8 +51,28 @@
     <app-receipt-order-lines
       [items]="data.items"
       [totalAmount]="data.totalAmount"
+      [totalLabel]="labels.total"
       saleType="CASH">
     </app-receipt-order-lines>
+
+    <section class="balance-block" *ngIf="balance" data-testid="e2e-tontine-order-receipt-balance">
+      <div class="balance-row">
+        <span>{{ labels.net }}</span>
+        <b class="elyk-amount">{{ balance.netContribution | number:'1.0-0' }} FCFA</b>
+      </div>
+      <div class="balance-row">
+        <span>{{ labels.total }}</span>
+        <b class="elyk-amount">{{ balance.orderTotal | number:'1.0-0' }} FCFA</b>
+      </div>
+      <div class="balance-row balance-row--due" *ngIf="balance.amountDue > 0">
+        <span>{{ labels.due }}</span>
+        <b class="elyk-amount">{{ balance.amountDue | number:'1.0-0' }} FCFA</b>
+      </div>
+      <div class="balance-row balance-row--refund" *ngIf="balance.amountDue <= 0">
+        <span>{{ labels.refundable }}</span>
+        <b class="elyk-amount">{{ balance.refundableBalance | number:'1.0-0' }} FCFA</b>
+      </div>
+    </section>
 
     <footer class="receipt-foot">
       <span class="thanks">Merci pour votre confiance !</span>
