@@ -198,13 +198,28 @@ class TontineDeliveryServiceTest {
     }
 
     @Test
-    void createDelivery_rejectsWhenSessionIsClosed() {
+    void createDelivery_acceptsWhenSessionIsClosed() {
         mockSession.setStatus(TontineSessionStatus.CLOSED);
+        givenRegularUser();
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        when(deliveryReferenceService.resolveReference(any(), any())).thenReturn("TNT-003");
+        when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TontineDeliveryDto result = tontineDeliveryService.createDelivery(createDeliveryDto);
+
+        assertEquals(TontineMemberDeliveryStatus.PENDING, result.getDeliveryStatus());
+        verify(deliveryRepository, times(1)).save(any(TontineDelivery.class));
+    }
+
+    @Test
+    void createDelivery_rejectsWhenSessionIsEnded() {
+        mockSession.setStatus(TontineSessionStatus.ENDED);
         when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
 
         CustomValidationException ex = assertThrows(CustomValidationException.class,
                 () -> tontineDeliveryService.createDelivery(createDeliveryDto));
-        assertTrue(ex.getMessage().contains("session est ouverte"));
+        assertTrue(ex.getMessage().contains("ouverte ou clôturée"));
         verify(deliveryRepository, never()).save(any());
         verifyNoInteractions(articlesRepository, deliveryReferenceService, userService);
     }

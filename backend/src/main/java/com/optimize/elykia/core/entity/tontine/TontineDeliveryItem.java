@@ -33,7 +33,7 @@ public class TontineDeliveryItem {
     private Long articleId;
     
     @Deprecated
-    @Column(name = "article_name", nullable = false)
+    @Column(name = "article_name", nullable = false, columnDefinition = "TEXT")
     private String articleName;
     
     @Deprecated

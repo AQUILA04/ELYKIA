@@ -447,6 +447,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.40.6] — 2026-11-20
+
+### Fixed
+
+- **Commande tontine après clôture —** la commande est de nouveau possible quand la session est clôturée (refusée seulement une fois la session terminée). Sur l'écran de livraison, un sélecteur **Stock tontine (remise)** / **Catalogue (commande)** apparaît après clôture ; la livraison directe reste réservée au stock tontine.
+
 ## Mobile — [2.40.5] — 2026-11-18
 
 ### Changed
@@ -603,6 +609,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.57.1] — 2026-11-20
+
+### Fixed
+
+- **Commande tontine —** `createDelivery` accepte une session ouverte ou clôturée (refus seulement si la session est terminée) : la commande n'est plus bloquée par « session clôturée ». La livraison directe et la remise restent réservées à la session clôturée.
+
 ## Backend — [1.57.0] — 2026-11-20
 
 ### Added
@@ -621,6 +633,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - **Accès —** un commercial n'accède qu'à son propre stock mensuel sur tous les endpoints `api/commercial-stocks` (stock d'un mois, articles disponibles, ventes liées, vue équipe, à régulariser).
 - **Clôture de fin de mois —** le traitement du 1er du mois clôturait les stocks du mois qui commence (`LocalDate.now()`) au lieu du mois rapporté.
 - **PDF stock —** le « restant » d'un article ne retirait pas la quantité mise en dette (pris − vendu − retourné) : un reste déjà transformé en dette apparaissait encore comme restant.
+
+## Backend — [1.56.1] — 2026-11-20
+
+### Fixed
+
+- Demande de stock tontine : l'enregistrement échouait avec « value too long for type character varying(255) » quand le nom d'un article (type, marque, modèle et nom) dépassait 255 caractères. Les colonnes `stock_tontine_request_item.item_name`, `tontine_delivery_item.article_name`, `tontine_stock.article_name` et `tontine_stock_movement.article_name` passent en `TEXT` (migration `V043`).
 
 ## Backend — [1.56.0] — 2026-11-20
 

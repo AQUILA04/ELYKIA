@@ -229,7 +229,7 @@ Dans la liste de tontine, touchez le nom d'une membre pour ouvrir son carnet :
 * **Le menu d'options (trois petits points ⋮ en haut à droite)** :
   * **Cotiser** / **Enregistrer une cotisation** : pour enregistrer un versement pendant la session ouverte. Après la clôture, cette action n'apparaît plus sur la fiche.
   * **Voir le client** : pour voir la fiche générale de la cliente.
-  * **Commande de tontine** : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle **Livraison Fin d'Année** et sert à la remise en mains propres.
+  * **Commande de tontine** : pendant la session ouverte, pour choisir les articles de la membre. Après la clôture, la même action s'appelle **Livraison Fin d'Année** : vous pouvez y enregistrer une **Commande** (catalogue) ou faire la remise en mains propres (**Livraison directe**, stock tontine).
   * **Modifier la commande** : si une commande est déjà enregistrée et pas encore livrée, pour ajuster les articles.
 
 ### D. Enregistrer une cotisation de tontine pas à pas
@@ -262,7 +262,7 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
    * **Reste au plafond** : ce qu'il reste avant d'atteindre ce plafond.
 3. **Choisissez les articles avec la cliente** :
    * **Pendant la session ouverte** : l'écran affiche le **catalogue** de l'agence. Vous n'avez pas besoin d'avoir déjà du stock tontine pour enregistrer la commande.
-   * **Après la clôture** : l'écran affiche votre **stock tontine** (articles reçus du magasin) pour la remise en mains propres.
+   * **Après la clôture** : l'écran affiche par défaut votre **stock tontine** (articles reçus du magasin) pour la remise en mains propres. Pour enregistrer une **Commande**, touchez **Catalogue (commande)** en haut de la liste ; pour une **Livraison directe**, restez sur **Stock tontine (remise)**.
    * Touchez **+** pour ajouter les articles. Si l'article a plusieurs offres (unité, gros, demi-gros ou une offre libre), choisissez-la dans la liste avant d'augmenter la quantité.
    * Le panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le **solde prévisionnel**. Dans ce cas, **Valider** reste indisponible : retirez ou diminuez des articles.
 4. **Si le solde déjà encaissé ne couvre pas le panier** :
@@ -270,12 +270,12 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
    * Au moment de la remise, deux possibilités :
      1. **Compléter le solde** : l'écran de cotisation s'ouvre avec le montant manquant (ou le montant que la cliente souhaite verser). Ce complément n'est pas limité par le solde prévisionnel : vous pouvez encaisser le montant convenu, même s'il est élevé. Revenez ensuite sur le panier.
      2. **Modifier la commande** / **Modifier le panier** : diminuez les quantités ou retirez des articles, puis enregistrez.
-5. **Pendant la session ouverte — enregistrez une Commande** :
+5. **Session ouverte ou clôturée — enregistrez une Commande** :
    * Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
    * L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
    * Touchez **Imprimer** pour sortir le ticket sur l'imprimante de ceinture. Touchez **Fermer** pour revenir au tableau de bord.
    * Le code est reconnu dans Elykia une fois la commande transmise à l'agence.
-   * L'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
+   * Pendant la session ouverte, l'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
    * Ensuite, préparez vos cartons au dépôt (demande de stock tontine) pour être prêt le jour de la remise.
    * Pour imprimer à nouveau, ouvrez la fiche de la membre et touchez **Imprimer le reçu**. Après **Enregistrer la commande**, le même aperçu s'affiche.
 6. **Après la clôture de la session — remettez les articles** :
