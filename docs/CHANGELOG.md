@@ -135,6 +135,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - **Ventes comptant —** le prix unitaire et le montant de ligne suivent le nouveau paramètre **RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY** : saisie de la vente, reçu à l'écran et imprimé, fiche de la vente et achats d'un client. Les ventes à crédit, les livraisons tontine et les autres écrans restent sur **RESTRICT_UNIT_PRICE_VISIBILITY**. Le gestionnaire et les administrateurs voient toujours les prix.
 - Les directives `*appIfUnitPrice` et `*appIfNoUnitPrice` acceptent le type de la vente (`*appIfUnitPrice="credit.type"`). Sans valeur, elles suivent le paramètre général.
 
+## Frontend — [2.53.1] — 2026-11-20
+
+### Fixed
+
+- **Visite guidée du rapport commerciaux —** le projecteur et la bulle étaient décalés, parfois hors de l'écran, au point de bloquer la visite. L'animation d'entrée des pages laissait un `transform` sur le conteneur, qui servait alors de repère aux éléments `position: fixed`. La visite est maintenant rattachée à `<body>`, l'animation se termine sans `transform`, et la bulle est placée d'après sa hauteur réelle (sous la zone, sinon au-dessus, sinon en bas de l'écran). Test en navigateur : projecteur exactement sur la cible malgré un parent transformé.
+- **Journal —** libellé « Vente annulée » pour le type `CREDIT_SALE_CANCEL`.
+
 ## Frontend — [2.53.0] — 2026-11-20
 
 ### Added
@@ -606,6 +613,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Note de déploiement
 
 - Les deux nouveaux paramètres démarrent à `true`, quelle que soit la valeur de **RESTRICT_UNIT_PRICE_VISIBILITY**. Si celui-ci est à `false` en production, passez aussi les nouveaux à `false` dans **Paramètres généraux** pour garder l'affichage actuel.
+
+## Backend — [1.55.1] — 2026-11-20
+
+### Changed
+
+- **PDF du rapport commerciaux —** le rapport commercial (fiche), le journal des opérations et « Reste chez les clients » suivent le design system documents (navy `#0a2472`, bande de marque, cartes, tableaux, pied de page « Page n/N » clair). Mise en page par tableaux, compatible iText (l'ancienne mise en page en flex était ignorée).
+- **Rapport commercial (PDF) —** affiche le rapprochement de l'écran (crédit + tontine + solde Nx + rattrapages = dû, moins versé, reste à verser), calculé par le même service que la fiche ; activité en trois blocs, détail des opérations par type, signatures commercial et gestionnaire.
+- **Journal (PDF) —** totaux par type et libellés en français (au lieu des codes `CASH_DEPOSIT`…), ordre chronologique, total en pied de tableau.
+- `PdfHtmlRenderer` accepte un style de pied de page `MODERN` ; les autres PDF gardent le pied de page navy.
 
 ## Backend — [1.55.0] — 2026-11-19
 

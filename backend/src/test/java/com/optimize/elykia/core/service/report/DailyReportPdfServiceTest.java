@@ -1,146 +1,143 @@
 package com.optimize.elykia.core.service.report;
 
-import com.itextpdf.html2pdf.HtmlConverter;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfReader;
+import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 import com.optimize.elykia.core.dto.DailyReportExportPdfDto;
+import com.optimize.elykia.core.dto.report.cockpit.CommercialReconciliationLineDto;
+import com.optimize.elykia.core.dto.report.cockpit.CommercialReconciliationLineDto.ReconciliationStatus;
+import com.optimize.elykia.core.dto.report.cockpit.CommercialReportSummaryDto;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.entity.report.DailyOperationLog;
 import com.optimize.elykia.core.enumaration.OperationType;
-import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.repository.DailyOperationLogRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
+import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
-import java.io.OutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
+/** Rendu réel : templates Thymeleaf + iText, texte extrait du PDF produit. */
 @ExtendWith(MockitoExtension.class)
 class DailyReportPdfServiceTest {
 
-    @Mock
-    private DailyOperationLogRepository operationLogRepository;
-    @Mock
-    private DailyCommercialReportRepository reportRepository;
-    @Mock
-    private TemplateEngine templateEngine;
-    @Mock
-    private DailyCommercialReport kpi;
+    private static final LocalDate START = LocalDate.of(2026, 11, 16);
+    private static final LocalDate END = LocalDate.of(2026, 11, 20);
 
-    @Test
-    void generatePdfExport_aggregatesKpisAndOperationRowsIntoTheDailyReportTemplate() {
-        // Given
-        DailyReportPdfService service = new DailyReportPdfService(operationLogRepository, reportRepository, templateEngine);
-        LocalDate startDate = LocalDate.of(2026, 8, 1);
-        LocalDate endDate = LocalDate.of(2026, 8, 2);
-        when(kpi.getCreditSalesCount()).thenReturn(2);
-        when(kpi.getCreditSalesAmount()).thenReturn(12_000.0);
-        when(kpi.getCollectionsCount()).thenReturn(1);
-        when(kpi.getCollectionsAmount()).thenReturn(5_500.0);
-        when(kpi.getNewClientsCount()).thenReturn(1);
-        when(kpi.getNewAccountsBalance()).thenReturn(2_000.0);
-        when(kpi.getTotalAmountToDeposit()).thenReturn(15_500.0);
-        when(reportRepository.findAggregatedByDateBetweenAndCommercialUsername("commercial.a", startDate, endDate))
-                .thenReturn(List.of(kpi));
-        when(operationLogRepository.findByDateBetweenAndCommercialUsername(startDate, endDate, "commercial.a"))
-                .thenReturn(List.of(
-                        operation(startDate, 9, 30, OperationType.CREDIT_SALES, 12_000.0,
-                                "CR-001", "Client: Alice, Avance: 1 000"),
-                        operation(endDate, 11, 5, OperationType.CREDIT_COLLECTION, 5_500.0,
-                                "REC-001", "client Bob, recouvrement"),
-                        operation(endDate, 12, 0, OperationType.NEW_CLIENT, 0.0,
-                                "CLI-001", "Client: Chloé, inscription")));
-        ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
-        when(templateEngine.process(eq("daily-report-export"), contextCaptor.capture())).thenReturn("<html>daily</html>");
+    @Mock private DailyOperationLogRepository operationLogRepository;
+    @Mock private CommercialCockpitService cockpitService;
 
-        try (MockedStatic<HtmlConverter> converter = mockStatic(HtmlConverter.class)) {
-            // When
-            byte[] pdf = service.generatePdfExport(startDate, endDate, "commercial.a");
+    static TemplateEngine realTemplateEngine() {
+        ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
+        resolver.setPrefix("templates/");
+        resolver.setSuffix(".html");
+        resolver.setTemplateMode(TemplateMode.HTML);
+        resolver.setCharacterEncoding("UTF-8");
+        // Même moteur que l'application (SpEL), pas le moteur Thymeleaf brut (OGNL).
+        TemplateEngine engine = new org.thymeleaf.spring6.SpringTemplateEngine();
+        engine.setTemplateResolver(resolver);
+        return engine;
+    }
 
-            // Then
-            assertArrayEquals(new byte[0], pdf);
-            DailyReportExportPdfDto report = (DailyReportExportPdfDto) contextCaptor.getValue().getVariable("report");
-            assertEquals("Rapport Journalier", report.getTitle());
-            assertEquals("AMENOUVEVE - YAVEH", report.getCompanyName());
-            assertEquals("01/08/2026", report.getStartDate());
-            assertEquals("02/08/2026", report.getEndDate());
-            assertEquals("commercial.a", report.getCommercialUsername());
-            assertEquals(2, report.getDistributionCount());
-            assertEquals(12_000.0, report.getDistributionAmount());
-            assertEquals(1, report.getRecoveryCount());
-            assertEquals(5_500.0, report.getRecoveryAmount());
-            assertEquals(1, report.getNewClientCount());
-            assertEquals(2_000.0, report.getNewClientBalance());
-            assertEquals(15_500.0, report.getTotalToPay());
-            assertEquals(1, report.getDistributions().size());
-            assertEquals("09:30", report.getDistributions().get(0).getTime());
-            assertEquals("Alice", report.getDistributions().get(0).getClientName());
-            assertEquals("CR-001", report.getDistributions().get(0).getDetails());
-            assertEquals("Avance: 1 000", report.getDistributions().get(0).getExtra());
-            assertTrue(report.getDistributions().get(0).getAmount().endsWith("FCFA"));
-            assertEquals(1, report.getRecoveries().size());
-            assertEquals("Bob", report.getRecoveries().get(0).getClientName());
-            assertEquals("REC-001", report.getRecoveries().get(0).getDetails());
-            assertEquals(1, report.getNewClients().size());
-            assertEquals("0 FCFA", report.getNewClients().get(0).getAmount());
-            converter.verify(() -> HtmlConverter.convertToPdf(eq("<html>daily</html>"), any(OutputStream.class)));
+    static String text(byte[] pdfBytes) throws IOException {
+        StringBuilder text = new StringBuilder();
+        try (PdfDocument pdf = new PdfDocument(new PdfReader(new ByteArrayInputStream(pdfBytes)))) {
+            for (int i = 1; i <= pdf.getNumberOfPages(); i++) {
+                text.append(PdfTextExtractor.getTextFromPage(pdf.getPage(i))).append('\n');
+            }
         }
+        return text.toString();
+    }
+
+    /** Garde le PDF dans target/ pour une relecture visuelle. */
+    static void keep(String name, byte[] pdf) throws IOException {
+        Path dir = Path.of("target", "pdf-preview");
+        Files.createDirectories(dir);
+        Files.write(dir.resolve(name), pdf);
     }
 
     @Test
-    void generatePdfExport_withoutKpiOrOperationsProducesZeroedReportContract() {
-        // Given
-        DailyReportPdfService service = new DailyReportPdfService(operationLogRepository, reportRepository, templateEngine);
-        LocalDate date = LocalDate.of(2026, 8, 3);
-        when(reportRepository.findAggregatedByDateBetweenAndCommercialUsername("commercial.empty", date, date))
-                .thenReturn(List.of());
-        when(operationLogRepository.findByDateBetweenAndCommercialUsername(date, date, "commercial.empty"))
-                .thenReturn(List.of());
-        ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
-        when(templateEngine.process(eq("daily-report-export"), contextCaptor.capture())).thenReturn("<html>empty</html>");
-
-        try (MockedStatic<HtmlConverter> converter = mockStatic(HtmlConverter.class)) {
-            // When
-            service.generatePdfExport(date, date, "commercial.empty");
-
-            // Then
-            DailyReportExportPdfDto report = (DailyReportExportPdfDto) contextCaptor.getValue().getVariable("report");
-            assertEquals(0, report.getDistributionCount());
-            assertEquals(0.0, report.getDistributionAmount());
-            assertEquals(0, report.getRecoveryCount());
-            assertEquals(0.0, report.getRecoveryAmount());
-            assertEquals(0, report.getTontineCollectionCount());
-            assertEquals(0.0, report.getTotalToPay());
-            assertTrue(report.getDistributions().isEmpty());
-            assertTrue(report.getRecoveries().isEmpty());
-            assertTrue(report.getTontineDeliveries().isEmpty());
-            converter.verify(() -> HtmlConverter.convertToPdf(eq("<html>empty</html>"), any(OutputStream.class)));
+    void generatePdfExport_rendersTheReconciliationActivityAndOperationsInTheNewDesign() throws IOException {
+        DailyReportPdfService service = new DailyReportPdfService(
+                operationLogRepository, cockpitService, realTemplateEngine(), new PdfHtmlRenderer());
+        DailyCommercialReport activity = new DailyCommercialReport();
+        activity.setCreditSalesCount(1);
+        activity.setCreditSalesAmount(17_200.0);
+        activity.setCollectionsCount(11);
+        activity.setCollectionsAmount(26_950.0);
+        activity.setTontineCollectionsCount(128);
+        activity.setTontineCollectionsAmount(317_742.0);
+        when(cockpitService.summary("COM015", START, END)).thenReturn(new CommercialReportSummaryDto(
+                START, END, line(ReconciliationStatus.LATE, 1_302_550.0), activity, List.of()));
+        List<DailyOperationLog> operations = new ArrayList<>();
+        operations.add(operation(OperationType.CREDIT_SALES, 17_200.0, "DIST-015-AB12", "Client: Alice, Avance: 2 000"));
+        for (int i = 0; i < 40; i++) {
+            operations.add(operation(OperationType.TONTINE_COLLECTION, 2_500.0, "COL-" + i, "client Bob, collecte"));
         }
+        when(operationLogRepository.findByDateBetweenAndCommercialUsername(START, END, "COM015")).thenReturn(operations);
+
+        byte[] pdf = service.generatePdfExport(START, END, "COM015");
+        keep("rapport-commercial.pdf", pdf);
+        String text = text(pdf);
+
+        assertTrue(text.contains("Rapport commercial"), text);
+        assertTrue(text.contains("RAPPROCHEMENT DE LA PÉRIODE"));
+        assertTrue(text.contains("1 420 675"), "dû à la caisse");
+        assertTrue(text.contains("1 302 550 FCFA"), "reste à verser");
+        assertTrue(text.contains("Reste à verser"));
+        assertTrue(text.contains("VENTES À CRÉDIT"));
+        assertTrue(text.contains("COLLECTES TONTINE"));
+        assertTrue(text.contains("Alice"));
+        assertTrue(text.contains("SIGNATURE DU GESTIONNAIRE"));
+        assertTrue(text.contains("Page 1/"), "pagination n/N");
     }
 
-    private DailyOperationLog operation(LocalDate date, int hour, int minute, OperationType type,
-            double amount, String reference, String description) {
-        return new DailyOperationLog(
-                date,
-                "commercial.a",
-                LocalDateTime.of(date.getYear(), date.getMonth(), date.getDayOfMonth(), hour, minute),
-                type,
-                amount,
-                reference,
-                description);
+    @Test
+    void buildDto_keepsOnlyNonEmptySectionsAndLabelsThePeriod() {
+        DailyReportPdfService service = new DailyReportPdfService(operationLogRepository, cockpitService, null, null);
+        DailyReportExportPdfDto dto = service.buildDto(END, END, "COM015", new DailyCommercialReport(),
+                line(ReconciliationStatus.UP_TO_DATE, 0.0),
+                java.util.Map.of(OperationType.CREDIT_COLLECTION,
+                        List.of(operation(OperationType.CREDIT_COLLECTION, 1_500.0, "REC-1", "client Bob, mise"))));
+
+        assertEquals("Journée du 20/11/2026", dto.getPeriodLabel());
+        assertEquals("À jour", dto.getStatusLabel());
+        assertEquals("pill-green", dto.getStatusClass());
+        assertEquals(1, dto.getSections().size());
+        assertEquals("Recouvrements", dto.getSections().get(0).getTitle());
+        assertEquals("Bob", dto.getSections().get(0).getRows().get(0).getClientName());
+    }
+
+    private static CommercialReconciliationLineDto line(ReconciliationStatus status, double remaining) {
+        return new CommercialReconciliationLineDto("COM015", status, 27_725.0, 317_742.0, 0.0, 345_467.0,
+                1_075_208.0, 1_420_675.0, 118_500.0, 0.0, 0.0, 118_500.0, 0.0,
+                0.0, 0.0, 0.0, remaining, remaining, 1_761_333.0, 140L);
+    }
+
+    private static DailyOperationLog operation(OperationType type, double amount, String reference, String description) {
+        DailyOperationLog op = new DailyOperationLog();
+        op.setType(type);
+        op.setAmount(amount);
+        op.setReference(reference);
+        op.setDescription(description);
+        op.setCommercialUsername("COM015");
+        op.setDate(END);
+        op.setTimestamp(LocalDateTime.of(2026, 11, 20, 9, 30));
+        return op;
     }
 }

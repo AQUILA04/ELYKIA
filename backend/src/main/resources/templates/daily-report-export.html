@@ -2,379 +2,141 @@
 <html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title>Rapport Journalier</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            font-size: 10px;
-            color: #333;
-            margin: 20px;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #003366;
-            padding-bottom: 15px;
-        }
-        .header h1 {
-            margin: 0;
-            color: #003366;
-            font-size: 18px;
-        }
-        .header h2 {
-            margin: 5px 0;
-            font-size: 14px;
-            color: #555;
-        }
-        .header .info {
-            font-size: 11px;
-            color: #666;
-            margin-top: 8px;
-        }
-        .header .info p {
-            margin: 2px 0;
-        }
-        .kpi-section {
-            margin-bottom: 20px;
-        }
-        .kpi-section h3 {
-            font-size: 13px;
-            color: #003366;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-        }
-        .kpi-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .kpi-item {
-            flex: 1 1 22%;
-            min-width: 120px;
-            background: #f5f7fa;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            padding: 6px 10px;
-        }
-        .kpi-label {
-            display: block;
-            font-size: 9px;
-            color: #888;
-            text-transform: uppercase;
-        }
-        .kpi-value {
-            display: block;
-            font-size: 12px;
-            font-weight: bold;
-            color: #003366;
-        }
-        .total-section {
-            margin-top: 15px;
-            text-align: right;
-            border-top: 2px solid #003366;
-            padding-top: 10px;
-        }
-        .total-section .total-label {
-            font-size: 14px;
-            font-weight: bold;
-            color: #003366;
-        }
-        .total-section .total-value {
-            font-size: 16px;
-            font-weight: bold;
-            color: #b91c1c;
-        }
-        .table-section {
-            margin-top: 20px;
-            page-break-inside: avoid;
-        }
-        .table-section h3 {
-            font-size: 12px;
-            color: #003366;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
-            margin-bottom: 8px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 9px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 5px 6px;
-            text-align: left;
-        }
-        th {
-            background-color: #003366;
-            color: white;
-            font-weight: bold;
-            text-transform: uppercase;
-            font-size: 8px;
-        }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        .text-right {
-            text-align: right;
-        }
-        .text-center {
-            text-align: center;
-        }
-        /* Allow long client names to wrap instead of being truncated with ellipses */
-        .wrap {
-            white-space: normal; /* allow wrapping */
-            word-break: break-word; /* break long words */
-            overflow-wrap: anywhere; /* better break opportunities */
-        }
-        .client-name {
-            max-width: none; /* don't constrain width so content can wrap across lines */
-        }
-        .footer {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 8px;
-            color: #999;
-            border-top: 1px solid #eee;
-            padding-top: 10px;
-        }
-        .no-data {
-            text-align: center;
-            padding: 10px;
-            font-style: italic;
-            color: #999;
-        }
-        .status-sync {
-            color: #2e7d32;
-            font-weight: bold;
-        }
-    </style>
+    <title th:text="${pdfDocumentTitle}">Rapport commercial</title>
+    <th:block th:replace="~{pdf/report-fragments :: styles}"></th:block>
 </head>
 <body>
-    <div class="header">
-        <h1 th:text="${report.companyName}">AMENOUVEVE - YAVEH</h1>
-        <h2 th:text="${report.title}">Rapport Journalier</h2>
-        <div class="info">
-            <p><strong>Commercial :</strong> <span th:text="${report.commercialUsername}"></span></p>
-            <p><strong>Période :</strong> <span th:text="${report.startDate}"></span> au <span th:text="${report.endDate}"></span></p>
-            <p><strong>Généré le :</strong> <span th:text="${report.generationDate}"></span></p>
-        </div>
+<div th:replace="~{pdf/report-fragments :: header(${pdfDocumentTitle}, ${report.commercialUsername} + ' · ' + ${report.periodLabel})}"></div>
+
+<div class="page">
+    <!-- Cartes d'information -->
+    <table role="presentation" class="cards">
+        <tr>
+            <td>
+                <div class="lbl">Commercial</div>
+                <div class="val" th:text="${report.commercialUsername}">COM005</div>
+                <div class="sub"><span th:text="${report.operationsCount}">0</span> opération(s) terrain</div>
+            </td>
+            <td>
+                <div class="lbl">Période</div>
+                <div class="val" th:text="${report.startDate} + ' → ' + ${report.endDate}">01/11 → 20/11</div>
+                <div class="sub" th:text="${report.periodLabel}">Période</div>
+            </td>
+            <td>
+                <div class="lbl">Situation</div>
+                <div class="val"><span class="pill" th:classappend="${report.statusClass}" th:text="${report.statusLabel}">À jour</span></div>
+                <div class="sub">Généré le <span th:text="${report.generationDate}">20/11/2026 18:00</span></div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Rapprochement -->
+    <table role="presentation" class="sec"><tr><td class="sec-title">Rapprochement de la période</td><td class="sec-hint">Ce qui a été encaissé doit être versé</td></tr></table>
+    <table role="presentation" class="eq avoid">
+        <tr>
+            <td class="term"><div class="lbl">Crédit</div><div class="eq-val" th:text="${#numbers.formatDecimal(report.creditToDeposit, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
+            <td class="op">+</td>
+            <td class="term"><div class="lbl">Tontine</div><div class="eq-val" th:text="${#numbers.formatDecimal(report.tontineToDeposit, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
+            <td class="op">+</td>
+            <td class="term"><div class="lbl">Solde Nx</div><div class="eq-val" th:text="${#numbers.formatDecimal(report.newBalanceToDeposit, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
+            <td class="op">+</td>
+            <td class="term"><div class="lbl">Rattrapages</div><div class="eq-val" th:text="${#numbers.formatDecimal(report.catchupEntered, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
+            <td class="op">=</td>
+            <td class="term due"><div class="lbl">Dû caisse</div><div class="eq-val" th:text="${#numbers.formatDecimal(report.cashDue, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
+            <td class="op">−</td>
+            <td class="term"><div class="lbl">Versé</div><div class="eq-val" th:text="${#numbers.formatDecimal(report.deposited, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
+        </tr>
+    </table>
+    <table role="presentation" class="total avoid">
+        <tr th:class="${report.remaining > 0.01} ? 'total-amber' : 'total-green'">
+            <td class="total-label" th:text="${report.remaining > 0.01} ? 'Reste à verser' : 'Tout est versé'">Reste à verser</td>
+            <td class="total-value" th:text="${#numbers.formatDecimal(report.remaining, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'">0 FCFA</td>
+        </tr>
+    </table>
+    <div class="small" style="margin-top: 4px" th:if="${report.surplus > 0.01 or report.historicalRemaining > 0.01}">
+        <span th:if="${report.surplus > 0.01}">Surplus versé : <span class="strong" th:text="${#numbers.formatDecimal(report.surplus, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'">0</span>.</span>
+        <span th:if="${report.historicalRemaining > 0.01}">Manquants antérieurs à la période : <span class="strong" th:text="${#numbers.formatDecimal(report.historicalRemaining, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'">0</span>.</span>
     </div>
 
-    <!-- KPI Summary -->
-    <div class="kpi-section">
-        <h3>Résumé du Jour</h3>
-        <div class="kpi-grid">
-            <div class="kpi-item">
-                <span class="kpi-label">Distributions</span>
-                <span class="kpi-value" th:text="${report.distributionCount} + ' (' + ${#numbers.formatDecimal(report.distributionAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
-            </div>
-            <div class="kpi-item">
-                <span class="kpi-label">Recouvrements</span>
-                <span class="kpi-value" th:text="${report.recoveryCount} + ' (' + ${#numbers.formatDecimal(report.recoveryAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
-            </div>
-            <div class="kpi-item">
-                <span class="kpi-label">Nouveaux Clients</span>
-                <span class="kpi-value" th:text="${report.newClientCount}"></span>
-            </div>
-            <div class="kpi-item">
-                <span class="kpi-label">Solde Nx Comptes</span>
-                <span class="kpi-value" th:text="${#numbers.formatDecimal(report.newClientBalance, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></span>
-            </div>
-            <div class="kpi-item">
-                <span class="kpi-label">Avances</span>
-                <span class="kpi-value" th:text="${#numbers.formatDecimal(report.totalAdvancesAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></span>
-            </div>
-            <div class="kpi-item">
-                <span class="kpi-label">Membres Tontine</span>
-                <span class="kpi-value" th:text="${report.tontineMemberCount}"></span>
-            </div>
-            <div class="kpi-item">
-                <span class="kpi-label">Collectes Tontine</span>
-                <span class="kpi-value" th:text="${report.tontineCollectionCount} + ' (' + ${#numbers.formatDecimal(report.tontineCollectionAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
-            </div>
-            <div class="kpi-item">
-                <span class="kpi-label">Rattrapages Tontine</span>
-                <span class="kpi-value" th:text="${report.tontineCatchupCount} + ' (' + ${#numbers.formatDecimal(report.tontineCatchupAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
-            </div>
-            <div class="kpi-item">
-                <span class="kpi-label">Livraisons Tontine</span>
-                <span class="kpi-value" th:text="${report.tontineDeliveryCount} + ' (' + ${#numbers.formatDecimal(report.tontineDeliveryAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA)'"></span>
-            </div>
-        </div>
-        <div class="total-section">
-            <span class="total-label">TOTAL À PAYER : </span>
-            <span class="total-value" th:text="${#numbers.formatDecimal(report.totalToPay, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'"></span>
-        </div>
-    </div>
+    <!-- Activité -->
+    <table role="presentation" class="sec"><tr><td class="sec-title">Activité de la période</td><td class="sec-hint">Nombre · montant</td></tr></table>
+    <table role="presentation" class="blocks avoid">
+        <tr>
+            <td>
+                <div class="block-title">Crédit</div>
+                <table role="presentation" class="kv">
+                    <tr><td class="k">Ventes à crédit</td><td class="v" th:text="${report.distributionCount} + ' · ' + ${#numbers.formatDecimal(report.distributionAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
+                    <tr><td class="k">Recouvrements</td><td class="v" th:text="${report.recoveryCount} + ' · ' + ${#numbers.formatDecimal(report.recoveryAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
+                    <tr><td class="k">Avances</td><td class="v" th:text="${#numbers.formatDecimal(report.totalAdvancesAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
+                    <tr><td class="k">Reliquat généré / utilisé</td><td class="v" th:text="${#numbers.formatDecimal(report.totalReliquatGeneratedAmount, 1, 'WHITESPACE', 0, 'COMMA')} + ' / ' + ${#numbers.formatDecimal(report.totalReliquatUsedAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
+                </table>
+            </td>
+            <td>
+                <div class="block-title">Tontine</div>
+                <table role="presentation" class="kv">
+                    <tr><td class="k">Collectes</td><td class="v" th:text="${report.tontineCollectionCount} + ' · ' + ${#numbers.formatDecimal(report.tontineCollectionAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
+                    <tr><td class="k">Rattrapages saisis</td><td class="v" th:text="${#numbers.formatDecimal(report.catchupEntered, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
+                    <tr><td class="k">Adhésions</td><td class="v" th:text="${report.tontineMemberCount}">0</td></tr>
+                    <tr><td class="k">Livraisons</td><td class="v" th:text="${report.tontineDeliveryCount} + ' · ' + ${#numbers.formatDecimal(report.tontineDeliveryAmount, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
+                </table>
+            </td>
+            <td>
+                <div class="block-title">Clients</div>
+                <table role="presentation" class="kv">
+                    <tr><td class="k">Nouveaux clients</td><td class="v" th:text="${report.newClientCount}">0</td></tr>
+                    <tr><td class="k">Solde nouveaux comptes</td><td class="v" th:text="${#numbers.formatDecimal(report.newClientBalance, 1, 'WHITESPACE', 0, 'COMMA')}">0</td></tr>
+                    <tr><td class="k">Opérations terrain</td><td class="v" th:text="${report.operationsCount}">0</td></tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 
-    <!-- Distributions Table -->
-    <div class="table-section" th:if="${!#lists.isEmpty(report.distributions)}">
-        <h3>Distributions</h3>
-        <table>
+    <!-- Détail des opérations -->
+    <th:block th:each="section : ${report.sections}">
+        <table role="presentation" class="sec">
+            <tr>
+                <td class="sec-title" th:text="${section.title}">Ventes à crédit</td>
+                <td class="sec-hint" th:text="${section.rows.size()} + ' opération(s) · ' + ${section.total}">0</td>
+            </tr>
+        </table>
+        <table class="data">
+            <colgroup th:if="${section.showExtra}">
+                <col style="width: 5%"/><col style="width: 9%"/><col style="width: 30%"/><col style="width: 26%"/><col style="width: 15%"/><col style="width: 15%"/>
+            </colgroup>
+            <colgroup th:unless="${section.showExtra}">
+                <col style="width: 5%"/><col style="width: 9%"/><col style="width: 36%"/><col style="width: 32%"/><col style="width: 18%"/>
+            </colgroup>
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Heure</th>
-                    <th>Client</th>
-                    <th>Détails</th>
-                    <th class="text-right">Montant</th>
-                    <th class="text-right">Avance</th>
-                    <th class="text-center">Statut</th>
-                </tr>
+            <tr>
+                <th class="first c">#</th>
+                <th>Heure</th>
+                <th>Client</th>
+                <th>Référence</th>
+                <th class="r" th:classappend="${section.showExtra} ? '' : 'last'">Montant</th>
+                <th class="r last" th:if="${section.showExtra}">Avance</th>
+            </tr>
             </thead>
             <tbody>
-                <tr th:each="item : ${report.distributions}">
-                    <td th:text="${item.index}"></td>
-                    <td th:text="${item.time}"></td>
-                    <td class="wrap client-name" th:text="${item.clientName}"></td>
-                    <td th:text="${item.details}"></td>
-                    <td class="text-right" th:text="${item.amount}"></td>
-                    <td class="text-right" th:text="${item.extra} ?: '-'"></td>
-                    <td class="text-center status-sync" th:text="${item.status}"></td>
-                </tr>
+            <tr th:each="item : ${section.rows}">
+                <td class="c muted" th:text="${item.index}">1</td>
+                <td th:text="${item.time}">08:00</td>
+                <td class="strong" th:text="${item.clientName}">Client</td>
+                <td class="small" th:text="${item.details}">REF</td>
+                <td class="r strong" th:text="${item.amount}">0</td>
+                <td class="r small" th:if="${section.showExtra}" th:text="${#strings.isEmpty(item.extra)} ? '—' : ${item.extra}">—</td>
+            </tr>
             </tbody>
         </table>
-    </div>
+    </th:block>
+    <div class="empty" style="margin-top: 14px" th:if="${#lists.isEmpty(report.sections)}">Aucune opération enregistrée sur la période.</div>
 
-    <!-- Recoveries Table -->
-    <div class="table-section" th:if="${!#lists.isEmpty(report.recoveries)}">
-        <h3>Recouvrements</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Heure</th>
-                    <th>Client</th>
-                    <th>Détails</th>
-                    <th class="text-right">Montant</th>
-                    <th class="text-center">Statut</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="item : ${report.recoveries}">
-                    <td th:text="${item.index}"></td>
-                    <td th:text="${item.time}"></td>
-                    <td class="wrap client-name" th:text="${item.clientName}"></td>
-                    <td th:text="${item.details}"></td>
-                    <td class="text-right" th:text="${item.amount}"></td>
-                    <td class="text-center status-sync" th:text="${item.status}"></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- New Clients Table -->
-    <div class="table-section" th:if="${!#lists.isEmpty(report.newClients)}">
-        <h3>Nouveaux Clients</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Heure</th>
-                    <th>Nom</th>
-                    <th>N° Compte</th>
-                    <th class="text-right">Solde</th>
-                    <th class="text-center">Statut</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="item : ${report.newClients}">
-                    <td th:text="${item.index}"></td>
-                    <td th:text="${item.time}"></td>
-                    <td class="wrap client-name" th:text="${item.clientName}"></td>
-                    <td th:text="${item.details}"></td>
-                    <td class="text-right" th:text="${item.amount}"></td>
-                    <td class="text-center status-sync" th:text="${item.status}"></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Tontine Members Table -->
-    <div class="table-section" th:if="${!#lists.isEmpty(report.tontineMembers)}">
-        <h3>Membres Tontine</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Heure</th>
-                    <th>Nom</th>
-                    <th>Détails</th>
-                    <th class="text-right">Contribution</th>
-                    <th class="text-center">Statut</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="item : ${report.tontineMembers}">
-                    <td th:text="${item.index}"></td>
-                    <td th:text="${item.time}"></td>
-                    <td class="wrap client-name" th:text="${item.clientName}"></td>
-                    <td th:text="${item.details}"></td>
-                    <td class="text-right" th:text="${item.amount}"></td>
-                    <td class="text-center status-sync" th:text="${item.status}"></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Tontine Collections Table -->
-    <div class="table-section" th:if="${!#lists.isEmpty(report.tontineCollections)}">
-        <h3>Collectes Tontine</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Heure</th>
-                    <th>Membre</th>
-                    <th>Détails</th>
-                    <th class="text-right">Montant</th>
-                    <th class="text-center">Statut</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="item : ${report.tontineCollections}">
-                    <td th:text="${item.index}"></td>
-                    <td th:text="${item.time}"></td>
-                    <td class="wrap client-name" th:text="${item.clientName}"></td>
-                    <td th:text="${item.details}"></td>
-                    <td class="text-right" th:text="${item.amount}"></td>
-                    <td class="text-center status-sync" th:text="${item.status}"></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Tontine Deliveries Table -->
-    <div class="table-section" th:if="${!#lists.isEmpty(report.tontineDeliveries)}">
-        <h3>Livraisons Tontine</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Heure</th>
-                    <th>Membre</th>
-                    <th>Détails</th>
-                    <th class="text-right">Montant</th>
-                    <th class="text-center">Statut</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="item : ${report.tontineDeliveries}">
-                    <td th:text="${item.index}"></td>
-                    <td th:text="${item.time}"></td>
-                    <td class="wrap client-name" th:text="${item.clientName}"></td>
-                    <td th:text="${item.details}"></td>
-                    <td class="text-right" th:text="${item.amount}"></td>
-                    <td class="text-center status-sync" th:text="${item.status}"></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="footer">
-        <p>Document généré le <span th:text="${report.generationDate}"></span></p>
-        <p>&copy; ELYKIA - Tous droits réservés</p>
-    </div>
+    <!-- Signatures -->
+    <table role="presentation" class="signs avoid">
+        <tr>
+            <td><div class="lbl">Signature du commercial</div><div class="sign-line"></div></td>
+            <td><div class="lbl">Signature du gestionnaire</div><div class="sign-line"></div></td>
+        </tr>
+    </table>
+</div>
 </body>
 </html>
