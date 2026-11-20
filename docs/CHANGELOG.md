@@ -485,6 +485,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.41.5] — 2026-11-20
+
+### Changed
+
+- **Qualité (SonarCloud) —** les deux requêtes de vues membre tontine (par session, par année) partagent désormais une seule méthode (`queryMemberViewsPage`) au lieu de deux copies. La requête par année renvoie aussi l'indicateur de commande, comme la requête par session. L'échec de journalisation de `refreshSessionFromServerIfOnline` est explicitement ignoré (`void`).
+
 ## Mobile — [2.41.4] — 2026-11-20
 
 ### Fixed

@@ -4,7 +4,7 @@ Arrêt au **2026-11-20** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de
 
 ## Versions en tête
 
-- Frontend **2.56.1** — Backend **1.57.5** — Mobile **2.41.4** — Espace client **0.17.4** (dernier incrément espace client : 2026-11-20).
+- Frontend **2.56.1** — Backend **1.57.5** — Mobile **2.41.5** — Espace client **0.17.4** (dernier incrément espace client : 2026-11-20).
 
 ## Focus récent (changelog et PR)
 

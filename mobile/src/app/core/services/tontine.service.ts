@@ -213,7 +213,7 @@ export class TontineService {
             const session = await firstValueFrom(this.fetchAndSaveSession());
             return !!session;
         } catch (error) {
-            this.log.log('TontineService: session non rafraîchie depuis le serveur, session locale conservée: ' + String(error));
+            void this.log.log('TontineService: session non rafraîchie depuis le serveur, session locale conservée: ' + String(error));
             return false;
         }
     }
