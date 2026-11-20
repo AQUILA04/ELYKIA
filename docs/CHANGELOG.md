@@ -485,6 +485,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.41.4] — 2026-11-20
+
+### Fixed
+
+- **Tontine — relecture de la session sans effet de bord sur l'écran —** à l'ouverture de la création de livraison et de la cotisation, la relecture serveur de la session bloquait l'initialisation de l'écran, puis remplaçait la session affichée même quand le statut n'avait pas changé (source des articles rechargée, panier vidé). Elle s'exécute maintenant en arrière-plan et ne modifie l'écran que si le statut a réellement changé sur le serveur. Corrige l'échec du test E2E S2 (commande puis livraison) sur la CI.
+
 ## Mobile — [2.41.3] — 2026-11-20
 
 ### Fixed

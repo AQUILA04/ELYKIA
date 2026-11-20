@@ -26,7 +26,8 @@ import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-conse
 import { AmountConfirmationService } from 'src/app/features/amount-confirmation/amount-confirmation.service';
 import {
     canRecordDeliveryTontineCollection,
-    canRecordNormalTontineCollection
+    canRecordNormalTontineCollection,
+    normalizeTontineStatus
 } from 'src/app/core/utils/tontine-delivery-status.util';
 
 interface MemberWithClient extends TontineMember {
@@ -79,26 +80,32 @@ export class CollectionRecordingPage implements OnInit, OnDestroy {
     /**
      * Mode hybride : relit la session sur le serveur quand il répond, puis la lit en local.
      * Hors ligne, la session locale reste la référence.
-     * À l'entrée sur la page (`notifyStore`), la session est aussi posée dans le store avant l'abonnement.
+     * À l'entrée sur la page (`notifyStore`), la session est aussi posée dans le store.
+     * Rien n'est modifié si le statut n'a pas changé sur le serveur.
      */
     private async refreshSessionForGate(notifyStore = false): Promise<void> {
+        const before = await firstValueFrom(this.tontineService.getSession());
         const refreshed = await this.tontineService.refreshSessionFromServerIfOnline();
         if (!refreshed) {
             return;
         }
         const fresh = await firstValueFrom(this.tontineService.getSession());
-        if (fresh) {
-            this.session = fresh;
-            if (notifyStore) {
-                this.store.dispatch(TontineActions.loadTontineSessionSuccess({ session: fresh }));
-            }
+        if (!fresh) {
+            return;
+        }
+        if (before && normalizeTontineStatus(before.status) === normalizeTontineStatus(fresh.status)) {
+            return;
+        }
+        this.session = fresh;
+        if (notifyStore) {
+            this.store.dispatch(TontineActions.loadTontineSessionSuccess({ session: fresh }));
         }
     }
 
     async ngOnInit() {
-        // Mode hybride : session relue sur le serveur avant d'appliquer la règle de cotisation.
-        await this.refreshSessionForGate(true);
+        // Session locale d'abord ; en mode hybride, relecture serveur en arrière-plan (sans bloquer l'écran).
         this.store.dispatch(TontineActions.loadTontineSession());
+        void this.refreshSessionForGate(true);
 
         // Get current session
         this.store.select(selectTontineSession)

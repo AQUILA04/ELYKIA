@@ -188,9 +188,10 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return;
         }
 
-        // Mode hybride : session relue sur le serveur quand il répond, puis même source locale que la fiche membre.
-        await this.refreshSessionForGate(true);
+        // Même source locale que la fiche membre ; puis, en mode hybride, relecture serveur en arrière-plan
+        // (sans bloquer l'écran, et sans effet si le statut n'a pas changé).
         this.store.dispatch(TontineActions.loadTontineSession());
+        void this.refreshSessionForGate(true);
 
         this.store.select(selectTontineSession)
             .pipe(takeUntil(this.destroy$))
@@ -710,18 +711,25 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
      * Mode hybride : contrôle la session sur le serveur quand il répond, avant les règles de session.
      * Hors ligne, la session locale reste la référence. `notifyStore` n'est utilisé qu'à l'entrée sur la page,
      * pour ne pas relancer la source des articles pendant un enregistrement.
+     * L'écran n'est touché que si le statut a réellement changé sur le serveur : sinon la source des articles
+     * et le panier en cours restent tels quels.
      */
     private async refreshSessionForGate(notifyStore = false): Promise<void> {
+        const before = await firstValueFrom(this.tontineService.getSession());
         const refreshed = await this.tontineService.refreshSessionFromServerIfOnline();
         if (!refreshed) {
             return;
         }
         const fresh = await firstValueFrom(this.tontineService.getSession());
-        if (fresh) {
-            this.vm.session = fresh;
-            if (notifyStore) {
-                this.store.dispatch(TontineActions.loadTontineSessionSuccess({ session: fresh }));
-            }
+        if (!fresh) {
+            return;
+        }
+        if (before && normalizeTontineStatus(before.status) === normalizeTontineStatus(fresh.status)) {
+            return;
+        }
+        this.vm.session = fresh;
+        if (notifyStore) {
+            this.store.dispatch(TontineActions.loadTontineSessionSuccess({ session: fresh }));
         }
     }
 
