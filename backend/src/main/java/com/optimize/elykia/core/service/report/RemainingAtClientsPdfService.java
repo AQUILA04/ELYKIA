@@ -49,7 +49,8 @@ public class RemainingAtClientsPdfService {
         PdfDocumentIdentity.applyTo(context, DOCUMENT_TITLE);
         context.setVariable("doc", dto);
         String html = templateEngine.process("remaining-at-clients-export", context);
-        return pdfHtmlRenderer.htmlToPdf(html, PdfDocumentIdentity.footerLabel(DOCUMENT_TITLE));
+        return pdfHtmlRenderer.htmlToPdf(html, PdfDocumentIdentity.footerLabel(DOCUMENT_TITLE),
+                PdfHtmlRenderer.FooterStyle.MODERN);
     }
 
     RemainingAtClientsExportPdfDto buildDto(

@@ -1,74 +1,138 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8"/>
-    <title th:text="${pdfDocumentTitle}">Rapport de Stock Commercial</title>
-    <th:block th:replace="~{pdf/fragments :: styles}"></th:block>
+    <title th:text="${pdfDocumentTitle}">Stock commercial mensuel</title>
+    <th:block th:replace="~{pdf/report-fragments :: styles}"></th:block>
 </head>
 <body>
-    <div th:replace="~{pdf/fragments :: header}"></div>
+<div th:replace="~{pdf/report-fragments :: header(${pdfDocumentTitle}, ${context.collector} + ' · ' + ${context.periodLabel})}"></div>
 
-    <table class="pdf-meta">
+<div class="page">
+    <table role="presentation" class="cards">
         <tr>
             <td>
-                <span class="pdf-meta-label">Période</span>
-                <span class="pdf-meta-value"
-                      th:text="${context.startDate + ' au ' + context.endDate}">2026-08-01 au 2026-08-31</span>
+                <div class="lbl">Commercial</div>
+                <div class="val" th:text="${context.collector}">COM012</div>
+                <div class="sub"><span th:text="${#lists.size(context.items)}">0</span> article(s) pris</div>
             </td>
             <td>
-                <span class="pdf-meta-label">Commercial</span>
-                <span class="pdf-meta-value" th:text="${context.collector}">COM001</span>
+                <div class="lbl">Période</div>
+                <div class="val" th:text="${context.periodRange}">01/11/2026 → 30/11/2026</div>
+                <div class="sub">Généré le <span th:text="${context.generationDate}">20/11/2026</span></div>
             </td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                <span class="pdf-meta-label">Date de génération</span>
-                <span class="pdf-meta-value" th:text="${context.generationDate}">13/08/2026 18:00</span>
+            <td>
+                <div class="lbl">Écoulement</div>
+                <div class="val" th:text="${#numbers.formatDecimal(context.soldRate, 1, 0)} + ' % vendu'">99 % vendu</div>
+                <div class="sub" th:text="${context.itemsWithRemaining} + ' article(s) avec un reste'">1 article avec un reste</div>
             </td>
         </tr>
     </table>
 
-    <div th:if="${#lists.isEmpty(context.items)}" class="pdf-empty">
-        Aucune donnée trouvée pour cette période.
-    </div>
+    <!-- Flux marchandise -->
+    <table role="presentation" class="sec"><tr><td class="sec-title">Marchandise</td><td class="sec-hint">Quantités</td></tr></table>
+    <table role="presentation" class="eq avoid">
+        <tr>
+            <td class="term"><div class="lbl">Pris</div><div class="eq-val" th:text="${context.totalTaken}">0</div></td>
+            <td class="op">=</td>
+            <td class="term"><div class="lbl">Vendu</div><div class="eq-val" th:text="${context.totalSold}">0</div></td>
+            <td class="op">+</td>
+            <td class="term"><div class="lbl">Retourné</div><div class="eq-val" th:text="${context.totalReturned}">0</div></td>
+            <td class="op">+</td>
+            <td class="term"><div class="lbl">En dette</div><div class="eq-val" th:text="${context.totalDebtQuantity}">0</div></td>
+            <td class="op">+</td>
+            <td class="term" th:classappend="${context.totalRemaining > 0} ? 'late' : 'ok'">
+                <div class="lbl">Restant</div><div class="eq-val" th:text="${context.totalRemaining}">0</div>
+            </td>
+        </tr>
+    </table>
 
-    <table th:if="${!#lists.isEmpty(context.items)}" class="data-table">
+    <!-- Flux argent (valeurs : réservées aux profils autorisés à voir les prix) -->
+    <th:block th:if="${showUnitPrice != false}">
+        <table role="presentation" class="sec"><tr><td class="sec-title">Argent</td><td class="sec-hint">Dû = vendu + dette + restant</td></tr></table>
+        <table role="presentation" class="eq avoid">
+            <tr>
+                <td class="term"><div class="lbl">Vendu</div><div class="eq-val" th:text="${#numbers.formatDecimal(context.totalSoldValue, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
+                <td class="op">+</td>
+                <td class="term"><div class="lbl">Dette</div><div class="eq-val" th:text="${#numbers.formatDecimal(context.totalDebtValue, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
+                <td class="op">+</td>
+                <td class="term"><div class="lbl">Restant</div><div class="eq-val" th:text="${#numbers.formatDecimal(context.totalRemainingValue, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
+                <td class="op">=</td>
+                <td class="term due"><div class="lbl">Total dû</div><div class="eq-val" th:text="${#numbers.formatDecimal(context.dueValue, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
+                <td class="op">−</td>
+                <td class="term ok"><div class="lbl">Recouvré</div><div class="eq-val" th:text="${#numbers.formatDecimal(context.recoveredValue, 1, 'WHITESPACE', 0, 'COMMA')}">0</div></td>
+            </tr>
+        </table>
+        <table role="presentation" class="total avoid">
+            <tr th:class="${context.leftToRecover > 0.01} ? 'total-amber' : 'total-green'">
+                <td class="total-label">
+                    Reste à recouvrer · taux de recouvrement
+                    <span th:text="${#numbers.formatDecimal(context.recoveryRate, 1, 0)} + ' %'">29 %</span>
+                </td>
+                <td class="total-value" th:text="${#numbers.formatDecimal(context.leftToRecover, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'">0 FCFA</td>
+            </tr>
+        </table>
+        <div class="small" style="margin-top: 4px" th:if="${context.totalDebtValue > 0.01}">
+            Dette marchandise : réglée <span class="strong" th:text="${#numbers.formatDecimal(context.debtSettled, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'">0</span>,
+            reste à payer <span class="strong" th:text="${#numbers.formatDecimal(context.debtRemaining, 1, 'WHITESPACE', 0, 'COMMA')} + ' FCFA'">0</span>.
+        </div>
+    </th:block>
+
+    <!-- Articles -->
+    <table role="presentation" class="sec"><tr><td class="sec-title">Articles</td><td class="sec-hint">Les restes sont en ambre</td></tr></table>
+    <div class="empty" th:if="${#lists.isEmpty(context.items)}">Aucun article pris sur ce mois.</div>
+    <table class="data" th:if="${!#lists.isEmpty(context.items)}">
+        <colgroup th:if="${showUnitPrice != false}">
+            <col style="width: 30%"/><col style="width: 10%"/><col style="width: 7%"/><col style="width: 7%"/><col style="width: 8%"/><col style="width: 7%"/><col style="width: 7%"/><col style="width: 12%"/><col style="width: 12%"/>
+        </colgroup>
         <thead>
         <tr>
-            <th>Article</th>
-            <th th:if="${showUnitPrice != false}">Prix Unitaire</th>
-            <th>Pris (Magasin)</th>
-            <th>Vendu (Clients)</th>
-            <th>Retourné</th>
-            <th>Restant</th>
-            <th th:if="${showUnitPrice != false}">Valeur Vendue</th>
-            <th th:if="${showUnitPrice != false}">Valeur Restante</th>
+            <th class="first">Article</th>
+            <th class="r" th:if="${showUnitPrice != false}">PMP</th>
+            <th class="c">Pris</th>
+            <th class="c">Vendu</th>
+            <th class="c">Retourné</th>
+            <th class="c">Dette</th>
+            <th class="c" th:classappend="${showUnitPrice != false} ? '' : 'last'">Restant</th>
+            <th class="r" th:if="${showUnitPrice != false}">Valeur vendue</th>
+            <th class="r last" th:if="${showUnitPrice != false}">Valeur restante</th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="item : ${context.items}">
-            <td th:text="${item.articleName}">Article</td>
-            <td th:if="${showUnitPrice != false}" th:text="${item.unitPrice}">0</td>
-            <td th:text="${item.quantityTaken}">0</td>
-            <td th:text="${item.quantitySold}">0</td>
-            <td th:text="${item.quantityReturned}">0</td>
-            <td th:text="${item.quantityRemaining}">0</td>
-            <td th:if="${showUnitPrice != false}" th:text="${item.soldValue}">0</td>
-            <td th:if="${showUnitPrice != false}" th:text="${item.remainingValue}">0</td>
-        </tr>
-        <tr>
-            <td><strong>Totaux</strong></td>
-            <td th:if="${showUnitPrice != false}"></td>
-            <td th:text="${context.totalTaken}">0</td>
-            <td th:text="${context.totalSold}">0</td>
-            <td th:text="${context.totalReturned}">0</td>
-            <td th:text="${context.totalRemaining}">0</td>
-            <td th:if="${showUnitPrice != false}" th:text="${context.totalSoldValue}">0</td>
-            <td th:if="${showUnitPrice != false}" th:text="${context.totalRemainingValue}">0</td>
+            <td class="strong" th:text="${item.articleName}">Article</td>
+            <td class="r" th:if="${showUnitPrice != false}" th:text="${#numbers.formatDecimal(item.unitPrice, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
+            <td class="c" th:text="${item.quantityTaken}">0</td>
+            <td class="c" th:text="${item.quantitySold}">0</td>
+            <td class="c" th:text="${item.quantityReturned}">0</td>
+            <td class="c" th:text="${item.quantityDebt}">0</td>
+            <td class="c" th:classappend="${item.quantityRemaining > 0} ? 'neg' : 'muted'" th:text="${item.quantityRemaining}">0</td>
+            <td class="r" th:if="${showUnitPrice != false}" th:text="${#numbers.formatDecimal(item.soldValue, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
+            <td class="r" th:if="${showUnitPrice != false}" th:classappend="${item.quantityRemaining > 0} ? 'neg' : 'muted'"
+                th:text="${#numbers.formatDecimal(item.remainingValue, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
         </tr>
         </tbody>
+        <tfoot>
+        <tr>
+            <td>Total</td>
+            <td th:if="${showUnitPrice != false}"></td>
+            <td class="c" th:text="${context.totalTaken}">0</td>
+            <td class="c" th:text="${context.totalSold}">0</td>
+            <td class="c" th:text="${context.totalReturned}">0</td>
+            <td class="c" th:text="${context.totalDebtQuantity}">0</td>
+            <td class="c" th:text="${context.totalRemaining}">0</td>
+            <td class="r" th:if="${showUnitPrice != false}" th:text="${#numbers.formatDecimal(context.totalSoldValue, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
+            <td class="r" th:if="${showUnitPrice != false}" th:text="${#numbers.formatDecimal(context.totalRemainingValue, 1, 'WHITESPACE', 0, 'COMMA')}">0</td>
+        </tr>
+        </tfoot>
     </table>
-    <p th:if="${showUnitPrice == false}"><strong>Valeur vendue totale : </strong><span th:text="${context.totalSoldValue}">0</span></p>
-    <p th:if="${showUnitPrice == false}"><strong>Valeur restante totale : </strong><span th:text="${context.totalRemainingValue}">0</span></p>
+
+    <table role="presentation" class="signs avoid">
+        <tr>
+            <td><div class="lbl">Signature du commercial</div><div class="sign-line"></div></td>
+            <td><div class="lbl">Signature du gestionnaire</div><div class="sign-line"></div></td>
+        </tr>
+    </table>
+</div>
 </body>
 </html>

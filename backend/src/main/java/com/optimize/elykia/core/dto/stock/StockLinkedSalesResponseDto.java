@@ -15,6 +15,12 @@ public class StockLinkedSalesResponseDto {
     double stockSoldValue;
     double sumCreditTotalAmount;
     double sumSoldValueOnStock;
+    double sumPaidAmount;
+    double sumRemainingAmount;
+    /** Vrai si le stock vendu correspond à la somme imputée par les ventes (à 1 F près). */
+    boolean consistent;
+    /** Stock vendu − somme imputée par les ventes (0 si concordant). */
+    double gapAmount;
     int salesCount;
     List<StockLinkedSaleDto> sales;
 }

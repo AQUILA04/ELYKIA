@@ -29,7 +29,8 @@
 
 @keyframes reportV2FadeUp {
   from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  // « none » : un transform résiduel ferait de la page le repère des éléments fixed (visite guidée).
+  to { opacity: 1; transform: none; }
 }
 
 .report-v2.a1 { animation: reportV2FadeUp .3s ease both; }

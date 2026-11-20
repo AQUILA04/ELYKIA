@@ -135,6 +135,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - **Ventes comptant —** le prix unitaire et le montant de ligne suivent le nouveau paramètre **RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY** : saisie de la vente, reçu à l'écran et imprimé, fiche de la vente et achats d'un client. Les ventes à crédit, les livraisons tontine et les autres écrans restent sur **RESTRICT_UNIT_PRICE_VISIBILITY**. Le gestionnaire et les administrateurs voient toujours les prix.
 - Les directives `*appIfUnitPrice` et `*appIfNoUnitPrice` acceptent le type de la vente (`*appIfUnitPrice="credit.type"`). Sans valeur, elles suivent le paramètre général.
 
+## Frontend — [2.53.1] — 2026-11-20
+
+### Fixed
+
+- **Visite guidée du rapport commerciaux —** le projecteur et la bulle étaient décalés, parfois hors de l'écran, au point de bloquer la visite. L'animation d'entrée des pages laissait un `transform` sur le conteneur, qui servait alors de repère aux éléments `position: fixed`. La visite est maintenant rattachée à `<body>`, l'animation se termine sans `transform`, et la bulle est placée d'après sa hauteur réelle (sous la zone, sinon au-dessus, sinon en bas de l'écran). Test en navigateur : projecteur exactement sur la cible malgré un parent transformé.
+- **Journal —** libellé « Vente annulée » pour le type `CREDIT_SALE_CANCEL`.
+
 ## Frontend — [2.53.0] — 2026-11-20
 
 ### Added
@@ -602,11 +609,30 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
-## Backend — [1.56.2] — 2026-11-20
+## Backend — [1.57.1] — 2026-11-20
 
 ### Fixed
 
 - **Commande tontine —** `createDelivery` accepte une session ouverte ou clôturée (refus seulement si la session est terminée) : la commande n'est plus bloquée par « session clôturée ». La livraison directe et la remise restent réservées à la session clôturée.
+
+## Backend — [1.57.0] — 2026-11-20
+
+### Added
+
+- **Stock commercial — vue équipe —** `GET /api/commercial-stocks/team-overview?year&month` : une ligne par commercial (quantités et valeurs prises, vendues, retournées, restantes, dette, total dû, recouvré, reste à recouvrer, taux, part écoulée, dette marchandise et statut, « à régulariser ») et les totaux de l'équipe. Les stocks du mois et leurs dettes sont chargés en deux requêtes ; le recouvrement reprend le calcul existant de l'écran stock.
+- **Stock commercial — à régulariser —** `GET /api/commercial-stocks/to-settle` : mois clôturés dont le reste n'est ni retourné ni transformé en dette, valorisés comme la future dette marchandise (PMP de vente arrondi).
+- **Ventes liées d'un stock —** montant payé et reste dû par crédit, totaux, et contrôle de concordance « stock vendu = ventes imputées » (`consistent`, `gapAmount`).
+
+### Changed
+
+- **PDF « Stock commercial mensuel » —** design system documents (flux marchandise et argent, articles, signatures, pied de page « Page n/N » clair). Les valeurs restent masquées pour les profils sans accès aux prix.
+- Règle de recouvrement d'un stock (ventes recouvrées + dette réglée) factorisée en une seule méthode, utilisée par l'écran stock et la vue équipe.
+
+### Fixed
+
+- **Accès —** un commercial n'accède qu'à son propre stock mensuel sur tous les endpoints `api/commercial-stocks` (stock d'un mois, articles disponibles, ventes liées, vue équipe, à régulariser).
+- **Clôture de fin de mois —** le traitement du 1er du mois clôturait les stocks du mois qui commence (`LocalDate.now()`) au lieu du mois rapporté.
+- **PDF stock —** le « restant » d'un article ne retirait pas la quantité mise en dette (pris − vendu − retourné) : un reste déjà transformé en dette apparaissait encore comme restant.
 
 ## Backend — [1.56.1] — 2026-11-20
 
@@ -624,6 +650,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Note de déploiement
 
 - Les deux nouveaux paramètres démarrent à `true`, quelle que soit la valeur de **RESTRICT_UNIT_PRICE_VISIBILITY**. Si celui-ci est à `false` en production, passez aussi les nouveaux à `false` dans **Paramètres généraux** pour garder l'affichage actuel.
+
+## Backend — [1.55.1] — 2026-11-20
+
+### Changed
+
+- **PDF du rapport commerciaux —** le rapport commercial (fiche), le journal des opérations et « Reste chez les clients » suivent le design system documents (navy `#0a2472`, bande de marque, cartes, tableaux, pied de page « Page n/N » clair). Mise en page par tableaux, compatible iText (l'ancienne mise en page en flex était ignorée).
+- **Rapport commercial (PDF) —** affiche le rapprochement de l'écran (crédit + tontine + solde Nx + rattrapages = dû, moins versé, reste à verser), calculé par le même service que la fiche ; activité en trois blocs, détail des opérations par type, signatures commercial et gestionnaire.
+- **Journal (PDF) —** totaux par type et libellés en français (au lieu des codes `CASH_DEPOSIT`…), ordre chronologique, total en pied de tableau.
+- `PdfHtmlRenderer` accepte un style de pied de page `MODERN` ; les autres PDF gardent le pied de page navy.
 
 ## Backend — [1.55.0] — 2026-11-19
 

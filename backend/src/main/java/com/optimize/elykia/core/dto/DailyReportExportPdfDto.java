@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.util.List;
 
+/** Données du PDF « Rapport commercial » (fiche commercial du nouveau rapport). */
 @Data
 @Builder
 public class DailyReportExportPdfDto {
@@ -12,9 +13,27 @@ public class DailyReportExportPdfDto {
     private String companyName;
     private String startDate;
     private String endDate;
+    private String periodLabel;
     private String commercialUsername;
     private String generationDate;
 
+    /** Situation : libellé et classe de pastille (pill-green, pill-amber…). */
+    private String statusLabel;
+    private String statusClass;
+
+    // Rapprochement (mêmes règles que le cockpit).
+    private double creditToDeposit;
+    private double tontineToDeposit;
+    private double newBalanceToDeposit;
+    private double catchupEntered;
+    private double cashDue;
+    private double deposited;
+    private double surplus;
+    private double remaining;
+    private double historicalRemaining;
+    private long operationsCount;
+
+    // Activité.
     private int distributionCount;
     private double distributionAmount;
     private int recoveryCount;
@@ -33,12 +52,17 @@ public class DailyReportExportPdfDto {
     private double tontineCatchupAmount;
     private double totalToPay;
 
-    private List<ItemRow> distributions;
-    private List<ItemRow> recoveries;
-    private List<ItemRow> newClients;
-    private List<ItemRow> tontineMembers;
-    private List<ItemRow> tontineCollections;
-    private List<ItemRow> tontineDeliveries;
+    /** Détail des opérations, une section par type non vide. */
+    private List<Section> sections;
+
+    @Data
+    @Builder
+    public static class Section {
+        private String title;
+        private String total;
+        private boolean showExtra;
+        private List<ItemRow> rows;
+    }
 
     @Data
     @Builder

@@ -23,20 +23,23 @@ public class CommercialMonthlyStockCloseExecutor {
     @Autowired
     private CommercialMonthlyStockCloseExecutor self;
 
-    public void closeAllCurrentMonthStocksSafely() {
+    /**
+     * Clôture les stocks du mois rapporté. Le traitement tourne le 1er du mois suivant :
+     * utiliser la date du jour clôturerait le mois qui commence au lieu de celui qui se termine.
+     */
+    public void closeMonthStocksSafely(int year, int month) {
         try {
-            LocalDate now = LocalDate.now();
-            aggregationService.listActiveCommercials(now.getYear(), now.getMonthValue())
-                    .forEach(username -> self.closeSafely(username));
+            aggregationService.listActiveCommercials(year, month)
+                    .forEach(username -> self.closeSafely(username, year, month));
         } catch (Exception exception) {
-            log.warn("Impossible de clôturer certains stocks mensuels: {}", exception.getMessage());
+            log.warn("Impossible de clôturer certains stocks mensuels {}/{}: {}", month, year, exception.getMessage());
         }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void closeSafely(String collector) {
+    public void closeSafely(String collector, int year, int month) {
         try {
-            monthlyStockService.closeCurrentMonthStock(collector);
+            monthlyStockService.closeMonthStock(collector, year, month);
         } catch (Exception ignored) {
             // Stock déjà clôturé ou inexistant pour ce commercial
         }

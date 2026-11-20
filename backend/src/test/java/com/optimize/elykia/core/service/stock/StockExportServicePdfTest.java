@@ -110,7 +110,7 @@ class StockExportServicePdfTest {
         ArgumentCaptor<Context> contextCaptor = ArgumentCaptor.forClass(Context.class);
         verify(templateEngine).process(eq("commercial-stock-dashboard-export"), contextCaptor.capture());
         Context ctx = contextCaptor.getValue();
-        assertThat(ctx.getVariable("pdfDocumentTitle")).isEqualTo("Rapport de Stock Commercial");
+        assertThat(ctx.getVariable("pdfDocumentTitle")).isEqualTo("Stock commercial mensuel");
         Object contextVar = ctx.getVariable("context");
         assertThat(contextVar).isNotNull();
         var dto = (com.optimize.elykia.core.dto.StockDashboardExportPdfContextDto) contextVar;
