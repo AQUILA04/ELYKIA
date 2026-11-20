@@ -82,6 +82,15 @@ describe('tontine-delivery-status.util', () => {
     expect(picked?.status).toBe('VALIDATED');
   });
 
+  it('prefers the delivered row over a PENDING twin left behind', () => {
+    const picked = pickMemberTontineDelivery([
+      { id: 'local-uuid', status: 'PENDING', requestDate: '2026-04-02' },
+      { id: '42', status: 'DELIVERED', requestDate: '2026-04-01' }
+    ], 'DELIVERED');
+    expect(picked?.id).toBe('42');
+    expect(picked?.status).toBe('DELIVERED');
+  });
+
   it('does not treat a cancelled delivery as blocking when the member status is stale', () => {
     expect(pickMemberTontineDelivery(
       [{ id: 'gone', status: 'CANCELLED', requestDate: '2026-01-01' }],

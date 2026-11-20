@@ -485,6 +485,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.41.7] — 2026-11-20
+
+### Fixed
+
+- **Tontine — fiche membre →** après une remise, l'option **Marquer comme livré** n'est plus proposée dans le menu ⋮ ni sous la commande. Cause : quand une commande encore locale était livrée en ligne, le serveur la créait sous son propre identifiant ; le téléphone enregistrait la ligne livrée sous ce nouvel identifiant mais gardait l'ancienne ligne locale en `PENDING`, et la fiche pouvait retenir cette dernière. La ligne locale est maintenant supprimée (`deleteLocalTwin`), une livraison effectuée l'emporte toujours sur une ligne `PENDING` restée à côté, et un membre au statut `DELIVERED` n'a plus de remise proposée.
+
 ## Mobile — [2.41.6] — 2026-11-20
 
 ### Fixed

@@ -323,6 +323,10 @@ export class TontineWriteService {
     }
 
     await this.deliveryRepository.saveAll([persisted]);
+    if (persisted.id !== delivery.id) {
+      // La livraison est enregistrée sous l'ID serveur : retirer la ligne locale restée en PENDING.
+      await this.deliveryRepository.deleteLocalTwin(delivery.id);
+    }
     if (alreadySynced && !online) {
       await this.deliveryRepository.updateDeliveryStatusFields(persisted.id, {
         status: 'DELIVERED',
