@@ -110,6 +110,22 @@ describe('MemberDetailPage delivery menu', () => {
     expect(page.canEditPendingOrder()).toBeFalse();
   });
 
+  it('no longer offers Marquer comme livré once the member is delivered', async () => {
+    const { page } = create({
+      members: [{ id: 'm2', clientId: 'c1', deliveryStatus: 'DELIVERED' }],
+      deliveries: [
+        { id: 'local-uuid', status: 'PENDING', requestDate: '2026-04-01', items: [{ id: 'i1', quantity: 1 }] },
+        { id: '42', status: 'DELIVERED', requestDate: '2026-04-01', items: [{ id: 'i2', quantity: 1 }] }
+      ]
+    });
+    await page.loadMemberData();
+    page.sessionStatus = 'CLOSED';
+    expect(page.vm.delivery?.id).toBe('42');
+    expect(page.hasPendingDeliveryToMark()).toBeFalse();
+    expect(page.canMarkAsDelivered()).toBeFalse();
+    expect(page.canEditPendingOrder()).toBeFalse();
+  });
+
   it('does not offer Modifier la commande when the order has no items to edit', async () => {
     const { page } = create({
       deliveries: [{ id: 'order', status: 'PENDING', requestDate: '2026-04-01', items: [] }]

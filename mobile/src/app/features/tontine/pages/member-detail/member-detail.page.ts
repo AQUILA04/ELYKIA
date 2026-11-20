@@ -28,6 +28,7 @@ import {
     canRecordNormalTontineCollection,
     getTontineDeliveryStatusLabel,
     isTontineDeliveryOrder,
+    normalizeTontineStatus,
     pickMemberTontineDelivery,
     tontineDeliveryCreationMenuLabel
 } from 'src/app/core/utils/tontine-delivery-status.util';
@@ -312,8 +313,14 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         return getTontineDeliveryStatusLabel(status);
     }
 
-    /** Commande en attente de remise physique (indépendamment de la session). */
+    /**
+     * Commande en attente de remise physique (indépendamment de la session).
+     * Un membre déjà livré n'a plus rien à remettre, même si une ligne locale est restée en PENDING.
+     */
     hasPendingDeliveryToMark(): boolean {
+        if (normalizeTontineStatus(this.vm.member?.deliveryStatus) === 'DELIVERED') {
+            return false;
+        }
         return !!this.vm.delivery && canMarkTontineDeliveryAsDelivered(this.vm.delivery.status);
     }
 

@@ -612,6 +612,8 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await loginAsGestionnaire(page);
     await page.getByTestId('e2e-sidebar-stock-commercial').click();
     await page.getByTestId('e2e-sidebar-stock-my-stock').click();
+    // La vue équipe n'a pas de sélecteur de commercial : on passe par l'ancienne présentation.
+    await page.getByTestId('e2e-stock-team-classic-link').click();
     await page.getByTestId('e2e-stock-channel-tontine').click();
     await selectNgSelectOption(page, 'e2e-tontine-my-stock-agent-select', TEST_COMMERCIAL_USERNAME);
 

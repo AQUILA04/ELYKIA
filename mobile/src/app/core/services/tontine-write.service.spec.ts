@@ -57,7 +57,8 @@ describe('TontineWriteService', () => {
           saveIdMapping: jasmine.createSpy('saveIdMapping').and.resolveTo(),
           updateDeliveryStatusFields: jasmine.createSpy('updateDeliveryStatusFields').and.resolveTo(),
           getItems: jasmine.createSpy('getItems').and.resolveTo([]),
-          getServerId: jasmine.createSpy('getServerId').and.resolveTo(null)
+          getServerId: jasmine.createSpy('getServerId').and.resolveTo(null),
+          deleteLocalTwin: jasmine.createSpy('deleteLocalTwin').and.resolveTo()
         } },
         { provide: TontineStockRepository, useValue: { updateQuantities: jasmine.createSpy('updateQuantities').and.resolveTo() } },
         { provide: TontineMemberSyncService, useValue: {} },
@@ -224,6 +225,51 @@ describe('TontineWriteService', () => {
     expect(saved.totalAmount).toBe(35000);
     expect(deliveryRepo.saveAll).not.toHaveBeenCalled();
     expect(memberRepo.saveAll).toHaveBeenCalledWith([jasmine.objectContaining({ deliveryStatus: 'PENDING' })]);
+  });
+
+  it('removes the local PENDING row when an unsynced order is delivered online', async () => {
+    const deliveryRepo = TestBed.inject(TontineDeliveryRepository) as any;
+    const syncService = TestBed.inject(TontineDeliverySyncService) as any;
+    coordinator.executeWrite.and.callFake(async (options) => ({
+      data: await options.saveOnline(),
+      mode: 'online' as const
+    }));
+    syncService.postCreateDelivery.and.resolveTo({ id: 42, reference: 'TL-1' });
+
+    const saved = await service.markDeliveryAsDelivered({
+      delivery: {
+        id: 'local-uuid',
+        tontineMemberId: 'm1',
+        status: 'PENDING',
+        isLocal: true,
+        isSync: false,
+        items: [{ id: 'i1', articleId: 'a1', quantity: 1 }]
+      } as any,
+      member: { id: 'm1', deliveryStatus: 'PENDING' } as any,
+      stockUpdates: []
+    });
+
+    expect(saved.id).toBe('42');
+    expect(deliveryRepo.saveAll).toHaveBeenCalledWith([jasmine.objectContaining({ id: '42', status: 'DELIVERED' })]);
+    expect(deliveryRepo.deleteLocalTwin).toHaveBeenCalledWith('local-uuid');
+  });
+
+  it('keeps the row when a synced order is delivered online under the same id', async () => {
+    const deliveryRepo = TestBed.inject(TontineDeliveryRepository) as any;
+    const syncService = TestBed.inject(TontineDeliverySyncService) as any;
+    coordinator.executeWrite.and.callFake(async (options) => ({
+      data: await options.saveOnline(),
+      mode: 'online' as const
+    }));
+    syncService.postMarkDelivered.and.resolveTo({ id: 55 });
+
+    await service.markDeliveryAsDelivered({
+      delivery: { id: '55', tontineMemberId: 'm1', status: 'PENDING', isSync: true, isLocal: false, items: [] } as any,
+      member: { id: 'm1' } as any,
+      stockUpdates: []
+    });
+
+    expect(deliveryRepo.deleteLocalTwin).not.toHaveBeenCalled();
   });
 
   it('marks a synced order as delivered offline with needsDeliverSync', async () => {
