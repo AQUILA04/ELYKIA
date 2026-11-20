@@ -45,7 +45,8 @@ export class OnlineFirstWriteCoordinator {
           if (this.isBusinessError(error)) {
             throw new OnlineWriteError(
               WriteErrorKind.BUSINESS,
-              this.extractErrorMessage(error)
+              this.extractErrorMessage(error),
+              error instanceof HttpErrorResponse ? error.status : (error as OnlineWriteError).status
             );
           }
           void this.log.log(

@@ -8,9 +8,11 @@ import com.optimize.elykia.core.dto.ValidateTontineDeliveriesDto;
 import com.optimize.elykia.core.dto.UpdateDeliveryItemsDto;
 import com.optimize.elykia.core.dto.ElasticSearchWrapper;
 import com.optimize.elykia.core.dto.TontineDeliveryDto;
+import com.optimize.elykia.core.enumaration.TontineDeliveryConflictOutcome;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryWebService;
 import com.optimize.elykia.core.service.tontine.TontineOrderReceiptPdfService;
+import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryConflictService;
 import com.optimize.elykia.core.util.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -43,6 +45,7 @@ public class TontineDeliveryController {
     private final TontineDeliveryService deliveryService;
     private final TontineDeliveryWebService deliveryWebService;
     private final TontineOrderReceiptPdfService orderReceiptPdfService;
+    private final TontineDeliveryConflictService conflictService;
 
     @PostMapping
     //@PreAuthorize("hasAnyRole('ROLE_EDIT_TONTINE', 'ROLE_ADMIN', 'ROLE_GESTIONNAIRE')")
@@ -224,6 +227,20 @@ public class TontineDeliveryController {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(deliveryWebService.elasticsearch(
                         wrapper.getKeyword(), startDateTime, endDateTime, commercial, pageable)),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/conflicts")
+    @PreAuthorize("hasAnyAuthority('" + UserPermissionConstant.ADMIN + "', '" + UserPermissionConstant.DEL_TONTINE + "')")
+    @Operation(summary = "Journal des doublons : secondes commandes ou livraisons saisies pour un même membre (fusionnées ou refusées)")
+    public ResponseEntity<Response> getConflicts(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(required = false) String commercial,
+            @RequestParam(required = false) TontineDeliveryConflictOutcome outcome,
+            Pageable pageable) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(conflictService.search(dateFrom, dateTo, commercial, outcome, pageable)),
                 HttpStatus.OK);
     }
 

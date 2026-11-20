@@ -11,6 +11,7 @@ import {
   PaginatedResponse,
 } from '../types/tontine.types';
 import { TontineDeliveryListItem } from '../models/tontine-delivery-list.model';
+import { TontineDeliveryConflict, TontineDeliveryConflictOutcome } from '../models/tontine-delivery-conflict.model';
 
 export interface TontineReceiptLine {
   designation: string;
@@ -127,6 +128,31 @@ export class TontineDeliveryService {
     }
 
     return this.http.get<ApiResponse<PaginatedResponse<TontineDeliveryListItem>>>(`${this.apiUrl}/list`, { headers, params })
+      .pipe(catchError(this.handleError));
+  }
+
+  /** Journal des doublons : secondes commandes ou livraisons saisies pour un même membre. */
+  getConflicts(
+    dateFrom: string,
+    dateTo: string,
+    commercial?: string | null,
+    outcome?: TontineDeliveryConflictOutcome | null,
+    page: number = 0,
+    size: number = 10
+  ): Observable<ApiResponse<PaginatedResponse<TontineDeliveryConflict>>> {
+    const headers = this.getHeaders();
+    let params = new HttpParams()
+      .set('dateFrom', dateFrom)
+      .set('dateTo', dateTo)
+      .set('page', page.toString())
+      .set('size', size.toString());
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+    if (outcome) {
+      params = params.set('outcome', outcome);
+    }
+    return this.http.get<ApiResponse<PaginatedResponse<TontineDeliveryConflict>>>(`${this.apiUrl}/conflicts`, { headers, params })
       .pipe(catchError(this.handleError));
   }
 

@@ -180,6 +180,10 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
 
         const items = delivery.items || await this.repository.getItems(delivery.id);
         const syncedDelivery = await this.postCreateDelivery(delivery, items);
+        if (syncedDelivery.mergedIntoExisting) {
+            await this.applyMergedOrder(delivery, syncedDelivery);
+            return syncedDelivery;
+        }
         await this.repository.saveIdMapping(delivery.id, syncedDelivery.id.toString(), 'tontine-delivery');
         await this.repository.markAsSynced(delivery.id, syncedDelivery.id.toString());
         return syncedDelivery;
@@ -192,6 +196,47 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
         return this.repository.getServerId(delivery.id, 'tontine-delivery');
     }
 
+    /**
+     * Le serveur a ajouté cette commande à celle déjà saisie sur un autre téléphone (même compte).
+     * La ligne locale est remplacée par la commande serveur complète : même ID, total et articles du serveur.
+     */
+    async applyMergedOrder(local: TontineDelivery, response: TontineDeliverySyncResponse): Promise<TontineDelivery> {
+        const serverId = String(response.id);
+        const status = String(response.deliveryStatus || response.status || '').toUpperCase() === 'VALIDATED'
+            ? 'VALIDATED'
+            : 'PENDING';
+        const items: TontineDeliveryItem[] = (response.items || []).map((item, index) => ({
+            id: `tdi-${serverId}-${item.articleId}-${index}`,
+            tontineDeliveryId: serverId,
+            articleId: String(item.articleId),
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            totalPrice: item.totalPrice,
+            articleName: item.articleName
+        }));
+        const merged: TontineDelivery = {
+            ...local,
+            id: serverId,
+            reference: response.reference || local.reference,
+            authenticityCode: response.authenticityCode || local.authenticityCode,
+            requestDate: response.requestDate || local.requestDate,
+            totalAmount: response.totalAmount,
+            status,
+            isLocal: false,
+            isSync: true,
+            needsDeliverSync: false,
+            syncDate: new Date().toISOString(),
+            items
+        };
+        await this.repository.saveIdMapping(local.id, serverId, 'tontine-delivery');
+        await this.repository.saveAll([{ ...merged, items: [] }]);
+        await this.repository.replaceItems(serverId, items, merged.totalAmount);
+        if (local.id !== serverId) {
+            await this.repository.deleteLocalTwin(local.id);
+        }
+        return { ...merged, mergedIntoExisting: true };
+    }
+
     private normalizeSyncResponse(data: any): TontineDeliverySyncResponse {
         return {
             id: data.id,
@@ -202,7 +247,9 @@ export class TontineDeliverySyncService extends BaseSyncService<TontineDelivery,
             status: data.status || data.deliveryStatus,
             requestDate: data.requestDate,
             deliveryDate: data.deliveryDate,
-            deliveryStatus: data.deliveryStatus || data.status
+            deliveryStatus: data.deliveryStatus || data.status,
+            mergedIntoExisting: data.mergedIntoExisting === true,
+            items: Array.isArray(data.items) ? data.items : undefined
         };
     }
 

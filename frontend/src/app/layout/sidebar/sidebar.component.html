@@ -299,6 +299,14 @@
                 <span class="hide-menu">Livraison</span>
               </a>
             </li>
+            <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_ADMIN','ROLE_DEL_TONTINE']">
+              <a class="sidebar-link" routerLink="/tontine/doublons"
+                 data-testid="e2e-sidebar-tontine-doublons"
+                 [ngClass]="{ 'active': isSubRouteActive('/tontine/doublons') }">
+                <span class="material-icons">content_copy</span>
+                <span class="hide-menu">Doublons</span>
+              </a>
+            </li>
             <li class="sidebar-item submenu-item" *ngxPermissionsOnly="['ROLE_CONSULT_TONTINE_COLLECTION_RESET','ROLE_RESET_TONTINE_COLLECTIONS','ROLE_ADMIN']">
               <a class="sidebar-link" routerLink="/tontine/reset-collectes"
                  [ngClass]="{ 'active': isSubRouteActive('/tontine/reset-collectes') }">

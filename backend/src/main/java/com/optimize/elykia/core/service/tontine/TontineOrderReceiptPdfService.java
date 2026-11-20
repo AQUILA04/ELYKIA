@@ -21,6 +21,7 @@ import com.optimize.elykia.core.repository.TontineDeliveryRepository;
 import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
 import com.optimize.elykia.core.service.report.PdfHtmlRenderer;
 import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryConflictService;
 import com.optimize.elykia.core.util.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,6 +47,7 @@ public class TontineOrderReceiptPdfService {
     private static final String EMPTY = "—";
 
     private final TontineDeliveryRepository deliveryRepository;
+    private final TontineDeliveryConflictService conflictService;
     private final UserService userService;
     private final UserRepository userRepository;
     private final TemplateEngine templateEngine;
@@ -72,9 +74,23 @@ public class TontineOrderReceiptPdfService {
             return unknown();
         }
         String code = rawCode.trim().toUpperCase(Locale.ROOT).replace(" ", "");
-        return deliveryRepository.findByAuthenticityCode(code)
+        var direct = deliveryRepository.findByAuthenticityCode(code);
+        if (direct.isPresent()) {
+            return direct.filter(this::canRead)
+                    .map(this::toVerification)
+                    .orElseGet(TontineOrderReceiptPdfService::unknown);
+        }
+        // Reçu imprimé par un second téléphone dont la commande a été ajoutée à une commande existante.
+        return conflictService.mergedDeliveryIdForReceiptCode(code)
+                .flatMap(deliveryRepository::findById)
                 .filter(this::canRead)
-                .map(this::toVerification)
+                .map(delivery -> {
+                    TontineOrderReceiptVerificationDto verification = toVerification(delivery);
+                    verification.setMessage(String.format(
+                            "Ce reçu est authentique. La commande a été ajoutée à la commande %s, déjà enregistrée pour ce client : le détail ci-dessous est celui de la commande complète.",
+                            delivery.getReference()));
+                    return verification;
+                })
                 .orElseGet(TontineOrderReceiptPdfService::unknown);
     }
 

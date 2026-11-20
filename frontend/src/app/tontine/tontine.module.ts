@@ -66,6 +66,7 @@ import { TontineCollecteKpiComponent } from './collecte/components/tontine-colle
 import { TontineCollecteFilterComponent } from './collecte/components/tontine-collecte-filter/tontine-collecte-filter.component';
 import { TontineCollecteTableComponent } from './collecte/components/tontine-collecte-table/tontine-collecte-table.component';
 import { TontineDeliveryListComponent } from './pages/delivery-list/tontine-delivery-list.component';
+import { TontineDeliveryConflictsComponent } from './pages/delivery-conflicts/tontine-delivery-conflicts.component';
 import { TontineCollectionResetComponent } from './pages/tontine-collection-reset/tontine-collection-reset.component';
 import { TontineAllocationMigrationBannerComponent } from './components/tontine-allocation-migration-banner/tontine-allocation-migration-banner.component';
 import { TontineDeliveryStockRequestModalComponent } from './components/modals/tontine-delivery-stock-request-modal/tontine-delivery-stock-request-modal.component';
@@ -110,6 +111,7 @@ import { TontineSessionService } from './services/tontine-session.service';
 
     // Livraisons
     TontineDeliveryListComponent,
+    TontineDeliveryConflictsComponent,
 
     // Réinitialisation collectes
     TontineCollectionResetComponent,

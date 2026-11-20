@@ -155,6 +155,22 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         return total;
     }
 
+    /**
+     * Supprime la ligne locale (UUID) et ses articles une fois sa jumelle serveur enregistrée.
+     * Sans cela, la ligne locale restait en PENDING à côté de la ligne livrée.
+     */
+    async deleteLocalTwin(localId: string): Promise<void> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        await this.databaseService.execute(
+            `DELETE FROM tontine_delivery_items WHERE tontineDeliveryId = ?`,
+            [localId]
+        );
+        await this.databaseService.execute(
+            `DELETE FROM tontine_deliveries WHERE id = ?`,
+            [localId]
+        );
+    }
+
     async markDeliverSynced(deliveryId: string): Promise<void> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
         await this.databaseService.execute(

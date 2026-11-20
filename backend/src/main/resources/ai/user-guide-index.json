@@ -2772,6 +2772,42 @@
     "content": "Gestion des stocks, réceptions et inventaires (Vision Gestionnaire)\nHistorique des annulations de ventes (Menu Ventes > Annulation Ventes)\n\nCet écran présente les annulations de ventes déjà effectuées et leurs pièces d'audit.\nDans le menu latéral, cliquez sur Ventes , puis sur Annulation Ventes . L'écran Rapports & Archives d'Annulations de Ventes s'ouvre.\nAu besoin, filtrez avec Recherche , Commercial et la Période ciblée (date début / date fin), puis Appliquer . Réinitialiser efface les filtres.\nChaque ligne indique l'opération et sa date, le commercial, la période ciblée, le statut, le nombre de ventes annulées, le montant reversé, les ventes rejetées et la personne qui a lancé l'opération.\nCliquez sur Actualiser pour recharger la liste.\nCliquez sur Voir pour ouvrir le détail : motif déclaré, ventes annulées, ventes rejetées et Pièces justificatives et rapports d'audit .\nCliquez sur Télécharger pour récupérer le bordereau d'annulation d'une vente ou le rapport de synthèse de l'opération."
   },
   {
+    "id": "manager_tontine_doublons",
+    "title": "Doublons de commande et de livraison tontine (Menu Tontines > Doublons)",
+    "path": "/user-guide/manager/tontine_doublons.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Doublons de commande et de livraison tontine (Menu Tontines > Doublons)\n\nSur le terrain, plusieurs personnes utilisent parfois le même compte commercial sur plusieurs téléphones. Quand ces téléphones ne sont pas synchronisés, le même membre peut recevoir une deuxième commande ou une deuxième remise. Le serveur contrôle chaque saisie et garde une trace de toutes les secondes saisies dans ce journal."
+  },
+  {
+    "id": "manager_tontine_doublons__1_ce_que_fait_l_application_la_seconde_saisie",
+    "title": "Doublons de commande et de livraison tontine (Menu Tontines > Doublons) — 1. Ce que fait l'application à la seconde saisie",
+    "path": "/user-guide/manager/tontine_doublons.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Doublons de commande et de livraison tontine (Menu Tontines > Doublons)\nCe que fait l'application à la seconde saisie\n\n Situation Résultat \n ----------- ---------- \n Une commande est déjà enregistrée, pas encore livrée, et le solde prévisionnel du membre couvre les deux commandes La seconde commande est ajoutée à la première. Le membre n'a toujours qu'une seule commande. Si elle était Validée , elle repasse En attente pour une nouvelle validation, sauf si c'est vous qui avez saisi l'ajout. \n Une commande est déjà enregistrée, mais le total des deux commandes dépasse le solde prévisionnel La seconde commande est refusée . \n Le membre est déjà livré Toute nouvelle commande ou remise est refusée : aucun nouveau crédit tontine, aucun reliquat reversé une deuxième fois sur le compte du client. \n Une commande est déjà enregistrée, et un autre téléphone fait une Livraison directe La livraison directe est refusée . La remise doit se faire à partir de la commande existante, sur la fiche du membre. \n\nLe commercial voit le refus sur son téléphone, avec la référence de la commande déjà enregistrée. Si le téléphone était hors ligne, le refus apparaît à la synchronisation.\n\nLe reçu imprimé par le second téléphone pour une commande ajoutée reste vérifiable avec Vérifier un reçu (page Tontines > Livraison ) : le contrôle confirme qu'il est authentique et affiche la commande complète."
+  },
+  {
+    "id": "manager_tontine_doublons__2_consulter_le_journal",
+    "title": "Doublons de commande et de livraison tontine (Menu Tontines > Doublons) — 2. Consulter le journal",
+    "path": "/user-guide/manager/tontine_doublons.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Doublons de commande et de livraison tontine (Menu Tontines > Doublons)\nConsulter le journal\nDans le menu latéral gauche, cliquez sur Tontines puis sur Doublons .\nLes indicateurs en haut de page donnent le nombre de doublons de la période, puis, pour la page affichée, le nombre de saisies refusées, leur montant et le nombre de saisies ajoutées.\nFiltrez si besoin :\n Commercial : un seul commercial.\n Issue : Toutes , Refusées ou Ajoutées .\n Période : Aujourd'hui , 7 jours , Mois ou Année .\nChaque ligne indique :\nla date de la seconde saisie (et le nombre de tentatives quand le téléphone l'a renvoyée plusieurs fois) ;\nle client et le commercial , avec l'appareil quand il est connu ;\nla seconde saisie : commande, livraison directe ou remise de la commande, sa référence et son montant ;\nles articles de la seconde saisie ;\nce qui était déjà enregistré : référence, montant et solde disponible du membre au moment du contrôle ;\nl' issue : Ajoutée ou Refusée , avec le motif.\nCliquez sur Voir pour ouvrir la fiche du membre."
+  },
+  {
+    "id": "manager_tontine_doublons__3_que_faire_d_une_saisie_refus_e",
+    "title": "Doublons de commande et de livraison tontine (Menu Tontines > Doublons) — 3. Que faire d'une saisie refusée",
+    "path": "/user-guide/manager/tontine_doublons.html",
+    "roles": [
+      "manager"
+    ],
+    "content": "Doublons de commande et de livraison tontine (Menu Tontines > Doublons)\nQue faire d'une saisie refusée\n\nUne remise refusée signifie souvent que les articles ont déjà été remis une seconde fois au client sur le terrain.\nOuvrez la fiche du membre avec Voir et vérifiez la commande enregistrée.\nRapprochez les articles de la ligne refusée avec le stock tontine du commercial : ces articles manquent dans son stock sans figurer sur une livraison.\nFaites récupérer les articles auprès du client, ou régularisez avec le commercial selon les règles de l'agence."
+  },
+  {
     "id": "recovery-manager",
     "title": "Guide Chef de recouvrement",
     "path": "/user-guide/recovery-manager/index.html",
@@ -2852,7 +2888,7 @@
     "content": "Chef de recouvrement — application mobile\nOnglet Retards : prioriser, contrôler et clôturer\nContrôle crédit\n\nLe formulaire rappelle la mise journalière , le montant total du crédit et le montant déjà payé.\nSaisissez l’ avance lue sur le carnet . L’avance déjà enregistrée s’affiche à côté, avec la mention Identique ou Différente .\nLes pastilles vont de 1 à 31 . Touchez le dernier jour coché sur le carnet : les jours du 1 jusqu’à ce numéro passent au vert. La somme des mises se calcule en même temps.\nLe total carnet additionne cette somme et l’avance saisie.\nAjoutez une note si besoin, puis Capturer le contrôle . Le résultat affiche CONFORME lorsque le total carnet correspond au montant payé, sinon ECART .\n\nLorsque la mise journalière n’est pas affichée, saisissez directement le montant lu sur le carnet.\n\nSi ce crédit a déjà un écart qui n’a pas encore été accepté, la carte indique Déjà contrôlé et le montant de l’écart. Le formulaire reprend le montant saisi et le bouton devient Modifier le contrôle . Lorsque l’écart a été accepté ou refusé, ou si le dernier contrôle est CONFORME , un nouveau contrôle peut être saisi."
   },
   {
-    "id": "recovery_manager_mobile__onglet_retards_prioriser_contr_ler_et_cl_turer_c_295",
+    "id": "recovery_manager_mobile__onglet_retards_prioriser_contr_ler_et_cl_turer_c_299",
     "title": "Chef de recouvrement — application mobile — Onglet Retards : prioriser, contrôler et clôturer — Clôture totale ou partielle",
     "path": "/user-guide/recovery-manager/mobile.html",
     "roles": [
@@ -3102,7 +3138,7 @@
     "content": "Gestion physique du stock (Sorties & Retours)\nServir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie)\n\nChoisissez Crédit sur le sélecteur avant de préparer une sortie de vente.\n\nToutes les demandes de sortie validées par la gestion arrivent dans le menu Stock Commercial > Demandes Sortie (accessible si vous disposez des habilitations requises)."
   },
   {
-    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_320",
+    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_324",
     "title": "Gestion physique du stock (Sorties & Retours) — 1. Servir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie) — A. Contrôle avant remise physique",
     "path": "/user-guide/storekeeper/stock_commercial.html",
     "roles": [
@@ -3112,7 +3148,7 @@
     "content": "Gestion physique du stock (Sorties & Retours)\nServir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie)\nA. Contrôle avant remise physique\nFiltrez la liste des demandes par statut ou par commercial pour localiser la commande à préparer.\nCliquez sur « Voir » pour ouvrir le détail de la demande :\nLa référence s'affiche en haut de la fenêtre.\nVérifiez la liste exacte des articles et les quantités commandées.\nAssurez-vous que le statut est bien Validée .\nSi la sortie ne doit pas être remise, cliquez sur « Annuler » en bas de la fenêtre, puis confirmez. La demande passe au statut Annulée . La marchandise reste au magasin.\nCliquez sur « Télécharger » pour enregistrer la fiche de sortie de cette demande.\nPrélevez les articles en rayon et regroupez-les dans la zone de délivrance."
   },
   {
-    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_321",
+    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_325",
     "title": "Gestion physique du stock (Sorties & Retours) — 1. Servir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie) — B. Remise physique et validation du départ (`Livrer`)",
     "path": "/user-guide/storekeeper/stock_commercial.html",
     "roles": [
@@ -3122,7 +3158,7 @@
     "content": "Gestion physique du stock (Sorties & Retours)\nServir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie)\nB. Remise physique et validation du départ (Livrer)\nSur la liste, une demande Validée propose Livrer et Annuler . Choisissez Annuler puis confirmez si la sortie ne part pas. La demande passe au statut Annulée et le stock du magasin ne change pas.\nProcédez au comptage contradictoire avec le commercial présent au comptoir.\nCliquez sur le bouton bleu « Livrer » .\n Conséquences automatiques :\nLe statut de la demande passe définitivement à Livrée .\nLe stock physique du magasin est automatiquement débité.\nLe stock commercial du destinataire est automatiquement crédité.\nLa date et l'heure précises de livraison sont horodatées.\nCliquez sur l'icône de téléchargement pour imprimer la Fiche de sortie PDF signée par les deux parties."
   },
   {
-    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_322",
+    "id": "storekeeper_stock_commercial__1_servir_et_livrer_une_demande_de_sortie_menu_st_326",
     "title": "Gestion physique du stock (Sorties & Retours) — 1. Servir et livrer une demande de sortie (Menu Stock Commercial > Demandes Sortie) — C. Vente au comptant",
     "path": "/user-guide/storekeeper/stock_commercial.html",
     "roles": [

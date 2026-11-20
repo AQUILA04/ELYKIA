@@ -289,6 +289,11 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
    * **Modifier la commande** : tant que la commande n'est pas livrée, la fiche membre propose **Modifier la commande** (et le menu ⋮ aussi). Vous ajustez les quantités puis **Enregistrer la commande**. Le total peut rester au-dessus du solde déjà encaissé : le contrôle du solde réel se fait à la remise.
    * **Marquer comme livré** : si une commande était déjà enregistrée, retournez sur la fiche membre et touchez **Marquer comme livré**. Si le solde disponible ne couvre pas la commande, choisissez **Compléter le solde** (sans plafond) ou **Modifier la commande**. Le stock tontine est décompté seulement quand la remise est confirmée. Si un article manque dans votre stock, l'application vous le signale pour que vous fassiez d'abord une demande au magasin.
    * Lorsque la campagne est terminée pour tout le monde, il n'y a plus de commande, plus de complément et plus de remise.
+7. **Plusieurs téléphones sur le même compte** : le serveur contrôle chaque commande et chaque remise.
+   * **Commande complétée** : si une commande était déjà enregistrée pour ce membre sur un autre téléphone, et que le solde prévisionnel couvre les deux, vos articles y sont ajoutés. Le message donne la référence et le nouveau total, puis le reçu de la commande complète s'affiche.
+   * **Déjà enregistré sur un autre appareil** : la commande ou la livraison est refusée quand le membre est déjà livré, quand une commande existe déjà et que le solde ne couvre pas les deux, ou quand vous tentez une **Livraison directe** alors qu'une commande attend sa remise. Le message donne la référence déjà enregistrée. Il n'y a pas d'enregistrement hors ligne possible pour cette saisie : synchronisez, puis ouvrez la fiche du membre.
+   * **Déjà livré sur un autre appareil** : en touchant **Marquer comme livré**, vous apprenez que la commande a déjà été remise. La fiche se recharge.
+   * Une saisie faite hors ligne et refusée à la synchronisation apparaît dans les erreurs de synchronisation avec le même message. Signalez-la à votre gestionnaire.
 
 ---
 
