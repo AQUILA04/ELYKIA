@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (validation automatique des commandes tontine)
+
+### Changed
+
+- **Guide utilisateur (gestionnaire) —** « Validation automatique des commandes tontine » dans les paramètres généraux. Index RAG et guide HTML régénérés.
+- **Memory-bank —** `systemPatterns.md` décrit le mécanisme des paramètres applicatifs (`init-data`, amorçage des seules clés absentes, lecture `ParameterService` / `/api/parameters/enabled/{clé}`, ajout d'un paramètre).
+
 ## Docs & Infra — 2026-11-20 (soldes des commandes tontine)
 
 ### Changed
@@ -512,6 +519,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.45.0] — 2026-11-21
+
+### Changed
+
+- **Tontine — synchronisation des commandes →** une commande saisie hors ligne prend le statut **Validée** quand le serveur la valide à la création (paramètre `TONTINE_ORDER_AUTO_VALIDATION`) ; avant, elle restait affichée « Commande » jusqu'au prochain chargement des membres (`TontineDeliveryRepository.setStatus`).
+
 ## Mobile — [2.43.0] — 2026-11-20
 
 ### Changed
@@ -748,6 +761,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.60.0] — 2026-11-21
+
+### Added
+
+- **Tontine — validation automatique des commandes →** paramètre applicatif `TONTINE_ORDER_AUTO_VALIDATION` (`app.security.parameter.init-data[14]`, défaut `false`). Activé, toute commande tontine créée (web ou mobile) ou complétée par une seconde saisie passe directement en **VALIDATED** au lieu de **PENDING**. La saisie par un gestionnaire ou un administrateur reste validée dans tous les cas (`TontineDeliveryService.validatesOnCreation`).
 
 ## Backend — [1.59.0] — 2026-11-20
 

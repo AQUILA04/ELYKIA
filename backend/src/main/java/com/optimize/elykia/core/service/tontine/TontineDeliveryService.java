@@ -4,6 +4,7 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
+import com.optimize.common.securities.service.ParameterService;
 import com.optimize.elykia.client.entity.Account;
 import com.optimize.elykia.client.service.AccountService;
 import com.optimize.elykia.client.service.ClientService;
@@ -68,6 +69,10 @@ public class TontineDeliveryService {
     private final TontineDeliveryReferenceService deliveryReferenceService;
     private final TontineProjectedBalanceCalculator projectedBalanceCalculator;
     private final TontineDeliveryConflictService conflictService;
+    private final ParameterService parameterService;
+
+    /** Paramètre applicatif : activé, toute commande créée est validée directement (sinon elle reste en attente). */
+    public static final String AUTO_VALIDATION_PARAMETER = "TONTINE_ORDER_AUTO_VALIDATION";
 
     private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
@@ -157,8 +162,9 @@ public class TontineDeliveryService {
         current.setTotalAmount(combined);
         current.setProjectedBalance(projected);
         current.setRemainingBalance(Math.max(0.0, availableOf(member) - combined));
-        // Le contenu a changé : une commande validée repasse en attente, sauf saisie d'un gestionnaire.
-        member.setDeliveryStatus(isManager(userService.getCurrentUser())
+        // Le contenu a changé : une commande validée repasse en attente, sauf saisie d'un gestionnaire
+        // ou validation automatique activée (paramètre TONTINE_ORDER_AUTO_VALIDATION).
+        member.setDeliveryStatus(validatesOnCreation(userService.getCurrentUser())
                 ? TontineMemberDeliveryStatus.VALIDATED
                 : TontineMemberDeliveryStatus.PENDING);
         memberRepository.save(member);
@@ -249,6 +255,14 @@ public class TontineDeliveryService {
         return user != null && (user.is("GESTIONNAIRE") || user.is("ADMIN"));
     }
 
+    /**
+     * Une commande créée (ou complétée) passe directement en VALIDATED quand elle est saisie
+     * par un gestionnaire, ou pour tous quand le paramètre {@value #AUTO_VALIDATION_PARAMETER} est activé.
+     */
+    private boolean validatesOnCreation(User user) {
+        return isManager(user) || parameterService.isEnabled(AUTO_VALIDATION_PARAMETER);
+    }
+
     private static String formatAmount(Double value) {
         return String.format(java.util.Locale.FRANCE, "%,.0f", value != null ? value : 0.0);
     }
@@ -279,7 +293,7 @@ public class TontineDeliveryService {
         items.forEach(delivery::addItem);
 
         User currentUser = userService.getCurrentUser();
-        if (isManager(currentUser)) {
+        if (validatesOnCreation(currentUser)) {
             member.setDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED);
             TontineDelivery savedDelivery = deliveryRepository.save(delivery);
             if (metricsPublisher != null) {

@@ -1264,6 +1264,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#validation-automatique-des-commandes-tontine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation automatique des commandes tontine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prix-unitaires-sur-les-documents" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2681,6 +2692,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#validation-automatique-des-commandes-tontine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation automatique des commandes tontine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prix-unitaires-sur-les-documents" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -3059,6 +3081,16 @@
 <li>Choisissez <strong>OUI</strong> pour que chaque contrôle de carnet terrain marque le membre tontine comme vérifié, y compris hors connexion après actualisation du pack terrain.</li>
 <li>Laissez <strong>NON</strong> pour n’enregistrer que le contrôle. Le badge <strong>Déjà contrôlé</strong> s’affiche quand même, et le carnet reste à vérifier jusqu’à une action <strong>Vérifier</strong>.</li>
 </ol>
+<h3 id="validation-automatique-des-commandes-tontine">Validation automatique des commandes tontine</h3>
+<p>Le paramètre <strong>TONTINE_ORDER_AUTO_VALIDATION</strong> règle le statut d'une commande tontine au moment où elle est enregistrée, depuis le web ou depuis l'application mobile.</p>
+<ol>
+<li>Ouvrez <strong>Configuration</strong> → <strong>Paramètres généraux</strong>.</li>
+<li>Repérez <strong>TONTINE_ORDER_AUTO_VALIDATION</strong>.</li>
+<li>Cliquez sur <strong>Modifier</strong>.</li>
+<li>Passez la valeur à <strong>true</strong>, puis enregistrez : chaque commande créée passe directement au statut <strong>Validée</strong>. Il n'y a plus d'étape <strong>Valider la Livraison</strong>, ni de <strong>Tout valider</strong> sur la page des livraisons pour ces commandes. Une commande complétée depuis un autre téléphone reste aussi <strong>Validée</strong>.</li>
+<li>Laissez <strong>false</strong> (valeur de départ) pour garder la validation par le gestionnaire : une commande saisie par un commercial reste <strong>En attente</strong>. Une commande que vous saisissez vous-même est toujours validée directement.</li>
+</ol>
+<p>Une commande enregistrée hors ligne prend son statut au moment de la synchronisation du téléphone.</p>
 <h3 id="prix-unitaires-sur-les-documents">Prix unitaires sur les documents</h3>
 <p>Trois paramètres règlent l’affichage du prix unitaire et du montant de chaque ligne. Le montant total du document reste toujours affiché, y compris sur les PDF.</p>
 <table>
