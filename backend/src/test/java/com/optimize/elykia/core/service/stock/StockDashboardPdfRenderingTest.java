@@ -16,6 +16,8 @@ import com.optimize.elykia.core.repository.StockTontineReturnRepository;
 import com.optimize.elykia.core.repository.TontineStockRepository;
 import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
 import com.optimize.elykia.core.service.report.PdfHtmlRenderer;
+import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -47,6 +49,8 @@ class StockDashboardPdfRenderingTest {
 
     @Test
     void stockPdfShowsBothFlowsAndSubtractsTheDebtFromTheRemaining() throws Exception {
+        // Instance statique laissee par un test Spring precedent : on force la regle par defaut (prix visibles).
+        ReflectionTestUtils.setField(UnitPriceVisibility.class, "instance", null);
         ClassLoaderTemplateResolver resolver = new ClassLoaderTemplateResolver();
         resolver.setPrefix("templates/");
         resolver.setSuffix(".html");
