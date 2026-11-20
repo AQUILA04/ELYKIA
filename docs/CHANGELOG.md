@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (livraison tontine avec récapitulatif)
+
+### Changed
+
+- **Guide utilisateur —** fiche membre web : bouton **Livrer** et fenêtre **Livrer la commande** (aperçu, réduction, confirmation, reçu de remise). Guide mobile : **Livrer**, **Récapitulatif avant remise**, complément de solde et réduction, bon de remise. Index RAG et guide HTML régénérés.
+
 ## Docs & Infra — 2026-11-20 (soldes des commandes tontine)
 
 ### Changed
@@ -142,6 +148,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.59.0] — 2026-11-21
+
+### Changed
+
+- **Tontine — fiche membre →** **Marquer comme Livré** devient **Livrer**. Le bouton ouvre la fenêtre **Livrer la commande** (`TontineDeliverPreviewDialogComponent`) au lieu d'une confirmation directe : articles, solde net cotisé, montant, reste à payer ou reliquat. **Confirmer la livraison** reste grisé tant que le solde ne couvre pas la commande ; **Réduire la commande** ouvre l'édition de la commande. Test e2e « golden path » étape 26 adapté.
 
 ## Frontend — [2.58.0] — 2026-11-20
 
@@ -511,6 +523,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
+
+## Mobile — [2.44.0] — 2026-11-21
+
+### Changed
+
+- **Tontine — fiche membre →** **Marquer comme livré** devient **Livrer** (bouton et menu ⋮). Le bouton ouvre le **Récapitulatif avant remise** (`TontineDeliverRecapModalComponent`) : articles avec le stock tontine du commercial, solde net cotisé, montant, reste à payer ou reliquat. **Compléter le solde** ouvre la cotisation du montant manquant, puis le récapitulatif se rouvre au retour avec le nouveau solde. Les boutons **−** réduisent la commande (le **+** ne dépasse pas la quantité commandée). **Confirmer la livraison** ne s'active que si le solde couvre la commande et que le stock suffit ; une commande réduite est enregistrée avant la remise.
+- **Tontine — après la remise →** le **bon de remise** s'affiche (total cotisé net, total utilisé, total restant), avec impression du ticket.
+- **Qualité —** le pas de quantité d'une ligne (pack ou unité) est partagé entre la fiche membre et le récapitulatif (`stepTontineDeliveryItem`). Test e2e « S2 order then mark delivered » adapté.
 
 ## Mobile — [2.43.0] — 2026-11-20
 

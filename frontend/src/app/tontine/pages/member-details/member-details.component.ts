@@ -1,9 +1,14 @@
 import { Component, OnInit, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject } from 'rxjs';
+import { Subject, firstValueFrom } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatDialog } from '@angular/material/dialog';
+import {
+  TontineDeliverPreviewData,
+  TontineDeliverPreviewDialogComponent,
+  TontineDeliverPreviewResult
+} from '../../components/modals/tontine-deliver-preview-dialog/tontine-deliver-preview-dialog.component';
 import { TontineService } from '../../services/tontine.service';
 import { TontineDeliveryService } from '../../services/tontine-delivery.service';
 import {
@@ -837,34 +842,33 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const available = this.member.availableContribution ?? 0;
-    const total = this.member.delivery.totalAmount ?? 0;
-    if (total > available + 0.001) {
-      const reduce = await this.alertService.showConfirmation(
-        'Solde insuffisant',
-        'Le solde réel ne couvre pas la commande. Réduisez les articles, ou faites compléter le solde lors de la remise.',
-        'Réduire la commande',
-        'Annuler'
-      );
-      if (reduce) {
-        this.openDeliveryEditor(this.member.delivery.id);
-      }
+    // « Livrer » présente d'abord l'aperçu : articles, solde net, reste à payer ou reliquat.
+    const delivery = this.member.delivery;
+    const previewData: TontineDeliverPreviewData = {
+      clientName: `${this.member.client?.firstname ?? ''} ${this.member.client?.lastname ?? ''}`.trim(),
+      reference: delivery.reference,
+      items: delivery.items ?? [],
+      totalAmount: delivery.totalAmount ?? 0,
+      netContribution: delivery.netContribution ?? this.member.availableContribution ?? 0
+    };
+    const choice = await firstValueFrom(this.dialog.open<TontineDeliverPreviewDialogComponent,
+      TontineDeliverPreviewData, TontineDeliverPreviewResult>(TontineDeliverPreviewDialogComponent, {
+        width: '640px',
+        maxWidth: '95vw',
+        data: previewData
+      }).afterClosed());
+
+    if (choice === 'reduce') {
+      this.openDeliveryEditor(delivery.id);
       return;
     }
 
-    const isConfirmed = await this.alertService.showConfirmation(
-      'Confirmation',
-      'Êtes-vous sûr de vouloir marquer cette livraison comme livrée ?',
-      'Oui',
-      'Non'
-    );
-
-    if (isConfirmed) {
-      this.deliveryService.markDeliveryAsDelivered(this.member.delivery.id).pipe(
+    if (choice === 'confirm') {
+      this.deliveryService.markDeliveryAsDelivered(delivery.id).pipe(
         takeUntil(this.destroy$)
       ).subscribe({
         next: () => {
-          this.showSuccess('Livraison marquée comme livrée');
+          this.showSuccess('Commande livrée. Le reçu indique le total cotisé, utilisé et restant.');
           this.loadMemberDetails(this.member!.id);
         },
         error: (err) => {

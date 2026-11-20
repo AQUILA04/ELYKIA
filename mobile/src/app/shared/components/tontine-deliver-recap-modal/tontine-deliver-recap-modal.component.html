@@ -1,0 +1,102 @@
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-title>
+        <span class="elyk-surtitle">Livraison tontine</span>
+        Récapitulatif avant remise
+      </ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="cancel()">Fermer</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </header>
+</ion-header>
+
+<ion-content class="elyk-content" data-testid="e2e-tontine-deliver-recap">
+  <div class="recap">
+    <section class="recap-head">
+      <strong>{{ clientName || 'Membre' }}</strong>
+      <span *ngIf="reference">Commande {{ reference }}</span>
+    </section>
+
+    <section class="recap-lines">
+      <h3>Articles à remettre</h3>
+      <div class="recap-line" *ngFor="let line of lines" [class.recap-line--missing]="isMissingStock(line)">
+        <div class="recap-line-info">
+          <span class="recap-line-name">
+            {{ line.articleName || 'Article' }}<ng-container *ngIf="line.salePackMode && line.salePackMode !== 'UNIT' && line.packLabel"> — {{ line.packLabel }}</ng-container>
+          </span>
+          <span class="recap-line-stock" *ngIf="line.stockAvailable !== null && line.stockAvailable !== undefined">
+            Stock tontine : {{ line.stockAvailable }}
+            <ng-container *ngIf="isMissingStock(line)"> · insuffisant</ng-container>
+          </span>
+        </div>
+        <div class="qty-stepper">
+          <button type="button" class="stepper-btn" (click)="change(line, -1)" [disabled]="!canDecrease(line)"
+                  aria-label="Diminuer la quantité">−</button>
+          <span>{{ displayedQuantity(line) }}</span>
+          <button type="button" class="stepper-btn" (click)="change(line, 1)" [disabled]="!canIncrease(line)"
+                  aria-label="Remettre la quantité commandée">+</button>
+        </div>
+        <span class="recap-line-total elyk-amount" *appIfUnitPrice="'CASH'">{{ line.totalPrice | number:'1.0-0' }}</span>
+      </div>
+      <p class="recap-hint" *ngIf="reduced">La commande sera enregistrée avec ces quantités au moment de la livraison.</p>
+    </section>
+
+    <section class="recap-balance" data-testid="e2e-tontine-deliver-recap-balance">
+      <div class="balance-row">
+        <span>{{ labels.net }}</span>
+        <b class="elyk-amount">{{ balance.netContribution | number:'1.0-0' }} FCFA</b>
+      </div>
+      <div class="balance-row">
+        <span>{{ labels.total }}</span>
+        <b class="elyk-amount">{{ balance.orderTotal | number:'1.0-0' }} FCFA</b>
+      </div>
+      <div class="balance-row balance-row--due" *ngIf="balance.amountDue > 0">
+        <span>{{ labels.due }}</span>
+        <b class="elyk-amount">{{ balance.amountDue | number:'1.0-0' }} FCFA</b>
+      </div>
+      <div class="balance-row balance-row--refund" *ngIf="balance.amountDue <= 0">
+        <span>{{ labels.refundable }}</span>
+        <b class="elyk-amount">{{ balance.refundableBalance | number:'1.0-0' }} FCFA</b>
+      </div>
+    </section>
+
+    <p class="recap-warning" *ngIf="balance.amountDue > 0">
+      Le solde ne couvre pas la commande. Complétez le solde ou réduisez la commande pour pouvoir livrer.
+    </p>
+    <p class="recap-warning" *ngIf="missingStock.length > 0">
+      Stock tontine insuffisant : réduisez ces articles ou faites d'abord une demande de stock tontine.
+    </p>
+  </div>
+</ion-content>
+
+<ion-footer class="elyk-footer-bar">
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row *ngIf="balance.amountDue > 0">
+        <ion-col size="12">
+          <ion-button expand="block" fill="outline" class="elyk-btn-outline" (click)="topUp()"
+                      data-testid="e2e-tontine-deliver-topup">
+            <ion-icon slot="start" name="cash-outline"></ion-icon>
+            Compléter le solde ({{ balance.amountDue | number:'1.0-0' }} FCFA)
+          </ion-button>
+        </ion-col>
+      </ion-row>
+      <ion-row>
+        <ion-col size="5">
+          <ion-button expand="block" fill="outline" class="elyk-btn-outline" (click)="cancel()">
+            Annuler
+          </ion-button>
+        </ion-col>
+        <ion-col size="7">
+          <ion-button expand="block" class="elyk-btn-navy" (click)="confirm()" [disabled]="!canConfirm"
+                      data-testid="e2e-tontine-deliver-confirm">
+            <ion-icon slot="start" name="checkmark-done-outline"></ion-icon>
+            Confirmer la livraison
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>
