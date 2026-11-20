@@ -128,6 +128,21 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.55.0] — 2026-11-20
+
+### Added
+
+- **Stock commercial — vue équipe —** `/stock/my-stock`, ouvert par le menu : navigation par mois (remplace « Historique »), onglets Crédit / Tontine, flux Marchandise (pris = vendu + retourné + en dette + restant) et Argent (dû − recouvré = reste à recouvrer), une ligne par commercial triée par reste à recouvrer, filtres « Avec stock restant », « Avec dette », « Recouvrement < 50 % ». Un seul appel (`team-overview`). Un commercial arrive directement sur sa fiche.
+- **Stock commercial — fiche —** `/stock/my-stock/:commercial/:année/:mois` : les deux flux, les articles « À suivre » par défaut (reste ou dette) avec recherche et « Tous », commercial précédent / suivant, mois précédent / suivant, création et ouverture de la dette marchandise, téléchargement du rapport PDF.
+- **Panneau Article —** mouvements, ventes (date, crédit, client, quantité, PMP, montant) et valorisation avec contrôle de concordance. Remplace les fenêtres « Historique des mouvements » et « Détails des ventes » dans la nouvelle présentation.
+- **Panneau Ventes liées —** payé et reste par crédit, totaux, recherche, filtres En cours / Soldées, encart de concordance calculé par le serveur.
+- Visites guidées de la vue équipe et de la fiche (première ouverture, relançables).
+
+### Changed
+
+- L'ancienne présentation du stock reste disponible sur `/stock/my-stock/classic`, avec un lien dans chaque sens. Le lien « stock source » du détail d'un crédit ouvre la fiche avec le panneau Ventes liées.
+- Visite guidée, format FCFA et styles du rapport commerciaux déplacés dans un module partagé (`shared/report-ui`), utilisé par le rapport et le stock.
+
 ## Frontend — [2.54.0] — 2026-11-20
 
 ### Changed

@@ -1,0 +1,74 @@
+@import '../../styles/stock-v2';
+
+.report-v2.stock-sheet-page {
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: var(--navy);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .sheet-month {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+
+    .icon-btn { width: 32px; min-height: 32px; font-size: 15px; }
+    .month-label { min-width: 0; font-size: 13px; }
+  }
+
+  .articles-head { padding: 14px 16px 12px; margin-bottom: 0; }
+
+  .articles-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .articles-table {
+    min-width: 1040px;
+
+    .row-open { background: #fffaf4; }
+    .qty { width: 26px; text-align: right; }
+    .mini-track { width: 70px; }
+  }
+
+  .qty-pill {
+    display: inline-block;
+    min-width: 28px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .qty-pill--warn { background: var(--orange-pale); color: var(--orange); }
+
+  .show-more {
+    width: 100%;
+    min-height: 44px;
+    border: none;
+    border-top: 1px solid #eef1f6;
+    background: #f7f9fc;
+    color: var(--navy);
+    font: 600 13px 'Inter', sans-serif;
+    cursor: pointer;
+
+    &:hover { background: var(--navy-xpale); }
+    &:focus-visible { outline: 3px solid #8fb3e0; outline-offset: -3px; }
+  }
+
+  .flow-box .rate-bar { height: 5px; margin-top: 2px; }
+
+  @media (max-width: 600px) {
+    .search-field, .search-field input { width: 100%; }
+  }
+}

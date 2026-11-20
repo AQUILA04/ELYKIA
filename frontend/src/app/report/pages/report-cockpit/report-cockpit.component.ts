@@ -26,8 +26,8 @@ import {
     filtersToParams
 } from '../../models/report-period';
 import { CommercialCockpitService } from '../../service/commercial-cockpit.service';
-import { GuidedTourService } from '../../components/guided-tour/guided-tour.service';
-import { COCKPIT_TOUR } from '../../components/guided-tour/report-tours';
+import { GuidedTourService } from '../../../shared/report-ui/guided-tour/guided-tour.service';
+import { COCKPIT_TOUR } from '../../report-tours';
 import { AgentOption } from '../../components/report-filter-bar/report-filter-bar.component';
 
 /**

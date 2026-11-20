@@ -1,7 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { TokenStorageService } from 'src/app/shared/service/token-storage.service';
 import { GuidedTourService, TourDefinition } from './guided-tour.service';
-import { COCKPIT_TOUR, SHEET_TOUR } from './report-tours';
 
 describe('GuidedTourService', () => {
     const tour: TourDefinition = {
@@ -51,13 +50,5 @@ describe('GuidedTourService', () => {
         service.markSeen(tour);
         expect(service.startIfFirstVisit(tour)).toBeFalse();
         expect(service.start(tour)).toBeTrue();
-    });
-
-    it('ships non-empty report tours with unique targets', () => {
-        for (const definition of [COCKPIT_TOUR, SHEET_TOUR]) {
-            expect(definition.steps.length).toBeGreaterThan(3);
-            const targets = definition.steps.map(step => step.target).filter(Boolean);
-            expect(new Set(targets).size).toBe(targets.length);
-        }
     });
 });

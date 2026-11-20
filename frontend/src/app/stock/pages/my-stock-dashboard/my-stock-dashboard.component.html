@@ -3,6 +3,8 @@
 <div class="container" [attr.data-testid]="channel === 'tontine' ? 'e2e-tontine-my-stock-dashboard' : 'e2e-my-stock-dashboard'">
   <div class="header-fixed">
     <h1>{{ channel === 'tontine' ? 'Stock Tontine Annuel' : 'Stock Mensuel' }}</h1>
+    <a class="new-layout-link" [routerLink]="['/stock/my-stock']" [queryParams]="{ channel: channel }"
+      data-testid="e2e-my-stock-new-layout-link">Nouvelle présentation</a>
   </div>
 
   <app-stock-channel-segment [channel]="channel" (channelChange)="onChannelChange($event)"></app-stock-channel-segment>

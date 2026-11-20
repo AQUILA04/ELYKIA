@@ -243,6 +243,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
 
     await page.getByTestId('e2e-sidebar-stock-commercial').click();
     await page.getByTestId('e2e-sidebar-stock-my-stock').click();
+    await page.getByTestId('e2e-stock-team-classic-link').click();
 
     await expect(page.getByTestId('e2e-my-stock-dashboard')).toBeVisible();
     await selectNgSelectOption(page, 'e2e-my-stock-agent-select', TEST_COMMERCIAL_USERNAME);
@@ -374,6 +375,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
 
     await page.getByTestId('e2e-sidebar-stock-commercial').click();
     await page.getByTestId('e2e-sidebar-stock-my-stock').click();
+    await page.getByTestId('e2e-stock-team-classic-link').click();
     await selectNgSelectOption(page, 'e2e-my-stock-agent-select', TEST_COMMERCIAL_USERNAME);
 
     const stockPanel = page
@@ -433,6 +435,7 @@ test.describe.serial('Golden path — prérequis métier', () => {
     await loginAsGestionnaire(page);
     await page.getByTestId('e2e-sidebar-stock-commercial').click();
     await page.getByTestId('e2e-sidebar-stock-my-stock').click();
+    await page.getByTestId('e2e-stock-team-classic-link').click();
     await selectNgSelectOption(page, 'e2e-my-stock-agent-select', TEST_COMMERCIAL_USERNAME);
 
     const stockItem = await getMonthlyStockItem(TEST_COMMERCIAL_USERNAME, testArticle.id);

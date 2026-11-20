@@ -12,8 +12,8 @@ import { CommercialReportSummary, STATUS_LABELS, ReconciliationStatus } from '..
 import { ReportFilters, classicParams, filtersFromParams, filtersToParams, isSingleDay } from '../../models/report-period';
 import { CommercialCockpitService } from '../../service/commercial-cockpit.service';
 import { DailyReportService } from '../../service/daily-report.service';
-import { GuidedTourService } from '../../components/guided-tour/guided-tour.service';
-import { SHEET_TOUR } from '../../components/guided-tour/report-tours';
+import { GuidedTourService } from '../../../shared/report-ui/guided-tour/guided-tour.service';
+import { SHEET_TOUR } from '../../report-tours';
 import { AgentOption } from '../../components/report-filter-bar/report-filter-bar.component';
 import { CashDepositModalComponent } from '../../components/cash-deposit-modal/cash-deposit-modal.component';
 import { SurplusReallocationDialogComponent } from '../../components/surplus-reallocation-dialog/surplus-reallocation-dialog.component';

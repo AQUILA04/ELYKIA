@@ -127,8 +127,10 @@ test.describe('Recherche crédit + stock source @p0 @p1 @web @august-2026 @regre
 
     await chip.click();
     await expect(page).toHaveURL(/\/stock\/my-stock/, { timeout: 15_000 });
-    await expect(page.getByTestId('e2e-stock-sold-sales-dialog')).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId('e2e-stock-sold-sales-dialog')).toContainText(stock.collector);
-    await expect(page.getByTestId('e2e-stock-sold-sales-dialog')).toContainText(String(stock.year));
+    // Le lien ouvre la fiche stock du commercial, panneau « Ventes liées » ouvert.
+    const panel = page.getByTestId('e2e-stock-linked-sales-panel');
+    await expect(panel).toBeVisible({ timeout: 20_000 });
+    await expect(panel).toContainText(stock.collector);
+    await expect(panel).toContainText(String(stock.year));
   });
 });
