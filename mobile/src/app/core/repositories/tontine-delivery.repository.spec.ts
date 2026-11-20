@@ -38,6 +38,41 @@ describe('TontineDeliveryRepository purgeSyncedOrphans', () => {
   });
 });
 
+describe('TontineDeliveryRepository purgePhantomDeliveries', () => {
+  let repository: TontineDeliveryRepository;
+  let databaseService: jasmine.SpyObj<DatabaseService>;
+
+  beforeEach(() => {
+    databaseService = jasmine.createSpyObj('DatabaseService', ['execute', 'executeSet', 'query']);
+    (databaseService as any)['db'] = {};
+    databaseService.execute.and.resolveTo(undefined as any);
+    repository = new TontineDeliveryRepository(databaseService);
+  });
+
+  it('deletes deliveries saved without id and their items', async () => {
+    databaseService.query.and.resolveTo({ values: [{ total: 1588 }] } as any);
+
+    const purged = await repository.purgePhantomDeliveries();
+
+    expect(purged).toBe(1588);
+    const [countSql] = databaseService.query.calls.mostRecent().args as [string];
+    expect(countSql).toContain(`id IS NULL OR TRIM(id) IN ('', 'null', 'undefined')`);
+    expect(databaseService.execute).toHaveBeenCalledWith(
+      jasmine.stringMatching(/DELETE FROM tontine_delivery_items WHERE \(tontineDeliveryId IS NULL/)
+    );
+    expect(databaseService.execute).toHaveBeenCalledWith(
+      jasmine.stringMatching(/DELETE FROM tontine_deliveries WHERE \(id IS NULL/)
+    );
+  });
+
+  it('is a no-op when every delivery has an id', async () => {
+    databaseService.query.and.resolveTo({ values: [{ total: 0 }] } as any);
+
+    expect(await repository.purgePhantomDeliveries()).toBe(0);
+    expect(databaseService.execute).not.toHaveBeenCalled();
+  });
+});
+
 describe('TontineDeliveryRepository findUnsynced', () => {
   let repository: TontineDeliveryRepository;
   let databaseService: jasmine.SpyObj<DatabaseService>;

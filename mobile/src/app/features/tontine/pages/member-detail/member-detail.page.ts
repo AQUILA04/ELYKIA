@@ -27,6 +27,7 @@ import {
     canPhysicallyDeliverTontine,
     canRecordNormalTontineCollection,
     getTontineDeliveryStatusLabel,
+    isTontineDeliveryOrder,
     pickMemberTontineDelivery,
     tontineDeliveryCreationMenuLabel
 } from 'src/app/core/utils/tontine-delivery-status.util';
@@ -437,9 +438,33 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         void this.loadMemberData();
     }
 
-    /** Commande encore modifiable tant qu'elle n'est pas livrée. */
+    /** Commande encore modifiable tant qu'elle n'est pas livrée ; l'éditeur travaille sur ses articles. */
     canEditPendingOrder(): boolean {
-        return this.hasPendingDeliveryToMark() && !this.revisingOrder;
+        return this.hasPendingDeliveryToMark() && !this.revisingOrder && this.vm.deliveryItems.length > 0;
+    }
+
+    /**
+     * Badge de l'en-tête. À la clôture, le serveur passe tous les membres en PENDING :
+     * sans commande enregistrée, le membre est seulement « À livrer ».
+     */
+    memberStatusLabel(): string {
+        if (this.vm.delivery) {
+            return this.getStatusLabel(this.vm.delivery.status);
+        }
+        if (isTontineDeliveryOrder(this.vm.member?.deliveryStatus)) {
+            return 'À livrer';
+        }
+        return this.getStatusLabel(this.vm.member?.deliveryStatus);
+    }
+
+    memberStatusColor(): string {
+        if (this.vm.delivery) {
+            return this.getStatusColor(this.vm.delivery.status);
+        }
+        if (isTontineDeliveryOrder(this.vm.member?.deliveryStatus)) {
+            return 'medium';
+        }
+        return this.getStatusColor(this.vm.member?.deliveryStatus);
     }
 
     startOrderRevision(): void {

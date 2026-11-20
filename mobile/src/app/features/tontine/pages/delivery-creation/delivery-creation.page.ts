@@ -285,10 +285,12 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                     );
                     this.vm.societyShare = status.societyShare;
                     this.vm.availableBudget = status.availableBudget;
-                    this.vm.projectedBudget = await this.tontineCalculationService.projectBalance(
+                    const estimated = await this.tontineCalculationService.projectBalance(
                         this.vm.member,
                         this.vm.session
                     );
+                    // Plafond du panier : jamais sous le solde déjà disponible (cotisations au-delà de l'estimation).
+                    this.vm.projectedBudget = Math.max(estimated, status.availableBudget);
                     this.vm.allocationVersion = status.version;
                     this.vm.isOfflineEstimate = status.isOfflineEstimate;
                     this.vm.isExactBudget = status.isExact && !status.isOfflineEstimate;
@@ -471,6 +473,61 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         }
         this.cart.set(cartKey, currentQty + 1);
         this.updateBudgetCalculations();
+    }
+
+    /** Panier : fenêtre qui liste tous les articles choisis avec leur quantité. */
+    cartOpen = false;
+
+    get cartLines(): Array<{ key: string; name: string; offer: string; quantity: number; unitPrice: number; total: number; canIncrease: boolean }> {
+        const lines: Array<{ key: string; name: string; offer: string; quantity: number; unitPrice: number; total: number; canIncrease: boolean }> = [];
+        this.cart.forEach((quantity, key) => {
+            const details = this.cartDetails.get(key);
+            if (!details || quantity <= 0) {
+                return;
+            }
+            const isPack = !!details.salePackMode && details.salePackMode !== 'UNIT';
+            lines.push({
+                key,
+                name: details.name,
+                offer: isPack ? (details.packLabel || 'Pack') : '',
+                quantity,
+                unitPrice: details.price,
+                total: details.price * quantity,
+                canIncrease: quantity < details.maxQty
+            });
+        });
+        return lines;
+    }
+
+    openCart(): void {
+        this.cartOpen = true;
+    }
+
+    closeCart(): void {
+        this.cartOpen = false;
+    }
+
+    increaseCartLine(key: string): void {
+        const details = this.cartDetails.get(key);
+        if (details) {
+            this.bumpCartQuantity(key, details, details.maxQty);
+        }
+    }
+
+    decreaseCartLine(key: string): void {
+        this.decreaseCartQuantity(key);
+        if (this.cart.size === 0) {
+            this.cartOpen = false;
+        }
+    }
+
+    removeCartLine(key: string): void {
+        this.cart.delete(key);
+        this.cartDetails.delete(key);
+        this.updateBudgetCalculations();
+        if (this.cart.size === 0) {
+            this.cartOpen = false;
+        }
     }
 
     private decreaseCartQuantity(cartKey: string): void {

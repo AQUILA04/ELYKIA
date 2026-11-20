@@ -108,6 +108,24 @@ class TontineProjectedBalanceCalculatorTest {
     }
 
     @Test
+    void availableBalanceAboveTheEstimateBecomesTheCeiling() {
+        TontineMember member = member(100d, TontineSessionStatus.ACTIVE, LocalDate.of(2026, 2, 1));
+        member.getAmountHistory().add(history(100d, LocalDate.of(2026, 2, 1), null));
+        member.setAvailableContribution(32_000d);
+
+        assertEquals(32_000d, calculator.project(member, LocalDate.of(2026, 6, 15)));
+    }
+
+    @Test
+    void availableBalanceBelowTheEstimateKeepsTheEstimate() {
+        TontineMember member = member(100d, TontineSessionStatus.ACTIVE, LocalDate.of(2026, 2, 1));
+        member.getAmountHistory().add(history(100d, LocalDate.of(2026, 2, 1), null));
+        member.setAvailableContribution(10_000d);
+
+        assertEquals(30_000d, calculator.project(member, LocalDate.of(2026, 6, 15)));
+    }
+
+    @Test
     void equalityIsAllowedAndAMillimeOverIsNot() {
         assertFalse(TontineProjectedBalanceCalculator.exceeds(30_000d, 30_000d));
         assertFalse(TontineProjectedBalanceCalculator.exceeds(30_000.001d, 30_000d));

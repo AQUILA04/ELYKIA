@@ -32,9 +32,9 @@
       </div>
       <span
         class="elyk-badge status-badge"
-        [ngClass]="'status-' + getStatusColor(vm.member.deliveryStatus)"
+        [ngClass]="'status-' + memberStatusColor()"
         data-testid="e2e-tontine-member-delivery-status">
-        {{ getStatusLabel(vm.member.deliveryStatus) }}
+        {{ memberStatusLabel() }}
       </span>
       <h1 class="member-name">{{ getClientDisplayName() }}</h1>
       <div class="member-meta">
@@ -138,7 +138,7 @@
               <span>{{ item.salePackMode && item.salePackMode !== 'UNIT' ? item.packCount : item.quantity }}</span>
               <button type="button" class="stepper-btn" (click)="changeItemQuantity(item, 1)" aria-label="Augmenter la quantité">+</button>
             </div>
-            <span class="item-price elyk-amount" *appIfUnitPrice>{{ formatCurrency(item.totalPrice) }}</span>
+            <span class="item-price elyk-amount" *appIfUnitPrice="'CASH'">{{ formatCurrency(item.totalPrice) }}</span>
           </div>
           <div class="total-row">
             <span>Total</span>
@@ -149,6 +149,9 @@
             <ion-button class="elyk-btn-navy" (click)="saveRevisedOrder()">Enregistrer la commande</ion-button>
           </div>
         </div>
+        <p class="items-missing" *ngIf="vm.deliveryItems.length === 0">
+          Les articles de cette commande ne sont pas encore sur ce téléphone. Lancez une synchronisation pour les afficher.
+        </p>
         <ion-button
           *ngIf="canEditPendingOrder()"
           expand="block"

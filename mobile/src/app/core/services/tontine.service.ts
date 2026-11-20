@@ -16,7 +16,7 @@ import { TontineStockRepositoryExtensions } from '../repositories/tontine-stock.
 import { TontineMemberRepository } from '../repositories/tontine-member.repository';
 import { TontineMemberAmountHistoryRepository } from '../repositories/tontine-member-amount-history.repository';
 import { mapApiCollectionToLocal, mapApiMemberToLocal, shouldSkipPulledCollection } from './tontine-allocation.mapper';
-import { resolvePulledTontineDeliveryStatus } from '../utils/tontine-delivery-status.util';
+import { hasPersistableTontineDeliveryId, resolvePulledTontineDeliveryStatus } from '../utils/tontine-delivery-status.util';
 import { SyncOrchestratorService } from './sync/sync-orchestrator.service';
 import { DataCleanerService } from './sync/data-cleaner.service';
 import { ConnectivityService } from './connectivity.service';
@@ -263,7 +263,7 @@ export class TontineService {
 
                         const deliveries: any[] = [];
                         members.forEach((m: any) => {
-                            if (m.delivery) {
+                            if (hasPersistableTontineDeliveryId(m.delivery?.id)) {
                                 deliveries.push({
                                     id: m.delivery.id,
                                     reference: m.delivery.reference ?? null,

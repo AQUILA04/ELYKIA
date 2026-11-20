@@ -77,7 +77,14 @@ export class TontineMemberRepositoryExtensions {
                 CASE
                     WHEN tc.id IS NOT NULL THEN 1
                     ELSE 0
-                END as hasPaidToday
+                END as hasPaidToday,
+                EXISTS (
+                    SELECT 1 FROM tontine_deliveries td
+                    WHERE td.tontineMemberId = tm.id
+                      AND td.id IS NOT NULL
+                      AND TRIM(td.id) NOT IN ('', 'null', 'undefined')
+                      AND UPPER(COALESCE(td.status, '')) NOT IN ('CANCELLED', 'CANCELED')
+                ) as hasOrder
             FROM tontine_members tm
             LEFT JOIN clients c ON tm.clientId = c.id
             LEFT JOIN tontine_collections tc ON tm.id = tc.tontineMemberId AND substr(tc.collectionDate, 1, 10) = ?
@@ -94,6 +101,7 @@ export class TontineMemberRepositoryExtensions {
             return {
                 ...row,
                 hasPaidToday: !!row.hasPaidToday,
+                hasOrder: !!row.hasOrder,
                 isLocal: !!row.isLocal,
                 isSync: !!row.isSync,
                 locked: !!row.locked,

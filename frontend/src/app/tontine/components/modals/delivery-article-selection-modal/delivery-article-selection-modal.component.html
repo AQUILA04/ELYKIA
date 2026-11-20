@@ -69,9 +69,9 @@
       <thead>
         <tr>
           <th>Article</th>
-          <th *appIfUnitPrice>Prix unitaire</th>
+          <th *appIfUnitPrice="'CASH'">Prix unitaire</th>
           <th>Quantité</th>
-          <th *appIfUnitPrice>Total</th>
+          <th *appIfUnitPrice="'CASH'">Total</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -83,7 +83,7 @@
               <span class="name">{{ formatArticleLabel(selected.article) }}</span>
             </div>
           </td>
-          <td *appIfUnitPrice>{{ formatCurrency(offerOf(selected)?.salePrice || selected.article.sellingPrice) }}</td>
+          <td *appIfUnitPrice="'CASH'">{{ formatCurrency(offerOf(selected)?.salePrice || selected.article.sellingPrice) }}</td>
           <td>
             <select [value]="selected.offerKey" (change)="onOfferChange(selected, $any($event.target).value)" aria-label="Offre">
               <option *ngFor="let offer of selected.offers" [value]="offerKey(offer)">
@@ -100,7 +100,7 @@
               </button>
             </div>
           </td>
-          <td class="total-cell" *appIfUnitPrice>{{ formatCurrency(selected.totalPrice) }}</td>
+          <td class="total-cell" *appIfUnitPrice="'CASH'">{{ formatCurrency(selected.totalPrice) }}</td>
           <td>
             <button mat-icon-button color="warn" (click)="removeArticle(selected)">
               <mat-icon>delete</mat-icon>

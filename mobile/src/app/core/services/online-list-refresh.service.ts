@@ -42,7 +42,7 @@ import { DatabaseService } from './database.service';
 import { Page } from '../repositories/repository.interface';
 import { LoggerService } from './logger.service';
 import { mapApiCollectionToLocal, mapApiMemberToLocal, shouldSkipPulledCollection } from './tontine-allocation.mapper';
-import { resolvePulledTontineDeliveryStatus } from '../utils/tontine-delivery-status.util';
+import { hasPersistableTontineDeliveryId, resolvePulledTontineDeliveryStatus } from '../utils/tontine-delivery-status.util';
 
 @Injectable({
   providedIn: 'root'
@@ -248,7 +248,7 @@ export class OnlineListRefreshService {
 
       const deliveries: any[] = [];
       members.forEach((m: any) => {
-        if (!m.delivery) {
+        if (!hasPersistableTontineDeliveryId(m.delivery?.id)) {
           return;
         }
         deliveries.push({
@@ -378,7 +378,8 @@ export class OnlineListRefreshService {
             totalPrice: i.totalPrice
           };
         })
-      })).filter((d: any) => !!d.tontineMemberId && d.tontineMemberId !== 'undefined');
+      })).filter((d: any) => hasPersistableTontineDeliveryId(d.id)
+        && !!d.tontineMemberId && d.tontineMemberId !== 'undefined');
 
       if (mappedDeliveries.length > 0) {
         await this.databaseService.saveTontineDeliveries(mappedDeliveries);

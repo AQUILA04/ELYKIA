@@ -15,7 +15,9 @@ import org.thymeleaf.context.Context;
  * au gestionnaire et aux profils admin. À {@code false}, l'affichage actuel est conservé.
  * <p>
  * Une vente comptant ({@link OperationType#CASH}) suit son propre paramètre,
- * {@code RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY}, avec la même règle de profil.
+ * {@code RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY}, avec la même règle de profil. Les commandes et
+ * livraisons tontine, ainsi que les demandes de sortie et retours de stock tontine, suivent ce même
+ * paramètre (appeler {@code apply(context, OperationType.CASH)}).
  * L'espace client suit {@code RESTRICT_CUSTOMER_SPACE_UNIT_PRICE_VISIBILITY}, lu côté client.
  */
 @Service

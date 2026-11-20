@@ -21,6 +21,7 @@ import com.optimize.elykia.core.entity.stock.StockRequest;
 import com.optimize.elykia.core.entity.stock.StockReturn;
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineReturn;
+import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.StockRequestRepository;
@@ -284,7 +285,7 @@ public class StockExportService {
                 .totalAmount(totalAmount)
                 .build();
 
-        return renderPdf("stock-request-sortie-export", "context", contextDto);
+        return renderPdf("stock-request-sortie-export", "context", contextDto, OperationType.CASH);
     }
 
     public byte[] generateStockTontineReturnPdfExport(LocalDate startDate, LocalDate endDate, String collector, List<Long> requestIds) {
@@ -321,7 +322,7 @@ public class StockExportService {
                 .totalAmount(totalAmount)
                 .build();
 
-        return renderPdf("stock-return-export", "context", contextDto);
+        return renderPdf("stock-return-export", "context", contextDto, OperationType.CASH);
     }
 
     public byte[] generateTontineDashboardPdfExport(String commercial, Integer year) {
@@ -438,14 +439,23 @@ public class StockExportService {
     }
 
     private byte[] renderPdf(String template, String variableName, Object contextDto) {
-        return renderPdf(template, variableName, contextDto, PdfHtmlRenderer.FooterStyle.CLASSIC);
+        return renderPdf(template, variableName, contextDto, PdfHtmlRenderer.FooterStyle.CLASSIC, null);
+    }
+
+    private byte[] renderPdf(String template, String variableName, Object contextDto, OperationType saleType) {
+        return renderPdf(template, variableName, contextDto, PdfHtmlRenderer.FooterStyle.CLASSIC, saleType);
     }
 
     private byte[] renderPdf(String template, String variableName, Object contextDto,
             PdfHtmlRenderer.FooterStyle footerStyle) {
+        return renderPdf(template, variableName, contextDto, footerStyle, null);
+    }
+
+    private byte[] renderPdf(String template, String variableName, Object contextDto,
+            PdfHtmlRenderer.FooterStyle footerStyle, OperationType saleType) {
         String title = extractTitle(contextDto);
         Context context = new Context();
-        UnitPriceVisibility.apply(context);
+        UnitPriceVisibility.apply(context, saleType);
         PdfDocumentIdentity.applyTo(context, title);
         context.setVariable(variableName, contextDto);
         String html = templateEngine.process(template, context);

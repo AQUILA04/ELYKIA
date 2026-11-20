@@ -219,13 +219,51 @@ ion-header.ion-no-border {
 
 .footer-actions {
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
+  grid-template-columns: 1fr 1.2fr 1.3fr;
   gap: 8px;
 
   ion-button {
     margin: 0;
     height: 44px;
+    min-width: 44px;
+    font-size: 13px;
   }
+}
+
+.cart-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+
+.cart-line-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cart-remove {
+  margin-left: 8px;
+}
+
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 4px;
+  font-size: 16px;
+
+  .exceeded {
+    color: var(--ion-color-danger);
+  }
+}
+
+.cart-exceeded {
+  color: var(--ion-color-danger);
+  font-size: 13px;
+  margin: 0;
 }
 
 .elyk-empty {

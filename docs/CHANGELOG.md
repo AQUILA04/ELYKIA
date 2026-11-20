@@ -128,6 +128,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.56.1] — 2026-11-20
+
+### Changed
+
+- **Prix unitaire (tontine) —** la modale d'articles de livraison et la fiche du membre (articles livrés) suivent `RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY`, comme les ventes comptant (`*appIfUnitPrice="'CASH'"`).
+
+### Fixed
+
+- **Livraison tontine (modale d'articles) —** le plafond de la commande ne descend plus sous le solde disponible : un membre qui a cotisé plus que l'estimation peut commander jusqu'à son solde disponible.
+
 ## Frontend — [2.56.0] — 2026-11-20
 
 ### Added
@@ -156,7 +166,6 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - L'ancienne présentation du stock reste disponible sur `/stock/my-stock/classic`, avec un lien dans chaque sens. Le lien « stock source » du détail d'un crédit ouvre la fiche avec le panneau Ventes liées.
 - Visite guidée, format FCFA et styles du rapport commerciaux déplacés dans un module partagé (`shared/report-ui`), utilisé par le rapport et le stock.
-
 ## Frontend — [2.54.0] — 2026-11-20
 
 ### Changed
@@ -476,6 +485,30 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.41.2] — 2026-11-20
+
+### Fixed
+
+- **Tontine — commandes vides sur tous les membres après la clôture —** la liste `/tontines/members` renvoyait `delivery: { id: null }` pour chaque membre sans commande ; le téléphone l'enregistrait comme une livraison. Tant que la session était ouverte (membres `SESSION_INPROGRESS`) ces lignes restaient ignorées ; à la clôture, tous les membres passent `PENDING` et chaque fiche affichait une « Commande » sans article, avec un « Modifier la commande » sans effet. Les livraisons sans identifiant ne sont plus enregistrées (`hasPersistableTontineDeliveryId`, `saveTontineDeliveries`), celles déjà présentes sont supprimées au démarrage de la tontine et avant chaque synchro des livraisons (`purgePhantomDeliveries`), et `pickMemberTontineDelivery` les ignore.
+- **Fiche membre —** badge de l'en-tête : statut de la commande enregistrée, sinon « À livrer » pour un membre en attente de remise. « Modifier la commande » n'apparaît que si la commande a des articles ; sinon un message invite à synchroniser.
+- **Tableau de bord tontine —** badge « Commande » / « Validée » seulement si le membre a une commande sur le téléphone (`hasOrder`), sinon « À livrer ».
+
+## Mobile — [2.41.1] — 2026-11-20
+
+### Changed
+
+- **Prix unitaire (tontine) —** écran de livraison/commande, panier, fiche du membre, reçu de commande (écran et ticket) et reçu de livraison suivent `RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY` au lieu du paramètre général. `UnitPriceVisibilityService` charge les deux paramètres ; les directives `appIfUnitPrice` / `appIfNoUnitPrice` acceptent `'CASH'`.
+
+## Mobile — [2.41.0] — 2026-11-20
+
+### Added
+
+- **Livraison tontine — Panier —** le bouton **Panier** du pied d'écran ouvre la liste des articles choisis avec leur quantité ; on peut y ajouter, retirer ou supprimer une ligne et voir le total.
+
+### Fixed
+
+- **Livraison tontine — plafond du panier —** le plafond est le plus grand du solde prévisionnel et du solde disponible. Avec 40 000 de solde disponible et 39 000 de prévisionnel, un panier de 39 400 peut être validé.
+
 ## Mobile — [2.40.6] — 2026-11-20
 
 ### Fixed
@@ -637,6 +670,30 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.57.5] — 2026-11-20
+
+### Changed
+
+- **Prix unitaire (stock tontine) —** les PDF « Fiche de demande(s) de sortie stock tontine », « Fiche de retour(s) stock tontine » (`StockExportService`) et « Rapport des Sorties de Stock Tontine » (`StockTontineRequestService.generatePdfExport`) suivent `RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY`, comme les commandes et livraisons tontine. Le stock commercial garde le paramètre général. Tests : `StockExportServiceTest`. Guide gestionnaire : tableau des paramètres mis à jour.
+
+## Backend — [1.57.4] — 2026-11-20
+
+### Fixed
+
+- **Tontine — liste des membres —** `findMembersDto` / `findMembersDtoWithSearch` (`LEFT JOIN tm.delivery d` + `new TontineDeliveryRespDto(d.id, …)`) construisaient une livraison vide (`id: null`) pour chaque membre sans commande. `TontineService.getMembers` renvoie désormais `delivery = null` dans ce cas (`TontineMemberRespDto.withoutPhantomDelivery`). Test : `getMembers_dropsTheDeliveryBuiltForMembersWithoutOrder`.
+
+## Backend — [1.57.3] — 2026-11-20
+
+### Changed
+
+- **Prix unitaire (tontine) —** le PDF « Reçu de commande tontine » suit `RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY` (`UnitPriceVisibility.apply(context, OperationType.CASH)`) au lieu du paramètre général. Guide gestionnaire : tableau des paramètres mis à jour.
+
+## Backend — [1.57.2] — 2026-11-20
+
+### Fixed
+
+- **Commande tontine — plafond du panier —** `TontineProjectedBalanceCalculator.project` renvoie le plus grand du solde prévisionnel estimé et du solde disponible. Une commande couverte par le solde réel n'est plus refusée parce qu'elle dépasse l'estimation.
 
 ## Backend — [1.57.1] — 2026-11-20
 

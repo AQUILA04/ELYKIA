@@ -31,10 +31,20 @@ public class TontineProjectedBalanceCalculator {
         return project(member, LocalDate.now());
     }
 
+    /**
+     * Plafond du panier : le solde prévisionnel, jamais en dessous du solde déjà disponible.
+     * Quand le membre a cotisé plus que l'estimation (avances, compléments), le solde disponible
+     * devient le plafond : on ne bloque pas une commande que le solde réel couvre.
+     */
     public double project(TontineMember member, LocalDate asOf) {
         if (member == null || member.getTontineSession() == null) {
             return 0.0;
         }
+        double available = member.getAvailableContribution() != null ? member.getAvailableContribution() : 0.0;
+        return Math.max(estimate(member, asOf), available);
+    }
+
+    private double estimate(TontineMember member, LocalDate asOf) {
         TontineSession session = member.getTontineSession();
         if (session.getStartDate() == null || session.getEndDate() == null) {
             return 0.0;
