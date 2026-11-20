@@ -299,11 +299,21 @@ Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refu
 
 ### Prix unitaires sur les documents
 
+Trois paramètres règlent l’affichage du prix unitaire et du montant de chaque ligne. Le montant total du document reste toujours affiché, y compris sur les PDF.
+
+| Paramètre | Ce qu’il couvre |
+|-----------|-----------------|
+| **RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY** | Les ventes comptant : saisie, reçu, fiche de la vente, achats d’un client, PDF d’annulation. |
+| **RESTRICT_CUSTOMER_SPACE_UNIT_PRICE_VISIBILITY** | L’Espace Client : catalogue, panier, détail d’un achat. |
+| **RESTRICT_UNIT_PRICE_VISIBILITY** | Tout le reste : ventes à crédit, livraisons tontine, commandes, sorties de stock, dettes, rapports et autres PDF. |
+
 1. Ouvrez **Configuration** → **Paramètres généraux**.
-2. Repérez **RESTRICT_UNIT_PRICE_VISIBILITY**.
+2. Repérez le paramètre voulu.
 3. Cliquez sur **Modifier**.
-4. Laissez **true** pour réserver le prix unitaire et le montant de chaque ligne au gestionnaire et aux administrateurs. Le montant total du document reste affiché pour tout le monde, y compris sur les PDF.
-5. Passez la valeur à **false**, puis enregistrez, pour que chaque profil retrouve le prix unitaire et le montant de ligne sur les écrans et les PDF.
+4. Laissez **true** pour masquer le prix unitaire et le montant de ligne. Sur les écrans de gestion, le gestionnaire et les administrateurs les voient toujours. Dans l’Espace Client, aucun client ne les voit.
+5. Passez la valeur à **false**, puis enregistrez, pour que tout le monde les voie dans le périmètre de ce paramètre.
+
+Les écrans relisent ces réglages à l’accueil, dans **Paramètres**, et au plus toutes les 6 heures.
 
 ### Grilles de frais de retrait
 

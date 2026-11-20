@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, Input, Output, EventEmitter, forwardRef, ViewEncapsulation } from '@angular/core';
 import { FormBuilder, FormGroup, FormArray, Validators, ControlValueAccessor, NG_VALUE_ACCESSOR, NG_VALIDATORS, Validator, AbstractControl, ValidationErrors } from '@angular/forms';
-import { forkJoin, of, Subject, Subscription } from 'rxjs';
+import { combineLatest, forkJoin, of, Subject, Subscription } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, map } from 'rxjs/operators';
 import { ArticleSalePack, ItemService } from 'src/app/article/service/item.service';
 import { halfPackageUnits, hasHalfPackage } from 'src/app/article/packaging';
@@ -53,6 +53,8 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   @Input() showStock: boolean = true;
   @Input() validateStock: boolean = false;
   @Input() capturePurchasePrice: boolean = false;
+  /** Type de vente pour la visibilité du prix unitaire : 'CASH' suit le paramètre des ventes comptant. */
+  @Input() unitPriceSaleType: string | null = null;
   @Output() articlesChange = new EventEmitter<ArticleSelection[]>();
   @Output() totalAmountChange = new EventEmitter<number>();
 
@@ -62,7 +64,6 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   articleForm!: FormGroup;
   availableArticlesPerRow: any[][] = [];
   totalAmount: number = 0;
-  unitPriceVisible = false;
   articlesLoading = false;
 
   private readonly pageSize = 20;
@@ -88,7 +89,6 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     private itemService: ItemService,
     private unitPriceVisibility: UnitPriceVisibilityService
   ) {
-    this.unitPriceVisible = this.unitPriceVisibility.snapshot;
     this.articleForm = this.fb.group({
       articles: this.fb.array([])
     });
@@ -108,8 +108,10 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
     }
 
     this.listenForArticleChanges();
-    this.unitPriceSub = this.unitPriceVisibility.showUnitPrice$.subscribe(show => {
-      this.unitPriceVisible = show;
+    this.unitPriceSub = combineLatest([
+      this.unitPriceVisibility.showUnitPrice$,
+      this.unitPriceVisibility.showCashUnitPrice$
+    ]).subscribe(() => {
       if (this.showPrices) {
         this.calculateTotalAmount();
       }
@@ -777,7 +779,9 @@ export class ArticleSelectorComponent implements OnInit, OnDestroy, OnChanges, C
   }
 
   shouldShowPriceColumns(): boolean {
-    return this.showPrices && this.unitPriceVisible && !this.capturePurchasePrice;
+    return this.showPrices
+      && this.unitPriceVisibility.snapshotFor(this.unitPriceSaleType)
+      && !this.capturePurchasePrice;
   }
 
   shouldShowPurchasePriceColumn(): boolean {

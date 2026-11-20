@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-20 (prix unitaires)
+
+### Changed
+
+- **Guide utilisateur (gestionnaire) —** « Prix unitaires sur les documents » présente les trois paramètres : ventes comptant, Espace Client, et le paramètre général pour le reste. Index RAG et guide HTML régénérés.
+
 ## Docs & Infra — 2026-11-20
 
 ### Changed
@@ -121,6 +127,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.54.0] — 2026-11-20
+
+### Changed
+
+- **Ventes comptant —** le prix unitaire et le montant de ligne suivent le nouveau paramètre **RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY** : saisie de la vente, reçu à l'écran et imprimé, fiche de la vente et achats d'un client. Les ventes à crédit, les livraisons tontine et les autres écrans restent sur **RESTRICT_UNIT_PRICE_VISIBILITY**. Le gestionnaire et les administrateurs voient toujours les prix.
+- Les directives `*appIfUnitPrice` et `*appIfNoUnitPrice` acceptent le type de la vente (`*appIfUnitPrice="credit.type"`). Sans valeur, elles suivent le paramètre général.
 
 ## Frontend — [2.53.1] — 2026-11-20
 
@@ -589,6 +602,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.56.0] — 2026-11-20
+
+### Added
+
+- Paramètres **RESTRICT_CASH_SALE_UNIT_PRICE_VISIBILITY** (ventes comptant) et **RESTRICT_CUSTOMER_SPACE_UNIT_PRICE_VISIBILITY** (Espace Client), créés au démarrage à `true` s'ils n'existent pas. **RESTRICT_UNIT_PRICE_VISIBILITY** couvre tout le reste, comme avant.
+- Le PDF d'audit d'annulation d'une vente comptant suit le paramètre des ventes comptant.
+
+### Note de déploiement
+
+- Les deux nouveaux paramètres démarrent à `true`, quelle que soit la valeur de **RESTRICT_UNIT_PRICE_VISIBILITY**. Si celui-ci est à `false` en production, passez aussi les nouveaux à `false` dans **Paramètres généraux** pour garder l'affichage actuel.
 
 ## Backend — [1.55.1] — 2026-11-20
 
@@ -1917,6 +1941,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - Liste paiements clients : cellules montant / référence / justificatif factorisées via `ng-template` pour passer le seuil Sonar de duplication sur nouveau code.
+
+## Customer-space — [0.17.4] — 2026-11-20
+
+### Changed
+
+- Le prix unitaire et le montant de ligne (catalogue, panier, détail d'un achat) suivent le nouveau paramètre **RESTRICT_CUSTOMER_SPACE_UNIT_PRICE_VISIBILITY**, distinct de celui des écrans de gestion.
 
 ## Customer-space — [0.17.3] — 2026-11-09
 

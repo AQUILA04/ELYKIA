@@ -33,7 +33,13 @@ describe('ArticleSelectorComponent', () => {
       providers: [
         {
           provide: UnitPriceVisibilityService,
-          useValue: { showUnitPrice$: of(true), snapshot: true }
+          useValue: {
+            showUnitPrice$: of(true),
+            showCashUnitPrice$: of(true),
+            snapshot: true,
+            cashSnapshot: true,
+            snapshotFor: () => true
+          }
         },
         {
           provide: ItemService,
@@ -106,6 +112,16 @@ describe('ArticleSelectorComponent lazy edit', () => {
       declarations: [ArticleSelectorComponent],
       imports: [ReactiveFormsModule, NgSelectModule],
       providers: [
+        {
+          provide: UnitPriceVisibilityService,
+          useValue: {
+            showUnitPrice$: of(true),
+            showCashUnitPrice$: of(true),
+            snapshot: true,
+            cashSnapshot: true,
+            snapshotFor: () => true
+          }
+        },
         {
           provide: ItemService,
           useValue: {
