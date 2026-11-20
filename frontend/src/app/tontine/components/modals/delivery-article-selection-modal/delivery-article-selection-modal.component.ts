@@ -239,7 +239,7 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
   }
 
   get orderCeiling(): number {
-    return this.member.projectedBalance ?? this.availableBalance;
+    return Math.max(this.member.projectedBalance ?? 0, this.availableBalance);
   }
 
   get remainingBalance(): number {

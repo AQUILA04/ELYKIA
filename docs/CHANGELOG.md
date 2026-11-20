@@ -128,6 +128,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.54.1] — 2026-11-20
+
+### Fixed
+
+- **Livraison tontine (modale d'articles) —** le plafond de la commande ne descend plus sous le solde disponible : un membre qui a cotisé plus que l'estimation peut commander jusqu'à son solde disponible.
+
 ## Frontend — [2.54.0] — 2026-11-20
 
 ### Changed
@@ -447,6 +453,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.41.0] — 2026-11-20
+
+### Added
+
+- **Livraison tontine — Panier —** le bouton **Panier** du pied d'écran ouvre la liste des articles choisis avec leur quantité ; on peut y ajouter, retirer ou supprimer une ligne et voir le total.
+
+### Fixed
+
+- **Livraison tontine — plafond du panier —** le plafond est le plus grand du solde prévisionnel et du solde disponible. Avec 40 000 de solde disponible et 39 000 de prévisionnel, un panier de 39 400 peut être validé.
+
 ## Mobile — [2.40.6] — 2026-11-20
 
 ### Fixed
@@ -608,6 +624,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.57.2] — 2026-11-20
+
+### Fixed
+
+- **Commande tontine — plafond du panier —** `TontineProjectedBalanceCalculator.project` renvoie le plus grand du solde prévisionnel estimé et du solde disponible. Une commande couverte par le solde réel n'est plus refusée parce qu'elle dépasse l'estimation.
 
 ## Backend — [1.57.1] — 2026-11-20
 

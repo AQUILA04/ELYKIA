@@ -264,7 +264,8 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
    * **Pendant la session ouverte** : l'écran affiche le **catalogue** de l'agence. Vous n'avez pas besoin d'avoir déjà du stock tontine pour enregistrer la commande.
    * **Après la clôture** : l'écran affiche par défaut votre **stock tontine** (articles reçus du magasin) pour la remise en mains propres. Pour enregistrer une **Commande**, touchez **Catalogue (commande)** en haut de la liste ; pour une **Livraison directe**, restez sur **Stock tontine (remise)**.
    * Touchez **+** pour ajouter les articles. Si l'article a plusieurs offres (unité, gros, demi-gros ou une offre libre), choisissez-la dans la liste avant d'augmenter la quantité.
-   * Le panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le **solde prévisionnel**. Dans ce cas, **Valider** reste indisponible : retirez ou diminuez des articles.
+   * Pour revoir ce que vous avez choisi, touchez **Panier** en bas de l'écran : la liste affiche chaque article avec sa quantité et le total. Vous pouvez y ajouter ou retirer une unité, ou supprimer une ligne.
+   * Le panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le **plafond** : le **solde prévisionnel**, ou le **solde disponible** s'il est plus élevé (par exemple une membre qui a déjà cotisé 40 000 alors que l'estimation est de 39 000 peut commander jusqu'à 40 000). Au-delà, **Valider** reste indisponible : retirez ou diminuez des articles.
 4. **Si le solde déjà encaissé ne couvre pas le panier** :
    * Pendant la session ouverte, vous pouvez quand même enregistrer la **Commande**. **Compléter le solde** est proposé, sans être obligatoire.
    * Au moment de la remise, deux possibilités :
