@@ -182,9 +182,11 @@ flowchart LR
 2. **Valider la Livraison** :
    - Un responsable examine la sélection et clique sur **Valider la Livraison**. Le statut passe à **Validé**.
 
-3. **Marquer comme Livré** :
-   - Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur **Marquer comme Livré**.
-   - La remise part seulement si le **solde disponible** couvre le montant de la commande. S'il est en dessous, la fenêtre **Solde insuffisant** propose **Réduire la commande** : retirez ou diminuez des articles jusqu'à ce que le total tienne dans le solde disponible, puis enregistrez. Le complément de cotisation au moment de la remise se fait sur l'application mobile.
+3. **Livrer** :
+   - Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur **Livrer**.
+   - La fenêtre **Livrer la commande** s'ouvre : articles, **Solde net cotisé**, **Montant de la commande**, puis **Reste à payer** ou **Reliquat à restituer**.
+   - **Confirmer la livraison** n'est possible que si le solde couvre la commande. Sinon, cliquez sur **Réduire la commande** : retirez ou diminuez des articles jusqu'à ce que le total tienne dans le solde, enregistrez, puis cliquez de nouveau sur **Livrer**. Le complément de cotisation au moment de la remise se fait sur l'application mobile.
+   - Après la confirmation, **Télécharger le reçu** donne le reçu de remise : **Total cotisé (net)**, **Total utilisé** et **Total restant**.
    - Cette action déduit définitivement les articles du **stock tontine** du commercial et clôture le dossier du membre. Le commercial doit donc avoir reçu les articles via une demande de stock tontine avant la remise.
    - La fiche conserve la preuve complète : date, commercial ayant servi le client et détail des articles livrés.
    - Après la clôture, une livraison directe suit le même plafond : le panier peut aller jusqu'au solde prévisionnel de l'année, et la remise attend que le solde disponible couvre ce panier.
@@ -204,7 +206,7 @@ Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. C
 2. **Tout valider** valide toutes les livraisons **En attente** de la période, de la recherche et du commercial choisi. Une confirmation indique le nombre.
 3. **Faire une demande de stock** regroupe les commandes cochées d'un même commercial en une seule demande de sortie tontine. Les quantités d'un même article s'additionnent. Le magasinier livre ensuite ce commercial en une seule opération.
 4. **Demande de stock (en attente)** prépare la même demande pour toutes les livraisons **En attente** du filtre, qui ne sont pas déjà dans une demande de stock. La fenêtre rappelle les articles et les quantités, par commercial.
-5. Quand la demande de stock est validée, les commandes liées encore **En attente** passent à **Validée**. La remise au membre reste **Marquer comme Livré**.
+5. Quand la demande de stock est validée, les commandes liées encore **En attente** passent à **Validée**. La remise au membre se fait toujours avec **Livrer**, sur la fiche du membre.
 
 ---
 

@@ -659,7 +659,10 @@ test.describe.serial('Golden path — prérequis métier', () => {
 
     await expect(page.getByTestId('e2e-tontine-mark-delivered-btn')).toBeVisible({ timeout: 15_000 });
     await page.getByTestId('e2e-tontine-mark-delivered-btn').click();
-    await confirmSwal(page);
+    // « Livrer » ouvre l'aperçu : soldes, puis Confirmer la livraison.
+    await expect(page.getByTestId('e2e-tontine-deliver-preview')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('e2e-tontine-deliver-preview-balance')).toContainText('Solde net cotisé');
+    await page.getByTestId('e2e-tontine-deliver-preview-confirm').click();
 
     await expectTontineMemberDeliveryStatus(clientLastName, 'DELIVERED');
   });

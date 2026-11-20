@@ -35,6 +35,13 @@ import {
 import { TontineOrderReceiptModalComponent } from 'src/app/shared/components/tontine-order-receipt-modal/tontine-order-receipt-modal.component';
 import { PrintableTontineOrder } from 'src/app/core/services/printing.service';
 import { generateTontineAuthenticityCode } from 'src/app/core/utils/tontine-delivery-reference.util';
+import { stepTontineDeliveryItem } from 'src/app/core/utils/tontine-delivery-item-quantity.util';
+import {
+    TontineDeliverRecapItem,
+    TontineDeliverRecapModalComponent,
+    TontineDeliverRecapResult
+} from 'src/app/shared/components/tontine-deliver-recap-modal/tontine-deliver-recap-modal.component';
+import { TontineDeliveryReceiptModalComponent } from 'src/app/shared/components/tontine-delivery-receipt-modal/tontine-delivery-receipt-modal.component';
 import {
     TontineOrderBalance,
     computeTontineOrderBalance,
@@ -160,6 +167,10 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         }
         await this.ensureSessionStatus();
         await this.loadMemberData();
+        if (this.reopenDeliverRecapOnReturn) {
+            this.reopenDeliverRecapOnReturn = false;
+            await this.markAsDelivered();
+        }
     }
 
     ngOnDestroy() {
@@ -361,7 +372,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         if (!canPhysicallyDeliverTontine(this.sessionStatus)) {
             const blocked = await this.alertCtrl.create({
                 header: 'Action indisponible',
-                message: 'Vous pourrez marquer la commande comme livrée une fois la session de tontine clôturée.',
+                message: 'Vous pourrez livrer la commande une fois la session de tontine clôturée.',
                 cssClass: 'elyk-alert',
                 buttons: ['OK']
             });
@@ -369,80 +380,148 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             return;
         }
 
-        const available = this.vm.member.availableContribution ?? 0;
-        const total = this.vm.delivery.totalAmount ?? 0;
-        if (total > available + 0.001) {
-            const gap = total - available;
-            const short = await this.alertCtrl.create({
-                header: 'Solde insuffisant',
-                message: `Le solde réel ne couvre pas la commande. Il manque ${gap.toLocaleString('fr-FR')} FCFA. Complétez le solde ou réduisez les articles.`,
-                cssClass: 'elyk-alert',
-                buttons: [
-                    { text: 'Annuler', role: 'cancel' },
-                    {
-                        text: 'Compléter le solde',
-                        handler: () => {
-                            this.navCtrl.navigateForward(['/tontine/collection-recording'], {
-                                queryParams: {
-                                    memberId: this.memberId,
-                                    amount: gap,
-                                    returnToDelivery: true
-                                }
-                            });
-                        }
-                    },
-                    {
-                        text: 'Modifier la commande',
-                        handler: () => {
-                            this.revisingOrder = true;
-                        }
-                    }
-                ]
-            });
-            await short.present();
+        // « Livrer » présente d'abord le récapitulatif : soldes, complément, réduction, puis confirmation.
+        const modal = await this.modalCtrl.create({
+            component: TontineDeliverRecapModalComponent,
+            componentProps: {
+                clientName: this.getClientDisplayName(),
+                reference: this.vm.delivery.reference,
+                items: await this.buildDeliverRecapItems(),
+                netContribution: this.vm.member.availableContribution ?? 0
+            }
+        });
+        await modal.present();
+        const { data } = await modal.onDidDismiss<TontineDeliverRecapResult>();
+        if (!data || data.action === 'cancel') {
             return;
         }
-
-        const alert = await this.alertCtrl.create({
-            header: 'Marquer comme livré',
-            message: 'Confirmez-vous que les articles de cette commande ont été remis au membre ?',
-            cssClass: 'elyk-alert',
-            buttons: [
-                { text: 'Annuler', role: 'cancel' },
-                {
-                    text: 'Livrer',
-                    handler: () => {
-                        void this.performMarkAsDelivered(false);
-                    }
+        if (data.action === 'topup') {
+            this.reopenDeliverRecapOnReturn = true;
+            await this.navCtrl.navigateForward(['/tontine/collection-recording'], {
+                queryParams: {
+                    memberId: this.memberId,
+                    amount: data.amount,
+                    returnToDelivery: true
                 }
-            ]
+            });
+            return;
+        }
+        if (data.reduced && !(await this.saveReducedOrderBeforeDelivery(data.items))) {
+            return;
+        }
+        await this.performMarkAsDelivered(false);
+    }
+
+    /** Retour de « Compléter le solde » : rouvrir le récapitulatif avec le solde à jour. */
+    private reopenDeliverRecapOnReturn = false;
+
+    /** Articles de la commande avec le stock tontine disponible chez le commercial. */
+    private async buildDeliverRecapItems(): Promise<TontineDeliverRecapItem[]> {
+        const items: DeliveryItemWithArticle[] = this.vm.deliveryItems.length
+            ? this.vm.deliveryItems
+            : (this.vm.delivery ? await this.deliveryRepo.getItems(this.vm.delivery.id) : []);
+        let sessionId: string | null = null;
+        try {
+            const session = await firstValueFrom(this.store.select(selectTontineSession).pipe(take(1)));
+            sessionId = session?.id ?? null;
+        } catch {
+            sessionId = null;
+        }
+        const recapItems: TontineDeliverRecapItem[] = [];
+        for (const item of items) {
+            let stockAvailable: number | null = null;
+            if (sessionId && this.commercialUsername) {
+                const stock = await this.stockRepo.getByArticle(this.commercialUsername, sessionId, item.articleId);
+                stockAvailable = stock?.availableQuantity ?? 0;
+            }
+            recapItems.push({ ...item, stockAvailable });
+        }
+        return recapItems;
+    }
+
+    /** La commande réduite dans le récapitulatif est enregistrée avant la remise. */
+    private async saveReducedOrderBeforeDelivery(items: TontineDeliverRecapItem[]): Promise<boolean> {
+        if (!this.vm.delivery) {
+            return false;
+        }
+        const lines: DeliveryItemWithArticle[] = items.map(({ stockAvailable, ...item }) => item);
+        const loading = await this.loadingCtrl.create({ message: 'Enregistrement de la commande…' });
+        await loading.present();
+        try {
+            const total = await this.tontineWriteService.replaceDeliveryItems(this.vm.delivery, lines);
+            this.vm.delivery = { ...this.vm.delivery, totalAmount: total, items: lines };
+            this.vm.deliveryItems = [...lines];
+            return true;
+        } catch (error: any) {
+            const toast = await this.toastCtrl.create({
+                message: error?.message || 'La commande n\'a pas pu être réduite',
+                duration: 3000,
+                color: 'danger'
+            });
+            await toast.present();
+            return false;
+        } finally {
+            await loading.dismiss();
+        }
+    }
+
+    /** Bon de remise : total cotisé (net), total utilisé, total restant. */
+    private async presentHandoverReceipt(items: DeliveryItemWithArticle[], netContribution: number): Promise<void> {
+        if (!this.vm.delivery) {
+            return;
+        }
+        const total = this.vm.delivery.totalAmount ?? 0;
+        let year = new Date().getFullYear();
+        try {
+            const session = await firstValueFrom(this.store.select(selectTontineSession).pipe(take(1)));
+            year = session?.year ?? year;
+        } catch {
+            // Session absente du store : l'année courante suffit pour le bon.
+        }
+        const modal = await this.modalCtrl.create({
+            component: TontineDeliveryReceiptModalComponent,
+            componentProps: {
+                data: {
+                    delivery: {
+                        id: this.vm.delivery.id,
+                        requestDate: this.vm.delivery.requestDate,
+                        deliveryDate: new Date().toISOString(),
+                        totalAmount: total
+                    },
+                    items: items.map(item => ({
+                        articleName: item.salePackMode && item.salePackMode !== 'UNIT' && item.packLabel
+                            ? `${item.articleName || 'Article'} — ${item.packLabel}`
+                            : (item.articleName || 'Article'),
+                        quantity: item.salePackMode && item.salePackMode !== 'UNIT'
+                            ? (item.packCount || item.quantity)
+                            : item.quantity,
+                        unitPrice: item.unitPrice,
+                        totalPrice: item.totalPrice
+                    })),
+                    client: { fullName: this.getClientDisplayName(), phone: this.vm.client?.phone },
+                    session: { year },
+                    commercial: { name: this.commercialUsername || this.vm.delivery.commercialUsername || 'Commercial' },
+                    totalBudget: netContribution,
+                    remainingBudget: Math.max(0, netContribution - total)
+                }
+            }
         });
-        await alert.present();
+        await modal.present();
+        await modal.onDidDismiss();
     }
 
     revisingOrder = false;
 
     changeItemQuantity(item: DeliveryItemWithArticle, delta: number): void {
-        const usesPack = !!item.salePackMode && item.salePackMode !== 'UNIT' && (item.packCount || 0) > 0;
-        const stepBase = usesPack ? (item.packCount || 1) : item.quantity;
-        const next = stepBase + delta;
-        if (next < 1) {
+        const next = stepTontineDeliveryItem(item, delta);
+        if (next === null) {
             if (this.vm.deliveryItems.length <= 1) {
                 return;
             }
             this.vm.deliveryItems = this.vm.deliveryItems.filter(current => current !== item);
             return;
         }
-        if (usesPack) {
-            const perPack = (item.packCount || 1) > 0 ? (item.totalPrice || 0) / (item.packCount || 1) : (item.unitPrice || 0);
-            item.packCount = next;
-            item.quantity = next * (item.unitsPerPack || 1);
-            item.totalPrice = perPack * next;
-            return;
-        }
-        const perUnit = item.quantity > 0 ? (item.totalPrice || 0) / item.quantity : (item.unitPrice || 0);
-        item.quantity = next;
-        item.totalPrice = perUnit * next;
+        Object.assign(item, next);
     }
 
     /** Solde net cotisé, reste à payer ou reliquat de la commande affichée (total révisé pendant la modification). */
@@ -598,11 +677,12 @@ export class MemberDetailPage implements OnInit, OnDestroy {
 
             await loading.dismiss();
             const toast = await this.toastCtrl.create({
-                message: 'Commande marquée comme livrée.',
+                message: 'Commande livrée.',
                 duration: 2000,
                 color: 'success'
             });
             await toast.present();
+            await this.presentHandoverReceipt(items, this.vm.member.availableContribution ?? 0);
             await this.loadMemberData();
         } catch (error) {
             if (await this.loadingCtrl.getTop()) {
@@ -743,8 +823,8 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                 }] : []),
                 ...(this.hasPendingDeliveryToMark() ? [{
                     text: this.canMarkAsDelivered()
-                        ? 'Marquer comme livré'
-                        : 'Marquer comme livré (après clôture)',
+                        ? 'Livrer'
+                        : 'Livrer (après clôture)',
                     icon: 'checkmark-done-outline',
                     cssClass: this.canMarkAsDelivered() ? undefined : 'elyk-action-disabled',
                     handler: () => {
