@@ -4,9 +4,11 @@ Arrêt au **2026-11-20** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de
 
 ## Versions en tête
 
-- Frontend **2.54.0** — Backend **1.56.0** — Mobile **2.40.5** — Espace client **0.17.4** (dernier incrément espace client : 2026-11-20).
+- Frontend **2.54.0** — Backend **1.56.1** — Mobile **2.40.5** — Espace client **0.17.4** (dernier incrément espace client : 2026-11-20).
 
 ## Focus récent (changelog et PR)
+
+- **Noms d'article > 255 caractères** (2026-11-20). Backend 1.56.1 : le nom composé `type: marque modèle nom` atteint ~300 caractères ; `item_name` / `article_name` des demandes de stock, livraisons, stocks et mouvements tontine passent en `TEXT` (migration `V043`, appliquée aussi à la main sur la base de test).
 
 - **Prix unitaire scindé** (2026-11-20, branche `feat/unit-price-visibility-split`). Backend 1.56.0 / Frontend 2.54.0 / Espace client 0.17.4 : paramètres dédiés ventes comptant et espace client, déclarés dans `init-data` à `true`. Directives `*appIfUnitPrice="credit.type"`. Mobile inchangé (pas de vente comptant).
 - **Nouveau rapport commerciaux** (2026-11-20, en cours, 3 PR empilées). PR 1 Backend 1.55.0 : endpoints `cockpit`, `commercials/{username}/summary`, `yearly-summary/team` (cache 5 min), totaux journal et versements, index `V042`, rattrapage explicite dans le versement (`catchupAmount`) et rattrapages saisis (`catchupEnteredAmount`) — plan `.cursor/plans/rattrapage_versement_et_kpi_b4436c59.plan.md`. Règle « dû à la caisse » = A Verser + rattrapages saisis hors période. PR 2 Frontend 2.52.0 : cockpit `/report/daily` et fiche `/report/daily/commercials/:username`, ancienne interface sur `/report/daily/classic`, visite guidée maison (`GuidedTourService`, vue une fois par utilisateur, désactivée sous Playwright), champ « Rattrapage » du versement. Karma n'est pas lancé en CI et `ng test` ne compile pas sur `main` (specs cassées hors rapport) : lancer les specs ciblées avec `--include`. PR 3 Frontend 2.53.0 : `/report/daily/deposits` (totaux, surplus, remise) et `/report/daily/journal` (totaux par type), guide gestionnaire réécrit. L'ancienne présentation reste à retirer plus tard, sur décision du métier.

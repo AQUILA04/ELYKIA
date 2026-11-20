@@ -43,6 +43,7 @@ public class TontineStockMovement extends Auditable<String> {
     @Column(name = "article_id", nullable = false)
     private Long articleId;
 
+    @Column(columnDefinition = "TEXT")
     private String articleName;
 
     @Enumerated(EnumType.STRING)

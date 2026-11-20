@@ -31,6 +31,7 @@ public class TontineStock extends BaseEntity<String> {
     
     @Column(name = "article_id", nullable = false)
     private Long articleId;
+    @Column(columnDefinition = "TEXT")
     private String articleName;
     
     // Prix unitaire de référence (peut évoluer vers un PMP)
