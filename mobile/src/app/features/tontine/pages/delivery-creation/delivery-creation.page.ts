@@ -818,8 +818,20 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             await loading.dismiss();
 
             if (isOrder) {
+                if (savedDelivery.mergedIntoExisting) {
+                    const merged = await this.alertCtrl.create({
+                        header: 'Commande complétée',
+                        message: `Une commande était déjà enregistrée pour ce membre sur un autre appareil (réf. ${savedDelivery.reference || '—'}). Vos articles y ont été ajoutés : total ${savedDelivery.totalAmount.toLocaleString('fr-FR')} FCFA.`,
+                        cssClass: 'elyk-alert',
+                        buttons: ['OK']
+                    });
+                    await merged.present();
+                    await merged.onDidDismiss();
+                }
                 try {
-                    await this.presentOrderReceipt(savedDelivery, items);
+                    await this.presentOrderReceipt(savedDelivery, savedDelivery.mergedIntoExisting
+                        ? (savedDelivery.items || items)
+                        : items);
                 } catch (printError) {
                     console.error('Error opening tontine order receipt:', printError);
                 }
@@ -872,6 +884,12 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             console.error('Error processing delivery:', error);
             if (await this.loadingCtrl.getTop()) {
                 await loading.dismiss();
+            }
+
+            if (error instanceof OnlineWriteError && error.isServerConflict) {
+                // Autre téléphone sur le même compte : le serveur a déjà une commande ou une livraison.
+                await this.showDuplicateRefusal(error.message);
+                return;
             }
 
             if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS && !forceOffline) {
@@ -977,6 +995,17 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         const alert = await this.alertCtrl.create({
             header: 'Erreur',
             message,
+            buttons: ['OK']
+        });
+        await alert.present();
+    }
+
+    /** Refus serveur d'une seconde saisie : pas d'enregistrement hors ligne proposé. */
+    private async showDuplicateRefusal(message: string) {
+        const alert = await this.alertCtrl.create({
+            header: 'Déjà enregistré sur un autre appareil',
+            message,
+            cssClass: 'elyk-alert',
             buttons: ['OK']
         });
         await alert.present();

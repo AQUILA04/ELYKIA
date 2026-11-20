@@ -24,6 +24,12 @@ import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryReferenceService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineProjectedBalanceCalculator;
+import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryConflictService;
+import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryDuplicateException;
+import com.optimize.elykia.core.enumaration.TontineDeliveryConflictOperation;
+import com.optimize.elykia.core.enumaration.TontineDeliveryConflictOutcome;
+import com.optimize.elykia.core.enumaration.TontineDeliveryConflictReason;
+import com.optimize.elykia.core.entity.tontine.TontineDeliveryItem;
 import com.optimize.elykia.core.service.util.ClientAccountService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,6 +78,8 @@ class TontineDeliveryServiceTest {
     private ApplicationEventPublisher eventPublisher;
     @Mock
     private TontineProjectedBalanceCalculator projectedBalanceCalculator;
+    @Mock
+    private TontineDeliveryConflictService conflictService;
 
     @InjectMocks
     private TontineDeliveryService tontineDeliveryService;
@@ -157,14 +165,216 @@ class TontineDeliveryServiceTest {
     }
 
     @Test
-    void createDelivery_rejectsDuplicateDeliveryForMember() {
+    void createDelivery_rejectsSecondOrderWhenMemberAlreadyDelivered() {
+        TontineDelivery delivered = existingDelivery(20L, "LIV-A", 30_000.0);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.DELIVERED);
         when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
-        when(deliveryRepository.existsByTontineMemberId(1L)).thenReturn(true);
+        when(deliveryRepository.findByTontineMemberId(1L)).thenReturn(Optional.of(delivered));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        createDeliveryDto.setReference("LIV-B");
 
-        assertThrows(CustomValidationException.class,
+        TontineDeliveryDuplicateException ex = assertThrows(TontineDeliveryDuplicateException.class,
                 () -> tontineDeliveryService.createDelivery(createDeliveryDto));
+
+        assertEquals(TontineDeliveryConflictReason.ALREADY_DELIVERED, ex.getReason());
+        assertTrue(ex.getMessage().contains("LIV-A"));
+        verify(conflictService).record(eq(mockMember), eq(delivered),
+                argThat(in -> in.operation() == TontineDeliveryConflictOperation.ORDER && "LIV-B".equals(in.reference())),
+                eq(TontineDeliveryConflictOutcome.REJECTED), eq(TontineDeliveryConflictReason.ALREADY_DELIVERED));
         verify(deliveryRepository, never()).save(any());
-        verifyNoInteractions(articlesRepository, deliveryReferenceService, userService);
+        verifyNoInteractions(deliveryReferenceService);
+    }
+
+    @Test
+    void createDelivery_mergesSecondOrderWhenBalanceCoversBoth() {
+        // Deux téléphones sur le même compte : la seconde commande s'ajoute à la première.
+        TontineDelivery current = existingDelivery(20L, "LIV-A", 30_000.0);
+        current.addItem(item("Huile", 1, 30_000.0));
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED);
+        mockMember.setAvailableContribution(60_000.0);
+        when(projectedBalanceCalculator.project(any())).thenReturn(100_000d);
+        givenRegularUser();
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(deliveryRepository.findByTontineMemberId(1L)).thenReturn(Optional.of(current));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        createDeliveryDto.setReference("LIV-B");
+
+        TontineDeliveryDto result = tontineDeliveryService.createDelivery(createDeliveryDto);
+
+        assertEquals(20L, result.getId());
+        assertEquals("LIV-A", result.getReference());
+        assertEquals(80_000.0, result.getTotalAmount());
+        assertEquals(0.0, result.getRemainingBalance());
+        assertEquals(2, result.getItems().size());
+        assertTrue(result.getMergedIntoExisting());
+        // Le contenu a changé : la commande validée repasse en attente.
+        assertEquals(TontineMemberDeliveryStatus.PENDING, mockMember.getDeliveryStatus());
+        verify(conflictService).record(eq(mockMember), eq(current), any(),
+                eq(TontineDeliveryConflictOutcome.MERGED), eq(TontineDeliveryConflictReason.ORDER_MERGED));
+        verifyNoInteractions(deliveryReferenceService, creditService);
+    }
+
+    @Test
+    void createDelivery_rejectsSecondOrderWhenCombinedTotalExceedsProjectedBalance() {
+        TontineDelivery current = existingDelivery(20L, "LIV-A", 60_000.0);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+        when(projectedBalanceCalculator.project(any())).thenReturn(100_000d);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(deliveryRepository.findByTontineMemberId(1L)).thenReturn(Optional.of(current));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        createDeliveryDto.setReference("LIV-B");
+
+        TontineDeliveryDuplicateException ex = assertThrows(TontineDeliveryDuplicateException.class,
+                () -> tontineDeliveryService.createDelivery(createDeliveryDto));
+
+        assertEquals(TontineDeliveryConflictReason.BALANCE_EXCEEDED, ex.getReason());
+        assertEquals(60_000.0, current.getTotalAmount());
+        verify(deliveryRepository, never()).save(any());
+        verify(conflictService).record(eq(mockMember), eq(current), argThat(in -> in.amount() == 50_000.0),
+                eq(TontineDeliveryConflictOutcome.REJECTED), eq(TontineDeliveryConflictReason.BALANCE_EXCEEDED));
+    }
+
+    @Test
+    void createDelivery_replayOfTheSameOrderReturnsItWithoutChange() {
+        TontineDelivery current = existingDelivery(20L, "LIV-A", 50_000.0);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(deliveryRepository.findByTontineMemberId(1L)).thenReturn(Optional.of(current));
+        createDeliveryDto.setReference("LIV-A");
+
+        TontineDeliveryDto result = tontineDeliveryService.createDelivery(createDeliveryDto);
+
+        assertEquals(20L, result.getId());
+        assertFalse(result.getMergedIntoExisting());
+        verify(deliveryRepository, never()).save(any());
+        verify(conflictService, never()).record(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void createDelivery_replayOfAnAlreadyMergedOrderAddsNothing() {
+        TontineDelivery current = existingDelivery(20L, "LIV-A", 80_000.0);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(deliveryRepository.findByTontineMemberId(1L)).thenReturn(Optional.of(current));
+        when(conflictService.wasAlreadyMerged(1L, "LIV-B")).thenReturn(true);
+        createDeliveryDto.setReference("LIV-B");
+
+        TontineDeliveryDto result = tontineDeliveryService.createDelivery(createDeliveryDto);
+
+        assertEquals(80_000.0, result.getTotalAmount());
+        assertTrue(result.getMergedIntoExisting());
+        verify(deliveryRepository, never()).save(any());
+        verify(conflictService, never()).record(any(), any(), any(), any(), any());
+    }
+
+    @Test
+    void distributeTontineDelivery_rejectsWhenAnOrderIsAlreadyPending() {
+        mockSession.setStatus(TontineSessionStatus.CLOSED);
+        TontineDelivery current = existingDelivery(20L, "LIV-A", 50_000.0);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(deliveryRepository.findByTontineMemberId(1L)).thenReturn(Optional.of(current));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        createDeliveryDto.setReference("LIV-B");
+
+        TontineDeliveryDuplicateException ex = assertThrows(TontineDeliveryDuplicateException.class,
+                () -> tontineDeliveryService.distributeTontineDelivery(createDeliveryDto));
+
+        assertEquals(TontineDeliveryConflictReason.ORDER_ALREADY_PENDING, ex.getReason());
+        verify(conflictService).record(eq(mockMember), eq(current),
+                argThat(in -> in.operation() == TontineDeliveryConflictOperation.DIRECT_DELIVERY),
+                eq(TontineDeliveryConflictOutcome.REJECTED), eq(TontineDeliveryConflictReason.ORDER_ALREADY_PENDING));
+        verifyNoInteractions(creditService);
+        verify(deliveryRepository, never()).save(any());
+    }
+
+    @Test
+    void distributeTontineDelivery_rejectsASecondDirectDeliveryOfADeliveredMember() {
+        mockSession.setStatus(TontineSessionStatus.CLOSED);
+        TontineDelivery delivered = existingDelivery(20L, "LIV-A", 50_000.0);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.DELIVERED);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(deliveryRepository.findByTontineMemberId(1L)).thenReturn(Optional.of(delivered));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        createDeliveryDto.setReference("LIV-B");
+
+        TontineDeliveryDuplicateException ex = assertThrows(TontineDeliveryDuplicateException.class,
+                () -> tontineDeliveryService.distributeTontineDelivery(createDeliveryDto));
+
+        assertEquals(TontineDeliveryConflictReason.ALREADY_DELIVERED, ex.getReason());
+        verifyNoInteractions(creditService, accountService, clientAccountService);
+    }
+
+    @Test
+    void distributeTontineDelivery_replayOfTheSameDeliveryReturnsIt() {
+        mockSession.setStatus(TontineSessionStatus.CLOSED);
+        TontineDelivery delivered = existingDelivery(20L, "LIV-A", 50_000.0);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.DELIVERED);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(deliveryRepository.findByTontineMemberId(1L)).thenReturn(Optional.of(delivered));
+        createDeliveryDto.setReference("LIV-A");
+
+        TontineDeliveryDto result = tontineDeliveryService.distributeTontineDelivery(createDeliveryDto);
+
+        assertEquals(20L, result.getId());
+        verifyNoInteractions(creditService, conflictService);
+    }
+
+    @Test
+    void deliverDelivery_rejectsASecondDeliveryWithoutCreditOrAccountDeposit() {
+        // Faille corrigée : deux remises synchronisées créaient deux crédits et deux reliquats.
+        mockSession.setStatus(TontineSessionStatus.CLOSED);
+        TontineDelivery delivered = existingDelivery(10L, "LIV-A", 30_000.0);
+        delivered.addItem(item("Riz", 1, 30_000.0));
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.DELIVERED);
+        when(deliveryRepository.findById(10L)).thenReturn(Optional.of(delivered));
+
+        TontineDeliveryDuplicateException ex = assertThrows(TontineDeliveryDuplicateException.class,
+                () -> tontineDeliveryService.deliverDelivery(10L));
+
+        assertEquals(TontineDeliveryConflictReason.ALREADY_DELIVERED, ex.getReason());
+        verify(conflictService).record(eq(mockMember), eq(delivered),
+                argThat(in -> in.operation() == TontineDeliveryConflictOperation.DELIVER && "1 × Riz".equals(in.items())),
+                eq(TontineDeliveryConflictOutcome.REJECTED), eq(TontineDeliveryConflictReason.ALREADY_DELIVERED));
+        verifyNoInteractions(creditService, accountService, clientAccountService);
+        verify(deliveryRepository, never()).save(any());
+        verify(memberRepository, never()).save(any());
+    }
+
+    @Test
+    void validateDelivery_rejectsADeliveredOrder() {
+        TontineDelivery delivered = existingDelivery(10L, "LIV-A", 30_000.0);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.DELIVERED);
+        when(deliveryRepository.findById(10L)).thenReturn(Optional.of(delivered));
+
+        assertThrows(CustomValidationException.class, () -> tontineDeliveryService.validateDelivery(10L));
+        assertEquals(TontineMemberDeliveryStatus.DELIVERED, mockMember.getDeliveryStatus());
+        verify(memberRepository, never()).save(any());
+    }
+
+    private TontineDelivery existingDelivery(Long id, String reference, double total) {
+        TontineDelivery delivery = new TontineDelivery();
+        delivery.setId(id);
+        delivery.setReference(reference);
+        delivery.setTontineMember(mockMember);
+        delivery.setTotalAmount(total);
+        delivery.setRemainingBalance(0.0);
+        delivery.setRequestDate(LocalDateTime.of(2026, 11, 2, 9, 0));
+        delivery.setDeliveryDate(LocalDateTime.of(2026, 11, 20, 10, 30));
+        delivery.setItems(new ArrayList<>());
+        mockMember.setDelivery(delivery);
+        return delivery;
+    }
+
+    private TontineDeliveryItem item(String name, int quantity, double total) {
+        TontineDeliveryItem item = new TontineDeliveryItem();
+        item.setArticles(mockArticle);
+        item.setArticleName(name);
+        item.setQuantity(quantity);
+        item.setUnitPrice(total / quantity);
+        item.setTotalPrice(total);
+        return item;
     }
 
     @Test

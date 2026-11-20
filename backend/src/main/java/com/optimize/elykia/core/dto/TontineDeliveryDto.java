@@ -27,6 +27,8 @@ public class TontineDeliveryDto {
     private List<TontineDeliveryItemDto> items;
     private String operationConsentCode;
     private String syncConsentCode;
+    /** Vrai quand cette saisie a été ajoutée à la commande déjà enregistrée pour le membre (autre téléphone). */
+    private Boolean mergedIntoExisting;
     /** Solde net cotisé par le membre (à la remise pour une commande livrée). */
     private Double netContribution;
     /** Reste à payer quand la commande dépasse le solde net, sinon 0. */

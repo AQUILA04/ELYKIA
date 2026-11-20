@@ -1144,6 +1144,126 @@
       ]
     },
     {
+      "name": "tontine_delivery_conflict",
+      "description": "Journal des doublons tontine : seconde commande ou livraison saisie pour un membre qui en avait déjà une (souvent un autre téléphone sur le même compte commercial). Fusionnée dans la commande existante ou refusée.",
+      "synonyms": [
+        "doublon livraison tontine",
+        "double livraison",
+        "seconde commande tontine",
+        "triche livraison"
+      ],
+      "rowLevelFilter": "commercial_username",
+      "columns": [
+        {
+          "name": "id",
+          "type": "bigint"
+        },
+        {
+          "name": "tontine_member_id",
+          "type": "bigint",
+          "description": "Membre tontine concerné"
+        },
+        {
+          "name": "tontine_session_id",
+          "type": "bigint"
+        },
+        {
+          "name": "client_name",
+          "type": "varchar"
+        },
+        {
+          "name": "commercial_username",
+          "type": "varchar",
+          "description": "Commercial du client"
+        },
+        {
+          "name": "existing_delivery_id",
+          "type": "bigint",
+          "description": "Commande ou livraison déjà enregistrée"
+        },
+        {
+          "name": "existing_reference",
+          "type": "varchar"
+        },
+        {
+          "name": "existing_amount",
+          "type": "double precision",
+          "description": "Montant FCFA déjà enregistré"
+        },
+        {
+          "name": "incoming_reference",
+          "type": "varchar",
+          "description": "Référence de la seconde saisie"
+        },
+        {
+          "name": "incoming_authenticity_code",
+          "type": "varchar",
+          "description": "Code d'authenticité du reçu imprimé pour la seconde saisie"
+        },
+        {
+          "name": "incoming_amount",
+          "type": "double precision",
+          "description": "Montant FCFA de la seconde saisie"
+        },
+        {
+          "name": "incoming_items",
+          "type": "text",
+          "description": "Articles de la seconde saisie, une ligne par article"
+        },
+        {
+          "name": "available_balance",
+          "type": "double precision",
+          "description": "Solde disponible du membre au moment du contrôle"
+        },
+        {
+          "name": "operation",
+          "type": "varchar",
+          "description": "ORDER (commande), DIRECT_DELIVERY (livraison directe), DELIVER (remise d'une commande)"
+        },
+        {
+          "name": "outcome",
+          "type": "varchar",
+          "description": "MERGED (ajoutée à la commande existante) ou REJECTED (refusée)"
+        },
+        {
+          "name": "reason",
+          "type": "varchar",
+          "description": "ORDER_MERGED, BALANCE_EXCEEDED, ALREADY_DELIVERED, ORDER_ALREADY_PENDING"
+        },
+        {
+          "name": "device_id",
+          "type": "varchar",
+          "description": "Appareil émetteur quand il est connu"
+        },
+        {
+          "name": "attempts",
+          "type": "integer",
+          "description": "Nombre de fois où la synchronisation a renvoyé la même saisie"
+        },
+        {
+          "name": "first_seen_at",
+          "type": "timestamp"
+        },
+        {
+          "name": "last_seen_at",
+          "type": "timestamp",
+          "description": "Dernière réception (GMT)"
+        }
+      ],
+      "relations": [
+        {
+          "column": "tontine_member_id",
+          "refTable": "tontine_member",
+          "refColumn": "id"
+        },
+        {
+          "column": "existing_delivery_id",
+          "refTable": "tontine_delivery",
+          "refColumn": "id"
+        }
+      ]
+    },
+    {
       "name": "stock_return",
       "description": "Retour de stock du commercial vers le magasin",
       "synonyms": [

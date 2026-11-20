@@ -45,8 +45,14 @@ describe('TontineDeliverySyncService', () => {
       'getItems',
       'findUnsynced',
       'purgeSyncedOrphans',
-      'purgePhantomDeliveries'
+      'purgePhantomDeliveries',
+      'saveAll',
+      'replaceItems',
+      'deleteLocalTwin'
     ]);
+    repository.saveAll.and.resolveTo();
+    repository.replaceItems.and.resolveTo();
+    repository.deleteLocalTwin.and.resolveTo();
     repository.getServerId.and.callFake(async (localId: string, entityType: string) => {
       if (entityType === 'tontine-member') {
         return '42';
@@ -109,6 +115,49 @@ describe('TontineDeliverySyncService', () => {
     expect(repository.saveIdMapping).toHaveBeenCalledWith('local-d1', '9001', 'tontine-delivery');
     expect(repository.markAsSynced).toHaveBeenCalledWith('local-d1', '9001');
     expect(repository.markDeliverSynced).not.toHaveBeenCalled();
+  }));
+
+  it('replaces the local order by the server order when the server merged it into an existing one', fakeAsync(() => {
+    const delivery = baseDelivery({ status: 'PENDING', reference: 'LIV-B' });
+
+    service.syncSingle(delivery).then(() => undefined);
+    flushMicrotasks();
+
+    const req = httpMock.expectOne(`${environment.apiUrl}/api/v1/tontines/deliveries`);
+    req.flush({
+      data: {
+        id: 7001,
+        tontineMemberId: 42,
+        reference: 'LIV-A',
+        deliveryStatus: 'PENDING',
+        totalAmount: 35000,
+        requestDate: '2026-11-02T09:00:00',
+        mergedIntoExisting: true,
+        items: [
+          { articleId: 5, quantity: 1, unitPrice: 30000, totalPrice: 30000, articleName: 'Huile' },
+          { articleId: 11, quantity: 1, unitPrice: 5000, totalPrice: 5000, articleName: 'Riz' }
+        ]
+      }
+    });
+    flushMicrotasks();
+
+    expect(repository.saveIdMapping).toHaveBeenCalledWith('local-d1', '7001', 'tontine-delivery');
+    expect(repository.saveAll).toHaveBeenCalledWith([jasmine.objectContaining({
+      id: '7001',
+      reference: 'LIV-A',
+      totalAmount: 35000,
+      status: 'PENDING',
+      isSync: true,
+      isLocal: false
+    })]);
+    const [deliveryId, items, total] = repository.replaceItems.calls.mostRecent().args;
+    expect(deliveryId).toBe('7001');
+    expect(items.length).toBe(2);
+    expect(items[0].tontineDeliveryId).toBe('7001');
+    expect(total).toBe(35000);
+    expect(repository.deleteLocalTwin).toHaveBeenCalledWith('local-d1');
+    // La ligne locale n'est pas renommée : une ligne 7001 peut déjà exister sur ce téléphone.
+    expect(repository.markAsSynced).not.toHaveBeenCalled();
   }));
 
   it('posts DELIVERED direct creation to POST /deliveries/distribute', fakeAsync(() => {

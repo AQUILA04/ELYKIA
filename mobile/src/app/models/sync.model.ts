@@ -452,4 +452,8 @@ export interface TontineDeliverySyncResponse {
   deliveryStatus?: string;
   requestDate: string;
   deliveryDate?: string;
+  /** Vrai quand le serveur a ajouté cette commande à celle déjà saisie sur un autre téléphone. */
+  mergedIntoExisting?: boolean;
+  /** Articles de la commande serveur complète (renvoyés lors d'une fusion). */
+  items?: Array<{ articleId: number | string; quantity: number; unitPrice: number; totalPrice: number; articleName?: string }>;
 }

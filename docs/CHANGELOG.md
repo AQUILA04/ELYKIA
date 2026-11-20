@@ -18,6 +18,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Fixed
 
 - **Index RAG du guide —** `generate_rag_index.py` tronquait à 2 200 caractères une section encore trop longue après le découpage `###` / `####` : la fin des procédures longues (étapes de livraison tontine web et mobile) n'atteignait jamais l'assistant. Ces sections sont maintenant découpées par paragraphes en morceaux « (suite n) » (333 morceaux au lieu de 327). Guide mobile : section « Remettre les articles de fin d'année » scindée en deux sous-parties.
+## Docs & Infra — 2026-11-20 (doublons tontine)
+
+### Changed
+
+- **Guide utilisateur —** nouvelle page gestionnaire « Doublons tontine » (règles de contrôle, journal, conduite à tenir). Guide mobile du commercial : messages **Commande complétée**, **Déjà enregistré sur un autre appareil**, **Déjà livré sur un autre appareil**. Index RAG et guide HTML régénérés.
 
 ## Docs & Infra — 2026-11-20 (prix unitaires)
 
@@ -143,6 +148,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - **Tontine — fiche membre →** le bloc **Livraison de Fin d'Année** affiche le **Solde net cotisé**, le **Montant de la commande**, puis le **Reste à payer** (en orange) ou le **Reliquat à restituer**. Après la remise : **Total cotisé (net)**, **Total utilisé**, **Total restant**. Remplace la seule ligne « Solde non utilisé ».
+## Frontend — [2.57.0] — 2026-11-20
+
+### Added
+
+- **Tontines → Doublons** (`/tontine/doublons`, menu **Tontines > Doublons**) : journal des secondes commandes ou livraisons saisies pour un même membre, souvent depuis un autre téléphone sur le même compte commercial. Indicateurs, filtres commercial / issue / période, et pour chaque ligne la seconde saisie (type, référence, montant, articles), ce qui était déjà enregistré, le solde disponible et l'issue (**Ajoutée** ou **Refusée**, avec le motif). Accès : administrateur et gestionnaire.
+- **Vérifier un reçu →** quand le reçu vient d'une commande ajoutée à une autre, la fenêtre affiche l'explication renvoyée par le serveur sous « Reçu reconnu ».
 
 ## Frontend — [2.56.1] — 2026-11-20
 
@@ -513,6 +524,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Tontine — bon de remise →** « Restant » affichait le restant du **solde prévisionnel** ; il affiche maintenant le solde net moins la livraison.
 
+## Mobile — [2.42.0] — 2026-11-20
+
+### Added
+
+- **Tontine — plusieurs téléphones sur le même compte →** quand le serveur ajoute une commande à celle déjà saisie sur un autre téléphone, l'écran affiche **Commande complétée** (référence et nouveau total), puis le reçu de la commande complète. Le téléphone remplace sa commande locale par la commande serveur (`applyMergedOrder`), en ligne comme à la synchronisation.
+
+### Changed
+
+- **Tontine — refus d'un doublon →** un refus serveur `409` (membre déjà livré, solde insuffisant pour les deux commandes, livraison directe alors qu'une commande attend sa remise) affiche **Déjà enregistré sur un autre appareil** ou **Déjà livré sur un autre appareil**, sans proposer l'enregistrement hors ligne, qui aurait reproduit le même refus à la synchronisation. `OnlineWriteError` garde désormais le statut HTTP.
 ## Mobile — [2.41.7] — 2026-11-20
 
 ### Fixed
@@ -735,6 +755,17 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Tontine — soldes de commande →** `TontineOrderBalance` calcule le solde net cotisé, le reste à payer (commande au-dessus du solde) et le reliquat à restituer (commande en dessous). Une commande livrée garde les montants de la remise (commande + reliquat versé). `TontineDeliveryDto` expose `netContribution`, `amountDue`, `refundableBalance`.
 - **Reçu PDF de commande tontine →** le bloc des totaux affiche ces soldes (« Solde net cotisé », « Montant de la commande », « Reste à payer » ou « Reliquat à restituer » ; après remise « Total cotisé (net) », « Total utilisé », « Total restant ») au lieu d'un « Total à payer » égal au montant. Test de rendu réel `TontineOrderReceiptRenderingTest`.
+## Backend — [1.58.0] — 2026-11-20
+
+### Fixed
+
+- **Tontine — double remise →** `deliverDelivery` refusait seulement une session non clôturée. Deux téléphones qui livraient la même commande créaient au serveur deux crédits tontine et versaient deux fois le reliquat sur le compte client. Une commande déjà livrée est maintenant refusée (HTTP 409). `validateDelivery` refuse aussi une commande livrée, qu'elle aurait fait repasser en **Validée**.
+
+### Added
+
+- **Tontine — contrôle des doublons multi-téléphones →** une seconde commande pour un membre est ajoutée à la commande existante si le solde prévisionnel couvre les deux (elle repasse en attente, sauf saisie gestionnaire), sinon refusée. Une livraison directe est refusée si le membre est déjà livré ou si une commande attend sa remise. Une saisie rejouée par la synchronisation (même référence, ou déjà fusionnée) est renvoyée telle quelle, sans rien ajouter. Les refus sont des `TontineDeliveryDuplicateException` renvoyées en HTTP 409 avec un message métier.
+- **Journal des doublons →** table `tontine_delivery_conflict` (migration `V044`), écrite dans sa propre transaction pour survivre au refus. Une même saisie rejouée incrémente `attempts`. Appareil lu dans l'en-tête `X-Device-Id` quand il est présent. Endpoint `GET /api/v1/tontines/deliveries/conflicts` (administrateur et gestionnaire). Table ajoutée au catalogue IA (`schema-catalog.json`).
+- **Reçu d'une commande fusionnée →** le code d'authenticité du reçu imprimé par le second téléphone est gardé dans le journal (`incoming_authenticity_code`). **Vérifier un reçu** le reconnaît et renvoie la commande complète avec un message explicatif, au lieu de « code inconnu ».
 
 ## Backend — [1.57.5] — 2026-11-20
 

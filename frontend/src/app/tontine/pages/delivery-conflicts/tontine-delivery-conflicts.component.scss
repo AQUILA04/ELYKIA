@@ -1,0 +1,32 @@
+@import '../delivery-list/tontine-delivery-list.component.scss';
+
+.conflicts-page {
+  .col-label {
+    display: block;
+    font-weight: 600;
+    color: var(--navy);
+  }
+
+  .col-ref,
+  .col-amount,
+  .col-date {
+    display: block;
+  }
+
+  .conflict-item {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .status-rejected {
+    background: #fdecea;
+    color: var(--orange);
+  }
+
+  .status-merged {
+    background: #e7f5ec;
+    color: var(--green);
+  }
+}

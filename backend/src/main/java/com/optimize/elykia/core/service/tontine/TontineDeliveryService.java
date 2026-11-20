@@ -16,6 +16,9 @@ import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.entity.tontine.TontineDeliveryItem;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
+import com.optimize.elykia.core.enumaration.TontineDeliveryConflictOperation;
+import com.optimize.elykia.core.enumaration.TontineDeliveryConflictOutcome;
+import com.optimize.elykia.core.enumaration.TontineDeliveryConflictReason;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.ArticlesRepository;
@@ -27,6 +30,8 @@ import com.optimize.elykia.core.service.util.ClientAccountService;
 import com.optimize.elykia.core.service.sale.CashSalePricingService;
 import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineProjectedBalanceCalculator;
+import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryConflictService;
+import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryDuplicateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,10 +40,13 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,6 +67,9 @@ public class TontineDeliveryService {
     private final ClientService clientService;
     private final TontineDeliveryReferenceService deliveryReferenceService;
     private final TontineProjectedBalanceCalculator projectedBalanceCalculator;
+    private final TontineDeliveryConflictService conflictService;
+
+    private static final DateTimeFormatter DATE_TIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     @Autowired(required = false)
     private CashSalePricingService cashSalePricingService;
@@ -80,6 +91,10 @@ public class TontineDeliveryService {
                 "La commande tontine n'est possible que tant que la session est ouverte ou clôturée.",
                 TontineSessionStatus.ACTIVE, TontineSessionStatus.CLOSED);
 
+        Optional<TontineDelivery> existing = deliveryRepository.findByTontineMemberId(member.getId());
+        if (existing.isPresent()) {
+            return handleSecondOrder(member, existing.get(), dto);
+        }
         return persistNewDelivery(member, dto);
     }
 
@@ -90,16 +105,155 @@ public class TontineDeliveryService {
         requireSessionStatus(member, TontineSessionStatus.CLOSED,
                 "La livraison directe n'est possible qu'une fois la session clôturée.");
 
+        Optional<TontineDelivery> existing = deliveryRepository.findByTontineMemberId(member.getId());
+        if (existing.isPresent()) {
+            TontineDelivery current = existing.get();
+            if (isReplayOf(current, dto.getReference()) && isDelivered(member)) {
+                // La synchronisation renvoie une livraison déjà enregistrée : rien à refaire.
+                return mapToDto(current);
+            }
+            TontineDeliveryConflictReason reason = isDelivered(member)
+                    ? TontineDeliveryConflictReason.ALREADY_DELIVERED
+                    : TontineDeliveryConflictReason.ORDER_ALREADY_PENDING;
+            throw rejectSecondRecord(member, current,
+                    incomingOf(member, TontineDeliveryConflictOperation.DIRECT_DELIVERY, dto), reason);
+        }
+
         TontineDeliveryDto resp = persistNewDelivery(member, dto);
         this.validateDelivery(resp.getId());
         return this.deliverDelivery(resp.getId());
     }
 
-    private TontineDeliveryDto persistNewDelivery(TontineMember member, CreateDeliveryDto dto) {
-        if (deliveryRepository.existsByTontineMemberId(member.getId())) {
-            throw new CustomValidationException("Ce membre a déjà une livraison.");
+    /**
+     * Plusieurs téléphones peuvent utiliser le même compte commercial sans être synchronisés.
+     * Une seconde commande pour le même membre s'ajoute à la première si le solde prévisionnel
+     * couvre les deux ; sinon elle est refusée. Dans les deux cas, elle est inscrite au journal.
+     */
+    private TontineDeliveryDto handleSecondOrder(TontineMember member, TontineDelivery current, CreateDeliveryDto dto) {
+        if (isReplayOf(current, dto.getReference())
+                || conflictService.wasAlreadyMerged(member.getId(), dto.getReference())) {
+            // Même saisie renvoyée par la synchronisation : elle est déjà enregistrée.
+            TontineDeliveryDto replay = mapToDto(current);
+            replay.setMergedIntoExisting(!isReplayOf(current, dto.getReference()));
+            return replay;
         }
 
+        TontineDeliveryConflictService.Incoming incoming =
+                incomingOf(member, TontineDeliveryConflictOperation.ORDER, dto);
+        if (isDelivered(member)) {
+            throw rejectSecondRecord(member, current, incoming, TontineDeliveryConflictReason.ALREADY_DELIVERED);
+        }
+
+        List<TontineDeliveryItem> newItems = new ArrayList<>();
+        double incomingTotal = buildItems(member, dto.getItems(), newItems);
+        double currentTotal = current.getTotalAmount() != null ? current.getTotalAmount() : 0.0;
+        double combined = currentTotal + incomingTotal;
+        double projected = projectedBalanceCalculator.project(member);
+        if (TontineProjectedBalanceCalculator.exceeds(combined, projected)) {
+            throw rejectSecondRecord(member, current, incoming, TontineDeliveryConflictReason.BALANCE_EXCEEDED);
+        }
+
+        newItems.forEach(current::addItem);
+        current.setTotalAmount(combined);
+        current.setProjectedBalance(projected);
+        current.setRemainingBalance(Math.max(0.0, availableOf(member) - combined));
+        // Le contenu a changé : une commande validée repasse en attente, sauf saisie d'un gestionnaire.
+        member.setDeliveryStatus(isManager(userService.getCurrentUser())
+                ? TontineMemberDeliveryStatus.VALIDATED
+                : TontineMemberDeliveryStatus.PENDING);
+        memberRepository.save(member);
+        TontineDelivery saved = deliveryRepository.save(current);
+
+        conflictService.record(member, saved, incoming,
+                TontineDeliveryConflictOutcome.MERGED, TontineDeliveryConflictReason.ORDER_MERGED);
+        log.info("Second order {} merged into delivery {} for member {}.",
+                dto.getReference(), saved.getId(), member.getId());
+        TontineDeliveryDto result = mapToDto(saved);
+        result.setMergedIntoExisting(true);
+        return result;
+    }
+
+    /** Inscrit le refus au journal (transaction séparée) et renvoie l'exception 409 à lever. */
+    private TontineDeliveryDuplicateException rejectSecondRecord(TontineMember member,
+                                                                 TontineDelivery current,
+                                                                 TontineDeliveryConflictService.Incoming incoming,
+                                                                 TontineDeliveryConflictReason reason) {
+        conflictService.record(member, current, incoming, TontineDeliveryConflictOutcome.REJECTED, reason);
+        return new TontineDeliveryDuplicateException(reason, duplicateMessage(member, current, incoming, reason));
+    }
+
+    private String duplicateMessage(TontineMember member,
+                                    TontineDelivery current,
+                                    TontineDeliveryConflictService.Incoming incoming,
+                                    TontineDeliveryConflictReason reason) {
+        String reference = current.getReference() != null ? current.getReference() : "sans référence";
+        String amount = formatAmount(current.getTotalAmount());
+        return switch (reason) {
+            case ALREADY_DELIVERED -> String.format(
+                    "Ce membre a déjà été livré le %s (réf. %s, %s FCFA). Cette seconde saisie est refusée et signalée au gestionnaire.",
+                    current.getDeliveryDate() != null ? current.getDeliveryDate().format(DATE_TIME) : "—",
+                    reference, amount);
+            case ORDER_ALREADY_PENDING -> String.format(
+                    "Une commande est déjà enregistrée pour ce membre (réf. %s, %s FCFA). Livrez cette commande depuis la fiche du membre : la livraison directe est refusée et signalée au gestionnaire.",
+                    reference, amount);
+            case BALANCE_EXCEEDED -> String.format(
+                    "Une commande de %s FCFA (réf. %s) est déjà enregistrée pour ce membre. Avec cette seconde commande (%s FCFA), le total dépasse le solde prévisionnel (%s FCFA) : elle est refusée et signalée au gestionnaire.",
+                    amount, reference, formatAmount(incoming.amount()),
+                    formatAmount(projectedBalanceCalculator.project(member)));
+            case ORDER_MERGED -> "Commande ajoutée à la commande déjà enregistrée.";
+        };
+    }
+
+    private TontineDeliveryConflictService.Incoming incomingOf(TontineMember member,
+                                                               TontineDeliveryConflictOperation operation,
+                                                               CreateDeliveryDto dto) {
+        List<DeliveryItemDto> lines = dto.getItems() != null ? dto.getItems() : List.of();
+        double amount;
+        try {
+            amount = buildItems(member, lines, new ArrayList<>());
+        } catch (RuntimeException e) {
+            // Article inconnu ou prix introuvable : le journal garde le montant envoyé par le téléphone.
+            amount = lines.stream()
+                    .mapToDouble(line -> (line.getQuantity() != null ? line.getQuantity() : 0)
+                            * (line.getUnitPrice() != null ? line.getUnitPrice() : 0.0))
+                    .sum();
+        }
+        String items = lines.stream()
+                .map(line -> (line.getQuantity() != null ? line.getQuantity() : 0) + " × "
+                        + articlesRepository.findById(line.getArticleId())
+                                .map(Articles::getCommercialName)
+                                .orElse("article " + line.getArticleId()))
+                .collect(Collectors.joining("\n"));
+        return new TontineDeliveryConflictService.Incoming(operation, dto.getReference(), amount, items,
+                dto.getAuthenticityCode());
+    }
+
+    private TontineDeliveryConflictService.Incoming incomingOf(TontineDelivery delivery) {
+        String items = delivery.getItems().stream()
+                .map(item -> item.getQuantity() + " × " + item.getArticleName())
+                .collect(Collectors.joining("\n"));
+        return new TontineDeliveryConflictService.Incoming(TontineDeliveryConflictOperation.DELIVER,
+                delivery.getReference(), delivery.getTotalAmount(), items);
+    }
+
+    private static boolean isReplayOf(TontineDelivery current, String incomingReference) {
+        return StringUtils.hasText(incomingReference)
+                && incomingReference.trim().equals(current.getReference());
+    }
+
+    private static boolean isDelivered(TontineMember member) {
+        return member.getDeliveryStatus() == TontineMemberDeliveryStatus.DELIVERED;
+    }
+
+    private static boolean isManager(User user) {
+        return user != null && (user.is("GESTIONNAIRE") || user.is("ADMIN"));
+    }
+
+    private static String formatAmount(Double value) {
+        return String.format(java.util.Locale.FRANCE, "%,.0f", value != null ? value : 0.0);
+    }
+
+    private TontineDeliveryDto persistNewDelivery(TontineMember member, CreateDeliveryDto dto) {
         List<TontineDeliveryItem> items = new ArrayList<>();
         double totalAmount = buildItems(member, dto.getItems(), items);
         double projected = requireWithinProjectedBalance(member, totalAmount);
@@ -125,7 +279,7 @@ public class TontineDeliveryService {
         items.forEach(delivery::addItem);
 
         User currentUser = userService.getCurrentUser();
-        if (currentUser.is("GESTIONNAIRE") || currentUser.is("ADMIN")) {
+        if (isManager(currentUser)) {
             member.setDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED);
             TontineDelivery savedDelivery = deliveryRepository.save(delivery);
             if (metricsPublisher != null) {
@@ -158,10 +312,10 @@ public class TontineDeliveryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Livraison non trouvée"));
         TontineMember member = delivery.getTontineMember();
 
-        // if (member.getDeliveryStatus() != TontineMemberDeliveryStatus.PENDING) {
-        // throw new CustomValidationException("La livraison doit être en statut PENDING
-        // pour être validée.");
-        // }
+        // Valider une commande déjà livrée la ferait repasser en VALIDATED et rouvrirait la remise.
+        if (isDelivered(member)) {
+            throw new CustomValidationException("Cette commande est déjà livrée : elle ne peut plus être validée.");
+        }
 
         member.setDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED);
         memberRepository.save(member);
@@ -248,6 +402,13 @@ public class TontineDeliveryService {
         TontineDelivery delivery = deliveryRepository.findById(deliveryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Livraison non trouvée"));
         TontineMember member = delivery.getTontineMember();
+
+        // Deux téléphones peuvent remettre la même commande : la seconde remise ne doit ni recréer
+        // le crédit tontine ni reverser le reliquat sur le compte client.
+        if (isDelivered(member)) {
+            throw rejectSecondRecord(member, delivery, incomingOf(delivery),
+                    TontineDeliveryConflictReason.ALREADY_DELIVERED);
+        }
 
         requireSessionStatus(member, TontineSessionStatus.CLOSED,
                 "La remise n'est possible qu'une fois la session clôturée.");

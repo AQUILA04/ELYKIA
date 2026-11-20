@@ -8,6 +8,7 @@ import { TontineMagasinierDashboardComponent } from './pages/magasinier-dashboar
 import { TontineCollecteComponent } from './collecte/tontine-collecte.component';
 import { TontineDeliveryListComponent } from './pages/delivery-list/tontine-delivery-list.component';
 import { TontineCollectionResetComponent } from './pages/tontine-collection-reset/tontine-collection-reset.component';
+import { TontineDeliveryConflictsComponent } from './pages/delivery-conflicts/tontine-delivery-conflicts.component';
 
 const routes: Routes = [
   {
@@ -35,6 +36,12 @@ const routes: Routes = [
   {
     path: 'livraisons',
     component: TontineDeliveryListComponent
+  },
+  {
+    path: 'doublons',
+    component: TontineDeliveryConflictsComponent,
+    canActivate: [AuthGuard],
+    data: { roles: ['ROLE_ADMIN', 'ROLE_DEL_TONTINE'] }
   },
   {
     path: 'reset-collectes',

@@ -219,6 +219,15 @@ export class TontineWriteService {
 
     if (online) {
       const response = await this.deliverySyncService.postCreateDelivery(persistedDelivery, items);
+      if (response.mergedIntoExisting) {
+        // Commande déjà saisie sur un autre téléphone : le serveur y a ajouté ces articles.
+        const merged = await this.deliverySyncService.applyMergedOrder(persistedDelivery, response);
+        await this.memberRepository.saveAll([{
+          ...member,
+          deliveryStatus: resolveMemberDeliveryStatus(merged.status)
+        }]);
+        return merged;
+      }
       const serverId = response.id.toString();
       const localId = persistedDelivery.id;
       await this.deliveryRepository.saveIdMapping(localId, serverId, 'tontine-delivery');
