@@ -1,0 +1,33 @@
+package com.optimize.elykia.customer.infrastructure.persistence;
+
+import com.optimize.common.entities.enums.State;
+import com.optimize.common.entities.repository.GenericRepository;
+import com.optimize.elykia.customer.domain.CustomerMobileMoneySubmission;
+import com.optimize.elykia.customer.domain.CustomerSubmissionStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+import java.util.Optional;
+
+public interface CustomerMobileMoneySubmissionRepository extends GenericRepository<CustomerMobileMoneySubmission, Long> {
+
+    List<CustomerMobileMoneySubmission> findByCreditIdAndStatus(Long creditId, CustomerSubmissionStatus status);
+
+    Optional<CustomerMobileMoneySubmission> findByPaygatePaymentId(String paygatePaymentId);
+
+    List<CustomerMobileMoneySubmission> findByClientIdOrderByCreatedDateDesc(Long clientId);
+
+    @Query("""
+            SELECT s FROM CustomerMobileMoneySubmission s
+            WHERE s.state = :state
+              AND (:status IS NULL OR s.status = :status)
+            ORDER BY s.createdDate DESC, s.id DESC
+            """)
+    Page<CustomerMobileMoneySubmission> findByStatusOptional(
+            @Param("status") CustomerSubmissionStatus status,
+            @Param("state") State state,
+            Pageable pageable);
+}

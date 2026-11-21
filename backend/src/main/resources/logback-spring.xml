@@ -127,7 +127,7 @@
     </logger>
 
     <!-- Loki + root: Logback 1.6 native <condition> before <if> (Janino removed). Branch at configuration level. -->
-    <condition class="com.optimize.elykia.core.config.NonBlankPropertyCondition">
+    <condition class="com.optimize.elykia.bootstrap.config.NonBlankPropertyCondition">
         <key>LOKI_API_KEY</key>
     </condition>
     <if>

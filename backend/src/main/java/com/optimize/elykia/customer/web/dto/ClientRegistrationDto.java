@@ -1,0 +1,43 @@
+package com.optimize.elykia.customer.web.dto;
+
+import com.optimize.elykia.customer.domain.CustomerSubmissionStatus;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+@Getter
+@Builder
+public class ClientRegistrationDto {
+    private Long clientId;
+    private String firstname;
+    private String lastname;
+    private String fullName;
+    private String phone;
+    private String address;
+    private String quarter;
+    /** Vrai si la zone a été saisie librement et n'est pas encore une localité. */
+    private boolean customQuarter;
+    private LocalDate dateOfBirth;
+    private String occupation;
+    private String cardType;
+    private String cardID;
+    private String profilPhotoUrl;
+    private String profilPhotoThumbUrl;
+    private String cardPhotoUrl;
+    private String cardPhotoThumbUrl;
+    private String activationStatus;
+    private String collector;
+    private String tontineCollector;
+    private LocalDateTime registeredAt;
+    private boolean hasInitialDeposit;
+    private Long initialDepositId;
+    private CustomerSubmissionStatus initialDepositStatus;
+    private Double initialDepositAmount;
+    private String initialDepositPhone;
+    private String initialDepositReference;
+    private Boolean initialDepositHasProof;
+    private String initialDepositProofContentType;
+    private String activationRejectionReason;
+}

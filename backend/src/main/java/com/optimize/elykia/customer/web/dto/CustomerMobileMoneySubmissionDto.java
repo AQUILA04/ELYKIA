@@ -1,0 +1,32 @@
+package com.optimize.elykia.customer.web.dto;
+
+import com.optimize.elykia.customer.domain.CustomerSubmissionStatus;
+import lombok.Builder;
+import lombok.Value;
+
+import java.time.LocalDateTime;
+
+@Value
+@Builder
+public class CustomerMobileMoneySubmissionDto {
+    Long id;
+    Long clientId;
+    String clientName;
+    Long creditId;
+    Integer installmentNumber;
+    Double expectedAmount;
+    String mobileMoneyPhone;
+    Double mobileMoneyAmount;
+    String mobileMoneyReference;
+    String notes;
+    CustomerSubmissionStatus status;
+    String targetCollector;
+    String tontineCollector;
+    Long creditTimelineId;
+    LocalDateTime createdAt;
+    Boolean hasProof;
+    String proofContentType;
+    String ocrReference;
+    Boolean referenceMismatch;
+    Boolean duplicateProof;
+}

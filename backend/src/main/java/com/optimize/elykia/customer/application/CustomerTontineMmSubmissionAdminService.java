@@ -1,0 +1,264 @@
+package com.optimize.elykia.customer.application;
+
+import com.optimize.elykia.notification.api.AppNotificationFacade;
+import com.optimize.elykia.shared.security.CollectorAudienceSecurity;
+import com.optimize.common.entities.enums.State;
+import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.entities.exception.ResourceNotFoundException;
+import com.optimize.common.securities.models.User;
+import com.optimize.elykia.client.entity.Client;
+import com.optimize.elykia.client.service.ClientService;
+import com.optimize.elykia.tontine.web.dto.TontineCollectionDto;
+import com.optimize.elykia.tontine.web.dto.TontineCollectionRespDto;
+import com.optimize.elykia.customer.web.dto.CustomerTontineMmSubmissionDto;
+import com.optimize.elykia.customer.domain.CustomerPaymentProof;
+import com.optimize.elykia.customer.domain.CustomerTontineMmSubmission;
+import com.optimize.elykia.tontine.domain.TontineMember;
+import com.optimize.elykia.notification.api.AppNotificationType;
+import com.optimize.elykia.customer.domain.CustomerSubmissionStatus;
+import com.optimize.elykia.customer.domain.PaymentProofLinkedType;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
+import com.optimize.elykia.customer.infrastructure.persistence.CustomerTontineMmSubmissionRepository;
+import com.optimize.elykia.tontine.application.TontineService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class CustomerTontineMmSubmissionAdminService {
+
+    private final CustomerTontineMmSubmissionRepository submissionRepository;
+    private final ClientService clientService;
+    private final TontineMemberRepository tontineMemberRepository;
+    private final TontineService tontineService;
+    private final AppNotificationFacade appNotificationService;
+    private final CustomerNotificationService customerNotificationService;
+    private final PaymentProofService paymentProofService;
+
+    @Transactional(readOnly = true)
+    public Page<CustomerTontineMmSubmissionDto> list(User user, CustomerSubmissionStatus status, Pageable pageable) {
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
+        CustomerSubmissionStatus effectiveStatus = status != null ? status : CustomerSubmissionStatus.INITIE;
+        Page<CustomerTontineMmSubmission> page = submissionRepository.findByStatusOptional(
+                effectiveStatus, State.ENABLED, pageable);
+        if (page.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        Map<Long, Client> clientsById = SubmissionAdminSupport.loadClientsById(
+                clientService,
+                page.getContent().stream().map(CustomerTontineMmSubmission::getClientId).toList());
+        List<CustomerTontineMmSubmissionDto> dtos = new ArrayList<>();
+        for (CustomerTontineMmSubmission submission : page.getContent()) {
+            Client client = clientsById.get(submission.getClientId());
+            String tontineCollector = client != null ? client.getTontineCollector() : null;
+            if (CollectorAudienceSecurity.isPromoterOnly(user)
+                    && !AppNotificationFacade.matchesPromoterAudience(
+                    user,
+                    AppNotificationType.TONTINE_PAYMENT_DECLARATION,
+                    tontineCollector,
+                    tontineCollector)) {
+                continue;
+            }
+            dtos.add(toDto(submission, client, tontineCollector));
+        }
+        return SubmissionAdminSupport.pageForAudience(user, dtos, pageable, page.getTotalElements());
+    }
+
+    public CustomerTontineMmSubmissionDto validate(User user, Long id) {
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
+        CustomerTontineMmSubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Soumission tontine introuvable."));
+        if (submission.getStatus() != CustomerSubmissionStatus.INITIE) {
+            throw new CustomValidationException("Seules les déclarations initiées peuvent être traitées.");
+        }
+
+        Client client = clientService.getById(submission.getClientId());
+        String tontineCollector = client != null ? client.getTontineCollector() : null;
+        if (CollectorAudienceSecurity.isPromoterOnly(user)
+                && !AppNotificationFacade.matchesPromoterAudience(
+                user,
+                AppNotificationType.TONTINE_PAYMENT_DECLARATION,
+                tontineCollector,
+                tontineCollector)) {
+            throw new CustomValidationException("Accès non autorisé à cette déclaration.");
+        }
+
+        TontineMember member = tontineMemberRepository.findById(submission.getTontineMemberId())
+                .orElseThrow(() -> new ResourceNotFoundException("Membre tontine introuvable."));
+
+        TontineCollectionDto collectionDto = new TontineCollectionDto();
+        collectionDto.setMemberId(member.getId());
+        collectionDto.setAmount(submission.getMobileMoneyAmount());
+        collectionDto.setReference("CS-TONTINE-" + submission.getId());
+        collectionDto.setNotes(buildValidationNotes(submission));
+        collectionDto.setCollectionDate(submission.getOperationDate());
+        collectionDto.setConfirmedAmount(submission.getMobileMoneyAmount());
+
+        TontineCollectionRespDto collection = tontineService.recordCollection(collectionDto);
+
+        submission.setStatus(CustomerSubmissionStatus.VALIDE);
+        submission.setValidatedBy(user.getUsername());
+        submission.setValidatedAt(LocalDateTime.now());
+        submission.setTontineCollectionId(collection != null ? collection.id() : null);
+        if (StringUtils.hasText(user.getUsername())) {
+            submission.setLastModifiedBy(user.getUsername());
+        }
+        submission = submissionRepository.save(submission);
+        appNotificationService.resolveByTypeAndEntityId(
+                AppNotificationType.TONTINE_PAYMENT_DECLARATION, submission.getId());
+        customerNotificationService.notifyTontinePayment(submission, CustomerSubmissionStatus.VALIDE);
+        return toDto(submission, client, tontineCollector);
+    }
+
+    public void validateFromGateway(Long id) {
+        CustomerTontineMmSubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Soumission tontine introuvable."));
+        if (submission.getStatus() == CustomerSubmissionStatus.VALIDE) {
+            return;
+        }
+        if (submission.getStatus() != CustomerSubmissionStatus.EN_COURS) {
+            throw new CustomValidationException("Ce paiement ne peut plus être validé.");
+        }
+        TontineMember member = tontineMemberRepository.findById(submission.getTontineMemberId())
+                .orElseThrow(() -> new ResourceNotFoundException("Membre tontine introuvable."));
+        submission.setMobileMoneyAmount(submission.getExpectedAmount());
+        TontineCollectionDto collectionDto = new TontineCollectionDto();
+        collectionDto.setMemberId(member.getId());
+        collectionDto.setAmount(submission.getMobileMoneyAmount());
+        collectionDto.setReference("CS-TONTINE-" + submission.getId());
+        collectionDto.setNotes(buildValidationNotes(submission));
+        collectionDto.setCollectionDate(submission.getOperationDate());
+        collectionDto.setConfirmedAmount(submission.getMobileMoneyAmount());
+        TontineCollectionRespDto collection = tontineService.recordCollection(collectionDto);
+        submission.setStatus(CustomerSubmissionStatus.VALIDE);
+        submission.setValidatedBy("paygate");
+        submission.setValidatedAt(LocalDateTime.now());
+        submission.setTontineCollectionId(collection != null ? collection.id() : null);
+        submission.setLastModifiedBy("paygate");
+        submission = submissionRepository.save(submission);
+        customerNotificationService.notifyTontinePayment(submission, CustomerSubmissionStatus.VALIDE);
+    }
+
+    public void failFromGateway(Long id) {
+        CustomerTontineMmSubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Soumission tontine introuvable."));
+        if (submission.getStatus() != CustomerSubmissionStatus.EN_COURS) {
+            return;
+        }
+        submission.setStatus(CustomerSubmissionStatus.ECHEC);
+        submission.setValidatedBy("paygate");
+        submission.setValidatedAt(LocalDateTime.now());
+        submission.setLastModifiedBy("paygate");
+        submissionRepository.save(submission);
+    }
+
+    public CustomerTontineMmSubmissionDto reject(User user, Long id) {
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
+        CustomerTontineMmSubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Soumission tontine introuvable."));
+        if (submission.getStatus() != CustomerSubmissionStatus.INITIE) {
+            throw new CustomValidationException("Seules les déclarations initiées peuvent être traitées.");
+        }
+
+        Client client = clientService.getById(submission.getClientId());
+        String tontineCollector = client != null ? client.getTontineCollector() : null;
+        if (CollectorAudienceSecurity.isPromoterOnly(user)
+                && !AppNotificationFacade.matchesPromoterAudience(
+                user,
+                AppNotificationType.TONTINE_PAYMENT_DECLARATION,
+                tontineCollector,
+                tontineCollector)) {
+            throw new CustomValidationException("Accès non autorisé à cette déclaration.");
+        }
+
+        submission.setStatus(CustomerSubmissionStatus.REJETE);
+        submission.setValidatedBy(user.getUsername());
+        submission.setValidatedAt(LocalDateTime.now());
+        if (StringUtils.hasText(user.getUsername())) {
+            submission.setLastModifiedBy(user.getUsername());
+        }
+        submission = submissionRepository.save(submission);
+        appNotificationService.resolveByTypeAndEntityId(
+                AppNotificationType.TONTINE_PAYMENT_DECLARATION, submission.getId());
+        customerNotificationService.notifyTontinePayment(submission, CustomerSubmissionStatus.REJETE);
+        return toDto(submission, client, tontineCollector);
+    }
+
+    private static String buildValidationNotes(CustomerTontineMmSubmission submission) {
+        StringBuilder sb = new StringBuilder("Déclaration customer-space");
+        if (StringUtils.hasText(submission.getMobileMoneyReference())) {
+            sb.append(" · ref MM ").append(submission.getMobileMoneyReference());
+        }
+        if (StringUtils.hasText(submission.getMobileMoneyPhone())) {
+            sb.append(" · tel ").append(submission.getMobileMoneyPhone());
+        }
+        if (StringUtils.hasText(submission.getNotes())) {
+            sb.append(" · ").append(submission.getNotes());
+        }
+        return sb.toString();
+    }
+
+    @Transactional(readOnly = true)
+    public PaymentProofService.ProofDownload downloadProof(User user, Long id) {
+        CollectorAudienceSecurity.assertAudienceOrThrow(user);
+        CustomerTontineMmSubmission submission = submissionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Soumission tontine introuvable."));
+        Client client = clientService.getById(submission.getClientId());
+        String tontineCollector = client != null ? client.getTontineCollector() : null;
+        if (CollectorAudienceSecurity.isPromoterOnly(user)
+                && !AppNotificationFacade.matchesPromoterAudience(
+                user,
+                AppNotificationType.TONTINE_PAYMENT_DECLARATION,
+                tontineCollector,
+                tontineCollector)) {
+            throw new CustomValidationException("Accès non autorisé à cette déclaration.");
+        }
+        CustomerPaymentProof proof = paymentProofService.findById(submission.getPaymentProofId());
+        if (proof == null) {
+            throw new ResourceNotFoundException("Justificatif introuvable pour cette déclaration.");
+        }
+        return paymentProofService.download(proof);
+    }
+
+    private CustomerTontineMmSubmissionDto toDto(
+            CustomerTontineMmSubmission submission,
+            Client client,
+            String tontineCollector) {
+        CustomerPaymentProof proof = paymentProofService.findById(submission.getPaymentProofId());
+        boolean hasProof = proof != null;
+        return CustomerTontineMmSubmissionDto.builder()
+                .id(submission.getId())
+                .clientId(submission.getClientId())
+                .clientName(client != null ? client.getFullName() : null)
+                .tontineMemberId(submission.getTontineMemberId())
+                .expectedAmount(submission.getExpectedAmount())
+                .mobileMoneyPhone(submission.getMobileMoneyPhone())
+                .mobileMoneyAmount(submission.getMobileMoneyAmount())
+                .mobileMoneyReference(submission.getMobileMoneyReference())
+                .notes(submission.getNotes())
+                .operationDate(submission.getOperationDate())
+                .status(submission.getStatus())
+                .tontineCollector(tontineCollector)
+                .tontineCollectionId(submission.getTontineCollectionId())
+                .createdAt(submission.getCreatedDate())
+                .hasProof(hasProof)
+                .proofContentType(hasProof ? proof.getContentType() : null)
+                .ocrReference(hasProof ? proof.getOcrReference() : null)
+                .referenceMismatch(paymentProofService.isReferenceMismatch(
+                        proof, submission.getMobileMoneyReference()))
+                .duplicateProof(paymentProofService.isDuplicateProof(
+                        proof, PaymentProofLinkedType.TONTINE, submission.getId()))
+                .build();
+    }
+}

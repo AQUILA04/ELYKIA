@@ -18,7 +18,7 @@
 | **Vague 4** | `finance` (`OPEN` — Dépenses, Caisse, Journée comptable, Versements/Remises/Surplus, Rapports journaliers & mensuels + 5 ports SPI `finance.api` + absorption de `SupplyExpensePortAdapter`) | **Fait (`2.5.0`)** |
 | **Vague 5** | `sale` (`OPEN` — Ventes/Crédits, Commandes, Annulations, Stock commercial `CommercialMonthlyStock`/`StockRequest`/`StockReturn`, Dettes `DebtDocument`/`DebtService`, `RemainingAtClients*`, 7 ports SPI `sale.api`, absorption de 3 adaptateurs SPI + enrichissement `shared.carnet`) | **Fait (`2.6.0`)** |
 | **Vague 6** | `tontine` (`OPEN`, `tontine → sale` unidirectionnel + `StockTontine*` + `ClientAccountMovement` + `TontineCreditCreationService`) + `carnet` (`OPEN` aval + `RecoveryFieldPlan*`/`RecoveryManager*`) | **Fait (`2.7.0`)** |
-| **Vague 7** | `customer` (`Espace Client` + `adhesion` + `paygate` + `ocr`) + `bi` + `reporting` (`PdfService`, `MonthlyReport*`, `FormerPortfolio*`) + `bootstrap` + suppression de `core/` | En cours |
+| **Vague 7** | `customer` (`CLOSED`, `::api`), `bi` (`CLOSED`), `reporting` (`CLOSED`), `bootstrap` (`CLOSED`) + suppression définitive de `core/` | **Fait (`2.8.0`)** |
 
 ## 3. Périmètre exact du Lot 1 (`2.2.0`)
 
@@ -99,3 +99,12 @@
 - **`carnet` (`OPEN` aval, `allowedDependencies = {"entities", "securities", "client", "shared", "notification :: api", "organization", "inventory", "finance", "sale", "tontine"}`, 0 dép. sur `core`) :**
   - `domain/`, `event/`, `infrastructure/persistence/` (`CarnetTontineQueryRepository`, écarts et plans de tournée), `application/` (`CarnetEcartRecontrolPolicy` implémentant `CreditCarnetRecontrolPort` + `TontineCarnetRecontrolPort`, `RecoveryFieldPlanService`, `RecoveryManager*`), `web/` + tests unitaires (`carnet.domain` 100 % LINE, `carnet.application` 50,3 % LINE).
 - **`ModularityTests` :** vérifie désormais les **15 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `sale`, `tontine`, `carnet`, `recruitment`, `ai`, `apprelease`, `core`), avec 0 dépendance entrante vers `core`.
+
+## 9. Périmètre exact de la Vague 7 finale (`2.8.0`)
+
+- **`customer` (`CLOSED`, `@NamedInterface("api")` pour `AdhesionCashEvent`) :** 145 fichiers (Espace Client, auth/OTP, onboarding, Mobile Money, notifications client → `OrderCustomerNotificationPort`, adhésion `AdhesionService` → `AdhesionCreditPort`, PayGate, OCR preuves).
+- **`bi` (`CLOSED`) :** 44 fichiers (analytique ventes/recouvrement/stock, performance commerciale, snapshots, `BiAggregationService` → `SaleBiAggregationPort`, `BiCreditQueryRepository`).
+- **`reporting` (`CLOSED`, `reporting → customer :: api`) :** 63 fichiers (`PdfService` → `TontineHtmlPdfPort`, adaptateurs PDF `sale`/`inventory`/`finance`, `MonthlyReport*`, `CommercialYearlyPortfolioService` → `CommercialYearlyPortfolioPort`, `ClientExportController`, `DailyReportEventListener`, `FormerPortfolio*`).
+- **`bootstrap` (`CLOSED`) :** 33 fichiers (configurations Spring transverses, `DataInit`, 6 `*PermissionsInit`, `CronManager`, `MobileController`/`MobileTransaction*`, `AdminPhotoMigrationController`, `NonBlankPropertyCondition` mis à jour dans `logback-spring.xml`).
+- **Suppression complète de `com.optimize.elykia.core` :** `src/main/java/com/optimize/elykia/core` et `src/test/java/com/optimize/elykia/core` supprimés (`0` référence résiduelle), tests multi-modules sous `com.optimize.elykia.integration`.
+- **`ModularityTests` :** vérifie les **18 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `sale`, `tontine`, `carnet`, `customer`, `bi`, `reporting`, `bootstrap`, `recruitment`, `ai`, `apprelease`), 0 cycle.

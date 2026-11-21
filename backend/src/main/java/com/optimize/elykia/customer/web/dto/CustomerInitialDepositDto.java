@@ -1,0 +1,29 @@
+package com.optimize.elykia.customer.web.dto;
+
+import com.optimize.elykia.customer.domain.CustomerSubmissionStatus;
+import lombok.Builder;
+import lombok.Getter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Builder
+public class CustomerInitialDepositDto {
+    private Long id;
+    private Long clientId;
+    private String mobileMoneyPhone;
+    private Double mobileMoneyAmount;
+    private String mobileMoneyReference;
+    private String notes;
+    private CustomerSubmissionStatus status;
+    private LocalDateTime validatedAt;
+    private String validatedBy;
+    private LocalDateTime rejectedAt;
+    private String rejectedBy;
+    private String rejectionReason;
+    private Boolean hasProof;
+    private String proofContentType;
+    private String ocrReference;
+    private Boolean referenceMismatch;
+    private Boolean duplicateProof;
+}

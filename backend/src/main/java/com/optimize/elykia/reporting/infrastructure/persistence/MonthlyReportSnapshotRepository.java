@@ -1,0 +1,11 @@
+package com.optimize.elykia.reporting.infrastructure.persistence;
+
+import com.optimize.common.entities.repository.GenericRepository;
+import com.optimize.elykia.reporting.domain.MonthlyReportSnapshot;
+
+import java.util.Optional;
+
+public interface MonthlyReportSnapshotRepository extends GenericRepository<MonthlyReportSnapshot, Long> {
+    Optional<MonthlyReportSnapshot> findTopByRun_IdOrderByCreatedDateDesc(Long runId);
+    void deleteByRun_Id(Long runId);
+}

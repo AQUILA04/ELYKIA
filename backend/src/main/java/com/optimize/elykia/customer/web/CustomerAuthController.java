@@ -1,0 +1,95 @@
+package com.optimize.elykia.customer.web;
+
+import com.optimize.elykia.customer.web.dto.CustomerActivityLogBatchRequest;
+import com.optimize.elykia.customer.web.dto.CustomerCheckPhoneResponse;
+import com.optimize.elykia.customer.web.dto.CustomerLocalityDto;
+import com.optimize.elykia.customer.web.dto.CustomerLoginRequest;
+import com.optimize.elykia.customer.web.dto.CustomerLoginResponse;
+import com.optimize.elykia.customer.web.dto.CustomerOtpSendResponse;
+import com.optimize.elykia.customer.web.dto.CustomerOtpVerifyRequest;
+import com.optimize.elykia.customer.web.dto.CustomerOtpVerifyResponse;
+import com.optimize.elykia.customer.web.dto.CustomerPhoneRequest;
+import com.optimize.elykia.customer.web.dto.CustomerRegisterRequest;
+import com.optimize.elykia.customer.web.dto.CustomerSetupPinRequest;
+import com.optimize.elykia.customer.application.CustomerActivityLogService;
+import com.optimize.elykia.customer.application.CustomerAuthService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/api/customer/auth")
+@RequiredArgsConstructor
+@CrossOrigin
+public class CustomerAuthController {
+
+    private final CustomerAuthService customerAuthService;
+    private final CustomerActivityLogService activityLogService;
+
+    @GetMapping("/localities")
+    public ResponseEntity<List<CustomerLocalityDto>> listLocalities() {
+        return ResponseEntity.ok(customerAuthService.listLocalities());
+    }
+
+    @PostMapping("/check-phone")
+    public ResponseEntity<CustomerCheckPhoneResponse> checkPhone(@Valid @RequestBody CustomerPhoneRequest request) {
+        return ResponseEntity.ok(customerAuthService.checkPhone(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<CustomerLoginResponse> login(@Valid @RequestBody CustomerLoginRequest request) {
+        return ResponseEntity.ok(customerAuthService.login(request));
+    }
+
+    @PostMapping("/send-otp")
+    public ResponseEntity<CustomerOtpSendResponse> sendOtp(@Valid @RequestBody CustomerPhoneRequest request) {
+        return ResponseEntity.accepted().body(customerAuthService.sendOtp(request));
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<CustomerOtpVerifyResponse> verifyOtp(@Valid @RequestBody CustomerOtpVerifyRequest request) {
+        return ResponseEntity.ok(customerAuthService.verifyOtp(request));
+    }
+
+    @PostMapping("/setup-pin")
+    public ResponseEntity<CustomerLoginResponse> setupPin(@Valid @RequestBody CustomerSetupPinRequest request) {
+        return ResponseEntity.ok(customerAuthService.setupPin(request));
+    }
+
+    @PostMapping("/forgot-pin/send-otp")
+    public ResponseEntity<CustomerOtpSendResponse> sendForgotPinOtp(@Valid @RequestBody CustomerPhoneRequest request) {
+        return ResponseEntity.accepted().body(customerAuthService.sendForgotPinOtp(request));
+    }
+
+    @PostMapping("/forgot-pin/verify-otp")
+    public ResponseEntity<CustomerOtpVerifyResponse> verifyForgotPinOtp(
+            @Valid @RequestBody CustomerOtpVerifyRequest request) {
+        return ResponseEntity.ok(customerAuthService.verifyForgotPinOtp(request));
+    }
+
+    @PostMapping("/reset-pin")
+    public ResponseEntity<CustomerLoginResponse> resetPin(@Valid @RequestBody CustomerSetupPinRequest request) {
+        return ResponseEntity.ok(customerAuthService.resetPin(request));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<CustomerLoginResponse> register(@Valid @RequestBody CustomerRegisterRequest request) {
+        return ResponseEntity.ok(customerAuthService.register(request));
+    }
+
+    /**
+     * Journal client (pré-auth inclus). {@code /api/customer/auth/**} est permitAll.
+     * Le clientId n'est accepté que si un Bearer JWT valide est présent.
+     */
+    @PostMapping("/activity-logs")
+    public ResponseEntity<Map<String, Object>> ingestActivityLogs(
+            @Valid @RequestBody CustomerActivityLogBatchRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        int accepted = activityLogService.ingestClientBatch(request, authorization);
+        return ResponseEntity.accepted().body(Map.of("accepted", accepted));
+    }
+}

@@ -1,6 +1,5 @@
 package com.optimize.elykia.tontine.domain;
 
-import com.optimize.elykia.tontine.domain.TontineCollectionResetRun;
 import com.optimize.common.entities.entity.Auditable;
 import jakarta.persistence.*;
 import lombok.Getter;

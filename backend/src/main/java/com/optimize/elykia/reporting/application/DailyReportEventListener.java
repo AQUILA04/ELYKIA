@@ -1,0 +1,483 @@
+package com.optimize.elykia.reporting.application;
+
+import com.optimize.elykia.carnet.event.RecoveryManagerCollectionEvent;
+import com.optimize.elykia.tontine.event.StockTontineRequestDeliveredEvent;
+import com.optimize.elykia.tontine.event.StockTontineReturnedEvent;
+import com.optimize.elykia.tontine.event.TontineCollectionCancelledEvent;
+import com.optimize.elykia.tontine.event.TontineCollectionEvent;
+import com.optimize.elykia.tontine.event.TontineDeliveryEvent;
+import com.optimize.elykia.tontine.event.TontineMemberEnrolledEvent;
+import com.optimize.elykia.sale.event.CreditCollectionCancelledEvent;
+import com.optimize.elykia.sale.event.CreditStartedEvent;
+import com.optimize.elykia.sale.event.OrderCreatedEvent;
+import com.optimize.elykia.sale.event.StockRequestDeliveredEvent;
+import com.optimize.elykia.sale.event.StockReturnedEvent;
+import com.optimize.elykia.notification.api.AppNotificationFacade;
+import com.optimize.elykia.finance.domain.DailyCommercialReport;
+import com.optimize.elykia.customer.api.AdhesionCashEvent;
+import com.optimize.elykia.sale.event.CreditCollectionEvent;
+import com.optimize.elykia.client.event.*;
+import com.optimize.elykia.finance.infrastructure.persistence.DailyCommercialReportRepository;
+import com.optimize.elykia.finance.application.DailyCommercialReportPersistence;
+import com.optimize.elykia.finance.application.DailyOperationService;
+import com.optimize.elykia.tontine.application.TontineCatchupNotificationService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.event.EventListener;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
+
+import java.time.LocalDate;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class DailyReportEventListener {
+
+        private final DailyCommercialReportRepository repository;
+        private final DailyCommercialReportPersistence reportPersistence;
+        private final DailyOperationService dailyOperationService;
+        private final TontineCatchupNotificationService tontineCatchupNotificationService;
+        private final AppNotificationFacade appNotificationService;
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleStockRequestDelivered(StockRequestDeliveredEvent event) {
+                log.info("Processing StockRequestDeliveredEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                report.setTotalStockRequestAmount(report.getTotalStockRequestAmount() + event.getAmount());
+                report.setStockRequestMargin(
+                                report.getStockRequestMargin() + (event.getMargin() != null ? event.getMargin() : 0.0));
+                reportPersistence.save(report);
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.STOCK_REQUEST,
+                                event.getAmount(),
+                                "Stock Request",
+                                "Sortie de stock (Ref: " + (event.getReference() != null ? event.getReference() : "N/A")
+                                                + ")");
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleStockReturned(StockReturnedEvent event) {
+                log.info("Processing StockReturnedEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                report.setTotalStockRequestAmount(report.getTotalStockRequestAmount() - event.getAmount());
+                // Note: Margin adjustment on return might be complex depending on business
+                // logic.
+                // Assuming simple reversal or no margin impact on return for now unless
+                // specified.
+                reportPersistence.save(report);
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.STOCK_RETURN,
+                                event.getAmount(),
+                                "Stock Return",
+                                String.format("Retour de stock par %s (ID: %d, Montant: %.0f, Articles: %d)",
+                                                event.getCollector() != null ? event.getCollector() : "N/A",
+                                                event.getReturnId(),
+                                                event.getAmount() != null ? event.getAmount() : 0.0,
+                                                event.getTotalArticles()));
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleStockTontineRequestDelivered(StockTontineRequestDeliveredEvent event) {
+                log.info("Processing StockTontineRequestDeliveredEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                report.setTotalTontineStockRequestAmount(
+                                report.getTotalTontineStockRequestAmount() + event.getAmount());
+                reportPersistence.save(report);
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.STOCK_TONTINE_REQUEST,
+                                event.getAmount(),
+                                "Stock Tontine Request",
+                                "Sortie de stock Tontine (Ref: "
+                                                + (event.getReference() != null ? event.getReference() : "N/A") + ")");
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleStockTontineReturned(StockTontineReturnedEvent event) {
+                log.info("Processing StockTontineReturnedEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                report.setTotalTontineStockRequestAmount(
+                                report.getTotalTontineStockRequestAmount() - event.getAmount());
+                reportPersistence.save(report);
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.STOCK_TONTINE_RETURN,
+                                event.getAmount(),
+                                "Stock Tontine Return",
+                                String.format("Retour de stock Tontine par %s (ID: %d, Montant: %.0f, Articles: %d)",
+                                                event.getCollector() != null ? event.getCollector() : "N/A",
+                                                event.getReturnId(),
+                                                event.getAmount() != null ? event.getAmount() : 0.0,
+                                                event.getTotalArticles()));
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleCreditStarted(CreditStartedEvent event) {
+                log.info("Processing CreditStartedEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                report.setCreditSalesCount(report.getCreditSalesCount() + 1);
+                report.setCreditSalesAmount(report.getCreditSalesAmount() + event.getAmount());
+                report.setCreditSalesMargin(
+                                report.getCreditSalesMargin() + (event.getMargin() != null ? event.getMargin() : 0.0));
+
+                Double advance = event.getAdvance() != null ? event.getAdvance() : 0.0;
+                report.setTotalAdvancesAmount(report.getTotalAdvancesAmount() + advance);
+                report.addAmountToDeposit(advance);
+
+                reportPersistence.save(report);
+
+                String description = "Nouvelle vente à crédit (Client: "
+                                + (event.getClientName() != null ? event.getClientName() : "N/A")
+                                + ", Ref: "
+                                + (event.getReference() != null ? event.getReference() : "N/A");
+
+                if (advance > 0) {
+                        description += ", Avance: " + advance;
+                }
+
+                description += ")";
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.CREDIT_SALES,
+                                event.getAmount(),
+                                "Vente Crédit",
+                                description);
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleClientCreated(ClientCreatedEvent event) {
+                log.info("Processing ClientCreatedEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                report.setNewClientsCount(report.getNewClientsCount() + 1);
+                reportPersistence.save(report);
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.NEW_CLIENT,
+                                0.0,
+                                "Nouveau Client",
+                                "Nouveau client créé : "
+                                                + (event.getClientFullName() != null ? event.getClientFullName()
+                                                                : "N/A"));
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleAccountCreated(AccountCreatedEvent event) {
+                log.info("Processing AccountCreatedEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                report.setNewAccountsBalance(report.getNewAccountsBalance() + event.getInitialBalance());
+
+                // Add to total deposit
+                report.setTotalAmountToDeposit(report.getTotalAmountToDeposit() + event.getInitialBalance());
+
+                reportPersistence.save(report);
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.NEW_ACCOUNT,
+                                event.getInitialBalance(),
+                                "Nouveau Compte",
+                                "Dépôt initial nouveau compte (N°: "
+                                                + (event.getAccountNumber() != null ? event.getAccountNumber() : "N/A")
+                                                + ")");
+        }
+
+        // Après le commit du recouvrement : un échec ensuite (reliquat absent, rollback)
+        // ne doit pas laisser une ligne de journal ni gonfler le montant à verser.
+        @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleCreditCollection(CreditCollectionEvent event) {
+                log.info("Processing CreditCollectionEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                report.setCollectionsCount(report.getCollectionsCount() + 1);
+                report.setCollectionsAmount(report.getCollectionsAmount() + event.getAmount());
+
+                // Update reliquat fields
+                double generated = event.getReliquatGeneratedAmount() != null ? event.getReliquatGeneratedAmount() : 0.0;
+                double used = event.getReliquatUsedAmount() != null ? event.getReliquatUsedAmount() : 0.0;
+
+                double currentGenerated = report.getTotalReliquatGeneratedAmount() != null ? report.getTotalReliquatGeneratedAmount() : 0.0;
+                double currentUsed = report.getTotalReliquatUsedAmount() != null ? report.getTotalReliquatUsedAmount() : 0.0;
+
+                report.setTotalReliquatGeneratedAmount(currentGenerated + generated);
+                report.setTotalReliquatUsedAmount(currentUsed + used);
+
+                // Add cash actually received to total deposit (adjusting for reliquats)
+                double cashReceived = event.getAmount() + generated - used;
+                double currentDeposit = report.getTotalAmountToDeposit() != null ? report.getTotalAmountToDeposit() : 0.0;
+                report.setTotalAmountToDeposit(currentDeposit + cashReceived);
+
+                reportPersistence.save(report);
+
+                String description = String.format("Recouvrement crédit (Ref: %s, Rec: %s)",
+                                event.getCreditReference() != null ? event.getCreditReference() : "N/A",
+                                event.getRecoveryReference() != null ? event.getRecoveryReference() : "N/A");
+
+                if (generated > 0 || used > 0) {
+                        description += String.format(" [Reliquat généré: %.0f, utilisé: %.0f]", generated, used);
+                }
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.CREDIT_COLLECTION,
+                                event.getAmount(),
+                                "Recouvrement",
+                                description,
+                                generated,
+                                used);
+        }
+
+        @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleCreditCollectionCancelled(CreditCollectionCancelledEvent event) {
+                log.info("Processing CreditCollectionCancelledEvent for collector: {} on date: {}",
+                                event.getCollector(), event.getOperationDate());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector(), event.getOperationDate());
+
+                int currentCount = report.getCollectionsCount() != null ? report.getCollectionsCount() : 0;
+                double currentAmount = report.getCollectionsAmount() != null ? report.getCollectionsAmount() : 0.0;
+                double amountToCancel = event.getAmount() != null ? event.getAmount() : 0.0;
+                double generated = event.getReliquatGeneratedAmount() != null ? event.getReliquatGeneratedAmount() : 0.0;
+                double used = event.getReliquatUsedAmount() != null ? event.getReliquatUsedAmount() : 0.0;
+                double currentGenerated = report.getTotalReliquatGeneratedAmount() != null
+                                ? report.getTotalReliquatGeneratedAmount()
+                                : 0.0;
+                double currentUsed = report.getTotalReliquatUsedAmount() != null
+                                ? report.getTotalReliquatUsedAmount()
+                                : 0.0;
+                double currentDeposit = report.getTotalAmountToDeposit() != null ? report.getTotalAmountToDeposit() : 0.0;
+                double cashToReverse = amountToCancel + generated - used;
+
+                report.setCollectionsCount(Math.max(0, currentCount - 1));
+                report.setCollectionsAmount(Math.max(0.0, currentAmount - amountToCancel));
+                report.setTotalReliquatGeneratedAmount(Math.max(0.0, currentGenerated - generated));
+                report.setTotalReliquatUsedAmount(Math.max(0.0, currentUsed - used));
+                report.setTotalAmountToDeposit(Math.max(0.0, currentDeposit - cashToReverse));
+                reportPersistence.save(report);
+
+                String description = String.format("Annulation recouvrement crédit (Ref: %s, Rec: %s)",
+                                event.getCreditReference() != null ? event.getCreditReference() : "N/A",
+                                event.getRecoveryReference() != null ? event.getRecoveryReference() : "N/A");
+                if (generated > 0 || used > 0) {
+                        description += String.format(" [Reliquat généré: %.0f, utilisé: %.0f]", generated, used);
+                }
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.CREDIT_COLLECTION_CANCEL,
+                                -amountToCancel,
+                                "Annulation Recouvrement",
+                                description,
+                                -generated,
+                                -used,
+                                event.getOperationDate());
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleRecoveryManagerCollection(RecoveryManagerCollectionEvent event) {
+                log.info("Processing RecoveryManagerCollectionEvent for commercial: {}", event.getCommercialUsername());
+                DailyCommercialReport report = getOrCreateReport(event.getCommercialUsername());
+                double current = report.getRecoveryManagerCollectionsAmount() != null ? report.getRecoveryManagerCollectionsAmount() : 0.0;
+                report.setRecoveryManagerCollectionsAmount(current + event.getAmount());
+                reportPersistence.save(report);
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleOrderCreated(OrderCreatedEvent event) {
+                log.info("Processing OrderCreatedEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                report.setOrdersCount(report.getOrdersCount() + 1);
+                report.setOrdersAmount(report.getOrdersAmount() + event.getAmount());
+
+        // Add to total deposit
+        reportPersistence.save(report);
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.ORDER,
+                                event.getAmount(),
+                                "Commande",
+                                "Nouvelle commande (ID: " + event.getOrderId() + ")");
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleTontineMemberEnrolled(TontineMemberEnrolledEvent event) {
+                log.info("Processing TontineMemberEnrolledEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                report.setTontineMembersCount(report.getTontineMembersCount() + 1);
+                reportPersistence.save(report);
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.TONTINE_MEMBER_ENROLLMENT,
+                                0.0,
+                                "Nouveau Membre Tontine",
+                                "Adhésion Tontine : "
+                                                + (event.getClientName() != null ? event.getClientName() : "N/A"));
+        }
+
+        // Après le commit : la transaction métier tient souvent le rapport
+        // (clé étrangère de la dette, réconciliation). Un second transaction
+        // ouverte avant le commit attend ce verrou, et le thread métier attend
+        // cette mise à jour. Les deux restent bloquées et vident le pool.
+        @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleTontineCollection(TontineCollectionEvent event) {
+                log.info("Processing TontineCollectionEvent for collector: {} operationDate={} captureDate={}",
+                                event.getCollector(), event.getOperationDate(), event.getCaptureDate());
+                double amount = event.getAmount() != null ? event.getAmount() : 0.0;
+
+                // Compteurs d'activité + cash à verser sur la date métier (collectionDate / rattrapage).
+                DailyCommercialReport activityReport = getOrCreateReport(event.getCollector(), event.getOperationDate());
+                int currentCount = activityReport.getTontineCollectionsCount() != null
+                                ? activityReport.getTontineCollectionsCount()
+                                : 0;
+                double currentAmount = activityReport.getTontineCollectionsAmount() != null
+                                ? activityReport.getTontineCollectionsAmount()
+                                : 0.0;
+                activityReport.setTontineCollectionsCount(currentCount + 1);
+                activityReport.setTontineCollectionsAmount(currentAmount + amount);
+
+                double currentDeposit = activityReport.getTotalAmountToDeposit() != null
+                                ? activityReport.getTotalAmountToDeposit()
+                                : 0.0;
+                activityReport.setTotalAmountToDeposit(currentDeposit + amount);
+                reportPersistence.save(activityReport);
+
+                if (event.isCatchup()) {
+                        DailyCommercialReport captureReport = getOrCreateReport(event.getCollector(),
+                                        event.getCaptureDate());
+                        int catchupCount = captureReport.getTontineCatchupCount() != null
+                                        ? captureReport.getTontineCatchupCount()
+                                        : 0;
+                        double catchupAmount = captureReport.getTontineCatchupAmount() != null
+                                        ? captureReport.getTontineCatchupAmount()
+                                        : 0.0;
+                        captureReport.setTontineCatchupCount(catchupCount + 1);
+                        captureReport.setTontineCatchupAmount(catchupAmount + amount);
+                        reportPersistence.save(captureReport);
+                        appNotificationService.createFromCatchupEvent(new com.optimize.elykia.notification.api.TontineCatchupNotificationCommand(
+                                        event.isCatchup(),
+                                        event.getCollectionId(),
+                                        event.getCollectionReference(),
+                                        event.getClientName(),
+                                        event.getCollector(),
+                                        event.getOperationDate(),
+                                        event.getAmount()));
+                        tontineCatchupNotificationService.createFromCatchupEvent(event);
+                }
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.TONTINE_COLLECTION,
+                                amount,
+                                "Collecte Tontine",
+                                "Collecte tontine (Client: "
+                                                + (event.getClientName() != null ? event.getClientName() : "N/A")
+                                                + ")",
+                                0.0,
+                                0.0,
+                                event.getOperationDate());
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleTontineCollectionCancelled(TontineCollectionCancelledEvent event) {
+                // Les montants sont reconstruits par DailyTontineReportReconciler dans la TX
+                // d'annulation (visibilité DELETED). Ici : journal d'opération uniquement.
+                log.info("Processing TontineCollectionCancelledEvent for collector: {} operationDate={} captureDate={}",
+                                event.getCollector(), event.getOperationDate(), event.getCaptureDate());
+                double amountToCancel = event.getAmount() != null ? event.getAmount() : 0.0;
+
+                appNotificationService.cancelCatchupByCollectionId(event.getCollectionId());
+                tontineCatchupNotificationService.cancelByCollectionId(event.getCollectionId());
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.TONTINE_COLLECTION_CANCEL,
+                                -amountToCancel,
+                                "Annulation Collecte Tontine",
+                                "Annulation collecte tontine (Client: "
+                                                + (event.getClientName() != null ? event.getClientName() : "N/A")
+                                                + ", Ref: "
+                                                + (event.getReference() != null ? event.getReference() : "N/A")
+                                                + ")",
+                                0.0,
+                                0.0,
+                                event.getOperationDate());
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleTontineDelivery(TontineDeliveryEvent event) {
+                log.info("Processing TontineDeliveryEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                report.setTontineDeliveriesCount(report.getTontineDeliveriesCount() + 1);
+                report.setTontineDeliveriesAmount(report.getTontineDeliveriesAmount() + event.getAmount());
+                reportPersistence.save(report);
+
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                com.optimize.elykia.shared.domain.OperationType.TONTINE_DELIVERY,
+                                event.getAmount(),
+                                "Livraison Tontine",
+                                "Livraison tontine (Client: "
+                                                + (event.getClientName() != null ? event.getClientName() : "N/A")
+                                                + ")");
+        }
+
+        @EventListener
+        @Transactional(propagation = Propagation.REQUIRES_NEW)
+        public void handleAdhesionCash(com.optimize.elykia.customer.api.AdhesionCashEvent event) {
+                if (event.getCollector() == null || event.getCollector().isBlank() || event.getAmount() <= 0) {
+                        return;
+                }
+                log.info("Processing AdhesionCashEvent for collector: {}", event.getCollector());
+                DailyCommercialReport report = getOrCreateReport(event.getCollector());
+                double currentDeposit = report.getTotalAmountToDeposit() != null ? report.getTotalAmountToDeposit() : 0.0;
+                report.setTotalAmountToDeposit(currentDeposit + event.getAmount());
+                reportPersistence.save(report);
+                dailyOperationService.logOperation(
+                                event.getCollector(),
+                                event.getOperationType(),
+                                event.getAmount(),
+                                event.getLabel(),
+                                event.getDescription());
+        }
+
+        private DailyCommercialReport getOrCreateReport(String commercialUsername) {
+                return getOrCreateReport(commercialUsername, LocalDate.now());
+        }
+
+        private DailyCommercialReport getOrCreateReport(String commercialUsername, LocalDate date) {
+                LocalDate reportDate = date != null ? date : LocalDate.now();
+                return repository.findByDateAndCommercialUsername(reportDate, commercialUsername)
+                                .orElseGet(() -> {
+                                        DailyCommercialReport newReport = new DailyCommercialReport();
+                                        newReport.setDate(reportDate);
+                                        newReport.setCommercialUsername(commercialUsername);
+                                        return reportPersistence.save(newReport);
+                                });
+        }
+}
