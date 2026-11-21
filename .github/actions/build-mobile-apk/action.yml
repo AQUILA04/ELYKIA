@@ -152,6 +152,9 @@ runs:
       shell: bash
       run: .github/scripts/configure-android-signing.sh mobile/android
 
+    - name: Setup Gradle (cache + miroir Maven Central)
+      uses: ./.github/actions/setup-gradle-resilient
+
     - name: Build Android release APK
       shell: bash
       run: |
@@ -164,7 +167,7 @@ runs:
         fi
         echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> gradle.properties
         echo "org.gradle.daemon=false" >> gradle.properties
-        ./gradlew clean assembleRelease --stacktrace
+        bash "$GITHUB_WORKSPACE/.github/scripts/gradle-with-retry.sh" clean assembleRelease --stacktrace
 
     - name: Rename APK and set artifact path
       id: apk

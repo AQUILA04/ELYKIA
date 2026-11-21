@@ -62,6 +62,8 @@ Workflows `.github/workflows/` :
 | `deploy-website.yml`, `deploy-landing-page.yml` | Site et landing |
 | `gitleaks.yml` | Scan des secrets |
 
+Builds Android (CI mobile et espace client, APK release) : `.github/actions/setup-gradle-resilient` (cache Gradle, miroir Google de Maven Central) puis `.github/scripts/gradle-with-retry.sh`. Un nouveau build Gradle en CI doit passer par les deux (Maven Central répond souvent 429).
+
 Images GHCR. Le CD résout la dernière image réellement publiée par composant (un commit qui ne touche que `deploy/` ne reconstruit pas les images). Détail : en-tête de `cd.yml`, `README-DEPLOY.md`, `deploy/EXPLOITATION.md`.
 
 ## Environnements

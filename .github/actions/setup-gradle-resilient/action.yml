@@ -1,0 +1,23 @@
+name: Setup Gradle (cache + miroir Maven Central)
+description: >
+  Garde les dépendances Gradle entre les builds (cache GitHub Actions, écrit seulement depuis
+  la branche par défaut, lu par les autres) et ajoute le miroir Google de Maven Central avant
+  les dépôts déclarés par Capacitor. Réduit les refus 429 « Too Many Requests » de
+  repo.maven.apache.org. À appeler après setup-java et avant ./gradlew.
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Gradle (cache des dépendances et du wrapper)
+      uses: gradle/actions/setup-gradle@v4
+      with:
+        # Le cache n'est écrit que depuis main : les PR le lisent sans le polluer.
+        cache-read-only: ${{ github.ref != format('refs/heads/{0}', github.event.repository.default_branch) }}
+
+    - name: Miroir Maven Central (script d'initialisation Gradle)
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p "$HOME/.gradle/init.d"
+        cp "$GITHUB_WORKSPACE/.github/gradle/maven-central-mirror.init.gradle" "$HOME/.gradle/init.d/maven-central-mirror.gradle"
+        echo "Miroir Maven Central installé : $HOME/.gradle/init.d/maven-central-mirror.gradle"

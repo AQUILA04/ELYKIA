@@ -180,6 +180,9 @@ runs:
       shell: bash
       run: .github/scripts/configure-android-signing.sh customer-space/android
 
+    - name: Setup Gradle (cache + miroir Maven Central)
+      uses: ./.github/actions/setup-gradle-resilient
+
     - name: Build Android release
       shell: bash
       env:
@@ -195,9 +198,9 @@ runs:
         echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=1024m" >> gradle.properties
         echo "org.gradle.daemon=false" >> gradle.properties
         if [ "$RELEASE_FORMAT" = "aab" ]; then
-          ./gradlew clean bundleRelease --stacktrace
+          bash "$GITHUB_WORKSPACE/.github/scripts/gradle-with-retry.sh" clean bundleRelease --stacktrace
         elif [ "$RELEASE_FORMAT" = "apk" ]; then
-          ./gradlew clean assembleRelease --stacktrace
+          bash "$GITHUB_WORKSPACE/.github/scripts/gradle-with-retry.sh" clean assembleRelease --stacktrace
         else
           echo "Invalid release-format: $RELEASE_FORMAT (expected apk or aab)" >&2
           exit 1

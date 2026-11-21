@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (cache Gradle et miroir Maven Central)
+
+### Fixed
+
+- **Builds Android (CI mobile, CI espace client, APK release) —** Maven Central refusait souvent les téléchargements (429), et la relance existante échouait de la même façon car Gradle réutilisait la résolution ratée : le CI mobile échouait et l'APK n'était pas construit. Nouvelle action `.github/actions/setup-gradle-resilient` : cache des dépendances Gradle entre les builds (`gradle/actions/setup-gradle@v4`, écrit depuis `main`, lu par les PR) et miroir Google de Maven Central placé avant les dépôts du projet (script d'initialisation `.github/gradle/maven-central-mirror.init.gradle`). Script `.github/scripts/gradle-with-retry.sh` (3 tentatives, `--refresh-dependencies` dès la 2e) pour les 4 builds Gradle, y compris les APK release qui n'avaient pas de relance. Plan `.cursor/plans/ci_gradle_cache_miroir.plan.md`.
+
 ## Docs & Infra — 2026-11-21 (fiabilité terrain des commandes tontine)
 
 ### Changed
