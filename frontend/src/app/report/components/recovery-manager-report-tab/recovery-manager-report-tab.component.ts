@@ -37,8 +37,8 @@ export class RecoveryManagerReportTabComponent implements OnInit, OnChanges {
   totalElements = 0;
 
   constructor(
-    private recoveryManagerService: RecoveryManagerService,
-    private userService: UserService
+    protected recoveryManagerService: RecoveryManagerService,
+    protected userService: UserService
   ) {}
 
   ngOnInit(): void {

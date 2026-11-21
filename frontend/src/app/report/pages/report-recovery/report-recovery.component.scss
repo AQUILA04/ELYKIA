@@ -1,0 +1,111 @@
+@import '../../../shared/report-ui/styles/report-v2';
+
+.report-recovery-page {
+  .recovery-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .manager-filter {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .filter-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .manager-select { min-width: 260px; }
+
+  .rate-bar { margin-top: 4px; }
+
+  .activity-panel { margin-bottom: 16px; }
+
+  .activity-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .activity-card {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--navy-xpale);
+
+    .cell-sub { margin: 0; }
+  }
+
+  .activity-figure {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px;
+
+    .num { font-size: 20px; font-weight: 700; color: var(--navy); }
+  }
+
+  .activity-of { color: var(--text-muted); font-size: 13px; }
+  .activity-pct { margin-left: auto; font-weight: 700; color: var(--navy); }
+
+  .panel-card.a4 + .panel-card.a4,
+  .panel-card + .table-card { margin-top: 16px; }
+
+  .remit-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .remit-card {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--orange);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .remit-card--link {
+    &:hover { border-color: var(--navy); border-left-color: var(--orange); background: var(--navy-xpale); }
+    &:focus-visible { outline: 3px solid #8fb3e0; outline-offset: 2px; }
+  }
+
+  .remit-name { font-weight: 700; }
+  .remit-amount { font-size: 18px; font-weight: 700; color: var(--orange); }
+
+  .empty-state.compact { padding: 16px 8px; }
+  .table-skeleton { height: 160px; margin: 16px; }
+  .cell-sub { display: block; }
+}
+
+@media (max-width: 1024px) {
+  .report-recovery-page .activity-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 600px) {
+  .report-recovery-page {
+    .activity-grid { grid-template-columns: 1fr; }
+    .manager-select { min-width: 0; flex: 1; }
+  }
+}

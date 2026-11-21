@@ -40,6 +40,7 @@ import { ReportUiModule } from '../shared/report-ui/report-ui.module';
 import { ReportDepositsComponent } from './pages/report-deposits/report-deposits.component';
 import { ReportJournalComponent } from './pages/report-journal/report-journal.component';
 import { ReportRemittanceComponent } from './pages/report-remittance/report-remittance.component';
+import { ReportRecoveryComponent } from './pages/report-recovery/report-recovery.component';
 
 @NgModule({
   declarations: [
@@ -59,6 +60,7 @@ import { ReportRemittanceComponent } from './pages/report-remittance/report-remi
     ReportDepositsComponent,
     ReportJournalComponent,
     ReportRemittanceComponent,
+    ReportRecoveryComponent,
   ],
   imports: [
     CommonModule,

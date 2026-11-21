@@ -11,6 +11,7 @@ import { CommercialSheetComponent } from './pages/commercial-sheet/commercial-sh
 import { ReportDepositsComponent } from './pages/report-deposits/report-deposits.component';
 import { ReportJournalComponent } from './pages/report-journal/report-journal.component';
 import { ReportRemittanceComponent } from './pages/report-remittance/report-remittance.component';
+import { ReportRecoveryComponent } from './pages/report-recovery/report-recovery.component';
 
 const routes: Routes = [
   { path: '', component: ReportComponent },
@@ -22,6 +23,8 @@ const routes: Routes = [
   { path: 'daily/journal', component: ReportJournalComponent },
   // Remise au gestionnaire : gestionnaire et secrétaire (la page renvoie les autres profils vers le cockpit).
   { path: 'daily/remittance', component: ReportRemittanceComponent },
+  // Recouvrement terrain : chef de recouvrement et gestionnaire (la page renvoie les autres profils vers le cockpit).
+  { path: 'daily/recovery', component: ReportRecoveryComponent },
   {
     path: 'monthly',
     component: MonthlyReportsComponent,

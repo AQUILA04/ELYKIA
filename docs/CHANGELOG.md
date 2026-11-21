@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (recouvrement terrain, nouvelle présentation)
+
+### Changed
+
+- **Guide utilisateur (chef de recouvrement, gestionnaire) —** écran **Recouvrement terrain** : accès, filtres, choix du chef, indicateurs, cartes par commercial. Versions imprimables, index RAG et guide HTML régénérés.
+
 ## Docs & Infra — 2026-11-21 (remise au gestionnaire, nouvelle présentation)
 
 ### Changed
@@ -177,6 +183,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.65.0] — 2026-11-21
+
+### Added
+
+- **Rapport commerciaux — Recouvrement terrain →** nouvel écran `/report/daily/recovery` dans la nouvelle présentation : barre de filtres du rapport (période, commercial), choix du **Chef de recouvrement** par liste déroulante pour le gestionnaire (au lieu de la saisie de l'identifiant), quatre indicateurs (taux du mois, montant recouvré, à remettre, opérations) au format « 100 300 F », activité terrain, cartes **À remettre par commercial** (lien vers la fiche avec les KPI financiers), opérations paginées, **Exporter en PDF**, visite guidée, lien **Ancienne présentation** (`?tab=recovery`). Les appels sont ceux de l'onglet « Recouvrement », hérités sans duplication ; l'onglet reste inchangé.
+- **Cockpit →** **Recouvrement terrain** ouvre la nouvelle page sur la même période. Un chef de recouvrement sans `ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER` arrive sur cette page au lieu de l'ancienne présentation.
 
 ## Frontend — [2.64.0] — 2026-11-21
 

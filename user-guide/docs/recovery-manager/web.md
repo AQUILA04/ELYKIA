@@ -1,6 +1,6 @@
 # Chef de recouvrement — application web
 
-L’application web permet au Chef de recouvrement de préparer et contrôler les dossiers avant, pendant ou après une tournée. Les actions particulières de ce profil apparaissent principalement dans **Ventes > Retards**, la fiche crédit, la fiche membre tontine et le segment **Recouvrement** du Rapport Journalier.
+L’application web permet au Chef de recouvrement de préparer et contrôler les dossiers avant, pendant ou après une tournée. Les actions particulières de ce profil apparaissent principalement dans **Ventes > Retards**, la fiche crédit, la fiche membre tontine et l’écran **Recouvrement terrain** du Rapport Journalier.
 
 ## Traiter les crédits en retard
 
@@ -64,7 +64,12 @@ La vérification administrative du carnet est une action distincte du contrôle 
 
 ## Suivre le rapport de recouvrement
 
-Ouvrez **Rapport Journalier** : un Chef de recouvrement arrive directement sur l’onglet **Recouvrement** de la présentation en onglets ; un gestionnaire y accède par le lien **Recouvrement terrain** du cockpit. Appliquez la période et, lorsque l’interface le demande, choisissez le commercial. Le segment **Recouvrement** est disponible au Chef de recouvrement ou au gestionnaire. Un gestionnaire peut également filtrer le rapport par identifiant de Chef de recouvrement.
+Ouvrez **Rapport Journalier** : un Chef de recouvrement arrive directement sur l’écran **Recouvrement terrain** (adresse `/report/daily/recovery`) ; un gestionnaire y accède par le bouton **Recouvrement terrain** du cockpit, sur la même période. L’écran est réservé au Chef de recouvrement et au gestionnaire.
+
+* **Période** : **Aujourd’hui**, **Semaine**, **Mois**, ou **Dates** puis **Appliquer**. **Commercial** : vide pour toute l’équipe, ou un commercial. Les filtres restent dans l’adresse de la page.
+* Le Chef de recouvrement ne voit que ses propres opérations. Le gestionnaire choisit un **Chef de recouvrement** dans la liste ; le premier est proposé par défaut. Le rapport porte toujours sur un seul chef.
+* À la première ouverture, une **visite guidée** présente l’écran ; le bouton **Visite guidée** la relance.
+* **Ancienne présentation** ouvre l’onglet **Recouvrement** de la présentation en onglets, sur la même période.
 
 <!-- CAPTURE À INSÉRER : Segment web Recouvrement du Rapport Journalier avec les KPI et le tableau À remettre par commercial. -->
 
@@ -72,9 +77,9 @@ Ouvrez **Rapport Journalier** : un Chef de recouvrement arrive directement sur l
 |---|---|
 | Activité terrain | Contrôles carnet crédit et contrôles carnet tontine faits sur la période, chacun rapporté au total encore en cours. Le détail indique les contrôles conformes et les écarts. Les clôtures crédit (totales et partielles) et les carnets vérifiés sur la période sont affichés à côté. |
 | Taux du mois | Pourcentage de recouvrement du chef sur le mois de fin de période : encaissé terrain / dû live de **tous les retards délai** de l’application. |
-| KPI | Total collecté, nombre d’opérations et nombre de commerciaux concernés. |
-| À remettre par commercial | Nombre d’opérations et montant à remettre pour chaque commercial. |
-| Détail des opérations | Date, référence crédit, client, commercial, montant et type **Partiel** ou **Total**. |
-| Export PDF | Génère le rapport correspondant à la période et aux filtres appliqués. |
+| KPI | **Taux du mois**, **Montant recouvré** sur la période, **À remettre** (total des commerciaux, avec le nombre de commerciaux concernés) et nombre d’**Opérations**. |
+| À remettre par commercial | Une carte par commercial : montant à remettre et nombre d’opérations. Si votre compte a accès au rapport financier, la carte ouvre la fiche du commercial. |
+| Détail des opérations | Date, référence crédit, client, commercial (et chef de recouvrement pour le gestionnaire), montant et type **Partiel** ou **Total**. Boutons **Précédent** / **Suivant** au-delà de 20 opérations. |
+| Exporter en PDF | Génère le rapport correspondant à la période et aux filtres appliqués. |
 
 Utilisez l’export uniquement après contrôle de la période et des filtres. Un montant de recouvrement terrain n’est pas automatiquement une remise au gestionnaire : la remise suit son propre circuit de trésorerie.

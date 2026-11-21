@@ -64,6 +64,13 @@ export class UserService {
   getUsers(): Observable<any> {
     return this.http.get(`${this.baseUrl}`);
   }
+  /** Tous les utilisateurs, sans pagination (`GET /api/v1/users/all`), avec `profilName`. */
+  getAllUsers(): Observable<Array<{ username: string; firstname?: string; lastname?: string; profilName?: string }>> {
+    return this.http.get<any>(`${this.baseUrl}/all`).pipe(
+      map(response => (Array.isArray(response?.data) ? response.data : []))
+    );
+  }
+
   getUser(pageIndex: number, pageSize: number, search: string = ''): Observable<any> {
     let params = new HttpParams()
       .set('page', pageIndex.toString())

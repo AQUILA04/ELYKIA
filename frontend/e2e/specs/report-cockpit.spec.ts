@@ -95,11 +95,25 @@ test.describe('Rapport commerciaux — cockpit', () => {
     }
   });
 
-  test('un chef de recouvrement sans KPI financiers arrive sur l\'onglet Recouvrement', async ({ page }) => {
+  test('un chef de recouvrement sans KPI financiers arrive sur le recouvrement terrain', async ({ page }) => {
     await loginAsRecoveryManager(page);
     await page.goto('/report/daily');
+    await expect(page).toHaveURL(/\/report\/daily\/recovery/);
+    await expect(page.getByTestId('e2e-report-recovery-kpis')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('e2e-report-recovery-manager-select')).toHaveCount(0);
+    // L'ancienne présentation reste accessible : onglet Recouvrement.
+    await page.getByTestId('e2e-report-recovery-classic-link').click();
     await expect(page).toHaveURL(/\/report\/daily\/classic/);
     await expect(page.getByTestId('e2e-daily-report-tab-recovery')).toBeVisible();
+  });
+
+  test('Recouvrement terrain : le gestionnaire ouvre la page depuis le cockpit', async ({ page }) => {
+    await loginAsGestionnaire(page);
+    await page.goto('/report/daily?period=month');
+    await page.getByTestId('e2e-report-cockpit-recovery-link').click();
+    await expect(page).toHaveURL(/\/report\/daily\/recovery\?.*period=month/);
+    await expect(page.getByTestId('e2e-report-recovery-kpis')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('e2e-report-recovery-manager-select')).toBeVisible();
   });
 
   test('Remise au gestionnaire : le cockpit ouvre la nouvelle page', async ({ page }) => {
