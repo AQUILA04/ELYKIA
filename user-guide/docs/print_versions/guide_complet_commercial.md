@@ -755,9 +755,10 @@ flowchart LR
 1. **Préparer la Livraison** :
    - Tant que la session est ouverte, le bouton **Préparer la Livraison** est disponible sur la fiche du membre.
    - La fenêtre affiche le **Solde disponible** (déjà encaissé) et le **Solde prévisionnel** (estimation de fin d'année si chaque mois est cotisé en entier). Le panier peut aller jusqu'à ce prévisionnel, même si l'épargne déjà encaissée est plus basse. Il ne peut pas aller au-delà : le **Reste au plafond** passe en dessous de zéro et l'enregistrement est refusé.
-   - Choisissez les articles souhaités dans le **catalogue** de l'agence (pas besoin que le commercial ait déjà du stock tontine).
+   - Choisissez la source des articles : **Catalogue général** (pas besoin que le commercial ait déjà du stock tontine) ou **Stock tontine de** son commercial. Le stock affiche, pour chaque article, **Disponible**, **Réservé** (déjà commandé par d'autres membres pas encore livrés) et **Libre**, à titre indicatif. **Ajouter** met l'article dans la commande ; une commande ne sort rien du stock, seule la remise le décompte.
    - Pour chaque article, la liste **Offre** propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.
    - Si les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme **Solde non utilisé** au profit du client.
+   - Sous le panier, **Date de livraison prévue (facultatif)** fixe le jour de remise prévu avec le membre. Laissez-la vide si la date n'est pas encore connue.
    - Le dossier passe au statut **En attente**.
    - Une confirmation propose de **télécharger le reçu**. Le document reprend la référence, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
    - Sur la fiche, **Télécharger le reçu** ressort le même document. Après une réduction du panier, la même proposition s'affiche.
@@ -765,26 +766,32 @@ flowchart LR
 2. **Valider la Livraison** :
    - Un responsable examine la sélection et clique sur **Valider la Livraison**. Le statut passe à **Validé**.
 
-3. **Marquer comme Livré** :
-   - Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur **Marquer comme Livré**.
-   - La remise part seulement si le **solde disponible** couvre le montant de la commande. S'il est en dessous, la fenêtre **Solde insuffisant** propose **Réduire la commande** : retirez ou diminuez des articles jusqu'à ce que le total tienne dans le solde disponible, puis enregistrez. Le complément de cotisation au moment de la remise se fait sur l'application mobile.
+3. **Livrer** :
+   - Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur **Livrer**.
+   - La fenêtre **Livrer la commande** s'ouvre : articles, **Solde net cotisé**, **Montant de la commande**, puis **Reste à payer** ou **Reliquat à restituer**.
+   - **Confirmer la livraison** n'est possible que si le solde couvre la commande. Sinon, cliquez sur **Réduire la commande** : retirez ou diminuez des articles jusqu'à ce que le total tienne dans le solde, enregistrez, puis cliquez de nouveau sur **Livrer**. Le complément de cotisation au moment de la remise se fait sur l'application mobile.
+   - Après la confirmation, **Télécharger le reçu** donne le reçu de remise : **Total cotisé (net)**, **Total utilisé** et **Total restant**.
    - Cette action déduit définitivement les articles du **stock tontine** du commercial et clôture le dossier du membre. Le commercial doit donc avoir reçu les articles via une demande de stock tontine avant la remise.
-   - La fiche conserve la preuve complète : date, commercial ayant servi le client, détail des articles livrés et solde non utilisé éventuel.
+   - La fiche conserve la preuve complète : date, commercial ayant servi le client et détail des articles livrés. La date de livraison prévue, si elle a été choisie, s'affiche aussi sous **Livraison prévue le**.
    - Après la clôture, une livraison directe suit le même plafond : le panier peut aller jusqu'au solde prévisionnel de l'année, et la remise attend que le solde disponible couvre ce panier.
+4. **Soldes de la commande** (bloc **Livraison de Fin d'Année** de la fiche et reçu PDF **Télécharger le reçu**) :
+   - Avant la remise : **Solde net cotisé** (cotisations moins la part société, compléments inclus), **Montant de la commande**, puis **Reste à payer** si la commande dépasse le solde, ou **Reliquat à restituer** si elle lui est inférieure.
+   - Après la remise : **Total cotisé (net)**, **Total utilisé** et **Total restant** (0 si tout le solde a servi).
 
 ### Consulter l'ensemble des livraisons (Menu Tontines > Livraison)
 Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. Cet espace centralise toutes les opérations de distribution de l'agence :
 - Indicateurs globaux : nombre de colis livrés, montant total distribué, livraisons restant à honorer, soldes non utilisés.
 - Filtres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.
 - Recherche instantanée par nom ou référence de client.
-- **Reçu** sur une ligne télécharge le reçu de la commande.
+- **Reçu** sur une ligne télécharge le reçu de la commande. La colonne **Prévue le** donne la date de livraison prévue, quand elle a été choisie.
+- **Membres à livrer le** : choisissez une date, puis cliquez sur **PDF**. Le document liste les membres dont la livraison est prévue ce jour-là et qui ne sont pas encore livrés : membre, téléphone et quartier, commande et statut, articles, montant, solde net, reste à payer, et une case **Remis** à cocher sur le terrain. Les membres sont classés par commercial, puis par quartier. Avec un commercial choisi dans le filtre, seules ses commandes y figurent.
 - **Vérifier un reçu** : saisissez le code imprimé sur le document. Elykia affiche la référence, la membre, la date, le statut, le commercial, le montant et les articles. Si le code est inconnu, le message indique que ce reçu ne provient pas d'Elykia. Un reçu recopié avec un autre montant ne correspond pas à cet affichage.
 
 1. Cochez les lignes **En attente** de la page, puis cliquez sur **Valider la sélection**. Le statut passe à **Validée**.
 2. **Tout valider** valide toutes les livraisons **En attente** de la période, de la recherche et du commercial choisi. Une confirmation indique le nombre.
 3. **Faire une demande de stock** regroupe les commandes cochées d'un même commercial en une seule demande de sortie tontine. Les quantités d'un même article s'additionnent. Le magasinier livre ensuite ce commercial en une seule opération.
 4. **Demande de stock (en attente)** prépare la même demande pour toutes les livraisons **En attente** du filtre, qui ne sont pas déjà dans une demande de stock. La fenêtre rappelle les articles et les quantités, par commercial.
-5. Quand la demande de stock est validée, les commandes liées encore **En attente** passent à **Validée**. La remise au membre reste **Marquer comme Livré**.
+5. Quand la demande de stock est validée, les commandes liées encore **En attente** passent à **Validée**. La remise au membre se fait toujours avec **Livrer**, sur la fiche du membre.
 
 ---
 
@@ -1101,29 +1108,55 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
    * **Solde prévisionnel** : l'estimation de fin d'année si chaque mois de la session est cotisé en entier. C'est le plafond du panier, que la session soit encore ouverte ou déjà clôturée.
    * **Reste au plafond** : ce qu'il reste avant d'atteindre ce plafond.
 3. **Choisissez les articles avec la cliente** :
-   * **Pendant la session ouverte** : l'écran affiche le **catalogue** de l'agence. Vous n'avez pas besoin d'avoir déjà du stock tontine pour enregistrer la commande.
-   * **Après la clôture** : l'écran affiche par défaut votre **stock tontine** (articles reçus du magasin) pour la remise en mains propres. Pour enregistrer une **Commande**, touchez **Catalogue (commande)** en haut de la liste ; pour une **Livraison directe**, restez sur **Stock tontine (remise)**.
+   * En haut de la liste, choisissez **Mon stock tontine** (les articles reçus du magasin) ou **Catalogue général** (tous les articles de l'agence).
+   * **Pendant la session ouverte** : l'écran s'ouvre sur le **Catalogue général**. Vous pouvez aussi passer sur **Mon stock tontine** pour commander ce que vous avez déjà en main : la commande ne sort rien de votre stock.
+   * **Après la clôture** : l'écran s'ouvre sur **Mon stock tontine**. La **Livraison directe** ne se fait qu'à partir de votre stock, puisque la remise le décompte. Une **Commande** peut venir du stock ou du **Catalogue général**.
+   * Dans **Mon stock tontine**, chaque article indique **Disponible**, puis **Réservé** (quantité déjà commandée par vos autres membres pas encore livrés) et **Libre** (ce qui reste après ces commandes). Ces chiffres sont indicatifs : ils ne bloquent rien. **Libre : 0** en orange signale qu'il faudra une nouvelle demande de stock pour servir tout le monde.
    * Touchez **+** pour ajouter les articles. Si l'article a plusieurs offres (unité, gros, demi-gros ou une offre libre), choisissez-la dans la liste avant d'augmenter la quantité.
-   * Le panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le **solde prévisionnel**. Dans ce cas, **Valider** reste indisponible : retirez ou diminuez des articles.
+   * Pour revoir ce que vous avez choisi, touchez **Panier** en bas de l'écran : la liste affiche chaque article avec sa quantité et le total. Vous pouvez y ajouter ou retirer une unité, ou supprimer une ligne.
+   * Le panier peut dépasser le solde déjà encaissé. Il ne peut pas dépasser le **plafond** : le **solde prévisionnel**, ou le **solde disponible** s'il est plus élevé (par exemple une membre qui a déjà cotisé 40 000 alors que l'estimation est de 39 000 peut commander jusqu'à 40 000). Au-delà, **Valider** reste indisponible : retirez ou diminuez des articles.
 4. **Si le solde déjà encaissé ne couvre pas le panier** :
    * Pendant la session ouverte, vous pouvez quand même enregistrer la **Commande**. **Compléter le solde** est proposé, sans être obligatoire.
    * Au moment de la remise, deux possibilités :
      1. **Compléter le solde** : l'écran de cotisation s'ouvre avec le montant manquant (ou le montant que la cliente souhaite verser). Ce complément n'est pas limité par le solde prévisionnel : vous pouvez encaisser le montant convenu, même s'il est élevé. Revenez ensuite sur le panier.
      2. **Modifier la commande** / **Modifier le panier** : diminuez les quantités ou retirez des articles, puis enregistrez.
-5. **Session ouverte ou clôturée — enregistrez une Commande** :
-   * Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
-   * L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
-   * Touchez **Imprimer** pour sortir le ticket sur l'imprimante de ceinture. Touchez **Fermer** pour revenir au tableau de bord.
-   * Le code est reconnu dans Elykia une fois la commande transmise à l'agence.
-   * Pendant la session ouverte, l'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
-   * Ensuite, préparez vos cartons au dépôt (demande de stock tontine) pour être prêt le jour de la remise.
-   * Pour imprimer à nouveau, ouvrez la fiche de la membre et touchez **Imprimer le reçu**. Après **Enregistrer la commande**, le même aperçu s'affiche.
-6. **Après la clôture de la session — remettez les articles** :
-   * Le panier, en livraison directe comme pour une commande déjà posée, peut aller jusqu'au **solde prévisionnel** de l'année.
-   * **Livraison directe** : si vous avez les articles dans votre stock tontine et que le solde disponible couvre le panier, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise.
-   * **Modifier la commande** : tant que la commande n'est pas livrée, la fiche membre propose **Modifier la commande** (et le menu ⋮ aussi). Vous ajustez les quantités puis **Enregistrer la commande**. Le total peut rester au-dessus du solde déjà encaissé : le contrôle du solde réel se fait à la remise.
-   * **Marquer comme livré** : si une commande était déjà enregistrée, retournez sur la fiche membre et touchez **Marquer comme livré**. Si le solde disponible ne couvre pas la commande, choisissez **Compléter le solde** (sans plafond) ou **Modifier la commande**. Le stock tontine est décompté seulement quand la remise est confirmée. Si un article manque dans votre stock, l'application vous le signale pour que vous fassiez d'abord une demande au magasin.
-   * Lorsque la campagne est terminée pour tout le monde, il n'y a plus de commande, plus de complément et plus de remise.
+
+#### Enregistrer une commande (session ouverte ou clôturée)
+
+* Touchez **Valider**, puis **Commande**. La fenêtre de confirmation propose une **date de livraison prévue**, facultative : choisissez le jour convenu avec la membre, ou laissez le champ vide. Touchez **Confirmer** : le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
+* La date prévue s'affiche sur le reçu de commande et sur la fiche de la membre (**Livraison prévue le**). Elle est transmise à l'agence à la synchronisation.
+* L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités et le montant de la commande. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
+* Sous le montant, le reçu indique le **Solde net cotisé** de la membre, puis :
+  * **Reste à payer** quand la commande dépasse ce solde : c'est le complément à encaisser avant la remise ;
+  * **Reliquat à restituer** quand la commande est inférieure au solde : c'est ce qui reste à la membre après la remise.
+* La fiche de la membre affiche les mêmes montants sous le total de la commande. Pendant **Modifier la commande**, ils suivent le nouveau total.
+* Touchez **Imprimer** pour sortir le ticket sur l'imprimante de ceinture. Touchez **Fermer** pour revenir au tableau de bord.
+* Le code est reconnu dans Elykia une fois la commande transmise à l'agence.
+* Pendant la session ouverte, l'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
+* Ensuite, préparez vos cartons au dépôt (demande de stock tontine) pour être prêt le jour de la remise.
+* Pour imprimer à nouveau, ouvrez la fiche de la membre et touchez **Imprimer le reçu**. Après **Enregistrer la commande**, le même aperçu s'affiche.
+
+#### Remettre les articles (après la clôture de la session)
+
+* Le panier, en livraison directe comme pour une commande déjà posée, peut aller jusqu'au **solde prévisionnel** de l'année.
+* **Livraison directe** : si vous avez les articles dans votre stock tontine et que le solde disponible couvre le panier, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise. Le bon indique le **Total cotisé (net)**, le **Total utilisé** par la livraison et le **Total restant**.
+* **Modifier la commande** : tant que la commande n'est pas livrée, la fiche membre propose **Modifier la commande** (et le menu ⋮ aussi). Vous ajustez les quantités puis **Enregistrer la commande**. Le total peut rester au-dessus du solde déjà encaissé : le contrôle du solde réel se fait à la remise.
+* **Livrer une commande déjà enregistrée** : sur la fiche membre, touchez **Livrer** (bouton sous la commande ou menu ⋮). Le **Récapitulatif avant remise** s'ouvre :
+  * les articles, avec votre stock tontine pour chacun ;
+  * le **Solde net cotisé**, le **Montant de la commande**, puis le **Reste à payer** ou le **Reliquat à restituer**.
+* **Si le solde ne couvre pas la commande** : touchez **Compléter le solde** pour encaisser le montant manquant (sans plafond). Après l'enregistrement de la cotisation, le récapitulatif se rouvre avec le nouveau solde. Vous pouvez aussi **réduire la commande** directement dans le récapitulatif avec le bouton **−** de chaque article ; le bouton **+** ne remonte que jusqu'à la quantité commandée.
+* **Confirmer la livraison** s'active quand le solde couvre la commande et que votre stock tontine suffit pour chaque article. Si un article manque, réduisez-le ou faites d'abord une demande de stock tontine au magasin. Une commande réduite est enregistrée avec les nouvelles quantités au moment de la livraison.
+* Après la confirmation, le **bon de remise** s'affiche : **Total cotisé (net)**, **Total utilisé** et **Total restant**. Touchez **Imprimer** pour sortir le ticket. Le stock tontine n'est décompté qu'à ce moment-là.
+* Lorsque la campagne est terminée pour tout le monde, il n'y a plus de commande, plus de complément et plus de remise.
+
+#### Plusieurs téléphones sur le même compte
+
+Le serveur contrôle chaque commande et chaque remise.
+
+* **Commande complétée** : si une commande était déjà enregistrée pour ce membre sur un autre téléphone, et que le solde prévisionnel couvre les deux, vos articles y sont ajoutés. Le message donne la référence et le nouveau total, puis le reçu de la commande complète s'affiche.
+* **Déjà enregistré sur un autre appareil** : la commande ou la livraison est refusée quand le membre est déjà livré, quand une commande existe déjà et que le solde ne couvre pas les deux, ou quand vous tentez une **Livraison directe** alors qu'une commande attend sa remise. Le message donne la référence déjà enregistrée. Il n'y a pas d'enregistrement hors ligne possible pour cette saisie : synchronisez, puis ouvrez la fiche du membre.
+* **Déjà livré sur un autre appareil** : en touchant **Livrer**, vous apprenez que la commande a déjà été remise. La fiche se recharge.
+* Une saisie faite hors ligne et refusée à la synchronisation apparaît dans les erreurs de synchronisation avec le même message. Signalez-la à votre gestionnaire.
 
 ---
 

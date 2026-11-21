@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (liste des commerciaux et bilan tontine)
+
+### Changed
+
+- **Guide utilisateur (gestionnaire) —** mention **À vérifier** du bilan tontine : origine habituelle de l'écart et contrôle carnet. Versions imprimables, index RAG et guide HTML régénérés.
+
 ## Docs & Infra — 2026-11-21 (date de livraison planifiée)
 
 ### Changed
@@ -165,6 +171,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.63.0] — 2026-11-21
+
+### Fixed
+
+- **Rapport commerciaux et stock commercial mensuel →** la liste déroulante **Commercial** (« Toute l'équipe ») s'ouvrait sous les cartes suivantes (KPI de **Pilotage des commerciaux**, bandeau « Mois clôturés à régulariser » de **Stock commercial mensuel**). Le panneau est rattaché à la page (`appendTo="body"`) et passe au-dessus.
+
+### Changed
+
+- **Fiche commercial — Bilan tontine →** la mention **À vérifier** ne donne plus d'explication entre parenthèses ; l'écart (collectes chez des membres non enregistrés) se retrouve au contrôle carnet.
 
 ## Frontend — [2.62.0] — 2026-11-21
 

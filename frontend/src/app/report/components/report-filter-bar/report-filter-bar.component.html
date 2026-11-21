@@ -20,7 +20,7 @@
 
     <div class="filter-group commercial" *ngIf="showCommercial">
         <span class="filter-label" id="report-commercial-label">Commercial</span>
-        <ng-select class="commercial-select" [items]="agents" bindLabel="username" bindValue="username"
+        <ng-select class="commercial-select" [items]="agents" bindLabel="username" bindValue="username" appendTo="body"
             [ngModel]="filters.commercial" (ngModelChange)="onCommercialChange($event)"
             [searchFn]="searchAgent" placeholder="Toute l'équipe" [clearable]="true"
             data-testid="e2e-report-commercial-select" labelForId="report-commercial-input"
