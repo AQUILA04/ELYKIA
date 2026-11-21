@@ -1286,6 +1286,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#objectifs-du-recouvrement-terrain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objectifs du recouvrement terrain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prix-unitaires-sur-les-documents" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2725,6 +2736,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#objectifs-du-recouvrement-terrain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Objectifs du recouvrement terrain
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#prix-unitaires-sur-les-documents" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2842,7 +2864,7 @@
 <li>La liste est horodatée et paginée ; <strong>Exporter en PDF</strong> reprend la période, le commercial et le type choisis.</li>
 </ul>
 <h4 id="revenir-a-lancienne-presentation">Revenir à l'ancienne présentation</h4>
-<p>Le lien <strong>Ancienne présentation</strong>, en haut du cockpit et de la fiche, ouvre l'écran en onglets décrit ci-dessous, sur la même période et le même commercial. Un bandeau en haut de l'ancienne présentation permet de revenir à la nouvelle. <strong>Recouvrement terrain</strong> ouvre l'écran de recouvrement de la nouvelle présentation (taux du mois, montant recouvré, à remettre par commercial, détail des opérations, choix du chef de recouvrement, export PDF), sur la même période. Un chef de recouvrement sans indicateurs financiers arrive directement sur cet écran. Détail : guide <a href="../../recovery-manager/web/">Chef de recouvrement — application web</a>.</p>
+<p>Le lien <strong>Ancienne présentation</strong>, en haut du cockpit et de la fiche, ouvre l'écran en onglets décrit ci-dessous, sur la même période et le même commercial. Un bandeau en haut de l'ancienne présentation permet de revenir à la nouvelle. <strong>Recouvrement terrain</strong> ouvre le board de pilotage du recouvrement, sur la même période : points d'attention, taux du mois et objectif, comparaison au mois précédent, tendance sur 30 jours, retards prioritaires et, par défaut, <strong>Tous les chefs</strong> côte à côte ; un chef choisi montre aussi sa couverture des carnets, son activité terrain, ses opérations et l'export PDF. Un chef de recouvrement sans indicateurs financiers arrive directement sur cet écran. Détail : guide <a href="../../recovery-manager/web/">Chef de recouvrement — application web</a>.</p>
 <table>
 <thead>
 <tr>
@@ -3115,6 +3137,36 @@
 <li>Laissez <strong>false</strong> (valeur de départ) pour garder la validation par le gestionnaire : une commande saisie par un commercial reste <strong>En attente</strong>. Une commande que vous saisissez vous-même est toujours validée directement.</li>
 </ol>
 <p>Une commande enregistrée hors ligne prend son statut au moment de la synchronisation du téléphone.</p>
+<h3 id="objectifs-du-recouvrement-terrain">Objectifs du recouvrement terrain</h3>
+<p>Deux paramètres fixent les objectifs affichés sur l’écran <strong>Recouvrement terrain</strong>. Ce sont des pourcentages, valables pour chaque chef de recouvrement.</p>
+<table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Valeur de départ</th>
+<th>Ce qu’il règle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>RECOVERY_MONTHLY_RATE_TARGET</strong></td>
+<td>10</td>
+<td>Taux du mois visé : montant recouvré dans le mois rapporté au dû des retards délai.</td>
+</tr>
+<tr>
+<td><strong>RECOVERY_COVERAGE_TARGET</strong></td>
+<td>30</td>
+<td>Part des dossiers en cours (crédit et tontine) dont le carnet est contrôlé dans le mois.</td>
+</tr>
+</tbody>
+</table>
+<ol>
+<li>Ouvrez <strong>Configuration</strong> → <strong>Paramètres généraux</strong>.</li>
+<li>Repérez le paramètre, puis cliquez sur <strong>Modifier</strong>.</li>
+<li>Saisissez un nombre entre 1 et 100 (par exemple <code>12</code> ou <code>12,5</code>), puis enregistrez.</li>
+<li>Videz la valeur pour retirer l’objectif : le trait de repère et l’alerte correspondante disparaissent.</li>
+</ol>
+<p>Les valeurs de départ ont été posées en attendant un objectif décidé par l’agence. L’alerte compare la valeur à l’objectif ramené aux jours écoulés du mois.</p>
 <h3 id="prix-unitaires-sur-les-documents">Prix unitaires sur les documents</h3>
 <p>Trois paramètres règlent l’affichage du prix unitaire et du montant de chaque ligne. Le montant total du document reste toujours affiché, y compris sur les PDF.</p>
 <table>

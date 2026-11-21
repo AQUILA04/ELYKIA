@@ -56,7 +56,7 @@ Le bouton **Remise au gestionnaire**, en haut du cockpit, ouvre l'écran de remi
 * La liste est horodatée et paginée ; **Exporter en PDF** reprend la période, le commercial et le type choisis.
 
 #### Revenir à l'ancienne présentation
-Le lien **Ancienne présentation**, en haut du cockpit et de la fiche, ouvre l'écran en onglets décrit ci-dessous, sur la même période et le même commercial. Un bandeau en haut de l'ancienne présentation permet de revenir à la nouvelle. **Recouvrement terrain** ouvre l'écran de recouvrement de la nouvelle présentation (taux du mois, montant recouvré, à remettre par commercial, détail des opérations, choix du chef de recouvrement, export PDF), sur la même période. Un chef de recouvrement sans indicateurs financiers arrive directement sur cet écran. Détail : guide [Chef de recouvrement — application web](../recovery-manager/web.md).
+Le lien **Ancienne présentation**, en haut du cockpit et de la fiche, ouvre l'écran en onglets décrit ci-dessous, sur la même période et le même commercial. Un bandeau en haut de l'ancienne présentation permet de revenir à la nouvelle. **Recouvrement terrain** ouvre le board de pilotage du recouvrement, sur la même période : points d'attention, taux du mois et objectif, comparaison au mois précédent, tendance sur 30 jours, retards prioritaires et, par défaut, **Tous les chefs** côte à côte ; un chef choisi montre aussi sa couverture des carnets, son activité terrain, ses opérations et l'export PDF. Un chef de recouvrement sans indicateurs financiers arrive directement sur cet écran. Détail : guide [Chef de recouvrement — application web](../recovery-manager/web.md).
 
 | Ancienne tuile | Où la trouver |
 |---|---|
@@ -311,6 +311,22 @@ Le paramètre **TONTINE_ORDER_AUTO_VALIDATION** règle le statut d'une commande 
 5. Laissez **false** (valeur de départ) pour garder la validation par le gestionnaire : une commande saisie par un commercial reste **En attente**. Une commande que vous saisissez vous-même est toujours validée directement.
 
 Une commande enregistrée hors ligne prend son statut au moment de la synchronisation du téléphone.
+
+### Objectifs du recouvrement terrain
+
+Deux paramètres fixent les objectifs affichés sur l’écran **Recouvrement terrain**. Ce sont des pourcentages, valables pour chaque chef de recouvrement.
+
+| Paramètre | Valeur de départ | Ce qu’il règle |
+|-----------|------------------|----------------|
+| **RECOVERY_MONTHLY_RATE_TARGET** | 10 | Taux du mois visé : montant recouvré dans le mois rapporté au dû des retards délai. |
+| **RECOVERY_COVERAGE_TARGET** | 30 | Part des dossiers en cours (crédit et tontine) dont le carnet est contrôlé dans le mois. |
+
+1. Ouvrez **Configuration** → **Paramètres généraux**.
+2. Repérez le paramètre, puis cliquez sur **Modifier**.
+3. Saisissez un nombre entre 1 et 100 (par exemple `12` ou `12,5`), puis enregistrez.
+4. Videz la valeur pour retirer l’objectif : le trait de repère et l’alerte correspondante disparaissent.
+
+Les valeurs de départ ont été posées en attendant un objectif décidé par l’agence. L’alerte compare la valeur à l’objectif ramené aux jours écoulés du mois.
 
 ### Prix unitaires sur les documents
 

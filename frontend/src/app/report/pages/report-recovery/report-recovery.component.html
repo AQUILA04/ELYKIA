@@ -32,7 +32,7 @@
                     [routerLink]="['/report/daily/classic']" [queryParams]="classicQueryParams">Ancienne présentation</a>
                 <button type="button" class="btn-ghost" data-tour="help" data-testid="e2e-report-recovery-tour"
                     (click)="startTour()">Visite guidée</button>
-                <button type="button" class="btn-ghost" data-tour="recovery-export" (click)="onExportPdf()"
+                <button type="button" class="btn-ghost" data-tour="recovery-export" (click)="onExportPdf()" *ngIf="!isTeamView"
                     [disabled]="isDownloading || !filters" data-testid="e2e-report-recovery-export">
                     {{ isDownloading ? 'Génération…' : 'Exporter en PDF' }}</button>
                 <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="isLoading"
@@ -43,9 +43,11 @@
             </div>
         </div>
         <p class="page-subtitle" *ngIf="filters">
-            Crédits en retard recouvrés sur le terrain et argent à remettre par commercial · période
+            Pilotage du recouvrement des retards · période
             {{ filters.start | date:'dd/MM/yyyy' }}<ng-container *ngIf="filters.end !== filters.start"> → {{ filters.end | date:'dd/MM/yyyy' }}</ng-container>
             <ng-container *ngIf="!isManager"> · vos opérations</ng-container>
+            <ng-container *ngIf="isTeamView"> · tous les chefs de recouvrement</ng-container>
+            <ng-container *ngIf="isManager && !isTeamView"> · {{ recoveryManagerUsername }}</ng-container>
         </p>
     </div>
 
@@ -55,40 +57,225 @@
         <div class="manager-filter" *ngIf="isManager" data-tour="recovery-manager">
             <span class="filter-label" id="recovery-manager-label">Chef de recouvrement</span>
             <ng-select class="manager-select" [items]="recoveryManagerOptions" bindLabel="label" bindValue="username"
-                [ngModel]="recoveryManagerUsername" (ngModelChange)="onManagerSelect($event)" [searchFn]="searchManager"
-                placeholder="Choisir un chef" [clearable]="false" appendTo="body"
+                [ngModel]="managerSelectValue" (ngModelChange)="onManagerSelect($event)" [searchFn]="searchManager"
+                placeholder="Tous les chefs" [clearable]="false" appendTo="body"
                 data-testid="e2e-report-recovery-manager-select" labelForId="recovery-manager-input"
                 [inputAttrs]="{ 'aria-labelledby': 'recovery-manager-label' }">
             </ng-select>
         </div>
     </div>
 
-    <div class="kpi-strip a3" data-tour="recovery-kpis" data-testid="e2e-report-recovery-kpis" [class.is-loading]="isLoading">
+    <div class="panel-card empty-state" *ngIf="boardError && !isLoading" role="alert" data-testid="e2e-report-recovery-error">
+        <div class="empty-title">Le board de recouvrement n'a pas pu être chargé</div>
+        <div class="empty-sub">Vérifiez la connexion puis choisissez « Actualiser ».</div>
+    </div>
+
+    <div class="skeleton board-skeleton" *ngIf="isLoading && !board" aria-hidden="true"></div>
+
+    <ng-container *ngIf="board as b">
+    <section class="panel-card a4 alerts-card" data-tour="recovery-alerts" aria-labelledby="recovery-alerts-title"
+        data-testid="e2e-report-recovery-alerts">
+        <div class="panel-head">
+            <h2 id="recovery-alerts-title">{{ b.attention.length }} point(s) d'attention</h2>
+        </div>
+        <p class="all-good" *ngIf="b.attention.length === 0">Rien à signaler : pas d'écart en attente, pas de gros retard sans contrôle récent.</p>
+        <ul class="alert-grid" *ngIf="b.attention.length > 0">
+            <li *ngFor="let a of b.attention | slice:0:6; trackBy: trackByAttention">
+                <button type="button" class="alert-item" [ngClass]="attentionClass(a)" (click)="onAttention(a)"
+                    [attr.data-testid]="'e2e-report-recovery-alert-' + a.type">
+                    <span class="alert-bar" aria-hidden="true"></span>
+                    <span class="alert-text">
+                        <strong>{{ attentionTitle(a) }}</strong>
+                        <span>{{ attentionDetail(a) }}</span>
+                    </span>
+                </button>
+            </li>
+        </ul>
+        <p class="panel-hint more-alerts" *ngIf="b.attention.length > 6">+ {{ b.attention.length - 6 }} autre(s)</p>
+    </section>
+
+    <div class="kpi-strip kpi-strip--5 a3" data-tour="recovery-kpis" data-testid="e2e-report-recovery-kpis" [class.is-loading]="isLoading">
         <div class="kpi-card kpi-total" data-testid="e2e-report-recovery-rate">
-            <div class="kpi-label">Taux du mois</div>
+            <div class="kpi-label">Taux du mois<ng-container *ngIf="isTeamView"> · équipe</ng-container></div>
             <div class="kpi-value num">{{ rateLabel }}</div>
-            <div class="kpi-sub" *ngIf="monthlyRate as rate">{{ monthLabel }} · {{ rate.amountCollectedByChef | fcfa }} sur {{ rate.latePortfolioDue | fcfa }} dus</div>
-            <div class="rate-bar" *ngIf="monthlyRate as rate" aria-hidden="true"><span [style.width.%]="barWidth(rate.recoveryRatePercent)"></span></div>
+            <div class="kpi-sub">{{ boardMonthLabel }} · {{ b.monthRate.collectedAmount | fcfa }} sur {{ b.monthRate.latePortfolioDue | fcfa }} dus</div>
+            <div class="rate-bar target-bar" aria-hidden="true">
+                <span [style.width.%]="barWidth(b.monthRate.ratePercent)"></span>
+                <i class="target-mark" *ngIf="b.targets.monthlyRatePercent != null && !isTeamView" [style.left.%]="barWidth(b.targets.monthlyRatePercent)"></i>
+            </div>
+            <div class="kpi-sub" *ngIf="b.targets.monthlyRatePercent != null" data-testid="e2e-report-recovery-rate-target">
+                Objectif {{ percent(b.targets.monthlyRatePercent) }}<ng-container *ngIf="!isTeamView"> · à ce jour {{ percent(expected(b.targets.monthlyRatePercent)) }}</ng-container><ng-container *ngIf="isTeamView"> par chef</ng-container>
+            </div>
         </div>
         <div class="kpi-card kpi-green">
-            <div class="kpi-label">Montant recouvré</div>
-            <div class="kpi-value num">{{ (summary?.totalAmountCollected || 0) | fcfa }}</div>
-            <div class="kpi-sub">Sur la période choisie</div>
+            <div class="kpi-label">Recouvré · période</div>
+            <div class="kpi-value num">{{ b.collectedAmount | fcfa }}</div>
+            <div class="kpi-sub">{{ b.operationsCount }} opération(s)</div>
+        </div>
+        <div class="kpi-card" data-testid="e2e-report-recovery-month-compare">
+            <div class="kpi-label">Mois vs mois précédent</div>
+            <div class="kpi-value num" [ngClass]="trendClass(b.monthComparison.changePercent)">{{ signedPercent(b.monthComparison.changePercent) }}</div>
+            <div class="kpi-sub">{{ b.monthComparison.currentStart | date:'dd' }}–{{ b.monthComparison.currentEnd | date:'dd/MM' }} : {{ b.monthComparison.currentAmount | fcfa }}</div>
+            <div class="kpi-sub">{{ b.monthComparison.previousStart | date:'dd' }}–{{ b.monthComparison.previousEnd | date:'dd/MM' }} : {{ b.monthComparison.previousAmount | fcfa }}</div>
         </div>
         <div class="kpi-card kpi-delai">
             <div class="kpi-label">À remettre</div>
             <div class="kpi-value num">{{ totalToRemit | fcfa }}</div>
-            <div class="kpi-sub">{{ summary?.commercialsCount || 0 }} commercial(aux) concerné(s)</div>
+            <div class="kpi-sub">{{ b.commercialsCount }} commercial(aux) concerné(s)</div>
         </div>
         <div class="kpi-card kpi-amount">
-            <div class="kpi-label">Opérations</div>
-            <div class="kpi-value num">{{ summary?.totalOperationsCount || 0 }}</div>
-            <div class="kpi-sub">Recouvrements partiels ou totaux</div>
+            <div class="kpi-label">Retards délai</div>
+            <div class="kpi-value num">{{ b.monthRate.lateCreditsCount }}</div>
+            <div class="kpi-sub">{{ b.monthRate.latePortfolioDue | fcfa }} dus, net du reliquat</div>
         </div>
     </div>
 
+    <section class="panel-card a4 coverage-panel" *ngIf="!isTeamView" data-tour="recovery-coverage"
+        aria-labelledby="recovery-coverage-title" data-testid="e2e-report-recovery-coverage">
+        <div class="panel-head">
+            <h2 id="recovery-coverage-title">Couverture des carnets du mois</h2>
+            <span class="panel-hint">Dossiers en cours contrôlés depuis le 1er du mois<ng-container *ngIf="b.targets.coveragePercent != null"> · objectif {{ percent(b.targets.coveragePercent) }}, {{ percent(expected(b.targets.coveragePercent)) }} à ce jour</ng-container></span>
+        </div>
+        <div class="coverage-grid">
+            <div class="coverage-item">
+                <div class="kpi-label">Crédit</div>
+                <div class="activity-figure"><span class="num">{{ b.monthCoverage.creditControlsDone }}</span><span class="activity-of"> / {{ b.monthCoverage.creditPortfolioTotal }}</span><span class="activity-pct">{{ b.monthCoverage.creditCoveragePercent }} %</span></div>
+                <div class="rate-bar target-bar" role="progressbar" [attr.aria-valuenow]="barWidth(b.monthCoverage.creditCoveragePercent)" aria-valuemin="0" aria-valuemax="100" aria-label="Part des crédits en cours contrôlés ce mois">
+                    <span [style.width.%]="barWidth(b.monthCoverage.creditCoveragePercent)"></span>
+                    <i class="target-mark" *ngIf="b.targets.coveragePercent != null" [style.left.%]="barWidth(b.targets.coveragePercent)"></i>
+                </div>
+            </div>
+            <div class="coverage-item">
+                <div class="kpi-label">Tontine</div>
+                <div class="activity-figure"><span class="num">{{ b.monthCoverage.tontineControlsDone }}</span><span class="activity-of"> / {{ b.monthCoverage.tontinePortfolioTotal }}</span><span class="activity-pct">{{ b.monthCoverage.tontineCoveragePercent }} %</span></div>
+                <div class="rate-bar target-bar" role="progressbar" [attr.aria-valuenow]="barWidth(b.monthCoverage.tontineCoveragePercent)" aria-valuemin="0" aria-valuemax="100" aria-label="Part des membres tontine en cours contrôlés ce mois">
+                    <span [style.width.%]="barWidth(b.monthCoverage.tontineCoveragePercent)"></span>
+                    <i class="target-mark" *ngIf="b.targets.coveragePercent != null" [style.left.%]="barWidth(b.targets.coveragePercent)"></i>
+                </div>
+            </div>
+            <div class="coverage-item">
+                <div class="kpi-label">Ensemble</div>
+                <div class="activity-figure"><span class="num">{{ percent(combinedCoverage) }}</span></div>
+                <p class="cell-sub">Comparé à l'objectif au prorata du mois écoulé</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel-card a4 team-panel" *ngIf="isTeamView && b.team" data-tour="recovery-team"
+        aria-labelledby="recovery-team-title" data-testid="e2e-report-recovery-team">
+        <div class="panel-head">
+            <h2 id="recovery-team-title">Chefs de recouvrement côte à côte</h2>
+            <span class="panel-hint">Couverture depuis le 1er du mois · le nom ouvre la vue du chef</span>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table" *ngIf="b.team.length > 0">
+                <thead>
+                    <tr>
+                        <th scope="col">Chef</th>
+                        <th scope="col" class="num">Recouvré</th>
+                        <th scope="col" class="num">Opérations</th>
+                        <th scope="col" class="num">Taux du mois</th>
+                        <th scope="col" class="num">vs mois préc.</th>
+                        <th scope="col" class="num">Couverture crédit</th>
+                        <th scope="col" class="num">Couverture tontine</th>
+                        <th scope="col" class="num">Écarts</th>
+                        <th scope="col" class="num">Carnets vérifiés</th>
+                        <th scope="col">Tournée du jour</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let row of b.team; trackBy: trackByManager" [attr.data-testid]="'e2e-report-recovery-team-row-' + row.username">
+                        <td>
+                            <button type="button" class="row-link name-link" (click)="onManagerSelect(row.username)">{{ row.username }}</button>
+                            <span class="cell-sub" *ngIf="row.displayName">{{ row.displayName }}</span>
+                        </td>
+                        <td class="num">{{ row.collectedAmount | fcfa }}</td>
+                        <td class="num">{{ row.operationsCount }}</td>
+                        <td class="num" [class.gap-neg]="rateBelowTarget(row)">{{ percent(row.monthRatePercent) }}</td>
+                        <td class="num" [ngClass]="trendClass(row.changePercent)">{{ signedPercent(row.changePercent) }}</td>
+                        <td class="num" [class.gap-neg]="coverageBelowTarget(row)">{{ row.creditCoveragePercent }} %</td>
+                        <td class="num" [class.gap-neg]="coverageBelowTarget(row)">{{ row.tontineCoveragePercent }} %</td>
+                        <td class="num">{{ row.ecartsCount }}</td>
+                        <td class="num">{{ row.carnetVerifications }}</td>
+                        <td [class.gap-neg]="!row.todayPlanStatus">{{ planLabel(row) }}</td>
+                    </tr>
+                    <tr class="total-row" *ngIf="teamTotals as t">
+                        <th scope="row">Équipe</th>
+                        <td class="num">{{ t.collected | fcfa }}</td>
+                        <td class="num">{{ t.operations }}</td>
+                        <td class="num">{{ rateLabel }}</td>
+                        <td class="num" [ngClass]="trendClass(b.monthComparison.changePercent)">{{ signedPercent(b.monthComparison.changePercent) }}</td>
+                        <td class="num">{{ b.monthCoverage.creditCoveragePercent }} %</td>
+                        <td class="num">{{ b.monthCoverage.tontineCoveragePercent }} %</td>
+                        <td class="num">{{ t.ecarts }}</td>
+                        <td class="num">{{ t.verifications }}</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="empty-state compact" *ngIf="b.team.length === 0">
+                <div class="empty-title">Aucun chef de recouvrement actif</div>
+            </div>
+        </div>
+        <p class="panel-hint team-note" *ngIf="b.team.length > 1">La couverture de l'équipe compte une seule fois un dossier contrôlé par deux chefs.</p>
+    </section>
+
+    <section class="panel-card a4 trend-panel" data-tour="recovery-trend" aria-labelledby="recovery-trend-title"
+        data-testid="e2e-report-recovery-trend">
+        <div class="panel-head">
+            <h2 id="recovery-trend-title">Recouvré par jour · 30 derniers jours</h2>
+            <span class="panel-hint">{{ trendTotal | fcfa }} sur 30 jours · survolez une barre pour le détail</span>
+        </div>
+        <div class="trend-chart" role="list" aria-label="Montant recouvré par jour">
+            <div class="trend-col" *ngFor="let bar of trendBars; trackBy: trackByDate" role="listitem"
+                [class.trend-col--month]="bar.monthStart" [attr.aria-label]="bar.label" tabindex="0">
+                <span class="trend-bar" [style.height.%]="bar.heightPercent"></span>
+                <span class="trend-tip" aria-hidden="true">{{ bar.label }}</span>
+            </div>
+        </div>
+        <div class="trend-axis"><span>{{ trendFirstLabel }}</span><span>Trait vertical : début du mois</span><span>{{ trendLastLabel }}</span></div>
+    </section>
+
+    <section class="table-card a4 priority-panel" id="recovery-priority" data-tour="recovery-priority"
+        aria-labelledby="recovery-priority-title" data-testid="e2e-report-recovery-priority">
+        <div class="panel-head table-head">
+            <h2 id="recovery-priority-title">Retards prioritaires</h2>
+            <span class="panel-hint">Les plus gros dus nets en retard de délai<ng-container *ngIf="commercialUsername"> du commercial choisi</ng-container> · portefeuille commun à tous les chefs</span>
+        </div>
+        <div class="table-wrapper">
+            <table class="data-table" *ngIf="b.priorityLate.length > 0">
+                <thead>
+                    <tr>
+                        <th scope="col">Client</th>
+                        <th scope="col">Quartier</th>
+                        <th scope="col">Commercial</th>
+                        <th scope="col" class="num">Dû net</th>
+                        <th scope="col" class="num">Retard</th>
+                        <th scope="col">Dernier contrôle</th>
+                        <th scope="col"><span class="sr-only">Action</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let row of b.priorityLate; trackBy: trackByCredit" data-testid="e2e-report-recovery-priority-row">
+                        <td>{{ row.clientName }}<span class="cell-sub mono">{{ row.reference }}</span></td>
+                        <td>{{ row.clientQuarter || '—' }}</td>
+                        <td>{{ row.commercialUsername }}</td>
+                        <td class="num">{{ row.amountDue | fcfa }}</td>
+                        <td class="num">{{ row.lateDays }} j</td>
+                        <td><span [ngClass]="controlClass(row)">{{ controlLabel(row) }}</span><span class="cell-sub" *ngIf="row.latestObservedBy">par {{ row.latestObservedBy }}</span></td>
+                        <td><a class="btn-link" [routerLink]="['/credit/details', row.creditId]">Voir</a></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="empty-state compact" *ngIf="b.priorityLate.length === 0">
+                <div class="empty-title">Aucun retard de délai à recouvrer</div>
+            </div>
+        </div>
+    </section>
+    </ng-container>
+
     <section class="panel-card a4 activity-panel" data-tour="recovery-activity" aria-labelledby="recovery-activity-title"
-        *ngIf="activity as act" data-testid="e2e-report-recovery-activity">
+        *ngIf="!isTeamView && activity as act" data-testid="e2e-report-recovery-activity">
         <div class="panel-head">
             <h2 id="recovery-activity-title">Activité terrain</h2>
             <span class="panel-hint">Chaque total est le portefeuille encore en cours<ng-container *ngIf="commercialUsername"> du commercial choisi</ng-container></span>
@@ -119,13 +306,13 @@
         </div>
     </section>
 
-    <section class="panel-card a4" data-tour="recovery-remit" aria-labelledby="recovery-remit-title" data-testid="e2e-report-recovery-remit">
+    <section class="panel-card a4 remit-panel" data-tour="recovery-remit" aria-labelledby="recovery-remit-title" data-testid="e2e-report-recovery-remit">
         <div class="panel-head">
             <h2 id="recovery-remit-title">À remettre par commercial</h2>
-            <span class="panel-hint">Argent recouvré pour le compte de chaque commercial</span>
+            <span class="panel-hint">Argent recouvré pour le compte de chaque commercial<ng-container *ngIf="isTeamView">, tous chefs confondus</ng-container></span>
         </div>
-        <div class="remit-grid" *ngIf="summary?.remittanceByCommercial?.length; else noRemit">
-            <ng-container *ngFor="let line of summary!.remittanceByCommercial">
+        <div class="remit-grid" *ngIf="board?.remittanceByCommercial?.length; else noRemit">
+            <ng-container *ngFor="let line of board!.remittanceByCommercial">
                 <a class="remit-card remit-card--link" *ngIf="canViewFinancialKpis"
                     [routerLink]="['/report/daily/commercials', line.commercialUsername]" [queryParams]="carryParams"
                     data-testid="e2e-report-recovery-remit-card">
@@ -147,7 +334,7 @@
         </ng-template>
     </section>
 
-    <section class="table-card a5" data-tour="recovery-operations" aria-labelledby="recovery-ops-title">
+    <section class="table-card a5" data-tour="recovery-operations" aria-labelledby="recovery-ops-title" *ngIf="!isTeamView">
         <div class="panel-head table-head">
             <h2 id="recovery-ops-title">Détail des opérations</h2>
             <span class="panel-hint">{{ totalElements }} opération(s)</span>
@@ -178,7 +365,7 @@
                     </tr>
                 </tbody>
             </table>
-            <div class="empty-state" *ngIf="!isLoading && operations.length === 0">
+            <div class="empty-state" *ngIf="operations.length === 0">
                 <div class="empty-title">Aucune opération de recouvrement sur la période</div>
                 <div class="empty-sub">Changez la période<ng-container *ngIf="isManager">, le commercial ou le chef de recouvrement</ng-container><ng-container *ngIf="!isManager"> ou le commercial</ng-container>.</div>
             </div>

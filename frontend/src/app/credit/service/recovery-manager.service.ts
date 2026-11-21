@@ -79,6 +79,20 @@ export class RecoveryManagerService {
     return this.http.get<any>(`${this.BASE}/kpi/monthly-recovery-rate`, { params: httpParams });
   }
 
+  /** Board de pilotage : sans chef (gestionnaire), tous les chefs ; un chef reçoit toujours le sien. */
+  getBoard(params: ReportPeriodParams): Observable<any> {
+    let httpParams = new HttpParams()
+      .set('startDate', params.startDate)
+      .set('endDate', params.endDate);
+    if (params.recoveryManagerUsername) {
+      httpParams = httpParams.set('recoveryManagerUsername', params.recoveryManagerUsername);
+    }
+    if (params.commercialUsername) {
+      httpParams = httpParams.set('commercialUsername', params.commercialUsername);
+    }
+    return this.http.get<any>(`${this.BASE}/board`, { params: httpParams });
+  }
+
   downloadReportPdf(params: ReportPeriodParams): Observable<Blob> {
     let httpParams = new HttpParams()
       .set('startDate', params.startDate)

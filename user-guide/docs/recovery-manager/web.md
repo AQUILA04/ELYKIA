@@ -62,24 +62,68 @@ La liste des membres et la fiche affichent le badge **Déjà contrôlé** lorsqu
 
 La vérification administrative du carnet est une action distincte du contrôle terrain. Le badge **Carnet vérifié** peut être appliqué ou retiré seulement si vous disposez des habilitations nécessaires ; il atteste la vérification physique du carnet sans modifier les montants des collectes ni l’état du contrôle terrain. Si l’agence a activé la vérification automatique, l’enregistrement du contrôle marque aussi le carnet comme vérifié. Si ce réglage est désactivé, seul le contrôle est enregistré.
 
-## Suivre le rapport de recouvrement
+## Piloter le recouvrement terrain
 
 Ouvrez **Rapport Journalier** : un Chef de recouvrement arrive directement sur l’écran **Recouvrement terrain** (adresse `/report/daily/recovery`) ; un gestionnaire y accède par le bouton **Recouvrement terrain** du cockpit, sur la même période. L’écran est réservé au Chef de recouvrement et au gestionnaire.
 
 * **Période** : **Aujourd’hui**, **Semaine**, **Mois**, ou **Dates** puis **Appliquer**. **Commercial** : vide pour toute l’équipe, ou un commercial. Les filtres restent dans l’adresse de la page.
-* Le Chef de recouvrement ne voit que ses propres opérations. Le gestionnaire choisit un **Chef de recouvrement** dans la liste ; le premier est proposé par défaut. Le rapport porte toujours sur un seul chef.
+* Le Chef de recouvrement ne voit que ses propres chiffres. Le gestionnaire arrive sur **Tous les chefs** et peut choisir un **Chef de recouvrement** dans la liste (voir plus bas).
 * À la première ouverture, une **visite guidée** présente l’écran ; le bouton **Visite guidée** la relance.
 * **Ancienne présentation** ouvre l’onglet **Recouvrement** de la présentation en onglets, sur la même période.
 
-<!-- CAPTURE À INSÉRER : Segment web Recouvrement du Rapport Journalier avec les KPI et le tableau À remettre par commercial. -->
+<!-- CAPTURE À INSÉRER : Recouvrement terrain — points d'attention, bande des cinq chiffres, tendance et retards prioritaires. -->
+
+### Les points d’attention
+
+En haut de l’écran, chaque point d’attention est un bouton. Les plus urgents (en orange) passent avant les autres (en ocre).
+
+| Point d’attention | Ce qu’il signale | Que faire |
+|---|---|---|
+| **Écarts de carnet en attente** | Vos contrôles en écart que le commercial n’a pas encore acceptés ou rejetés, avec le montant et les commerciaux concernés. | Relancer le commercial. Le gestionnaire ouvre **Écarts de carnet** d’un clic. |
+| **Gros retards jamais contrôlés** | Parmi les retards prioritaires, ceux dont le carnet n’a jamais été contrôlé. | Les mettre dans la prochaine tournée. Le clic descend au tableau des retards. |
+| **Sans contrôle depuis plus de 30 jours** | Retards prioritaires dont le dernier contrôle est ancien. | Refaire un contrôle terrain. |
+| **Taux du mois sous le repère** | Le taux du mois est sous l’objectif ramené aux jours déjà écoulés du mois. | Concentrer les visites sur les plus gros dus. |
+| **Couverture des carnets sous le repère** | La part des dossiers en cours contrôlés ce mois est sous l’objectif ramené aux jours écoulés. | Augmenter les contrôles de carnet. |
+
+Le repère suit le mois : avec un objectif de 30 % au 15 d’un mois de 30 jours, le repère est de 15 %. Sans objectif réglé, ces deux alertes n’apparaissent pas.
+
+### Les cinq chiffres
+
+| Chiffre | Lecture |
+|---|---|
+| **Taux du mois** | Montant recouvré dans le mois de fin de période, rapporté au dû de **tous les retards délai** de l’application (net du reliquat client). Le trait sur la barre marque l’objectif du mois ; la ligne **Objectif** donne aussi le repère à ce jour. |
+| **Recouvré · période** | Montant recouvré et nombre d’opérations sur la période choisie. |
+| **Mois vs mois précédent** | Recouvré du 1er au jour affiché, comparé aux mêmes jours du mois précédent. Le taux du mois précédent n’est pas affiché : le dû des retards change chaque jour. |
+| **À remettre** | Argent recouvré pour le compte des commerciaux, avec le nombre de commerciaux concernés. |
+| **Retards délai** | Nombre de crédits dont la date de fin est dépassée et montant encore dû. |
+
+### Tendance et retards prioritaires
+
+* **Recouvré par jour · 30 derniers jours** : une barre par jour jusqu’à la fin de la période. Survolez une barre, ou placez-y le focus au clavier, pour lire le montant et le nombre d’opérations. Un trait vertical marque le début du mois.
+* **Retards prioritaires** : les 10 plus gros montants dus en retard de délai (à montant égal, le plus ancien retard d’abord), avec le quartier, le commercial, le nombre de jours de retard et le **Dernier contrôle** (date, **Conforme** ou **Écart**, ou **Jamais**). **Voir** ouvre le crédit. Ce portefeuille est commun à tous les chefs ; le filtre **Commercial** le réduit.
+
+### Le détail de vos chiffres
 
 | Partie du rapport | Contenu |
 |---|---|
-| Activité terrain | Contrôles carnet crédit et contrôles carnet tontine faits sur la période, chacun rapporté au total encore en cours. Le détail indique les contrôles conformes et les écarts. Les clôtures crédit (totales et partielles) et les carnets vérifiés sur la période sont affichés à côté. |
-| Taux du mois | Pourcentage de recouvrement du chef sur le mois de fin de période : encaissé terrain / dû live de **tous les retards délai** de l’application. |
-| KPI | **Taux du mois**, **Montant recouvré** sur la période, **À remettre** (total des commerciaux, avec le nombre de commerciaux concernés) et nombre d’**Opérations**. |
+| Couverture des carnets du mois | Dossiers crédit et membres tontine en cours contrôlés depuis le 1er du mois, avec le trait de l’objectif, puis la part d’ensemble. |
+| Activité terrain | Contrôles carnet crédit et tontine faits sur la période, chacun rapporté au total encore en cours, avec les conformes et les écarts. Clôtures crédit (totales et partielles) et carnets vérifiés sur la période. |
 | À remettre par commercial | Une carte par commercial : montant à remettre et nombre d’opérations. Si votre compte a accès au rapport financier, la carte ouvre la fiche du commercial. |
 | Détail des opérations | Date, référence crédit, client, commercial (et chef de recouvrement pour le gestionnaire), montant et type **Partiel** ou **Total**. Boutons **Précédent** / **Suivant** au-delà de 20 opérations. |
 | Exporter en PDF | Génère le rapport correspondant à la période et aux filtres appliqués. |
+
+### Vue du gestionnaire : tous les chefs
+
+Sans chef choisi, la liste **Chef de recouvrement** affiche **Tous les chefs**. Les points d’attention et les chiffres portent alors sur toute l’équipe, et le tableau **Chefs de recouvrement côte à côte** donne une ligne par chef :
+
+| Colonne | Lecture |
+|---|---|
+| **Recouvré**, **Opérations** | Sur la période choisie. |
+| **Taux du mois**, **vs mois préc.** | Taux du mois du chef et évolution du recouvré par rapport aux mêmes jours du mois précédent. Un taux sous le repère du jour s’affiche en orange. |
+| **Couverture crédit**, **Couverture tontine** | Dossiers en cours contrôlés par le chef depuis le 1er du mois. |
+| **Écarts**, **Carnets vérifiés** | Contrôles en écart et vérifications de carnet du chef sur la période. |
+| **Tournée du jour** | **Ouverte** ou **Clôturée** avec les quartiers prévus, **En préparation**, ou **Aucune**. |
+
+La ligne **Équipe** totalise les chefs ; sa couverture compte une seule fois un dossier contrôlé par deux chefs. Un point d’attention signale aussi un chef **sans opération depuis 5 jours** ou plus. Le nom d’un chef ouvre sa vue ; choisissez **Tous les chefs** dans la liste pour revenir. L’activité terrain, le détail des opérations et l’export PDF ne s’affichent que pour un chef choisi.
 
 Utilisez l’export uniquement après contrôle de la période et des filtres. Un montant de recouvrement terrain n’est pas automatiquement une remise au gestionnaire : la remise suit son propre circuit de trésorerie.
