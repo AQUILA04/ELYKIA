@@ -37,10 +37,15 @@ public class UserGuideRagService {
     void loadIndex() {
         try {
             Resource resource = resourceLoader.getResource(aiProperties.getHelp().getUserGuideIndexPath());
-            chunks = objectMapper.readValue(resource.getInputStream(), new TypeReference<List<GuideChunk>>() {});
-            guideVectorSearch.indexChunks(chunks);
+            List<GuideChunk> loaded = objectMapper.readValue(resource.getInputStream(), new TypeReference<List<GuideChunk>>() {});
+            chunks = loaded;
             log.info("User guide index loaded: {} chunks (vector search: {})",
                     chunks.size(), guideVectorSearch.isAvailable());
+            if (guideVectorSearch.isAvailable() && !loaded.isEmpty()) {
+                Thread.ofVirtual()
+                        .name("ai-guide-embedding-init")
+                        .start(() -> guideVectorSearch.indexChunks(loaded));
+            }
         } catch (Exception e) {
             log.error("Failed to load user guide index", e);
             chunks = List.of();

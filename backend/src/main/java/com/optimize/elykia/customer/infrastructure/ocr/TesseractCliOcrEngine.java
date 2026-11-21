@@ -35,29 +35,48 @@ public class TesseractCliOcrEngine implements OcrEngine {
 
     private final PaymentProofProperties properties;
     private final AtomicBoolean available = new AtomicBoolean(false);
+    private volatile boolean probed = false;
     private Semaphore concurrency;
 
     @PostConstruct
     void init() {
         PaymentProofProperties.Ocr ocr = properties.getOcr();
         concurrency = new Semaphore(Math.max(1, ocr.getMaxConcurrent()));
-        available.set(probeBinary(ocr.getTesseractBinary()));
-        if (!available.get()) {
-            log.warn("Tesseract binary '{}' not found — payment proof OCR will return UNAVAILABLE",
-                    ocr.getTesseractBinary());
-        } else {
-            log.info("Tesseract OCR ready (binary={}, langs={}, maxConcurrent={})",
-                    ocr.getTesseractBinary(), ocr.getLanguages(), ocr.getMaxConcurrent());
+    }
+
+    private void ensureProbed() {
+        if (probed) {
+            return;
+        }
+        synchronized (this) {
+            if (probed) {
+                return;
+            }
+            PaymentProofProperties.Ocr ocr = properties.getOcr();
+            if (concurrency == null) {
+                concurrency = new Semaphore(Math.max(1, ocr.getMaxConcurrent()));
+            }
+            available.set(probeBinary(ocr.getTesseractBinary()));
+            if (!available.get()) {
+                log.warn("Tesseract binary '{}' not found — payment proof OCR will return UNAVAILABLE",
+                        ocr.getTesseractBinary());
+            } else {
+                log.info("Tesseract OCR ready (binary={}, langs={}, maxConcurrent={})",
+                        ocr.getTesseractBinary(), ocr.getLanguages(), ocr.getMaxConcurrent());
+            }
+            probed = true;
         }
     }
 
     @Override
     public boolean isAvailable() {
+        ensureProbed();
         return available.get();
     }
 
     @Override
     public String extractText(byte[] imageBytes) throws OcrException {
+        ensureProbed();
         if (!available.get()) {
             throw new OcrException("Tesseract is not available on this host");
         }

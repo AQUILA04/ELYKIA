@@ -15,11 +15,37 @@ RUN apt-get update \
 
 WORKDIR /app
 
-COPY target/optimize-elykia-core-*.jar app.jar
+# Disable netty native SSL/transport as a safety net if a musl base is ever reintroduced
+ENV JAVA_TOOL_OPTIONS="-Dio.grpc.netty.shaded.io.netty.handler.ssl.noOpenSsl=true -Dio.grpc.netty.shaded.io.netty.transport.noNative=true"
+
+COPY target/optimize-elykia-core-*.jar /tmp/app.jar
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 
-# Create the required directories and give ownership to the app user
-RUN mkdir -p /home/app/.optimize-elykia-core/logs \
+# 1) Extract nested Spring Boot fat JAR (jarmode=tools) into /app (app.jar + lib/)
+# 2) Pre-train Java 25 Project Leyden AOT cache (Spring + Hibernate + Envers + Tomcat) without a live DB
+# 3) Create runtime directories and set ownership for user app
+RUN java -Djarmode=tools -jar /tmp/app.jar extract --destination /app \
+    && rm -f /tmp/app.jar \
+    && java -XX:AOTCacheOutput=/app/app.aot \
+        -Dspring.context.exit=onRefresh \
+        -Dspring.profiles.active=prod \
+        -Dspring.flyway.enabled=false \
+        -Dspring.jpa.hibernate.ddl-auto=none \
+        -Dspring.jpa.properties.hibernate.boot.allow_jdbc_metadata_access=false \
+        -Dspring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect \
+        -Dspring.datasource.url=jdbc:postgresql://127.0.0.1:1/aot_dummy \
+        -Dspring.datasource.username=aot \
+        -Dspring.datasource.password=aot \
+        -Dspring.datasource.hikari.initialization-fail-timeout=-1 \
+        -Dspring.datasource.hikari.minimum-idle=0 \
+        -Dapp.security.parameter.init-enabled=false \
+        -Doptimize.notification.hub.enabled=false \
+        -Delykia.ai.enabled=false \
+        -Dbezkoder.app.jwtSecret=aot-training-secret-key-at-least-64-characters-long-for-hs512-validation \
+        -Dminio.access-key=aot \
+        -Dminio.secret-key=aot \
+        -jar /app/app.jar \
+    && mkdir -p /home/app/.optimize-elykia-core/logs \
     && mkdir -p /home/app/.optimize-elykia-core/operations \
     && chown -R app:app /home/app \
     && chown -R app:app /app \
@@ -28,8 +54,5 @@ RUN mkdir -p /home/app/.optimize-elykia-core/logs \
 # Entrypoint starts as root to chown bind mounts, then drops to app. Do not set USER.
 EXPOSE 8080
 
-# Disable netty native SSL/transport as a safety net if a musl base is ever reintroduced
-ENV JAVA_TOOL_OPTIONS="-Dio.grpc.netty.shaded.io.netty.handler.ssl.noOpenSsl=true -Dio.grpc.netty.shaded.io.netty.transport.noNative=true"
-
 ENTRYPOINT ["/docker-entrypoint.sh"]
-CMD ["java", "-jar", "app.jar"]
+CMD ["java", "-XX:AOTCache=/app/app.aot", "-jar", "/app/app.jar"]

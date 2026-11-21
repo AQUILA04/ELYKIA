@@ -838,6 +838,23 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [2.9.0] — 2026-11-21
+
+### Changed
+
+- **Optimisation du temps de démarrage backend (`-54 %` vs `2.8.0`, **`20,1 s`** en conteneur Docker prod sur schéma migré contre > 100 s avant la refonte) →**
+  - **Bootstrap JPA `LAZY` configurable en production (`bootstrap.config.JpaRepositoriesConfig`, `application-prod.yml`) :** extraction de `@EnableJpaRepositories` hors de `OptimizeElykiaCoreApplication` afin de piloter `BootstrapMode` via `elykia.jpa.repositories.bootstrap-mode` (`ELYKIA_JPA_BOOTSTRAP_MODE`, défaut **`lazy`** en profil `prod`, **`default`** en profil `test`/CI pour conserver la validation complète des 143 dépôts `@Query` à chaque build). Ajout explicite de `hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect` et `hibernate.temp.use_jdbc_metadata_defaults=false` dans `application-prod.yml`.
+  - **Suppression des I/O bloquantes dans les `@PostConstruct` (virtual threads Java 25 & sonde paresseuse) :**
+    - `MinioStorageServiceImpl` : vérification/création des 6 buckets MinIO déplacée de `@PostConstruct` vers un virtual thread Java 25 (`minio-bucket-init`) lancé sur `ApplicationReadyEvent`.
+    - `TesseractCliOcrEngine` : sonde du binaire système `tesseract` rendue paresseuse (exécutée une seule fois au premier appel `isAvailable()`/`extractText()`, `Semaphore` initialisé en `@PostConstruct`).
+    - `UserGuideRagService` : indexation vectorielle des 340 chunks du guide (`guideVectorSearch.indexChunks`) exécutée en arrière-plan sur un virtual thread Java 25 (`ai-guide-embedding-init`) afin de ne jamais bloquer le démarrage par 340 appels HTTP d'embeddings (la recherche par mots-clés reste disponible immédiatement).
+  - **Docker (`backend/Dockerfile`) — JAR extrait (`jarmode=tools`) + Cache AOT Java 25 Project Leyden :** décompression du fat JAR à la construction (`java -Djarmode=tools -jar /tmp/app.jar extract --destination /app`), pré-entraînement sans base de données du cache AOT `/app/app.aot` (`174 Mo`, Spring + Hibernate + Envers + Tomcat via `-XX:AOTCacheOutput=/app/app.aot -Dspring.context.exit=onRefresh`), et démarrage conteneur avec `-XX:AOTCache=/app/app.aot -jar /app/app.jar` (repli automatique sûr si le cache est invalidé).
+- **Benchmark réel PostgreSQL 15 (`prod`, `ddl-auto=validate`) & qualité →**
+  - Baseline `2.8.0` (fat JAR, JPA `DEFAULT`, hooks sync) : `53,6 s` froid avec Flyway / `43,7 s` sur schéma déjà migré.
+  - `2.9.0` (fat JAR, JPA `LAZY` + hooks async, sans AOT) : `31,4 s` sur schéma déjà migré (`-28,1 %`).
+  - `2.9.0` image Docker réelle (`jarmode=tools` + `-XX:AOTCache=/app/app.aot` + JPA `LAZY` + hooks async) : **`25,7 s`** froid avec 46 migrations Flyway (`-52,0 %`) et **`20,1 s`** sur schéma déjà migré (**`-53,9 %`**, `/actuator/health` = `UP`, appel paresseux `/api/parameters/enabled/...` vérifié).
+  - 1 198/1 198 tests + 18 modules Spring Modulith + 2 quality gates JaCoCo `0.8.16` verts.
+
 ## Backend — [2.8.0] — 2026-11-21
 
 ### Changed

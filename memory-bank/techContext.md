@@ -4,14 +4,14 @@ Versions lues le 2026-11-21 (branche `migration/architecture-refonte`). En cas d
 
 | Composant | Version | Fichier | Stack constatée |
 |-----------|---------|---------|-----------------|
-| Backend | 2.8.0 | `backend/pom.xml` (`optimize-elykia-core`) | **Java 25 (LTS)**, **Spring Boot 4.2.0**, **Spring Modulith 2.2.0** (18 modules DDD vérifiés en CI, `core/` supprimé), Spring AI **2.1.0** (`google-genai`), JPA / Hibernate 7.4, Jackson 3, Flyway 12.11 (`spring-boot-starter-flyway`), JJWT 0.13.0, MinIO 9.0.4 + `okhttp-jvm` 5.5.1, MapStruct 1.6.3, Lombok 1.18.48, springdoc 3.2.1, iText 9.8.1 / html2pdf 6.3.4 / PDFBox 3.0.8 / POI 5.5.1, Testcontainers 2.0.5, JaCoCo 0.8.16 (seuil lignes global 0,46) |
+| Backend | 2.9.0 | `backend/pom.xml` (`optimize-elykia-core`) | **Java 25 (LTS)** (+ Project Leyden AOT Cache Docker), **Spring Boot 4.2.0**, **Spring Modulith 2.2.0** (18 modules DDD vérifiés en CI, `core/` supprimé), Spring AI **2.1.0** (`google-genai`), JPA / Hibernate 7.4 (`BootstrapMode.LAZY` en `prod`), Jackson 3, Flyway 12.11 (`spring-boot-starter-flyway`), JJWT 0.13.0, MinIO 9.0.4 + `okhttp-jvm` 5.5.1, MapStruct 1.6.3, Lombok 1.18.48, springdoc 3.2.1, iText 9.8.1 / html2pdf 6.3.4 / PDFBox 3.0.8 / POI 5.5.1, Testcontainers 2.0.5, JaCoCo 0.8.16 (seuil lignes global 0,46) |
 | Frontend | 2.62.0 | `frontend/package.json` | Angular **18.2**, Material, ng-select, ngx-permissions, Playwright 1.60, Karma/Jasmine. `npm install --legacy-peer-deps` |
 | Mobile | 2.48.0 | `mobile/package.json` (+ `environment.ts` et `environment.prod.ts`) | Angular **20**, Ionic **8**, Capacitor **7.4**, SQLite, NgRx 20 |
 | Espace client | 0.17.4 | `customer-space/package.json` | Angular **20.3**, Ionic **8**, Capacitor **8.4** |
 
 `docs/project-overview.md` et `docs/architecture-frontend.md` indiquent encore Angular 14 : c’est périmé.
 
-`backend/` (branche `migration/architecture-refonte`) : **monolithe modulaire unique** (`optimize-elykia-core:2.8.0`, un seul `pom.xml` et un seul fat JAR exécutable) ayant absorbé `backend-lib/` et achevé le découpage DDD complet de `core/` (18 modules vérifiés en CI via `ModularityTests` : `entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `sale`, `tontine`, `carnet`, `customer`, `bi`, `reporting`, `bootstrap`, `recruitment`, `ai`, `apprelease`).
+`backend/` (branche `migration/architecture-refonte`) : **monolithe modulaire unique** (`optimize-elykia-core:2.9.0`, un seul `pom.xml`, JAR extrait `jarmode=tools` + cache AOT Java 25 dans `backend/Dockerfile`) ayant absorbé `backend-lib/` et achevé le découpage DDD complet de `core/` (18 modules vérifiés en CI via `ModularityTests` : `entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `sale`, `tontine`, `carnet`, `customer`, `bi`, `reporting`, `bootstrap`, `recruitment`, `ai`, `apprelease`).
 
 Postgres **15** (image du compose prod). Base locale de dev documentée : `oec` / utilisateur `oec`. Base prod du compose : `elykia_prod_db` (variables `POSTGRES_*`).
 

@@ -11,9 +11,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.data.domain.AuditorAware;
-import org.springframework.data.envers.repository.support.EnversRevisionRepositoryFactoryBean;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.web.config.EnableSpringDataWebSupport;
 import org.springframework.modulith.Modulithic;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -22,9 +20,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @Modulithic(systemName = "ELYKIA Backend", additionalPackages = "com.optimize.common")
 @SpringBootApplication(scanBasePackages = "com.optimize")
 @EntityScan(basePackages = {"com.optimize.elykia", "com.optimize.common.securities"})
-@EnableJpaRepositories(
-        basePackages = {"com.optimize.elykia", "com.optimize.common.securities"},
-        repositoryFactoryBeanClass = EnversRevisionRepositoryFactoryBean.class)
 @ConfigurationPropertiesScan({
         "com.optimize.elykia",
         "com.optimize.common.securities.config"

@@ -3,8 +3,9 @@ package com.optimize.elykia.client.storage;
 import com.optimize.common.entities.exception.ApplicationException;
 import io.minio.*;
 import io.minio.messages.ListAllMyBucketsResult.Bucket;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayInputStream;
@@ -27,7 +28,13 @@ public class MinioStorageServiceImpl implements MinioStorageService {
                 .build();
     }
 
-    @PostConstruct
+    @EventListener(ApplicationReadyEvent.class)
+    public void scheduleBucketInitialization() {
+        Thread.ofVirtual()
+                .name("minio-bucket-init")
+                .start(this::initBucket);
+    }
+
     public void initBucket() {
         initBucketIfMissing(minioProperties.getBucket());
         initBucketIfMissing(minioProperties.getReportsBucket());
