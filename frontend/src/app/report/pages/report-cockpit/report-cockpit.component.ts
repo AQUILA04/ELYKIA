@@ -51,6 +51,7 @@ export class ReportCockpitComponent implements OnInit, OnDestroy {
     currentDate = new Date();
     lastUpdate: Date | null = null;
     canSeeRecovery = false;
+    canRemit = false;
 
     readonly statusLabels = STATUS_LABELS;
     readonly alertLabels = ALERT_LABELS;
@@ -84,13 +85,20 @@ export class ReportCockpitComponent implements OnInit, OnDestroy {
             });
             return;
         }
+        const isSecretary = this.userService.hasProfile(UserProfile.SECRETARY);
         if (!roles.includes(KpiFinancierPermissions.RapportJournalier)) {
+            if (isSecretary) {
+                // Secrétaire sans KPI financiers : son écran du rapport est la remise au gestionnaire.
+                void this.router.navigate(['/report/daily/remittance'], { replaceUrl: true });
+                return;
+            }
             // Sans KPI financiers (chef de recouvrement…) : l'onglet recouvrement de la présentation classique.
             void this.router.navigate(['/report/daily/classic'], { replaceUrl: true });
             return;
         }
         this.canSeeRecovery = this.userService.hasProfile(UserProfile.RECOVERY_MANAGER)
             || this.userService.hasProfile(UserProfile.GESTIONNAIRE);
+        this.canRemit = isSecretary || this.userService.hasProfile(UserProfile.GESTIONNAIRE);
         this.forceTour = this.route.snapshot.queryParamMap.get('tour') === '1';
 
         this.clientService.getAgents().pipe(takeUntil(this.destroy$)).subscribe({

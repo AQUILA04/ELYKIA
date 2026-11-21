@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (remise au gestionnaire, nouvelle présentation)
+
+### Changed
+
+- **Guide utilisateur (gestionnaire, secrétaire) —** écran **Remise au gestionnaire** : accès depuis le cockpit, arrivée directe du secrétaire sans indicateurs financiers, navigation par mois. Versions imprimables, index RAG et guide HTML régénérés.
+
 ## Docs & Infra — 2026-11-21 (liste des commerciaux et bilan tontine)
 
 ### Changed
@@ -171,6 +177,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.64.0] — 2026-11-21
+
+### Added
+
+- **Rapport commerciaux — Remise au gestionnaire →** nouvel écran `/report/daily/remittance` dans la nouvelle présentation : mois **‹ ›** et dates **Du / au** dans le mois (gardés dans l'adresse), six indicateurs en « 100 300 F » (reste à remettre, crédit, tontine, solde nouveaux comptes, dépenses, montant net), dépenses à déduire, **Soumettre la remise** (secrétaire), **Accuser réception** / **Initier la réception** (gestionnaire), historique paginé avec les versements inclus, visite guidée. La logique est celle de l'onglet « Remise », héritée sans duplication ; l'onglet reste inchangé.
+- **Cockpit →** bouton **Remise au gestionnaire** (gestionnaire, secrétaire). Un secrétaire sans `ROLE_KPI_FINANCIER_RAPPORT_JOURNALIER` arrive sur la remise au lieu de l'ancienne présentation.
+- **Ancienne présentation →** `?tab=remittance` ouvre l'onglet **Remise** (lien « Ancienne présentation » de la remise, affiché seulement avec les KPI financiers du rapport).
 
 ## Frontend — [2.63.0] — 2026-11-21
 

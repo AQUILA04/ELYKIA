@@ -26,6 +26,8 @@
                     [routerLink]="['/report/daily/classic']" [queryParams]="classicQueryParams">
                     Ancienne présentation
                 </a>
+                <a class="btn-ghost" *ngIf="canRemit" [routerLink]="['/report/daily/remittance']"
+                    data-testid="e2e-report-cockpit-remittance-link">Remise au gestionnaire</a>
                 <a class="btn-ghost" *ngIf="canSeeRecovery" [routerLink]="['/report/daily/classic']"
                     [queryParams]="{ tab: 'recovery' }">Recouvrement terrain</a>
                 <button type="button" class="btn-ghost" data-tour="help" data-testid="e2e-report-cockpit-tour"

@@ -10,6 +10,7 @@ import { ReportCockpitComponent } from './pages/report-cockpit/report-cockpit.co
 import { CommercialSheetComponent } from './pages/commercial-sheet/commercial-sheet.component';
 import { ReportDepositsComponent } from './pages/report-deposits/report-deposits.component';
 import { ReportJournalComponent } from './pages/report-journal/report-journal.component';
+import { ReportRemittanceComponent } from './pages/report-remittance/report-remittance.component';
 
 const routes: Routes = [
   { path: '', component: ReportComponent },
@@ -19,6 +20,8 @@ const routes: Routes = [
   { path: 'daily/commercials/:username', component: CommercialSheetComponent },
   { path: 'daily/deposits', component: ReportDepositsComponent },
   { path: 'daily/journal', component: ReportJournalComponent },
+  // Remise au gestionnaire : gestionnaire et secrétaire (la page renvoie les autres profils vers le cockpit).
+  { path: 'daily/remittance', component: ReportRemittanceComponent },
   {
     path: 'monthly',
     component: MonthlyReportsComponent,

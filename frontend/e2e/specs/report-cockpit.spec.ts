@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { loginAsGestionnaire, loginAsRecoveryManager } from '../fixtures/auth';
+import { loginAsGestionnaire, loginAsRecoveryManager, loginAsSecretaire } from '../fixtures/auth';
 import { TEST_COMMERCIAL_USERNAME } from '../fixtures/test-data';
 
 /**
@@ -100,5 +100,26 @@ test.describe('Rapport commerciaux — cockpit', () => {
     await page.goto('/report/daily');
     await expect(page).toHaveURL(/\/report\/daily\/classic/);
     await expect(page.getByTestId('e2e-daily-report-tab-recovery')).toBeVisible();
+  });
+
+  test('Remise au gestionnaire : le cockpit ouvre la nouvelle page', async ({ page }) => {
+    await loginAsGestionnaire(page);
+    await page.goto('/report/daily');
+    await page.getByTestId('e2e-report-cockpit-remittance-link').click();
+    await expect(page).toHaveURL(/\/report\/daily\/remittance/);
+    await expect(page.getByTestId('e2e-report-remittance-kpis')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('e2e-report-remittance-month')).not.toBeEmpty();
+    await page.getByTestId('e2e-report-remittance-prev-month').click();
+    await expect(page).toHaveURL(/month=/);
+  });
+
+  // Le secrétaire du seed a les KPI financiers : il voit le cockpit et ouvre la remise par le bouton.
+  // Sans ces KPI, /report/daily le renvoie directement sur la remise (vérifié à la main).
+  test('un secrétaire ouvre la remise au gestionnaire depuis le cockpit', async ({ page }) => {
+    await loginAsSecretaire(page);
+    await page.goto('/report/daily');
+    await page.getByTestId('e2e-report-cockpit-remittance-link').click();
+    await expect(page).toHaveURL(/\/report\/daily\/remittance/);
+    await expect(page.getByTestId('e2e-report-remittance-kpis')).toBeVisible({ timeout: 20_000 });
   });
 });

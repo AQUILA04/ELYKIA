@@ -156,3 +156,45 @@ export const JOURNAL_TOUR: TourDefinition = {
         }
     ]
 };
+
+/** Visite de la remise au gestionnaire (/report/daily/remittance). */
+export const REMITTANCE_TOUR: TourDefinition = {
+    id: 'report-remittance',
+    version: 1,
+    steps: [
+        {
+            target: 'remittance-period',
+            title: 'Le mois et les dates',
+            body: 'Une remise porte sur un mois. Les flèches ‹ › changent de mois ; Du et au limitent la remise à une partie du mois.\n'
+                + 'Tant qu\'une remise attend la réception du gestionnaire, la période est figée.'
+        },
+        {
+            target: 'remittance-kpis',
+            title: 'Ce qui est à remettre',
+            body: 'Reste à remettre = versements des commerciaux pas encore remis, répartis en crédit, tontine et solde des nouveaux comptes. '
+                + 'Les dépenses cochées sont déduites : le montant net est ce qui passe au gestionnaire.'
+        },
+        {
+            target: 'remittance-expenses',
+            title: 'Les dépenses',
+            body: 'Cochez les dépenses payées avec l\'argent de la caisse. Les approvisionnements ne sont pas proposés. '
+                + 'Avant de recevoir, le gestionnaire peut encore retirer une dépense.'
+        },
+        {
+            target: 'remittance-actions',
+            title: 'Soumettre ou recevoir',
+            body: 'Le secrétaire clique sur « Soumettre la remise ». Le gestionnaire clique sur « Accuser réception », '
+                + 'ou sur « Initier la réception » pour recevoir directement sans soumission.'
+        },
+        {
+            target: 'remittance-history',
+            title: 'L\'historique',
+            body: 'Chaque remise, avec son statut et qui l\'a soumise ou reçue. La flèche affiche les versements inclus.'
+        },
+        {
+            target: 'classic',
+            title: 'L\'ancien écran',
+            body: '« Ancienne présentation » ouvre l\'onglet « Remise » que vous connaissez. Les deux écrans donnent les mêmes chiffres.'
+        }
+    ]
+};
