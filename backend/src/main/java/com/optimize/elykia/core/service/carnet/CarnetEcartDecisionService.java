@@ -90,6 +90,20 @@ public class CarnetEcartDecisionService {
         return filtered;
     }
 
+    /**
+     * Écarts en attente de décision du commercial (crédit et tontine), sans contrôle d'accès :
+     * réservé aux services qui filtrent eux-mêmes (board de recouvrement).
+     */
+    @Transactional(readOnly = true)
+    public List<CarnetEcartItemDto> listPendingForBoard(String commercial) {
+        String scoped = blankToNull(commercial);
+        List<CarnetEcartItemDto> items = new ArrayList<>(listCredits(scoped));
+        items.addAll(listTontines(scoped));
+        return items.stream()
+                .filter(item -> item.getStatus() == CarnetEcartStatus.PENDING)
+                .toList();
+    }
+
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public CarnetEcartBulkResultDto accept(List<String> keys) {
         return runBulk(keys, true, null);
@@ -458,6 +472,7 @@ public class CarnetEcartDecisionService {
                     .clientName(clientName)
                     .subjectReference(credit != null ? credit.getReference() : null)
                     .observedAt(control.getObservedAt())
+                    .observedBy(control.getObservedBy())
                     .systemAmount(safe(control.getSystemTotalAmountPaid()))
                     .notebookAmount(safe(control.getNotebookTotalAmount()))
                     .differenceAmount(difference)
@@ -579,6 +594,7 @@ public class CarnetEcartDecisionService {
                 .subjectReference(control.getTontineMember() != null
                         ? "Membre " + control.getTontineMember().getId() : null)
                 .observedAt(control.getObservedAt())
+                    .observedBy(control.getObservedBy())
                 .systemAmount(system)
                 .notebookAmount(notebook)
                 .differenceAmount(notebook - system)

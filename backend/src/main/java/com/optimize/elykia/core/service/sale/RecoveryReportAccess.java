@@ -51,6 +51,12 @@ public class RecoveryReportAccess {
         return self != null ? self.trim() : null;
     }
 
+    /** Vrai pour le gestionnaire et les profils admin : ils voient tous les chefs. */
+    public boolean isSupervisor() {
+        Authentication authentication = currentAuthentication();
+        return authentication != null && isSupervisor(authentication);
+    }
+
     private static Authentication currentAuthentication() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         return authentication != null && authentication.isAuthenticated() ? authentication : null;
