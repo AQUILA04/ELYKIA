@@ -288,7 +288,7 @@ export class OrderEditPage implements OnInit {
   private signature(lines: EditLine[]): string {
     return lines
       .map(line => `${line.articleId}|${line.salePackMode || 'UNIT'}|${line.quantity}`)
-      .sort()
+      .sort((a, b) => a.localeCompare(b))
       .join(';');
   }
 }

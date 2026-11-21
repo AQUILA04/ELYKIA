@@ -92,7 +92,13 @@ export function tontineQuantitiesByArticle(lines: Array<Pick<TontineDeliveryItem
   }, {} as Record<string, number>);
 }
 
+/** Identifiant local d'une ligne ajoutée (générateur cryptographique, jamais `Math.random`). */
 function defaultLineId(): string {
-  const random = globalThis.crypto?.randomUUID?.();
-  return random ?? `tdi-new-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  const uuid = globalThis.crypto?.randomUUID?.();
+  if (uuid) {
+    return uuid;
+  }
+  const bytes = new Uint8Array(8);
+  globalThis.crypto.getRandomValues(bytes);
+  return `tdi-new-${Date.now()}-${Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('')}`;
 }
