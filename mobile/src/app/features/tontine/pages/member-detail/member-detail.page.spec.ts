@@ -9,7 +9,19 @@ describe('MemberDetailPage delivery menu', () => {
     deliveryError?: boolean;
     modalResult?: unknown;
     stockQuantity?: number | null;
+    ceiling?: number;
+    replaceError?: unknown;
   }) {
+    const feedback = {
+      error: jasmine.createSpy('error').and.resolveTo('ok'),
+      warning: jasmine.createSpy('warning').and.resolveTo('ok'),
+      success: jasmine.createSpy('success').and.resolveTo('close')
+    };
+    const ceilingService = {
+      forMember: jasmine.createSpy('forMember').and.callFake(async () => ({
+        ceiling: options?.ceiling ?? 1_000_000, projected: options?.ceiling ?? 1_000_000, available: 0
+      }))
+    };
     const modalCtrl = {
       create: jasmine.createSpy('create').and.callFake(async () => ({
         present: () => Promise.resolve(),
@@ -21,10 +33,17 @@ describe('MemberDetailPage delivery menu', () => {
         options?.stockQuantity === null ? null : { id: 's1', availableQuantity: options?.stockQuantity ?? 10 })
     };
     const writeService = {
-      replaceDeliveryItems: jasmine.createSpy('replaceDeliveryItems').and.resolveTo(15000)
+      replaceDeliveryItems: options?.replaceError
+        ? jasmine.createSpy('replaceDeliveryItems').and.rejectWith(options.replaceError)
+        : jasmine.createSpy('replaceDeliveryItems').and.resolveTo(15000)
+    };
+    const loading = {
+      present: jasmine.createSpy('present').and.resolveTo(),
+      dismiss: jasmine.createSpy('dismiss').and.resolveTo(true)
     };
     const loadingCtrl = {
-      create: jasmine.createSpy('create').and.resolveTo({ present: () => Promise.resolve(), dismiss: () => Promise.resolve() })
+      create: jasmine.createSpy('create').and.resolveTo(loading),
+      getTop: jasmine.createSpy('getTop').and.resolveTo(undefined)
     };
     const routeId = options?.routeId ?? 'm2';
     const deliveryRepo = {
@@ -66,10 +85,12 @@ describe('MemberDetailPage delivery menu', () => {
       writeService as any,
       {} as any,
       {} as any,
-      modalCtrl as any
+      modalCtrl as any,
+      feedback as any,
+      ceilingService as any
     );
     (page as any).commercialUsername = 'com1';
-    return { page, deliveryRepo, modalCtrl, stockRepo, writeService, navCtrl };
+    return { page, deliveryRepo, modalCtrl, stockRepo, writeService, navCtrl, feedback, loading };
   }
 
   it('shows Commande de tontine while the session is active and the member has no delivery', async () => {
@@ -225,6 +246,74 @@ describe('MemberDetailPage delivery menu', () => {
       await page.markAsDelivered();
 
       expect(modalCtrl.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('order revision', () => {
+    const pendingMember = { id: 'm2', clientId: 'c1', deliveryStatus: 'PENDING', availableContribution: 25500 };
+    const pendingOrder = {
+      id: '5', status: 'PENDING', requestDate: '2026-11-21', deliveryDate: '2026-11-21', totalAmount: 15800,
+      items: [{ id: 'i1', articleId: 'a1', quantity: 4, unitPrice: 3200, totalPrice: 12800 }]
+    };
+
+    it('shows the ceiling and hides « Livrée le » for an order not yet delivered', async () => {
+      const { page } = create({ members: [pendingMember], deliveries: [pendingOrder], ceiling: 25500 });
+      await page.loadMemberData();
+
+      expect(page.orderCeiling?.ceiling).toBe(25500);
+      expect(page.isDeliveredOrder()).toBeFalse();
+      expect(page.ceilingExcess()).toBe(0);
+    });
+
+    it('refuses to save a revision above the ceiling without calling the server', async () => {
+      const { page, writeService, feedback } = create({ members: [pendingMember], deliveries: [pendingOrder], ceiling: 25500 });
+      await page.loadMemberData();
+      page.revisingOrder = true;
+      page.vm.deliveryItems = [...page.vm.deliveryItems, { id: 'i2', articleId: 'a2', quantity: 2, unitPrice: 24000, totalPrice: 48000 } as any];
+
+      expect(page.ceilingExcess()).toBe(35300);
+      await page.saveRevisedOrder();
+
+      expect(writeService.replaceDeliveryItems).not.toHaveBeenCalled();
+      expect(feedback.error.calls.mostRecent().args[0]).toContain('plafond de ce membre (25 500 FCFA) de 35 300 FCFA');
+      expect(page.revisingOrder).toBeTrue();
+    });
+
+    it('closes the loading before opening the receipt after a saved revision', async () => {
+      const { page, loading, feedback, modalCtrl } = create({ members: [pendingMember], deliveries: [pendingOrder] });
+      await page.loadMemberData();
+      page.revisingOrder = true;
+      feedback.success.and.callFake(async () => {
+        expect(loading.dismiss).toHaveBeenCalled();
+        return 'receipt';
+      });
+      modalCtrl.create.and.callFake(async () => {
+        expect(loading.dismiss).toHaveBeenCalled();
+        return { present: () => Promise.resolve(), onDidDismiss: () => Promise.resolve({}) };
+      });
+      spyOn(page as any, 'ensureAuthenticityCode').and.resolveTo('ELY-TEST-0001');
+
+      await page.saveRevisedOrder();
+
+      expect(page.revisingOrder).toBeFalse();
+      expect(modalCtrl.create).toHaveBeenCalled();
+    });
+
+    it('shows the backend message, never the Angular text, when the server refuses the revision', async () => {
+      const { HttpErrorResponse } = await import('@angular/common/http');
+      const refused = new HttpErrorResponse({
+        status: 400, statusText: 'OK', url: 'https://x/api/v1/tontines/deliveries/5/items',
+        error: { status: 'BAD_REQUEST', message: 'La commande (62 300 FCFA) dépasse le plafond.' }
+      });
+      const { page, feedback, loading } = create({ members: [pendingMember], deliveries: [pendingOrder], replaceError: refused });
+      await page.loadMemberData();
+      page.revisingOrder = true;
+
+      await page.saveRevisedOrder();
+
+      expect(loading.dismiss).toHaveBeenCalled();
+      expect(feedback.error.calls.mostRecent().args[0]).toBe(refused);
+      expect(page.revisingOrder).toBeTrue();
     });
   });
 

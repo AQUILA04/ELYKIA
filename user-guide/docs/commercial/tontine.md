@@ -185,10 +185,11 @@ flowchart LR
 
 3. **Livrer** :
    - Une fois la session clôturée, au moment de la remise en mains propres, cliquez sur **Livrer**.
-   - La fenêtre **Livrer la commande** s'ouvre : articles, **Solde net cotisé**, **Montant de la commande**, puis **Reste à payer** ou **Reliquat à restituer**.
+   - La fenêtre **Livrer la commande** s'ouvre : articles, **Plafond de la commande** (le plus grand du solde prévisionnel et du solde net), **Solde net cotisé**, **Montant de la commande**, puis **Reste à payer** ou **Reliquat à restituer**. Une commande au-dessus du plafond ne peut pas être livrée : réduisez-la.
    - **Confirmer la livraison** n'est possible que si le solde couvre la commande. Sinon, cliquez sur **Réduire la commande** : retirez ou diminuez des articles jusqu'à ce que le total tienne dans le solde, enregistrez, puis cliquez de nouveau sur **Livrer**. Le complément de cotisation au moment de la remise se fait sur l'application mobile.
    - Après la confirmation, **Télécharger le reçu** donne le reçu de remise : **Total cotisé (net)**, **Total utilisé** et **Total restant**.
    - Cette action déduit définitivement les articles du **stock tontine** du commercial et clôture le dossier du membre. Le commercial doit donc avoir reçu les articles via une demande de stock tontine avant la remise.
+   - Tant que la commande n'est pas remise, la fiche indique **Pas encore livrée** à la place de la date de livraison.
    - La fiche conserve la preuve complète : date, commercial ayant servi le client et détail des articles livrés. La date de livraison prévue, si elle a été choisie, s'affiche aussi sous **Livraison prévue le**.
    - Après la clôture, une livraison directe suit le même plafond : le panier peut aller jusqu'au solde prévisionnel de l'année, et la remise attend que le solde disponible couvre ce panier.
 4. **Soldes de la commande** (bloc **Livraison de Fin d'Année** de la fiche et reçu PDF **Télécharger le reçu**) :

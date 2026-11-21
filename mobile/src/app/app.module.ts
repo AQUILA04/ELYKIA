@@ -1,4 +1,4 @@
-import { NgModule, isDevMode, APP_INITIALIZER } from '@angular/core';
+import { NgModule, isDevMode, APP_INITIALIZER, LOCALE_ID } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
@@ -94,6 +94,8 @@ registerLocaleData(localeFr, 'fr-FR', localeFrExtra);
     }),
   ],
   providers: [
+    // Montants et dates au format français partout (« 12 800 », pas « 12,800 »).
+    { provide: LOCALE_ID, useValue: 'fr-FR' },
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     DataInitializationService,
     DatabaseService,

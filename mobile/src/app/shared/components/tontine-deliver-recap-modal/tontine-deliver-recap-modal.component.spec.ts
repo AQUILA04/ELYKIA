@@ -44,7 +44,7 @@ describe('TontineDeliverRecapModalComponent', () => {
     expect(modalCtrl.dismiss).not.toHaveBeenCalled();
 
     component.topUp();
-    expect(modalCtrl.dismiss).toHaveBeenCalledWith({ action: 'topup', amount: 10000 });
+    expect(modalCtrl.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({ action: 'topup', amount: 10000, reduced: false }));
   });
 
   it('unblocks the delivery once the order is reduced to the balance', () => {
@@ -60,8 +60,46 @@ describe('TontineDeliverRecapModalComponent', () => {
     expect(modalCtrl.dismiss).toHaveBeenCalledWith(jasmine.objectContaining({ action: 'confirm', reduced: true, total: 15000 }));
   });
 
-  it('never raises a line above the ordered quantity', () => {
-    const component = create([item()], 40000);
+  it('raises a line above the ordered quantity only while the tontine stock covers it', () => {
+    const component = create([item({ stockAvailable: 3 })], 60000);
+
+    expect(component.canIncrease(component.lines[0])).toBeTrue();
+    component.change(component.lines[0], 1);
+    expect(component.lines[0].quantity).toBe(3);
+    expect(component.reduced).toBeTrue();
+    expect(component.canIncrease(component.lines[0])).toBeFalse();
+    component.change(component.lines[0], 1);
+    expect(component.lines[0].quantity).toBe(3);
+  });
+
+  it('adds a picked stock article as a new line and marks the order as changed', () => {
+    const component = create([item()], 60000);
+    component.tontineDeliveryId = 'd1';
+
+    component.applyPick({ articleId: 'a2', articleName: 'Huile 5 L', unitPrice: 6000, stockAvailable: 4 });
+    expect(component.lines.length).toBe(2);
+    expect(component.lines[1]).toEqual(jasmine.objectContaining({ articleId: 'a2', quantity: 1, totalPrice: 6000, stockAvailable: 4 }));
+    expect(component.total).toBe(36000);
+    expect(component.reduced).toBeTrue();
+
+    component.applyPick({ articleId: 'a2', articleName: 'Huile 5 L', unitPrice: 6000, stockAvailable: 4 });
+    expect(component.lines.length).toBe(2);
+    expect(component.lines[1].quantity).toBe(2);
+  });
+
+  it('blocks the delivery above the order ceiling even when the balance covers it', () => {
+    const component = create([item()], 100000);
+    component.ceiling = 25000;
+
+    expect(component.ceilingExcess).toBe(5000);
+    expect(component.canConfirm).toBeFalse();
+    component.change(component.lines[0], -1);
+    expect(component.ceilingExcess).toBe(0);
+    expect(component.canConfirm).toBeTrue();
+  });
+
+  it('never raises a line above the ordered quantity when the stock is unknown', () => {
+    const component = create([item({ stockAvailable: null })], 40000);
 
     expect(component.canIncrease(component.lines[0])).toBeFalse();
     component.change(component.lines[0], 1);

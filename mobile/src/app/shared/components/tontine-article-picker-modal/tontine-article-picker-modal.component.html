@@ -1,0 +1,73 @@
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-title>
+        <span class="elyk-surtitle">{{ mode === 'deliver' ? 'Livraison tontine' : 'Commande tontine' }}</span>
+        {{ title }}
+      </ion-title>
+      <ion-buttons slot="end">
+        <ion-button (click)="close()" data-testid="e2e-picker-close">Fermer</ion-button>
+      </ion-buttons>
+    </ion-toolbar>
+  </header>
+</ion-header>
+
+<ion-content class="elyk-content" data-testid="e2e-tontine-article-picker">
+  <div class="picker">
+    <ion-segment
+      *ngIf="canUseCatalogue"
+      [value]="source"
+      (ionChange)="setSource($any($event).detail.value)"
+      class="picker-source">
+      <ion-segment-button value="stock" data-testid="e2e-picker-source-stock">
+        <ion-label>Mon stock</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="catalogue" data-testid="e2e-picker-source-catalogue">
+        <ion-label>Catalogue</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+
+    <p class="picker-hint" *ngIf="mode === 'deliver'">
+      Seuls les articles de votre stock tontine peuvent être remis.
+    </p>
+    <p class="picker-hint" *ngIf="remainingUnderCeiling !== null">
+      Reste sous le plafond : <b>{{ remainingUnderCeiling | number:'1.0-0' }} FCFA</b>
+    </p>
+
+    <ion-searchbar
+      placeholder="Rechercher un article"
+      [debounce]="250"
+      [value]="query"
+      (ionInput)="onSearch($any($event).detail.value)"
+      data-testid="e2e-picker-search">
+    </ion-searchbar>
+
+    <div class="picker-loading" *ngIf="loading"><ion-spinner name="crescent"></ion-spinner></div>
+
+    <p class="picker-empty" *ngIf="!loading && rows.length === 0">
+      {{ source === 'stock' ? 'Aucun article dans votre stock tontine' : 'Aucun article trouvé' }}{{ query ? ' pour « ' + query + ' »' : '' }}.
+    </p>
+
+    <button
+      type="button"
+      class="picker-row"
+      *ngFor="let row of rows; trackBy: trackRow"
+      [disabled]="isBlocked(row)"
+      [class.picker-row--warn]="exceedsCeiling(row)"
+      (click)="pick(row)"
+      [attr.data-testid]="'e2e-picker-row-' + row.articleId">
+      <span class="picker-row-main">
+        <span class="picker-row-name">{{ row.articleName }}</span>
+        <span class="picker-row-meta">
+          <ng-container *ngIf="row.stockAvailable !== null">Stock : {{ row.stockAvailable }}</ng-container>
+          <ng-container *ngIf="row.stockAvailable === null">Hors stock tontine</ng-container>
+          <ng-container *ngIf="row.inOrder > 0"> · déjà {{ row.inOrder }} dans la commande</ng-container>
+          <ng-container *ngIf="isBlocked(row)"> · stock épuisé</ng-container>
+          <ng-container *ngIf="exceedsCeiling(row)"> · dépasse le plafond</ng-container>
+        </span>
+      </span>
+      <span class="picker-row-price elyk-amount" *appIfUnitPrice="'CASH'">{{ row.unitPrice | number:'1.0-0' }} FCFA</span>
+      <ion-icon name="add-circle-outline" class="picker-row-add" aria-hidden="true"></ion-icon>
+    </button>
+  </div>
+</ion-content>

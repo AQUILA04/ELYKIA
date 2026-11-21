@@ -275,6 +275,49 @@ test.describe('Tontine delivery order vs direct @smoke', () => {
       timeout: 20_000,
     });
     await expect(page.getByTestId('e2e-tontine-mark-delivered')).toBeVisible({ timeout: 15_000 });
+    // Commande non livrée : pas de « Livrée le » (le serveur y garde la date de demande).
+    await expect(page.getByTestId('e2e-tontine-delivered-date')).toHaveCount(0);
+
+    // Modification : plafond affiché, ajout d'un article, refus serveur lu dans le JSON du backend.
+    await page.getByTestId('e2e-tontine-edit-order').click();
+    await expect(page.getByTestId('e2e-tontine-order-ceiling')).toContainText(/Plafond de la commande/i);
+    await expect(page.getByTestId('e2e-tontine-mark-delivered')).toHaveCount(0);
+    const linesBefore = await page.locator('.delivery-items .item-row').count();
+    await page.getByTestId('e2e-tontine-order-add-article').click();
+    const picker = page.getByTestId('e2e-tontine-article-picker');
+    await expect(picker).toBeVisible({ timeout: 10_000 });
+    await picker.locator('button.picker-row:not([disabled])').first().click();
+    await expect(picker).toBeHidden({ timeout: 10_000 });
+    await expect.poll(async () => {
+      const lines = await page.locator('.delivery-items .item-row').count();
+      const qty = await page.locator('.delivery-items .qty-stepper span').allInnerTexts();
+      return lines > linesBefore || qty.some(value => Number(value) > 1);
+    }, { timeout: 10_000 }).toBeTruthy();
+
+    const refusal = 'La commande (62 300 FCFA) dépasse le plafond de ce membre (25 500 FCFA) de 36 800 FCFA.';
+    await page.route(/\/api\/v1\/tontines\/deliveries\/\d+\/items$/, route => route.fulfill({
+      status: 400,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'BAD_REQUEST', statusCode: 400, message: refusal, service: 'MOCK-SERVICE', data: null })
+    }));
+    const save = page.getByTestId('e2e-tontine-save-order');
+    if (await save.isEnabled()) {
+      await save.click();
+      const feedback = page.getByTestId('e2e-feedback-modal');
+      await expect(feedback).toBeVisible({ timeout: 15_000 });
+      await expect(page.getByTestId('e2e-feedback-message')).toHaveText(refusal);
+      await expect(feedback).not.toContainText(/Http failure/i);
+      // Aucun chargement ne reste affiché derrière la fenêtre d'erreur.
+      await expect(page.locator('ion-loading')).toHaveCount(0, { timeout: 5_000 });
+      await page.getByTestId('e2e-feedback-ok').click();
+      await expect(feedback).toBeHidden({ timeout: 10_000 });
+    } else {
+      // Le plafond local bloque déjà l'enregistrement : le dépassement est affiché.
+      await expect(page.getByTestId('e2e-tontine-ceiling-excess')).toBeVisible();
+    }
+    await page.unroute(/\/api\/v1\/tontines\/deliveries\/\d+\/items$/);
+    await page.locator('.revision-actions ion-button').filter({ hasText: 'Annuler' }).click();
+    await expect(page.getByTestId('e2e-tontine-mark-delivered')).toBeVisible({ timeout: 15_000 });
 
     await page.getByTestId('e2e-tontine-mark-delivered').click();
     // « Livrer » ouvre le récapitulatif : soldes, puis Confirmer la livraison.

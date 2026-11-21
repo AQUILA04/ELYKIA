@@ -316,10 +316,21 @@ class TontineDeliveryServiceTest {
                 () -> tontineDeliveryService.createDelivery(createDeliveryDto));
 
         assertEquals(TontineDeliveryConflictReason.BALANCE_EXCEEDED, ex.getReason());
+        // Le message donne le total, le plafond et le dépassement au format français.
+        assertTrue(ex.getMessage().contains("le total (110 000 FCFA) dépasse le plafond (100 000 FCFA) de 10 000 FCFA"),
+                ex.getMessage());
         assertEquals(60_000.0, current.getTotalAmount());
         verify(deliveryRepository, never()).save(any());
         verify(conflictService).record(eq(mockMember), eq(current), argThat(in -> in.amount() == 50_000.0),
                 eq(TontineDeliveryConflictOutcome.REJECTED), eq(TontineDeliveryConflictReason.BALANCE_EXCEEDED));
+    }
+
+    @Test
+    void ceilingExceededMessage_givesCeilingAmountAndExcessInFrenchFormat() {
+        String message = TontineDeliveryService.ceilingExceededMessage(62_300d, 25_500d);
+
+        assertEquals("La commande (62 300 FCFA) dépasse le plafond de ce membre (25 500 FCFA) de 36 800 FCFA. "
+                + "Le plafond est le plus grand du solde prévisionnel et du solde net cotisé. Réduisez la commande.", message);
     }
 
     @Test

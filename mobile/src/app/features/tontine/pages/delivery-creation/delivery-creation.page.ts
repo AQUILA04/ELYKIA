@@ -1,4 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { FeedbackService } from 'src/app/core/services/feedback.service';
+import { tontineCeilingExceededMessage } from 'src/app/core/utils/tontine-order-ceiling.util';
 import { ActivatedRoute } from '@angular/router';
 import { NavController, AlertController, LoadingController, IonInfiniteScroll, ModalController, ActionSheetController } from '@ionic/angular';
 import { MemoizedSelector, Store } from '@ngrx/store';
@@ -145,7 +147,8 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         private articleService: ArticleService,
         private tontineCalculationService: TontineCalculationService,
         private dailyConsentGuard: DailyConsentGuardService,
-        private dailyConsentState: DailyConsentStateService
+        private dailyConsentState: DailyConsentStateService,
+        private feedback: FeedbackService
     ) {
         this.stocks$ = this.store.select(selectPaginatedTontineStocks);
         this.catalogue$ = this.store.select(selectCatalogueArticles);
@@ -618,7 +621,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return;
         }
         if (this.exceedsProjected()) {
-            await this.showError('Le montant dépasse le solde prévisionnel de l\'année.');
+            await this.feedback.error(tontineCeilingExceededMessage(this.vm.usedBudget, this.vm.projectedBudget), {
+                title: 'Plafond dépassé'
+            });
             return;
         }
 
@@ -796,7 +801,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             return;
         }
         if (this.exceedsProjected()) {
-            await this.showError('Le montant dépasse le solde prévisionnel de l\'année.');
+            await this.feedback.error(tontineCeilingExceededMessage(this.vm.usedBudget, this.vm.projectedBudget), {
+                title: 'Plafond dépassé'
+            });
             return;
         }
         if (!isOrder && this.cashGap < -0.001) {
@@ -867,14 +874,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
 
             if (isOrder) {
                 if (savedDelivery.mergedIntoExisting) {
-                    const merged = await this.alertCtrl.create({
-                        header: 'Commande complétée',
-                        message: `Une commande était déjà enregistrée pour ce membre sur un autre appareil (réf. ${savedDelivery.reference || '—'}). Vos articles y ont été ajoutés : total ${savedDelivery.totalAmount.toLocaleString('fr-FR')} FCFA.`,
-                        cssClass: 'elyk-alert',
-                        buttons: ['OK']
-                    });
-                    await merged.present();
-                    await merged.onDidDismiss();
+                    await this.feedback.success(
+                        `Une commande était déjà enregistrée pour ce membre sur un autre appareil (réf. ${savedDelivery.reference || '—'}). Vos articles y ont été ajoutés : total ${savedDelivery.totalAmount.toLocaleString('fr-FR')} FCFA.`,
+                        { title: 'Commande complétée' });
                 }
                 try {
                     await this.presentOrderReceipt(savedDelivery, savedDelivery.mergedIntoExisting
@@ -940,25 +942,28 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 return;
             }
 
-            if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS && !forceOffline) {
+            if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS) {
                 if (this.isRealBalanceShortfallMessage(error.message)) {
                     await this.promptBalanceShortfall(error.message);
                     return;
                 }
-                const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
-                if (saveOffline) {
-                    await this.processDelivery(mode, true);
-                    return;
-                }
+                // Refus du serveur (plafond, session, article…) : rien n'est enregistré, pas même hors ligne,
+                // sinon la synchronisation serait refusée de la même façon et la saisie resterait bloquée.
+                await this.feedback.error(error, { title: mode === 'ORDER' ? 'Commande refusée' : 'Livraison refusée' });
+                return;
             }
 
-            this.showError(error instanceof Error ? error.message : 'Erreur lors de l\'enregistrement');
+            await this.feedback.error(error, {
+                title: 'Enregistrement impossible',
+                fallback: 'L\'enregistrement a échoué. Rien n\'a été enregistré : réessayez.'
+            });
         }
     }
 
     private isRealBalanceShortfallMessage(message?: string | null): boolean {
         const text = String(message || '').toLowerCase();
-        return text.includes('solde réel') && (text.includes('ne couvre pas') || text.includes('complétez'));
+        // Message serveur de remise : « Le solde net cotisé (…) ne couvre pas la commande (…) : il manque … ».
+        return text.includes('ne couvre pas') && (text.includes('solde') || text.includes('complétez'));
     }
 
     /** Remise impossible faute de solde : proposer Compléter le solde ou rester pour modifier le panier. */
@@ -1040,24 +1045,13 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         await alert.present();
     }
 
-    private async showError(message: string) {
-        const alert = await this.alertCtrl.create({
-            header: 'Erreur',
-            message,
-            buttons: ['OK']
-        });
-        await alert.present();
+    private async showError(message: unknown) {
+        await this.feedback.error(message);
     }
 
     /** Refus serveur d'une seconde saisie : pas d'enregistrement hors ligne proposé. */
     private async showDuplicateRefusal(message: string) {
-        const alert = await this.alertCtrl.create({
-            header: 'Déjà enregistré sur un autre appareil',
-            message,
-            cssClass: 'elyk-alert',
-            buttons: ['OK']
-        });
-        await alert.present();
+        await this.feedback.error(message, { title: 'Déjà enregistré sur un autre appareil' });
     }
 
     async explainOrderReduction(): Promise<void> {

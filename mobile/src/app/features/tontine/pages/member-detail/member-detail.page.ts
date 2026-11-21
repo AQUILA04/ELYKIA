@@ -35,7 +35,15 @@ import {
 import { TontineOrderReceiptModalComponent } from 'src/app/shared/components/tontine-order-receipt-modal/tontine-order-receipt-modal.component';
 import { PrintableTontineOrder } from 'src/app/core/services/printing.service';
 import { generateTontineAuthenticityCode } from 'src/app/core/utils/tontine-delivery-reference.util';
-import { stepTontineDeliveryItem } from 'src/app/core/utils/tontine-delivery-item-quantity.util';
+import {
+    addTontineLinePick,
+    stepTontineDeliveryItem,
+    tontineQuantitiesByArticle
+} from 'src/app/core/utils/tontine-delivery-item-quantity.util';
+import {
+    TontineArticlePick,
+    TontineArticlePickerModalComponent
+} from 'src/app/shared/components/tontine-article-picker-modal/tontine-article-picker-modal.component';
 import {
     TontineDeliverRecapItem,
     TontineDeliverRecapModalComponent,
@@ -47,6 +55,14 @@ import {
     computeTontineOrderBalance,
     tontineOrderBalanceLabels
 } from 'src/app/core/utils/tontine-order-balance.util';
+import { FeedbackService } from 'src/app/core/services/feedback.service';
+import { TontineOrderCeilingService } from 'src/app/core/services/tontine-order-ceiling.service';
+import {
+    TontineOrderCeiling,
+    tontineCeilingExceededMessage,
+    tontineCeilingExcess
+} from 'src/app/core/utils/tontine-order-ceiling.util';
+import { isNetworkError } from 'src/app/core/utils/user-error-message.util';
 
 interface DeliveryItemWithArticle extends TontineDeliveryItem {
     articleName?: string;
@@ -106,8 +122,13 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         private tontineWriteService: TontineWriteService,
         private hybridSyncUiService: HybridSyncUiService,
         private dailyConsentGuard: DailyConsentGuardService,
-        private modalCtrl: ModalController
+        private modalCtrl: ModalController,
+        private feedback: FeedbackService,
+        private ceilingService: TontineOrderCeilingService
     ) { }
+
+    /** Plafond de la commande du membre affiché (null tant qu'il n'est pas calculé). */
+    orderCeiling: TontineOrderCeiling | null = null;
 
     async ngOnInit() {
         this.memberId = this.route.snapshot.paramMap.get('id');
@@ -216,6 +237,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                 return;
             }
             await this.reloadActiveDelivery();
+            await this.refreshOrderCeiling(token);
         } catch (error) {
             if (token !== this.memberLoadToken) {
                 return;
@@ -304,6 +326,38 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         }
     }
 
+    /** Plafond : le plus grand du solde prévisionnel et du solde net cotisé (même règle que le serveur). */
+    private async refreshOrderCeiling(token: number): Promise<void> {
+        if (!this.vm.member) {
+            this.orderCeiling = null;
+            return;
+        }
+        let session = null;
+        try {
+            session = await firstValueFrom(this.store.select(selectTontineSession).pipe(take(1)));
+        } catch {
+            session = null;
+        }
+        const ceiling = await this.ceilingService.forMember(this.vm.member, session, this.vm.collections);
+        if (token === this.memberLoadToken) {
+            this.orderCeiling = ceiling;
+        }
+    }
+
+    /** Dépassement du plafond par la commande affichée (total révisé pendant la modification). */
+    ceilingExcess(): number {
+        if (!this.orderCeiling || !this.vm.delivery) {
+            return 0;
+        }
+        const total = this.revisingOrder ? this.revisedTotal() : (this.vm.delivery.totalAmount ?? 0);
+        return tontineCeilingExcess(total, this.orderCeiling.ceiling);
+    }
+
+    /** Commande remise au membre : « Livrée le » et le plafond en dépendent. */
+    isDeliveredOrder(): boolean {
+        return normalizeTontineStatus(this.vm.delivery?.status) === 'DELIVERED';
+    }
+
     getClientDisplayName(): string {
         if (!this.vm.client) return 'Client inconnu';
         return this.vm.client.fullName ||
@@ -387,7 +441,11 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                 clientName: this.getClientDisplayName(),
                 reference: this.vm.delivery.reference,
                 items: await this.buildDeliverRecapItems(),
-                netContribution: this.vm.member.availableContribution ?? 0
+                netContribution: this.vm.member.availableContribution ?? 0,
+                ceiling: this.orderCeiling?.ceiling ?? null,
+                commercialUsername: this.commercialUsername ?? '',
+                sessionId: await this.currentSessionId(),
+                tontineDeliveryId: this.vm.delivery.id
             }
         });
         await modal.present();
@@ -396,6 +454,11 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             return;
         }
         if (data.action === 'topup') {
+            // La commande modifiée au récapitulatif est enregistrée avant d'aller compléter le solde :
+            // le montant à compléter correspond à cette commande-là.
+            if (data.reduced && !(await this.saveReducedOrderBeforeDelivery(data.items))) {
+                return;
+            }
             this.reopenDeliverRecapOnReturn = true;
             await this.navCtrl.navigateForward(['/tontine/collection-recording'], {
                 queryParams: {
@@ -410,6 +473,42 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             return;
         }
         await this.performMarkAsDelivered(false);
+    }
+
+    private async currentSessionId(): Promise<string | null> {
+        try {
+            const session = await firstValueFrom(this.store.select(selectTontineSession).pipe(take(1)));
+            return session?.id ?? null;
+        } catch {
+            return null;
+        }
+    }
+
+    /**
+     * Modification de la commande : ajout d'un article depuis le stock tontine ou le catalogue
+     * (même filtre que la création). Le plafond restant est indiqué dans la fenêtre.
+     */
+    async addArticleToRevision(): Promise<void> {
+        if (!this.revisingOrder || !this.vm.delivery) {
+            return;
+        }
+        const remaining = this.orderCeiling ? Math.max(0, this.orderCeiling.ceiling - this.revisedTotal()) : null;
+        const picker = await this.modalCtrl.create({
+            component: TontineArticlePickerModalComponent,
+            componentProps: {
+                mode: 'order',
+                commercialUsername: this.commercialUsername ?? '',
+                sessionId: await this.currentSessionId(),
+                quantitiesInOrder: tontineQuantitiesByArticle(this.vm.deliveryItems),
+                remainingUnderCeiling: remaining
+            }
+        });
+        await picker.present();
+        const { data, role } = await picker.onDidDismiss<TontineArticlePick>();
+        if (role !== 'pick' || !data) {
+            return;
+        }
+        this.vm.deliveryItems = addTontineLinePick(this.vm.deliveryItems, data, this.vm.delivery.id);
     }
 
     /** Retour de « Compléter le solde » : rouvrir le récapitulatif avec le solde à jour. */
@@ -445,24 +544,22 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             return false;
         }
         const lines: DeliveryItemWithArticle[] = items.map(({ stockAvailable, ...item }) => item);
-        const loading = await this.loadingCtrl.create({ message: 'Enregistrement de la commande…' });
+        const loading = await this.loadingCtrl.create({ message: 'Enregistrement de la commande…', backdropDismiss: false });
         await loading.present();
         try {
             const total = await this.tontineWriteService.replaceDeliveryItems(this.vm.delivery, lines);
             this.vm.delivery = { ...this.vm.delivery, totalAmount: total, items: lines };
             this.vm.deliveryItems = [...lines];
-            return true;
-        } catch (error: any) {
-            const toast = await this.toastCtrl.create({
-                message: error?.message || 'La commande n\'a pas pu être réduite',
-                duration: 3000,
-                color: 'danger'
-            });
-            await toast.present();
-            return false;
-        } finally {
+        } catch (error: unknown) {
             await loading.dismiss();
+            await this.feedback.error(error, {
+                title: isNetworkError(error) ? 'Pas de connexion' : 'Commande non modifiée',
+                fallback: 'La commande n\'a pas pu être modifiée avant la livraison. Rien n\'a été livré.'
+            });
+            return false;
         }
+        await loading.dismiss();
+        return true;
     }
 
     /** Bon de remise : total cotisé (net), total utilisé, total restant. */
@@ -587,37 +684,44 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             return;
         }
         if (this.vm.deliveryItems.length === 0) {
-            const toast = await this.toastCtrl.create({
-                message: 'La commande doit contenir au moins un article.',
-                duration: 2500,
-                color: 'warning'
-            });
-            await toast.present();
+            await this.feedback.warning('La commande doit contenir au moins un article.', { title: 'Commande vide' });
             return;
         }
-        const loading = await this.loadingCtrl.create({ message: 'Enregistrement…' });
-        await loading.present();
-        try {
-            const total = await this.tontineWriteService.replaceDeliveryItems(this.vm.delivery, this.vm.deliveryItems);
-            this.vm.delivery.totalAmount = total;
-            this.revisingOrder = false;
-            const toast = await this.toastCtrl.create({
-                message: 'Commande mise à jour',
-                duration: 2000,
-                color: 'success'
+        const total = this.revisedTotal();
+        if (this.orderCeiling && tontineCeilingExcess(total, this.orderCeiling.ceiling) > 0) {
+            await this.feedback.error(tontineCeilingExceededMessage(total, this.orderCeiling.ceiling), {
+                title: 'Plafond dépassé'
             });
-            await toast.present();
-            await this.printOrderReceipt();
-        } catch (error: any) {
-            const toast = await this.toastCtrl.create({
-                message: error?.message || 'La commande n\'a pas pu être modifiée',
-                duration: 3000,
-                color: 'danger'
-            });
-            await toast.present();
-        } finally {
-            await loading.dismiss();
+            return;
         }
+        const loading = await this.loadingCtrl.create({ message: 'Enregistrement…', backdropDismiss: false });
+        await loading.present();
+        let saved: number;
+        try {
+            saved = await this.tontineWriteService.replaceDeliveryItems(this.vm.delivery, this.vm.deliveryItems);
+        } catch (error: unknown) {
+            await loading.dismiss();
+            await this.feedback.error(error, {
+                title: isNetworkError(error) ? 'Pas de connexion' : 'Commande non modifiée',
+                fallback: 'La commande n\'a pas pu être modifiée. Elle reste inchangée.'
+            });
+            return;
+        }
+        // Le chargement est fermé AVANT d'ouvrir le reçu : sinon il restait affiché au-dessus de l'aperçu.
+        await loading.dismiss();
+        this.vm.delivery = { ...this.vm.delivery, totalAmount: saved, items: [...this.vm.deliveryItems] };
+        this.revisingOrder = false;
+        const role = await this.feedback.success(`Nouveau total : ${this.formatCurrency(saved)}.`, {
+            title: 'Commande mise à jour',
+            actions: [
+                { role: 'close', text: 'Fermer' },
+                { role: 'receipt', text: 'Voir le reçu', primary: true }
+            ]
+        });
+        if (role === 'receipt') {
+            await this.printOrderReceipt();
+        }
+        await this.loadMemberData();
     }
 
     private async performMarkAsDelivered(forceOffline = false): Promise<void> {
@@ -629,14 +733,17 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             return;
         }
 
-        const loading = await this.loadingCtrl.create({ message: 'Mise à jour...' });
+        const loading = await this.loadingCtrl.create({ message: 'Livraison en cours…', backdropDismiss: false });
+        const netContribution = this.vm.member.availableContribution ?? 0;
+        let items: DeliveryItemWithArticle[] = [];
+        let delivered = false;
 
         try {
             await this.dailyConsentGuard.requireDailyConsent();
             await loading.present();
 
             const session = await firstValueFrom(this.store.select(selectTontineSession).pipe(take(1)));
-            const items = this.vm.delivery.items?.length
+            items = this.vm.delivery.items?.length
                 ? this.vm.delivery.items
                 : await this.deliveryRepo.getItems(this.vm.delivery.id);
 
@@ -659,13 +766,9 @@ export class MemberDetailPage implements OnInit, OnDestroy {
 
             if (missingArticles.length > 0) {
                 await loading.dismiss();
-                const alert = await this.alertCtrl.create({
-                    header: 'Stock tontine insuffisant',
-                    message: `Stock tontine insuffisant pour l'article ${missingArticles.join(', ')} — faites une demande de stock tontine avant la remise.`,
-                    cssClass: 'elyk-alert',
-                    buttons: ['OK']
-                });
-                await alert.present();
+                await this.feedback.warning(
+                    `Stock tontine insuffisant pour : ${missingArticles.join(', ')}. Réduisez la commande ou faites d'abord une demande de stock tontine.`,
+                    { title: 'Stock tontine insuffisant' });
                 return;
             }
 
@@ -674,42 +777,42 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                 member: this.vm.member,
                 stockUpdates
             }, forceOffline);
-
+            delivered = true;
             await loading.dismiss();
-            const toast = await this.toastCtrl.create({
-                message: 'Commande livrée.',
-                duration: 2000,
-                color: 'success'
-            });
-            await toast.present();
-            await this.presentHandoverReceipt(items, this.vm.member.availableContribution ?? 0);
-            await this.loadMemberData();
         } catch (error) {
             if (await this.loadingCtrl.getTop()) {
                 await loading.dismiss();
             }
             if (error instanceof OnlineWriteError && error.isServerConflict) {
                 // Un autre téléphone sur le même compte a déjà remis cette commande.
-                const refused = await this.alertCtrl.create({
-                    header: 'Déjà livré sur un autre appareil',
-                    message: error.message,
-                    cssClass: 'elyk-alert',
-                    buttons: ['OK']
-                });
-                await refused.present();
+                await this.feedback.error(error, { title: 'Déjà livré sur un autre appareil' });
                 await this.loadMemberData();
                 return;
             }
-            if (error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS && !forceOffline) {
-                const saveOffline = await this.hybridSyncUiService.promptOfflineFallback(error.message);
-                if (saveOffline) {
-                    await this.performMarkAsDelivered(true);
-                    return;
-                }
-            }
+            // Un refus du serveur (4xx) n'est pas enregistré hors ligne : la synchronisation serait refusée
+            // de la même façon et la remise resterait bloquée sur la tablette.
             console.error('Error marking delivery as delivered:', error);
-            this.showError(error instanceof Error ? error.message : 'Erreur lors de la mise à jour');
+            await this.feedback.error(error, {
+                title: error instanceof OnlineWriteError && error.kind === WriteErrorKind.BUSINESS
+                    ? 'Livraison refusée'
+                    : 'Livraison non enregistrée',
+                fallback: 'La livraison n\'a pas pu être enregistrée. Rien n\'a été livré.'
+            });
+            return;
         }
+        if (!delivered) {
+            return;
+        }
+        // La remise est enregistrée : un incident d'affichage ou d'impression du bon ne doit pas la contredire.
+        try {
+            await this.presentHandoverReceipt(items, netContribution);
+        } catch (error) {
+            console.error('Bon de remise indisponible', error);
+            await this.feedback.success('La commande est livrée. Le bon de remise n\'a pas pu s\'afficher.', {
+                title: 'Commande livrée'
+            });
+        }
+        await this.loadMemberData();
     }
 
     getStatusColor(status?: string): string {
@@ -992,13 +1095,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         this.navCtrl.back();
     }
 
-    private async showError(message: string) {
-        const alert = await this.alertCtrl.create({
-            header: 'Erreur',
-            message,
-            buttons: ['OK'],
-            cssClass: 'elyk-alert'
-        });
-        await alert.present();
+    private async showError(message: unknown) {
+        await this.feedback.error(message);
     }
 }

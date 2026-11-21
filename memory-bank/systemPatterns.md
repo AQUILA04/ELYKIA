@@ -50,6 +50,8 @@ Pages v2 (`report-v2`, `stock-v2`) : les classes d'entrée `a1` à `a4` laissent
 
 Deux coques : `tabs/` (commercial) et `rm-tabs/` (chef de recouvrement, `RmProfilGuard`). Features : sync, stock, clients, commandes, tontine, recovery, écarts / contrôles carnet, ancien portefeuille, consentement de synchro et consentement journalier.
 
+Erreurs et succès : `FeedbackService` (fenêtres communes, design system) et `toUserErrorMessage` ; ne pas afficher `error.message` d'une `HttpErrorResponse`. Reçus : `ReceiptOutputService` (PDF à l'ouverture, repli PDF à l'impression).
+
 Règles : écritures métier sur SQLite ; l’API sert au chargement initial et à la synchro explicite ; toute lecture est filtrée par l’utilisateur (`commercialUsername` ou colonne équivalente). NgRx (store, effects, entity). Capacitor : caméra, géoloc, SQLite, imprimante ceinture, Crashlytics, Remote Config.
 
 ## Espace client

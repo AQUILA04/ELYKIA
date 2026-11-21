@@ -849,7 +849,8 @@ export class MemberDetailsComponent implements OnInit, OnDestroy {
       reference: delivery.reference,
       items: delivery.items ?? [],
       totalAmount: delivery.totalAmount ?? 0,
-      netContribution: delivery.netContribution ?? this.member.availableContribution ?? 0
+      netContribution: delivery.netContribution ?? this.member.availableContribution ?? 0,
+      ceiling: this.member.projectedBalance ?? null
     };
     const choice = await firstValueFrom(this.dialog.open<TontineDeliverPreviewDialogComponent,
       TontineDeliverPreviewData, TontineDeliverPreviewResult>(TontineDeliverPreviewDialogComponent, {

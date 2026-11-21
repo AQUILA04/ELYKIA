@@ -3,7 +3,7 @@
     <ion-toolbar class="hero-toolbar">
       <ion-title>
         <span class="elyk-surtitle">Livraison tontine</span>
-        Récapitulatif avant remise
+        Récapitulatif
       </ion-title>
       <ion-buttons slot="end">
         <ion-button (click)="cancel()">Fermer</ion-button>
@@ -40,10 +40,19 @@
         </div>
         <span class="recap-line-total elyk-amount" *appIfUnitPrice="'CASH'">{{ line.totalPrice | number:'1.0-0' }}</span>
       </div>
-      <p class="recap-hint" *ngIf="reduced">La commande sera enregistrée avec ces quantités au moment de la livraison.</p>
+      <button type="button" class="recap-add" *ngIf="canAddArticle" (click)="addArticle()"
+              data-testid="e2e-tontine-deliver-add-article">
+        <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
+        Ajouter un article de mon stock
+      </button>
+      <p class="recap-hint" *ngIf="reduced">La commande sera enregistrée avec ces articles avant la livraison.</p>
     </section>
 
     <section class="recap-balance" data-testid="e2e-tontine-deliver-recap-balance">
+      <div class="balance-row" *ngIf="ceiling !== null" data-testid="e2e-tontine-deliver-ceiling">
+        <span>Plafond de la commande</span>
+        <b class="elyk-amount">{{ ceiling | number:'1.0-0' }} FCFA</b>
+      </div>
       <div class="balance-row">
         <span>{{ labels.net }}</span>
         <b class="elyk-amount">{{ balance.netContribution | number:'1.0-0' }} FCFA</b>
@@ -64,6 +73,9 @@
 
     <p class="recap-warning" *ngIf="balance.amountDue > 0">
       Le solde ne couvre pas la commande. Complétez le solde ou réduisez la commande pour pouvoir livrer.
+    </p>
+    <p class="recap-warning recap-warning--danger" *ngIf="ceilingExcess > 0" data-testid="e2e-tontine-deliver-ceiling-excess">
+      La commande dépasse le plafond de {{ ceilingExcess | number:'1.0-0' }} FCFA : réduisez-la pour pouvoir livrer.
     </p>
     <p class="recap-warning" *ngIf="missingStock.length > 0">
       Stock tontine insuffisant : réduisez ces articles ou faites d'abord une demande de stock tontine.

@@ -40,4 +40,27 @@ describe('TontineDeliverPreviewDialogComponent', () => {
 
     expect(component.canConfirm).toBeFalse();
   });
+
+  it('never shows a ceiling below the net balance', () => {
+    const { component } = create({ netContribution: 40000, totalAmount: 30000, ceiling: 25000 });
+
+    expect(component.ceiling).toBe(40000);
+    expect(component.ceilingExcess).toBe(0);
+    expect(component.canConfirm).toBeTrue();
+  });
+
+  it('shows the ceiling excess and blocks the delivery', () => {
+    const { component } = create({ netContribution: 20000, totalAmount: 62300, ceiling: 25500 });
+
+    expect(component.ceiling).toBe(25500);
+    expect(component.ceilingExcess).toBe(36800);
+    expect(component.canConfirm).toBeFalse();
+  });
+
+  it('hides the ceiling when it is unknown', () => {
+    const { component } = create({});
+
+    expect(component.ceiling).toBeNull();
+    expect(component.ceilingExcess).toBe(0);
+  });
 });

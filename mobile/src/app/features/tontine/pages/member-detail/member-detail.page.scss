@@ -185,8 +185,40 @@ ion-card-title {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
   padding: 8px 0;
   border-bottom: 1px solid var(--elyk-border);
+}
+
+.item-info {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.qty-stepper {
+  flex: 0 0 auto;
+}
+
+/* Le montant reste sur une ligne (« 2 450 FCFA ») : c'est le nom de l'article qui passe à la ligne. */
+.item-price {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.order-ceiling .detail-row .detail-value {
+  white-space: nowrap;
+}
+
+.ceiling-excess {
+  margin: 4px 0 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fdecea;
+  color: #b3261e;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .item-name {
@@ -220,6 +252,12 @@ ion-card-title {
   display: flex;
   gap: 8px;
   margin-top: 12px;
+
+  ion-button {
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: normal;
+  }
 }
 
 .total-row {
@@ -316,5 +354,25 @@ ion-card-title {
   .balance-refund .detail-value {
     color: #1d8a3c;
     font-weight: 700;
+  }
+}
+
+.add-article-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 10px;
+  border: 1.5px dashed var(--elyk-navy);
+  border-radius: 12px;
+  background: var(--elyk-navy-pale);
+  color: var(--elyk-navy);
+  font-weight: 700;
+  font-size: 14px;
+
+  ion-icon {
+    font-size: 20px;
   }
 }

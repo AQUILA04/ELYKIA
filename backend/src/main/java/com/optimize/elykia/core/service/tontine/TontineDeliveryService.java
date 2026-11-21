@@ -207,9 +207,11 @@ public class TontineDeliveryService {
                     "Une commande est déjà enregistrée pour ce membre (réf. %s, %s FCFA). Livrez cette commande depuis la fiche du membre : la livraison directe est refusée et signalée au gestionnaire.",
                     reference, amount);
             case BALANCE_EXCEEDED -> String.format(
-                    "Une commande de %s FCFA (réf. %s) est déjà enregistrée pour ce membre. Avec cette seconde commande (%s FCFA), le total dépasse le solde prévisionnel (%s FCFA) : elle est refusée et signalée au gestionnaire.",
+                    "Une commande de %s FCFA (réf. %s) est déjà enregistrée pour ce membre. Avec cette seconde commande (%s FCFA), le total (%s FCFA) dépasse le plafond (%s FCFA) de %s FCFA : elle est refusée et signalée au gestionnaire.",
                     amount, reference, formatAmount(incoming.amount()),
-                    formatAmount(projectedBalanceCalculator.project(member)));
+                    formatAmount(combinedOf(current, incoming)),
+                    formatAmount(projectedBalanceCalculator.project(member)),
+                    formatAmount(combinedOf(current, incoming) - projectedBalanceCalculator.project(member)));
             case ORDER_MERGED -> "Commande ajoutée à la commande déjà enregistrée.";
         };
     }
@@ -267,8 +269,15 @@ public class TontineDeliveryService {
         return isManager(user) || parameterService.isEnabled(AUTO_VALIDATION_PARAMETER);
     }
 
-    private static String formatAmount(Double value) {
-        return String.format(java.util.Locale.FRANCE, "%,.0f", value != null ? value : 0.0);
+    private static double combinedOf(TontineDelivery current, TontineDeliveryConflictService.Incoming incoming) {
+        return (current.getTotalAmount() != null ? current.getTotalAmount() : 0.0)
+                + (incoming.amount() != null ? incoming.amount() : 0.0);
+    }
+
+    /** Montant au format français, espace simple comme séparateur des milliers : « 12 800 ». */
+    public static String formatAmount(Double value) {
+        String formatted = String.format(java.util.Locale.FRANCE, "%,.0f", value != null ? value : 0.0);
+        return formatted.replace(' ', ' ').replace(' ', ' ');
     }
 
     private TontineDeliveryDto persistNewDelivery(TontineMember member, CreateDeliveryDto dto) {
@@ -436,8 +445,8 @@ public class TontineDeliveryService {
         double total = delivery.getTotalAmount() != null ? delivery.getTotalAmount() : 0.0;
         if (TontineProjectedBalanceCalculator.exceeds(total, available)) {
             throw new CustomValidationException(String.format(
-                    "Le solde réel (%.2f) ne couvre pas la commande (%.2f). Complétez le solde ou réduisez la commande.",
-                    available, total));
+                    "Le solde net cotisé (%s FCFA) ne couvre pas la commande (%s FCFA) : il manque %s FCFA. Complétez le solde ou réduisez la commande.",
+                    formatAmount(available), formatAmount(total), formatAmount(total - available)));
         }
         delivery.setRemainingBalance(available - total);
 
@@ -568,11 +577,20 @@ public class TontineDeliveryService {
             if (metricsPublisher != null && member.getClient() != null) {
                 metricsPublisher.tontineDeliveryAmountExceeded(member.getClient().getCollector());
             }
-            throw new CustomValidationException(String.format(
-                    "Le montant total (%.2f) dépasse le solde prévisionnel (%.2f)",
-                    totalAmount, projected));
+            throw new CustomValidationException(ceilingExceededMessage(totalAmount, projected));
         }
         return projected;
+    }
+
+    /**
+     * Message lu tel quel par le commercial sur le terrain : plafond, montant demandé et dépassement,
+     * en francs CFA au format français.
+     */
+    public static String ceilingExceededMessage(double totalAmount, double ceiling) {
+        return String.format(
+                "La commande (%s FCFA) dépasse le plafond de ce membre (%s FCFA) de %s FCFA. "
+                        + "Le plafond est le plus grand du solde prévisionnel et du solde net cotisé. Réduisez la commande.",
+                formatAmount(totalAmount), formatAmount(ceiling), formatAmount(totalAmount - ceiling));
     }
 
     private double availableOf(TontineMember member) {

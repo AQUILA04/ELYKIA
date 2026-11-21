@@ -45,3 +45,54 @@ export function displayedTontineDeliveryQuantity(
     ? (item.packCount || 0)
     : item.quantity;
 }
+
+/** Article ajouté depuis la fenêtre « Ajouter un article » (stock tontine ou catalogue). */
+export interface TontineLinePick {
+  articleId: string;
+  articleName: string;
+  unitPrice: number;
+}
+
+/**
+ * Ajoute une unité de l'article à la commande en cours d'édition : la ligne à l'unité du même article
+ * est augmentée, sinon une nouvelle ligne est créée. La liste d'origine n'est pas modifiée.
+ */
+export function addTontineLinePick<T extends TontineDeliveryItem>(
+  lines: T[],
+  pick: TontineLinePick,
+  tontineDeliveryId: string,
+  newId: () => string = defaultLineId
+): T[] {
+  const index = lines.findIndex(line => String(line.articleId) === String(pick.articleId)
+    && (!line.salePackMode || line.salePackMode === 'UNIT'));
+  if (index >= 0) {
+    const next = stepTontineDeliveryItem(lines[index], 1);
+    return lines.map((line, i) => (i === index && next ? next : line));
+  }
+  const unitPrice = Number(pick.unitPrice) || 0;
+  const added = {
+    id: newId(),
+    tontineDeliveryId,
+    articleId: String(pick.articleId),
+    articleName: pick.articleName,
+    quantity: 1,
+    unitPrice,
+    totalPrice: unitPrice,
+    salePackMode: 'UNIT'
+  } as T;
+  return [...lines, added];
+}
+
+/** Quantités par article (unités) d'une commande, pour la fenêtre d'ajout. */
+export function tontineQuantitiesByArticle(lines: Array<Pick<TontineDeliveryItem, 'articleId' | 'quantity'>>): Record<string, number> {
+  return lines.reduce((acc, line) => {
+    const key = String(line.articleId);
+    acc[key] = (acc[key] ?? 0) + (Number(line.quantity) || 0);
+    return acc;
+  }, {} as Record<string, number>);
+}
+
+function defaultLineId(): string {
+  const random = globalThis.crypto?.randomUUID?.();
+  return random ?? `tdi-new-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
