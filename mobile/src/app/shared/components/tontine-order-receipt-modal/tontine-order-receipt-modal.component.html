@@ -45,6 +45,9 @@
         <div class="lbl">Dates</div>
         <strong>{{ data.requestDate | date:'dd/MM/yyyy' }}</strong>
         <span>{{ data.requestDate | date:'HH:mm' }} · {{ statusLabel }}</span>
+        <span *ngIf="data.plannedDeliveryDate" data-testid="e2e-tontine-order-receipt-planned-date">
+          Livraison prévue le {{ data.plannedDeliveryDate | date:'dd/MM/yyyy' }}
+        </span>
       </div>
     </section>
 

@@ -257,3 +257,22 @@ mat-dialog-actions {
   color: #c75000;
   font-weight: 700;
 }
+.planned-date {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #003366;
+  }
+
+  input {
+    padding: 6px 10px;
+    border: 1px solid #dde3ec;
+    border-radius: 8px;
+    font-size: 13px;
+  }
+}

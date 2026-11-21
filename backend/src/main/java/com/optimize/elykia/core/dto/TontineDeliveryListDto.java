@@ -23,6 +23,8 @@ public class TontineDeliveryListDto {
     private String authenticityCode;
     private LocalDateTime deliveryDate;
     private LocalDateTime requestDate;
+    /** Date de livraison prévue, optionnelle. */
+    private java.time.LocalDate plannedDeliveryDate;
     private Double totalAmount;
     private Double remainingBalance;
     private String commercialUsername;

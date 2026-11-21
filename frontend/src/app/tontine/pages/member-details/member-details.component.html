@@ -566,6 +566,10 @@
         <span class="label">Commercial</span>
         <span class="value">{{ member.delivery?.commercialUsername || '—' }}</span>
       </div>
+      <div class="info-row" *ngIf="member.delivery?.plannedDeliveryDate" data-testid="e2e-tontine-planned-date-value">
+        <span class="label">Livraison prévue le</span>
+        <span class="value mono">{{ member.delivery?.plannedDeliveryDate | date:'dd/MM/yyyy' }}</span>
+      </div>
       <div class="info-row" data-testid="e2e-tontine-order-net-contribution">
         <span class="label">{{ member.deliveryStatus === 'DELIVERED' ? 'Total cotisé (net)' : 'Solde net cotisé' }}</span>
         <span class="value">{{ formatCurrency(member.delivery?.netContribution ?? 0) }}</span>

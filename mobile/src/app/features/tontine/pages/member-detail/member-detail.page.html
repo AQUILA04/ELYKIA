@@ -122,6 +122,10 @@
           <span class="detail-label">Demandée le</span>
           <span class="detail-value">{{ formatDate(vm.delivery.requestDate) }}</span>
         </div>
+        <div class="detail-row" *ngIf="vm.delivery.plannedDeliveryDate" data-testid="e2e-tontine-planned-date-value">
+          <span class="detail-label">Livraison prévue le</span>
+          <span class="detail-value">{{ formatDate(vm.delivery.plannedDeliveryDate) }}</span>
+        </div>
         <div class="detail-row" *ngIf="vm.delivery.deliveryDate">
           <span class="detail-label">Livrée le</span>
           <span class="detail-value">{{ formatDate(vm.delivery.deliveryDate) }}</span>

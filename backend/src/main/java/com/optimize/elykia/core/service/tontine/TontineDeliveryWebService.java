@@ -160,6 +160,7 @@ public class TontineDeliveryWebService {
                 .authenticityCode(delivery.getAuthenticityCode())
                 .deliveryDate(delivery.getDeliveryDate())
                 .requestDate(delivery.getRequestDate())
+                .plannedDeliveryDate(delivery.getPlannedDeliveryDate())
                 .totalAmount(delivery.getTotalAmount())
                 .remainingBalance(delivery.getRemainingBalance())
                 .commercialUsername(delivery.getCommercialUsername())

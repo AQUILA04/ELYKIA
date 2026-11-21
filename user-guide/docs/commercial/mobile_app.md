@@ -280,7 +280,8 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
 
 #### Enregistrer une commande (session ouverte ou clôturée)
 
-* Touchez **Valider**, puis **Commande**. Le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
+* Touchez **Valider**, puis **Commande**. La fenêtre de confirmation propose une **date de livraison prévue**, facultative : choisissez le jour convenu avec la membre, ou laissez le champ vide. Touchez **Confirmer** : le dossier passe au statut **Commande** et votre stock n'est pas encore touché.
+* La date prévue s'affiche sur le reçu de commande et sur la fiche de la membre (**Livraison prévue le**). Elle est transmise à l'agence à la synchronisation.
 * L'aperçu du reçu s'ouvre. Il reprend la référence, la date, la membre, les articles, les quantités et le montant de la commande. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
 * Sous le montant, le reçu indique le **Solde net cotisé** de la membre, puis :
   * **Reste à payer** quand la commande dépasse ce solde : c'est le complément à encaisser avant la remise ;

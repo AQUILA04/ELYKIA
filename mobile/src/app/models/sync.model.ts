@@ -403,6 +403,8 @@ export interface TontineDeliverySyncRequest {
   reference?: string | null;
   authenticityCode?: string | null;
   requestDate: any;
+  /** Date de livraison prévue (AAAA-MM-JJ), facultative. */
+  plannedDeliveryDate?: string | null;
   items: TontineDeliveryItemSyncRequest[];
   operationConsentCode?: string | null;
   syncConsentCode?: string | null;

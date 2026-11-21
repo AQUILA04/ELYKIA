@@ -347,7 +347,9 @@
             <td>
                 <div class="card-lbl">Dates</div>
                 <div class="card-strong" th:text="${doc.orderDate}">07/11/2026 10:00</div>
-                <div class="card-muted">Commande tontine</div>
+                <div class="card-muted" th:if="${doc.plannedDeliveryDate != null}"
+                     th:text="'Livraison prévue le ' + ${doc.plannedDeliveryDate}">Livraison prévue le 15/12/2026</div>
+                <div class="card-muted" th:unless="${doc.plannedDeliveryDate != null}">Commande tontine</div>
             </td>
         </tr>
     </table>

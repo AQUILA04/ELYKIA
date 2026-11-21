@@ -109,6 +109,30 @@ class TontineOrderReceiptRenderingTest {
     }
 
     @Test
+    void orderShowsThePlannedDeliveryDate() {
+        member.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+        member.setAvailableContribution(40_000.0);
+        delivery.setTotalAmount(30_000.0);
+        delivery.setPlannedDeliveryDate(java.time.LocalDate.of(2026, 12, 15));
+
+        String html = render();
+
+        assertTrue(html.contains("Livraison prévue le 15/12/2026"));
+    }
+
+    @Test
+    void orderWithoutPlannedDateKeepsTheDefaultLabel() {
+        member.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+        member.setAvailableContribution(40_000.0);
+        delivery.setTotalAmount(30_000.0);
+
+        String html = render();
+
+        assertFalse(html.contains("Livraison prévue le"));
+        assertTrue(html.contains("Commande tontine"));
+    }
+
+    @Test
     void receiptStillRendersAsPdf() {
         member.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
         member.setAvailableContribution(40_000.0);

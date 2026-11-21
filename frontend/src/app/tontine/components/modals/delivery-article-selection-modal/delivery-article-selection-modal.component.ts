@@ -357,6 +357,10 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
     return formatCurrency(amount);
   }
 
+  /** Date de livraison prévue (facultative), saisie à la création de la commande. */
+  plannedDeliveryDate = '';
+  readonly today = new Date().toISOString().split('T')[0];
+
   onCancel(): void {
     this.dialogRef.close();
   }
@@ -379,7 +383,8 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
 
     const createDeliveryDto: CreateDeliveryDto = {
       tontineMemberId: this.member.id,
-      items
+      items,
+      ...(this.plannedDeliveryDate ? { plannedDeliveryDate: this.plannedDeliveryDate } : {})
     };
 
     this.loading = true;

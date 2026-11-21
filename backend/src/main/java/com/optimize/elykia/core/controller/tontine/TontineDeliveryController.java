@@ -13,6 +13,7 @@ import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryWebService;
 import com.optimize.elykia.core.service.tontine.TontineOrderReceiptPdfService;
 import com.optimize.elykia.core.service.tontine.TontineStockReservationService;
+import com.optimize.elykia.core.service.tontine.TontinePlannedDeliveriesPdfService;
 import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryConflictService;
 import com.optimize.elykia.core.util.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,6 +48,7 @@ public class TontineDeliveryController {
     private final TontineDeliveryWebService deliveryWebService;
     private final TontineOrderReceiptPdfService orderReceiptPdfService;
     private final TontineStockReservationService stockReservationService;
+    private final TontinePlannedDeliveriesPdfService plannedDeliveriesPdfService;
     private final TontineDeliveryConflictService conflictService;
 
     @PostMapping
@@ -177,6 +179,18 @@ public class TontineDeliveryController {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(stockReservationService.reservationsFor(commercial)),
                 HttpStatus.OK);
+    }
+
+    @GetMapping("/planned/pdf")
+    @Operation(summary = "PDF des membres à livrer à une date prévue (commandes non encore remises)")
+    public ResponseEntity<byte[]> downloadPlannedDeliveries(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @RequestParam(required = false) String commercial) {
+        byte[] pdf = plannedDeliveriesPdfService.generate(date, commercial);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=membres-a-livrer-" + date + ".pdf")
+                .contentType(MediaType.APPLICATION_PDF)
+                .body(pdf);
     }
 
     @GetMapping("/{id}/receipt")

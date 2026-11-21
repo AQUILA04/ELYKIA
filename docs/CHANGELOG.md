@@ -9,6 +9,11 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (date de livraison planifiée)
+
+### Changed
+
+- **Guide utilisateur —** web : date de livraison prévue à la préparation de la livraison, colonne **Prévue le** et PDF **Membres à livrer le** sur la page Livraison. Mobile : date prévue dans la confirmation de commande, sur le reçu et la fiche. Index RAG et guide HTML régénérés.
 ## Docs & Infra — 2026-11-21 (filtre stock / catalogue des commandes tontine)
 
 ### Changed
@@ -161,6 +166,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
+## Frontend — [2.62.0] — 2026-11-21
+
+### Added
+
+- **Tontine — date de livraison prévue →** champ facultatif **Date de livraison prévue** à la préparation d'une commande ; affichée sur la fiche membre (**Livraison prévue le**) et dans la colonne **Prévue le** de **Tontines > Livraison**.
+- **Tontine > Livraison →** **Membres à livrer le** (date) + **PDF** : télécharge la liste des membres à livrer ce jour-là, sans ceux déjà livrés, pour le commercial filtré ou pour tous.
 ## Frontend — [2.61.0] — 2026-11-21
 
 ### Added
@@ -542,6 +553,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.48.0] — 2026-11-21
+
+### Added
+
+- **Tontine — date de livraison prévue →** champ date facultatif dans la confirmation **Confirmer la commande** ; la date est enregistrée (SQLite v39, colonne `plannedDeliveryDate`), envoyée à la synchronisation, reprise des chargements depuis le serveur, et affichée sur la fiche membre et le reçu de commande (aperçu et ticket).
 ## Mobile — [2.47.0] — 2026-11-21
 
 ### Changed
@@ -799,6 +815,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.63.0] — 2026-11-21
+
+### Added
+
+- **Tontine — date de livraison planifiée →** colonne `tontine_delivery.planned_delivery_date` (migration `V045`, index partiel) ; champ facultatif `plannedDeliveryDate` à la création (`CreateDeliveryDto`), exposé par `TontineDeliveryDto`, `TontineDeliveryListDto` et `TontineDeliveryRespDto` (chargements mobiles). Une commande complétée par une seconde saisie prend la date de celle-ci si la première n'en avait pas. Le reçu PDF affiche « Livraison prévue le ».
+- **PDF des membres à livrer →** `GET /api/v1/tontines/deliveries/planned/pdf?date=AAAA-MM-JJ&commercial=` (`TontinePlannedDeliveriesPdfService`, gabarit `tontine-planned-deliveries.html` au design system des rapports) : commandes en attente ou validées prévues ce jour-là, sans les membres déjà livrés, triées par commercial, quartier et nom, avec articles, montant, solde net, reste à payer et case « Remis ». Un commercial ne reçoit que ses commandes.
 ## Backend — [1.62.0] — 2026-11-21
 
 ### Added

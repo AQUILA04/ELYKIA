@@ -156,6 +156,12 @@
     </table>
   </div>
 
+  <div class="planned-date" *ngIf="data.replaceDeliveryId == null">
+    <label for="planned-delivery-date">Date de livraison prévue (facultatif)</label>
+    <input id="planned-delivery-date" type="date" lang="fr-FR" [(ngModel)]="plannedDeliveryDate" [min]="today"
+           data-testid="e2e-tontine-planned-date">
+  </div>
+
   <!-- Message d'erreur -->
   <div *ngIf="remainingBalance < 0" class="error-message">
     <mat-icon>error</mat-icon>
