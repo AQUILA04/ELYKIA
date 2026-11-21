@@ -5,8 +5,8 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientActivationStatus;
-import com.optimize.elykia.core.dto.TontineMemberDto;
-import com.optimize.elykia.core.dto.TontineMemberRespDto;
+import com.optimize.elykia.tontine.web.dto.TontineMemberDto;
+import com.optimize.elykia.tontine.web.dto.TontineMemberRespDto;
 import com.optimize.elykia.core.dto.customer.CustomerArticleDto;
 import com.optimize.elykia.core.dto.customer.CustomerArticleTypeDto;
 import com.optimize.elykia.core.dto.customer.CustomerMobileMoneyRecipientDto;
@@ -16,18 +16,18 @@ import com.optimize.elykia.core.dto.customer.CustomerTontineJoinResponse;
 import com.optimize.elykia.core.dto.customer.CustomerTontineSessionDto;
 import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.customer.CustomerTontineMmSubmission;
-import com.optimize.elykia.core.entity.tontine.TontineMember;
-import com.optimize.elykia.core.entity.tontine.TontineSession;
+import com.optimize.elykia.tontine.domain.TontineMember;
+import com.optimize.elykia.tontine.domain.TontineSession;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
-import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
-import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
-import com.optimize.elykia.core.enumaration.TontineSessionStatus;
+import com.optimize.elykia.tontine.domain.TontineMemberFrequency;
+import com.optimize.elykia.tontine.domain.TontineMemberRegistrationSource;
+import com.optimize.elykia.tontine.domain.TontineSessionStatus;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditArticlesRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
-import com.optimize.elykia.core.repository.TontineCollectionRepository;
-import com.optimize.elykia.core.repository.TontineMemberRepository;
-import com.optimize.elykia.core.repository.TontineSessionRepository;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineSessionRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
 import com.optimize.elykia.core.service.adhesion.AdhesionService;
 import com.optimize.elykia.core.service.adhesion.CustomerAdhesionRequestService;
@@ -35,8 +35,8 @@ import com.optimize.elykia.sale.application.OrderService;
 import com.optimize.elykia.inventory.application.ArticlePhotoService;
 import com.optimize.elykia.inventory.domain.ArticlePhotoView;
 import com.optimize.elykia.inventory.application.ArticlesService;
-import com.optimize.elykia.core.service.tontine.TontineService;
-import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
+import com.optimize.elykia.tontine.application.TontineService;
+import com.optimize.elykia.tontine.domain.TontineAmountHistoryHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -321,6 +321,7 @@ class CustomerPortalServiceTest {
                 creditArticlesRepository,
                 tontineMemberRepository,
                 tontineCollectionRepository,
+                mock(com.optimize.elykia.core.repository.CustomerTontineQueryRepository.class),
                 tontineSessionRepository,
                 tontineService,
                 commercialMobileMoneyConfigService,

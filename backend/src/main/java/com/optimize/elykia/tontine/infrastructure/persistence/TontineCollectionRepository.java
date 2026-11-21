@@ -1,0 +1,446 @@
+package com.optimize.elykia.tontine.infrastructure.persistence;
+
+import com.optimize.common.entities.enums.State;
+import com.optimize.common.entities.repository.GenericRepository;
+import com.optimize.elykia.tontine.web.dto.TontineCollectionRespDto;
+import com.optimize.elykia.tontine.web.dto.TontineMemberMonthlyAggregateDto;
+import com.optimize.elykia.tontine.web.dto.TontineMemberMonthlyByCommercialAggregateDto;
+import com.optimize.elykia.tontine.domain.TontineCollection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.Optional;
+
+public interface TontineCollectionRepository extends GenericRepository<TontineCollection, Long> {
+
+    Page<TontineCollection> findByTontineMember_Id(Long memberId, Pageable pageable);
+    Page<TontineCollection> findByTontineMember_IdAndState(Long memberId, State state, Pageable pageable);
+    Page<TontineCollection> findByTontineMember_IdAndTontineMember_Client_IdAndState(
+            Long memberId,
+            Long clientId,
+            State state,
+            Pageable pageable);
+    java.util.List<TontineCollection> findByTontineMember_IdAndStateOrderByCollectionDateAscIdAsc(Long memberId, State state);
+
+    java.util.List<TontineCollection> findByTontineMember_IdInAndStateOrderByCollectionDateAscIdAsc(
+            java.util.Collection<Long> memberIds, State state);
+
+    long countByTontineMember_IdAndCollectionDateBetweenAndState(Long memberId, java.time.LocalDateTime start, java.time.LocalDateTime end, State state);
+
+    @Query("""
+            SELECT new com.optimize.elykia.tontine.web.dto.TontineMemberMonthlyAggregateDto(
+                tm.id,
+                YEAR(tc.collectionDate),
+                MONTH(tc.collectionDate),
+                COUNT(tc.id),
+                COALESCE(SUM(tc.amount), 0)
+            )
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            JOIN tm.tontineSession s
+            JOIN tm.client c
+            WHERE s.year = :year
+              AND c.tontineCollector = :commercial
+              AND tc.state = :state
+            GROUP BY tm.id, YEAR(tc.collectionDate), MONTH(tc.collectionDate)
+            """)
+    java.util.List<TontineMemberMonthlyAggregateDto> sumMonthlyBySessionYearAndTontineCollector(
+            @Param("year") Integer year,
+            @Param("commercial") String commercial,
+            @Param("state") State state);
+
+    @Query("""
+            SELECT new com.optimize.elykia.tontine.web.dto.TontineMemberMonthlyAggregateDto(
+                tm.id,
+                YEAR(tc.collectionDate),
+                MONTH(tc.collectionDate),
+                COUNT(tc.id),
+                COALESCE(SUM(tc.amount), 0)
+            )
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            JOIN tm.tontineSession s
+            JOIN tm.client c
+            WHERE s.year = :year
+              AND c.tontineCollector IN :collectors
+              AND tc.state = :state
+            GROUP BY tm.id, YEAR(tc.collectionDate), MONTH(tc.collectionDate)
+            """)
+    java.util.List<TontineMemberMonthlyAggregateDto> sumMonthlyBySessionYearAndTontineCollectors(
+            @Param("year") Integer year,
+            @Param("collectors") java.util.List<String> collectors,
+            @Param("state") State state);
+
+    @Query("""
+            SELECT new com.optimize.elykia.tontine.web.dto.TontineMemberMonthlyAggregateDto(
+                tm.id,
+                YEAR(tc.collectionDate),
+                MONTH(tc.collectionDate),
+                COUNT(tc.id),
+                COALESCE(SUM(tc.amount), 0)
+            )
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            WHERE tm.id = :memberId
+              AND tc.state = :state
+            GROUP BY tm.id, YEAR(tc.collectionDate), MONTH(tc.collectionDate)
+            """)
+    java.util.List<TontineMemberMonthlyAggregateDto> sumMonthlyByMemberId(
+            @Param("memberId") Long memberId,
+            @Param("state") State state);
+
+    @Query("""
+            SELECT new com.optimize.elykia.tontine.web.dto.TontineMemberMonthlyByCommercialAggregateDto(
+                tm.id,
+                tc.commercialUsername,
+                YEAR(tc.collectionDate),
+                MONTH(tc.collectionDate),
+                COUNT(tc.id),
+                COALESCE(SUM(tc.amount), 0)
+            )
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            WHERE tm.id = :memberId
+              AND tc.state = :state
+              AND tc.commercialUsername IS NOT NULL
+            GROUP BY tm.id, tc.commercialUsername, YEAR(tc.collectionDate), MONTH(tc.collectionDate)
+            """)
+    java.util.List<TontineMemberMonthlyByCommercialAggregateDto> sumMonthlyByMemberIdAndCommercial(
+            @Param("memberId") Long memberId,
+            @Param("state") State state);
+
+    @Query("""
+            SELECT new com.optimize.elykia.tontine.web.dto.TontineMemberMonthlyByCommercialAggregateDto(
+                tm.id,
+                tc.commercialUsername,
+                YEAR(tc.collectionDate),
+                MONTH(tc.collectionDate),
+                COUNT(tc.id),
+                COALESCE(SUM(tc.amount), 0)
+            )
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            JOIN tm.tontineSession s
+            JOIN tm.client c
+            WHERE s.year = :year
+              AND c.tontineCollector IN :collectors
+              AND tc.state = :state
+              AND tc.commercialUsername IS NOT NULL
+            GROUP BY tm.id, tc.commercialUsername, YEAR(tc.collectionDate), MONTH(tc.collectionDate)
+            """)
+    java.util.List<TontineMemberMonthlyByCommercialAggregateDto> sumMonthlyBySessionYearAndCommercialForCollectors(
+            @Param("year") Integer year,
+            @Param("collectors") java.util.List<String> collectors,
+            @Param("state") State state);
+
+    @Query("""
+            SELECT tm.id, tc.commercialUsername, MIN(tc.collectionDate)
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            WHERE tm.id IN :memberIds
+              AND tc.state = :state
+              AND tc.commercialUsername IS NOT NULL
+            GROUP BY tm.id, tc.commercialUsername
+            """)
+    java.util.List<Object[]> findFirstCollectionDateByMemberAndCommercial(
+            @Param("memberIds") java.util.Collection<Long> memberIds,
+            @Param("state") State state);
+
+    @Query("SELECT SUM(tc.amount) FROM TontineCollection tc WHERE tc.tontineMember.id = :memberId AND tc.isDeliveryCollection = true AND tc.state = :state")
+    Double sumDeliveryCollectionsByMember(@Param("memberId") Long memberId, @Param("state") State state);
+
+    @Query("SELECT SUM(tc.amount) FROM TontineCollection tc WHERE tc.tontineMember.tontineSession.id = :sessionId AND tc.isDeliveryCollection = true AND tc.state = :state")
+    Double sumDeliveryCollectionsBySession(@Param("sessionId") Long sessionId, @Param("state") State state);
+
+    @Query("""
+            SELECT SUM(tc.amount) FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            JOIN tm.client c
+            WHERE tm.tontineSession.id = :sessionId
+              AND tc.isDeliveryCollection = true
+              AND tc.state = :state
+              AND c.tontineCollector = :commercial
+            """)
+    Double sumDeliveryCollectionsBySessionForCommercial(
+            @Param("sessionId") Long sessionId,
+            @Param("state") State state,
+            @Param("commercial") String commercial);
+
+    boolean existsByReference(String reference);
+    Optional<TontineCollection> findByReference(String reference);
+
+    @Query("SELECT new com.optimize.elykia.tontine.web.dto.TontineCollectionRespDto(" +
+           "tc.id, " +
+           "tm.id, " +
+           "tc.amount, " +
+           "tc.collectionDate, " +
+           "tc.commercialUsername, " +
+           "tc.isDeliveryCollection, " +
+           "tc.reference, " +
+           "tc.operationConsentCode, " +
+           "tc.confirmedAmount, " +
+           "tc.syncConsentCode, " +
+           "tc.societyShareAmount, " +
+           "tc.advanceToNextMonth, " +
+           "tc.contributionMonth) " +
+           "FROM TontineCollection tc " +
+           "JOIN tc.tontineMember tm " +
+           "JOIN tm.tontineSession s " +
+           "WHERE s.year = :year " +
+           "AND (:commercial IS NULL OR tc.commercialUsername = :commercial) " +
+           "AND tc.state = :state")
+    Page<TontineCollectionRespDto> findCollectionsDto(
+            @Param("year") Integer year,
+            @Param("commercial") String commercial,
+            @Param("state") State state,
+            Pageable pageable);
+
+    @Query("SELECT new com.optimize.elykia.tontine.web.dto.TontineCollectionWebDto(" +
+            "tc.id, tc.reference, CONCAT(cl.firstname, ' ', cl.lastname), tc.commercialUsername, " +
+            "tc.amount, tc.collectionDate, tc.operationConsentCode, tc.confirmedAmount, tc.syncConsentCode) " +
+            "FROM TontineCollection tc " +
+            "LEFT JOIN tc.tontineMember tm " +
+            "LEFT JOIN tm.client cl " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.collectionDate >= :dateFrom " +
+            "AND tc.collectionDate <= :dateTo")
+    Page<com.optimize.elykia.tontine.web.dto.TontineCollectionWebDto> findWebDtosByDateRange(
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo,
+            Pageable pageable);
+
+    @Query("SELECT new com.optimize.elykia.tontine.web.dto.TontineCollectionWebDto(" +
+            "tc.id, tc.reference, CONCAT(cl.firstname, ' ', cl.lastname), tc.commercialUsername, " +
+            "tc.amount, tc.collectionDate, tc.operationConsentCode, tc.confirmedAmount, tc.syncConsentCode) " +
+            "FROM TontineCollection tc " +
+            "LEFT JOIN tc.tontineMember tm " +
+            "LEFT JOIN tm.client cl " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.commercialUsername = :commercial " +
+            "AND tc.collectionDate >= :dateFrom " +
+            "AND tc.collectionDate <= :dateTo")
+    Page<com.optimize.elykia.tontine.web.dto.TontineCollectionWebDto> findWebDtosByCommercialAndDateRange(
+            @Param("commercial") String commercial,
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo,
+            Pageable pageable);
+
+    @Query("SELECT sum(tc.amount) FROM TontineCollection tc " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Double sumAmountByDateRange(
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
+
+    @Query("SELECT count(tc.id) FROM TontineCollection tc " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Long countCollectionsByDateRange(
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
+
+    @Query("SELECT sum(tc.amount) FROM TontineCollection tc " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.commercialUsername = :commercial " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Double sumAmountByCommercialAndDateRange(
+            @Param("commercial") String commercial,
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
+
+    @Query("SELECT count(tc.id) FROM TontineCollection tc " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.commercialUsername = :commercial " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Long countCollectionsByCommercialAndDateRange(
+            @Param("commercial") String commercial,
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
+
+    @Query("SELECT COALESCE(SUM(tc.societyShareAmount), 0) FROM TontineCollection tc " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Double sumSocietyShareByDateRange(
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
+
+    @Query("SELECT COALESCE(SUM(tc.societyShareAmount), 0) FROM TontineCollection tc " +
+            "WHERE tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "AND tc.commercialUsername = :commercial " +
+            "AND tc.collectionDate >= :dateFrom AND tc.collectionDate <= :dateTo")
+    Double sumSocietyShareByCommercialAndDateRange(
+            @Param("commercial") String commercial,
+            @Param("dateFrom") java.time.LocalDateTime dateFrom,
+            @Param("dateTo") java.time.LocalDateTime dateTo);
+
+    @Query("SELECT tc FROM TontineCollection tc " +
+            "JOIN FETCH tc.tontineMember tm " +
+            "JOIN FETCH tm.client c " +
+            "JOIN tm.tontineSession s " +
+            "WHERE s.id = :sessionId AND tc.state = com.optimize.common.entities.enums.State.ENABLED " +
+            "ORDER BY c.tontineCollector, c.quarter, tc.collectionDate")
+    java.util.List<TontineCollection> findAllBySessionId(@Param("sessionId") Long sessionId);
+
+    @org.springframework.data.jpa.repository.Modifying(clearAutomatically = true)
+    @Query("DELETE FROM TontineCollection tc WHERE tc.tontineMember.tontineSession.id = :sessionId")
+    void deleteAllBySessionId(@Param("sessionId") Long sessionId);
+
+    @Query("""
+            SELECT COALESCE(SUM(tc.amount), 0), COUNT(tc.id)
+            FROM TontineCollection tc
+            WHERE UPPER(tc.commercialUsername) = UPPER(:commercial)
+              AND tc.state = :state
+              AND tc.collectionDate >= :fromDate
+              AND tc.collectionDate < :toDate
+            """)
+    java.util.List<Object[]> sumYearlyCollectionsByCommercial(
+            @Param("commercial") String commercial,
+            @Param("state") State state,
+            @Param("fromDate") java.time.LocalDateTime fromDate,
+            @Param("toDate") java.time.LocalDateTime toDate);
+
+    @Query("""
+            SELECT COALESCE(SUM(tc.amount), 0), COUNT(tc.id)
+            FROM TontineCollection tc
+            WHERE UPPER(tc.commercialUsername) = UPPER(:commercial)
+              AND tc.state = :state
+              AND tc.collectionDate >= :dayStart
+              AND tc.collectionDate < :dayEnd
+            """)
+    java.util.List<Object[]> sumByCommercialAndCollectionDate(
+            @Param("commercial") String commercial,
+            @Param("state") State state,
+            @Param("dayStart") java.time.LocalDateTime dayStart,
+            @Param("dayEnd") java.time.LocalDateTime dayEnd);
+
+    @Query("""
+            SELECT COALESCE(SUM(tc.amount), 0)
+            FROM TontineCollection tc
+            WHERE UPPER(tc.commercialUsername) = UPPER(:commercial)
+              AND tc.state = :state
+              AND tc.createdDate >= :dayStart
+              AND tc.createdDate < :dayEnd
+            """)
+    Double sumAmountByCommercialAndCreatedDate(
+            @Param("commercial") String commercial,
+            @Param("state") State state,
+            @Param("dayStart") java.time.LocalDateTime dayStart,
+            @Param("dayEnd") java.time.LocalDateTime dayEnd);
+
+    /**
+     * Rattrapages saisis le jour ({@code createdDate}) dont la date métier
+     * ({@code collectionDate}) n'est pas ce jour.
+     */
+    @Query("""
+            SELECT COALESCE(SUM(tc.amount), 0), COUNT(tc.id)
+            FROM TontineCollection tc
+            WHERE UPPER(tc.commercialUsername) = UPPER(:commercial)
+              AND tc.state = :state
+              AND tc.createdDate >= :dayStart
+              AND tc.createdDate < :dayEnd
+              AND (tc.collectionDate < :dayStart OR tc.collectionDate >= :dayEnd)
+            """)
+    java.util.List<Object[]> sumCatchupByCommercialAndCreatedDate(
+            @Param("commercial") String commercial,
+            @Param("state") State state,
+            @Param("dayStart") java.time.LocalDateTime dayStart,
+            @Param("dayEnd") java.time.LocalDateTime dayEnd);
+
+    /**
+     * Lignes de rattrapage saisies le jour : date métier et montant.
+     */
+    @Query("""
+            SELECT tc.collectionDate, tc.amount
+            FROM TontineCollection tc
+            WHERE UPPER(tc.commercialUsername) = UPPER(:commercial)
+              AND tc.state = :state
+              AND tc.createdDate >= :dayStart
+              AND tc.createdDate < :dayEnd
+              AND (tc.collectionDate < :dayStart OR tc.collectionDate >= :dayEnd)
+            """)
+    java.util.List<Object[]> findCatchupRowsByCommercialAndCreatedDate(
+            @Param("commercial") String commercial,
+            @Param("state") State state,
+            @Param("dayStart") java.time.LocalDateTime dayStart,
+            @Param("dayEnd") java.time.LocalDateTime dayEnd);
+
+    /**
+     * Rattrapages saisis pendant la période pour une cotisation hors période, par commercial.
+     * Ligne : [0] commercial, [1] montant.
+     */
+    @Query("""
+            SELECT tc.commercialUsername, COALESCE(SUM(tc.amount), 0)
+            FROM TontineCollection tc
+            WHERE tc.state = :state
+              AND tc.createdDate >= :periodStart
+              AND tc.createdDate < :periodEnd
+              AND (tc.collectionDate < :periodStart OR tc.collectionDate >= :periodEnd)
+            GROUP BY tc.commercialUsername
+            """)
+    java.util.List<Object[]> sumCatchupEnteredByCommercial(
+            @Param("state") State state,
+            @Param("periodStart") java.time.LocalDateTime periodStart,
+            @Param("periodEnd") java.time.LocalDateTime periodEnd);
+
+    @Query("""
+            SELECT new com.optimize.elykia.tontine.web.dto.TontineMemberContributionByCommercialDto(
+                tc.commercialUsername,
+                COUNT(tc.id),
+                COALESCE(SUM(tc.amount), 0)
+            )
+            FROM TontineCollection tc
+            WHERE tc.tontineMember.id = :memberId
+              AND tc.state = :state
+            GROUP BY tc.commercialUsername
+            ORDER BY SUM(tc.amount) DESC
+            """)
+    java.util.List<com.optimize.elykia.tontine.web.dto.TontineMemberContributionByCommercialDto>
+            sumContributionsByMemberAndCommercial(
+                    @Param("memberId") Long memberId,
+                    @Param("state") State state);
+
+    boolean existsByTontineMember_IdAndStateAndCommercialUsernameIgnoreCase(
+            Long memberId, State state, String commercialUsername);
+
+    @Query("""
+            SELECT COALESCE(SUM(tc.amount), 0)
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            WHERE tm.tontineSession.id = :sessionId
+              AND tc.state = :state
+              AND LOWER(tc.commercialUsername) = LOWER(:commercial)
+            """)
+    Double sumAmountBySessionAndCommercialUsername(
+            @Param("sessionId") Long sessionId,
+            @Param("state") State state,
+            @Param("commercial") String commercial);
+
+    @Query("""
+            SELECT COALESCE(SUM(tc.societyShareAmount), 0)
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            WHERE tm.tontineSession.id = :sessionId
+              AND tc.state = :state
+              AND LOWER(tc.commercialUsername) = LOWER(:commercial)
+            """)
+    Double sumSocietyShareBySessionAndCommercialUsername(
+            @Param("sessionId") Long sessionId,
+            @Param("state") State state,
+            @Param("commercial") String commercial);
+
+    @Query("""
+            SELECT COALESCE(SUM(tc.amount), 0)
+            FROM TontineCollection tc
+            JOIN tc.tontineMember tm
+            WHERE tm.tontineSession.id = :sessionId
+              AND tc.isDeliveryCollection = true
+              AND tc.state = :state
+              AND LOWER(tc.commercialUsername) = LOWER(:commercial)
+            """)
+    Double sumDeliveryAmountBySessionAndCommercialUsername(
+            @Param("sessionId") Long sessionId,
+            @Param("state") State state,
+            @Param("commercial") String commercial);
+}

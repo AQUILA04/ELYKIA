@@ -40,7 +40,7 @@ import com.optimize.elykia.sale.web.dto.RestockNeededDto;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class PdfService {
+public class PdfService implements com.optimize.elykia.tontine.api.TontineHtmlPdfPort {
     private final TemplateEngine templateEngine;
     private final CreditService creditService;
     private final UserService userService;

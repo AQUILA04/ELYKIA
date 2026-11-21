@@ -838,6 +838,20 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [2.7.0] — 2026-11-21
+
+### Changed
+
+- **Migration DDD de `core` — Vague 6 (`tontine` & `carnet`) →** extraction complète des domaines Tontine (sessions, adhésions, cotisations, livraisons, conflits multi-tablettes, réinitialisations, stock tontine, tarifs comptant magasin, contrôles terrain carnet tontine, mouvements de compte client tontine) et Carnet / Recouvrement terrain (écarts carnet, recontrôle, plans de tournée `RecoveryFieldDayPlan`, packs terrain RM, rapports PDF chef de recouvrement) hors de `com.optimize.elykia.core` (303 fichiers déplacés via `git mv`, zéro dépendance de `tontine` sur `carnet` ou `core`, zéro dépendance de `carnet` sur `core`, zéro changement d'URL REST, de contrat JSON ou de schéma SQL/Flyway) :
+  - **`tontine` (`com.optimize.elykia.tontine`, module `OPEN`, `allowedDependencies = {"entities", "securities", "client", "shared", "notification :: api", "organization", "inventory", "finance", "sale"}`) :**
+    - `domain/` : entités JPA Tontine, Stock Tontine, `TontineCollectionResetReportDay`, `ClientAccountMovement` (`@OneToOne TontineDelivery`), enums, règles et calculateurs (`TontineAmountHistoryHelper`, `TontineOrderBalance`, etc.).
+    - `api/` : 3 ports SPI découplant `tontine` de `carnet` et `core` (`TontineCarnetRecontrolPort` implémenté directement par `carnet.application.CarnetEcartRecontrolPolicy`, `FormerPortfolioTontinePort` implémenté par `core.service.portfolio.FormerPortfolioTontinePortAdapter`, `TontineHtmlPdfPort` implémenté directement par `core.service.report.PdfService`).
+    - `application/` : services applicatifs Tontine, Stock Tontine, `ClientAccountService`, `CashSalePricingService` (implémente directement `sale.api.WarehouseCashSalePricingPort`), `TontineCatchupQueryPortAdapter` (implémente directement `finance.api.TontineCatchupQueryPort`), `TontineCreditCreationService` (`tontine → sale` unidirectionnel) + suites de tests unitaires.
+    - `infrastructure/persistence/` : dépôts JPA (requêtes lecture seule Carnet, Espace Client et Ancien Portefeuille extraites dans `carnet.infrastructure.persistence.CarnetTontineQueryRepository`, `core.repository.CustomerTontineQueryRepository` et `core.repository.FormerPortfolioTontineQueryRepository`) ; `web/` : contrôleurs, mappers MapStruct et DTOs.
+  - **`carnet` (`com.optimize.elykia.carnet`, module `OPEN` aval, `allowedDependencies = {"entities", "securities", "client", "shared", "notification :: api", "organization", "inventory", "finance", "sale", "tontine"}`) :**
+    - `domain/`, `event/`, `infrastructure/persistence/` (`CarnetTontineQueryRepository`, dépôts écarts et plans de tournée), `application/` (`CarnetEcartRecontrolPolicy` implémentant directement `CreditCarnetRecontrolPort` et `TontineCarnetRecontrolPort`, `RecoveryFieldPlanService`, `RecoveryManager*`, `CarnetEcart*`), `web/` et suites de tests.
+- **Spring Modulith & qualité →** `ModularityTests` vérifie désormais les **15 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `sale`, `tontine`, `carnet`, `recruitment`, `ai`, `apprelease`, `core`) ; zéro dépendance externe vers `core` depuis les 14 autres modules ; 1 198/1 198 tests + quality gates JaCoCo `0.8.16` (seuils inchangés, `tontine.domain` `79,7 % LINE`, `tontine.application` `53,8 % LINE`, `carnet.domain` `100 % LINE`, `carnet.application` `50,3 % LINE`) + démarrage réel PostgreSQL 15 / `ddl-auto=validate` / Flyway `V000→V045` (`49,8 s`, `/actuator/health` = `UP`) verts.
+
 ## Backend — [2.6.0] — 2026-11-21
 
 ### Changed

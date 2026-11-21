@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.report;
 
-import com.optimize.elykia.core.service.stock.StockExportService;
+import com.optimize.elykia.tontine.application.StockExportService;
 import com.optimize.elykia.sale.api.SalePdfExportPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

@@ -1,0 +1,281 @@
+package com.optimize.elykia.carnet.web;
+
+import com.optimize.common.entities.util.Response;
+import com.optimize.common.entities.util.ResponseUtil;
+import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.carnet.web.dto.CloseCreditsRequestDto;
+import com.optimize.elykia.carnet.web.dto.FieldDayPlanRequestDto;
+import com.optimize.elykia.carnet.web.dto.MonthlyRecoveryRateDto;
+import com.optimize.elykia.carnet.web.dto.RecoveryManagerActivityDto;
+import com.optimize.elykia.carnet.web.dto.RecoveryManagerReportSummaryDto;
+import com.optimize.elykia.carnet.web.dto.RmClientContactUpdateDto;
+import com.optimize.elykia.carnet.application.RecoveryManagerReportPdfService;
+import com.optimize.elykia.carnet.application.RecoveryFieldPlanService;
+import com.optimize.elykia.carnet.application.RecoveryManagerActivityService;
+import com.optimize.elykia.carnet.application.RecoveryManagerService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import com.optimize.elykia.shared.carnet.RmFieldListProgress;
+import com.optimize.elykia.sale.application.CreditLateService;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDate;
+import java.time.YearMonth;
+
+@RestController
+@RequestMapping("api/v1/recovery-manager")
+@SecurityRequirement(name = "bearerAuth")
+@RequiredArgsConstructor
+@Tag(name = "API Chef de Recouvrement")
+@CrossOrigin
+public class RecoveryManagerController {
+
+    private final RecoveryManagerService recoveryManagerService;
+    private final RecoveryManagerActivityService recoveryManagerActivityService;
+    private final RecoveryManagerReportPdfService reportPdfService;
+    private final RecoveryFieldPlanService recoveryFieldPlanService;
+    private final CreditLateService creditLateService;
+    private final UserService userService;
+
+    @PostMapping("/close-credits")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> closeCredits(@RequestBody @Valid CloseCreditsRequestDto dto) {
+        String username = userService.getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryManagerService.closeCredits(dto, username)),
+                HttpStatus.CREATED
+        );
+    }
+
+    @GetMapping("/operations")
+    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Response> getOperations(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String recoveryManagerUsername,
+            @RequestParam(required = false) String commercialUsername,
+            @PageableDefault(sort = "operationDate", direction = Sort.Direction.DESC) Pageable pageable) {
+        String username = recoveryManagerUsername;
+        if (username == null) {
+            username = userService.getCurrentUser().getUsername();
+        }
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryManagerService.getOperations(startDate, endDate, username, commercialUsername, pageable)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/report/summary")
+    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Response> getReportSummary(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String recoveryManagerUsername,
+            @RequestParam(required = false) String commercialUsername) {
+        String username = recoveryManagerUsername;
+        if (username == null) {
+            username = userService.getCurrentUser().getUsername();
+        }
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryManagerService.getReportSummary(startDate, endDate, username, commercialUsername)),
+                HttpStatus.OK
+        );
+    }
+
+    /**
+     * Contrôles carnet, vérifications et clôtures du chef sur la période du rapport.
+     * Les totaux sont le portefeuille crédit et tontine encore en cours.
+     */
+    @GetMapping("/report/activity")
+    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Response> getReportActivity(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String recoveryManagerUsername,
+            @RequestParam(required = false) String commercialUsername) {
+        String username = recoveryManagerUsername;
+        if (username == null || username.isBlank()) {
+            username = userService.getCurrentUser().getUsername();
+        }
+        RecoveryManagerActivityDto dto = recoveryManagerActivityService.getActivity(
+                startDate, endDate, username.trim(), commercialUsername);
+        return new ResponseEntity<>(ResponseUtil.successResponse(dto), HttpStatus.OK);
+    }
+
+    /**
+     * Taux de recouvrement mensuel du chef sur le portefeuille global des retards délai (live).
+     * Sans paramètre username : chef connecté. MANAGER/ADMIN peuvent cibler un chef.
+     */
+    @GetMapping("/kpi/monthly-recovery-rate")
+    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<Response> getMonthlyRecoveryRate(
+            @RequestParam(required = false) Integer year,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) String recoveryManagerUsername) {
+        YearMonth current = YearMonth.now();
+        int resolvedYear = year != null ? year : current.getYear();
+        int resolvedMonth = month != null ? month : current.getMonthValue();
+        YearMonth.of(resolvedYear, resolvedMonth); // validation IllegalArgumentException
+
+        String username = recoveryManagerUsername;
+        if (username == null || username.isBlank()) {
+            username = userService.getCurrentUser().getUsername();
+        }
+        MonthlyRecoveryRateDto dto = recoveryManagerService.getMonthlyRecoveryRate(
+                resolvedYear, resolvedMonth, username.trim());
+        return new ResponseEntity<>(ResponseUtil.successResponse(dto), HttpStatus.OK);
+    }
+
+    @GetMapping("/report/pdf")
+    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    public ResponseEntity<byte[]> getReportPdf(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
+            @RequestParam(required = false) String recoveryManagerUsername,
+            @RequestParam(required = false) String commercialUsername) {
+        String username = recoveryManagerUsername;
+        if (username == null) {
+            username = userService.getCurrentUser().getUsername();
+        }
+        byte[] pdfBytes = reportPdfService.generatePdf(startDate, endDate, username, commercialUsername);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("filename", "rapport_recouvrement_terrain.pdf");
+        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/field-plans/collector-stats")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> getCollectorStats() {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.getCollectorStats()),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/field-plans")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> createFieldPlan(@RequestBody @Valid FieldDayPlanRequestDto dto) {
+        String username = userService.getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.createOrReplacePlan(dto, username)),
+                HttpStatus.CREATED
+        );
+    }
+
+    @GetMapping("/field-plans/today")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> getTodayFieldPlan() {
+        String username = userService.getCurrentUser().getUsername();
+        return recoveryFieldPlanService.getTodayPlan(username)
+                .map(plan -> new ResponseEntity<>(ResponseUtil.successResponse(plan), HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(ResponseUtil.successResponse(null), HttpStatus.OK));
+    }
+
+    @PatchMapping("/field-plans/{id}")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> updateFieldPlan(
+            @PathVariable Long id,
+            @RequestBody @Valid FieldDayPlanRequestDto dto) {
+        String username = userService.getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.updatePlan(id, dto, username)),
+                HttpStatus.OK
+        );
+    }
+
+    @PostMapping("/field-plans/{id}/close")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> closeFieldPlan(@PathVariable Long id) {
+        String username = userService.getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.closePlan(id, username)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/field-plans/{id}/offline-pack")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> getOfflinePack(
+            @PathVariable Long id,
+            @RequestParam(defaultValue = "false") boolean includeTontine) {
+        String username = userService.getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.buildOfflinePack(id, username, includeTontine)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/field/tontine-members")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> pageTontineMembers(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size,
+            @RequestParam(required = false, defaultValue = "ALL") String progress) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.pageTontineMembers(
+                        search, page, size, RmFieldListProgress.from(progress))),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/field/tontine-members/{id}")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> getTontineMember(@PathVariable Long id) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.getTontineMemberForField(id)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/field/late-credits")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> pageLateCredits(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(creditLateService.getLateCreditsPage(search, page, size)),
+                HttpStatus.OK
+        );
+    }
+
+    @GetMapping("/field/credits")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> pageInProgressCredits(
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "30") int size,
+            @RequestParam(required = false, defaultValue = "ALL") String progress) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(creditLateService.getInProgressCreditsPage(
+                        search, page, size, RmFieldListProgress.from(progress))),
+                HttpStatus.OK
+        );
+    }
+
+    @PatchMapping("/clients/{id}/contact")
+    @PreAuthorize("hasRole('RECOVERY_MANAGER')")
+    public ResponseEntity<Response> updateClientContact(
+            @PathVariable Long id,
+            @RequestBody @Valid RmClientContactUpdateDto dto) {
+        String username = userService.getCurrentUser().getUsername();
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(recoveryFieldPlanService.updateClientContact(id, dto, username)),
+                HttpStatus.OK
+        );
+    }
+}

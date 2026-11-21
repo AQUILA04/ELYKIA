@@ -17,8 +17,8 @@
 | **Vague 3** | `inventory` (`OPEN` — Catalogue, Magasin, Réceptions, Mouvements, FIFO, Packaging, Inventaires + 3 ports SPI `inventory.api`) & enrichissement `shared` | **Fait (`2.4.0`)** |
 | **Vague 4** | `finance` (`OPEN` — Dépenses, Caisse, Journée comptable, Versements/Remises/Surplus, Rapports journaliers & mensuels + 5 ports SPI `finance.api` + absorption de `SupplyExpensePortAdapter`) | **Fait (`2.5.0`)** |
 | **Vague 5** | `sale` (`OPEN` — Ventes/Crédits, Commandes, Annulations, Stock commercial `CommercialMonthlyStock`/`StockRequest`/`StockReturn`, Dettes `DebtDocument`/`DebtService`, `RemainingAtClients*`, 7 ports SPI `sale.api`, absorption de 3 adaptateurs SPI + enrichissement `shared.carnet`) | **Fait (`2.6.0`)** |
-| **Vague 6** | `tontine` (`tontine → sale` unidirectionnel + `StockTontine*` + `TontineCreditCreationService`) + `carnet` (module aval + `RecoveryFieldPlan*`/`RecoveryManager*`) | Planifiée |
-| **Vague 7** | `customer` (`Espace Client` + `adhesion` + `paygate` + `ocr`) + `bi` + `FormerPortfolio` + suppression de `core/` | Planifiée |
+| **Vague 6** | `tontine` (`OPEN`, `tontine → sale` unidirectionnel + `StockTontine*` + `ClientAccountMovement` + `TontineCreditCreationService`) + `carnet` (`OPEN` aval + `RecoveryFieldPlan*`/`RecoveryManager*`) | **Fait (`2.7.0`)** |
+| **Vague 7** | `customer` (`Espace Client` + `adhesion` + `paygate` + `ocr`) + `bi` + `reporting` (`PdfService`, `MonthlyReport*`, `FormerPortfolio*`) + `bootstrap` + suppression de `core/` | En cours |
 
 ## 3. Périmètre exact du Lot 1 (`2.2.0`)
 
@@ -90,3 +90,12 @@
   - `web/` : 13 contrôleurs, 4 mappers MapStruct, 103 DTOs (`SaleLineQuote` découplé de `TontineDeliveryItem`).
 - **Orchestration `tontine → sale` :** `core.service.tontine.TontineCreditCreationService` porte `buildFromDelivery(TontineDelivery)` + validation/déduction stock tontine. Services transverses ventes+tontine (`RecoveryFieldPlanService`, `RecoveryManager*`, `CashSalePricingService`, `StockExportService`, `StockPriceRealignmentService`) conservés dans `core` jusqu'à la Vague 6.
 - **`ModularityTests` :** vérifie désormais les **13 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `sale`, `recruitment`, `ai`, `apprelease`, `core`).
+
+## 8. Périmètre exact de la Vague 6 (`2.7.0`)
+
+- **`tontine` (`OPEN`, `allowedDependencies = {"entities", "securities", "client", "shared", "notification :: api", "organization", "inventory", "finance", "sale"}`, 0 dép. sur `carnet`/`core`) :**
+  - `api/` : 3 ports SPI (`TontineCarnetRecontrolPort`, `FormerPortfolioTontinePort`, `TontineHtmlPdfPort`).
+  - `domain/`, `event/`, `infrastructure/persistence/`, `application/` (absorbe directement `CashSalePricingService`, `TontineCatchupQueryPortAdapter`, `ClientAccountService`, `TontineCreditCreationService`), `web/` + tests unitaires (`tontine.domain` 79,7 % LINE, `tontine.application` 53,8 % LINE).
+- **`carnet` (`OPEN` aval, `allowedDependencies = {"entities", "securities", "client", "shared", "notification :: api", "organization", "inventory", "finance", "sale", "tontine"}`, 0 dép. sur `core`) :**
+  - `domain/`, `event/`, `infrastructure/persistence/` (`CarnetTontineQueryRepository`, écarts et plans de tournée), `application/` (`CarnetEcartRecontrolPolicy` implémentant `CreditCarnetRecontrolPort` + `TontineCarnetRecontrolPort`, `RecoveryFieldPlanService`, `RecoveryManager*`), `web/` + tests unitaires (`carnet.domain` 100 % LINE, `carnet.application` 50,3 % LINE).
+- **`ModularityTests` :** vérifie désormais les **15 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `sale`, `tontine`, `carnet`, `recruitment`, `ai`, `apprelease`, `core`), avec 0 dépendance entrante vers `core`.

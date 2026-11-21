@@ -1,5 +1,12 @@
 package com.optimize.elykia.core.listener;
 
+import com.optimize.elykia.carnet.event.RecoveryManagerCollectionEvent;
+import com.optimize.elykia.tontine.event.StockTontineRequestDeliveredEvent;
+import com.optimize.elykia.tontine.event.StockTontineReturnedEvent;
+import com.optimize.elykia.tontine.event.TontineCollectionCancelledEvent;
+import com.optimize.elykia.tontine.event.TontineCollectionEvent;
+import com.optimize.elykia.tontine.event.TontineDeliveryEvent;
+import com.optimize.elykia.tontine.event.TontineMemberEnrolledEvent;
 import com.optimize.elykia.sale.event.CreditCollectionCancelledEvent;
 import com.optimize.elykia.sale.event.CreditStartedEvent;
 import com.optimize.elykia.sale.event.OrderCreatedEvent;
@@ -13,7 +20,7 @@ import com.optimize.elykia.client.event.*;
 import com.optimize.elykia.finance.infrastructure.persistence.DailyCommercialReportRepository;
 import com.optimize.elykia.finance.application.DailyCommercialReportPersistence;
 import com.optimize.elykia.finance.application.DailyOperationService;
-import com.optimize.elykia.core.service.tontine.TontineCatchupNotificationService;
+import com.optimize.elykia.tontine.application.TontineCatchupNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;

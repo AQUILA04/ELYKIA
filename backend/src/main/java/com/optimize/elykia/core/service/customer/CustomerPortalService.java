@@ -15,9 +15,9 @@ import com.optimize.elykia.sale.domain.Credit;
 import com.optimize.elykia.sale.domain.CreditArticles;
 import com.optimize.elykia.sale.domain.CreditTimeline;
 import com.optimize.elykia.sale.domain.Order;
-import com.optimize.elykia.core.entity.tontine.TontineCollection;
-import com.optimize.elykia.core.entity.tontine.TontineMember;
-import com.optimize.elykia.core.entity.tontine.TontineSession;
+import com.optimize.elykia.tontine.domain.TontineCollection;
+import com.optimize.elykia.tontine.domain.TontineMember;
+import com.optimize.elykia.tontine.domain.TontineSession;
 import com.optimize.elykia.sale.domain.CreditPurpose;
 import com.optimize.elykia.sale.domain.CreditStatus;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
@@ -25,12 +25,12 @@ import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.sale.domain.OrderStatus;
 import com.optimize.elykia.sale.domain.OrderSource;
 import com.optimize.elykia.core.enumaration.PaymentProofLinkedType;
-import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
-import com.optimize.elykia.core.enumaration.TontineMemberRegistrationSource;
-import com.optimize.elykia.core.enumaration.TontineSessionStatus;
-import com.optimize.elykia.core.repository.TontineCollectionRepository;
-import com.optimize.elykia.core.repository.TontineMemberRepository;
-import com.optimize.elykia.core.repository.TontineSessionRepository;
+import com.optimize.elykia.tontine.domain.TontineMemberFrequency;
+import com.optimize.elykia.tontine.domain.TontineMemberRegistrationSource;
+import com.optimize.elykia.tontine.domain.TontineSessionStatus;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineSessionRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissionRepository;
@@ -42,9 +42,9 @@ import com.optimize.elykia.sale.application.OrderService;
 import com.optimize.elykia.inventory.application.ArticlePhotoService;
 import com.optimize.elykia.inventory.domain.ArticlePhotoView;
 import com.optimize.elykia.inventory.application.ArticlesService;
-import com.optimize.elykia.core.service.tontine.TontineService;
-import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
-import com.optimize.elykia.core.dto.TontineMemberDto;
+import com.optimize.elykia.tontine.application.TontineService;
+import com.optimize.elykia.tontine.domain.TontineAmountHistoryHelper;
+import com.optimize.elykia.tontine.web.dto.TontineMemberDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -77,6 +77,7 @@ public class CustomerPortalService {
     private final CreditArticlesRepository creditArticlesRepository;
     private final TontineMemberRepository tontineMemberRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
+    private final com.optimize.elykia.core.repository.CustomerTontineQueryRepository customerTontineQueryRepository;
     private final TontineSessionRepository tontineSessionRepository;
     private final TontineService tontineService;
     private final CommercialMobileMoneyConfigService commercialMobileMoneyConfigService;
@@ -173,7 +174,7 @@ public class CustomerPortalService {
 
     public List<CustomerTontineContributionSummaryDto> getTontineContributions() {
         Client client = requireActiveClient();
-        return tontineMemberRepository.findCustomerContributionSummariesByClientId(
+        return customerTontineQueryRepository.findCustomerContributionSummariesByClientId(
                 client.getId(),
                 com.optimize.common.entities.enums.State.ENABLED);
     }
@@ -319,7 +320,7 @@ public class CustomerPortalService {
         requireOwnedTontineMember(memberId);
         int sanitizedPage = Math.max(page, 0);
         int sanitizedSize = Math.min(Math.max(size, 1), 50);
-        Page<CustomerTontinePaymentDto> result = tontineCollectionRepository.findCustomerPaymentsByMember(
+        Page<CustomerTontinePaymentDto> result = customerTontineQueryRepository.findCustomerPaymentsByMember(
                 memberId,
                 client.getId(),
                 com.optimize.common.entities.enums.State.ENABLED,

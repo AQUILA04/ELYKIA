@@ -2,9 +2,9 @@ package com.optimize.elykia.core.controller.report;
 
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.dto.report.CommercialTontineYearlySummaryDto;
+import com.optimize.elykia.tontine.web.dto.CommercialTontineYearlySummaryDto;
 import com.optimize.elykia.sale.web.dto.RemainingAtClientsPageDto;
-import com.optimize.elykia.core.service.report.CommercialTontineYearlySummaryService;
+import com.optimize.elykia.tontine.application.CommercialTontineYearlySummaryService;
 import com.optimize.elykia.sale.application.RemainingAtClientsPdfService;
 import com.optimize.elykia.sale.application.RemainingAtClientsService;
 import com.optimize.elykia.shared.security.UserPermissionConstant;

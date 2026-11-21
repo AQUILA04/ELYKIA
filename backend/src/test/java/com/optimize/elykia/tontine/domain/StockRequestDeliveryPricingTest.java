@@ -1,0 +1,65 @@
+package com.optimize.elykia.tontine.domain;
+
+import com.optimize.elykia.inventory.domain.Articles;
+import com.optimize.elykia.sale.domain.StockRequestItem;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+class StockRequestDeliveryPricingTest {
+
+    @Test
+    void applyAtDelivery_commercial_legacy_usesCreditSalePriceAndCatalogPurchase() {
+        Articles article = article(80.0, 120.0, 150.0);
+        StockRequestItem item = itemWithPrices(100.0, 50.0);
+
+        StockRequestDeliveryPricing.applyAtDelivery(item, article, false, 0.0);
+
+        assertEquals(150.0, item.getUnitPrice());
+        assertEquals(80.0, item.getPurchasePrice());
+    }
+
+    @Test
+    void applyAtDelivery_tontine_fifo_usesSellingPriceAndFifoCost() {
+        Articles article = article(80.0, 120.0, 150.0);
+        StockTontineRequestItem item = tontineItemWithPrices(100.0, 50.0);
+
+        StockRequestDeliveryPricing.applyAtDelivery(item, article, true, 92.5);
+
+        assertEquals(120.0, item.getUnitPrice());
+        assertEquals(92.5, item.getPurchasePrice());
+    }
+
+    @Test
+    void applyAtDelivery_tontine_legacy_usesSellingPriceNotCreditSalePrice() {
+        Articles article = article(80.0, 120.0, 150.0);
+        StockTontineRequestItem item = tontineItemWithPrices(100.0, 50.0);
+
+        StockRequestDeliveryPricing.applyAtDelivery(item, article, false, 0.0);
+
+        assertEquals(120.0, item.getUnitPrice());
+        assertEquals(80.0, item.getPurchasePrice());
+    }
+
+    private static Articles article(double purchasePrice, double sellingPrice, double creditSalePrice) {
+        Articles article = new Articles();
+        article.setPurchasePrice(purchasePrice);
+        article.setSellingPrice(sellingPrice);
+        article.setCreditSalePrice(creditSalePrice);
+        return article;
+    }
+
+    private static StockRequestItem itemWithPrices(double unitPrice, double purchasePrice) {
+        StockRequestItem item = new StockRequestItem();
+        item.setUnitPrice(unitPrice);
+        item.setPurchasePrice(purchasePrice);
+        return item;
+    }
+
+    private static StockTontineRequestItem tontineItemWithPrices(double unitPrice, double purchasePrice) {
+        StockTontineRequestItem item = new StockTontineRequestItem();
+        item.setUnitPrice(unitPrice);
+        item.setPurchasePrice(purchasePrice);
+        return item;
+    }
+}

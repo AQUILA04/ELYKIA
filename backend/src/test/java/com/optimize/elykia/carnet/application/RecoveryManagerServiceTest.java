@@ -1,0 +1,182 @@
+package com.optimize.elykia.carnet.application;
+
+import com.optimize.elykia.sale.application.ClientReliquatService;
+import com.optimize.elykia.sale.application.CreditService;
+import com.optimize.elykia.sale.application.CreditTimelineService;
+import com.optimize.elykia.sale.web.dto.CreditLateSummaryDTO;
+import com.optimize.elykia.carnet.web.dto.CloseCreditsRequestDto;
+import com.optimize.elykia.carnet.web.dto.CloseCreditsResponseDto;
+import com.optimize.elykia.carnet.web.dto.CreditCloseItemDto;
+import com.optimize.elykia.carnet.web.dto.MonthlyRecoveryRateDto;
+import com.optimize.elykia.sale.domain.Credit;
+import com.optimize.elykia.carnet.domain.RecoveryManagerOperation;
+import com.optimize.elykia.sale.domain.CreditStatus;
+import com.optimize.elykia.carnet.infrastructure.persistence.RecoveryManagerOperationRepository;
+import com.optimize.elykia.sale.application.CreditLateService;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
+
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.util.List;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class RecoveryManagerServiceTest {
+
+    @Mock
+    private CreditTimelineService creditTimelineService;
+    @Mock
+    private CreditService creditService;
+    @Mock
+    private ClientReliquatService clientReliquatService;
+    @Mock
+    private RecoveryManagerOperationRepository operationRepository;
+    @Mock
+    private CreditLateService creditLateService;
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
+    @InjectMocks
+    private RecoveryManagerService service;
+
+    @Test
+    void closeCredits_returnsExistingOperationWhenReferenceWasAlreadyProcessed() {
+        // Given
+        CreditCloseItemDto item = item(10L, 50_000.0, false, "  RCV-MOBILE-001  ");
+        RecoveryManagerOperation existing = new RecoveryManagerOperation();
+        existing.setCreditId(10L);
+        existing.setCreditReference("CR-2026-001");
+        existing.setClientName("Client Recouvrement");
+        when(operationRepository.findByReference("RCV-MOBILE-001")).thenReturn(Optional.of(existing));
+
+        // When
+        CloseCreditsResponseDto result = service.closeCredits(request(item), "recovery.manager");
+
+        // Then
+        assertEquals(1, result.getSuccesses().size());
+        assertEquals(0, result.getFailures().size());
+        assertEquals(10L, result.getSuccesses().get(0).getCreditId());
+        assertEquals(existing, result.getSuccesses().get(0).getOperation());
+        verify(creditService, never()).getById(10L);
+        verify(operationRepository).findByReference("RCV-MOBILE-001");
+    }
+
+    @Test
+    void closeCredits_rejectsCreditOutsideInProgressStatusWithoutPersistingOperation() {
+        // Given
+        CreditCloseItemDto item = item(11L, 50_000.0, false, null);
+        Credit credit = credit(11L, CreditStatus.SETTLED, LocalDate.now().minusDays(1), 50_000.0);
+        when(creditService.getById(11L)).thenReturn(credit);
+
+        // When
+        CloseCreditsResponseDto result = service.closeCredits(request(item), "recovery.manager");
+
+        // Then
+        assertEquals(0, result.getSuccesses().size());
+        assertEquals(1, result.getFailures().size());
+        assertEquals("CR-2026-011", result.getFailures().get(0).getCreditReference());
+        assertEquals("Le crédit n'est pas en cours (INPROGRESS)", result.getFailures().get(0).getErrorMessage());
+        verify(operationRepository, never()).save(org.mockito.ArgumentMatchers.any());
+        verify(eventPublisher, never()).publishEvent(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void closeCredits_rejectsInProgressCreditWhoseExpectedEndDateIsNotExceeded() {
+        // Given
+        CreditCloseItemDto item = item(12L, 50_000.0, false, null);
+        Credit credit = credit(12L, CreditStatus.INPROGRESS, LocalDate.now(), 50_000.0);
+        when(creditService.getById(12L)).thenReturn(credit);
+
+        // When
+        CloseCreditsResponseDto result = service.closeCredits(request(item), "recovery.manager");
+
+        // Then
+        assertEquals(0, result.getSuccesses().size());
+        assertEquals(1, result.getFailures().size());
+        assertEquals("La date de fin du crédit n'est pas encore dépassée", result.getFailures().get(0).getErrorMessage());
+        verify(operationRepository, never()).existsByCreditIdAndOperationDate(12L, LocalDate.now());
+        verify(operationRepository, never()).save(org.mockito.ArgumentMatchers.any());
+    }
+
+    @Test
+    void getMonthlyRecoveryRate_computesPercentFromChefCollectedOverLiveDelaiDue() {
+        YearMonth ym = YearMonth.of(2026, 9);
+        LocalDate start = ym.atDay(1);
+        LocalDate end = ym.atEndOfMonth();
+        when(operationRepository.sumAmountCollected(start, end, "chef.rm", null)).thenReturn(250_000.0);
+        when(operationRepository.countOperations(start, end, "chef.rm", null)).thenReturn(4);
+        when(creditLateService.getSummary(null, null, null)).thenReturn(CreditLateSummaryDTO.builder()
+                .totalLate(12)
+                .totalDelai(10)
+                .totalEcheance(2)
+                .totalAmountRemaining(1_200_000.0)
+                .totalAmountRemainingDelai(1_000_000.0)
+                .build());
+
+        MonthlyRecoveryRateDto dto = service.getMonthlyRecoveryRate(2026, 9, "chef.rm");
+
+        assertEquals(2026, dto.getYear());
+        assertEquals(9, dto.getMonth());
+        assertEquals(250_000.0, dto.getAmountCollectedByChef());
+        assertEquals(1_000_000.0, dto.getLatePortfolioDue());
+        assertEquals(10L, dto.getLateCreditsCount());
+        assertEquals(4, dto.getOperationsCount());
+        assertEquals(25.0, dto.getRecoveryRatePercent());
+    }
+
+    @Test
+    void getMonthlyRecoveryRate_returnsZeroPercentWhenLiveDelaiDueIsZero() {
+        YearMonth ym = YearMonth.of(2026, 9);
+        when(operationRepository.sumAmountCollected(ym.atDay(1), ym.atEndOfMonth(), "chef.rm", null))
+                .thenReturn(0.0);
+        when(operationRepository.countOperations(ym.atDay(1), ym.atEndOfMonth(), "chef.rm", null))
+                .thenReturn(0);
+        when(creditLateService.getSummary(null, null, null)).thenReturn(CreditLateSummaryDTO.builder()
+                .totalLate(0)
+                .totalDelai(0)
+                .totalEcheance(0)
+                .totalAmountRemaining(0.0)
+                .totalAmountRemainingDelai(0.0)
+                .build());
+
+        MonthlyRecoveryRateDto dto = service.getMonthlyRecoveryRate(2026, 9, "chef.rm");
+
+        assertEquals(0.0, dto.getRecoveryRatePercent());
+        assertEquals(0L, dto.getLateCreditsCount());
+        assertEquals(0.0, dto.getLatePortfolioDue());
+    }
+
+    private CloseCreditsRequestDto request(CreditCloseItemDto... items) {
+        CloseCreditsRequestDto request = new CloseCreditsRequestDto();
+        request.setItems(List.of(items));
+        return request;
+    }
+
+    private CreditCloseItemDto item(Long creditId, double amount, boolean partial, String reference) {
+        CreditCloseItemDto item = new CreditCloseItemDto();
+        item.setCreditId(creditId);
+        item.setAmount(amount);
+        item.setIsPartial(partial);
+        item.setReference(reference);
+        return item;
+    }
+
+    private Credit credit(Long id, CreditStatus status, LocalDate expectedEndDate, double remainingAmount) {
+        Credit credit = new Credit();
+        credit.setId(id);
+        credit.setStatus(status);
+        credit.setReference(String.format("CR-2026-%03d", id));
+        credit.setExpectedEndDate(expectedEndDate);
+        credit.setTotalAmountRemaining(remainingAmount);
+        return credit;
+    }
+}

@@ -1,0 +1,337 @@
+package com.optimize.elykia.carnet.application;
+
+import com.optimize.elykia.sale.application.ClientReliquatService;
+import com.optimize.elykia.sale.application.CreditService;
+import com.optimize.elykia.sale.application.CreditTimelineService;
+import com.optimize.elykia.sale.web.dto.CreditLateSummaryDTO;
+import com.optimize.elykia.sale.web.dto.CreditTimelineDto;
+import com.optimize.elykia.carnet.web.dto.CloseCreditsRequestDto;
+import com.optimize.elykia.carnet.web.dto.CreditCloseItemDto;
+import com.optimize.elykia.carnet.web.dto.CloseCreditsResponseDto;
+import com.optimize.elykia.carnet.web.dto.CreditCloseResultDto;
+import com.optimize.elykia.carnet.web.dto.CommercialRemittanceDto;
+import com.optimize.elykia.carnet.web.dto.MonthlyRecoveryRateDto;
+import com.optimize.elykia.carnet.web.dto.RecoveryManagerReportSummaryDto;
+import com.optimize.elykia.sale.domain.Credit;
+import com.optimize.elykia.carnet.domain.RecoveryManagerOperation;
+import com.optimize.elykia.sale.domain.CreditStatus;
+import com.optimize.elykia.carnet.event.RecoveryManagerCollectionEvent;
+import com.optimize.elykia.carnet.infrastructure.persistence.RecoveryManagerOperationRepository;
+import com.optimize.elykia.sale.application.CreditLateService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import org.springframework.util.StringUtils;
+
+import java.security.SecureRandom;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
+@Service
+@Transactional
+@Slf4j
+@RequiredArgsConstructor
+public class RecoveryManagerService {
+
+    private final CreditTimelineService creditTimelineService;
+    private final CreditService creditService;
+    private final ClientReliquatService clientReliquatService;
+    private final RecoveryManagerOperationRepository operationRepository;
+    private final CreditLateService creditLateService;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public CloseCreditsResponseDto closeCredits(CloseCreditsRequestDto dto, String recoveryManagerUsername) {
+        List<CreditCloseResultDto> successes = new ArrayList<>();
+        List<CreditCloseResultDto> failures = new ArrayList<>();
+
+        for (CreditCloseItemDto item : dto.getItems()) {
+            processCreditItem(item, recoveryManagerUsername, successes, failures);
+        }
+
+        return CloseCreditsResponseDto.builder()
+                .successes(successes)
+                .failures(failures)
+                .build();
+    }
+
+    private void processCreditItem(CreditCloseItemDto item, String recoveryManagerUsername,
+                                   List<CreditCloseResultDto> successes, List<CreditCloseResultDto> failures) {
+        try {
+            if (StringUtils.hasText(item.getReference())) {
+                Optional<RecoveryManagerOperation> existing = operationRepository.findByReference(item.getReference().trim());
+                if (existing.isPresent()) {
+                    successes.add(buildSuccessFromExisting(existing.get()));
+                    return;
+                }
+            }
+
+            Credit credit = creditService.getById(item.getCreditId());
+
+            Optional<CreditCloseResultDto> validationError = validateCredit(credit, item);
+            if (validationError.isPresent()) {
+                failures.add(validationError.get());
+                return;
+            }
+
+            RecoveryManagerOperation operation = processCreditClosure(credit, item, recoveryManagerUsername, credit.getCollector());
+            successes.add(buildSuccessResult(credit, operation));
+
+        } catch (Exception e) {
+            log.error("Erreur lors de la clôture du crédit {}: {}", item.getCreditId(), e.getMessage(), e);
+            failures.add(buildFailureResult(item.getCreditId(), "Erreur inattendue: " + e.getMessage()));
+        }
+    }
+
+    private Optional<CreditCloseResultDto> validateCredit(Credit credit, CreditCloseItemDto item) {
+        if (!CreditStatus.INPROGRESS.equals(credit.getStatus())) {
+            return Optional.of(buildFailureResult(item.getCreditId(), credit.getReference(),
+                    "Le crédit n'est pas en cours (INPROGRESS)"));
+        }
+
+        if (!isEndDateExceeded(credit)) {
+            return Optional.of(buildFailureResult(item.getCreditId(), credit.getReference(),
+                    "La date de fin du crédit n'est pas encore dépassée"));
+        }
+
+        if (operationRepository.existsByCreditIdAndOperationDate(item.getCreditId(), LocalDate.now())) {
+            return Optional.of(buildFailureResult(item.getCreditId(), credit.getReference(),
+                    "Opération déjà enregistrée aujourd'hui"));
+        }
+
+        double remaining = credit.getTotalAmountRemaining() != null ? credit.getTotalAmountRemaining() : 0.0;
+        double cash = item.getAmount() != null ? item.getAmount() : 0.0;
+        double availableReliquat = getAvailableReliquat(credit);
+        double netDue = Math.max(0.0, remaining - availableReliquat);
+
+        if (Boolean.TRUE.equals(item.getIsPartial())) {
+            if (netDue <= 0 || cash <= 0 || cash >= netDue || cash > remaining) {
+                return Optional.of(buildFailureResult(item.getCreditId(), credit.getReference(),
+                        "Le montant partiel doit être > 0 et < " + (long) netDue + " (restant net du reliquat)"));
+            }
+            return Optional.empty();
+        }
+
+        // Clôture totale : cash + reliquat sont recalculés serveur-side pour solder le crédit
+        return Optional.empty();
+    }
+
+    private boolean isEndDateExceeded(Credit credit) {
+        return credit.getExpectedEndDate() != null && credit.getExpectedEndDate().isBefore(LocalDate.now());
+    }
+
+    private double getAvailableReliquat(Credit credit) {
+        if (credit.getClientId() == null) {
+            return 0.0;
+        }
+        Double reliquat = clientReliquatService.getReliquatForClient(credit.getClientId());
+        return reliquat != null ? Math.max(0.0, reliquat) : 0.0;
+    }
+
+    private RecoveryManagerOperation processCreditClosure(Credit credit,
+                                                          CreditCloseItemDto item,
+                                                          String recoveryManagerUsername,
+                                                          String commercialUsername) {
+        ClosureAmounts amounts = resolveClosureAmounts(credit, item);
+        CreditTimelineDto timelineDto = buildTimelineDto(item.getCreditId(), commercialUsername, amounts);
+        var creditTimeline = creditTimelineService.makeDailyStake(timelineDto);
+
+        RecoveryManagerOperation operation = buildOperation(credit, item, recoveryManagerUsername,
+                creditTimeline.getId(), amounts.cash());
+        operationRepository.save(operation);
+
+        // Remise terrain = cash réellement encaissé (hors reliquat déjà chez l'entreprise)
+        eventPublisher.publishEvent(new RecoveryManagerCollectionEvent(this, credit.getCollector(), amounts.cash()));
+
+        return operation;
+    }
+
+    private record ClosureAmounts(double cash, double reliquatUsed, double stakeAmount) {}
+
+    /**
+     * - Partiel : cash = montant saisi.
+     * - Total : privilégie le montant affiché (net reliquat) comme cash, complète avec le reliquat.
+     */
+    private ClosureAmounts resolveClosureAmounts(Credit credit, CreditCloseItemDto item) {
+        double remaining = credit.getTotalAmountRemaining() != null ? credit.getTotalAmountRemaining() : 0.0;
+        if (Boolean.TRUE.equals(item.getIsPartial())) {
+            double cash = item.getAmount() != null ? item.getAmount() : 0.0;
+            return new ClosureAmounts(cash, 0.0, cash);
+        }
+        double availableReliquat = getAvailableReliquat(credit);
+        double requestedCash = item.getAmount() != null ? item.getAmount() : Math.max(0.0, remaining - availableReliquat);
+        requestedCash = Math.min(Math.max(0.0, requestedCash), remaining);
+        double reliquatUsed = Math.min(availableReliquat, remaining - requestedCash);
+        double cash = remaining - reliquatUsed;
+        return new ClosureAmounts(cash, reliquatUsed, remaining);
+    }
+
+    private CreditTimelineDto buildTimelineDto(Long creditId, String commercialUsername, ClosureAmounts amounts) {
+        CreditTimelineDto timelineDto = new CreditTimelineDto();
+        timelineDto.setCreditId(creditId);
+        timelineDto.setCollector(commercialUsername);
+        timelineDto.setNormalStake(Boolean.FALSE);
+        timelineDto.setReference(generateTimelineReference());
+        timelineDto.setAmount(amounts.stakeAmount());
+        timelineDto.setReliquatUsedAmount(amounts.reliquatUsed());
+        timelineDto.setReliquatGeneratedAmount(0.0);
+        return timelineDto;
+    }
+
+    private String generateTimelineReference() {
+        String yearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMM"));
+        String randomHex = generateRandomHex(8);
+        return String.format("RCV-%s-%s", yearMonth, randomHex);
+    }
+
+    private String generateRandomHex(int length) {
+        SecureRandom random = new SecureRandom();
+        StringBuilder hexString = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            hexString.append(String.format("%x", random.nextInt(16)));
+        }
+        return hexString.toString().toUpperCase();
+    }
+
+    private RecoveryManagerOperation buildOperation(Credit credit, CreditCloseItemDto item,
+                                                    String recoveryManagerUsername, Long timelineId,
+                                                    double cashCollected) {
+        RecoveryManagerOperation operation = new RecoveryManagerOperation();
+        operation.setRecoveryManagerUsername(recoveryManagerUsername);
+        operation.setCommercialUsername(credit.getCollector());
+        operation.setCreditId(item.getCreditId());
+        operation.setCreditTimelineId(timelineId);
+        operation.setAmountCollected(cashCollected);
+        operation.setIsPartial(item.getIsPartial());
+        operation.setOriginalAmountRemaining(credit.getTotalAmountRemaining());
+        operation.setOperationDate(LocalDate.now());
+        operation.setReference(resolveOperationReference(item));
+        operation.setClientName(getClientFullName(credit));
+        operation.setCreditReference(credit.getReference());
+        return operation;
+    }
+
+    private String resolveOperationReference(CreditCloseItemDto item) {
+        if (StringUtils.hasText(item.getReference())) {
+            return item.getReference().trim();
+        }
+        return generateReference();
+    }
+
+    private CreditCloseResultDto buildSuccessFromExisting(RecoveryManagerOperation operation) {
+        return CreditCloseResultDto.builder()
+                .creditId(operation.getCreditId())
+                .creditReference(operation.getCreditReference())
+                .clientName(operation.getClientName())
+                .operation(operation)
+                .build();
+    }
+
+    private String getClientFullName(Credit credit) {
+        return credit.getClient() != null ? credit.getClient().getFullName() : null;
+    }
+
+    private CreditCloseResultDto buildSuccessResult(Credit credit, RecoveryManagerOperation operation) {
+        return CreditCloseResultDto.builder()
+                .creditId(credit.getId())
+                .creditReference(credit.getReference())
+                .clientName(getClientFullName(credit))
+                .operation(operation)
+                .build();
+    }
+
+    private CreditCloseResultDto buildFailureResult(Long creditId, String creditReference, String errorMessage) {
+        return CreditCloseResultDto.builder()
+                .creditId(creditId)
+                .creditReference(creditReference)
+                .errorMessage(errorMessage)
+                .build();
+    }
+
+    private CreditCloseResultDto buildFailureResult(Long creditId, String errorMessage) {
+        return CreditCloseResultDto.builder()
+                .creditId(creditId)
+                .errorMessage(errorMessage)
+                .build();
+    }
+
+    public Page<RecoveryManagerOperation> getOperations(LocalDate startDate, LocalDate endDate,
+                                                         String recoveryManagerUsername, String commercialUsername, Pageable pageable) {
+        return operationRepository.findByFilters(startDate, endDate, recoveryManagerUsername, commercialUsername, pageable);
+    }
+
+    public RecoveryManagerReportSummaryDto getReportSummary(LocalDate startDate, LocalDate endDate,
+                                                             String recoveryManagerUsername, String commercialUsername) {
+        Double totalCollected = operationRepository.sumAmountCollected(startDate, endDate, recoveryManagerUsername, commercialUsername);
+        Integer totalOps = operationRepository.countOperations(startDate, endDate, recoveryManagerUsername, commercialUsername);
+        Integer commercialsCount = operationRepository.countDistinctCommercials(startDate, endDate, recoveryManagerUsername, commercialUsername);
+
+        List<Object[]> remittanceData = operationRepository.findRemittanceByCommercial(startDate, endDate, recoveryManagerUsername, commercialUsername);
+        List<CommercialRemittanceDto> remittances = remittanceData.stream()
+                .map(row -> CommercialRemittanceDto.builder()
+                        .commercialUsername((String) row[0])
+                        .operationsCount(((Number) row[1]).intValue())
+                        .totalToRemit(((Number) row[2]).doubleValue())
+                        .build())
+                .toList();
+
+        return RecoveryManagerReportSummaryDto.builder()
+                .totalAmountCollected(totalCollected != null ? totalCollected : 0.0)
+                .totalOperationsCount(totalOps != null ? totalOps : 0)
+                .commercialsCount(commercialsCount != null ? commercialsCount : 0)
+                .remittanceByCommercial(remittances)
+                .build();
+    }
+
+    /**
+     * Taux mensuel chef = Σ amountCollected (ops du chef, mois)
+     * / Σ dû live de tous les retards délai de l'application (D-b).
+     */
+    @Transactional(readOnly = true)
+    public MonthlyRecoveryRateDto getMonthlyRecoveryRate(int year, int month, String recoveryManagerUsername) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        LocalDate startDate = yearMonth.atDay(1);
+        LocalDate endDate = yearMonth.atEndOfMonth();
+
+        Double collected = operationRepository.sumAmountCollected(
+                startDate, endDate, recoveryManagerUsername, null);
+        Integer opsCount = operationRepository.countOperations(
+                startDate, endDate, recoveryManagerUsername, null);
+
+        CreditLateSummaryDTO lateSummary = creditLateService.getSummary(null, null, null);
+        double latePortfolioDue = lateSummary.getTotalAmountRemainingDelai();
+        long lateCreditsCount = lateSummary.getTotalDelai();
+        double amountCollected = collected != null ? collected : 0.0;
+        double rate = latePortfolioDue > 0.0
+                ? (amountCollected / latePortfolioDue) * 100.0
+                : 0.0;
+
+        return MonthlyRecoveryRateDto.builder()
+                .year(year)
+                .month(month)
+                .amountCollectedByChef(amountCollected)
+                .latePortfolioDue(latePortfolioDue)
+                .lateCreditsCount(lateCreditsCount)
+                .operationsCount(opsCount != null ? opsCount : 0)
+                .recoveryRatePercent(roundRate(rate))
+                .build();
+    }
+
+    private static double roundRate(double rate) {
+        return Math.round(rate * 100.0) / 100.0;
+    }
+
+    private String generateReference() {
+        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        long count = operationRepository.count();
+        return String.format("RMO-%s-%03d", datePart, (count % 1000) + 1);
+    }
+}

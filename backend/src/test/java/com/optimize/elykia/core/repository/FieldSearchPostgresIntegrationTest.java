@@ -1,20 +1,23 @@
 package com.optimize.elykia.core.repository;
 
+import com.optimize.elykia.carnet.infrastructure.persistence.CarnetTontineQueryRepository;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineSessionRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.OrderRepository;
 import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.repository.ClientRepository;
-import com.optimize.elykia.core.dto.sale.RmFieldTontineRowDto;
+import com.optimize.elykia.carnet.web.dto.RmFieldTontineRowDto;
 import com.optimize.elykia.sale.domain.Order;
-import com.optimize.elykia.core.entity.tontine.TontineMember;
-import com.optimize.elykia.core.entity.tontine.TontineSession;
+import com.optimize.elykia.tontine.domain.TontineMember;
+import com.optimize.elykia.tontine.domain.TontineSession;
 import com.optimize.elykia.sale.domain.OrderStatus;
 import com.optimize.elykia.shared.carnet.RmFieldListProgress;
-import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
-import com.optimize.elykia.core.enumaration.TontineMemberFrequency;
-import com.optimize.elykia.core.enumaration.TontineSessionStatus;
-import com.optimize.elykia.core.service.sale.RecoveryFieldPlanService;
+import com.optimize.elykia.tontine.domain.TontineMemberDeliveryStatus;
+import com.optimize.elykia.tontine.domain.TontineMemberFrequency;
+import com.optimize.elykia.tontine.domain.TontineSessionStatus;
+import com.optimize.elykia.carnet.application.RecoveryFieldPlanService;
 import com.optimize.elykia.core.support.IntegrationTestSupport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FieldSearchPostgresIntegrationTest extends IntegrationTestSupport {
 
     @Autowired private TontineMemberRepository tontineMemberRepository;
+    @Autowired private CarnetTontineQueryRepository carnetTontineQueryRepository;
     @Autowired private TontineSessionRepository sessionRepository;
     @Autowired private ClientRepository clientRepository;
     @Autowired private RecoveryFieldPlanService recoveryFieldPlanService;
@@ -51,15 +55,15 @@ class FieldSearchPostgresIntegrationTest extends IntegrationTestSupport {
         TontineMember tontonMember = persistMember(session, tonton);
         TontineMember awaMember = persistMember(session, awa);
 
-        Page<RmFieldTontineRowDto> nullSearch = tontineMemberRepository.pageFieldRows(
+        Page<RmFieldTontineRowDto> nullSearch = carnetTontineQueryRepository.pageFieldRows(
                 year, State.ENABLED, null, null, "ALL", PageRequest.of(0, 500));
-        Page<RmFieldTontineRowDto> emptySearch = tontineMemberRepository.pageFieldRows(
+        Page<RmFieldTontineRowDto> emptySearch = carnetTontineQueryRepository.pageFieldRows(
                 year, State.ENABLED, "", "", "ALL", PageRequest.of(0, 500));
-        Page<RmFieldTontineRowDto> byName = tontineMemberRepository.pageFieldRows(
+        Page<RmFieldTontineRowDto> byName = carnetTontineQueryRepository.pageFieldRows(
                 year, State.ENABLED, "%tonton%", "", "TODO", PageRequest.of(0, 50));
-        Page<RmFieldTontineRowDto> byDigits = tontineMemberRepository.pageFieldRows(
+        Page<RmFieldTontineRowDto> byDigits = carnetTontineQueryRepository.pageFieldRows(
                 year, State.ENABLED, "%9012%", "%901277%", "ALL", PageRequest.of(0, 50));
-        Page<RmFieldTontineRowDto> done = tontineMemberRepository.pageFieldRows(
+        Page<RmFieldTontineRowDto> done = carnetTontineQueryRepository.pageFieldRows(
                 year, State.ENABLED, "%tonton%", "", "DONE", PageRequest.of(0, 50));
 
         assertTrue(nullSearch.getTotalElements() >= 2);

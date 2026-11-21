@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.dto.customer;
 
-import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
-import com.optimize.elykia.core.enumaration.TontineSessionStatus;
+import com.optimize.elykia.tontine.domain.TontineMemberDeliveryStatus;
+import com.optimize.elykia.tontine.domain.TontineSessionStatus;
 import lombok.Getter;
 
 import java.time.LocalDate;

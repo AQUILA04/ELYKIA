@@ -22,14 +22,14 @@ import com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineStakePeriodDto;
 import com.optimize.elykia.sale.domain.Credit;
 import com.optimize.elykia.sale.domain.CreditCollectorHistory;
-import com.optimize.elykia.core.entity.tontine.TontineMember;
+import com.optimize.elykia.tontine.domain.TontineMember;
 import com.optimize.elykia.sale.domain.CreditStatus;
 import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditCollectorHistoryRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
-import com.optimize.elykia.core.repository.TontineCollectionRepository;
-import com.optimize.elykia.core.repository.TontineMemberRepository;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -61,6 +61,7 @@ public class FormerPortfolioService {
     private final ClientService clientService;
     private final TontineMemberRepository tontineMemberRepository;
     private final TontineCollectionRepository tontineCollectionRepository;
+    private final com.optimize.elykia.core.repository.FormerPortfolioTontineQueryRepository formerTontineQueryRepository;
     private final ClientCollectorHistoryRepository clientCollectorHistoryRepository;
     private final CreditRepository creditRepository;
     private final CreditTimelineRepository creditTimelineRepository;
@@ -73,7 +74,7 @@ public class FormerPortfolioService {
     }
 
     public Page<FormerTontineMemberDto> listFormerTontineMembers(Pageable pageable, String requestedCommercial) {
-        return tontineMemberRepository.findFormerMembers(resolveHistoryCommercial(requestedCommercial), pageable);
+        return formerTontineQueryRepository.findFormerMembers(resolveHistoryCommercial(requestedCommercial), pageable);
     }
 
     public FormerTontineMemberDetailDto getFormerTontineMember(Long memberId) {
@@ -96,7 +97,7 @@ public class FormerPortfolioService {
 
     public List<FormerTontineCollectionDto> ownTontineCollections(Long memberId) {
         User user = requirePromoter();
-        return tontineCollectionRepository.findOwnCollections(memberId, user.getUsername());
+        return formerTontineQueryRepository.findOwnCollections(memberId, user.getUsername());
     }
 
     public Page<FormerCreditListItemDto> listFormerCredits(Pageable pageable) {
@@ -150,9 +151,9 @@ public class FormerPortfolioService {
         User user = requirePromoter();
         String commercial = user.getUsername();
         Pageable cap = PageRequest.of(0, SYNC_LIMIT);
-        List<FormerTontineMemberDto> members = tontineMemberRepository.findFormerMembers(commercial, cap).getContent();
+        List<FormerTontineMemberDto> members = formerTontineQueryRepository.findFormerMembers(commercial, cap).getContent();
         List<FormerTontineCollectionDto> collections =
-                tontineCollectionRepository.findFormerOwnCollections(commercial, cap);
+                formerTontineQueryRepository.findFormerOwnCollections(commercial, cap);
         List<FormerCreditListItemDto> credits = enrichCredits(
                 formerCreditQueryRepository.findFormerCredits(commercial, cap).getContent(), commercial);
         List<Long> creditIds = credits.stream().map(FormerCreditListItemDto::creditId).toList();
@@ -228,7 +229,7 @@ public class FormerPortfolioService {
 
     private FormerTontineMemberDetailDto toTontineDetail(TontineMember member, String commercial) {
         List<FormerTontineCollectionDto> collections =
-                tontineCollectionRepository.findOwnCollections(member.getId(), commercial);
+                formerTontineQueryRepository.findOwnCollections(member.getId(), commercial);
         double total = collections.stream()
                 .mapToDouble(line -> line.amount() == null ? 0.0 : line.amount())
                 .sum();

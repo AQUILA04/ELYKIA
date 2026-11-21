@@ -1,0 +1,574 @@
+package com.optimize.elykia.tontine.application;
+
+import com.optimize.elykia.inventory.application.StockMovementService;
+import com.optimize.elykia.inventory.application.StockValuationFacade;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
+
+import com.optimize.common.entities.exception.CustomValidationException;
+import com.optimize.common.entities.service.GenericService;
+import com.optimize.common.securities.models.User;
+import com.optimize.common.securities.models.UserPermission;
+import com.optimize.common.securities.security.services.UserService;
+import com.optimize.elykia.inventory.web.dto.ArticleHistoryContext;
+import com.optimize.elykia.inventory.domain.Articles;
+import com.optimize.elykia.tontine.domain.StockTontineRequest;
+import com.optimize.elykia.tontine.domain.StockTontineRequestItem;
+import com.optimize.elykia.inventory.domain.ArticleStockLotMovementType;
+import com.optimize.elykia.inventory.domain.MovementType;
+import com.optimize.elykia.shared.domain.OperationType;
+import com.optimize.elykia.inventory.web.dto.FifoConsumptionResult;
+import com.optimize.elykia.inventory.domain.StockHistoryReferenceType;
+import com.optimize.elykia.sale.domain.StockRequestStatus;
+import com.optimize.elykia.tontine.event.StockTontineRequestDeliveredEvent;
+import com.optimize.elykia.tontine.event.TontineStockRequestValidatedEvent;
+import com.optimize.elykia.tontine.infrastructure.persistence.StockTontineRequestDeliveryLinkRepository;
+import com.optimize.elykia.tontine.domain.StockTontineRequestDeliveryLink;
+import com.optimize.elykia.tontine.domain.TontineDelivery;
+import com.optimize.elykia.tontine.infrastructure.persistence.StockTontineRequestRepository;
+import com.optimize.elykia.inventory.application.ArticlesService;
+import com.optimize.elykia.inventory.application.InventoryWarehouseGuard;
+import com.optimize.elykia.finance.application.AccountingDayService;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
+import com.optimize.elykia.tontine.domain.ArticleSortOrder;
+import com.optimize.elykia.tontine.domain.StockRequestDeliveryPricing;
+import com.optimize.common.entities.exception.ResourceNotFoundException;
+import com.optimize.elykia.tontine.web.dto.StockTontineRequestListDto;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import com.optimize.elykia.sale.web.dto.StockRequestExportDTO;
+import com.optimize.elykia.sale.web.dto.PartialDeliveryResponseDTO;
+import com.optimize.elykia.sale.web.dto.StockExportPdfContextDto;
+import com.optimize.elykia.shared.pdf.PdfDocumentIdentity;
+import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+@Service
+@Transactional
+public class StockTontineRequestService extends GenericService<StockTontineRequest, Long> {
+
+    private final UserService userService;
+    private final TontineStockService tontineStockService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final ArticlesService articlesService;
+    private final StockMovementService stockMovementService;
+    private final StockValuationFacade stockValuationFacade;
+    private final AccountingDayService accountingDayService;
+    private final TemplateEngine templateEngine;
+    private final PdfHtmlRenderer pdfHtmlRenderer;
+    private InventoryWarehouseGuard inventoryWarehouseGuard;
+    private StockTontineRequestDeliveryLinkRepository deliveryLinkRepository;
+    private com.optimize.elykia.tontine.application.TontineStockLayerService tontineStockLayerService;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setTontineStockLayerService(
+            com.optimize.elykia.tontine.application.TontineStockLayerService tontineStockLayerService) {
+        this.tontineStockLayerService = tontineStockLayerService;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public void setInventoryWarehouseGuard(InventoryWarehouseGuard inventoryWarehouseGuard) {
+        this.inventoryWarehouseGuard = inventoryWarehouseGuard;
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setDeliveryLinkRepository(StockTontineRequestDeliveryLinkRepository deliveryLinkRepository) {
+        this.deliveryLinkRepository = deliveryLinkRepository;
+    }
+
+    private void assertWarehouseStockMutable() {
+        if (inventoryWarehouseGuard != null) {
+            inventoryWarehouseGuard.assertWarehouseStockMutable();
+        }
+    }
+
+    protected StockTontineRequestService(StockTontineRequestRepository repository,
+            UserService userService,
+            TontineStockService tontineStockService,
+            ApplicationEventPublisher eventPublisher,
+            ArticlesService articlesService,
+            StockMovementService stockMovementService,
+            StockValuationFacade stockValuationFacade,
+            AccountingDayService accountingDayService,
+            TemplateEngine templateEngine,
+            PdfHtmlRenderer pdfHtmlRenderer) {
+        super(repository);
+        this.userService = userService;
+        this.tontineStockService = tontineStockService;
+        this.eventPublisher = eventPublisher;
+        this.articlesService = articlesService;
+        this.stockMovementService = stockMovementService;
+        this.stockValuationFacade = stockValuationFacade;
+        this.accountingDayService = accountingDayService;
+        this.templateEngine = templateEngine;
+        this.pdfHtmlRenderer = pdfHtmlRenderer;
+    }
+
+    public StockTontineRequest save(StockTontineRequest request) {
+        // Si c'est une création (ID null)
+        if (request.getId() == null) {
+            request.setStatus(StockRequestStatus.CREATED);
+            request.setRequestDate(LocalDate.now());
+
+            // Si le collector n'est pas défini, on prend l'utilisateur courant
+            if (request.getCollector() == null) {
+                request.setCollector(userService.getCurrentUser().getUsername());
+            }
+
+            // Génération de la référence
+            Long maxId = ((StockTontineRequestRepository) getRepository()).findMaxId();
+            long nextId = (maxId != null ? maxId : 0) + 1;
+
+            LocalDate nowRef = LocalDate.now();
+            String year = String.format("%04d", nowRef.getYear());
+            String month = String.format("%02d", nowRef.getMonthValue());
+            String hexId = String.format("%08X", nextId);
+
+            String reference = "TRQ-" + year + "-" + month + "-" + hexId;
+            request.setReference(reference);
+
+            double totalSale = 0;
+            double totalPurchase = 0;
+
+            // Initialisation des items
+            for (StockTontineRequestItem item : request.getItems()) {
+                Articles article = articlesService.getById(item.getArticle().getId());
+                item.setArticle(article);
+                item.setItemName(article.getCommercialName() + " " + article.getName());
+
+                // On fige les prix (tontine = sellingPrice)
+                if (item.getUnitPrice() == null || item.getUnitPrice() == 0) {
+                    item.setUnitPrice(article.getSellingPrice());
+                }
+                if (item.getPurchasePrice() == null || item.getPurchasePrice() == 0) {
+                    item.setPurchasePrice(article.getPurchasePrice());
+                }
+
+                item.setStockTontineRequest(request);
+
+                totalSale += (item.getUnitPrice() != null ? item.getUnitPrice() : 0.0) * item.getQuantity();
+                totalPurchase += (item.getPurchasePrice() != null ? item.getPurchasePrice() : 0.0) * item.getQuantity();
+            }
+
+            request.setTotalSalePrice(totalSale);
+            request.setTotalPurchasePrice(totalPurchase);
+        }
+
+        return super.create(request);
+    }
+
+    public StockTontineRequest validate(Long id) {
+        StockTontineRequest request = getById(id);
+        if (request.getStatus() != StockRequestStatus.CREATED) {
+            throw new CustomValidationException("Seules les demandes au statut CREATED peuvent être validées.");
+        }
+        request.setStatus(StockRequestStatus.VALIDATED);
+        request.setValidationDate(LocalDate.now());
+        StockTontineRequest saved = update(request);
+        StockTontineRequest result = saved != null ? saved : request;
+        if (eventPublisher != null && result.getId() != null) {
+            eventPublisher.publishEvent(new TontineStockRequestValidatedEvent(this, result.getId()));
+        }
+        return result;
+    }
+
+    /**
+     * Demande tontine créée, validée et livrée pour réalignement de prix.
+     * À appeler sous SecurityContext du gestionnaire (acting user).
+     */
+    public StockTontineRequest createValidateAndDeliverForPriceRealignment(
+            String collector, Articles article, int quantity, String note) {
+        assertWarehouseStockMutable();
+        if (quantity <= 0) {
+            throw new CustomValidationException("Quantité de sortie tontine invalide pour le réalignement de prix.");
+        }
+        StockTontineRequest request = new StockTontineRequest();
+        request.setCollector(collector);
+        request.setNote(note);
+        StockTontineRequestItem item = new StockTontineRequestItem();
+        item.setArticle(article);
+        item.setQuantity(quantity);
+        request.addItem(item);
+
+        StockTontineRequest created = save(request);
+        validate(created.getId());
+        deliver(created.getId());
+        return getById(created.getId());
+    }
+
+    public PartialDeliveryResponseDTO deliver(Long id) {
+        assertWarehouseStockMutable();
+        boolean fifoEnabled = stockValuationFacade.lockAndIsFifoEnabled();
+
+        StockTontineRequest request = getByIdForDelivery(id);
+        if (request.getStatus() != StockRequestStatus.VALIDATED) {
+            throw new CustomValidationException("Seules les demandes au statut VALIDATED peuvent être livrées.");
+        }
+
+        User currentUser = userService.getCurrentUser();
+
+        List<StockTontineRequestItem> deliverableItems = new ArrayList<>();
+        List<StockTontineRequestItem> pendingRequestItems = new ArrayList<>();
+        List<PartialDeliveryResponseDTO.DeliveredItemDTO> deliveredItemDTOs = new ArrayList<>();
+        List<PartialDeliveryResponseDTO.PendingItemDTO> pendingItemDTOs = new ArrayList<>();
+
+        // 1. Classification
+        for (StockTontineRequestItem item : new ArrayList<>(request.getItems())) {
+            Articles article = articlesService.getById(item.getArticle().getId());
+            if (article.availableQuantity() >= item.getQuantity()) {
+                deliverableItems.add(item);
+                deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(item.getItemName(), item.getQuantity(), item.getUnitPrice()));
+            } else if (article.availableQuantity() > 0) {
+                int availableQty = article.availableQuantity();
+                int missingQty = item.getQuantity() - availableQty;
+
+                item.setQuantity(availableQty);
+                deliverableItems.add(item);
+                deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(item.getItemName(), availableQty, item.getUnitPrice()));
+
+                StockTontineRequestItem pendingItem = new StockTontineRequestItem();
+                pendingItem.setArticle(item.getArticle());
+                pendingItem.setItemName(item.getItemName());
+                pendingItem.setQuantity(missingQty);
+                pendingItem.setUnitPrice(item.getUnitPrice());
+                pendingItem.setPurchasePrice(item.getPurchasePrice());
+                pendingRequestItems.add(pendingItem);
+
+                pendingItemDTOs.add(new PartialDeliveryResponseDTO.PendingItemDTO(item.getItemName(), missingQty, (double)availableQty, item.getUnitPrice()));
+            } else {
+                request.removeItem(item);
+                pendingRequestItems.add(item);
+                pendingItemDTOs.add(new PartialDeliveryResponseDTO.PendingItemDTO(item.getItemName(), item.getQuantity(), 0.0, item.getUnitPrice()));
+            }
+        }
+
+        if (deliverableItems.isEmpty()) {
+            throw new CustomValidationException("Stock magasin insuffisant pour tous les articles.");
+        }
+
+        Map<Long, List<com.optimize.elykia.inventory.web.dto.FifoLotSlice>> slicesByArticle = new HashMap<>();
+
+        // 2. Procéder aux mouvements de sortie magasin
+        for (StockTontineRequestItem item : deliverableItems) {
+            Articles article = articlesService.getById(item.getArticle().getId());
+
+            FifoConsumptionResult consumption = stockValuationFacade.consume(
+                    article,
+                    item.getQuantity(),
+                    ArticleStockLotMovementType.WAREHOUSE_RELEASE,
+                    "STOCK_TONTINE_REQUEST",
+                    request.getId());
+
+            stockMovementService.recordMovement(
+                    article,
+                    MovementType.RELEASE,
+                    item.getQuantity(),
+                    "Livraison Tontine " + request.getReference(),
+                    currentUser.getUsername(),
+                    null,
+                    consumption.getAverageUnitCost(),
+                    ArticleHistoryContext.withReference(
+                            request.getCollector(),
+                            StockHistoryReferenceType.STOCK_TONTINE_REQUEST,
+                            request.getId(),
+                            request.getReference()));
+
+            article.makeRelease(item.getQuantity());
+            articlesService.update(article);
+
+            StockRequestDeliveryPricing.applyAtDelivery(
+                    item,
+                    article,
+                    fifoEnabled,
+                    consumption.getAverageUnitCost());
+            if (consumption.getSlices() != null && !consumption.getSlices().isEmpty()) {
+                slicesByArticle.put(article.getId(), consumption.getSlices());
+            }
+        }
+
+        deliveredItemDTOs.clear();
+        for (StockTontineRequestItem item : deliverableItems) {
+            deliveredItemDTOs.add(new PartialDeliveryResponseDTO.DeliveredItemDTO(
+                    item.getItemName(), item.getQuantity(), item.getUnitPrice()));
+        }
+
+        // update totals
+        double totalSale = deliverableItems.stream().mapToDouble(i -> i.getQuantity() * (i.getUnitPrice() != null ? i.getUnitPrice() : 0.0)).sum();
+        double totalPurchase = deliverableItems.stream().mapToDouble(i -> i.getQuantity() * (i.getPurchasePrice() != null ? i.getPurchasePrice() : 0.0)).sum();
+        request.setTotalSalePrice(totalSale);
+        request.setTotalPurchasePrice(totalPurchase);
+
+        request.setDeliveryDate(LocalDate.now());
+        // 3. Mise à jour du stock Tontine du commercial
+        tontineStockService.processStockDelivery(request);
+        if (tontineStockLayerService != null && request.getDeliveryDate() != null) {
+            tontineStockLayerService.attach(
+                    request.getCollector(),
+                    request.getDeliveryDate().getYear(),
+                    slicesByArticle);
+        }
+
+        request.setStatus(StockRequestStatus.DELIVERED);
+
+        request.setAccountingDate(LocalDate.now());
+
+        StockTontineRequest savedRequest = update(request);
+
+        // Publication de l'événement pour le rapport journalier
+        eventPublisher.publishEvent(new StockTontineRequestDeliveredEvent(
+                this,
+                savedRequest.getTotalSalePrice(),
+                savedRequest.getCollector(),
+                savedRequest.getReference()));
+
+        PartialDeliveryResponseDTO response = new PartialDeliveryResponseDTO();
+        response.setDeliveredRequestId(savedRequest.getId());
+        response.setDeliveredRequestReference(savedRequest.getReference());
+        response.setDeliveredItems(deliveredItemDTOs);
+
+        if (pendingRequestItems.isEmpty()) {
+            response.setDeliveryType(PartialDeliveryResponseDTO.DeliveryType.FULL);
+            response.setPendingItems(new ArrayList<>());
+        } else {
+            response.setDeliveryType(PartialDeliveryResponseDTO.DeliveryType.PARTIAL);
+            response.setPendingItems(pendingItemDTOs);
+
+            // Create new pending request
+            StockTontineRequest pendingRequest = new StockTontineRequest();
+            pendingRequest.setCollector(request.getCollector());
+            pendingRequest.setRequestDate(LocalDate.now());
+            pendingRequest.setValidationDate(LocalDate.now());
+            pendingRequest.setStatus(StockRequestStatus.VALIDATED);
+
+            Long maxId = ((StockTontineRequestRepository) getRepository()).findMaxId();
+            long nextId = (maxId != null ? maxId : 0) + 1;
+            LocalDate nowRef = LocalDate.now();
+            String year = String.format("%04d", nowRef.getYear());
+            String month = String.format("%02d", nowRef.getMonthValue());
+            String hexId = String.format("%08X", nextId);
+            pendingRequest.setReference("TRQ-" + year + "-" + month + "-" + hexId);
+
+            double pendTotalSale = 0.0;
+            double pendTotalPurchase = 0.0;
+            
+            for (StockTontineRequestItem pi : pendingRequestItems) {
+                pendingRequest.addItem(pi);
+                pendTotalSale += pi.getQuantity() * (pi.getUnitPrice() != null ? pi.getUnitPrice() : 0.0);
+                pendTotalPurchase += pi.getQuantity() * (pi.getPurchasePrice() != null ? pi.getPurchasePrice() : 0.0);
+            }
+            pendingRequest.setTotalSalePrice(pendTotalSale);
+            pendingRequest.setTotalPurchasePrice(pendTotalPurchase);
+
+            StockTontineRequest savedPending = update(pendingRequest);
+            response.setPendingRequestId(savedPending.getId());
+            response.setPendingRequestReference(savedPending.getReference());
+        }
+
+        return response;
+    }
+
+    public void cancelRequest(Long requestId) {
+        StockTontineRequest request = getById(requestId);
+        StockRequestStatus status = request.getStatus();
+        if (status == StockRequestStatus.DELIVERED) {
+            throw new CustomValidationException("Une demande déjà livrée ne peut pas être annulée.");
+        }
+        if (status != StockRequestStatus.CREATED && status != StockRequestStatus.VALIDATED) {
+            throw new CustomValidationException("Cette demande ne peut pas être annulée.");
+        }
+
+        User currentUser = userService.getCurrentUser();
+        if (status == StockRequestStatus.VALIDATED) {
+            if (!hasPermission(currentUser, UserPermissionConstant.CANCEL_VALIDATED_STOCK_REQUEST)) {
+                throw new CustomValidationException("Vous n'avez pas le droit d'annuler cette demande.");
+            }
+        } else {
+            boolean isCreator = request.getCollector().equals(currentUser.getUsername());
+            boolean isManager = currentUser.is(UserProfilConstant.GESTIONNAIRE) || currentUser.is(UserProfilConstant.ADMIN);
+            if (!isCreator && !isManager) {
+                throw new CustomValidationException("Vous n'avez pas le droit d'annuler cette demande.");
+            }
+        }
+
+        request.setStatus(StockRequestStatus.CANCELLED);
+        update(request);
+    }
+
+    private static boolean hasPermission(User user, String permission) {
+        if (user == null || user.getPermissions() == null) {
+            return false;
+        }
+        return user.getPermissions().stream().map(UserPermission::getName).anyMatch(permission::equals);
+    }
+
+    public void refuseRequest(Long requestId) {
+        StockTontineRequest request = getById(requestId);
+        User currentUser = userService.getCurrentUser();
+
+        if (request.getStatus() != StockRequestStatus.CREATED) {
+             throw new CustomValidationException("Seules les demandes au statut CREATED peuvent être refusées.");
+        }
+
+        boolean isManagerOrSecretary = currentUser.is(UserProfilConstant.GESTIONNAIRE) || 
+                                       currentUser.is(UserProfilConstant.SECRETARY) ||
+                                       currentUser.is(UserProfilConstant.ADMIN);
+
+        if (!isManagerOrSecretary) {
+            throw new CustomValidationException("Vous n'avez pas le droit de refuser cette demande.");
+        }
+
+        request.setStatus(StockRequestStatus.REFUSED);
+        update(request);
+    }
+
+    @Override
+    public StockTontineRequest getById(Long id) {
+        return ((StockTontineRequestRepository) getRepository()).findByIdWithItems(id)
+                .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
+    }
+
+    private StockTontineRequest getByIdForDelivery(Long id) {
+        return ((StockTontineRequestRepository) getRepository()).findByIdForUpdate(id)
+                .orElseThrow(() -> new ResourceNotFoundException("resource.not.found"));
+    }
+
+    public List<StockTontineRequestItem> getItemsById(Long id) {
+        StockTontineRequest request = getById(id);
+        return request.getItems().stream()
+                .sorted(ArticleSortOrder.forStockTontineRequestItems())
+                .toList();
+    }
+
+    public Page<StockTontineRequestListDto> getAll(String collector, LocalDate startDate, LocalDate endDate, Pageable pageable) {
+        StockTontineRequestRepository repo = (StockTontineRequestRepository) getRepository();
+        String effectiveCollector = resolveCollector(collector);
+        Page<StockTontineRequestListDto> page = repo.findFilteredList(
+                effectiveCollector, startDate, endDate, resolveVisibleStatuses(), pageable);
+        attachLinkedDeliveries(page.getContent());
+        return page;
+    }
+
+    private void attachLinkedDeliveries(List<StockTontineRequestListDto> rows) {
+        if (deliveryLinkRepository == null || rows == null || rows.isEmpty()) {
+            return;
+        }
+        List<Long> ids = rows.stream().map(StockTontineRequestListDto::getId).toList();
+        Map<Long, List<String>> refs = new java.util.HashMap<>();
+        for (StockTontineRequestDeliveryLink link : deliveryLinkRepository.findByStockRequestIds(ids)) {
+            if (link.getDelivery() == null || link.getStockTontineRequest() == null) {
+                continue;
+            }
+            TontineDelivery delivery = link.getDelivery();
+            String label = delivery.getReference() != null && !delivery.getReference().isBlank()
+                    ? delivery.getReference()
+                    : "LIV-" + delivery.getId();
+            refs.computeIfAbsent(link.getStockTontineRequest().getId(), id -> new ArrayList<>()).add(label);
+        }
+        refs.values().forEach(list -> list.sort(String::compareTo));
+        rows.forEach(dto -> dto.setLinkedOrderReferences(refs.getOrDefault(dto.getId(), List.of())));
+    }
+
+    public com.optimize.elykia.sale.web.dto.StockRequestKpiDto getKpis(String collector, LocalDate startDate, LocalDate endDate) {
+        StockTontineRequestRepository repo = (StockTontineRequestRepository) getRepository();
+        String effectiveCollector = resolveCollector(collector);
+        List<Object[]> counts = repo.countByStatusFiltered(effectiveCollector, startDate, endDate, resolveVisibleStatuses());
+
+        long pending = 0;
+        long validated = 0;
+        long delivered = 0;
+        long cancelledRefused = 0;
+
+        for (Object[] row : counts) {
+            StockRequestStatus status = (StockRequestStatus) row[0];
+            long count = (Long) row[1];
+            switch (status) {
+                case CREATED -> pending = count;
+                case VALIDATED -> validated = count;
+                case DELIVERED -> delivered = count;
+                case CANCELLED, REFUSED -> cancelledRefused += count;
+                default -> { }
+            }
+        }
+
+        return com.optimize.elykia.sale.web.dto.StockRequestKpiDto.builder()
+                .total(pending + validated + delivered + cancelledRefused)
+                .pending(pending)
+                .validated(validated)
+                .delivered(delivered)
+                .build();
+    }
+
+    private String resolveCollector(String collector) {
+        if (Objects.nonNull(collector)) {
+            return collector;
+        }
+        User user = userService.getCurrentUser();
+        if (user.is(UserProfilConstant.PROMOTER)) {
+            return user.getUsername();
+        }
+        return null;
+    }
+
+    private List<StockRequestStatus> resolveVisibleStatuses() {
+        User user = userService.getCurrentUser();
+        if (user.is(UserProfilConstant.MAGASINIER)) {
+            return List.of(StockRequestStatus.VALIDATED, StockRequestStatus.DELIVERED);
+        }
+        return List.of(
+                StockRequestStatus.CREATED,
+                StockRequestStatus.VALIDATED,
+                StockRequestStatus.DELIVERED,
+                StockRequestStatus.CANCELLED,
+                StockRequestStatus.REFUSED);
+    }
+
+    /** @deprecated use {@link #getAll(String, LocalDate, LocalDate, Pageable)} */
+    public Page<StockTontineRequestListDto> getAll(String collector, Pageable pageable) {
+        return getAll(collector, null, null, pageable);
+    }
+
+    public byte[] generatePdfExport(LocalDate startDate, LocalDate endDate, String collector) {
+        List<StockRequestStatus> statuses = List.of(StockRequestStatus.DELIVERED);
+
+        // Security check: if promoter, force collector to be current user
+        User user = userService.getCurrentUser();
+        if (user.is(UserProfilConstant.PROMOTER)) {
+            collector = user.getUsername();
+        }
+
+        List<StockRequestExportDTO> data = ((StockTontineRequestRepository) getRepository())
+                .findAggregatedStockRequests(startDate, endDate, collector, statuses, null);
+
+        long totalQuantity = data.stream().mapToLong(StockRequestExportDTO::getTotalQuantity).sum();
+
+        StockExportPdfContextDto contextDto = StockExportPdfContextDto.builder()
+                .title("Rapport des Sorties de Stock Tontine")
+                .startDate(startDate != null ? startDate.toString() : "Début")
+                .endDate(endDate != null ? endDate.toString() : "Fin")
+                .collector(collector != null ? collector : "Tous")
+                .generationDate(LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")))
+                .items(data)
+                .totalQuantity(totalQuantity)
+                .build();
+
+        Context context = new Context();
+        UnitPriceVisibility.apply(context, OperationType.CASH);
+        context.setVariable("context", contextDto);
+
+        String html = templateEngine.process("stock-export", context);
+        return pdfHtmlRenderer.htmlToPdf(html, PdfDocumentIdentity.footerLabel(contextDto.getTitle()));
+    }
+}

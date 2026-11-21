@@ -14,16 +14,16 @@ import com.optimize.elykia.core.dto.portfolio.FormerTontineCollectionDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineMemberDetailDto;
 import com.optimize.elykia.core.dto.portfolio.FormerTontineStakePeriodDto;
 import com.optimize.elykia.sale.domain.Credit;
-import com.optimize.elykia.core.entity.tontine.TontineMember;
-import com.optimize.elykia.core.entity.tontine.TontineMemberAmountHistory;
-import com.optimize.elykia.core.entity.tontine.TontineSession;
+import com.optimize.elykia.tontine.domain.TontineMember;
+import com.optimize.elykia.tontine.domain.TontineMemberAmountHistory;
+import com.optimize.elykia.tontine.domain.TontineSession;
 import com.optimize.elykia.sale.domain.CreditStatus;
 import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditCollectorHistoryRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditRepository;
 import com.optimize.elykia.sale.infrastructure.persistence.CreditTimelineRepository;
-import com.optimize.elykia.core.repository.TontineCollectionRepository;
-import com.optimize.elykia.core.repository.TontineMemberRepository;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineCollectionRepository;
+import com.optimize.elykia.tontine.infrastructure.persistence.TontineMemberRepository;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
 import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +57,7 @@ class FormerPortfolioServiceTest {
     @Mock private ClientService clientService;
     @Mock private TontineMemberRepository tontineMemberRepository;
     @Mock private TontineCollectionRepository tontineCollectionRepository;
+    @Mock private com.optimize.elykia.core.repository.FormerPortfolioTontineQueryRepository formerTontineQueryRepository;
     @Mock private ClientCollectorHistoryRepository clientCollectorHistoryRepository;
     @Mock private CreditRepository creditRepository;
     @Mock private CreditTimelineRepository creditTimelineRepository;
@@ -73,6 +74,7 @@ class FormerPortfolioServiceTest {
                 clientService,
                 tontineMemberRepository,
                 tontineCollectionRepository,
+                formerTontineQueryRepository,
                 clientCollectorHistoryRepository,
                 creditRepository,
                 creditTimelineRepository,
@@ -103,7 +105,7 @@ class FormerPortfolioServiceTest {
                 7L, State.ENABLED, "com.a")).thenReturn(true);
         FormerTontineCollectionDto own = new FormerTontineCollectionDto(
                 7L, 3L, 1000.0, LocalDateTime.of(2026, 3, 1, 8, 0), "COL-A");
-        when(tontineCollectionRepository.findOwnCollections(7L, "com.a")).thenReturn(List.of(own));
+        when(formerTontineQueryRepository.findOwnCollections(7L, "com.a")).thenReturn(List.of(own));
 
         FormerTontineMemberDetailDto detail = service.getFormerTontineMember(7L);
 
@@ -136,7 +138,7 @@ class FormerPortfolioServiceTest {
         when(tontineMemberRepository.findById(7L)).thenReturn(Optional.of(member));
         when(tontineCollectionRepository.existsByTontineMember_IdAndStateAndCommercialUsernameIgnoreCase(
                 7L, State.ENABLED, "com.a")).thenReturn(true);
-        when(tontineCollectionRepository.findOwnCollections(7L, "com.a")).thenReturn(List.of());
+        when(formerTontineQueryRepository.findOwnCollections(7L, "com.a")).thenReturn(List.of());
 
         FormerTontineMemberDetailDto detail = service.getFormerTontineMember(7L);
 
@@ -237,18 +239,18 @@ class FormerPortfolioServiceTest {
     void promoterHistoryIgnoresTheRequestedCommercial() {
         User former = promoter("com.a");
         when(userService.getCurrentUser()).thenReturn(former);
-        when(tontineMemberRepository.findFormerMembers(eq("com.a"), any(Pageable.class))).thenReturn(Page.empty());
+        when(formerTontineQueryRepository.findFormerMembers(eq("com.a"), any(Pageable.class))).thenReturn(Page.empty());
 
         assertThat(service.listFormerTontineMembers(PageRequest.of(0, 20)).getContent()).isEmpty();
         assertThat(service.listFormerTontineMembers(PageRequest.of(0, 20), "COM015").getContent()).isEmpty();
-        verify(tontineMemberRepository, never()).findFormerMembers(eq("COM015"), any());
+        verify(formerTontineQueryRepository, never()).findFormerMembers(eq("COM015"), any());
     }
 
     @Test
     void staffCanOpenAnotherCommercialHistoryWhenAllowed() {
         User manager = staff(UserPermissionConstant.KPI_FINANCIER_TONTINE);
         when(userService.getCurrentUser()).thenReturn(manager);
-        when(tontineMemberRepository.findFormerMembers(eq("COM003"), any(Pageable.class))).thenReturn(Page.empty());
+        when(formerTontineQueryRepository.findFormerMembers(eq("COM003"), any(Pageable.class))).thenReturn(Page.empty());
 
         assertThat(service.listFormerTontineMembers(PageRequest.of(0, 20), "  COM003  ").getContent()).isEmpty();
     }
@@ -307,7 +309,7 @@ class FormerPortfolioServiceTest {
                 7L, State.ENABLED, "COM003")).thenReturn(true);
         FormerTontineCollectionDto own = new FormerTontineCollectionDto(
                 7L, 3L, 500.0, LocalDateTime.of(2026, 4, 1, 8, 0), "COL-3");
-        when(tontineCollectionRepository.findOwnCollections(7L, "COM003")).thenReturn(List.of(own));
+        when(formerTontineQueryRepository.findOwnCollections(7L, "COM003")).thenReturn(List.of(own));
 
         FormerTontineMemberDetailDto detail = service.getFormerTontineMember(7L, "COM003");
 
@@ -334,7 +336,7 @@ class FormerPortfolioServiceTest {
                 7L, State.ENABLED, "COM003")).thenReturn(false);
         when(clientCollectorHistoryRepository.existsByClientIdAndCollectorTypeAndOldCollectorIgnoreCaseAndState(
                 4L, ClientCollectorType.TONTINE, "COM003", State.ENABLED)).thenReturn(true);
-        when(tontineCollectionRepository.findOwnCollections(7L, "COM003")).thenReturn(List.of());
+        when(formerTontineQueryRepository.findOwnCollections(7L, "COM003")).thenReturn(List.of());
 
         assertThat(service.getFormerTontineMember(7L, "COM003").collections()).isEmpty();
     }

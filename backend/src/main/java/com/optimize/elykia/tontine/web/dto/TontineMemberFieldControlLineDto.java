@@ -1,0 +1,19 @@
+package com.optimize.elykia.tontine.web.dto;
+
+import lombok.Builder;
+import lombok.Getter;
+
+@Getter
+@Builder
+public class TontineMemberFieldControlLineDto {
+    private Long id;
+    private Integer year;
+    private Integer month;
+    /** Null sur les contrôles historiques non découpés par commercial. */
+    private String commercialUsername;
+    private Double notebookAmount;
+    private Double systemAmount;
+    private Double differenceAmount;
+    /** Mise du mois retenue uniquement lorsqu'elle diffère de la mise déjà en vigueur. */
+    private Double declaredDailyAmount;
+}

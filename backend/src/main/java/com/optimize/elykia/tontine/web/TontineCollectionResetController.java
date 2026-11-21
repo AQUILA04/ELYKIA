@@ -1,0 +1,144 @@
+package com.optimize.elykia.tontine.web;
+
+import com.optimize.elykia.tontine.web.dto.TontineCollectionResetLineDto;
+import com.optimize.elykia.tontine.web.dto.TontineCollectionResetMemberDto;
+import com.optimize.elykia.tontine.web.dto.TontineCollectionResetReportDayDto;
+import com.optimize.elykia.tontine.web.dto.TontineCollectionResetRunDto;
+import com.optimize.elykia.tontine.web.dto.TontineCommercialVoidPreviewDto;
+import com.optimize.elykia.tontine.web.dto.TontineCommercialVoidRequest;
+import com.optimize.elykia.tontine.application.TontineCollectionResetFacadeService;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+
+import java.nio.charset.StandardCharsets;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("api/v1/tontine/collections/reset")
+@SecurityRequirement(name = "bearerAuth")
+@Tag(name = "Réinitialisation des collectes tontine")
+@CrossOrigin
+public class TontineCollectionResetController {
+
+    private final TontineCollectionResetFacadeService facadeService;
+
+    private static final String CONSULT_ROLES = "hasAnyRole('"
+            + UserPermissionConstant.CONSULT_TONTINE_COLLECTION_RESET + "', '"
+            + UserPermissionConstant.RESET_TONTINE_COLLECTIONS + "', '"
+            + UserPermissionConstant.ADMIN + "')";
+
+    private static final String EXECUTE_ROLES = "hasAnyRole('"
+            + UserPermissionConstant.RESET_TONTINE_COLLECTIONS + "', '"
+            + UserPermissionConstant.ADMIN + "')";
+
+    @GetMapping
+    @PreAuthorize(CONSULT_ROLES)
+    @Operation(summary = "Arborescence des archives PDF de collectes tontine")
+    public ResponseEntity<List<Map<String, Object>>> getArchiveTree() {
+        return ResponseEntity.ok(facadeService.getArchiveTree());
+    }
+
+    @GetMapping("/{fileId}/download")
+    @PreAuthorize(CONSULT_ROLES)
+    @Operation(summary = "Télécharger un PDF d'archive de collectes")
+    public ResponseEntity<byte[]> download(@PathVariable Long fileId) {
+        var file = facadeService.getFileForDownload(fileId);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.fileName() + "\"")
+                .body(file.content());
+    }
+
+    @PostMapping
+    @PreAuthorize(EXECUTE_ROLES)
+    @Operation(summary = "Archiver les collectes en PDF puis réinitialiser à zéro")
+    public ResponseEntity<TontineCollectionResetRunDto> triggerReset() {
+        return ResponseEntity.ok(facadeService.triggerReset());
+    }
+
+    @PostMapping("/export")
+    @PreAuthorize(EXECUTE_ROLES)
+    @Operation(summary = "Archiver les collectes en PDF sans réinitialiser")
+    public ResponseEntity<TontineCollectionResetRunDto> triggerExportOnly() {
+        return ResponseEntity.ok(facadeService.triggerExportOnly());
+    }
+
+    @GetMapping("/runs")
+    @PreAuthorize(CONSULT_ROLES)
+    @Operation(summary = "Historique des opérations de réinitialisation")
+    public ResponseEntity<Page<TontineCollectionResetRunDto>> getRuns(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(facadeService.getRuns(page, size));
+    }
+
+    @GetMapping("/commercial/preview")
+    @PreAuthorize(EXECUTE_ROLES)
+    @Operation(summary = "Aperçu de l'annulation des collectes d'un commercial")
+    public ResponseEntity<TontineCommercialVoidPreviewDto> previewCommercial(
+            @RequestParam String commercialUsername,
+            @RequestParam(required = false) Integer sessionYear) {
+        return ResponseEntity.ok(facadeService.previewCommercial(commercialUsername, sessionYear));
+    }
+
+    @PostMapping("/commercial")
+    @PreAuthorize(EXECUTE_ROLES)
+    @Operation(summary = "Archiver puis annuler les collectes d'un commercial")
+    public ResponseEntity<TontineCollectionResetRunDto> voidCommercial(
+            @RequestBody TontineCommercialVoidRequest request) {
+        Integer sessionYear = request != null ? request.sessionYear() : null;
+        String commercial = request != null ? request.commercialUsername() : null;
+        return ResponseEntity.ok(facadeService.voidCommercial(commercial, sessionYear));
+    }
+
+    @GetMapping("/runs/{runId}/lines")
+    @PreAuthorize(CONSULT_ROLES)
+    @Operation(summary = "Lignes archivées d'une annulation")
+    public ResponseEntity<Page<TontineCollectionResetLineDto>> getLines(
+            @PathVariable Long runId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(facadeService.getLines(runId, page, size));
+    }
+
+    @GetMapping("/runs/{runId}/members")
+    @PreAuthorize(CONSULT_ROLES)
+    @Operation(summary = "Compteurs membres avant et après une annulation")
+    public ResponseEntity<Page<TontineCollectionResetMemberDto>> getMembers(
+            @PathVariable Long runId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(facadeService.getMembers(runId, page, size));
+    }
+
+    @GetMapping("/runs/{runId}/report-days")
+    @PreAuthorize(CONSULT_ROLES)
+    @Operation(summary = "Jours de rapport avant et après une annulation")
+    public ResponseEntity<List<TontineCollectionResetReportDayDto>> getReportDays(@PathVariable Long runId) {
+        return ResponseEntity.ok(facadeService.getReportDays(runId));
+    }
+
+    @GetMapping(value = "/runs/{runId}/lines.csv", produces = "text/csv")
+    @PreAuthorize(CONSULT_ROLES)
+    @Operation(summary = "Export CSV des lignes archivées")
+    public ResponseEntity<byte[]> exportLines(@PathVariable Long runId) {
+        byte[] csv = facadeService.exportLinesCsv(runId);
+        return ResponseEntity.ok()
+                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"collectes-annulees-" + runId + ".csv\"")
+                .body(csv);
+    }
+}

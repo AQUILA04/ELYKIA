@@ -8,7 +8,7 @@ import com.optimize.elykia.sale.event.CreditCollectionEvent;
 import com.optimize.elykia.finance.infrastructure.persistence.DailyCommercialReportRepository;
 import com.optimize.elykia.finance.application.DailyCommercialReportPersistence;
 import com.optimize.elykia.finance.application.DailyOperationService;
-import com.optimize.elykia.core.service.tontine.TontineCatchupNotificationService;
+import com.optimize.elykia.tontine.application.TontineCatchupNotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
