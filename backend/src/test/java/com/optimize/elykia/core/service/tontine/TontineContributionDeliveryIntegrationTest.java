@@ -197,6 +197,36 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
         assertEquals(DELIVERY_REFERENCE, deliveryMovement.getTontineDeliveryReference());
     }
 
+    @Test
+    void pendingOrderReservesItsArticlesInTheCommercialTontineStock() {
+        // Given: an open session and a member whose order is recorded but not delivered.
+        ensureSocietyShareVersionV2();
+        when(userService.getCurrentUser()).thenReturn(currentUser);
+        when(currentUser.getUsername()).thenReturn(COLLECTOR);
+        when(currentUser.is("GESTIONNAIRE")).thenReturn(false);
+        when(currentUser.is("ADMIN")).thenReturn(false);
+        Client client = persistClient("client.tontine.reservation");
+        // Session unique par année : celle de l'autre test existe déjà, on ouvre l'année précédente.
+        TontineSession session = persistActiveSession(LocalDate.now().getYear() - 1);
+        TontineMember member = persistMember(session, client);
+        Articles article = persistArticle("TONTINE-RESERVATION-ARTICLE", 10, 50.0, 100.0);
+        persistTontineStock(article, 5, 100.0);
+
+        // When: the order is created (no stock movement for an order).
+        tontineDeliveryService.createDelivery(delivery(member.getId(), article.getId(), "LIV-RESERVATION-1", 100.0));
+        entityManager.clear();
+
+        // Then: the grouped query reserves one unit of this article for the commercial, on PostgreSQL.
+        List<Object[]> reserved = deliveryRepository.reservedQuantitiesByArticle(COLLECTOR, java.util.EnumSet.of(
+                TontineMemberDeliveryStatus.PENDING, TontineMemberDeliveryStatus.VALIDATED));
+        assertEquals(1, reserved.size());
+        assertEquals(article.getId(), ((Number) reserved.get(0)[0]).longValue());
+        assertEquals(1L, ((Number) reserved.get(0)[1]).longValue());
+        assertEquals(1L, ((Number) reserved.get(0)[2]).longValue());
+        assertTrue(deliveryRepository.reservedQuantitiesByArticle("OTHER-COMMERCIAL", java.util.EnumSet.of(
+                TontineMemberDeliveryStatus.PENDING, TontineMemberDeliveryStatus.VALIDATED)).isEmpty());
+    }
+
     private void ensureSocietyShareVersionV2() {
         // Profil test : auto-initialize désactivé — forcer V2 sans event de migration.
         parameterRepository.findByKey(TontineParameterConstant.SOCIETY_SHARE_VERSION)
@@ -252,10 +282,14 @@ class TontineContributionDeliveryIntegrationTest extends IntegrationTestSupport 
     }
 
     private TontineSession persistActiveSession() {
+        return persistActiveSession(LocalDate.now().getYear());
+    }
+
+    private TontineSession persistActiveSession(int year) {
         TontineSession session = new TontineSession();
-        session.setYear(LocalDate.now().getYear());
-        session.setStartDate(LocalDate.of(LocalDate.now().getYear(), 1, 1));
-        session.setEndDate(LocalDate.of(LocalDate.now().getYear(), 12, 31));
+        session.setYear(year);
+        session.setStartDate(LocalDate.of(year, 1, 1));
+        session.setEndDate(LocalDate.of(year, 12, 31));
         session.setStatus(TontineSessionStatus.ACTIVE);
         session.setTotalRevenue(0.0);
         return sessionRepository.saveAndFlush(session);

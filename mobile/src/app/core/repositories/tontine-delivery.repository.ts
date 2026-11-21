@@ -180,6 +180,30 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
         );
     }
 
+    /**
+     * Réservation indicative du stock tontine : quantités des commandes non livrées du commercial,
+     * article par article (rien n'est bloqué ni sorti du stock).
+     */
+    async reservedQuantitiesByArticle(commercialUsername: string): Promise<Map<string, number>> {
+        if (!this.databaseService['db']) throw new Error('Database not initialized.');
+        const result = await this.databaseService.query(
+            `SELECT i.articleId AS articleId, SUM(i.quantity) AS quantity
+             FROM tontine_delivery_items i
+             INNER JOIN tontine_deliveries d ON d.id = i.tontineDeliveryId
+             WHERE d.commercialUsername = ?
+               AND UPPER(TRIM(d.status)) IN ('PENDING', 'VALIDATED')
+             GROUP BY i.articleId`,
+            [commercialUsername]
+        );
+        const reserved = new Map<string, number>();
+        for (const row of result.values || []) {
+            if (row.articleId != null) {
+                reserved.set(String(row.articleId), Number(row.quantity) || 0);
+            }
+        }
+        return reserved;
+    }
+
     async markDeliverSynced(deliveryId: string): Promise<void> {
         if (!this.databaseService['db']) throw new Error('Database not initialized.');
         await this.databaseService.execute(

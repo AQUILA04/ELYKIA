@@ -9,9 +9,9 @@ Chantier « commande et livraison tontine » (plan général : `.cursor/plans/to
 
 ## Livré
 
-- Backend 1.61.0 : `V045` (`planned_delivery_date`), entité, DTO de création / réponse / liste / chargement mobile, fusion d'une seconde commande, reçu PDF, `TontinePlannedDeliveriesPdfService` + `GET /planned/pdf`, tests (service, rendu, reçu).
-- Frontend 2.60.0 : date dans la fenêtre de préparation, colonne « Prévue le », « Membres à livrer le » + PDF, fiche membre.
-- Mobile 2.46.0 : date dans la confirmation de commande, SQLite v39, synchro, chargements, fiche membre, reçu (aperçu, ticket), tests, e2e S2.
+- Backend 1.63.0 : `V045` (`planned_delivery_date`), entité, DTO de création / réponse / liste / chargement mobile, fusion d'une seconde commande, reçu PDF, `TontinePlannedDeliveriesPdfService` + `GET /planned/pdf`, tests (service, rendu, reçu).
+- Frontend 2.62.0 : date dans la fenêtre de préparation, colonne « Prévue le », « Membres à livrer le » + PDF, fiche membre.
+- Mobile 2.48.0 : date dans la confirmation de commande, SQLite v39, synchro, chargements, fiche membre, reçu (aperçu, ticket), tests, e2e S2.
 - Guide web et mobile, index RAG, HTML.
 
 ## Hors périmètre

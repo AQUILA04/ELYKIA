@@ -22,8 +22,47 @@
     </div>
   </div>
 
+  <!-- Filtre rapide : catalogue général ou stock tontine du commercial -->
+  <div class="source-toggle" role="group" aria-label="Source des articles">
+    <button type="button" class="source-pill" [class.active]="articleSource === 'CATALOGUE'"
+            (click)="setArticleSource('CATALOGUE')" data-testid="e2e-tontine-source-catalogue">
+      Catalogue général
+    </button>
+    <button type="button" class="source-pill" [class.active]="articleSource === 'STOCK'"
+            (click)="setArticleSource('STOCK')" data-testid="e2e-tontine-source-stock">
+      Stock tontine {{ stockCommercial ? 'de ' + stockCommercial : '' }}
+    </button>
+  </div>
+
+  <div class="stock-section" *ngIf="articleSource === 'STOCK'" data-testid="e2e-tontine-stock-articles">
+    <p class="stock-hint">Une commande prise dans le stock ne le débite pas : seule la remise le fait. « Réservé » additionne les commandes en cours de ce commercial, à titre indicatif.</p>
+    <p class="stock-hint" *ngIf="stockLoading">Chargement du stock…</p>
+    <p class="error-message" *ngIf="stockError"><mat-icon>error</mat-icon><span>{{ stockError }}</span></p>
+    <p class="stock-hint" *ngIf="!stockLoading && !stockError && stockRows.length === 0">Aucun article disponible dans ce stock tontine.</p>
+    <table class="articles-table" *ngIf="!stockLoading && stockRows.length > 0">
+      <thead>
+        <tr>
+          <th>Article</th>
+          <th class="num">Disponible</th>
+          <th class="num">Réservé</th>
+          <th class="num">Libre</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of stockRows">
+          <td>{{ row.articleName }}</td>
+          <td class="num">{{ row.available }}</td>
+          <td class="num">{{ row.reserved }}</td>
+          <td class="num" [class.stock-free-none]="row.free === 0">{{ row.free }}</td>
+          <td><button type="button" class="source-pill" (click)="addFromStock(row)">Ajouter</button></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <!-- Recherche d'articles -->
-  <div class="search-section">
+  <div class="search-section" *ngIf="articleSource === 'CATALOGUE'">
     <mat-form-field appearance="outline" class="full-width">
       <mat-label>Rechercher un article</mat-label>
       <input 

@@ -38,6 +38,23 @@ public interface TontineDeliveryRepository extends JpaRepository<TontineDelivery
 
     boolean existsByTontineMemberId(Long memberId);
 
+    /**
+     * Quantités commandées par article (articleId, quantité, nombre de commandes) pour les commandes
+     * d'un commercial dont le membre n'est pas encore livré, hors sessions terminées.
+     */
+    @Query("""
+            SELECT item.articles.id, SUM(item.quantity), COUNT(DISTINCT d.id)
+            FROM TontineDeliveryItem item
+            JOIN item.delivery d
+            JOIN d.tontineMember tm
+            JOIN tm.tontineSession s
+            WHERE d.commercialUsername = :commercial
+              AND tm.deliveryStatus IN :statuses
+              AND s.status <> com.optimize.elykia.core.enumaration.TontineSessionStatus.ENDED
+            GROUP BY item.articles.id
+            """)
+    List<Object[]> reservedQuantitiesByArticle(@Param("commercial") String commercial,
+                                               @Param("statuses") Collection<com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus> statuses);
     /** Commandes prévues à une date et pas encore remises (PDF des membres à livrer). */
     @Query("""
             SELECT DISTINCT d FROM TontineDelivery d

@@ -172,7 +172,7 @@ flowchart LR
 1. **Préparer la Livraison** :
    - Tant que la session est ouverte, le bouton **Préparer la Livraison** est disponible sur la fiche du membre.
    - La fenêtre affiche le **Solde disponible** (déjà encaissé) et le **Solde prévisionnel** (estimation de fin d'année si chaque mois est cotisé en entier). Le panier peut aller jusqu'à ce prévisionnel, même si l'épargne déjà encaissée est plus basse. Il ne peut pas aller au-delà : le **Reste au plafond** passe en dessous de zéro et l'enregistrement est refusé.
-   - Choisissez les articles souhaités dans le **catalogue** de l'agence (pas besoin que le commercial ait déjà du stock tontine).
+   - Choisissez la source des articles : **Catalogue général** (pas besoin que le commercial ait déjà du stock tontine) ou **Stock tontine de** son commercial. Le stock affiche, pour chaque article, **Disponible**, **Réservé** (déjà commandé par d'autres membres pas encore livrés) et **Libre**, à titre indicatif. **Ajouter** met l'article dans la commande ; une commande ne sort rien du stock, seule la remise le décompte.
    - Pour chaque article, la liste **Offre** propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.
    - Si les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme **Solde non utilisé** au profit du client.
    - Sous le panier, **Date de livraison prévue (facultatif)** fixe le jour de remise prévu avec le membre. Laissez-la vide si la date n'est pas encore connue.

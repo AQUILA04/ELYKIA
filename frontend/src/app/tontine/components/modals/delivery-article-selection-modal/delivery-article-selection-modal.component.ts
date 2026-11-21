@@ -3,8 +3,10 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { FormControl } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, switchMap, catchError, map, startWith, takeUntil, finalize } from 'rxjs/operators';
-import { of, Subject, Subscription } from 'rxjs';
-import { TontineDeliveryService } from '../../../services/tontine-delivery.service';
+import { forkJoin, of, Subject, Subscription } from 'rxjs';
+import { TontineStockService } from 'src/app/stock-tontine/services/tontine-stock.service';
+import { TontineStock } from 'src/app/stock-tontine/models/tontine-stock.model';
+import { TontineArticleReservation, TontineDeliveryService } from '../../../services/tontine-delivery.service';
 import { Article as CatalogArticle, ItemService } from 'src/app/article/service/item.service';
 import {
   TontineMember,
@@ -20,12 +22,50 @@ interface SaleOffer {
   salePrice: number;
 }
 
+/** Ligne du stock tontine du commercial, avec la réservation indicative des commandes en cours. */
+export interface StockArticleRow {
+  articleId: number;
+  articleName: string;
+  unitPrice: number;
+  available: number;
+  reserved: number;
+  free: number;
+}
+
 interface SelectedArticle {
   article: CatalogArticle;
   quantity: number;
   totalPrice: number;
   offers: SaleOffer[];
   offerKey: string;
+}
+
+/**
+ * Lignes du stock tontine : disponible, réservé par les commandes en cours, libre (jamais négatif).
+ * La réponse du stock peut être une liste ou une page.
+ */
+export function buildStockArticleRows(stockResponse: unknown, reservations: TontineArticleReservation[]): StockArticleRow[] {
+  const raw: any = stockResponse;
+  const items: TontineStock[] = Array.isArray(raw) ? raw : (raw?.data?.content ?? raw?.content ?? raw?.data ?? []);
+  const reservedByArticle = new Map<number, number>();
+  for (const reservation of reservations || []) {
+    reservedByArticle.set(Number(reservation.articleId), Number(reservation.reservedQuantity) || 0);
+  }
+  return (Array.isArray(items) ? items : [])
+    .filter(item => (item.availableQuantity ?? 0) > 0)
+    .map(item => {
+      const available = item.availableQuantity ?? 0;
+      const reserved = reservedByArticle.get(Number(item.articleId)) ?? 0;
+      return {
+        articleId: item.articleId,
+        articleName: item.articleName,
+        unitPrice: item.unitPrice,
+        available,
+        reserved,
+        free: Math.max(0, available - reserved)
+      };
+    })
+    .sort((a, b) => (a.articleName || '').localeCompare(b.articleName || '', 'fr'));
 }
 
 @Component({
@@ -62,13 +102,70 @@ export class DeliveryArticleSelectionModalComponent implements OnInit, OnDestroy
     @Inject(MAT_DIALOG_DATA) public data: { member: TontineMember; replaceDeliveryId?: number },
     private cdr: ChangeDetectorRef,
     private tontineDeliveryService: TontineDeliveryService,
-    private itemService: ItemService
+    private itemService: ItemService,
+    private tontineStockService: TontineStockService
   ) {
     this.member = data.member;
   }
 
   ngOnInit(): void {
     this.setupSearch();
+  }
+
+  /**
+   * Filtre rapide : catalogue général ou stock tontine du commercial du membre.
+   * Une commande prise dans le stock ne le touche pas : seule la remise le débite.
+   */
+  articleSource: 'CATALOGUE' | 'STOCK' = 'CATALOGUE';
+  stockRows: StockArticleRow[] = [];
+  stockLoading = false;
+  stockError: string | null = null;
+  private stockLoaded = false;
+
+  get stockCommercial(): string | null {
+    return this.member.client?.tontineCollector || null;
+  }
+
+  setArticleSource(source: 'CATALOGUE' | 'STOCK'): void {
+    this.articleSource = source;
+    if (source === 'STOCK' && !this.stockLoaded) {
+      this.loadStockRows();
+    }
+  }
+
+  addFromStock(row: StockArticleRow): void {
+    this.onArticleSelected({
+      id: row.articleId,
+      name: row.articleName,
+      commercialName: '',
+      sellingPrice: row.unitPrice
+    } as unknown as CatalogArticle);
+  }
+
+  private loadStockRows(): void {
+    const commercial = this.stockCommercial;
+    if (!commercial) {
+      this.stockError = 'Ce membre n\'a pas de commercial tontine : utilisez le catalogue général.';
+      return;
+    }
+    this.stockLoading = true;
+    this.stockError = null;
+    forkJoin({
+      stock: this.tontineStockService.getStockByCommercial(commercial),
+      reservations: this.tontineDeliveryService.getStockReservations(commercial)
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ({ stock, reservations }) => {
+        this.stockRows = buildStockArticleRows(stock, reservations?.data ?? []);
+        this.stockLoaded = true;
+        this.stockLoading = false;
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.stockLoading = false;
+        this.stockError = 'Le stock tontine du commercial n\'a pas pu être chargé.';
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   ngOnDestroy(): void {

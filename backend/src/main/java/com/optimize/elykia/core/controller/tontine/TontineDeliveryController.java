@@ -12,6 +12,7 @@ import com.optimize.elykia.core.enumaration.TontineDeliveryConflictOutcome;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryWebService;
 import com.optimize.elykia.core.service.tontine.TontineOrderReceiptPdfService;
+import com.optimize.elykia.core.service.tontine.TontineStockReservationService;
 import com.optimize.elykia.core.service.tontine.TontinePlannedDeliveriesPdfService;
 import com.optimize.elykia.core.service.tontine.conflict.TontineDeliveryConflictService;
 import com.optimize.elykia.core.util.UserPermissionConstant;
@@ -46,6 +47,7 @@ public class TontineDeliveryController {
     private final TontineDeliveryService deliveryService;
     private final TontineDeliveryWebService deliveryWebService;
     private final TontineOrderReceiptPdfService orderReceiptPdfService;
+    private final TontineStockReservationService stockReservationService;
     private final TontinePlannedDeliveriesPdfService plannedDeliveriesPdfService;
     private final TontineDeliveryConflictService conflictService;
 
@@ -168,6 +170,14 @@ public class TontineDeliveryController {
     public ResponseEntity<Response> verifyReceipt(@RequestParam String code) {
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(orderReceiptPdfService.verify(code)),
+                HttpStatus.OK);
+    }
+
+    @GetMapping("/reservations")
+    @Operation(summary = "Réservations indicatives du stock tontine d'un commercial : quantités déjà commandées par article")
+    public ResponseEntity<Response> getStockReservations(@RequestParam(required = false) String commercial) {
+        return new ResponseEntity<>(
+                ResponseUtil.successResponse(stockReservationService.reservationsFor(commercial)),
                 HttpStatus.OK);
     }
 
