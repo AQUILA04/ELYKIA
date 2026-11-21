@@ -838,6 +838,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [2.9.1] — 2026-11-21
+
+### Changed
+
+- **SpringDoc / Swagger désactivé par défaut en `prod` (`application-prod.yml`, `bootstrap.config.SwaggerConfig`) →** `springdoc.api-docs.enabled` (`SPRINGDOC_API_DOCS_ENABLED`, défaut `false`) et `springdoc.swagger-ui.enabled` (`SPRINGDOC_SWAGGER_UI_ENABLED`, défaut `false`), avec `@ConditionalOnProperty(name = "springdoc.api-docs.enabled", havingValue = "true", matchIfMissing = true)` sur `SwaggerConfig`. Réduit la surface exposée en production et évite l'initialisation SpringDoc au démarrage (`uat`, `formation` et `test` restent actifs).
+
 ## Backend — [2.9.0] — 2026-11-21
 
 ### Changed
