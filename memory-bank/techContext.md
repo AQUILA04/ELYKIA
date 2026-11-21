@@ -1,29 +1,26 @@
 # Contexte technique
 
-Versions lues le 2026-11-21 (branche `migration/java25-spring-boot-4`). En cas d’écart, les fichiers sources gagnent.
+Versions lues le 2026-11-21 (branche `migration/architecture-refonte`). En cas d’écart, les fichiers sources gagnent.
 
 | Composant | Version | Fichier | Stack constatée |
 |-----------|---------|---------|-----------------|
-| Backend | 2.0.0 | `backend/pom.xml` (`optimize-elykia-core`) | **Java 25 (LTS)**, **Spring Boot 4.2.0**, Spring AI **2.1.0** (`google-genai`), JPA / Hibernate 7.4, Jackson 3, Flyway 12.11 (`spring-boot-starter-flyway`), MapStruct 1.6.3, Lombok 1.18.48, springdoc 3.2.1, iText 9.8.1 / html2pdf 6.3.4 / PDFBox 3.0.8 / POI 5.5.1, Testcontainers 2.0.5, JaCoCo 0.8.16 (seuil lignes global 0,46) |
+| Backend | 2.1.0 | `backend/pom.xml` (`optimize-elykia-core`) | **Java 25 (LTS)**, **Spring Boot 4.2.0**, **Spring Modulith 2.2.0** (5 modules vérifiés en CI), Spring AI **2.1.0** (`google-genai`), JPA / Hibernate 7.4, Jackson 3, Flyway 12.11 (`spring-boot-starter-flyway`), JJWT 0.13.0, MinIO 9.0.4 + `okhttp-jvm` 5.5.1, MapStruct 1.6.3, Lombok 1.18.48, springdoc 3.2.1, iText 9.8.1 / html2pdf 6.3.4 / PDFBox 3.0.8 / POI 5.5.1, Testcontainers 2.0.5, JaCoCo 0.8.16 (seuil lignes global 0,46) |
 | Frontend | 2.62.0 | `frontend/package.json` | Angular **18.2**, Material, ng-select, ngx-permissions, Playwright 1.60, Karma/Jasmine. `npm install --legacy-peer-deps` |
 | Mobile | 2.48.0 | `mobile/package.json` (+ `environment.ts` et `environment.prod.ts`) | Angular **20**, Ionic **8**, Capacitor **7.4**, SQLite, NgRx 20 |
 | Espace client | 0.17.4 | `customer-space/package.json` | Angular **20.3**, Ionic **8**, Capacitor **8.4** |
 
 `docs/project-overview.md` et `docs/architecture-frontend.md` indiquent encore Angular 14 : c’est périmé.
 
-`backend-lib` et `backend/` (branche `migration/java25-spring-boot-4`) : `common-entities` **4.0.0**, `common-security-service` **4.0.0**, `optimize-elykia-client` **4.0.0** et `optimize-elykia-core` **2.0.0**, tous alignés sur **Java 25** et **Spring Boot 4.2.0** (`spring-boot-starter-webmvc`, `spring-boot-starter-restclient`, `spring-boot-starter-flyway`, Spring Security 7.2, Hibernate 7.4, Jackson 3, JJWT 0.13.0, springdoc 3.2.1, MapStruct 1.6.3, MinIO 9.0.4 + `okhttp-jvm` 5.5.1, Spring AI 2.1.0 `google-genai`, Logback 1.6.6 sans Janino). Installer `backend-lib` en local dans l'ordre (`common-entities` → `common-securities` → `elykia-client`) avant l'API.
+`backend/` (branche `migration/architecture-refonte`) : **monolithe modulaire unique** (`optimize-elykia-core:2.1.0`, un seul `pom.xml` et un seul fat JAR exécutable) ayant absorbé les anciens projets `backend-lib/` (`common-entities`, `common-securities`, `elykia-client`). Frontières vérifiées automatiquement en CI via `ModularityTests` (`ApplicationModules.verify()`).
 
 Postgres **15** (image du compose prod). Base locale de dev documentée : `oec` / utilisateur `oec`. Base prod du compose : `elykia_prod_db` (variables `POSTGRES_*`).
 
 ## Lancer en local
 
-Prérequis : Java 25 (branche migration ; Java 17 sur `main` avant fusion), Maven 3.9+, Node 20, PostgreSQL 15. Android SDK seulement pour un binaire mobile. Secrets : variables d’environnement, jamais dans Git (`JWT_SECRET`, mot de passe JDBC, clés MinIO, clés LLM, `NOTIFICATION_HUB_*`). Amorçage des comptes démo seulement si `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true` et `LOCAL_SEED_PASSWORD` ; le profil `prod` le coupe.
+Prérequis : Java 25 (branches migration ; Java 17 sur `main` avant fusion), Maven 3.9+, Node 20, PostgreSQL 15. Android SDK seulement pour un binaire mobile. Secrets : variables d’environnement, jamais dans Git (`JWT_SECRET`, mot de passe JDBC, clés MinIO, clés LLM, `NOTIFICATION_HUB_*`). Amorçage des comptes démo seulement si `SECURITY_CONFIG_AUTO_INITIALIZE_ENABLED=true` et `LOCAL_SEED_PASSWORD` ; le profil `prod` le coupe.
 
 ```bash
-# libs puis API — port 8081, health http://localhost:8081/actuator/health
-mvn -f backend-lib/common-entities/pom.xml clean install -DskipTests
-mvn -f backend-lib/common-securities/pom.xml clean install -DskipTests
-mvn -f backend-lib/elykia-client/pom.xml clean install -DskipTests
+# API (build autonome, plus aucun install backend-lib requis) — port 8081, health http://localhost:8081/actuator/health
 cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=prod
 
 cd frontend && npm install --legacy-peer-deps && npm start    # http://localhost:4200

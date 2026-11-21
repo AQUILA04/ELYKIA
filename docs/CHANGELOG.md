@@ -9,6 +9,13 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (refonte Monolithe Modulaire — CI/E2E & README)
+
+### Changed
+
+- **CI/CD (`.github/workflows/ci.yml`, `.github/workflows/e2e.yml`) —** suppression du dossier `backend-lib/`, du job `build-backend-lib`, des 3 étapes préalables `mvn clean install` (`common-entities`, `common-securities`, `elykia-client`) et de la publication Maven GitHub Packages (`Deploy Backend Maven Artifact`). Le backend est désormais compilé, vérifié et packagé en un seul build autonome `mvn -B verify --file backend/pom.xml`, livré uniquement via l'image Docker GHCR.
+- **Documentation (`README.md`, `memory-bank/`) —** mise à jour de l'arborescence, des prérequis (Java 25, Maven 3.9+, sans build préalable de `backend-lib/`) et des 5 modules Spring Modulith.
+
 ## Docs & Infra — 2026-11-21 (migration backend Java 25 / Spring Boot 4.2.0 — Docker & CI)
 
 ### Changed
@@ -830,6 +837,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [2.1.0] — 2026-11-21
+
+### Changed
+
+- **Consolidation Monolithe Modulaire (Spring Modulith `2.2.0`) →** rapatriement complet des 3 projets `backend-lib/` (`common-entities`, `common-securities`, `elykia-client`) dans `backend/` (`optimize-elykia-core`), produisant désormais **un seul projet Maven et un seul fat JAR exécutable** autonome.
+- **Frontières de modules vérifiées en CI →** ajout de `spring-modulith-bom:2.2.0` (`spring-modulith-starter-core`, `spring-modulith-starter-test`), remontée de `OptimizeElykiaCoreApplication` dans `com.optimize.elykia` avec `@Modulithic(systemName = "ELYKIA Backend", additionalPackages = "com.optimize.common")` et `@ConfigurationPropertiesScan` consolidé ; déclaration des 5 modules par `package-info.java` (`entities`, `securities`, `client`, `recruitment`, `core`) et ajout de `ModularityTests` (`ApplicationModules.verify()` + génération des diagrammes PlantUML C4).
+- **Consolidation Spring & dépendances →** extraction des beans i18n/validation de l'ancien `CommonEntitiesApplication` dans `CommonEntitiesI18nConfig` (`i18n/default/messages.properties` déplacé dans `backend/src/main/resources/`), suppression des 3 `@SpringBootApplication` redondantes, intégration explicite des dépendances (`spring-data-envers`, `spring-boot-starter-security`, `spring-boot-starter-validation`, `commons-lang3`, `jjwt:0.13.0`, `minio:9.0.4`, `okhttp-jvm:5.5.1`, `thumbnailator:0.4.21`, `spring-security-test`) et suppression de `<distributionManagement>` Maven.
+- **Tests & qualité →** intégration des 13 suites unitaires de `backend-lib` dans la suite principale `mvn verify` et dans le périmètre de la quality gate JaCoCo `0.8.16` (seuils strictement préservés).
 
 ## Backend — [2.0.0] — 2026-11-21
 

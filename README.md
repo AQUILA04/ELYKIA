@@ -28,10 +28,10 @@ ELYKIA couvre le cycle de vie complet des opérations d'une organisation de vent
 
 ```
 ELYKIA/
-├── backend/              # API REST Spring Boot (Java 17, PostgreSQL)
-├── backend-lib/          # Bibliothèques Maven partagées (entities, security, client)
+├── backend/              # API REST Spring Boot 4 / Spring Modulith (Java 25, PostgreSQL)
 ├── frontend/             # Interface web Angular 18 (administration)
 ├── mobile/               # Application Ionic / Angular / Capacitor (Android)
+├── customer-space/       # Espace client Angular 20 / Ionic 8 / Capacitor
 ├── deploy/               # Docker Compose, scripts de déploiement, monitoring
 ├── docs/                 # Documentation technique et changelog
 ├── user-guide/           # Guides utilisateur (HTML)
@@ -42,7 +42,7 @@ ELYKIA/
 
 | Couche | Technologies |
 |--------|--------------|
-| Backend | Java 17, Spring Boot, Spring Security (JWT), JPA, PostgreSQL |
+| Backend | Java 25, Spring Boot 4.2, Spring Modulith 2.2, Spring Security (JWT), JPA, PostgreSQL |
 | Frontend web | Angular 18, Angular Material, ng-select, Playwright (E2E) |
 | Mobile | Ionic, Angular, Capacitor, SQLite local |
 | Infra | Docker, GitHub Actions, GHCR, Traefik (prod) |
@@ -50,7 +50,7 @@ ELYKIA/
 
 ## Prérequis développement
 
-- **Java 17** + Maven 3.8+
+- **Java 25** + Maven 3.9+
 - **Node.js 20** + npm
 - **PostgreSQL 15** (base locale `oec`)
 - **Android SDK** (uniquement pour le build mobile)
@@ -87,12 +87,6 @@ export MINIO_SECRET_KEY=minioadmin
 ### 2. Backend (port 8081)
 
 ```bash
-# Bibliothèques partagées (première fois ou après modification de backend-lib/)
-mvn -f backend-lib/common-entities/pom.xml clean install -DskipTests
-mvn -f backend-lib/common-securities/pom.xml clean install -DskipTests
-mvn -f backend-lib/elykia-client/pom.xml clean install -DskipTests
-
-# API
 cd backend
 mvn spring-boot:run -Dspring-boot.run.profiles=prod
 ```

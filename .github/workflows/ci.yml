@@ -27,7 +27,6 @@ jobs:
     outputs:
       frontend: ${{ steps.filter.outputs.frontend || steps.push.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend || steps.push.outputs.backend }}
-      backend_lib: ${{ steps.filter.outputs.backend_lib || steps.push.outputs.backend_lib }}
       mobile: ${{ steps.filter.outputs.mobile || steps.push.outputs.mobile }}
       website: ${{ steps.filter.outputs.website || steps.push.outputs.website }}
     steps:
@@ -46,8 +45,6 @@ jobs:
           backend:
             - 'backend/**'
             - '.github/workflows/ci.yml'
-          backend_lib:
-            - 'backend-lib/**'
           mobile:
             - 'mobile/**'
           website:
@@ -76,7 +73,6 @@ jobs:
         }
         detect frontend build-frontend 'frontend/**' 'user-guide/**'
         detect backend build-backend 'backend/**' '.github/workflows/ci.yml'
-        detect backend_lib build-backend-lib 'backend-lib/**'
         # No build job in this workflow for mobile — use last successful CI run.
         detect mobile "" 'mobile/**'
         detect website build-website 'website/**'
@@ -138,12 +134,8 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
 
   build-backend:
-    needs: [changes, build-backend-lib]
-    if: |
-      always() &&
-      needs.changes.result == 'success' &&
-      (needs.changes.outputs.backend == 'true' || needs.changes.outputs.backend_lib == 'true') &&
-      (needs.build-backend-lib.result == 'success' || needs.build-backend-lib.result == 'skipped')
+    needs: changes
+    if: ${{ needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -163,18 +155,6 @@ jobs:
         java-version: '25'
         distribution: 'temurin'
         cache: maven
-        server-id: github
-        settings-path: ${{ github.workspace }}
-
-    # Build dependencies in order before building backend
-    - name: Build common-entities
-      run: mvn -B clean install -DskipTests --file backend-lib/common-entities/pom.xml
-
-    - name: Build common-securities
-      run: mvn -B clean install -DskipTests --file backend-lib/common-securities/pom.xml
-
-    - name: Build elykia-client
-      run: mvn -B clean install -DskipTests --file backend-lib/elykia-client/pom.xml
 
     - name: Run backend quality gate
       run: mvn -B verify --file backend/pom.xml
@@ -187,11 +167,6 @@ jobs:
         path: backend/target/site/jacoco/
         if-no-files-found: warn
         retention-days: 14
-
-    - name: Deploy Backend Maven Artifact
-      run: mvn -B deploy -DskipTests --file backend/pom.xml -s $GITHUB_WORKSPACE/settings.xml || echo "Deployment failed, likely because version already exists. Continuing..."
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # Docker Build & Push for Backend
     - name: Set up Docker Buildx
@@ -219,41 +194,6 @@ jobs:
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-backend:${{ github.sha }}
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-backend:latest
         labels: ${{ steps.meta.outputs.labels }}
-
-  build-backend-lib:
-    needs: changes
-    if: ${{ needs.changes.outputs.backend_lib == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v6
-
-    - name: Set up JDK 25
-      uses: actions/setup-java@v5
-      with:
-        java-version: '25'
-        distribution: 'temurin'
-        cache: maven
-        server-id: github
-        settings-path: ${{ github.workspace }}
-
-    - name: Build and Deploy common-entities
-      run: mvn -B deploy -DskipTests --file backend-lib/common-entities/pom.xml -s $GITHUB_WORKSPACE/settings.xml || echo "Deployment failed, likely because version already exists. Continuing..."
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Build and Deploy common-securities
-      run: mvn -B deploy -DskipTests --file backend-lib/common-securities/pom.xml -s $GITHUB_WORKSPACE/settings.xml || echo "Deployment failed, likely because version already exists. Continuing..."
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Build and Deploy elykia-client
-      run: mvn -B deploy -DskipTests --file backend-lib/elykia-client/pom.xml -s $GITHUB_WORKSPACE/settings.xml || echo "Deployment failed, likely because version already exists. Continuing..."
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-website:
     needs: changes
@@ -298,7 +238,7 @@ jobs:
 
   ci-deploy-gate:
     name: Deploy gate
-    needs: [changes, build-frontend, build-backend, build-backend-lib, build-website]
+    needs: [changes, build-frontend, build-backend, build-website]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -319,6 +259,5 @@ jobs:
           }
           check "${{ needs.changes.outputs.frontend }}" "${{ needs.build-frontend.result }}" "build-frontend"
           check "${{ needs.changes.outputs.backend }}" "${{ needs.build-backend.result }}" "build-backend"
-          check "${{ needs.changes.outputs.backend_lib }}" "${{ needs.build-backend-lib.result }}" "build-backend-lib"
           check "${{ needs.changes.outputs.website }}" "${{ needs.build-website.result }}" "build-website"
           echo "Deploy gate passed"
