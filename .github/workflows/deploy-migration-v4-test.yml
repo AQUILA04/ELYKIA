@@ -127,18 +127,96 @@ jobs:
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Deploy backend (migration-v4) + frontend (main) to TEST server
+      - name: Deploy backend (migration-v4) + frontend (main) to TEST server with health check & rollback
+        env:
+          FRONTEND_IMAGE: ${{ needs.resolve-frontend-from-main.outputs.frontend_image }}
+          BACKEND_IMAGE: ${{ needs.build-backend.outputs.backend_image }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          TEST_DEPLOY_PATH: ${{ secrets.TEST_DEPLOY_PATH }}
         run: |
           set -euo pipefail
-          FRONTEND_IMAGE='${{ needs.resolve-frontend-from-main.outputs.frontend_image }}'
-          BACKEND_IMAGE='${{ needs.build-backend.outputs.backend_image }}'
           echo "Deploying TEST stack:"
           echo "  FRONTEND_IMAGE=${FRONTEND_IMAGE} (from main)"
           echo "  BACKEND_IMAGE=${BACKEND_IMAGE} (from migration-v4)"
           ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} \
-            "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
-             && cd ${{ secrets.TEST_DEPLOY_PATH }} \
-             && ./deploy/deploy.sh test '${FRONTEND_IMAGE}' '${BACKEND_IMAGE}'"
+            "bash -s -- '${TEST_DEPLOY_PATH}' '${FRONTEND_IMAGE}' '${BACKEND_IMAGE}' '${GHCR_USERNAME}' '${GHCR_TOKEN}'" <<'REMOTE_EOF'
+          set -euo pipefail
+          TEST_DEPLOY_PATH="$1"
+          FRONTEND_IMAGE="$2"
+          BACKEND_IMAGE="$3"
+          export GHCR_USERNAME="$4"
+          export GHCR_TOKEN="$5"
+
+          cd "$TEST_DEPLOY_PATH"
+
+          PREV_RELEASE=""
+          if [[ -e /opt/elykia/test/releases/test_current.txt ]]; then
+            PREV_RELEASE=$(readlink -f /opt/elykia/test/releases/test_current.txt || true)
+          fi
+          echo "Previous TEST release: ${PREV_RELEASE:-none}"
+
+          ./deploy/deploy.sh test "$FRONTEND_IMAGE" "$BACKEND_IMAGE"
+
+          # Verify backend /actuator/health (safe even before main updates /opt/elykia/deploy/deploy.sh)
+          PORT=8080
+          if [[ -f /opt/elykia/test/.env ]]; then
+            ENV_PORT=$(grep '^SERVER_PORT=' /opt/elykia/test/.env | tail -n1 | cut -d= -f2- || true)
+            [[ -n "$ENV_PORT" ]] && PORT="$ENV_PORT"
+          fi
+
+          probe_health() {
+            local cid="$1"
+            local ip body=""
+            ip=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}} {{end}}' "$cid" 2>/dev/null | awk '{print $1}' || true)
+            if [[ -n "$ip" ]] && command -v curl >/dev/null 2>&1; then
+              body=$(curl -fsS --max-time 3 "http://${ip}:${PORT}/actuator/health" 2>/dev/null || true)
+            fi
+            if [[ -z "$body" ]]; then
+              body=$(docker exec "$cid" bash -c "exec 3<>/dev/tcp/127.0.0.1/${PORT} && printf 'GET /actuator/health HTTP/1.0\r\nHost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3" 2>/dev/null || true)
+            fi
+            echo "$body" | grep -Eq '"status"[[:space:]]*:[[:space:]]*"UP"'
+          }
+
+          echo "Waiting 10s for backend startup before polling /actuator/health..."
+          sleep 10
+          ELAPSED=10
+          TIMEOUT=90
+          HEALTHY=false
+          while (( ELAPSED <= TIMEOUT )); do
+            CID=$(docker ps -aqf 'name=^elykia-test-backend$' | head -n1 || true)
+            if [[ -z "$CID" ]]; then
+              echo "ERROR: container elykia-test-backend not found" >&2
+              break
+            fi
+            STATUS=$(docker inspect -f '{{.State.Status}}' "$CID" 2>/dev/null || echo unknown)
+            RESTARTS=$(docker inspect -f '{{.RestartCount}}' "$CID" 2>/dev/null || echo 0)
+            if [[ "$STATUS" == "exited" || "$STATUS" == "dead" ]] || (( RESTARTS >= 3 )); then
+              echo "ERROR: elykia-test-backend unhealthy (status=$STATUS, restarts=$RESTARTS)" >&2
+              break
+            fi
+            if probe_health "$CID"; then
+              echo "Backend TEST health check PASSED (status=UP) after ${ELAPSED}s."
+              HEALTHY=true
+              break
+            fi
+            echo "Backend TEST not UP yet (${ELAPSED}s/${TIMEOUT}s, status=$STATUS, restarts=$RESTARTS)..."
+            sleep 3
+            ELAPSED=$((ELAPSED + 3))
+          done
+
+          if [[ "$HEALTHY" != "true" ]]; then
+            echo "BACKEND HEALTH CHECK FAILED — LAST 80 LOG LINES:" >&2
+            docker logs --tail=80 elykia-test-backend >&2 || true
+            if [[ -n "$PREV_RELEASE" && -f "$PREV_RELEASE" ]]; then
+              echo "TRIGGERING AUTOMATIC ROLLBACK to $PREV_RELEASE" >&2
+              bash ./deploy/rollback.sh test "$PREV_RELEASE"
+            else
+              echo "No previous release file found for automatic rollback." >&2
+            fi
+            exit 1
+          fi
+          REMOTE_EOF
 
       - name: Cleanup SSH key
         if: always()
