@@ -118,9 +118,9 @@
       </button>
 
       <div class="filter-group filter-group-planned">
-        <span class="toolbar-label">Membres à livrer le</span>
+        <label class="toolbar-label" for="planned-pdf-date">Membres à livrer le</label>
         <div class="date-inputs">
-          <input type="date" lang="fr-FR" class="search-input" [(ngModel)]="plannedPdfDate"
+          <input id="planned-pdf-date" type="date" lang="fr-FR" class="search-input" [(ngModel)]="plannedPdfDate"
                  data-testid="e2e-tontine-planned-pdf-date">
           <button type="button" class="btn-download" (click)="downloadPlannedDeliveries()"
                   [disabled]="!plannedPdfDate || plannedPdfBusy" data-testid="e2e-tontine-planned-pdf">
