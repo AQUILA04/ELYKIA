@@ -215,3 +215,45 @@ mat-dialog-actions {
   padding: 16px 24px;
   border-top: 1px solid #e0e0e0;
 }
+
+.source-toggle {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.source-pill {
+  background: #f8fafc;
+  border: 1px solid #dde3ec;
+  color: #6b7a99;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &.active {
+    background: #003366;
+    border-color: #003366;
+    color: #fff;
+  }
+}
+
+.stock-section {
+  margin-bottom: 12px;
+
+  .num {
+    text-align: right;
+  }
+}
+
+.stock-hint {
+  margin: 4px 0 8px;
+  font-size: 12px;
+  color: #6b7a99;
+}
+
+.stock-free-none {
+  color: #c75000;
+  font-weight: 700;
+}

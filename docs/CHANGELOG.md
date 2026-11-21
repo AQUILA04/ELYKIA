@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (filtre stock / catalogue des commandes tontine)
+
+### Changed
+
+- **Guide utilisateur —** mobile : « Mon stock tontine / Catalogue général », Disponible / Réservé / Libre. Web : source des articles dans « Préparer la Livraison ». Index RAG et guide HTML régénérés.
+
 ## Docs & Infra — 2026-11-21 (validation automatique des commandes tontine)
 
 ### Changed
@@ -154,6 +160,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.61.0] — 2026-11-21
+
+### Added
+
+- **Tontine — Préparer la Livraison →** filtre **Catalogue général / Stock tontine de** (commercial du membre). Le stock liste les articles disponibles avec **Disponible**, **Réservé** et **Libre** (indicatif) et un bouton **Ajouter** ; les offres de l'article sont relues comme depuis le catalogue. Une commande ne sort rien du stock.
 
 ## Frontend — [2.59.0] — 2026-11-21
 
@@ -530,6 +542,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Tableau de bord des tontines : le badge **Déjà contrôlé** apparaît dans la liste des membres et sur la fiche lorsqu'un contrôle de carnet terrain a déjà été enregistré.
 
+## Mobile — [2.47.0] — 2026-11-21
+
+### Changed
+
+- **Tontine — création de commande →** le filtre **Mon stock tontine / Catalogue général** est proposé dès la session ouverte (avant : seulement après la clôture) ; ouverture par défaut sur le catalogue en session ouverte, sur le stock après clôture. La livraison directe reste réservée au stock.
+- **Tontine — stock tontine →** chaque article indique **Réservé** (quantités des commandes non livrées du commercial, en local) et **Libre** (disponible moins réservé, jamais négatif, en orange à zéro). Indicatif : rien n'est bloqué.
+
 ## Mobile — [2.45.0] — 2026-11-21
 
 ### Changed
@@ -779,6 +798,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
+
+## Backend — [1.62.0] — 2026-11-21
+
+### Added
+
+- **Tontine — réservation indicative du stock →** `GET /api/v1/tontines/deliveries/reservations?commercial=` (`TontineStockReservationService`) : quantité commandée et nombre de commandes par article, pour les commandes en attente ou validées du commercial dans les sessions non terminées. Un commercial ne lit que les siennes. Rien n'est réservé ni sorti du stock. Requête vérifiée sur PostgreSQL (`TontineContributionDeliveryIntegrationTest`).
 
 ## Backend — [1.60.0] — 2026-11-21
 

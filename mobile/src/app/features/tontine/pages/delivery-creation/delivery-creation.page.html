@@ -64,20 +64,21 @@
 
   <div class="mode-banner elyk-card" data-testid="e2e-delivery-article-source">
     <ion-icon [name]="isCatalogueMode ? 'list-outline' : 'cube-outline'"></ion-icon>
-    <span *ngIf="isCatalogueMode">Commande — catalogue (stock tontine non requis)</span>
-    <span *ngIf="!isCatalogueMode">Remise — stock tontine disponible</span>
+    <span *ngIf="isCatalogueMode">Commande — catalogue général (stock tontine non requis)</span>
+    <span *ngIf="!isCatalogueMode && isSessionClosed">Remise ou commande — votre stock tontine</span>
+    <span *ngIf="!isCatalogueMode && !isSessionClosed">Commande — articles de votre stock tontine (le stock n'est pas touché)</span>
   </div>
 
   <ion-segment *ngIf="canChooseArticleSource"
-    [value]="catalogueWhenClosed ? 'CATALOGUE' : 'STOCK'"
+    [value]="effectiveArticleSource"
     (ionChange)="onArticleSourceChange($event)"
     aria-label="Source des articles"
     data-testid="e2e-delivery-article-source-toggle">
     <ion-segment-button value="STOCK">
-      <ion-label>Stock tontine (remise)</ion-label>
+      <ion-label>Mon stock tontine</ion-label>
     </ion-segment-button>
     <ion-segment-button value="CATALOGUE">
-      <ion-label>Catalogue (commande)</ion-label>
+      <ion-label>Catalogue général</ion-label>
     </ion-segment-button>
   </ion-segment>
 
@@ -133,7 +134,7 @@
       <div class="elyk-empty" *ngIf="(stocks$ | async)?.length === 0 && !(stockLoading$ | async)">
         <ion-icon name="cube-outline"></ion-icon>
         <h3>Aucun stock disponible</h3>
-        <p>Faites une demande de stock tontine avant la remise.</p>
+        <p>Faites une demande de stock tontine, ou choisissez les articles dans le catalogue général.</p>
       </div>
 
       <div class="elyk-card article-card" *ngFor="let stock of stocks$ | async" data-testid="e2e-delivery-stock-card">
@@ -141,7 +142,13 @@
         <div class="article-info">
           <div class="article-name">{{ stock.articleName || 'Article' }}</div>
           <div class="article-price elyk-amount" *appIfUnitPrice="'CASH'">{{ stock.unitPrice | number }} FCFA</div>
-          <div class="article-stock">Disponible : {{ stock.availableQuantity }} unités</div>
+          <div class="article-stock" data-testid="e2e-delivery-stock-reservation">
+            Disponible : {{ stock.availableQuantity }}
+            <ng-container *ngIf="reservedFor(stock) > 0">
+              · Réservé : {{ reservedFor(stock) }}
+              · <span [class.stock-free-none]="freeFor(stock) === 0">Libre : {{ freeFor(stock) }}</span>
+            </ng-container>
+          </div>
           <select *ngIf="offersFor(stock.articleId, stock.unitPrice).length > 1"
             [value]="'UNIT:1'"
             (change)="onOfferChange(stock.articleId, stock.id, $any($event.target).value, stock.unitPrice, stock.articleName || 'Article', stock.availableQuantity, stock.id)"
