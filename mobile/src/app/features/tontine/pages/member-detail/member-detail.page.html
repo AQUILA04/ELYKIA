@@ -115,6 +115,10 @@
             data-testid="e2e-tontine-delivery-status">
             {{ getStatusLabel(vm.delivery.status) }}
           </span>
+          <button type="button" class="card-edit-btn" *ngIf="canEditPendingOrder()" (click)="openOrderEdit()"
+                  aria-label="Modifier la commande" data-testid="e2e-tontine-edit-order-icon">
+            <ion-icon name="create-outline" aria-hidden="true"></ion-icon>
+          </button>
         </ion-card-title>
       </ion-card-header>
       <ion-card-content>
@@ -135,23 +139,13 @@
           <div class="item-row" *ngFor="let item of vm.deliveryItems">
             <div class="item-info">
               <span class="item-name">{{ item.articleName }}</span>
-              <span class="item-qty" *ngIf="!revisingOrder">×{{ item.quantity }}</span>
-            </div>
-            <div class="qty-stepper" *ngIf="revisingOrder">
-              <button type="button" class="stepper-btn" (click)="changeItemQuantity(item, -1)" aria-label="Diminuer la quantité">−</button>
-              <span>{{ item.salePackMode && item.salePackMode !== 'UNIT' ? item.packCount : item.quantity }}</span>
-              <button type="button" class="stepper-btn" (click)="changeItemQuantity(item, 1)" aria-label="Augmenter la quantité">+</button>
+              <span class="item-qty">×{{ item.salePackMode && item.salePackMode !== 'UNIT' ? item.packCount : item.quantity }}</span>
             </div>
             <span class="item-price elyk-amount" *appIfUnitPrice="'CASH'">{{ formatCurrency(item.totalPrice) }}</span>
           </div>
-          <button type="button" class="add-article-btn" *ngIf="revisingOrder" (click)="addArticleToRevision()"
-                  data-testid="e2e-tontine-order-add-article">
-            <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
-            Ajouter un article
-          </button>
           <div class="total-row">
             <span>Total</span>
-            <span class="elyk-amount">{{ formatCurrency(revisingOrder ? revisedTotal() : vm.delivery.totalAmount) }}</span>
+            <span class="elyk-amount">{{ formatCurrency(vm.delivery.totalAmount) }}</span>
           </div>
           <div class="order-ceiling" *ngIf="orderCeiling && !isDeliveredOrder()" data-testid="e2e-tontine-order-ceiling">
             <div class="detail-row">
@@ -159,7 +153,7 @@
               <span class="detail-value elyk-amount">{{ formatCurrency(orderCeiling.ceiling) }}</span>
             </div>
             <p class="ceiling-excess" *ngIf="ceilingExcess() > 0" data-testid="e2e-tontine-ceiling-excess">
-              Dépassement de {{ formatCurrency(ceilingExcess()) }} : réduisez la commande pour l'enregistrer.
+              Dépassement de {{ formatCurrency(ceilingExcess()) }} : modifiez la commande pour la ramener sous le plafond.
             </p>
           </div>
           <div class="order-balance" *ngIf="orderBalance() as balance" data-testid="e2e-tontine-order-balance">
@@ -176,11 +170,6 @@
               <span class="detail-value elyk-amount">{{ formatCurrency(balance.refundableBalance) }}</span>
             </div>
           </div>
-          <div class="revision-actions" *ngIf="revisingOrder">
-            <ion-button fill="outline" class="elyk-btn-outline" (click)="cancelOrderRevision()">Annuler</ion-button>
-            <ion-button class="elyk-btn-navy" [disabled]="ceilingExcess() > 0" (click)="saveRevisedOrder()"
-              data-testid="e2e-tontine-save-order">Enregistrer la commande</ion-button>
-          </div>
         </div>
         <p class="items-missing" *ngIf="vm.deliveryItems.length === 0">
           Les articles de cette commande ne sont pas encore sur ce téléphone. Lancez une synchronisation pour les afficher.
@@ -190,13 +179,12 @@
           expand="block"
           fill="outline"
           class="elyk-btn-outline ion-margin-top"
-          (click)="startOrderRevision()"
+          (click)="openOrderEdit()"
           data-testid="e2e-tontine-edit-order">
           <ion-icon slot="start" name="create-outline"></ion-icon>
           Modifier la commande
         </ion-button>
         <ion-button
-          *ngIf="!revisingOrder"
           expand="block"
           fill="outline"
           class="elyk-btn-outline ion-margin-top"
@@ -205,7 +193,7 @@
           Imprimer le reçu
         </ion-button>
         <ion-button
-          *ngIf="hasPendingDeliveryToMark() && !revisingOrder"
+          *ngIf="hasPendingDeliveryToMark()"
           expand="block"
           class="elyk-btn-navy ion-margin-top"
           [disabled]="!canMarkAsDelivered()"

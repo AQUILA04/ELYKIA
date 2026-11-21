@@ -292,17 +292,17 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
 * Le code est reconnu dans Elykia une fois la commande transmise à l'agence.
 * Pendant la session ouverte, l'option **Livraison directe** apparaît grisée : la remise attend la clôture de la session.
 * Ensuite, préparez vos cartons au dépôt (demande de stock tontine) pour être prêt le jour de la remise.
-* Pour imprimer à nouveau, ouvrez la fiche de la membre et touchez **Imprimer le reçu**. Après **Enregistrer la commande**, le message **Commande mise à jour** propose **Voir le reçu**.
+* Pour imprimer à nouveau, ouvrez la fiche de la membre et touchez **Imprimer le reçu**. Après une modification, le message **Commande mise à jour** propose **Voir le reçu**.
 
 #### Remettre les articles (après la clôture de la session)
 
 * Le panier, en livraison directe comme pour une commande déjà posée, peut aller jusqu'au **solde prévisionnel** de l'année.
 * **Livraison directe** : si vous avez les articles dans votre stock tontine et que le solde disponible couvre le panier, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise. Le bon indique le **Total cotisé (net)**, le **Total utilisé** par la livraison et le **Total restant**.
 * **Plafond de la commande** : la carte **Livraison** de la fiche affiche le plafond tant que la commande n'est pas livrée. C'est le plus grand du **solde prévisionnel** et du **solde net cotisé**. **Livrée le** n'apparaît qu'une fois la commande remise.
-* **Modifier la commande** : tant que la commande n'est pas livrée, la fiche membre propose **Modifier la commande** (et le menu ⋮ aussi). Vous ajustez les quantités avec **−** et **+**, ou touchez **Ajouter un article** : choisissez **Mon stock** (stock tontine) ou **Catalogue**, cherchez l'article, touchez-le. La fenêtre rappelle ce qu'il reste sous le plafond. Touchez ensuite **Enregistrer la commande**.
-  * Au-dessus du plafond, le dépassement s'affiche en rouge et **Enregistrer la commande** reste grisé : réduisez la commande.
-  * La modification se fait en ligne. Sans réseau, un message **Pas de connexion** s'affiche et la commande reste telle qu'elle était.
-  * Pendant la modification, **Livrer** et **Imprimer le reçu** sont masqués. **Annuler** revient à la commande enregistrée.
+* **Modifier la commande** : la fiche membre affiche la commande sans la modifier. Tant qu'elle n'est pas livrée, touchez le crayon de la carte **Livraison**, le bouton **Modifier la commande** ou le menu ⋮ : la page **Modifier la commande** s'ouvre. Vous ajustez les quantités avec **−** et **+**, ou touchez **Ajouter un article** : choisissez **Mon stock** (stock tontine) ou **Catalogue**, cherchez l'article, touchez-le. La fenêtre rappelle ce qu'il reste sous le plafond. Touchez ensuite **Enregistrer** : le message **Commande mise à jour** propose **Voir le reçu**, puis vous revenez à la fiche.
+  * Au-dessus du plafond, le dépassement s'affiche en rouge et **Enregistrer** reste grisé : réduisez la commande.
+  * La modification se fait en ligne. Sans réseau, un message **Pas de connexion** s'affiche et la commande reste telle qu'elle était. Une commande pas encore synchronisée ne peut pas être modifiée : synchronisez d'abord.
+  * **Annuler** (ou la flèche retour) demande confirmation si vous avez changé quelque chose ; rien n'est enregistré.
   * Le total peut rester au-dessus du solde déjà encaissé : le contrôle du solde réel se fait à la remise.
 * **Livrer une commande déjà enregistrée** : sur la fiche membre, touchez **Livrer** (bouton sous la commande ou menu ⋮). Le **Récapitulatif avant remise** s'ouvre :
   * les articles, avec votre stock tontine pour chacun ;

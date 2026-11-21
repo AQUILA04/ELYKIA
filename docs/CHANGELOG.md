@@ -628,6 +628,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Added
 
 - **Fenêtres communes d'erreur et de succès** (`FeedbackService`, `ElykFeedbackModalComponent`) au design system, réutilisables dans toute l'application ; utilisées par la fiche membre et la création de commande tontine.
+- **Page « Modifier la commande »** (`tontine/order-edit/:memberId`) : la fiche membre reste en lecture seule ; le crayon de la carte **Livraison**, le bouton **Modifier la commande** et le menu ⋮ ouvrent cette page (quantités, ajout d'article, plafond, confirmation avant d'abandonner des changements). Après l'enregistrement, retour à la fiche, qui ouvre le reçu si demandé.
 - **Ajouter un article** pendant la modification d'une commande (stock tontine ou catalogue, recherche, plafond restant) et au récapitulatif de livraison (stock tontine du commercial uniquement, quantité bornée par le stock). Une commande modifiée au récapitulatif est enregistrée avant la remise ou avant d'aller compléter le solde.
 - **Plafond affiché** sur la fiche membre (commande non livrée) et au récapitulatif « Livrer ».
 

@@ -36,15 +36,6 @@ import { TontineOrderReceiptModalComponent } from 'src/app/shared/components/ton
 import { PrintableTontineOrder } from 'src/app/core/services/printing.service';
 import { generateTontineAuthenticityCode } from 'src/app/core/utils/tontine-delivery-reference.util';
 import {
-    addTontineLinePick,
-    stepTontineDeliveryItem,
-    tontineQuantitiesByArticle
-} from 'src/app/core/utils/tontine-delivery-item-quantity.util';
-import {
-    TontineArticlePick,
-    TontineArticlePickerModalComponent
-} from 'src/app/shared/components/tontine-article-picker-modal/tontine-article-picker-modal.component';
-import {
     TontineDeliverRecapItem,
     TontineDeliverRecapModalComponent,
     TontineDeliverRecapResult
@@ -59,10 +50,10 @@ import { FeedbackService } from 'src/app/core/services/feedback.service';
 import { TontineOrderCeilingService } from 'src/app/core/services/tontine-order-ceiling.service';
 import {
     TontineOrderCeiling,
-    tontineCeilingExceededMessage,
     tontineCeilingExcess
 } from 'src/app/core/utils/tontine-order-ceiling.util';
 import { isNetworkError } from 'src/app/core/utils/user-error-message.util';
+import { TontineOrderEditOutcomeService } from '../order-edit/tontine-order-edit-outcome.service';
 
 interface DeliveryItemWithArticle extends TontineDeliveryItem {
     articleName?: string;
@@ -124,7 +115,8 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         private dailyConsentGuard: DailyConsentGuardService,
         private modalCtrl: ModalController,
         private feedback: FeedbackService,
-        private ceilingService: TontineOrderCeilingService
+        private ceilingService: TontineOrderCeilingService,
+        private orderEditOutcome: TontineOrderEditOutcomeService
     ) { }
 
     /** Plafond de la commande du membre affiché (null tant qu'il n'est pas calculé). */
@@ -188,6 +180,9 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         }
         await this.ensureSessionStatus();
         await this.loadMemberData();
+        if (this.orderEditOutcome.consumeReceiptRequest(this.memberId)) {
+            await this.printOrderReceipt();
+        }
         if (this.reopenDeliverRecapOnReturn) {
             this.reopenDeliverRecapOnReturn = false;
             await this.markAsDelivered();
@@ -344,13 +339,12 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         }
     }
 
-    /** Dépassement du plafond par la commande affichée (total révisé pendant la modification). */
+    /** Dépassement du plafond par la commande enregistrée (ex. plafond recalculé après une baisse de mise). */
     ceilingExcess(): number {
         if (!this.orderCeiling || !this.vm.delivery) {
             return 0;
         }
-        const total = this.revisingOrder ? this.revisedTotal() : (this.vm.delivery.totalAmount ?? 0);
-        return tontineCeilingExcess(total, this.orderCeiling.ceiling);
+        return tontineCeilingExcess(this.vm.delivery.totalAmount ?? 0, this.orderCeiling.ceiling);
     }
 
     /** Commande remise au membre : « Livrée le » et le plafond en dépendent. */
@@ -484,33 +478,6 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         }
     }
 
-    /**
-     * Modification de la commande : ajout d'un article depuis le stock tontine ou le catalogue
-     * (même filtre que la création). Le plafond restant est indiqué dans la fenêtre.
-     */
-    async addArticleToRevision(): Promise<void> {
-        if (!this.revisingOrder || !this.vm.delivery) {
-            return;
-        }
-        const remaining = this.orderCeiling ? Math.max(0, this.orderCeiling.ceiling - this.revisedTotal()) : null;
-        const picker = await this.modalCtrl.create({
-            component: TontineArticlePickerModalComponent,
-            componentProps: {
-                mode: 'order',
-                commercialUsername: this.commercialUsername ?? '',
-                sessionId: await this.currentSessionId(),
-                quantitiesInOrder: tontineQuantitiesByArticle(this.vm.deliveryItems),
-                remainingUnderCeiling: remaining
-            }
-        });
-        await picker.present();
-        const { data, role } = await picker.onDidDismiss<TontineArticlePick>();
-        if (role !== 'pick' || !data) {
-            return;
-        }
-        this.vm.deliveryItems = addTontineLinePick(this.vm.deliveryItems, data, this.vm.delivery.id);
-    }
-
     /** Retour de « Compléter le solde » : rouvrir le récapitulatif avec le solde à jour. */
     private reopenDeliverRecapOnReturn = false;
 
@@ -607,45 +574,29 @@ export class MemberDetailPage implements OnInit, OnDestroy {
         await modal.onDidDismiss();
     }
 
-    revisingOrder = false;
-
-    changeItemQuantity(item: DeliveryItemWithArticle, delta: number): void {
-        const next = stepTontineDeliveryItem(item, delta);
-        if (next === null) {
-            if (this.vm.deliveryItems.length <= 1) {
-                return;
-            }
-            this.vm.deliveryItems = this.vm.deliveryItems.filter(current => current !== item);
-            return;
-        }
-        Object.assign(item, next);
-    }
-
-    /** Solde net cotisé, reste à payer ou reliquat de la commande affichée (total révisé pendant la modification). */
+    /** Solde net cotisé, reste à payer ou reliquat de la commande affichée. */
     orderBalance(): TontineOrderBalance | null {
         if (!this.vm.delivery || !this.vm.member) {
             return null;
         }
-        const total = this.revisingOrder ? this.revisedTotal() : this.vm.delivery.totalAmount;
-        return computeTontineOrderBalance(this.vm.member.availableContribution, total);
+        return computeTontineOrderBalance(this.vm.member.availableContribution, this.vm.delivery.totalAmount);
     }
 
     orderBalanceLabels() {
         return tontineOrderBalanceLabels(normalizeTontineStatus(this.vm.delivery?.status) === 'DELIVERED');
     }
 
-    revisedTotal(): number {
-        return this.vm.deliveryItems.reduce((sum, item) => sum + (item.totalPrice || 0), 0);
-    }
-
-    cancelOrderRevision(): void {
-        this.revisingOrder = false;
-        void this.loadMemberData();
-    }
-
-    /** Commande encore modifiable tant qu'elle n'est pas livrée ; l'éditeur travaille sur ses articles. */
+    /** Commande encore modifiable tant qu'elle n'est pas livrée ; la modification se fait sur sa propre page. */
     canEditPendingOrder(): boolean {
-        return this.hasPendingDeliveryToMark() && !this.revisingOrder && this.vm.deliveryItems.length > 0;
+        return this.hasPendingDeliveryToMark() && this.vm.deliveryItems.length > 0;
+    }
+
+    /** La fiche reste en lecture seule : la modification ouvre la page « Modifier la commande ». */
+    openOrderEdit(): void {
+        if (!this.canEditPendingOrder() || !this.memberId) {
+            return;
+        }
+        void this.navCtrl.navigateForward(['/tontine/order-edit', this.memberId]);
     }
 
     /**
@@ -670,58 +621,6 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             return 'medium';
         }
         return this.getStatusColor(this.vm.member?.deliveryStatus);
-    }
-
-    startOrderRevision(): void {
-        if (!this.canEditPendingOrder()) {
-            return;
-        }
-        this.revisingOrder = true;
-    }
-
-    async saveRevisedOrder(): Promise<void> {
-        if (!this.vm.delivery) {
-            return;
-        }
-        if (this.vm.deliveryItems.length === 0) {
-            await this.feedback.warning('La commande doit contenir au moins un article.', { title: 'Commande vide' });
-            return;
-        }
-        const total = this.revisedTotal();
-        if (this.orderCeiling && tontineCeilingExcess(total, this.orderCeiling.ceiling) > 0) {
-            await this.feedback.error(tontineCeilingExceededMessage(total, this.orderCeiling.ceiling), {
-                title: 'Plafond dépassé'
-            });
-            return;
-        }
-        const loading = await this.loadingCtrl.create({ message: 'Enregistrement…', backdropDismiss: false });
-        await loading.present();
-        let saved: number;
-        try {
-            saved = await this.tontineWriteService.replaceDeliveryItems(this.vm.delivery, this.vm.deliveryItems);
-        } catch (error: unknown) {
-            await loading.dismiss();
-            await this.feedback.error(error, {
-                title: isNetworkError(error) ? 'Pas de connexion' : 'Commande non modifiée',
-                fallback: 'La commande n\'a pas pu être modifiée. Elle reste inchangée.'
-            });
-            return;
-        }
-        // Le chargement est fermé AVANT d'ouvrir le reçu : sinon il restait affiché au-dessus de l'aperçu.
-        await loading.dismiss();
-        this.vm.delivery = { ...this.vm.delivery, totalAmount: saved, items: [...this.vm.deliveryItems] };
-        this.revisingOrder = false;
-        const role = await this.feedback.success(`Nouveau total : ${this.formatCurrency(saved)}.`, {
-            title: 'Commande mise à jour',
-            actions: [
-                { role: 'close', text: 'Fermer' },
-                { role: 'receipt', text: 'Voir le reçu', primary: true }
-            ]
-        });
-        if (role === 'receipt') {
-            await this.printOrderReceipt();
-        }
-        await this.loadMemberData();
     }
 
     private async performMarkAsDelivered(forceOffline = false): Promise<void> {
@@ -853,7 +752,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             authenticityCode: code,
             requestDate: this.vm.delivery.requestDate,
             status: this.vm.delivery.status,
-            totalAmount: this.revisingOrder ? this.revisedTotal() : this.vm.delivery.totalAmount,
+            totalAmount: this.vm.delivery.totalAmount,
             clientName,
             clientPhone: this.vm.client?.phone,
             commercialName: this.commercialUsername || this.vm.delivery.commercialUsername,
@@ -940,7 +839,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
                     text: 'Modifier la commande',
                     icon: 'create-outline',
                     handler: () => {
-                        this.startOrderRevision();
+                        this.openOrderEdit();
                     }
                 }] : []),
                 {

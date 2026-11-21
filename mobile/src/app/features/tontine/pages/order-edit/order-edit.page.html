@@ -1,0 +1,106 @@
+<ion-header class="ion-no-border">
+  <header class="elyk-hero elyk-hero--compact">
+    <ion-toolbar class="hero-toolbar">
+      <ion-buttons slot="start">
+        <ion-button (click)="cancel()" aria-label="Retour">
+          <ion-icon slot="icon-only" name="arrow-back"></ion-icon>
+        </ion-button>
+      </ion-buttons>
+      <ion-title>
+        <span class="elyk-surtitle">Commande tontine</span>
+        Modifier la commande
+      </ion-title>
+    </ion-toolbar>
+  </header>
+</ion-header>
+
+<ion-content class="elyk-content" data-testid="e2e-tontine-order-edit">
+  <div *ngIf="loading" class="elyk-empty">
+    <ion-spinner name="crescent"></ion-spinner>
+    <p>Chargement…</p>
+  </div>
+
+  <div *ngIf="!loading" class="edit-wrap">
+    <section class="edit-head">
+      <strong>{{ clientName || 'Membre' }}</strong>
+      <span *ngIf="delivery?.reference">Commande {{ delivery?.reference }}</span>
+    </section>
+
+    <p class="edit-alert" *ngIf="unavailableReason" data-testid="e2e-tontine-order-edit-unavailable">{{ unavailableReason }}</p>
+    <p class="edit-alert" *ngIf="!unavailableReason && notSynced">
+      Cette commande n'est pas encore envoyée au serveur. Synchronisez la tablette, puis revenez la modifier.
+    </p>
+
+    <ng-container *ngIf="!unavailableReason">
+      <section class="edit-card">
+        <h3>Articles</h3>
+        <div class="edit-line" *ngFor="let line of lines">
+          <span class="edit-line-name">
+            {{ line.articleName || 'Article' }}<ng-container *ngIf="line.salePackMode && line.salePackMode !== 'UNIT' && line.packLabel"> — {{ line.packLabel }}</ng-container>
+          </span>
+          <div class="qty-stepper">
+            <button type="button" class="stepper-btn" (click)="change(line, -1)" [disabled]="!canDecrease(line)"
+                    aria-label="Diminuer la quantité">−</button>
+            <span>{{ displayedQuantity(line) }}</span>
+            <button type="button" class="stepper-btn" (click)="change(line, 1)" aria-label="Augmenter la quantité">+</button>
+          </div>
+          <span class="edit-line-total elyk-amount" *appIfUnitPrice="'CASH'">{{ formatCurrency(line.totalPrice) }}</span>
+        </div>
+        <button type="button" class="add-article-btn" (click)="addArticle()" data-testid="e2e-tontine-order-add-article">
+          <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
+          Ajouter un article
+        </button>
+      </section>
+
+      <section class="edit-card edit-summary" data-testid="e2e-tontine-order-ceiling">
+        <div class="summary-row summary-row--total">
+          <span>Total de la commande</span>
+          <b class="elyk-amount">{{ formatCurrency(total) }}</b>
+        </div>
+        <div class="summary-row" *ngIf="ceiling">
+          <span>Plafond de la commande</span>
+          <b class="elyk-amount">{{ formatCurrency(ceiling.ceiling) }}</b>
+        </div>
+        <p class="ceiling-excess" *ngIf="ceilingExcess > 0" data-testid="e2e-tontine-ceiling-excess">
+          Dépassement de {{ formatCurrency(ceilingExcess) }} : réduisez la commande pour l'enregistrer.
+        </p>
+        <ng-container *ngIf="balance as b">
+          <div class="summary-row">
+            <span>{{ labels.net }}</span>
+            <b class="elyk-amount">{{ formatCurrency(b.netContribution) }}</b>
+          </div>
+          <div class="summary-row summary-row--due" *ngIf="b.amountDue > 0">
+            <span>{{ labels.due }}</span>
+            <b class="elyk-amount">{{ formatCurrency(b.amountDue) }}</b>
+          </div>
+          <div class="summary-row summary-row--refund" *ngIf="b.amountDue <= 0">
+            <span>{{ labels.refundable }}</span>
+            <b class="elyk-amount">{{ formatCurrency(b.refundableBalance) }}</b>
+          </div>
+        </ng-container>
+        <p class="edit-hint">Le solde réel n'est contrôlé qu'à la remise : le total peut dépasser le solde déjà cotisé, pas le plafond.</p>
+      </section>
+    </ng-container>
+  </div>
+</ion-content>
+
+<ion-footer class="elyk-footer-bar" *ngIf="!loading">
+  <ion-toolbar>
+    <ion-grid>
+      <ion-row>
+        <ion-col size="5">
+          <ion-button expand="block" fill="outline" class="elyk-btn-outline" (click)="cancel()"
+                      data-testid="e2e-tontine-order-edit-cancel">
+            {{ unavailableReason ? 'Retour' : 'Annuler' }}
+          </ion-button>
+        </ion-col>
+        <ion-col size="7" *ngIf="!unavailableReason">
+          <ion-button expand="block" class="elyk-btn-navy" [disabled]="!canSave" (click)="save()"
+                      data-testid="e2e-tontine-save-order">
+            Enregistrer
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-toolbar>
+</ion-footer>

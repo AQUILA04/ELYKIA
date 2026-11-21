@@ -1,5 +1,6 @@
 import { of } from 'rxjs';
 import { MemberDetailPage } from './member-detail.page';
+import { TontineOrderEditOutcomeService } from '../order-edit/tontine-order-edit-outcome.service';
 
 describe('MemberDetailPage delivery menu', () => {
   function create(options?: {
@@ -58,6 +59,7 @@ describe('MemberDetailPage delivery menu', () => {
       create: jasmine.createSpy('create').and.resolveTo({ present: () => Promise.resolve() })
     };
     const navCtrl = { back: jasmine.createSpy('back'), navigateForward: jasmine.createSpy('navigateForward') };
+    const orderEditOutcome = new TontineOrderEditOutcomeService();
     const page = new MemberDetailPage(
       {
         snapshot: { paramMap: { get: (key: string) => key === 'id' ? routeId : null } },
@@ -87,10 +89,11 @@ describe('MemberDetailPage delivery menu', () => {
       {} as any,
       modalCtrl as any,
       feedback as any,
-      ceilingService as any
+      ceilingService as any,
+      orderEditOutcome
     );
     (page as any).commercialUsername = 'com1';
-    return { page, deliveryRepo, modalCtrl, stockRepo, writeService, navCtrl, feedback, loading };
+    return { page, deliveryRepo, modalCtrl, stockRepo, writeService, navCtrl, feedback, loading, orderEditOutcome };
   }
 
   it('shows Commande de tontine while the session is active and the member has no delivery', async () => {
@@ -145,8 +148,6 @@ describe('MemberDetailPage delivery menu', () => {
     page.sessionStatus = 'CLOSED';
     expect(page.hasPendingDeliveryToMark()).toBeTrue();
     expect(page.canEditPendingOrder()).toBeTrue();
-    page.revisingOrder = true;
-    expect(page.canEditPendingOrder()).toBeFalse();
   });
 
   it('no longer offers Marquer comme livré once the member is delivered', async () => {
@@ -265,55 +266,25 @@ describe('MemberDetailPage delivery menu', () => {
       expect(page.ceilingExcess()).toBe(0);
     });
 
-    it('refuses to save a revision above the ceiling without calling the server', async () => {
-      const { page, writeService, feedback } = create({ members: [pendingMember], deliveries: [pendingOrder], ceiling: 25500 });
+    it('opens the dedicated edit page instead of editing the order in place', async () => {
+      const { page, navCtrl, writeService } = create({ members: [pendingMember], deliveries: [pendingOrder] });
       await page.loadMemberData();
-      page.revisingOrder = true;
-      page.vm.deliveryItems = [...page.vm.deliveryItems, { id: 'i2', articleId: 'a2', quantity: 2, unitPrice: 24000, totalPrice: 48000 } as any];
 
-      expect(page.ceilingExcess()).toBe(35300);
-      await page.saveRevisedOrder();
+      page.openOrderEdit();
 
+      expect(navCtrl.navigateForward).toHaveBeenCalledWith(['/tontine/order-edit', 'm2']);
       expect(writeService.replaceDeliveryItems).not.toHaveBeenCalled();
-      expect(feedback.error.calls.mostRecent().args[0]).toContain('plafond de ce membre (25 500 FCFA) de 35 300 FCFA');
-      expect(page.revisingOrder).toBeTrue();
     });
 
-    it('closes the loading before opening the receipt after a saved revision', async () => {
-      const { page, loading, feedback, modalCtrl } = create({ members: [pendingMember], deliveries: [pendingOrder] });
-      await page.loadMemberData();
-      page.revisingOrder = true;
-      feedback.success.and.callFake(async () => {
-        expect(loading.dismiss).toHaveBeenCalled();
-        return 'receipt';
-      });
-      modalCtrl.create.and.callFake(async () => {
-        expect(loading.dismiss).toHaveBeenCalled();
-        return { present: () => Promise.resolve(), onDidDismiss: () => Promise.resolve({}) };
-      });
-      spyOn(page as any, 'ensureAuthenticityCode').and.resolveTo('ELY-TEST-0001');
+    it('shows the order receipt once when coming back from a saved edit', async () => {
+      const { page, orderEditOutcome } = create({ members: [pendingMember], deliveries: [pendingOrder] });
+      const print = spyOn(page, 'printOrderReceipt').and.resolveTo();
+      orderEditOutcome.requestReceipt('m2');
 
-      await page.saveRevisedOrder();
+      await page.ionViewWillEnter();
+      await page.ionViewWillEnter();
 
-      expect(page.revisingOrder).toBeFalse();
-      expect(modalCtrl.create).toHaveBeenCalled();
-    });
-
-    it('shows the backend message, never the Angular text, when the server refuses the revision', async () => {
-      const { HttpErrorResponse } = await import('@angular/common/http');
-      const refused = new HttpErrorResponse({
-        status: 400, statusText: 'OK', url: 'https://x/api/v1/tontines/deliveries/5/items',
-        error: { status: 'BAD_REQUEST', message: 'La commande (62 300 FCFA) dépasse le plafond.' }
-      });
-      const { page, feedback, loading } = create({ members: [pendingMember], deliveries: [pendingOrder], replaceError: refused });
-      await page.loadMemberData();
-      page.revisingOrder = true;
-
-      await page.saveRevisedOrder();
-
-      expect(loading.dismiss).toHaveBeenCalled();
-      expect(feedback.error.calls.mostRecent().args[0]).toBe(refused);
-      expect(page.revisingOrder).toBeTrue();
+      expect(print).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -329,18 +300,6 @@ describe('MemberDetailPage delivery menu', () => {
     expect(balance?.amountDue).toBe(15000);
     expect(balance?.refundableBalance).toBe(0);
     expect(page.orderBalanceLabels().net).toBe('Solde net cotisé');
-  });
-
-  it('follows the revised total while the order is being edited', async () => {
-    const { page } = create({
-      members: [{ id: 'm2', clientId: 'c1', deliveryStatus: 'PENDING', availableContribution: 40000 }],
-      deliveries: [{ id: 'order', status: 'PENDING', requestDate: '2026-04-01', totalAmount: 55000, items: [{ id: 'i1', quantity: 1, totalPrice: 30000 }] }]
-    });
-    await page.loadMemberData();
-    page.revisingOrder = true;
-
-    expect(page.orderBalance()?.refundableBalance).toBe(10000);
-    expect(page.orderBalance()?.amountDue).toBe(0);
   });
 
   it('does not offer Modifier la commande when the order has no items to edit', async () => {
