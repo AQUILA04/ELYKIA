@@ -16,7 +16,7 @@ import com.optimize.elykia.core.enumaration.AppNotificationType;
 import com.optimize.elykia.core.event.TontineCollectionEvent;
 import com.optimize.elykia.core.repository.notification.AppNotificationReadRepository;
 import com.optimize.elykia.core.repository.notification.AppNotificationRepository;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

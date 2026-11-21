@@ -13,7 +13,7 @@ import com.optimize.elykia.core.entity.Promoter;
 import com.optimize.elykia.core.repository.CommercialAccountAssignmentRepository;
 import com.optimize.elykia.core.repository.PromoterRepository;
 import com.optimize.elykia.core.service.user.UserManagement;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;

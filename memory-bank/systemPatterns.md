@@ -8,7 +8,7 @@ Schémas d’intégration (partiellement périmés sur les versions Angular) : `
 
 | Dossier | Rôle |
 |---------|------|
-| `backend/` | Monolithe modulaire Spring Boot 4 / Spring Modulith `optimize-elykia-core` (1 seul JAR ; 5 modules : `entities`, `securities`, `client`, `recruitment`, `core`) |
+| `backend/` | Monolithe modulaire Spring Boot 4 / Spring Modulith `optimize-elykia-core` (1 seul JAR ; 8 modules : `entities`, `securities`, `client`, `shared`, `recruitment`, `ai`, `apprelease`, `core`) |
 | `frontend/` | Admin web Angular |
 | `mobile/` | App terrain Ionic / Capacitor (commercial + chef de recouvrement) |
 | `customer-space/` | Espace client Ionic / Capacitor (`com.optimize.elykia.customer`) |
@@ -25,12 +25,14 @@ Architecture **Spring Modulith `2.2.0`** (point d'entrée `com.optimize.elykia.O
 - `entities` (`com.optimize.common.entities`, `OPEN`, feuille pure sans dépendance sortante) : `BaseEntity`, `GenericService`, exceptions, i18n (`CommonEntitiesI18nConfig`).
 - `securities` (`com.optimize.common.securities`, `OPEN`, dépend uniquement de `entities`) : sécurité JWT, permissions `ROLE_*`, profils nommés, licences, paramètres applicatifs. Pas de session serveur pour l'UI.
 - `client` (`com.optimize.elykia.client`, `OPEN`, dépend uniquement de `entities`) : domaine `Client`, `Account`, stockage MinIO / photos.
-- `recruitment` (`com.optimize.elykia.recruitment`, isolé de `core`) : domaine recrutement (dépend de `entities`, `securities`, `client`).
-- `core` (`com.optimize.elykia.core`, isolé de `recruitment`) : couches `controller`, `service`, `repository`, `entity`, `dto`, `mapper` (MapStruct), `config`, `scheduler`. ~126 entités JPA. Domaines de services : `sale`, `stock`, `store`, `tontine`, `debt`, `expense`, `accounting`, `report`, `bi`, `order`, `client`, `customer`, `commercial`, `carnet`, `inventory`, `ai`, `notification`, `paygate`, `ocr`.
+- `shared` (`com.optimize.elykia.shared`, `OPEN`, dépend de `entities`, `securities`) : utilitaires et constantes métier transverses (`security/`, `util/`, `pdf/PdfHtmlRenderer`).
+- `recruitment` (`com.optimize.elykia.recruitment`, `CLOSED`, isolé de `core`) : domaine recrutement (référence DDD pragmatique).
+- `ai` (`com.optimize.elykia.ai`, `CLOSED`, isolé de `core`) : Elykia IA (`domain/`, `application/`, `infrastructure/{persistence,llm,config}/`, `web/dto/`). Schéma SQL = snapshot `backend/src/main/resources/ai/schema-catalog.json` ; aide = index RAG `user-guide-index.json` ; fournisseur LLM par `elykia.ai.provider`.
+- `apprelease` (`com.optimize.elykia.apprelease`, `CLOSED`, isolé de `core`) : distribution des APK mobile & espace client (`application/`, `web/dto/`).
+- `core` (`com.optimize.elykia.core`, `CLOSED`, en cours de découpage progressif en vagues DDD) : couches `controller`, `service`, `repository`, `entity`, `dto`, `mapper` (MapStruct), `config`, `scheduler`. Domaines restants à extraire (Vagues 2–7) : `notification`, `organization`, `inventory`, `finance`, `sale`, `tontine`, `carnet`, `customer`, `bi`.
 
 - Flyway : `backend/src/main/resources/db/migration/V0xx__*.sql`, `out-of-order: false`, `baseline-on-migrate`, baseline 0. Dernière migration au 2026-11-21 : `V045__tontine_delivery_planned_date.sql`. Les tests backend tournent en `create-drop` : une migration n'y est pas exécutée, la valider à part sur un Postgres 15.
 - Fichiers : MinIO (photos clients, articles, rapports, APK, recrutement). Clés uniquement par variables d’environnement.
-- Elykia IA (`ai/`) : `AiOrchestratorService` + `IntentClassifier`. Schéma SQL = snapshot `backend/src/main/resources/ai/schema-catalog.json`, pas le Postgres live. Aide = index RAG `user-guide-index.json`. Fournisseur LLM par `elykia.ai.provider` ; défaut sans modèle cloud (stub).
 - OTP espace client : client HTTP local `notificationhub/` (contournement historique). Nouvelle intégration : starter `sb-notification-hub-starter`, pas d’extension de ce client. Voir la règle `notification-hub-starter-first`.
 - Préfixes HTTP **mélangés** : `/api/...` et `/api/v1/...` selon les contrôleurs. Traefik expose le backend sous le préfixe public `/api` et en retire un segment.
 

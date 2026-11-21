@@ -15,8 +15,8 @@ import com.optimize.elykia.core.service.report.CommercialTontineYearlySummarySer
 import com.optimize.elykia.core.service.report.DailyReportPdfService;
 import com.optimize.elykia.core.service.report.RemainingAtClientsPdfService;
 import com.optimize.elykia.core.service.report.RemainingAtClientsService;
-import com.optimize.elykia.core.util.UserProfilConstant;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;

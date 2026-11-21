@@ -5,7 +5,7 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.dto.BulkAssignCollectorsDto;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.event.InProgressCreditsTransferEvent;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

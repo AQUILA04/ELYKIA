@@ -30,7 +30,7 @@ import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;

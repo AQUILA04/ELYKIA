@@ -10,7 +10,7 @@ import com.optimize.elykia.core.dto.customer.CustomerActivityLogSummaryDto;
 import com.optimize.elykia.core.entity.customer.CustomerActivityLog;
 import com.optimize.elykia.core.repository.customer.CustomerActivityLogRepository;
 import com.optimize.elykia.core.repository.customer.CustomerActivityLogSpecs;
-import com.optimize.elykia.core.util.PhoneNormalizer;
+import com.optimize.elykia.shared.util.PhoneNormalizer;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;

@@ -838,6 +838,16 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [2.2.0] — 2026-11-21
+
+### Changed
+
+- **Migration DDD de `core` — Vague 0 (`shared`) & Vague 1 (`ai`, `apprelease`) →** extraction des 3 premiers modules DDD hors de `com.optimize.elykia.core` (78 fichiers déplacés via `git mv`, zéro changement d'URL REST, de contrat JSON ou de schéma SQL/Flyway) :
+  - **`shared` (`com.optimize.elykia.shared`, module `OPEN`) :** socle partagé transverse (`security/` : `UserProfilConstant`, `UserPermissionConstant`, `ActingUserSecuritySupport` ; `util/` : `PhoneNormalizer`, `DateUtils`, `MonthEndCalculator`, `MoneyUtil`, `PageableCacheKeyHelper` ; `pdf/` : `PdfHtmlRenderer`, `PdfHeader`).
+  - **`ai` (`com.optimize.elykia.ai`, module `CLOSED`, zéro dépendance sur `core`) :** 52 classes + 6 suites de tests restructurées en couches DDD pragmatiques (`domain/`, `application/`, `infrastructure/{persistence,llm,config}/`, `web/dto/`) ; mise à jour de `AiProviderEnvironmentPostProcessor` dans `META-INF/spring.factories`.
+  - **`apprelease` (`com.optimize.elykia.apprelease`, module `CLOSED`, zéro dépendance sur `core`) :** regroupement de `MobileAppRelease*` et `CustomerAppRelease*` (`application/`, `web/dto/`, 2 suites de tests).
+- **Spring Modulith & qualité →** élargissement de `@ConfigurationPropertiesScan` à `com.optimize.elykia`, mise à jour de `ModularityTests` pour vérifier les **8 modules** (`entities`, `securities`, `client`, `shared`, `recruitment`, `ai`, `apprelease`, `core`), et extension de la quality gate JaCoCo `check-jacoco-service-quality-gate` à `com/optimize/elykia/*/application/**` (tous les seuils strictement conservés).
+
 ## Backend — [2.1.0] — 2026-11-21
 
 ### Changed

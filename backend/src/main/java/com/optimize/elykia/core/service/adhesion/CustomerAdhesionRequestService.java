@@ -15,7 +15,7 @@ import com.optimize.elykia.core.enumaration.AdhesionSource;
 import com.optimize.elykia.core.enumaration.AdhesionType;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.repository.customer.CustomerAdhesionSubmissionRepository;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

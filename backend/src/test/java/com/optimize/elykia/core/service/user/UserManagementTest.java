@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.user;
 
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

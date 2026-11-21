@@ -4,7 +4,7 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.client.ClientPhotoUrlDto;
 import com.optimize.elykia.core.dto.client.ClientPhotoUrlRequest;
 import com.optimize.elykia.core.service.client.ClientPhotoUrlService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

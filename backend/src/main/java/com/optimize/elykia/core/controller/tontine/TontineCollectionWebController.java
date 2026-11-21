@@ -5,7 +5,7 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.TontineCollectionKpiDto;
 import com.optimize.elykia.core.dto.TontineCollectionWebDto;
 import com.optimize.elykia.core.service.tontine.TontineCollectionWebService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;

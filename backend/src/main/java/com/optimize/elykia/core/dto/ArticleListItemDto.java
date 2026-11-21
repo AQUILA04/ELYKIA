@@ -2,7 +2,6 @@ package com.optimize.elykia.core.dto;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.entity.article.Articles;
-import com.optimize.elykia.core.dto.ArticleSalePackDto;
 import com.optimize.elykia.core.enumaration.ArticlePackagingType;
 import com.optimize.elykia.core.service.store.ArticlePhotoView;
 import org.springframework.data.domain.Page;

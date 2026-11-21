@@ -21,7 +21,7 @@ import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import com.optimize.elykia.core.service.debt.DebtService;
 import com.optimize.elykia.core.service.sale.CreditTimelineService;
 import com.optimize.elykia.core.service.tontine.TontineService;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

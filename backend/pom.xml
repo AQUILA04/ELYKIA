@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.optimize.elykia</groupId>
 	<artifactId>optimize-elykia-core</artifactId>
-	<version>2.1.0</version>
+	<version>2.2.0</version>
 	<name>optimize-elykia-core</name>
 	<description>Gestion des crédits et tontines</description>
 	<url/>
@@ -395,6 +395,7 @@
 							<configuration>
 								<includes>
 									<include>com/optimize/elykia/core/service/**</include>
+									<include>com/optimize/elykia/*/application/**</include>
 								</includes>
 								<rules>
 									<rule>

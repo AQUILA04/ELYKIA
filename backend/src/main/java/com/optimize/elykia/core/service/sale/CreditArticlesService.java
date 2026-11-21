@@ -10,7 +10,7 @@ import com.optimize.elykia.core.dto.SoldArticlesSearchResultDto;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.repository.CreditArticlesRepository;
 import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
-import com.optimize.elykia.core.service.report.PdfHtmlRenderer;
+import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

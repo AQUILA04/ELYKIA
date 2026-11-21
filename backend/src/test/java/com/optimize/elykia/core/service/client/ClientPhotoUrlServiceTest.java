@@ -11,7 +11,7 @@ import com.optimize.elykia.core.dto.client.ClientPhotoKind;
 import com.optimize.elykia.core.dto.client.ClientPhotoSize;
 import com.optimize.elykia.core.dto.client.ClientPhotoUrlDto;
 import com.optimize.elykia.core.dto.client.ClientPhotoUrlRequest;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import io.minio.MinioClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

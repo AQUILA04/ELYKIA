@@ -18,7 +18,7 @@ import com.optimize.elykia.core.repository.CashDepositRepository;
 import com.optimize.elykia.core.repository.CashPeriodRemittanceExpenseRepository;
 import com.optimize.elykia.core.repository.CashPeriodRemittanceRepository;
 import com.optimize.elykia.core.repository.ExpenseRepository;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

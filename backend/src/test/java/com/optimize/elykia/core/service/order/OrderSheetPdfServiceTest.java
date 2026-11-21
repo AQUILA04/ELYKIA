@@ -11,7 +11,7 @@ import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.entity.sale.OrderItem;
 import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
-import com.optimize.elykia.core.service.report.PdfHtmlRenderer;
+import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

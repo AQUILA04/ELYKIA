@@ -15,8 +15,10 @@ class ModularityTests {
     @Test
     void verifiesModularStructure() {
         MODULES.verify();
-        assertEquals(5, MODULES.stream().count());
-        for (String name : java.util.List.of("entities", "securities", "client", "recruitment", "core")) {
+        var expected = java.util.List.of(
+                "entities", "securities", "client", "shared", "recruitment", "ai", "apprelease", "core");
+        assertEquals(expected.size(), MODULES.stream().count());
+        for (String name : expected) {
             var module = MODULES.getModuleByName(name);
             assertTrue(module.isPresent(), () -> "Expected module not found: " + name);
             assertTrue(module.get().getBasePackage().stream().findAny().isPresent(),

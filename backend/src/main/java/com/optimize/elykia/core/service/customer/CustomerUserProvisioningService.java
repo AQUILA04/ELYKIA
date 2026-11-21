@@ -17,7 +17,7 @@ import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.core.entity.customer.CustomerUserMapping;
 import com.optimize.elykia.core.repository.customer.CustomerUserMappingRepository;
 import com.optimize.elykia.core.util.CustomerEmailGenerator;
-import com.optimize.elykia.core.util.PhoneNormalizer;
+import com.optimize.elykia.shared.util.PhoneNormalizer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationReadyEvent;

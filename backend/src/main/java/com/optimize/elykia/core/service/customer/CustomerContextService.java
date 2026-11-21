@@ -8,7 +8,7 @@ import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.entity.customer.CustomerUserMapping;
 import com.optimize.elykia.core.repository.customer.CustomerUserMappingRepository;
-import com.optimize.elykia.core.util.PhoneNormalizer;
+import com.optimize.elykia.shared.util.PhoneNormalizer;
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.securities.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

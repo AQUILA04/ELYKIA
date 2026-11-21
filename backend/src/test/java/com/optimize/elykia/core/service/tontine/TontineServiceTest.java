@@ -40,7 +40,7 @@ import java.util.Optional;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.client.dto.BulkAssignCollectorsDto;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import com.optimize.elykia.core.dto.BulkTontineAssignCollectorDto;
 import com.optimize.elykia.core.dto.TontineMemberAmountHistoryArchiveDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;

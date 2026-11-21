@@ -16,7 +16,7 @@ import com.optimize.elykia.core.repository.StockTontineReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.store.InventoryWarehouseGuard;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import com.optimize.elykia.core.util.ArticleSortOrder;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.elykia.core.dto.stock.StockTontineReturnListDto;

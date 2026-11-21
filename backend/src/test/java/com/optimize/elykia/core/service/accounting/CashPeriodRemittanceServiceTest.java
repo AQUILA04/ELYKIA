@@ -13,7 +13,7 @@ import com.optimize.elykia.core.repository.CashDepositRepository;
 import com.optimize.elykia.core.repository.CashPeriodRemittanceExpenseRepository;
 import com.optimize.elykia.core.repository.CashPeriodRemittanceRepository;
 import com.optimize.elykia.core.repository.ExpenseRepository;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import org.junit.jupiter.api.BeforeEach;

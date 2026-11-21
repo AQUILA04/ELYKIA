@@ -4,7 +4,7 @@ import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.elykia.core.repository.TontineCatchupNotificationReadRepository;
 import com.optimize.elykia.core.repository.TontineCatchupNotificationRepository;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

@@ -5,7 +5,7 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.client.dto.BulkAssignCollectorsDto;
 import com.optimize.elykia.core.service.client.ClientCollectorAssignmentService;
 import jakarta.validation.Valid;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

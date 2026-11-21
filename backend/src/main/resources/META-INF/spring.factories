@@ -1,1 +1,1 @@
-org.springframework.boot.EnvironmentPostProcessor=com.optimize.elykia.core.ai.config.AiProviderEnvironmentPostProcessor
+org.springframework.boot.EnvironmentPostProcessor=com.optimize.elykia.ai.infrastructure.config.AiProviderEnvironmentPostProcessor

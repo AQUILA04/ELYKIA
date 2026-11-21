@@ -17,7 +17,7 @@ import com.optimize.elykia.core.repository.OrderRepository;
 import com.optimize.elykia.core.service.notification.AppNotificationService;
 import com.optimize.elykia.core.repository.StockRequestOrderLinkRepository;
 import com.optimize.elykia.core.service.stock.StockRequestService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;

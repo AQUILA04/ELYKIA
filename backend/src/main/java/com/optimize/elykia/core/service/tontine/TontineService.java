@@ -29,7 +29,7 @@ import com.optimize.elykia.core.repository.TontineMemberAmountHistoryArchiveRepo
 import com.optimize.elykia.core.repository.TontineMemberAmountHistoryRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRules;
 import com.optimize.elykia.core.service.notification.AppNotificationService;

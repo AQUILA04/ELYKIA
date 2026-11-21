@@ -10,7 +10,7 @@ import com.optimize.elykia.core.entity.tontine.TontineCatchupNotificationRead;
 import com.optimize.elykia.core.event.TontineCollectionEvent;
 import com.optimize.elykia.core.repository.TontineCatchupNotificationReadRepository;
 import com.optimize.elykia.core.repository.TontineCatchupNotificationRepository;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

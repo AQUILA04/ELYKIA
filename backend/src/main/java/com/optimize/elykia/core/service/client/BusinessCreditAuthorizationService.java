@@ -5,7 +5,7 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.dto.BusinessCreditAuthorizationEventDto;
 import com.optimize.elykia.client.dto.ClientRespDto;
 import com.optimize.elykia.client.service.ClientService;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

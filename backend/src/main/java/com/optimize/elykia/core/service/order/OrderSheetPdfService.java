@@ -13,7 +13,7 @@ import com.optimize.elykia.core.entity.sale.OrderItem;
 import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
 import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
-import com.optimize.elykia.core.service.report.PdfHtmlRenderer;
+import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

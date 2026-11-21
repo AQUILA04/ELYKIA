@@ -15,7 +15,7 @@ import com.optimize.elykia.core.repository.StockTontineRequestRepository;
 import com.optimize.elykia.core.repository.StockTontineReturnRepository;
 import com.optimize.elykia.core.repository.TontineStockRepository;
 import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
-import com.optimize.elykia.core.service.report.PdfHtmlRenderer;
+import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import com.optimize.elykia.core.service.report.UnitPriceVisibility;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.Test;

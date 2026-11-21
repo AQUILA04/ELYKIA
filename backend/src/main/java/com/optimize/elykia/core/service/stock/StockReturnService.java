@@ -21,7 +21,7 @@ import com.optimize.elykia.core.repository.DebtDocumentRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.service.store.ArticlesService;
 import com.optimize.elykia.core.service.store.InventoryWarehouseGuard;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import com.optimize.elykia.core.util.ArticleSortOrder;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import com.optimize.common.entities.exception.ResourceNotFoundException;

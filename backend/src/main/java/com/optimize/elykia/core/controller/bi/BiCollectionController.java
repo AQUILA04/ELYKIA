@@ -5,7 +5,7 @@ import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.bi.CollectionTrendDto;
 import com.optimize.elykia.core.dto.bi.OverdueAnalysisDto;
 import com.optimize.elykia.core.service.bi.BiCollectionAnalyticsService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;

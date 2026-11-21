@@ -9,7 +9,7 @@ import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.service.accounting.CashDepositCatchupService;
 import com.optimize.elykia.core.service.accounting.CashDepositService;
 import com.optimize.elykia.core.service.accounting.CashSurplusReallocationService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -22,7 +22,7 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 

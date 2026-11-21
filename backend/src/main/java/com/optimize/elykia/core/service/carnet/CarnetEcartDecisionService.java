@@ -26,7 +26,7 @@ import com.optimize.elykia.core.service.sale.CreditTimelineService;
 import com.optimize.elykia.core.service.sale.CreditTimelineService.FieldControlCreditPosting;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.TontineService.FieldControlTontinePosting;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;

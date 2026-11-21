@@ -6,7 +6,7 @@ import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.TontineArticleReservationDto;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.repository.TontineDeliveryRepository;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -12,7 +12,7 @@ import com.optimize.elykia.core.enumaration.AppNotificationType;
 import com.optimize.elykia.core.enumaration.CustomerSubmissionStatus;
 import com.optimize.elykia.core.repository.notification.AppNotificationReadRepository;
 import com.optimize.elykia.core.repository.notification.AppNotificationRepository;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

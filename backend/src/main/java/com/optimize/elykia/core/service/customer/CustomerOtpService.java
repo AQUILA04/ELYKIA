@@ -8,7 +8,7 @@ import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSend
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpVerifyRequest;
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpVerifyResponse;
-import com.optimize.elykia.core.util.PhoneNormalizer;
+import com.optimize.elykia.shared.util.PhoneNormalizer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;

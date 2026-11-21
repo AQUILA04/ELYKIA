@@ -23,7 +23,7 @@ import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.event.AdhesionCashEvent;
 import com.optimize.elykia.core.repository.adhesion.AdhesionBalanceMovementRepository;
 import com.optimize.elykia.core.repository.adhesion.ClientAdhesionRepository;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;

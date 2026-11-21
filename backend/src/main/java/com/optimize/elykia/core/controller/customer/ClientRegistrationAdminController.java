@@ -10,7 +10,7 @@ import com.optimize.elykia.core.dto.customer.ClientRegistrationRejectRequest;
 import com.optimize.elykia.core.dto.customer.CustomerInitialDepositDto;
 import com.optimize.elykia.core.dto.customer.CustomerInitialDepositRejectRequest;
 import com.optimize.elykia.core.service.customer.ClientRegistrationAdminService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

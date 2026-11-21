@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.report;
 
+
+import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import com.optimize.elykia.core.dto.DailyReportExportPdfDto;
 import com.optimize.elykia.core.dto.report.cockpit.CommercialReconciliationLineDto;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;

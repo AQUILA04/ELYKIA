@@ -7,7 +7,7 @@ import com.optimize.elykia.core.dto.TontineDeliveryListDto;
 import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.repository.TontineDeliveryRepository;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.criteria.CriteriaBuilder;
@@ -169,4 +169,4 @@ public class TontineDeliveryWebService {
                 .build();
     }
 }
-
+

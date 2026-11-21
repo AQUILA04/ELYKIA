@@ -14,7 +14,7 @@ import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.DailyAccountancyRepository;
 import com.optimize.elykia.core.repository.DailyAccountingRepository;
 import com.optimize.elykia.core.util.ReportPeriod;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

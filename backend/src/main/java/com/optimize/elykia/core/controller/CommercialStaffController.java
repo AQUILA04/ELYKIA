@@ -10,7 +10,7 @@ import com.optimize.elykia.core.service.commercial.CommercialAccountAssignmentSe
 import com.optimize.elykia.core.service.commercial.CommercialStaffPhotoService;
 import com.optimize.elykia.core.service.commercial.CommercialStaffService;
 import com.optimize.elykia.core.service.store.ArticlePhotoBytes;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

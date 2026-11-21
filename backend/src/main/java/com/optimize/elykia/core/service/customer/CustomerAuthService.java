@@ -12,7 +12,7 @@ import com.optimize.elykia.core.dto.customer.*;
 import com.optimize.elykia.core.entity.Locality;
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
 import com.optimize.elykia.core.service.masterdata.LocalityService;
-import com.optimize.elykia.core.util.PhoneNormalizer;
+import com.optimize.elykia.shared.util.PhoneNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;

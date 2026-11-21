@@ -21,7 +21,7 @@ import com.optimize.elykia.core.repository.OrderRepository;
 import com.optimize.elykia.core.repository.OrderStatusHistoryRepository;
 import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.core.service.store.ArticlesService;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

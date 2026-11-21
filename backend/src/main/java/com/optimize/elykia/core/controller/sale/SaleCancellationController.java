@@ -5,7 +5,7 @@ import com.optimize.elykia.core.dto.SaleCancellationFilterDto;
 import com.optimize.elykia.core.dto.SaleCancellationPreviewDto;
 import com.optimize.elykia.core.dto.SaleCancellationRunDto;
 import com.optimize.elykia.core.service.sale.SaleCancellationService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;

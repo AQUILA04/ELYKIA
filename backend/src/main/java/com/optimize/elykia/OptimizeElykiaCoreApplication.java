@@ -26,10 +26,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
         basePackages = {"com.optimize.elykia", "com.optimize.common.securities"},
         repositoryFactoryBeanClass = EnversRevisionRepositoryFactoryBean.class)
 @ConfigurationPropertiesScan({
-        "com.optimize.elykia.core.config",
-        "com.optimize.elykia.core.ai.config",
-        "com.optimize.elykia.recruitment",
-        "com.optimize.elykia.client.config",
+        "com.optimize.elykia",
         "com.optimize.common.securities.config"
 })
 @EnableJpaAuditing(auditorAwareRef = "auditorProvider")

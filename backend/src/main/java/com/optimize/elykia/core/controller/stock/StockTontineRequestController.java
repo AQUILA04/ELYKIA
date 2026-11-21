@@ -9,7 +9,7 @@ import com.optimize.elykia.core.dto.PendingOrderStockPreviewDto;
 import com.optimize.elykia.core.service.stock.StockExportService;
 import com.optimize.elykia.core.service.stock.StockTontineRequestService;
 import com.optimize.elykia.core.service.tontine.TontineDeliveryStockRequestService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

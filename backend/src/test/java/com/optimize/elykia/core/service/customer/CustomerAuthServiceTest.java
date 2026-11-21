@@ -19,7 +19,7 @@ import com.optimize.elykia.core.dto.customer.CustomerPhoneRequest;
 import com.optimize.elykia.core.dto.customer.CustomerRegisterRequest;
 import com.optimize.elykia.core.dto.customer.CustomerSetupPinRequest;
 import com.optimize.elykia.core.notificationhub.NotificationHubOtpModels.OtpSendResponse;
-import com.optimize.elykia.core.util.PhoneNormalizer;
+import com.optimize.elykia.shared.util.PhoneNormalizer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

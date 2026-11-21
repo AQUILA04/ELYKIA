@@ -5,7 +5,7 @@ import com.optimize.elykia.core.dto.customer.CustomerActivityLogDto;
 import com.optimize.elykia.core.dto.customer.CustomerActivityLogSearchCriteria;
 import com.optimize.elykia.core.dto.customer.CustomerActivityLogSummaryDto;
 import com.optimize.elykia.core.service.customer.CustomerActivityLogService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

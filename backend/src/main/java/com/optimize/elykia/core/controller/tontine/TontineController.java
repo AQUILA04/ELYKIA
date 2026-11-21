@@ -13,7 +13,7 @@ import com.optimize.elykia.core.dto.TontineMemberAdhesionDateDto;
 import com.optimize.elykia.core.dto.TontineMemberCarnetVerificationDto;
 import com.optimize.elykia.core.dto.TontineMemberDto;
 import com.optimize.elykia.core.dto.TontineSessionUpdateDto;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import com.optimize.elykia.core.service.sale.CreditArticlesService;
 import com.optimize.elykia.core.service.stock.StockExportService;
 import com.optimize.elykia.core.service.tontine.TontineCarnetVerificationPdfService;

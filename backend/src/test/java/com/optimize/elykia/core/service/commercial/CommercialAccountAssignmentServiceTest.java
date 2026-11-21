@@ -10,7 +10,7 @@ import com.optimize.elykia.core.entity.Promoter;
 import com.optimize.elykia.core.repository.CommercialAccountAssignmentRepository;
 import com.optimize.elykia.core.repository.PromoterRepository;
 import com.optimize.elykia.core.service.user.UserManagement;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

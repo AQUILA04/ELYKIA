@@ -16,7 +16,7 @@ import com.optimize.elykia.core.enumaration.RiskLevel;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
 import com.optimize.elykia.core.service.carnet.CarnetVerifiable;
 import com.optimize.elykia.core.util.CreditArticleUnitPricePolicy;
-import com.optimize.elykia.core.util.MoneyUtil;
+import com.optimize.elykia.shared.util.MoneyUtil;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;

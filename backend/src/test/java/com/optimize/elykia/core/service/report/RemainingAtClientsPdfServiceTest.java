@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.report;
 
+
+import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;

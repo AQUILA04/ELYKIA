@@ -16,7 +16,7 @@ import com.optimize.elykia.core.dto.customer.CustomerLoginResponse;
 import com.optimize.elykia.core.dto.customer.CustomerRegisterRequest;
 import com.optimize.elykia.core.repository.LocalityRepository;
 import com.optimize.elykia.core.util.LocalityNames;
-import com.optimize.elykia.core.util.PhoneNormalizer;
+import com.optimize.elykia.shared.util.PhoneNormalizer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;

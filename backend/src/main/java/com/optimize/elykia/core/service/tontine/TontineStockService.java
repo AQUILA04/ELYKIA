@@ -13,7 +13,7 @@ import com.optimize.elykia.core.enumaration.StockOperation;
 import com.optimize.elykia.core.enumaration.TontineStockMovementType;
 import com.optimize.elykia.core.repository.TontineStockRepository;
 import com.optimize.elykia.core.service.stock.TontineStockMovementService;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;

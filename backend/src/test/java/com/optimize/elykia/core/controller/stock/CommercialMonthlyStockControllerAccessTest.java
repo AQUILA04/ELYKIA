@@ -8,7 +8,7 @@ import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService
 import com.optimize.elykia.core.service.stock.CommercialMonthlyStockItemSoldValueHistoryService;
 import com.optimize.elykia.core.service.stock.CommercialStockTeamService;
 import com.optimize.elykia.core.service.stock.StockExportService;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

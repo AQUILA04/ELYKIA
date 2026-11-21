@@ -14,7 +14,7 @@ import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.repository.DebtDocumentRepository;
 import com.optimize.elykia.core.repository.DebtSettlementRepository;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

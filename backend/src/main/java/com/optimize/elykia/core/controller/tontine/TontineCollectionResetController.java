@@ -7,7 +7,7 @@ import com.optimize.elykia.core.dto.TontineCollectionResetRunDto;
 import com.optimize.elykia.core.dto.TontineCommercialVoidPreviewDto;
 import com.optimize.elykia.core.dto.TontineCommercialVoidRequest;
 import com.optimize.elykia.core.service.tontine.TontineCollectionResetFacadeService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;

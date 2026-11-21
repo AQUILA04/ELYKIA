@@ -27,7 +27,7 @@ import com.optimize.elykia.core.event.CarnetEcartDetectedEvent;
 import com.optimize.elykia.core.service.carnet.CarnetVerificationSupport;
 import com.optimize.elykia.core.service.carnet.CarnetEcartRecontrolPolicy.EcartDecisionView;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;

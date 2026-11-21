@@ -34,7 +34,7 @@ import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.core.util.CreditArticleUnitPricePolicy;
 import com.optimize.elykia.core.util.CommercialMonthlyStockCashSalePricing;
 import com.optimize.elykia.core.util.ClientReliquatNetRemaining;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;

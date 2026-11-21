@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.report;
 
+
+import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto;
 import com.optimize.elykia.core.entity.report.DailyOperationLog;
 import com.optimize.elykia.core.enumaration.OperationType;

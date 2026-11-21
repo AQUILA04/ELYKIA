@@ -15,7 +15,7 @@ import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
 import com.optimize.elykia.core.repository.StockTontineRequestDeliveryLinkRepository;
 import com.optimize.elykia.core.repository.TontineDeliveryRepository;
 import com.optimize.elykia.core.service.stock.StockTontineRequestService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

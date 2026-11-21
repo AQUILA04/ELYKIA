@@ -13,7 +13,7 @@ import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService
 import com.optimize.elykia.core.service.stock.CommercialMonthlyStockItemSoldValueHistoryService;
 import com.optimize.elykia.core.service.stock.CommercialStockTeamService;
 import com.optimize.elykia.core.service.stock.StockExportService;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;

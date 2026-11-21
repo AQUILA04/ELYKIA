@@ -4,7 +4,7 @@ import com.optimize.elykia.core.dto.report.cockpit.OperationTypeTotalDto;
 import com.optimize.elykia.core.entity.report.DailyOperationLog;
 import com.optimize.elykia.core.enumaration.OperationType;
 import com.optimize.elykia.core.service.report.DailyOperationService;
-import com.optimize.elykia.core.util.UserProfilConstant;
+import com.optimize.elykia.shared.security.UserProfilConstant;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import lombok.RequiredArgsConstructor;

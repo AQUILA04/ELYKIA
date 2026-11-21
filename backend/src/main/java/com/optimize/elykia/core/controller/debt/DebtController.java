@@ -4,7 +4,7 @@ import com.optimize.elykia.core.dto.debt.*;
 import com.optimize.elykia.core.enumaration.DebtStatus;
 import com.optimize.elykia.core.enumaration.DebtType;
 import com.optimize.elykia.core.service.debt.DebtService;
-import com.optimize.elykia.core.util.UserPermissionConstant;
+import com.optimize.elykia.shared.security.UserPermissionConstant;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
