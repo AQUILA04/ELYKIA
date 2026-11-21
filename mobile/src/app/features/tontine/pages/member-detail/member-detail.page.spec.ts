@@ -7,7 +7,25 @@ describe('MemberDetailPage delivery menu', () => {
     deliveries?: any[];
     members?: any[];
     deliveryError?: boolean;
+    modalResult?: unknown;
+    stockQuantity?: number | null;
   }) {
+    const modalCtrl = {
+      create: jasmine.createSpy('create').and.callFake(async () => ({
+        present: () => Promise.resolve(),
+        onDidDismiss: () => Promise.resolve({ data: options?.modalResult })
+      }))
+    };
+    const stockRepo = {
+      getByArticle: jasmine.createSpy('getByArticle').and.resolveTo(
+        options?.stockQuantity === null ? null : { id: 's1', availableQuantity: options?.stockQuantity ?? 10 })
+    };
+    const writeService = {
+      replaceDeliveryItems: jasmine.createSpy('replaceDeliveryItems').and.resolveTo(15000)
+    };
+    const loadingCtrl = {
+      create: jasmine.createSpy('create').and.resolveTo({ present: () => Promise.resolve(), dismiss: () => Promise.resolve() })
+    };
     const routeId = options?.routeId ?? 'm2';
     const deliveryRepo = {
       getByMemberAndCommercial: jasmine.createSpy('getByMemberAndCommercial').and.callFake(() => {
@@ -30,9 +48,9 @@ describe('MemberDetailPage delivery menu', () => {
       alertCtrl as any,
       {} as any,
       {} as any,
-      {} as any,
-      { select: () => of(null), dispatch: jasmine.createSpy('dispatch') } as any,
-      { getSession: () => of(null) } as any,
+      loadingCtrl as any,
+      { select: () => of({ id: 'sess', year: 2026 }), dispatch: jasmine.createSpy('dispatch') } as any,
+      { getSession: () => of(null), refreshSessionFromServerIfOnline: () => Promise.resolve() } as any,
       {
         findAll: jasmine.createSpy('findAll').and.resolveTo(options?.members ?? [{
           id: routeId,
@@ -44,14 +62,14 @@ describe('MemberDetailPage delivery menu', () => {
       { findById: jasmine.createSpy('findById').and.resolveTo(null) } as any,
       deliveryRepo as any,
       {} as any,
+      stockRepo as any,
+      writeService as any,
       {} as any,
       {} as any,
-      {} as any,
-      {} as any,
-      {} as any
+      modalCtrl as any
     );
     (page as any).commercialUsername = 'com1';
-    return { page, deliveryRepo };
+    return { page, deliveryRepo, modalCtrl, stockRepo, writeService, navCtrl };
   }
 
   it('shows Commande de tontine while the session is active and the member has no delivery', async () => {
@@ -124,6 +142,90 @@ describe('MemberDetailPage delivery menu', () => {
     expect(page.hasPendingDeliveryToMark()).toBeFalse();
     expect(page.canMarkAsDelivered()).toBeFalse();
     expect(page.canEditPendingOrder()).toBeFalse();
+  });
+
+  describe('Livrer', () => {
+    const order = { id: '42', status: 'VALIDATED', requestDate: '2026-04-01', totalAmount: 30000, reference: 'LIV-A',
+      items: [{ id: 'i1', articleId: 'a1', articleName: 'Riz', quantity: 2, unitPrice: 15000, totalPrice: 30000 }] };
+    const member = { id: 'm2', clientId: 'c1', deliveryStatus: 'VALIDATED', availableContribution: 20000 };
+
+    it('opens the recap with the net balance and the tontine stock of each article', async () => {
+      const { page, modalCtrl } = create({ members: [member], deliveries: [order], modalResult: { action: 'cancel' }, stockQuantity: 3 });
+      await page.loadMemberData();
+      page.sessionStatus = 'CLOSED';
+      const perform = spyOn(page as any, 'performMarkAsDelivered').and.resolveTo();
+
+      await page.markAsDelivered();
+
+      const props = modalCtrl.create.calls.mostRecent().args[0].componentProps;
+      expect(props.netContribution).toBe(20000);
+      expect(props.reference).toBe('LIV-A');
+      expect(props.items[0].stockAvailable).toBe(3);
+      expect(perform).not.toHaveBeenCalled();
+    });
+
+    it('goes to the top-up and reopens the recap on return', async () => {
+      const { page, navCtrl, modalCtrl } = create({ members: [member], deliveries: [order], modalResult: { action: 'topup', amount: 10000 } });
+      await page.loadMemberData();
+      page.sessionStatus = 'CLOSED';
+
+      await page.markAsDelivered();
+
+      expect(navCtrl.navigateForward).toHaveBeenCalledWith(['/tontine/collection-recording'], {
+        queryParams: { memberId: 'm2', amount: 10000, returnToDelivery: true }
+      });
+      expect((page as any).reopenDeliverRecapOnReturn).toBeTrue();
+
+      const reopen = spyOn(page, 'markAsDelivered').and.resolveTo();
+      await page.ionViewWillEnter();
+      expect(reopen).toHaveBeenCalled();
+      expect((page as any).reopenDeliverRecapOnReturn).toBeFalse();
+      expect(modalCtrl.create).toHaveBeenCalledTimes(1);
+    });
+
+    it('saves the reduced order before delivering it', async () => {
+      const reduced = [{ ...order.items[0], quantity: 1, totalPrice: 15000, stockAvailable: 10 }];
+      const { page, writeService } = create({
+        members: [member], deliveries: [order],
+        modalResult: { action: 'confirm', items: reduced, reduced: true, total: 15000 }
+      });
+      await page.loadMemberData();
+      page.sessionStatus = 'CLOSED';
+      const perform = spyOn(page as any, 'performMarkAsDelivered').and.resolveTo();
+
+      await page.markAsDelivered();
+
+      const savedItems = writeService.replaceDeliveryItems.calls.mostRecent().args[1];
+      expect(savedItems[0].quantity).toBe(1);
+      expect(savedItems[0].stockAvailable).toBeUndefined();
+      expect(page.vm.delivery?.totalAmount).toBe(15000);
+      expect(perform).toHaveBeenCalledWith(false);
+    });
+
+    it('delivers directly when nothing was reduced', async () => {
+      const { page, writeService } = create({
+        members: [{ ...member, availableContribution: 40000 }], deliveries: [order],
+        modalResult: { action: 'confirm', items: order.items, reduced: false, total: 30000 }
+      });
+      await page.loadMemberData();
+      page.sessionStatus = 'CLOSED';
+      const perform = spyOn(page as any, 'performMarkAsDelivered').and.resolveTo();
+
+      await page.markAsDelivered();
+
+      expect(writeService.replaceDeliveryItems).not.toHaveBeenCalled();
+      expect(perform).toHaveBeenCalledWith(false);
+    });
+
+    it('does not open the recap before the session is closed', async () => {
+      const { page, modalCtrl } = create({ members: [member], deliveries: [order] });
+      await page.loadMemberData();
+      page.sessionStatus = 'ACTIVE';
+
+      await page.markAsDelivered();
+
+      expect(modalCtrl.create).not.toHaveBeenCalled();
+    });
   });
 
   it('shows the net balance and the amount still to pay under the order', async () => {

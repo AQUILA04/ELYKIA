@@ -295,7 +295,12 @@ Pendant la campagne, la membre peut déjà choisir ses articles. La remise en ma
 * Le panier, en livraison directe comme pour une commande déjà posée, peut aller jusqu'au **solde prévisionnel** de l'année.
 * **Livraison directe** : si vous avez les articles dans votre stock tontine et que le solde disponible couvre le panier, validez en **Livraison directe**. Les articles sortent de votre stock, le dossier passe à **Livré** et vous imprimez le bon de remise. Le bon indique le **Total cotisé (net)**, le **Total utilisé** par la livraison et le **Total restant**.
 * **Modifier la commande** : tant que la commande n'est pas livrée, la fiche membre propose **Modifier la commande** (et le menu ⋮ aussi). Vous ajustez les quantités puis **Enregistrer la commande**. Le total peut rester au-dessus du solde déjà encaissé : le contrôle du solde réel se fait à la remise.
-* **Marquer comme livré** : si une commande était déjà enregistrée, retournez sur la fiche membre et touchez **Marquer comme livré**. Si le solde disponible ne couvre pas la commande, choisissez **Compléter le solde** (sans plafond) ou **Modifier la commande**. Le stock tontine est décompté seulement quand la remise est confirmée. Si un article manque dans votre stock, l'application vous le signale pour que vous fassiez d'abord une demande au magasin.
+* **Livrer une commande déjà enregistrée** : sur la fiche membre, touchez **Livrer** (bouton sous la commande ou menu ⋮). Le **Récapitulatif avant remise** s'ouvre :
+  * les articles, avec votre stock tontine pour chacun ;
+  * le **Solde net cotisé**, le **Montant de la commande**, puis le **Reste à payer** ou le **Reliquat à restituer**.
+* **Si le solde ne couvre pas la commande** : touchez **Compléter le solde** pour encaisser le montant manquant (sans plafond). Après l'enregistrement de la cotisation, le récapitulatif se rouvre avec le nouveau solde. Vous pouvez aussi **réduire la commande** directement dans le récapitulatif avec le bouton **−** de chaque article ; le bouton **+** ne remonte que jusqu'à la quantité commandée.
+* **Confirmer la livraison** s'active quand le solde couvre la commande et que votre stock tontine suffit pour chaque article. Si un article manque, réduisez-le ou faites d'abord une demande de stock tontine au magasin. Une commande réduite est enregistrée avec les nouvelles quantités au moment de la livraison.
+* Après la confirmation, le **bon de remise** s'affiche : **Total cotisé (net)**, **Total utilisé** et **Total restant**. Touchez **Imprimer** pour sortir le ticket. Le stock tontine n'est décompté qu'à ce moment-là.
 * Lorsque la campagne est terminée pour tout le monde, il n'y a plus de commande, plus de complément et plus de remise.
 
 #### Plusieurs téléphones sur le même compte
@@ -304,7 +309,7 @@ Le serveur contrôle chaque commande et chaque remise.
 
 * **Commande complétée** : si une commande était déjà enregistrée pour ce membre sur un autre téléphone, et que le solde prévisionnel couvre les deux, vos articles y sont ajoutés. Le message donne la référence et le nouveau total, puis le reçu de la commande complète s'affiche.
 * **Déjà enregistré sur un autre appareil** : la commande ou la livraison est refusée quand le membre est déjà livré, quand une commande existe déjà et que le solde ne couvre pas les deux, ou quand vous tentez une **Livraison directe** alors qu'une commande attend sa remise. Le message donne la référence déjà enregistrée. Il n'y a pas d'enregistrement hors ligne possible pour cette saisie : synchronisez, puis ouvrez la fiche du membre.
-* **Déjà livré sur un autre appareil** : en touchant **Marquer comme livré**, vous apprenez que la commande a déjà été remise. La fiche se recharge.
+* **Déjà livré sur un autre appareil** : en touchant **Livrer**, vous apprenez que la commande a déjà été remise. La fiche se recharge.
 * Une saisie faite hors ligne et refusée à la synchronisation apparaît dans les erreurs de synchronisation avec le même message. Signalez-la à votre gestionnaire.
 
 ---

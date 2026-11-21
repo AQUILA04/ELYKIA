@@ -15,6 +15,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Guide utilisateur (gestionnaire) —** « Validation automatique des commandes tontine » dans les paramètres généraux. Index RAG et guide HTML régénérés.
 - **Memory-bank —** `systemPatterns.md` décrit le mécanisme des paramètres applicatifs (`init-data`, amorçage des seules clés absentes, lecture `ParameterService` / `/api/parameters/enabled/{clé}`, ajout d'un paramètre).
+## Docs & Infra — 2026-11-21 (livraison tontine avec récapitulatif)
+
+### Changed
+
+- **Guide utilisateur —** fiche membre web : bouton **Livrer** et fenêtre **Livrer la commande** (aperçu, réduction, confirmation, reçu de remise). Guide mobile : **Livrer**, **Récapitulatif avant remise**, complément de solde et réduction, bon de remise. Index RAG et guide HTML régénérés.
 
 ## Docs & Infra — 2026-11-20 (soldes des commandes tontine)
 
@@ -149,6 +154,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.59.0] — 2026-11-21
+
+### Changed
+
+- **Tontine — fiche membre →** **Marquer comme Livré** devient **Livrer**. Le bouton ouvre la fenêtre **Livrer la commande** (`TontineDeliverPreviewDialogComponent`) au lieu d'une confirmation directe : articles, solde net cotisé, montant, reste à payer ou reliquat. **Confirmer la livraison** reste grisé tant que le solde ne couvre pas la commande ; **Réduire la commande** ouvre l'édition de la commande. Test e2e « golden path » étape 26 adapté.
 
 ## Frontend — [2.58.0] — 2026-11-20
 
@@ -524,6 +535,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - **Tontine — synchronisation des commandes →** une commande saisie hors ligne prend le statut **Validée** quand le serveur la valide à la création (paramètre `TONTINE_ORDER_AUTO_VALIDATION`) ; avant, elle restait affichée « Commande » jusqu'au prochain chargement des membres (`TontineDeliveryRepository.setStatus`).
+## Mobile — [2.44.0] — 2026-11-21
+
+### Changed
+
+- **Tontine — fiche membre →** **Marquer comme livré** devient **Livrer** (bouton et menu ⋮). Le bouton ouvre le **Récapitulatif avant remise** (`TontineDeliverRecapModalComponent`) : articles avec le stock tontine du commercial, solde net cotisé, montant, reste à payer ou reliquat. **Compléter le solde** ouvre la cotisation du montant manquant, puis le récapitulatif se rouvre au retour avec le nouveau solde. Les boutons **−** réduisent la commande (le **+** ne dépasse pas la quantité commandée). **Confirmer la livraison** ne s'active que si le solde couvre la commande et que le stock suffit ; une commande réduite est enregistrée avant la remise.
+- **Tontine — après la remise →** le **bon de remise** s'affiche (total cotisé net, total utilisé, total restant), avec impression du ticket.
+- **Qualité —** le pas de quantité d'une ligne (pack ou unité) est partagé entre la fiche membre et le récapitulatif (`stepTontineDeliveryItem`). Test e2e « S2 order then mark delivered » adapté.
 
 ## Mobile — [2.43.0] — 2026-11-20
 
