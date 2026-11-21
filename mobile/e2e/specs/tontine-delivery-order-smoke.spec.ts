@@ -276,14 +276,22 @@ test.describe('Tontine delivery order vs direct @smoke', () => {
     });
     await expect(page.getByTestId('e2e-tontine-mark-delivered')).toBeVisible({ timeout: 15_000 });
 
-    await page.getByRole('button', { name: 'Marquer comme livré' }).click();
-    const markAlert = page.locator('ion-alert').filter({ hasText: /Marquer comme livré/i });
-    await expect(markAlert).toBeVisible({ timeout: 10_000 });
-    await page.getByRole('button', { name: 'Livrer', exact: true }).click();
-    await expect(markAlert).toBeHidden({ timeout: 15_000 });
+    await page.getByTestId('e2e-tontine-mark-delivered').click();
+    // « Livrer » ouvre le récapitulatif : soldes, puis Confirmer la livraison.
+    const recap = page.getByTestId('e2e-tontine-deliver-recap');
+    await expect(recap).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByTestId('e2e-tontine-deliver-recap-balance')).toContainText(/Solde net cotisé/i);
+    const confirm = page.getByTestId('e2e-tontine-deliver-confirm');
+    await expect(confirm).toBeEnabled({ timeout: 10_000 });
+    await confirm.click();
+    await expect(recap).toBeHidden({ timeout: 15_000 });
     await completeMockDailyConsentIfNeeded(page, false);
 
     await expect.poll(() => deliverPatches.length, { timeout: 45_000 }).toBeGreaterThan(0);
+    // Après la remise : bon de remise avec total cotisé, utilisé et restant.
+    const handover = page.locator('ion-modal').filter({ hasText: /Total utilisé/i });
+    await expect(handover).toBeVisible({ timeout: 20_000 });
+    await handover.getByRole('button', { name: /Fermer/i }).first().click();
     await expect(page.getByTestId('e2e-tontine-member-delivery-status')).toContainText(/Livr/i, {
       timeout: 20_000,
     });

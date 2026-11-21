@@ -1,0 +1,103 @@
+.preview-subtitle {
+  margin: 0 0 12px;
+  color: #6b7a99;
+  font-size: 13px;
+
+  strong {
+    color: #003366;
+    font-size: 15px;
+  }
+}
+
+.preview-lines {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 14px;
+  font-size: 13px;
+
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    background: #f0f4f9;
+    color: #003366;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #dde3ec;
+    color: #003366;
+  }
+
+  .num {
+    text-align: right;
+    font-family: 'DM Mono', monospace;
+  }
+}
+
+.preview-balance {
+  border: 1px solid #dde3ec;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.balance-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 9px 14px;
+  font-size: 13px;
+  color: #6b7a99;
+
+  & + & {
+    border-top: 1px solid #dde3ec;
+  }
+
+  b {
+    color: #003366;
+    font-family: 'DM Mono', monospace;
+  }
+}
+
+.balance-due,
+.balance-refund {
+  font-weight: 700;
+
+  b {
+    font-size: 15px;
+  }
+}
+
+.balance-due {
+  background: #fdecea;
+  color: #c75000;
+
+  b {
+    color: #c75000;
+  }
+}
+
+.balance-refund {
+  background: #e7f5ec;
+  color: #1d8a3c;
+
+  b {
+    color: #1d8a3c;
+  }
+}
+
+.preview-warning {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fff4e5;
+  color: #8a4b00;
+  font-size: 13px;
+}
+
+.preview-note {
+  margin: 12px 0 0;
+  color: #6b7a99;
+  font-size: 12px;
+}

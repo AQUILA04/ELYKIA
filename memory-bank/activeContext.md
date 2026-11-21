@@ -1,13 +1,14 @@
 # Contexte actif
 
-Arrêt au **2026-11-20** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de chaque bloc) et `git log --oneline -20`.
+Arrêt au **2026-11-21** (GMT). Prochaine lecture : `docs/CHANGELOG.md` (haut de chaque bloc) et `git log --oneline -20`.
 
 ## Versions en tête
 
-- Frontend **2.58.0** — Backend **1.59.0** — Mobile **2.43.0** — Espace client **0.17.4** (dernier incrément espace client : 2026-11-20).
+- Frontend **2.59.0** — Backend **1.59.0** — Mobile **2.44.0** — Espace client **0.17.4** (dernier incrément espace client : 2026-11-20).
 
 ## Focus récent (changelog et PR)
 
+- **Livrer avec récapitulatif** (2026-11-21, chantier commande tontine PR 4, construite sur la PR 3 #262). Mobile 2.44.0 : **Livrer** ouvre `TontineDeliverRecapModalComponent` (soldes, stock tontine par article, compléter le solde avec réouverture au retour, réduction, confirmation bloquée tant que reste à payer ou stock manquant), puis bon de remise. Frontend 2.59.0 : `TontineDeliverPreviewDialogComponent` avant `PATCH /deliver`. Backend inchangé : le serveur refuse toujours une remise que le solde ne couvre pas.
 - **Soldes des commandes tontine** (2026-11-20, chantier commande tontine PR 3, versions numérotées après la PR 2). Tout reçu ou détail de commande affiche solde net cotisé, montant, reste à payer ou reliquat ; après remise total cotisé / utilisé / restant. Règle unique : `TontineOrderBalance` (backend) et `computeTontineOrderBalance` (mobile), solde net = `availableContribution` avant remise, commande + `remainingBalance` après. Reçu PDF, fiche membre web et mobile, ticket et bon de remise mobile. L'espace client n'affiche pas de détail de commande tontine : non concerné.
 - **Doublons tontine multi-téléphones** (2026-11-20, chantier commande tontine PR 2, plan `.cursor/plans/tontine_pr2_doublons.plan.md`). Backend 1.58.0 : faille corrigée, `deliverDelivery` acceptait une seconde remise (deux crédits, deux reliquats). Seconde commande fusionnée ou refusée, livraison directe refusée si livré ou commande en attente, rejeu de synchro idempotent (même référence ou déjà fusionnée), journal `tontine_delivery_conflict` (`V044`), 409 via `TontineDeliveryDuplicateAdvice`. Frontend 2.57.0 : `/tontine/doublons`. Mobile 2.42.0 : `OnlineWriteError.status`, pas de repli hors ligne sur 409, `applyMergedOrder`. Limite : une remise rejouée après perte de réponse réseau est journalisée comme doublon (pas d'identifiant d'opération).
 - **Commande tontine — chantier en 7 PR** (2026-11-20, plan `.cursor/plans/tontine_commande_livraison_7_pr.plan.md`). PR 1 Mobile 2.41.7 : « Marquer comme livré » restait proposé après la remise. Une commande locale livrée en ligne est réenregistrée sous l'ID serveur ; l'ancienne ligne locale restait en `PENDING` et la fiche pouvait la retenir. Correctif : `deleteLocalTwin`, priorité à la ligne `DELIVERED` dans `pickMemberTontineDelivery`, garde sur le statut membre `DELIVERED`. Suite : doublons multi-tablettes (même compte sur plusieurs appareils, contrôle serveur), soldes sur reçus, flux « Livrer », paramètre de validation automatique, date planifiée + PDF, filtre stock / catalogue.

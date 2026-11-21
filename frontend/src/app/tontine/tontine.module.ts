@@ -71,6 +71,7 @@ import { TontineCollectionResetComponent } from './pages/tontine-collection-rese
 import { TontineAllocationMigrationBannerComponent } from './components/tontine-allocation-migration-banner/tontine-allocation-migration-banner.component';
 import { TontineDeliveryStockRequestModalComponent } from './components/modals/tontine-delivery-stock-request-modal/tontine-delivery-stock-request-modal.component';
 import { TontineReceiptVerifyDialogComponent } from './components/modals/tontine-receipt-verify-dialog/tontine-receipt-verify-dialog.component';
+import { TontineDeliverPreviewDialogComponent } from './components/modals/tontine-deliver-preview-dialog/tontine-deliver-preview-dialog.component';
 
 // Services
 import { TontineService } from './services/tontine.service';
@@ -100,6 +101,7 @@ import { TontineSessionService } from './services/tontine-session.service';
     DeliveryArticleSelectionModalComponent,
     TontineDeliveryStockRequestModalComponent,
     TontineReceiptVerifyDialogComponent,
+    TontineDeliverPreviewDialogComponent,
     TontineFieldControlModalComponent,
     EditAdhesionDateModalComponent,
 
