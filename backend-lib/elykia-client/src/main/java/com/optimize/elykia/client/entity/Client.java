@@ -14,7 +14,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.annotations.SQLRestriction;
-import org.hibernate.annotations.Where;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDate;
@@ -24,8 +23,7 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-@Where(clause = "visibility <> 'DELETED'")
-//@SQLRestriction(value = "visibility <> 'DELETED'")
+@SQLRestriction("visibility <> 'DELETED'")
 public class Client extends Auditable<String> {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

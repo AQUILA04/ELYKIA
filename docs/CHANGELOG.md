@@ -9,6 +9,15 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (migration backend-lib Java 25 / Spring Boot 4.2.0)
+
+### Changed
+
+- **Backend-lib —** migration ordonnée des 3 bibliothèques partagées (`common-entities`, `common-security-service`, `optimize-elykia-client`) vers **Java 25 (LTS)**, **Spring Boot 4.2.0** (Spring Framework 7.1, Spring Security 7.2, Spring Data 2026.1 / Envers 4.2, Hibernate 7.4, Jackson 3, JUnit 6) et version uniforme **`4.0.0`** sur la branche `migration/java25-spring-boot-4` (étape 1 avant la migration de `backend/`).
+- **Backend-lib (`common-entities:4.0.0`) —** starter modulaire `spring-boot-starter-webmvc`, versions `spring-data-envers`, `commons-lang3`, `lombok` (`1.18.48`) et `maven-compiler-plugin` (`3.16.0`) déléguées au BOM Spring Boot 4.2.0 ; remplacement de `jakarta.xml.bind.DatatypeConverter` par `java.util.Base64` dans `Converter`.
+- **Backend-lib (`common-security-service:4.0.0`) —** adaptation de `WebSecurityConfig` à Spring Security 7 (`new DaoAuthenticationProvider(userDetailsService)`), migration de `AuthEntryPointJwt` vers Jackson 3 (`tools.jackson.databind.json.JsonMapper`), montée de `springdoc-openapi-starter-webmvc-ui` en `3.2.1` et de `jjwt` en `0.13.0` (`JwtUtils` migré vers `SecretKey`, `Jwts.SIG.HS256` et `Jwts.parser().verifyWith`), remplacement de `RandomStringUtils.randomAlphanumeric` déprécié par `RandomStringUtils.secure().nextAlphanumeric` dans `LicenceService`, ajout de `JwtUtilsTest` et `AuthEntryPointJwtTest`.
+- **Backend-lib (`optimize-elykia-client:4.0.0`) —** remplacement de `@Where` (supprimé en Hibernate 7) par `@SQLRestriction` sur `Client`, suppression de l'import `JacksonProperties` (Boot 3) et remplacement de `DatatypeConverter` par `java.util.Base64` dans `ClientMapper`, comparaison typée sur l'enum `State` dans `ClientSpecification`, montée de MapStruct (`1.6.3`), Thumbnailator (`0.4.21`) et MinIO (`9.0.4` + `okhttp-jvm:5.5.1`, adaptation `ListAllMyBucketsResult.Bucket` et `PutObjectArgs.Builder.stream`), ajout de `ClientMapperBase64Test` et `MinioStorageServiceImplTest`.
+
 ## Docs & Infra — 2026-11-21 (date de livraison planifiée)
 
 ### Changed

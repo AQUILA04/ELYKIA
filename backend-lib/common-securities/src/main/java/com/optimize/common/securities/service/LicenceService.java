@@ -96,11 +96,12 @@ public class LicenceService {
     private String generateActivationCode(String type) {
         // Generate a unique activation code based on the type
         // For simplicity, we use a basic pattern here
-        return type + RandomStringUtils.randomAlphanumeric(3).toUpperCase() + "-"
-                + RandomStringUtils.randomAlphanumeric(5).toUpperCase() + "-"
-                + RandomStringUtils.randomAlphanumeric(5).toUpperCase() + "-"
-                + RandomStringUtils.randomAlphanumeric(5).toUpperCase() + "-"
-                + RandomStringUtils.randomAlphanumeric(5).toUpperCase();
+        RandomStringUtils random = RandomStringUtils.secure();
+        return type + random.nextAlphanumeric(3).toUpperCase() + "-"
+                + random.nextAlphanumeric(5).toUpperCase() + "-"
+                + random.nextAlphanumeric(5).toUpperCase() + "-"
+                + random.nextAlphanumeric(5).toUpperCase() + "-"
+                + random.nextAlphanumeric(5).toUpperCase();
     }
 
     public boolean isExistsByCode(String code) {

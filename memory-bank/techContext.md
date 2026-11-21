@@ -11,7 +11,7 @@ Versions lues le 2026-11-18. En cas d’écart, les fichiers sources gagnent.
 
 `docs/project-overview.md` et `docs/architecture-frontend.md` indiquent encore Angular 14 : c’est périmé.
 
-`backend-lib` n’a pas le même parent Boot que l’API : `common-entities` 3.0.0-SNAPSHOT (parent 3.1.3), `common-security-service` 1.2.2 (parent 3.4.1), `optimize-elykia-client` 0.0.1-SNAPSHOT (parent 3.3.0). Les installer en local avant l’API (`README.md`).
+`backend-lib` (branche `migration/java25-spring-boot-4`, étape 1 avant `backend/`) : `common-entities` **4.0.0**, `common-security-service` **4.0.0**, `optimize-elykia-client` **4.0.0**, tous alignés sur **Java 25** et **Spring Boot 4.2.0** (`spring-boot-starter-webmvc`, Spring Security 7.2, Hibernate 7.4, Jackson 3, JJWT 0.13.0, springdoc 3.2.1, MapStruct 1.6.3, MinIO 9.0.4 + `okhttp-jvm` 5.5.1). Les installer en local dans l'ordre (`common-entities` → `common-securities` → `elykia-client`) avant l'API. `backend/` reste en Java 17 / Spring Boot 3.3.0 jusqu'à l'étape 2.
 
 Postgres **15** (image du compose prod). Base locale de dev documentée : `oec` / utilisateur `oec`. Base prod du compose : `elykia_prod_db` (variables `POSTGRES_*`).
 

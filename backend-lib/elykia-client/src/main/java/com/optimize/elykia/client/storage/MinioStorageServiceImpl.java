@@ -2,7 +2,7 @@ package com.optimize.elykia.client.storage;
 
 import com.optimize.common.entities.exception.ApplicationException;
 import io.minio.*;
-import io.minio.messages.Bucket;
+import io.minio.messages.ListAllMyBucketsResult.Bucket;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -49,7 +49,7 @@ public class MinioStorageServiceImpl implements MinioStorageService {
                     PutObjectArgs.builder()
                             .bucket(bucket)
                             .object(objectKey)
-                            .stream(new ByteArrayInputStream(data), data.length, -1)
+                            .stream(new ByteArrayInputStream(data), (long) data.length, null)
                             .contentType(contentType)
                             .build());
             return buildUrl(bucket, objectKey);

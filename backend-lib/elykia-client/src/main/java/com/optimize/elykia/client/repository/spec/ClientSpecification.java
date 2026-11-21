@@ -31,7 +31,7 @@ public class ClientSpecification {
 
             // default state
             State state = dto.state() != null ? dto.state() : State.ENABLED;
-            predicates.add(cb.equal(root.get("state"), state.name()));
+            predicates.add(cb.equal(root.get("state"), state));
 
             // clientType exact match (enum)
             if (dto.clientType() != null) {

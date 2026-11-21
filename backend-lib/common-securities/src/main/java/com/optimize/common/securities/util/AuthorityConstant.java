@@ -1,7 +1,5 @@
 package com.optimize.common.securities.util;
 
-import javax.swing.plaf.PanelUI;
-
 public class AuthorityConstant {
     private AuthorityConstant() {
         // Default constructor
