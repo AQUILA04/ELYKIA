@@ -24,6 +24,8 @@ Schémas d’intégration (partiellement périmés sur les versions Angular) : `
 Couches sous `com.optimize.elykia.core` : `controller`, `service`, `repository`, `entity`, `dto`, `mapper` (MapStruct), `config`, `scheduler`. ~126 entités JPA. Domaines de services : `sale`, `stock`, `store`, `tontine`, `debt`, `expense`, `accounting`, `report`, `bi`, `order`, `client`, `customer`, `commercial`, `carnet`, `inventory`, `ai`, `notification`, `paygate`, `ocr`.
 
 - Sécurité JWT (librairie `common-security-service`), permissions `ROLE_*`, profils nommés. Pas de session serveur pour l’UI.
+  - Les autorités Spring sont **les permissions seules** (`UserDetailsImpl.build`) : `hasRole('GESTIONNAIRE')` ou `hasRole('MANAGER')` ne passent jamais. Pour un profil, lire `UserDetailsImpl.getProfil()` (exemple : `RecoveryReportAccess`) ; SUPER_ADMIN porte `ROLE_ADMIN`.
+  - JPQL : un paramètre facultatif passé à une fonction (`LOWER(:x)`) doit être typé, `CAST(:x AS String)`, sinon Postgres reçoit `bytea` quand il est nul.
 - Flyway : `backend/src/main/resources/db/migration/V0xx__*.sql`, `out-of-order: false`, `baseline-on-migrate`, baseline 0. Dernière migration au 2026-11-21 : `V045__tontine_delivery_planned_date.sql`. Les tests backend tournent en `create-drop` : une migration n'y est pas exécutée, la valider à part sur un Postgres 15.
 - Fichiers : MinIO (photos clients, articles, rapports, APK, recrutement). Clés uniquement par variables d’environnement.
 - Elykia IA (`ai/`) : `AiOrchestratorService` + `IntentClassifier`. Schéma SQL = snapshot `backend/src/main/resources/ai/schema-catalog.json`, pas le Postgres live. Aide = index RAG `user-guide-index.json`. Fournisseur LLM par `elykia.ai.provider` ; défaut sans modèle cloud (stub).

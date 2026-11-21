@@ -13,6 +13,7 @@ import com.optimize.elykia.core.service.report.RecoveryManagerReportPdfService;
 import com.optimize.elykia.core.service.sale.RecoveryFieldPlanService;
 import com.optimize.elykia.core.service.sale.RecoveryManagerActivityService;
 import com.optimize.elykia.core.service.sale.RecoveryManagerService;
+import com.optimize.elykia.core.service.sale.RecoveryReportAccess;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -47,6 +48,10 @@ public class RecoveryManagerController {
     private final RecoveryFieldPlanService recoveryFieldPlanService;
     private final CreditLateService creditLateService;
     private final UserService userService;
+    private final RecoveryReportAccess recoveryReportAccess;
+
+    /** Chef (son rapport), gestionnaire, admin : voir {@link RecoveryReportAccess}. */
+    private static final String READ_REPORT = "@recoveryReportAccess.canRead()";
 
     @PostMapping("/close-credits")
     @PreAuthorize("hasRole('RECOVERY_MANAGER')")
@@ -59,17 +64,14 @@ public class RecoveryManagerController {
     }
 
     @GetMapping("/operations")
-    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    @PreAuthorize(READ_REPORT)
     public ResponseEntity<Response> getOperations(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String recoveryManagerUsername,
             @RequestParam(required = false) String commercialUsername,
             @PageableDefault(sort = "operationDate", direction = Sort.Direction.DESC) Pageable pageable) {
-        String username = recoveryManagerUsername;
-        if (username == null) {
-            username = userService.getCurrentUser().getUsername();
-        }
+        String username = recoveryReportAccess.resolveRecoveryManager(recoveryManagerUsername);
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(recoveryManagerService.getOperations(startDate, endDate, username, commercialUsername, pageable)),
                 HttpStatus.OK
@@ -77,16 +79,13 @@ public class RecoveryManagerController {
     }
 
     @GetMapping("/report/summary")
-    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    @PreAuthorize(READ_REPORT)
     public ResponseEntity<Response> getReportSummary(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String recoveryManagerUsername,
             @RequestParam(required = false) String commercialUsername) {
-        String username = recoveryManagerUsername;
-        if (username == null) {
-            username = userService.getCurrentUser().getUsername();
-        }
+        String username = recoveryReportAccess.resolveRecoveryManager(recoveryManagerUsername);
         return new ResponseEntity<>(
                 ResponseUtil.successResponse(recoveryManagerService.getReportSummary(startDate, endDate, username, commercialUsername)),
                 HttpStatus.OK
@@ -98,27 +97,24 @@ public class RecoveryManagerController {
      * Les totaux sont le portefeuille crédit et tontine encore en cours.
      */
     @GetMapping("/report/activity")
-    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    @PreAuthorize(READ_REPORT)
     public ResponseEntity<Response> getReportActivity(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String recoveryManagerUsername,
             @RequestParam(required = false) String commercialUsername) {
-        String username = recoveryManagerUsername;
-        if (username == null || username.isBlank()) {
-            username = userService.getCurrentUser().getUsername();
-        }
+        String username = recoveryReportAccess.resolveRecoveryManager(recoveryManagerUsername);
         RecoveryManagerActivityDto dto = recoveryManagerActivityService.getActivity(
-                startDate, endDate, username.trim(), commercialUsername);
+                startDate, endDate, username, commercialUsername);
         return new ResponseEntity<>(ResponseUtil.successResponse(dto), HttpStatus.OK);
     }
 
     /**
      * Taux de recouvrement mensuel du chef sur le portefeuille global des retards délai (live).
-     * Sans paramètre username : chef connecté. MANAGER/ADMIN peuvent cibler un chef.
+     * Sans paramètre username : chef connecté. Gestionnaire et admin peuvent cibler un chef.
      */
     @GetMapping("/kpi/monthly-recovery-rate")
-    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    @PreAuthorize(READ_REPORT)
     public ResponseEntity<Response> getMonthlyRecoveryRate(
             @RequestParam(required = false) Integer year,
             @RequestParam(required = false) Integer month,
@@ -128,26 +124,20 @@ public class RecoveryManagerController {
         int resolvedMonth = month != null ? month : current.getMonthValue();
         YearMonth.of(resolvedYear, resolvedMonth); // validation IllegalArgumentException
 
-        String username = recoveryManagerUsername;
-        if (username == null || username.isBlank()) {
-            username = userService.getCurrentUser().getUsername();
-        }
+        String username = recoveryReportAccess.resolveRecoveryManager(recoveryManagerUsername);
         MonthlyRecoveryRateDto dto = recoveryManagerService.getMonthlyRecoveryRate(
-                resolvedYear, resolvedMonth, username.trim());
+                resolvedYear, resolvedMonth, username);
         return new ResponseEntity<>(ResponseUtil.successResponse(dto), HttpStatus.OK);
     }
 
     @GetMapping("/report/pdf")
-    @PreAuthorize("hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')")
+    @PreAuthorize(READ_REPORT)
     public ResponseEntity<byte[]> getReportPdf(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @RequestParam(required = false) String recoveryManagerUsername,
             @RequestParam(required = false) String commercialUsername) {
-        String username = recoveryManagerUsername;
-        if (username == null) {
-            username = userService.getCurrentUser().getUsername();
-        }
+        String username = recoveryReportAccess.resolveRecoveryManager(recoveryManagerUsername);
         byte[] pdfBytes = reportPdfService.generatePdf(startDate, endDate, username, commercialUsername);
 
         HttpHeaders headers = new HttpHeaders();

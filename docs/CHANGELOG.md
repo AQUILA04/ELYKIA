@@ -845,6 +845,13 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.63.1] — 2026-11-21
+
+### Fixed
+
+- **Rapport de recouvrement terrain — accès du gestionnaire →** les cinq lectures de `api/v1/recovery-manager` (opérations, synthèse, activité, taux mensuel, PDF) exigeaient `hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')`. Il n'existe pas de `ROLE_MANAGER`, et les autorités Spring sont les permissions de l'utilisateur, pas son profil : le gestionnaire recevait « Access Denied ». Nouveau contrôle `RecoveryReportAccess` (`@PreAuthorize("@recoveryReportAccess.canRead()")`) : permission `ROLE_RECOVERY_MANAGER` ou `ROLE_ADMIN`, ou profil GESTIONNAIRE, ADMIN, SUPER_ADMIN. Un chef de recouvrement ne lit que son propre rapport : le `recoveryManagerUsername` qu'il envoie est remplacé par son nom.
+- **Activité terrain sans filtre commercial →** `GET /api/v1/recovery-manager/report/activity` sans `commercialUsername` renvoyait 500 (`function lower(bytea) does not exist`) : le paramètre nul de `LOWER(:commercial)` n'était pas typé. `CAST(:commercial AS String)` dans `CreditRepository.countEnabledInProgress`, `countCarnetVerifiedByObserver` et leurs équivalents de `TontineMemberRepository`. Tests sur PostgreSQL : `RecoveryManagerActivityPostgresIntegrationTest`, `RecoveryManagerControllerSecurityIntegrationTest`.
+
 ## Backend — [1.63.0] — 2026-11-21
 
 ### Added

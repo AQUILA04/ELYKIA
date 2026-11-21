@@ -468,7 +468,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                 WHERE tm.state = com.optimize.common.entities.enums.State.ENABLED
                   AND s.year = :year
                   AND tm.deliveryStatus = com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus.SESSION_INPROGRESS
-                  AND (:commercial IS NULL OR LOWER(c.tontineCollector) = LOWER(:commercial))
+                  AND (CAST(:commercial AS String) IS NULL OR LOWER(c.tontineCollector) = LOWER(CAST(:commercial AS String)))
                 """)
         long countInProgressForSession(
                 @Param("year") int year,
@@ -483,7 +483,7 @@ public interface TontineMemberRepository extends GenericRepository<TontineMember
                   AND LOWER(tm.carnetVerifiedBy) = LOWER(:observer)
                   AND tm.carnetVerifiedAt >= :startAt
                   AND tm.carnetVerifiedAt < :endAt
-                  AND (:commercial IS NULL OR LOWER(c.tontineCollector) = LOWER(:commercial))
+                  AND (CAST(:commercial AS String) IS NULL OR LOWER(c.tontineCollector) = LOWER(CAST(:commercial AS String)))
                 """)
         long countCarnetVerifiedByObserver(
                 @Param("observer") String observer,
