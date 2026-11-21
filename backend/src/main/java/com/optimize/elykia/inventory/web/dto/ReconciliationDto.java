@@ -1,0 +1,24 @@
+package com.optimize.elykia.inventory.web.dto;
+
+import com.optimize.elykia.inventory.domain.ReconciliationAction;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+@Data
+public class ReconciliationDto {
+    @NotNull(message = "L'ID de l'article d'inventaire est obligatoire")
+    private Long inventoryItemId;
+
+    private String comment;
+
+    private Boolean markAsDebt = false;
+
+    private Boolean cancelDebt = false;
+
+    @NotNull(message = "L'action de réconciliation est obligatoire")
+    private ReconciliationAction action;
+
+    /** Magasinier responsable (obligatoire pour MARK_AS_DEBT). */
+    private String storekeeperUsername;
+}
+

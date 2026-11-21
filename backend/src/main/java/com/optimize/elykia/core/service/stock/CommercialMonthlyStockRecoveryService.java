@@ -8,7 +8,7 @@ import com.optimize.elykia.core.dto.stock.StockRecoverySummaryDto;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockItemSoldValueHistoryRepository;
 import com.optimize.elykia.core.repository.CreditArticlesRepository;
 import com.optimize.elykia.core.repository.CreditRepository;

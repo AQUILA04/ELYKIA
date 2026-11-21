@@ -132,14 +132,14 @@ public interface CreditArticlesRepository extends GenericRepository<CreditArticl
                     + "com.optimize.elykia.core.enumaration.CreditStatus.SETTLED, "
                     + "com.optimize.elykia.core.enumaration.CreditStatus.MERGED) THEN 0.0 "
                     + "WHEN a.creditSalePrice > 0 THEN a.creditSalePrice "
-                    + "WHEN c.type = com.optimize.elykia.core.enumaration.OperationType.CASH AND a.sellingPrice > 0 THEN a.sellingPrice "
+                    + "WHEN c.type = com.optimize.elykia.shared.domain.OperationType.CASH AND a.sellingPrice > 0 THEN a.sellingPrice "
                     + "ELSE 0.0 END";
 
     String SOLD_ARTICLES_FROM =
             "FROM CreditArticles ca "
                     + "JOIN ca.articles a "
                     + "JOIN ca.credit c "
-                    + "WHERE c.type IN (com.optimize.elykia.core.enumaration.OperationType.CREDIT, com.optimize.elykia.core.enumaration.OperationType.CASH) "
+                    + "WHERE c.type IN (com.optimize.elykia.shared.domain.OperationType.CREDIT, com.optimize.elykia.shared.domain.OperationType.CASH) "
                     + "AND (cast(:startDate as date) IS NULL OR c.beginDate >= :startDate) "
                     + "AND (cast(:endDate as date) IS NULL OR c.beginDate <= :endDate) "
                     + "AND (:commercial IS NULL OR c.collector = :commercial) ";

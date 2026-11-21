@@ -43,7 +43,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.STOCK_REQUEST,
+                                com.optimize.elykia.shared.domain.OperationType.STOCK_REQUEST,
                                 event.getAmount(),
                                 "Stock Request",
                                 "Sortie de stock (Ref: " + (event.getReference() != null ? event.getReference() : "N/A")
@@ -64,7 +64,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.STOCK_RETURN,
+                                com.optimize.elykia.shared.domain.OperationType.STOCK_RETURN,
                                 event.getAmount(),
                                 "Stock Return",
                                 String.format("Retour de stock par %s (ID: %d, Montant: %.0f, Articles: %d)",
@@ -85,7 +85,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.STOCK_TONTINE_REQUEST,
+                                com.optimize.elykia.shared.domain.OperationType.STOCK_TONTINE_REQUEST,
                                 event.getAmount(),
                                 "Stock Tontine Request",
                                 "Sortie de stock Tontine (Ref: "
@@ -103,7 +103,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.STOCK_TONTINE_RETURN,
+                                com.optimize.elykia.shared.domain.OperationType.STOCK_TONTINE_RETURN,
                                 event.getAmount(),
                                 "Stock Tontine Return",
                                 String.format("Retour de stock Tontine par %s (ID: %d, Montant: %.0f, Articles: %d)",
@@ -142,7 +142,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.CREDIT_SALES,
+                                com.optimize.elykia.shared.domain.OperationType.CREDIT_SALES,
                                 event.getAmount(),
                                 "Vente Crédit",
                                 description);
@@ -158,7 +158,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.NEW_CLIENT,
+                                com.optimize.elykia.shared.domain.OperationType.NEW_CLIENT,
                                 0.0,
                                 "Nouveau Client",
                                 "Nouveau client créé : "
@@ -180,7 +180,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.NEW_ACCOUNT,
+                                com.optimize.elykia.shared.domain.OperationType.NEW_ACCOUNT,
                                 event.getInitialBalance(),
                                 "Nouveau Compte",
                                 "Dépôt initial nouveau compte (N°: "
@@ -225,7 +225,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.CREDIT_COLLECTION,
+                                com.optimize.elykia.shared.domain.OperationType.CREDIT_COLLECTION,
                                 event.getAmount(),
                                 "Recouvrement",
                                 description,
@@ -270,7 +270,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.CREDIT_COLLECTION_CANCEL,
+                                com.optimize.elykia.shared.domain.OperationType.CREDIT_COLLECTION_CANCEL,
                                 -amountToCancel,
                                 "Annulation Recouvrement",
                                 description,
@@ -302,7 +302,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.ORDER,
+                                com.optimize.elykia.shared.domain.OperationType.ORDER,
                                 event.getAmount(),
                                 "Commande",
                                 "Nouvelle commande (ID: " + event.getOrderId() + ")");
@@ -318,7 +318,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.TONTINE_MEMBER_ENROLLMENT,
+                                com.optimize.elykia.shared.domain.OperationType.TONTINE_MEMBER_ENROLLMENT,
                                 0.0,
                                 "Nouveau Membre Tontine",
                                 "Adhésion Tontine : "
@@ -378,7 +378,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.TONTINE_COLLECTION,
+                                com.optimize.elykia.shared.domain.OperationType.TONTINE_COLLECTION,
                                 amount,
                                 "Collecte Tontine",
                                 "Collecte tontine (Client: "
@@ -403,7 +403,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.TONTINE_COLLECTION_CANCEL,
+                                com.optimize.elykia.shared.domain.OperationType.TONTINE_COLLECTION_CANCEL,
                                 -amountToCancel,
                                 "Annulation Collecte Tontine",
                                 "Annulation collecte tontine (Client: "
@@ -427,7 +427,7 @@ public class DailyReportEventListener {
 
                 dailyOperationService.logOperation(
                                 event.getCollector(),
-                                com.optimize.elykia.core.enumaration.OperationType.TONTINE_DELIVERY,
+                                com.optimize.elykia.shared.domain.OperationType.TONTINE_DELIVERY,
                                 event.getAmount(),
                                 "Livraison Tontine",
                                 "Livraison tontine (Client: "

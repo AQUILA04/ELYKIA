@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.util;
 
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 
 import java.util.EnumMap;
 import java.util.Map;

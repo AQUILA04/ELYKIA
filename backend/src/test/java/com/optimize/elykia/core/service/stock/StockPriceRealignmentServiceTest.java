@@ -1,13 +1,13 @@
 package com.optimize.elykia.core.service.stock;
 
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.tontine.TontineStock;
-import com.optimize.elykia.core.event.ArticlePriceChangedEvent;
+import com.optimize.elykia.inventory.event.ArticlePriceChangedEvent;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.core.repository.TontineStockRepository;
-import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.inventory.application.ArticlesService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

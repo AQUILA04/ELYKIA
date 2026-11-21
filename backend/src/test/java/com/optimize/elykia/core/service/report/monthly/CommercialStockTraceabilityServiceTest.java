@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.report.monthly;
 
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialStockMovement;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.repository.CommercialStockMovementRepository;

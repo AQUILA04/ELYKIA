@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.service.stock;
 
+import com.optimize.elykia.inventory.application.StockMovementService;
+import com.optimize.elykia.inventory.application.StockValuationFacade;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.stock.StockReturnKpiDto;
@@ -41,7 +43,7 @@ class StockTontineReturnServiceTest {
     @Mock
     private ApplicationEventPublisher eventPublisher;
     @Mock
-    private com.optimize.elykia.core.service.store.ArticlesService articlesService;
+    private com.optimize.elykia.inventory.application.ArticlesService articlesService;
     @Mock
     private StockMovementService stockMovementService;
     @Mock

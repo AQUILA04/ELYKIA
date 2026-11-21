@@ -3,7 +3,7 @@ package com.optimize.elykia.core.dto.sale;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.sale.SaleLinePricing;
 import com.optimize.elykia.core.entity.tontine.TontineDeliveryItem;
-import com.optimize.elykia.core.enumaration.SalePackMode;
+import com.optimize.elykia.inventory.domain.SalePackMode;
 import lombok.Builder;
 import lombok.Value;
 

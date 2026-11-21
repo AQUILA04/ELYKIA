@@ -9,7 +9,7 @@ import com.optimize.elykia.core.entity.accounting.DailyAccounting;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.AccountingDayStatus;
 import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.service.sale.CreditTimelineService;

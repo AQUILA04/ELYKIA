@@ -1,0 +1,29 @@
+package com.optimize.elykia.inventory.web.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import jakarta.validation.constraints.NotBlank;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ArticleTypeDto {
+    private Long id;
+    
+    @NotBlank
+    private String name;
+    
+    private String code;
+    
+    private String description;
+
+    /** URL signée de la photo du type. */
+    private String photoUrl;
+
+    /** URL signée affichée (identique à photoUrl pour un type). */
+    private String displayPhotoUrl;
+}

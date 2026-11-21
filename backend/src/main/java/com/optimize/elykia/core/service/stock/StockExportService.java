@@ -1,27 +1,27 @@
 package com.optimize.elykia.core.service.stock;
 
-import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
-import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
+import com.optimize.elykia.shared.pdf.PdfDocumentIdentity;
 import com.optimize.elykia.core.dto.stock.StockRecoverySummaryDto;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import com.optimize.elykia.core.dto.CommercialStockDashboardExportDTO;
 import com.optimize.elykia.core.dto.StockDashboardExportPdfContextDto;
 import com.optimize.elykia.core.dto.StockExportPdfContextDto;
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.stock.StockRequest;
 import com.optimize.elykia.core.entity.stock.StockReturn;
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineReturn;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.StockRequestRepository;

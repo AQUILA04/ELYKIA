@@ -1,10 +1,11 @@
 package com.optimize.elykia.core.service.bi;
 
 import com.optimize.elykia.core.dto.bi.*;
+import com.optimize.elykia.inventory.web.dto.StockMetricsDto;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
-import com.optimize.elykia.core.service.store.ArticlesService;
-import com.optimize.elykia.core.service.stock.StockMovementService;
+import com.optimize.elykia.inventory.application.ArticlesService;
+import com.optimize.elykia.inventory.application.StockMovementService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

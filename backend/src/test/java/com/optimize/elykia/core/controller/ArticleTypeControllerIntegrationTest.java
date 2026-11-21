@@ -1,9 +1,9 @@
 package com.optimize.elykia.core.controller;
 
 import tools.jackson.databind.ObjectMapper;
-import com.optimize.elykia.core.dto.ArticleTypeDto;
-import com.optimize.elykia.core.entity.article.ArticleType;
-import com.optimize.elykia.core.service.store.ArticleTypeService;
+import com.optimize.elykia.inventory.web.dto.ArticleTypeDto;
+import com.optimize.elykia.inventory.domain.ArticleType;
+import com.optimize.elykia.inventory.application.ArticleTypeService;
 import com.optimize.elykia.core.support.IntegrationTestSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

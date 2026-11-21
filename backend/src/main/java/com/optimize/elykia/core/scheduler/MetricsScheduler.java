@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.scheduler;
 
-import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.inventory.application.ArticlesService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;

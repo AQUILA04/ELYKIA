@@ -2,8 +2,9 @@ package com.optimize.elykia.core.util;
 
 import com.optimize.elykia.core.dto.CommercialStockDashboardExportDTO;
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
-import com.optimize.elykia.core.entity.article.Articles;
-import com.optimize.elykia.core.entity.stock.StockReceptionItem;
+import com.optimize.elykia.inventory.domain.ArticleCatalogSortOrder;
+import com.optimize.elykia.inventory.domain.Articles;
+import com.optimize.elykia.inventory.domain.StockReceptionItem;
 import com.optimize.elykia.core.entity.stock.StockRequestItem;
 import com.optimize.elykia.core.entity.stock.StockReturnItem;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
@@ -17,11 +18,7 @@ public final class ArticleSortOrder {
     }
 
     public static Comparator<Articles> byTypeMarqueModelName() {
-        return Comparator
-                .comparing(Articles::getType, nullSafeString())
-                .thenComparing(Articles::getMarque, nullSafeString())
-                .thenComparing(Articles::getModel, nullSafeString())
-                .thenComparing(Articles::getName, nullSafeString());
+        return ArticleCatalogSortOrder.byTypeMarqueModelName();
     }
 
     public static Comparator<StockRequestItem> forStockRequestItems() {
@@ -29,7 +26,7 @@ public final class ArticleSortOrder {
     }
 
     public static Comparator<StockReceptionItem> forStockReceptionItems() {
-        return Comparator.comparing(StockReceptionItem::getArticle, Comparator.nullsLast(byTypeMarqueModelName()));
+        return ArticleCatalogSortOrder.forStockReceptionItems();
     }
 
     public static Comparator<StockReturnItem> forStockReturnItems() {

@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.entity.sale;
 
-import com.optimize.elykia.core.enumaration.SalePackMode;
+import com.optimize.elykia.inventory.domain.SalePackMode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.EnumType;

@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.tontine;
 
-import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.securities.models.User;
@@ -9,7 +9,7 @@ import com.optimize.elykia.core.dto.CarnetVerificationExportPdfDto;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
-import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
+import com.optimize.elykia.shared.pdf.PdfDocumentIdentity;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.RequiredArgsConstructor;

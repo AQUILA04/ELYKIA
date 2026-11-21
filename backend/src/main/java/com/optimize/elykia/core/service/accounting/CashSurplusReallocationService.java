@@ -11,7 +11,7 @@ import com.optimize.elykia.core.entity.report.CashPeriodRemittance;
 import com.optimize.elykia.core.entity.report.CashSurplusReallocation;
 import com.optimize.elykia.core.entity.report.CashSurplusReallocationLine;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.CashDepositRepository;
 import com.optimize.elykia.core.repository.CashPeriodRemittanceRepository;
 import com.optimize.elykia.core.repository.CashSurplusReallocationRepository;

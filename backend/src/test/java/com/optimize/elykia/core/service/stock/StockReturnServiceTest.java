@@ -1,16 +1,18 @@
 package com.optimize.elykia.core.service.stock;
 
+import com.optimize.elykia.inventory.application.StockMovementService;
+import com.optimize.elykia.inventory.application.StockValuationFacade;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.StockReturn;
 import com.optimize.elykia.core.entity.stock.StockReturnItem;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
-import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.inventory.application.ArticlesService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

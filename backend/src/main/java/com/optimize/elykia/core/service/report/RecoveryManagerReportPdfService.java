@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.report;
 
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 import com.itextpdf.html2pdf.HtmlConverter;
 import com.optimize.elykia.core.dto.sale.CommercialRemittanceDto;
 import com.optimize.elykia.core.dto.sale.RecoveryManagerReportSummaryDto;

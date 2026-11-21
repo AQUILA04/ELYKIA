@@ -19,7 +19,7 @@ import com.optimize.elykia.core.enumaration.AdhesionSource;
 import com.optimize.elykia.core.enumaration.AdhesionStatus;
 import com.optimize.elykia.core.enumaration.AdhesionType;
 import com.optimize.elykia.core.enumaration.CreditPurpose;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.event.AdhesionCashEvent;
 import com.optimize.elykia.core.repository.adhesion.AdhesionBalanceMovementRepository;
 import com.optimize.elykia.core.repository.adhesion.ClientAdhesionRepository;

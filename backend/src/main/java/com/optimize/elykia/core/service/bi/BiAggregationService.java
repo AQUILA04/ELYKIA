@@ -5,7 +5,7 @@ import com.optimize.elykia.core.entity.bi.CollectionAnalyticsDaily;
 import com.optimize.elykia.core.entity.bi.SalesAnalyticsDaily;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditTimeline;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

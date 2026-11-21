@@ -838,6 +838,20 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [2.4.0] — 2026-11-21
+
+### Changed
+
+- **Migration DDD de `core` — Vague 3 (`inventory` & enrichissement `shared`) →** extraction complète du cœur Catalogue, Magasin, Réceptions, Mouvements de stock, Valorisation FIFO, Packaging et Inventaires hors de `com.optimize.elykia.core` (129 fichiers déplacés via `git mv`, zéro changement d'URL REST, de contrat JSON ou de schéma SQL/Flyway) :
+  - **`inventory` (`com.optimize.elykia.inventory`, module `OPEN` pendant le découpage, zéro dépendance sur `core`) :**
+    - `domain/` : 16 entités JPA (`Articles`, `ArticleType`, `ArticleHistory`, `ArticlePriceHistory`, `ArticleStateHistory`, `ArticleSalePack`, `ArticleStockLot`, `ArticleStockLotConsumption`, `ArticleStockLotSalePack`, `StockReception`, `StockReceptionItem`, `ReceptionSalePack`, `StockMovement` découplé de `Credit` via `relatedCreditId` sur la même colonne `related_credit_id`, `Inventory`, `InventoryItem`, `InventoryReconciliation`), 15 enums domaine, et règles métier (`ArticleCodeGenerator`, `ArticlePackagingRules`, `ArticlePhotoKeys`, `ArticlePhotoView`, `ArticleCatalogSortOrder`, `StockPriceRealignmentParams`).
+    - `api/` : 3 ports SPI découplant `inventory` de `core` (`SupplyExpensePort`, `InventoryDebtPort`, `InventoryControlPdfPort`) implémentés par de fins adaptateurs côté `core` (`SupplyExpensePortAdapter`, `InventoryDebtPortAdapter`, `InventoryControlPdfPortAdapter`).
+    - `event/` : `ArticlePriceChangedEvent` consommé de manière asynchrone/événementielle par `core` (`StockPriceRealignmentService`).
+    - `application/` : 16 services et listeners applicatifs (`ArticlesService` avec `makeStockRelease(Long, Integer, Long)` découplé de `CreditArticles` et suppression des champs morts `ExpenseService`/`ExpenseTypeRepository`, `ArticleTypeService`, `ArticleHistoryService`, `ArticlePhotoService`, `ArticleStockTrajectoryService`, `InventoryService`, `InventoryReconciliationService`, `InventoryWarehouseGuard`, `StockReceptionService`, `StockMovementService`, `ArticlePackagingPricingService`, `FifoStockActivationService`, `FifoStockActivationListener`, `FifoStockValuationService`, `LegacyStockValuationAdapter`, `StockValuationFacade`) + 14 suites de tests.
+    - `infrastructure/persistence/` : 14 dépôts JPA ; `web/` : 6 contrôleurs (`ArticlesController` découplé des 2 endpoints vente déplacés vers `ArticleSaleQueryController` sous `/api/v1/articles`, `ArticleTypeController`, `StockReceptionController`, `StockFifoController`, `InventoryController`, `InventoryReconciliationController`), 3 mappers MapStruct et 33 DTOs.
+  - **`shared` (enrichi) :** ajout de `BusinessMetricsPublisher` (`shared.monitoring`), `OperationType` (`shared.domain`), `PdfDocumentIdentity` et `UnitPriceVisibility` (`shared.pdf` + test).
+- **Spring Modulith & qualité →** `ModularityTests` vérifie désormais les **11 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `recruitment`, `ai`, `apprelease`, `core`) ; 1 198/1 198 tests + quality gates JaCoCo `0.8.16` (seuils inchangés, `inventory.application` à 59,3 % LINE / 42,5 % BRANCH) + démarrage réel PostgreSQL 15 / `ddl-auto=validate` / Flyway `V000→V045` verts.
+
 ## Backend — [2.3.0] — 2026-11-21
 
 ### Changed

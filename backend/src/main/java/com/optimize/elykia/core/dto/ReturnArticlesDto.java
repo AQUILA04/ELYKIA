@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.elykia.inventory.web.dto.StockEntry;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

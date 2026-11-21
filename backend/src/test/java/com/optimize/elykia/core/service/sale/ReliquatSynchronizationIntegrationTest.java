@@ -9,7 +9,7 @@ import com.optimize.elykia.core.entity.sale.ClientReliquat;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.ClientReliquatRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;

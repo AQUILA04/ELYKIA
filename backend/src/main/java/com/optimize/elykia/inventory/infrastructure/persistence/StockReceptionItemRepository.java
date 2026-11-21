@@ -1,0 +1,48 @@
+package com.optimize.elykia.inventory.infrastructure.persistence;
+
+import com.optimize.common.entities.repository.BaseRepository;
+import com.optimize.elykia.inventory.domain.StockReceptionItem;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface StockReceptionItemRepository extends BaseRepository<StockReceptionItem, Long, Long> {
+
+    Page<StockReceptionItem> findByStockReceptionId(Long stockReceptionId, Pageable pageable);
+
+    @Query("""
+            SELECT sri FROM StockReceptionItem sri
+            JOIN sri.article a
+            WHERE sri.stockReception.id = :stockReceptionId
+            ORDER BY a.type ASC, a.marque ASC, a.model ASC, a.name ASC, sri.id ASC
+            """)
+    Page<StockReceptionItem> findByStockReceptionIdSorted(
+            @Param("stockReceptionId") Long stockReceptionId,
+            Pageable pageable);
+
+    @Query("""
+            SELECT sri FROM StockReceptionItem sri
+            JOIN sri.stockReception sr
+            WHERE sri.article.id = :articleId
+            ORDER BY sr.receptionDate ASC, sri.id ASC
+            """)
+    List<StockReceptionItem> findByArticleIdOrderByReceptionDateAsc(@Param("articleId") Long articleId);
+
+    @Query("""
+            SELECT sri FROM StockReceptionItem sri
+            JOIN sri.stockReception sr
+            WHERE sri.article.id = :articleId
+              AND sr.status = com.optimize.elykia.inventory.domain.ReceptionStatus.VALIDATED
+              AND sri.unitPrice IS NOT NULL
+              AND sri.unitPrice > 0
+            ORDER BY sr.receptionDate DESC, sri.id DESC
+            """)
+    List<StockReceptionItem> findValidatedWithPositiveUnitPriceByArticleIdOrderByReceptionDateDesc(
+            @Param("articleId") Long articleId);
+}
+

@@ -1,11 +1,13 @@
 package com.optimize.elykia.core.service.report;
 
 
+import com.optimize.elykia.shared.pdf.PdfDocumentIdentity;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import com.optimize.elykia.core.dto.report.cockpit.OperationTypeTotalDto;
 import com.optimize.elykia.core.entity.report.DailyOperationLog;
 import com.optimize.elykia.core.dto.DailyOperationExportPdfDto;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.DailyOperationLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

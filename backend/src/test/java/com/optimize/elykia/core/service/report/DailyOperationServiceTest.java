@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.service.report;
 
 import com.optimize.elykia.core.entity.report.DailyOperationLog;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.DailyOperationLogRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

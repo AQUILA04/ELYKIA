@@ -6,7 +6,7 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
 import org.springframework.data.domain.Page;
 

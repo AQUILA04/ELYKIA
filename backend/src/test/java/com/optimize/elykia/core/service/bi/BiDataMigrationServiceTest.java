@@ -3,7 +3,7 @@ package com.optimize.elykia.core.service.bi;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditTimeline;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import org.junit.jupiter.api.Test;

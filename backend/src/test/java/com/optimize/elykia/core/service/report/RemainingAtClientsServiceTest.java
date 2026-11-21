@@ -4,7 +4,7 @@ import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto;
 import com.optimize.elykia.core.dto.report.RemainingAtClientsPageDto;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.CreditRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

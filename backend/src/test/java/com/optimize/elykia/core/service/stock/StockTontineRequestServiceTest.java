@@ -1,18 +1,20 @@
 package com.optimize.elykia.core.service.stock;
 
+import com.optimize.elykia.inventory.application.StockMovementService;
+import com.optimize.elykia.inventory.application.StockValuationFacade;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.models.UserPermission;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.repository.StockTontineRequestRepository;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
-import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -7,7 +7,7 @@ import com.optimize.elykia.core.dto.*;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.CreditPurpose;
 import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
@@ -433,7 +433,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
     List<Credit> findByAccountingDate(LocalDate date);
     
     List<Credit> findByStatusAndClientType(CreditStatus status, ClientType clientType);
-    List<Credit> findByStatusAndTypeAndClientType(CreditStatus status, com.optimize.elykia.core.enumaration.OperationType type, ClientType clientType);
+    List<Credit> findByStatusAndTypeAndClientType(CreditStatus status, com.optimize.elykia.shared.domain.OperationType type, ClientType clientType);
     
     List<Credit> findByCollectorAndAccountingDateBetweenAndClientType(String collector, LocalDate startDate, LocalDate endDate, ClientType clientType);
     
@@ -1023,7 +1023,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             SELECT COALESCE(SUM(c.totalAmount), 0)
             FROM Credit c
             WHERE c.collector = :collector
-              AND c.type = com.optimize.elykia.core.enumaration.OperationType.CASH
+              AND c.type = com.optimize.elykia.shared.domain.OperationType.CASH
               AND c.state = :state
               AND c.beginDate >= :start
               AND c.beginDate <= :end
@@ -1246,7 +1246,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             FROM Credit cr
             JOIN cr.client c
             WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
-              AND cr.type = com.optimize.elykia.core.enumaration.OperationType.CREDIT
+              AND cr.type = com.optimize.elykia.shared.domain.OperationType.CREDIT
               AND (cr.collector IS NULL OR LOWER(cr.collector) <> LOWER(:commercial))
               AND (
                 EXISTS (
@@ -1270,7 +1270,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             SELECT COUNT(cr) FROM Credit cr
             JOIN cr.client c
             WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
-              AND cr.type = com.optimize.elykia.core.enumaration.OperationType.CREDIT
+              AND cr.type = com.optimize.elykia.shared.domain.OperationType.CREDIT
               AND (cr.collector IS NULL OR LOWER(cr.collector) <> LOWER(:commercial))
               AND (
                 EXISTS (
@@ -1298,7 +1298,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             FROM Credit cr
             JOIN cr.client c
             WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
-              AND cr.type = com.optimize.elykia.core.enumaration.OperationType.CASH
+              AND cr.type = com.optimize.elykia.shared.domain.OperationType.CASH
               AND (
                 LOWER(cr.agencyCommercial) = LOWER(:commercial)
                 OR LOWER(cr.collector) = LOWER(:commercial)
@@ -1311,7 +1311,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             FROM Credit cr
             JOIN cr.client c
             WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
-              AND cr.type = com.optimize.elykia.core.enumaration.OperationType.CASH
+              AND cr.type = com.optimize.elykia.shared.domain.OperationType.CASH
               AND (
                 LOWER(cr.agencyCommercial) = LOWER(:commercial)
                 OR LOWER(cr.collector) = LOWER(:commercial)
@@ -1329,7 +1329,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             FROM Credit cr
             JOIN cr.client c
             WHERE cr.state = com.optimize.common.entities.enums.State.ENABLED
-              AND cr.type = com.optimize.elykia.core.enumaration.OperationType.CASH
+              AND cr.type = com.optimize.elykia.shared.domain.OperationType.CASH
               AND c.id IN :clientIds
               AND (
                 LOWER(cr.agencyCommercial) = LOWER(:commercial)

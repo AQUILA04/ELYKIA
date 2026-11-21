@@ -2,8 +2,8 @@ package com.optimize.elykia.core.entity.debt;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.common.entities.entity.Auditable;
-import com.optimize.elykia.core.entity.article.Articles;
-import com.optimize.elykia.core.entity.inventory.InventoryItem;
+import com.optimize.elykia.inventory.domain.Articles;
+import com.optimize.elykia.inventory.domain.InventoryItem;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.enumaration.DebtPriceBasis;
 import jakarta.persistence.*;

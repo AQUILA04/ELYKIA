@@ -14,10 +14,10 @@
 | **Vague 0** | `shared` (`OPEN` — `security/`, `util/`, `pdf/`) + `@ConfigurationPropertiesScan("com.optimize.elykia")` | **Fait (`2.2.0`)** |
 | **Vague 1** | `ai` (`CLOSED` — 52 classes, 0 dép. sur `core`) + `apprelease` (`CLOSED` — 7 classes, 0 dép. sur `core`) | **Fait (`2.2.0`)** |
 | **Vague 2** | `notification` (`CLOSED` + `notification::api`), `organization` (`OPEN` — `Agency`, `Locality`, `Promoter`, `CommercialStaff*`, `CommercialAccountAssignment`, `UserManagement`), rapatriement `client` + enrichissement `shared` | **Fait (`2.3.0`)** |
-| **Vague 3** | `inventory` (`catalog` + `stock` + `inventory`, résout le cycle de 60 arêtes) | Planifiée |
-| **Vague 4** | `finance` (`expense` + `accounting` + `report` + `debt`, résout le cycle de 46 arêtes) | Planifiée |
-| **Vague 5** | `sale` (`Credit`, `Order`, `SaleCancellation`, `RecoveryFieldPlan`, façade `sale::api`) | Planifiée |
-| **Vague 6** | `tontine` (`tontine → sale::api` unidirectionnel) + `carnet` (module aval + `CarnetEcartDetectedEvent`) | Planifiée |
+| **Vague 3** | `inventory` (`OPEN` — Catalogue, Magasin, Réceptions, Mouvements, FIFO, Packaging, Inventaires + 3 ports SPI `inventory.api`) & enrichissement `shared` | **Fait (`2.4.0`)** |
+| **Vague 4** | `finance` (`expense` + `accounting` + `report` + `debt`, absorbe les 3 adaptateurs SPI d'`inventory`) | Planifiée |
+| **Vague 5** | `sale` (`Credit`, `Order`, `SaleCancellation`, `RecoveryFieldPlan`, stock commercial `CommercialMonthlyStock`/`StockRequest`/`StockReturn`, façade `sale::api`) | Planifiée |
+| **Vague 6** | `tontine` (`tontine → sale::api` unidirectionnel + `StockTontine*`) + `carnet` (module aval + `CarnetEcartDetectedEvent`) | Planifiée |
 | **Vague 7** | `customer` (`Espace Client` + `adhesion` + `paygate` + `ocr`) + `bi` + `FormerPortfolio` + suppression de `core/` | Planifiée |
 
 ## 3. Périmètre exact du Lot 1 (`2.2.0`)
@@ -51,5 +51,18 @@
   - `infrastructure/persistence/` : 4 repositories
   - `application/` : `AgencyService`, `LocalityService`, `PromoterService`, `CommercialStaffService`, `CommercialAccountAssignmentService`, `CommercialDataSummaryService`, `CommercialStaffPhotoService`, `UserManagement` (+ 7 suites de tests)
   - `web/` : 5 contrôleurs, `web/mapper/` (3 mappers MapStruct), `web/dto/` (11 DTOs)
-- **Éléments délibérément reportés aux vagues ultérieures :** `AgencyDailyReport*`/`AgencyWeeklyReport*`/`AgencyWeeklyDeposit*` (Vague 4 `finance`), `CommercialMonthlyStockService` (Vague 3 `inventory`), `CommercialPerformanceService` (Vague 7 `bi`), `FormerPortfolioService` (Vague 7), `ClientListPdfService`/`ClientExportController` (Vague 4/5), `CustomerNotification*` (Vague 7 `customer`).
-- **`ModularityTests` :** vérifie désormais les **10 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `recruitment`, `ai`, `apprelease`, `core`) et la frontière stricte `core → notification :: api`.
+- **Éléments délibérément reportés aux vagues ultérieures :** `AgencyDailyReport*`/`AgencyWeeklyReport*`/`AgencyWeeklyDeposit*` (Vague 4 `finance`), `CommercialMonthlyStockService` (Vague 3/5), `CommercialPerformanceService` (Vague 7 `bi`), `FormerPortfolioService` (Vague 7), `ClientListPdfService`/`ClientExportController` (Vague 4/5), `CustomerNotification*` (Vague 7 `customer`).
+- **`ModularityTests` :** vérifie les **10 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `recruitment`, `ai`, `apprelease`, `core`) et la frontière stricte `core → notification :: api`.
+
+## 5. Périmètre exact de la Vague 3 (`2.4.0`)
+
+- **`shared` (enrichi) :** `BusinessMetricsPublisher` (`shared.monitoring`), `OperationType` (`shared.domain`), `PdfDocumentIdentity` & `UnitPriceVisibility` (`shared.pdf` + test).
+- **`inventory` (`OPEN` pendant le découpage, `allowedDependencies = {"entities", "securities", "client", "shared", "organization"}`, 0 dép. sur `core`) :**
+  - `api/` : 3 ports SPI (`SupplyExpensePort`, `InventoryDebtPort`, `InventoryControlPdfPort`) implémentés dans `core` (`SupplyExpensePortAdapter`, `InventoryDebtPortAdapter`, `InventoryControlPdfPortAdapter`).
+  - `domain/` : 16 entités JPA (`Articles`, `ArticleType`, `ArticleHistory`, `ArticlePriceHistory`, `ArticleStateHistory`, `ArticleSalePack`, `ArticleStockLot*`, `StockReception*`, `ReceptionSalePack`, `StockMovement` avec `relatedCreditId` scalaire sur `related_credit_id`, `Inventory*`), 15 enums, 6 classes règles/VO (`ArticleCodeGenerator`, `ArticlePackagingRules`, `ArticlePhotoKeys`, `ArticlePhotoView`, `ArticleCatalogSortOrder`, `StockPriceRealignmentParams`).
+  - `event/` : `ArticlePriceChangedEvent` (écouté par `core` via `StockPriceRealignmentService`).
+  - `infrastructure/persistence/` : 14 repositories JPA.
+  - `application/` : 16 services & listeners (`ArticlesService`, `ArticleTypeService`, `ArticleHistoryService`, `ArticlePhotoService`, `ArticleStockTrajectoryService`, `InventoryService`, `InventoryReconciliationService`, `InventoryWarehouseGuard`, `StockReceptionService`, `StockMovementService`, `ArticlePackagingPricingService`, `FifoStockActivationService`, `FifoStockActivationListener`, `FifoStockValuationService`, `LegacyStockValuationAdapter`, `StockValuationFacade`) + 14 suites de tests.
+  - `web/` : 6 contrôleurs (`ArticlesController` découplé via `core.controller.article.ArticleSaleQueryController`, `ArticleTypeController`, `StockReceptionController`, `StockFifoController`, `InventoryController`, `InventoryReconciliationController`), 3 mappers MapStruct, 33 DTOs.
+- **Éléments stock terrain délibérément reportés :** `CommercialMonthlyStock*`/`StockRequest*`/`StockReturn*` (couplés `DebtDocument`/`Credit`/`Order` → Vague 5 `sale`), `StockTontine*`/`TontineStock*` (couplés `TontineDelivery` → Vague 6 `tontine`), `StockPriceRealignmentService` (écoute `ArticlePriceChangedEvent` côté `core`).
+- **`ModularityTests` :** vérifie désormais les **11 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `recruitment`, `ai`, `apprelease`, `core`).

@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.entity.tontine;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.sale.SaleLinePricing;
 import jakarta.persistence.*;
 import lombok.Getter;

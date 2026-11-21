@@ -27,7 +27,7 @@ import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
 import com.optimize.elykia.core.service.bi.BiAggregationService;
-import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
+import com.optimize.elykia.shared.monitoring.BusinessMetricsPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;

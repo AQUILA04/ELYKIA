@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.entity.sale;
 
 import com.optimize.common.entities.entity.Auditable;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

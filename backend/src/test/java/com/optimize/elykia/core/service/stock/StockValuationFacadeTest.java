@@ -1,12 +1,15 @@
 package com.optimize.elykia.core.service.stock;
 
+import com.optimize.elykia.inventory.application.FifoStockValuationService;
+import com.optimize.elykia.inventory.application.LegacyStockValuationAdapter;
+import com.optimize.elykia.inventory.application.StockValuationFacade;
 import com.optimize.common.securities.service.ParameterService;
-import com.optimize.elykia.core.dto.stock.FifoConsumptionResult;
-import com.optimize.elykia.core.entity.article.Articles;
-import com.optimize.elykia.core.entity.stock.ArticleStockLot;
-import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
-import com.optimize.elykia.core.enumaration.ArticleStockLotSourceType;
-import com.optimize.elykia.core.repository.ArticleStockLotRepository;
+import com.optimize.elykia.inventory.web.dto.FifoConsumptionResult;
+import com.optimize.elykia.inventory.domain.Articles;
+import com.optimize.elykia.inventory.domain.ArticleStockLot;
+import com.optimize.elykia.inventory.domain.ArticleStockLotMovementType;
+import com.optimize.elykia.inventory.domain.ArticleStockLotSourceType;
+import com.optimize.elykia.inventory.infrastructure.persistence.ArticleStockLotRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

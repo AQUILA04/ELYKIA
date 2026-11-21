@@ -1,0 +1,204 @@
+package com.optimize.elykia.inventory.domain;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.optimize.common.entities.entity.Auditable;
+import com.optimize.common.entities.enums.State;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.annotations.BatchSize;
+import org.hibernate.proxy.HibernateProxy;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+@Entity
+@Getter
+@Setter
+@ToString
+@NoArgsConstructor
+public class Articles extends Auditable<String> {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @PositiveOrZero
+    private double purchasePrice;
+    @PositiveOrZero
+    private double sellingPrice;
+    @PositiveOrZero
+    private double creditSalePrice;
+    @NotBlank
+    private String name;
+    @NotBlank
+    private String marque;
+    @NotBlank
+    private String model;
+    @NotBlank
+    private String type;
+    private String code;
+
+    /** Clé MinIO du JPEG réduit. Jamais exposée dans l'API. */
+    @Column(name = "photo_object_key", length = 255)
+    private String photoObjectKey;
+
+    /** URL signée de la photo propre à l'article. */
+    @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String photoUrl;
+
+    /** URL signée affichée : photo de l'article, sinon celle du type. */
+    @Transient
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String displayPhotoUrl;
+
+    @PositiveOrZero
+    private Integer stockQuantity = 0;
+
+    /** Quantité encore en rayon, déjà promise à une vente comptant non livrée. */
+    @PositiveOrZero
+    @Column(name = "reserved_quantity", nullable = false, columnDefinition = "integer default 0")
+    private Integer reservedQuantity = 0;
+
+    // ===== NOUVEAUX CHAMPS POUR BI DASHBOARD =====
+    @PositiveOrZero
+    private Integer reorderPoint; // Seuil de réapprovisionnement
+
+    @PositiveOrZero
+    private Integer optimalStockLevel; // Niveau de stock optimal
+
+    private Double averageMonthlySales; // Ventes moyennes mensuelles
+
+    private Double stockTurnoverRate; // Taux de rotation du stock
+
+    private Integer daysOfStockAvailable; // Jours de stock disponible
+
+    private java.time.LocalDate lastRestockDate;
+
+    private String category; // Catégorie produit pour analyse
+
+    private Boolean isSeasonal = false; // Produit saisonnier
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @org.hibernate.annotations.ColumnDefault("'NONE'")
+    private ArticlePackagingType packagingType = ArticlePackagingType.NONE;
+
+    @PositiveOrZero
+    private Integer unitsPerPackage;
+
+    @PositiveOrZero
+    private Double wholesalePurchasePrice;
+
+    @PositiveOrZero
+    private Double halfWholesalePurchasePrice;
+
+    @PositiveOrZero
+    private Integer unitsPerHalfPackage;
+
+    @PositiveOrZero
+    private Double wholesaleSalePrice;
+
+    @PositiveOrZero
+    private Double halfWholesaleSalePrice;
+
+    @BatchSize(size = 50)
+    @OneToMany(mappedBy = "article", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    private List<ArticleSalePack> salePacks = new ArrayList<>();
+
+    public Articles(Long articleId) {
+        this.id = articleId;
+    }
+
+    public void makeEntry(Integer newQuantity) {
+        this.stockQuantity += newQuantity;
+    }
+
+    public void makeRelease(Integer newQuantity) {
+        this.stockQuantity -= newQuantity;
+    }
+
+    public int availableQuantity() {
+        int stock = stockQuantity == null ? 0 : stockQuantity;
+        int reserved = reservedQuantity == null ? 0 : reservedQuantity;
+        return Math.max(0, stock - reserved);
+    }
+
+    public void addReservation(int quantity) {
+        int current = reservedQuantity == null ? 0 : reservedQuantity;
+        this.reservedQuantity = current + Math.max(quantity, 0);
+    }
+
+    public void releaseReservation(int quantity) {
+        int current = reservedQuantity == null ? 0 : reservedQuantity;
+        this.reservedQuantity = Math.max(0, current - Math.max(quantity, 0));
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (o == null)
+            return false;
+        Class<?> oEffectiveClass = o instanceof HibernateProxy
+                ? ((HibernateProxy) o).getHibernateLazyInitializer().getPersistentClass()
+                : o.getClass();
+        Class<?> thisEffectiveClass = this instanceof HibernateProxy
+                ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass()
+                : this.getClass();
+        if (thisEffectiveClass != oEffectiveClass)
+            return false;
+        Articles articles = (Articles) o;
+        return getId() != null && Objects.equals(getId(), articles.getId());
+    }
+
+    public String getCommercialName() {
+        return type + ": " + marque + " " + model;
+    }
+
+    @Override
+    public final int hashCode() {
+        return this instanceof HibernateProxy
+                ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode()
+                : getClass().hashCode();
+    }
+
+    // ===== AUDIT : getters explicites pour contourner @JsonIgnore de BaseEntity
+    // =====
+
+    @JsonProperty("articleCreatedBy")
+    public String getArticleCreatedBy() {
+        return createdBy;
+    }
+
+    @JsonProperty("articleCreatedDate")
+    public String getArticleCreatedDate() {
+        return createdDate != null ? createdDate.toString() : null;
+    }
+
+    @JsonProperty("articleLastModifiedBy")
+    public String getArticleLastModifiedBy() {
+        return lastModifiedBy;
+    }
+
+    @JsonProperty("articleLastModifiedDate")
+    public String getArticleLastModifiedDate() {
+        return lastModifiedDate != null ? lastModifiedDate.toString() : null;
+    }
+
+    public State getStatus() {
+        return state;
+    }
+
+    @JsonIgnore
+    public String getPhotoObjectKey() {
+        return photoObjectKey;
+    }
+}

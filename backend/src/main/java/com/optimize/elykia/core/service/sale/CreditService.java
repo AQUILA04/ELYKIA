@@ -10,14 +10,14 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.*;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.sale.*;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.enumaration.CreditPurpose;
 import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.enumaration.SolvencyStatus;
 import com.optimize.elykia.core.mapper.CreditMapper;
 import com.optimize.elykia.core.repository.*;
@@ -26,16 +26,16 @@ import com.optimize.elykia.core.service.stock.CommercialMonthlyStockItemSoldValu
 import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.service.adhesion.AdhesionService;
-import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
 import com.optimize.elykia.core.service.bi.BiAggregationService;
-import com.optimize.elykia.core.service.stock.StockMovementService;
+import com.optimize.elykia.inventory.application.StockMovementService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.core.util.CreditArticleUnitPricePolicy;
 import com.optimize.elykia.core.util.CommercialMonthlyStockCashSalePricing;
 import com.optimize.elykia.core.util.ClientReliquatNetRemaining;
 import com.optimize.elykia.shared.security.UserProfilConstant;
-import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
+import com.optimize.elykia.shared.monitoring.BusinessMetricsPublisher;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -831,7 +831,10 @@ public class CreditService extends GenericService<Credit, Long> {
 
     private void recordMovementForCashSale(Credit credit) {
         if (credit.getArticles() != null) {
-            credit.getArticles().forEach(articlesService::makeStockRelease);
+            credit.getArticles().forEach(line -> articlesService.makeStockRelease(
+                    line.getArticlesId(),
+                    line.getQuantity(),
+                    line.getCredit() != null ? line.getCredit().getId() : line.getId()));
         }
     }
 

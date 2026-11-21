@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.stock;
 
-import com.optimize.elykia.core.event.ArticlePriceChangedEvent;
+import com.optimize.elykia.inventory.event.ArticlePriceChangedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;

@@ -1,28 +1,30 @@
 package com.optimize.elykia.core.service.stock;
 
+import com.optimize.elykia.inventory.application.StockMovementService;
+import com.optimize.elykia.inventory.application.StockValuationFacade;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.models.UserPermission;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.dto.ArticleHistoryContext;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.web.dto.ArticleHistoryContext;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.stock.StockRequest;
 import com.optimize.elykia.core.entity.stock.StockRequestItem;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
-import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
-import com.optimize.elykia.core.enumaration.MovementType;
-import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
+import com.optimize.elykia.inventory.domain.ArticleStockLotMovementType;
+import com.optimize.elykia.inventory.domain.MovementType;
+import com.optimize.elykia.inventory.domain.StockHistoryReferenceType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.enumaration.StockReturnStatus;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.StockRequestRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
-import com.optimize.elykia.core.service.store.ArticlesService;
-import com.optimize.elykia.core.service.store.InventoryWarehouseGuard;
+import com.optimize.elykia.inventory.application.ArticlesService;
+import com.optimize.elykia.inventory.application.InventoryWarehouseGuard;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
 import com.optimize.elykia.shared.security.UserProfilConstant;
@@ -46,7 +48,7 @@ import java.util.stream.Collectors;
 import java.util.Map;
 
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
-import com.optimize.elykia.core.dto.stock.FifoConsumptionResult;
+import com.optimize.elykia.inventory.web.dto.FifoConsumptionResult;
 import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
 import com.itextpdf.html2pdf.HtmlConverter;
 import java.io.ByteArrayOutputStream;
@@ -57,7 +59,7 @@ import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService
 import com.optimize.elykia.shared.util.MonthEndCalculator;
 import com.optimize.elykia.core.util.ArticleSortOrder;
 import com.optimize.elykia.core.util.StockRequestDeliveryPricing;
-import com.optimize.elykia.core.monitoring.BusinessMetricsPublisher;
+import com.optimize.elykia.shared.monitoring.BusinessMetricsPublisher;
 import com.optimize.elykia.core.dto.stock.StockRequestListDto;
 import com.optimize.elykia.core.event.StockRequestValidatedEvent;
 
@@ -610,7 +612,7 @@ public class StockRequestService extends GenericService<StockRequest, Long> {
                     quantity,
                     "Livraison vente comptant " + request.getCashSaleReference(),
                     currentUser.getUsername(),
-                    request.getCredit(),
+                    request.getCredit() != null ? request.getCredit().getId() : null,
                     consumption.getAverageUnitCost(),
                     ArticleHistoryContext.withReference(
                             request.getCollector(),

@@ -5,7 +5,7 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.models.UserPermission;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.dto.debt.DebtDocumentDto;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.enumaration.DebtType;

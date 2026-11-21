@@ -2,7 +2,7 @@ package com.optimize.elykia.core.repository;
 
 import com.optimize.common.entities.repository.GenericRepository;
 import com.optimize.elykia.core.entity.report.DailyOperationLog;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;

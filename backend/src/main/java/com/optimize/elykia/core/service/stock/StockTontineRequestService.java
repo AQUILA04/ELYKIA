@@ -1,21 +1,23 @@
 package com.optimize.elykia.core.service.stock;
 
-import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+import com.optimize.elykia.inventory.application.StockMovementService;
+import com.optimize.elykia.inventory.application.StockValuationFacade;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.entities.service.GenericService;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.models.UserPermission;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.dto.ArticleHistoryContext;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.web.dto.ArticleHistoryContext;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.StockTontineRequest;
 import com.optimize.elykia.core.entity.stock.StockTontineRequestItem;
-import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
-import com.optimize.elykia.core.enumaration.MovementType;
-import com.optimize.elykia.core.enumaration.OperationType;
-import com.optimize.elykia.core.dto.stock.FifoConsumptionResult;
-import com.optimize.elykia.core.enumaration.StockHistoryReferenceType;
+import com.optimize.elykia.inventory.domain.ArticleStockLotMovementType;
+import com.optimize.elykia.inventory.domain.MovementType;
+import com.optimize.elykia.shared.domain.OperationType;
+import com.optimize.elykia.inventory.web.dto.FifoConsumptionResult;
+import com.optimize.elykia.inventory.domain.StockHistoryReferenceType;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
 import com.optimize.elykia.core.event.StockTontineRequestDeliveredEvent;
 import com.optimize.elykia.core.event.TontineStockRequestValidatedEvent;
@@ -23,8 +25,8 @@ import com.optimize.elykia.core.repository.StockTontineRequestDeliveryLinkReposi
 import com.optimize.elykia.core.entity.stock.StockTontineRequestDeliveryLink;
 import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.repository.StockTontineRequestRepository;
-import com.optimize.elykia.core.service.store.ArticlesService;
-import com.optimize.elykia.core.service.store.InventoryWarehouseGuard;
+import com.optimize.elykia.inventory.application.ArticlesService;
+import com.optimize.elykia.inventory.application.InventoryWarehouseGuard;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
@@ -50,7 +52,7 @@ import java.util.Objects;
 import com.optimize.elykia.core.dto.StockRequestExportDTO;
 import com.optimize.elykia.core.dto.PartialDeliveryResponseDTO;
 import com.optimize.elykia.core.dto.StockExportPdfContextDto;
-import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
+import com.optimize.elykia.shared.pdf.PdfDocumentIdentity;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -258,7 +260,7 @@ public class StockTontineRequestService extends GenericService<StockTontineReque
             throw new CustomValidationException("Stock magasin insuffisant pour tous les articles.");
         }
 
-        Map<Long, List<com.optimize.elykia.core.dto.stock.FifoLotSlice>> slicesByArticle = new HashMap<>();
+        Map<Long, List<com.optimize.elykia.inventory.web.dto.FifoLotSlice>> slicesByArticle = new HashMap<>();
 
         // 2. Procéder aux mouvements de sortie magasin
         for (StockTontineRequestItem item : deliverableItems) {

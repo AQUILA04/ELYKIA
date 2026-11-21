@@ -1,12 +1,12 @@
 package com.optimize.elykia.core.service.stock;
 
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.entity.tontine.TontineStock;
-import com.optimize.elykia.core.event.ArticlePriceChangedEvent;
+import com.optimize.elykia.inventory.event.ArticlePriceChangedEvent;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockItemRepository;
 import com.optimize.elykia.core.repository.TontineStockRepository;
-import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.shared.security.ActingUserSecuritySupport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

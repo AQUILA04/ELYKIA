@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.client;
 
-import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.common.entities.exception.CustomValidationException;
@@ -11,7 +11,7 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.client.service.ClientService;
 import com.optimize.elykia.core.dto.ClientListExportPdfDto;
-import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
+import com.optimize.elykia.shared.pdf.PdfDocumentIdentity;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

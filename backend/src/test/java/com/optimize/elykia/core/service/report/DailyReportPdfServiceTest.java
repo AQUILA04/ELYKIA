@@ -11,7 +11,7 @@ import com.optimize.elykia.core.dto.report.cockpit.CommercialReconciliationLineD
 import com.optimize.elykia.core.dto.report.cockpit.CommercialReportSummaryDto;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
 import com.optimize.elykia.core.entity.report.DailyOperationLog;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.DailyOperationLogRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

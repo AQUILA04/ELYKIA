@@ -6,7 +6,7 @@ import com.optimize.elykia.core.entity.bi.SalesAnalyticsDaily;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditTimeline;
 import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.CollectionAggregationRepository;
 import com.optimize.elykia.core.repository.SalesAggregationRepository;
 import org.junit.jupiter.api.Test;

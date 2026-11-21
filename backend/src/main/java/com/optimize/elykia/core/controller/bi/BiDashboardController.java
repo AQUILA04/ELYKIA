@@ -3,6 +3,7 @@ package com.optimize.elykia.core.controller.bi;
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
 import com.optimize.elykia.core.dto.bi.*;
+import com.optimize.elykia.inventory.web.dto.StockMetricsDto;
 import com.optimize.elykia.core.service.bi.BiDashboardService;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
 import io.swagger.v3.oas.annotations.Operation;

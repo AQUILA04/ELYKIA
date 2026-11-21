@@ -2,6 +2,7 @@ package com.optimize.elykia.core.controller;
 
 import com.optimize.elykia.core.controller.bi.BiDashboardController;
 import com.optimize.elykia.core.dto.bi.*;
+import com.optimize.elykia.inventory.web.dto.StockMetricsDto;
 import com.optimize.elykia.core.service.bi.BiDashboardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

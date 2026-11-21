@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.tontine;
 
-import com.optimize.elykia.core.dto.stock.FifoLotSlice;
+import com.optimize.elykia.inventory.web.dto.FifoLotSlice;
 import com.optimize.elykia.core.entity.tontine.TontineStock;
 import com.optimize.elykia.core.entity.tontine.TontineStockLayer;
 import com.optimize.elykia.core.entity.tontine.TontineStockLayerSalePack;

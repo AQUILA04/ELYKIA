@@ -4,7 +4,7 @@ import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.dto.CreditListSummaryDto;
 import com.optimize.elykia.core.dto.CreditSearchDto;
 import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.junit.jupiter.api.BeforeEach;

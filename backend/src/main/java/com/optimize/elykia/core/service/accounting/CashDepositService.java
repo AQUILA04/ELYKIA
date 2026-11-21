@@ -9,7 +9,7 @@ import com.optimize.elykia.core.dto.report.CatchupCashAdjustmentLineDto;
 import com.optimize.elykia.core.dto.report.cockpit.CashDepositTotalsDto;
 import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.enumaration.RemittanceStatus;
 import com.optimize.elykia.core.repository.CashDepositRepository;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;

@@ -1,11 +1,13 @@
 package com.optimize.elykia.core.service.stock;
 
+import com.optimize.elykia.inventory.application.StockMovementService;
+import com.optimize.elykia.inventory.application.StockValuationFacade;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.models.UserPermission;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.StockRequest;
 import com.optimize.elykia.core.entity.stock.StockRequestItem;
 import com.optimize.elykia.core.enumaration.StockRequestStatus;
@@ -15,12 +17,12 @@ import com.optimize.elykia.core.repository.StockRequestRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
-import com.optimize.elykia.core.service.store.ArticlesService;
-import com.optimize.elykia.core.dto.stock.FifoConsumptionResult;
+import com.optimize.elykia.inventory.application.ArticlesService;
+import com.optimize.elykia.inventory.web.dto.FifoConsumptionResult;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
-import com.optimize.elykia.core.enumaration.ArticleStockLotMovementType;
-import com.optimize.elykia.core.enumaration.MovementType;
+import com.optimize.elykia.inventory.domain.ArticleStockLotMovementType;
+import com.optimize.elykia.inventory.domain.MovementType;
 import com.optimize.elykia.core.service.sale.CreditService;
 import org.mockito.ArgumentMatchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -347,7 +349,7 @@ class StockRequestServiceTest {
                 ArgumentMatchers.eq(2),
                 ArgumentMatchers.contains("CSH-8"),
                 ArgumentMatchers.eq("magasinier"),
-                ArgumentMatchers.eq(credit),
+                ArgumentMatchers.eq(credit.getId()),
                 ArgumentMatchers.eq(40.0),
                 ArgumentMatchers.any());
     }

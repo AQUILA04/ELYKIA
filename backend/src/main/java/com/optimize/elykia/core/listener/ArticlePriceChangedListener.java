@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.listener;
 
-import com.optimize.elykia.core.event.ArticlePriceChangedEvent;
+import com.optimize.elykia.inventory.event.ArticlePriceChangedEvent;
 import com.optimize.elykia.core.service.stock.StockPriceRealignmentJobRunner;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

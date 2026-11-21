@@ -1,6 +1,8 @@
 package com.optimize.elykia.core.service.report;
 
 
+import com.optimize.elykia.shared.pdf.PdfDocumentIdentity;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.models.User;

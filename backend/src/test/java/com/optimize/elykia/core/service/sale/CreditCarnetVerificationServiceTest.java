@@ -6,7 +6,7 @@ import com.optimize.elykia.core.dto.BulkCarnetVerificationResultDto;
 import com.optimize.elykia.core.dto.CreditRespDto;
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.CreditRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

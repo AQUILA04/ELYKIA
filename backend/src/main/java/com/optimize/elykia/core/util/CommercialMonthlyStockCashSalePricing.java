@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.util;
 
 import com.optimize.common.entities.exception.CustomValidationException;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 

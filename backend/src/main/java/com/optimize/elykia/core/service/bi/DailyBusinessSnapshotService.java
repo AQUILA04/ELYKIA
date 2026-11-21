@@ -7,7 +7,7 @@ import com.optimize.elykia.core.entity.bi.DailyBusinessSnapshot;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.CreditTimelineRepository;
 import com.optimize.elykia.core.repository.DailyBusinessSnapshotRepository;
-import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.inventory.application.ArticlesService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

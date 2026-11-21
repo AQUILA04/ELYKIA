@@ -1,5 +1,7 @@
 package com.optimize.elykia.core.dto;
 
+import com.optimize.elykia.inventory.web.dto.StockEntry;
+import com.optimize.elykia.inventory.web.dto.StockEntryDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.elykia.core.entity.sale.Order;

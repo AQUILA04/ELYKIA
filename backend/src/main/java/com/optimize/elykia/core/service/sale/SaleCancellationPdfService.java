@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.sale;
 
-import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 
 import com.optimize.elykia.core.entity.sale.Credit;
 import com.optimize.elykia.core.entity.sale.CreditArticles;

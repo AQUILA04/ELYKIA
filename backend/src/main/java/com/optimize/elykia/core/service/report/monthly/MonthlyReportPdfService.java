@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.report.monthly;
 
-import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 
 import com.itextpdf.html2pdf.HtmlConverter;
 import lombok.RequiredArgsConstructor;

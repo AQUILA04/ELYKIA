@@ -5,7 +5,7 @@ import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.dto.StockExportPdfContextDto;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;

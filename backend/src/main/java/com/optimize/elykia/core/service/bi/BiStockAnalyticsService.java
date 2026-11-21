@@ -1,8 +1,8 @@
 package com.optimize.elykia.core.service.bi;
 
 import com.optimize.elykia.core.dto.bi.StockAlertDto;
-import com.optimize.elykia.core.entity.article.Articles;
-import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.inventory.domain.Articles;
+import com.optimize.elykia.inventory.application.ArticlesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

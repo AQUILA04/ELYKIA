@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.tontine;
 
 import com.optimize.common.entities.exception.CustomValidationException;
 import com.optimize.common.securities.security.services.UserService;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.sale.CreditArticles;
 import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.entity.tontine.TontineStock;

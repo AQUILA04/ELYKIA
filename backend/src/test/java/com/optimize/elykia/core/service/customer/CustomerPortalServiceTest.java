@@ -14,7 +14,7 @@ import com.optimize.elykia.core.dto.customer.CustomerTontineInitialPaymentReques
 import com.optimize.elykia.core.dto.customer.CustomerTontineJoinRequest;
 import com.optimize.elykia.core.dto.customer.CustomerTontineJoinResponse;
 import com.optimize.elykia.core.dto.customer.CustomerTontineSessionDto;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.customer.CustomerTontineMmSubmission;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
@@ -32,9 +32,9 @@ import com.optimize.elykia.core.repository.customer.CustomerMobileMoneySubmissio
 import com.optimize.elykia.core.service.adhesion.AdhesionService;
 import com.optimize.elykia.core.service.adhesion.CustomerAdhesionRequestService;
 import com.optimize.elykia.core.service.order.OrderService;
-import com.optimize.elykia.core.service.store.ArticlePhotoService;
-import com.optimize.elykia.core.service.store.ArticlePhotoView;
-import com.optimize.elykia.core.service.store.ArticlesService;
+import com.optimize.elykia.inventory.application.ArticlePhotoService;
+import com.optimize.elykia.inventory.domain.ArticlePhotoView;
+import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.core.service.tontine.TontineService;
 import com.optimize.elykia.core.service.tontine.allocation.TontineAmountHistoryHelper;
 import org.junit.jupiter.api.BeforeEach;

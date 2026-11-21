@@ -8,7 +8,7 @@ import com.optimize.elykia.core.entity.report.TontineCollectionResetLine;
 import com.optimize.elykia.core.entity.report.TontineCollectionResetRun;
 import com.optimize.elykia.core.entity.tontine.TontineSession;
 import com.optimize.elykia.notification.api.AppNotificationType;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.enumaration.TontineCollectionResetRunStatus;
 import com.optimize.elykia.core.enumaration.TontineCollectionResetScope;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;

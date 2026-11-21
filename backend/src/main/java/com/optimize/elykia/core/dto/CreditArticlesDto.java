@@ -13,7 +13,7 @@ public class CreditArticlesDto {
     private Integer quantity;
     private Long stockItemId;
     private Long tontineItemId;
-    private com.optimize.elykia.core.enumaration.SalePackMode salePackMode;
+    private com.optimize.elykia.inventory.domain.SalePackMode salePackMode;
     private Integer packCount;
     private Integer unitsPerPack;
 }

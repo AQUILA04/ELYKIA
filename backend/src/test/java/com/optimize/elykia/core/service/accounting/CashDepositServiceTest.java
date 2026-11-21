@@ -4,7 +4,7 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.entity.report.CashDeposit;
 import com.optimize.elykia.core.entity.report.DailyCommercialReport;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.CashDepositRepository;
 import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
 import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;

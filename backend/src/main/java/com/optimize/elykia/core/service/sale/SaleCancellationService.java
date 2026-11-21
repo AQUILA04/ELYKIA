@@ -13,6 +13,7 @@ import com.optimize.elykia.core.entity.sale.*;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.enumaration.*;
+import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.*;
 import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;
 import com.optimize.elykia.core.service.report.DailyOperationService;

@@ -6,7 +6,7 @@ import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.dto.PendingOrderStockPreviewDto;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.entity.sale.OrderItem;
 import com.optimize.elykia.core.entity.stock.StockRequest;

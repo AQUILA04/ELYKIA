@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.dto;
 
 import com.optimize.elykia.core.enumaration.CreditPurpose;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;

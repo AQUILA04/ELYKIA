@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.entity.report;
 
 import com.optimize.common.entities.entity.BaseEntity;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

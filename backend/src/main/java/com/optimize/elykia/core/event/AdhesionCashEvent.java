@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.event;
 
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import lombok.Getter;
 import org.springframework.context.ApplicationEvent;
 

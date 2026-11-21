@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.dto.bi;
 
+import com.optimize.elykia.inventory.web.dto.StockMetricsDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

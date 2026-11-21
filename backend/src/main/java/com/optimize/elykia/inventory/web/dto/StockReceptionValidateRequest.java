@@ -1,0 +1,23 @@
+package com.optimize.elykia.inventory.web.dto;
+
+import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Data
+public class StockReceptionValidateRequest {
+
+    private List<Line> items = new ArrayList<>();
+
+    @Data
+    public static class Line {
+        private Long itemId;
+        private Double unitPrice;
+        private Double packagePrice;
+        private Double unitSalePrice;
+        private Double wholesaleSalePrice;
+        private Double halfWholesaleSalePrice;
+        private List<ArticleSalePackDto> salePacks;
+    }
+}

@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service;
 
-import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 
 import com.optimize.elykia.core.dto.CreditLateDTO;
 import com.optimize.elykia.core.dto.CreditLateSummaryDTO;

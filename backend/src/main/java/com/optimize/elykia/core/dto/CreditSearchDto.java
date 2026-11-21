@@ -2,7 +2,7 @@ package com.optimize.elykia.core.dto;
 
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.core.enumaration.CreditStatus;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 
 public record CreditSearchDto(
         String keyword,

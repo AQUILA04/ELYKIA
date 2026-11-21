@@ -12,7 +12,7 @@ import com.optimize.elykia.core.repository.StockTontineReturnRepository;
 import com.optimize.elykia.core.repository.TontineStockRepository;
 import com.optimize.elykia.core.service.commercial.CommercialMonthlyStockService;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
-import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 import com.optimize.elykia.shared.security.UserProfilConstant;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.report;
 
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 import com.lowagie.text.DocumentException;
 import com.optimize.common.entities.exception.ApplicationException;
 import com.optimize.common.entities.exception.ResourceNotFoundException;
@@ -9,13 +10,13 @@ import com.optimize.elykia.core.dto.InventoryControlPdfDto;
 import com.optimize.elykia.core.dto.ItemReleaseSheetDto;
 import com.optimize.elykia.core.dto.PrintOperationDto;
 import com.optimize.elykia.core.dto.DailyUnrecoveredCreditDto;
-import com.optimize.elykia.core.dto.StockReceptionDto;
-import com.optimize.elykia.core.dto.StockReceptionsDailyPdfDto;
-import com.optimize.elykia.core.entity.inventory.Inventory;
+import com.optimize.elykia.inventory.web.dto.StockReceptionDto;
+import com.optimize.elykia.inventory.web.dto.StockReceptionsDailyPdfDto;
+import com.optimize.elykia.inventory.domain.Inventory;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.core.service.sale.CreditService;
-import com.optimize.elykia.core.service.store.InventoryService;
-import com.optimize.elykia.core.service.stock.StockReceptionService;
+import com.optimize.elykia.inventory.application.InventoryService;
+import com.optimize.elykia.inventory.application.StockReceptionService;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.accounting.AccountingDayService;
 import lombok.RequiredArgsConstructor;
@@ -277,7 +278,7 @@ public class PdfService {
 
     public InputStream generateInventoryControlPdf(Long inventoryId) throws DocumentException {
         Inventory inventory = inventoryService.getInventoryById(inventoryId);
-        List<com.optimize.elykia.core.dto.InventoryItemDto> items = inventoryService.getInventoryItems(inventoryId);
+        List<com.optimize.elykia.inventory.web.dto.InventoryItemDto> items = inventoryService.getInventoryItems(inventoryId);
 
         InventoryControlPdfDto dto = new InventoryControlPdfDto();
         dto.setInventoryId(inventory.getId());
@@ -286,7 +287,7 @@ public class PdfService {
 
         List<InventoryControlPdfDto.InventoryItemPdfDto> pdfItems = new java.util.ArrayList<>();
         int index = 1;
-        for (com.optimize.elykia.core.dto.InventoryItemDto item : items) {
+        for (com.optimize.elykia.inventory.web.dto.InventoryItemDto item : items) {
             InventoryControlPdfDto.InventoryItemPdfDto pdfItem = new InventoryControlPdfDto.InventoryItemPdfDto();
             pdfItem.setIndex(index++);
             pdfItem.setArticleName(item.getArticleName());

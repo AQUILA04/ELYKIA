@@ -1,18 +1,18 @@
 package com.optimize.elykia.core.service.order;
 
-import com.optimize.elykia.core.service.report.UnitPriceVisibility;
+import com.optimize.elykia.shared.pdf.UnitPriceVisibility;
 
 import com.optimize.common.securities.models.User;
 import com.optimize.common.securities.repository.UserRepository;
 import com.optimize.common.securities.security.services.UserService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.dto.OrderSheetPdfDto;
-import com.optimize.elykia.core.entity.article.Articles;
+import com.optimize.elykia.inventory.domain.Articles;
 import com.optimize.elykia.core.entity.sale.Order;
 import com.optimize.elykia.core.entity.sale.OrderItem;
 import com.optimize.elykia.core.enumaration.OrderSource;
 import com.optimize.elykia.core.enumaration.OrderStatus;
-import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
+import com.optimize.elykia.shared.pdf.PdfDocumentIdentity;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

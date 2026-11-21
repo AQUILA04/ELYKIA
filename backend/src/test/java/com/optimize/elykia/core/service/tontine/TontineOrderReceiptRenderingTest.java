@@ -5,7 +5,7 @@ import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.entity.tontine.TontineMember;
 import com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus;
-import com.optimize.elykia.core.service.report.PdfDocumentIdentity;
+import com.optimize.elykia.shared.pdf.PdfDocumentIdentity;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

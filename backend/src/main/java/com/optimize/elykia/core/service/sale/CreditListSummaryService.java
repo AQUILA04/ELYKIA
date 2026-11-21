@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.service.sale;
 
 import com.optimize.elykia.core.dto.*;
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;

@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.entity.tontine;
 
-import com.optimize.elykia.core.enumaration.ArticlePackagingType;
+import com.optimize.elykia.inventory.domain.ArticlePackagingType;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

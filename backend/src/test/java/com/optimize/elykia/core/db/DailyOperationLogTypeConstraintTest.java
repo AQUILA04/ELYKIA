@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.db;
 
-import com.optimize.elykia.core.enumaration.OperationType;
+import com.optimize.elykia.shared.domain.OperationType;
 import org.junit.jupiter.api.Test;
 
 import java.net.URISyntaxException;
