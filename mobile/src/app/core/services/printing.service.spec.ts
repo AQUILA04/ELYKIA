@@ -79,6 +79,11 @@ describe('PrintingService tontine order ticket', () => {
     expect(ticket).toContain('TOTAL RESTANT:');
   });
 
+  it('prints the planned delivery date when there is one', () => {
+    expect(html(order({ plannedDeliveryDate: '2026-12-15' }))).toContain('Livraison prevue:</span><span>15/12/2026');
+    expect(html(order())).not.toContain('Livraison prevue');
+  });
+
   it('keeps the plain total when the member balance is unknown', () => {
     const ticket = html(order());
     expect(ticket).toContain('TOTAL:');

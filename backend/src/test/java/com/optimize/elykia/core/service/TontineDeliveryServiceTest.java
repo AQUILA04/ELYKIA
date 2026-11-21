@@ -165,6 +165,43 @@ class TontineDeliveryServiceTest {
     }
 
     @Test
+    void createDelivery_keepsThePlannedDeliveryDate() {
+        givenRegularUser();
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        when(deliveryReferenceService.resolveReference(any(), any())).thenReturn("TNT-PLAN");
+        when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        createDeliveryDto.setPlannedDeliveryDate(java.time.LocalDate.of(2026, 12, 15));
+
+        TontineDeliveryDto result = tontineDeliveryService.createDelivery(createDeliveryDto);
+
+        assertEquals(java.time.LocalDate.of(2026, 12, 15), result.getPlannedDeliveryDate());
+    }
+
+    @Test
+    void createDelivery_mergedOrderTakesThePlannedDateWhenTheFirstHadNone() {
+        TontineDelivery current = existingDelivery(20L, "LIV-A", 30_000.0);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.PENDING);
+        when(projectedBalanceCalculator.project(any())).thenReturn(1_000_000d);
+        givenRegularUser();
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(deliveryRepository.findByTontineMemberId(1L)).thenReturn(Optional.of(current));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        createDeliveryDto.setReference("LIV-B");
+        createDeliveryDto.setPlannedDeliveryDate(java.time.LocalDate.of(2026, 12, 20));
+
+        tontineDeliveryService.createDelivery(createDeliveryDto);
+        assertEquals(java.time.LocalDate.of(2026, 12, 20), current.getPlannedDeliveryDate());
+
+        createDeliveryDto.setReference("LIV-C");
+        createDeliveryDto.setPlannedDeliveryDate(java.time.LocalDate.of(2026, 12, 31));
+        tontineDeliveryService.createDelivery(createDeliveryDto);
+        // Une date déjà prévue n'est pas écrasée par une seconde saisie.
+        assertEquals(java.time.LocalDate.of(2026, 12, 20), current.getPlannedDeliveryDate());
+    }
+
+    @Test
     void createDelivery_rejectsSecondOrderWhenMemberAlreadyDelivered() {
         TontineDelivery delivered = existingDelivery(20L, "LIV-A", 30_000.0);
         mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.DELIVERED);

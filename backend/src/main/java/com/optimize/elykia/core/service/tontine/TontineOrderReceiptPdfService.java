@@ -44,6 +44,7 @@ public class TontineOrderReceiptPdfService {
     static final String DOCUMENT_TITLE = "Reçu de commande tontine";
     static final String UNKNOWN_MESSAGE = "Ce reçu ne provient pas d'Elykia.";
     private static final DateTimeFormatter ORDER_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter PLANNED_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final String EMPTY = "—";
 
     private final TontineDeliveryRepository deliveryRepository;
@@ -101,7 +102,7 @@ public class TontineOrderReceiptPdfService {
         List<TontineDeliveryItem> items = delivery.getItems() == null
                 ? List.of()
                 : delivery.getItems().stream()
-                .sorted(Comparator.comparing(this::designation, String.CASE_INSENSITIVE_ORDER))
+                .sorted(Comparator.comparing(TontineOrderReceiptPdfService::designation, String.CASE_INSENSITIVE_ORDER))
                 .toList();
 
         List<TontineOrderReceiptPdfDto.Line> lines = new ArrayList<>();
@@ -122,6 +123,8 @@ public class TontineOrderReceiptPdfService {
                 .reference(text(delivery.getReference()))
                 .authenticityCode(text(delivery.getAuthenticityCode()))
                 .orderDate(delivery.getRequestDate() == null ? EMPTY : ORDER_DATE.format(delivery.getRequestDate()))
+                .plannedDeliveryDate(delivery.getPlannedDeliveryDate() == null ? null
+                        : PLANNED_DATE.format(delivery.getPlannedDeliveryDate()))
                 .statusLabel(statusLabel(member != null ? member.getDeliveryStatus() : null))
                 .sessionYear(session != null && session.getYear() != null ? String.valueOf(session.getYear()) : EMPTY)
                 .clientLastname(text(client != null ? client.getLastname() : null))
@@ -203,11 +206,12 @@ public class TontineOrderReceiptPdfService {
                 .orElse(trimmed);
     }
 
-    private String designation(TontineDeliveryItem item) {
+    /** Libellé d'une ligne : nom commercial de l'article, suivi du conditionnement pour un pack. */
+    static String designation(TontineDeliveryItem item) {
         Articles article = item.getArticles();
         String name = article != null && StringUtils.hasText(article.getCommercialName())
                 ? article.getCommercialName().trim()
-                : text(item.getArticleName());
+                : (StringUtils.hasText(item.getArticleName()) ? item.getArticleName().trim() : EMPTY);
         SaleLinePricing line = item.getSaleLine();
         if (line != null && line.getSalePackMode() != null
                 && line.getSalePackMode() != SalePackMode.UNIT
@@ -217,7 +221,8 @@ public class TontineOrderReceiptPdfService {
         return name;
     }
 
-    private int displayQuantity(TontineDeliveryItem item) {
+    /** Quantité affichée : nombre de packs pour une ligne en pack, sinon unités. */
+    static int displayQuantity(TontineDeliveryItem item) {
         SaleLinePricing line = item.getSaleLine();
         if (isPack(line) && line.getPackCount() != null) {
             return line.getPackCount();
@@ -233,7 +238,7 @@ public class TontineOrderReceiptPdfService {
         return item.getUnitPrice() == null ? 0d : item.getUnitPrice();
     }
 
-    private boolean isPack(SaleLinePricing line) {
+    private static boolean isPack(SaleLinePricing line) {
         return line != null && line.getSalePackMode() != null && line.getSalePackMode() != SalePackMode.UNIT;
     }
 

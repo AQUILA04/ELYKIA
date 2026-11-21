@@ -112,6 +112,8 @@ export interface TontineDelivery {
   readonly clientName?: string;
   readonly tontineMember?: TontineMember;
   readonly deliveryDate: string;
+  /** Date de livraison prévue (AAAA-MM-JJ), facultative. */
+  readonly plannedDeliveryDate?: string | null;
   readonly totalAmount: number;
   readonly remainingBalance: number;
   /** Solde net cotisé (à la remise pour une commande livrée). */
@@ -186,6 +188,8 @@ export interface UpdateSessionDto {
 export interface CreateDeliveryDto {
   readonly tontineMemberId: number;
   readonly items: DeliveryItemDto[];
+  /** Date de livraison prévue (AAAA-MM-JJ), facultative. */
+  readonly plannedDeliveryDate?: string;
 }
 
 export interface DeliveryItemDto {

@@ -175,6 +175,7 @@ flowchart LR
    - Choisissez les articles souhaités dans le **catalogue** de l'agence (pas besoin que le commercial ait déjà du stock tontine).
    - Pour chaque article, la liste **Offre** propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.
    - Si les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme **Solde non utilisé** au profit du client.
+   - Sous le panier, **Date de livraison prévue (facultatif)** fixe le jour de remise prévu avec le membre. Laissez-la vide si la date n'est pas encore connue.
    - Le dossier passe au statut **En attente**.
    - Une confirmation propose de **télécharger le reçu**. Le document reprend la référence, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.
    - Sur la fiche, **Télécharger le reçu** ressort le même document. Après une réduction du panier, la même proposition s'affiche.
@@ -188,7 +189,7 @@ flowchart LR
    - **Confirmer la livraison** n'est possible que si le solde couvre la commande. Sinon, cliquez sur **Réduire la commande** : retirez ou diminuez des articles jusqu'à ce que le total tienne dans le solde, enregistrez, puis cliquez de nouveau sur **Livrer**. Le complément de cotisation au moment de la remise se fait sur l'application mobile.
    - Après la confirmation, **Télécharger le reçu** donne le reçu de remise : **Total cotisé (net)**, **Total utilisé** et **Total restant**.
    - Cette action déduit définitivement les articles du **stock tontine** du commercial et clôture le dossier du membre. Le commercial doit donc avoir reçu les articles via une demande de stock tontine avant la remise.
-   - La fiche conserve la preuve complète : date, commercial ayant servi le client et détail des articles livrés.
+   - La fiche conserve la preuve complète : date, commercial ayant servi le client et détail des articles livrés. La date de livraison prévue, si elle a été choisie, s'affiche aussi sous **Livraison prévue le**.
    - Après la clôture, une livraison directe suit le même plafond : le panier peut aller jusqu'au solde prévisionnel de l'année, et la remise attend que le solde disponible couvre ce panier.
 4. **Soldes de la commande** (bloc **Livraison de Fin d'Année** de la fiche et reçu PDF **Télécharger le reçu**) :
    - Avant la remise : **Solde net cotisé** (cotisations moins la part société, compléments inclus), **Montant de la commande**, puis **Reste à payer** si la commande dépasse le solde, ou **Reliquat à restituer** si elle lui est inférieure.
@@ -199,7 +200,8 @@ Dans le menu latéral gauche, cliquez sur **Tontines** puis sur **Livraison**. C
 - Indicateurs globaux : nombre de colis livrés, montant total distribué, livraisons restant à honorer, soldes non utilisés.
 - Filtres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.
 - Recherche instantanée par nom ou référence de client.
-- **Reçu** sur une ligne télécharge le reçu de la commande.
+- **Reçu** sur une ligne télécharge le reçu de la commande. La colonne **Prévue le** donne la date de livraison prévue, quand elle a été choisie.
+- **Membres à livrer le** : choisissez une date, puis cliquez sur **PDF**. Le document liste les membres dont la livraison est prévue ce jour-là et qui ne sont pas encore livrés : membre, téléphone et quartier, commande et statut, articles, montant, solde net, reste à payer, et une case **Remis** à cocher sur le terrain. Les membres sont classés par commercial, puis par quartier. Avec un commercial choisi dans le filtre, seules ses commandes y figurent.
 - **Vérifier un reçu** : saisissez le code imprimé sur le document. Elykia affiche la référence, la membre, la date, le statut, le commercial, le montant et les articles. Si le code est inconnu, le message indique que ce reçu ne provient pas d'Elykia. Un reçu recopié avec un autre montant ne correspond pas à cet affichage.
 
 1. Cochez les lignes **En attente** de la page, puis cliquez sur **Valider la sélection**. Le statut passe à **Validée**.

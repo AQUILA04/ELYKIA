@@ -218,8 +218,8 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
 
         const queryDelivery = `
       INSERT OR REPLACE INTO tontine_deliveries(
-          id, reference, tontineMemberId, commercialUsername, requestDate, deliveryDate, totalAmount, status, isLocal, isSync, syncDate, syncHash, operationConsentCode, needsDeliverSync, authenticityCode
-        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          id, reference, tontineMemberId, commercialUsername, requestDate, deliveryDate, totalAmount, status, isLocal, isSync, syncDate, syncHash, operationConsentCode, needsDeliverSync, authenticityCode, plannedDeliveryDate
+        ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
           `;
 
         const queryItems = `
@@ -239,7 +239,8 @@ export class TontineDeliveryRepository extends BaseRepository<TontineDelivery, s
                     delivery.isLocal ? 1 : 0, delivery.isSync ? 1 : 0, delivery.syncDate || new Date().toISOString(), delivery.syncHash,
                     delivery.operationConsentCode || null,
                     delivery.needsDeliverSync ? 1 : 0,
-                    delivery.authenticityCode || null
+                    delivery.authenticityCode || null,
+                    delivery.plannedDeliveryDate || null
                 ]
             });
 

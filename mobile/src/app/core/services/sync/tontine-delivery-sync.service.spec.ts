@@ -160,6 +160,17 @@ describe('TontineDeliverySyncService', () => {
     expect(repository.markAsSynced).not.toHaveBeenCalled();
   }));
 
+  it('sends the planned delivery date with the order', fakeAsync(() => {
+    const delivery = baseDelivery({ status: 'PENDING', plannedDeliveryDate: '2026-12-15' });
+
+    service.syncSingle(delivery).then(() => undefined);
+    flushMicrotasks();
+    const req = httpMock.expectOne(`${environment.apiUrl}/api/v1/tontines/deliveries`);
+    expect(req.request.body.plannedDeliveryDate).toBe('2026-12-15');
+    req.flush({ data: { id: 9005, tontineMemberId: 42, status: 'PENDING', deliveryStatus: 'PENDING', totalAmount: 5000 } });
+    flushMicrotasks();
+  }));
+
   it('posts DELIVERED direct creation to POST /deliveries/distribute', fakeAsync(() => {
     const delivery = baseDelivery({ status: 'DELIVERED' });
 

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,10 @@ public class TontineDelivery extends BaseEntity<String> {
 
     @Column(name = "request_date")
     private LocalDateTime requestDate;
+
+    /** Date de livraison prévue, choisie à la commande (optionnelle). */
+    @Column(name = "planned_delivery_date")
+    private LocalDate plannedDeliveryDate;
     
     @Column(name = "total_amount", nullable = false, columnDefinition = "double precision default 0")
     private Double totalAmount;

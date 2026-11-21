@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,6 +18,8 @@ public class CreateDeliveryDto {
     /** Code ELY-XXXX-XXXX produit par le téléphone. Absent : le serveur en génère un. */
     private String authenticityCode;
     private LocalDateTime requestDate;
+    /** Date de livraison prévue, optionnelle. */
+    private LocalDate plannedDeliveryDate;
 
     @Valid
     @NotEmpty(message = "La liste des articles ne peut pas être vide")

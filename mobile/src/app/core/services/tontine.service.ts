@@ -295,6 +295,7 @@ export class TontineService {
                                     id: m.delivery.id,
                                     reference: m.delivery.reference ?? null,
                                     authenticityCode: m.delivery.authenticityCode ?? null,
+                                    plannedDeliveryDate: m.delivery.plannedDeliveryDate ?? null,
                                     tontineMemberId: m.id,
                                     commercialUsername: this.commercialUsername,
                                     requestDate: m.delivery.requestDate,

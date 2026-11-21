@@ -11,6 +11,8 @@ public class TontineOrderReceiptPdfDto {
     private String reference;
     private String authenticityCode;
     private String orderDate;
+    /** Date de livraison prévue (vide si aucune). */
+    private String plannedDeliveryDate;
     private String statusLabel;
     private String sessionYear;
     private String clientLastname;

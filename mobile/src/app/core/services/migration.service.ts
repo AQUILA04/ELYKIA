@@ -163,6 +163,9 @@ export class MigrationService {
       case 38:
         await this.migrateToV38(db);
         break;
+      case 39:
+        await this.migrateToV39(db);
+        break;
       default:
         console.log(`No migration needed for version ${version}`);
     }
@@ -1005,6 +1008,10 @@ export class MigrationService {
       );
     `);
     await this.log.log('Migration to v36 successful.');
+  }
+
+  private async migrateToV39(db: SQLiteDBConnection): Promise<void> {
+    await this.migrateAddColumnIfMissing(db, 'v39', 'tontine_deliveries', 'plannedDeliveryDate', 'TEXT');
   }
 
   private async migrateToV38(db: SQLiteDBConnection): Promise<void> {

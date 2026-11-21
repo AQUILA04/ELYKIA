@@ -38,6 +38,21 @@ public interface TontineDeliveryRepository extends JpaRepository<TontineDelivery
 
     boolean existsByTontineMemberId(Long memberId);
 
+    /** Commandes prévues à une date et pas encore remises (PDF des membres à livrer). */
+    @Query("""
+            SELECT DISTINCT d FROM TontineDelivery d
+            JOIN FETCH d.tontineMember tm
+            JOIN FETCH tm.client c
+            LEFT JOIN FETCH d.items item
+            LEFT JOIN FETCH item.articles
+            WHERE d.plannedDeliveryDate = :date
+              AND tm.deliveryStatus IN :statuses
+              AND (:commercial IS NULL OR d.commercialUsername = :commercial)
+            """)
+    List<TontineDelivery> findPlannedForDate(@Param("date") java.time.LocalDate date,
+                                             @Param("statuses") Collection<com.optimize.elykia.core.enumaration.TontineMemberDeliveryStatus> statuses,
+                                             @Param("commercial") String commercial);
+
     boolean existsByReference(String reference);
 
     boolean existsByAuthenticityCode(String authenticityCode);

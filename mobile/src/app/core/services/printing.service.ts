@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { UnitPriceVisibilityService } from './unit-price-visibility.service';
 import { getTontineDeliveryStatusLabel } from '../utils/tontine-delivery-status.util';
 import { computeTontineOrderBalance, tontineOrderBalanceLabels } from '../utils/tontine-order-balance.util';
+import { formatPlannedDate } from '../utils/tontine-planned-date.util';
 import { Printer } from '@bcyesil/capacitor-plugin-printer';
 import { Distribution } from '../../models/distribution.model';
 import { Client } from '../../models/client.model';
@@ -182,6 +183,8 @@ export interface PrintableTontineOrder {
   items: PrintableOrderItem[];
   /** Solde net cotisé du membre : reste à payer ou reliquat imprimés sous le total. */
   netContribution?: number | null;
+  /** Date de livraison prévue (AAAA-MM-JJ), facultative. */
+  plannedDeliveryDate?: string | null;
 }
 
 export function formatOrderStatusLabel(status: string | null | undefined): string {
@@ -1038,6 +1041,7 @@ export class PrintingService {
           <div class="row"><span>Date:</span><span>${escapeReceiptText(dateLabel)}</span></div>
           <div class="row"><span>Heure:</span><span>${escapeReceiptText(timeLabel)}</span></div>
           <div class="row"><span>Statut:</span><span>${escapeReceiptText(getTontineDeliveryStatusLabel(order.status))}</span></div>
+          ${order.plannedDeliveryDate ? `<div class="row"><span>Livraison prevue:</span><span>${escapeReceiptText(formatPlannedDate(order.plannedDeliveryDate))}</span></div>` : ''}
           <div class="row"><span>Membre:</span><span>${escapeReceiptText(order.clientName || 'Client')}</span></div>
           <div class="row"><span>Telephone:</span><span>${escapeReceiptText(order.clientPhone || '')}</span></div>
           <div class="row"><span>Commercial:</span><span>${escapeReceiptText(order.commercialName || 'N/A')}</span></div>

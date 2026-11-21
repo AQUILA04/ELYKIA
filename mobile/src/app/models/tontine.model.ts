@@ -93,6 +93,8 @@ export interface TontineDelivery {
     id: string;
     reference?: string;
     authenticityCode?: string;
+    /** Date de livraison prévue (AAAA-MM-JJ), choisie à la commande ; facultative. */
+    plannedDeliveryDate?: string | null;
     tontineMemberId: string;
     commercialUsername: string;
     requestDate: string;

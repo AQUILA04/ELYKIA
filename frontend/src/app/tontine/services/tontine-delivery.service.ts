@@ -90,6 +90,19 @@ export class TontineDeliveryService {
     });
   }
 
+  /** PDF des membres à livrer à une date prévue (commandes non encore remises). */
+  downloadPlannedDeliveriesPdf(date: string, commercial?: string | null): Observable<Blob> {
+    let params = new HttpParams().set('date', date);
+    if (commercial) {
+      params = params.set('commercial', commercial);
+    }
+    return this.http.get(`${this.apiUrl}/planned/pdf`, {
+      headers: this.getHeaders(),
+      params,
+      responseType: 'blob'
+    });
+  }
+
   verifyReceipt(code: string): Observable<ApiResponse<TontineReceiptVerification>> {
     const headers = this.getHeaders();
     const params = new HttpParams().set('code', code.trim());

@@ -39,6 +39,7 @@ import { TontineDeliveryReceiptModalComponent } from 'src/app/shared/components/
 import { PrintableTontineDelivery } from 'src/app/core/services/printing.service';
 import { DailyConsentGuardService } from 'src/app/features/daily-consent/daily-consent-guard.service';
 import { DailyConsentStateService } from 'src/app/core/daily-consent/daily-consent-state.service';
+import { normalizePlannedDate, todayIsoDate } from 'src/app/core/utils/tontine-planned-date.util';
 import { generateTontineAuthenticityCode, generateTontineDeliveryReference } from 'src/app/core/utils/tontine-delivery-reference.util';
 import { TontineOrderReceiptModalComponent } from 'src/app/shared/components/tontine-order-receipt-modal/tontine-order-receipt-modal.component';
 import { PrintableTontineOrder } from 'src/app/core/services/printing.service';
@@ -678,6 +679,9 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         await alert.present();
     }
 
+    /** Date de livraison prévue choisie à la confirmation d'une commande (AAAA-MM-JJ). */
+    plannedDeliveryDate: string | null = null;
+
     private async confirmAndProcess(mode: TontineDeliveryCreationMode): Promise<void> {
         const isOrder = mode === 'ORDER';
         if (isOrder && !canCreateTontineOrder(this.vm.session?.status)) {
@@ -692,13 +696,18 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
         const alert = await this.alertCtrl.create({
             header: isOrder ? 'Confirmer la commande' : 'Confirmer la livraison',
             message: isOrder
-                ? `Total: ${this.vm.usedBudget.toLocaleString('fr-FR')} FCFA\n\nEnregistrer comme commande (articles non encore remis) ?`
+                ? `Total: ${this.vm.usedBudget.toLocaleString('fr-FR')} FCFA\n\nEnregistrer comme commande (articles non encore remis) ?\nDate de livraison prévue (facultatif) :`
                 : `Total: ${this.vm.usedBudget.toLocaleString('fr-FR')} FCFA\nRestant: ${this.vm.remainingBudget.toLocaleString('fr-FR')} FCFA\n\nConfirmez-vous la livraison directe ?`,
+            // Commande : date de livraison prévue, facultative, à partir d'aujourd'hui.
+            inputs: isOrder
+                ? [{ name: 'plannedDeliveryDate', type: 'date', min: todayIsoDate(), attributes: { 'data-testid': 'e2e-tontine-planned-date' } }]
+                : [],
             buttons: [
                 { text: 'Annuler', role: 'cancel' },
                 {
                     text: 'Confirmer',
-                    handler: () => {
+                    handler: (data?: { plannedDeliveryDate?: string }) => {
+                        this.plannedDeliveryDate = isOrder ? normalizePlannedDate(data?.plannedDeliveryDate) : null;
                         void this.processDelivery(mode);
                     }
                 }
@@ -800,6 +809,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
                 requestDate: nowIso,
                 deliveryDate: nowIso,
                 status: isOrder ? 'PENDING' : 'DELIVERED',
+                plannedDeliveryDate: isOrder ? this.plannedDeliveryDate : null,
                 totalAmount: this.vm.usedBudget,
                 items: items,
                 isLocal: true,
@@ -948,6 +958,7 @@ export class DeliveryCreationPage implements OnInit, OnDestroy {
             clientPhone: this.vm.client?.phone,
             commercialName: this.commercialUsername || 'Commercial',
             netContribution: this.vm.availableBudget,
+            plannedDeliveryDate: delivery.plannedDeliveryDate ?? null,
             items: items.map(item => ({
                 articleName: item.salePackMode && item.salePackMode !== 'UNIT'
                     ? `${item.articleName || 'Article'} — ${item.packLabel || 'Pack'}`

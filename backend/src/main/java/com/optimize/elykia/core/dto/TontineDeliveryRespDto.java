@@ -2,6 +2,7 @@ package com.optimize.elykia.core.dto;
 
 import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,7 +17,17 @@ public record TontineDeliveryRespDto(Long id,
                                      List<TontineDeliveryItemRespDto> items,
                                      String operationConsentCode,
                                      String syncConsentCode,
-                                     String authenticityCode) {
+                                     String authenticityCode,
+                                     LocalDate plannedDeliveryDate) {
+
+    /** Sans date de livraison prévue (anciens appels). */
+    public TontineDeliveryRespDto(Long id, TontineMemberRespDto tontineMember, LocalDateTime deliveryDate,
+                                  LocalDateTime requestDate, Double totalAmount, Double remainingBalance,
+                                  String commercialUsername, String reference, List<TontineDeliveryItemRespDto> items,
+                                  String operationConsentCode, String syncConsentCode, String authenticityCode) {
+        this(id, tontineMember, deliveryDate, requestDate, totalAmount, remainingBalance, commercialUsername,
+                reference, items, operationConsentCode, syncConsentCode, authenticityCode, null);
+    }
 
     public static TontineDeliveryRespDto fromId(Long id) {
         if (id == null) {
@@ -40,6 +51,7 @@ public record TontineDeliveryRespDto(Long id,
                 TontineDeliveryItemRespDto.fromDeliveryItems(delivery.getItems()),
                 delivery.getOperationConsentCode(),
                 delivery.getSyncConsentCode(),
-                delivery.getAuthenticityCode());
+                delivery.getAuthenticityCode(),
+                delivery.getPlannedDeliveryDate());
     }
 }

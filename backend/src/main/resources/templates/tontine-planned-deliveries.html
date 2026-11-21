@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title th:text="${pdfDocumentTitle}">Membres à livrer</title>
+    <th:block th:replace="~{pdf/report-fragments :: styles}"></th:block>
+</head>
+<body>
+<div th:replace="~{pdf/report-fragments :: header(${pdfDocumentTitle}, ${doc.plannedDate})}"></div>
+
+<div class="page">
+    <table role="presentation" class="cards">
+        <tr>
+            <td>
+                <div class="lbl">Livraison prévue le</div>
+                <div class="val" th:text="${doc.plannedDate}">21/11/2026</div>
+            </td>
+            <td>
+                <div class="lbl">Commercial</div>
+                <div class="val" th:text="${doc.commercialLabel}">Tous les commerciaux</div>
+            </td>
+            <td>
+                <div class="lbl">Généré le</div>
+                <div class="val" th:text="${doc.generationDate}">21/11/2026 08:00</div>
+            </td>
+        </tr>
+    </table>
+
+    <table role="presentation" class="total avoid" style="margin-bottom: 4px">
+        <tr class="total-navy">
+            <td class="total-label">
+                <span th:text="${doc.memberCount}">0</span> membre(s) à livrer · reste à encaisser
+                <span th:text="${doc.totalAmountDue}">0 FCFA</span>
+            </td>
+            <td class="total-value" th:text="${doc.totalAmount}">0 FCFA</td>
+        </tr>
+    </table>
+
+    <table role="presentation" class="sec"><tr>
+        <td class="sec-title">Commandes à remettre</td>
+        <td class="sec-hint">Membres déjà livrés exclus</td>
+    </tr></table>
+
+    <div class="empty" th:if="${#lists.isEmpty(doc.rows)}">
+        Aucune commande n'est prévue à cette date, ou elles sont toutes livrées.
+    </div>
+
+    <table class="data" th:if="${not #lists.isEmpty(doc.rows)}">
+        <colgroup>
+            <col style="width: 4%"/><col style="width: 20%"/><col style="width: 12%"/><col style="width: 26%"/>
+            <col style="width: 11%"/><col style="width: 11%"/><col style="width: 9%"/><col style="width: 7%"/>
+        </colgroup>
+        <thead>
+        <tr>
+            <th class="first c">#</th>
+            <th>Membre</th>
+            <th>Commande</th>
+            <th>Articles</th>
+            <th class="r">Montant</th>
+            <th class="r">Solde net</th>
+            <th class="r">Reste à payer</th>
+            <th class="c last">Remis</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="row : ${doc.rows}">
+            <td class="c muted" th:text="${row.index}">1</td>
+            <td>
+                <div class="strong" th:text="${row.clientName}">KOFFI Ama</div>
+                <div class="small muted" th:text="${row.clientContact}">90 00 00 00 · Tokoin</div>
+                <div class="small muted" th:if="${doc.allCommercials}" th:text="${row.commercial}">COM005</div>
+            </td>
+            <td>
+                <div class="small" th:text="${row.reference}">LIV-2026-11-A1B2</div>
+                <span th:class="${row.validated} ? 'pill pill-green' : 'pill pill-amber'"
+                      th:text="${row.statusLabel}">Validée</span>
+            </td>
+            <td class="small">
+                <div th:each="line : ${row.items}" th:text="${line}">2 × Riz 25 kg</div>
+            </td>
+            <td class="r" th:text="${row.totalAmount}">0</td>
+            <td class="r" th:text="${row.netContribution}">0</td>
+            <td th:class="${row.hasAmountDue} ? 'r neg' : 'r ok'" th:text="${row.amountDue}">0</td>
+            <td class="c"><span class="sign-line">&#160;</span></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

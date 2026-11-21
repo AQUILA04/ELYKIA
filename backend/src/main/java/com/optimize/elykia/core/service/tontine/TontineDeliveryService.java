@@ -154,6 +154,10 @@ public class TontineDeliveryService {
         }
 
         newItems.forEach(current::addItem);
+        if (current.getPlannedDeliveryDate() == null && dto.getPlannedDeliveryDate() != null) {
+            // La première commande n'avait pas de date prévue : on garde celle de la seconde saisie.
+            current.setPlannedDeliveryDate(dto.getPlannedDeliveryDate());
+        }
         current.setTotalAmount(combined);
         current.setProjectedBalance(projected);
         current.setRemainingBalance(Math.max(0.0, availableOf(member) - combined));
@@ -271,6 +275,7 @@ public class TontineDeliveryService {
         delivery.setAvailableAtOrder(available);
         delivery.setCommercialUsername(member.getClient().getCollector());
         delivery.setRequestDate(requestDate);
+        delivery.setPlannedDeliveryDate(dto.getPlannedDeliveryDate());
         delivery.setReference(deliveryReferenceService.resolveReference(dto.getReference(), requestDate));
         delivery.setAuthenticityCode(deliveryReferenceService.resolveAuthenticityCode(dto.getAuthenticityCode()));
         delivery.setOperationConsentCode(dto.getOperationConsentCode());
@@ -598,6 +603,7 @@ public class TontineDeliveryService {
                 .authenticityCode(delivery.getAuthenticityCode())
                 .clientName(delivery.getTontineMember().getClient().getFullName())
                 .requestDate(delivery.getRequestDate())
+                .plannedDeliveryDate(delivery.getPlannedDeliveryDate())
                 .deliveryDate(delivery.getDeliveryDate())
                 .totalAmount(delivery.getTotalAmount())
                 .remainingBalance(delivery.getRemainingBalance())

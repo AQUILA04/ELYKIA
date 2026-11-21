@@ -285,6 +285,33 @@ export class TontineDeliveryListComponent implements OnInit, OnDestroy {
     });
   }
 
+  /** Date choisie pour le PDF des membres à livrer (par défaut : aujourd'hui). */
+  plannedPdfDate = new Date().toISOString().split('T')[0];
+  plannedPdfBusy = false;
+
+  downloadPlannedDeliveries(): void {
+    if (!this.plannedPdfDate || this.plannedPdfBusy) {
+      return;
+    }
+    this.plannedPdfBusy = true;
+    const commercial = this.getEffectiveCommercial();
+    this.deliveryService.downloadPlannedDeliveriesPdf(this.plannedPdfDate, commercial).subscribe({
+      next: (blob) => {
+        this.plannedPdfBusy = false;
+        const url = window.URL.createObjectURL(blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = `membres-a-livrer-${this.plannedPdfDate}.pdf`;
+        anchor.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.plannedPdfBusy = false;
+        this.alertService.toastError('Le PDF des membres à livrer n\'a pas pu être téléchargé.', 'Erreur');
+      }
+    });
+  }
+
   getStatusLabel(status: TontineMemberDeliveryStatus): string {
     return TONTINE_DELIVERY_STATUS_LABELS[status] || status;
   }

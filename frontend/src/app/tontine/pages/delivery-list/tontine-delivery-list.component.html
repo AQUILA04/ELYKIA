@@ -117,6 +117,18 @@
         Réinitialiser tout
       </button>
 
+      <div class="filter-group filter-group-planned">
+        <span class="toolbar-label">Membres à livrer le</span>
+        <div class="date-inputs">
+          <input type="date" lang="fr-FR" class="search-input" [(ngModel)]="plannedPdfDate"
+                 data-testid="e2e-tontine-planned-pdf-date">
+          <button type="button" class="btn-download" (click)="downloadPlannedDeliveries()"
+                  [disabled]="!plannedPdfDate || plannedPdfBusy" data-testid="e2e-tontine-planned-pdf">
+            {{ plannedPdfBusy ? 'Téléchargement…' : 'PDF' }}
+          </button>
+        </div>
+      </div>
+
       <span class="result-count">
         <strong>{{ totalElement }}</strong> livraison(s)
       </span>
@@ -167,6 +179,7 @@
               <th>Client</th>
               <th>Commercial</th>
               <th>Date</th>
+              <th>Prévue le</th>
               <th>Montant</th>
               <th>Statut</th>
               <th>Action</th>
@@ -196,6 +209,7 @@
               </td>
               <td data-label="Commercial">{{ delivery.commercialUsername }}</td>
               <td data-label="Date">{{ delivery.deliveryDate | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td data-label="Prévue le">{{ delivery.plannedDeliveryDate ? (delivery.plannedDeliveryDate | date:'dd/MM/yyyy') : '—' }}</td>
               <td data-label="Montant"><span class="col-amount">{{ delivery.totalAmount | number:'1.0-0' }} FCFA</span></td>
               <td data-label="Statut">
                 <span class="status-badge" [ngClass]="getStatusClass(delivery.deliveryStatus)">

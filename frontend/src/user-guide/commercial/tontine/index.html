@@ -2589,6 +2589,7 @@
 <li>Choisissez les articles souhaités dans le <strong>catalogue</strong> de l'agence (pas besoin que le commercial ait déjà du stock tontine).</li>
 <li>Pour chaque article, la liste <strong>Offre</strong> propose l'unité, le gros, le demi-gros lorsqu'il existe, et les offres libres de la fiche (par exemple 3 unités pour 250). Le montant retenu est le prix de l'offre, pas un prix unitaire recalculé.</li>
 <li>Si les articles choisis coûtent moins que le solde déjà encaissé, la différence reste conservée comme <strong>Solde non utilisé</strong> au profit du client.</li>
+<li>Sous le panier, <strong>Date de livraison prévue (facultatif)</strong> fixe le jour de remise prévu avec le membre. Laissez-la vide si la date n'est pas encore connue.</li>
 <li>Le dossier passe au statut <strong>En attente</strong>.</li>
 <li>Une confirmation propose de <strong>télécharger le reçu</strong>. Le document reprend la référence, la membre, les articles, les quantités et le montant total. Un code discret en bas du reçu permet de le vérifier plus tard dans Elykia.</li>
 <li>
@@ -2608,7 +2609,7 @@
 <li><strong>Confirmer la livraison</strong> n'est possible que si le solde couvre la commande. Sinon, cliquez sur <strong>Réduire la commande</strong> : retirez ou diminuez des articles jusqu'à ce que le total tienne dans le solde, enregistrez, puis cliquez de nouveau sur <strong>Livrer</strong>. Le complément de cotisation au moment de la remise se fait sur l'application mobile.</li>
 <li>Après la confirmation, <strong>Télécharger le reçu</strong> donne le reçu de remise : <strong>Total cotisé (net)</strong>, <strong>Total utilisé</strong> et <strong>Total restant</strong>.</li>
 <li>Cette action déduit définitivement les articles du <strong>stock tontine</strong> du commercial et clôture le dossier du membre. Le commercial doit donc avoir reçu les articles via une demande de stock tontine avant la remise.</li>
-<li>La fiche conserve la preuve complète : date, commercial ayant servi le client et détail des articles livrés.</li>
+<li>La fiche conserve la preuve complète : date, commercial ayant servi le client et détail des articles livrés. La date de livraison prévue, si elle a été choisie, s'affiche aussi sous <strong>Livraison prévue le</strong>.</li>
 <li>Après la clôture, une livraison directe suit le même plafond : le panier peut aller jusqu'au solde prévisionnel de l'année, et la remise attend que le solde disponible couvre ce panier.</li>
 <li><strong>Soldes de la commande</strong> (bloc <strong>Livraison de Fin d'Année</strong> de la fiche et reçu PDF <strong>Télécharger le reçu</strong>) :</li>
 <li>Avant la remise : <strong>Solde net cotisé</strong> (cotisations moins la part société, compléments inclus), <strong>Montant de la commande</strong>, puis <strong>Reste à payer</strong> si la commande dépasse le solde, ou <strong>Reliquat à restituer</strong> si elle lui est inférieure.</li>
@@ -2619,7 +2620,8 @@
 - Indicateurs globaux : nombre de colis livrés, montant total distribué, livraisons restant à honorer, soldes non utilisés.
 - Filtres temporels (ce jour, cette semaine, ce mois, plage de dates) et filtre par commercial.
 - Recherche instantanée par nom ou référence de client.
-- <strong>Reçu</strong> sur une ligne télécharge le reçu de la commande.
+- <strong>Reçu</strong> sur une ligne télécharge le reçu de la commande. La colonne <strong>Prévue le</strong> donne la date de livraison prévue, quand elle a été choisie.
+- <strong>Membres à livrer le</strong> : choisissez une date, puis cliquez sur <strong>PDF</strong>. Le document liste les membres dont la livraison est prévue ce jour-là et qui ne sont pas encore livrés : membre, téléphone et quartier, commande et statut, articles, montant, solde net, reste à payer, et une case <strong>Remis</strong> à cocher sur le terrain. Les membres sont classés par commercial, puis par quartier. Avec un commercial choisi dans le filtre, seules ses commandes y figurent.
 - <strong>Vérifier un reçu</strong> : saisissez le code imprimé sur le document. Elykia affiche la référence, la membre, la date, le statut, le commercial, le montant et les articles. Si le code est inconnu, le message indique que ce reçu ne provient pas d'Elykia. Un reçu recopié avec un autre montant ne correspond pas à cet affichage.</p>
 <ol>
 <li>Cochez les lignes <strong>En attente</strong> de la page, puis cliquez sur <strong>Valider la sélection</strong>. Le statut passe à <strong>Validée</strong>.</li>

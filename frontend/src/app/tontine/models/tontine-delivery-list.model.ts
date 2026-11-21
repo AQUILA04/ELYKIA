@@ -10,6 +10,8 @@ export interface TontineDeliveryListItem {
   reference?: string;
   deliveryDate: string;
   requestDate?: string;
+  /** Date de livraison prévue (AAAA-MM-JJ), facultative. */
+  plannedDeliveryDate?: string | null;
   totalAmount: number;
   remainingBalance: number;
   commercialUsername: string;

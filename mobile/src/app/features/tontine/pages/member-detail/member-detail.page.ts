@@ -755,6 +755,7 @@ export class MemberDetailPage implements OnInit, OnDestroy {
             clientPhone: this.vm.client?.phone,
             commercialName: this.commercialUsername || this.vm.delivery.commercialUsername,
             netContribution: this.vm.member?.availableContribution ?? null,
+            plannedDeliveryDate: this.vm.delivery.plannedDeliveryDate ?? null,
             items: this.vm.deliveryItems.map(item => ({
                 articleName: item.salePackMode && item.salePackMode !== 'UNIT' && item.packLabel
                     ? `${item.articleName || 'Article'} — ${item.packLabel}`
