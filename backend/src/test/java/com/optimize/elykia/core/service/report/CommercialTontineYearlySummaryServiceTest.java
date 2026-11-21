@@ -2,7 +2,7 @@ package com.optimize.elykia.core.service.report;
 
 import com.optimize.common.entities.enums.State;
 import com.optimize.elykia.core.dto.report.CommercialTontineYearlySummaryDto;
-import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
+import com.optimize.elykia.finance.infrastructure.persistence.DailyCommercialReportRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
 import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import org.junit.jupiter.api.BeforeEach;

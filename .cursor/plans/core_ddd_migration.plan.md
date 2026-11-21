@@ -15,8 +15,8 @@
 | **Vague 1** | `ai` (`CLOSED` — 52 classes, 0 dép. sur `core`) + `apprelease` (`CLOSED` — 7 classes, 0 dép. sur `core`) | **Fait (`2.2.0`)** |
 | **Vague 2** | `notification` (`CLOSED` + `notification::api`), `organization` (`OPEN` — `Agency`, `Locality`, `Promoter`, `CommercialStaff*`, `CommercialAccountAssignment`, `UserManagement`), rapatriement `client` + enrichissement `shared` | **Fait (`2.3.0`)** |
 | **Vague 3** | `inventory` (`OPEN` — Catalogue, Magasin, Réceptions, Mouvements, FIFO, Packaging, Inventaires + 3 ports SPI `inventory.api`) & enrichissement `shared` | **Fait (`2.4.0`)** |
-| **Vague 4** | `finance` (`expense` + `accounting` + `report` + `debt`, absorbe les 3 adaptateurs SPI d'`inventory`) | Planifiée |
-| **Vague 5** | `sale` (`Credit`, `Order`, `SaleCancellation`, `RecoveryFieldPlan`, stock commercial `CommercialMonthlyStock`/`StockRequest`/`StockReturn`, façade `sale::api`) | Planifiée |
+| **Vague 4** | `finance` (`OPEN` — Dépenses, Caisse, Journée comptable, Versements/Remises/Surplus, Rapports journaliers & mensuels + 5 ports SPI `finance.api` + absorption de `SupplyExpensePortAdapter`) | **Fait (`2.5.0`)** |
+| **Vague 5** | `sale` (`Credit`, `Order`, `SaleCancellation`, `RecoveryFieldPlan`, stock commercial `CommercialMonthlyStock`/`StockRequest`/`StockReturn` + `DebtDocument`/`DebtService`, façade `sale::api`) | Planifiée |
 | **Vague 6** | `tontine` (`tontine → sale::api` unidirectionnel + `StockTontine*`) + `carnet` (module aval + `CarnetEcartDetectedEvent`) | Planifiée |
 | **Vague 7** | `customer` (`Espace Client` + `adhesion` + `paygate` + `ocr`) + `bi` + `FormerPortfolio` + suppression de `core/` | Planifiée |
 
@@ -66,3 +66,14 @@
   - `web/` : 6 contrôleurs (`ArticlesController` découplé via `core.controller.article.ArticleSaleQueryController`, `ArticleTypeController`, `StockReceptionController`, `StockFifoController`, `InventoryController`, `InventoryReconciliationController`), 3 mappers MapStruct, 33 DTOs.
 - **Éléments stock terrain délibérément reportés :** `CommercialMonthlyStock*`/`StockRequest*`/`StockReturn*` (couplés `DebtDocument`/`Credit`/`Order` → Vague 5 `sale`), `StockTontine*`/`TontineStock*` (couplés `TontineDelivery` → Vague 6 `tontine`), `StockPriceRealignmentService` (écoute `ArticlePriceChangedEvent` côté `core`).
 - **`ModularityTests` :** vérifie désormais les **11 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `recruitment`, `ai`, `apprelease`, `core`).
+
+## 6. Périmètre exact de la Vague 4 (`2.5.0`)
+
+- **`finance` (`OPEN` pendant le découpage, `allowedDependencies = {"entities", "securities", "client", "shared", "organization", "inventory"}`, 0 dép. sur `core`, 126 fichiers déplacés via `git mv`) :**
+  - `api/` : 5 ports SPI (`CreditAccountingPort`, `TontineCatchupQueryPort`, `FieldControlDebtPort`, `CashDeskDailyOperationPdfPort`, `CommercialYearlyPortfolioPort`) implémentés par de fins adaptateurs dans `core`.
+  - `domain/` : 16 entités JPA (`Expense`, `ExpenseType`, `AgencyDailyReport`, `AgencyWeeklyDeposit`, `AgencyWeeklyReport`, `AccountingDay`, `DailyAccountancy`, `DailyAccounting`, `CashDeposit`, `CashPeriodRemittance`, `CashPeriodRemittanceExpense`, `CashSurplusReallocation`, `CashSurplusReallocationLine`, `CommercialReportMonthly`, `DailyCommercialReport`, `DailyOperationLog`), 7 enums (`AccountancyStatus`, `AccountingDayStatus`, `DepositStatus`, `PeriodState`, `RemittanceInitiator`, `RemittanceStatus`, `WeekStatus`), 4 règles/calculateurs (`CashDepositCategoryCalculator`, `CommercialReconciliationCalculator`, `OperationTypeLabels`, `ReportPeriod` + 2 suites de tests).
+  - `infrastructure/persistence/` : 15 repositories JPA.
+  - `application/` : 21 services & adaptateurs — dont **`SupplyExpensePortAdapter`** transféré de `core` vers `finance` pour implémenter directement `inventory.api.SupplyExpensePort` — + 14 suites de tests (`74,5 % LINE / 50,7 % BRANCH`).
+  - `web/` : 11 contrôleurs (`DailyReportController` découplé des 3 endpoints portefeuille/tontine déplacés vers `core.controller.report.DailyReportPortfolioController`), 5 mappers MapStruct, 31 DTOs.
+- **Éléments délibérément maintenus dans `core` pour les Vagues 5–7 :** `DebtDocument`/`DebtLine`/`DebtService` (`@ManyToOne CommercialMonthlyStock` / `CommercialMonthlyStockItem` → Vague 5 `sale`), et rapports transverses crédits/tontines (`ReportService`, `PdfService`, `MonthlyReportAggregationService`, `RemainingAtClients*`, `CommercialTontineYearlySummaryService`, `CommercialYearlyPortfolioService`, `RecoveryManagerReportPdfService`, `DailyTontineReportReconciler`).
+- **`ModularityTests` :** vérifie désormais les **12 modules** (`entities`, `securities`, `client`, `shared`, `notification`, `organization`, `inventory`, `finance`, `recruitment`, `ai`, `apprelease`, `core`).

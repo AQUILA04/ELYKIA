@@ -11,7 +11,7 @@ import com.optimize.elykia.core.entity.stock.CommercialMonthlyStockItem;
 import com.optimize.elykia.core.enumaration.DebtType;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
+import com.optimize.elykia.finance.infrastructure.persistence.DailyCommercialReportRepository;
 import com.optimize.elykia.core.repository.DebtDocumentRepository;
 import com.optimize.elykia.core.repository.DebtSettlementRepository;
 import com.optimize.elykia.shared.security.UserPermissionConstant;

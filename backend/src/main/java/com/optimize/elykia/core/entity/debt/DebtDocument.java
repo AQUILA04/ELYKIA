@@ -3,7 +3,7 @@ package com.optimize.elykia.core.entity.debt;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.common.entities.entity.Auditable;
 import com.optimize.elykia.inventory.domain.Inventory;
-import com.optimize.elykia.core.entity.report.DailyCommercialReport;
+import com.optimize.elykia.finance.domain.DailyCommercialReport;
 import com.optimize.elykia.core.entity.stock.CommercialMonthlyStock;
 import com.optimize.elykia.core.enumaration.DebtHolderProfile;
 import com.optimize.elykia.core.enumaration.DebtOrigin;

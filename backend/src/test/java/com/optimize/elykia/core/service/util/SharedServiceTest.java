@@ -1,6 +1,6 @@
 package com.optimize.elykia.core.service.util;
 
-import com.optimize.elykia.core.service.accounting.AccountingDayService;
+import com.optimize.elykia.finance.application.AccountingDayService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;

@@ -1,0 +1,133 @@
+package com.optimize.elykia.finance.infrastructure.persistence;
+
+import com.optimize.common.entities.repository.BaseRepository;
+import com.optimize.elykia.finance.domain.DailyCommercialReport;
+import org.springframework.stereotype.Repository;
+
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface DailyCommercialReportRepository extends BaseRepository<DailyCommercialReport, Long, Long> {
+        Optional<DailyCommercialReport> findByDateAndCommercialUsername(LocalDate date, String commercialUsername);
+
+        List<DailyCommercialReport> findByCommercialUsernameAndDateBetweenOrderByDateAsc(String commercialUsername,
+                        LocalDate startDate, LocalDate endDate);
+
+        List<DailyCommercialReport> findByCommercialUsernameIgnoreCaseAndDateLessThanEqualOrderByDateAsc(
+                        String commercialUsername, LocalDate endDate);
+
+        @Query("""
+                        SELECT d FROM DailyCommercialReport d
+                        WHERE d.date < :before
+                          AND UPPER(d.commercialUsername) IN :usernames
+                        """)
+        List<DailyCommercialReport> findBeforeDateForCommercials(
+                        @Param("before") LocalDate before,
+                        @Param("usernames") Collection<String> usernames);
+
+        @Query("SELECT new com.optimize.elykia.finance.domain.DailyCommercialReport(" +
+                        "d.commercialUsername, " +
+                        "SUM(d.totalStockRequestAmount), " +
+                        "SUM(d.creditSalesCount), " +
+                        "SUM(d.creditSalesAmount), " +
+                        "SUM(d.newClientsCount), " +
+                        "SUM(d.newAccountsBalance), " +
+                        "SUM(d.collectionsCount), " +
+                        "SUM(d.collectionsAmount), " +
+                        "SUM(d.ordersCount), " +
+                        "SUM(d.ordersAmount), " +
+                        "SUM(d.tontineMembersCount), " +
+                        "SUM(d.tontineCollectionsCount), " +
+                        "SUM(d.tontineCollectionsAmount), " +
+                        "SUM(d.tontineDeliveriesCount), " +
+                        "SUM(d.tontineDeliveriesAmount), " +
+                        "SUM(d.totalAmountToDeposit), " +
+                        "SUM(d.totalAmountDeposited), " +
+                        "SUM(d.totalCreditAmountDeposited), " +
+                        "SUM(d.totalTontineAmountDeposited), " +
+                        "SUM(d.totalNewBalanceAmountDeposited), " +
+                        "SUM(d.totalSurplusAmountDeposited), " +
+                        "SUM(d.creditSalesMargin), " +
+                        "SUM(d.stockRequestMargin), " +
+                        "SUM(d.totalAdvancesAmount), " +
+                        "SUM(d.recoveryManagerCollectionsAmount), " +
+                        "SUM(d.totalReliquatGeneratedAmount), " +
+                        "SUM(d.totalReliquatUsedAmount), " +
+                        "SUM(d.tontineCatchupCount), " +
+                        "SUM(d.tontineCatchupAmount), " +
+                        "SUM(d.surplusCoverageCredit), " +
+                        "SUM(d.surplusCoverageTontine), " +
+                        "SUM(d.surplusCoverageNewBalance)) " +
+                        "FROM DailyCommercialReport d " +
+                        "WHERE d.date BETWEEN :startDate AND :endDate " +
+                        "GROUP BY d.commercialUsername")
+        List<DailyCommercialReport> findAggregatedByDateBetween(@Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate);
+
+        @Query("SELECT new com.optimize.elykia.finance.domain.DailyCommercialReport(" +
+                        "d.commercialUsername, " +
+                        "SUM(d.totalStockRequestAmount), " +
+                        "SUM(d.creditSalesCount), " +
+                        "SUM(d.creditSalesAmount), " +
+                        "SUM(d.newClientsCount), " +
+                        "SUM(d.newAccountsBalance), " +
+                        "SUM(d.collectionsCount), " +
+                        "SUM(d.collectionsAmount), " +
+                        "SUM(d.ordersCount), " +
+                        "SUM(d.ordersAmount), " +
+                        "SUM(d.tontineMembersCount), " +
+                        "SUM(d.tontineCollectionsCount), " +
+                        "SUM(d.tontineCollectionsAmount), " +
+                        "SUM(d.tontineDeliveriesCount), " +
+                        "SUM(d.tontineDeliveriesAmount), " +
+                        "SUM(d.totalAmountToDeposit), " +
+                        "SUM(d.totalAmountDeposited), " +
+                        "SUM(d.totalCreditAmountDeposited), " +
+                        "SUM(d.totalTontineAmountDeposited), " +
+                        "SUM(d.totalNewBalanceAmountDeposited), " +
+                        "SUM(d.totalSurplusAmountDeposited), " +
+                        "SUM(d.creditSalesMargin), " +
+                        "SUM(d.stockRequestMargin), " +
+                        "SUM(d.totalAdvancesAmount), " +
+                        "SUM(d.recoveryManagerCollectionsAmount), " +
+                        "SUM(d.totalReliquatGeneratedAmount), " +
+                        "SUM(d.totalReliquatUsedAmount), " +
+                        "SUM(d.tontineCatchupCount), " +
+                        "SUM(d.tontineCatchupAmount), " +
+                        "SUM(d.surplusCoverageCredit), " +
+                        "SUM(d.surplusCoverageTontine), " +
+                        "SUM(d.surplusCoverageNewBalance)) " +
+                        "FROM DailyCommercialReport d " +
+                        "WHERE d.commercialUsername = :commercialUsername " +
+                        "AND d.date BETWEEN :startDate AND :endDate " +
+                        "GROUP BY d.commercialUsername")
+        List<DailyCommercialReport> findAggregatedByDateBetweenAndCommercialUsername(
+                        @Param("commercialUsername") String commercialUsername,
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate);
+
+        @Query("""
+                        SELECT DISTINCT d.commercialUsername FROM DailyCommercialReport d
+                        WHERE d.date BETWEEN :startDate AND :endDate
+                          AND d.commercialUsername IS NOT NULL
+                        """)
+        List<String> findDistinctCommercialsBetween(@Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate);
+
+        @Query("""
+                        SELECT COALESCE(SUM(d.totalTontineAmountDeposited), 0)
+                        FROM DailyCommercialReport d
+                        WHERE UPPER(d.commercialUsername) = UPPER(:commercialUsername)
+                          AND d.date BETWEEN :startDate AND :endDate
+                        """)
+        Double sumTontineDepositedByCommercialAndDateBetween(
+                        @Param("commercialUsername") String commercialUsername,
+                        @Param("startDate") LocalDate startDate,
+                        @Param("endDate") LocalDate endDate);
+}

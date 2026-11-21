@@ -2,7 +2,7 @@ package com.optimize.elykia.core.controller.report;
 
 import com.lowagie.text.DocumentException;
 import com.optimize.common.entities.util.DateUtils;
-import com.optimize.elykia.core.service.accounting.AccountingDayService;
+import com.optimize.elykia.finance.application.AccountingDayService;
 import com.optimize.elykia.core.service.report.PdfService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

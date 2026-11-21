@@ -1,5 +1,6 @@
 package com.optimize.elykia.core.service.report.monthly;
 
+import com.optimize.elykia.finance.application.MonthlyReportStorageService;
 import com.optimize.elykia.client.storage.MinioProperties;
 import com.optimize.elykia.client.storage.MinioStorageService;
 import org.junit.jupiter.api.Test;

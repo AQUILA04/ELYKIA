@@ -11,7 +11,7 @@ import com.optimize.elykia.core.enumaration.TontineCollectionResetRunStatus;
 import com.optimize.elykia.core.enumaration.TontineSessionStatus;
 import com.optimize.elykia.core.repository.*;
 import com.optimize.elykia.core.service.report.DailyTontineReportReconciler;
-import com.optimize.elykia.core.service.report.monthly.MonthlyReportStorageService;
+import com.optimize.elykia.finance.application.MonthlyReportStorageService;
 import com.optimize.common.securities.security.services.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

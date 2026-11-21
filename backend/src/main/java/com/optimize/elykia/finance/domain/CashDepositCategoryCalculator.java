@@ -1,0 +1,133 @@
+package com.optimize.elykia.finance.domain;
+
+
+public final class CashDepositCategoryCalculator {
+
+    private CashDepositCategoryCalculator() {
+    }
+
+    public static double creditToDeposit(DailyCommercialReport report) {
+        if (report == null) {
+            return 0.0;
+        }
+        return safe(report.getTotalAdvancesAmount())
+                + safe(report.getCollectionsAmount())
+                + safe(report.getTotalReliquatGeneratedAmount())
+                - safe(report.getTotalReliquatUsedAmount());
+    }
+
+    public static double tontineToDeposit(DailyCommercialReport report) {
+        if (report == null) {
+            return 0.0;
+        }
+        return safe(report.getTontineCollectionsAmount());
+    }
+
+    public static double newBalanceToDeposit(DailyCommercialReport report) {
+        if (report == null) {
+            return 0.0;
+        }
+        return safe(report.getNewAccountsBalance());
+    }
+
+    public static double remainingCredit(DailyCommercialReport report) {
+        return Math.max(0.0, creditToDeposit(report) - safeDeposited(report.getTotalCreditAmountDeposited()));
+    }
+
+    public static double remainingTontine(DailyCommercialReport report) {
+        return Math.max(0.0, tontineToDeposit(report) - safeDeposited(report.getTotalTontineAmountDeposited()));
+    }
+
+    public static double remainingNewBalance(DailyCommercialReport report) {
+        return Math.max(0.0, newBalanceToDeposit(report) - safeDeposited(report.getTotalNewBalanceAmountDeposited()));
+    }
+
+    public static double totalRemaining(DailyCommercialReport report) {
+        return remainingCredit(report) + remainingTontine(report) + remainingNewBalance(report);
+    }
+
+    /** Manquants de période sur totaux déjà agrégés (ne pas sommer les max jour par jour). */
+    public static double periodRemainingCredit(double creditToDeposit, double creditDeposited) {
+        return Math.max(0.0, creditToDeposit - safeDeposited(creditDeposited));
+    }
+
+    public static double periodRemainingTontine(double tontineToDeposit, double tontineDeposited) {
+        return Math.max(0.0, tontineToDeposit - safeDeposited(tontineDeposited));
+    }
+
+    public static double periodRemainingNewBalance(double newBalanceToDeposit, double newBalanceDeposited) {
+        return Math.max(0.0, newBalanceToDeposit - safeDeposited(newBalanceDeposited));
+    }
+
+    public static void validateCategorySplit(Double amount, Double creditAmount, Double tontineAmount,
+            Double newBalanceAmount, Double surplusAmount) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("Le montant total du versement doit être supérieur à 0.");
+        }
+        double credit = safe(creditAmount);
+        double tontine = safe(tontineAmount);
+        double newBalance = safe(newBalanceAmount);
+        double surplus = safe(surplusAmount);
+        if (credit < 0 || tontine < 0 || newBalance < 0 || surplus < 0) {
+            throw new IllegalArgumentException("Les montants par catégorie ne peuvent pas être négatifs.");
+        }
+        double sum = credit + tontine + newBalance + surplus;
+        if (Math.abs(sum - amount) > 0.01) {
+            throw new IllegalArgumentException(
+                    "La somme des catégories et du surplus doit être égale au montant total du versement.");
+        }
+    }
+
+    /** Règle avec rattrapage explicite : crédit + tontine + solde Nx + rattrapage + surplus = montant. */
+    public static void validateCategorySplit(Double amount, Double creditAmount, Double tontineAmount,
+            Double newBalanceAmount, Double surplusAmount, Double catchupAmount) {
+        double catchup = safe(catchupAmount);
+        if (catchup < 0) {
+            throw new IllegalArgumentException("Le rattrapage ne peut pas être négatif.");
+        }
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("Le montant total du versement doit être supérieur à 0.");
+        }
+        checkSplitWithCatchup(amount - catchup, creditAmount, tontineAmount, newBalanceAmount, surplusAmount);
+    }
+
+    private static void checkSplitWithCatchup(double rest, Double creditAmount, Double tontineAmount,
+            Double newBalanceAmount, Double surplusAmount) {
+        double credit = safe(creditAmount);
+        double tontine = safe(tontineAmount);
+        double newBalance = safe(newBalanceAmount);
+        double surplus = safe(surplusAmount);
+        if (credit < 0 || tontine < 0 || newBalance < 0 || surplus < 0) {
+            throw new IllegalArgumentException("Les montants par catégorie ne peuvent pas être négatifs.");
+        }
+        if (Math.abs(credit + tontine + newBalance + surplus - rest) > 0.01) {
+            throw new IllegalArgumentException(
+                    "La somme des catégories, du rattrapage et du surplus doit être égale au montant total du versement.");
+        }
+    }
+
+    public static void validateCategorySplit(Double amount, Double creditAmount, Double tontineAmount,
+            Double newBalanceAmount) {
+        validateCategorySplit(amount, creditAmount, tontineAmount, newBalanceAmount, 0.0);
+    }
+
+    public static void normalizeLegacyAmounts(com.optimize.elykia.finance.domain.CashDeposit deposit) {
+        if (deposit.getCreditAmount() == null && deposit.getTontineAmount() == null
+                && deposit.getNewBalanceAmount() == null) {
+            deposit.setCreditAmount(deposit.getAmount());
+            deposit.setTontineAmount(0.0);
+            deposit.setNewBalanceAmount(0.0);
+        }
+        if (deposit.getSurplusAmount() == null) {
+            deposit.setSurplusAmount(0.0);
+        }
+    }
+
+    private static double safe(Double value) {
+        return value != null ? value : 0.0;
+    }
+
+    private static double safeDeposited(Double value) {
+        return value != null ? value : 0.0;
+    }
+}

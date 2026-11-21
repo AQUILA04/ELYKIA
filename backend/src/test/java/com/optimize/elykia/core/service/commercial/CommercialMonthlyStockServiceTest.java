@@ -7,7 +7,7 @@ import com.optimize.elykia.core.enumaration.StockStatus;
 import com.optimize.elykia.core.enumaration.DebtStatus;
 import com.optimize.elykia.core.enumaration.DebtType;
 import com.optimize.elykia.inventory.infrastructure.persistence.ArticlesRepository;
-import com.optimize.elykia.core.repository.CashDepositRepository;
+import com.optimize.elykia.finance.infrastructure.persistence.CashDepositRepository;
 import com.optimize.elykia.core.repository.CommercialMonthlyStockRepository;
 import com.optimize.elykia.core.repository.DebtDocumentRepository;
 import com.optimize.elykia.core.service.stock.CommercialMonthlyStockRecoveryService;

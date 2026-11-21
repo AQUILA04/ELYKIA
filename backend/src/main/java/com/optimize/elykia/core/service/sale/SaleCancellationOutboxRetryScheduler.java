@@ -3,7 +3,7 @@ package com.optimize.elykia.core.service.sale;
 import com.optimize.elykia.core.entity.sale.SaleCancellationOutboxEntry;
 import com.optimize.elykia.core.enumaration.MonthlyReportOutboxStatus;
 import com.optimize.elykia.core.repository.SaleCancellationOutboxEntryRepository;
-import com.optimize.elykia.core.service.report.monthly.MonthlyReportStorageService;
+import com.optimize.elykia.finance.application.MonthlyReportStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

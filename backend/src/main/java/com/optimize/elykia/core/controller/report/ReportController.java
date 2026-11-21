@@ -2,7 +2,7 @@ package com.optimize.elykia.core.controller.report;
 
 import com.optimize.common.entities.util.Response;
 import com.optimize.common.entities.util.ResponseUtil;
-import com.optimize.elykia.core.enumaration.PeriodState;
+import com.optimize.elykia.finance.domain.PeriodState;
 import com.optimize.elykia.core.service.report.ReportService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;

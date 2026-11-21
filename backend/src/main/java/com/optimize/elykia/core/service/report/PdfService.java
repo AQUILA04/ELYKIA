@@ -18,7 +18,7 @@ import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.inventory.application.InventoryService;
 import com.optimize.elykia.inventory.application.StockReceptionService;
 import com.optimize.elykia.core.service.order.OrderService;
-import com.optimize.elykia.core.service.accounting.AccountingDayService;
+import com.optimize.elykia.finance.application.AccountingDayService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

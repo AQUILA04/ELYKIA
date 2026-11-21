@@ -1,13 +1,14 @@
 package com.optimize.elykia.core.service.report;
 
 import com.optimize.common.entities.enums.State;
-import com.optimize.elykia.core.dto.report.CommercialYearlySummaryDto;
+import com.optimize.elykia.finance.web.dto.CommercialYearlySummaryDto;
 import com.optimize.elykia.shared.domain.OperationType;
-import com.optimize.elykia.core.repository.CommercialReportMonthlyRepository;
+import com.optimize.elykia.finance.infrastructure.persistence.CommercialReportMonthlyRepository;
 import com.optimize.elykia.core.repository.CreditCollectorHistoryRepository;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.service.debt.DebtService;
+import com.optimize.elykia.finance.api.CommercialYearlyPortfolioPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +23,7 @@ import java.util.List;
  */
 @Service
 @RequiredArgsConstructor
-public class CommercialYearlyPortfolioService {
+public class CommercialYearlyPortfolioService implements CommercialYearlyPortfolioPort {
 
     private final CommercialReportMonthlyRepository monthlyRepository;
     private final CreditRepository creditRepository;

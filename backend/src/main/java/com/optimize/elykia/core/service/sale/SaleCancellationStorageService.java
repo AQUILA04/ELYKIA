@@ -7,7 +7,7 @@ import com.optimize.elykia.core.enumaration.MonthlyReportOutboxStatus;
 import com.optimize.elykia.core.enumaration.SaleCancellationFileType;
 import com.optimize.elykia.core.repository.SaleCancellationFileRepository;
 import com.optimize.elykia.core.repository.SaleCancellationOutboxEntryRepository;
-import com.optimize.elykia.core.service.report.monthly.MonthlyReportStorageService;
+import com.optimize.elykia.finance.application.MonthlyReportStorageService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

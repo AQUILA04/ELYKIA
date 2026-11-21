@@ -27,7 +27,7 @@ import com.optimize.elykia.core.service.stock.CommercialStockMovementService;
 import com.optimize.elykia.core.enumaration.CommercialStockMovementType;
 import com.optimize.elykia.core.service.adhesion.AdhesionService;
 import com.optimize.elykia.inventory.application.ArticlesService;
-import com.optimize.elykia.core.service.accounting.DailyAccountancyService;
+import com.optimize.elykia.finance.application.DailyAccountancyService;
 import com.optimize.elykia.core.service.bi.BiAggregationService;
 import com.optimize.elykia.inventory.application.StockMovementService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;

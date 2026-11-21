@@ -1,0 +1,175 @@
+package com.optimize.elykia.finance.infrastructure.persistence;
+
+import com.optimize.common.entities.repository.GenericRepository;
+import com.optimize.elykia.finance.domain.CashDeposit;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.time.LocalDate;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+@Repository
+public interface CashDepositRepository extends GenericRepository<CashDeposit, Long> {
+    Page<CashDeposit> findByDateAndCommercialUsername(LocalDate date, String commercialUsername, Pageable pageable);
+
+    Page<CashDeposit> findByDateBetweenAndCommercialUsername(LocalDate startDate, LocalDate endDate,
+            String commercialUsername, Pageable pageable);
+
+    Page<CashDeposit> findByDateBetween(LocalDate startDate, LocalDate endDate, Pageable pageable);
+
+    boolean existsByReference(String reference);
+
+    Optional<CashDeposit> findByReference(String reference);
+
+    List<CashDeposit> findByDepositGroupIdOrderByDateAscIdAsc(String depositGroupId);
+
+    List<CashDeposit> findByDepositGroupIdIn(Collection<String> depositGroupIds);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT COALESCE(SUM(COALESCE(cd.creditAmount, cd.amount)), 0)
+            FROM CashDeposit cd
+            WHERE cd.commercialUsername = :collector
+              AND cd.date >= :start
+              AND cd.date <= :end
+              AND cd.amount > 0
+            """)
+    double sumCreditDepositsForPeriod(
+            @org.springframework.data.repository.query.Param("collector") String collector,
+            @org.springframework.data.repository.query.Param("start") LocalDate start,
+            @org.springframework.data.repository.query.Param("end") LocalDate end);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT COALESCE(SUM(cd.amount), 0),
+                   COALESCE(SUM(COALESCE(cd.creditAmount, cd.amount)), 0),
+                   COALESCE(SUM(COALESCE(cd.tontineAmount, 0)), 0),
+                   COALESCE(SUM(COALESCE(cd.newBalanceAmount, 0)), 0)
+            FROM CashDeposit cd
+            WHERE cd.date >= :start
+              AND cd.date <= :end
+              AND cd.amount > 0
+            """)
+    java.util.List<Object[]> sumDepositsByPeriod(
+            @org.springframework.data.repository.query.Param("start") LocalDate start,
+            @org.springframework.data.repository.query.Param("end") LocalDate end);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT COALESCE(SUM(cd.amount), 0),
+                   COALESCE(SUM(COALESCE(cd.creditAmount, cd.amount)), 0),
+                   COALESCE(SUM(COALESCE(cd.tontineAmount, 0)), 0),
+                   COALESCE(SUM(COALESCE(cd.newBalanceAmount, 0)), 0)
+            FROM CashDeposit cd
+            WHERE cd.date >= :start
+              AND cd.date <= :end
+              AND cd.amount > 0
+              AND cd.remittance IS NULL
+            """)
+    java.util.List<Object[]> sumUnremittedDepositsByPeriod(
+            @org.springframework.data.repository.query.Param("start") LocalDate start,
+            @org.springframework.data.repository.query.Param("end") LocalDate end);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT cd FROM CashDeposit cd
+            WHERE cd.date >= :start
+              AND cd.date <= :end
+              AND cd.amount > 0
+              AND cd.remittance IS NULL
+            """)
+    List<CashDeposit> findUnremittedDepositsByPeriod(
+            @org.springframework.data.repository.query.Param("start") LocalDate start,
+            @org.springframework.data.repository.query.Param("end") LocalDate end);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT cd FROM CashDeposit cd
+            JOIN FETCH cd.remittance r
+            WHERE r.id IN :remittanceIds
+            ORDER BY r.id ASC, cd.commercialUsername ASC, cd.date ASC, cd.id ASC
+            """)
+    List<CashDeposit> findByRemittanceIdInOrderByRemittanceIdAscCommercialUsernameAscDateAscIdAsc(
+            @org.springframework.data.repository.query.Param("remittanceIds") Collection<Long> remittanceIds);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT cd FROM CashDeposit cd
+            LEFT JOIN FETCH cd.remittance
+            LEFT JOIN FETCH cd.dailyReport
+            WHERE UPPER(cd.commercialUsername) = UPPER(:commercialUsername)
+              AND cd.date >= :start
+              AND cd.date <= :end
+              AND cd.amount > 0
+              AND COALESCE(cd.surplusAmount, 0) > 0
+            ORDER BY cd.date ASC, cd.id ASC
+            """)
+    List<CashDeposit> findSurplusDepositsForPeriod(
+            @org.springframework.data.repository.query.Param("commercialUsername") String commercialUsername,
+            @org.springframework.data.repository.query.Param("start") LocalDate start,
+            @org.springframework.data.repository.query.Param("end") LocalDate end);
+
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT cd FROM CashDeposit cd
+            WHERE cd.remittance.id = :remittanceId
+              AND cd.amount > 0
+            """)
+    List<CashDeposit> findPositiveByRemittanceId(
+            @org.springframework.data.repository.query.Param("remittanceId") Long remittanceId);
+
+    /**
+     * Lignes de rattrapage (versement fils) dont la date d'encaissement et la date
+     * de cotisation ne sont pas dans la même période. Le signe est appliqué ensuite :
+     * encaissé dans la période pour une cotisation hors période, ou l'inverse.
+     */
+    @org.springframework.data.jpa.repository.Query("""
+            SELECT cd FROM CashDeposit cd
+            WHERE cd.parentDeposit IS NOT NULL
+              AND cd.captureDate IS NOT NULL
+              AND (
+                    (cd.captureDate >= :start AND cd.captureDate <= :end
+                        AND (cd.date < :start OR cd.date > :end))
+                 OR (cd.date >= :start AND cd.date <= :end
+                        AND (cd.captureDate < :start OR cd.captureDate > :end))
+              )
+            """)
+    List<CashDeposit> findCatchupLinesCrossingPeriod(
+            @org.springframework.data.repository.query.Param("start") LocalDate start,
+            @org.springframework.data.repository.query.Param("end") LocalDate end);
+
+    Page<CashDeposit> findByDateBetweenAndSurplusAmountGreaterThan(LocalDate startDate, LocalDate endDate,
+            Double surplusAmount, Pageable pageable);
+
+    Page<CashDeposit> findByDateBetweenAndCommercialUsernameAndSurplusAmountGreaterThan(LocalDate startDate,
+            LocalDate endDate, String commercialUsername, Double surplusAmount, Pageable pageable);
+
+    /**
+     * Totaux des versements d'une période (lignes datées dans la période, annulations comprises).
+     * Ligne : versements (hors lignes de rattrapage), montant, crédit, tontine, solde Nx, surplus.
+     */
+    @Query("""
+            SELECT COALESCE(SUM(CASE WHEN d.parentDeposit IS NULL AND d.amount > 0 THEN 1 ELSE 0 END), 0),
+                   COALESCE(SUM(d.amount), 0),
+                   COALESCE(SUM(d.creditAmount), 0),
+                   COALESCE(SUM(d.tontineAmount), 0),
+                   COALESCE(SUM(d.newBalanceAmount), 0),
+                   COALESCE(SUM(d.surplusAmount), 0)
+            FROM CashDeposit d
+            WHERE d.date BETWEEN :startDate AND :endDate
+            """)
+    List<Object[]> sumTotals(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
+
+    @Query("""
+            SELECT COALESCE(SUM(CASE WHEN d.parentDeposit IS NULL AND d.amount > 0 THEN 1 ELSE 0 END), 0),
+                   COALESCE(SUM(d.amount), 0),
+                   COALESCE(SUM(d.creditAmount), 0),
+                   COALESCE(SUM(d.tontineAmount), 0),
+                   COALESCE(SUM(d.newBalanceAmount), 0),
+                   COALESCE(SUM(d.surplusAmount), 0)
+            FROM CashDeposit d
+            WHERE d.date BETWEEN :startDate AND :endDate
+              AND d.commercialUsername = :commercialUsername
+            """)
+    List<Object[]> sumTotalsForCommercial(@Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("commercialUsername") String commercialUsername);
+}

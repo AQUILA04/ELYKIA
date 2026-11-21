@@ -7,7 +7,7 @@ import com.optimize.elykia.core.dto.ItemReleaseSheetDto;
 import com.optimize.elykia.core.dto.PrintOperationDto;
 import com.optimize.elykia.inventory.web.dto.StockReceptionDto;
 import com.optimize.elykia.inventory.web.dto.StockReceptionsDailyPdfDto;
-import com.optimize.elykia.core.service.accounting.AccountingDayService;
+import com.optimize.elykia.finance.application.AccountingDayService;
 import com.optimize.elykia.core.service.order.OrderService;
 import com.optimize.elykia.core.service.sale.CreditService;
 import com.optimize.elykia.inventory.application.StockReceptionService;

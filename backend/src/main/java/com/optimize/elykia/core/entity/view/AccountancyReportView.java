@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.entity.view;
 
 import com.optimize.common.entities.enums.State;
-import com.optimize.elykia.core.enumaration.AccountancyStatus;
+import com.optimize.elykia.finance.domain.AccountancyStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

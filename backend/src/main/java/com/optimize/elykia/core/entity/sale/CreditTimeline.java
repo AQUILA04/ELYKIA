@@ -2,7 +2,7 @@ package com.optimize.elykia.core.entity.sale;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.optimize.common.entities.entity.BaseEntity;
-import com.optimize.elykia.core.entity.accounting.DailyAccountancy;
+import com.optimize.elykia.finance.domain.DailyAccountancy;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;

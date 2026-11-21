@@ -1,13 +1,13 @@
 package com.optimize.elykia.core.listener;
 
 import com.optimize.elykia.notification.api.AppNotificationFacade;
-import com.optimize.elykia.core.entity.report.DailyCommercialReport;
+import com.optimize.elykia.finance.domain.DailyCommercialReport;
 import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.event.CreditCollectionCancelledEvent;
 import com.optimize.elykia.core.event.CreditCollectionEvent;
-import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
-import com.optimize.elykia.core.service.report.DailyCommercialReportPersistence;
-import com.optimize.elykia.core.service.report.DailyOperationService;
+import com.optimize.elykia.finance.infrastructure.persistence.DailyCommercialReportRepository;
+import com.optimize.elykia.finance.application.DailyCommercialReportPersistence;
+import com.optimize.elykia.finance.application.DailyOperationService;
 import com.optimize.elykia.core.service.tontine.TontineCatchupNotificationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

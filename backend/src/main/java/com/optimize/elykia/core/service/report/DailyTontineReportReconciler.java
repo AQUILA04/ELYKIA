@@ -1,10 +1,11 @@
 package com.optimize.elykia.core.service.report;
 
+import com.optimize.elykia.finance.application.DailyCommercialReportPersistence;
 import com.optimize.common.entities.enums.State;
-import com.optimize.elykia.core.entity.report.DailyCommercialReport;
-import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
+import com.optimize.elykia.finance.domain.DailyCommercialReport;
+import com.optimize.elykia.finance.infrastructure.persistence.DailyCommercialReportRepository;
 import com.optimize.elykia.core.repository.TontineCollectionRepository;
-import com.optimize.elykia.core.util.CashDepositCategoryCalculator;
+import com.optimize.elykia.finance.domain.CashDepositCategoryCalculator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

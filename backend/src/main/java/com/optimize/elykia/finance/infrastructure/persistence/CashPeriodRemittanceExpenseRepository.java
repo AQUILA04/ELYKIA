@@ -1,0 +1,36 @@
+package com.optimize.elykia.finance.infrastructure.persistence;
+
+import com.optimize.elykia.finance.domain.CashPeriodRemittanceExpense;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+import java.util.Set;
+
+public interface CashPeriodRemittanceExpenseRepository extends JpaRepository<CashPeriodRemittanceExpense, Long> {
+
+    List<CashPeriodRemittanceExpense> findByRemittanceId(Long remittanceId);
+
+    void deleteByRemittanceId(Long remittanceId);
+
+    boolean existsByExpenseId(Long expenseId);
+
+    @Query("SELECT cre.expense.id FROM CashPeriodRemittanceExpense cre")
+    Set<Long> findAllLinkedExpenseIds();
+
+    @Query("SELECT cre.expense.id FROM CashPeriodRemittanceExpense cre WHERE cre.remittance.id = :remittanceId")
+    Set<Long> findExpenseIdsByRemittanceId(Long remittanceId);
+
+    @Query("""
+        SELECT cre.expense.id FROM CashPeriodRemittanceExpense cre
+        JOIN cre.remittance r WHERE r.status = com.optimize.elykia.finance.domain.RemittanceStatus.RECEIVED
+        AND cre.expense.id IN :expenseIds
+    """)
+    Set<Long> findReceivedExpenseIdsIn(Set<Long> expenseIds);
+
+    @Query("""
+        SELECT cre.expense.id FROM CashPeriodRemittanceExpense cre
+        WHERE cre.expense.id IN :expenseIds
+    """)
+    Set<Long> findLinkedExpenseIdsIn(Set<Long> expenseIds);
+}

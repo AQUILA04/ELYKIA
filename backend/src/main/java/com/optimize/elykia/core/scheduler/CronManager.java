@@ -1,7 +1,7 @@
 package com.optimize.elykia.core.scheduler;
 
 import com.optimize.elykia.core.repository.CreditRepository;
-import com.optimize.elykia.core.service.accounting.AccountingDayService;
+import com.optimize.elykia.finance.application.AccountingDayService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;

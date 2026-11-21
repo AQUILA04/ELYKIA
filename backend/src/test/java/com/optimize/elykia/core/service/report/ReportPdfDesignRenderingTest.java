@@ -1,11 +1,13 @@
 package com.optimize.elykia.core.service.report;
 
 
+import com.optimize.elykia.finance.application.DailyOperationService;
+import com.optimize.elykia.finance.application.DailyReportPdfServiceTest;
 import com.optimize.elykia.shared.pdf.PdfHtmlRenderer;
 import com.optimize.elykia.core.dto.report.RemainingAtClientsCreditDto;
-import com.optimize.elykia.core.entity.report.DailyOperationLog;
+import com.optimize.elykia.finance.domain.DailyOperationLog;
 import com.optimize.elykia.shared.domain.OperationType;
-import com.optimize.elykia.core.repository.DailyOperationLogRepository;
+import com.optimize.elykia.finance.infrastructure.persistence.DailyOperationLogRepository;
 import com.optimize.common.securities.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

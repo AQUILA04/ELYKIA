@@ -1,0 +1,87 @@
+package com.optimize.elykia.finance.application;
+
+import com.optimize.elykia.finance.api.CommercialYearlyPortfolioPort;
+import com.optimize.elykia.finance.web.dto.CommercialYearlySummaryDto;
+import com.optimize.elykia.finance.domain.CommercialReportMonthly;
+import com.optimize.elykia.finance.domain.DailyCommercialReport;
+import com.optimize.elykia.finance.infrastructure.persistence.CommercialReportMonthlyRepository;
+import com.optimize.elykia.finance.infrastructure.persistence.DailyCommercialReportRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class CommercialReportMonthlyService {
+
+    private final CommercialReportMonthlyRepository monthlyRepository;
+    private final DailyCommercialReportRepository dailyReportRepository;
+    private final CommercialYearlyPortfolioPort yearlyPortfolioService;
+
+    @Transactional
+    public void syncMonth(String commercialUsername, int year, int month) {
+        LocalDate start = LocalDate.of(year, month, 1);
+        LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
+
+        List<DailyCommercialReport> dailyReports = dailyReportRepository
+                .findByCommercialUsernameAndDateBetweenOrderByDateAsc(commercialUsername, start, end);
+
+        double creditSalesAmount = 0.0;
+        int creditSalesCount = 0;
+        double collectionsAmount = 0.0;
+        double totalAdvancesAmount = 0.0;
+        double totalCreditDeposited = 0.0;
+
+        for (DailyCommercialReport daily : dailyReports) {
+            creditSalesAmount += safe(daily.getCreditSalesAmount());
+            creditSalesCount += safeInt(daily.getCreditSalesCount());
+            collectionsAmount += safe(daily.getCollectionsAmount());
+            totalAdvancesAmount += safe(daily.getTotalAdvancesAmount());
+            totalCreditDeposited += safe(daily.getTotalCreditAmountDeposited());
+        }
+
+        CommercialReportMonthly monthly = monthlyRepository
+                .findByCommercialUsernameAndYearAndMonth(commercialUsername, year, month)
+                .orElseGet(() -> {
+                    CommercialReportMonthly created = new CommercialReportMonthly();
+                    created.setCommercialUsername(commercialUsername);
+                    created.setYear(year);
+                    created.setMonth(month);
+                    return created;
+                });
+
+        monthly.setCreditSalesAmount(creditSalesAmount);
+        monthly.setCreditSalesCount(creditSalesCount);
+        monthly.setCollectionsAmount(collectionsAmount);
+        monthly.setTotalAdvancesAmount(totalAdvancesAmount);
+        monthly.setTotalCreditAmountDeposited(totalCreditDeposited);
+        monthlyRepository.save(monthly);
+    }
+
+    @Transactional(readOnly = true)
+    public CommercialYearlySummaryDto getYearlySummary(String commercialUsername, int year) {
+        return yearlyPortfolioService.buildYearlySummary(commercialUsername, year);
+    }
+
+    @Transactional
+    public void syncFromDailyReport(DailyCommercialReport report) {
+        if (report == null || report.getCommercialUsername() == null || report.getDate() == null) {
+            return;
+        }
+        syncMonth(
+                report.getCommercialUsername(),
+                report.getDate().getYear(),
+                report.getDate().getMonthValue());
+    }
+
+    private static double safe(Double value) {
+        return value != null ? value : 0.0;
+    }
+
+    private static int safeInt(Integer value) {
+        return value != null ? value : 0;
+    }
+}

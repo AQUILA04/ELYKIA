@@ -1,10 +1,11 @@
 package com.optimize.elykia.core.service.report;
 
-import com.optimize.elykia.core.dto.report.CommercialYearlySummaryDto;
-import com.optimize.elykia.core.entity.report.CommercialReportMonthly;
-import com.optimize.elykia.core.entity.report.DailyCommercialReport;
-import com.optimize.elykia.core.repository.CommercialReportMonthlyRepository;
-import com.optimize.elykia.core.repository.DailyCommercialReportRepository;
+import com.optimize.elykia.finance.application.CommercialReportMonthlyService;
+import com.optimize.elykia.finance.web.dto.CommercialYearlySummaryDto;
+import com.optimize.elykia.finance.domain.CommercialReportMonthly;
+import com.optimize.elykia.finance.domain.DailyCommercialReport;
+import com.optimize.elykia.finance.infrastructure.persistence.CommercialReportMonthlyRepository;
+import com.optimize.elykia.finance.infrastructure.persistence.DailyCommercialReportRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

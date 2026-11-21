@@ -6,7 +6,7 @@ import com.optimize.elykia.core.entity.report.TontineCollectionResetRun;
 import com.optimize.elykia.core.enumaration.TontineCollectionResetRunStatus;
 import com.optimize.elykia.core.repository.TontineCollectionResetFileRepository;
 import com.optimize.elykia.core.repository.TontineCollectionResetRunRepository;
-import com.optimize.elykia.core.service.report.monthly.MonthlyReportStorageService;
+import com.optimize.elykia.finance.application.MonthlyReportStorageService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

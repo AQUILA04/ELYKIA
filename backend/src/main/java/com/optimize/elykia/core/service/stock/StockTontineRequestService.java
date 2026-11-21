@@ -27,7 +27,7 @@ import com.optimize.elykia.core.entity.tontine.TontineDelivery;
 import com.optimize.elykia.core.repository.StockTontineRequestRepository;
 import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.inventory.application.InventoryWarehouseGuard;
-import com.optimize.elykia.core.service.accounting.AccountingDayService;
+import com.optimize.elykia.finance.application.AccountingDayService;
 import com.optimize.elykia.core.service.tontine.TontineStockService;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
 import com.optimize.elykia.shared.security.UserProfilConstant;

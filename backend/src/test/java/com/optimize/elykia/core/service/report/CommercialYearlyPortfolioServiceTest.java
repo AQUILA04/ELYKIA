@@ -1,9 +1,9 @@
 package com.optimize.elykia.core.service.report;
 
 import com.optimize.common.entities.enums.State;
-import com.optimize.elykia.core.dto.report.CommercialYearlySummaryDto;
+import com.optimize.elykia.finance.web.dto.CommercialYearlySummaryDto;
 import com.optimize.elykia.shared.domain.OperationType;
-import com.optimize.elykia.core.repository.CommercialReportMonthlyRepository;
+import com.optimize.elykia.finance.infrastructure.persistence.CommercialReportMonthlyRepository;
 import com.optimize.elykia.core.repository.CreditCollectorHistoryRepository;
 import com.optimize.elykia.core.repository.CreditFieldControlRepository;
 import com.optimize.elykia.core.repository.CreditRepository;

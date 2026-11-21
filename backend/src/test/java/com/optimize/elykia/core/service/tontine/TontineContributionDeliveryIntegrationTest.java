@@ -37,7 +37,7 @@ import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.repository.TontineStockMovementRepository;
 import com.optimize.elykia.core.repository.TontineStockRepository;
-import com.optimize.elykia.core.service.accounting.AccountingDayService;
+import com.optimize.elykia.finance.application.AccountingDayService;
 import com.optimize.elykia.core.support.IntegrationTestSupport;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;

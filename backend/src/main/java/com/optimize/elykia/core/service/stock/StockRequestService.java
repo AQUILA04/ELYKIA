@@ -25,7 +25,7 @@ import com.optimize.elykia.core.repository.StockRequestRepository;
 import com.optimize.elykia.core.repository.StockReturnRepository;
 import com.optimize.elykia.inventory.application.ArticlesService;
 import com.optimize.elykia.inventory.application.InventoryWarehouseGuard;
-import com.optimize.elykia.core.service.accounting.AccountingDayService;
+import com.optimize.elykia.finance.application.AccountingDayService;
 import com.optimize.elykia.shared.security.UserPermissionConstant;
 import com.optimize.elykia.shared.security.UserProfilConstant;
 import lombok.extern.slf4j.Slf4j;

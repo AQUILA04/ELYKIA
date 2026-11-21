@@ -1,13 +1,14 @@
 package com.optimize.elykia.core.service.accounting;
 
+import com.optimize.elykia.finance.application.DailyAccountingService;
 import com.optimize.elykia.client.entity.Client;
 import com.optimize.elykia.client.enumeration.ClientType;
 import com.optimize.elykia.client.repository.ClientRepository;
 import com.optimize.elykia.core.dto.CollectorDailyStakeDto;
 import com.optimize.elykia.core.dto.DefaultDailyStakeUnitDto;
-import com.optimize.elykia.core.entity.accounting.DailyAccounting;
+import com.optimize.elykia.finance.domain.DailyAccounting;
 import com.optimize.elykia.core.entity.sale.Credit;
-import com.optimize.elykia.core.enumaration.AccountingDayStatus;
+import com.optimize.elykia.finance.domain.AccountingDayStatus;
 import com.optimize.elykia.core.enumaration.CreditStatus;
 import com.optimize.elykia.shared.domain.OperationType;
 import com.optimize.elykia.core.repository.CreditRepository;

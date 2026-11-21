@@ -15,7 +15,7 @@ import com.optimize.elykia.core.repository.TontineCollectionResetLineRepository;
 import com.optimize.elykia.core.repository.TontineCollectionResetMemberRepository;
 import com.optimize.elykia.core.repository.TontineCollectionResetReportDayRepository;
 import com.optimize.elykia.core.repository.TontineCollectionResetRunRepository;
-import com.optimize.elykia.core.service.report.monthly.MonthlyReportStorageService;
+import com.optimize.elykia.finance.application.MonthlyReportStorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
