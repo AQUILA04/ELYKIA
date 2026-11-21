@@ -48,8 +48,10 @@ describe('TontineDeliverySyncService', () => {
       'purgePhantomDeliveries',
       'saveAll',
       'replaceItems',
-      'deleteLocalTwin'
+      'deleteLocalTwin',
+      'setStatus'
     ]);
+    repository.setStatus.and.resolveTo();
     repository.saveAll.and.resolveTo();
     repository.replaceItems.and.resolveTo();
     repository.deleteLocalTwin.and.resolveTo();
@@ -158,6 +160,33 @@ describe('TontineDeliverySyncService', () => {
     expect(repository.deleteLocalTwin).toHaveBeenCalledWith('local-d1');
     // La ligne locale n'est pas renommée : une ligne 7001 peut déjà exister sur ce téléphone.
     expect(repository.markAsSynced).not.toHaveBeenCalled();
+  }));
+
+  it('takes the VALIDATED status when the server validates orders automatically', fakeAsync(() => {
+    const delivery = baseDelivery({ status: 'PENDING' });
+
+    service.syncSingle(delivery).then(() => undefined);
+    flushMicrotasks();
+    httpMock.expectOne(`${environment.apiUrl}/api/v1/tontines/deliveries`).flush({
+      data: { id: 9003, tontineMemberId: 42, status: 'VALIDATED', deliveryStatus: 'VALIDATED', totalAmount: 5000 }
+    });
+    flushMicrotasks();
+
+    expect(repository.markAsSynced).toHaveBeenCalledWith('local-d1', '9003');
+    expect(repository.setStatus).toHaveBeenCalledWith('9003', 'VALIDATED');
+  }));
+
+  it('keeps the order pending when the server leaves it pending', fakeAsync(() => {
+    const delivery = baseDelivery({ status: 'PENDING' });
+
+    service.syncSingle(delivery).then(() => undefined);
+    flushMicrotasks();
+    httpMock.expectOne(`${environment.apiUrl}/api/v1/tontines/deliveries`).flush({
+      data: { id: 9004, tontineMemberId: 42, status: 'PENDING', deliveryStatus: 'PENDING', totalAmount: 5000 }
+    });
+    flushMicrotasks();
+
+    expect(repository.setStatus).not.toHaveBeenCalled();
   }));
 
   it('sends the planned delivery date with the order', fakeAsync(() => {

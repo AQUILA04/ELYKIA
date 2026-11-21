@@ -297,6 +297,18 @@ Si un article en stock n'a pas de prix d'achat renseigné, l'activation est refu
 4. Choisissez **OUI** pour que chaque contrôle de carnet terrain marque le membre tontine comme vérifié, y compris hors connexion après actualisation du pack terrain.
 5. Laissez **NON** pour n’enregistrer que le contrôle. Le badge **Déjà contrôlé** s’affiche quand même, et le carnet reste à vérifier jusqu’à une action **Vérifier**.
 
+### Validation automatique des commandes tontine
+
+Le paramètre **TONTINE_ORDER_AUTO_VALIDATION** règle le statut d'une commande tontine au moment où elle est enregistrée, depuis le web ou depuis l'application mobile.
+
+1. Ouvrez **Configuration** → **Paramètres généraux**.
+2. Repérez **TONTINE_ORDER_AUTO_VALIDATION**.
+3. Cliquez sur **Modifier**.
+4. Passez la valeur à **true**, puis enregistrez : chaque commande créée passe directement au statut **Validée**. Il n'y a plus d'étape **Valider la Livraison**, ni de **Tout valider** sur la page des livraisons pour ces commandes. Une commande complétée depuis un autre téléphone reste aussi **Validée**.
+5. Laissez **false** (valeur de départ) pour garder la validation par le gestionnaire : une commande saisie par un commercial reste **En attente**. Une commande que vous saisissez vous-même est toujours validée directement.
+
+Une commande enregistrée hors ligne prend son statut au moment de la synchronisation du téléphone.
+
 ### Prix unitaires sur les documents
 
 Trois paramètres règlent l’affichage du prix unitaire et du montant de chaque ligne. Le montant total du document reste toujours affiché, y compris sur les PDF.

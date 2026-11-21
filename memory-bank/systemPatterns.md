@@ -30,6 +30,14 @@ Couches sous `com.optimize.elykia.core` : `controller`, `service`, `repository`,
 - OTP espace client : client HTTP local `notificationhub/` (contournement historique). Nouvelle intégration : starter `sb-notification-hub-starter`, pas d’extension de ce client. Voir la règle `notification-hub-starter-first`.
 - Préfixes HTTP **mélangés** : `/api/...` et `/api/v1/...` selon les contrôleurs. Traefik expose le backend sous le préfixe public `/api` et en retire un segment.
 
+### Paramètres applicatifs (table `parameter`)
+
+- Déclaration : `app.security.parameter.init-data[n]` (`key`, `value`, `description`) dans `backend/src/main/resources/application.yml`, et dans `backend/src/test/resources/application.yml` pour les tests. Pas de migration Flyway.
+- Amorçage : `ParameterInitializer` (`backend-lib/common-securities`) insère au démarrage **seulement les clés absentes**. Changer `value` dans le yml ne modifie pas une base déjà en service : la valeur se règle dans **Configuration > Paramètres généraux** (`frontend/src/app/parameters`).
+- Lecture : backend `ParameterService.isEnabled(clé)` (booléen, `false` si la clé manque), `getValue(clé)`, `lockAndIsEnabled` pour une activation sous verrou. Web et mobile : `GET /api/parameters/enabled/{clé}` (mobile : cache, relu à l'accueil et au plus toutes les 6 h ; ex. `UnitPriceVisibilityService`).
+- Exemples : `RESTRICT_*_UNIT_PRICE_VISIBILITY` (`UnitPriceVisibility`), `DUAL_CREDIT_AUTHORIZATION`, `ENABLED_FIFO_STOCK_VALUATION`, `TONTINE_AUTO_VERIFY_ON_FIELD_CONTROL`, `TONTINE_ORDER_AUTO_VALIDATION` (`TontineDeliveryService.AUTO_VALIDATION_PARAMETER`).
+- Un nouveau paramètre : constante de clé côté code, entrée `init-data` (index suivant) dans les deux yml, test du comportement activé et désactivé, page **Paramètres généraux** du guide gestionnaire.
+
 ## Frontend admin
 
 Modules métier sous `frontend/src/app/` (crédit, stock, tontine, caisse, commandes, BI, IA, commerciaux, dettes, dépenses, inventaire, etc.). Routes récentes en `loadChildren` ; des écrans restent eager (localités, gestion, dépôts). Toute modification d’un domaine encore eager doit le passer en lazy-loading dans la même tâche (règle `frontend-lazy-loading-migration`).

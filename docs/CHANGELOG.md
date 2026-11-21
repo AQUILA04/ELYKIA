@@ -15,6 +15,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Guide utilisateur —** web : date de livraison prévue à la préparation de la livraison, colonne **Prévue le** et PDF **Membres à livrer le** sur la page Livraison. Mobile : date prévue dans la confirmation de commande, sur le reçu et la fiche. Index RAG et guide HTML régénérés.
 
+## Docs & Infra — 2026-11-21 (validation automatique des commandes tontine)
+
+### Changed
+
+- **Guide utilisateur (gestionnaire) —** « Validation automatique des commandes tontine » dans les paramètres généraux. Index RAG et guide HTML régénérés.
+- **Memory-bank —** `systemPatterns.md` décrit le mécanisme des paramètres applicatifs (`init-data`, amorçage des seules clés absentes, lecture `ParameterService` / `/api/parameters/enabled/{clé}`, ajout d'un paramètre).
 ## Docs & Infra — 2026-11-21 (livraison tontine avec récapitulatif)
 
 ### Changed
@@ -543,6 +549,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Tontine — date de livraison prévue →** champ date facultatif dans la confirmation **Confirmer la commande** ; la date est enregistrée (SQLite v39, colonne `plannedDeliveryDate`), envoyée à la synchronisation, reprise des chargements depuis le serveur, et affichée sur la fiche membre et le reçu de commande (aperçu et ticket).
 
+## Mobile — [2.45.0] — 2026-11-21
+
+### Changed
+
+- **Tontine — synchronisation des commandes →** une commande saisie hors ligne prend le statut **Validée** quand le serveur la valide à la création (paramètre `TONTINE_ORDER_AUTO_VALIDATION`) ; avant, elle restait affichée « Commande » jusqu'au prochain chargement des membres (`TontineDeliveryRepository.setStatus`).
 ## Mobile — [2.44.0] — 2026-11-21
 
 ### Changed
@@ -794,6 +805,11 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - **Tontine — date de livraison planifiée →** colonne `tontine_delivery.planned_delivery_date` (migration `V045`, index partiel) ; champ facultatif `plannedDeliveryDate` à la création (`CreateDeliveryDto`), exposé par `TontineDeliveryDto`, `TontineDeliveryListDto` et `TontineDeliveryRespDto` (chargements mobiles). Une commande complétée par une seconde saisie prend la date de celle-ci si la première n'en avait pas. Le reçu PDF affiche « Livraison prévue le ».
 - **PDF des membres à livrer →** `GET /api/v1/tontines/deliveries/planned/pdf?date=AAAA-MM-JJ&commercial=` (`TontinePlannedDeliveriesPdfService`, gabarit `tontine-planned-deliveries.html` au design system des rapports) : commandes en attente ou validées prévues ce jour-là, sans les membres déjà livrés, triées par commercial, quartier et nom, avec articles, montant, solde net, reste à payer et case « Remis ». Un commercial ne reçoit que ses commandes.
+## Backend — [1.60.0] — 2026-11-21
+
+### Added
+
+- **Tontine — validation automatique des commandes →** paramètre applicatif `TONTINE_ORDER_AUTO_VALIDATION` (`app.security.parameter.init-data[14]`, défaut `false`). Activé, toute commande tontine créée (web ou mobile) ou complétée par une seconde saisie passe directement en **VALIDATED** au lieu de **PENDING**. La saisie par un gestionnaire ou un administrateur reste validée dans tous les cas (`TontineDeliveryService.validatesOnCreation`).
 
 ## Backend — [1.59.0] — 2026-11-20
 

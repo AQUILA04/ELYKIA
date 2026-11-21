@@ -80,6 +80,8 @@ class TontineDeliveryServiceTest {
     private TontineProjectedBalanceCalculator projectedBalanceCalculator;
     @Mock
     private TontineDeliveryConflictService conflictService;
+    @Mock
+    private com.optimize.common.securities.service.ParameterService parameterService;
 
     @InjectMocks
     private TontineDeliveryService tontineDeliveryService;
@@ -162,6 +164,54 @@ class TontineDeliveryServiceTest {
         verifyNoMoreInteractions(creditService);
         verify(deliveryRepository, times(1)).save(any(TontineDelivery.class));
         assertEquals(TontineMemberDeliveryStatus.PENDING, mockMember.getDeliveryStatus());
+    }
+
+    @Test
+    void createDelivery_validatesTheOrderDirectlyWhenAutoValidationIsEnabled() {
+        givenRegularUser();
+        when(parameterService.isEnabled(TontineDeliveryService.AUTO_VALIDATION_PARAMETER)).thenReturn(true);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        when(deliveryReferenceService.resolveReference(any(), any())).thenReturn("TNT-AUTO");
+        when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TontineDeliveryDto result = tontineDeliveryService.createDelivery(createDeliveryDto);
+
+        assertEquals(TontineMemberDeliveryStatus.VALIDATED, result.getDeliveryStatus());
+        assertEquals(TontineMemberDeliveryStatus.VALIDATED, mockMember.getDeliveryStatus());
+        verifyNoInteractions(creditService);
+    }
+
+    @Test
+    void createDelivery_keepsTheOrderPendingWhenAutoValidationIsDisabled() {
+        givenRegularUser();
+        when(parameterService.isEnabled(TontineDeliveryService.AUTO_VALIDATION_PARAMETER)).thenReturn(false);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        when(deliveryReferenceService.resolveReference(any(), any())).thenReturn("TNT-PEND");
+        when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TontineDeliveryDto result = tontineDeliveryService.createDelivery(createDeliveryDto);
+
+        assertEquals(TontineMemberDeliveryStatus.PENDING, result.getDeliveryStatus());
+    }
+
+    @Test
+    void createDelivery_keepsAMergedOrderValidatedWhenAutoValidationIsEnabled() {
+        TontineDelivery current = existingDelivery(20L, "LIV-A", 30_000.0);
+        mockMember.setDeliveryStatus(TontineMemberDeliveryStatus.VALIDATED);
+        when(projectedBalanceCalculator.project(any())).thenReturn(100_000d);
+        givenRegularUser();
+        when(parameterService.isEnabled(TontineDeliveryService.AUTO_VALIDATION_PARAMETER)).thenReturn(true);
+        when(memberRepository.findById(1L)).thenReturn(Optional.of(mockMember));
+        when(deliveryRepository.findByTontineMemberId(1L)).thenReturn(Optional.of(current));
+        when(articlesRepository.findById(1L)).thenReturn(Optional.of(mockArticle));
+        when(deliveryRepository.save(any(TontineDelivery.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        createDeliveryDto.setReference("LIV-B");
+
+        tontineDeliveryService.createDelivery(createDeliveryDto);
+
+        assertEquals(TontineMemberDeliveryStatus.VALIDATED, mockMember.getDeliveryStatus());
     }
 
     @Test
