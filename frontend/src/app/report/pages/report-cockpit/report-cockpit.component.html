@@ -28,8 +28,8 @@
                 </a>
                 <a class="btn-ghost" *ngIf="canRemit" [routerLink]="['/report/daily/remittance']"
                     data-testid="e2e-report-cockpit-remittance-link">Remise au gestionnaire</a>
-                <a class="btn-ghost" *ngIf="canSeeRecovery" [routerLink]="['/report/daily/classic']"
-                    [queryParams]="{ tab: 'recovery' }">Recouvrement terrain</a>
+                <a class="btn-ghost" *ngIf="canSeeRecovery" [routerLink]="['/report/daily/recovery']"
+                    [queryParams]="filtersParams" data-testid="e2e-report-cockpit-recovery-link">Recouvrement terrain</a>
                 <button type="button" class="btn-ghost" data-tour="help" data-testid="e2e-report-cockpit-tour"
                     (click)="startTour()">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3" /><path d="M12 17h.01" /></svg>

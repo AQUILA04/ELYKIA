@@ -56,7 +56,7 @@ Le bouton **Remise au gestionnaire**, en haut du cockpit, ouvre l'écran de remi
 * La liste est horodatée et paginée ; **Exporter en PDF** reprend la période, le commercial et le type choisis.
 
 #### Revenir à l'ancienne présentation
-Le lien **Ancienne présentation**, en haut du cockpit et de la fiche, ouvre l'écran en onglets décrit ci-dessous, sur la même période et le même commercial. Un bandeau en haut de l'ancienne présentation permet de revenir à la nouvelle. **Recouvrement terrain** ouvre directement l'onglet Recouvrement. Un chef de recouvrement sans indicateurs financiers arrive directement sur cet onglet.
+Le lien **Ancienne présentation**, en haut du cockpit et de la fiche, ouvre l'écran en onglets décrit ci-dessous, sur la même période et le même commercial. Un bandeau en haut de l'ancienne présentation permet de revenir à la nouvelle. **Recouvrement terrain** ouvre l'écran de recouvrement de la nouvelle présentation (taux du mois, montant recouvré, à remettre par commercial, détail des opérations, choix du chef de recouvrement, export PDF), sur la même période. Un chef de recouvrement sans indicateurs financiers arrive directement sur cet écran. Détail : guide [Chef de recouvrement — application web](../recovery-manager/web.md).
 
 | Ancienne tuile | Où la trouver |
 |---|---|
