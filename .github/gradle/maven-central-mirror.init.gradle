@@ -1,0 +1,25 @@
+// Script d'initialisation Gradle utilisé en CI (copié dans ~/.gradle/init.d par
+// .github/actions/setup-gradle-resilient). Le dossier android/ est généré par
+// `cap add android` : on ne modifie pas ses build.gradle.
+//
+// Le miroir Google de Maven Central est déclaré AVANT les dépôts du projet
+// (google(), mavenCentral()) : la plupart des dépendances viennent alors du miroir,
+// et repo.maven.apache.org (qui répond souvent 429) n'est plus qu'un repli.
+// pluginManagement n'est pas touché : y déclarer un dépôt retirerait le Gradle Plugin Portal
+// par défaut.
+
+def centralMirror = 'https://maven-central.storage-download.googleapis.com/maven2/'
+
+def addMirror = { handler ->
+    handler.maven {
+        name = 'MavenCentralGoogleMirror'
+        url = centralMirror
+    }
+}
+
+allprojects {
+    buildscript {
+        addMirror(repositories)
+    }
+    addMirror(repositories)
+}
