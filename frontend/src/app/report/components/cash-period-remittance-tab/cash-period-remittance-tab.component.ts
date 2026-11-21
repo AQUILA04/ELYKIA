@@ -53,7 +53,7 @@ export class CashPeriodRemittanceTabComponent implements OnInit {
 
     constructor(
         private remittanceService: CashPeriodRemittanceService,
-        private userService: UserService,
+        protected userService: UserService,
         private snackBar: MatSnackBar
     ) { }
 

@@ -1,0 +1,267 @@
+<div class="main-container report-v2 report-remittance-page a1" data-testid="e2e-report-remittance">
+    <div class="breadcrumb-bar">
+        <a class="breadcrumb-link" routerLink="/dashboard" data-testid="e2e-report-remittance-back">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+            </svg>
+            Tableau de bord
+        </a>
+        <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+
+    <div class="page-header-card a2">
+        <div class="header-card-top">
+            <span class="header-surtitle">Rapports · Trésorerie</span>
+        </div>
+        <div class="header-card-main">
+            <div class="title-group">
+                <svg class="page-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <rect x="2" y="6" width="20" height="12" rx="2" /><circle cx="12" cy="12" r="2" /><path d="M6 12h.01M18 12h.01" />
+                </svg>
+                <h1 class="page-title">Remise au gestionnaire</h1>
+            </div>
+            <div class="header-actions">
+                <a class="btn-link" *ngIf="canOpenClassic" data-tour="classic" data-testid="e2e-report-remittance-classic-link"
+                    [routerLink]="['/report/daily/classic']" [queryParams]="classicQueryParams">Ancienne présentation</a>
+                <button type="button" class="btn-ghost" data-tour="help" data-testid="e2e-report-remittance-tour"
+                    (click)="startTour()">Visite guidée</button>
+                <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="isLoading || isSubmitting"
+                    data-testid="e2e-report-remittance-refresh">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
+                    Actualiser
+                </button>
+            </div>
+        </div>
+        <p class="page-subtitle">
+            Versements de la caisse à remettre au gestionnaire, dépenses déduites ·
+            <ng-container *ngIf="isSecretary">le secrétaire soumet, le gestionnaire accuse réception</ng-container>
+            <ng-container *ngIf="!isSecretary">réception d'une remise soumise ou réception directe</ng-container>
+        </p>
+    </div>
+
+    <!-- Période : un mois, puis une plage dans ce mois -->
+    <div class="filter-bar a3" data-tour="remittance-period" data-testid="e2e-report-remittance-period">
+        <div class="filter-group" role="group" aria-label="Mois de la remise">
+            <div class="month-nav">
+                <button type="button" class="seg-btn month-arrow" (click)="shiftMonth(-1)" [disabled]="monthLocked"
+                    aria-label="Mois précédent" data-testid="e2e-report-remittance-prev-month">‹</button>
+                <span class="month-title" data-testid="e2e-report-remittance-month">{{ monthTitle }}</span>
+                <button type="button" class="seg-btn month-arrow" (click)="shiftMonth(1)"
+                    [disabled]="monthLocked || isCurrentMonth" aria-label="Mois suivant"
+                    data-testid="e2e-report-remittance-next-month">›</button>
+            </div>
+        </div>
+        <div class="filter-group custom-range" role="group" aria-label="Plage de dates">
+            <label for="remittanceStart">Du</label>
+            <input id="remittanceStart" type="date" [(ngModel)]="selectedStartDate" (ngModelChange)="onDateRangeChange()"
+                [min]="minDate" [max]="maxDate" [disabled]="datesLocked" data-testid="e2e-report-remittance-start">
+            <label for="remittanceEnd">au</label>
+            <input id="remittanceEnd" type="date" [(ngModel)]="selectedEndDate" (ngModelChange)="onDateRangeChange()"
+                [min]="minDate" [max]="maxDate" [disabled]="datesLocked" data-testid="e2e-report-remittance-end">
+            <span class="range-label" *ngIf="selectedStartDate && selectedEndDate">
+                {{ selectedStartDate | date:'dd/MM/yyyy' }} → {{ selectedEndDate | date:'dd/MM/yyyy' }}
+            </span>
+        </div>
+        <span class="pill" *ngIf="summary" [ngClass]="summary.status === 'RECEIVED' ? 'pill-ok' : summary.status === 'PENDING' ? 'pill-surplus' : 'pill-idle'"
+            data-testid="e2e-report-remittance-status">{{ getSummaryStatusLabel(summary.status) }}</span>
+        <span class="lock-hint" *ngIf="datesLocked">Remise en attente : période figée jusqu'à la réception.</span>
+    </div>
+
+    <div class="kpi-strip a3" *ngIf="isLoading && !summary">
+        <div class="skeleton kpi-skeleton" *ngFor="let i of [1, 2, 3]"></div>
+    </div>
+
+    <ng-container *ngIf="summary as s">
+        <div class="kpi-strip remittance-kpis a3" data-tour="remittance-kpis" data-testid="e2e-report-remittance-kpis"
+            [class.is-loading]="isLoading">
+            <div class="kpi-card kpi-total">
+                <div class="kpi-label">{{ s.status === 'PENDING' ? 'Montant en attente' : 'Reste à remettre' }}</div>
+                <div class="kpi-value num">{{ s.totalAmount | fcfa }}</div>
+                <div class="kpi-sub" *ngIf="s.alreadyRemittedAmount && s.alreadyRemittedAmount > 0">
+                    Déjà remis : {{ s.alreadyRemittedAmount | fcfa }}</div>
+                <div class="kpi-sub" *ngIf="!s.alreadyRemittedAmount || s.alreadyRemittedAmount <= 0">Versements non encore remis</div>
+            </div>
+            <div class="kpi-card kpi-amount">
+                <div class="kpi-label">Crédit</div>
+                <div class="kpi-value num">{{ s.creditAmount | fcfa }}</div>
+                <div class="kpi-sub">Avances et recouvrements</div>
+            </div>
+            <div class="kpi-card kpi-green">
+                <div class="kpi-label">Tontine</div>
+                <div class="kpi-value num">{{ s.tontineAmount | fcfa }}</div>
+                <div class="kpi-sub">Collectes tontine</div>
+            </div>
+            <div class="kpi-card kpi-delai">
+                <div class="kpi-label">Solde nouveaux comptes</div>
+                <div class="kpi-value num">{{ s.newBalanceAmount | fcfa }}</div>
+                <div class="kpi-sub">Dépôts initiaux</div>
+            </div>
+            <div class="kpi-card kpi-expense">
+                <div class="kpi-label">Dépenses</div>
+                <div class="kpi-value num">{{ computedExpenseAmount | fcfa }}</div>
+                <div class="kpi-sub">À déduire</div>
+            </div>
+            <div class="kpi-card kpi-net" [class.kpi-net--negative]="netNegative" data-testid="e2e-report-remittance-net">
+                <div class="kpi-label">Montant net</div>
+                <div class="kpi-value num">{{ computedNetAmount | fcfa }}</div>
+                <div class="kpi-sub">À remettre au gestionnaire</div>
+            </div>
+        </div>
+
+        <div class="remittance-grid a4">
+            <section class="panel-card" data-tour="remittance-expenses" aria-labelledby="remittance-expenses-title">
+                <div class="panel-head">
+                    <h2 id="remittance-expenses-title">Dépenses associées</h2>
+                    <span class="panel-hint" *ngIf="!isReadOnly && !s.status">Cochez les dépenses à déduire de la remise</span>
+                    <span class="panel-hint" *ngIf="!isReadOnly && s.status === 'PENDING'">Le gestionnaire peut retirer des dépenses avant réception</span>
+                    <span class="panel-hint" *ngIf="isReadOnly">Montants figés après réception</span>
+                </div>
+                <ul class="expense-list" *ngIf="getVisibleExpenses().length > 0; else noExpense">
+                    <li *ngFor="let expense of getVisibleExpenses()">
+                        <label class="expense-row" [class.expense-row--on]="isExpenseSelected(expense)"
+                            [class.expense-row--readonly]="isReadOnly" data-testid="e2e-report-remittance-expense"
+                            [attr.data-expense-id]="expense.id">
+                            <input type="checkbox" [checked]="isExpenseSelected(expense)" [disabled]="isReadOnly"
+                                (change)="toggleExpense(expense)">
+                            <span class="expense-main">
+                                <span class="expense-type">{{ expense.expenseTypeName }}</span>
+                                <span class="cell-sub">{{ expense.expenseDate | date:'dd/MM/yyyy' }}<ng-container *ngIf="expense.description"> · {{ expense.description }}</ng-container></span>
+                            </span>
+                            <span class="num expense-amount">{{ expense.amount | fcfa }}</span>
+                        </label>
+                    </li>
+                </ul>
+                <ng-template #noExpense>
+                    <div class="empty-state compact">
+                        <div class="empty-title">Aucune dépense sur la période</div>
+                        <div class="empty-sub">Les dépenses hors approvisionnement de la période s'affichent ici.</div>
+                    </div>
+                </ng-template>
+                <div class="net-warning" *ngIf="netNegative" role="alert">
+                    Le total des dépenses dépasse le montant versé. Retirez des dépenses pour continuer.
+                </div>
+            </section>
+
+            <section class="panel-card actions-panel" data-tour="remittance-actions" aria-labelledby="remittance-actions-title">
+                <div class="panel-head">
+                    <h2 id="remittance-actions-title">Remise</h2>
+                </div>
+                <dl class="net-lines">
+                    <div><dt>Versements</dt><dd class="num">{{ s.totalAmount | fcfa }}</dd></div>
+                    <div><dt>Dépenses déduites</dt><dd class="num">{{ -computedExpenseAmount | fcfa }}</dd></div>
+                    <div class="net-total"><dt>Montant net</dt><dd class="num">{{ computedNetAmount | fcfa }}</dd></div>
+                </dl>
+                <div class="actions-row" *ngIf="s.canSubmit || s.canAcknowledge || s.canInitiate; else noAction">
+                    <button type="button" class="btn-primary" *ngIf="isSecretary && s.canSubmit"
+                        [disabled]="isSubmitting || netNegative" (click)="submitRemittance()"
+                        data-testid="e2e-report-remittance-submit">{{ isSubmitting ? 'Envoi…' : 'Soumettre la remise' }}</button>
+                    <button type="button" class="btn-primary" *ngIf="isManager && s.canAcknowledge"
+                        [disabled]="isSubmitting || netNegative" (click)="acknowledge(s.remittanceId!)"
+                        data-testid="e2e-report-remittance-acknowledge">{{ isSubmitting ? 'Enregistrement…' : 'Accuser réception' }}</button>
+                    <button type="button" class="btn-ghost" *ngIf="isManager && s.canInitiate"
+                        [disabled]="isSubmitting || netNegative" (click)="initiateRemittance()"
+                        data-testid="e2e-report-remittance-initiate">Initier la réception</button>
+                </div>
+                <ng-template #noAction>
+                    <p class="panel-hint no-action" data-testid="e2e-report-remittance-no-action">
+                        <ng-container *ngIf="s.status === 'RECEIVED'">Tout est remis pour cette période.</ng-container>
+                        <ng-container *ngIf="s.status === 'PENDING' && isSecretary">Remise soumise : en attente de la réception par le gestionnaire.</ng-container>
+                        <ng-container *ngIf="s.status !== 'RECEIVED' && !(s.status === 'PENDING' && isSecretary)">Aucune action disponible pour cette période.</ng-container>
+                    </p>
+                </ng-template>
+            </section>
+        </div>
+    </ng-container>
+
+    <section class="table-card a5" data-tour="remittance-history" aria-labelledby="remittance-history-title">
+        <div class="panel-head table-head">
+            <h2 id="remittance-history-title">Historique des remises</h2>
+            <span class="panel-hint">{{ historyTotalElements }} remise(s)</span>
+        </div>
+        <div class="table-wrapper">
+            <div class="skeleton table-skeleton" *ngIf="historyLoading"></div>
+            <table class="data-table" *ngIf="!historyLoading && history.length > 0" data-testid="e2e-report-remittance-history">
+                <thead>
+                    <tr>
+                        <th scope="col" class="expand-col"><span class="sr-only">Détail</span></th>
+                        <th scope="col">Période</th>
+                        <th scope="col" class="num">Total</th>
+                        <th scope="col" class="num">Crédit</th>
+                        <th scope="col" class="num">Tontine</th>
+                        <th scope="col" class="num">Solde Nx</th>
+                        <th scope="col" class="num">Dépenses</th>
+                        <th scope="col" class="num">Net</th>
+                        <th scope="col">Statut</th>
+                        <th scope="col">Soumis par</th>
+                        <th scope="col">Reçu par</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <ng-container *ngFor="let item of history">
+                        <tr data-testid="e2e-report-remittance-history-row" [attr.data-remittance-id]="item.id" [attr.data-status]="item.status">
+                            <td class="expand-col">
+                                <button type="button" class="btn-expand" (click)="toggleHistoryExpand(item.id)"
+                                    [disabled]="!hasDeposits(item)" [attr.aria-expanded]="isHistoryExpanded(item.id)"
+                                    [attr.aria-label]="hasDeposits(item) ? 'Afficher les versements' : 'Aucun versement'">
+                                    <span [class.expanded]="isHistoryExpanded(item.id)" aria-hidden="true">›</span>
+                                </button>
+                            </td>
+                            <td>{{ getMonthLabel(item.month) }} {{ item.year }}</td>
+                            <td class="num">{{ item.totalAmount | fcfa }}</td>
+                            <td class="num">{{ item.creditAmount | fcfa }}</td>
+                            <td class="num">{{ item.tontineAmount | fcfa }}</td>
+                            <td class="num">{{ item.newBalanceAmount | fcfa }}</td>
+                            <td class="num">{{ item.expenseAmount | fcfa }}</td>
+                            <td class="num"><strong>{{ item.netAmount | fcfa }}</strong></td>
+                            <td><span class="pill" [ngClass]="item.status === 'RECEIVED' ? 'pill-ok' : 'pill-surplus'">{{ getHistoryStatusLabel(item.status) }}</span></td>
+                            <td>{{ item.submittedBy || '—' }}<span class="cell-sub" *ngIf="item.submittedAt">{{ item.submittedAt | date:'dd/MM/yyyy HH:mm' }}</span></td>
+                            <td>{{ item.receivedBy || '—' }}<span class="cell-sub" *ngIf="item.receivedAt">{{ item.receivedAt | date:'dd/MM/yyyy HH:mm' }}</span></td>
+                        </tr>
+                        <tr *ngIf="isHistoryExpanded(item.id) && hasDeposits(item)" class="detail-row">
+                            <td colspan="11">
+                                <table class="data-table sub-table">
+                                    <caption>Versements inclus · {{ item.deposits!.length }} ligne(s)</caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Date</th>
+                                            <th scope="col">Commercial</th>
+                                            <th scope="col" class="num">Total</th>
+                                            <th scope="col" class="num">Crédit</th>
+                                            <th scope="col" class="num">Tontine</th>
+                                            <th scope="col" class="num">Solde Nx</th>
+                                            <th scope="col">Référence</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr *ngFor="let deposit of item.deposits">
+                                            <td>{{ deposit.date | date:'dd/MM/yyyy' }}</td>
+                                            <td>{{ deposit.commercialUsername }}</td>
+                                            <td class="num">{{ deposit.amount | fcfa }}</td>
+                                            <td class="num">{{ deposit.creditAmount | fcfa }}</td>
+                                            <td class="num">{{ deposit.tontineAmount | fcfa }}</td>
+                                            <td class="num">{{ deposit.newBalanceAmount | fcfa }}</td>
+                                            <td class="mono">{{ deposit.reference || '—' }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    </ng-container>
+                </tbody>
+            </table>
+            <div class="empty-state" *ngIf="!historyLoading && history.length === 0">
+                <div class="empty-title">Aucune remise enregistrée</div>
+                <div class="empty-sub">Les remises soumises ou reçues apparaîtront ici.</div>
+            </div>
+        </div>
+        <div class="pager" *ngIf="!historyLoading && historyTotalPages > 1">
+            <span>{{ getHistoryPaginationInfo() }}</span>
+            <div class="pager-btns">
+                <button type="button" class="btn-ghost" (click)="changeHistoryPage(-1)" [disabled]="historyPage === 0">Précédent</button>
+                <button type="button" class="btn-ghost" (click)="changeHistoryPage(1)" [disabled]="historyPage >= historyTotalPages - 1">Suivant</button>
+            </div>
+        </div>
+    </section>
+
+    <app-guided-tour></app-guided-tour>
+</div>

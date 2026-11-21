@@ -1,0 +1,192 @@
+@import '../../../shared/report-ui/styles/report-v2';
+
+.report-remittance-page {
+  // Barre de période, au style du report-filter-bar.
+  .filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 20px;
+    background: var(--bg-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .month-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--navy-xpale);
+    border-radius: 10px;
+    padding: 3px;
+  }
+
+  .month-arrow {
+    min-width: 36px;
+    font-size: 18px;
+    line-height: 1;
+
+    &:disabled { opacity: .4; cursor: not-allowed; }
+  }
+
+  .month-title {
+    min-width: 150px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--navy);
+  }
+
+  .custom-range {
+    font-size: 13px;
+    color: var(--text);
+
+    label { margin: 0; }
+
+    input {
+      height: 36px;
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-sm);
+      padding: 0 8px;
+      font: 500 13px 'Inter', sans-serif;
+
+      &:disabled { background: var(--navy-xpale); color: var(--text-muted); }
+    }
+  }
+
+  .range-label { color: var(--text-muted); font-size: 12px; }
+  .lock-hint { flex-basis: 100%; font-size: 12px; color: var(--amber); }
+
+  .remittance-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kpi-expense::before { background: var(--amber); }
+  .kpi-expense .kpi-value { color: var(--amber); }
+  .kpi-net { background: var(--navy-pale); }
+  .kpi-net .kpi-value { color: var(--navy); }
+  .kpi-net--negative::before { background: var(--orange); }
+  .kpi-net--negative .kpi-value { color: var(--orange); }
+  .kpi-skeleton { height: 96px; border-radius: var(--radius); }
+
+  .remittance-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    gap: 16px;
+    margin-bottom: 16px;
+    align-items: start;
+  }
+
+  .expense-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .expense-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+
+    input { width: 16px; height: 16px; accent-color: var(--navy); }
+    &:hover { border-color: var(--border-dark); }
+  }
+
+  .expense-row--on { border-color: var(--navy); background: var(--navy-xpale); }
+  .expense-row--readonly { cursor: default; }
+  .expense-main { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+  .expense-type { font-weight: 600; color: var(--text); }
+  .expense-amount { font-weight: 600; color: var(--amber); white-space: nowrap; }
+
+  .empty-state.compact { padding: 16px 8px; }
+
+  .net-warning {
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--orange-pale);
+    color: var(--orange);
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .net-lines {
+    margin: 0 0 16px;
+
+    div { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+    dt { font-weight: 500; color: var(--text-muted); }
+    dd { margin: 0; font-weight: 600; }
+  }
+
+  .net-total {
+    border-bottom: none !important;
+
+    dt, dd { color: var(--navy); font-weight: 700; font-size: 15px; }
+  }
+
+  .actions-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .no-action { margin: 0; }
+
+  .expand-col { width: 36px; }
+
+  .btn-expand {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-white);
+    color: var(--navy);
+    cursor: pointer;
+
+    span { display: inline-block; transition: transform .15s ease; }
+    .expanded { transform: rotate(90deg); }
+    &:disabled { opacity: .35; cursor: default; }
+  }
+
+  .detail-row > td { background: var(--navy-xpale); padding: 8px 16px 12px; }
+
+  .sub-table {
+    background: var(--bg-white);
+
+    caption {
+      caption-side: top;
+      text-align: left;
+      padding: 4px 0 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+  }
+
+  .cell-sub { display: block; }
+  .table-skeleton { height: 160px; margin: 16px; }
+}
+
+@media (max-width: 1024px) {
+  .report-remittance-page {
+    .remittance-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .remittance-grid { grid-template-columns: 1fr; }
+  }
+}
+
+@media (max-width: 600px) {
+  .report-remittance-page {
+    .remittance-kpis { grid-template-columns: 1fr; }
+    .month-title { min-width: 0; flex: 1; }
+  }
+}

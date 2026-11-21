@@ -168,6 +168,10 @@ export class DailyReportComponent implements OnInit {
         if (qp.get('tab') === 'recovery' && (this.isRecoveryManager || this.isManager)) {
             this.activeTab = 'recovery';
         }
+        // Lien « Ancienne présentation » de la remise au gestionnaire.
+        if (qp.get('tab') === 'remittance' && this.canViewFinancialKpis && (this.isManager || this.isSecretary)) {
+            this.activeTab = 'remittance';
+        }
         const collector = qp.get('collector');
         const startDate = qp.get('startDate');
         const endDate = qp.get('endDate');

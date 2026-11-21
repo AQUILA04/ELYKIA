@@ -78,14 +78,18 @@ Pour saisir une nouvelle dépense, cliquez sur le bouton bleu **« + Nouvelle d�
 
 ## 4. Remise de trésorerie au gestionnaire
 
-Pour y accéder, ouvrez **Rapport Journalier**, puis **Versements & rapprochement** et le bouton **Remise secrétaire → gérant**. Dans l'ancienne présentation, c'est l'onglet **Remise**.
+Pour y accéder, ouvrez **Rapport Journalier**, puis le bouton **Remise au gestionnaire** en haut du cockpit. L'écran **Remise au gestionnaire** s'ouvre (adresse `/report/daily/remittance`). La même remise reste disponible dans **Versements & rapprochement**, bouton **Remise secrétaire → gérant**, et dans l'ancienne présentation, onglet **Remise**.
+
+**Secrétaire.** Si votre compte n'a pas les indicateurs financiers du rapport, **Rapport Journalier** ouvre directement l'écran **Remise au gestionnaire**. C'est votre écran du rapport : vous y préparez et soumettez la remise.
+
+À la première ouverture, une **visite guidée** présente l'écran zone par zone. Le bouton **Visite guidée** la relance.
 
 La **Remise** est le processus formel par lequel le caissier ou la secrétaire verse au gestionnaire de l'agence les espèces collectées sur une période, en déduisant les dépenses d'exploitation autorisées.
 
 <!-- CAPTURE À INSÉRER : Écran de Remise au gestionnaire avec bandeau des 6 KPIs, liste à cocher des dépenses à déduire et boutons Soumettre/Accuser réception. -->
 
 ### A. Paramétrage de la période de remise
-La remise s'effectue au sein d'un mois civil, avec la possibilité d'isoler un intervalle de dates grâce aux champs **« Du »** et **« Au »** :
+La remise s'effectue au sein d'un mois civil. Les flèches **‹ ›** de part et d'autre du mois (par exemple **Novembre 2026**) passent au mois précédent ou suivant ; le mois en cours est le dernier proposé. Les champs **« Du »** et **« Au »** isolent un intervalle de dates dans ce mois :
 * Permet d'effectuer des remises intermédiaires (hebdomadaires, décadaires ou de mi-mois).
 * N'affiche et ne prend en compte que les encaissements qui n'ont **pas encore été remis** au gestionnaire.
 

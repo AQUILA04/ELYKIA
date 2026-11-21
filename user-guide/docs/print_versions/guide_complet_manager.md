@@ -729,14 +729,18 @@ Pour saisir une nouvelle dépense, cliquez sur le bouton bleu **« + Nouvelle d�
 
 ## 4. Remise de trésorerie au gestionnaire
 
-Pour y accéder, ouvrez **Rapport Journalier**, puis **Versements & rapprochement** et le bouton **Remise secrétaire → gérant**. Dans l'ancienne présentation, c'est l'onglet **Remise**.
+Pour y accéder, ouvrez **Rapport Journalier**, puis le bouton **Remise au gestionnaire** en haut du cockpit. L'écran **Remise au gestionnaire** s'ouvre (adresse `/report/daily/remittance`). La même remise reste disponible dans **Versements & rapprochement**, bouton **Remise secrétaire → gérant**, et dans l'ancienne présentation, onglet **Remise**.
+
+**Secrétaire.** Si votre compte n'a pas les indicateurs financiers du rapport, **Rapport Journalier** ouvre directement l'écran **Remise au gestionnaire**. C'est votre écran du rapport : vous y préparez et soumettez la remise.
+
+À la première ouverture, une **visite guidée** présente l'écran zone par zone. Le bouton **Visite guidée** la relance.
 
 La **Remise** est le processus formel par lequel le caissier ou la secrétaire verse au gestionnaire de l'agence les espèces collectées sur une période, en déduisant les dépenses d'exploitation autorisées.
 
 <!-- CAPTURE À INSÉRER : Écran de Remise au gestionnaire avec bandeau des 6 KPIs, liste à cocher des dépenses à déduire et boutons Soumettre/Accuser réception. -->
 
 ### A. Paramétrage de la période de remise
-La remise s'effectue au sein d'un mois civil, avec la possibilité d'isoler un intervalle de dates grâce aux champs **« Du »** et **« Au »** :
+La remise s'effectue au sein d'un mois civil. Les flèches **‹ ›** de part et d'autre du mois (par exemple **Novembre 2026**) passent au mois précédent ou suivant ; le mois en cours est le dernier proposé. Les champs **« Du »** et **« Au »** isolent un intervalle de dates dans ce mois :
 * Permet d'effectuer des remises intermédiaires (hebdomadaires, décadaires ou de mi-mois).
 * N'affiche et ne prend en compte que les encaissements qui n'ont **pas encore été remis** au gestionnaire.
 
@@ -848,6 +852,9 @@ Ouverte depuis le tableau, une alerte ou le filtre Commercial. Un commercial con
 * Totaux de la période : **Total versé**, **Crédit**, **Tontine** (rattrapages compris), **Solde nouveaux comptes**, **Surplus non catégorisé**.
 * Un dépôt par ligne (heure, référence, commercial, reçu par, ventilation, total). Les lignes en surplus sont surlignées et proposent **Équilibrer**. Les rattrapages répartis sur des jours passés sont détaillés sous le dépôt. Le filtre **Avec surplus** ne garde que les dépôts concernés. Le gestionnaire peut **Annuler** un versement dans les 3 jours (l'administrateur sans délai).
 * **Remise secrétaire → gérant** ouvre la remise de caisse (ancien onglet « Remise »).
+
+#### Remise au gestionnaire
+Le bouton **Remise au gestionnaire**, en haut du cockpit, ouvre l'écran de remise de la nouvelle présentation : mois et dates, six indicateurs (reste à remettre, crédit, tontine, solde des nouveaux comptes, dépenses, montant net), dépenses à déduire, **Soumettre la remise** (secrétaire), **Accuser réception** ou **Initier la réception** (gestionnaire), et historique des remises. Une secrétaire sans indicateurs financiers arrive directement sur cet écran. Détail du cycle : [Finances & Remises](finance.md).
 
 #### Journal des opérations
 * Une carte par type d'opération avec son nombre et son montant ; un clic ne garde que ce type, un second clic l'enlève.

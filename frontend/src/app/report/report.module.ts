@@ -39,6 +39,7 @@ import { CommercialYearlyComponent } from './components/commercial-yearly/commer
 import { ReportUiModule } from '../shared/report-ui/report-ui.module';
 import { ReportDepositsComponent } from './pages/report-deposits/report-deposits.component';
 import { ReportJournalComponent } from './pages/report-journal/report-journal.component';
+import { ReportRemittanceComponent } from './pages/report-remittance/report-remittance.component';
 
 @NgModule({
   declarations: [
@@ -57,6 +58,7 @@ import { ReportJournalComponent } from './pages/report-journal/report-journal.co
     CommercialYearlyComponent,
     ReportDepositsComponent,
     ReportJournalComponent,
+    ReportRemittanceComponent,
   ],
   imports: [
     CommonModule,

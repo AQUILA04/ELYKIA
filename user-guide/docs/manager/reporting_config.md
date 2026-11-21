@@ -48,6 +48,9 @@ Ouverte depuis le tableau, une alerte ou le filtre Commercial. Un commercial con
 * Un dépôt par ligne (heure, référence, commercial, reçu par, ventilation, total). Les lignes en surplus sont surlignées et proposent **Équilibrer**. Les rattrapages répartis sur des jours passés sont détaillés sous le dépôt. Le filtre **Avec surplus** ne garde que les dépôts concernés. Le gestionnaire peut **Annuler** un versement dans les 3 jours (l'administrateur sans délai).
 * **Remise secrétaire → gérant** ouvre la remise de caisse (ancien onglet « Remise »).
 
+#### Remise au gestionnaire
+Le bouton **Remise au gestionnaire**, en haut du cockpit, ouvre l'écran de remise de la nouvelle présentation : mois et dates, six indicateurs (reste à remettre, crédit, tontine, solde des nouveaux comptes, dépenses, montant net), dépenses à déduire, **Soumettre la remise** (secrétaire), **Accuser réception** ou **Initier la réception** (gestionnaire), et historique des remises. Une secrétaire sans indicateurs financiers arrive directement sur cet écran. Détail du cycle : [Finances & Remises](finance.md).
+
 #### Journal des opérations
 * Une carte par type d'opération avec son nombre et son montant ; un clic ne garde que ce type, un second clic l'enlève.
 * La liste est horodatée et paginée ; **Exporter en PDF** reprend la période, le commercial et le type choisis.
