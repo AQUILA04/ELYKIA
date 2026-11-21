@@ -1220,7 +1220,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
             SELECT COUNT(c) FROM Credit c
             WHERE c.state = com.optimize.common.entities.enums.State.ENABLED
               AND c.status = com.optimize.elykia.core.enumaration.CreditStatus.INPROGRESS
-              AND (:commercial IS NULL OR LOWER(c.collector) = LOWER(:commercial))
+              AND (CAST(:commercial AS String) IS NULL OR LOWER(c.collector) = LOWER(CAST(:commercial AS String)))
             """)
     long countEnabledInProgress(@Param("commercial") String commercial);
 
@@ -1232,7 +1232,7 @@ public interface CreditRepository extends GenericRepository<Credit, Long> {
               AND LOWER(c.carnetVerifiedBy) = LOWER(:observer)
               AND c.carnetVerifiedAt >= :startAt
               AND c.carnetVerifiedAt < :endAt
-              AND (:commercial IS NULL OR LOWER(c.collector) = LOWER(:commercial))
+              AND (CAST(:commercial AS String) IS NULL OR LOWER(c.collector) = LOWER(CAST(:commercial AS String)))
             """)
     long countCarnetVerifiedByObserver(
             @Param("observer") String observer,
