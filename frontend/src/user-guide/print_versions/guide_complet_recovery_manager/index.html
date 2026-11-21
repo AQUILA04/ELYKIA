@@ -1754,8 +1754,8 @@
 <td>Onglet mobile <strong>Clients</strong>.</td>
 </tr>
 <tr>
-<td>Suivre les opérations réalisées</td>
-<td>Contrôler les montants collectés, les opérations et les montants à remettre par commercial.</td>
+<td>Piloter le recouvrement</td>
+<td>Suivre le taux du mois et l’objectif, les points d’attention, les retards prioritaires, les montants collectés et à remettre par commercial.</td>
 <td>Écran web <strong>Rapport Journalier &gt; Recouvrement terrain</strong>.</td>
 </tr>
 <tr>
@@ -1856,16 +1856,92 @@
 <p>La fiche conserve ensuite le total système, le total carnet, l’écart, le statut <strong>Conforme</strong> ou <strong>Disparité</strong>, le détail par commercial, la date et l’auteur. Le commercial choisi retrouve ses mois en disparité dans <strong>Écarts de carnet</strong> pour les accepter ou les rejeter. Le bouton <strong>Vérifier</strong> reste disponible après la clôture de la session.</p>
 <p>La liste des membres et la fiche affichent le badge <strong>Déjà contrôlé</strong> lorsqu’un contrôle de carnet terrain a déjà été enregistré.</p>
 <p>La vérification administrative du carnet est une action distincte du contrôle terrain. Le badge <strong>Carnet vérifié</strong> peut être appliqué ou retiré seulement si vous disposez des habilitations nécessaires ; il atteste la vérification physique du carnet sans modifier les montants des collectes ni l’état du contrôle terrain. Si l’agence a activé la vérification automatique, l’enregistrement du contrôle marque aussi le carnet comme vérifié. Si ce réglage est désactivé, seul le contrôle est enregistré.</p>
-<h2 id="suivre-le-rapport-de-recouvrement">Suivre le rapport de recouvrement</h2>
+<h2 id="piloter-le-recouvrement-terrain">Piloter le recouvrement terrain</h2>
 <p>Ouvrez <strong>Rapport Journalier</strong> : un Chef de recouvrement arrive directement sur l’écran <strong>Recouvrement terrain</strong> (adresse <code>/report/daily/recovery</code>) ; un gestionnaire y accède par le bouton <strong>Recouvrement terrain</strong> du cockpit, sur la même période. L’écran est réservé au Chef de recouvrement et au gestionnaire.</p>
 <ul>
 <li><strong>Période</strong> : <strong>Aujourd’hui</strong>, <strong>Semaine</strong>, <strong>Mois</strong>, ou <strong>Dates</strong> puis <strong>Appliquer</strong>. <strong>Commercial</strong> : vide pour toute l’équipe, ou un commercial. Les filtres restent dans l’adresse de la page.</li>
-<li>Le Chef de recouvrement ne voit que ses propres opérations. Le gestionnaire choisit un <strong>Chef de recouvrement</strong> dans la liste ; le premier est proposé par défaut. Le rapport porte toujours sur un seul chef.</li>
+<li>Le Chef de recouvrement ne voit que ses propres chiffres. Le gestionnaire arrive sur <strong>Tous les chefs</strong> et peut choisir un <strong>Chef de recouvrement</strong> dans la liste (voir plus bas).</li>
 <li>À la première ouverture, une <strong>visite guidée</strong> présente l’écran ; le bouton <strong>Visite guidée</strong> la relance.</li>
 <li><strong>Ancienne présentation</strong> ouvre l’onglet <strong>Recouvrement</strong> de la présentation en onglets, sur la même période.</li>
 </ul>
-<!-- CAPTURE À INSÉRER : Segment web Recouvrement du Rapport Journalier avec les KPI et le tableau À remettre par commercial. -->
+<!-- CAPTURE À INSÉRER : Recouvrement terrain — points d'attention, bande des cinq chiffres, tendance et retards prioritaires. -->
 
+<h3 id="les-points-dattention">Les points d’attention</h3>
+<p>En haut de l’écran, chaque point d’attention est un bouton. Les plus urgents (en orange) passent avant les autres (en ocre).</p>
+<table>
+<thead>
+<tr>
+<th>Point d’attention</th>
+<th>Ce qu’il signale</th>
+<th>Que faire</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Écarts de carnet en attente</strong></td>
+<td>Vos contrôles en écart que le commercial n’a pas encore acceptés ou rejetés, avec le montant et les commerciaux concernés.</td>
+<td>Relancer le commercial. Le gestionnaire ouvre <strong>Écarts de carnet</strong> d’un clic.</td>
+</tr>
+<tr>
+<td><strong>Gros retards jamais contrôlés</strong></td>
+<td>Parmi les retards prioritaires, ceux dont le carnet n’a jamais été contrôlé.</td>
+<td>Les mettre dans la prochaine tournée. Le clic descend au tableau des retards.</td>
+</tr>
+<tr>
+<td><strong>Sans contrôle depuis plus de 30 jours</strong></td>
+<td>Retards prioritaires dont le dernier contrôle est ancien.</td>
+<td>Refaire un contrôle terrain.</td>
+</tr>
+<tr>
+<td><strong>Taux du mois sous le repère</strong></td>
+<td>Le taux du mois est sous l’objectif ramené aux jours déjà écoulés du mois.</td>
+<td>Concentrer les visites sur les plus gros dus.</td>
+</tr>
+<tr>
+<td><strong>Couverture des carnets sous le repère</strong></td>
+<td>La part des dossiers en cours contrôlés ce mois est sous l’objectif ramené aux jours écoulés.</td>
+<td>Augmenter les contrôles de carnet.</td>
+</tr>
+</tbody>
+</table>
+<p>Le repère suit le mois : avec un objectif de 30 % au 15 d’un mois de 30 jours, le repère est de 15 %. Sans objectif réglé, ces deux alertes n’apparaissent pas.</p>
+<h3 id="les-cinq-chiffres">Les cinq chiffres</h3>
+<table>
+<thead>
+<tr>
+<th>Chiffre</th>
+<th>Lecture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Taux du mois</strong></td>
+<td>Montant recouvré dans le mois de fin de période, rapporté au dû de <strong>tous les retards délai</strong> de l’application (net du reliquat client). Le trait sur la barre marque l’objectif du mois ; la ligne <strong>Objectif</strong> donne aussi le repère à ce jour.</td>
+</tr>
+<tr>
+<td><strong>Recouvré · période</strong></td>
+<td>Montant recouvré et nombre d’opérations sur la période choisie.</td>
+</tr>
+<tr>
+<td><strong>Mois vs mois précédent</strong></td>
+<td>Recouvré du 1er au jour affiché, comparé aux mêmes jours du mois précédent. Le taux du mois précédent n’est pas affiché : le dû des retards change chaque jour.</td>
+</tr>
+<tr>
+<td><strong>À remettre</strong></td>
+<td>Argent recouvré pour le compte des commerciaux, avec le nombre de commerciaux concernés.</td>
+</tr>
+<tr>
+<td><strong>Retards délai</strong></td>
+<td>Nombre de crédits dont la date de fin est dépassée et montant encore dû.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tendance-et-retards-prioritaires">Tendance et retards prioritaires</h3>
+<ul>
+<li><strong>Recouvré par jour · 30 derniers jours</strong> : une barre par jour jusqu’à la fin de la période. Survolez une barre, ou placez-y le focus au clavier, pour lire le montant et le nombre d’opérations. Un trait vertical marque le début du mois.</li>
+<li><strong>Retards prioritaires</strong> : les 10 plus gros montants dus en retard de délai (à montant égal, le plus ancien retard d’abord), avec le quartier, le commercial, le nombre de jours de retard et le <strong>Dernier contrôle</strong> (date, <strong>Conforme</strong> ou <strong>Écart</strong>, ou <strong>Jamais</strong>). <strong>Voir</strong> ouvre le crédit. Ce portefeuille est commun à tous les chefs ; le filtre <strong>Commercial</strong> le réduit.</li>
+</ul>
+<h3 id="le-detail-de-vos-chiffres">Le détail de vos chiffres</h3>
 <table>
 <thead>
 <tr>
@@ -1875,16 +1951,12 @@
 </thead>
 <tbody>
 <tr>
+<td>Couverture des carnets du mois</td>
+<td>Dossiers crédit et membres tontine en cours contrôlés depuis le 1er du mois, avec le trait de l’objectif, puis la part d’ensemble.</td>
+</tr>
+<tr>
 <td>Activité terrain</td>
-<td>Contrôles carnet crédit et contrôles carnet tontine faits sur la période, chacun rapporté au total encore en cours. Le détail indique les contrôles conformes et les écarts. Les clôtures crédit (totales et partielles) et les carnets vérifiés sur la période sont affichés à côté.</td>
-</tr>
-<tr>
-<td>Taux du mois</td>
-<td>Pourcentage de recouvrement du chef sur le mois de fin de période : encaissé terrain / dû live de <strong>tous les retards délai</strong> de l’application.</td>
-</tr>
-<tr>
-<td>KPI</td>
-<td><strong>Taux du mois</strong>, <strong>Montant recouvré</strong> sur la période, <strong>À remettre</strong> (total des commerciaux, avec le nombre de commerciaux concernés) et nombre d’<strong>Opérations</strong>.</td>
+<td>Contrôles carnet crédit et tontine faits sur la période, chacun rapporté au total encore en cours, avec les conformes et les écarts. Clôtures crédit (totales et partielles) et carnets vérifiés sur la période.</td>
 </tr>
 <tr>
 <td>À remettre par commercial</td>
@@ -1900,6 +1972,39 @@
 </tr>
 </tbody>
 </table>
+<h3 id="vue-du-gestionnaire-tous-les-chefs">Vue du gestionnaire : tous les chefs</h3>
+<p>Sans chef choisi, la liste <strong>Chef de recouvrement</strong> affiche <strong>Tous les chefs</strong>. Les points d’attention et les chiffres portent alors sur toute l’équipe, et le tableau <strong>Chefs de recouvrement côte à côte</strong> donne une ligne par chef :</p>
+<table>
+<thead>
+<tr>
+<th>Colonne</th>
+<th>Lecture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Recouvré</strong>, <strong>Opérations</strong></td>
+<td>Sur la période choisie.</td>
+</tr>
+<tr>
+<td><strong>Taux du mois</strong>, <strong>vs mois préc.</strong></td>
+<td>Taux du mois du chef et évolution du recouvré par rapport aux mêmes jours du mois précédent. Un taux sous le repère du jour s’affiche en orange.</td>
+</tr>
+<tr>
+<td><strong>Couverture crédit</strong>, <strong>Couverture tontine</strong></td>
+<td>Dossiers en cours contrôlés par le chef depuis le 1er du mois.</td>
+</tr>
+<tr>
+<td><strong>Écarts</strong>, <strong>Carnets vérifiés</strong></td>
+<td>Contrôles en écart et vérifications de carnet du chef sur la période.</td>
+</tr>
+<tr>
+<td><strong>Tournée du jour</strong></td>
+<td><strong>Ouverte</strong> ou <strong>Clôturée</strong> avec les quartiers prévus, <strong>En préparation</strong>, ou <strong>Aucune</strong>.</td>
+</tr>
+</tbody>
+</table>
+<p>La ligne <strong>Équipe</strong> totalise les chefs ; sa couverture compte une seule fois un dossier contrôlé par deux chefs. Un point d’attention signale aussi un chef <strong>sans opération depuis 5 jours</strong> ou plus. Le nom d’un chef ouvre sa vue ; choisissez <strong>Tous les chefs</strong> dans la liste pour revenir. L’activité terrain, le détail des opérations et l’export PDF ne s’affichent que pour un chef choisi.</p>
 <p>Utilisez l’export uniquement après contrôle de la période et des filtres. Un montant de recouvrement terrain n’est pas automatiquement une remise au gestionnaire : la remise suit son propre circuit de trésorerie.</p>
 <p>\newpage</p>
 <hr />

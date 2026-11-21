@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (board de pilotage du recouvrement)
+
+### Changed
+
+- **Guide utilisateur (chef de recouvrement, gestionnaire) —** écran **Recouvrement terrain** réécrit en board de pilotage : points d'attention, taux du mois et objectif, comparaison au mois précédent, tendance sur 30 jours, retards prioritaires, couverture des carnets, vue **Tous les chefs**. Paramètres **RECOVERY_MONTHLY_RATE_TARGET** et **RECOVERY_COVERAGE_TARGET** dans **Paramètres généraux**. Versions imprimables, index RAG et guide HTML régénérés. Plan `.cursor/plans/recouvrement_board_pilotage.plan.md`.
+
 ## Docs & Infra — 2026-11-21 (recouvrement terrain, nouvelle présentation)
 
 ### Changed
@@ -183,6 +189,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
+
+## Frontend — [2.66.0] — 2026-11-21
+
+### Added
+
+- **Recouvrement terrain — board de pilotage (`/report/daily/recovery`) →** la page s'appuie sur `GET /api/v1/recovery-manager/board` (`RecoveryManagerService.getBoard`). Points d'attention cliquables (écarts de carnet en attente, gros retards jamais contrôlés ou sans contrôle depuis 30 jours, taux ou couverture sous l'objectif au prorata du mois, chef sans opération depuis 5 jours) ; cinq KPI (taux du mois avec repère d'objectif, recouvré sur la période, mois en cours comparé aux mêmes jours du mois précédent, à remettre, retards délai) ; tendance du recouvré par jour sur 30 jours (barres avec infobulle, clavier) ; **Retards prioritaires** (10 plus gros dus nets en retard de délai, dernier contrôle, lien vers le crédit). Pour un chef : **Couverture des carnets du mois** avec repère d'objectif, puis activité terrain, à remettre et opérations comme avant.
+- **Vue « Tous les chefs » (gestionnaire) →** entrée par défaut de la liste **Chef de recouvrement** (plus de présélection du premier chef, pas de `?manager=`) : tableau des chefs côte à côte (recouvré, opérations, taux du mois, évolution, couverture crédit et tontine, écarts, carnets vérifiés, tournée du jour) avec ligne **Équipe** ; le nom d'un chef ouvre sa vue. L'activité terrain, le détail des opérations et l'export PDF restent propres à un chef et sont masqués dans cette vue.
+- Visite guidée du recouvrement en version 2 (relancée une fois), test Playwright du cockpit étendu (board du chef, vue équipe, passage à un chef).
 
 ## Frontend — [2.65.0] — 2026-11-21
 

@@ -202,35 +202,46 @@ export const REMITTANCE_TOUR: TourDefinition = {
 /** Visite du recouvrement terrain (/report/daily/recovery). */
 export const RECOVERY_TOUR: TourDefinition = {
     id: 'report-recovery',
-    version: 1,
+    version: 2,
     steps: [
         {
             target: 'filters',
             title: 'Période et commercial',
             body: 'Choisissez Aujourd\'hui, Semaine, Mois ou des dates précises, et éventuellement un commercial. '
-                + 'Le gestionnaire choisit aussi le chef de recouvrement ; le premier de la liste est proposé par défaut.'
+                + 'Le gestionnaire choisit aussi un chef de recouvrement, ou « Tous les chefs » pour les voir côte à côte.'
+        },
+        {
+            target: 'recovery-alerts',
+            title: 'Les points d\'attention',
+            body: 'Écarts de carnet en attente du commercial, gros retards jamais contrôlés ou contrôlés il y a longtemps, '
+                + 'objectif du mois en retard, chef sans opération. Un clic mène au bon endroit.'
         },
         {
             target: 'recovery-kpis',
-            title: 'Les 4 chiffres',
-            body: 'Taux du mois : part des retards du mois recouvrée par le chef. Montant recouvré et nombre d\'opérations '
-                + 'portent sur la période choisie. « À remettre » est l\'argent recouvré à remettre pour le compte des commerciaux.'
+            title: 'Les chiffres du mois',
+            body: 'Taux du mois : recouvré du mois sur le dû de tous les retards délai, avec l\'objectif s\'il est fixé. '
+                + 'Le mois en cours est comparé aux mêmes jours du mois précédent. « À remettre » est l\'argent recouvré pour les commerciaux.'
         },
         {
-            target: 'recovery-activity',
-            title: 'L\'activité terrain',
-            body: 'Contrôles de carnets crédit et tontine sur le portefeuille en cours, clôtures de crédit et vérifications de carnet.'
+            target: 'recovery-team',
+            title: 'Les chefs côte à côte',
+            body: 'Gestionnaire, vue « Tous les chefs » : recouvré, taux, évolution, couverture des carnets, écarts et tournée du jour '
+                + 'de chaque chef. Le nom du chef ouvre sa vue.'
         },
         {
-            target: 'recovery-remit',
-            title: 'À remettre par commercial',
-            body: 'Une carte par commercial avec le montant recouvré pour lui. Si vous avez accès au rapport financier, '
-                + 'la carte ouvre la fiche du commercial.'
+            target: 'recovery-trend',
+            title: 'La tendance',
+            body: 'Montant recouvré chaque jour sur les 30 derniers jours. Survolez une barre pour le montant et le nombre d\'opérations.'
+        },
+        {
+            target: 'recovery-priority',
+            title: 'Les retards prioritaires',
+            body: 'Les plus gros montants dus en retard de délai, avec le dernier contrôle du carnet. « Voir » ouvre le crédit.'
         },
         {
             target: 'recovery-operations',
-            title: 'Le détail',
-            body: 'Chaque recouvrement : date, crédit, client, commercial, montant, partiel ou total. '
+            title: 'Le détail d\'un chef',
+            body: 'Pour un chef : couverture du mois, activité terrain, à remettre par commercial et détail des opérations. '
                 + '« Exporter en PDF » reprend la période et les filtres.'
         },
         {

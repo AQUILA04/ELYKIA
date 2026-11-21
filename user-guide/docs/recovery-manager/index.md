@@ -14,7 +14,7 @@ Ce guide s’adresse au **Chef de recouvrement** chargé de suivre les crédits 
 | Contrôler les carnets | Comparer les montants relevés auprès du client aux montants système. | Action **Terrain** sur le web ou onglet **Terrain** mobile. |
 | Clôturer un dossier | Enregistrer une clôture totale ou partielle selon le montant réellement encaissé et le reliquat applicable. | Action **Clôturer** sur les retards. |
 | Mettre à jour le contact client | Corriger le téléphone et la géolocalisation du client rencontré. | Onglet mobile **Clients**. |
-| Suivre les opérations réalisées | Contrôler les montants collectés, les opérations et les montants à remettre par commercial. | Écran web **Rapport Journalier > Recouvrement terrain**. |
+| Piloter le recouvrement | Suivre le taux du mois et l’objectif, les points d’attention, les retards prioritaires, les montants collectés et à remettre par commercial. | Écran web **Rapport Journalier > Recouvrement terrain**. |
 | Synchroniser le terrain | Envoyer les opérations différées, résoudre les erreurs et mettre à jour le pack hors ligne. | Onglet mobile **Plus**. |
 
 ## Deux environnements complémentaires
