@@ -858,6 +858,15 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
+## Backend — [1.64.0] — 2026-11-21
+
+### Added
+
+- **Board de pilotage du recouvrement →** `GET /api/v1/recovery-manager/board?startDate&endDate&recoveryManagerUsername&commercialUsername` (`RecoveryBoardController`, `RecoveryBoardService`, `RecoveryBoardDto`), même contrôle d'accès que le rapport (`@recoveryReportAccess.canRead()`). Un chef reçoit toujours son propre board ; le gestionnaire reçoit un chef, ou **tous les chefs** sans `recoveryManagerUsername` (nouveau `RecoveryReportAccess.isSupervisor()`). Contenu : recouvré, opérations et à remettre par commercial de la période ; taux du mois (règle du taux mensuel : recouvré du mois / dû live des retards délai, net du reliquat) ; recouvré du 1er au jour J comparé au 1er–J du mois précédent (pas de taux du mois précédent : le dénominateur n'est pas historique) ; couverture des carnets depuis le 1er du mois ; recouvré par jour sur 30 jours ; 10 retards délai prioritaires (dû net décroissant, puis jours de retard) avec dernier contrôle ; points d'attention ; pour tous les chefs, une ligne par chef (profil `RECOVERY_MANAGER` actif ou chef présent dans les opérations) avec tournée du jour (`RecoveryFieldDayPlanRepository.findByPlanDate`).
+- **Objectifs du recouvrement →** paramètres `RECOVERY_MONTHLY_RATE_TARGET` (`10`, taux du mois visé par chef, en %) et `RECOVERY_COVERAGE_TARGET` (`30`, part du portefeuille en cours contrôlée dans le mois, par chef, en %), `init-data[15]` et `[16]` (tests : `[4]`, `[5]`). Valeurs par défaut posées faute d'objectif métier ; vide ou hors 0–100 : pas d'objectif. Alerte quand la valeur est sous l'objectif au prorata des jours écoulés du mois.
+- **Couverture de l'équipe →** les requêtes natives `summarizeInProgressCoverage` (crédit et tontine) acceptent un chef nul (`CAST(:observer AS text) IS NULL OR …`) : sans ce changement, la couverture « Tous les chefs » valait toujours 0. Le rapport d'un chef passe toujours son nom : son résultat ne change pas. Test Postgres ajouté à `RecoveryManagerActivityPostgresIntegrationTest`.
+- Requêtes `RecoveryManagerOperationRepository.sumByDay`, `summarizeByRecoveryManager`, `findLastOperationDateByRecoveryManager`. `CarnetEcartItemDto.observedBy` et `CarnetEcartDecisionService.listPendingForBoard` (écarts en attente, sans contrôle d'accès, filtrés par le board sur l'auteur du constat). Tests `RecoveryBoardServiceTest`.
+
 ## Backend — [1.63.1] — 2026-11-21
 
 ### Fixed

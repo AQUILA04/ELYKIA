@@ -84,4 +84,31 @@ public interface RecoveryManagerOperationRepository extends GenericRepository<Re
             @Param("recoveryManagerUsername") String recoveryManagerUsername,
             @Param("commercialUsername") String commercialUsername,
             @Param("partial") boolean partial);
+
+    /** Recouvré par jour : date, nombre d'opérations, montant. Board de recouvrement (tendance). */
+    @Query("SELECT r.operationDate, COUNT(r), COALESCE(SUM(r.amountCollected), 0) FROM RecoveryManagerOperation r " +
+            "WHERE r.operationDate BETWEEN :startDate AND :endDate " +
+            "AND (:recoveryManagerUsername IS NULL OR r.recoveryManagerUsername = :recoveryManagerUsername) " +
+            "AND (:commercialUsername IS NULL OR r.commercialUsername = :commercialUsername) " +
+            "GROUP BY r.operationDate")
+    List<Object[]> sumByDay(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("recoveryManagerUsername") String recoveryManagerUsername,
+            @Param("commercialUsername") String commercialUsername);
+
+    /** Par chef : nom, nombre d'opérations, montant. Board de recouvrement (vue équipe). */
+    @Query("SELECT r.recoveryManagerUsername, COUNT(r), COALESCE(SUM(r.amountCollected), 0) FROM RecoveryManagerOperation r " +
+            "WHERE r.operationDate BETWEEN :startDate AND :endDate " +
+            "AND (:commercialUsername IS NULL OR r.commercialUsername = :commercialUsername) " +
+            "GROUP BY r.recoveryManagerUsername")
+    List<Object[]> summarizeByRecoveryManager(
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate,
+            @Param("commercialUsername") String commercialUsername);
+
+    /** Dernière date d'opération de chaque chef, jusqu'à la date donnée incluse. */
+    @Query("SELECT r.recoveryManagerUsername, MAX(r.operationDate) FROM RecoveryManagerOperation r " +
+            "WHERE r.operationDate <= :endDate GROUP BY r.recoveryManagerUsername")
+    List<Object[]> findLastOperationDateByRecoveryManager(@Param("endDate") LocalDate endDate);
 }

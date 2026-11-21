@@ -13,6 +13,8 @@ import com.optimize.elykia.core.repository.CreditRepository;
 import com.optimize.elykia.core.repository.TontineMemberRepository;
 import com.optimize.elykia.core.repository.TontineSessionRepository;
 import com.optimize.elykia.core.support.IntegrationTestSupport;
+import com.optimize.elykia.core.repository.CreditFieldControlRepository;
+import com.optimize.elykia.core.repository.TontineMemberFieldControlRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,6 +45,8 @@ class RecoveryManagerActivityPostgresIntegrationTest extends IntegrationTestSupp
     @Autowired private TontineMemberRepository tontineMemberRepository;
     @Autowired private TontineSessionRepository sessionRepository;
     @Autowired private ClientRepository clientRepository;
+    @Autowired private CreditFieldControlRepository creditFieldControlRepository;
+    @Autowired private TontineMemberFieldControlRepository tontineFieldControlRepository;
 
     @Test
     void activityLoadsWithoutCommercialFilter() {
@@ -77,6 +81,26 @@ class RecoveryManagerActivityPostgresIntegrationTest extends IntegrationTestSupp
             tontineMemberRepository.countInProgressForSession(year, null);
             tontineMemberRepository.countCarnetVerifiedByObserver(OBSERVER, start, end, null);
         }).doesNotThrowAnyException();
+    }
+
+    /** Board « Tous les chefs » : couverture sans chef, sur Postgres (paramètre nul typé). */
+    @Test
+    void coverageWithoutObserverRunsOnPostgres() {
+        int year = LocalDate.now().getYear();
+        LocalDate today = LocalDate.now();
+        LocalDateTime start = today.atStartOfDay();
+        LocalDateTime end = start.plusDays(1);
+
+        assertThatCode(() -> {
+            creditFieldControlRepository.summarizeInProgressCoverage(null, start, end, null);
+            tontineFieldControlRepository.summarizeInProgressCoverage(null, start, end, year, null);
+            creditFieldControlRepository.summarizeInProgressCoverage(null, start, end, COMMERCIAL);
+        }).doesNotThrowAnyException();
+
+        RecoveryManagerActivityDto team = activityService.getActivity(today, today, null, null);
+        RecoveryManagerActivityDto chef = activityService.getActivity(today, today, OBSERVER, null);
+        assertThat(team.getCreditControlsDone()).isGreaterThanOrEqualTo(chef.getCreditControlsDone());
+        assertThat(team.getTontineControlsDone()).isGreaterThanOrEqualTo(chef.getTontineControlsDone());
     }
 
     private TontineSession persistSession(int year) {

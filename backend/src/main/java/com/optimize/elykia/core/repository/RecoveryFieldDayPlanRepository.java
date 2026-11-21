@@ -5,6 +5,7 @@ import com.optimize.elykia.core.entity.sale.RecoveryFieldDayPlan;
 import com.optimize.elykia.core.enumaration.FieldDayPlanStatus;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface RecoveryFieldDayPlanRepository extends GenericRepository<RecoveryFieldDayPlan, Long> {
@@ -16,4 +17,6 @@ public interface RecoveryFieldDayPlanRepository extends GenericRepository<Recove
     );
 
     Optional<RecoveryFieldDayPlan> findByIdAndRecoveryManagerUsername(Long id, String recoveryManagerUsername);
+
+    List<RecoveryFieldDayPlan> findByPlanDate(LocalDate planDate);
 }
