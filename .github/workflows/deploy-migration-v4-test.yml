@@ -1,0 +1,145 @@
+name: Deploy migration-v4 to TEST
+
+# Temporary validation pipeline for the Java 25 / Spring Boot 4 / Spring Modulith migration.
+# Triggers ONLY on branch 'migration-v4' and deploys ONLY to the TEST environment.
+# NEVER deploys to PROD (no prod job, no PROD_* secrets).
+# Remove this workflow once 'migration-v4' has been validated and merged into 'main'.
+
+on:
+  push:
+    branches: [ migration-v4 ]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-migration-v4-test
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  build-backend:
+    if: github.ref_name == 'migration-v4'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      backend_image: ${{ steps.image.outputs.backend_image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set lowercase image name
+        id: image
+        run: |
+          IMAGE_NAME_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
+          BACKEND_IMAGE="${{ env.REGISTRY }}/${IMAGE_NAME_LOWER}-backend:${{ github.sha }}"
+          echo "IMAGE_NAME_LOWER=${IMAGE_NAME_LOWER}" >> "$GITHUB_ENV"
+          echo "backend_image=${BACKEND_IMAGE}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Run backend quality gate
+        run: mvn -B verify --file backend/pom.xml
+
+      - name: Publish JaCoCo coverage report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: backend-jacoco-migration-v4-${{ github.run_id }}
+          path: backend/target/site/jacoco/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push backend Docker image (migration-v4)
+        uses: docker/build-push-action@v7
+        with:
+          context: ./backend
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-backend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_LOWER }}-backend:migration-v4
+
+  resolve-frontend-from-main:
+    if: github.ref_name == 'migration-v4'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      frontend_image: ${{ steps.resolve.outputs.frontend_image }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Resolve latest published frontend image from main
+        id: resolve
+        env:
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+        run: |
+          set -euo pipefail
+          REPO_LOWER=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')
+          IMAGE="${{ env.REGISTRY }}/${REPO_LOWER}-frontend"
+
+          echo "$GHCR_TOKEN" | docker login "${{ env.REGISTRY }}" -u "$GHCR_USERNAME" --password-stdin
+          git fetch origin main --depth=200 2>/dev/null || git fetch origin main
+
+          while read -r sha; do
+            if docker manifest inspect "${IMAGE}:${sha}" > /dev/null 2>&1; then
+              echo "Resolved frontend image from main: ${IMAGE}:${sha}"
+              echo "frontend_image=${IMAGE}:${sha}" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          done < <(git log --format='%H' origin/main | head -100)
+
+          echo "ERROR: No published frontend image found in the last 100 commits of origin/main" >&2
+          exit 1
+
+  deploy-test:
+    needs: [build-backend, resolve-frontend-from-main]
+    if: github.ref_name == 'migration-v4'
+    runs-on: ubuntu-latest
+    name: Deploy migration-v4 backend to TEST
+    environment: test
+    steps:
+      - name: Prepare SSH key
+        run: |
+          echo "$SSH_PRIVATE_KEY" > private_key
+          chmod 600 private_key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy backend (migration-v4) + frontend (main) to TEST server
+        run: |
+          set -euo pipefail
+          FRONTEND_IMAGE='${{ needs.resolve-frontend-from-main.outputs.frontend_image }}'
+          BACKEND_IMAGE='${{ needs.build-backend.outputs.backend_image }}'
+          echo "Deploying TEST stack:"
+          echo "  FRONTEND_IMAGE=${FRONTEND_IMAGE} (from main)"
+          echo "  BACKEND_IMAGE=${BACKEND_IMAGE} (from migration-v4)"
+          ssh -o StrictHostKeyChecking=no -i private_key ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_HOST }} \
+            "export GHCR_USERNAME='${{ secrets.GHCR_USERNAME }}' GHCR_TOKEN='${{ secrets.GHCR_TOKEN }}' \
+             && cd ${{ secrets.TEST_DEPLOY_PATH }} \
+             && ./deploy/deploy.sh test '${FRONTEND_IMAGE}' '${BACKEND_IMAGE}'"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f private_key

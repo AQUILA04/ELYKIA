@@ -9,6 +9,12 @@ Sections are grouped **by component** (Frontend, Mobile, Backend, Customer-space
 Within each component, versions are ordered **descending** (most recent at the top).
 Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (API).
 
+## Docs & Infra — 2026-11-21 (déploiement TEST dédié `migration-v4`)
+
+### Added
+
+- **CI/CD (`.github/workflows/deploy-migration-v4-test.yml`) —** workflow autonome déclenché uniquement sur la branche `migration-v4` (et `workflow_dispatch` verrouillé sur `migration-v4`) pour builder/tester le backend Java 25 (`mvn -B verify` + image Docker `ghcr.io/aquila04/elykia-backend:<sha>` & `:migration-v4`, sans toucher au tag `:latest`), résoudre automatiquement la dernière image `frontend` publiée sur `main`, et déployer **exclusivement** sur l'environnement `test` (aucun job ni secret `prod`).
+
 ## Docs & Infra — 2026-11-21 (refonte Monolithe Modulaire — CI/E2E & README)
 
 ### Changed
