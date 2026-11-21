@@ -101,6 +101,11 @@ test.describe('Rapport commerciaux — cockpit', () => {
     await expect(page).toHaveURL(/\/report\/daily\/recovery/);
     await expect(page.getByTestId('e2e-report-recovery-kpis')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('e2e-report-recovery-manager-select')).toHaveCount(0);
+    // Board du chef : points d'attention, tendance et retards prioritaires ; pas de vue équipe.
+    await expect(page.getByTestId('e2e-report-recovery-alerts')).toBeVisible();
+    await expect(page.getByTestId('e2e-report-recovery-trend')).toBeVisible();
+    await expect(page.getByTestId('e2e-report-recovery-priority')).toBeVisible();
+    await expect(page.getByTestId('e2e-report-recovery-team')).toHaveCount(0);
     // L'ancienne présentation reste accessible : onglet Recouvrement.
     await page.getByTestId('e2e-report-recovery-classic-link').click();
     await expect(page).toHaveURL(/\/report\/daily\/classic/);
@@ -114,6 +119,14 @@ test.describe('Rapport commerciaux — cockpit', () => {
     await expect(page).toHaveURL(/\/report\/daily\/recovery\?.*period=month/);
     await expect(page.getByTestId('e2e-report-recovery-kpis')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('e2e-report-recovery-manager-select')).toBeVisible();
+    // Sans chef choisi : tous les chefs côte à côte, sans le détail des opérations d'un chef.
+    await expect(page.getByTestId('e2e-report-recovery-team')).toBeVisible();
+    await expect(page.getByTestId('e2e-report-recovery-team-row-recov001')).toBeVisible();
+    await expect(page.getByTestId('e2e-report-recovery-operations')).toHaveCount(0);
+    await page.getByTestId('e2e-report-recovery-team-row-recov001').getByRole('button', { name: 'recov001' }).click();
+    await expect(page).toHaveURL(/manager=recov001/);
+    await expect(page.getByTestId('e2e-report-recovery-team')).toHaveCount(0);
+    await expect(page.getByTestId('e2e-report-recovery-coverage')).toBeVisible();
   });
 
   test('Remise au gestionnaire : le cockpit ouvre la nouvelle page', async ({ page }) => {

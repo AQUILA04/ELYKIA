@@ -515,6 +515,14 @@ app:
         key: TONTINE_ORDER_AUTO_VALIDATION
         value: false
         description: "Commandes tontine. Activé : toute commande créée (web ou mobile) passe directement au statut Validée. Désactivé : elle reste En attente jusqu'à la validation par le gestionnaire (sauf saisie par un gestionnaire)."
+      init-data[15]:
+        key: RECOVERY_MONTHLY_RATE_TARGET
+        value: "10"
+        description: "Recouvrement terrain. Taux du mois visé par chef de recouvrement, en % (recouvré du mois / dû des retards délai). Repère du board et alerte au prorata du mois. Vide : pas d’objectif."
+      init-data[16]:
+        key: RECOVERY_COVERAGE_TARGET
+        value: "30"
+        description: "Recouvrement terrain. Part du portefeuille en cours (crédit et tontine) que chaque chef de recouvrement contrôle dans le mois, en %. Repère du board et alerte au prorata du mois. Vide : pas d’objectif."
 
 loki:
   url: ${LOKI_URL:https://logs-prod-028.grafana.net/loki/api/v1/push}

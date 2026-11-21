@@ -94,18 +94,175 @@
   .remit-name { font-weight: 700; }
   .remit-amount { font-size: 18px; font-weight: 700; color: var(--orange); }
 
+  .kpi-strip.is-loading { opacity: .6; transition: opacity .2s; }
+  .kpi-strip--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); margin-bottom: 16px; }
+  .board-skeleton { height: 220px; margin-bottom: 16px; border-radius: var(--radius); }
+
+  // Points d'attention : mêmes repères visuels que le cockpit.
+  .alerts-card { margin-bottom: 16px; }
+  .all-good { margin: 0; font-size: 14px; color: var(--green); font-weight: 600; }
+  .alert-grid {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 10px;
+  }
+  .alert-item {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    min-height: 56px;
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 10px;
+    text-align: left;
+    font: inherit;
+    color: var(--text);
+    cursor: pointer;
+
+    &:hover { filter: brightness(.97); }
+    &:focus-visible { outline: 3px solid #8fb3e0; outline-offset: 2px; }
+  }
+  .alert-bar { width: 6px; border-radius: 3px; flex-shrink: 0; }
+  .alert-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 13px;
+
+    strong { font-size: 14px; }
+    span { color: var(--text-muted); }
+  }
+  .alert-late { background: var(--orange-pale); .alert-bar { background: var(--orange); } }
+  .alert-surplus { background: var(--amber-pale); .alert-bar { background: var(--amber); } }
+  .more-alerts { margin: 10px 0 0; }
+
+  // Repère d'objectif sur une barre de progression.
+  .target-bar { position: relative; overflow: visible; }
+  .target-mark {
+    position: absolute;
+    top: -3px;
+    bottom: -3px;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--text);
+    border-radius: 1px;
+  }
+
+  .coverage-panel, .team-panel, .trend-panel { margin-bottom: 16px; }
+  .priority-panel { margin-bottom: 16px; }
+  .coverage-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+  }
+  .coverage-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--navy-xpale);
+
+    .cell-sub { margin: 0; }
+  }
+
+  .name-link {
+    border: 0;
+    background: none;
+    padding: 0;
+    font: inherit;
+    font-weight: 700;
+    color: var(--navy);
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .total-row th, .total-row td { background: var(--navy-xpale); font-weight: 700; }
+  .total-row th { text-align: left; }
+  .team-note { display: block; margin: 10px 0 0; }
+  .ctrl-ok { color: var(--green); font-weight: 600; }
+
+  // Tendance : une série, barres fines arrondies en haut, 2px d'écart.
+  .trend-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 140px;
+    padding-top: 8px;
+    border-bottom: 1px solid var(--border-dark);
+  }
+  .trend-col {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    display: flex;
+    align-items: flex-end;
+    outline: none;
+
+    &:hover .trend-bar, &:focus-visible .trend-bar { background: var(--navy-dark); }
+    &:hover .trend-tip, &:focus-visible .trend-tip { display: block; }
+    &:focus-visible { box-shadow: 0 0 0 2px #8fb3e0; border-radius: 2px; }
+  }
+  .trend-col--month::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    bottom: 0;
+    left: -2px;
+    border-left: 2px dashed var(--text-light);
+  }
+  .trend-bar {
+    display: block;
+    width: 100%;
+    background: var(--navy);
+    border-radius: 4px 4px 0 0;
+  }
+  .trend-tip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    white-space: nowrap;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--text);
+    color: #ffffff;
+    font-size: 12px;
+    box-shadow: var(--shadow-md);
+    pointer-events: none;
+  }
+  .trend-col:nth-child(-n+4) .trend-tip { left: 0; transform: none; }
+  .trend-col:nth-last-child(-n+4) .trend-tip { left: auto; right: 0; transform: none; }
+  .trend-axis {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
   .empty-state.compact { padding: 16px 8px; }
   .table-skeleton { height: 160px; margin: 16px; }
   .cell-sub { display: block; }
 }
 
 @media (max-width: 1024px) {
-  .report-recovery-page .activity-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .report-recovery-page {
+    .activity-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .kpi-strip--5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
 }
 
 @media (max-width: 600px) {
   .report-recovery-page {
-    .activity-grid { grid-template-columns: 1fr; }
+    .activity-grid, .coverage-grid { grid-template-columns: 1fr; }
+    .kpi-strip--5 { grid-template-columns: minmax(0, 1fr); }
+    .trend-tip { display: none !important; }
     .manager-select { min-width: 0; flex: 1; }
   }
 }

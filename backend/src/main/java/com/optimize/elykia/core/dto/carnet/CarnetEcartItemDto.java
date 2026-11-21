@@ -20,6 +20,8 @@ public class CarnetEcartItemDto {
     String clientName;
     String subjectReference;
     LocalDateTime observedAt;
+    /** Auteur du contrôle (chef de recouvrement le plus souvent). */
+    String observedBy;
     double systemAmount;
     double notebookAmount;
     double differenceAmount;

@@ -61,6 +61,14 @@ app:
         key: TONTINE_ORDER_AUTO_VALIDATION
         value: false
         description: "Commandes tontine. Activé : toute commande créée passe directement au statut Validée."
+      init-data[4]:
+        key: RECOVERY_MONTHLY_RATE_TARGET
+        value: "10"
+        description: "Recouvrement terrain. Taux du mois visé par chef de recouvrement, en % (recouvré du mois / dû des retards délai). Repère du board et alerte au prorata du mois. Vide : pas d’objectif."
+      init-data[5]:
+        key: RECOVERY_COVERAGE_TARGET
+        value: "30"
+        description: "Recouvrement terrain. Part du portefeuille en cours (crédit et tontine) que chaque chef de recouvrement contrôle dans le mois, en %. Repère du board et alerte au prorata du mois. Vide : pas d’objectif."
 
 minio:
   endpoint: http://localhost:9000

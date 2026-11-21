@@ -16,6 +16,12 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 - **Guide utilisateur —** mobile : plafond affiché sur la fiche et au récapitulatif, **Ajouter un article** en modification et à la livraison, fenêtres d'erreur et de succès, reçu enregistré en PDF quand l'imprimante n'est pas disponible. Web : plafond dans l'aperçu de livraison. Index RAG et guide HTML régénérés.
 - **Plan —** `.cursor/plans/tontine_fiabilite_terrain.plan.md` (audit des causes et cas limites).
 
+## Docs & Infra — 2026-11-21 (board de pilotage du recouvrement)
+
+### Changed
+
+- **Guide utilisateur (chef de recouvrement, gestionnaire) —** écran **Recouvrement terrain** réécrit en board de pilotage : points d'attention, taux du mois et objectif, comparaison au mois précédent, tendance sur 30 jours, retards prioritaires, couverture des carnets, vue **Tous les chefs**. Paramètres **RECOVERY_MONTHLY_RATE_TARGET** et **RECOVERY_COVERAGE_TARGET** dans **Paramètres généraux**. Versions imprimables, index RAG et guide HTML régénérés. Plan `.cursor/plans/recouvrement_board_pilotage.plan.md`.
+
 ## Docs & Infra — 2026-11-21 (recouvrement terrain, nouvelle présentation)
 
 ### Changed
@@ -191,7 +197,7 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Stack test : Paygate est activé et pointe vers `https://paygate-test-api.optimizesolux.com`. Le callback public est `https://elykia-test.amenouveve-yaveh.com/api/api/v1/paygate/callbacks` (Traefik retire un préfixe `/api`).
 
-## Frontend — [2.65.1] — 2026-11-21
+## Frontend — [2.66.1] — 2026-11-21
 
 ### Fixed
 
@@ -200,6 +206,14 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 ### Changed
 
 - **Aperçu « Livrer » —** plafond de la commande (plus grand du solde prévisionnel et du solde net) et dépassement éventuel ; la confirmation reste bloquée au-delà.
+
+## Frontend — [2.66.0] — 2026-11-21
+
+### Added
+
+- **Recouvrement terrain — board de pilotage (`/report/daily/recovery`) →** la page s'appuie sur `GET /api/v1/recovery-manager/board` (`RecoveryManagerService.getBoard`). Points d'attention cliquables (écarts de carnet en attente, gros retards jamais contrôlés ou sans contrôle depuis 30 jours, taux ou couverture sous l'objectif au prorata du mois, chef sans opération depuis 5 jours) ; cinq KPI (taux du mois avec repère d'objectif, recouvré sur la période, mois en cours comparé aux mêmes jours du mois précédent, à remettre, retards délai) ; tendance du recouvré par jour sur 30 jours (barres avec infobulle, clavier) ; **Retards prioritaires** (10 plus gros dus nets en retard de délai, dernier contrôle, lien vers le crédit). Pour un chef : **Couverture des carnets du mois** avec repère d'objectif, puis activité terrain, à remettre et opérations comme avant.
+- **Vue « Tous les chefs » (gestionnaire) →** entrée par défaut de la liste **Chef de recouvrement** (plus de présélection du premier chef, pas de `?manager=`) : tableau des chefs côte à côte (recouvré, opérations, taux du mois, évolution, couverture crédit et tontine, écarts, carnets vérifiés, tournée du jour) avec ligne **Équipe** ; le nom d'un chef ouvre sa vue. L'activité terrain, le détail des opérations et l'export PDF restent propres à un chef et sont masqués dans cette vue.
+- Visite guidée du recouvrement en version 2 (relancée une fois), test Playwright du cockpit étendu (board du chef, vue équipe, passage à un chef).
 
 ## Frontend — [2.65.0] — 2026-11-21
 
@@ -894,11 +908,27 @@ Version numbers align with `package.json` (frontend apps) or `backend/pom.xml` (
 
 - Chef de recouvrement : lorsque le paramètre d'agence est activé, un contrôle de carnet tontine marque le membre comme vérifié, en ligne comme hors ligne. Le réglage est repris dans le pack terrain. Désactivé, seul le contrôle est enregistré.
 
-## Backend — [1.63.1] — 2026-11-21
+## Backend — [1.64.1] — 2026-11-21
 
 ### Changed
 
 - **Messages de plafond des commandes tontine —** création, seconde commande et `PUT /api/v1/tontines/deliveries/{id}/items` : le message donne le montant, le plafond et le dépassement au format français (« La commande (62 300 FCFA) dépasse le plafond de ce membre (25 500 FCFA) de 36 800 FCFA… »). Remise refusée : solde net, montant et manque en FCFA (fini `%.2f`). Test d'intégration PostgreSQL du plafond à la création et à la modification.
+
+## Backend — [1.64.0] — 2026-11-21
+
+### Added
+
+- **Board de pilotage du recouvrement →** `GET /api/v1/recovery-manager/board?startDate&endDate&recoveryManagerUsername&commercialUsername` (`RecoveryBoardController`, `RecoveryBoardService`, `RecoveryBoardDto`), même contrôle d'accès que le rapport (`@recoveryReportAccess.canRead()`). Un chef reçoit toujours son propre board ; le gestionnaire reçoit un chef, ou **tous les chefs** sans `recoveryManagerUsername` (nouveau `RecoveryReportAccess.isSupervisor()`). Contenu : recouvré, opérations et à remettre par commercial de la période ; taux du mois (règle du taux mensuel : recouvré du mois / dû live des retards délai, net du reliquat) ; recouvré du 1er au jour J comparé au 1er–J du mois précédent (pas de taux du mois précédent : le dénominateur n'est pas historique) ; couverture des carnets depuis le 1er du mois ; recouvré par jour sur 30 jours ; 10 retards délai prioritaires (dû net décroissant, puis jours de retard) avec dernier contrôle ; points d'attention ; pour tous les chefs, une ligne par chef (profil `RECOVERY_MANAGER` actif ou chef présent dans les opérations) avec tournée du jour (`RecoveryFieldDayPlanRepository.findByPlanDate`).
+- **Objectifs du recouvrement →** paramètres `RECOVERY_MONTHLY_RATE_TARGET` (`10`, taux du mois visé par chef, en %) et `RECOVERY_COVERAGE_TARGET` (`30`, part du portefeuille en cours contrôlée dans le mois, par chef, en %), `init-data[15]` et `[16]` (tests : `[4]`, `[5]`). Valeurs par défaut posées faute d'objectif métier ; vide ou hors 0–100 : pas d'objectif. Alerte quand la valeur est sous l'objectif au prorata des jours écoulés du mois.
+- **Couverture de l'équipe →** les requêtes natives `summarizeInProgressCoverage` (crédit et tontine) acceptent un chef nul (`CAST(:observer AS text) IS NULL OR …`) : sans ce changement, la couverture « Tous les chefs » valait toujours 0. Le rapport d'un chef passe toujours son nom : son résultat ne change pas. Test Postgres ajouté à `RecoveryManagerActivityPostgresIntegrationTest`.
+- Requêtes `RecoveryManagerOperationRepository.sumByDay`, `summarizeByRecoveryManager`, `findLastOperationDateByRecoveryManager`. `CarnetEcartItemDto.observedBy` et `CarnetEcartDecisionService.listPendingForBoard` (écarts en attente, sans contrôle d'accès, filtrés par le board sur l'auteur du constat). Tests `RecoveryBoardServiceTest`.
+
+## Backend — [1.63.1] — 2026-11-21
+
+### Fixed
+
+- **Rapport de recouvrement terrain — accès du gestionnaire →** les cinq lectures de `api/v1/recovery-manager` (opérations, synthèse, activité, taux mensuel, PDF) exigeaient `hasAnyRole('RECOVERY_MANAGER', 'MANAGER', 'ADMIN')`. Il n'existe pas de `ROLE_MANAGER`, et les autorités Spring sont les permissions de l'utilisateur, pas son profil : le gestionnaire recevait « Access Denied ». Nouveau contrôle `RecoveryReportAccess` (`@PreAuthorize("@recoveryReportAccess.canRead()")`) : permission `ROLE_RECOVERY_MANAGER` ou `ROLE_ADMIN`, ou profil GESTIONNAIRE, ADMIN, SUPER_ADMIN. Un chef de recouvrement ne lit que son propre rapport : le `recoveryManagerUsername` qu'il envoie est remplacé par son nom.
+- **Activité terrain sans filtre commercial →** `GET /api/v1/recovery-manager/report/activity` sans `commercialUsername` renvoyait 500 (`function lower(bytea) does not exist`) : le paramètre nul de `LOWER(:commercial)` n'était pas typé. `CAST(:commercial AS String)` dans `CreditRepository.countEnabledInProgress`, `countCarnetVerifiedByObserver` et leurs équivalents de `TontineMemberRepository`. Tests sur PostgreSQL : `RecoveryManagerActivityPostgresIntegrationTest`, `RecoveryManagerControllerSecurityIntegrationTest`.
 
 ## Backend — [1.63.0] — 2026-11-21
 
