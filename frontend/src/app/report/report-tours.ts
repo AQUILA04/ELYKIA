@@ -198,3 +198,45 @@ export const REMITTANCE_TOUR: TourDefinition = {
         }
     ]
 };
+
+/** Visite du recouvrement terrain (/report/daily/recovery). */
+export const RECOVERY_TOUR: TourDefinition = {
+    id: 'report-recovery',
+    version: 1,
+    steps: [
+        {
+            target: 'filters',
+            title: 'Période et commercial',
+            body: 'Choisissez Aujourd\'hui, Semaine, Mois ou des dates précises, et éventuellement un commercial. '
+                + 'Le gestionnaire choisit aussi le chef de recouvrement ; le premier de la liste est proposé par défaut.'
+        },
+        {
+            target: 'recovery-kpis',
+            title: 'Les 4 chiffres',
+            body: 'Taux du mois : part des retards du mois recouvrée par le chef. Montant recouvré et nombre d\'opérations '
+                + 'portent sur la période choisie. « À remettre » est l\'argent recouvré à remettre pour le compte des commerciaux.'
+        },
+        {
+            target: 'recovery-activity',
+            title: 'L\'activité terrain',
+            body: 'Contrôles de carnets crédit et tontine sur le portefeuille en cours, clôtures de crédit et vérifications de carnet.'
+        },
+        {
+            target: 'recovery-remit',
+            title: 'À remettre par commercial',
+            body: 'Une carte par commercial avec le montant recouvré pour lui. Si vous avez accès au rapport financier, '
+                + 'la carte ouvre la fiche du commercial.'
+        },
+        {
+            target: 'recovery-operations',
+            title: 'Le détail',
+            body: 'Chaque recouvrement : date, crédit, client, commercial, montant, partiel ou total. '
+                + '« Exporter en PDF » reprend la période et les filtres.'
+        },
+        {
+            target: 'classic',
+            title: 'L\'ancien écran',
+            body: '« Ancienne présentation » ouvre l\'onglet « Recouvrement » que vous connaissez, sur la même période.'
+        }
+    ]
+};

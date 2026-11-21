@@ -92,7 +92,12 @@ export class ReportCockpitComponent implements OnInit, OnDestroy {
                 void this.router.navigate(['/report/daily/remittance'], { replaceUrl: true });
                 return;
             }
-            // Sans KPI financiers (chef de recouvrement…) : l'onglet recouvrement de la présentation classique.
+            if (this.userService.hasProfile(UserProfile.RECOVERY_MANAGER)) {
+                // Chef de recouvrement sans KPI financiers : son écran du rapport est le recouvrement terrain.
+                void this.router.navigate(['/report/daily/recovery'], { replaceUrl: true });
+                return;
+            }
+            // Autres profils sans KPI financiers : la présentation classique.
             void this.router.navigate(['/report/daily/classic'], { replaceUrl: true });
             return;
         }

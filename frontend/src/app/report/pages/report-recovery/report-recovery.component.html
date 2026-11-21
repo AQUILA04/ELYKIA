@@ -1,0 +1,198 @@
+<div class="main-container report-v2 report-recovery-page a1" data-testid="e2e-report-recovery">
+    <div class="breadcrumb-bar">
+        <a class="breadcrumb-link" *ngIf="canViewFinancialKpis" [routerLink]="['/report/daily']" [queryParams]="carryParams"
+            data-testid="e2e-report-recovery-back">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+            </svg>
+            Cockpit équipe
+        </a>
+        <a class="breadcrumb-link" *ngIf="!canViewFinancialKpis" routerLink="/dashboard" data-testid="e2e-report-recovery-back">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                <path fill-rule="evenodd" d="M11.78 5.22a.75.75 0 0 1 0 1.06L8.06 10l3.72 3.72a.75.75 0 1 1-1.06 1.06l-4.25-4.25a.75.75 0 0 1 0-1.06l4.25-4.25a.75.75 0 0 1 1.06 0Z" clip-rule="evenodd" />
+            </svg>
+            Tableau de bord
+        </a>
+        <span class="date-display">{{ currentDate | date:'dd/MM/yyyy - HH:mm:ss' }}</span>
+    </div>
+
+    <div class="page-header-card a2">
+        <div class="header-card-top">
+            <span class="header-surtitle">Rapports · Recouvrement</span>
+        </div>
+        <div class="header-card-main">
+            <div class="title-group">
+                <svg class="page-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M12 2v20" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+                <h1 class="page-title">Recouvrement terrain</h1>
+            </div>
+            <div class="header-actions">
+                <a class="btn-link" data-tour="classic" data-testid="e2e-report-recovery-classic-link"
+                    [routerLink]="['/report/daily/classic']" [queryParams]="classicQueryParams">Ancienne présentation</a>
+                <button type="button" class="btn-ghost" data-tour="help" data-testid="e2e-report-recovery-tour"
+                    (click)="startTour()">Visite guidée</button>
+                <button type="button" class="btn-ghost" data-tour="recovery-export" (click)="onExportPdf()"
+                    [disabled]="isDownloading || !filters" data-testid="e2e-report-recovery-export">
+                    {{ isDownloading ? 'Génération…' : 'Exporter en PDF' }}</button>
+                <button type="button" class="btn-refresh" (click)="refresh()" [disabled]="isLoading"
+                    data-testid="e2e-report-recovery-refresh">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" /><path d="M3 3v5h5" /></svg>
+                    Actualiser
+                </button>
+            </div>
+        </div>
+        <p class="page-subtitle" *ngIf="filters">
+            Crédits en retard recouvrés sur le terrain et argent à remettre par commercial · période
+            {{ filters.start | date:'dd/MM/yyyy' }}<ng-container *ngIf="filters.end !== filters.start"> → {{ filters.end | date:'dd/MM/yyyy' }}</ng-container>
+            <ng-container *ngIf="!isManager"> · vos opérations</ng-container>
+        </p>
+    </div>
+
+    <div class="a3 recovery-filters">
+        <app-report-filter-bar *ngIf="filters" [filters]="filters" [agents]="agents"
+            (filtersChange)="onFiltersChange($event)"></app-report-filter-bar>
+        <div class="manager-filter" *ngIf="isManager" data-tour="recovery-manager">
+            <span class="filter-label" id="recovery-manager-label">Chef de recouvrement</span>
+            <ng-select class="manager-select" [items]="recoveryManagerOptions" bindLabel="label" bindValue="username"
+                [ngModel]="recoveryManagerUsername" (ngModelChange)="onManagerSelect($event)" [searchFn]="searchManager"
+                placeholder="Choisir un chef" [clearable]="false" appendTo="body"
+                data-testid="e2e-report-recovery-manager-select" labelForId="recovery-manager-input"
+                [inputAttrs]="{ 'aria-labelledby': 'recovery-manager-label' }">
+            </ng-select>
+        </div>
+    </div>
+
+    <div class="kpi-strip a3" data-tour="recovery-kpis" data-testid="e2e-report-recovery-kpis" [class.is-loading]="isLoading">
+        <div class="kpi-card kpi-total" data-testid="e2e-report-recovery-rate">
+            <div class="kpi-label">Taux du mois</div>
+            <div class="kpi-value num">{{ rateLabel }}</div>
+            <div class="kpi-sub" *ngIf="monthlyRate as rate">{{ monthLabel }} · {{ rate.amountCollectedByChef | fcfa }} sur {{ rate.latePortfolioDue | fcfa }} dus</div>
+            <div class="rate-bar" *ngIf="monthlyRate as rate" aria-hidden="true"><span [style.width.%]="barWidth(rate.recoveryRatePercent)"></span></div>
+        </div>
+        <div class="kpi-card kpi-green">
+            <div class="kpi-label">Montant recouvré</div>
+            <div class="kpi-value num">{{ (summary?.totalAmountCollected || 0) | fcfa }}</div>
+            <div class="kpi-sub">Sur la période choisie</div>
+        </div>
+        <div class="kpi-card kpi-delai">
+            <div class="kpi-label">À remettre</div>
+            <div class="kpi-value num">{{ totalToRemit | fcfa }}</div>
+            <div class="kpi-sub">{{ summary?.commercialsCount || 0 }} commercial(aux) concerné(s)</div>
+        </div>
+        <div class="kpi-card kpi-amount">
+            <div class="kpi-label">Opérations</div>
+            <div class="kpi-value num">{{ summary?.totalOperationsCount || 0 }}</div>
+            <div class="kpi-sub">Recouvrements partiels ou totaux</div>
+        </div>
+    </div>
+
+    <section class="panel-card a4 activity-panel" data-tour="recovery-activity" aria-labelledby="recovery-activity-title"
+        *ngIf="activity as act" data-testid="e2e-report-recovery-activity">
+        <div class="panel-head">
+            <h2 id="recovery-activity-title">Activité terrain</h2>
+            <span class="panel-hint">Chaque total est le portefeuille encore en cours<ng-container *ngIf="commercialUsername"> du commercial choisi</ng-container></span>
+        </div>
+        <div class="activity-grid">
+            <article class="activity-card">
+                <div class="kpi-label">Contrôles carnet crédit</div>
+                <div class="activity-figure"><span class="num">{{ act.creditControlsDone }}</span><span class="activity-of"> / {{ act.creditPortfolioTotal }}</span><span class="activity-pct">{{ act.creditCoveragePercent }} %</span></div>
+                <div class="rate-bar" role="progressbar" [attr.aria-valuenow]="barWidth(act.creditCoveragePercent)" aria-valuemin="0" aria-valuemax="100" aria-label="Part des crédits en cours contrôlés"><span [style.width.%]="barWidth(act.creditCoveragePercent)"></span></div>
+                <p class="cell-sub">{{ controlHint(act.creditControlsEvents, act.creditControlsDone, act.creditControlsConforme, act.creditControlsEcart, act.creditPortfolioTotal, 'Aucun crédit en cours') }}</p>
+            </article>
+            <article class="activity-card">
+                <div class="kpi-label">Contrôles carnet tontine</div>
+                <div class="activity-figure"><span class="num">{{ act.tontineControlsDone }}</span><span class="activity-of"> / {{ act.tontinePortfolioTotal }}</span><span class="activity-pct">{{ act.tontineCoveragePercent }} %</span></div>
+                <div class="rate-bar" role="progressbar" [attr.aria-valuenow]="barWidth(act.tontineCoveragePercent)" aria-valuemin="0" aria-valuemax="100" aria-label="Part des membres tontine en cours contrôlés"><span [style.width.%]="barWidth(act.tontineCoveragePercent)"></span></div>
+                <p class="cell-sub">{{ controlHint(act.tontineControlsEvents, act.tontineControlsDone, act.tontineControlsConforme, act.tontineControlsEcart, act.tontinePortfolioTotal, 'Aucun membre en cours') }}</p>
+            </article>
+            <article class="activity-card">
+                <div class="kpi-label">Clôtures crédit</div>
+                <div class="activity-figure"><span class="num">{{ act.creditClosuresCount }}</span></div>
+                <p class="cell-sub">{{ closureHint }}</p>
+            </article>
+            <article class="activity-card">
+                <div class="kpi-label">Carnets vérifiés</div>
+                <div class="activity-figure"><span class="num">{{ act.creditCarnetVerifications }}</span><span class="activity-of"> crédit · </span><span class="num">{{ act.tontineCarnetVerifications }}</span><span class="activity-of"> tontine</span></div>
+                <p class="cell-sub">Vérifications enregistrées sur la période</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="panel-card a4" data-tour="recovery-remit" aria-labelledby="recovery-remit-title" data-testid="e2e-report-recovery-remit">
+        <div class="panel-head">
+            <h2 id="recovery-remit-title">À remettre par commercial</h2>
+            <span class="panel-hint">Argent recouvré pour le compte de chaque commercial</span>
+        </div>
+        <div class="remit-grid" *ngIf="summary?.remittanceByCommercial?.length; else noRemit">
+            <ng-container *ngFor="let line of summary!.remittanceByCommercial">
+                <a class="remit-card remit-card--link" *ngIf="canViewFinancialKpis"
+                    [routerLink]="['/report/daily/commercials', line.commercialUsername]" [queryParams]="carryParams"
+                    data-testid="e2e-report-recovery-remit-card">
+                    <span class="remit-name">{{ line.commercialUsername }}</span>
+                    <span class="num remit-amount">{{ line.totalToRemit | fcfa }}</span>
+                    <span class="cell-sub">{{ line.operationsCount }} opération(s) · voir la fiche ›</span>
+                </a>
+                <div class="remit-card" *ngIf="!canViewFinancialKpis" data-testid="e2e-report-recovery-remit-card">
+                    <span class="remit-name">{{ line.commercialUsername }}</span>
+                    <span class="num remit-amount">{{ line.totalToRemit | fcfa }}</span>
+                    <span class="cell-sub">{{ line.operationsCount }} opération(s)</span>
+                </div>
+            </ng-container>
+        </div>
+        <ng-template #noRemit>
+            <div class="empty-state compact">
+                <div class="empty-title">Rien à remettre sur la période</div>
+            </div>
+        </ng-template>
+    </section>
+
+    <section class="table-card a5" data-tour="recovery-operations" aria-labelledby="recovery-ops-title">
+        <div class="panel-head table-head">
+            <h2 id="recovery-ops-title">Détail des opérations</h2>
+            <span class="panel-hint">{{ totalElements }} opération(s)</span>
+        </div>
+        <div class="table-wrapper">
+            <div class="skeleton table-skeleton" *ngIf="isLoading && operations.length === 0"></div>
+            <table class="data-table" *ngIf="operations.length > 0" data-testid="e2e-report-recovery-operations">
+                <thead>
+                    <tr>
+                        <th scope="col">Date</th>
+                        <th scope="col">Réf. crédit</th>
+                        <th scope="col">Client</th>
+                        <th scope="col">Commercial</th>
+                        <th scope="col" *ngIf="isManager">Chef</th>
+                        <th scope="col" class="num">Montant</th>
+                        <th scope="col">Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let op of operations">
+                        <td>{{ op.operationDate | date:'dd/MM/yyyy' }}</td>
+                        <td class="mono">{{ op.creditReference }}</td>
+                        <td>{{ op.clientName }}</td>
+                        <td>{{ op.commercialUsername }}</td>
+                        <td *ngIf="isManager">{{ op.recoveryManagerUsername }}</td>
+                        <td class="num">{{ op.amountCollected | fcfa }}</td>
+                        <td><span class="pill" [ngClass]="op.isPartial ? 'pill-surplus' : 'pill-ok'">{{ op.isPartial ? 'Partiel' : 'Total' }}</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="empty-state" *ngIf="!isLoading && operations.length === 0">
+                <div class="empty-title">Aucune opération de recouvrement sur la période</div>
+                <div class="empty-sub">Changez la période<ng-container *ngIf="isManager">, le commercial ou le chef de recouvrement</ng-container><ng-container *ngIf="!isManager"> ou le commercial</ng-container>.</div>
+            </div>
+        </div>
+        <div class="pager" *ngIf="totalElements > pageSize">
+            <span>{{ pageInfo }}</span>
+            <div class="pager-btns">
+                <button type="button" class="btn-ghost" (click)="goToPage(-1)" [disabled]="currentPage === 0"
+                    data-testid="e2e-report-recovery-prev">Précédent</button>
+                <button type="button" class="btn-ghost" (click)="goToPage(1)" [disabled]="currentPage >= totalPages - 1"
+                    data-testid="e2e-report-recovery-next">Suivant</button>
+            </div>
+        </div>
+    </section>
+
+    <app-guided-tour></app-guided-tour>
+</div>
