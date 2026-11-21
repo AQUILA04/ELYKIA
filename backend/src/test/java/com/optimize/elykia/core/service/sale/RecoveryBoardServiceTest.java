@@ -178,6 +178,9 @@ class RecoveryBoardServiceTest {
         assertEquals("RATE_BELOW_TARGET", below.get(0).getType());
         assertEquals(5d, below.get(0).getThreshold());
 
+        // Sans retard délai ni dossier en cours, pas d'alerte d'objectif.
+        assertTrue(RecoveryBoardService.targetAttention("recov001", null, null, targets).isEmpty());
+
         RecoveryBoardDto.Targets none = RecoveryBoardDto.Targets.builder().elapsedRatio(0.5d).build();
         assertTrue(RecoveryBoardService.targetAttention("recov001", 0d, 0d, none).isEmpty());
     }

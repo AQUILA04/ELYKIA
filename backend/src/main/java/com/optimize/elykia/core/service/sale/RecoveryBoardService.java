@@ -137,13 +137,18 @@ public class RecoveryBoardService {
         attention.addAll(controlAttention(priority, effectiveEnd));
         if (team) {
             for (RecoveryBoardDto.ManagerRow row : rows) {
-                attention.addAll(targetAttention(row.getUsername(), row.getMonthRatePercent(),
-                        combinedCoverage(row), targets));
+                attention.addAll(targetAttention(row.getUsername(),
+                        latePortfolioDue > 0d ? row.getMonthRatePercent() : null,
+                        row.getCreditPortfolioTotal() + row.getTontinePortfolioTotal() > 0 ? combinedCoverage(row) : null,
+                        targets));
                 inactive(row, effectiveEnd).ifPresent(attention::add);
             }
         } else {
-            attention.addAll(targetAttention(manager, monthRate.getRatePercent(),
-                    combinedCoverage(coverage), targets));
+            attention.addAll(targetAttention(manager,
+                    latePortfolioDue > 0d ? monthRate.getRatePercent() : null,
+                    coverage.getCreditPortfolioTotal() + coverage.getTontinePortfolioTotal() > 0
+                            ? combinedCoverage(coverage) : null,
+                    targets));
         }
         attention.sort(Comparator.comparing((RecoveryBoardDto.Attention a) -> HIGH.equals(a.getSeverity()) ? 0 : 1)
                 .thenComparing(a -> -a.getAmount()));
@@ -504,11 +509,14 @@ public class RecoveryBoardService {
                 .filter(StringUtils::hasText).distinct().toList();
     }
 
-    /** Objectif au prorata des jours écoulés du mois ; aucune alerte sans objectif. */
-    static List<RecoveryBoardDto.Attention> targetAttention(String manager, double ratePercent, double coveragePercent,
+    /**
+     * Objectif au prorata des jours écoulés du mois ; aucune alerte sans objectif, ni quand la
+     * valeur est nulle faute de portefeuille (aucun retard délai, aucun dossier en cours).
+     */
+    static List<RecoveryBoardDto.Attention> targetAttention(String manager, Double ratePercent, Double coveragePercent,
                                                             RecoveryBoardDto.Targets targets) {
         List<RecoveryBoardDto.Attention> attention = new ArrayList<>();
-        if (targets.getMonthlyRatePercent() != null) {
+        if (targets.getMonthlyRatePercent() != null && ratePercent != null) {
             double expected = round(targets.getMonthlyRatePercent() * targets.getElapsedRatio());
             if (expected > 0d && ratePercent < expected) {
                 attention.add(RecoveryBoardDto.Attention.builder()
@@ -516,7 +524,7 @@ public class RecoveryBoardService {
                         .value(ratePercent).threshold(expected).build());
             }
         }
-        if (targets.getCoveragePercent() != null) {
+        if (targets.getCoveragePercent() != null && coveragePercent != null) {
             double expected = round(targets.getCoveragePercent() * targets.getElapsedRatio());
             if (expected > 0d && coveragePercent < expected) {
                 attention.add(RecoveryBoardDto.Attention.builder()
